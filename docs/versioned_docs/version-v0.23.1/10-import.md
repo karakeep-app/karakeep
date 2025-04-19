@@ -1,7 +1,7 @@
 # Importing Bookmarks
 
 
-Hoarder supports importing bookmarks using the Netscape HTML Format, Pocket's new CSV format & Omnivore's JSONs. Titles, tags and addition date will be preserved during the import. An automatically created list will contain all the imported bookmarks.
+Karakeep supports importing bookmarks using the Netscape HTML Format, Pocket's new CSV format & Omnivore's JSONs. Titles, tags and addition date will be preserved during the import. An automatically created list will contain all the imported bookmarks.
 
 :::info
 All the URLs in the bookmarks file will be added automatically, you will not be able to pick and choose which bookmarks to import!
