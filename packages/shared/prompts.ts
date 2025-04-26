@@ -68,3 +68,35 @@ ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
   const truncatedContent = truncateContent(content, contextLength - promptSize);
   return constructPrompt(truncatedContent);
 }
+
+export function buildTagCleanupPrompt(
+  tags: string[],
+  userInstruction: string,
+  contextLength: number,
+) {
+  const constructPrompt = (t: string[]) => `
+Given a list of tags, I want you to emit suggestions for tags cleanups
+such that there isn't a lot of semantically similar tags. Emit one line
+per suggestion. Every line is a list of tags that should be merged together
+separated by a comma. First tag being the one that should be kept. Tags
+that doesn't need to be merged should be ignored.
+
+Example input: Software Engineer, dog, Cat, CAT, Dog, SWE
+Example output:
+cat,Cat,CAT
+dog,Dog
+SWE,Software Engineer
+
+User instructions: ${userInstruction}
+
+Tags: ${t.join(", ")}`;
+
+  const promptSize = calculateNumTokens(constructPrompt([]));
+
+  // Assume 1.5 token per tag:
+  // We should retain (contextLength - promptSize) / 1.5 tag.
+  const maxTags = Math.floor((contextLength - promptSize) / 1.5);
+  const inputTags = tags.slice(0, maxTags);
+
+  return constructPrompt(inputTags);
+}

@@ -1,7 +1,8 @@
+import { TagAIDuplicationDetection } from "@/components/dashboard/cleanups/TagAIDuplicationDetention";
 import { TagDuplicationDetection } from "@/components/dashboard/cleanups/TagDuplicationDetention";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/server";
-import { Paintbrush, Tags } from "lucide-react";
+import { Paintbrush } from "lucide-react";
 
 export default async function Cleanups() {
   const { t } = await useTranslation();
@@ -13,12 +14,8 @@ export default async function Cleanups() {
         {t("cleanups.cleanups")}
       </span>
       <Separator />
-      <span className="flex items-center gap-1 text-xl">
-        <Tags />
-        {t("cleanups.duplicate_tags.title")}
-      </span>
-      <Separator />
       <TagDuplicationDetection />
+      <TagAIDuplicationDetection />
     </div>
   );
 }

@@ -5,6 +5,9 @@ import { z } from "zod";
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
 import { SqliteError } from "@karakeep/db";
 import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
+import { InferenceClientFactory } from "@karakeep/shared/inference";
+import { buildTagCleanupPrompt } from "@karakeep/shared/prompts";
 import { triggerSearchReindex } from "@karakeep/shared/queues";
 import {
   zGetTagResponseSchema,
@@ -399,5 +402,102 @@ export const tagsAppRouter = router({
       }));
 
       return { tags: resp };
+    }),
+
+  aiCleanupSuggestions: authedProcedure
+    .input(
+      z.object({
+        userInstructions: z.string().optional(),
+      }),
+    )
+    .output(
+      z.object({
+        suggestions: z.array(
+          z.object({
+            mergeIntoId: z.string(),
+            tags: z.array(z.object({ id: z.string(), name: z.string() })),
+          }),
+        ),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      if (serverConfig.demoMode) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Demo mode is enabled",
+        });
+      }
+      const inferenceClient = InferenceClientFactory.build();
+      if (!inferenceClient) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No inference client configured",
+        });
+      }
+      const allTags = await ctx.db.query.bookmarkTags.findMany({
+        columns: {
+          id: true,
+          name: true,
+        },
+        where: eq(bookmarkTags.userId, ctx.user.id),
+      });
+      const prompt = buildTagCleanupPrompt(
+        allTags.map((t) => t.name),
+        input.userInstructions ?? "",
+        serverConfig.inference.contextLength,
+      );
+      const modelOutput = await inferenceClient.inferFromText(prompt, {
+        schema: null,
+      });
+
+      if (!modelOutput.response) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate suggestions",
+        });
+      }
+      const nameToId = new Map<string, string>();
+      allTags.forEach((t) => {
+        nameToId.set(t.name, t.id);
+      });
+
+      // The prompt instructs the model to emit one line per suggestion
+      // comma-separated.
+
+      const suggestionsStr = modelOutput.response.split("\n");
+
+      const suggestions = [];
+      for (const suggestion of suggestionsStr) {
+        const tags = suggestion.trim().split(",");
+        if (tags.length <= 1) {
+          continue;
+        }
+        const mergeIntoName = tags[0].trim();
+        const mergeIntoId = nameToId.get(mergeIntoName);
+
+        if (!mergeIntoId) {
+          continue;
+        }
+        const tagList = tags
+          .map((t) =>
+            nameToId.get(t.trim())
+              ? {
+                  id: nameToId.get(t.trim())!,
+                  name: t.trim(),
+                }
+              : undefined,
+          )
+          .filter((t) => t !== undefined);
+        if (tagList.length == 0) {
+          continue;
+        }
+        suggestions.push({
+          mergeIntoId,
+          tags: tagList,
+        });
+      }
+      return {
+        suggestions,
+      };
     }),
 });
