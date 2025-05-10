@@ -1,0 +1,9 @@
+dependencies:
+- name: common
+  repository: https://bjw-s-labs.github.io/helm-charts
+  version: 3.7.3
+- name: meilisearch
+  repository: https://meilisearch.github.io/meilisearch-kubernetes
+  version: 0.12.0
+digest: sha256:3e2a57756d58bd85ff03cf0dc7f0b6beb972b77fc6036d4f29421e7207a1bce0
+generated: "2025-05-02T18:15:07.080331+01:00"
