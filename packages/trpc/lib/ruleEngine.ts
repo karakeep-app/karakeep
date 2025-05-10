@@ -1,7 +1,8 @@
 import deepEql from "deep-equal";
 import { and, eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
-import { bookmarks, tagsOnBookmarks } from "@karakeep/db/schema";
+import { bookmarks, crawlSessions, tagsOnBookmarks } from "@karakeep/db/schema";
 import { LinkCrawlerQueue } from "@karakeep/shared/queues";
 import {
   RuleEngineAction,
@@ -189,12 +190,22 @@ export class RuleEngine {
         return `Removed from list ${action.listId}`;
       }
       case "downloadFullPageArchive": {
+        const sessionId = uuidv4();
+        await this.ctx.db.insert(crawlSessions).values({
+          id: sessionId,
+          name: `crawl-${Date.now()}`,
+          userId: this.bookmark.userId,
+          startedAt: Date.now(),
+          endedAt: 0,
+        });
+
         await LinkCrawlerQueue.enqueue({
           bookmarkId: this.bookmark.id,
+          sessionId,
           archiveFullPage: true,
           runInference: false,
         });
-        return `Enqueued full page archive`;
+        return "Enqueued full page archive";
       }
       case "favouriteBookmark": {
         await this.ctx.db

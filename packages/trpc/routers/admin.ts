@@ -25,6 +25,7 @@ import {
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { adminProcedure, router } from "../index";
+import { startSessionDirect } from "./session";
 import { createUser } from "./users";
 
 export const adminAppRouter = router({
@@ -200,11 +201,15 @@ export const adminAppRouter = router({
           ? {}
           : { where: eq(bookmarkLinks.crawlStatus, input.crawlStatus) }),
       });
-
+      const { id: sessionId } = await startSessionDirect(
+        ctx.user.id,
+        `manual-${Date.now()}`,
+      );
       await Promise.all(
         bookmarkIds.map((b) =>
           LinkCrawlerQueue.enqueue({
             bookmarkId: b.id,
+            sessionId,
             runInference: input.runInference,
           }),
         ),

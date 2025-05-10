@@ -71,6 +71,7 @@ import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { List } from "../models/lists";
 import { ensureAssetOwnership } from "./assets";
+import { getCrawlSession } from "./session";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: Context;
@@ -213,6 +214,9 @@ function toZodSchema(
       imageAssetId: assets.find(
         (a) => a.assetType == AssetTypes.LINK_BANNER_IMAGE,
       )?.id,
+      linkWarcArchiveAssetId: assets.find(
+        (a) => a.assetType == AssetTypes.LINK_WARC_ARCHIVE,
+      )?.id,
       videoAssetId: assets.find((a) => a.assetType == AssetTypes.LINK_VIDEO)
         ?.id,
       url: link.url,
@@ -298,7 +302,6 @@ export const bookmarksAppRouter = router({
         )[0];
 
         let content: ZBookmarkContent;
-
         switch (input.type) {
           case BookmarkTypes.LINK: {
             const link = (
@@ -332,6 +335,11 @@ export const bookmarksAppRouter = router({
               type: BookmarkTypes.LINK,
               ...link,
             };
+            const sessionId = await getCrawlSession(ctx);
+            await LinkCrawlerQueue.enqueue({
+              bookmarkId: bookmark.id,
+              sessionId,
+            });
             break;
           }
           case BookmarkTypes.TEXT: {
@@ -412,8 +420,10 @@ export const bookmarksAppRouter = router({
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
+          const sessionId = await getCrawlSession(ctx);
           await LinkCrawlerQueue.enqueue({
             bookmarkId: bookmark.id,
+            sessionId,
           });
           break;
         }
@@ -683,8 +693,10 @@ export const bookmarksAppRouter = router({
           crawlStatusCode: null,
         })
         .where(eq(bookmarkLinks.id, input.bookmarkId));
+      const sessionId = await getCrawlSession(ctx);
       await LinkCrawlerQueue.enqueue({
         bookmarkId: input.bookmarkId,
+        sessionId,
         archiveFullPage: input.archiveFullPage,
       });
     }),
@@ -988,6 +1000,9 @@ export const bookmarksAppRouter = router({
               }
               if (row.assets.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE) {
                 content.precrawledArchiveAssetId = row.assets.id;
+              }
+              if (row.assets.assetType == AssetTypes.LINK_WARC_ARCHIVE) {
+                content.linkWarcArchiveAssetId = row.assets.id;
               }
               acc[bookmarkId].content = content;
             }

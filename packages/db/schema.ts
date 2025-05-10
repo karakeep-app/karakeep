@@ -163,6 +163,9 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+    sessionId: text("sessionId").references(() => crawlSessions.id, {
+        onDelete: "set null",
+    }),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );
@@ -172,6 +175,7 @@ export const enum AssetTypes {
   LINK_SCREENSHOT = "linkScreenshot",
   ASSET_SCREENSHOT = "assetScreenshot",
   LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
+  LINK_WARC_ARCHIVE = "linkWarcArchive", 
   LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
   LINK_VIDEO = "linkVideo",
   BOOKMARK_ASSET = "bookmarkAsset",
@@ -189,6 +193,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_SCREENSHOT,
         AssetTypes.ASSET_SCREENSHOT,
         AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+        AssetTypes.LINK_WARC_ARCHIVE,
         AssetTypes.LINK_PRECRAWLED_ARCHIVE,
         AssetTypes.LINK_VIDEO,
         AssetTypes.BOOKMARK_ASSET,
@@ -522,6 +527,21 @@ export const ruleEngineActionsTable = sqliteTable(
     }).onDelete("cascade"),
   ],
 );
+
+export const crawlSessions = sqliteTable("crawlSessions", {
+  id: text("id")
+    .notNull()
+    .primaryKey(),
+  name: text("name")
+    .notNull(),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  startedAt: integer("startedAt")
+    .notNull(),
+  endedAt: integer("endedAt")
+    .notNull(),
+});
 
 // Relations
 

@@ -18,7 +18,7 @@ services:
       prep:
         condition: service_completed_successfully
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:123
+    image: gcr.io/zenika-hub/alpine-chrome:124
     restart: unless-stopped
     command:
       - --no-sandbox
@@ -31,6 +31,22 @@ services:
     image: getmeili/meilisearch:v1.13.3
     volumes:
       - meilisearch:/meili_data
+  warcer:
+    container_name: warcer
+    build:
+      context: .
+      dockerfile: warcer.Dockerfile
+    restart: unless-stopped
+    volumes:
+      - data:/data
+    depends_on:
+      - chrome
+    networks:
+      - default
+    expose:
+       - "8808"
+    ports:
+      - 8808:8808
   workers:
     build:
       dockerfile: Dockerfile.dev

@@ -14,6 +14,7 @@ import { shutdownPromise } from "./exit";
 import { OpenAiWorker } from "./openaiWorker";
 import { SearchIndexingWorker } from "./searchWorker";
 import { VideoWorker } from "./videoWorker";
+import { WarcerWorker } from "./warcerWorker";
 import { WebhookWorker } from "./webhookWorker";
 
 async function main() {
@@ -30,6 +31,7 @@ async function main() {
     assetPreprocessing,
     webhook,
     ruleEngine,
+    warcer,
   ] = [
     await CrawlerWorker.build(),
     OpenAiWorker.build(),
@@ -40,6 +42,7 @@ async function main() {
     AssetPreprocessingWorker.build(),
     WebhookWorker.build(),
     RuleEngineWorker.build(),
+    WarcerWorker.build(),
   ];
   FeedRefreshingWorker.start();
 
@@ -54,11 +57,12 @@ async function main() {
       assetPreprocessing.run(),
       webhook.run(),
       ruleEngine.run(),
+      warcer.run(),
     ]),
     shutdownPromise,
   ]);
   logger.info(
-    "Shutting down crawler, openai, tidyAssets, video, feed, assetPreprocessing, webhook, ruleEngine and search workers ...",
+    "Shutting down crawler, openai, tidyAssets, video, feed, assetPreprocessing, webhook, ruleEngine, warcer and search workers ...",
   );
 
   FeedRefreshingWorker.stop();
@@ -71,6 +75,7 @@ async function main() {
   assetPreprocessing.stop();
   webhook.stop();
   ruleEngine.stop();
+  warcer.stop();
 }
 
 main();

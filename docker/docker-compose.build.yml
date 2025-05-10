@@ -28,6 +28,22 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
+  warcer:
+    container_name: warcer
+    build:
+      context: .
+      dockerfile: warcer.Dockerfile
+    restart: unless-stopped
+    volumes:
+      - data:/data
+    depends_on:
+      - chrome
+    networks:
+      - default
+    expose:
+       - "8088"
+    ports:
+      - 8808:8808
 
 volumes:
   meilisearch:

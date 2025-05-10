@@ -8,6 +8,7 @@ import { highlightsAppRouter } from "./highlights";
 import { listsAppRouter } from "./lists";
 import { promptsAppRouter } from "./prompts";
 import { rulesAppRouter } from "./rules";
+import { sessionRouter } from "./session";
 import { tagsAppRouter } from "./tags";
 import { usersAppRouter } from "./users";
 import { webhooksAppRouter } from "./webhooks";
@@ -25,6 +26,7 @@ export const appRouter = router({
   webhooks: webhooksAppRouter,
   assets: assetsAppRouter,
   rules: rulesAppRouter,
+  session: sessionRouter,
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

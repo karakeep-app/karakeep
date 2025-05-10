@@ -15,6 +15,7 @@ export const enum ASSET_TYPES {
   APPLICATION_PDF = "application/pdf",
   TEXT_HTML = "text/html",
   VIDEO_MP4 = "video/mp4",
+  APPLICATION_WARC = "application/warc",
 }
 
 export const IMAGE_ASSET_TYPES: Set<string> = new Set<string>([
@@ -28,12 +29,14 @@ export const SUPPORTED_UPLOAD_ASSET_TYPES: Set<string> = new Set<string>([
   ...IMAGE_ASSET_TYPES,
   ASSET_TYPES.TEXT_HTML,
   ASSET_TYPES.APPLICATION_PDF,
+  ASSET_TYPES.APPLICATION_WARC,
 ]);
 
 // The assets that we allow as a bookmark of type asset
 export const SUPPORTED_BOOKMARK_ASSET_TYPES: Set<string> = new Set<string>([
   ...IMAGE_ASSET_TYPES,
   ASSET_TYPES.APPLICATION_PDF,
+  ASSET_TYPES.APPLICATION_WARC,
 ]);
 
 // The assets that we support saving in the asset db

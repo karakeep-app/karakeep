@@ -338,7 +338,8 @@
   "preview": {
     "view_original": "View Original",
     "cached_content": "Cached Content",
-    "reader_view": "Reader View"
+    "reader_view": "Reader View",
+    "warc_view": "WARC View"
   },
   "editor": {
     "quickly_focus": "You can quickly focus on this field by pressing ⌘ + E",

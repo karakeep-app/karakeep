@@ -7,6 +7,7 @@ export const ASSET_TYPE_TO_ICON: Record<ZAssetType, React.ReactNode> = {
   assetScreenshot: <Camera className="size-4" />,
   fullPageArchive: <Archive className="size-4" />,
   precrawledArchive: <Archive className="size-4" />,
+  linkWarcArchive: <Archive className="size-4" />,
   bannerImage: <Image className="size-4" />,
   video: <Video className="size-4" />,
   bookmarkAsset: <Paperclip className="size-4" />,

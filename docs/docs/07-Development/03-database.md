@@ -2,8 +2,8 @@
 
 - The database schema lives in `packages/db/schema.ts`.
 - Changing the schema, requires a migration.
-- You can generate the migration by running `pnpm drizzle-kit generate:sqlite` in the `packages/db` dir.
-- You can then apply the migration by running `pnpm run migrate`.
+- You can generate the migration by running `pnpm drizzle-kit generate --dialect sqlite --schema schema.ts` in the `packages/db` dir.
+- You can then apply the migration by running `pnpm db:migrate` from the project root directory.
 
 
 ## Drizzle Studio

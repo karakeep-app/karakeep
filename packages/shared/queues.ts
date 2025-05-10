@@ -18,6 +18,7 @@ export const zCrawlLinkRequestSchema = z.object({
   bookmarkId: z.string(),
   runInference: z.boolean().optional(),
   archiveFullPage: z.boolean().optional().default(false),
+  sessionId: z.string().optional(),
 });
 export type ZCrawlLinkRequest = z.input<typeof zCrawlLinkRequestSchema>;
 
@@ -220,4 +221,22 @@ export async function triggerRuleEngineOnEvent(
     events,
     bookmarkId,
   });
+}
+
+export const zWarcerRequestSchema = z.object({
+  sessionId: z.string(),
+});
+export type ZWarcerRequest = z.input<typeof zWarcerRequestSchema>;
+
+export const WarcerQueue = new SqliteQueue<ZWarcerRequest>(
+  "warcer_queue",
+  queueDB,
+  {
+    defaultJobArgs: { numRetries: 2 },
+    keepFailedJobs: false,
+  },
+);
+
+export async function triggerWarcer(sessionId: string) {
+  await WarcerQueue.enqueue({ sessionId });
 }

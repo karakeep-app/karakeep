@@ -7,7 +7,7 @@ import { PuppeteerBlocker } from "@ghostery/adblocker-puppeteer";
 import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
-import { eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { isShuttingDown } from "exit";
 import { JSDOM } from "jsdom";
@@ -28,6 +28,7 @@ import fetch from "node-fetch";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { withTimeout } from "utils";
+import { v4 as uuidv4 } from "uuid";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 
 import type { ZCrawlLinkRequest } from "@karakeep/shared/queues";
@@ -38,6 +39,7 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  crawlSessions,
 } from "@karakeep/db/schema";
 import {
   ASSET_TYPES,
@@ -58,6 +60,7 @@ import {
   OpenAIQueue,
   triggerSearchReindex,
   triggerVideoWorker,
+  triggerWarcer,
   triggerWebhook,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared/queues";
@@ -192,6 +195,20 @@ export class CrawlerWorker {
           const bookmarkId = job.data.bookmarkId;
           if (bookmarkId) {
             await changeBookmarkStatus(bookmarkId, "success");
+            const { sessionId } = zCrawlLinkRequestSchema.parse(job.data);
+            if (!sessionId) return;
+            const [{ remaining }] = await db
+              .select({ remaining: count() })
+              .from(bookmarkLinks)
+              .where(
+                and(
+                  eq(bookmarkLinks.sessionId, sessionId),
+                  eq(bookmarkLinks.crawlStatus, "pending"),
+                ),
+              );
+            if (remaining === 0) {
+              await triggerWarcer(sessionId);
+            }
           }
         },
         onError: async (job) => {
@@ -634,6 +651,7 @@ async function crawlAndParseUrl(
   oldFullPageArchiveAssetId: string | undefined,
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
+  sessionId: string | undefined,
   abortSignal: AbortSignal,
 ) {
   let result: {
@@ -669,6 +687,12 @@ async function crawlAndParseUrl(
     extractReadableContent(htmlContent, browserUrl, jobId),
     storeScreenshot(screenshot, userId, jobId),
   ]);
+  if (sessionId) {
+    await db
+      .update(bookmarkLinks)
+      .set({ sessionId })
+      .where(eq(bookmarkLinks.id, bookmarkId));
+  }
   abortSignal.throwIfAborted();
   let imageAssetInfo: DBAssetType | null = null;
   if (meta.image) {
@@ -722,6 +746,13 @@ async function crawlAndParseUrl(
         dateModified: parseDate(meta.dateModified),
       })
       .where(eq(bookmarkLinks.id, bookmarkId));
+
+    if (sessionId) {
+      await db
+        .update(bookmarkLinks)
+        .set({ sessionId })
+        .where(eq(bookmarkLinks.id, bookmarkId));
+    }
 
     if (screenshotAssetInfo) {
       await updateAsset(
@@ -799,7 +830,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     return;
   }
 
-  const { bookmarkId, archiveFullPage } = request.data;
+  const { bookmarkId, archiveFullPage, sessionId } = request.data;
   const {
     url,
     userId,
@@ -852,6 +883,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
       oldFullPageArchiveAssetId,
       precrawledArchiveAssetId,
       archiveFullPage,
+      sessionId,
       job.abortSignal,
     );
 
@@ -874,4 +906,21 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     // Do the archival as a separate last step as it has the potential for failure
     await archivalLogic();
   }
+}
+
+export async function reWarcBookmark(bookmarkId: string, userId: string) {
+  const sessionId = uuidv4();
+  await db.insert(crawlSessions).values({
+    id: sessionId,
+    name: `crawl-${Date.now()}`,
+    userId,
+    startedAt: Date.now(),
+    endedAt: 0,
+  });
+  await db
+    .update(bookmarkLinks)
+    .set({ sessionId })
+    .where(eq(bookmarkLinks.id, bookmarkId));
+  await triggerWarcer(sessionId);
+  return sessionId;
 }

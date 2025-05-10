@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import BookmarkHTMLHighlighter from "@/components/dashboard/preview/BookmarkHtmlHighlighter";
+import { WarcViewSection } from "@/components/dashboard/preview/WarcViewSection";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import {
   Select,
@@ -186,6 +187,10 @@ export default function LinkContentSection({
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
+  } else if (section === "warc_view") {
+    content = (
+      <WarcViewSection link={bookmark.content} assets={bookmark.assets} />
+    );
   } else {
     content = <ScreenshotSection link={bookmark.content} />;
   }
@@ -215,6 +220,12 @@ export default function LinkContentSection({
               }
             >
               {t("common.archive")}
+            </SelectItem>
+            <SelectItem
+              value="warc_view"
+              disabled={!bookmark.content.linkWarcArchiveAssetId}
+            >
+              {t("preview.warc_view")}
             </SelectItem>
             <SelectItem value="video" disabled={!bookmark.content.videoAssetId}>
               {t("common.video")}

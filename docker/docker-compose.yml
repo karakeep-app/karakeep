@@ -20,7 +20,7 @@ services:
       # If you want to mount a custom directory, change the volume mapping above instead.
       DATA_DIR: /data # DON'T CHANGE THIS
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:123
+    image: gcr.io/zenika-hub/alpine-chrome:124
     restart: unless-stopped
     command:
       - --no-sandbox
@@ -29,6 +29,22 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
+  warcer:
+    container_name: warcer
+    build:
+      context: .
+      dockerfile: warcer.Dockerfile
+    restart: unless-stopped
+    volumes:
+      - data:/data
+    depends_on:
+      - chrome
+    networks:
+      - default
+    expose:
+       - "8808"
+    ports:
+      - 8808:8808
   meilisearch:
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
