@@ -38,6 +38,8 @@ Please analyze the text between the sentences "CONTENT START HERE" and "CONTENT 
 - The tags language must be in ${lang}.
 - If it's a famous website you may also include a tag for the website. If the tag is not generic enough, don't include it.
 - The content can include text for cookie consent and privacy policy, ignore those while tagging.
+- If the content appears to be a task, to-do item, or something that requires future action, include a "todo" tag.
+- Look for indicators of tasks such as action verbs, deadlines, imperative sentences, or checklist-like structures.
 - Aim for 3-5 tags.
 - If there are no good tags, leave the array empty.
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
