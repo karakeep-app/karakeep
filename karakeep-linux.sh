@@ -2,7 +2,7 @@
 
 set -Eeuo pipefail
 
-# v2.1
+# v2.2
 # Copyright 2024-2025
 # Author: vhsdream
 # Adapted from: The Karakeep installation script from https://github.com/community-scripts/ProxmoxVE
@@ -28,6 +28,7 @@ ENV_FILE=${CONFIG_DIR}/karakeep.env
 install() {
   echo "Karakeep installation for Debian 12/Ubuntu 24.04" && sleep 4
   echo "Installing Dependencies..." && sleep 1
+  apt-get update && apt-get dist-upgrade -y
   apt-get install --no-install-recommends -y \
     g++ \
     curl \
@@ -45,7 +46,7 @@ install() {
     ln -s /usr/bin/ungoogled-chromium /usr/bin/chromium
   else
     apt-get install --no-install-recommends -y chromium
-    wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/bin/yt-dlp && chmod +x /usr/bin/yt-dlp
+    wget -q https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux -O /usr/bin/yt-dlp && chmod +x /usr/bin/yt-dlp
   fi
 
   wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O /usr/bin/monolith && chmod +x /usr/bin/monolith
@@ -83,6 +84,9 @@ install() {
   cd "$INSTALL_DIR"/apps/workers
   pnpm i --frozen-lockfile
   cd "$INSTALL_DIR"/apps/cli
+  pnpm i --frozen-lockfile
+  pnpm build
+  cd "$INSTALL_DIR"/apps/mcp
   pnpm i --frozen-lockfile
   pnpm build
   cd "$INSTALL_DIR"/packages/db
@@ -238,7 +242,7 @@ EOF
   echo "Service files created" && sleep 1
 
   echo "Enabling and starting services, please wait..." && sleep 3
-  systemctl enable -q --now meilisearch.service karakeep.target
+  systemctl enable -q --now karakeep.target
   echo "Done" && sleep 1
 
   echo "Cleaning up" && sleep 1
@@ -253,6 +257,7 @@ EOF
 
 update() {
   echo "Checking for an update..." && sleep 1
+  apt-get update && apt-get dist-upgrade -y
   if [[ ! -d ${INSTALL_DIR} ]]; then
     echo "Is Karakeep even installed?"
     exit 1
@@ -264,6 +269,9 @@ update() {
       echo "Stopping affected services..." && sleep 1
       systemctl stop karakeep-web karakeep-workers
       echo "Stopped services" && sleep 1
+    fi
+    if [[ "$OS" == "bookworm" ]]; then
+      yt-dlp -U
     fi
     echo "Updating Karakeep to v${RELEASE}..." && sleep 1
     sed -i "s|SERVER_VERSION=${PREV_RELEASE}|SERVER_VERSION=${RELEASE}|" "$ENV_FILE"
@@ -285,12 +293,14 @@ update() {
     cd "$INSTALL_DIR"/apps/workers && pnpm i --frozen-lockfile
     cd "$INSTALL_DIR"/apps/cli && pnpm i --frozen-lockfile
     pnpm build
+    cd "$INSTALL_DIR"/apps/mcp && pnpm i --frozen-lockfile
+    pnpm build
     cd "$INSTALL_DIR"/packages/db && pnpm migrate
     echo "$RELEASE" >"$INSTALL_DIR"/version.txt
     chown -R karakeep:karakeep "$INSTALL_DIR" "$DATA_DIR"
     echo "Updated Karakeep to v${RELEASE}" && sleep 1
     echo "Restarting services and cleaning up..." && sleep 1
-    systemctl start karakeep-workers karakeep-web
+    systemctl restart karakeep.target
     rm /tmp/v"$RELEASE".zip
     echo "Ready!"
   else
