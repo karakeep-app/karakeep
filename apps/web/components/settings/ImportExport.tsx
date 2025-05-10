@@ -6,6 +6,13 @@ import { useRouter } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import FilePickerButton from "@/components/ui/file-picker-button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
 import {
@@ -63,6 +70,8 @@ function ImportCard({
 
 function ExportButton() {
   const { t } = useTranslation();
+  const [format, setFormat] = useState<"json" | "netscape">("json");
+
   return (
     <Card className="transition-all hover:shadow-md">
       <CardContent className="flex items-center gap-3 p-4">
@@ -72,9 +81,21 @@ function ExportButton() {
         <div className="flex-1">
           <h3 className="font-medium">Export File</h3>
           <p>{t("settings.import.export_links_and_notes")}</p>
+          <Select
+            value={format}
+            onValueChange={(value) => setFormat(value as "json" | "netscape")}
+          >
+            <SelectTrigger className="mt-2 w-[180px]">
+              <SelectValue placeholder="Format" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="json">JSON (Karakeep format)</SelectItem>
+              <SelectItem value="netscape">HTML (Netscape format)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Link
-          href="/api/bookmarks/export"
+          href={`/api/bookmarks/export?format=${format}`}
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
             "flex items-center gap-2",
