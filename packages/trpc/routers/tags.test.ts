@@ -143,4 +143,38 @@ describe("Tags Routes", () => {
     const resUser2 = await apiUser2.list();
     expect(resUser2.tags.some((tag) => tag.name === "user1Tag")).toBeFalsy(); // Should not see other user's tags
   });
+
+  test<CustomTestContext>("create strips extra leading hashes", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].tags;
+
+    const created = await api.create({ name: "##demo" });
+    expect(created.name).toBe("demo");
+
+    // Confirm DB row too
+    const row = await db.query.bookmarkTags.findFirst({
+      where: eq(bookmarkTags.id, created.id),
+    });
+    expect(row?.name).toBe("demo");
+  });
+
+  test<CustomTestContext>("update normalizes leading hashes", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].tags;
+
+    const created = await api.create({ name: "#foo" });
+    const updated = await api.update({ tagId: created.id, name: "##bar" });
+
+    expect(updated.name).toBe("bar");
+
+    // Confirm DB row too
+    const row = await db.query.bookmarkTags.findFirst({
+      where: eq(bookmarkTags.id, updated.id),
+    });
+    expect(row?.name).toBe("bar");
+  });
 });

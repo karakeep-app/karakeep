@@ -70,6 +70,7 @@ import { authedProcedure, router } from "../index";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { List } from "../models/lists";
+import { normalizeTagName } from "../utils/tag";
 import { ensureAssetOwnership } from "./assets";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
@@ -1097,9 +1098,11 @@ export const bookmarksAppRouter = router({
           };
         }
 
-        const toAddTagNames = input.attach.flatMap((i) =>
-          i.tagName ? [i.tagName] : [],
-        );
+        const toAddTagNames = input.attach
+          .flatMap((i) => (i.tagName ? [i.tagName] : []))
+          .map((n) => normalizeTagName(n)) // strip leading #
+          .filter((n) => n.length > 0); // drop empty results
+
         const toAddTagIds = input.attach.flatMap((i) =>
           i.tagId ? [i.tagId] : [],
         );
