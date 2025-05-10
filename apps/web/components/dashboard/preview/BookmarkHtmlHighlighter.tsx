@@ -19,6 +19,7 @@ interface ColorPickerMenuProps {
   onDelete?: () => void;
   selectedHighlight: Highlight | null;
   onClose: () => void;
+  isMobile: boolean;
 }
 
 const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
@@ -27,6 +28,7 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
   onDelete,
   selectedHighlight,
   onClose,
+  isMobile,
 }) => {
   return (
     <Popover
@@ -44,7 +46,10 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
           top: position?.y,
         }}
       />
-      <PopoverContent side="top" className="flex w-fit items-center gap-1 p-2">
+      <PopoverContent
+        side={isMobile ? "bottom" : "top"}
+        className="flex w-fit items-center gap-1 p-2"
+      >
         {SUPPORTED_HIGHLIGHT_COLORS.map((color) => (
           <Button
             size="none"
@@ -113,6 +118,11 @@ function BookmarkHTMLHighlighter({
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(
     null,
   );
+  const isMobile = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(pointer: coarse)").matches,
+  )[0];
 
   // Apply existing highlights when component mounts or highlights change
   useEffect(() => {
@@ -160,7 +170,7 @@ function BookmarkHTMLHighlighter({
     window.getSelection()?.addRange(newRange);
   }, [pendingHighlight, contentRef]);
 
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     const selection = window.getSelection();
 
     // Check if we clicked on an existing highlight
@@ -192,11 +202,11 @@ function BookmarkHTMLHighlighter({
       return;
     }
 
-    // Position the menu above the selection
+    // Position the menu based on device type
     const rect = range.getBoundingClientRect();
     setMenuPosition({
-      x: rect.left + rect.width / 2, // Center the menu
-      y: rect.top,
+      x: rect.left + rect.width / 2, // Center the menu horizontally
+      y: isMobile ? rect.bottom : rect.top, // Position below on mobile, above otherwise
     });
 
     // Store the highlight for later use
@@ -333,7 +343,7 @@ function BookmarkHTMLHighlighter({
         role="presentation"
         ref={contentRef}
         dangerouslySetInnerHTML={{ __html: htmlContent }}
-        onMouseUp={handleMouseUp}
+        onPointerUp={handlePointerUp}
         className={className}
       />
       <ColorPickerMenu
@@ -342,6 +352,7 @@ function BookmarkHTMLHighlighter({
         onDelete={handleDelete}
         selectedHighlight={selectedHighlight}
         onClose={closeColorPicker}
+        isMobile={isMobile}
       />
     </div>
   );
