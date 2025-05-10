@@ -63,12 +63,15 @@ import {
 } from "@karakeep/shared/queues";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import metascraperReddit from "./metascraper-plugins/metascraper-reddit";
+
 const metascraperParser = metascraper([
   metascraperDate({
     dateModified: true,
     datePublished: true,
   }),
   metascraperAmazon(),
+  metascraperReddit(),
   metascraperReadability(),
   metascraperAuthor(),
   metascraperPublisher(),
