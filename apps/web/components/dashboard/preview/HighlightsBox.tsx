@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -5,18 +6,22 @@ import {
 } from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { Separator } from "@radix-ui/react-dropdown-menu";
+import { Separator } from "@radix-ui/react-separator";
 import { ChevronsDownUp } from "lucide-react";
 
 import HighlightCard from "../highlights/HighlightCard";
 
+// import { Highlight } from "./BookmarkHtmlHighlighter";
+
 export default function HighlightsBox({ bookmarkId }: { bookmarkId: string }) {
   const { t } = useTranslation();
 
-  const { data: highlights, isPending: isLoading } =
+  const { data: highlightsData, isPending: isLoading } =
     api.highlights.getForBookmark.useQuery({ bookmarkId });
 
-  if (isLoading || !highlights || highlights?.highlights.length === 0) {
+  const highlightsList = highlightsData?.highlights;
+
+  if (isLoading || !highlightsList || highlightsList.length === 0) {
     return null;
   }
 
@@ -27,12 +32,16 @@ export default function HighlightsBox({ bookmarkId }: { bookmarkId: string }) {
         <ChevronsDownUp className="size-4" />
       </CollapsibleTrigger>
       <CollapsibleContent className="group flex flex-col py-3 text-sm">
-        {highlights.highlights.map((highlight) => (
-          <>
-            <HighlightCard key={highlight.id} highlight={highlight} clickable />
-            <Separator className="m-2 h-0.5 bg-gray-200 last:hidden" />
-          </>
-        ))}
+        {highlightsList.map(
+          (
+            highlight, // todo (fix typing) ignore typing
+          ) => (
+            <React.Fragment key={highlight.id}>
+              <HighlightCard highlight={highlight} clickable />{" "}
+              <Separator className="m-2 h-0.5 bg-gray-200 last:hidden data-[orientation=horizontal]:h-px data-[orientation=vertical]:h-full data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-px" />{" "}
+            </React.Fragment>
+          ),
+        )}
       </CollapsibleContent>
     </Collapsible>
   );
