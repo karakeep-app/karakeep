@@ -419,7 +419,7 @@ export const webhooksTable = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     events: text("events", { mode: "json" })
       .notNull()
-      .$type<("created" | "edited" | "crawled" | "ai tagged")[]>(),
+      .$type<("created" | "edited" | "crawled" | "ai tagged" | "deleted")[]>(),
     token: text("token"),
   },
   (bl) => [index("webhooks_userId_idx").on(bl.userId)],

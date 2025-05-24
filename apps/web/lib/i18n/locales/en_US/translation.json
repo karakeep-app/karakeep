@@ -205,7 +205,8 @@
         "title": "Events",
         "crawled": "Crawled",
         "created": "Created",
-        "edited": "Edited"
+        "edited": "Edited",
+        "deleted": "Deleted"
       },
       "auth_token": "Auth Token",
       "delete_webhook": "Delete Webhook",

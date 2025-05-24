@@ -8,6 +8,7 @@ export const zWebhookEventSchema = z.enum([
   "edited",
   "crawled",
   "ai tagged",
+  "deleted",
 ]);
 export type ZWebhookEvent = z.infer<typeof zWebhookEventSchema>;
 

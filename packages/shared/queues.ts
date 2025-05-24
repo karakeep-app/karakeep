@@ -172,7 +172,7 @@ export const AssetPreprocessingQueue =
 // Webhook worker
 export const zWebhookRequestSchema = z.object({
   bookmarkId: z.string(),
-  operation: z.enum(["crawled", "created", "edited", "ai tagged"]),
+  operation: z.enum(["crawled", "created", "edited", "ai tagged", "deleted"]),
 });
 export type ZWebhookRequest = z.infer<typeof zWebhookRequestSchema>;
 export const WebhookQueue = new SqliteQueue<ZWebhookRequest>(
