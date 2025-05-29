@@ -53,6 +53,7 @@ export default async function RootLayout({
       className="sm:overflow-hidden"
       lang={userSettings.lang}
       dir={isRTL ? "rtl" : "ltr"}
+      suppressHydrationWarning
     >
       <body className={inter.className}>
         <Providers
