@@ -49,33 +49,48 @@ function registerContextMenus() {
  * @param info the information about the click in the context menu
  */
 async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
-  const { menuItemId } = info;
+  const { menuItemId, selectionText, srcUrl, linkUrl, pageUrl } = info;
   if (menuItemId === OPEN_KARAKEEP_ID) {
     getPluginSettings().then((settings: Settings) => {
       chrome.tabs.create({ url: settings.address, active: true });
     });
   } else if (menuItemId === ADD_LINK_TO_KARAKEEP_ID) {
-    let newBookmark: ZNewBookmarkRequest | null = null;
-    if (info.selectionText) {
-      newBookmark = {
-        type: BookmarkTypes.TEXT,
-        text: info.selectionText,
-        sourceUrl: info.pageUrl,
-      };
-    } else if (info.srcUrl ?? info.linkUrl ?? info.pageUrl) {
-      newBookmark = {
-        type: BookmarkTypes.LINK,
-        url: info.srcUrl ?? info.linkUrl ?? info.pageUrl,
-      };
-    }
-    if (newBookmark) {
-      chrome.storage.session.set({
-        [NEW_BOOKMARK_REQUEST_KEY_NAME]: newBookmark,
-      });
-      // NOTE: Firefox only allows opening context menus if it's triggered by a user action.
-      // awaiting on any promise before calling this function will lose the "user action" context.
-      await chrome.action.openPopup();
-    }
+    addLinkToKarakeep({ selectionText, srcUrl, linkUrl, pageUrl });
+
+    // NOTE: Firefox only allows opening context menus if it's triggered by a user action.
+    // awaiting on any promise before calling this function will lose the "user action" context.
+    await chrome.action.openPopup();
+  }
+}
+
+function addLinkToKarakeep({
+  selectionText,
+  srcUrl,
+  linkUrl,
+  pageUrl,
+}: {
+  selectionText?: string;
+  srcUrl?: string;
+  linkUrl?: string;
+  pageUrl?: string;
+}) {
+  let newBookmark: ZNewBookmarkRequest | null = null;
+  if (selectionText) {
+    newBookmark = {
+      type: BookmarkTypes.TEXT,
+      text: selectionText,
+      sourceUrl: pageUrl,
+    };
+  } else if (srcUrl ?? linkUrl ?? pageUrl) {
+    newBookmark = {
+      type: BookmarkTypes.LINK,
+      url: srcUrl ?? linkUrl ?? pageUrl ?? "",
+    };
+  }
+  if (newBookmark) {
+    chrome.storage.session.set({
+      [NEW_BOOKMARK_REQUEST_KEY_NAME]: newBookmark,
+    });
   }
 }
 
@@ -89,3 +104,21 @@ subscribeToSettingsChanges((settings) => {
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Manifest V3 allows async functions for all callbacks
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
+
+function handleCommand(command: string, tab: chrome.tabs.Tab) {
+  if (command === ADD_LINK_TO_KARAKEEP_ID) {
+    addLinkToKarakeep({
+      selectionText: undefined,
+      srcUrl: undefined,
+      linkUrl: undefined,
+      pageUrl: tab?.url,
+    });
+
+    // now try to open the popup
+    chrome.action.openPopup();
+  } else {
+    console.warn(`Received unknown command: ${command}`);
+  }
+}
+
+chrome.commands.onCommand.addListener(handleCommand);

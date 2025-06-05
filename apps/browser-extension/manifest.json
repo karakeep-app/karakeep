@@ -30,7 +30,9 @@
   },
   "background": {
     "service_worker": "src/background/background.ts",
-    "scripts": ["src/background/background.ts"]
+    "scripts": [
+      "src/background/background.ts"
+    ]
   },
   "options_ui": {
     "page": "index.html#options",
@@ -44,5 +46,17 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "permissions": ["storage", "tabs", "contextMenus"]
+  "permissions": [
+    "storage",
+    "tabs",
+    "contextMenus"
+  ],
+  "commands": {
+    "add-link": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Send the current page URL to Karakeep."
+    }
+  }
 }
