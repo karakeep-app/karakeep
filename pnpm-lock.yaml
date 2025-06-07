@@ -436,6 +436,9 @@ importers:
       react-native-markdown-display:
         specifier: ^7.0.2
         version: 7.0.2(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
+      react-native-pdf:
+        specifier: ^6.7.7
+        version: 6.7.7(react-native-blob-util@0.21.2(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1))(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
       react-native-reanimated:
         specifier: ^3.16.2
         version: 3.16.2(@babel/core@7.26.0)(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
@@ -5042,6 +5045,9 @@ packages:
     peerDependencies:
       '@babel/core': '*'
 
+  '@react-native/normalize-color@2.1.0':
+    resolution: {integrity: sha512-Z1jQI2NpdFJCVgpY+8Dq/Bt3d+YUi1928Q+/CZm/oh66fzM0RUl54vvuXlPJKybH4pdCZey1eDTPaLHkMPNgWA==}
+
   '@react-native/normalize-colors@0.76.3':
     resolution: {integrity: sha512-Yrpmrh4IDEupUUM/dqVxhAN8QW1VEUR3Qrk2lzJC1jB2s46hDe0hrMP2vs12YJqlzshteOthjwXQlY0TgIzgbg==}
 
@@ -7722,6 +7728,9 @@ packages:
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
     engines: {node: '>= 0.8'}
+
+  deprecated-react-native-prop-types@2.3.0:
+    resolution: {integrity: sha512-pWD0voFtNYxrVqvBMYf5gq3NA2GCpfodS1yNynTPc93AYA/KEMGeWDqqeUB6R2Z9ZofVhks2aeJXiuQqKNpesA==}
 
   dequal@2.0.3:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
@@ -13065,6 +13074,13 @@ packages:
       react: '>=16.2.0'
       react-native: '>=0.50.4'
 
+  react-native-pdf@6.7.7:
+    resolution: {integrity: sha512-D0ga/eyPsVWSPEBm622sGVZLl3gibxPmfm2cxsLcUrZ4WDSGR5HyGmvvWaR/m9wXEyIbD4J6q9qzuG6yObcSXw==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+      react-native-blob-util: '>=0.13.7'
+
   react-native-reanimated@3.16.2:
     resolution: {integrity: sha512-Jk8y+iOLcK3J8YK3Qj/U+zclwfetgM1fFhlYaxFrJ5TPvuwdRG5YY1pvO91FcZ3C1+0meGHR6BZGl9d/Z0xh3Q==}
     peerDependencies:
@@ -15735,7 +15751,7 @@ snapshots:
       '@babel/traverse': 7.25.9
       '@babel/types': 7.26.0
       convert-source-map: 2.0.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -15769,7 +15785,7 @@ snapshots:
 
   '@babel/helper-annotate-as-pure@7.22.5':
     dependencies:
-      '@babel/types': 7.26.0
+      '@babel/types': 7.27.0
     dev: false
 
   '@babel/helper-annotate-as-pure@7.25.9':
@@ -15779,7 +15795,7 @@ snapshots:
 
   '@babel/helper-builder-binary-assignment-operator-visitor@7.22.15':
     dependencies:
-      '@babel/types': 7.26.0
+      '@babel/types': 7.27.0
     dev: false
 
   '@babel/helper-compilation-targets@7.25.9':
@@ -15794,7 +15810,7 @@ snapshots:
     dependencies:
       '@babel/compat-data': 7.26.8
       '@babel/helper-validator-option': 7.25.9
-      browserslist: 4.24.2
+      browserslist: 4.24.4
       lru-cache: 5.1.1
       semver: 6.3.1
     dev: false
@@ -15876,7 +15892,7 @@ snapshots:
       '@babel/core': 7.26.0
       '@babel/helper-compilation-targets': 7.25.9
       '@babel/helper-plugin-utils': 7.25.9
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       lodash.debounce: 4.0.8
       resolve: 1.22.8
     transitivePeerDependencies:
@@ -15979,20 +15995,20 @@ snapshots:
 
   '@babel/helper-simple-access@7.22.5':
     dependencies:
-      '@babel/types': 7.26.0
+      '@babel/types': 7.27.0
     dev: false
 
   '@babel/helper-simple-access@7.25.9':
     dependencies:
       '@babel/traverse': 7.25.9
-      '@babel/types': 7.26.0
+      '@babel/types': 7.27.0
     transitivePeerDependencies:
       - supports-color
     dev: false
 
   '@babel/helper-skip-transparent-expression-wrappers@7.22.5':
     dependencies:
-      '@babel/types': 7.26.0
+      '@babel/types': 7.27.0
     dev: false
 
   '@babel/helper-skip-transparent-expression-wrappers@7.25.9':
@@ -16061,7 +16077,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.26.0
       '@babel/helper-plugin-utils': 7.26.5
-      '@babel/traverse': 7.25.9
+      '@babel/traverse': 7.27.0
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -16115,7 +16131,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.26.0
       '@babel/helper-plugin-utils': 7.26.5
-      '@babel/traverse': 7.25.9
+      '@babel/traverse': 7.27.0
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -16412,7 +16428,7 @@ snapshots:
   '@babel/plugin-transform-class-static-block@7.26.0(@babel/core@7.26.0)':
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/helper-create-class-features-plugin': 7.25.9(@babel/core@7.26.0)
+      '@babel/helper-create-class-features-plugin': 7.27.0(@babel/core@7.26.0)
       '@babel/helper-plugin-utils': 7.26.5
     transitivePeerDependencies:
       - supports-color
@@ -16652,7 +16668,7 @@ snapshots:
       '@babel/helper-module-transforms': 7.26.0(@babel/core@7.26.0)
       '@babel/helper-plugin-utils': 7.26.5
       '@babel/helper-validator-identifier': 7.25.9
-      '@babel/traverse': 7.25.9
+      '@babel/traverse': 7.27.0
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -16743,7 +16759,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.26.0
       '@babel/helper-plugin-utils': 7.26.5
-      '@babel/helper-replace-supers': 7.25.9(@babel/core@7.26.0)
+      '@babel/helper-replace-supers': 7.26.5(@babel/core@7.26.0)
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -17228,8 +17244,8 @@ snapshots:
   '@babel/preset-modules@0.1.6-no-external-plugins(@babel/core@7.26.0)':
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/helper-plugin-utils': 7.25.9
-      '@babel/types': 7.26.0
+      '@babel/helper-plugin-utils': 7.26.5
+      '@babel/types': 7.27.0
       esutils: 2.0.3
     dev: false
 
@@ -17347,7 +17363,7 @@ snapshots:
       '@babel/parser': 7.26.2
       '@babel/template': 7.25.9
       '@babel/types': 7.26.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -17359,7 +17375,7 @@ snapshots:
       '@babel/parser': 7.27.0
       '@babel/template': 7.27.0
       '@babel/types': 7.27.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -18792,7 +18808,7 @@ snapshots:
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.1
@@ -18848,7 +18864,7 @@ snapshots:
       ci-info: 3.9.0
       compression: 1.7.4
       connect: 3.7.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       env-editor: 0.4.2
       fast-glob: 3.3.2
       form-data: 3.0.1
@@ -18910,7 +18926,7 @@ snapshots:
       '@expo/plist': 0.2.0
       '@expo/sdk-runtime-versions': 1.0.0
       chalk: 4.1.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       getenv: 1.0.0
       glob: 10.4.5
       resolve-from: 5.0.0
@@ -18966,7 +18982,7 @@ snapshots:
   '@expo/env@0.4.0':
     dependencies:
       chalk: 4.1.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       dotenv: 16.4.5
       dotenv-expand: 11.0.7
       getenv: 1.0.0
@@ -18979,7 +18995,7 @@ snapshots:
       '@expo/spawn-async': 1.7.2
       arg: 5.0.2
       chalk: 4.1.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       find-up: 5.0.0
       getenv: 1.0.0
       minimatch: 3.1.2
@@ -19022,7 +19038,7 @@ snapshots:
       '@expo/json-file': 9.0.0
       '@expo/spawn-async': 1.7.2
       chalk: 4.1.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       fs-extra: 9.1.0
       getenv: 1.0.0
       glob: 10.4.5
@@ -19077,7 +19093,7 @@ snapshots:
       '@expo/image-utils': 0.6.3
       '@expo/json-file': 9.0.0
       '@react-native/normalize-colors': 0.76.3
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       fs-extra: 9.1.0
       resolve-from: 5.0.0
       semver: 7.6.3
@@ -19106,7 +19122,7 @@ snapshots:
     dependencies:
       '@remix-run/node': 2.15.0(typescript@5.7.3)
       abort-controller: 3.0.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       source-map-support: 0.5.21
     transitivePeerDependencies:
       - supports-color
@@ -19206,7 +19222,7 @@ snapshots:
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -20935,6 +20951,9 @@ snapshots:
       - supports-color
     dev: false
 
+  '@react-native/normalize-color@2.1.0':
+    dev: false
+
   '@react-native/normalize-colors@0.76.3':
     dev: false
 
@@ -22056,7 +22075,7 @@ snapshots:
       '@typescript-eslint/type-utils': 6.21.0(eslint@8.57.0)(typescript@5.7.3)
       '@typescript-eslint/utils': 6.21.0(eslint@8.57.0)(typescript@5.7.3)
       '@typescript-eslint/visitor-keys': 6.21.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       eslint: 8.57.0
       graphemer: 1.4.0
       ignore: 5.3.1
@@ -22092,7 +22111,7 @@ snapshots:
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.7.3)
       '@typescript-eslint/visitor-keys': 6.21.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       eslint: 8.57.0
       typescript: 5.7.3
     transitivePeerDependencies:
@@ -22128,7 +22147,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.7.3)
       '@typescript-eslint/utils': 6.21.0(eslint@8.57.0)(typescript@5.7.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       eslint: 8.57.0
       ts-api-utils: 1.2.1(typescript@5.7.3)
       typescript: 5.7.3
@@ -22158,7 +22177,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/visitor-keys': 6.21.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
@@ -24364,6 +24383,10 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
+  debug@4.4.0:
+    dependencies:
+      ms: 2.1.3
+
   debug@4.4.0(supports-color@9.4.0):
     dependencies:
       ms: 2.1.3
@@ -24493,6 +24516,13 @@ snapshots:
     dev: false
 
   depd@2.0.0:
+    dev: false
+
+  deprecated-react-native-prop-types@2.3.0:
+    dependencies:
+      '@react-native/normalize-color': 2.1.0
+      invariant: 2.2.4
+      prop-types: 15.8.1
     dev: false
 
   dequal@2.0.3: {}
@@ -31891,7 +31921,7 @@ snapshots:
       '@babel/helper-module-imports': 7.25.9
       '@babel/traverse': 7.25.9
       '@babel/types': 7.26.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0
       lightningcss: 1.27.0
       react: 18.3.1
       react-native: 0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1)
@@ -31963,6 +31993,15 @@ snapshots:
       react: 18.3.1
       react-native: 0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1)
       react-native-fit-image: 1.5.5
+    dev: false
+
+  react-native-pdf@6.7.7(react-native-blob-util@0.21.2(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1))(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1):
+    dependencies:
+      crypto-js: 4.2.0
+      deprecated-react-native-prop-types: 2.3.0
+      react: 18.3.1
+      react-native: 0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1)
+      react-native-blob-util: 0.21.2(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1)
     dev: false
 
   react-native-reanimated@3.16.2(@babel/core@7.26.0)(react-native@0.76.3(@babel/core@7.26.0)(@babel/preset-env@7.26.9(@babel/core@7.26.0))(@types/react@18.3.12)(react@18.3.1))(react@18.3.1):

@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Keyboard,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   View,
 } from "react-native";
+import ReactNativeBlobUtil from "react-native-blob-util";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetImage from "@/components/bookmarks/BookmarkAssetImage";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
+import { PDFViewer } from "@/components/bookmarks/PDFViewer";
 import FullPageError from "@/components/FullPageError";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
@@ -22,6 +26,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useAssetUrl } from "@/lib/hooks";
 import { api } from "@/lib/trpc";
 import { ClipboardList, Globe, Info, Tag, Trash2 } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 import {
   useDeleteBookmark,
@@ -32,6 +37,81 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 function BottomActions({ bookmark }: { bookmark: ZBookmark }) {
   const { toast } = useToast();
   const router = useRouter();
+  const [isOpeningExternally, setIsOpeningExternally] = useState(false);
+
+  // Always call the hook, but only use it for assets
+  const assetId =
+    bookmark.content.type === BookmarkTypes.ASSET
+      ? bookmark.content.assetId
+      : "dummy";
+  const rawAssetUrl = useAssetUrl(assetId);
+  const assetUrl =
+    bookmark.content.type === BookmarkTypes.ASSET && bookmark.content.assetId
+      ? rawAssetUrl
+      : null;
+
+  const openPDFExternally = async () => {
+    if (!assetUrl) return;
+
+    try {
+      setIsOpeningExternally(true);
+
+      // Download PDF to a temporary location
+      // Use original filename if available, otherwise use title or fallback
+      let fileName = "document.pdf";
+      if (
+        bookmark.content.type === BookmarkTypes.ASSET &&
+        bookmark.content.fileName
+      ) {
+        // Use original filename if it has .pdf extension
+        fileName = bookmark.content.fileName.endsWith(".pdf")
+          ? bookmark.content.fileName
+          : `${bookmark.content.fileName}.pdf`;
+      } else if (bookmark.title) {
+        // Sanitize title for filename
+        fileName = `${bookmark.title.replace(/[^a-zA-Z0-9-_]/g, "_")}.pdf`;
+      }
+
+      const { dirs } = ReactNativeBlobUtil.fs;
+      const path = `${dirs.DocumentDir}/${fileName}`;
+
+      const response = await ReactNativeBlobUtil.config({
+        fileCache: true,
+        path: path,
+      }).fetch("GET", assetUrl?.uri ?? "", assetUrl?.headers ?? {});
+
+      const downloadedPath = response.path();
+
+      // Open the downloaded file in the default PDF viewer
+      if (Platform.OS === "ios") {
+        // On iOS, use the iOS-specific openDocument method
+        await ReactNativeBlobUtil.ios.openDocument(downloadedPath);
+      } else {
+        // On Android, use react-native-blob-util's intent to open the file
+        // This handles the content provider properly
+        ReactNativeBlobUtil.android.actionViewIntent(
+          downloadedPath,
+          "application/pdf",
+        );
+      }
+
+      // Clean up the temporary file after opening
+      setTimeout(() => {
+        ReactNativeBlobUtil.fs.unlink(downloadedPath).catch(() => {
+          // Ignore cleanup errors
+        });
+      }, 60000); // Clean up after 1 minute
+    } catch (error) {
+      console.error("Error opening PDF:", error);
+      toast({
+        message: "Failed to open PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOpeningExternally(false);
+    }
+  };
+
   const { mutate: deleteBookmark, isPending: isDeletionPending } =
     useDeleteBookmark({
       onSuccess: () => {
@@ -128,6 +208,22 @@ function BottomActions({ bookmark }: { bookmark: ZBookmark }) {
         bookmark.content.type == BookmarkTypes.LINK &&
         Linking.openURL(bookmark.content.url),
       disabled: false,
+    },
+    {
+      id: "open-pdf",
+      icon: isOpeningExternally ? (
+        <ActivityIndicator size="small" />
+      ) : (
+        <TailwindResolver
+          className="text-foreground"
+          comp={(styles) => <Globe color={styles?.color?.toString()} />}
+        />
+      ),
+      shouldRender:
+        bookmark.content.type == BookmarkTypes.ASSET &&
+        bookmark.content.assetType === "pdf",
+      onClick: openPDFExternally,
+      disabled: isOpeningExternally,
     },
   ];
   return (
@@ -235,6 +331,20 @@ function BookmarkAssetView({ bookmark }: { bookmark: ZBookmark }) {
     throw new Error("Wrong content type rendered");
   }
   const assetSource = useAssetUrl(bookmark.content.assetId);
+
+  // Check if this is a PDF asset
+  if (bookmark.content.assetType === "pdf") {
+    return (
+      <View className="flex flex-1">
+        <PDFViewer
+          source={assetSource.uri ?? ""}
+          headers={assetSource.headers}
+        />
+      </View>
+    );
+  }
+
+  // Handle image assets as before
   return (
     <View className="flex flex-1 gap-2">
       <ImageView
@@ -257,6 +367,9 @@ function BookmarkAssetView({ bookmark }: { bookmark: ZBookmark }) {
 
 export default function ListView() {
   const { slug } = useLocalSearchParams();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
   }
@@ -298,6 +411,11 @@ export default function ListView() {
           headerTitle: title ?? "",
           headerBackTitle: "Back",
           headerTransparent: false,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: isDark ? "#000" : "#fff",
+          },
+          headerTintColor: isDark ? "#fff" : "#000",
         }}
       />
       <View className="flex h-full">
