@@ -67,6 +67,7 @@ install() {
   mkdir -p "$DATA_DIR"
   mkdir -p "$CONFIG_DIR"
   mkdir -p "$LOG_DIR"
+  touch "$LOG_DIR"/{karakeep-workers.log,karakeep-web.log}
   M_DATA_DIR=/var/lib/meilisearch
   M_CONFIG_FILE=/etc/meilisearch.toml
   RELEASE=$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
@@ -122,13 +123,6 @@ EOF
   chmod 600 "$ENV_FILE"
   echo "$RELEASE" >"$INSTALL_DIR"/version.txt
   echo "Configuration complete" && sleep 1
-
-  echo "Creating users and modifying permissions..."
-  useradd -U -s /usr/sbin/nologin -r -m -d "$M_DATA_DIR" meilisearch
-  useradd -U -s /usr/sbin/nologin -r -M -d "$INSTALL_DIR" karakeep
-  chown meilisearch:meilisearch "$M_CONFIG_FILE"
-  chown -R karakeep:karakeep "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"
-  echo "Users created, permissions modified" && sleep 1
 
   echo "Creating service files..."
   cat <<EOF >/etc/systemd/system/meilisearch.service
@@ -195,8 +189,8 @@ Restart=always
 EnvironmentFile=${ENV_FILE}
 WorkingDirectory=${INSTALL_DIR}/apps/workers
 ExecStart=/usr/bin/pnpm run start:prod
-StandardOutput=file:${LOG_DIR}/karakeep-workers.log
-StandardError=file:${LOG_DIR}/karakeep-workers.log
+StandardOutput=append:${LOG_DIR}/karakeep-workers.log
+StandardError=append:${LOG_DIR}/karakeep-workers.log
 TimeoutStopSec=5
 SyslogIdentifier=karakeep-workers
 
@@ -217,8 +211,8 @@ Restart=on-failure
 EnvironmentFile=${ENV_FILE}
 WorkingDirectory=${INSTALL_DIR}/apps/web
 ExecStart=/usr/bin/pnpm start
-StandardOutput=file:${LOG_DIR}/karakeep-web.log
-StandardError=file:${LOG_DIR}/karakeep-web.log
+StandardOutput=append:${LOG_DIR}/karakeep-web.log
+StandardError=append:${LOG_DIR}/karakeep-web.log
 TimeoutStopSec=5
 SyslogIdentifier=karakeep-web
 
@@ -236,6 +230,26 @@ Wants=meilisearch.service karakeep-browser.service karakeep-workers.service kara
 WantedBy=multi-user.target
 EOF
   echo "Service files created" && sleep 1
+
+  # configure log rotation
+  cat <<EOF >/etc/logrotate.d/karakeep
+/var/log/karakeep/*.log
+{
+  su karakeep karakeep
+  weekly
+  missingok
+  rotate 4
+  compress
+  notifempty
+}
+EOF
+
+  echo "Creating users and modifying permissions..."
+  useradd -U -s /usr/sbin/nologin -r -m -d "$M_DATA_DIR" meilisearch
+  useradd -U -s /usr/sbin/nologin -r -M -d "$INSTALL_DIR" karakeep
+  chown meilisearch:meilisearch "$M_CONFIG_FILE"
+  chown -R karakeep:karakeep "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"
+  echo "Users created, permissions modified" && sleep 1
 
   echo "Cleaning up" && sleep 1
   rm /tmp/v"$RELEASE".zip
@@ -330,7 +344,6 @@ migrate() {
 
 service_check() {
   local services=("karakeep-browser" "karakeep-workers" "karakeep-web")
-  local status=""
   readarray -t status < <(for service in "${services[@]}"; do
     systemctl is-active "$service" | grep "^active" -
   done)
