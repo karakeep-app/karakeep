@@ -3078,7 +3078,10 @@
                   "file": {
                     "$ref": "#/components/schemas/File to be uploaded"
                   }
-                }
+                },
+                "required": [
+                  "file"
+                ]
               }
             }
           }

@@ -5,7 +5,7 @@ interface RelativeDate {
 }
 
 const parseRelativeDate = (date: string): RelativeDate => {
-  const match = date.match(/^([<>])(\d+)([dwmy])$/);
+  const match = /^([<>])(\d+)([dwmy])$/.exec(date);
   if (!match) {
     throw new Error(`Invalid relative date format: ${date}`);
   }

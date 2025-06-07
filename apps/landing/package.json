@@ -33,7 +33,7 @@
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tailwindcss/typography": "^0.5.10",
-    "@types/react": "^18.2.55",
+    "@types/react": "^18.3.12",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.17",
