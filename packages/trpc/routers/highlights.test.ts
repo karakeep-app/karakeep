@@ -204,6 +204,72 @@ describe("Highlight Routes", () => {
     expect(res.nextCursor).toBeDefined(); // Should have a next cursor
   });
 
+  test<CustomTestContext>("create highlight on text bookmark", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].highlights;
+    const bookmarksApi = apiCallers[0].bookmarks;
+
+    // Create a text bookmark
+    const bookmark = await bookmarksApi.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "This is a test note with **markdown** content that can be highlighted.",
+      title: "Test Note for Highlighting",
+    });
+    const bookmarkId = bookmark.id;
+
+    // Create highlights on different parts of the text
+    const highlight1 = await api.create({
+      bookmarkId,
+      startOffset: 0,
+      endOffset: 7, // "This is"
+      color: "yellow",
+      text: "This is",
+      note: "Start of note",
+    });
+
+    const highlight2 = await api.create({
+      bookmarkId,
+      startOffset: 28,
+      endOffset: 36, // "markdown"
+      color: "blue",
+      text: "markdown",
+      note: "Emphasis on markdown",
+    });
+
+    // Verify highlights were created correctly
+    expect(highlight1.text).toBe("This is");
+    expect(highlight1.color).toBe("yellow");
+    expect(highlight2.text).toBe("markdown");
+    expect(highlight2.color).toBe("blue");
+
+    // Get highlights for the text bookmark
+    const bookmarkHighlights = await api.getForBookmark({ bookmarkId });
+    expect(bookmarkHighlights.highlights.length).toBe(2);
+    expect(
+      bookmarkHighlights.highlights.some((h) => h.text === "This is"),
+    ).toBeTruthy();
+    expect(
+      bookmarkHighlights.highlights.some((h) => h.text === "markdown"),
+    ).toBeTruthy();
+
+    // Test updating highlight on text bookmark
+    await api.update({
+      highlightId: highlight1.id,
+      color: "red",
+    });
+
+    const updatedHighlight = await api.get({ highlightId: highlight1.id });
+    expect(updatedHighlight.color).toBe("red");
+
+    // Test deleting highlight from text bookmark
+    await api.delete({ highlightId: highlight2.id });
+
+    const remainingHighlights = await api.getForBookmark({ bookmarkId });
+    expect(remainingHighlights.highlights.length).toBe(1);
+    expect(remainingHighlights.highlights[0].id).toBe(highlight1.id);
+  });
+
   test<CustomTestContext>("privacy for highlights", async ({ apiCallers }) => {
     const apiUser1 = apiCallers[0].highlights;
     const apiUser2 = apiCallers[1].highlights;

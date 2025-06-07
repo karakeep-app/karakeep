@@ -5,7 +5,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "@karakeep/tailwind-config/globals.css";
 
 import type { Viewport } from "next";
-import React from "react";
+import { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/lib/providers";
 import { getUserLocalSettings } from "@/lib/userLocalSettings/userLocalSettings";
@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   const session = await getServerAuthSession();
   const userSettings = await getUserLocalSettings();
@@ -54,6 +54,7 @@ export default async function RootLayout({
       className="sm:overflow-hidden"
       lang={userSettings.lang}
       dir={isRTL ? "rtl" : "ltr"}
+      suppressHydrationWarning
     >
       <body className={inter.className}>
         <NuqsAdapter>
