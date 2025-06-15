@@ -23,6 +23,7 @@ import {
 } from "@karakeep/shared/queues";
 
 const openAIResponseSchema = z.object({
+  thinking: z.string().optional(),
   tags: z.array(z.string()),
 });
 
