@@ -116,6 +116,36 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 | CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC | No       | 600     | How long to wait for the video download to finish                                                                                                                                                                                                                                                                                                                             |
 | CRAWLER_ENABLE_ADBLOCKER           | No       | true    | Whether to enable an adblocker in the crawler or not. If you're facing troubles downloading the adblocking lists on worker startup, you can disable this.                                                                                                                                                                                                                     |
 | CRAWLER_YTDLP_ARGS                 | No       | []      | Include additional yt-dlp arguments to be passed at crawl time separated by %%: https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options                                                                                                                                                                                                                           |
+| BROWSER_COOKIE_PATH                | No       | Not set | Path to a JSON file containing cookies to be loaded into the browser context. The file should be an array of cookie objects, each with name and value (required), and optional fields like domain, path, expires, httpOnly, secure, and sameSite (e.g., [{"name": "session", "value": "xxx", "domain": ".example.com"}]. |
+
+:::info
+
+- BROWSER_COOKIE_PATH: Specifies the path to a JSON file containing cookies to be loaded into the browser context for crawling.
+
+> The JSON file must be an array of cookie objects, each with:
+> 
+> name: The cookie name (required).
+> 
+> value: The cookie value (required).
+> 
+> Optional fields: domain, path, expires, httpOnly, secure, sameSite (values: "Strict", "Lax", or "None").
+
+Example JSON file:
+```json
+[
+  {
+    "name": "session",
+    "value": "xxx",
+    "domain": ".example.com",
+    "path": "/",
+    "expires": 1735689600,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  }
+]
+```
+:::
 
 ## OCR Configs
 

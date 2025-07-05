@@ -28,6 +28,7 @@ import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { withTimeout } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
+import { z } from "zod";
 
 import type { ZCrawlLinkRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
@@ -81,8 +82,34 @@ const metascraperParser = metascraper([
   metascraperUrl(),
 ]);
 
+interface Cookie {
+  name: string;
+  value: string;
+  domain?: string;
+  path?: string;
+  expires?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: "Strict" | "Lax" | "None";
+}
+
+const cookieSchema = z.object({
+  name: z.string(),
+  value: z.string(),
+  domain: z.string().optional(),
+  path: z.string().optional(),
+  expires: z.number().optional(),
+  httpOnly: z.boolean().optional(),
+  secure: z.boolean().optional(),
+  sameSite: z.enum(["Strict", "Lax", "None"]).optional(),
+});
+
+const cookiesSchema = z.array(cookieSchema);
+
 let globalBrowser: Browser | undefined;
 let globalBlocker: PlaywrightBlocker | undefined;
+// Global variable to store parsed cookies
+let globalCookies: Cookie[] = [];
 // Guards the interactions with the browser instance.
 // This is needed given that most of the browser APIs are async.
 const browserMutex = new Mutex();
@@ -212,7 +239,32 @@ export class CrawlerWorker {
       },
     );
 
+    await loadCookiesFromFile();
+
     return worker;
+  }
+}
+
+async function loadCookiesFromFile(): Promise<void> {
+  try {
+    const path = serverConfig.crawler.browserCookiePath;
+    if (!path) {
+      logger.info(
+        "[Crawler] Not defined in the server configuration BROWSER_COOKIE_PATH",
+      );
+      return;
+    }
+    const data = await fs.readFile(path, "utf8");
+    const cookies = JSON.parse(data);
+    globalCookies = cookiesSchema.parse(cookies);
+  } catch (error) {
+    logger.error("Failed to read or parse cookies file:", error);
+    if (error instanceof z.ZodError) {
+      logger.error("[Crawler] Invalid cookie file format:", error.errors);
+    } else {
+      logger.error("[Crawler] Failed to read or parse cookies file:", error);
+    }
+    throw error;
   }
 }
 
@@ -294,6 +346,13 @@ async function crawlPage(
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
   });
   try {
+    if (globalCookies.length > 0) {
+      await context.addCookies(globalCookies);
+      logger.info(
+        `[Crawler][${jobId}] Cookies successfully loaded into browser context`,
+      );
+    }
+
     // Create a new page in the context
     const page = await context.newPage();
 
