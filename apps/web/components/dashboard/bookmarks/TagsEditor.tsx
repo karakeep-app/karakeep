@@ -96,11 +96,14 @@ export function TagsEditor({
           attachedBy: "human" as const,
         })) ?? []
       }
-      value={optimisticTags.map((t) => ({
-        label: t.name,
-        value: t.id,
-        attachedBy: t.attachedBy,
-      }))}
+      value={optimisticTags
+        .slice()
+        .sort((a) => (a.attachedBy === "human" ? -1 : 1))
+        .map((t) => ({
+          label: t.name,
+          value: t.id,
+          attachedBy: t.attachedBy,
+        }))}
       isMulti
       closeMenuOnSelect={false}
       isClearable={false}
