@@ -17,15 +17,26 @@ function SearchComp() {
     setSortOrder("relevance");
   }, []);
 
+  const totalCount = data?.pages[0]?.totalCount;
+
   return (
     <div className="flex flex-col gap-3">
       {data ? (
-        <BookmarksGrid
-          hasNextPage={hasNextPage}
-          fetchNextPage={fetchNextPage}
-          isFetchingNextPage={isFetchingNextPage}
-          bookmarks={data.pages.flatMap((b) => b.bookmarks)}
-        />
+        <>
+          {typeof totalCount === "number" && (
+            <div className="text-sm text-muted-foreground">
+              {totalCount === 0
+                ? "No results found"
+                : `${totalCount.toLocaleString()} result${totalCount === 1 ? "" : "s"} found`}
+            </div>
+          )}
+          <BookmarksGrid
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            bookmarks={data.pages.flatMap((b) => b.bookmarks)}
+          />
+        </>
       ) : (
         <FullPageSpinner />
       )}

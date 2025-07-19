@@ -48,8 +48,8 @@ import {
   zGetBookmarksResponseSchema,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
-  zSearchBookmarksCursor,
   zSearchBookmarksRequestSchema,
+  zSearchBookmarksResponseSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
@@ -750,12 +750,7 @@ export const bookmarksAppRouter = router({
     }),
   searchBookmarks: authedProcedure
     .input(zSearchBookmarksRequestSchema)
-    .output(
-      z.object({
-        bookmarks: z.array(zBookmarkSchema),
-        nextCursor: zSearchBookmarksCursor.nullable(),
-      }),
-    )
+    .output(zSearchBookmarksResponseSchema)
     .query(async ({ input, ctx }) => {
       if (!input.limit) {
         input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
@@ -802,7 +797,7 @@ export const bookmarksAppRouter = router({
       });
 
       if (resp.hits.length == 0) {
-        return { bookmarks: [], nextCursor: null };
+        return { bookmarks: [], nextCursor: null, totalCount: 0 };
       }
       const idToRank = resp.hits.reduce<Record<string, number>>((acc, r) => {
         acc[r.id] = r._rankingScore!;
@@ -852,6 +847,7 @@ export const bookmarksAppRouter = router({
                 ver: 1 as const,
                 offset: resp.hits.length + resp.offset,
               },
+        totalCount: resp.estimatedTotalHits,
       };
     }),
   getBookmarks: authedProcedure

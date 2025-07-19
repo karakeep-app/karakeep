@@ -27,6 +27,7 @@ export default async function Sidebar({
               logo={item.icon}
               name={item.name}
               path={item.path}
+              right={item.right}
             />
           ))}
         </ul>
