@@ -248,6 +248,12 @@ export const zSearchBookmarksRequestSchema = z.object({
   includeContent: z.boolean().optional().default(false),
 });
 
+export const zSearchBookmarksResponseSchema = z.object({
+  bookmarks: z.array(zBookmarkSchema),
+  nextCursor: zSearchBookmarksCursor.nullable(),
+  totalCount: z.number(),
+});
+
 export const zPublicBookmarkSchema = z.object({
   id: z.string(),
   createdAt: z.date(),

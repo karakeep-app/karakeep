@@ -21,6 +21,7 @@
     "typecheck": "turbo --no-daemon typecheck"
   },
   "dependencies": {
+    "framer-motion": "^12.23.5",
     "husky": "^9.0.11"
   },
   "devDependencies": {

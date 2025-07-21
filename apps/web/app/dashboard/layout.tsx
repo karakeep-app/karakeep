@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import AllLists from "@/components/dashboard/sidebar/AllLists";
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
 import Sidebar from "@/components/shared/sidebar/Sidebar";
+import SidebarItemCount from "@/components/shared/sidebar/SidebarItemCount";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
 import { Separator } from "@/components/ui/separator";
 import { UserSettingsContextProvider } from "@/lib/userSettings";
@@ -42,6 +43,7 @@ export default async function Dashboard({
         name: t("common.home"),
         icon: <Home size={18} />,
         path: "/dashboard/bookmarks",
+        right: <SidebarItemCount type="bookmarks" />,
       },
       serverConfig.search.meilisearch
         ? [
@@ -49,6 +51,7 @@ export default async function Dashboard({
               name: t("common.search"),
               icon: <Search size={18} />,
               path: "/dashboard/search",
+              right: null,
             },
           ]
         : [],
@@ -56,16 +59,19 @@ export default async function Dashboard({
         name: t("common.tags"),
         icon: <Tag size={18} />,
         path: "/dashboard/tags",
+        right: <SidebarItemCount type="tags" />,
       },
       {
         name: t("common.highlights"),
         icon: <Highlighter size={18} />,
         path: "/dashboard/highlights",
+        right: <SidebarItemCount type="highlights" />,
       },
       {
         name: t("common.archive"),
         icon: <Archive size={18} />,
         path: "/dashboard/archive",
+        right: <SidebarItemCount type="archived" />,
       },
     ].flat();
 
@@ -75,6 +81,7 @@ export default async function Dashboard({
       name: t("lists.all_lists"),
       icon: <ClipboardList size={18} />,
       path: "/dashboard/lists",
+      right: null,
     },
   ];
 
