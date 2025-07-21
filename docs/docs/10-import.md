@@ -34,6 +34,17 @@ All the URLs in the bookmarks file will be added automatically, you will not be 
 - The zip file contains a lot of JSONs in the format `metadata_*.json`. You can either import every JSON file manually, or merge the JSONs into a single JSON file and import that.
 - To  merge the JSONs into a single JSON file, you can use the following command in the unzipped directory: `jq -r '.[]' metadata_*.json | jq -s > omnivore.json` and then import the `omnivore.json` file. You'll need to have the [jq](https://github.com/jqlang/jq) tool installed.
 
+## Import from OneTab
+
+- OneTab offers multiple export formats that Karakeep can import:
+  - **Simple format**: Copy your tabs from OneTab and save as a text file where each line contains `URL | Title`
+  - **JSON format**: Use OneTab's JavaScript console export script to generate a more detailed JSON file with tab groups and metadata
+- To export from OneTab:
+  1. **Simple method**: Select all your OneTab items, copy them, and paste into a text file. Each line should be in the format `URL | Title`
+  2. **Advanced method**: Open OneTab, press F12 to open developer tools, and run a JavaScript export script to get a JSON file with groups and creation dates
+- To import the file, go to the settings and click "Import Bookmarks from OneTab export".
+- Karakeep will automatically detect whether you're importing the simple text format or the advanced JSON format.
+
 ## Import using the CLI
 
 :::warning

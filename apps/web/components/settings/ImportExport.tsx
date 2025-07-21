@@ -22,6 +22,7 @@ import {
   parseLinkwardenBookmarkFile,
   parseNetscapeBookmarkFile,
   parseOmnivoreBookmarkFile,
+  parseOneTabBookmarkFile,
   parsePocketBookmarkFile,
   parseTabSessionManagerStateFile,
 } from "@/lib/importBookmarkParser";
@@ -183,7 +184,8 @@ export function ImportExportRow() {
         | "omnivore"
         | "karakeep"
         | "linkwarden"
-        | "tab-session-manager";
+        | "tab-session-manager"
+        | "onetab";
     }) => {
       if (source === "html") {
         return await parseNetscapeBookmarkFile(file);
@@ -197,6 +199,8 @@ export function ImportExportRow() {
         return await parseLinkwardenBookmarkFile(file);
       } else if (source === "tab-session-manager") {
         return await parseTabSessionManagerStateFile(file);
+      } else if (source === "onetab") {
+        return await parseOneTabBookmarkFile(file);
       } else {
         throw new Error("Unknown source");
       }
@@ -433,6 +437,23 @@ export function ImportExportRow() {
             className="flex items-center gap-2"
             onFileSelect={(file) =>
               runUploadBookmarkFile({ file, source: "tab-session-manager" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
+          text="OneTab"
+          description={t("settings.import.import_bookmarks_from_onetab_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".txt,.json"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "onetab" })
             }
           >
             <p>Import</p>
