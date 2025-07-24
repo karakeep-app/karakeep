@@ -14,6 +14,12 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
       NEXTAUTH_SECRET : ${NEXTAUTH_SECRET}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
   chrome:
     image: gcr.io/zenika-hub/alpine-chrome:123
     restart: unless-stopped
@@ -24,6 +30,11 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost:9222/json/version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
   meilisearch: 
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
@@ -31,6 +42,11 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost:7700/version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   meilisearch:
