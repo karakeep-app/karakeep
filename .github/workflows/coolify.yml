@@ -4,20 +4,16 @@ on:
   push:
     branches:
       - main
-    paths:
-      # Only trigger on actual application changes
-      - 'apps/**'
-      - 'packages/**'
-      - 'docker/Dockerfile'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
     paths-ignore:
-      # Ignore config-only changes
+      # Ignore config-only changes - only build on actual code changes
       - 'docker/docker-compose*.yml'
       - '*.md'
       - 'docs/**'
       - '.github/**'
+      - 'README*'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.env.sample'
   
   workflow_dispatch:  # Manual trigger for major updates
 
