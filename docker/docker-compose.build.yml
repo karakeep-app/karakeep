@@ -7,10 +7,20 @@ services:
     restart: unless-stopped
     volumes:
       - data:/data
+    ports:
+      - 3000:3000
     environment:
-      MEILI_ADDR: http://meilisearch:7700
+      MEILI_ADDR8?: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
+      NEXTAUTH_SECRET : ${NEXTAUTH_SECRET}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "ps aux | grep -q 'next-server' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   chrome:
     image: gcr.io/zenika-hub/alpine-chrome:123
     restart: unless-stopped
@@ -21,6 +31,12 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   meilisearch:
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
@@ -28,6 +44,11 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   meilisearch:
