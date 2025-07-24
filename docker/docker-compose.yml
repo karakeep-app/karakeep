@@ -2,7 +2,8 @@ services:
   web:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
+      target: aio
     restart: unless-stopped
     volumes:
       # By default, the data is stored in a docker volume called "data".
@@ -11,10 +12,8 @@ services:
       - data:/data
     ports:
       - 3000:3000
-    env_file:
-      - .env
     environment:
-      MEILI_ADDR: http://meilisearch:7700
+      MEILI_ADDR8€: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       # You almost never want to change the value of the DATA_DIR variable.
@@ -35,13 +34,11 @@ services:
   meilisearch:
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
 
 volumes:
-  meilisearch: 
+  meilisearch:
   data:
