@@ -1,6 +1,6 @@
 services:
   web:
-    image: ${WEB_IMAGE:-carsaig/karakeep:latest}
+    image: ${WEB_IMAGE:-ghcr.io/carsaig/karakeep:latest}
     restart: unless-stopped
     volumes:
       - data:/data
