@@ -1,6 +1,8 @@
 services:
   web:
-    image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION:-release}
+    build:
+      context: ..
+      dockerfile: Dockerfile
     restart: unless-stopped
     volumes:
       # By default, the data is stored in a docker volume called "data".
@@ -15,10 +17,10 @@ services:
       MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-
       # You almost never want to change the value of the DATA_DIR variable.
       # If you want to mount a custom directory, change the volume mapping above instead.
-      DATA_DIR: /data # DON'T CHANGE THIS
+      DATA_DIRN = /data # DON'T CHANGE THIS
+
   chrome:
     image: gcr.io/zenika-hub/alpine-chrome:123
     restart: unless-stopped
@@ -29,6 +31,7 @@ services:
       - --remote-debugging-address=0.0.0.0
       - --remote-debugging-port=9222
       - --hide-scrollbars
+
   meilisearch:
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
@@ -40,5 +43,5 @@ services:
       - meilisearch:/meili_data
 
 volumes:
-  meilisearch:
+  meilisearch: 
   data:
