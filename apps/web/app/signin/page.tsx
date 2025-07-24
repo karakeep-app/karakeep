@@ -10,12 +10,11 @@ export default async function SignInPage() {
   }
 
   return (
-    <div className="grid min-h-screen grid-rows-6 justify-center">
-      <span className="row-span-1" />
-      <div className="row-span-1 flex w-96 items-center justify-center space-x-2">
-        <KarakeepLogo height={100} />
-      </div>
-      <div className="row-span-4 px-3">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex items-center justify-center">
+          <KarakeepLogo height={80} />
+        </div>
         <SignInForm />
       </div>
     </div>

@@ -36,7 +36,10 @@
       "link": "Link",
       "text": "Text",
       "media": "Media"
-    }
+    },
+    "quota": "Quota",
+    "bookmarks": "Bookmarks",
+    "storage": "Storage"
   },
   "layouts": {
     "masonry": "Masonry",
@@ -315,6 +318,77 @@
         "favourited": "A bookmark is favorited",
         "archived": "A bookmark's archived"
       }
+    },
+    "stats": {
+      "usage_statistics": "Usage Statistics",
+      "insights_description": "Insights into your bookmarking habits and collection",
+      "failed_to_load": "Failed to load statistics",
+      "overview": {
+        "total_bookmarks": "Total Bookmarks",
+        "all_saved_items": "All saved items",
+        "favorites": "Favorites",
+        "starred_bookmarks": "Starred bookmarks",
+        "archived": "Archived",
+        "archived_items": "Archived items",
+        "tags": "Tags",
+        "unique_tags_created": "Unique tags created",
+        "lists": "Lists",
+        "bookmark_collections": "Bookmark collections",
+        "highlights": "Highlights",
+        "text_highlights": "Text highlights",
+        "storage_used": "Storage Used",
+        "total_asset_storage": "Total asset storage",
+        "this_month": "This Month",
+        "bookmarks_added": "Bookmarks added"
+      },
+      "bookmark_types": {
+        "title": "Bookmark Types",
+        "links": "Links",
+        "text_notes": "Text Notes",
+        "assets": "Assets"
+      },
+      "recent_activity": {
+        "title": "Recent Activity",
+        "this_week": "This Week",
+        "this_month": "This Month",
+        "this_year": "This Year"
+      },
+      "top_domains": {
+        "title": "Top Domains",
+        "no_domains_found": "No domains found"
+      },
+      "most_used_tags": {
+        "title": "Most Used Tags",
+        "no_tags_found": "No tags found"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Activity by Hour",
+        "activity_by_day": "Activity by Day"
+      },
+      "storage_breakdown": {
+        "title": "Storage Breakdown"
+      }
+    },
+    "subscription": {
+      "subscription": "Subscription",
+      "manage_subscription": "Manage your subscription and billing info",
+      "current_plan": "Current Plan",
+      "billing_period": "Billing Period",
+      "paid_plan": "Paid Plan",
+      "unlock_bigger_quota": "Get a bigger quota and help keep the project going",
+      "subscribe_now": "Subscribe Now",
+      "manage_billing": "Manage Billing",
+      "subscription_canceled": "Your subscription's been canceled and will end on {{date}}. You can resubscribe whenever you want.",
+      "usage_quotas": "Usage & Quotas",
+      "track_usage": "Track how much you're using compared to your plan",
+      "total_bookmarks_saved": "Total bookmarks saved",
+      "assets_file_storage": "Assets and file storage",
+      "unlimited_usage": "Unlimited usage",
+      "quota_limit_reached": "Quota limit reached",
+      "approaching_quota_limit": "You're getting close to your quota limit",
+      "loading_usage": "Hang tight, loading usage info...",
+      "free": "Free",
+      "paid": "Paid"
     }
   },
   "admin": {
@@ -361,7 +435,9 @@
       "num_bookmarks": "Num Bookmarks",
       "asset_sizes": "Asset Sizes",
       "local_user": "Local User",
-      "confirm_password": "Confirm Password"
+      "confirm_password": "Confirm Password",
+      "delete_user_confirm_description": "Are you sure you wanna delete user \"{{name}}\"?",
+      "unlimited": "Unlimited"
     }
   },
   "options": {
@@ -433,7 +509,8 @@
     "is_from_feed": "Is from RSS feed",
     "is_not_from_feed": "Is not from RSS feed",
     "and": "And",
-    "or": "Or"
+    "or": "Or",
+    "history": "Recent Searches"
   },
   "preview": {
     "view_original": "View Original",

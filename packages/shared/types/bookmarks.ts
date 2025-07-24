@@ -16,6 +16,7 @@ export const zSortOrder = z.enum(["asc", "desc", "relevance"]);
 export type ZSortOrder = z.infer<typeof zSortOrder>;
 
 export const zAssetTypesSchema = z.enum([
+  "linkHtmlContent",
   "screenshot",
   "assetScreenshot",
   "bannerImage",
@@ -45,6 +46,7 @@ export const zBookmarkedLinkSchema = z.object({
   videoAssetId: z.string().nullish(),
   favicon: z.string().nullish(),
   htmlContent: z.string().nullish(),
+  contentAssetId: z.string().nullish(),
   crawledAt: z.date().nullish(),
   author: z.string().nullish(),
   publisher: z.string().nullish(),
@@ -137,6 +139,9 @@ export const zNewBookmarkRequestSchema = z
     note: z.string().optional(),
     summary: z.string().optional(),
     createdAt: z.coerce.date().optional(),
+    // A mechanism to prioritize crawling of bookmarks depending on whether
+    // they were created by a user interaction or by a bulk import.
+    crawlPriority: z.enum(["low", "normal"]).optional(),
   })
   .and(
     z.discriminatedUnion("type", [

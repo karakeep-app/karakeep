@@ -36,7 +36,10 @@
     "updated_at": "Bijgewerkt op",
     "title": "Titel",
     "description": "Beschrijving",
-    "summary": "Samenvatting"
+    "summary": "Samenvatting",
+    "quota": "Quota",
+    "bookmarks": "Bladwijzers",
+    "storage": "Opslag"
   },
   "layouts": {
     "list": "Lijst",
@@ -229,6 +232,77 @@
         "favourited": "Een bladwijzer is favoriet",
         "archived": "Een bladwijzer is gearchiveerd"
       }
+    },
+    "stats": {
+      "usage_statistics": "Gebruiksstatistieken",
+      "insights_description": "Inzichten in je bladwijzergewoonten en -verzameling",
+      "failed_to_load": "Statistieken konden niet worden geladen",
+      "overview": {
+        "total_bookmarks": "Totaal aantal bladwijzers",
+        "all_saved_items": "Alle opgeslagen items",
+        "favorites": "Favorieten",
+        "starred_bookmarks": "Bladwijzers met ster",
+        "archived": "Gearchiveerd",
+        "archived_items": "Gearchiveerde items",
+        "tags": "Tags",
+        "unique_tags_created": "Unieke tags aangemaakt",
+        "lists": "Lijsten",
+        "bookmark_collections": "Bladwijzerverzamelingen",
+        "highlights": "Markeringen",
+        "text_highlights": "Tekstmarkeringen",
+        "storage_used": "Gebruikte opslag",
+        "total_asset_storage": "Totale opslag van activa",
+        "this_month": "Deze maand",
+        "bookmarks_added": "Bladwijzers toegevoegd"
+      },
+      "bookmark_types": {
+        "title": "Bladwijzertypen",
+        "links": "Links",
+        "text_notes": "Tekstnotities",
+        "assets": "Activa"
+      },
+      "recent_activity": {
+        "title": "Recente activiteit",
+        "this_week": "Deze week",
+        "this_month": "Deze maand",
+        "this_year": "Dit jaar"
+      },
+      "top_domains": {
+        "title": "Topdomeinen",
+        "no_domains_found": "Geen domeinen gevonden"
+      },
+      "most_used_tags": {
+        "title": "Meest gebruikte tags",
+        "no_tags_found": "Geen tags gevonden"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Activiteit per uur",
+        "activity_by_day": "Activiteit per dag"
+      },
+      "storage_breakdown": {
+        "title": "Opslagoverzicht"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonnement",
+      "manage_subscription": "Beheer je abonnement en factuurgegevens",
+      "current_plan": "Huidig abonnement",
+      "billing_period": "Factureringsperiode",
+      "paid_plan": "Betaald abonnement",
+      "unlock_bigger_quota": "Ontgrendel een groter quotum en steun het project",
+      "subscribe_now": "Abonneer nu",
+      "manage_billing": "Facturering beheren",
+      "subscription_canceled": "Je abonnement is geannuleerd en eindigt op {{date}}. Je kunt je op elk moment opnieuw abonneren.",
+      "usage_quotas": "Gebruik & Quota's",
+      "track_usage": "Volg je huidige gebruik ten opzichte van je planlimieten",
+      "total_bookmarks_saved": "Totaal aantal opgeslagen bladwijzers",
+      "assets_file_storage": "Opslag van activa en bestanden",
+      "unlimited_usage": "Onbeperkt gebruik",
+      "quota_limit_reached": "Quotumlimiet bereikt",
+      "approaching_quota_limit": "Nadert quotumlimiet",
+      "loading_usage": "Gebruiksinformatie laden...",
+      "free": "Gratis",
+      "paid": "Betaald"
     }
   },
   "admin": {
@@ -262,7 +336,9 @@
       "create_user": "Maak Gebruiker Aan",
       "change_role": "Wijzig Rol",
       "confirm_password": "Wachtwoord bevestigen",
-      "asset_sizes": "Assetformaten"
+      "asset_sizes": "Assetformaten",
+      "delete_user_confirm_description": "Weet je zeker dat je gebruiker \"{{name}}\" wilt verwijderen?",
+      "unlimited": "Onbeperkt"
     },
     "admin_settings": "Admin Instellingen",
     "actions": {
@@ -428,7 +504,8 @@
     "day_s_ago": " Dagen geleden",
     "week_s_ago": " Weken geleden",
     "month_s_ago": " Maanden geleden",
-    "year_s_ago": " Jaar geleden"
+    "year_s_ago": " Jaar geleden",
+    "history": "Recente zoekopdrachten"
   },
   "dialogs": {
     "bookmarks": {

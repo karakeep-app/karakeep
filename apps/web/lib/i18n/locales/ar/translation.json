@@ -36,7 +36,10 @@
     "title": "العنوان",
     "description": "الوصف",
     "summary": "ملخص",
-    "updated_at": "تم التحديث في"
+    "updated_at": "تم التحديث في",
+    "quota": "حصة",
+    "bookmarks": "الإشارات المرجعية",
+    "storage": "تخزين"
   },
   "layouts": {
     "masonry": "متعدد الأعمدة",
@@ -232,6 +235,77 @@
         "favourited": "تم تفضيل إشارة مرجعية",
         "archived": "تم أرشفة إشارة مرجعية"
       }
+    },
+    "stats": {
+      "usage_statistics": "إحصائيات الاستخدام",
+      "insights_description": "نظرة ثاقبة على عاداتك في وضع الإشارات المرجعية ومجموعتك",
+      "failed_to_load": "فشل تحميل الإحصائيات",
+      "overview": {
+        "total_bookmarks": "إجمالي الإشارات المرجعية",
+        "all_saved_items": "جميع العناصر المحفوظة",
+        "favorites": "المفضلة",
+        "starred_bookmarks": "الإشارات المرجعية المميزة بنجمة",
+        "archived": "مؤرشف",
+        "archived_items": "العناصر المؤرشفة",
+        "tags": "العلامات",
+        "unique_tags_created": "تم إنشاء علامات فريدة",
+        "lists": "قوائم",
+        "bookmark_collections": "مجموعات الإشارات المرجعية",
+        "highlights": "أبرز النقاط",
+        "text_highlights": "أبرز النقاط النصية",
+        "storage_used": "التخزين المستخدم",
+        "total_asset_storage": "إجمالي مساحة تخزين الأصول",
+        "this_month": "هذا الشهر",
+        "bookmarks_added": "تمت إضافة الإشارات المرجعية"
+      },
+      "bookmark_types": {
+        "title": "أنواع الإشارات المرجعية",
+        "links": "روابط",
+        "text_notes": "ملاحظات نصية",
+        "assets": "الأصول"
+      },
+      "recent_activity": {
+        "title": "النشاط الأخير",
+        "this_week": "هذا الأسبوع",
+        "this_month": "هذا الشهر",
+        "this_year": "هذا العام"
+      },
+      "top_domains": {
+        "title": "أهم النطاقات",
+        "no_domains_found": "لم يتم العثور على نطاقات"
+      },
+      "most_used_tags": {
+        "title": "العلامات الأكثر استخدامًا",
+        "no_tags_found": "لم يتم العثور على علامات"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "النشاط حسب الساعة",
+        "activity_by_day": "النشاط حسب اليوم"
+      },
+      "storage_breakdown": {
+        "title": "تفصيل التخزين"
+      }
+    },
+    "subscription": {
+      "subscription": "اشتراك",
+      "manage_subscription": "إدارة معلومات الاشتراك والفوترة الخاصة بك",
+      "current_plan": "الخطة الحالية",
+      "billing_period": "فترة الفوترة",
+      "paid_plan": "خطة مدفوعة",
+      "unlock_bigger_quota": "افتح حصة أكبر وادعم المشروع",
+      "subscribe_now": "اشترك الآن",
+      "manage_billing": "إدارة الفوترة",
+      "subscription_canceled": "تم إلغاء اشتراكك وسينتهي في {{date}}. يمكنك إعادة الاشتراك في أي وقت.",
+      "usage_quotas": "الاستخدام والحصص",
+      "track_usage": "تتبع استخدامك الحالي مقابل حدود خطتك",
+      "total_bookmarks_saved": "إجمالي الإشارات المرجعية المحفوظة",
+      "assets_file_storage": "الأصول وتخزين الملفات",
+      "unlimited_usage": "استخدام غير محدود",
+      "quota_limit_reached": "تم الوصول إلى حد الحصة",
+      "approaching_quota_limit": "الاقتراب من حد الحصة",
+      "loading_usage": "جارٍ تحميل معلومات الاستخدام...",
+      "free": "مجاني",
+      "paid": "مدفوعة"
     }
   },
   "admin": {
@@ -278,7 +352,9 @@
       "num_bookmarks": "عدد الإشارات المرجعية",
       "asset_sizes": "أحجام الوسائط",
       "local_user": "مستخدم محلي",
-      "confirm_password": "تأكيد كلمة المرور"
+      "confirm_password": "تأكيد كلمة المرور",
+      "delete_user_confirm_description": "هل أنت متأكد أنك تريد حذف المستخدم \"{{name}}؟\"",
+      "unlimited": "غير محدود"
     }
   },
   "options": {
@@ -363,7 +439,8 @@
     "month_s": " شهر (أشهر)",
     "year_s": " سنة (سنوات)",
     "day_s_ago": " منذ يوم (أيام)",
-    "week_s_ago": " منذ أسبوع (أسابيع)"
+    "week_s_ago": " منذ أسبوع (أسابيع)",
+    "history": "عمليات البحث الأخيرة"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",

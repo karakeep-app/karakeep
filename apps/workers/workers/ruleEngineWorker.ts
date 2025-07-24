@@ -5,6 +5,7 @@ import { buildImpersonatingAuthedContext } from "trpc";
 import type { ZRuleEngineRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
   RuleEngineQueue,
@@ -33,7 +34,7 @@ export class RuleEngineWorker {
         },
       },
       {
-        concurrency: 1,
+        concurrency: serverConfig.ruleEngine.numWorkers,
         pollIntervalMs: 1000,
         timeoutSecs: 10,
         validator: zRuleEngineRequestSchema,

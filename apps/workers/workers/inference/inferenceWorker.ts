@@ -58,7 +58,7 @@ export class OpenAiWorker {
         },
       },
       {
-        concurrency: 1,
+        concurrency: serverConfig.inference.numWorkers,
         pollIntervalMs: 1000,
         timeoutSecs: serverConfig.inference.jobTimeoutSec,
       },

@@ -174,6 +174,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "contentAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "crawledAt": {
                     "type": "string",
                     "nullable": true
@@ -291,6 +295,7 @@
                 "assetType": {
                   "type": "string",
                   "enum": [
+                    "linkHtmlContent",
                     "screenshot",
                     "assetScreenshot",
                     "bannerImage",
@@ -681,6 +686,13 @@
                       "createdAt": {
                         "type": "string",
                         "nullable": true
+                      },
+                      "crawlPriority": {
+                        "type": "string",
+                        "enum": [
+                          "low",
+                          "normal"
+                        ]
                       }
                     }
                   },
@@ -1551,6 +1563,7 @@
                   "assetType": {
                     "type": "string",
                     "enum": [
+                      "linkHtmlContent",
                       "screenshot",
                       "assetScreenshot",
                       "bannerImage",
@@ -1584,6 +1597,7 @@
                     "assetType": {
                       "type": "string",
                       "enum": [
+                        "linkHtmlContent",
                         "screenshot",
                         "assetScreenshot",
                         "bannerImage",
@@ -2989,10 +3003,14 @@
                     "email": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "localUser": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "id"
+                    "id",
+                    "localUser"
                   ]
                 }
               }
@@ -3038,6 +3056,145 @@
                     },
                     "numHighlights": {
                       "type": "number"
+                    },
+                    "bookmarksByType": {
+                      "type": "object",
+                      "properties": {
+                        "link": {
+                          "type": "number"
+                        },
+                        "text": {
+                          "type": "number"
+                        },
+                        "asset": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "link",
+                        "text",
+                        "asset"
+                      ]
+                    },
+                    "topDomains": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "domain": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "domain",
+                          "count"
+                        ]
+                      },
+                      "maxItems": 10
+                    },
+                    "totalAssetSize": {
+                      "type": "number"
+                    },
+                    "assetsByType": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          },
+                          "totalSize": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "count",
+                          "totalSize"
+                        ]
+                      }
+                    },
+                    "bookmarkingActivity": {
+                      "type": "object",
+                      "properties": {
+                        "thisWeek": {
+                          "type": "number"
+                        },
+                        "thisMonth": {
+                          "type": "number"
+                        },
+                        "thisYear": {
+                          "type": "number"
+                        },
+                        "byHour": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "hour": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "hour",
+                              "count"
+                            ]
+                          }
+                        },
+                        "byDayOfWeek": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "day": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "day",
+                              "count"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "thisWeek",
+                        "thisMonth",
+                        "thisYear",
+                        "byHour",
+                        "byDayOfWeek"
+                      ]
+                    },
+                    "tagUsage": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "count"
+                        ]
+                      },
+                      "maxItems": 10
                     }
                   },
                   "required": [
@@ -3046,7 +3203,13 @@
                     "numArchived",
                     "numTags",
                     "numLists",
-                    "numHighlights"
+                    "numHighlights",
+                    "bookmarksByType",
+                    "topDomains",
+                    "totalAssetSize",
+                    "assetsByType",
+                    "bookmarkingActivity",
+                    "tagUsage"
                   ]
                 }
               }
@@ -3119,6 +3282,162 @@
         "responses": {
           "200": {
             "description": "Asset content. Content type is determined by the asset type."
+          }
+        }
+      }
+    },
+    "/admin/users/{userId}": {
+      "put": {
+        "description": "Update a user's role, bookmark quota, or storage quota. Admin access required.",
+        "summary": "Update user",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the user to update",
+              "example": "user_123"
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "admin"
+                    ]
+                  },
+                  "bookmarkQuota": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "storageQuota": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "browserCrawlingEnabled": {
+                    "type": "boolean",
+                    "nullable": true
+                  }
+                },
+                "description": "User update data",
+                "example": {
+                  "role": "admin",
+                  "bookmarkQuota": 1000,
+                  "storageQuota": 5000000000
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input data or cannot update own user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         }
       }

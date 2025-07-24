@@ -36,7 +36,10 @@
       "link": "Σύνδεσμος",
       "text": "Κείμενο",
       "media": "Πολυμέσα"
-    }
+    },
+    "quota": "Ποσόστωση",
+    "bookmarks": "Σελιδοδείκτες",
+    "storage": "Αποθήκευση"
   },
   "layouts": {
     "masonry": "Πλινθοδομή",
@@ -232,6 +235,77 @@
         "favourited": "Ένας σελιδοδείκτης σημειώνεται ως αγαπημένος",
         "archived": "Ένας σελιδοδείκτης αρχειοθετείται"
       }
+    },
+    "stats": {
+      "usage_statistics": "Στατιστικά Χρήσης",
+      "insights_description": "Πληροφορίες για τις συνήθειες και τη συλλογή σελιδοδεικτών σου",
+      "failed_to_load": "Αποτυχία φόρτωσης στατιστικών",
+      "overview": {
+        "total_bookmarks": "Σύνολο σελιδοδεικτών",
+        "all_saved_items": "Όλα τα αποθηκευμένα στοιχεία",
+        "favorites": "Αγαπημένα",
+        "starred_bookmarks": "Σελιδοδείκτες με αστέρι",
+        "archived": "Αρχειοθετημένα",
+        "archived_items": "Αρχειοθετημένα στοιχεία",
+        "tags": "Ετικέτες",
+        "unique_tags_created": "Δημιουργήθηκαν μοναδικά tags",
+        "lists": "Λίστες",
+        "bookmark_collections": "Συλλογές σελιδοδεικτών",
+        "highlights": "Επισημάνσεις",
+        "text_highlights": "Επισημάνσεις κειμένου",
+        "storage_used": "Χώρος αποθήκευσης που χρησιμοποιείται",
+        "total_asset_storage": "Συνολικός αποθηκευτικός χώρος στοιχείων",
+        "this_month": "Αυτόν τον μήνα",
+        "bookmarks_added": "Προστέθηκαν σελιδοδείκτες"
+      },
+      "bookmark_types": {
+        "title": "Τύποι σελιδοδεικτών",
+        "links": "Σύνδεσμοι",
+        "text_notes": "Σημειώσεις κειμένου",
+        "assets": "Στοιχεία"
+      },
+      "recent_activity": {
+        "title": "Πρόσφατη δραστηριότητα",
+        "this_week": "Αυτή την εβδομάδα",
+        "this_month": "Αυτόν τον μήνα",
+        "this_year": "Φέτος"
+      },
+      "top_domains": {
+        "title": "Κορυφαίοι τομείς",
+        "no_domains_found": "Δεν βρέθηκαν τομείς"
+      },
+      "most_used_tags": {
+        "title": "Tags που χρησιμοποιούνται περισσότερο",
+        "no_tags_found": "Δεν βρέθηκαν ετικέτες"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Δραστηριότητα ανά ώρα",
+        "activity_by_day": "Δραστηριότητα ανά ημέρα"
+      },
+      "storage_breakdown": {
+        "title": "Ανάλυση αποθήκευσης"
+      }
+    },
+    "subscription": {
+      "subscription": "Συνδρομή",
+      "manage_subscription": "Διαχειρίσου τη συνδρομή σου και τις πληροφορίες χρέωσης",
+      "current_plan": "Τρέχον πρόγραμμα",
+      "billing_period": "Περίοδος χρέωσης",
+      "paid_plan": "Πληρωμένο πρόγραμμα",
+      "unlock_bigger_quota": "Ξεκλείδωσε μεγαλύτερη ποσόστωση και υποστήριξε το έργο",
+      "subscribe_now": "Εγγραφή τώρα",
+      "manage_billing": "Διαχείριση χρεώσεων",
+      "subscription_canceled": "Η συνδρομή σου έχει ακυρωθεί και θα λήξει στις {{date}}. Μπορείς να εγγραφείς ξανά ανά πάσα στιγμή.",
+      "usage_quotas": "Χρήση & Ποσοστώσεις",
+      "track_usage": "Παρακολούθησε την τρέχουσα χρήση σου σε σχέση με τα όρια του προγράμματός σου",
+      "total_bookmarks_saved": "Σύνολο αποθηκευμένων σελιδοδεικτών",
+      "assets_file_storage": "Αποθήκευση στοιχείων και αρχείων",
+      "unlimited_usage": "Απεριόριστη χρήση",
+      "quota_limit_reached": "Έφτασες το όριο ποσόστωσης",
+      "approaching_quota_limit": "Πλησιάζει το όριο ποσόστωσης",
+      "loading_usage": "Φόρτωση πληροφοριών χρήσης...",
+      "free": "Δωρεάν",
+      "paid": "Πληρωμένο"
     }
   },
   "admin": {
@@ -278,7 +352,9 @@
       "num_bookmarks": "Αριθμός Σελιδοδεικτών",
       "asset_sizes": "Μεγέθη Στοιχείων",
       "local_user": "Τοπικός Χρήστης",
-      "confirm_password": "Επιβεβαίωση Κωδικού Πρόσβασης"
+      "confirm_password": "Επιβεβαίωση Κωδικού Πρόσβασης",
+      "delete_user_confirm_description": "Είσαι σίγουρος ότι θέλεις να διαγράψεις τον χρήστη \"{{name}}\";",
+      "unlimited": "Απεριόριστο"
     }
   },
   "options": {
@@ -305,7 +381,7 @@
     "search_query_help": "Μάθετε περισσότερα για τη γλώσσα ερωτημάτων αναζήτησης.",
     "description": "Περιγραφή (Προαιρετική)",
     "rss": {
-      "title": "RSS Feed",
+      "title": "Ροή RSS",
       "description": "Ενεργοποίηση RSS feed για αυτή τη λίστα",
       "feed_url": "URL RSS Feed"
     },
@@ -363,7 +439,8 @@
     "is_from_feed": "Είναι από RSS Feed",
     "is_not_from_feed": "Δεν είναι από RSS Feed",
     "and": "Και",
-    "or": "Ή"
+    "or": "Ή",
+    "history": "Πρόσφατες αναζητήσεις"
   },
   "preview": {
     "view_original": "Προβολή Πρωτότυπου",

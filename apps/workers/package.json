@@ -14,10 +14,12 @@
     "async-mutex": "^0.4.1",
     "dompurify": "^3.2.4",
     "dotenv": "^16.4.1",
-    "drizzle-orm": "^0.38.3",
+    "drizzle-orm": "^0.44.2",
     "execa": "9.3.1",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.6",
     "jsdom": "^24.0.0",
-    "liteque": "^0.3.2",
+    "liteque": "^0.5.0",
     "metascraper": "^5.46.18",
     "metascraper-amazon": "^5.46.18",
     "metascraper-author": "5.46.18",
@@ -42,17 +44,20 @@
     "rss-parser": "^3.13.0",
     "tesseract.js": "^5.1.1",
     "tsx": "^4.7.1",
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@types/jsdom": "^21.1.6",
-    "@types/node-cron": "^3.0.11"
+    "@types/node-cron": "^3.0.11",
+    "tsdown": "^0.12.9"
   },
   "scripts": {
     "start": "tsx watch index.ts",
     "start:prod": "tsx index.ts",
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "prettier . --ignore-path ../../.prettierignore",

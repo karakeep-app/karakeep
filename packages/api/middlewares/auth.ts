@@ -35,3 +35,25 @@ export const authMiddleware = createMiddleware<{
   c.set("api", createCaller(c.get("ctx")));
   await next();
 });
+
+export const adminAuthMiddleware = createMiddleware<{
+  Variables: {
+    ctx: AuthedContext;
+    api: ReturnType<typeof createCaller>;
+  };
+}>(async (c, next) => {
+  if (!c.var.ctx || !c.var.ctx.user || c.var.ctx.user === null) {
+    throw new HTTPException(401, {
+      message: "Unauthorized",
+    });
+  }
+
+  if (c.var.ctx.user.role !== "admin") {
+    throw new HTTPException(403, {
+      message: "Forbidden - Admin access required",
+    });
+  }
+
+  c.set("api", createCaller(c.get("ctx")));
+  await next();
+});

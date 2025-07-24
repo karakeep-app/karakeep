@@ -190,6 +190,77 @@
         "favourited": "Một dấu trang được yêu thích",
         "archived": "Một dấu trang được lưu trữ"
       }
+    },
+    "stats": {
+      "usage_statistics": "Thống kê sử dụng",
+      "insights_description": "Thông tin chi tiết về thói quen đánh dấu trang và bộ sưu tập của bạn",
+      "failed_to_load": "Không tải được số liệu thống kê",
+      "overview": {
+        "total_bookmarks": "Tổng số dấu trang",
+        "all_saved_items": "Tất cả các mục đã lưu",
+        "favorites": "Ưa thích",
+        "starred_bookmarks": "Các dấu trang đã gắn dấu sao",
+        "archived": "Đã lưu trữ",
+        "archived_items": "Các mục đã lưu trữ",
+        "tags": "Thẻ",
+        "unique_tags_created": "Đã tạo các thẻ duy nhất",
+        "lists": "Danh sách",
+        "bookmark_collections": "Bộ sưu tập dấu trang",
+        "highlights": "Điểm nổi bật",
+        "text_highlights": "Đánh dấu văn bản",
+        "storage_used": "Bộ nhớ đã dùng",
+        "total_asset_storage": "Tổng dung lượng lưu trữ tài sản",
+        "this_month": "Tháng này",
+        "bookmarks_added": "Đã thêm dấu trang"
+      },
+      "bookmark_types": {
+        "title": "Loại dấu trang",
+        "links": "Liên kết",
+        "text_notes": "Ghi chú văn bản",
+        "assets": "Tài sản"
+      },
+      "recent_activity": {
+        "title": "Hoạt động gần đây",
+        "this_week": "Tuần này",
+        "this_month": "Tháng này",
+        "this_year": "Năm nay"
+      },
+      "top_domains": {
+        "title": "Các miền hàng đầu",
+        "no_domains_found": "Không tìm thấy miền nào"
+      },
+      "most_used_tags": {
+        "title": "Các thẻ được dùng nhiều nhất",
+        "no_tags_found": "Không tìm thấy thẻ nào"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Hoạt động theo giờ",
+        "activity_by_day": "Hoạt động theo ngày"
+      },
+      "storage_breakdown": {
+        "title": "Phân tích bộ nhớ"
+      }
+    },
+    "subscription": {
+      "subscription": "Đăng ký",
+      "manage_subscription": "Quản lý thông tin thanh toán và đăng ký của bạn",
+      "current_plan": "Gói hiện tại",
+      "billing_period": "Thời gian thanh toán",
+      "paid_plan": "Gói trả phí",
+      "unlock_bigger_quota": "Mở khóa hạn ngạch lớn hơn và hỗ trợ dự án",
+      "subscribe_now": "Đăng ký ngay",
+      "manage_billing": "Quản lý thanh toán",
+      "subscription_canceled": "Đăng ký của bạn đã bị hủy và sẽ kết thúc vào {{date}}. Bạn có thể đăng ký lại bất cứ lúc nào.",
+      "usage_quotas": "Mức sử dụng & Hạn ngạch",
+      "track_usage": "Theo dõi mức sử dụng hiện tại so với giới hạn gói của bạn",
+      "total_bookmarks_saved": "Tổng số dấu trang đã lưu",
+      "assets_file_storage": "Tài sản và dung lượng lưu trữ tệp",
+      "unlimited_usage": "Sử dụng không giới hạn",
+      "quota_limit_reached": "Đã đạt đến giới hạn hạn ngạch",
+      "approaching_quota_limit": "Đang tiến gần đến giới hạn hạn ngạch",
+      "loading_usage": "Đang tải thông tin sử dụng...",
+      "free": "Miễn phí",
+      "paid": "Trả phí"
     }
   },
   "admin": {
@@ -224,7 +295,9 @@
       "confirm_password": "Xác nhận mật khẩu",
       "num_bookmarks": "Số lượng dấu trang",
       "asset_sizes": "Kích thước tài sản",
-      "local_user": "Người dùng cục bộ"
+      "local_user": "Người dùng cục bộ",
+      "delete_user_confirm_description": "Mày có chắc là muốn xóa người dùng \"{{name}}\" không?",
+      "unlimited": "Không giới hạn"
     },
     "actions": {
       "recrawl_failed_links_only": "Chỉ quét lại liên kết hỏng",
@@ -276,7 +349,10 @@
     "updated_at": "Cập nhật lúc",
     "title": "Tiêu đề",
     "description": "Mô tả",
-    "summary": "Tóm tắt"
+    "summary": "Tóm tắt",
+    "quota": "Hạn ngạch",
+    "bookmarks": "Dấu trang",
+    "storage": "Lưu trữ"
   },
   "highlights": {
     "no_highlights": "Bạn chưa có đánh dấu nào."
@@ -346,7 +422,8 @@
     "day_s_ago": " Ngày trước",
     "week_s_ago": " Tuần trước",
     "month_s_ago": " Tháng trước",
-    "year_s_ago": " Năm trước"
+    "year_s_ago": " Năm trước",
+    "history": "Tìm kiếm gần đây"
   },
   "tags": {
     "all_tags": "Tất cả nhãn",

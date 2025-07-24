@@ -8,7 +8,6 @@ import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
 import {
   ASSET_TYPES,
-  getAssetSize,
   newAssetId,
   saveAssetFromFile,
   silentDeleteAsset,
@@ -20,6 +19,10 @@ import {
   ZVideoRequest,
   zvideoRequestSchema,
 } from "@karakeep/shared/queues";
+import {
+  checkStorageQuota,
+  StorageQuotaError,
+} from "@karakeep/trpc/lib/storageQuota";
 
 import { withTimeout } from "../utils";
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
@@ -140,32 +143,51 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   logger.info(
     `[VideoCrawler][${jobId}] Finished downloading a file from "${url}" to "${assetPath}"`,
   );
-  await saveAssetFromFile({
-    userId,
-    assetId: videoAssetId,
-    assetPath,
-    metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
-  });
 
-  await db.transaction(async (txn) => {
-    await updateAsset(
-      oldVideoAssetId,
-      {
-        id: videoAssetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.LINK_VIDEO,
-        contentType: ASSET_TYPES.VIDEO_MP4,
-        size: await getAssetSize({ userId, assetId: videoAssetId }),
-      },
-      txn,
+  // Get file size and check quota before saving
+  const stats = await fs.promises.stat(assetPath);
+  const fileSize = stats.size;
+
+  try {
+    const quotaApproved = await checkStorageQuota(db, userId, fileSize);
+
+    await saveAssetFromFile({
+      userId,
+      assetId: videoAssetId,
+      assetPath,
+      metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
+      quotaApproved,
+    });
+
+    await db.transaction(async (txn) => {
+      await updateAsset(
+        oldVideoAssetId,
+        {
+          id: videoAssetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_VIDEO,
+          contentType: ASSET_TYPES.VIDEO_MP4,
+          size: fileSize,
+        },
+        txn,
+      );
+    });
+    await silentDeleteAsset(userId, oldVideoAssetId);
+
+    logger.info(
+      `[VideoCrawler][${jobId}] Finished downloading video from "${url}" and adding it to the database`,
     );
-  });
-  await silentDeleteAsset(userId, oldVideoAssetId);
-
-  logger.info(
-    `[VideoCrawler][${jobId}] Finished downloading video from "${url}" and adding it to the database`,
-  );
+  } catch (error) {
+    if (error instanceof StorageQuotaError) {
+      logger.warn(
+        `[VideoCrawler][${jobId}] Skipping video storage due to quota exceeded: ${error.message}`,
+      );
+      await deleteLeftOverAssetFile(jobId, videoAssetId);
+      return;
+    }
+    throw error;
+  }
 }
 
 /**

@@ -28,7 +28,7 @@
     "bookmark_types": {
       "title": "Lesezeichen Kategorie",
       "link": "Link",
-      "media": "Medium",
+      "media": "Medien",
       "text": "Text"
     },
     "type": "Typ",
@@ -36,10 +36,13 @@
     "updated_at": "Aktualisiert am",
     "title": "Titel",
     "description": "Beschreibung",
-    "summary": "Zusammenfassung"
+    "summary": "Zusammenfassung",
+    "quota": "Kontingent",
+    "bookmarks": "Lesezeichen",
+    "storage": "Speicher"
   },
   "layouts": {
-    "masonry": "Mauerwerk",
+    "masonry": "Verschachtelt",
     "grid": "Raster",
     "list": "Liste",
     "compact": "Kompakt"
@@ -229,6 +232,77 @@
         "favourited": "Ein Lesezeichen wird favorisiert",
         "archived": "Ein Lesezeichen wird archiviert"
       }
+    },
+    "stats": {
+      "usage_statistics": "Nutzungsstatistiken",
+      "insights_description": "Einblicke in deine Lesezeichengewohnheiten und -sammlung",
+      "failed_to_load": "Statistiken konnten nicht geladen werden",
+      "overview": {
+        "total_bookmarks": "Gesamtzahl der Lesezeichen",
+        "all_saved_items": "Alle gespeicherten Elemente",
+        "favorites": "Favoriten",
+        "starred_bookmarks": "Markierte Lesezeichen",
+        "archived": "Archiviert",
+        "archived_items": "Archivierte Elemente",
+        "tags": "Tags",
+        "unique_tags_created": "Eindeutige Tags erstellt",
+        "lists": "Listen",
+        "bookmark_collections": "Lesezeichen-Sammlungen",
+        "highlights": "Markierungen",
+        "text_highlights": "Texthervorhebungen",
+        "storage_used": "Verwendeter Speicherplatz",
+        "total_asset_storage": "Gesamter Assetspeicher",
+        "this_month": "Diesen Monat",
+        "bookmarks_added": "Lesezeichen hinzugefügt"
+      },
+      "bookmark_types": {
+        "title": "Lesezeichen-Typen",
+        "links": "Links",
+        "text_notes": "Textnotizen",
+        "assets": "Assets"
+      },
+      "recent_activity": {
+        "title": "Letzte Aktivität",
+        "this_week": "Diese Woche",
+        "this_month": "Diesen Monat",
+        "this_year": "Dieses Jahr"
+      },
+      "top_domains": {
+        "title": "Top-Domains",
+        "no_domains_found": "Keine Domains gefunden"
+      },
+      "most_used_tags": {
+        "title": "Meist verwendete Tags",
+        "no_tags_found": "Keine Tags gefunden"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivität nach Stunde",
+        "activity_by_day": "Aktivität nach Tag"
+      },
+      "storage_breakdown": {
+        "title": "Speicheraufschlüsselung"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonnement",
+      "manage_subscription": "Verwalte dein Abonnement und deine Abrechnungsinformationen",
+      "current_plan": "Aktueller Plan",
+      "billing_period": "Abrechnungszeitraum",
+      "paid_plan": "Bezahlter Plan",
+      "unlock_bigger_quota": "Schalte ein größeres Kontingent frei und unterstütze das Projekt",
+      "subscribe_now": "Jetzt abonnieren",
+      "manage_billing": "Abrechnung verwalten",
+      "subscription_canceled": "Dein Abonnement wurde gekündigt und endet am {{date}}. Du kannst dich jederzeit wieder anmelden.",
+      "usage_quotas": "Nutzung & Kontingente",
+      "track_usage": "Verfolge deine aktuelle Nutzung im Vergleich zu deinen Planlimits",
+      "total_bookmarks_saved": "Anzahl der gespeicherten Lesezeichen",
+      "assets_file_storage": "Assets und Dateispeicher",
+      "unlimited_usage": "Unbegrenzte Nutzung",
+      "quota_limit_reached": "Kontingentgrenze erreicht",
+      "approaching_quota_limit": "Kontingentgrenze wird erreicht",
+      "loading_usage": "Lade Nutzungsinformationen...",
+      "free": "Kostenlos",
+      "paid": "Bezahlt"
     }
   },
   "admin": {
@@ -275,7 +349,9 @@
       "num_bookmarks": "Anzahl der Lesezeichen",
       "asset_sizes": "Asset-Größen",
       "local_user": "Lokaler Benutzer",
-      "confirm_password": "Passwort bestätigen"
+      "confirm_password": "Passwort bestätigen",
+      "delete_user_confirm_description": "Bist du sicher, dass du den Benutzer \"{{name}}\" löschen möchtest?",
+      "unlimited": "Unbegrenzt"
     }
   },
   "options": {
@@ -292,7 +368,7 @@
     "manual_list": "Manuelle Liste",
     "smart_list": "Smart Liste",
     "search_query": "Suchanfrage",
-    "list_type": "Listentyp",
+    "list_type": "List Type",
     "no_parent": "ohne übergeordnete Liste",
     "search_query_help": "Lerne mehr über die Suchanfragen.",
     "merge_list": "Liste zusammenführen",
@@ -460,7 +536,8 @@
     "day_s_ago": " Vor Tag(en)",
     "week_s_ago": " Vor Woche(n)",
     "month_s_ago": " Vor Monat(en)",
-    "year_s_ago": " Vor Jahr(en)"
+    "year_s_ago": " Vor Jahr(en)",
+    "history": "Letzte Suchanfragen"
   },
   "bookmark_editor": {
     "subtitle": "Ändere die Details des Lesezeichens. Klicke auf Speichern, wenn du fertig bist.",

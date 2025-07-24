@@ -1,5 +1,10 @@
+import { AdminCard } from "@/components/admin/AdminCard";
 import BackgroundJobs from "@/components/admin/BackgroundJobs";
 
 export default function BackgroundJobsPage() {
-  return <BackgroundJobs />;
+  return (
+    <AdminCard>
+      <BackgroundJobs />
+    </AdminCard>
+  );
 }

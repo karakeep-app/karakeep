@@ -36,7 +36,10 @@
     "updated_at": "Güncellenme Zamanı",
     "title": "Başlık",
     "description": "Açıklama",
-    "summary": "Özet"
+    "summary": "Özet",
+    "quota": "Kota",
+    "bookmarks": "Yer İmleri",
+    "storage": "Depolama"
   },
   "layouts": {
     "masonry": "Döşeme",
@@ -232,6 +235,77 @@
         "favourited": "Bir yer işareti favorilere eklendi",
         "archived": "Bir yer işareti arşivlendi"
       }
+    },
+    "stats": {
+      "usage_statistics": "Kullanım İstatistikleri",
+      "insights_description": "Yer imi alışkanlıklarınız ve koleksiyonunuz hakkında bilgiler",
+      "failed_to_load": "İstatistikler yüklenemedi",
+      "overview": {
+        "total_bookmarks": "Toplam Yer İmi",
+        "all_saved_items": "Kaydedilen tüm öğeler",
+        "favorites": "Favoriler",
+        "starred_bookmarks": "Yıldızlı yer imleri",
+        "archived": "Arşivlendi",
+        "archived_items": "Arşivlenmiş öğeler",
+        "tags": "Etiketler",
+        "unique_tags_created": "Benzersiz etiketler oluşturuldu",
+        "lists": "Listeler",
+        "bookmark_collections": "Yer imi koleksiyonları",
+        "highlights": "Öne Çıkanlar",
+        "text_highlights": "Metin vurguları",
+        "storage_used": "Kullanılan Depolama Alanı",
+        "total_asset_storage": "Toplam varlık depolama",
+        "this_month": "Bu Ay",
+        "bookmarks_added": "Yer imleri eklendi"
+      },
+      "bookmark_types": {
+        "title": "Yer İmi Türleri",
+        "links": "Bağlantılar",
+        "text_notes": "Metin Notları",
+        "assets": "Varlıklar"
+      },
+      "recent_activity": {
+        "title": "Son Etkinlik",
+        "this_week": "Bu Hafta",
+        "this_month": "Bu Ay",
+        "this_year": "Bu Yıl"
+      },
+      "top_domains": {
+        "title": "En İyi Alan Adları",
+        "no_domains_found": "Alan adı bulunamadı"
+      },
+      "most_used_tags": {
+        "title": "En Çok Kullanılan Etiketler",
+        "no_tags_found": "Etiket bulunamadı"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Saate Göre Etkinlik",
+        "activity_by_day": "Güne Göre Etkinlik"
+      },
+      "storage_breakdown": {
+        "title": "Depolama Dökümü"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonelik",
+      "manage_subscription": "Aboneliğinizi ve fatura bilgilerinizi yönetin",
+      "current_plan": "Mevcut Plan",
+      "billing_period": "Faturalandırma Dönemi",
+      "paid_plan": "Ücretli Plan",
+      "unlock_bigger_quota": "Daha büyük kota açın ve projeyi destekleyin",
+      "subscribe_now": "Şimdi Abone Ol",
+      "manage_billing": "Faturalandırmayı Yönet",
+      "subscription_canceled": "Aboneliğiniz iptal edildi ve {{date}} tarihinde sona erecek. İstediğiniz zaman yeniden abone olabilirsiniz.",
+      "usage_quotas": "Kullanım ve Kotalar",
+      "track_usage": "Mevcut kullanımınızı plan limitlerinize göre takip edin",
+      "total_bookmarks_saved": "Kaydedilen toplam yer imi",
+      "assets_file_storage": "Varlıklar ve dosya depolama",
+      "unlimited_usage": "Sınırsız kullanım",
+      "quota_limit_reached": "Kota sınırına ulaşıldı",
+      "approaching_quota_limit": "Kota sınırına yaklaşılıyor",
+      "loading_usage": "Kullanım bilgileri yükleniyor...",
+      "free": "Ücretsiz",
+      "paid": "Ücretli"
     }
   },
   "admin": {
@@ -278,7 +352,9 @@
       "num_bookmarks": "Yer İşareti Sayısı",
       "asset_sizes": "Varlık Boyutları",
       "local_user": "Yerel Kullanıcı",
-      "confirm_password": "Şifreyi Onayla"
+      "confirm_password": "Şifreyi Onayla",
+      "delete_user_confirm_description": "{{name}} kullanıcısını silmek istediğine emin misin?",
+      "unlimited": "Sınırsız"
     }
   },
   "options": {
@@ -454,7 +530,8 @@
     "year_s": " Yıl(lar)",
     "day_s_ago": " Gün Önce",
     "week_s_ago": " Hafta Önce",
-    "month_s_ago": " Ay Önce"
+    "month_s_ago": " Ay Önce",
+    "history": "Son Aramalar"
   },
   "dialogs": {
     "bookmarks": {

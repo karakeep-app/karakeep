@@ -16,15 +16,15 @@
     "@paralleldrive/cuid2": "^2.2.2",
     "better-sqlite3": "^11.3.0",
     "dotenv": "^16.4.1",
-    "drizzle-orm": "^0.38.3",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.2",
     "tsx": "^4.7.1"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
-    "@types/better-sqlite3": "^7.6.11",
-    "drizzle-kit": "^0.30.01"
+    "@types/better-sqlite3": "^7.6.11"
   },
   "prettier": "@karakeep/prettier-config"
 }

@@ -3,20 +3,27 @@
 import React, { useEffect } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import InfoTooltip from "@/components/ui/info-tooltip";
-import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { toast } from "@/components/ui/use-toast";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { ArrowDownAZ, Combine } from "lucide-react";
+import { ArrowDownAZ, Combine, Tag } from "lucide-react";
 
 import type { ZGetTagResponse, ZTagBasic } from "@karakeep/shared/types/tags";
 import { useDeleteUnusedTags } from "@karakeep/shared-react/hooks/tags";
@@ -151,12 +158,17 @@ export default function AllTagsView({
         </div>
       );
     } else {
-      tagPill = "No Tags";
+      tagPill = (
+        <div className="py-8 text-center">
+          <Tag className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+          <p className="mb-4 text-gray-500">No custom tags yet</p>
+        </div>
+      );
     }
     return tagPill;
   };
   return (
-    <>
+    <div className="flex flex-col gap-4">
       {selectedTag && (
         <DeleteTagConfirmationDialog
           tag={selectedTag}
@@ -169,69 +181,80 @@ export default function AllTagsView({
           }}
         />
       )}
-      <div className="flex justify-end gap-x-2">
-        <BulkTagAction />
-        <Toggle
-          variant="outline"
-          aria-label="Toggle bold"
-          pressed={draggingEnabled}
-          onPressedChange={toggleDraggingEnabled}
-          disabled={isBulkEditEnabled}
-        >
-          <Combine className="mr-2 size-4" />
-          {t("tags.drag_and_drop_merging")}
-          <InfoTooltip size={15} className="my-auto ml-2" variant="explain">
-            <p>{t("tags.drag_and_drop_merging_info")}</p>
-          </InfoTooltip>
-        </Toggle>
-        <Toggle
-          variant="outline"
-          aria-label="Toggle bold"
-          pressed={sortByName}
-          onPressedChange={toggleSortByName}
-        >
-          <ArrowDownAZ className="mr-2 size-4" /> {t("tags.sort_by_name")}
-        </Toggle>
-      </div>
-      <span className="flex items-center gap-2">
-        <p className="text-lg">{t("tags.your_tags")}</p>
-        <InfoTooltip size={15} className="my-auto" variant="explain">
-          <p>{t("tags.your_tags_info")}</p>
-        </InfoTooltip>
-      </span>
-      {tagsToPill(humanTags, isBulkEditEnabled)}
-      <Separator />
-      <span className="flex items-center gap-2">
-        <p className="text-lg">{t("tags.ai_tags")}</p>
-        <InfoTooltip size={15} className="my-auto" variant="explain">
-          <p>{t("tags.ai_tags_info")}</p>
-        </InfoTooltip>
-      </span>
-      {tagsToPill(aiTags, isBulkEditEnabled)}
-      <Separator />
-      <span className="flex items-center gap-2">
-        <p className="text-lg">{t("tags.unused_tags")}</p>
-        <InfoTooltip size={15} className="my-auto" variant="explain">
-          <p>{t("tags.unused_tags_info")}</p>
-        </InfoTooltip>
-      </span>
-      <Collapsible>
-        <div className="space-x-1 pb-2">
-          <CollapsibleTrigger asChild>
-            <Button variant="secondary" disabled={emptyTags.length == 0}>
-              {emptyTags.length > 0
-                ? `Show ${emptyTags.length} unused tags`
-                : "You don't have any unused tags"}
-            </Button>
-          </CollapsibleTrigger>
-          {emptyTags.length > 0 && (
-            <DeleteAllUnusedTags numUnusedTags={emptyTags.length} />
-          )}
+      <div className="flex justify-between gap-x-2">
+        <span className="text-2xl">{t("tags.all_tags")}</span>
+        <div className="flex gap-x-2">
+          <BulkTagAction />
+          <Toggle
+            variant="outline"
+            className="bg-background"
+            aria-label="Toggle bold"
+            pressed={draggingEnabled}
+            onPressedChange={toggleDraggingEnabled}
+            disabled={isBulkEditEnabled}
+          >
+            <Combine className="mr-2 size-4" />
+            {t("tags.drag_and_drop_merging")}
+            <InfoTooltip size={15} className="my-auto ml-2" variant="explain">
+              <p>{t("tags.drag_and_drop_merging_info")}</p>
+            </InfoTooltip>
+          </Toggle>
+          <Toggle
+            variant="outline"
+            className="bg-background"
+            aria-label="Toggle bold"
+            pressed={sortByName}
+            onPressedChange={toggleSortByName}
+          >
+            <ArrowDownAZ className="mr-2 size-4" /> {t("tags.sort_by_name")}
+          </Toggle>
         </div>
-        <CollapsibleContent>
-          {tagsToPill(emptyTags, isBulkEditEnabled)}
-        </CollapsibleContent>
-      </Collapsible>
-    </>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span>{t("tags.your_tags")}</span>
+            <Badge variant="secondary">{humanTags.length}</Badge>
+          </CardTitle>
+          <CardDescription>{t("tags.your_tags_info")}</CardDescription>
+        </CardHeader>
+        <CardContent>{tagsToPill(humanTags, isBulkEditEnabled)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span>{t("tags.ai_tags")}</span>
+            <Badge variant="secondary">{aiTags.length}</Badge>
+          </CardTitle>
+          <CardDescription>{t("tags.ai_tags_info")}</CardDescription>
+        </CardHeader>
+        <CardContent>{tagsToPill(aiTags, isBulkEditEnabled)}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("tags.unused_tags")}</CardTitle>
+          <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Collapsible>
+            <div className="space-x-1 pb-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="secondary" disabled={emptyTags.length == 0}>
+                  {emptyTags.length > 0
+                    ? `Show ${emptyTags.length} unused tags`
+                    : "You don't have any unused tags"}
+                </Button>
+              </CollapsibleTrigger>
+              {emptyTags.length > 0 && (
+                <DeleteAllUnusedTags numUnusedTags={emptyTags.length} />
+              )}
+            </div>
+            <CollapsibleContent>
+              {tagsToPill(emptyTags, isBulkEditEnabled)}
+            </CollapsibleContent>
+          </Collapsible>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

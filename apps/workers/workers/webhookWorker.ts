@@ -33,7 +33,7 @@ export class WebhookWorker {
         },
       },
       {
-        concurrency: 1,
+        concurrency: serverConfig.webhook.numWorkers,
         pollIntervalMs: 1000,
         timeoutSecs:
           serverConfig.webhook.timeoutSec *

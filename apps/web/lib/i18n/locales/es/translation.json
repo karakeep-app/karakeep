@@ -36,7 +36,10 @@
     "summary": "Resumen",
     "updated_at": "Actualizado el",
     "title": "Título",
-    "description": "Descripción"
+    "description": "Descripción",
+    "quota": "Cuota",
+    "bookmarks": "Marcadores",
+    "storage": "Almacenamiento"
   },
   "settings": {
     "info": {
@@ -182,6 +185,77 @@
         "favourited": "Un marcador se ha marcado como favorito",
         "archived": "Se archiva un marcador"
       }
+    },
+    "stats": {
+      "usage_statistics": "Estadísticas de uso",
+      "insights_description": "Información sobre tus hábitos de marcación y colección",
+      "failed_to_load": "No se pudieron cargar las estadísticas",
+      "overview": {
+        "total_bookmarks": "Total de marcadores",
+        "all_saved_items": "Todos los elementos guardados",
+        "favorites": "Favoritos",
+        "starred_bookmarks": "Marcadores destacados",
+        "archived": "Archivado",
+        "archived_items": "Elementos archivados",
+        "tags": "Etiquetas",
+        "unique_tags_created": "Etiquetas únicas creadas",
+        "lists": "Listas",
+        "bookmark_collections": "Colecciones de marcadores",
+        "highlights": "Resaltados",
+        "text_highlights": "Resaltados de texto",
+        "storage_used": "Almacenamiento utilizado",
+        "total_asset_storage": "Almacenamiento total de activos",
+        "this_month": "Este mes",
+        "bookmarks_added": "Marcadores añadidos"
+      },
+      "bookmark_types": {
+        "title": "Tipos de marcadores",
+        "links": "Enlaces",
+        "text_notes": "Notas de texto",
+        "assets": "Activos"
+      },
+      "recent_activity": {
+        "title": "Actividad reciente",
+        "this_week": "Esta semana",
+        "this_month": "Este mes",
+        "this_year": "Este año"
+      },
+      "top_domains": {
+        "title": "Dominios principales",
+        "no_domains_found": "No se encontraron dominios"
+      },
+      "most_used_tags": {
+        "title": "Etiquetas más usadas",
+        "no_tags_found": "No se encontraron etiquetas"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Actividad por hora",
+        "activity_by_day": "Actividad por día"
+      },
+      "storage_breakdown": {
+        "title": "Desglose del almacenamiento"
+      }
+    },
+    "subscription": {
+      "subscription": "Suscripción",
+      "manage_subscription": "Gestiona tu suscripción e información de facturación",
+      "current_plan": "Plan actual",
+      "billing_period": "Periodo de facturación",
+      "paid_plan": "Plan de pago",
+      "unlock_bigger_quota": "Desbloquea una cuota mayor y apoya el proyecto",
+      "subscribe_now": "Suscríbete ahora",
+      "manage_billing": "Gestionar la facturación",
+      "subscription_canceled": "Tu suscripción ha sido cancelada y finalizará el {{date}}. Puedes volver a suscribirte en cualquier momento.",
+      "usage_quotas": "Uso y cuotas",
+      "track_usage": "Haz un seguimiento de tu uso actual en comparación con los límites de tu plan",
+      "total_bookmarks_saved": "Total de marcadores guardados",
+      "assets_file_storage": "Almacenamiento de archivos y recursos",
+      "unlimited_usage": "Uso ilimitado",
+      "quota_limit_reached": "Límite de cuota alcanzado",
+      "approaching_quota_limit": "Te estás acercando al límite de la cuota",
+      "loading_usage": "Cargando información de uso...",
+      "free": "Gratis",
+      "paid": "De pago"
     }
   },
   "actions": {
@@ -275,7 +349,9 @@
       "num_bookmarks": "Núm. Marcadores",
       "asset_sizes": "Espacio utilizado",
       "local_user": "Usuario local",
-      "confirm_password": "Confirmar contraseña"
+      "confirm_password": "Confirmar contraseña",
+      "delete_user_confirm_description": "¿Seguro que quieres eliminar al usuario \"{{name}}\"?",
+      "unlimited": "Ilimitado"
     }
   },
   "options": {
@@ -454,7 +530,8 @@
     "day_s_ago": " Hace día(s)",
     "week_s_ago": " Hace semana(s)",
     "month_s_ago": " Hace mes(es)",
-    "year_s_ago": " Hace año(s)"
+    "year_s_ago": " Hace año(s)",
+    "history": "Búsquedas recientes"
   },
   "dialogs": {
     "bookmarks": {

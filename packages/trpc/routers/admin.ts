@@ -11,15 +11,14 @@ import {
   OpenAIQueue,
   SearchIndexingQueue,
   TidyAssetsQueue,
-  triggerReprocessingFixMode,
   triggerSearchReindex,
   VideoWorkerQueue,
   WebhookQueue,
 } from "@karakeep/shared/queues";
 import { getSearchIdxClient } from "@karakeep/shared/search";
 import {
-  changeRoleSchema,
   resetPasswordSchema,
+  updateUserSchema,
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
 
@@ -238,7 +237,14 @@ export const adminAppRouter = router({
       },
     });
 
-    await Promise.all(bookmarkIds.map((b) => triggerReprocessingFixMode(b.id)));
+    await Promise.all(
+      bookmarkIds.map((b) =>
+        AssetPreprocessingQueue.enqueue({
+          bookmarkId: b.id,
+          fixMode: true,
+        }),
+      ),
+    );
   }),
   reRunInferenceOnAllBookmarks: adminProcedure
     .input(
@@ -331,18 +337,44 @@ export const adminAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       return createUser(input, ctx, input.role);
     }),
-  changeRole: adminProcedure
-    .input(changeRoleSchema)
+  updateUser: adminProcedure
+    .input(updateUserSchema)
     .mutation(async ({ input, ctx }) => {
       if (ctx.user.id == input.userId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Cannot change own role",
+          message: "Cannot update own user",
         });
       }
+
+      const updateData: Partial<typeof users.$inferInsert> = {};
+
+      if (input.role !== undefined) {
+        updateData.role = input.role;
+      }
+
+      if (input.bookmarkQuota !== undefined) {
+        updateData.bookmarkQuota = input.bookmarkQuota;
+      }
+
+      if (input.storageQuota !== undefined) {
+        updateData.storageQuota = input.storageQuota;
+      }
+
+      if (input.browserCrawlingEnabled !== undefined) {
+        updateData.browserCrawlingEnabled = input.browserCrawlingEnabled;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No fields to update",
+        });
+      }
+
       const result = await ctx.db
         .update(users)
-        .set({ role: input.role })
+        .set(updateData)
         .where(eq(users.id, input.userId));
 
       if (!result.changes) {

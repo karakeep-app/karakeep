@@ -4,13 +4,13 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useTranslation } from "@/lib/i18n/client";
-import { DialogDescription } from "@radix-ui/react-dialog";
 
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 

@@ -12,6 +12,10 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
+import {
+  checkStorageQuota,
+  StorageQuotaError,
+} from "@karakeep/trpc/lib/storageQuota";
 
 const MAX_UPLOAD_SIZE_BYTES = serverConfig.maxAssetSizeMb * 1024 * 1024;
 
@@ -24,7 +28,7 @@ export function webStreamToNode(
 }
 
 export function toWebReadableStream(
-  nodeStream: fs.ReadStream,
+  nodeStream: NodeJS.ReadableStream,
 ): ReadableStream<Uint8Array> {
   const reader = nodeStream as unknown as Readable;
 
@@ -42,7 +46,7 @@ export async function uploadAsset(
   db: AuthedContext["db"],
   formData: { file: File } | { image: File },
 ): Promise<
-  | { error: string; status: 400 | 413 }
+  | { error: string; status: 400 | 413 | 403 }
   | {
       assetId: string;
       contentType: string;
@@ -64,6 +68,16 @@ export async function uploadAsset(
   }
   if (data.size > MAX_UPLOAD_SIZE_BYTES) {
     return { error: "Asset is too big", status: 413 };
+  }
+
+  let quotaApproved;
+  try {
+    quotaApproved = await checkStorageQuota(db, user.id, data.size);
+  } catch (error) {
+    if (error instanceof StorageQuotaError) {
+      return { error: error.message, status: 403 };
+    }
+    throw error;
   }
 
   let tempFilePath: string | undefined;
@@ -94,6 +108,7 @@ export async function uploadAsset(
       assetId: assetDb.id,
       assetPath: tempFilePath,
       metadata: { contentType, fileName },
+      quotaApproved,
     });
 
     return {

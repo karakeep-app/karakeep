@@ -5,13 +5,13 @@ import { z } from "zod";
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 
+import { authenticateApiKey, generateApiKey, validatePassword } from "../auth";
 import {
-  authenticateApiKey,
-  generateApiKey,
-  logAuthenticationError,
-  validatePassword,
-} from "../auth";
-import { authedProcedure, publicProcedure, router } from "../index";
+  authedProcedure,
+  createRateLimitMiddleware,
+  publicProcedure,
+  router,
+} from "../index";
 
 const zApiKeySchema = z.object({
   id: z.string(),
@@ -29,7 +29,7 @@ export const apiKeysAppRouter = router({
     )
     .output(zApiKeySchema)
     .mutation(async ({ input, ctx }) => {
-      return await generateApiKey(input.name, ctx.user.id);
+      return await generateApiKey(input.name, ctx.user.id, ctx.db);
     }),
   revoke: authedProcedure
     .input(
@@ -70,6 +70,13 @@ export const apiKeysAppRouter = router({
   // Exchange the username and password with an API key.
   // Homemade oAuth. This is used by the extension.
   exchange: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "apiKey.exchange",
+        windowMs: 15 * 60 * 1000,
+        maxRequests: 10,
+      }),
+    ) // 10 requests per 15 minutes
     .input(
       z.object({
         keyName: z.string(),
@@ -88,27 +95,26 @@ export const apiKeysAppRouter = router({
         });
       }
       try {
-        user = await validatePassword(input.email, input.password);
-      } catch (e) {
-        const error = e as Error;
-        logAuthenticationError(input.email, error.message, ctx.req.ip);
+        user = await validatePassword(input.email, input.password, ctx.db);
+      } catch {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
-      return await generateApiKey(input.keyName, user.id);
+      return await generateApiKey(input.keyName, user.id, ctx.db);
     }),
   validate: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "apiKey.validate",
+        windowMs: 60 * 1000,
+        maxRequests: 30,
+      }),
+    ) // 30 requests per minute
     .input(z.object({ apiKey: z.string() }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      try {
-        await authenticateApiKey(input.apiKey); // Throws if the key is invalid
-        return {
-          success: true,
-        };
-      } catch (e) {
-        const error = e as Error;
-        logAuthenticationError("<unknown>", error.message, ctx.req.ip);
-        throw e;
-      }
+      await authenticateApiKey(input.apiKey, ctx.db); // Throws if the key is invalid
+      return {
+        success: true,
+      };
     }),
 });

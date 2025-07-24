@@ -28,10 +28,10 @@ export type ZBookmarkIdx = z.infer<typeof zBookmarkIdxSchema>;
 
 let searchClient: MeiliSearch | undefined;
 
-if (serverConfig.meilisearch) {
+if (serverConfig.search.meilisearch) {
   searchClient = new MeiliSearch({
-    host: serverConfig.meilisearch.address,
-    apiKey: serverConfig.meilisearch.key,
+    host: serverConfig.search.meilisearch.address,
+    apiKey: serverConfig.search.meilisearch.key,
   });
 }
 

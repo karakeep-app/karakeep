@@ -4,12 +4,14 @@ import { DequeuedJob, Runner } from "liteque";
 import type { ZSearchIndexingRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
   SearchIndexingQueue,
   zSearchIndexingRequestSchema,
 } from "@karakeep/shared/queues";
 import { getSearchIdxClient } from "@karakeep/shared/search";
+import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 export class SearchIndexingWorker {
   static build() {
@@ -32,7 +34,7 @@ export class SearchIndexingWorker {
         },
       },
       {
-        concurrency: 1,
+        concurrency: serverConfig.search.numWorkers,
         pollIntervalMs: 1000,
         timeoutSecs: 30,
       },
@@ -84,7 +86,10 @@ async function runIndex(
               url: bookmark.link.url,
               linkTitle: bookmark.link.title,
               description: bookmark.link.description,
-              content: bookmark.link.content,
+              content: await Bookmark.getBookmarkPlainTextContent(
+                bookmark.link,
+                bookmark.userId,
+              ),
               publisher: bookmark.link.publisher,
               author: bookmark.link.author,
               datePublished: bookmark.link.datePublished,

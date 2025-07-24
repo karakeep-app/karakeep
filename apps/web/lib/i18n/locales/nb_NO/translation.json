@@ -36,7 +36,10 @@
     "updated_at": "Oppdatert",
     "description": "Beskrivelse",
     "summary": "Sammendrag",
-    "title": "Tittel"
+    "title": "Tittel",
+    "quota": "Kvote",
+    "bookmarks": "Bokmerker",
+    "storage": "Lagring"
   },
   "admin": {
     "users_list": {
@@ -48,7 +51,9 @@
       "asset_sizes": "Elementstørrelser",
       "confirm_password": "Bekreft passord",
       "users_list": "Brukerliste",
-      "local_user": "Lokal bruker"
+      "local_user": "Lokal bruker",
+      "delete_user_confirm_description": "Er du sikker på at du vil slette brukeren «{{name}}»?",
+      "unlimited": "Ubegrenset"
     },
     "server_stats": {
       "server_version": "Serverversjon",
@@ -270,6 +275,77 @@
         "favourited": "Et bokmerke er favorittmerket",
         "archived": "Et bokmerke er arkivert"
       }
+    },
+    "stats": {
+      "usage_statistics": "Bruksstatistikk",
+      "insights_description": "Innsikt i bokmerkingsvanene og samlingen din",
+      "failed_to_load": "Kunne ikke laste statistikk",
+      "overview": {
+        "total_bookmarks": "Totalt antall bokmerker",
+        "all_saved_items": "Alle lagrede elementer",
+        "favorites": "Favoritter",
+        "starred_bookmarks": "Stjernemerkede bokmerker",
+        "archived": "Arkivert",
+        "archived_items": "Arkiverte elementer",
+        "tags": "Merker",
+        "unique_tags_created": "Unike tagger opprettet",
+        "lists": "Lister",
+        "bookmark_collections": "Bokmerkesamlinger",
+        "highlights": "Uthevinger",
+        "text_highlights": "Tekstuthevinger",
+        "storage_used": "Lagringsplass brukt",
+        "total_asset_storage": "Total lagringsplass for ressurser",
+        "this_month": "Denne måneden",
+        "bookmarks_added": "Bokmerker lagt til"
+      },
+      "bookmark_types": {
+        "title": "Bokmerketyper",
+        "links": "Lenker",
+        "text_notes": "Tekstnotater",
+        "assets": "Ressurser"
+      },
+      "recent_activity": {
+        "title": "Nylig aktivitet",
+        "this_week": "Denne uken",
+        "this_month": "Denne måneden",
+        "this_year": "Dette året"
+      },
+      "top_domains": {
+        "title": "Toppdomener",
+        "no_domains_found": "Ingen domener funnet"
+      },
+      "most_used_tags": {
+        "title": "Mest brukte tagger",
+        "no_tags_found": "Fant ingen merker"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivitet per time",
+        "activity_by_day": "Aktivitet per dag"
+      },
+      "storage_breakdown": {
+        "title": "Lagringsoversikt"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonnement",
+      "manage_subscription": "Administrer abonnementet og faktureringsinformasjonen din",
+      "current_plan": "Gjeldende abonnement",
+      "billing_period": "Faktureringsperiode",
+      "paid_plan": "Betalt abonnement",
+      "unlock_bigger_quota": "Lås opp større kvote og støtt prosjektet",
+      "subscribe_now": "Abonner nå",
+      "manage_billing": "Administrer fakturering",
+      "subscription_canceled": "Abonnementet ditt er kansellert og avsluttes {{date}}. Du kan abonnere på nytt når som helst.",
+      "usage_quotas": "Bruk og kvoter",
+      "track_usage": "Følg med på bruken din opp mot planens grenser",
+      "total_bookmarks_saved": "Totalt antall bokmerker lagret",
+      "assets_file_storage": "Lagring av filer og ressurser",
+      "unlimited_usage": "Ubegrenset bruk",
+      "quota_limit_reached": "Kvotegrensen er nådd",
+      "approaching_quota_limit": "Nærmer seg kvotegrensen",
+      "loading_usage": "Laster inn bruksinformasjon …",
+      "free": "Gratis",
+      "paid": "Betalt"
     }
   },
   "options": {
@@ -354,7 +430,8 @@
     "day_s_ago": " Dager siden",
     "week_s_ago": " Uker siden",
     "month_s_ago": " Måneder siden",
-    "year_s_ago": " År siden"
+    "year_s_ago": " År siden",
+    "history": "Nylige søk"
   },
   "editor": {
     "text_toolbar": {

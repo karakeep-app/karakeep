@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
@@ -130,7 +130,9 @@ export function BookmarkLinkArchivePreview({
 
   if (!asset) {
     return (
-      <View className="flex-1 bg-background">Asset has no offline archive</View>
+      <View className="flex-1 bg-background">
+        <Text>Asset has no offline archive</Text>
+      </View>
     );
   }
 
@@ -159,7 +161,9 @@ export function BookmarkLinkScreenshotPreview({
 
   if (!asset) {
     return (
-      <View className="flex-1 bg-background">Asset has no screenshot</View>
+      <View className="flex-1 bg-background">
+        <Text>Asset has no screenshot</Text>
+      </View>
     );
   }
 

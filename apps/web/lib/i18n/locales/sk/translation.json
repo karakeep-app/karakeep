@@ -36,7 +36,10 @@
     "updated_at": "Aktualizované",
     "title": "Názov",
     "description": "Popis",
-    "summary": "Zhrnutie"
+    "summary": "Zhrnutie",
+    "quota": "Kvóta",
+    "bookmarks": "Záložky",
+    "storage": "Úložisko"
   },
   "actions": {
     "cancel": "Zrušiť",
@@ -253,6 +256,77 @@
         "favourited": "Záložka je pridaná medzi obľúbené",
         "archived": "Záložka je archivovaná"
       }
+    },
+    "stats": {
+      "usage_statistics": "Štatistiky používania",
+      "insights_description": "Štatistiky o tvojich návykoch a zbierke záložiek",
+      "failed_to_load": "Nepodarilo sa načítať štatistiky",
+      "overview": {
+        "total_bookmarks": "Celkový počet záložiek",
+        "all_saved_items": "Všetky uložené položky",
+        "favorites": "Obľúbené",
+        "starred_bookmarks": "Označené záložky hviezdičkou",
+        "archived": "Archivované",
+        "archived_items": "Archivované položky",
+        "tags": "Značky",
+        "unique_tags_created": "Vytvorené jedinečné štítky",
+        "lists": "Zoznamy",
+        "bookmark_collections": "Zbierky záložiek",
+        "highlights": "Zvýraznenia",
+        "text_highlights": "Zvýraznenia textu",
+        "storage_used": "Použité úložisko",
+        "total_asset_storage": "Celkové úložisko aktív",
+        "this_month": "Tento mesiac",
+        "bookmarks_added": "Pridané záložky"
+      },
+      "bookmark_types": {
+        "title": "Typy záložiek",
+        "links": "Odkazy",
+        "text_notes": "Textové poznámky",
+        "assets": "Aktíva"
+      },
+      "recent_activity": {
+        "title": "Nedávna aktivita",
+        "this_week": "Tento týždeň",
+        "this_month": "Tento mesiac",
+        "this_year": "Tento rok"
+      },
+      "top_domains": {
+        "title": "Najlepšie domény",
+        "no_domains_found": "Nenašli sa žiadne domény"
+      },
+      "most_used_tags": {
+        "title": "Najpoužívanejšie štítky",
+        "no_tags_found": "Nenašli sa žiadne značky"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivita podľa hodiny",
+        "activity_by_day": "Aktivita podľa dňa"
+      },
+      "storage_breakdown": {
+        "title": "Rozdelenie úložiska"
+      }
+    },
+    "subscription": {
+      "subscription": "Predplatné",
+      "manage_subscription": "Spravuj svoje predplatné a fakturačné údaje",
+      "current_plan": "Aktuálny plán",
+      "billing_period": "Fakturačné obdobie",
+      "paid_plan": "Platený plán",
+      "unlock_bigger_quota": "Odomkni väčšiu kvótu a podpor projekt",
+      "subscribe_now": "Prihlás sa na odber",
+      "manage_billing": "Spravovať fakturáciu",
+      "subscription_canceled": "Tvoje predplatné bolo zrušené a skončí {{date}}. Môžeš sa kedykoľvek znova prihlásiť na odber.",
+      "usage_quotas": "Využitie a kvóty",
+      "track_usage": "Sleduj aktuálne využitie v porovnaní s limitmi tvojho plánu",
+      "total_bookmarks_saved": "Celkový počet uložených záložiek",
+      "assets_file_storage": "Úložisko aktív a súborov",
+      "unlimited_usage": "Neobmedzené použitie",
+      "quota_limit_reached": "Bol dosiahnutý limit kvóty",
+      "approaching_quota_limit": "Blíži sa limit kvóty",
+      "loading_usage": "Načítavajú sa informácie o využití...",
+      "free": "Zadarmo",
+      "paid": "Platené"
     }
   },
   "search": {
@@ -290,7 +364,8 @@
     "day_s_ago": " Deň(dni) dozadu",
     "week_s_ago": " Týždeň(ne) dozadu",
     "month_s_ago": " Mesiac(e) dozadu",
-    "year_s_ago": " Rok(y) dozadu"
+    "year_s_ago": " Rok(y) dozadu",
+    "history": "Nedávne vyhľadávania"
   },
   "layouts": {
     "masonry": "Dlaždice",
@@ -320,7 +395,9 @@
       "change_role": "Zmeniť rolu",
       "delete_user": "Odstrániť používateľa",
       "confirm_password": "Potvrdiť heslo",
-      "create_user": "Vytvoriť používateľa"
+      "create_user": "Vytvoriť používateľa",
+      "delete_user_confirm_description": "Naozaj chceš vymazať používateľa „{{name}}“?",
+      "unlimited": "Neobmedzené"
     },
     "admin_settings": "Nastavenia správcu",
     "background_jobs": {

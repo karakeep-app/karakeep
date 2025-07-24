@@ -28,7 +28,7 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
     const start = parseInt(parts[0], 10);
     const end = parts[1] ? parseInt(parts[1], 10) : size - 1;
 
-    const fStream = createAssetReadStream({
+    const fStream = await createAssetReadStream({
       userId,
       assetId,
       start,
@@ -43,7 +43,7 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
       await stream.pipe(toWebReadableStream(fStream));
     });
   } else {
-    const fStream = createAssetReadStream({
+    const fStream = await createAssetReadStream({
       userId,
       assetId,
     });

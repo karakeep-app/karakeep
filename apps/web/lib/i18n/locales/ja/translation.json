@@ -84,7 +84,9 @@
       "num_bookmarks": "ブックマーク数",
       "users_list": "ユーザーリスト",
       "reset_password": "パスワードをリセット",
-      "delete_user": "ユーザーを削除"
+      "delete_user": "ユーザーを削除",
+      "delete_user_confirm_description": "ほんまにユーザー「{{name}}」を削除してええん？",
+      "unlimited": "無制限"
     }
   },
   "settings": {
@@ -231,6 +233,77 @@
         "favourited": "ブックマークがお気に入りに追加されたとき",
         "archived": "ブックマークがアーカイブされた"
       }
+    },
+    "stats": {
+      "usage_statistics": "利用状況の統計",
+      "insights_description": "ブックマークの習慣とコレクションに関するインサイト",
+      "failed_to_load": "統計のロードに失敗しました",
+      "overview": {
+        "total_bookmarks": "ブックマークの総数",
+        "all_saved_items": "保存されたすべてのアイテム",
+        "favorites": "お気に入り",
+        "starred_bookmarks": "スター付きのブックマーク",
+        "archived": "アーカイブ済み",
+        "archived_items": "アーカイブされたアイテム",
+        "tags": "タグ",
+        "unique_tags_created": "一意のタグが作成されました",
+        "lists": "リスト",
+        "bookmark_collections": "ブックマークコレクション",
+        "highlights": "ハイライト",
+        "text_highlights": "テキストのハイライト",
+        "storage_used": "使用ストレージ",
+        "total_asset_storage": "アセットストレージの合計",
+        "this_month": "今月",
+        "bookmarks_added": "ブックマークが追加されました"
+      },
+      "bookmark_types": {
+        "title": "ブックマークの種類",
+        "links": "リンク",
+        "text_notes": "テキストメモ",
+        "assets": "アセット"
+      },
+      "recent_activity": {
+        "title": "最近のアクティビティ",
+        "this_week": "今週",
+        "this_month": "今月",
+        "this_year": "今年"
+      },
+      "top_domains": {
+        "title": "トップドメイン",
+        "no_domains_found": "ドメインが見つかりませんでした"
+      },
+      "most_used_tags": {
+        "title": "最も使用されたタグ",
+        "no_tags_found": "タグが見つかりません"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "時間ごとのアクティビティ",
+        "activity_by_day": "日ごとのアクティビティ"
+      },
+      "storage_breakdown": {
+        "title": "ストレージの内訳"
+      }
+    },
+    "subscription": {
+      "subscription": "サブスクリプション",
+      "manage_subscription": "サブスクリプションと請求情報を管理する",
+      "current_plan": "現在のプラン",
+      "billing_period": "請求期間",
+      "paid_plan": "有料プラン",
+      "unlock_bigger_quota": "より大きなクォータをアンロックしてプロジェクトを支援する",
+      "subscribe_now": "今すぐ登録",
+      "manage_billing": "請求の管理",
+      "subscription_canceled": "お客様のサブスクリプションはキャンセルされ、{{date}} に終了します。いつでも再登録できます。",
+      "usage_quotas": "使用量とクォータ",
+      "track_usage": "現在の使用状況をプランの制限と比較して追跡する",
+      "total_bookmarks_saved": "保存されたブックマークの総数",
+      "assets_file_storage": "アセットとファイルストレージ",
+      "unlimited_usage": "無制限の使用",
+      "quota_limit_reached": "クォータ制限に達しました",
+      "approaching_quota_limit": "クォータ制限に近づいています",
+      "loading_usage": "使用状況情報を読み込み中...",
+      "free": "無料",
+      "paid": "有料"
     }
   },
   "common": {
@@ -270,7 +343,10 @@
     "updated_at": "更新日",
     "title": "タイトル",
     "description": "説明",
-    "summary": "概要"
+    "summary": "概要",
+    "quota": "割り当て",
+    "bookmarks": "ブックマーク",
+    "storage": "ストレージ"
   },
   "layouts": {
     "grid": "グリッド",
@@ -360,7 +436,8 @@
     "day_s_ago": " ～日前",
     "week_s_ago": " ～週間前",
     "month_s_ago": " ～か月前",
-    "year_s_ago": " ～年前"
+    "year_s_ago": " ～年前",
+    "history": "最近の検索"
   },
   "preview": {
     "cached_content": "キャッシュされたコンテンツ",

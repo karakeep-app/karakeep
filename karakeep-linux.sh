@@ -229,6 +229,7 @@ install_karakeep() {
   $shh pnpm build
   cd "$APP_DIR"/workers
   $shh pnpm i --frozen-lockfile
+  $shh pnpm build
   cd "$APP_DIR"/cli
   $shh pnpm i --frozen-lockfile
   $shh pnpm build
@@ -342,7 +343,7 @@ Group=karakeep
 Restart=always
 EnvironmentFile=${ENV_FILE}
 WorkingDirectory=${APP_DIR}/workers
-ExecStart=/usr/bin/pnpm run start:prod
+ExecStart=/usr/bin/node dist/index.mjs
 StandardOutput=append:${LOG_DIR}/karakeep-workers.log
 StandardError=append:${LOG_DIR}/karakeep-workers.log
 TimeoutStopSec=5
@@ -438,6 +439,7 @@ update_karakeep() {
     cd "$APP_DIR"/web && $shh pnpm i --frozen-lockfile
     $shh pnpm build
     cd "$APP_DIR"/workers && $shh pnpm i --frozen-lockfile
+    $shh pnpm build
     cd "$APP_DIR"/cli && $shh pnpm i --frozen-lockfile
     $shh pnpm build
     cd "$INSTALL_DIR"/packages/db && $shh pnpm migrate

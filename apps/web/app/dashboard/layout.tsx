@@ -43,7 +43,7 @@ export default async function Dashboard({
         icon: <Home size={18} />,
         path: "/dashboard/bookmarks",
       },
-      serverConfig.meilisearch
+      serverConfig.search.meilisearch
         ? [
             {
               name: t("common.search"),

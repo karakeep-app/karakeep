@@ -65,6 +65,8 @@ export interface paths {
             note?: string;
             summary?: string;
             createdAt?: string | null;
+            /** @enum {string} */
+            crawlPriority?: "low" | "normal";
           } & (
             | {
                 /** @enum {string} */
@@ -306,6 +308,8 @@ export interface paths {
               favourited: boolean;
               /** @enum {string|null} */
               taggingStatus: "success" | "failure" | "pending" | null;
+              /** @enum {string|null} */
+              summarizationStatus: "success" | "failure" | "pending" | null;
               note?: string | null;
               summary?: string | null;
             };
@@ -366,6 +370,8 @@ export interface paths {
               favourited: boolean;
               /** @enum {string|null} */
               taggingStatus: "success" | "failure" | "pending" | null;
+              /** @enum {string|null} */
+              summarizationStatus: "success" | "failure" | "pending" | null;
               note?: string | null;
               summary?: string | null;
             };
@@ -589,6 +595,7 @@ export interface paths {
             id: string;
             /** @enum {string} */
             assetType:
+              | "linkHtmlContent"
               | "screenshot"
               | "assetScreenshot"
               | "bannerImage"
@@ -611,6 +618,7 @@ export interface paths {
               id: string;
               /** @enum {string} */
               assetType:
+                | "linkHtmlContent"
                 | "screenshot"
                 | "assetScreenshot"
                 | "bannerImage"
@@ -936,6 +944,7 @@ export interface paths {
             icon?: string;
             parentId?: string | null;
             query?: string;
+            public?: boolean;
           };
         };
       };
@@ -1662,6 +1671,7 @@ export interface paths {
               id: string;
               name?: string | null;
               email?: string | null;
+              localUser: boolean;
             };
           };
         };
@@ -1708,6 +1718,38 @@ export interface paths {
               numTags: number;
               numLists: number;
               numHighlights: number;
+              bookmarksByType: {
+                link: number;
+                text: number;
+                asset: number;
+              };
+              topDomains: {
+                domain: string;
+                count: number;
+              }[];
+              totalAssetSize: number;
+              assetsByType: {
+                type: string;
+                count: number;
+                totalSize: number;
+              }[];
+              bookmarkingActivity: {
+                thisWeek: number;
+                thisMonth: number;
+                thisYear: number;
+                byHour: {
+                  hour: number;
+                  count: number;
+                }[];
+                byDayOfWeek: {
+                  day: number;
+                  count: number;
+                }[];
+              };
+              tagUsage: {
+                name: string;
+                count: number;
+              }[];
             };
           };
         };
@@ -1721,12 +1763,192 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/assets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Upload a new asset
+     * @description Upload a new asset
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      /** @description The data to create the asset with. */
+      requestBody?: {
+        content: {
+          "multipart/form-data": {
+            file: components["schemas"]["File to be uploaded"];
+          };
+        };
+      };
+      responses: {
+        /** @description Details about the created asset */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Asset"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/assets/{assetId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get a single asset
+     * @description Get asset by its id
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          assetId: components["parameters"]["AssetId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Asset content. Content type is determined by the asset type. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/users/{userId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Update user
+     * @description Update a user's role, bookmark quota, or storage quota. Admin access required.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            role?: "user" | "admin";
+            bookmarkQuota?: number | null;
+            storageQuota?: number | null;
+            browserCrawlingEnabled?: boolean | null;
+          };
+        };
+      };
+      responses: {
+        /** @description User updated successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              success: boolean;
+            };
+          };
+        };
+        /** @description Bad request - Invalid input data or cannot update own user */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description User not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
-    AssetId: string;
     /** @example ieidlxygmwj87oxz5hxttoc8 */
     BookmarkId: string;
     /** @example ieidlxygmwj87oxz5hxttoc8 */
@@ -1735,6 +1957,8 @@ export interface components {
     TagId: string;
     /** @example ieidlxygmwj87oxz5hxttoc8 */
     HighlightId: string;
+    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    AssetId: string;
     Bookmark: {
       id: string;
       createdAt: string;
@@ -1744,6 +1968,8 @@ export interface components {
       favourited: boolean;
       /** @enum {string|null} */
       taggingStatus: "success" | "failure" | "pending" | null;
+      /** @enum {string|null} */
+      summarizationStatus: "success" | "failure" | "pending" | null;
       note?: string | null;
       summary?: string | null;
       tags: {
@@ -1767,6 +1993,7 @@ export interface components {
             videoAssetId?: string | null;
             favicon?: string | null;
             htmlContent?: string | null;
+            contentAssetId?: string | null;
             crawledAt?: string | null;
             author?: string | null;
             publisher?: string | null;
@@ -1798,6 +2025,7 @@ export interface components {
         id: string;
         /** @enum {string} */
         assetType:
+          | "linkHtmlContent"
           | "screenshot"
           | "assetScreenshot"
           | "bannerImage"
@@ -1840,6 +2068,7 @@ export interface components {
        */
       type: "manual" | "smart";
       query?: string | null;
+      public: boolean;
     };
     Tag: {
       id: string;
@@ -1854,14 +2083,21 @@ export interface components {
       highlights: components["schemas"]["Highlight"][];
       nextCursor: string | null;
     };
+    Asset: {
+      assetId: string;
+      contentType: string;
+      size: number;
+      fileName: string;
+    };
+    "File to be uploaded": unknown;
   };
   responses: never;
   parameters: {
-    AssetId: components["schemas"]["AssetId"];
     BookmarkId: components["schemas"]["BookmarkId"];
     ListId: components["schemas"]["ListId"];
     TagId: components["schemas"]["TagId"];
     HighlightId: components["schemas"]["HighlightId"];
+    AssetId: components["schemas"]["AssetId"];
   };
   requestBodies: never;
   headers: never;

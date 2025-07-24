@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AdminCard } from "@/components/admin/AdminCard";
 import { AdminNotices } from "@/components/admin/AdminNotices";
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
 import Sidebar from "@/components/shared/sidebar/Sidebar";
@@ -54,7 +53,7 @@ export default async function AdminLayout({
     >
       <div className="flex flex-col gap-1">
         <AdminNotices />
-        <AdminCard>{children}</AdminCard>
+        {children}
       </div>
     </SidebarLayout>
   );

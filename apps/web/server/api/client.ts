@@ -17,7 +17,7 @@ export async function createContextFromRequest(req: Request) {
   if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
     const token = authorizationHeader.split(" ")[1];
     try {
-      const user = await authenticateApiKey(token);
+      const user = await authenticateApiKey(token, db);
       return {
         user,
         db,

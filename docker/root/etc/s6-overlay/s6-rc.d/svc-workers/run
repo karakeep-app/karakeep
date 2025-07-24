@@ -2,4 +2,4 @@
 # shellcheck shell=bash
 
 cd /app/apps/workers;
-exec tsx index.ts
+exec node dist/index.mjs

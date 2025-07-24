@@ -10,6 +10,10 @@ const zSettingsSchema = z.object({
   address: z.string(),
   imageQuality: z.number().optional().default(0.2),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
+  defaultBookmarkView: z
+    .enum(["reader", "browser"])
+    .optional()
+    .default("reader"),
 });
 
 export type Settings = z.infer<typeof zSettingsSchema>;
@@ -23,7 +27,12 @@ interface AppSettingsState {
 const useSettings = create<AppSettingsState>((set, get) => ({
   settings: {
     isLoading: true,
-    settings: { address: "", imageQuality: 0.2, theme: "system" },
+    settings: {
+      address: "",
+      imageQuality: 0.2,
+      theme: "system",
+      defaultBookmarkView: "reader",
+    },
   },
   setSettings: async (settings) => {
     await SecureStore.setItemAsync(SETTING_NAME, JSON.stringify(settings));

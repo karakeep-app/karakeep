@@ -5,10 +5,13 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.842.0",
     "glob": "^11.0.0",
+    "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
-    "liteque": "^0.3.2",
+    "liteque": "^0.5.0",
     "meilisearch": "^0.37.0",
+    "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
     "openai": "^4.86.1",
     "typescript-parsec": "^0.3.4",
@@ -19,6 +22,8 @@
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@types/html-to-text": "^9.0.4",
+    "@types/nodemailer": "^6.4.17",
     "vitest": "^1.6.1"
   },
   "scripts": {

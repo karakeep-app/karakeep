@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useToggleTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/client";
 import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
@@ -43,6 +43,7 @@ export default function SidebarProfileOptions() {
   const { t } = useTranslation();
   const toggleTheme = useToggleTheme();
   const { data: session } = useSession();
+  const router = useRouter();
   if (!session) return redirect("/");
 
   return (
@@ -94,13 +95,7 @@ export default function SidebarProfileOptions() {
           <DarkModeToggle />
         </DropdownMenuItem>
         <Separator className="my-2" />
-        <DropdownMenuItem
-          onClick={() =>
-            signOut({
-              callbackUrl: "/",
-            })
-          }
-        >
+        <DropdownMenuItem onClick={() => router.push("/logout")}>
           <LogOut className="mr-2 size-4" />
           <span>{t("actions.sign_out")}</span>
         </DropdownMenuItem>

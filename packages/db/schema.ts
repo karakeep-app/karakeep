@@ -38,6 +38,9 @@ export const users = sqliteTable("user", {
   password: text("password"),
   salt: text("salt").notNull().default(""),
   role: text("role", { enum: ["admin", "user"] }).default("user"),
+  bookmarkQuota: integer("bookmarkQuota"),
+  storageQuota: integer("storageQuota"),
+  browserCrawlingEnabled: integer("browserCrawlingEnabled", { mode: "boolean" }),
 });
 
 export const accounts = sqliteTable(
@@ -83,6 +86,23 @@ export const verificationTokens = sqliteTable(
     expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
   },
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
+);
+
+export const passwordResetTokens = sqliteTable(
+  "passwordResetToken",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+    createdAt: createdAtField(),
+  },
+  (prt) => [index("passwordResetTokens_userId_idx").on(prt.userId)],
 );
 
 export const apiKeys = sqliteTable(
@@ -159,8 +179,8 @@ export const bookmarkLinks = sqliteTable(
     dateModified: integer("dateModified", { mode: "timestamp" }),
     imageUrl: text("imageUrl"),
     favicon: text("favicon"),
-    content: text("content"),
     htmlContent: text("htmlContent"),
+    contentAssetId: text("contentAssetId"),
     crawledAt: integer("crawledAt", { mode: "timestamp" }),
     crawlStatus: text("crawlStatus", {
       enum: ["pending", "failure", "success"],
@@ -177,6 +197,7 @@ export const enum AssetTypes {
   LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
   LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
   LINK_VIDEO = "linkVideo",
+  LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
   UNKNOWN = "unknown",
 }
@@ -194,6 +215,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         AssetTypes.LINK_PRECRAWLED_ARCHIVE,
         AssetTypes.LINK_VIDEO,
+        AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.UNKNOWN,
       ],
@@ -545,7 +567,68 @@ export const userSettings = sqliteTable("userSettings", {
   })
     .notNull()
     .default("show"),
+  timezone: text("timezone").default("UTC"),
 });
+
+export const invites = sqliteTable("invites", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: createdAtField(),
+  expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  usedAt: integer("usedAt", { mode: "timestamp" }),
+  invitedBy: text("invitedBy")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const subscriptions = sqliteTable(
+  "subscriptions",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+    stripeCustomerId: text("stripeCustomerId").notNull(),
+    stripeSubscriptionId: text("stripeSubscriptionId"),
+    status: text("status", {
+      enum: [
+        "active",
+        "canceled",
+        "past_due",
+        "unpaid",
+        "incomplete",
+        "trialing",
+        "incomplete_expired",
+        "paused",
+      ],
+    }).notNull(),
+    tier: text("tier", {
+      enum: ["free", "paid"],
+    })
+      .notNull()
+      .default("free"),
+    priceId: text("priceId"),
+    cancelAtPeriodEnd: integer("cancelAtPeriodEnd", {
+      mode: "boolean",
+    }).default(false),
+    startDate: integer("startDate", { mode: "timestamp" }),
+    endDate: integer("endDate", { mode: "timestamp" }),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (s) => [
+    index("subscriptions_userId_idx").on(s.userId),
+    index("subscriptions_stripeCustomerId_idx").on(s.stripeCustomerId),
+  ],
+);
 
 // Relations
 
@@ -554,10 +637,12 @@ export const userRelations = relations(users, ({ many, one }) => ({
   bookmarks: many(bookmarks),
   webhooks: many(webhooksTable),
   rules: many(ruleEngineRulesTable),
+  invites: many(invites),
   settings: one(userSettings, {
     fields: [users.id],
     references: [userSettings.userId],
   }),
+  subscription: one(subscriptions),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -699,3 +784,27 @@ export const userSettingsRelations = relations(userSettings, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const invitesRelations = relations(invites, ({ one }) => ({
+  invitedBy: one(users, {
+    fields: [invites.invitedBy],
+    references: [users.id],
+  }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const passwordResetTokensRelations = relations(
+  passwordResetTokens,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [passwordResetTokens.userId],
+      references: [users.id],
+    }),
+  }),
+);

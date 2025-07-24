@@ -1,7 +1,8 @@
 import { useState } from "react";
 import Image from "next/image";
-import BookmarkHTMLHighlighter from "@/components/dashboard/preview/BookmarkHtmlHighlighter";
-import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -10,21 +11,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
-import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
-
 import {
-  useCreateHighlight,
-  useDeleteHighlight,
-  useUpdateHighlight,
-} from "@karakeep/shared-react/hooks/highlights";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useTranslation } from "@/lib/i18n/client";
+import { Archive, BookOpen, Camera, ExpandIcon, Video } from "lucide-react";
+
 import {
   BookmarkTypes,
   ZBookmark,
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
+
+import ReaderView from "./ReaderView";
 
 function FullPageArchiveSection({ link }: { link: ZBookmarkedLink }) {
   const archiveAssetId =
@@ -51,106 +52,6 @@ function ScreenshotSection({ link }: { link: ZBookmarkedLink }) {
       />
     </div>
   );
-}
-
-function CachedContentSection({ bookmarkId }: { bookmarkId: string }) {
-  const { data: highlights } = api.highlights.getForBookmark.useQuery({
-    bookmarkId,
-  });
-  const { data: cachedContent, isPending: isCachedContentLoading } =
-    api.bookmarks.getBookmark.useQuery(
-      {
-        bookmarkId,
-        includeContent: true,
-      },
-      {
-        select: (data) =>
-          data.content.type == BookmarkTypes.LINK
-            ? data.content.htmlContent
-            : null,
-      },
-    );
-
-  const { mutate: createHighlight } = useCreateHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been created!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
-
-  const { mutate: updateHighlight } = useUpdateHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been updated!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
-
-  const { mutate: deleteHighlight } = useDeleteHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been deleted!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
-
-  let content;
-  if (isCachedContentLoading) {
-    content = <FullPageSpinner />;
-  } else if (!cachedContent) {
-    content = (
-      <div className="text-destructive">Failed to fetch link content ...</div>
-    );
-  } else {
-    content = (
-      <BookmarkHTMLHighlighter
-        htmlContent={cachedContent || ""}
-        className="prose mx-auto dark:prose-invert"
-        highlights={highlights?.highlights ?? []}
-        onDeleteHighlight={(h) =>
-          deleteHighlight({
-            highlightId: h.id,
-          })
-        }
-        onUpdateHighlight={(h) =>
-          updateHighlight({
-            highlightId: h.id,
-            color: h.color,
-          })
-        }
-        onHighlight={(h) =>
-          createHighlight({
-            startOffset: h.startOffset,
-            endOffset: h.endOffset,
-            color: h.color,
-            bookmarkId,
-            text: h.text,
-            note: null,
-          })
-        }
-      />
-    );
-  }
-  return <ScrollArea className="h-full">{content}</ScrollArea>;
 }
 
 function VideoSection({ link }: { link: ZBookmarkedLink }) {
@@ -181,7 +82,14 @@ export default function LinkContentSection({
 
   let content;
   if (section === "cached") {
-    content = <CachedContentSection bookmarkId={bookmark.id} />;
+    content = (
+      <ScrollArea className="h-full">
+        <ReaderView
+          className="prose mx-auto dark:prose-invert"
+          bookmarkId={bookmark.id}
+        />
+      </ScrollArea>
+    );
   } else if (section === "archive") {
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
@@ -192,36 +100,68 @@ export default function LinkContentSection({
 
   return (
     <div className="flex h-full flex-col items-center gap-2">
-      <Select onValueChange={setSection} value={section}>
-        <SelectTrigger className="w-fit">
-          <span className="mr-2">
-            <SelectValue />
-          </span>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectItem value="cached">{t("preview.reader_view")}</SelectItem>
-            <SelectItem
-              value="screenshot"
-              disabled={!bookmark.content.screenshotAssetId}
-            >
-              {t("common.screenshot")}
-            </SelectItem>
-            <SelectItem
-              value="archive"
-              disabled={
-                !bookmark.content.fullPageArchiveAssetId &&
-                !bookmark.content.precrawledArchiveAssetId
-              }
-            >
-              {t("common.archive")}
-            </SelectItem>
-            <SelectItem value="video" disabled={!bookmark.content.videoAssetId}>
-              {t("common.video")}
-            </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-2">
+        <Select onValueChange={setSection} value={section}>
+          <SelectTrigger className="w-fit">
+            <span className="mr-2">
+              <SelectValue />
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="cached">
+                <div className="flex items-center">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  {t("preview.reader_view")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="screenshot"
+                disabled={!bookmark.content.screenshotAssetId}
+              >
+                <div className="flex items-center">
+                  <Camera className="mr-2 h-4 w-4" />
+                  {t("common.screenshot")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="archive"
+                disabled={
+                  !bookmark.content.fullPageArchiveAssetId &&
+                  !bookmark.content.precrawledArchiveAssetId
+                }
+              >
+                <div className="flex items-center">
+                  <Archive className="mr-2 h-4 w-4" />
+                  {t("common.archive")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="video"
+                disabled={!bookmark.content.videoAssetId}
+              >
+                <div className="flex items-center">
+                  <Video className="mr-2 h-4 w-4" />
+                  {t("common.video")}
+                </div>
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {section === "cached" && (
+          <Tooltip>
+            <TooltipTrigger>
+              <Link
+                href={`/reader/${bookmark.id}`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <ExpandIcon className="h-4 w-4" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">FullScreen</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       {content}
     </div>
   );
