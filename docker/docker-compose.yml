@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     volumes:
       - data:/data
+      - /home/ubuntu/backups/karakeep/data/:/data
     ports:
       - 3000:3000
     environment:
@@ -41,6 +42,7 @@ services:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
+      - /home/ubuntu/backups/karakeep/meili_data/:/maili_data
     healthcheck:
       test: ["CMD", "true"]
       interval: 30s
