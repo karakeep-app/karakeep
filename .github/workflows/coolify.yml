@@ -42,6 +42,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           
+      - name: Get latest release version
+        id: version
+        run: |
+          # Get the latest release tag from GitHub
+          LATEST_TAG=$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | jq -r .tag_name)
+          echo "version=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo "Latest version: ${LATEST_TAG}"
+          
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -62,6 +70,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            SERVER_VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           
@@ -69,5 +79,6 @@ jobs:
         run: |
           echo "## ✅ Build Complete - Coolify will auto-deploy" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** \`${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Platform:** linux/arm64 only" >> $GITHUB_STEP_SUMMARY
