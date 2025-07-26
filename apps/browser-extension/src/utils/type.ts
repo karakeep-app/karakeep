@@ -1,0 +1,4 @@
+export const enum MessageType {
+  BOOKMARK_CREATED_REFRESH_BADGE = 1,
+  BOOKMARK_DELETED_REFRESH_BADGE,
+}

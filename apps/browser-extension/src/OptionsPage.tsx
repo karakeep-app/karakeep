@@ -45,7 +45,12 @@ export default function OptionsPage() {
     if (settings.apiKeyId) {
       deleteKey({ id: settings.apiKeyId });
     }
-    setSettings((s) => ({ ...s, apiKey: "", apiKeyId: undefined }));
+    setSettings((s) => ({
+      ...s,
+      apiKey: "",
+      apiKeyId: undefined,
+      showCountBadge: false,
+    }));
     invalidateWhoami();
     navigate("/notconfigured");
   };
@@ -55,6 +60,24 @@ export default function OptionsPage() {
       <Logo />
       <span className="text-lg">Settings</span>
       <hr />
+      <div className="flex flex-col gap-2">
+        <span className="mb-1">Show count badge</span>
+        <Button
+          variant={settings.showCountBadge ? "default" : "outline"}
+          className={
+            settings.showCountBadge
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }
+          onClick={() =>
+            setSettings((s) => ({ ...s, showCountBadge: !s.showCountBadge }))
+          }
+        >
+          {settings.showCountBadge
+            ? "Enabled (click to disable)"
+            : "Disabled (click to enable)"}
+        </Button>
+      </div>
       <div className="flex gap-2">
         <span className="my-auto">Server Address:</span>
         {settings.address}

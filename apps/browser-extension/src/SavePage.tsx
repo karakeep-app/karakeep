@@ -10,6 +10,7 @@ import {
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
 import { api } from "./utils/trpc";
+import { MessageType } from "./utils/type.ts";
 
 export default function SavePage() {
   const [error, setError] = useState<string | undefined>(undefined);
@@ -22,8 +23,18 @@ export default function SavePage() {
     onError: (e) => {
       setError("Something went wrong: " + e.message);
     },
+    onSuccess: async () => {
+      // After successful creation, update badge cache and notify background
+      const [currentTab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      });
+      await chrome.runtime.sendMessage({
+        type: MessageType.BOOKMARK_CREATED_REFRESH_BADGE,
+        currentTab: currentTab,
+      });
+    },
   });
-
   useEffect(() => {
     async function getNewBookmarkRequestFromBackgroundScriptIfAny(): Promise<ZNewBookmarkRequest | null> {
       const { [NEW_BOOKMARK_REQUEST_KEY_NAME]: req } =
@@ -57,6 +68,7 @@ export default function SavePage() {
 
       createBookmark(newBookmarkRequest);
     }
+
     runSave();
   }, [createBookmark]);
 

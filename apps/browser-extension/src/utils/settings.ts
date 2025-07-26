@@ -5,11 +5,13 @@ const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
+  showCountBadge: z.boolean(),
 });
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
+  showCountBadge: false,
 };
 
 export type Settings = z.infer<typeof zSettingsSchema>;
