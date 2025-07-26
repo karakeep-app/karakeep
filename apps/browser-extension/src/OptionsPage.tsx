@@ -50,6 +50,10 @@ export default function OptionsPage() {
     navigate("/notconfigured");
   };
 
+  const handleAutoSaveToggle = () => {
+    setSettings((s) => ({ ...s, autoSave: !s.autoSave }));
+  };
+
   return (
     <div className="flex flex-col space-y-2">
       <Logo />
@@ -62,6 +66,24 @@ export default function OptionsPage() {
       <div className="flex gap-2">
         <span className="my-auto">Logged in as:</span>
         {loggedInMessage}
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="font-medium">Auto-save bookmarks</span>
+          <p className="text-sm text-gray-600">
+            Automatically save the current tab when opening the extension
+          </p>
+        </div>
+        <label className="relative inline-flex cursor-pointer items-center">
+          <input
+            type="checkbox"
+            value=""
+            className="peer sr-only"
+            checked={settings.autoSave}
+            onChange={handleAutoSaveToggle}
+          />
+          <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+        </label>
       </div>
       <Button onClick={onLogout}>Logout</Button>
     </div>
