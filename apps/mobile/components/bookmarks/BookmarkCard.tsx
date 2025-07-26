@@ -6,15 +6,19 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   Text,
   View,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { router, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
-import { Ellipsis, Star } from "lucide-react-native";
+import { Ellipsis, Share2, Star } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
@@ -37,6 +41,7 @@ import TagPill from "./TagPill";
 
 function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
   const { toast } = useToast();
+  const { settings } = useAppSettings();
 
   const onError = () => {
     toast({
@@ -86,6 +91,71 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
       ],
     );
 
+  const handleShare = async () => {
+    try {
+      switch (bookmark.content.type) {
+        case BookmarkTypes.LINK:
+          await Share.share({
+            url: bookmark.content.url,
+            message: bookmark.content.url,
+          });
+          break;
+
+        case BookmarkTypes.TEXT:
+          await Clipboard.setStringAsync(bookmark.content.text);
+          toast({
+            message: "Text copied to clipboard",
+            showProgress: false,
+          });
+          break;
+
+        case BookmarkTypes.ASSET:
+          if (bookmark.content.assetType === "image") {
+            if (await Sharing.isAvailableAsync()) {
+              const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+              const fileUri = `${FileSystem.documentDirectory}temp_image.jpg`;
+
+              const downloadResult = await FileSystem.downloadAsync(
+                assetUrl,
+                fileUri,
+                {
+                  headers: {
+                    Authorization: `Bearer ${settings.apiKey}`,
+                  },
+                },
+              );
+
+              if (downloadResult.status === 200) {
+                await Sharing.shareAsync(downloadResult.uri);
+                // Clean up the temporary file
+                await FileSystem.deleteAsync(downloadResult.uri, {
+                  idempotent: true,
+                });
+              } else {
+                throw new Error("Failed to download image");
+              }
+            }
+          } else {
+            // For PDFs, share the URL
+            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+            await Share.share({
+              url: assetUrl,
+              message:
+                bookmark.title || bookmark.content.fileName || "PDF Document",
+            });
+          }
+          break;
+      }
+    } catch (error) {
+      console.error("Share error:", error);
+      toast({
+        message: "Failed to share",
+        variant: "destructive",
+        showProgress: false,
+      });
+    }
+  };
+
   return (
     <View className="flex flex-row gap-4">
       {(isArchivePending || isDeletionPending) && <ActivityIndicator />}
@@ -103,6 +173,15 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         ) : (
           <Star color="gray" />
         )}
+      </Pressable>
+
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync();
+          handleShare();
+        }}
+      >
+        <Share2 color="gray" />
       </Pressable>
 
       <MenuView
