@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
+import { loadAllPlugins } from "@karakeep/shared-server";
+
 import "@karakeep/tailwind-config/globals.css";
 
 import type { Viewport } from "next";
@@ -13,6 +15,8 @@ import { getServerAuthSession } from "@/server/auth";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { clientConfig } from "@karakeep/shared/config";
+
+await loadAllPlugins();
 
 const inter = Inter({
   subsets: ["latin"],

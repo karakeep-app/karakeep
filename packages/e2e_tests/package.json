@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "format:fix": "prettier . --write --ignore-path ../../.prettierignore",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "test": "vitest run",
@@ -19,13 +19,15 @@
     "@karakeep/sdk": "workspace:*",
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
-    "superjson": "^2.2.1"
+    "@trpc/client": "^11.4.3",
+    "superjson": "^2.2.1",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "vite-tsconfig-paths": "^4.3.1",
-    "vitest": "^1.6.1"
+    "vitest": "^3.2.4"
   },
   "prettier": "@karakeep/prettier-config"
 }

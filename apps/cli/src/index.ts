@@ -1,4 +1,3 @@
-#! /usr/bin/env node
 import { bookmarkCmd } from "@/commands/bookmarks";
 import { listsCmd } from "@/commands/lists";
 import { tagsCmd } from "@/commands/tags";

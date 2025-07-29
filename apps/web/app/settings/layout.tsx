@@ -28,7 +28,7 @@ const settingsSidebarItems = (
   icon: JSX.Element;
   path: string;
 }[] => {
-  const baseItems = [
+  return [
     {
       name: t("settings.back_to_app"),
       icon: <ArrowLeft size={18} />,
@@ -44,24 +44,24 @@ const settingsSidebarItems = (
       icon: <BarChart3 size={18} />,
       path: "/settings/stats",
     },
-  ];
-
-  // Add subscription item if Stripe is configured
-  if (serverConfig.stripe.isConfigured) {
-    baseItems.push({
-      name: t("settings.subscription.subscription"),
-      icon: <CreditCard size={18} />,
-      path: "/settings/subscription",
-    });
-  }
-
-  return [
-    ...baseItems,
-    {
-      name: t("settings.ai.ai_settings"),
-      icon: <Sparkles size={18} />,
-      path: "/settings/ai",
-    },
+    ...(serverConfig.stripe.isConfigured
+      ? [
+          {
+            name: t("settings.subscription.subscription"),
+            icon: <CreditCard size={18} />,
+            path: "/settings/subscription",
+          },
+        ]
+      : []),
+    ...(serverConfig.inference.isConfigured
+      ? [
+          {
+            name: t("settings.ai.ai_settings"),
+            icon: <Sparkles size={18} />,
+            path: "/settings/ai",
+          },
+        ]
+      : []),
     {
       name: t("settings.feeds.rss_subscriptions"),
       icon: <Rss size={18} />,

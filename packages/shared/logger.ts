@@ -6,7 +6,7 @@ const logger = winston.createLogger({
   level: serverConfig.logLevel,
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.colorize(),
+    ...(serverConfig.logNoColor ? [] : [winston.format.colorize()]),
     winston.format.printf(
       (info) => `${info.timestamp} ${info.level}: ${info.message}`,
     ),

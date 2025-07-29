@@ -16,7 +16,7 @@ import {
 import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
@@ -53,6 +53,53 @@ function CreationTime({ createdAt }: { createdAt: Date }) {
         <span className="flex w-fit gap-2">
           <CalendarDays /> {fromNow}
         </span>
+      </TooltipTrigger>
+      <TooltipPortal>
+        <TooltipContent>{localCreatedAt}</TooltipContent>
+      </TooltipPortal>
+    </Tooltip>
+  );
+}
+
+function BookmarkMetadata({ bookmark }: { bookmark: ZBookmark }) {
+  if (bookmark.content.type !== BookmarkTypes.LINK) {
+    return null;
+  }
+
+  const { author, publisher, datePublished } = bookmark.content;
+
+  if (!author && !publisher && !datePublished) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {author && (
+        <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+          <User size={16} />
+          <span>By {author}</span>
+        </div>
+      )}
+      {publisher && (
+        <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+          <Building size={16} />
+          <span>{publisher}</span>
+        </div>
+      )}
+      {datePublished && <PublishedDate datePublished={datePublished} />}
+    </div>
+  );
+}
+
+function PublishedDate({ datePublished }: { datePublished: Date }) {
+  const { fromNow, localCreatedAt } = useRelativeTime(datePublished);
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+          <CalendarDays size={16} />
+          <span>Published {fromNow}</span>
+        </div>
       </TooltipTrigger>
       <TooltipPortal>
         <TooltipContent>{localCreatedAt}</TooltipContent>
@@ -142,6 +189,7 @@ export default function BookmarkPreview({
         <Separator />
       </div>
       <CreationTime createdAt={bookmark.createdAt} />
+      <BookmarkMetadata bookmark={bookmark} />
       <SummarizeBookmarkArea bookmark={bookmark} />
       <div className="flex items-center gap-4">
         <p className="text-sm text-gray-400">{t("common.tags")}</p>

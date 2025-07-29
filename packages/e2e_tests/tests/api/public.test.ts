@@ -1,9 +1,10 @@
 import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 import { z } from "zod";
 
-import { createSignedToken } from "../../../shared/signedTokens";
-import { zAssetSignedTokenSchema } from "../../../shared/types/assets";
-import { BookmarkTypes } from "../../../shared/types/bookmarks";
+import { createSignedToken } from "@karakeep/shared/signedTokens";
+import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
 import { createTestUser, uploadTestAsset } from "../../utils/api";
 import { waitUntil } from "../../utils/general";
 import { getTrpcClient } from "../../utils/trpc";

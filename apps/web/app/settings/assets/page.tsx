@@ -104,6 +104,7 @@ export default function AssetsSettingsPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1"
+                      prefetch={false}
                     >
                       <ExternalLink className="size-4" />
                       <span>View Asset</span>
@@ -114,6 +115,7 @@ export default function AssetsSettingsPage() {
                       <Link
                         href={`/dashboard/preview/${asset.bookmarkId}`}
                         className="flex items-center gap-1"
+                        prefetch={false}
                       >
                         <ExternalLink className="size-4" />
                         <span>View Bookmark</span>

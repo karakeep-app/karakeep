@@ -4,6 +4,7 @@
   "version": "0.25.0",
   "description": "Command Line Interface (CLI) for Karakeep",
   "license": "GNU Affero General Public License version 3",
+  "type": "module",
   "keywords": [
     "hoarder",
     "karakeep",
@@ -19,23 +20,24 @@
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "@trpc/client": "11.0.0",
-    "@trpc/server": "11.0.0",
+    "@trpc/client": "^11.4.3",
+    "@trpc/server": "^11.4.3",
     "@tsconfig/node22": "^22.0.0",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
     "superjson": "^2.2.1",
     "table": "^6.8.2",
-    "tsx": "^4.7.1",
-    "vite": "^5.1.0"
+    "tsx": "^4.8.1",
+    "vite": "^7.0.6",
+    "vite-tsconfig-paths": "^4.3.1"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && chmod +x dist/index.mjs",
     "run": "tsx src/index.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "format:fix": "prettier . --write --ignore-path ../../.prettierignore",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
     "typecheck": "tsc --noEmit"
   },
   "repository": {

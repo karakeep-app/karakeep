@@ -1,6 +1,6 @@
 import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
-import openapiSidebar from "./docs/API/sidebar";
+import openapiSidebar from "./docs/api/sidebar";
 
 const sidebars: SidebarsConfig = {
   sidebar: [

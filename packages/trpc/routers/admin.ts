@@ -3,7 +3,6 @@ import { count, eq, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
-import serverConfig from "@karakeep/shared/config";
 import {
   AssetPreprocessingQueue,
   FeedQueue,
@@ -15,7 +14,7 @@ import {
   VideoWorkerQueue,
   WebhookQueue,
 } from "@karakeep/shared/queues";
-import { getSearchIdxClient } from "@karakeep/shared/search";
+import { getSearchClient } from "@karakeep/shared/search";
 import {
   resetPasswordSchema,
   updateUserSchema,
@@ -220,8 +219,8 @@ export const adminAppRouter = router({
       );
     }),
   reindexAllBookmarks: adminProcedure.mutation(async ({ ctx }) => {
-    const searchIdx = await getSearchIdxClient();
-    await searchIdx?.deleteAllDocuments();
+    const searchIdx = await getSearchClient();
+    await searchIdx?.clearIndex();
     const bookmarkIds = await ctx.db.query.bookmarks.findMany({
       columns: {
         id: true,
@@ -410,12 +409,12 @@ export const adminAppRouter = router({
   getAdminNoticies: adminProcedure
     .output(
       z.object({
-        legacyContainersNotice: z.boolean(),
+        // Unused for now
       }),
     )
     .query(() => {
       return {
-        legacyContainersNotice: serverConfig.usingLegacySeparateContainers,
+        // Unused for now
       };
     }),
 });

@@ -3,12 +3,17 @@
   "name": "@karakeep/db",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "migrate": "tsx migrate.ts",
     "generate": "drizzle-kit generate",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
   },
   "dependencies": {
     "@auth/core": "^0.27.0",
@@ -18,7 +23,7 @@
     "dotenv": "^16.4.1",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.2",
-    "tsx": "^4.7.1"
+    "tsx": "^4.8.1"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",

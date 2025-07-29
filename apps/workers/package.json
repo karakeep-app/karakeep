@@ -3,10 +3,12 @@
   "name": "@karakeep/workers",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@ghostery/adblocker-playwright": "^2.5.1",
     "@karakeep/db": "workspace:^0.1.0",
     "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/shared-server": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@mozilla/readability": "^0.6.0",
@@ -43,7 +45,7 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "rss-parser": "^3.13.0",
     "tesseract.js": "^5.1.1",
-    "tsx": "^4.7.1",
+    "tsx": "^4.8.1",
     "typescript": "^5.8.3",
     "zod": "^3.24.2"
   },
@@ -60,8 +62,8 @@
     "build:watch": "tsdown --watch",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "format:fix": "prettier . --ignore-path ../../.prettierignore --write",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --ignore-path ../../.prettierignore --write",
     "typecheck": "tsc --noEmit"
   },
   "prettier": "@karakeep/prettier-config"

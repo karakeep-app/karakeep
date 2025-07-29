@@ -82,6 +82,7 @@ export function TagPill({
         href={`/dashboard/tags/${id}`}
         data-id={id}
         draggable={false}
+        prefetch={false}
       >
         {name} <Separator orientation="vertical" /> {count}
       </Link>
