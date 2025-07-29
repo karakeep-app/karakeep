@@ -59,6 +59,8 @@ jobs:
             type=ref,event=branch
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.version }},enable={{is_default_branch}}
+            type=raw,value=release,enable={{is_default_branch}}
             
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
