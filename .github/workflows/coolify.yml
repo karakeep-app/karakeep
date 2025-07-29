@@ -45,8 +45,8 @@ jobs:
       - name: Get latest release version
         id: version
         run: |
-          # Get the latest release tag from GitHub
-          LATEST_TAG=$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | jq -r .tag_name)
+          # Get the latest release tag from GitHub and strip the 'v' prefix
+          LATEST_TAG=$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | jq -r .tag_name | sed 's/^v//')
           echo "version=${LATEST_TAG}" >> $GITHUB_OUTPUT
           echo "Latest version: ${LATEST_TAG}"
           
