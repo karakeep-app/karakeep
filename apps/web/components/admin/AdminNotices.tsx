@@ -19,25 +19,6 @@ function useAdminNotices() {
     return [];
   }
   const ret: AdminNotice[] = [];
-  if (data.legacyContainersNotice) {
-    ret.push({
-      level: "warning",
-      message: (
-        <p>
-          You&apos;re using the legacy docker container images. Those will stop
-          getting supported soon. Please follow{" "}
-          <a
-            href="https://docs.karakeep.app/next/Guides/legacy-container-upgrade"
-            className="underline"
-          >
-            this guide
-          </a>{" "}
-          to upgrade.
-        </p>
-      ),
-      title: "Legacy Container Images",
-    });
-  }
   return ret;
 }
 

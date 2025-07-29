@@ -1,5 +1,5 @@
 import { count, sum } from "drizzle-orm";
-import { Counter, Gauge, register, Summary } from "prom-client";
+import { Counter, Gauge, Histogram, register } from "prom-client";
 
 import { db } from "@karakeep/db";
 import { assets, bookmarks, users } from "@karakeep/db/schema";
@@ -17,7 +17,7 @@ import {
 
 // Queue metrics
 const queuePendingJobsGauge = new Gauge({
-  name: "queue_jobs",
+  name: "karakeep_queue_jobs",
   help: "Number of jobs in each background queue",
   labelNames: ["queue_name", "status"],
   async collect() {
@@ -58,7 +58,7 @@ const queuePendingJobsGauge = new Gauge({
 
 // User metrics
 const totalUsersGauge = new Gauge({
-  name: "total_users",
+  name: "karakeep_total_users",
   help: "Total number of users in the system",
   async collect() {
     try {
@@ -73,7 +73,7 @@ const totalUsersGauge = new Gauge({
 
 // Asset metrics
 const totalAssetSizeGauge = new Gauge({
-  name: "total_asset_size_bytes",
+  name: "karakeep_total_asset_size_bytes",
   help: "Total size of all assets in bytes",
   async collect() {
     try {
@@ -90,7 +90,7 @@ const totalAssetSizeGauge = new Gauge({
 
 // Bookmark metrics
 const totalBookmarksGauge = new Gauge({
-  name: "total_bookmarks",
+  name: "karakeep_total_bookmarks",
   help: "Total number of bookmarks in the system",
   async collect() {
     try {
@@ -105,21 +105,24 @@ const totalBookmarksGauge = new Gauge({
 
 // Api metrics
 const apiRequestsTotalCounter = new Counter({
-  name: "trpc_requests_total",
+  name: "karakeep_trpc_requests_total",
   help: "Total number of API requests",
   labelNames: ["type", "path", "is_error"],
 });
 
 const apiErrorsTotalCounter = new Counter({
-  name: "trpc_errors_total",
+  name: "karakeep_trpc_errors_total",
   help: "Total number of API requests",
   labelNames: ["type", "path", "code"],
 });
 
-const apiRequestDurationSummary = new Summary({
-  name: "trpc_request_duration_seconds",
+const apiRequestDurationSummary = new Histogram({
+  name: "karakeep_trpc_request_duration_seconds",
   help: "Duration of tRPC requests in seconds",
   labelNames: ["type", "path"],
+  buckets: [
+    5e-3, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10,
+  ],
 });
 
 // Register all metrics

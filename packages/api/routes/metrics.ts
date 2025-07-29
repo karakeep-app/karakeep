@@ -9,6 +9,7 @@ import { prometheusAuthMiddleware } from "../middlewares/prometheusAuth";
 
 export const { printMetrics, registerMetrics } = prometheus({
   registry: register,
+  prefix: "karakeep_",
 });
 
 const app = new Hono().get("/", prometheusAuthMiddleware, printMetrics);

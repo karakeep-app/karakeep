@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import { loadAllPlugins } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { runQueueDBMigrations } from "@karakeep/shared/queues";
@@ -16,6 +17,7 @@ import { VideoWorker } from "./workers/videoWorker";
 import { WebhookWorker } from "./workers/webhookWorker";
 
 async function main() {
+  await loadAllPlugins();
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
   runQueueDBMigrations();
 

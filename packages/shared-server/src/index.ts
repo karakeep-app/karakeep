@@ -1,0 +1,1 @@
+export { loadAllPlugins } from "./plugins";

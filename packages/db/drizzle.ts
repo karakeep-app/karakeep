@@ -1,24 +1,26 @@
 import "dotenv/config";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
-import * as schema from "./schema";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+
 import path from "path";
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+
 import serverConfig from "@karakeep/shared/config";
 
 import dbConfig from "./drizzle.config";
+import * as schema from "./schema";
 
 const sqlite = new Database(dbConfig.dbCredentials.url);
 
 if (serverConfig.database.walMode) {
-  sqlite.pragma('journal_mode = WAL');
-  sqlite.pragma('synchronous = NORMAL');
+  sqlite.pragma("journal_mode = WAL");
+  sqlite.pragma("synchronous = NORMAL");
 } else {
-  sqlite.pragma('journal_mode = DELETE');
+  sqlite.pragma("journal_mode = DELETE");
 }
-sqlite.pragma('cache_size = -65536');
-sqlite.pragma('foreign_keys = ON');
-sqlite.pragma('temp_store = MEMORY');
+sqlite.pragma("cache_size = -65536");
+sqlite.pragma("foreign_keys = ON");
+sqlite.pragma("temp_store = MEMORY");
 
 export const db = drizzle(sqlite, { schema });
 export type DB = typeof db;

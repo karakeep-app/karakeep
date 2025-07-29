@@ -22,8 +22,8 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "openapi-typescript": "^7.6.1",
-    "tsx": "^4.7.1",
-    "vite": "^5.1.0",
+    "tsx": "^4.8.1",
+    "vite": "^7.0.6",
     "vite-plugin-dts": "^4.4.0"
   },
   "scripts": {
@@ -31,8 +31,8 @@
     "run": "tsx src/index.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "format:fix": "prettier . --write --ignore-path ../../.prettierignore",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
     "typecheck": "tsc --noEmit"
   },
   "repository": {

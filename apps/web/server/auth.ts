@@ -128,7 +128,6 @@ if (oauth.wellKnownUrl) {
     clientId: oauth.clientId,
     clientSecret: oauth.clientSecret,
     allowDangerousEmailAccountLinking: oauth.allowDangerousEmailAccountLinking,
-    idToken: true,
     checks: ["pkce", "state"],
     httpOptions: {
       timeout: oauth.timeout,

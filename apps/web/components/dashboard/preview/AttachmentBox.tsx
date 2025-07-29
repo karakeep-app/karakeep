@@ -98,6 +98,7 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               target="_blank"
               href={getAssetUrl(asset.id)}
               className="flex items-center gap-1"
+              prefetch={false}
             >
               {ASSET_TYPE_TO_ICON[asset.assetType]}
               <p>{humanFriendlyNameForAssertType(asset.assetType)}</p>
@@ -109,6 +110,7 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
                 href={getAssetUrl(asset.id)}
                 className="flex items-center gap-1"
                 download={humanFriendlyNameForAssertType(asset.assetType)}
+                prefetch={false}
               >
                 <Download className="size-4" />
               </Link>

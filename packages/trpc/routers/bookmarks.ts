@@ -38,7 +38,7 @@ import {
   triggerSearchReindex,
   triggerWebhook,
 } from "@karakeep/shared/queues";
-import { getSearchIdxClient } from "@karakeep/shared/search";
+import { getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
   BookmarkTypes,
@@ -761,7 +761,7 @@ export const bookmarksAppRouter = router({
         input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
       }
       const sortOrder = input.sortOrder || "relevance";
-      const client = await getSearchIdxClient();
+      const client = await getSearchClient();
       if (!client) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -788,10 +788,9 @@ export const bookmarksAppRouter = router({
        */
       const createdAtSortOrder = sortOrder === "relevance" ? "desc" : sortOrder;
 
-      const resp = await client.search(parsedQuery.text, {
+      const resp = await client.search({
+        query: parsedQuery.text,
         filter,
-        showRankingScore: true,
-        attributesToRetrieve: ["id"],
         sort: [`createdAt:${createdAtSortOrder}`],
         limit: input.limit,
         ...(input.cursor
@@ -805,7 +804,7 @@ export const bookmarksAppRouter = router({
         return { bookmarks: [], nextCursor: null };
       }
       const idToRank = resp.hits.reduce<Record<string, number>>((acc, r) => {
-        acc[r.id] = r._rankingScore!;
+        acc[r.id] = r.score || 0;
         return acc;
       }, {});
       const results = await ctx.db.query.bookmarks.findMany({
@@ -846,11 +845,11 @@ export const bookmarksAppRouter = router({
           results.map((b) => toZodSchema(b, input.includeContent)),
         ),
         nextCursor:
-          resp.hits.length + resp.offset >= resp.estimatedTotalHits
+          resp.hits.length + (input.cursor?.offset || 0) >= resp.totalHits
             ? null
             : {
                 ver: 1 as const,
-                offset: resp.hits.length + resp.offset,
+                offset: resp.hits.length + (input.cursor?.offset || 0),
               },
       };
     }),

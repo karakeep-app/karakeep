@@ -9,9 +9,14 @@ export default defineConfig({
       input: "src/index.ts",
       output: {
         dir: "dist",
+        format: "es",
+        entryFileNames: "index.mjs",
+        banner: "#!/usr/bin/env node",
       },
+      external: ["node:fs", "node:path", "node:url", "node:process"],
     },
     ssr: true,
+    target: "node18",
   },
   ssr: {
     // bundle everything except for Node built-ins
@@ -22,5 +27,9 @@ export default defineConfig({
     "import.meta.env.CLI_VERSION": JSON.stringify(
       process.env.npm_package_version,
     ),
+  },
+  esbuild: {
+    // Handle shebang in source files
+    banner: "",
   },
 });

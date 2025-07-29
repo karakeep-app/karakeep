@@ -5,6 +5,7 @@ import useBulkActionsStore from "@/lib/bulkActions";
 import {
   bookmarkLayoutSwitch,
   useBookmarkLayout,
+  useGridColumns,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import tailwindConfig from "@/tailwind.config";
 import { Slot } from "@radix-ui/react-slot";
@@ -27,15 +28,21 @@ function StyledBookmarkCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function getBreakpointConfig() {
+function getBreakpointConfig(userColumns: number) {
   const fullConfig = resolveConfig(tailwindConfig);
 
   const breakpointColumnsObj: { [key: number]: number; default: number } = {
-    default: 3,
+    default: userColumns,
   };
-  breakpointColumnsObj[parseInt(fullConfig.theme.screens.lg)] = 2;
-  breakpointColumnsObj[parseInt(fullConfig.theme.screens.md)] = 1;
-  breakpointColumnsObj[parseInt(fullConfig.theme.screens.sm)] = 1;
+
+  // Responsive behavior: reduce columns on smaller screens
+  const lgColumns = Math.max(1, Math.min(userColumns, userColumns - 1));
+  const mdColumns = Math.max(1, Math.min(userColumns, 2));
+  const smColumns = 1;
+
+  breakpointColumnsObj[parseInt(fullConfig.theme.screens.lg)] = lgColumns;
+  breakpointColumnsObj[parseInt(fullConfig.theme.screens.md)] = mdColumns;
+  breakpointColumnsObj[parseInt(fullConfig.theme.screens.sm)] = smColumns;
   return breakpointColumnsObj;
 }
 
@@ -53,8 +60,12 @@ export default function BookmarksGrid({
   fetchNextPage?: () => void;
 }) {
   const layout = useBookmarkLayout();
+  const gridColumns = useGridColumns();
   const bulkActionsStore = useBulkActionsStore();
-  const breakpointConfig = useMemo(() => getBreakpointConfig(), []);
+  const breakpointConfig = useMemo(
+    () => getBreakpointConfig(gridColumns),
+    [gridColumns],
+  );
   const { ref: loadMoreRef, inView: loadMoreButtonInView } = useInView();
 
   useEffect(() => {

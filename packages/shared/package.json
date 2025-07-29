@@ -10,7 +10,6 @@
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
     "liteque": "^0.5.0",
-    "meilisearch": "^0.37.0",
     "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
     "openai": "^4.86.1",
@@ -24,12 +23,13 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/html-to-text": "^9.0.4",
     "@types/nodemailer": "^6.4.17",
-    "vitest": "^1.6.1"
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "format:fix": "prettier . --write --ignore-path ../../.prettierignore",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "test": "vitest"

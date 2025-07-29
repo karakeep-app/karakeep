@@ -65,7 +65,7 @@ const config: Config = {
         config: {
           karakeep: {
             specPath: "../packages/open-api/karakeep-openapi-spec.json",
-            outputDir: "docs/API",
+            outputDir: "docs/api",
             sidebarOptions: {
               groupPathsBy: "tag",
             },

@@ -19,7 +19,8 @@
         "next-env.d.ts",
         ".expo/**",
         ".output/**",
-        ".vercel/output/**"
+        ".vercel/output/**",
+        "dist/**"
       ]
     },
     "dev": {
@@ -28,11 +29,22 @@
     },
     "format": {
       "outputs": [
-        "node_modules/.cache/.prettiercache"
+        "node_modules/.cache/prettier/.prettier-cache"
+      ],
+      "outputLogs": "new-only"
+    },
+    "format:fix": {
+      "outputs": [
+        "node_modules/.cache/prettier/.prettier-cache"
       ],
       "outputLogs": "new-only"
     },
     "lint": {
+      "dependsOn": [
+        "^topo"
+      ]
+    },
+    "lint:fix": {
       "dependsOn": [
         "^topo"
       ]

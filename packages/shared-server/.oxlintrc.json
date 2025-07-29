@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
+  "extends": [
+    "../../tooling/oxlint/oxlint-base.json"
+  ],
+  "env": {
+    "builtin": true,
+    "commonjs": true
+  },
+  "ignorePatterns": [
+    "**/*.config.js",
+    "**/*.config.cjs",
+    "**/.eslintrc.cjs",
+    "**/.next",
+    "**/dist",
+    "**/build",
+    "**/pnpm-lock.yaml"
+  ]
+}

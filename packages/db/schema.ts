@@ -40,7 +40,9 @@ export const users = sqliteTable("user", {
   role: text("role", { enum: ["admin", "user"] }).default("user"),
   bookmarkQuota: integer("bookmarkQuota"),
   storageQuota: integer("storageQuota"),
-  browserCrawlingEnabled: integer("browserCrawlingEnabled", { mode: "boolean" }),
+  browserCrawlingEnabled: integer("browserCrawlingEnabled", {
+    mode: "boolean",
+  }),
 });
 
 export const accounts = sqliteTable(
