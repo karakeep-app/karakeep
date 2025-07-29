@@ -1,12 +1,6 @@
 services:
   web:
     image: ${WEB_IMAGE:-ghcr.io/carsaig/karakeep:latest}
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      target: aio
-      args:
-        SERVER_VERSION: ${SERVER_VERSION:-v0.26.0}
     restart: unless-stopped
     volumes:
       - data:/data
