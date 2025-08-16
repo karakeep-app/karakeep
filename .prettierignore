@@ -19,3 +19,6 @@ yarn.lock
 
 # Expo build
 **/.expo/**
+
+apps/mobile/android
+apps/mobile/ios
