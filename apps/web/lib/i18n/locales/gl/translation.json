@@ -80,7 +80,8 @@
       "relevant_first": "Primeiro os máis relevantes"
     },
     "open_editor": "Abrir editor",
-    "toggle_show_archived": "Mostrar os arquivados"
+    "toggle_show_archived": "Mostrar os arquivados",
+    "confirm": "Confirmar"
   },
   "tags": {
     "drag_and_drop_merging_info": "Arrastra e solta etiquetas sobre outras para unilas",
@@ -365,7 +366,71 @@
       "asset_preprocessing_jobs": "Traballos de preprocesamento de recursos",
       "feed_jobs": "Traballos de fontes RSS",
       "webhook_jobs": "Traballos de webhook",
-      "video_jobs": "Traballos de descarga de vídeo"
+      "video_jobs": "Traballos de descarga de vídeo",
+      "jobs": {
+        "crawler": {
+          "title": "Traballos do rastreador",
+          "description": "Rastrexo web e extracción de contido de URL"
+        },
+        "inference": {
+          "title": "Traballos de inferencia",
+          "description": "Etiquetado e resumo de contido impulsados por intelixencia artificial"
+        },
+        "indexing": {
+          "title": "Traballos de indexación",
+          "description": "Actualizacións do índice de busca"
+        },
+        "asset_preprocessing": {
+          "title": "Traballos de preprocesamento de recursos",
+          "description": "Preprocesamento de imaxes e documentos (capturas de pantalla, extracción de texto, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Traballos de activos ordenados",
+          "description": "Limpeza de activos e optimización de almacenamento"
+        },
+        "video": {
+          "title": "Traballos de descarga de vídeo",
+          "description": "Extracción e descarga de vídeo"
+        },
+        "webhook": {
+          "title": "Traballos de Webhook",
+          "description": "Notificacións de webhook externas"
+        },
+        "feed": {
+          "title": "Traballos de fonte RSS",
+          "description": "Procesamento de fontes RSS e actualizacións de contido"
+        }
+      },
+      "monitor_and_manage": "Supervisar e xestionar as colas de traballos en segundo plano e as tarefas de procesamento do sistema",
+      "active": "Activas",
+      "available_actions": "Accións dispoñibles",
+      "status": {
+        "title": "Comprensión dos estados dos traballos",
+        "queued": {
+          "title": "En cola",
+          "description": "Tarefas en cola á espera de ser procesadas. Iniciaranse automaticamente cando os recursos estean dispoñibles."
+        },
+        "unprocessed": {
+          "title": "Sen procesar",
+          "description": "Marcadores que aínda non foron procesados. É moi probable que xa estean en cola para o seu procesamento, se non, quizais teñas que volver poñelos en cola manualmente."
+        },
+        "failed": {
+          "title": "Fallido",
+          "description": "Marcadores que atoparon erros durante o procesamento. Estes poden necesitar atención manual."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Volver rastrexar só as ligazóns erradas",
+        "recrawl_all_links": "Volver rastrexar todas as ligazóns",
+        "without_inference": "Sen inferencia",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Volver xerar etiquetas da IA só para os marcadores errados",
+        "regenerate_ai_tags_for_all_bookmarks": "Volver xerar etiquetas da IA para todos os marcadores",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Volver xerar resumos da IA só para os marcadores errados",
+        "regenerate_ai_summaries_for_all_bookmarks": "Volver xerar resumos da IA para todos os marcadores",
+        "reindex_all_bookmarks": "Volver indexar todos os marcadores",
+        "clean_assets": "Limpar os recursos colgantes e volver sincronizar os metadatos",
+        "reprocess_assets_fix_mode": "Volver procesar os recursos sen procesar"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Recrawlear só ligazóns erradas",

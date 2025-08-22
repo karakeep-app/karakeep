@@ -80,7 +80,8 @@
     "edit_title": "Editar título",
     "sign_out": "Sair",
     "open_editor": "Abrir editor",
-    "toggle_show_archived": "Mostrar arquivados"
+    "toggle_show_archived": "Mostrar arquivados",
+    "confirm": "Confirmar"
   },
   "settings": {
     "webhooks": {
@@ -313,7 +314,71 @@
       "indexing_jobs": "Tarefas de Indexação",
       "inference_jobs": "Tarefas de Inferência",
       "tidy_assets_jobs": "Tarefas de organização de ativos",
-      "job": "Trabalho"
+      "job": "Trabalho",
+      "jobs": {
+        "crawler": {
+          "title": "Tarefas do Crawler",
+          "description": "Rastreamento da web e extração de conteúdo de URLs"
+        },
+        "inference": {
+          "title": "Tarefas de Inferência",
+          "description": "Marcação e resumo de conteúdo alimentados por IA"
+        },
+        "indexing": {
+          "title": "Tarefas de Indexação",
+          "description": "Atualizações do índice de pesquisa"
+        },
+        "asset_preprocessing": {
+          "title": "Tarefas de Pré-processamento de Ativos",
+          "description": "Pré-processamento de imagem e documento (capturas de tela, extração de texto, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Tarefas de Organização de Ativos",
+          "description": "Limpeza de ativos e otimização de armazenamento"
+        },
+        "video": {
+          "title": "Tarefas de Download de Vídeo",
+          "description": "Extração e download de vídeo"
+        },
+        "webhook": {
+          "title": "Tarefas de Webhook",
+          "description": "Notificações de webhook externo"
+        },
+        "feed": {
+          "title": "Tarefas de Feed RSS",
+          "description": "Processamento de feed RSS e atualizações de conteúdo"
+        }
+      },
+      "monitor_and_manage": "Monitore e gerencie filas de tarefas em segundo plano e tarefas de processamento do sistema",
+      "active": "Ativo",
+      "available_actions": "Ações Disponíveis",
+      "status": {
+        "title": "Entendendo os estados de tarefas",
+        "queued": {
+          "title": "Na fila",
+          "description": "Tarefas esperando na fila para serem processadas. Elas serão iniciadas automaticamente quando os recursos estiverem disponíveis."
+        },
+        "unprocessed": {
+          "title": "Não processado",
+          "description": "Favoritos que ainda não foram processados. Eles provavelmente já estão na fila para processamento, caso contrário, você pode precisar reativá-los manualmente."
+        },
+        "failed": {
+          "title": "Falhou",
+          "description": "Favoritos que encontraram erros durante o processamento. Estes podem precisar de atenção manual."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Rastrear novamente apenas links com falha",
+        "recrawl_all_links": "Rastrear novamente todos os links",
+        "without_inference": "Sem inferência",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar tags de IA apenas para favoritos com falha",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerar tags de IA para todos os favoritos",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerar resumos de IA apenas para favoritos com falha",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resumos de IA para todos os favoritos",
+        "reindex_all_bookmarks": "Reindexar todos os favoritos",
+        "clean_assets": "Limpar ativos soltos e resincronizar metadados",
+        "reprocess_assets_fix_mode": "Reprocessar ativos não processados"
+      }
     },
     "actions": {
       "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar tags de IA apenas para marcadores com falha",

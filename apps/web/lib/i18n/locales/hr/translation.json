@@ -33,7 +33,71 @@
       "video_jobs": "Poslovi preuzimanja videozapisa",
       "asset_preprocessing_jobs": "Poslovi preprocesiranja resursa",
       "feed_jobs": "RSS Feed poslovi",
-      "webhook_jobs": "Webhook poslovi"
+      "webhook_jobs": "Webhook poslovi",
+      "jobs": {
+        "feed": {
+          "title": "Poslovi RSS feeda",
+          "description": "Obrada RSS feeda i ažuriranja sadržaja"
+        },
+        "crawler": {
+          "title": "Poslovi indeksiranja",
+          "description": "Web crawling i izdvajanje sadržaja iz URL-ova"
+        },
+        "inference": {
+          "title": "Poslovi zaključivanja",
+          "description": "Označavanje i sažimanje sadržaja pomoću umjetne inteligencije"
+        },
+        "indexing": {
+          "title": "Poslovi indeksiranja",
+          "description": "Ažuriranja indeksa pretraživanja"
+        },
+        "asset_preprocessing": {
+          "title": "Poslovi preprocesiranja sredstava",
+          "description": "Pretprocesiranje slika i dokumenata (snimke zaslona, izdvajanje teksta, itd.)"
+        },
+        "tidy_assets": {
+          "title": "Poslovi za sređivanje sredstava",
+          "description": "Čišćenje sredstava i optimizacija pohrane"
+        },
+        "video": {
+          "title": "Poslovi preuzimanja videozapisa",
+          "description": "Izdvajanje i preuzimanje videozapisa"
+        },
+        "webhook": {
+          "title": "Webhook poslovi",
+          "description": "Vanjske webhook obavijesti"
+        }
+      },
+      "monitor_and_manage": "Pratite i upravljajte redovima pozadinskih poslova i zadacima obrade sustava",
+      "active": "Aktivan",
+      "available_actions": "Dostupne radnje",
+      "status": {
+        "title": "Razumijevanje stanja posla",
+        "queued": {
+          "title": "U redu čekanja",
+          "description": "Poslovi čekaju u redu za obradu. Automatski će se pokrenuti kad budu dostupni resursi."
+        },
+        "unprocessed": {
+          "title": "Neobrađeno",
+          "description": "Oznake koje još nisu obrađene. Najvjerojatnije su već u redu čekanja za obradu, ako ne, možda ćete ih morati ručno ponovno staviti u red čekanja."
+        },
+        "failed": {
+          "title": "Neuspjelo",
+          "description": "Oznake koje su naišle na pogreške tijekom obrade. Možda će trebati ručnu intervenciju."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Ponovno indeksiraj samo neuspjele poveznice",
+        "recrawl_all_links": "Ponovno indeksiraj sve poveznice",
+        "without_inference": "Bez zaključivanja",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Ponovno generiraj AI oznake samo za neuspjele oznake",
+        "regenerate_ai_tags_for_all_bookmarks": "Ponovno generiraj AI oznake za sve oznake",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Ponovno generiraj AI sažetke samo za neuspjele oznake",
+        "regenerate_ai_summaries_for_all_bookmarks": "Ponovno generiraj AI sažetke za sve oznake",
+        "reindex_all_bookmarks": "Ponovno indeksiraj sve oznake",
+        "clean_assets": "Očisti viseću imovinu i ponovno sinkroniziraj metapodatke",
+        "reprocess_assets_fix_mode": "Ponovno obradi neobrađenu imovinu"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Ponovno pregledavanje samo neuspjelih veza",
@@ -352,7 +416,8 @@
       "relevant_first": "Najrelevantnije prvo"
     },
     "open_editor": "Otvori uređivač",
-    "toggle_show_archived": "Prikaži arhivirano"
+    "toggle_show_archived": "Prikaži arhivirano",
+    "confirm": "Potvrdi"
   },
   "highlights": {
     "no_highlights": "Još nemate nijednu istaknutu stavku."

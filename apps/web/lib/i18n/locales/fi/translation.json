@@ -86,7 +86,8 @@
       "oldest_first": "Vanhin ensin",
       "relevant_first": "Tärkein ensin"
     },
-    "toggle_show_archived": "Näytä arkistoidut"
+    "toggle_show_archived": "Näytä arkistoidut",
+    "confirm": "Vahvista"
   },
   "highlights": {
     "no_highlights": "Sulla ei oo vielä yhtään korostusta."
@@ -330,7 +331,71 @@
       "job": "Työ",
       "queued": "Jonossa",
       "pending": "Odottaa",
-      "failed": "Epäonnistui"
+      "failed": "Epäonnistui",
+      "jobs": {
+        "crawler": {
+          "title": "Indeksointityöt",
+          "description": "Verkkosivujen indeksointi ja sisällön poiminta URL-osoitteista."
+        },
+        "inference": {
+          "title": "Päättelytyöt",
+          "description": "Tekoälypohjainen sisällön merkitseminen ja sisällön tiivistys"
+        },
+        "indexing": {
+          "title": "Indeksointityöt",
+          "description": "Hakemiston päivitykset"
+        },
+        "asset_preprocessing": {
+          "title": "Resurssien esikäsittelytyöt",
+          "description": "Kuvien ja asiakirjojen esikäsittely (kuvakaappaukset, tekstin poisto jne.)"
+        },
+        "tidy_assets": {
+          "title": "Siisti resurssi -työt",
+          "description": "Resurssien puhdistus ja tallennustilan optimointi"
+        },
+        "video": {
+          "title": "Videoiden lataustyöt",
+          "description": "Videon poiminta ja lataus"
+        },
+        "webhook": {
+          "title": "Webhook-työt",
+          "description": "Ulkoiset webhook-ilmoitukset"
+        },
+        "feed": {
+          "title": "RSS-syötetyöt",
+          "description": "RSS-syötteen käsittely ja sisällön päivitykset"
+        }
+      },
+      "monitor_and_manage": "Seuraa ja hallitse taustatyöjonoja ja järjestelmän käsittelytehtäviä",
+      "active": "Aktiivinen",
+      "available_actions": "Käytettävissä olevat toiminnot",
+      "status": {
+        "title": "Työtilojen ymmärtäminen",
+        "queued": {
+          "title": "Jonossa",
+          "description": "Työt odottavat jonossa käsiteltäväksi. Ne alkavat automaattisesti, kun resursseja on saatavilla."
+        },
+        "unprocessed": {
+          "title": "Käsittelemättömät",
+          "description": "Kirjanmerkit, joita ei ole vielä käsitelty. Ne ovat todennäköisesti jo jonossa käsiteltäväksi, jos eivät, sinun on ehkä laitettava ne manuaalisesti uudelleen jonoon."
+        },
+        "failed": {
+          "title": "Epäonnistunut",
+          "description": "Kirjanmerkit, joissa tapahtui virheitä käsittelyn aikana. Nämä saattavat vaatia manuaalista tarkastusta."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Ryömi uudelleen vain epäonnistuneet linkit",
+        "recrawl_all_links": "Ryömi uudelleen kaikki linkit",
+        "without_inference": "Ilman päättelyä",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Luo uudelleen tekoälytunnisteet vain epäonnistuneille kirjanmerkeille",
+        "regenerate_ai_tags_for_all_bookmarks": "Luo uudelleen tekoälytunnisteet kaikille kirjanmerkeille",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Luo uudelleen tekoälyn tiivistelmät vain epäonnistuneille kirjanmerkeille",
+        "regenerate_ai_summaries_for_all_bookmarks": "Luo uudelleen tekoälyn tiivistelmät kaikille kirjanmerkeille",
+        "reindex_all_bookmarks": "Indeksoi kaikki kirjanmerkit uudelleen",
+        "clean_assets": "Siivoa roikkuvat resurssit ja synkronoi metatiedot uudelleen",
+        "reprocess_assets_fix_mode": "Käsittele käsittelemättömät resurssit uudelleen"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Indeksoi uudelleen vain epäonnistuneet linkit",

@@ -80,7 +80,8 @@
       "relevant_first": "Nejdůležitější jako první",
       "newest_first": "Nejnovější jako první",
       "oldest_first": "Od nejstaršího"
-    }
+    },
+    "confirm": "Potvrdit"
   },
   "settings": {
     "ai": {
@@ -475,7 +476,71 @@
       "inference_jobs": "Úlohy odvozování",
       "queued": "Ve frontě",
       "pending": "Čeká se",
-      "failed": "Neúspěšné"
+      "failed": "Neúspěšné",
+      "jobs": {
+        "crawler": {
+          "title": "Úlohy pro crawlery",
+          "description": "Webové procházení a extrahování obsahu z URL adres"
+        },
+        "inference": {
+          "title": "Úlohy odvozování",
+          "description": "Tagování a shrnutí obsahu řízené umělou inteligencí"
+        },
+        "indexing": {
+          "title": "Úlohy indexování",
+          "description": "Aktualizace indexu vyhledávání"
+        },
+        "asset_preprocessing": {
+          "title": "Úlohy předběžného zpracování aktiv",
+          "description": "Předběžné zpracování obrázků a dokumentů (snímky obrazovky, extrahování textu, atd.)"
+        },
+        "tidy_assets": {
+          "title": "Úlohy Tidy Assets",
+          "description": "Vyčištění aktiv a optimalizace úložiště"
+        },
+        "video": {
+          "title": "Úlohy stahování videa",
+          "description": "Extrakce a stahování videa"
+        },
+        "webhook": {
+          "title": "Úlohy Webhook",
+          "description": "Externí oznámení webhook"
+        },
+        "feed": {
+          "title": "Úlohy kanálu RSS",
+          "description": "Zpracování kanálu RSS a aktualizace obsahu"
+        }
+      },
+      "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a úlohy zpracování systému.",
+      "active": "Aktivní",
+      "available_actions": "Dostupné akce",
+      "status": {
+        "title": "Vysvětlení stavů úloh",
+        "queued": {
+          "title": "Ve frontě",
+          "description": "Úlohy čekají ve frontě na zpracování. Spustí se automaticky, až budou k dispozici zdroje."
+        },
+        "unprocessed": {
+          "title": "Nezpracované",
+          "description": "Záložky, které ještě nebyly zpracovány. S největší pravděpodobností jsou již ve frontě na zpracování, pokud ne, možná je budete muset ručně znovu zařadit do fronty."
+        },
+        "failed": {
+          "title": "Neúspěšné",
+          "description": "Záložky, u kterých se během zpracování vyskytly chyby. Ty mohou vyžadovat ruční zásah."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Znovu projít pouze nefunkční odkazy",
+        "recrawl_all_links": "Znovu projít všechny odkazy",
+        "without_inference": "Bez odvozování",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Znovu vygenerovat značky umělé inteligence pouze pro nefunkční záložky",
+        "regenerate_ai_tags_for_all_bookmarks": "Znovu vygenerovat značky umělé inteligence pro všechny záložky",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Znovu vygenerovat souhrny umělé inteligence pouze pro nefunkční záložky",
+        "regenerate_ai_summaries_for_all_bookmarks": "Znovu vygenerovat souhrny umělé inteligence pro všechny záložky",
+        "reindex_all_bookmarks": "Znovu indexovat všechny záložky",
+        "clean_assets": "Vyčistit ztracené zdroje a znovu synchronizovat metadata",
+        "reprocess_assets_fix_mode": "Znovu zpracovat nezpracované zdroje"
+      }
     },
     "admin_settings": "Nastavení správce",
     "actions": {

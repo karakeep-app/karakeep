@@ -249,7 +249,71 @@
       "video_jobs": "Opravila za prenos videoposnetkov",
       "asset_preprocessing_jobs": "Opravila za predobdelavo sredstev",
       "feed_jobs": "Opravila za vire RSS",
-      "inference_jobs": "Opravila za sklepanje"
+      "inference_jobs": "Opravila za sklepanje",
+      "jobs": {
+        "crawler": {
+          "title": "Posli za pajkanje",
+          "description": "Spletno pajkanje in pridobivanje vsebine iz URLjev"
+        },
+        "inference": {
+          "title": "Posli sklepanja",
+          "description": "Označevanje in povzemanje vsebine s pomočjo umetne inteligence"
+        },
+        "indexing": {
+          "title": "Posli indeksiranja",
+          "description": "Posodobitve iskalnega indeksa"
+        },
+        "asset_preprocessing": {
+          "title": "Posli predobdelave sredstev",
+          "description": "Predobdelava slik in dokumentov (posnetki zaslona, izvleček besedila itd.)"
+        },
+        "tidy_assets": {
+          "title": "Posli urejanja sredstev",
+          "description": "Čiščenje sredstev in optimizacija shranjevanja"
+        },
+        "video": {
+          "title": "Posli prenosa videoposnetkov",
+          "description": "Izvleček in prenos videoposnetkov"
+        },
+        "webhook": {
+          "title": "Posli spletne kljuke",
+          "description": "Obvestila prek zunanje spletne kljuke"
+        },
+        "feed": {
+          "title": "Posli RSS-vira",
+          "description": "Obdelava RSS-vira in posodobitve vsebine"
+        }
+      },
+      "monitor_and_manage": "Spremljajte in upravljajte čakalne vrste opravil v ozadju ter sistemske naloge obdelave",
+      "active": "Aktivno",
+      "available_actions": "Razpoložljiva dejanja",
+      "status": {
+        "title": "Razumevanje stanj opravil",
+        "queued": {
+          "title": "Na vrsti",
+          "description": "Opravila čakajo v vrsti za obdelavo. Samodejno se bodo začela, ko bodo na voljo viri."
+        },
+        "unprocessed": {
+          "title": "Nepredelano",
+          "description": "Zaznamki, ki še niso bili obdelani. Najverjetneje so že v čakalni vrsti za obdelavo, če ne, jih boste morda morali ročno znova uvrstiti v čakalno vrsto."
+        },
+        "failed": {
+          "title": "Neuspešno",
+          "description": "Zaznamki, pri katerih je prišlo do napak med obdelavo. Ti bodo morda potrebovali ročno pozornost."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Ponovno preišči samo neuspele povezave",
+        "recrawl_all_links": "Ponovno preišči vse povezave",
+        "without_inference": "Brez sklepanja",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Znova ustvari oznake AI samo za neuspele zaznamke",
+        "regenerate_ai_tags_for_all_bookmarks": "Znova ustvari oznake AI za vse zaznamke",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Ustvari znova izvlečke AI samo za neuspele zaznamke",
+        "regenerate_ai_summaries_for_all_bookmarks": "Ustvari znova izvlečke AI za vse zaznamke",
+        "reindex_all_bookmarks": "Ponovno indeksiraj vse zaznamke",
+        "clean_assets": "Očisti viseča sredstva in ponovno sinhroniziraj metapodatke",
+        "reprocess_assets_fix_mode": "Ponovno obdelaj nepredelana sredstva"
+      }
     },
     "admin_settings": "Administratorske nastavitve",
     "actions": {
@@ -397,7 +461,8 @@
     "fetch_now": "Poberi zdaj",
     "apply_all": "Uporabi vse",
     "open_editor": "Odpri urejevalnik",
-    "toggle_show_archived": "Prikaži arhivirano"
+    "toggle_show_archived": "Prikaži arhivirano",
+    "confirm": "Potrdi"
   },
   "layouts": {
     "compact": "Kompaktno",
