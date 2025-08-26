@@ -133,6 +133,7 @@ export default function Signin() {
             <Text className="font-bold">Server Address</Text>
             <Input
               className="w-full"
+              inputClasses="bg-card"
               placeholder="Server Address"
               value={formState.serverAddress}
               autoCapitalize="none"
@@ -149,6 +150,7 @@ export default function Signin() {
                 <Text className="font-bold">Email</Text>
                 <Input
                   className="w-full"
+                  inputClasses="bg-card"
                   placeholder="Email"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -162,6 +164,7 @@ export default function Signin() {
                 <Text className="font-bold">Password</Text>
                 <Input
                   className="w-full"
+                  inputClasses="bg-card"
                   placeholder="Password"
                   secureTextEntry
                   value={formState.password}
@@ -180,6 +183,7 @@ export default function Signin() {
               <Text className="font-bold">API Key</Text>
               <Input
                 className="w-full"
+                inputClasses="bg-card"
                 placeholder="API Key"
                 secureTextEntry
                 value={formState.apiKey}
@@ -210,7 +214,7 @@ export default function Signin() {
                 comp={(styles) => (
                   <Bug size={20} color={styles?.color?.toString()} />
                 )}
-                className="text-background"
+                className="text-white"
               />
             </Button>
           </View>

@@ -6,5 +6,6 @@ export default function ChevronRight({
   ...props
 }: React.ComponentProps<typeof ChevronRightIcon>) {
   const { colors } = useColorScheme();
+
   return <ChevronRightIcon color={color ?? colors.grey} {...props} />;
 }

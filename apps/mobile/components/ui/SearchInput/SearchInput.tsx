@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Pressable, TextInput, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,6 @@ const SearchInput = React.forwardRef<
       containerClassName,
       iconContainerClassName,
       className,
-      iconColor,
       onCancel,
       ...props
     },
@@ -61,7 +61,16 @@ const SearchInput = React.forwardRef<
           className={cn("p-2", iconContainerClassName)}
           pointerEvents="none"
         >
-          <Icon color={iconColor ?? colors.grey2} name="magnify" size={24} />
+          <TailwindResolver
+            className="text-muted"
+            comp={(styles) => (
+              <Icon
+                color={styles?.color?.toString()}
+                name="magnify"
+                size={24}
+              />
+            )}
+          />
         </View>
 
         <View className="flex-1" pointerEvents="none">
@@ -69,10 +78,10 @@ const SearchInput = React.forwardRef<
             ref={inputRef}
             placeholder={placeholder}
             className={cn(
-              "flex-1 rounded-r-full p-2 text-[17px] text-foreground",
+              "flex-1 rounded-r-full p-2 text-[17px] text-foreground placeholder:text-muted",
               className,
             )}
-            placeholderTextColor={colors.grey2}
+            placeholderTextColor={colors.foreground}
             value={value}
             onChangeText={onChangeText}
             role="searchbox"
@@ -82,7 +91,16 @@ const SearchInput = React.forwardRef<
         {!!value && (
           <Animated.View entering={FadeIn} exiting={FadeOut.duration(150)}>
             <Pressable className="p-2" onPress={clear}>
-              <Icon color={colors.grey2} name="close" size={24} />
+              <TailwindResolver
+                className="text-muted"
+                comp={(styles) => (
+                  <Icon
+                    name="close"
+                    size={24}
+                    color={styles?.color?.toString()}
+                  />
+                )}
+              />
             </Pressable>
           </Animated.View>
         )}
