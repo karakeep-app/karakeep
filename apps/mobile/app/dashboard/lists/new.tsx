@@ -3,8 +3,8 @@ import { View } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
+import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
-import { TextField } from "@/components/ui/TextField";
 import { useToast } from "@/components/ui/Toast";
 
 import { useCreateBookmarkList } from "@karakeep/shared-react/hooks/lists";
@@ -40,8 +40,8 @@ const NewListPage = () => {
       <View className="gap-2 px-4">
         <View className="flex flex-row items-center gap-1">
           <Text className="shrink p-2">🚀</Text>
-          <TextField
-            containerClassName="flex-1"
+          <Input
+            className="flex-1 bg-card"
             onChangeText={setText}
             placeholder="List Name"
             autoFocus
