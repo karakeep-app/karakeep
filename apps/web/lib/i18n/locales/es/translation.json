@@ -96,7 +96,8 @@
       "import_bookmarks_from_html_file": "Importar marcadores desde archivo HTML",
       "import_bookmarks_from_omnivore_export": "Importar marcadores desde exportación de Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importar marcadores desde Linkwarden",
-      "import_bookmarks_from_tab_session_manager_export": "Importar marcadores desde Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importar marcadores desde Tab Session Manager",
+      "import_bookmarks_from_onetab_export": "Importar marcadores desde exportación de OneTab"
     },
     "api_keys": {
       "api_keys": "Claves APIs",

@@ -11,6 +11,7 @@ import {
   parseLinkwardenBookmarkFile,
   parseNetscapeBookmarkFile,
   parseOmnivoreBookmarkFile,
+  parseOneTabBookmarkFile,
   parsePocketBookmarkFile,
   parseTabSessionManagerStateFile,
 } from "@/lib/importBookmarkParser";
@@ -33,7 +34,8 @@ export type ImportSource =
   | "omnivore"
   | "karakeep"
   | "linkwarden"
-  | "tab-session-manager";
+  | "tab-session-manager"
+  | "onetab";
 
 export interface ImportProgress {
   done: number;
@@ -120,6 +122,8 @@ export function useBookmarkImport() {
         return await parseLinkwardenBookmarkFile(file);
       } else if (source === "tab-session-manager") {
         return await parseTabSessionManagerStateFile(file);
+      } else if (source === "onetab") {
+        return await parseOneTabBookmarkFile(file);
       } else {
         throw new Error("Unknown source");
       }

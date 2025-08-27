@@ -143,7 +143,8 @@
       "export_links_and_notes": "Links und Notizen exportieren",
       "imported_bookmarks": "Importierte Lesezeichen",
       "import_bookmarks_from_linkwarden_export": "Importieren Sie Lesezeichen aus dem Linkwarden-Export",
-      "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren"
+      "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren",
+      "import_bookmarks_from_onetab_export": "Lesezeichen aus OneTab-Export importieren"
     },
     "api_keys": {
       "api_keys": "API-Schlüssel",

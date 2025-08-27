@@ -242,6 +242,105 @@ export async function parseTabSessionManagerStateFile(
   );
 }
 
+export async function parseOneTabBookmarkFile(
+  file: File,
+): Promise<ParsedBookmark[]> {
+  const textContent = await file.text();
+
+  // Try to parse as JSON first (OneTab advanced export format)
+  try {
+    const zOneTabJsonSchema = z.array(
+      z.object({
+        groupTitle: z.string().optional(),
+        created: z.number().optional(),
+        tabLinks: z.array(
+          z.object({
+            link: z.string().url(),
+            title: z.string(),
+          }),
+        ),
+        isLocked: z.boolean().optional(),
+        isStarred: z.boolean().optional(),
+      }),
+    );
+
+    const parsed = zOneTabJsonSchema.safeParse(JSON.parse(textContent));
+    if (parsed.success) {
+      const bookmarks: ParsedBookmark[] = [];
+
+      for (const group of parsed.data) {
+        const groupPath = group.groupTitle ? [group.groupTitle] : [];
+
+        for (const tab of group.tabLinks) {
+          bookmarks.push({
+            title: tab.title || new URL(tab.link).hostname,
+            content: { type: BookmarkTypes.LINK as const, url: tab.link },
+            tags: group.isStarred ? ["starred"] : [],
+            addDate: group.created ? group.created / 1000 : undefined, // Convert from ms to seconds
+            archived: false,
+            paths: groupPath.length > 0 ? [groupPath] : [],
+          });
+        }
+      }
+
+      return bookmarks;
+    }
+  } catch {
+    // Not JSON format, continue to text format parsing
+  }
+
+  // Parse as simple text format (URL | Title per line)
+  const lines = textContent
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#")); // Skip comments and empty lines
+
+  const bookmarks: ParsedBookmark[] = [];
+
+  for (const line of lines) {
+    if (line.includes(" | ")) {
+      const [url, title] = line.split(" | ", 2);
+
+      // Validate URL
+      try {
+        new URL(url.trim());
+        bookmarks.push({
+          title: title.trim() || new URL(url.trim()).hostname,
+          content: { type: BookmarkTypes.LINK as const, url: url.trim() },
+          tags: [],
+          paths: [],
+        });
+      } catch {
+        // Skip invalid URLs
+        continue;
+      }
+    } else {
+      // Try to parse as URL only
+      const url = line.trim();
+      try {
+        new URL(url);
+        bookmarks.push({
+          title: new URL(url).hostname,
+          content: { type: BookmarkTypes.LINK as const, url },
+          tags: [],
+          paths: [],
+        });
+      } catch {
+        // Skip invalid URLs
+        continue;
+      }
+    }
+  }
+
+  if (bookmarks.length === 0) {
+    throw new Error(
+      "No valid bookmarks found in the OneTab file. Please ensure the file contains URLs in the format 'URL | Title' or valid OneTab JSON export.",
+    );
+  }
+
+  return bookmarks;
+}
+
 export function deduplicateBookmarks(
   bookmarks: ParsedBookmark[],
 ): ParsedBookmark[] {
@@ -254,7 +353,9 @@ export function deduplicateBookmarks(
       if (deduplicatedBookmarksMap.has(url)) {
         const existing = deduplicatedBookmarksMap.get(url)!;
         // Merge tags
-        existing.tags = [...new Set([...existing.tags, ...bookmark.tags])];
+        existing.tags = Array.from(
+          new Set([...existing.tags, ...bookmark.tags]),
+        );
         // Merge paths
         existing.paths = [...existing.paths, ...bookmark.paths];
         const existingDate = existing.addDate ?? Infinity;
@@ -282,5 +383,5 @@ export function deduplicateBookmarks(
     }
   }
 
-  return [...deduplicatedBookmarksMap.values(), ...textBookmarks];
+  return Array.from(deduplicatedBookmarksMap.values()).concat(textBookmarks);
 }

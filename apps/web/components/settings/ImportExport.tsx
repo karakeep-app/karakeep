@@ -183,6 +183,23 @@ export function ImportExportRow() {
           </FilePickerButton>
         </ImportCard>
         <ImportCard
+          text="OneTab"
+          description={t("settings.import.import_bookmarks_from_onetab_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".txt,.json"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "onetab" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
           text="Karakeep"
           description={t(
             "settings.import.import_bookmarks_from_karakeep_export",
