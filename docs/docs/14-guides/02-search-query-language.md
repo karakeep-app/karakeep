@@ -6,8 +6,8 @@ Karakeep provides a search query language to filter and find bookmarks. Here are
 
 - Use spaces to separate multiple conditions (implicit AND)
 - Use `and`/`or` keywords for explicit boolean logic
-- Use parentheses `()` for grouping conditions
 - Prefix qualifiers with `-` to negate them
+- Use parentheses `()` for grouping conditions (note that groups can't be negated)
 
 ## Qualifiers
 
