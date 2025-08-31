@@ -1,4 +1,5 @@
 import React from "react";
+import { MarkdownReadonly } from "@/components/ui/markdown/markdown-readonly";
 import { ActionButton } from "@/components/ui/action-button";
 import LoadingSpinner from "@/components/ui/spinner";
 import { toast } from "@/components/ui/use-toast";
@@ -55,7 +56,7 @@ function AISummary({
           <p
             className={`text-sm text-gray-700 dark:text-gray-300 ${!isExpanded && "line-clamp-3"}`}
           >
-            {summary}
+            <MarkdownReadonly>{summary}</MarkdownReadonly>
           </p>
           {isExpanded && (
             <span className="flex justify-end gap-2 pt-2">
