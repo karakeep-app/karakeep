@@ -184,6 +184,17 @@ async function clearAllCache() {
   try {
     console.log("Clearing all badge cache");
     await clearBadgeStatusSWR();
+    // Refresh the badge for all active tabs
+    const windows = await chrome.windows.getAll({ populate: true });
+    for (const window of windows) {
+      if (window.tabs) {
+        for (const tab of window.tabs) {
+          if (tab.active && tab.id) {
+            await checkAndUpdateIcon(tab.id);
+          }
+        }
+      }
+    }
   } catch (error) {
     console.error("Failed to clear all cache:", error);
   }
