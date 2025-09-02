@@ -32,7 +32,7 @@ async function checkSettingsState(settings: Settings) {
   if (settings?.address && settings?.apiKey) {
     registerContextMenus(settings);
   } else {
-    removeContextMenus(settings);
+    removeContextMenus();
     cleanupApiClient();
     await clearBadgeStatusSWR();
   }
@@ -40,16 +40,9 @@ async function checkSettingsState(settings: Settings) {
 
 /**
  * Remove context menus from the browser.
- * @param settings The current plugin settings.
  */
-function removeContextMenus(settings: Settings) {
-  chrome.contextMenus.remove(OPEN_KARAKEEP_ID);
-  chrome.contextMenus.remove(ADD_LINK_TO_KARAKEEP_ID);
-  if (settings?.showCountBadge) {
-    chrome.contextMenus.remove(SEPARATOR_ID);
-    chrome.contextMenus.remove(CLEAR_CURRENT_CACHE_ID);
-    chrome.contextMenus.remove(CLEAR_ALL_CACHE_ID);
-  }
+function removeContextMenus() {
+  chrome.contextMenus.removeAll();
 }
 
 /**
