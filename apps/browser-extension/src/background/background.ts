@@ -291,12 +291,12 @@ async function checkAndUpdateIcon(tabId: number) {
   await checkAndPurgeIfNeeded();
 }
 
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  await checkAndUpdateIcon(activeInfo.tabId);
+chrome.tabs.onActivated.addListener(async (tabActiveInfo) => {
+  await checkAndUpdateIcon(tabActiveInfo.tabId);
 });
 
-chrome.tabs.onUpdated.addListener(async (changeInfo) => {
-  await checkAndUpdateIcon(changeInfo);
+chrome.tabs.onUpdated.addListener(async (tabId) => {
+  await checkAndUpdateIcon(tabId);
 });
 
 // Listen for REFRESH_BADGE messages from popup and update badge accordingly
