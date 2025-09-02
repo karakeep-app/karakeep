@@ -54,6 +54,7 @@ function removeContextMenus() {
  * @param settings The current plugin settings.
  */
 function registerContextMenus(settings: Settings) {
+  removeContextMenus();
   chrome.contextMenus.create({
     id: OPEN_KARAKEEP_ID,
     title: "Open Karakeep",
