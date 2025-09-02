@@ -16,6 +16,7 @@ import {
 } from "../utils/settings.ts";
 import { cleanupApiClient, getApiClient } from "../utils/trpc.ts";
 import { MessageType } from "../utils/type.ts";
+import { isHttpUrl } from "../utils/url.ts";
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol.ts";
 
 const OPEN_KARAKEEP_ID = "open-karakeep";
@@ -266,6 +267,7 @@ async function checkAndUpdateIcon(tabId: number) {
   if (
     !pluginSettings.showCountBadge ||
     !tabInfo.url ||
+    !isHttpUrl(tabInfo.url) ||
     tabInfo.status !== "complete"
   ) {
     return;
