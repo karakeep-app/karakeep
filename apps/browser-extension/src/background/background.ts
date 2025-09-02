@@ -290,9 +290,15 @@ async function checkAndUpdateIcon(tabId: number) {
   try {
     const cachedInfo = await getBadgeStatusSWR(tabInfo.url);
     if (cachedInfo) {
-      const { count: cachedBadgeCount, isExisted: cachedIsExisted } =
-        cachedInfo;
-      await setBadge(cachedBadgeCount, cachedIsExisted, tabId);
+      await setBadge(cachedInfo.count, cachedInfo.isExisted, tabId);
+      if (!cachedInfo.fresh) {
+        // Revalidate in background
+        void (async () => {
+          const { count, isExisted } = await getTabCount(tabInfo!.url!);
+          await setBadge(count, isExisted, tabId);
+          await setBadgeStatusSWR(tabInfo!.url!, count, isExisted);
+        })();
+      }
       return;
     }
     const { count, isExisted } = await getTabCount(tabInfo.url);
