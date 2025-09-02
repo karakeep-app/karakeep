@@ -19,18 +19,19 @@ export default function NotConfiguredPage() {
   }, [settings.address]);
 
   const onSave = () => {
-    if (serverAddress == "") {
+    const input = serverAddress.trim();
+    if (input == "") {
       setError("Server address is required");
       return;
     }
 
     // Add URL protocol validation
-    if (!isHttpUrl(serverAddress)) {
+    if (!isHttpUrl(input)) {
       setError("Server address must start with http:// or https://");
       return;
     }
 
-    setSettings((s) => ({ ...s, address: serverAddress.replace(/\/$/, "") }));
+    setSettings((s) => ({ ...s, address: input.replace(/\/$/, "") }));
     navigate("/signin");
   };
 
