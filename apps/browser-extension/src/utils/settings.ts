@@ -2,19 +2,20 @@ import React from "react";
 import { z } from "zod";
 
 export const DEFAULT_BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
+export const DEFAULT_SHOW_COUNT_BADGE = false;
 
 const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
-  showCountBadge: z.boolean(),
+  showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
   badgeCacheExpireMs: z.number().min(0).default(DEFAULT_BADGE_CACHE_EXPIRE_MS),
 });
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
-  showCountBadge: false,
+  showCountBadge: DEFAULT_SHOW_COUNT_BADGE,
   badgeCacheExpireMs: DEFAULT_BADGE_CACHE_EXPIRE_MS,
 };
 
