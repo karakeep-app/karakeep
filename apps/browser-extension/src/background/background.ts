@@ -31,11 +31,11 @@ const SEPARATOR_ID = "separator-1";
  * @param settings The current plugin settings.
  */
 async function checkSettingsState(settings: Settings) {
+  cleanupApiClient();
   if (settings?.address && settings?.apiKey) {
     registerContextMenus(settings);
   } else {
     removeContextMenus();
-    cleanupApiClient();
     await clearBadgeStatusSWR();
   }
 }
