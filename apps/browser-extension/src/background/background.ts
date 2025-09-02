@@ -20,6 +20,9 @@ import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol.ts";
 
 const OPEN_KARAKEEP_ID = "open-karakeep";
 const ADD_LINK_TO_KARAKEEP_ID = "add-link";
+const CLEAR_CURRENT_CACHE_ID = "clear-current-cache";
+const CLEAR_ALL_CACHE_ID = "clear-all-cache";
+const SEPARATOR_ID = "separator-1";
 
 /**
  * Check the current settings state and register or remove context menus accordingly.
@@ -27,9 +30,9 @@ const ADD_LINK_TO_KARAKEEP_ID = "add-link";
  */
 async function checkSettingsState(settings: Settings) {
   if (settings?.address && settings?.apiKey) {
-    registerContextMenus();
+    registerContextMenus(settings);
   } else {
-    removeContextMenus();
+    removeContextMenus(settings);
     cleanupApiClient();
     await clearBadgeStatusSWR();
   }
@@ -37,23 +40,53 @@ async function checkSettingsState(settings: Settings) {
 
 /**
  * Remove context menus from the browser.
+ * @param settings The current plugin settings.
  */
-function removeContextMenus() {
+function removeContextMenus(settings: Settings) {
   chrome.contextMenus.remove(OPEN_KARAKEEP_ID);
   chrome.contextMenus.remove(ADD_LINK_TO_KARAKEEP_ID);
+  if (settings?.showCountBadge) {
+    chrome.contextMenus.remove(SEPARATOR_ID);
+    chrome.contextMenus.remove(CLEAR_CURRENT_CACHE_ID);
+    chrome.contextMenus.remove(CLEAR_ALL_CACHE_ID);
+  }
 }
 
 /**
  * Register context menus in the browser.
  * * A context menu button to open a tab with the currently configured karakeep instance.
+ * * * If the "show count badge" setting is enabled, add context menu buttons to clear the cache for the current site or all sites.
  * * A context menu button to add a link to karakeep without loading the page.
+ * @param settings The current plugin settings.
  */
-function registerContextMenus() {
+function registerContextMenus(settings: Settings) {
   chrome.contextMenus.create({
     id: OPEN_KARAKEEP_ID,
     title: "Open Karakeep",
     contexts: ["action"],
   });
+
+  if (settings?.showCountBadge) {
+    // Add separator
+    chrome.contextMenus.create({
+      id: SEPARATOR_ID,
+      type: "separator",
+      contexts: ["action"],
+    });
+
+    chrome.contextMenus.create({
+      id: CLEAR_CURRENT_CACHE_ID,
+      title: "Clear Current Site Cache",
+      contexts: ["action"],
+    });
+
+    chrome.contextMenus.create({
+      id: CLEAR_ALL_CACHE_ID,
+      title: "Clear All Cache",
+      contexts: ["action"],
+    });
+  }
+
   chrome.contextMenus.create({
     id: ADD_LINK_TO_KARAKEEP_ID,
     title: "Add to Karakeep",
@@ -71,6 +104,10 @@ async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
     getPluginSettings().then((settings: Settings) => {
       chrome.tabs.create({ url: settings.address, active: true });
     });
+  } else if (menuItemId === CLEAR_CURRENT_CACHE_ID) {
+    await clearCurrentSiteCache();
+  } else if (menuItemId === CLEAR_ALL_CACHE_ID) {
+    await clearAllCache();
   } else if (menuItemId === ADD_LINK_TO_KARAKEEP_ID) {
     addLinkToKarakeep({ selectionText, srcUrl, linkUrl, pageUrl });
 
@@ -112,6 +149,41 @@ function addLinkToKarakeep({
     chrome.storage.session.set({
       [NEW_BOOKMARK_REQUEST_KEY_NAME]: newBookmark,
     });
+  }
+}
+
+/**
+ * Clear badge cache for the current active site.
+ */
+async function clearCurrentSiteCache() {
+  try {
+    // Get the active tab
+    const [activeTab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    if (activeTab.url && activeTab.id) {
+      console.log("Clearing cache for current site:", activeTab.url);
+      await clearBadgeStatusSWR(activeTab.url);
+
+      // Refresh the badge for the current tab
+      await checkAndUpdateIcon(activeTab.id);
+    }
+  } catch (error) {
+    console.error("Failed to clear current site cache:", error);
+  }
+}
+
+/**
+ * Clear all badge cache.
+ */
+async function clearAllCache() {
+  try {
+    console.log("Clearing all badge cache");
+    await clearBadgeStatusSWR();
+  } catch (error) {
+    console.error("Failed to clear all cache:", error);
   }
 }
 
