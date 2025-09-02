@@ -282,6 +282,7 @@ async function checkAndUpdateIcon(tabId: number) {
     !isHttpUrl(tabInfo.url) ||
     tabInfo.status !== "complete"
   ) {
+    await chrome.action.setBadgeText({ tabId, text: "" });
     return;
   }
   console.log("Tab activated", tabId, tabInfo);
