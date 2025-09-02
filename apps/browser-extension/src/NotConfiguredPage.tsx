@@ -5,6 +5,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
 import usePluginSettings from "./utils/settings";
+import { isHttpUrl } from "./utils/url.ts";
 
 export default function NotConfiguredPage() {
   const navigate = useNavigate();
@@ -24,10 +25,7 @@ export default function NotConfiguredPage() {
     }
 
     // Add URL protocol validation
-    if (
-      !serverAddress.startsWith("http://") &&
-      !serverAddress.startsWith("https://")
-    ) {
+    if (!isHttpUrl(serverAddress)) {
       setError("Server address must start with http:// or https://");
       return;
     }
