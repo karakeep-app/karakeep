@@ -133,11 +133,17 @@ function addLinkToKarakeep({
       text: selectionText,
       sourceUrl: pageUrl,
     };
-  } else if (srcUrl ?? linkUrl ?? pageUrl) {
-    newBookmark = {
-      type: BookmarkTypes.LINK,
-      url: srcUrl ?? linkUrl ?? pageUrl ?? "",
-    };
+  } else {
+    const finalUrl = srcUrl ?? linkUrl ?? pageUrl;
+
+    if (finalUrl && isHttpUrl(finalUrl)) {
+      newBookmark = {
+        type: BookmarkTypes.LINK,
+        url: finalUrl,
+      };
+    } else {
+      console.warn("Invalid URL, bookmark not created:", finalUrl);
+    }
   }
   if (newBookmark) {
     chrome.storage.session.set({

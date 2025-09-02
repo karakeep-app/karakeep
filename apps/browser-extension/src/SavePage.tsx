@@ -56,15 +56,22 @@ export default function SavePage() {
           active: true,
           lastFocusedWindow: true,
         });
-        if (currentTab?.url && isHttpUrl(currentTab.url)) {
-          newBookmarkRequest = {
-            type: BookmarkTypes.LINK,
-            url: currentTab.url,
-          };
-        } else {
-          setError("Couldn't find the URL of the current tab");
+        if (!currentTab.url) {
+          setError("Current tab has no URL to bookmark.");
           return;
         }
+
+        if (!isHttpUrl(currentTab.url)) {
+          setError(
+            "Cannot bookmark this type of URL. Only HTTP/HTTPS URLs are supported.",
+          );
+          return;
+        }
+
+        newBookmarkRequest = {
+          type: BookmarkTypes.LINK,
+          url: currentTab.url,
+        };
       }
 
       createBookmark(newBookmarkRequest);
@@ -72,6 +79,10 @@ export default function SavePage() {
 
     runSave();
   }, [createBookmark]);
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
   switch (status) {
     case "error": {
