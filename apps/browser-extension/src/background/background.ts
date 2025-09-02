@@ -1,5 +1,6 @@
 import {
   BookmarkTypes,
+  DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   ZNewBookmarkRequest,
 } from "@karakeep/shared/types/bookmarks";
 
@@ -233,6 +234,10 @@ export async function setBadge(
   isExisted: boolean,
   tabId?: number,
 ) {
+  // If the count is same as the default per-page count, show it as "N+"
+  if (text === DEFAULT_NUM_BOOKMARKS_PER_PAGE) {
+    text = `${text}+`;
+  }
   return await Promise.all([
     chrome.action.setBadgeText({ tabId, text: `${text}` }),
     chrome.action.setBadgeBackgroundColor({
