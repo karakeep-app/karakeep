@@ -1,22 +1,21 @@
 import React from "react";
 import { z } from "zod";
 
+export const DEFAULT_BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
+
 const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
   showCountBadge: z.boolean(),
-  badgeCacheExpireMs: z
-    .number()
-    .min(0)
-    .default(60 * 60 * 1000),
+  badgeCacheExpireMs: z.number().min(0).default(DEFAULT_BADGE_CACHE_EXPIRE_MS),
 });
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
   showCountBadge: false,
-  badgeCacheExpireMs: 60 * 60 * 1000, // 1 hour
+  badgeCacheExpireMs: DEFAULT_BADGE_CACHE_EXPIRE_MS,
 };
 
 export type Settings = z.infer<typeof zSettingsSchema>;

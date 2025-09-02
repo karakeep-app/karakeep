@@ -1,11 +1,10 @@
 // Badge count cache helpers (chrome.storage.local async, shared)
 // Implements dual-layer SWR (memory + persistent) cache for badge status.
 import type { BadgeCacheEntry, BadgeCacheStorage } from "../types/cache";
-import { getPluginSettings } from "./settings";
+import { DEFAULT_BADGE_CACHE_EXPIRE_MS, getPluginSettings } from "./settings";
 import { getStorageValue, removeStorageKey, setStorageValue } from "./storage";
 
 const BADGE_CACHE_KEY = "karakeep-badge-count-cache";
-const DEFAULT_BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
 const LAST_PURGE_KEY = "badgeCacheLastPurge";
 
 /**

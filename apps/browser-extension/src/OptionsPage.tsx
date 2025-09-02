@@ -6,7 +6,9 @@ import { Input } from "./components/ui/input";
 import { Switch } from "./components/ui/switch";
 import Logo from "./Logo";
 import Spinner from "./Spinner";
-import usePluginSettings from "./utils/settings";
+import usePluginSettings, {
+  DEFAULT_BADGE_CACHE_EXPIRE_MS,
+} from "./utils/settings";
 import { api } from "./utils/trpc";
 
 export default function OptionsPage() {
@@ -81,7 +83,8 @@ export default function OptionsPage() {
                 setSettings((s) => ({
                   ...s,
                   badgeCacheExpireMs:
-                    parseInt(e.target.value) * 1000 || 3600000,
+                    parseInt(e.target.value) * 1000 ||
+                    DEFAULT_BADGE_CACHE_EXPIRE_MS,
                 }))
               }
               className="w-32"
