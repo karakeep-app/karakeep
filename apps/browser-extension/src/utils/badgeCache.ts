@@ -1,11 +1,28 @@
 // Badge count cache helpers (chrome.storage.local async, shared)
 // Implements dual-layer SWR (memory + persistent) cache for badge status.
 import type { BadgeCacheEntry, BadgeCacheStorage } from "../types/cache";
+import { getPluginSettings } from "./settings";
 import { getStorageValue, removeStorageKey, setStorageValue } from "./storage";
 
 const BADGE_CACHE_KEY = "karakeep-badge-count-cache";
-const BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
+const DEFAULT_BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
 const LAST_PURGE_KEY = "badgeCacheLastPurge";
+
+/**
+ * Get badge cache expire time from settings
+ */
+async function getBadgeCacheExpireMs(): Promise<number> {
+  try {
+    const settings = await getPluginSettings();
+    return settings.badgeCacheExpireMs ?? DEFAULT_BADGE_CACHE_EXPIRE_MS;
+  } catch (error) {
+    console.error(
+      "Failed to get badge cache expire time from settings, using default:",
+      error,
+    );
+    return DEFAULT_BADGE_CACHE_EXPIRE_MS;
+  }
+}
 
 // 1. Memory cache (L1): fastest synchronous access
 const badgeMemoryCache = new Map<string, BadgeCacheEntry>();
@@ -44,14 +61,18 @@ async function setLastPurgeTimestamp(ts: number): Promise<void> {
 /**
  * Purge stale entries from a badge cache object
  * @param cacheObj
+ * @param expireMs The cache expiration time in milliseconds
  */
-function purgeStaleFromObject(cacheObj: BadgeCacheStorage): BadgeCacheStorage {
+function purgeStaleFromObject(
+  cacheObj: BadgeCacheStorage,
+  expireMs: number,
+): BadgeCacheStorage {
   const now = Date.now();
   const newCache: BadgeCacheStorage = {};
   for (const key in cacheObj) {
     if (
       Object.prototype.hasOwnProperty.call(cacheObj, key) &&
-      now - cacheObj[key].ts <= BADGE_CACHE_EXPIRE_MS
+      now - cacheObj[key].ts <= expireMs
     ) {
       newCache[key] = cacheObj[key];
     }
@@ -66,10 +87,12 @@ export async function purgeStaleBadgeCache() {
   console.log(
     "[badgeCache] purgeStaleBadgeCache: cleaning up stale badge cache...",
   );
+  // Get current cache expiration time
+  const expireMs = await getBadgeCacheExpireMs();
   // 1. Purge memory cache
   const now = Date.now();
   for (const [key, entry] of badgeMemoryCache.entries()) {
-    if (now - entry.ts > BADGE_CACHE_EXPIRE_MS) {
+    if (now - entry.ts > expireMs) {
       badgeMemoryCache.delete(key);
     }
   }
@@ -77,7 +100,7 @@ export async function purgeStaleBadgeCache() {
   storageWritePromiseQueue = storageWritePromiseQueue.then(async () => {
     try {
       const storageCache = await getBadgeCacheFromStorage();
-      const freshStorageCache = purgeStaleFromObject(storageCache);
+      const freshStorageCache = purgeStaleFromObject(storageCache, expireMs);
       // Only write if cache content changed
       if (
         Object.keys(freshStorageCache).length !==
@@ -97,9 +120,10 @@ export async function purgeStaleBadgeCache() {
  * Check if enough time has passed to trigger a purge and do it if needed.
  */
 export async function checkAndPurgeIfNeeded() {
+  const expireMs = await getBadgeCacheExpireMs();
   const now = Date.now();
   const lastPurgeTimestamp = await getLastPurgeTimestamp();
-  if (now - lastPurgeTimestamp > BADGE_CACHE_EXPIRE_MS) {
+  if (now - lastPurgeTimestamp > expireMs) {
     await purgeStaleBadgeCache();
     await setLastPurgeTimestamp(now);
   }
@@ -111,11 +135,15 @@ export async function checkAndPurgeIfNeeded() {
  */
 export async function getBadgeStatusSWR(url: string) {
   console.log(`[badgeCache] getBadgeStatusSWR: key=${url}`);
+  const expireMs = await getBadgeCacheExpireMs();
   // 1. Check memory cache (L1)
   const memEntry = badgeMemoryCache.get(url);
   if (memEntry) {
-    const isFresh = Date.now() - memEntry.ts < BADGE_CACHE_EXPIRE_MS;
-    console.log(`[badgeCache] getBadgeStatusSWR: key=${url}, value=`, memEntry);
+    const isFresh = Date.now() - memEntry.ts < expireMs;
+    console.log(
+      `[badgeCache] getBadgeStatusSWR memory cache hit: key=${url}, value=`,
+      memEntry,
+    );
     return { ...memEntry, source: "memory", fresh: isFresh };
   }
   // 2. Check persistent storage (L2)
@@ -124,15 +152,17 @@ export async function getBadgeStatusSWR(url: string) {
     const storageEntry = storageCache[url];
     if (storageEntry) {
       badgeMemoryCache.set(url, storageEntry);
-      const isFresh = Date.now() - storageEntry.ts < BADGE_CACHE_EXPIRE_MS;
+      const isFresh = Date.now() - storageEntry.ts < expireMs;
       console.log(
-        `[badgeCache] getBadgeStatusSWR: key=${url}, value=`,
+        `[badgeCache] getBadgeStatusSWR storage cache hit: key=${url}, value=`,
         storageEntry,
       );
       return { ...storageEntry, source: "storage", fresh: isFresh };
     }
     // Not found in either cache
-    console.log(`[badgeCache] getBadgeStatusSWR: key=${url}, value=null`);
+    console.log(
+      `[badgeCache] getBadgeStatusSWR all cache miss: key=${url}, value=null`,
+    );
     return null;
   } catch (err) {
     console.error("Failed to get badge cache from storage:", err);

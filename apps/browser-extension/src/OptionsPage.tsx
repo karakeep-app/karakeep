@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
 import { Switch } from "./components/ui/switch";
 import Logo from "./Logo";
 import Spinner from "./Spinner";
@@ -70,6 +71,29 @@ export default function OptionsPage() {
           }
         />
       </div>
+      {settings.showCountBadge && (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium">
+              Badge cache expire time (second)
+            </span>
+            <Input
+              type="number"
+              min="1"
+              step="1"
+              value={settings.badgeCacheExpireMs / 1000}
+              onChange={(e) =>
+                setSettings((s) => ({
+                  ...s,
+                  badgeCacheExpireMs:
+                    parseInt(e.target.value) * 1000 || 3600000,
+                }))
+              }
+              className="w-32"
+            />
+          </div>
+        </>
+      )}
       <hr />
       <div className="flex gap-2">
         <span className="my-auto">Server Address:</span>

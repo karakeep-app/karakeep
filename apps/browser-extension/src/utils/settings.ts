@@ -6,12 +6,17 @@ const zSettingsSchema = z.object({
   apiKeyId: z.string().optional(),
   address: z.string(),
   showCountBadge: z.boolean(),
+  badgeCacheExpireMs: z
+    .number()
+    .min(0)
+    .default(60 * 60 * 1000),
 });
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
   showCountBadge: false,
+  badgeCacheExpireMs: 60 * 60 * 1000, // 1 hour
 };
 
 export type Settings = z.infer<typeof zSettingsSchema>;
