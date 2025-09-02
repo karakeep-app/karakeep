@@ -5,7 +5,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
 import usePluginSettings from "./utils/settings";
-import { isHttpUrl } from "./utils/url.ts";
+import { isHttpUrl } from "./utils/url";
 
 export default function NotConfiguredPage() {
   const navigate = useNavigate();

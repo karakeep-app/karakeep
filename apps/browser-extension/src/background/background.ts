@@ -1,7 +1,7 @@
 import {
   BookmarkTypes,
   ZNewBookmarkRequest,
-} from "@karakeep/shared/types/bookmarks.ts";
+} from "@karakeep/shared/types/bookmarks";
 
 import {
   checkAndPurgeIfNeeded,
@@ -13,11 +13,11 @@ import {
   getPluginSettings,
   Settings,
   subscribeToSettingsChanges,
-} from "../utils/settings.ts";
-import { cleanupApiClient, getApiClient } from "../utils/trpc.ts";
-import { MessageType } from "../utils/type.ts";
-import { isHttpUrl } from "../utils/url.ts";
-import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol.ts";
+} from "../utils/settings";
+import { cleanupApiClient, getApiClient } from "../utils/trpc";
+import { MessageType } from "../utils/type";
+import { isHttpUrl } from "../utils/url";
+import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol";
 
 const OPEN_KARAKEEP_ID = "open-karakeep";
 const ADD_LINK_TO_KARAKEEP_ID = "add-link";

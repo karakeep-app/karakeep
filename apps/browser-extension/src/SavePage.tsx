@@ -10,8 +10,8 @@ import {
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
 import { api } from "./utils/trpc";
-import { MessageType } from "./utils/type.ts";
-import { isHttpUrl } from "./utils/url.ts";
+import { MessageType } from "./utils/type";
+import { isHttpUrl } from "./utils/url";
 
 export default function SavePage() {
   const [error, setError] = useState<string | undefined>(undefined);

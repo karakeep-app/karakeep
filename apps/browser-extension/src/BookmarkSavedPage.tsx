@@ -12,7 +12,7 @@ import { Button, buttonVariants } from "./components/ui/button";
 import Spinner from "./Spinner";
 import { cn } from "./utils/css";
 import usePluginSettings from "./utils/settings";
-import { MessageType } from "./utils/type.ts";
+import { MessageType } from "./utils/type";
 
 export default function BookmarkSavedPage() {
   const { bookmarkId } = useParams();

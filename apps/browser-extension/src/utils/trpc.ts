@@ -4,7 +4,7 @@ import superjson from "superjson";
 
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
-import { getPluginSettings } from "./settings.ts";
+import { getPluginSettings } from "./settings";
 
 export const api = createTRPCReact<AppRouter>();
 
