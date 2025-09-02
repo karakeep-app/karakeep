@@ -264,6 +264,9 @@ export async function setBadge(
  */
 export async function getTabCount(tabUrl: string) {
   const api = await getApiClient();
+  if (!api) {
+    throw new Error("API client is not configured.");
+  }
   const data = await api.bookmarks.searchBookmarks.query({
     text: "url:" + tabUrl,
   });
@@ -286,9 +289,11 @@ export async function getTabCount(tabUrl: string) {
  */
 async function checkAndUpdateIcon(tabId: number) {
   const tabInfo = await chrome.tabs.get(tabId);
-  const pluginSettings = await getPluginSettings();
+  const { showCountBadge } = await getPluginSettings();
+  const api = await getApiClient();
   if (
-    !pluginSettings.showCountBadge ||
+    !api ||
+    !showCountBadge ||
     !tabInfo.url ||
     !isHttpUrl(tabInfo.url) ||
     tabInfo.status !== "complete"

@@ -12,20 +12,22 @@ let apiClient: ReturnType<typeof createTRPCClient<AppRouter>> | null = null;
 
 export async function getApiClient() {
   if (!apiClient) {
-    const pluginSettings = await getPluginSettings();
-    apiClient = createTRPCClient<AppRouter>({
-      links: [
-        httpBatchLink({
-          url: `${pluginSettings.address}/api/trpc`,
-          headers() {
-            return {
-              Authorization: `Bearer ${pluginSettings.apiKey}`,
-            };
-          },
-          transformer: superjson,
-        }),
-      ],
-    });
+    const { address, apiKey } = await getPluginSettings();
+    if (address && apiKey) {
+      apiClient = createTRPCClient<AppRouter>({
+        links: [
+          httpBatchLink({
+            url: `${address}/api/trpc`,
+            headers() {
+              return {
+                Authorization: `Bearer ${apiKey}`,
+              };
+            },
+            transformer: superjson,
+          }),
+        ],
+      });
+    }
   }
   return apiClient;
 }
