@@ -48,7 +48,7 @@ function removeContextMenus() {
 /**
  * Register context menus in the browser.
  * * A context menu button to open a tab with the currently configured karakeep instance.
- * * * If the "show count badge" setting is enabled, add context menu buttons to clear the cache for the current site or all sites.
+ * * * If the "show count badge" setting is enabled, add context menu buttons to clear the cache for the current page or all pages.
  * * A context menu button to add a link to karakeep without loading the page.
  * @param settings The current plugin settings.
  */
@@ -69,7 +69,7 @@ function registerContextMenus(settings: Settings) {
 
     chrome.contextMenus.create({
       id: CLEAR_CURRENT_CACHE_ID,
-      title: "Clear Current Site Cache",
+      title: "Clear Current Page Cache",
       contexts: ["action"],
     });
 
@@ -98,7 +98,7 @@ async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
       chrome.tabs.create({ url: settings.address, active: true });
     });
   } else if (menuItemId === CLEAR_CURRENT_CACHE_ID) {
-    await clearCurrentSiteCache();
+    await clearCurrentPageCache();
   } else if (menuItemId === CLEAR_ALL_CACHE_ID) {
     await clearAllCache();
   } else if (menuItemId === ADD_LINK_TO_KARAKEEP_ID) {
@@ -146,9 +146,9 @@ function addLinkToKarakeep({
 }
 
 /**
- * Clear badge cache for the current active site.
+ * Clear badge cache for the current active page.
  */
-async function clearCurrentSiteCache() {
+async function clearCurrentPageCache() {
   try {
     // Get the active tab
     const [activeTab] = await chrome.tabs.query({
@@ -157,14 +157,14 @@ async function clearCurrentSiteCache() {
     });
 
     if (activeTab.url && activeTab.id) {
-      console.log("Clearing cache for current site:", activeTab.url);
+      console.log("Clearing cache for current page:", activeTab.url);
       await clearBadgeStatusSWR(activeTab.url);
 
       // Refresh the badge for the current tab
       await checkAndUpdateIcon(activeTab.id);
     }
   } catch (error) {
-    console.error("Failed to clear current site cache:", error);
+    console.error("Failed to clear current page cache:", error);
   }
 }
 
