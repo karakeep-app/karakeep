@@ -70,6 +70,7 @@
     "save": "Save",
     "add": "Add",
     "edit": "Edit",
+    "confirm": "Confirm",
     "open_editor": "Open Editor",
     "create": "Create",
     "fetch_now": "Fetch Now",
@@ -317,31 +318,71 @@
       "server_version": "Server Version"
     },
     "background_jobs": {
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Web crawling and content extraction from URLs"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-powered tagging and summarization of content"
+        },
+        "indexing": {
+          "title": "Indexing Jobs",
+          "description": "Search index updates"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Preprocessing Jobs",
+          "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Tidy Assets Jobs",
+          "description": "Asset cleanup and storage optimization"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Video extraction and download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "External webhook notifications"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS feed processing and content updates"
+        }
+      },
       "background_jobs": "Background Jobs",
-      "crawler_jobs": "Crawler Jobs",
-      "indexing_jobs": "Indexing Jobs",
-      "inference_jobs": "Inference Jobs",
-      "tidy_assets_jobs": "Tidy Assets Jobs",
-      "video_jobs": "Video Download Jobs",
-      "webhook_jobs": "Webhook Jobs",
-      "asset_preprocessing_jobs": "Asset Preprocessing Jobs",
-      "feed_jobs": "RSS Feed Jobs",
-      "job": "Job",
-      "queued": "Queued",
-      "pending": "Pending",
-      "failed": "Failed"
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Recrawl Failed Links Only",
-      "recrawl_all_links": "Recrawl All Links",
-      "without_inference": "Without Inference",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
-      "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
-      "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
-      "reindex_all_bookmarks": "Reindex All Bookmarks",
-      "compact_assets": "Compact Assets",
-      "reprocess_assets_fix_mode": "Reprocess Assets (Fix Mode)"
+      "monitor_and_manage": "Monitor and manage background job queues and system processing tasks",
+      "active": "Active",
+      "available_actions": "Available Actions",
+      "status": {
+        "title": "Understanding Job States",
+        "queued": {
+          "title": "Queued",
+          "description": "Jobs waiting in line to be processed. They will start automatically when resources are available."
+        },
+        "unprocessed": {
+          "title": "Unprocessed",
+          "description": "Bookmarks that have not yet been processed. They are most likely already queued for processing, if not, you might need to manually re-enqueue them."
+        },
+        "failed": {
+          "title": "Failed",
+          "description": "Bookmarks that encountered errors during processing. These may need manual attention."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Recrawl Failed Links Only",
+        "recrawl_all_links": "Recrawl All Links",
+        "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
+        "reindex_all_bookmarks": "Reindex All Bookmarks",
+        "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
+        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
+      }
     },
     "users_list": {
       "users_list": "Users List",

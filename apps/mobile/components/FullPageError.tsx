@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "@/components/ui/Text";
 
 import { Button } from "./ui/Button";
 
@@ -16,7 +17,9 @@ export default function FullPageError({
           Something Went Wrong
         </Text>
         <Text className="text-foreground"> {error}</Text>
-        <Button onPress={() => onRetry()} label="Retry" />
+        <Button onPress={onRetry}>
+          <Text>Retry</Text>
+        </Button>
       </View>
     </View>
   );

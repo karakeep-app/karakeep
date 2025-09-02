@@ -60,7 +60,7 @@ export function isAllowedToAttachAsset(type: ZAssetType) {
     fullPageArchive: false,
     precrawledArchive: true,
     bannerImage: true,
-    video: false,
+    video: true,
     bookmarkAsset: false,
     linkHtmlContent: false,
     unknown: false,

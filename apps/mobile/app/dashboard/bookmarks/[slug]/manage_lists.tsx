@@ -1,8 +1,9 @@
 import React from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useLocalSearchParams } from "expo-router";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
+import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 
 import {
@@ -75,13 +76,13 @@ const ListPickerPage = () => {
           gap: 5,
         }}
         renderItem={(l) => (
-          <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-white px-4 py-2 dark:bg-accent">
+          <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2">
             <Pressable
               key={l.item[l.item.length - 1].id}
               onPress={() => toggleList(l.item[l.item.length - 1].id)}
               className="flex w-full flex-row justify-between"
             >
-              <Text className="text-lg text-accent-foreground">
+              <Text>
                 {l.item.map((item) => `${item.icon} ${item.name}`).join(" / ")}
               </Text>
               <Checkbox

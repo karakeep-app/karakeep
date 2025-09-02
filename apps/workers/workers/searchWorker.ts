@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 
 import type { ZSearchIndexingRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
@@ -25,11 +26,13 @@ export class SearchIndexingWorker {
       {
         run: runSearchIndexing,
         onComplete: (job) => {
+          workerStatsCounter.labels("search", "completed").inc();
           const jobId = job.id;
           logger.info(`[search][${jobId}] Completed successfully`);
           return Promise.resolve();
         },
         onError: (job) => {
+          workerStatsCounter.labels("search", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[search][${jobId}] search job failed: ${job.error}\n${job.error.stack}`,

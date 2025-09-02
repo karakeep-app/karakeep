@@ -1,7 +1,7 @@
 import { api } from "@/lib/trpc";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
-import { isBookmarkStillLoading } from "@karakeep/shared/utils/bookmarkUtils";
+import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
 import AssetCard from "./AssetCard";
 import LinkCard from "./LinkCard";
@@ -26,10 +26,7 @@ export default function BookmarkCard({
         if (!data) {
           return false;
         }
-        if (isBookmarkStillLoading(data)) {
-          return 1000;
-        }
-        return false;
+        return getBookmarkRefreshInterval(data);
       },
     },
   );

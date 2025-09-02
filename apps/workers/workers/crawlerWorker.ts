@@ -8,7 +8,7 @@ import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
-import { isShuttingDown } from "exit";
+import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { JSDOM, VirtualConsole } from "jsdom";
@@ -24,11 +24,11 @@ import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
+import { workerStatsCounter } from "metrics";
 import fetch from "node-fetch";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { withTimeout } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 
 import type { ZCrawlLinkRequest } from "@karakeep/shared/queues";
@@ -203,7 +203,7 @@ async function launchBrowser() {
       logger.error(
         `[Crawler] Failed to connect to the browser instance, will retry in 5 secs: ${globalBrowserResult.error.stack}`,
       );
-      if (isShuttingDown) {
+      if (exitAbortController.signal.aborted) {
         logger.info("[Crawler] We're shutting down so won't retry.");
         return;
       }
@@ -214,7 +214,7 @@ async function launchBrowser() {
     }
     globalBrowser = globalBrowserResult.data;
     globalBrowser?.on("disconnected", () => {
-      if (isShuttingDown) {
+      if (exitAbortController.signal.aborted) {
         logger.info(
           "[Crawler] The Playwright browser got disconnected. But we're shutting down so won't restart it.",
         );
@@ -260,11 +260,9 @@ export class CrawlerWorker {
     const worker = new Runner<ZCrawlLinkRequest>(
       LinkCrawlerQueue,
       {
-        run: withTimeout(
-          runCrawler,
-          /* timeoutSec */ serverConfig.crawler.jobTimeoutSec,
-        ),
+        run: runCrawler,
         onComplete: async (job) => {
+          workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
           const bookmarkId = job.data.bookmarkId;
@@ -273,6 +271,7 @@ export class CrawlerWorker {
           }
         },
         onError: async (job) => {
+          workerStatsCounter.labels("crawler", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
@@ -568,7 +567,9 @@ async function downloadAndStoreFile(
   abortSignal: AbortSignal,
 ) {
   try {
-    logger.info(`[Crawler][${jobId}] Downloading ${fileType} from "${url}"`);
+    logger.info(
+      `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+    );
     const response = await fetchWithProxy(url, {
       signal: abortSignal,
     });
@@ -939,6 +940,7 @@ async function crawlAndParseUrl(
   };
 
   // TODO(important): Restrict the size of content to store
+  const assetDeletionTasks: Promise<void>[] = [];
   await db.transaction(async (txn) => {
     await txn
       .update(bookmarkLinks)
@@ -979,9 +981,11 @@ async function crawlAndParseUrl(
         },
         txn,
       );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldScreenshotAssetId));
     }
     if (imageAssetInfo) {
       await updateAsset(oldImageAssetId, imageAssetInfo, txn);
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
     }
     if (htmlContentAssetInfo.result === "stored") {
       await updateAsset(
@@ -997,18 +1001,16 @@ async function crawlAndParseUrl(
         },
         txn,
       );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
     } else if (oldContentAssetId) {
       // Unlink the old content asset
       await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
     }
   });
 
   // Delete the old assets if any
-  await Promise.all([
-    silentDeleteAsset(userId, oldScreenshotAssetId),
-    silentDeleteAsset(userId, oldImageAssetId),
-    silentDeleteAsset(userId, oldContentAssetId),
-  ]);
+  await Promise.all(assetDeletionTasks);
 
   return async () => {
     if (

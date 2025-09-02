@@ -1,15 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { api } from "@/lib/trpc";
 import { keepPreviousData } from "@tanstack/react-query";
 
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 
-export function useIsSearchPage() {
-  const pathname = usePathname();
-  return pathname.startsWith("/dashboard/search");
-}
+import { useInSearchPageStore } from "../store/useInSearchPageStore";
 
 function useSearchQuery() {
   const searchParams = useSearchParams();
@@ -22,31 +19,30 @@ function useSearchQuery() {
 export function useDoBookmarkSearch() {
   const router = useRouter();
   const { searchQuery, parsedSearchQuery } = useSearchQuery();
-  const isInSearchPage = useIsSearchPage();
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | undefined>();
+  const isInSearchPage = useInSearchPageStore((val) => val.inSearchPage);
+  const timeoutId = useRef<NodeJS.Timeout>(null);
 
   useEffect(() => {
     return () => {
-      if (!timeoutId) {
+      if (!timeoutId.current) {
         return;
       }
-      clearTimeout(timeoutId);
+      clearTimeout(timeoutId.current);
     };
   }, [timeoutId]);
 
   const doSearch = (val: string) => {
-    setTimeoutId(undefined);
+    timeoutId.current = null;
     router.replace(`/dashboard/search?q=${encodeURIComponent(val)}`);
   };
 
   const debounceSearch = (val: string) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
+    if (timeoutId.current) {
+      clearTimeout(timeoutId.current);
     }
-    const id = setTimeout(() => {
+    timeoutId.current = setTimeout(() => {
       doSearch(val);
     }, 10);
-    setTimeoutId(id);
   };
 
   return {

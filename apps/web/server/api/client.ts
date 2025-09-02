@@ -39,7 +39,7 @@ export const createContext = async (
 ): Promise<Context> => {
   const session = await getServerAuthSession();
   if (ip === undefined) {
-    const hdrs = headers();
+    const hdrs = await headers();
     ip = requestIp.getClientIp({
       headers: Object.fromEntries(hdrs.entries()),
     });

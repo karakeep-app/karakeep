@@ -1,8 +1,5 @@
-import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { rssFeedsTable } from "@karakeep/db/schema";
 import { FeedQueue } from "@karakeep/shared/queues";
 import {
   zFeedSchema,
@@ -10,79 +7,24 @@ import {
   zUpdateFeedSchema,
 } from "@karakeep/shared/types/feeds";
 
-import { authedProcedure, Context, router } from "../index";
-
-export const ensureFeedOwnership = experimental_trpcMiddleware<{
-  ctx: Context;
-  input: { feedId: string };
-}>().create(async (opts) => {
-  const feed = await opts.ctx.db.query.rssFeedsTable.findFirst({
-    where: eq(rssFeedsTable.id, opts.input.feedId),
-    columns: {
-      userId: true,
-    },
-  });
-  if (!opts.ctx.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "User is not authorized",
-    });
-  }
-  if (!feed) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Feed not found",
-    });
-  }
-  if (feed.userId != opts.ctx.user.id) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not allowed to access resource",
-    });
-  }
-
-  return opts.next();
-});
+import { authedProcedure, router } from "../index";
+import { Feed } from "../models/feeds";
 
 export const feedsAppRouter = router({
   create: authedProcedure
     .input(zNewFeedSchema)
     .output(zFeedSchema)
     .mutation(async ({ input, ctx }) => {
-      const [feed] = await ctx.db
-        .insert(rssFeedsTable)
-        .values({
-          name: input.name,
-          url: input.url,
-          userId: ctx.user.id,
-          enabled: input.enabled,
-        })
-        .returning();
-      return feed;
+      const feed = await Feed.create(ctx, input);
+      return feed.asPublicFeed();
     }),
   update: authedProcedure
     .input(zUpdateFeedSchema)
     .output(zFeedSchema)
-    .use(ensureFeedOwnership)
     .mutation(async ({ input, ctx }) => {
-      const feed = await ctx.db
-        .update(rssFeedsTable)
-        .set({
-          name: input.name,
-          url: input.url,
-          enabled: input.enabled,
-        })
-        .where(
-          and(
-            eq(rssFeedsTable.userId, ctx.user.id),
-            eq(rssFeedsTable.id, input.feedId),
-          ),
-        )
-        .returning();
-      if (feed.length == 0) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      return feed[0];
+      const feed = await Feed.fromId(ctx, input.feedId);
+      await feed.update(input);
+      return feed.asPublicFeed();
     }),
   get: authedProcedure
     .input(
@@ -91,26 +33,15 @@ export const feedsAppRouter = router({
       }),
     )
     .output(zFeedSchema)
-    .use(ensureFeedOwnership)
     .query(async ({ ctx, input }) => {
-      const feed = await ctx.db.query.rssFeedsTable.findFirst({
-        where: and(
-          eq(rssFeedsTable.userId, ctx.user.id),
-          eq(rssFeedsTable.id, input.feedId),
-        ),
-      });
-      if (!feed) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      return feed;
+      const feed = await Feed.fromId(ctx, input.feedId);
+      return feed.asPublicFeed();
     }),
   list: authedProcedure
     .output(z.object({ feeds: z.array(zFeedSchema) }))
     .query(async ({ ctx }) => {
-      const feeds = await ctx.db.query.rssFeedsTable.findMany({
-        where: eq(rssFeedsTable.userId, ctx.user.id),
-      });
-      return { feeds };
+      const feeds = await Feed.getAll(ctx);
+      return { feeds: feeds.map((f) => f.asPublicFeed()) };
     }),
   delete: authedProcedure
     .input(
@@ -118,24 +49,14 @@ export const feedsAppRouter = router({
         feedId: z.string(),
       }),
     )
-    .use(ensureFeedOwnership)
     .mutation(async ({ input, ctx }) => {
-      const res = await ctx.db
-        .delete(rssFeedsTable)
-        .where(
-          and(
-            eq(rssFeedsTable.userId, ctx.user.id),
-            eq(rssFeedsTable.id, input.feedId),
-          ),
-        );
-      if (res.changes == 0) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
+      const feed = await Feed.fromId(ctx, input.feedId);
+      await feed.delete();
     }),
   fetchNow: authedProcedure
     .input(z.object({ feedId: z.string() }))
-    .use(ensureFeedOwnership)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await Feed.fromId(ctx, input.feedId);
       await FeedQueue.enqueue({
         feedId: input.feedId,
       });

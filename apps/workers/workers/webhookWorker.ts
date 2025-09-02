@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 import fetch from "node-fetch";
 
 import { db } from "@karakeep/db";
@@ -20,11 +21,13 @@ export class WebhookWorker {
       {
         run: runWebhook,
         onComplete: async (job) => {
+          workerStatsCounter.labels("webhook", "completed").inc();
           const jobId = job.id;
           logger.info(`[webhook][${jobId}] Completed successfully`);
           return Promise.resolve();
         },
         onError: async (job) => {
+          workerStatsCounter.labels("webhook", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[webhook][${jobId}] webhook job failed: ${job.error}\n${job.error.stack}`,

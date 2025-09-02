@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   Share,
-  Text,
   View,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
@@ -15,10 +14,11 @@ import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { router, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
+import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
-import { Ellipsis, Share2, Star } from "lucide-react-native";
+import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
@@ -28,7 +28,7 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
-  isBookmarkStillLoading,
+  getBookmarkRefreshInterval,
   isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -181,7 +181,7 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
           handleShare();
         }}
       >
-        <Share2 color="gray" />
+        <ShareIcon color="gray" />
       </Pressable>
 
       <MenuView
@@ -198,14 +198,16 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`);
           } else if (nativeEvent.event === "manage_tags") {
             router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`);
+          } else if (nativeEvent.event === "edit") {
+            router.push(`/dashboard/bookmarks/${bookmark.id}/info`);
           }
         }}
         actions={[
           {
-            id: "archive",
-            title: bookmark.archived ? "Un-archive" : "Archive",
+            id: "edit",
+            title: "Edit",
             image: Platform.select({
-              ios: "folder",
+              ios: "pencil",
             }),
           },
           {
@@ -220,6 +222,13 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             title: "Manage Tags",
             image: Platform.select({
               ios: "tag",
+            }),
+          },
+          {
+            id: "archive",
+            title: bookmark.archived ? "Un-archive" : "Archive",
+            image: Platform.select({
+              ios: "folder",
             }),
           },
           {
@@ -323,9 +332,7 @@ function LinkCard({
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto line-clamp-1 text-foreground">
-            {parsedUrl.host}
-          </Text>
+          <Text className="my-auto line-clamp-1">{parsedUrl.host}</Text>
           <ActionBar bookmark={bookmark} />
         </View>
       </View>
@@ -348,7 +355,7 @@ function TextCard({
     <View className="flex max-h-96 gap-2 p-2">
       <Pressable onPress={onOpenBookmark}>
         {bookmark.title && (
-          <Text className="line-clamp-2 text-xl font-bold text-foreground">
+          <Text className="line-clamp-2 text-xl font-bold">
             {bookmark.title}
           </Text>
         )}
@@ -395,9 +402,7 @@ function AssetCard({
       <View className="flex gap-2 p-2">
         <Pressable onPress={onOpenBookmark}>
           {title && (
-            <Text className="line-clamp-2 text-xl font-bold text-foreground">
-              {title}
-            </Text>
+            <Text className="line-clamp-2 text-xl font-bold">{title}</Text>
           )}
         </Pressable>
         <TagList bookmark={bookmark} />
@@ -427,11 +432,7 @@ export default function BookmarkCard({
         if (!data) {
           return false;
         }
-        // If the link is not crawled or not tagged
-        if (isBookmarkStillLoading(data)) {
-          return 1000;
-        }
-        return false;
+        return getBookmarkRefreshInterval(data);
       },
     },
   );
@@ -472,9 +473,5 @@ export default function BookmarkCard({
       break;
   }
 
-  return (
-    <View className="overflow-hidden rounded-xl border-b border-accent bg-background">
-      {comp}
-    </View>
-  );
+  return <View className="overflow-hidden rounded-xl bg-card">{comp}</View>;
 }

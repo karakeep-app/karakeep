@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import NoBookmarksBanner from "@/components/dashboard/bookmarks/NoBookmarksBanner";
 import { ActionButton } from "@/components/ui/action-button";
 import useBulkActionsStore from "@/lib/bulkActions";
+import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
 import {
   bookmarkLayoutSwitch,
   useBookmarkLayout,
@@ -62,6 +63,7 @@ export default function BookmarksGrid({
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
   const bulkActionsStore = useBulkActionsStore();
+  const inBookmarkGrid = useInBookmarkGridStore();
   const breakpointConfig = useMemo(
     () => getBreakpointConfig(gridColumns),
     [gridColumns],
@@ -74,6 +76,13 @@ export default function BookmarksGrid({
       bulkActionsStore.setVisibleBookmarks([]);
     };
   }, [bookmarks]);
+
+  useEffect(() => {
+    inBookmarkGrid.setInBookmarkGrid(true);
+    return () => {
+      inBookmarkGrid.setInBookmarkGrid(false);
+    };
+  }, []);
 
   useEffect(() => {
     if (loadMoreButtonInView && hasNextPage && !isFetchingNextPage) {

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useShareIntentContext } from "expo-share-intent";
 import { Button } from "@/components/ui/Button";
+import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
 import { useUploadAsset } from "@/lib/upload";
@@ -73,7 +74,7 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
 
   return (
     <View className="flex flex-row gap-3">
-      <Text className="text-4xl text-foreground">Hoarding</Text>
+      <Text variant="largeTitle">Hoarding</Text>
       <ActivityIndicator />
     </View>
   );
@@ -83,7 +84,7 @@ export default function Sharing() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>({ type: "idle" });
 
-  let autoCloseTimeoutId: NodeJS.Timeout | null = null;
+  const autoCloseTimeoutId = useRef<number | null>(null);
 
   let comp;
   switch (mode.type) {
@@ -95,18 +96,19 @@ export default function Sharing() {
     case "success": {
       comp = (
         <View className="items-center gap-4">
-          <Text className="text-4xl text-foreground">
+          <Text variant="largeTitle">
             {mode.type === "alreadyExists" ? "Already Hoarded!" : "Hoarded!"}
           </Text>
           <Button
-            label="Manage"
             onPress={() => {
               router.replace(`/dashboard/bookmarks/${mode.bookmarkId}/info`);
-              if (autoCloseTimeoutId) {
-                clearTimeout(autoCloseTimeoutId);
+              if (autoCloseTimeoutId.current) {
+                clearTimeout(autoCloseTimeoutId.current);
               }
             }}
-          />
+          >
+            <Text>Manage</Text>
+          </Button>
           <Pressable onPress={() => router.replace("dashboard")}>
             <Text className="text-muted-foreground">Dismiss</Text>
           </Pressable>
@@ -115,7 +117,7 @@ export default function Sharing() {
       break;
     }
     case "error": {
-      comp = <Text className="text-4xl text-foreground">Error!</Text>;
+      comp = <Text variant="largeTitle">Error!</Text>;
       break;
     }
   }
@@ -126,11 +128,11 @@ export default function Sharing() {
       return;
     }
 
-    autoCloseTimeoutId = setTimeout(() => {
+    autoCloseTimeoutId.current = setTimeout(() => {
       router.replace("dashboard");
     }, 2000);
 
-    return () => clearTimeout(autoCloseTimeoutId!);
+    return () => clearTimeout(autoCloseTimeoutId.current!);
   }, [mode.type]);
 
   return (

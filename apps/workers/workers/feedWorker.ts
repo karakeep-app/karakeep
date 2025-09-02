@@ -1,5 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 import Parser from "rss-parser";
 import { buildImpersonatingTRPCClient } from "trpc";
@@ -50,6 +51,7 @@ export class FeedWorker {
       {
         run: run,
         onComplete: async (job) => {
+          workerStatsCounter.labels("feed", "completed").inc();
           const jobId = job.id;
           logger.info(`[feed][${jobId}] Completed successfully`);
           await db
@@ -58,6 +60,7 @@ export class FeedWorker {
             .where(eq(rssFeedsTable.id, job.data?.feedId));
         },
         onError: async (job) => {
+          workerStatsCounter.labels("feed", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[feed][${jobId}] Feed fetch job failed: ${job.error}\n${job.error.stack}`,

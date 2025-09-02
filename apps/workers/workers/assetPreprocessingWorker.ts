@@ -1,6 +1,7 @@
 import os from "os";
 import { eq } from "drizzle-orm";
 import { DequeuedJob, EnqueueOptions, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
 import { createWorker } from "tesseract.js";
@@ -34,11 +35,13 @@ export class AssetPreprocessingWorker {
       {
         run: run,
         onComplete: async (job) => {
+          workerStatsCounter.labels("assetPreprocessing", "completed").inc();
           const jobId = job.id;
           logger.info(`[assetPreprocessing][${jobId}] Completed successfully`);
           return Promise.resolve();
         },
         onError: async (job) => {
+          workerStatsCounter.labels("assetPreProcessing", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,

@@ -1,5 +1,5 @@
 export interface TSidebarItem {
   name: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   path: string;
 }

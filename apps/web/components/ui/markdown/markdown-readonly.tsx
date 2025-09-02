@@ -34,7 +34,6 @@ export function MarkdownReadonly({ children: markdown }: { children: string }) {
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className ?? "");
           return match ? (
-            // @ts-expect-error -- Refs are not compatible for some reason
             <SyntaxHighlighter
               PreTag="div"
               language={match[1]}

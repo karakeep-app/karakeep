@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { api } from "@/lib/trpc";
-import { useColorScheme } from "nativewind";
+import { useColorScheme } from "@/lib/useColorScheme";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
@@ -36,7 +37,7 @@ export function BookmarkLinkReaderPreview({
 }: {
   bookmark: ZBookmark;
 }) {
-  const { colorScheme } = useColorScheme();
+  const { isDarkColorScheme: isDark } = useColorScheme();
 
   const {
     data: bookmarkWithContent,
@@ -59,8 +60,6 @@ export function BookmarkLinkReaderPreview({
   if (bookmarkWithContent?.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
   }
-
-  const isDark = colorScheme === "dark";
 
   return (
     <View className="flex-1 bg-background">
@@ -112,6 +111,7 @@ export function BookmarkLinkReaderPreview({
         }}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
+        decelerationRate={0.998}
       />
     </View>
   );
@@ -145,6 +145,7 @@ export function BookmarkLinkArchivePreview({
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
       source={webViewUri}
+      decelerationRate={0.998}
     />
   );
 }

@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
+import { api, createContextFromRequest } from "@/server/api/client";
+import { z } from "zod";
+
 import {
   toExportFormat,
   toNetscapeFormat,
   zExportSchema,
-} from "@/lib/exportBookmarks";
-import { api, createContextFromRequest } from "@/server/api/client";
-import { z } from "zod";
-
+} from "@karakeep/shared/import-export";
 import { MAX_NUM_BOOKMARKS_PER_PAGE } from "@karakeep/shared/types/bookmarks";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         "Content-type": "application/json",
-        "Content-disposition": `attachment; filename="hoarder-export-${new Date().toISOString()}.json"`,
+        "Content-disposition": `attachment; filename="karakeep-export-${new Date().toISOString()}.json"`,
       },
     });
   } else if (format === "netscape") {

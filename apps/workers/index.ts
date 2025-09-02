@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+import { buildServer } from "server";
+
 import { loadAllPlugins } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -31,6 +33,7 @@ async function main() {
     assetPreprocessing,
     webhook,
     ruleEngine,
+    httpServer,
   ] = [
     await CrawlerWorker.build(),
     OpenAiWorker.build(),
@@ -41,6 +44,7 @@ async function main() {
     AssetPreprocessingWorker.build(),
     WebhookWorker.build(),
     RuleEngineWorker.build(),
+    buildServer(),
   ];
   FeedRefreshingWorker.start();
 
@@ -55,6 +59,7 @@ async function main() {
       assetPreprocessing.run(),
       webhook.run(),
       ruleEngine.run(),
+      httpServer.serve(),
     ]),
     shutdownPromise,
   ]);
@@ -72,6 +77,8 @@ async function main() {
   assetPreprocessing.stop();
   webhook.stop();
   ruleEngine.stop();
+  await httpServer.stop();
+  process.exit(0);
 }
 
 main();

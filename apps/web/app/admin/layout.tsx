@@ -1,3 +1,4 @@
+import React from "react";
 import { redirect } from "next/navigation";
 import { AdminNotices } from "@/components/admin/AdminNotices";
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
@@ -11,7 +12,7 @@ const adminSidebarItems = (
   t: TFunction,
 ): {
   name: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   path: string;
 }[] => [
   {

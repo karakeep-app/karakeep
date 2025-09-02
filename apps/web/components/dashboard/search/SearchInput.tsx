@@ -35,7 +35,7 @@ import QueryExplainerTooltip from "./QueryExplainerTooltip";
 const MAX_DISPLAY_SUGGESTIONS = 5;
 
 function useFocusSearchOnKeyPress(
-  inputRef: React.RefObject<HTMLInputElement>,
+  inputRef: React.RefObject<HTMLInputElement | null>,
   value: string,
   setValue: (value: string) => void,
   setPopoverOpen: React.Dispatch<React.SetStateAction<boolean>>,

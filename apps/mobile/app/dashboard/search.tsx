@@ -1,18 +1,12 @@
 import { useMemo, useRef, useState } from "react";
-import {
-  FlatList,
-  Keyboard,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { router } from "expo-router";
+import { FlatList, Keyboard, Pressable, TextInput, View } from "react-native";
+import { router, Stack } from "expo-router";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { Input } from "@/components/ui/Input";
+import { SearchInput } from "@/components/ui/SearchInput";
+import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -102,24 +96,26 @@ export default function Search() {
 
   return (
     <CustomSafeAreaView>
-      <View className="flex flex-row items-center gap-3 p-3">
-        <Input
-          ref={inputRef}
-          placeholder="Search"
-          className="flex-1"
-          value={search}
-          onChangeText={setSearch}
-          onFocus={handleOnFocus}
-          onBlur={handleOnBlur}
-          onSubmitEditing={() => handleSearchSubmit(search)}
-          returnKeyType="search"
-          autoFocus
-          autoCapitalize="none"
-        />
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-foreground">Cancel</Text>
-        </Pressable>
-      </View>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+        }}
+      />
+      <SearchInput
+        containerClassName="m-3"
+        ref={inputRef}
+        placeholder="Search"
+        className="flex-1"
+        value={search}
+        onChangeText={setSearch}
+        onFocus={handleOnFocus}
+        onBlur={handleOnBlur}
+        onSubmitEditing={() => handleSearchSubmit(search)}
+        returnKeyType="search"
+        autoFocus
+        autoCapitalize="none"
+        onCancel={router.back}
+      />
 
       {isInputFocused ? (
         <FlatList

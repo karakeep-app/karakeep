@@ -3,11 +3,10 @@ import BookmarkPreview from "@/components/dashboard/preview/BookmarkPreview";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
 
-export default async function BookmarkPreviewPage({
-  params,
-}: {
-  params: { bookmarkId: string };
+export default async function BookmarkPreviewPage(props: {
+  params: Promise<{ bookmarkId: string }>;
 }) {
+  const params = await props.params;
   let bookmark;
   try {
     bookmark = await api.bookmarks.getBookmark({

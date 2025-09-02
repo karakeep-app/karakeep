@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Input } from "@/components/ui/Input";
+import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 
 import { useCreateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
@@ -18,7 +19,7 @@ const NoteEditorPage = () => {
   const [error, setError] = useState<string | undefined>();
   const { toast } = useToast();
 
-  const { mutate: createBookmark } = useCreateBookmark({
+  const { mutate: createBookmark, isPending } = useCreateBookmark({
     onSuccess: (resp) => {
       if (resp.alreadyExists) {
         toast({
@@ -61,13 +62,16 @@ const NoteEditorPage = () => {
         )}
         <Input
           onChangeText={setText}
+          className="bg-card"
           multiline
           placeholder="What's on your mind?"
           autoFocus
           autoCapitalize={"none"}
           textAlignVertical="top"
         />
-        <Button onPress={onSubmit} label="Save" />
+        <Button onPress={onSubmit} disabled={isPending}>
+          <Text>Save</Text>
+        </Button>
       </View>
     </CustomSafeAreaView>
   );

@@ -54,7 +54,11 @@ export default async function RootLayout({
   const userSettings = await getUserLocalSettings();
   const isRTL = userSettings.lang === "ar";
   return (
-    <html className="" lang={userSettings.lang} dir={isRTL ? "rtl" : "ltr"}>
+    <html
+      lang={userSettings.lang}
+      dir={isRTL ? "rtl" : "ltr"}
+      suppressHydrationWarning
+    >
       <body className={inter.className}>
         <NuqsAdapter>
           <Providers

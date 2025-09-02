@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zCursorV2 } from "./pagination";
 import { zBookmarkTagSchema } from "./tags";
 
-const MAX_TITLE_LENGTH = 1000;
+export const MAX_BOOKMARK_TITLE_LENGTH = 1000;
 
 export const enum BookmarkTypes {
   LINK = "link",
@@ -133,7 +133,7 @@ export type ZBookmarkTypeAsset = z.infer<typeof zBookmarkTypeAssetSchema>;
 // POST /v1/bookmarks
 export const zNewBookmarkRequestSchema = z
   .object({
-    title: z.string().max(MAX_TITLE_LENGTH).nullish(),
+    title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
     archived: z.boolean().optional(),
     favourited: z.boolean().optional(),
     note: z.string().optional(),
@@ -202,7 +202,7 @@ export const zUpdateBookmarksRequestSchema = z.object({
   favourited: z.boolean().optional(),
   summary: z.string().nullish(),
   note: z.string().optional(),
-  title: z.string().max(MAX_TITLE_LENGTH).nullish(),
+  title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
   createdAt: z.coerce.date().optional(),
   // Link specific fields (optional)
   url: z.string().url().optional(),

@@ -6,11 +6,10 @@ import PublicListHeader from "@/components/public/lists/PublicListHeader";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { listId: string };
+export async function generateMetadata(props: {
+  params: Promise<{ listId: string }>;
 }): Promise<Metadata> {
+  const params = await props.params;
   try {
     const resp = await api.publicBookmarks.getPublicListMetadata({
       listId: params.listId,
@@ -38,11 +37,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function PublicListPage({
-  params,
-}: {
-  params: { listId: string };
+export default async function PublicListPage(props: {
+  params: Promise<{ listId: string }>;
 }) {
+  const params = await props.params;
   try {
     const { list, bookmarks, nextCursor } =
       await api.publicBookmarks.getPublicBookmarksInList({

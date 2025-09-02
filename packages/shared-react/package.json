@@ -16,8 +16,8 @@
     "@karakeep/tsconfig": "workspace:^0.1.0"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-native": "^0.76.3"
+    "react": "^19.0.0",
+    "react-native": "0.79.3"
   },
   "peerDependenciesMeta": {
     "react-native": {

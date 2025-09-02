@@ -62,7 +62,8 @@ export async function uploadAsset(
   }
 
   const contentType = data.type;
-  const fileName = data.name;
+  // Replace all non-ascii characters with underscores
+  const fileName = data.name.replace(/[^\x20-\x7E]/g, "_");
   if (!SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)) {
     return { error: "Unsupported asset type", status: 400 };
   }
@@ -118,7 +119,13 @@ export async function uploadAsset(
       fileName,
     };
   } finally {
-    if (tempFilePath) {
+    if (
+      tempFilePath &&
+      (await fs.promises
+        .access(tempFilePath)
+        .then(() => true)
+        .catch(() => false))
+    ) {
       await fs.promises.unlink(tempFilePath).catch(() => ({}));
     }
   }

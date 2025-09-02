@@ -1,4 +1,4 @@
-import { Text } from "react-native";
+import { Text } from "@/components/ui/Text";
 import { cx } from "class-variance-authority";
 
 export default function PageTitle({

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
 import FullPageError from "@/components/FullPageError";
-import { TailwindResolver } from "@/components/TailwindResolver";
+import ChevronRight from "@/components/ui/ChevronRight";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import PageTitle from "@/components/ui/PageTitle";
+import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
-import { ChevronRight, Plus } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
@@ -65,6 +67,7 @@ function traverseTree(
 }
 
 export default function Lists() {
+  const { colors } = useColorScheme();
   const [refreshing, setRefreshing] = useState(false);
   const { data: lists, isPending, error, refetch } = useBookmarkLists();
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
@@ -130,7 +133,7 @@ export default function Lists() {
         }}
         renderItem={(l) => (
           <View
-            className="mx-2 flex flex-row items-center rounded-xl border border-input bg-white px-4 py-2 dark:bg-accent"
+            className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2"
             style={condProps({
               condition: l.item.level > 0,
               props: { marginLeft: l.item.level * 20 },
@@ -146,28 +149,23 @@ export default function Lists() {
                   }));
                 }}
               >
-                <TailwindResolver
-                  className="text-foreground"
-                  comp={(style) => (
-                    <ChevronRight
-                      color={style?.color?.toString()}
-                      style={{
-                        transform: [
-                          { rotate: l.item.collapsed ? "0deg" : "90deg" },
-                        ],
-                      }}
-                    />
-                  )}
+                <ChevronRight
+                  color={colors.foreground}
+                  style={{
+                    transform: [
+                      { rotate: l.item.collapsed ? "0deg" : "90deg" },
+                    ],
+                  }}
                 />
               </Pressable>
             )}
 
             <Link asChild key={l.item.id} href={l.item.href} className="flex-1">
               <Pressable className="flex flex-row justify-between">
-                <Text className="text-lg text-accent-foreground">
+                <Text>
                   {l.item.logo} {l.item.name}
                 </Text>
-                <ChevronRight color="rgb(0, 122, 255)" />
+                <ChevronRight />
               </Pressable>
             </Link>
           </View>
