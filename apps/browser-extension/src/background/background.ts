@@ -339,8 +339,12 @@ chrome.runtime.onMessage.addListener(async (msg) => {
         "Received REFRESH_BADGE message for tab:",
         msg.currentTab.url,
       );
-      await clearBadgeStatusSWR(msg.currentTab.url);
-      await checkAndUpdateIcon(msg.currentTab.id);
+      if (msg.currentTab.url) {
+        await clearBadgeStatusSWR(msg.currentTab.url);
+      }
+      if (typeof msg.currentTab.id === "number") {
+        await checkAndUpdateIcon(msg.currentTab.id);
+      }
     }
   }
 });
