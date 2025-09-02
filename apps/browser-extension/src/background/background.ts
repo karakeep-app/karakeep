@@ -36,7 +36,7 @@ async function checkSettingsState(settings: Settings) {
     registerContextMenus(settings);
   } else {
     removeContextMenus();
-    await clearBadgeStatusSWR();
+    await clearAllCache();
   }
 }
 
@@ -178,7 +178,7 @@ async function clearCurrentPageCache() {
 }
 
 /**
- * Clear all badge cache.
+ * Clear all badge cache and refresh badges for all active tabs.
  */
 async function clearAllCache() {
   try {
