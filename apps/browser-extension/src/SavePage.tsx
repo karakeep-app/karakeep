@@ -11,6 +11,7 @@ import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
 import { api } from "./utils/trpc";
 import { MessageType } from "./utils/type.ts";
+import { isHttpUrl } from "./utils/url.ts";
 
 export default function SavePage() {
   const [error, setError] = useState<string | undefined>(undefined);
@@ -55,7 +56,7 @@ export default function SavePage() {
           active: true,
           lastFocusedWindow: true,
         });
-        if (currentTab?.url) {
+        if (currentTab?.url && isHttpUrl(currentTab.url)) {
           newBookmarkRequest = {
             type: BookmarkTypes.LINK,
             url: currentTab.url,
