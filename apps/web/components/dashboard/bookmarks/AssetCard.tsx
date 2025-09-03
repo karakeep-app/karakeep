@@ -11,6 +11,7 @@ import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 import FooterLinkURL from "./FooterLinkURL";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 function AssetImage({
   bookmark,
@@ -67,9 +68,11 @@ function AssetImage({
 
 export default function AssetCard({
   bookmark: bookmarkedAsset,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmarkTypeAsset;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   return (
@@ -80,6 +83,7 @@ export default function AssetCard({
           <FooterLinkURL url={getSourceUrl(bookmarkedAsset)} />
         )
       }
+      fixedLayout={fixedLayout}
       bookmark={bookmarkedAsset}
       className={className}
       wrapTags={true}

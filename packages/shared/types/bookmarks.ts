@@ -186,6 +186,9 @@ export const zGetBookmarksRequestSchema = z.object({
   useCursorV2: z.boolean().optional(),
   sortOrder: zSortOrder.exclude(["relevance"]).optional().default("desc"),
   includeContent: z.boolean().optional().default(false),
+  // TODO: Seeking feedback on naming choices:
+  // Should this be 'hideWithUpcomingReminders' vs 'excludeScheduledReminders'?
+  hideWithUpcomingReminders: z.boolean().optional(),
 });
 export type ZGetBookmarksRequest = z.infer<typeof zGetBookmarksRequestSchema>;
 

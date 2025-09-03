@@ -12,12 +12,15 @@ import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 import FooterLinkURL from "./FooterLinkURL";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 export default function TextCard({
   bookmark,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmarkTypeText;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   const banner = bookmark.assets.find((a) => a.assetType == "bannerImage");
@@ -36,6 +39,7 @@ export default function TextCard({
           )
         }
         wrapTags={true}
+        fixedLayout={fixedLayout}
         bookmark={bookmark}
         className={className}
         fitHeight={true}

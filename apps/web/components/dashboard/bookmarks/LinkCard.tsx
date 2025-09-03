@@ -14,6 +14,7 @@ import {
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 import FooterLinkURL from "./FooterLinkURL";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 const useOnClickUrl = (bookmark: ZBookmarkTypeLink) => {
   const userSettings = useUserSettings();
@@ -89,15 +90,18 @@ function LinkImage({
 
 export default function LinkCard({
   bookmark: bookmarkLink,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmarkTypeLink;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   return (
     <BookmarkLayoutAdaptingCard
       title={<LinkTitle bookmark={bookmarkLink} />}
       footer={<FooterLinkURL url={getSourceUrl(bookmarkLink)} />}
+      fixedLayout={fixedLayout}
       bookmark={bookmarkLink}
       wrapTags={false}
       image={(_layout, className) => (
