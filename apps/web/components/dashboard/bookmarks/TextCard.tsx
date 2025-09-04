@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BookmarkMarkdownComponent } from "@/components/dashboard/bookmarks/BookmarkMarkdownComponent";
 import { bookmarkLayoutSwitch } from "@/lib/userLocalSettings/bookmarksLayout";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { cn } from "@/lib/utils";
 
 import type { ZBookmarkTypeText } from "@karakeep/shared/types/bookmarks";
@@ -12,7 +13,6 @@ import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 import FooterLinkURL from "./FooterLinkURL";
-import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 export default function TextCard({
   bookmark,

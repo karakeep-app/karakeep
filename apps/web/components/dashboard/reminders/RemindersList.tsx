@@ -1,24 +1,26 @@
 "use client";
 
-import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { api } from "@/lib/trpc";
 import { Clock } from "lucide-react";
 
-import type { ZGetRemindersRequest } from "@karakeep/shared/types/reminders";
+import type {
+  ZGetRemindersRequest,
+  ZReminder,
+} from "@karakeep/shared/types/reminders";
 
 import ReminderCard from "./ReminderCard";
 
 interface RemindersListProps {
   reminderType: NonNullable<ZGetRemindersRequest["reminderType"]>;
+  reminders: ZReminder[];
+  isLoading: boolean;
 }
 
-export default function RemindersList({ reminderType }: RemindersListProps) {
-  const { data: remindersData, isLoading } =
-    api.reminders.getReminders.useQuery({
-      reminderType,
-    });
-
+export default function RemindersList({
+  reminderType,
+  reminders,
+  isLoading,
+}: RemindersListProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -34,8 +36,6 @@ export default function RemindersList({ reminderType }: RemindersListProps) {
       </div>
     );
   }
-
-  const reminders = remindersData?.reminders || [];
 
   if (reminders.length === 0) {
     return (

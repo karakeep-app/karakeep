@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -255,6 +254,7 @@ export default function ReminderCard({
   const handleSnooze = () => {
     snoozeReminderMutation.mutate({
       reminderId: reminder.id,
+      clientTimestamp: Date.now(),
     });
   };
 
@@ -314,7 +314,7 @@ export default function ReminderCard({
           onSnooze={handleSnooze}
           onDelete={handleDelete}
         />
-        
+
         <div className={cn("border-t", theme.dividerBorder)} />
 
         <div>
