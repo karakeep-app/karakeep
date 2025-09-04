@@ -95,6 +95,7 @@ export const remindersRouter = router({
       const updateData: Partial<{
         remindAt: Date;
         status: "active" | "dismissed";
+        modifiedAt: Date;
       }> = {};
 
       if (input.remindAt !== undefined) {
@@ -103,6 +104,17 @@ export const remindersRouter = router({
       if (input.status !== undefined) {
         updateData.status = input.status;
       }
+
+      // This should never happen due to schema validation, but be defensive
+      if (Object.keys(updateData).length === 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No fields provided for update",
+        });
+      }
+
+      // Always update modifiedAt when making changes
+      updateData.modifiedAt = new Date();
 
       const [updatedReminder] = await ctx.db
         .update(bookmarkReminders)
