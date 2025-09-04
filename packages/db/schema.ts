@@ -177,6 +177,40 @@ export const bookmarks = sqliteTable(
   ],
 );
 
+export const bookmarkReminders = sqliteTable(
+  "bookmarkReminders",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .unique() // Each bookmark can only have one reminder
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    remindAt: integer("remindAt", { mode: "timestamp" }).notNull(),
+    status: text("status", { enum: ["active", "dismissed"] })
+      .notNull()
+      .default("active"),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (br) => [
+    index("bookmarkReminders_remindAt_idx").on(br.remindAt),
+    index("bookmarkReminders_status_idx").on(br.status),
+  ],
+);
+
+export const bookmarkRemindersRelations = relations(
+  bookmarkReminders,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [bookmarkReminders.bookmarkId],
+      references: [bookmarks.id],
+    }),
+  }),
+);
+
 export const bookmarkLinks = sqliteTable(
   "bookmarkLinks",
   {
@@ -796,40 +830,6 @@ export const passwordResetTokensRelations = relations(
     user: one(users, {
       fields: [passwordResetTokens.userId],
       references: [users.id],
-    }),
-  }),
-);
-
-export const bookmarkReminders = sqliteTable(
-  "bookmarkReminders",
-  {
-    id: text("id")
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    bookmarkId: text("bookmarkId")
-      .notNull()
-      .unique() // Each bookmark can only have one reminder
-      .references(() => bookmarks.id, { onDelete: "cascade" }),
-    remindAt: integer("remindAt", { mode: "timestamp" }).notNull(),
-    status: text("status", { enum: ["active", "dismissed"] })
-      .notNull()
-      .default("active"),
-    createdAt: createdAtField(),
-    modifiedAt: modifiedAtField(),
-  },
-  (br) => [
-    index("bookmarkReminders_remindAt_idx").on(br.remindAt),
-    index("bookmarkReminders_status_idx").on(br.status),
-  ],
-);
-
-export const bookmarkRemindersRelations = relations(
-  bookmarkReminders,
-  ({ one }) => ({
-    bookmark: one(bookmarks, {
-      fields: [bookmarkReminders.bookmarkId],
-      references: [bookmarks.id],
     }),
   }),
 );

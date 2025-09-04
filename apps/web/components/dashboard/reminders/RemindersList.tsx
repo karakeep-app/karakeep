@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/trpc";
 import { Clock } from "lucide-react";

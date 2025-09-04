@@ -5,7 +5,7 @@ import { z } from "zod";
 import { bookmarkReminders, bookmarks } from "@karakeep/db/schema";
 import {
   zCreateReminderRequestSchema,
-  zGetGroupedRemindersResponseSchema,
+  zGetRemindersCountsResponseSchema,
   zGetRemindersRequestSchema,
   zReminderSchema,
   zUpdateReminderRequestSchema,
@@ -311,8 +311,8 @@ export const remindersRouter = router({
     }),
 
   // Get all reminder counts in a single query
-  getGroupedReminders: authedProcedure
-    .output(zGetGroupedRemindersResponseSchema)
+  getRemindersCounts: authedProcedure
+    .output(zGetRemindersCountsResponseSchema)
     .query(async ({ ctx }) => {
       const now = new Date();
 

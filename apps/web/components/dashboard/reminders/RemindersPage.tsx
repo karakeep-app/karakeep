@@ -8,7 +8,7 @@ import RemindersList from "./RemindersList";
 
 export default function RemindersPage() {
   const { data: groupedReminders } =
-    api.reminders.getGroupedReminders.useQuery();
+    api.reminders.getRemindersCounts.useQuery();
 
   const dueCount = groupedReminders?.dueCount || 0;
   const upcomingCount = groupedReminders?.upcomingCount || 0;

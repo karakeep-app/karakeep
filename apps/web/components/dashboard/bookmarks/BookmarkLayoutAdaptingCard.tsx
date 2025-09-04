@@ -243,9 +243,11 @@ function CompactView({ bookmark, title, footer, className }: Props) {
 }
 
 export function BookmarkLayoutAdaptingCard(props: Props) {
-  const layout = useBookmarkLayout();
+  const userSettingLayout = useBookmarkLayout();
 
-  return bookmarkLayoutSwitch(props.fixedLayout ?? layout, {
+  const layout = props.fixedLayout ?? userSettingLayout;
+
+  return bookmarkLayoutSwitch(layout, {
     masonry: <GridView layout={layout} {...props} />,
     grid: <GridView layout={layout} {...props} />,
     list: <ListView {...props} />,
