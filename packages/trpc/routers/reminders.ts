@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { bookmarkReminders, bookmarks } from "@karakeep/db/schema";
@@ -37,50 +37,31 @@ export const remindersRouter = router({
         });
       }
 
-      // Check if a reminder already exists for this bookmark
-      const existingReminder = await ctx.db.query.bookmarkReminders.findFirst({
-        where: eq(bookmarkReminders.bookmarkId, input.bookmarkId),
-      });
-
-      if (existingReminder) {
-        // Update the existing reminder
-        const [updatedReminder] = await ctx.db
-          .update(bookmarkReminders)
-          .set({
-            remindAt: input.remindAt,
-            status: "active", // Always set to active when updated
-          })
-          .where(eq(bookmarkReminders.bookmarkId, input.bookmarkId))
-          .returning();
-
-        return {
-          id: updatedReminder.id,
-          bookmarkId: updatedReminder.bookmarkId,
-          remindAt: updatedReminder.remindAt,
-          status: updatedReminder.status as "active" | "dismissed",
-          createdAt: updatedReminder.createdAt,
-          modifiedAt: updatedReminder.modifiedAt,
-        };
-      } else {
-        // Create a new reminder
-        const [newReminder] = await ctx.db
-          .insert(bookmarkReminders)
-          .values({
-            bookmarkId: input.bookmarkId,
+      // Atomic upsert: insert new or update existing reminder
+      const [upsertedReminder] = await ctx.db
+        .insert(bookmarkReminders)
+        .values({
+          bookmarkId: input.bookmarkId,
+          remindAt: input.remindAt,
+          status: "active",
+        })
+        .onConflictDoUpdate({
+          target: bookmarkReminders.bookmarkId,
+          set: {
             remindAt: input.remindAt,
             status: "active",
-          })
-          .returning();
+          },
+        })
+        .returning();
 
-        return {
-          id: newReminder.id,
-          bookmarkId: newReminder.bookmarkId,
-          remindAt: newReminder.remindAt,
-          status: newReminder.status as "active" | "dismissed",
-          createdAt: newReminder.createdAt,
-          modifiedAt: newReminder.modifiedAt,
-        };
-      }
+      return {
+        id: upsertedReminder.id,
+        bookmarkId: upsertedReminder.bookmarkId,
+        remindAt: upsertedReminder.remindAt,
+        status: upsertedReminder.status as "active" | "dismissed",
+        createdAt: upsertedReminder.createdAt,
+        modifiedAt: upsertedReminder.modifiedAt,
+      };
     }),
 
   // Update an existing reminder
@@ -194,7 +175,7 @@ export const remindersRouter = router({
         switch (input.reminderType) {
           case "due":
             conditions.push(eq(bookmarkReminders.status, "active"));
-            conditions.push(lt(bookmarkReminders.remindAt, now));
+            conditions.push(lte(bookmarkReminders.remindAt, now));
             break;
           case "upcoming":
             conditions.push(eq(bookmarkReminders.status, "active"));
@@ -334,11 +315,11 @@ export const remindersRouter = router({
 
       // Count reminders by type
       const dueCount = allReminders.filter(
-        (r) => r.status === "active" && r.remindAt < now,
+        (r) => r.status === "active" && r.remindAt <= now,
       ).length;
 
       const upcomingCount = allReminders.filter(
-        (r) => r.status === "active" && r.remindAt >= now,
+        (r) => r.status === "active" && r.remindAt > now,
       ).length;
 
       const dismissedCount = allReminders.filter(
