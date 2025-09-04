@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/trpc";
@@ -7,9 +8,42 @@ import { api } from "@/lib/trpc";
 import RemindersList from "./RemindersList";
 
 export default function RemindersPage() {
+  const clientTimestamp = useMemo(() => Date.now(), []);
+
+  // Fetch all reminders once
+  const { data: allRemindersData, isLoading } =
+    api.reminders.getReminders.useQuery({
+      clientTimestamp,
+    });
+
   const { data: groupedReminders } = api.reminders.getRemindersCounts.useQuery({
-    clientTimestamp: Date.now(),
+    clientTimestamp,
   });
+
+  // Filter reminders client-side for each tab
+  const allReminders = allRemindersData?.reminders || [];
+  const now = new Date(clientTimestamp);
+
+  const dueReminders = useMemo(
+    () =>
+      allReminders.filter(
+        (r) => r.status === "active" && new Date(r.remindAt) <= now,
+      ),
+    [allReminders, now],
+  );
+
+  const upcomingReminders = useMemo(
+    () =>
+      allReminders.filter(
+        (r) => r.status === "active" && new Date(r.remindAt) > now,
+      ),
+    [allReminders, now],
+  );
+
+  const dismissedReminders = useMemo(
+    () => allReminders.filter((r) => r.status === "dismissed"),
+    [allReminders],
+  );
 
   const dueCount = groupedReminders?.dueCount || 0;
   const upcomingCount = groupedReminders?.upcomingCount || 0;
@@ -60,7 +94,11 @@ export default function RemindersPage() {
               These reminders are past their scheduled time
             </p>
           </div>
-          <RemindersList reminderType="due" />
+          <RemindersList
+            reminderType="due"
+            reminders={dueReminders}
+            isLoading={isLoading}
+          />
         </TabsContent>
 
         <TabsContent value="upcoming" className="mt-6">
@@ -70,7 +108,11 @@ export default function RemindersPage() {
               These reminders are scheduled for the future
             </p>
           </div>
-          <RemindersList reminderType="upcoming" />
+          <RemindersList
+            reminderType="upcoming"
+            reminders={upcomingReminders}
+            isLoading={isLoading}
+          />
         </TabsContent>
 
         <TabsContent value="dismissed" className="mt-6">
@@ -80,7 +122,11 @@ export default function RemindersPage() {
               These reminders have been marked as complete
             </p>
           </div>
-          <RemindersList reminderType="dismissed" />
+          <RemindersList
+            reminderType="dismissed"
+            reminders={dismissedReminders}
+            isLoading={isLoading}
+          />
         </TabsContent>
       </Tabs>
     </div>
