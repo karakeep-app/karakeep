@@ -28,7 +28,49 @@ interface ReminderCardProps {
   reminderType: "due" | "upcoming" | "dismissed";
 }
 
-function SlackStyleReminderBanner({
+// Color themes for different reminder states
+function getReminderTheme(reminderType: "due" | "upcoming" | "dismissed") {
+  switch (reminderType) {
+    case "due":
+      return {
+        // Red theme for urgent due reminders
+        cardBg: "bg-red-50 dark:bg-red-950/20",
+        cardBorder: "border-red-200 dark:border-red-900",
+        bannerBg: "bg-red-100/30 dark:bg-red-900/30",
+        dividerBorder: "border-red-200 dark:border-red-900/50",
+        textPrimary: "text-red-700 dark:text-red-300",
+        textSecondary: "text-red-600 dark:text-red-400",
+        buttonHover:
+          "text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200",
+      };
+    case "upcoming":
+      return {
+        // Blue theme for scheduled upcoming reminders
+        cardBg: "bg-blue-50 dark:bg-blue-950/20",
+        cardBorder: "border-blue-200 dark:border-blue-900",
+        bannerBg: "bg-blue-100/30 dark:bg-blue-900/30",
+        dividerBorder: "border-blue-200 dark:border-blue-900/50",
+        textPrimary: "text-blue-700 dark:text-blue-300",
+        textSecondary: "text-blue-600 dark:text-blue-400",
+        buttonHover:
+          "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200",
+      };
+    case "dismissed":
+      return {
+        // Gray theme for dismissed/completed reminders
+        cardBg: "bg-gray-50 dark:bg-gray-950/20",
+        cardBorder: "border-gray-200 dark:border-gray-700",
+        bannerBg: "bg-gray-100/30 dark:bg-gray-800/30",
+        dividerBorder: "border-gray-200 dark:border-gray-700/50",
+        textPrimary: "text-gray-700 dark:text-gray-300",
+        textSecondary: "text-gray-600 dark:text-gray-400",
+        buttonHover:
+          "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200",
+      };
+  }
+}
+
+function ReminderBanner({
   reminder,
   reminderType,
   onDismiss,
@@ -48,9 +90,14 @@ function SlackStyleReminderBanner({
     ? `${formatDistanceToNow(new Date(reminder.remindAt))} ago`
     : `in ${formatDistanceToNow(new Date(reminder.remindAt))}`;
 
+  const theme = getReminderTheme(reminderType);
+
   const getBannerText = () => {
     if (reminderType === "dismissed") {
       return "Dismissed reminder";
+    }
+    if (reminderType === "due") {
+      return "Due reminder";
     }
     return "Saved for later";
   };
@@ -62,15 +109,29 @@ function SlackStyleReminderBanner({
     return `Due ${timeText}`;
   };
 
+  const getEmoji = () => {
+    switch (reminderType) {
+      case "due":
+        return "🔥"; // Fire emoji for urgent
+      case "upcoming":
+        return "📌"; // Pin emoji for upcoming
+      case "dismissed":
+        return "✅"; // Check mark for completed
+    }
+  };
+
   return (
-    <div className="flex items-center justify-between bg-blue-50/50 px-3 py-1.5 text-sm dark:bg-blue-950/10">
-      <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-        <span className="text-base">📌</span>
+    <div
+      className={cn(
+        "flex items-center justify-between px-3 py-1.5 text-sm",
+        theme.bannerBg,
+      )}
+    >
+      <div className={cn("flex items-center gap-2", theme.textPrimary)}>
+        <span className="text-base">{getEmoji()}</span>
         <span className="font-medium">{getBannerText()}</span>
-        <span className="text-blue-600 dark:text-blue-400">•</span>
-        <span className="text-blue-600 dark:text-blue-400">
-          {getTimeText()}
-        </span>
+        <span className={theme.textSecondary}>•</span>
+        <span className={theme.textSecondary}>{getTimeText()}</span>
       </div>
 
       {/* Dropdown menu for actions */}
@@ -79,7 +140,7 @@ function SlackStyleReminderBanner({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 px-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+            className={cn("h-6 px-2", theme.buttonHover)}
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
@@ -216,11 +277,12 @@ export default function ReminderCard({
   }
 
   if (!bookmark) {
+    const theme = getReminderTheme(reminderType);
     return (
-      <Card className="mb-4 border-red-200">
+      <Card className={cn("mb-4", theme.cardBorder)}>
         <div className="p-4">
           <p className="mb-4 text-red-600">Bookmark not found or deleted</p>
-          <SlackStyleReminderBanner
+          <ReminderBanner
             reminder={reminder}
             reminderType={reminderType}
             onDismiss={handleDismiss}
@@ -233,18 +295,18 @@ export default function ReminderCard({
     );
   }
 
+  const theme = getReminderTheme(reminderType);
+
   return (
     <div className="mb-4">
-      {/* Wrapper with Slack-style light blue background */}
       <div
         className={cn(
           "overflow-hidden rounded-lg border",
-          "bg-blue-50 dark:bg-blue-950/20",
-          "border-blue-200 dark:border-blue-900",
+          theme.cardBg,
+          theme.cardBorder,
         )}
       >
-        {/* Slack-style inline reminder banner */}
-        <SlackStyleReminderBanner
+        <ReminderBanner
           reminder={reminder}
           reminderType={reminderType}
           onDismiss={handleDismiss}
@@ -252,12 +314,10 @@ export default function ReminderCard({
           onSnooze={handleSnooze}
           onDelete={handleDelete}
         />
+        
+        <div className={cn("border-t", theme.dividerBorder)} />
 
-        {/* Subtle divider */}
-        <div className="border-t border-blue-200 dark:border-blue-900/50" />
-
-        {/* The bookmark card with subtle background overlay */}
-        <div className="bg-white/70 dark:bg-gray-900/50">
+        <div>
           <ErrorBoundary
             key={bookmark.id}
             fallback={<UnknownCard bookmark={bookmark} />}
@@ -265,7 +325,7 @@ export default function ReminderCard({
             <BookmarkCard
               fixedLayout="list"
               bookmark={bookmark}
-              className="mb-0 border-0 duration-300 ease-in hover:shadow-lg hover:transition-all"
+              className="mb-0 border-0 bg-transparent duration-300 ease-in hover:shadow-lg hover:transition-all"
             />
           </ErrorBoundary>
         </div>
