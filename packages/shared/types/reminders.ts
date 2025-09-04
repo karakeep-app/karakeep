@@ -38,6 +38,7 @@ export const zGetRemindersRequestSchema = z.object({
   bookmarkId: z.string().optional(),
   status: z.enum(["active", "dismissed"]).optional(),
   reminderType: z.enum(["due", "upcoming", "dismissed"]).optional(),
+  clientTimestamp: z.number().int().min(0).optional(),
 });
 
 export type ZGetRemindersRequest = z.infer<typeof zGetRemindersRequestSchema>;
@@ -47,6 +48,14 @@ export const zGetRemindersResponseSchema = z.object({
 });
 
 export type ZGetRemindersResponse = z.infer<typeof zGetRemindersResponseSchema>;
+
+export const zGetRemindersCountsRequestSchema = z.object({
+  clientTimestamp: z.number().int().min(0).optional(),
+});
+
+export type ZGetRemindersCountsRequest = z.infer<
+  typeof zGetRemindersCountsRequestSchema
+>;
 
 export const zGetRemindersCountsResponseSchema = z.object({
   dueCount: z.number(),

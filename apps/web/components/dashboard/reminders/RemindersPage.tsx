@@ -7,8 +7,9 @@ import { api } from "@/lib/trpc";
 import RemindersList from "./RemindersList";
 
 export default function RemindersPage() {
-  const { data: groupedReminders } =
-    api.reminders.getRemindersCounts.useQuery();
+  const { data: groupedReminders } = api.reminders.getRemindersCounts.useQuery({
+    clientTimestamp: Date.now(),
+  });
 
   const dueCount = groupedReminders?.dueCount || 0;
   const upcomingCount = groupedReminders?.upcomingCount || 0;

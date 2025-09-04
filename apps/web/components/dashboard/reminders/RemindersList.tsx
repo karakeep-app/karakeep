@@ -16,6 +16,7 @@ export default function RemindersList({ reminderType }: RemindersListProps) {
   const { data: remindersData, isLoading } =
     api.reminders.getReminders.useQuery({
       reminderType,
+      clientTimestamp: Date.now(),
     });
 
   if (isLoading) {

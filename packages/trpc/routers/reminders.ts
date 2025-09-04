@@ -5,6 +5,7 @@ import { z } from "zod";
 import { bookmarkReminders, bookmarks } from "@karakeep/db/schema";
 import {
   zCreateReminderRequestSchema,
+  zGetRemindersCountsRequestSchema,
   zGetRemindersCountsResponseSchema,
   zGetRemindersRequestSchema,
   zReminderSchema,
@@ -171,7 +172,9 @@ export const remindersRouter = router({
 
       // Handle reminder type filtering for reminders page tabs
       if (input.reminderType) {
-        const now = new Date();
+        const now = input.clientTimestamp
+          ? new Date(input.clientTimestamp)
+          : new Date();
         switch (input.reminderType) {
           case "due":
             conditions.push(eq(bookmarkReminders.status, "active"));
@@ -299,9 +302,12 @@ export const remindersRouter = router({
 
   // Get all reminder counts in a single query
   getRemindersCounts: authedProcedure
+    .input(zGetRemindersCountsRequestSchema)
     .output(zGetRemindersCountsResponseSchema)
-    .query(async ({ ctx }) => {
-      const now = new Date();
+    .query(async ({ input, ctx }) => {
+      const now = input.clientTimestamp
+        ? new Date(input.clientTimestamp)
+        : new Date();
 
       // Fetch all reminders for the user with counts by category
       const allReminders = await ctx.db
