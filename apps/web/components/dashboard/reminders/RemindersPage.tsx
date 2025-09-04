@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/trpc";
@@ -8,22 +7,12 @@ import { api } from "@/lib/trpc";
 import RemindersList from "./RemindersList";
 
 export default function RemindersPage() {
-  // Fetch counts for each tab to show badges
-  const { data: dueReminders } = api.reminders.getReminders.useQuery({
-    reminderType: "due",
-  });
+  const { data: groupedReminders } =
+    api.reminders.getGroupedReminders.useQuery();
 
-  const { data: upcomingReminders } = api.reminders.getReminders.useQuery({
-    reminderType: "upcoming",
-  });
-
-  const { data: dismissedReminders } = api.reminders.getReminders.useQuery({
-    reminderType: "dismissed",
-  });
-
-  const dueCount = dueReminders?.reminders.length || 0;
-  const upcomingCount = upcomingReminders?.reminders.length || 0;
-  const dismissedCount = dismissedReminders?.reminders.length || 0;
+  const dueCount = groupedReminders?.dueCount || 0;
+  const upcomingCount = groupedReminders?.upcomingCount || 0;
+  const dismissedCount = groupedReminders?.dismissedCount || 0;
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8">

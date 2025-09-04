@@ -6,6 +6,7 @@ import { bookmarkReminders, bookmarks } from "@karakeep/db/schema";
 import {
   zCreateReminderRequestSchema,
   zGetRemindersRequestSchema,
+  zGetGroupedRemindersResponseSchema,
   zReminderSchema,
   zUpdateReminderRequestSchema,
 } from "@karakeep/shared/types/reminders";
@@ -13,6 +14,7 @@ import { getNextReminderTime } from "@karakeep/shared/utils/reminderTimeslotsUti
 
 import { authedProcedure, router } from "../index";
 import { ensureBookmarkOwnership } from "./bookmarks";
+
 
 export const remindersRouter = router({
   // Create or update a reminder for a bookmark (upsert behavior due to unique constraint)
@@ -306,6 +308,43 @@ export const remindersRouter = router({
         status: updatedReminder.status as "active" | "dismissed",
         createdAt: updatedReminder.createdAt,
         modifiedAt: updatedReminder.modifiedAt,
+      };
+    }),
+
+
+  // Get all reminder counts in a single query
+  getGroupedReminders: authedProcedure
+    .output(zGetGroupedRemindersResponseSchema)
+    .query(async ({ ctx }) => {
+      const now = new Date();
+
+      // Fetch all reminders for the user with counts by category
+      const allReminders = await ctx.db
+        .select({
+          remindAt: bookmarkReminders.remindAt,
+          status: bookmarkReminders.status,
+        })
+        .from(bookmarkReminders)
+        .innerJoin(bookmarks, eq(bookmarks.id, bookmarkReminders.bookmarkId))
+        .where(eq(bookmarks.userId, ctx.user.id));
+
+      // Count reminders by type
+      const dueCount = allReminders.filter(
+        r => r.status === "active" && r.remindAt < now
+      ).length;
+      
+      const upcomingCount = allReminders.filter(
+        r => r.status === "active" && r.remindAt >= now
+      ).length;
+      
+      const dismissedCount = allReminders.filter(
+        r => r.status === "dismissed"
+      ).length;
+
+      return {
+        dueCount,
+        upcomingCount,
+        dismissedCount,
       };
     }),
 });

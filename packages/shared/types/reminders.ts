@@ -47,3 +47,12 @@ export const zGetRemindersResponseSchema = z.object({
 });
 
 export type ZGetRemindersResponse = z.infer<typeof zGetRemindersResponseSchema>;
+
+// Response for getGroupedReminders - just returns counts for badge display  
+export const zGetGroupedRemindersResponseSchema = z.object({
+  dueCount: z.number(),
+  upcomingCount: z.number(),
+  dismissedCount: z.number(),
+});
+
+export type ZGetGroupedRemindersResponse = z.infer<typeof zGetGroupedRemindersResponseSchema>;
