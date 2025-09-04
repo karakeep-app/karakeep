@@ -3,35 +3,32 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
-import { Slot } from "@radix-ui/react-slot";
-import { format, formatDistanceToNow } from "date-fns";
-import { Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import { Clock, MoreHorizontal, RefreshCw, Trash2, X } from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
-import { b } from "vitest/dist/chunks/suite.d.FvehnV49.js";
 
 import type { ZReminder } from "@karakeep/shared/types/reminders";
 import { getNextReminderDescription } from "@karakeep/shared/utils/reminderTimeslotsUtils";
 
 import BookmarkCard from "../bookmarks/BookmarkCard";
-import BookmarksGrid from "../bookmarks/BookmarksGrid";
 import UnknownCard from "../bookmarks/UnknownCard";
-
-function StyledBookmarkCard({ children }: { children: React.ReactNode }) {
-  return (
-    <Slot className="mb-4 border border-border bg-card duration-300 ease-in hover:shadow-lg hover:transition-all">
-      {children}
-    </Slot>
-  );
-}
 
 interface ReminderCardProps {
   reminder: ZReminder;
   reminderType: "due" | "upcoming" | "dismissed";
 }
 
-function ReminderMetadata({
+function SlackStyleReminderBanner({
   reminder,
   reminderType,
   onDismiss,
@@ -51,44 +48,71 @@ function ReminderMetadata({
     ? `${formatDistanceToNow(new Date(reminder.remindAt))} ago`
     : `in ${formatDistanceToNow(new Date(reminder.remindAt))}`;
 
+  const getBannerText = () => {
+    if (reminderType === "dismissed") {
+      return "Dismissed reminder";
+    }
+    return "Saved for later";
+  };
+
+  const getTimeText = () => {
+    if (reminderType === "dismissed") {
+      return `Was due ${timeText}`;
+    }
+    return `Due ${timeText}`;
+  };
+
   return (
-    <div className="flex items-center justify-between rounded-t border border-b-0 border-border bg-muted/50 p-3">
-      <div className="flex items-center gap-2">
-        <Clock className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm font-medium">
-          {format(new Date(reminder.remindAt), "PPP 'at' p")}
+    <div className="flex items-center justify-between bg-blue-50/50 px-3 py-1.5 text-sm dark:bg-blue-950/10">
+      <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+        <span className="text-base">📌</span>
+        <span className="font-medium">{getBannerText()}</span>
+        <span className="text-blue-600 dark:text-blue-400">•</span>
+        <span className="text-blue-600 dark:text-blue-400">
+          {getTimeText()}
         </span>
-        <span className="text-sm text-muted-foreground">({timeText})</span>
       </div>
 
-      <div className="flex items-center gap-2">
-        {(reminderType === "due" || reminderType === "upcoming") && (
-          <Button size="sm" variant="outline" onClick={onDismiss}>
-            Dismiss
+      {/* Dropdown menu for actions */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+          >
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
-        )}
-
-        {reminderType === "due" && (
-          <Button size="sm" variant="outline" onClick={onSnooze}>
-            Snooze to {getNextReminderDescription()}
-          </Button>
-        )}
-
-        {reminderType === "dismissed" && (
-          <Button size="sm" variant="outline" onClick={onReactivate}>
-            Reactivate
-          </Button>
-        )}
-
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onDelete}
-          className="text-red-600 hover:text-red-800"
-        >
-          Delete reminder
-        </Button>
-      </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {(reminderType === "due" || reminderType === "upcoming") && (
+            <DropdownMenuItem onClick={onDismiss}>
+              <X className="mr-2 h-4 w-4" />
+              Dismiss
+            </DropdownMenuItem>
+          )}
+          {reminderType === "due" && (
+            <DropdownMenuItem onClick={onSnooze}>
+              <Clock className="mr-2 h-4 w-4" />
+              Snooze to {getNextReminderDescription()}
+            </DropdownMenuItem>
+          )}
+          {reminderType === "dismissed" && (
+            <DropdownMenuItem onClick={onReactivate}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Reactivate
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={onDelete}
+            className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-300"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete reminder
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
@@ -181,7 +205,7 @@ export default function ReminderCard({
 
   if (isLoading) {
     return (
-      <Card className="animate-pulse">
+      <Card className="mb-4 animate-pulse">
         <div className="p-4">
           <div className="mb-2 h-20 rounded bg-muted"></div>
           <div className="mb-2 h-4 w-3/4 rounded bg-muted"></div>
@@ -193,10 +217,10 @@ export default function ReminderCard({
 
   if (!bookmark) {
     return (
-      <Card className="border-red-200">
+      <Card className="mb-4 border-red-200">
         <div className="p-4">
           <p className="mb-4 text-red-600">Bookmark not found or deleted</p>
-          <ReminderMetadata
+          <SlackStyleReminderBanner
             reminder={reminder}
             reminderType={reminderType}
             onDismiss={handleDismiss}
@@ -211,26 +235,40 @@ export default function ReminderCard({
 
   return (
     <div className="mb-4">
-      {/* Reminder metadata at the top */}
-      <ReminderMetadata
-        reminder={reminder}
-        reminderType={reminderType}
-        onDismiss={handleDismiss}
-        onReactivate={handleReactivate}
-        onSnooze={handleSnooze}
-        onDelete={handleDelete}
-      />
+      {/* Wrapper with Slack-style light blue background */}
+      <div
+        className={cn(
+          "overflow-hidden rounded-lg border",
+          "bg-blue-50 dark:bg-blue-950/20",
+          "border-blue-200 dark:border-blue-900",
+        )}
+      >
+        {/* Slack-style inline reminder banner */}
+        <SlackStyleReminderBanner
+          reminder={reminder}
+          reminderType={reminderType}
+          onDismiss={handleDismiss}
+          onReactivate={handleReactivate}
+          onSnooze={handleSnooze}
+          onDelete={handleDelete}
+        />
 
-      {/* Use BookmarksGrid with a single bookmark - this will apply all the correct styling */}
-      <div className="grid grid-cols-1">
-        <ErrorBoundary
-          key={bookmark.id}
-          fallback={<UnknownCard bookmark={bookmark} />}
-        >
-          <StyledBookmarkCard>
-            <BookmarkCard fixedLayout="list" bookmark={bookmark} />
-          </StyledBookmarkCard>
-        </ErrorBoundary>
+        {/* Subtle divider */}
+        <div className="border-t border-blue-200 dark:border-blue-900/50" />
+
+        {/* The bookmark card with subtle background overlay */}
+        <div className="bg-white/70 dark:bg-gray-900/50">
+          <ErrorBoundary
+            key={bookmark.id}
+            fallback={<UnknownCard bookmark={bookmark} />}
+          >
+            <BookmarkCard
+              fixedLayout="list"
+              bookmark={bookmark}
+              className="mb-0 border-0 duration-300 ease-in hover:shadow-lg hover:transition-all"
+            />
+          </ErrorBoundary>
+        </div>
       </div>
     </div>
   );
