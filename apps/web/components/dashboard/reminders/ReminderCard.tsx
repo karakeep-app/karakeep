@@ -5,12 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
+import { Slot } from "@radix-ui/react-slot";
 import { format, formatDistanceToNow } from "date-fns";
 import { Clock } from "lucide-react";
+import { ErrorBoundary } from "react-error-boundary";
+import { b } from "vitest/dist/chunks/suite.d.FvehnV49.js";
 
 import type { ZReminder } from "@karakeep/shared/types/reminders";
 import { getNextReminderDescription } from "@karakeep/shared/utils/reminderTimeslotsUtils";
+
+import BookmarkCard from "../bookmarks/BookmarkCard";
 import BookmarksGrid from "../bookmarks/BookmarksGrid";
+import UnknownCard from "../bookmarks/UnknownCard";
+
+function StyledBookmarkCard({ children }: { children: React.ReactNode }) {
+  return (
+    <Slot className="mb-4 border border-border bg-card duration-300 ease-in hover:shadow-lg hover:transition-all">
+      {children}
+    </Slot>
+  );
+}
 
 interface ReminderCardProps {
   reminder: ZReminder;
@@ -208,8 +222,15 @@ export default function ReminderCard({
       />
 
       {/* Use BookmarksGrid with a single bookmark - this will apply all the correct styling */}
-      <div className="[&>*]:mb-0 [&>*]:rounded-t-none">
-        <BookmarksGrid bookmarks={[bookmark]} />
+      <div className="grid grid-cols-1">
+        <ErrorBoundary
+          key={bookmark.id}
+          fallback={<UnknownCard bookmark={bookmark} />}
+        >
+          <StyledBookmarkCard>
+            <BookmarkCard fixedLayout="list" bookmark={bookmark} />
+          </StyledBookmarkCard>
+        </ErrorBoundary>
       </div>
     </div>
   );
