@@ -314,7 +314,7 @@ export default function ReminderCard({
           onSnooze={handleSnooze}
           onDelete={handleDelete}
         />
-        
+
         <div className={cn("border-t", theme.dividerBorder)} />
 
         <div>

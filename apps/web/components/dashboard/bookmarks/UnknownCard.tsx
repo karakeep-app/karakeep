@@ -1,12 +1,12 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n/client";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { AlertCircle } from "lucide-react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
-import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 export default function UnknownCard({
   bookmark,

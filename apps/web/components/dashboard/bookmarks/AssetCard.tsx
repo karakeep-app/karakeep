@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
@@ -11,7 +12,6 @@ import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 import FooterLinkURL from "./FooterLinkURL";
-import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 function AssetImage({
   bookmark,

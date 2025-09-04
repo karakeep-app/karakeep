@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { useUserSettings } from "@/lib/userSettings";
 
 import type { ZBookmarkTypeLink } from "@karakeep/shared/types/bookmarks";
@@ -14,7 +15,6 @@ import {
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 import FooterLinkURL from "./FooterLinkURL";
-import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 const useOnClickUrl = (bookmark: ZBookmarkTypeLink) => {
   const userSettings = useUserSettings();
