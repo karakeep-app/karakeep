@@ -5,8 +5,8 @@ import { z } from "zod";
 import { bookmarkReminders, bookmarks } from "@karakeep/db/schema";
 import {
   zCreateReminderRequestSchema,
-  zGetRemindersRequestSchema,
   zGetGroupedRemindersResponseSchema,
+  zGetRemindersRequestSchema,
   zReminderSchema,
   zUpdateReminderRequestSchema,
 } from "@karakeep/shared/types/reminders";
@@ -14,7 +14,6 @@ import { getNextReminderTime } from "@karakeep/shared/utils/reminderTimeslotsUti
 
 import { authedProcedure, router } from "../index";
 import { ensureBookmarkOwnership } from "./bookmarks";
-
 
 export const remindersRouter = router({
   // Create or update a reminder for a bookmark (upsert behavior due to unique constraint)
@@ -311,7 +310,6 @@ export const remindersRouter = router({
       };
     }),
 
-
   // Get all reminder counts in a single query
   getGroupedReminders: authedProcedure
     .output(zGetGroupedRemindersResponseSchema)
@@ -330,15 +328,15 @@ export const remindersRouter = router({
 
       // Count reminders by type
       const dueCount = allReminders.filter(
-        r => r.status === "active" && r.remindAt < now
+        (r) => r.status === "active" && r.remindAt < now,
       ).length;
-      
+
       const upcomingCount = allReminders.filter(
-        r => r.status === "active" && r.remindAt >= now
+        (r) => r.status === "active" && r.remindAt >= now,
       ).length;
-      
+
       const dismissedCount = allReminders.filter(
-        r => r.status === "dismissed"
+        (r) => r.status === "dismissed",
       ).length;
 
       return {
