@@ -5,9 +5,9 @@ import { Maximize2 } from "lucide-react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-import RemindMeButton from "./RemindMeButton";
 import BookmarkOptions from "./BookmarkOptions";
 import { FavouritedActionIcon } from "./icons";
+import RemindMeButton from "./RemindMeButton";
 
 export default function BookmarkActionBar({
   bookmark,

@@ -254,6 +254,7 @@ export default function ReminderCard({
   const handleSnooze = () => {
     snoozeReminderMutation.mutate({
       reminderId: reminder.id,
+      clientTimestamp: Date.now(),
     });
   };
 

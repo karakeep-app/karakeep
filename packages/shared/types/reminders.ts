@@ -20,11 +20,15 @@ export type ZCreateReminderRequest = z.infer<
   typeof zCreateReminderRequestSchema
 >;
 
-export const zUpdateReminderRequestSchema = z.object({
-  reminderId: z.string(),
-  remindAt: z.date().optional(),
-  status: z.enum(["active", "dismissed"]).optional(),
-});
+export const zUpdateReminderRequestSchema = z
+  .object({
+    reminderId: z.string(),
+    remindAt: z.date().optional(),
+    status: z.enum(["active", "dismissed"]).optional(),
+  })
+  .refine((data) => data.remindAt !== undefined || data.status !== undefined, {
+    message: "Must provide at least one field to update (remindAt or status)",
+  });
 
 export type ZUpdateReminderRequest = z.infer<
   typeof zUpdateReminderRequestSchema

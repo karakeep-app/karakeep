@@ -263,7 +263,12 @@ export const remindersRouter = router({
 
   // Snooze a reminder to the next logical time slot
   snoozeReminder: authedProcedure
-    .input(z.object({ reminderId: z.string() }))
+    .input(
+      z.object({
+        reminderId: z.string(),
+        clientTimestamp: z.number().int().min(0), // Just ensure it's a positive integer timestamp
+      }),
+    )
     .output(zReminderSchema)
     .mutation(async ({ input, ctx }) => {
       // First get the reminder and verify ownership through bookmark
@@ -288,8 +293,9 @@ export const remindersRouter = router({
         });
       }
 
-      // Calculate the next logical reminder time
-      const nextReminderTime = getNextReminderTime();
+      // Calculate the next logical reminder time using client timestamp
+      const clientTime = new Date(input.clientTimestamp);
+      const nextReminderTime = getNextReminderTime(clientTime);
 
       const [updatedReminder] = await ctx.db
         .update(bookmarkReminders)
