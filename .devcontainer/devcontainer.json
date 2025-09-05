@@ -1,0 +1,22 @@
+{
+  "runArgs": ["--device=/dev/net/tun"],
+  "features": {
+    "ghcr.io/tailscale/codespace/tailscale": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false
+      },
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "Anthropic.claude-code",
+        "oxc.oxc-vscode"
+      ]
+    }
+  }
+}

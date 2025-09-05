@@ -25,6 +25,7 @@ fi
 # Start Meilisearch if not already running
 if ! port_in_use 7700; then
     echo "Starting Meilisearch..."
+    docker pull getmeili/meilisearch:v1.13.3
     docker run -d -p 7700:7700 --name karakeep-meilisearch getmeili/meilisearch:v1.13.3
 else
     echo "Meilisearch is already running on port 7700"
@@ -33,7 +34,8 @@ fi
 # Start Chrome if not already running
 if ! port_in_use 9222; then
     echo "Starting headless Chrome..."
-    docker run -d -p 9222:9222 --name karakeep-chrome gcr.io/zenika-hub/alpine-chrome:123 \
+    docker pull gcr.io/zenika-hub/alpine-chrome:124
+    docker run -d -p 9222:9222 --name karakeep-chrome gcr.io/zenika-hub/alpine-chrome:124 \
         --no-sandbox \
         --disable-gpu \
         --disable-dev-shm-usage \
