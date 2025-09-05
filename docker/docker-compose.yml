@@ -35,7 +35,7 @@ services:
     env_file:
       - .env
     environment:
-      MEILI_NO_ANALYTICS: "true"
+      MEILI_NO_ANALYTICS:true
     volumes:
       - meilisearch:/meili_data
 
