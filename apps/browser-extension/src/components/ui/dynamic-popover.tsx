@@ -27,7 +27,9 @@ const DynamicPopoverContent = React.forwardRef<
     ref,
   ) => {
     const contentRef = React.useRef<HTMLDivElement>(null);
-    const [heightClass, setHeightClass] = React.useState<string>("");
+    const [heightClass, setHeightClass] = React.useState<string>(
+      "max-h-[var(--radix-popover-content-available-height)]",
+    );
 
     React.useEffect(() => {
       if (!dynamicHeight || !contentRef.current) return;
@@ -47,8 +49,6 @@ const DynamicPopoverContent = React.forwardRef<
       // Otherwise, use max-height to allow natural sizing
       if (contentHeight > availableHeight) {
         setHeightClass("h-[var(--radix-popover-content-available-height)]");
-      } else {
-        setHeightClass("max-h-[var(--radix-popover-content-available-height)]");
       }
     }, [dynamicHeight, props.children]);
 
@@ -71,7 +71,7 @@ const DynamicPopoverContent = React.forwardRef<
           align={align}
           sideOffset={sideOffset}
           className={cn(
-            "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+            "z-50 w-72 overflow-y-auto rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out  data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
             heightClasses,
             className,
           )}
