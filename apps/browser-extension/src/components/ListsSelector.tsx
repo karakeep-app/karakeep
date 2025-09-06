@@ -19,7 +19,8 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { DynamicPopoverContent } from "./ui/dynamic-popover";
+import { Popover, PopoverTrigger } from "./ui/popover";
 
 export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
   const currentlyUpdating = useSet<string>();
@@ -67,7 +68,7 @@ export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="h-[var(--radix-popover-content-available-height)] w-[320px] p-0">
+      <DynamicPopoverContent className="w-[320px] p-0">
         <Command>
           <CommandInput placeholder="Search Lists ..." />
           <CommandList>
@@ -101,7 +102,7 @@ export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
+      </DynamicPopoverContent>
     </Popover>
   );
 }
