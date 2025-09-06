@@ -64,7 +64,7 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[320px] p-0">
+      <PopoverContent className="h-[var(--radix-popover-content-available-height)] w-[320px] p-0">
         <Command>
           <CommandInput
             value={input}
