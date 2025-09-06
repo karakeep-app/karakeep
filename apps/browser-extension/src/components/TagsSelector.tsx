@@ -16,6 +16,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "./ui/command";
 import { DynamicPopoverContent } from "./ui/dynamic-popover";
 import { Popover, PopoverTrigger } from "./ui/popover";
@@ -74,6 +75,21 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
           />
           <CommandList>
             <CommandGroup>
+              <CommandItem
+                onSelect={() =>
+                  mutate({
+                    bookmarkId,
+                    attach: [{ tagName: input }],
+                    detach: [],
+                  })
+                }
+              >
+                <Plus className="mr-2 size-4" />
+                Create &quot;{input}&quot; ...
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup>
               {allTags?.tags
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((tag) => (
@@ -95,20 +111,6 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
                     {tag.name}
                   </CommandItem>
                 ))}
-            </CommandGroup>
-            <CommandGroup>
-              <CommandItem
-                onSelect={() =>
-                  mutate({
-                    bookmarkId,
-                    attach: [{ tagName: input }],
-                    detach: [],
-                  })
-                }
-              >
-                <Plus className="mr-2 size-4" />
-                Create &quot;{input}&quot; ...
-              </CommandItem>
             </CommandGroup>
           </CommandList>
         </Command>
