@@ -9,16 +9,33 @@ import {
 
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
+import usePluginSettings from "./utils/settings";
 import { api } from "./utils/trpc";
 
 export default function SavePage() {
   const [error, setError] = useState<string | undefined>(undefined);
+  const { settings } = usePluginSettings();
+
+  const { mutate: addToList } = api.lists.addToList.useMutation({
+    onError: (e) => {
+      setError("Failed to add to default list: " + e.message);
+    },
+  });
 
   const {
     data,
     mutate: createBookmark,
     status,
   } = api.bookmarks.createBookmark.useMutation({
+    onSuccess: (bookmark) => {
+      // If user has a default list configured, automatically add the bookmark to it
+      if (settings.defaultListId && !bookmark.alreadyExists) {
+        addToList({
+          bookmarkId: bookmark.id,
+          listId: settings.defaultListId,
+        });
+      }
+    },
     onError: (e) => {
       setError("Something went wrong: " + e.message);
     },

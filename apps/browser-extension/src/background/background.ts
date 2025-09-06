@@ -13,17 +13,27 @@ import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol.ts";
 const OPEN_KARAKEEP_ID = "open-karakeep";
 const ADD_LINK_TO_KARAKEEP_ID = "add-link";
 
-function checkSettingsState(settings: Settings) {
+let isRegistering = false;
+
+async function checkSettingsState(settings: Settings) {
   if (settings?.address) {
-    registerContextMenus();
+    await registerContextMenus();
   } else {
-    removeContextMenus();
+    await removeContextMenus();
   }
 }
 
-function removeContextMenus() {
-  chrome.contextMenus.remove(OPEN_KARAKEEP_ID);
-  chrome.contextMenus.remove(ADD_LINK_TO_KARAKEEP_ID);
+function removeContextMenus(): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.contextMenus.removeAll(() => {
+      // Clear all context menus to avoid any conflicts
+      if (chrome.runtime.lastError) {
+        // Ignore errors when removing non-existent menu items
+      }
+      // Add a small delay to ensure removal is fully processed
+      setTimeout(resolve, 10);
+    });
+  });
 }
 
 /**
@@ -31,17 +41,63 @@ function removeContextMenus() {
  * * a context menu button to open a tab with the currently configured karakeep instance
  * * a context menu button to add a link to karakeep without loading the page
  */
-function registerContextMenus() {
-  chrome.contextMenus.create({
-    id: OPEN_KARAKEEP_ID,
-    title: "Open Karakeep",
-    contexts: ["action"],
-  });
-  chrome.contextMenus.create({
-    id: ADD_LINK_TO_KARAKEEP_ID,
-    title: "Add to Karakeep",
-    contexts: ["link", "page", "selection", "image"],
-  });
+async function registerContextMenus() {
+  if (isRegistering) {
+    console.log("Already registering context menus, skipping...");
+    return;
+  }
+
+  isRegistering = true;
+  console.log("Registering context menus...");
+
+  try {
+    // First remove any existing menus to avoid duplicates
+    await removeContextMenus();
+    console.log("Context menus removed, creating new ones...");
+
+    // Then create the new ones
+    // Create "Open Karakeep" menu item that appears on pages
+    chrome.contextMenus.create(
+      {
+        id: OPEN_KARAKEEP_ID,
+        title: "Open Karakeep",
+        contexts: ["page"],
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to create Open Karakeep menu:",
+            chrome.runtime.lastError.message,
+          );
+        } else {
+          console.log("Successfully created Open Karakeep menu");
+        }
+      },
+    );
+
+    chrome.contextMenus.create(
+      {
+        id: ADD_LINK_TO_KARAKEEP_ID,
+        title: "Add to Karakeep",
+        contexts: ["link", "page", "selection", "image"],
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Failed to create Add to Karakeep menu:",
+            chrome.runtime.lastError.message,
+          );
+        } else {
+          console.log("Successfully created Add to Karakeep menu");
+        }
+      },
+    );
+  } finally {
+    // Reset the flag after a delay to allow for future registrations
+    setTimeout(() => {
+      isRegistering = false;
+    }, 1000);
+  }
 }
 
 /**
@@ -95,11 +151,11 @@ function addLinkToKarakeep({
 }
 
 getPluginSettings().then((settings: Settings) => {
-  checkSettingsState(settings);
+  checkSettingsState(settings).catch(console.error);
 });
 
 subscribeToSettingsChanges((settings) => {
-  checkSettingsState(settings);
+  checkSettingsState(settings).catch(console.error);
 });
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Manifest V3 allows async functions for all callbacks

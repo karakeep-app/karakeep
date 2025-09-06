@@ -5,11 +5,13 @@ const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
+  defaultListId: z.string().optional(),
 });
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
+  defaultListId: undefined,
 };
 
 export type Settings = z.infer<typeof zSettingsSchema>;
