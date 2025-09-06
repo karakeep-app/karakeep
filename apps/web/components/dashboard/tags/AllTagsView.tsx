@@ -1,10 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { ActionButton } from "@/components/ui/action-button";
-import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,62 +9,62 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import InfoTooltip from "@/components/ui/info-tooltip";
 import { Toggle } from "@/components/ui/toggle";
-import { toast } from "@/components/ui/use-toast";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { ArrowDownAZ, Combine, Tag } from "lucide-react";
 
 import type { ZGetTagResponse, ZTagBasic } from "@karakeep/shared/types/tags";
-import { useDeleteUnusedTags } from "@karakeep/shared-react/hooks/tags";
 
 import BulkTagAction from "./BulkTagAction";
+import { DeleteAllUnusedTags } from "./DeleteAllUnusedTags";
 import DeleteTagConfirmationDialog from "./DeleteTagConfirmationDialog";
 import { MultiTagSelector } from "./MultiTagSelector";
 import { TagPill } from "./TagPill";
 
-function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
-  const { t } = useTranslation();
-  const { mutate, isPending } = useDeleteUnusedTags({
-    onSuccess: () => {
-      toast({
-        description: `Deleted all ${numUnusedTags} unused tags`,
-      });
-    },
-    onError: () => {
-      toast({
-        description: "Something went wrong",
-        variant: "destructive",
-      });
-    },
-  });
-  return (
-    <ActionConfirmingDialog
-      title={t("tags.delete_all_unused_tags")}
-      description={`Are you sure you want to delete the ${numUnusedTags} unused tags?`}
-      actionButton={() => (
-        <ActionButton
-          variant="destructive"
-          loading={isPending}
-          onClick={() => mutate()}
-        >
-          DELETE THEM ALL
-        </ActionButton>
-      )}
-    >
-      <Button variant="destructive" disabled={numUnusedTags == 0}>
-        {t("tags.delete_all_unused_tags")}
-      </Button>
-    </ActionConfirmingDialog>
-  );
-}
+export const tagsToPill = (
+  tags: ZGetTagResponse[],
+  bulkEditEnabled: boolean,
+  draggingEnabled: boolean,
+  handleOpenDialog: (tag: ZTagBasic) => void,
+) => {
+  let tagPill;
+  if (tags.length) {
+    tagPill = (
+      <div className="flex flex-wrap gap-3">
+        {tags.map((t) =>
+          bulkEditEnabled ? (
+            <MultiTagSelector
+              key={t.id}
+              id={t.id}
+              name={t.name}
+              count={t.numBookmarks}
+            />
+          ) : (
+            <TagPill
+              key={t.id}
+              id={t.id}
+              name={t.name}
+              count={t.numBookmarks}
+              isDraggable={draggingEnabled}
+              onOpenDialog={handleOpenDialog}
+            />
+          ),
+        )}
+      </div>
+    );
+  } else {
+    tagPill = (
+      <div className="py-8 text-center">
+        <Tag className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+        <p className="mb-4 text-gray-500">No custom tags yet</p>
+      </div>
+    );
+  }
+  return tagPill;
+};
 
 const byUsageSorter = (a: ZGetTagResponse, b: ZGetTagResponse) => {
   // Sort by name if the usage is the same to get a stable result
@@ -85,11 +82,11 @@ export default function AllTagsView({
   initialData: ZGetTagResponse[];
 }) {
   const { t } = useTranslation();
-  const [draggingEnabled, setDraggingEnabled] = React.useState(false);
-  const [sortByName, setSortByName] = React.useState(false);
+  const [draggingEnabled, setDraggingEnabled] = useState(false);
+  const [sortByName, setSortByName] = useState(false);
 
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [selectedTag, setSelectedTag] = React.useState<ZTagBasic | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<ZTagBasic | null>(null);
 
   const { setVisibleTagIds, isBulkEditEnabled } = useBulkTagActionsStore();
 
@@ -131,53 +128,17 @@ export default function AllTagsView({
   );
   const emptyTags = allTags.filter((t) => t.numBookmarks === 0);
 
-  const tagsToPill = (tags: typeof allTags, bulkEditEnabled: boolean) => {
-    let tagPill;
-    if (tags.length) {
-      tagPill = (
-        <div className="flex flex-wrap gap-3">
-          {tags.map((t) =>
-            bulkEditEnabled ? (
-              <MultiTagSelector
-                key={t.id}
-                id={t.id}
-                name={t.name}
-                count={t.numBookmarks}
-              />
-            ) : (
-              <TagPill
-                key={t.id}
-                id={t.id}
-                name={t.name}
-                count={t.numBookmarks}
-                isDraggable={draggingEnabled}
-                onOpenDialog={handleOpenDialog}
-              />
-            ),
-          )}
-        </div>
-      );
-    } else {
-      tagPill = (
-        <div className="py-8 text-center">
-          <Tag className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <p className="mb-4 text-gray-500">No custom tags yet</p>
-        </div>
-      );
-    }
-    return tagPill;
-  };
   return (
     <div className="flex flex-col gap-4">
       {selectedTag && (
         <DeleteTagConfirmationDialog
           tag={selectedTag}
           open={isDialogOpen}
-          setOpen={(o) => {
-            if (!o) {
+          setOpen={(isOpen) => {
+            if (!isOpen) {
               setSelectedTag(null);
             }
-            setIsDialogOpen(o);
+            setIsDialogOpen(isOpen);
           }}
         />
       )}
@@ -218,7 +179,14 @@ export default function AllTagsView({
           </CardTitle>
           <CardDescription>{t("tags.your_tags_info")}</CardDescription>
         </CardHeader>
-        <CardContent>{tagsToPill(humanTags, isBulkEditEnabled)}</CardContent>
+        <CardContent>
+          {tagsToPill(
+            humanTags,
+            isBulkEditEnabled,
+            draggingEnabled,
+            handleOpenDialog,
+          )}
+        </CardContent>
       </Card>
       <Card>
         <CardHeader>
@@ -228,33 +196,22 @@ export default function AllTagsView({
           </CardTitle>
           <CardDescription>{t("tags.ai_tags_info")}</CardDescription>
         </CardHeader>
-        <CardContent>{tagsToPill(aiTags, isBulkEditEnabled)}</CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("tags.unused_tags")}</CardTitle>
-          <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
-        </CardHeader>
         <CardContent>
-          <Collapsible>
-            <div className="space-x-1 pb-2">
-              <CollapsibleTrigger asChild>
-                <Button variant="secondary" disabled={emptyTags.length == 0}>
-                  {emptyTags.length > 0
-                    ? `Show ${emptyTags.length} unused tags`
-                    : "You don't have any unused tags"}
-                </Button>
-              </CollapsibleTrigger>
-              {emptyTags.length > 0 && (
-                <DeleteAllUnusedTags numUnusedTags={emptyTags.length} />
-              )}
-            </div>
-            <CollapsibleContent>
-              {tagsToPill(emptyTags, isBulkEditEnabled)}
-            </CollapsibleContent>
-          </Collapsible>
+          {tagsToPill(
+            aiTags,
+            isBulkEditEnabled,
+            draggingEnabled,
+            handleOpenDialog,
+          )}
         </CardContent>
       </Card>
+
+      <DeleteAllUnusedTags
+        emptyTags={emptyTags}
+        isBulkEditEnabled={isBulkEditEnabled}
+        draggingEnabled={draggingEnabled}
+        handleOpenDialog={handleOpenDialog}
+      />
     </div>
   );
 }
