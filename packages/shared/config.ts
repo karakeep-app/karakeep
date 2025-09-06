@@ -20,6 +20,24 @@ const allEnv = z.object({
   PORT: z.coerce.number().default(3000),
   WORKERS_HOST: z.string().default("127.0.0.1"),
   WORKERS_PORT: z.coerce.number().default(0),
+  WORKERS_ENABLED_WORKERS: z
+    .string()
+    .default("")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((w) => w.trim())
+        .filter((w) => w),
+    ),
+  WORKERS_DISABLED_WORKERS: z
+    .string()
+    .default("")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((w) => w.trim())
+        .filter((w) => w),
+    ),
   API_URL: z.string().url().default("http://localhost:3000"),
   NEXTAUTH_URL: z
     .string()
@@ -153,6 +171,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     workers: {
       host: val.WORKERS_HOST,
       port: val.WORKERS_PORT,
+      enabledWorkers: val.WORKERS_ENABLED_WORKERS,
+      disabledWorkers: val.WORKERS_DISABLED_WORKERS,
     },
     apiUrl: val.API_URL,
     publicUrl: val.NEXTAUTH_URL,
