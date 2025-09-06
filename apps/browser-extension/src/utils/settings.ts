@@ -5,7 +5,7 @@ const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
-  theme: z.enum(["light", "dark", "system"]).default("system").optional(),
+  theme: z.enum(["light", "dark", "system"]).default("system"),
 });
 
 const DEFAULT_SETTINGS: Settings = {
