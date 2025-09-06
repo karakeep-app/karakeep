@@ -93,7 +93,6 @@ export function DateTimePicker({
             mode="single"
             selected={selectedDate}
             onSelect={handleDateSelect}
-            initialFocus
             disabled={(date) =>
               date < new Date(new Date().setHours(0, 0, 0, 0))
             }
@@ -113,7 +112,7 @@ export function DateTimePicker({
                       handleTimeChange(val, minute);
                     }
                   }}
-                  className="w-14 text-center"
+                  className="w-[4.8rem] text-center"
                   placeholder="HH"
                 />
                 <span className="text-muted-foreground">:</span>
@@ -128,7 +127,7 @@ export function DateTimePicker({
                       handleTimeChange(hour, val);
                     }
                   }}
-                  className="w-14 text-center"
+                  className="w-[4.8rem] text-center"
                   placeholder="MM"
                 />
               </div>
