@@ -28,6 +28,7 @@ interface Props {
   className?: string;
   fitHeight?: boolean;
   wrapTags: boolean;
+  fixedLayout?: BookmarksLayoutTypes;
 }
 
 function BottomRow({
@@ -242,7 +243,9 @@ function CompactView({ bookmark, title, footer, className }: Props) {
 }
 
 export function BookmarkLayoutAdaptingCard(props: Props) {
-  const layout = useBookmarkLayout();
+  const userSettingLayout = useBookmarkLayout();
+
+  const layout = props.fixedLayout ?? userSettingLayout;
 
   return bookmarkLayoutSwitch(layout, {
     masonry: <GridView layout={layout} {...props} />,
