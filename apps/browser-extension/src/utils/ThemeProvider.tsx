@@ -27,19 +27,34 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove("light", "dark");
+    const updateIcon = (useDarkModeIcons: boolean) => {
+      const iconSuffix = useDarkModeIcons ? "-darkmode.png" : ".png";
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
+      const iconPaths = {
+        "16": `logo-16${iconSuffix}`,
+        "48": `logo-48${iconSuffix}`,
+        "128": `logo-128${iconSuffix}`,
+      };
+      chrome.action.setIcon({ path: iconPaths });
+    };
 
-      root.classList.add(systemTheme);
-      return;
-    }
+    const applyThemeAndIcon = () => {
+      root.classList.remove("light", "dark");
 
-    root.classList.add(theme);
+      let currentTheme: "light" | "dark";
+      if (theme === "system") {
+        currentTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      } else {
+        currentTheme = theme;
+      }
+
+      root.classList.add(currentTheme);
+      updateIcon(currentTheme === "dark");
+    };
+
+    applyThemeAndIcon();
   }, [theme]);
 
   const value = {
