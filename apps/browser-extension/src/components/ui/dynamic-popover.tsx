@@ -31,7 +31,7 @@ const DynamicPopoverContent = React.forwardRef<
       "max-h-[var(--radix-popover-content-available-height)]",
     );
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
       if (!dynamicHeight || !contentRef.current) return;
 
       // Get the available height from CSS variable provided by Radix UI
