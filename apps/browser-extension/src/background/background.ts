@@ -94,12 +94,43 @@ function addLinkToKarakeep({
   }
 }
 
+/**
+ * Updates the browser action icon based on the selected theme.
+ * @param theme The current theme setting ('light', 'dark', or 'system').
+ */
+async function updateIcon(theme: Settings["theme"]): Promise<void> {
+  try {
+    // Determine if the dark mode icons should be used.
+    const useDarkModeIcons =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    // Based on the original logic:
+    // Light mode UI (useDarkModeIcons = true) -> 'logo-XX.png'
+    // Dark mode UI (useDarkModeIcons = false) -> 'logo-XX-darkmode.png'
+    const iconSuffix = useDarkModeIcons ? "-darkmode.png" : ".png";
+
+    const iconPaths = {
+      "16": `logo-16${iconSuffix}`,
+      "48": `logo-48${iconSuffix}`,
+      "128": `logo-128${iconSuffix}`,
+    };
+
+    await chrome.action.setIcon({ path: iconPaths });
+  } catch (error) {
+    console.error("Failed to update browser action icon:", error);
+  }
+}
+
 getPluginSettings().then((settings: Settings) => {
   checkSettingsState(settings);
+  updateIcon(settings.theme);
 });
 
 subscribeToSettingsChanges((settings) => {
   checkSettingsState(settings);
+  updateIcon(settings.theme);
 });
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Manifest V3 allows async functions for all callbacks
