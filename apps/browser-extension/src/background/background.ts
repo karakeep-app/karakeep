@@ -184,11 +184,11 @@ async function searchCurrentUrl(tabUrl?: string) {
     const serverAddress = settings.address;
 
     const status = await getBadgeStatus(tabUrl);
-    const exactMatch = status?.exactMatch;
+    const matchedBookmark = status?.exactMatch ?? status?.partialMatch;
     let targetUrl: string;
-    if (exactMatch) {
+    if (matchedBookmark) {
       // Found exact match, open bookmark details page
-      targetUrl = `${serverAddress}/dashboard/preview/${exactMatch.id}`;
+      targetUrl = `${serverAddress}/dashboard/preview/${matchedBookmark.id}`;
       console.log("Opening bookmark details page:", targetUrl);
     } else {
       // No exact match, open search results page
