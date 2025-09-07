@@ -56,7 +56,7 @@ export async function getBadgeStatus(url: string): Promise<BadgeStatus | null> {
   if (!useBadgeCache) return fetchBadgeStatus(url);
 
   const queryClient = await getQueryClient();
-  if (!queryClient) return null;
+  if (!queryClient) return fetchBadgeStatus(url);
 
   return await queryClient.fetchQuery({
     queryKey: ["badgeStatus", url],
