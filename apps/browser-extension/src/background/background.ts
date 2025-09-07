@@ -44,7 +44,11 @@ async function checkSettingsState(settings: Settings) {
  * Remove context menus from the browser.
  */
 function removeContextMenus() {
-  chrome.contextMenus.removeAll();
+  try {
+    chrome.contextMenus.removeAll();
+  } catch (error) {
+    console.error("Failed to remove context menus:", error);
+  }
 }
 
 /**
@@ -341,9 +345,7 @@ async function checkAndUpdateIcon(tabId: number) {
 
   try {
     const status = await getBadgeStatus(tabInfo.url);
-    if (status) {
-      await setBadge(status, tabId);
-    }
+    await setBadge(status, tabId);
   } catch (error) {
     console.error("Archive check failed:", error);
     await setBadge(null, tabId);

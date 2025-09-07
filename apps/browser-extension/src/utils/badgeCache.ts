@@ -4,7 +4,7 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getPluginSettings } from "./settings";
 import { getApiClient, getQueryClient } from "./trpc";
 import { BadgeMatchType } from "./type.ts";
-import { urlsMatchIgnoringAnchorAndTrailingSlash } from "./url.ts";
+import { urlsMatchIgnoringAnchorAndTrailingSlash } from "./url";
 
 const EMPTY_BADGE_STATUS: BadgeStatus = {
   count: 0,
@@ -55,7 +55,7 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
       };
     }
 
-    // If there is no exact match, check the deanstation point match
+    // If there is no exact match, check an anchor/trailing-slash-insensitive match
     const partialMatch =
       bookmarks.find(
         (b) =>
@@ -71,7 +71,7 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
       };
     }
 
-    // Not any match
+    // No match
     return {
       count: bookmarksLength,
       matchType: BadgeMatchType.NONE,
@@ -88,7 +88,7 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
  * Get badge status for a URL using the SWR cache.
  * @param url The URL to get the status for.
  */
-export async function getBadgeStatus(url: string): Promise<BadgeStatus | null> {
+export async function getBadgeStatus(url: string): Promise<BadgeStatus> {
   const { useBadgeCache } = await getPluginSettings();
   if (!useBadgeCache) return fetchBadgeStatus(url);
 
