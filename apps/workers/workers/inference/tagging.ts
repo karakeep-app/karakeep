@@ -15,7 +15,7 @@ import {
   customPrompts,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { readAsset } from "@karakeep/shared/assetdb";
+import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
@@ -122,7 +122,7 @@ async function inferTagsFromImage(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
-) {
+): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
     assetId: bookmark.asset.assetId,
@@ -132,6 +132,12 @@ async function inferTagsFromImage(
     throw new Error(
       `[inference][${jobId}] AssetId ${bookmark.asset.assetId} for bookmark ${bookmark.id} not found`,
     );
+  }
+  if (metadata.contentType === ASSET_TYPES.IMAGE_GIF) {
+    logger.info(
+      `[inference][${jobId}] Skipping inference for bookmark with id "${bookmark.id}" because it's a GIF.`,
+    );
+    return null;
   }
 
   const base64 = asset.toString("base64");

@@ -21,6 +21,7 @@ import { QuotaApproved } from "./storageQuota";
 const ROOT_PATH = serverConfig.assetsDir;
 
 export const enum ASSET_TYPES {
+  IMAGE_GIF = "image/gif",
   IMAGE_JPEG = "image/jpeg",
   IMAGE_PNG = "image/png",
   IMAGE_WEBP = "image/webp",
@@ -39,6 +40,7 @@ export const VIDEO_ASSET_TYPES: Set<string> = new Set<string>([
 ]);
 
 export const IMAGE_ASSET_TYPES: Set<string> = new Set<string>([
+  ASSET_TYPES.IMAGE_GIF,
   ASSET_TYPES.IMAGE_JPEG,
   ASSET_TYPES.IMAGE_PNG,
   ASSET_TYPES.IMAGE_WEBP,
