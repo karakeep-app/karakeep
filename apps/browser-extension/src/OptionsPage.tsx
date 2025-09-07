@@ -3,17 +3,26 @@ import { useNavigate } from "react-router-dom";
 
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select";
 import { Switch } from "./components/ui/switch";
 import Logo from "./Logo";
 import Spinner from "./Spinner";
 import usePluginSettings, {
   DEFAULT_BADGE_CACHE_EXPIRE_MS,
 } from "./utils/settings";
+import { useTheme } from "./utils/ThemeProvider";
 import { api } from "./utils/trpc";
 
 export default function OptionsPage() {
   const navigate = useNavigate();
   const { settings, setSettings } = usePluginSettings();
+  const { setTheme, theme } = useTheme();
 
   const { data: whoami, error: whoAmIError } = api.users.whoami.useQuery(
     undefined,
@@ -113,6 +122,19 @@ export default function OptionsPage() {
       <div className="flex gap-2">
         <span className="my-auto">Logged in as:</span>
         {loggedInMessage}
+      </div>
+      <div className="flex gap-2">
+        <span className="my-auto">Theme:</span>
+        <Select value={theme} onValueChange={setTheme}>
+          <SelectTrigger className="w-24">
+            <SelectValue placeholder="Theme" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="light">Light</SelectItem>
+            <SelectItem value="dark">Dark</SelectItem>
+            <SelectItem value="system">System</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <Button onClick={onLogout}>Logout</Button>
     </div>

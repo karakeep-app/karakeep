@@ -7,6 +7,7 @@ import { workerStatsCounter } from "metrics";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
+import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   newAssetId,
@@ -20,10 +21,6 @@ import {
   ZVideoRequest,
   zvideoRequestSchema,
 } from "@karakeep/shared/queues";
-import {
-  checkStorageQuota,
-  StorageQuotaError,
-} from "@karakeep/trpc/lib/storageQuota";
 
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
@@ -148,7 +145,11 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const fileSize = stats.size;
 
   try {
-    const quotaApproved = await checkStorageQuota(db, userId, fileSize);
+    const quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      userId,
+      fileSize,
+    );
 
     await saveAssetFromFile({
       userId,

@@ -80,7 +80,8 @@
       "relevant_first": "Najbardziej trafne na początku"
     },
     "open_editor": "Otwórz edytor",
-    "toggle_show_archived": "Pokaż zarchiwizowane"
+    "toggle_show_archived": "Pokaż zarchiwizowane",
+    "confirm": "Potwierdź"
   },
   "settings": {
     "info": {
@@ -333,7 +334,71 @@
       "feed_jobs": "Praca z kanałem RSS",
       "webhook_jobs": "Zadania Webhook",
       "asset_preprocessing_jobs": "Zadania przetwarzania zasobów",
-      "video_jobs": "Zadania pobierania wideo"
+      "video_jobs": "Zadania pobierania wideo",
+      "jobs": {
+        "crawler": {
+          "title": "Zadania Crawlera",
+          "description": "Web crawling i wyciąganie treści z URL-i"
+        },
+        "inference": {
+          "title": "Zadania wnioskowania",
+          "description": "Tagowanie i podsumowywanie treści przy użyciu AI"
+        },
+        "indexing": {
+          "title": "Zadania indeksowania",
+          "description": "Aktualizacje indeksu wyszukiwania"
+        },
+        "asset_preprocessing": {
+          "title": "Zadania przetwarzania zasobów",
+          "description": "Przetwarzanie obrazów i dokumentów (zrzuty ekranu, wyciąganie tekstu, itp.)"
+        },
+        "tidy_assets": {
+          "title": "Zadania czyszczenia zasobów",
+          "description": "Czyszczenie zasobów i optymalizacja przechowywania"
+        },
+        "video": {
+          "title": "Zadania pobierania wideo",
+          "description": "Wyciąganie i pobieranie wideo"
+        },
+        "webhook": {
+          "title": "Zadania Webhook",
+          "description": "Zewnętrzne powiadomienia webhook"
+        },
+        "feed": {
+          "title": "Zadania kanału RSS",
+          "description": "Przetwarzanie kanałów RSS i aktualizacje treści"
+        }
+      },
+      "monitor_and_manage": "Monitoruj i zarządzaj kolejkami zadań w tle i zadaniami przetwarzania systemu",
+      "active": "Aktywne",
+      "available_actions": "Dostępne akcje",
+      "status": {
+        "title": "Zrozumienie stanów zadań",
+        "queued": {
+          "title": "W kolejce",
+          "description": "Zadania czekają w kolejce do przetworzenia. Uruchomią się automatycznie, gdy zasoby będą dostępne."
+        },
+        "unprocessed": {
+          "title": "Nieprzetworzone",
+          "description": "Zakładki, które nie zostały jeszcze przetworzone. Najprawdopodobniej są już w kolejce do przetworzenia, jeśli nie, może być konieczne ręczne ponowne umieszczenie ich w kolejce."
+        },
+        "failed": {
+          "title": "Nie powiodło się",
+          "description": "Zakładki, które napotkały błędy podczas przetwarzania. Mogą one wymagać ręcznej interwencji."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Przeskanuj ponownie tylko uszkodzone linki",
+        "recrawl_all_links": "Przeskanuj ponownie wszystkie linki",
+        "without_inference": "Bez wnioskowania",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Wygeneruj ponownie tagi AI tylko dla zakładek, które się nie powiodły",
+        "regenerate_ai_tags_for_all_bookmarks": "Wygeneruj ponownie tagi AI dla wszystkich zakładek",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Wygeneruj ponownie streszczenia AI tylko dla zakładek, które się nie powiodły",
+        "regenerate_ai_summaries_for_all_bookmarks": "Wygeneruj ponownie streszczenia AI dla wszystkich zakładek",
+        "reindex_all_bookmarks": "Zreindeksuj wszystkie zakładki",
+        "clean_assets": "Wyczyść wiszące zasoby i ponownie zsynchronizuj metadane",
+        "reprocess_assets_fix_mode": "Ponownie przetwarzaj nieprzetworzone zasoby"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Ponowne skanowanie tylko nieudanych linków",

@@ -18,48 +18,12 @@ class MeiliSearchIndexClient implements SearchIndexClient {
     const task = await this.index.addDocuments(documents, {
       primaryKey: "id",
     });
-    await this.index.waitForTask(task.taskUid);
-    const taskResult = await this.index.getTask(task.taskUid);
-    if (taskResult.error) {
-      throw new Error(
-        `MeiliSearch add documents failed: ${taskResult.error.message}`,
-      );
-    }
-  }
-
-  async updateDocuments(documents: BookmarkSearchDocument[]): Promise<void> {
-    const task = await this.index.updateDocuments(documents, {
-      primaryKey: "id",
-    });
-    await this.index.waitForTask(task.taskUid);
-    const taskResult = await this.index.getTask(task.taskUid);
-    if (taskResult.error) {
-      throw new Error(
-        `MeiliSearch update documents failed: ${taskResult.error.message}`,
-      );
-    }
-  }
-
-  async deleteDocument(id: string): Promise<void> {
-    const task = await this.index.deleteDocument(id);
-    await this.index.waitForTask(task.taskUid);
-    const taskResult = await this.index.getTask(task.taskUid);
-    if (taskResult.error) {
-      throw new Error(
-        `MeiliSearch delete document failed: ${taskResult.error.message}`,
-      );
-    }
+    await this.ensureTaskSuccess(task.taskUid);
   }
 
   async deleteDocuments(ids: string[]): Promise<void> {
     const task = await this.index.deleteDocuments(ids);
-    await this.index.waitForTask(task.taskUid);
-    const taskResult = await this.index.getTask(task.taskUid);
-    if (taskResult.error) {
-      throw new Error(
-        `MeiliSearch delete documents failed: ${taskResult.error.message}`,
-      );
-    }
+    await this.ensureTaskSuccess(task.taskUid);
   }
 
   async search(options: SearchOptions): Promise<SearchResponse> {
@@ -82,12 +46,15 @@ class MeiliSearchIndexClient implements SearchIndexClient {
 
   async clearIndex(): Promise<void> {
     const task = await this.index.deleteAllDocuments();
-    await this.index.waitForTask(task.taskUid);
-    const taskResult = await this.index.getTask(task.taskUid);
-    if (taskResult.error) {
-      throw new Error(
-        `MeiliSearch clear index failed: ${taskResult.error.message}`,
-      );
+    await this.ensureTaskSuccess(task.taskUid);
+  }
+
+  private async ensureTaskSuccess(taskUid: number): Promise<void> {
+    const task = await this.index.waitForTask(taskUid, {
+      intervalMs: 200,
+    });
+    if (task.error) {
+      throw new Error(`Search task failed: ${task.error.message}`);
     }
   }
 }

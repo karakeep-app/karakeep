@@ -14,6 +14,7 @@ import {
   bookmarkAssets,
   bookmarks,
 } from "@karakeep/db/schema";
+import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import { newAssetId, readAsset, saveAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -22,10 +23,6 @@ import {
   OpenAIQueue,
   triggerSearchReindex,
 } from "@karakeep/shared/queues";
-import {
-  checkStorageQuota,
-  StorageQuotaError,
-} from "@karakeep/trpc/lib/storageQuota";
 
 export class AssetPreprocessingWorker {
   static build() {
@@ -136,7 +133,7 @@ export async function extractAndSavePDFScreenshot(
     }
 
     // Check storage quota before inserting
-    const quotaApproved = await checkStorageQuota(
+    const quotaApproved = await QuotaService.checkStorageQuota(
       db,
       bookmark.userId,
       screenshot.buffer.byteLength,
@@ -357,6 +354,13 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       {
         bookmarkId,
         type: "tag",
+      },
+      enqueueOpts,
+    );
+    await OpenAIQueue.enqueue(
+      {
+        bookmarkId,
+        type: "summarize",
       },
       enqueueOpts,
     );

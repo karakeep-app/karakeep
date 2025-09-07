@@ -86,7 +86,8 @@
       "relevant_first": "관련성 높은 순서대로"
     },
     "open_editor": "편집기 열기",
-    "toggle_show_archived": "보관된 항목 표시"
+    "toggle_show_archived": "보관된 항목 표시",
+    "confirm": "확인"
   },
   "tags": {
     "unused_tags": "사용되지 않은 태그",
@@ -487,7 +488,71 @@
       "asset_preprocessing_jobs": "에셋 전처리 작업",
       "feed_jobs": "RSS 피드 작업",
       "video_jobs": "비디오 다운로드 작업",
-      "webhook_jobs": "웹훅 작업"
+      "webhook_jobs": "웹훅 작업",
+      "monitor_and_manage": "백그라운드 작업 대기열 및 시스템 처리 작업 모니터링 및 관리",
+      "jobs": {
+        "crawler": {
+          "title": "크롤러 작업",
+          "description": "URL에서 웹 크롤링 및 콘텐츠 추출"
+        },
+        "inference": {
+          "title": "추론 작업",
+          "description": "AI 기반 콘텐츠 태깅 및 요약"
+        },
+        "indexing": {
+          "title": "색인 작업",
+          "description": "검색 색인 업데이트"
+        },
+        "asset_preprocessing": {
+          "title": "자산 전처리 작업",
+          "description": "이미지 및 문서 전처리 (스크린샷, 텍스트 추출 등)"
+        },
+        "tidy_assets": {
+          "title": "자산 정리 작업",
+          "description": "자산 정리 및 저장소 최적화"
+        },
+        "video": {
+          "title": "비디오 다운로드 작업",
+          "description": "비디오 추출 및 다운로드"
+        },
+        "webhook": {
+          "title": "Webhook 작업",
+          "description": "외부 웹후크 알림"
+        },
+        "feed": {
+          "title": "RSS 피드 작업",
+          "description": "RSS 피드 처리 및 콘텐츠 업데이트"
+        }
+      },
+      "active": "활성",
+      "available_actions": "사용 가능한 액션",
+      "status": {
+        "title": "작업 상태 이해",
+        "queued": {
+          "title": "대기 중",
+          "description": "처리되기를 기다리는 작업들. 리소스가 확보되면 자동으로 시작될 거야."
+        },
+        "unprocessed": {
+          "title": "미처리됨",
+          "description": "아직 처리되지 않은 북마크들. 대부분 이미 처리 대기 중일 거고, 아니면 수동으로 다시 대기열에 넣어야 할 수도 있어."
+        },
+        "failed": {
+          "title": "실패함",
+          "description": "처리 중에 오류가 발생한 북마크들. 수동으로 확인해야 할 수도 있어."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "실패한 링크만 다시 크롤링",
+        "recrawl_all_links": "모든 링크 다시 크롤링",
+        "without_inference": "추론 없이",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "실패한 북마크만 AI 태그 다시 생성",
+        "regenerate_ai_tags_for_all_bookmarks": "모든 북마크 AI 태그 다시 생성",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "실패한 북마크만 AI 요약 다시 생성",
+        "regenerate_ai_summaries_for_all_bookmarks": "모든 북마크 AI 요약 다시 생성",
+        "reindex_all_bookmarks": "모든 북마크 다시 색인하기",
+        "clean_assets": "연결되지 않은 에셋 정리 및 메타데이터 재동기화",
+        "reprocess_assets_fix_mode": "미처리된 에셋 다시 처리"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "실패한 링크만 다시 가져오기",

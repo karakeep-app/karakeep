@@ -80,7 +80,8 @@
       "relevant_first": "Is ábhartha ar dtús",
       "newest_first": "Is Nuaí ar dtús",
       "oldest_first": "Is Sine ar dtús"
-    }
+    },
+    "confirm": "Deimhnigh"
   },
   "settings": {
     "ai": {
@@ -475,7 +476,71 @@
       "job": "Post",
       "queued": "Ar feitheamh",
       "pending": "Ar feitheamh",
-      "failed": "Theip air"
+      "failed": "Theip air",
+      "jobs": {
+        "crawler": {
+          "title": "Poist Chrawlóirí",
+          "description": "Crawl gréasáin agus eastóscadh ábhair ó URLanna"
+        },
+        "inference": {
+          "title": "Poist Inferrerachta",
+          "description": "Clibeáil ábhar le hintleacht shaorga agus achoimriúchán"
+        },
+        "indexing": {
+          "title": "Poist Innéacsaithe",
+          "description": "Nuashonruithe ar innéacs cuardaigh"
+        },
+        "asset_preprocessing": {
+          "title": "Poist Réamhphróiseála Sócmhainní",
+          "description": "Réamhphróiseáil íomhánna agus doiciméad (scáileáin scáileáin, eastóscadh téacs, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Poist Shlachtaithe Sócmhainní",
+          "description": "Glanadh sócmhainní agus barrfheabhsú stórála"
+        },
+        "video": {
+          "title": "Poist Íoslódála Físe",
+          "description": "Eastóscadh agus íoslódáil físe"
+        },
+        "webhook": {
+          "title": "Poist Ghréasáin",
+          "description": "Fógraí gréasáin seachtracha"
+        },
+        "feed": {
+          "title": "Poist Fotha RSS",
+          "description": "Próiseáil fotha RSS agus nuashonruithe ábhair"
+        }
+      },
+      "monitor_and_manage": "Déan monatóireacht agus bainistigh scuainí post cúlra agus tascanna próiseála córais",
+      "active": "Gníomhach",
+      "available_actions": "Gníomhartha ar Fáil",
+      "status": {
+        "title": "Tuiscint ar Stáit Phóist",
+        "queued": {
+          "title": "Ar feitheamh",
+          "description": "Poist atá ag fanacht sa scuaine le próiseáil. Tosóidh siad go huathoibríoch nuair a bheidh acmhainní ar fáil."
+        },
+        "unprocessed": {
+          "title": "Neamhphróiseáilte",
+          "description": "Leabharmharcanna nár próiseáladh go fóill. Is dócha go bhfuil siad sin ar feitheamh cheana féin le próiseáil, mura bhfuil, b'fhéidir go mbeidh ort iad a athsheoladh de láimh."
+        },
+        "failed": {
+          "title": "Theipt orthu",
+          "description": "Leabharmharcanna ar tháinig earráidí orthu le linn na próiseála. B'fhéidir go mbeidh gá le haird láimhe orthu seo."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Naisc ar theip orthu amháin a athscríobh",
+        "recrawl_all_links": "Gach nasc a athscríobh",
+        "without_inference": "Gan Inbhearú",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Clibeanna AI a athghiniúint le haghaidh leabharmharcanna ar theip orthu amháin",
+        "regenerate_ai_tags_for_all_bookmarks": "Clibeanna AI a athghiniúint le haghaidh gach leabharmharc",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Achoimrí AI a athghiniúint le haghaidh leabharmharcanna ar theip orthu amháin",
+        "regenerate_ai_summaries_for_all_bookmarks": "Achoimrí AI a athghiniúint le haghaidh gach leabharmharc",
+        "reindex_all_bookmarks": "Gach leabharmharc a athinnéacsú",
+        "clean_assets": "Sócmhainní crochta a ghlanadh & Meiteashonraí a athshioncronú",
+        "reprocess_assets_fix_mode": "Sócmhainní neamhphróiseáilte a athphróiseáil"
+      }
     },
     "admin_settings": "Socruithe Riaracháin",
     "actions": {

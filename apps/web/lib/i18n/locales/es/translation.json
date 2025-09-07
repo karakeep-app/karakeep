@@ -297,7 +297,8 @@
       "relevant_first": "Más relevantes primero"
     },
     "open_editor": "Abrir editor",
-    "toggle_show_archived": "Mostrar archivados"
+    "toggle_show_archived": "Mostrar archivados",
+    "confirm": "Confirmar"
   },
   "layouts": {
     "compact": "Compacto",
@@ -326,7 +327,71 @@
       "webhook_jobs": "Trabajos de Webhook",
       "asset_preprocessing_jobs": "Trabajos de preprocesamiento de activos",
       "feed_jobs": "Trabajos de fuente RSS",
-      "video_jobs": "Trabajos de descarga de vídeo"
+      "video_jobs": "Trabajos de descarga de vídeo",
+      "jobs": {
+        "crawler": {
+          "title": "Trabajos de rastreador",
+          "description": "Rastreo web y extracción de contenido de URLs"
+        },
+        "inference": {
+          "title": "Trabajos de inferencia",
+          "description": "Etiquetado y resumen de contenido impulsado por IA"
+        },
+        "indexing": {
+          "title": "Trabajos de indexación",
+          "description": "Actualizaciones del índice de búsqueda"
+        },
+        "asset_preprocessing": {
+          "title": "Trabajos de preprocesamiento de activos",
+          "description": "Preprocesamiento de imágenes y documentos (capturas de pantalla, extracción de texto, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Trabajos de activos ordenados",
+          "description": "Limpieza de activos y optimización de almacenamiento"
+        },
+        "video": {
+          "title": "Trabajos de descarga de video",
+          "description": "Extracción y descarga de video"
+        },
+        "webhook": {
+          "title": "Trabajos de webhook",
+          "description": "Notificaciones de webhook externas"
+        },
+        "feed": {
+          "title": "Trabajos de fuentes RSS",
+          "description": "Procesamiento de feeds RSS y actualizaciones de contenido"
+        }
+      },
+      "monitor_and_manage": "Monitoriza y gestiona las colas de trabajos en segundo plano y las tareas de procesamiento del sistema",
+      "active": "Activo",
+      "available_actions": "Acciones disponibles",
+      "status": {
+        "title": "Entendiendo los estados del trabajo",
+        "queued": {
+          "title": "En cola",
+          "description": "Tareas esperando en la cola para ser procesadas. Comenzarán automáticamente cuando haya recursos disponibles."
+        },
+        "unprocessed": {
+          "title": "Sin procesar",
+          "description": "Marcadores que aún no han sido procesados. Lo más probable es que ya estén en cola para ser procesados, si no, es posible que tengas que volver a ponerlos en cola manualmente."
+        },
+        "failed": {
+          "title": "Fallidos",
+          "description": "Marcadores que encontraron errores durante el procesamiento. Estos pueden necesitar atención manual."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Volver a rastrear solo los enlaces fallidos",
+        "recrawl_all_links": "Volver a rastrear todos los enlaces",
+        "without_inference": "Sin inferencia",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar etiquetas de IA solo para los marcadores fallidos",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerar etiquetas de IA para todos los marcadores",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerar resúmenes de IA solo para los marcadores fallidos",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resúmenes de IA para todos los marcadores",
+        "reindex_all_bookmarks": "Volver a indexar todos los marcadores",
+        "clean_assets": "Limpiar los activos colgantes y volver a sincronizar los metadatos",
+        "reprocess_assets_fix_mode": "Volver a procesar los activos no procesados"
+      }
     },
     "actions": {
       "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar etiquetas IA solo en marcadores fallidos",

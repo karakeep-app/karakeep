@@ -20,6 +20,24 @@ const allEnv = z.object({
   PORT: z.coerce.number().default(3000),
   WORKERS_HOST: z.string().default("127.0.0.1"),
   WORKERS_PORT: z.coerce.number().default(0),
+  WORKERS_ENABLED_WORKERS: z
+    .string()
+    .default("")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((w) => w.trim())
+        .filter((w) => w),
+    ),
+  WORKERS_DISABLED_WORKERS: z
+    .string()
+    .default("")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((w) => w.trim())
+        .filter((w) => w),
+    ),
   API_URL: z.string().url().default("http://localhost:3000"),
   NEXTAUTH_URL: z
     .string()
@@ -63,6 +81,7 @@ const allEnv = z.object({
   BROWSER_WEB_URL: z.string().optional(),
   BROWSER_WEBSOCKET_URL: z.string().optional(),
   BROWSER_CONNECT_ONDEMAND: stringBool("false"),
+  BROWSER_COOKIE_PATH: z.string().optional(),
   CRAWLER_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_NAVIGATE_TIMEOUT_SEC: z.coerce.number().default(30),
   CRAWLER_NUM_WORKERS: z.coerce.number().default(1),
@@ -153,6 +172,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     workers: {
       host: val.WORKERS_HOST,
       port: val.WORKERS_PORT,
+      enabledWorkers: val.WORKERS_ENABLED_WORKERS,
+      disabledWorkers: val.WORKERS_DISABLED_WORKERS,
     },
     apiUrl: val.API_URL,
     publicUrl: val.NEXTAUTH_URL,
@@ -222,6 +243,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       browserWebUrl: val.BROWSER_WEB_URL,
       browserWebSocketUrl: val.BROWSER_WEBSOCKET_URL,
       browserConnectOnDemand: val.BROWSER_CONNECT_ONDEMAND,
+      browserCookiePath: val.BROWSER_COOKIE_PATH,
       jobTimeoutSec: val.CRAWLER_JOB_TIMEOUT_SEC,
       navigateTimeoutSec: val.CRAWLER_NAVIGATE_TIMEOUT_SEC,
       downloadBannerImage: val.CRAWLER_DOWNLOAD_BANNER_IMAGE,

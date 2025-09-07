@@ -86,7 +86,8 @@
       "relevant_first": "En İlgili Olan Önce"
     },
     "open_editor": "Düzenleyiciyi Aç",
-    "toggle_show_archived": "Arşivlenmiş Olanları Göster"
+    "toggle_show_archived": "Arşivlenmiş Olanları Göster",
+    "confirm": "Onayla"
   },
   "highlights": {
     "no_highlights": "Henüz hiçbir öne çıkarılmış içeriğiniz yok."
@@ -329,7 +330,71 @@
       "video_jobs": "Video İndirme İşleri",
       "feed_jobs": "RSS Besleme İşleri",
       "webhook_jobs": "Webhook İşleri",
-      "asset_preprocessing_jobs": "Varlık Ön İşleme İşleri"
+      "asset_preprocessing_jobs": "Varlık Ön İşleme İşleri",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler İşleri",
+          "description": "URL'lerden web kazıma ve içerik çıkarma"
+        },
+        "inference": {
+          "title": "Çıkarım İşleri",
+          "description": "İçeriğin yapay zeka destekli etiketlenmesi ve özetlenmesi"
+        },
+        "indexing": {
+          "title": "İndeksleme İşleri",
+          "description": "Arama indeksi güncellemeleri"
+        },
+        "asset_preprocessing": {
+          "title": "Varlık Ön İşleme İşleri",
+          "description": "Resim ve belge ön işleme (ekran görüntüleri, metin çıkarma vb.)"
+        },
+        "tidy_assets": {
+          "title": "Varlıkları Düzenleme İşleri",
+          "description": "Varlık temizleme ve depolama optimizasyonu"
+        },
+        "video": {
+          "title": "Video İndirme İşleri",
+          "description": "Video çıkarma ve indirme"
+        },
+        "webhook": {
+          "title": "Webhook İşleri",
+          "description": "Harici webhook bildirimleri"
+        },
+        "feed": {
+          "title": "RSS Besleme İşleri",
+          "description": "RSS besleme işleme ve içerik güncellemeleri"
+        }
+      },
+      "monitor_and_manage": "Arka plan iş kuyruklarını ve sistem işleme görevlerini izleyin ve yönetin",
+      "active": "Etkin",
+      "available_actions": "Kullanılabilir Eylemler",
+      "status": {
+        "title": "İş Durumlarını Anlama",
+        "queued": {
+          "title": "Sıraya alındı",
+          "description": "İşlenmeyi bekleyen işler. Kaynaklar kullanılabilir olduğunda otomatik olarak başlayacaklar."
+        },
+        "unprocessed": {
+          "title": "İşlenmemiş",
+          "description": "Henüz işlenmemiş yer imleri. Büyük olasılıkla zaten işlenmek üzere sıraya alınmış durumdalar, değilse manuel olarak yeniden sıraya almanız gerekebilir."
+        },
+        "failed": {
+          "title": "Başarısız oldu",
+          "description": "İşleme sırasında hatalarla karşılaşan yer imleri. Bunlar manuel müdahale gerektirebilir."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Yalnızca Başarısız Bağlantıları Yeniden Tara",
+        "recrawl_all_links": "Tüm Bağlantıları Yeniden Tara",
+        "without_inference": "Çıkarım olmadan",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Yalnızca Başarısız Yer İmleri için Yapay Zeka Etiketlerini Yeniden Oluştur",
+        "regenerate_ai_tags_for_all_bookmarks": "Tüm Yer İmleri için Yapay Zeka Etiketlerini Yeniden Oluştur",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Yalnızca Başarısız Yer İmleri için Yapay Zeka Özetlerini Yeniden Oluştur",
+        "regenerate_ai_summaries_for_all_bookmarks": "Tüm Yer İmleri için Yapay Zeka Özetlerini Yeniden Oluştur",
+        "reindex_all_bookmarks": "Tüm Yer İmlerini Yeniden İndeksle",
+        "clean_assets": "Sallanan Varlıkları Temizle ve Meta Verileri Yeniden Eşitle",
+        "reprocess_assets_fix_mode": "İşlenmemiş Varlıkları Yeniden İşle"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Sadece Başarısız Bağlantıları Tekrar Tara",

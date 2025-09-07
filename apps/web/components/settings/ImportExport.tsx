@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { useCallback, useEffect, useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import FilePickerButton from "@/components/ui/file-picker-button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -15,9 +14,11 @@ import {
 import { useBookmarkImport } from "@/lib/hooks/useBookmarkImport";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { Download, Upload } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
+import { toast } from "../ui/use-toast";
 
 function ImportCard({
   text,
@@ -47,6 +48,47 @@ function ImportCard({
 function ExportButton() {
   const { t } = useTranslation();
   const [format, setFormat] = useState<"json" | "netscape">("json");
+  const queryClient = useQueryClient();
+  const { isFetching, refetch, error } = useQuery({
+    queryKey: ["exportBookmarks"],
+    queryFn: async () => {
+      const res = await fetch(`/api/bookmarks/export?format=${format}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error?.error || "Failed to export bookmarks");
+      }
+      const match = res.headers
+        .get("Content-Disposition")
+        ?.match(/filename\*?=(?:UTF-8''|")?([^"]+)/i);
+      const filename = match
+        ? match[1]
+        : `karakeep-export-${new Date().toISOString()}.${format}`;
+      return { blob: res.blob(), filename };
+    },
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  }, [error]);
+
+  const onExport = useCallback(async () => {
+    const { data } = await refetch();
+    if (!data) return;
+    const { blob, filename } = data;
+    const url = window.URL.createObjectURL(await blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    queryClient.setQueryData(["exportBookmarks"], () => null);
+  }, [refetch]);
 
   return (
     <Card className="transition-all hover:shadow-md">
@@ -70,15 +112,17 @@ function ExportButton() {
             </SelectContent>
           </Select>
         </div>
-        <Link
-          href={`/api/bookmarks/export?format=${format}`}
+        <Button
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
             "flex items-center gap-2",
           )}
+          onClick={onExport}
+          disabled={isFetching}
         >
+          {isFetching && <Loader2 className="mr-2 animate-spin" />}
           <p>Export</p>
-        </Link>
+        </Button>
       </CardContent>
     </Card>
   );

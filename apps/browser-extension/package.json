@@ -41,14 +41,14 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "2.0.1",
+    "@crxjs/vite-plugin": "2.2.0",
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/chrome": "^0.0.260",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react-swc": "^3.11.0",
+    "@vitejs/plugin-react-swc": "^4.0.1",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",

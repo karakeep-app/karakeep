@@ -5,6 +5,7 @@ import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
+import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import {
   newAssetId,
   saveAssetFromFile,
@@ -12,10 +13,6 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
-import {
-  checkStorageQuota,
-  StorageQuotaError,
-} from "@karakeep/trpc/lib/storageQuota";
 
 const MAX_UPLOAD_SIZE_BYTES = serverConfig.maxAssetSizeMb * 1024 * 1024;
 
@@ -73,7 +70,11 @@ export async function uploadAsset(
 
   let quotaApproved;
   try {
-    quotaApproved = await checkStorageQuota(db, user.id, data.size);
+    quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      user.id,
+      data.size,
+    );
   } catch (error) {
     if (error instanceof StorageQuotaError) {
       return { error: error.message, status: 403 };

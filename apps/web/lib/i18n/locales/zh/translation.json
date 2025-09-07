@@ -86,7 +86,8 @@
       "relevant_first": "最相关优先"
     },
     "open_editor": "打开编辑器",
-    "toggle_show_archived": "显示已存档"
+    "toggle_show_archived": "显示已存档",
+    "confirm": "确认"
   },
   "settings": {
     "back_to_app": "返回应用",
@@ -326,7 +327,71 @@
       "feed_jobs": "RSS 订阅作业",
       "video_jobs": "视频下载作业",
       "webhook_jobs": "Webhook 作业",
-      "asset_preprocessing_jobs": "资源预处理作业"
+      "asset_preprocessing_jobs": "资源预处理作业",
+      "jobs": {
+        "crawler": {
+          "title": "爬虫任务",
+          "description": "从 URL 抓取网页内容并提取信息"
+        },
+        "inference": {
+          "title": "推理任务",
+          "description": "用人工智能给内容打标签和做总结"
+        },
+        "indexing": {
+          "title": "索引任务",
+          "description": "搜索索引更新"
+        },
+        "asset_preprocessing": {
+          "title": "资源预处理任务",
+          "description": "图片和文档预处理（截图、文本提取等）"
+        },
+        "tidy_assets": {
+          "title": "整理资源任务",
+          "description": "资源清理和存储优化"
+        },
+        "video": {
+          "title": "视频下载任务",
+          "description": "视频提取和下载"
+        },
+        "webhook": {
+          "title": "Webhook 任务",
+          "description": "外部 webhook 通知"
+        },
+        "feed": {
+          "title": "RSS 订阅任务",
+          "description": "RSS 订阅源处理和内容更新"
+        }
+      },
+      "monitor_and_manage": "监控和管理后台任务队列和系统处理任务",
+      "active": "活跃",
+      "available_actions": "可用操作",
+      "status": {
+        "title": "了解任务状态",
+        "queued": {
+          "title": "已加入队列",
+          "description": "正在排队等待处理的任务。当资源可用时，它们将自动启动。"
+        },
+        "unprocessed": {
+          "title": "未处理",
+          "description": "尚未处理的书签。如果它们没有排队，它们很可能已经在排队等待处理，如果没有，你可能需要手动重新将它们加入队列。"
+        },
+        "failed": {
+          "title": "失败",
+          "description": "处理过程中遇到错误的书签。这些书签可能需要手动处理。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "仅重新抓取失败链接",
+        "recrawl_all_links": "重新抓取所有链接",
+        "without_inference": "不进行推断",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 标签",
+        "regenerate_ai_tags_for_all_bookmarks": "为所有书签重新生成 AI 标签",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 摘要",
+        "regenerate_ai_summaries_for_all_bookmarks": "为所有书签重新生成 AI 摘要",
+        "reindex_all_bookmarks": "重新索引所有书签",
+        "clean_assets": "清理悬空资产并重新同步元数据",
+        "reprocess_assets_fix_mode": "重新处理未处理的资产"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "仅重新抓取失败链接",

@@ -6,6 +6,8 @@ The app is mainly configured by environment variables. All the used environment 
 | ------------------------------- | ------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | PORT                            | No                                    | 3000            | The port on which the web server will listen. DON'T CHANGE THIS IF YOU'RE USING DOCKER, instead changed the docker bound external port.                                                                                                                                |
 | WORKERS_PORT                    | No                                    | 0 (Random Port) | The port on which the worker will export its prometheus metrics on `/metrics`. By default it's a random unused port. If you want to utilize those metrics, fix the port to a value (and export it in docker if you're using docker).                                   |
+| WORKERS_ENABLED_WORKERS         | No                                    | Not set         | Comma separated list of worker names to enable. If set, only these workers will run. Valid values: crawler,inference,search,tidyAssets,video,feed,assetPreprocessing,webhook,ruleEngine.                                                                               |
+| WORKERS_DISABLED_WORKERS        | No                                    | Not set         | Comma separated list of worker names to disable. Takes precedence over `WORKERS_ENABLED_WORKERS`.                                                                                                                                                                      |
 | DATA_DIR                        | Yes                                   | Not set         | The path for the persistent data directory. This is where the db lives. Assets are stored here by default unless `ASSETS_DIR` is set.                                                                                                                                  |
 | ASSETS_DIR                      | No                                    | Not set         | The path where crawled assets will be stored. If not set, defaults to `${DATA_DIR}/assets`.                                                                                                                                                                            |
 | NEXTAUTH_URL                    | Yes                                   | Not set         | Should point to the address of your server. The app will function without it, but will redirect you to wrong addresses on signout for example.                                                                                                                         |
@@ -127,6 +129,37 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 | CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC | No       | 600     | How long to wait for the video download to finish                                                                                                                                                                                                                                                                                                                             |
 | CRAWLER_ENABLE_ADBLOCKER           | No       | true    | Whether to enable an adblocker in the crawler or not. If you're facing troubles downloading the adblocking lists on worker startup, you can disable this.                                                                                                                                                                                                                     |
 | CRAWLER_YTDLP_ARGS                 | No       | []      | Include additional yt-dlp arguments to be passed at crawl time separated by %%: https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options                                                                                                                                                                                                                           |
+| BROWSER_COOKIE_PATH                | No       | Not set | Path to a JSON file containing cookies to be loaded into the browser context. The file should be an array of cookie objects, each with name and value (required), and optional fields like domain, path, expires, httpOnly, secure, and sameSite (e.g., `[{"name": "session", "value": "xxx", "domain": ".example.com"}`]).                                                   |
+
+<details>
+
+  <summary>More info on BROWSER_COOKIE_PATH</summary>
+
+BROWSER_COOKIE_PATH specifies the path to a JSON file containing cookies to be loaded into the browser context for crawling.
+
+The JSON file must be an array of cookie objects, each with:
+- name: The cookie name (required).
+- value: The cookie value (required).
+- Optional fields: domain, path, expires, httpOnly, secure, sameSite (values: "Strict", "Lax", or "None").
+
+Example JSON file:
+
+```json
+[
+  {
+    "name": "session",
+    "value": "xxx",
+    "domain": ".example.com",
+    "path": "/",
+    "expires": 1735689600,
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax"
+  }
+]
+```
+
+</details>
 
 ## OCR Configs
 

@@ -8,6 +8,7 @@ const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
+  theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
   useBadgeCache: z.boolean().default(true),
   badgeCacheExpireMs: z.number().min(0).default(DEFAULT_BADGE_CACHE_EXPIRE_MS),
@@ -16,6 +17,7 @@ const zSettingsSchema = z.object({
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
+  theme: "system",
   showCountBadge: DEFAULT_SHOW_COUNT_BADGE,
   useBadgeCache: true,
   badgeCacheExpireMs: DEFAULT_BADGE_CACHE_EXPIRE_MS,
