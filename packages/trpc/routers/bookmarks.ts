@@ -240,10 +240,14 @@ async function toZodSchema(
   }
 
   return {
-    tags: tagsOnBookmarks.map((t) => ({
-      attachedBy: t.attachedBy,
-      ...t.tag,
-    })),
+    tags: tagsOnBookmarks
+      .map((t) => ({
+        attachedBy: t.attachedBy,
+        ...t.tag,
+      }))
+      .sort((a, b) =>
+        a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
+      ),
     content,
     assets: assets.map((a) => ({
       id: a.id,
