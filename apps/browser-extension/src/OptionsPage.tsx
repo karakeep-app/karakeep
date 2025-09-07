@@ -71,25 +71,38 @@ export default function OptionsPage() {
       {settings.showCountBadge && (
         <>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium">
-              Badge cache expire time (second)
-            </span>
-            <Input
-              type="number"
-              min="1"
-              step="1"
-              value={settings.badgeCacheExpireMs / 1000}
-              onChange={(e) =>
-                setSettings((s) => ({
-                  ...s,
-                  badgeCacheExpireMs:
-                    parseInt(e.target.value) * 1000 ||
-                    DEFAULT_BADGE_CACHE_EXPIRE_MS,
-                }))
+            <span className="text-sm font-medium">Use badge cache</span>
+            <Switch
+              checked={settings.useBadgeCache}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, useBadgeCache: checked }))
               }
-              className="w-32"
             />
           </div>
+          {settings.useBadgeCache && (
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">
+                  Badge cache expire time (second)
+                </span>
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={settings.badgeCacheExpireMs / 1000}
+                  onChange={(e) =>
+                    setSettings((s) => ({
+                      ...s,
+                      badgeCacheExpireMs:
+                        parseInt(e.target.value) * 1000 ||
+                        DEFAULT_BADGE_CACHE_EXPIRE_MS,
+                    }))
+                  }
+                  className="w-32"
+                />
+              </div>
+            </>
+          )}
         </>
       )}
       <hr />

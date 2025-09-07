@@ -135,6 +135,10 @@ export async function checkAndPurgeIfNeeded() {
  * Returns cached data and marks whether it is fresh.
  */
 export async function getBadgeStatusSWR(url: string) {
+  const { useBadgeCache } = await getPluginSettings();
+  if (!useBadgeCache) {
+    return null;
+  }
   console.log(`[badgeCache] getBadgeStatusSWR: key=${url}`);
   const expireMs = await getBadgeCacheExpireMs();
   // 1. Check memory cache (L1)
@@ -179,6 +183,10 @@ export async function setBadgeStatusSWR(
   count: number,
   exactMatch: ZBookmark | null,
 ) {
+  const { useBadgeCache } = await getPluginSettings();
+  if (!useBadgeCache) {
+    return;
+  }
   console.log(`[badgeCache] setBadgeStatusSWR: key=${url}, value=`, {
     count,
     exactMatch,
@@ -203,6 +211,10 @@ export async function setBadgeStatusSWR(
  * Remove badge status cache for a specific URL or all URLs.
  */
 export async function clearBadgeStatusSWR(url?: string) {
+  const { useBadgeCache } = await getPluginSettings();
+  if (!useBadgeCache) {
+    return;
+  }
   console.log(`[badgeCache] clearBadgeStatusSWR: key=${url}`);
   // 1. Remove from memory cache
   if (url) {

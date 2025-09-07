@@ -75,24 +75,26 @@ function registerContextMenus(settings: Settings) {
       title: "View this page in Karakeep",
       contexts: ["action", "page"],
     });
-    // Add separator
-    chrome.contextMenus.create({
-      id: SEPARATOR_ID,
-      type: "separator",
-      contexts: ["action"],
-    });
+    if (settings?.useBadgeCache) {
+      // Add separator
+      chrome.contextMenus.create({
+        id: SEPARATOR_ID,
+        type: "separator",
+        contexts: ["action"],
+      });
 
-    chrome.contextMenus.create({
-      id: CLEAR_CURRENT_CACHE_ID,
-      title: "Clear Current Page Cache",
-      contexts: ["action"],
-    });
+      chrome.contextMenus.create({
+        id: CLEAR_CURRENT_CACHE_ID,
+        title: "Clear Current Page Cache",
+        contexts: ["action"],
+      });
 
-    chrome.contextMenus.create({
-      id: CLEAR_ALL_CACHE_ID,
-      title: "Clear All Cache",
-      contexts: ["action"],
-    });
+      chrome.contextMenus.create({
+        id: CLEAR_ALL_CACHE_ID,
+        title: "Clear All Cache",
+        contexts: ["action"],
+      });
+    }
   }
 }
 
@@ -340,7 +342,7 @@ export async function getBookmarkStatusForUrl(tabUrl: string) {
  */
 async function checkAndUpdateIcon(tabId: number) {
   const tabInfo = await chrome.tabs.get(tabId);
-  const { showCountBadge } = await getPluginSettings();
+  const { showCountBadge, useBadgeCache } = await getPluginSettings();
   const api = await getApiClient();
   if (
     !api ||
@@ -355,30 +357,36 @@ async function checkAndUpdateIcon(tabId: number) {
   console.log("Tab activated", tabId, tabInfo);
 
   try {
-    const cachedInfo = await getBadgeStatusSWR(tabInfo.url);
-    if (cachedInfo) {
-      await setBadge(cachedInfo.count, !!cachedInfo.exactMatch, tabId);
-      if (!cachedInfo.fresh) {
-        // Revalidate in background
-        void (async () => {
-          const { count, exactMatch } = await getBookmarkStatusForUrl(
-            tabInfo!.url!,
-          );
-          await setBadge(count, !!exactMatch, tabId);
-          await setBadgeStatusSWR(tabInfo!.url!, count, exactMatch);
-        })();
+    if (useBadgeCache) {
+      const cachedInfo = await getBadgeStatusSWR(tabInfo.url);
+      if (cachedInfo) {
+        await setBadge(cachedInfo.count, !!cachedInfo.exactMatch, tabId);
+        if (!cachedInfo.fresh) {
+          // Revalidate in background
+          void (async () => {
+            const { count, exactMatch } = await getBookmarkStatusForUrl(
+              tabInfo!.url!,
+            );
+            await setBadge(count, !!exactMatch, tabId);
+            await setBadgeStatusSWR(tabInfo!.url!, count, exactMatch);
+          })();
+        }
+        return;
       }
-      return;
     }
     const { count, exactMatch } = await getBookmarkStatusForUrl(tabInfo.url);
     await setBadge(count, !!exactMatch, tabId);
-    await setBadgeStatusSWR(tabInfo.url, count, exactMatch);
+    if (useBadgeCache) {
+      await setBadgeStatusSWR(tabInfo.url, count, exactMatch);
+    }
   } catch (error) {
     console.error("Archive check failed:", error);
     await setBadge("!", false, tabId);
   }
   // Check if we need to purge stale cache entries
-  await checkAndPurgeIfNeeded();
+  if (useBadgeCache) {
+    await checkAndPurgeIfNeeded();
+  }
 }
 
 chrome.tabs.onActivated.addListener(async (tabActiveInfo) => {
