@@ -357,6 +357,13 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       },
       enqueueOpts,
     );
+    await OpenAIQueue.enqueue(
+      {
+        bookmarkId,
+        type: "summarize",
+      },
+      enqueueOpts,
+    );
 
     // Update the search index
     await triggerSearchReindex(bookmarkId, enqueueOpts);
