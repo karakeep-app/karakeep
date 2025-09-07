@@ -4,17 +4,13 @@ import {
   ZNewBookmarkRequest,
 } from "@karakeep/shared/types/bookmarks";
 
-import {
-  checkAndPurgeIfNeeded,
-  clearBadgeStatus,
-  getBadgeStatus,
-} from "../utils/badgeCache";
+import { clearBadgeStatus, getBadgeStatus } from "../utils/badgeCache";
 import {
   getPluginSettings,
   Settings,
   subscribeToSettingsChanges,
 } from "../utils/settings";
-import { cleanupApiClient, getApiClient } from "../utils/trpc";
+import { getApiClient, initializeClients } from "../utils/trpc";
 import { MessageType } from "../utils/type";
 import { isHttpUrl } from "../utils/url";
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol";
@@ -31,7 +27,7 @@ const VIEW_PAGE_IN_KARAKEEP = "view-page-in-karakeep";
  * @param settings The current plugin settings.
  */
 async function checkSettingsState(settings: Settings) {
-  cleanupApiClient();
+  await initializeClients();
   if (settings?.address && settings?.apiKey) {
     registerContextMenus(settings);
   } else {
@@ -335,8 +331,6 @@ async function checkAndUpdateIcon(tabId: number) {
     console.error("Archive check failed:", error);
     await setBadge("!", false, tabId);
   }
-  // Check if we need to purge stale cache entries
-  await checkAndPurgeIfNeeded();
 }
 
 chrome.tabs.onActivated.addListener(async (tabActiveInfo) => {

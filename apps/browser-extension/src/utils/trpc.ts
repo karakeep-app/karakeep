@@ -1,3 +1,5 @@
+import { QueryClient } from "@tanstack/react-query";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import superjson from "superjson";
@@ -5,33 +7,102 @@ import superjson from "superjson";
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
 import { getPluginSettings } from "./settings";
+import { createChromeStorage } from "./storagePersister";
 
 export const api = createTRPCReact<AppRouter>();
 
 let apiClient: ReturnType<typeof createTRPCClient<AppRouter>> | null = null;
+let queryClient: QueryClient | null = null;
+let currentSettings: {
+  address: string;
+  apiKey: string;
+  badgeCacheExpireMs: number;
+} | null = null;
+
+export async function initializeClients() {
+  const { address, apiKey, badgeCacheExpireMs } = await getPluginSettings();
+
+  if (currentSettings) {
+    const addressChanged = currentSettings.address !== address;
+    const apiKeyChanged = currentSettings.apiKey !== apiKey;
+    const cacheTimeChanged =
+      currentSettings.badgeCacheExpireMs !== badgeCacheExpireMs;
+
+    if (!address && !apiKey) {
+      // Invalid configuration, clean
+      cleanupApiClient();
+      return;
+    }
+
+    if (addressChanged || apiKeyChanged) {
+      // Switch context completely → discard the old instance
+      cleanupApiClient();
+    } else if (cacheTimeChanged && queryClient) {
+      // Change the cache policy only → Clean up the data, but reuse the instance
+      queryClient.clear();
+    }
+  }
+
+  // If there is already existing and there is no major change in settings, reuse it
+  if (
+    queryClient &&
+    apiClient &&
+    currentSettings &&
+    currentSettings.address === address &&
+    currentSettings.apiKey === apiKey &&
+    currentSettings.badgeCacheExpireMs === badgeCacheExpireMs
+  ) {
+    return;
+  }
+
+  if (address && apiKey) {
+    // Store current settings
+    currentSettings = { address, apiKey, badgeCacheExpireMs };
+
+    // Create new QueryClient with updated settings
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          gcTime: badgeCacheExpireMs * 2, // Keep in memory for twice as long as stale time
+          staleTime: badgeCacheExpireMs, // Use the user-configured cache expire time
+        },
+      },
+    });
+
+    const persister = createChromeStorage(chrome.storage.local);
+    await persistQueryClient({ queryClient, persister });
+
+    apiClient = createTRPCClient<AppRouter>({
+      links: [
+        httpBatchLink({
+          url: `${address}/api/trpc`,
+          headers() {
+            return {
+              Authorization: `Bearer ${apiKey}`,
+            };
+          },
+          transformer: superjson,
+        }),
+      ],
+    });
+  }
+}
 
 export async function getApiClient() {
   if (!apiClient) {
-    const { address, apiKey } = await getPluginSettings();
-    if (address && apiKey) {
-      apiClient = createTRPCClient<AppRouter>({
-        links: [
-          httpBatchLink({
-            url: `${address}/api/trpc`,
-            headers() {
-              return {
-                Authorization: `Bearer ${apiKey}`,
-              };
-            },
-            transformer: superjson,
-          }),
-        ],
-      });
-    }
+    await initializeClients();
   }
   return apiClient;
 }
 
+export async function getQueryClient() {
+  // Check if settings have changed and reinitialize if needed
+  await initializeClients();
+  return queryClient;
+}
+
 export function cleanupApiClient() {
   apiClient = null;
+  queryClient = null;
+  currentSettings = null;
 }

@@ -1,13 +1,9 @@
 // Badge count cache helpers
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-import { createCache } from "./cache";
-import { DEFAULT_BADGE_CACHE_EXPIRE_MS, getPluginSettings } from "./settings";
-import { getStorageValue, setStorageValue } from "./storage";
-import { getApiClient } from "./trpc";
+import { getPluginSettings } from "./settings";
+import { getApiClient, getQueryClient } from "./trpc";
 
-const BADGE_CACHE_KEY = "karakeep-badge-count-cache";
-const LAST_PURGE_KEY = "badgeCacheLastPurge";
 const EMPTY_BADGE_STATUS: BadgeStatus = { count: 0, exactMatch: null };
 
 interface BadgeStatus {
@@ -52,25 +48,6 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
   }
 }
 
-// Create a singleton cache instance for the badge status.
-let badgeCache: ReturnType<typeof createCache<BadgeStatus>> | null = null;
-
-async function getBadgeCache() {
-  if (badgeCache) {
-    return badgeCache;
-  }
-  const expireMs =
-    (await getPluginSettings()).badgeCacheExpireMs ??
-    DEFAULT_BADGE_CACHE_EXPIRE_MS;
-
-  badgeCache = createCache<BadgeStatus>({
-    name: BADGE_CACHE_KEY,
-    expireMs,
-    fetcher: fetchBadgeStatus,
-  });
-  return badgeCache;
-}
-
 /**
  * Get badge status for a URL using the SWR cache.
  * @param url The URL to get the status for.
@@ -79,8 +56,13 @@ export async function getBadgeStatus(url: string): Promise<BadgeStatus | null> {
   const { useBadgeCache } = await getPluginSettings();
   if (!useBadgeCache) return fetchBadgeStatus(url);
 
-  const cache = await getBadgeCache();
-  return cache.get(url);
+  const queryClient = await getQueryClient();
+  if (!queryClient) return null;
+
+  return await queryClient.fetchQuery({
+    queryKey: ["badgeStatus", url],
+    queryFn: () => fetchBadgeStatus(url),
+  });
 }
 
 /**
@@ -88,39 +70,13 @@ export async function getBadgeStatus(url: string): Promise<BadgeStatus | null> {
  * @param url The URL to clear. If not provided, clears the entire cache.
  */
 export async function clearBadgeStatus(url?: string): Promise<void> {
-  const { useBadgeCache } = await getPluginSettings();
-  if (!useBadgeCache) return;
+  const queryClient = await getQueryClient();
+  if (!queryClient) return;
 
-  const cache = await getBadgeCache();
-  await cache.clear(url);
-  console.log(`[badgeCache] Cleared cache for: ${url || "all"}`);
-}
-
-/**
- * Purge stale entries from the badge cache.
- */
-async function purgeStaleBadgeCache(): Promise<void> {
-  const cache = await getBadgeCache();
-  await cache.purgeStale();
-  console.log("[badgeCache] Purged stale entries.");
-}
-
-/**
- * Check if enough time has passed to trigger a purge and do it if needed.
- */
-export async function checkAndPurgeIfNeeded() {
-  const { useBadgeCache, badgeCacheExpireMs } = await getPluginSettings();
-  if (!useBadgeCache) return;
-
-  const expireMs = badgeCacheExpireMs ?? DEFAULT_BADGE_CACHE_EXPIRE_MS;
-  const now = Date.now();
-  const lastPurgeTimestamp = await getStorageValue(LAST_PURGE_KEY, 0);
-
-  if (now - lastPurgeTimestamp > expireMs) {
-    console.log(
-      "[badgeCache] Purge interval reached. Purging stale entries...",
-    );
-    await purgeStaleBadgeCache();
-    await setStorageValue(LAST_PURGE_KEY, now);
+  if (url) {
+    await queryClient.invalidateQueries({ queryKey: ["badgeStatus", url] });
+  } else {
+    await queryClient.invalidateQueries({ queryKey: ["badgeStatus"] });
   }
+  console.log(`[badgeCache] Invalidated cache for: ${url || "all"}`);
 }
