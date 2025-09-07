@@ -1,11 +1,11 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect } from "react";
+
+import usePluginSettings from "./settings";
 
 type Theme = "dark" | "light" | "system";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
 }
 
 interface ThemeProviderState {
@@ -20,39 +20,47 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-export function ThemeProvider({
-  children,
-  defaultTheme = "system",
-  storageKey = "vite-ui-theme",
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
-  );
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  const { settings, setSettings } = usePluginSettings();
+  const theme = settings.theme;
 
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove("light", "dark");
+    const updateIcon = (useDarkModeIcons: boolean) => {
+      const iconSuffix = useDarkModeIcons ? "-darkmode.png" : ".png";
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
+      const iconPaths = {
+        "16": `logo-16${iconSuffix}`,
+        "48": `logo-48${iconSuffix}`,
+        "128": `logo-128${iconSuffix}`,
+      };
+      chrome.action.setIcon({ path: iconPaths });
+    };
 
-      root.classList.add(systemTheme);
-      return;
-    }
+    const applyThemeAndIcon = () => {
+      root.classList.remove("light", "dark");
 
-    root.classList.add(theme);
+      let currentTheme: "light" | "dark";
+      if (theme === "system") {
+        currentTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      } else {
+        currentTheme = theme;
+      }
+
+      root.classList.add(currentTheme);
+      updateIcon(currentTheme === "dark");
+    };
+
+    applyThemeAndIcon();
   }, [theme]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+    setTheme: (newTheme: Theme) => {
+      setSettings((s) => ({ ...s, theme: newTheme }));
     },
   };
 
