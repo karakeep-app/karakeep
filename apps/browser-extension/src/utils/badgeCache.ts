@@ -29,16 +29,17 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
     const data = await api.bookmarks.searchBookmarks.query({
       text: "url:" + url,
     });
-    if (!data) {
+    const bookmarks = data.bookmarks;
+    const bookmarksLength = bookmarks.length;
+    if (bookmarksLength === 0) {
       return EMPTY_BADGE_STATUS;
     }
-    const bookmarks = data.bookmarks || [];
     const exactMatch =
       bookmarks.find(
         (b) => b.content.type === BookmarkTypes.LINK && url === b.content.url,
       ) || null;
     return {
-      count: bookmarks.length,
+      count: bookmarksLength,
       exactMatch,
     };
   } catch (error) {
