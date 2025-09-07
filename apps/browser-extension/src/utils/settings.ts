@@ -6,12 +6,14 @@ const zSettingsSchema = z.object({
   apiKeyId: z.string().optional(),
   address: z.string(),
   autoSave: z.boolean(),
+  closeTabsOnBulkSave: z.boolean().optional(),
 });
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
-  autoSave: true, // Default to auto-save enabled for existing users
+  autoSave: true,
+  closeTabsOnBulkSave: false,
 };
 
 export type Settings = z.infer<typeof zSettingsSchema>;
@@ -63,16 +65,22 @@ export async function getPluginSettings() {
   const parsedSettings = zSettingsSchema.safeParse(storedSettings);
 
   if (parsedSettings.success) {
-    return parsedSettings.data;
+    const enriched: Settings = {
+      closeTabsOnBulkSave: false,
+      ...parsedSettings.data,
+    };
+    if (
+      typeof (parsedSettings.data as Partial<Settings>).closeTabsOnBulkSave ===
+      "undefined"
+    ) {
+      await STORAGE.set({ settings: enriched });
+    }
+    return enriched;
   } else {
-    // If settings exist but are missing the autoSave field (for existing users),
-    // merge with defaults to ensure autoSave is set
     if (storedSettings && typeof storedSettings === "object") {
       const mergedSettings = { ...DEFAULT_SETTINGS, ...storedSettings };
-      // Try to parse the merged settings
       const mergedParsed = zSettingsSchema.safeParse(mergedSettings);
       if (mergedParsed.success) {
-        // Save the merged settings back to storage for future use
         await STORAGE.set({ settings: mergedSettings });
         return mergedParsed.data;
       }

@@ -53,7 +53,9 @@ async function removeContextMenus() {
 }
 
 /**
- * Registers context menu items one by one with proper error handling
+ * Registers
+ * * a context menu button to open a tab with the currently configured karakeep instance
+ * * a context menu button to add a link to karakeep without loading the page
  */
 async function registerContextMenus() {
   if (contextMenusRegistered || isRegistering) {
@@ -62,11 +64,9 @@ async function registerContextMenus() {
 
   isRegistering = true;
 
-  // First, clear any existing menus
   await removeContextMenus();
 
   try {
-    // Create menus one by one
     await createContextMenu({
       id: OPEN_KARAKEEP_ID,
       title: "Open Karakeep",
@@ -120,7 +120,8 @@ function createContextMenu(
 }
 
 /**
- * Handles context menu clicks
+ * Reads the current settings and opens a new tab with karakeep
+ * @param info the information about the click in the context menu
  */
 async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
   const { menuItemId, selectionText, srcUrl, linkUrl, pageUrl } = info;
@@ -135,7 +136,6 @@ async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
       addLinkToKarakeep({ selectionText, srcUrl, linkUrl, pageUrl });
       await openPopupSafely();
     } else if (menuItemId === SAVE_ALL_TABS_ID) {
-      // Set a special flag to indicate bulk save mode
       await chrome.storage.session.set({
         [NEW_BOOKMARK_REQUEST_KEY_NAME]: { type: "BULK_SAVE_ALL_TABS" },
       });
@@ -151,9 +151,8 @@ async function openPopupSafely() {
     await chrome.action.openPopup();
   } catch (error) {
     console.log("Could not open popup:", error);
-    // Fallback: try to open as a new window if popup fails
     try {
-      const url = chrome.runtime.getURL("index.html");
+      const url = chrome.runtime.getURL("index.html#/");
       await chrome.windows.create({
         url,
         type: "popup",
