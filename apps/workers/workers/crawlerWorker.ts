@@ -67,6 +67,17 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
+/**
+ * Normalize a Content-Type header by stripping parameters (e.g., charset)
+ * and lowercasing the media type, so comparisons against supported types work.
+ */
+function normalizeContentType(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+  return header.split(";", 1)[0]!.trim().toLowerCase();
+}
+
 const metascraperParser = metascraper([
   metascraperDate({
     dateModified: true,
@@ -531,7 +542,9 @@ async function downloadAndStoreFile(
     const buffer = await response.arrayBuffer();
     const assetId = newAssetId();
 
-    const contentType = response.headers.get("content-type");
+    const contentType = normalizeContentType(
+      response.headers.get("content-type"),
+    );
     if (!contentType) {
       throw new Error("No content type in the response");
     }
@@ -662,7 +675,8 @@ async function getContentType(
       method: "HEAD",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
-    const contentType = response.headers.get("content-type");
+    const rawContentType = response.headers.get("content-type");
+    const contentType = normalizeContentType(rawContentType);
     logger.info(
       `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
     );
