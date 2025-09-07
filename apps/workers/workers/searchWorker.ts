@@ -106,7 +106,7 @@ async function runIndex(searchClient: SearchIndexClient, bookmarkId: string) {
 }
 
 async function runDelete(searchClient: SearchIndexClient, bookmarkId: string) {
-  await searchClient.deleteDocument(bookmarkId);
+  await searchClient.deleteDocuments([bookmarkId]);
 }
 
 async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {

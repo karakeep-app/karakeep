@@ -30,6 +30,7 @@ export interface SearchResult {
 }
 
 export interface SearchOptions {
+  // TODO: Make query, filter and sort strongly typed
   query: string;
   filter?: string[];
   limit?: number;
@@ -45,8 +46,6 @@ export interface SearchResponse {
 
 export interface SearchIndexClient {
   addDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
-  updateDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
-  deleteDocument(id: string): Promise<void>;
   deleteDocuments(ids: string[]): Promise<void>;
   search(options: SearchOptions): Promise<SearchResponse>;
   clearIndex(): Promise<void>;

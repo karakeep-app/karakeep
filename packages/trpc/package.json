@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@karakeep/db": "workspace:*",
-    "@karakeep/plugins-search-meilisearch": "workspace:*",
     "@karakeep/shared": "workspace:*",
+    "@karakeep/shared-server": "workspace:*",
     "@trpc/server": "^11.4.3",
     "bcryptjs": "^2.4.3",
     "deep-equal": "^2.2.3",
