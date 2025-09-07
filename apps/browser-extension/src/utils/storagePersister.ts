@@ -41,7 +41,7 @@ export const createChromeStorage = (
 
   return {
     persistClient: async (client: PersistedClient) => {
-      await storage.set({ TANSTACK_QUERY_CACHE_KEY: JSON.stringify(client) });
+      await storage.set({ [TANSTACK_QUERY_CACHE_KEY]: JSON.stringify(client) });
     },
     restoreClient: async () => {
       const result = await storage.get(TANSTACK_QUERY_CACHE_KEY);
