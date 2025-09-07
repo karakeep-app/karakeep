@@ -3,12 +3,21 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import { getPluginSettings } from "./settings";
 import { getApiClient, getQueryClient } from "./trpc";
+import { BadgeMatchType } from "./type.ts";
+import { urlsMatchIgnoringAnchorAndTrailingSlash } from "./url.ts";
 
-const EMPTY_BADGE_STATUS: BadgeStatus = { count: 0, exactMatch: null };
+const EMPTY_BADGE_STATUS: BadgeStatus = {
+  count: 0,
+  exactMatch: null,
+  partialMatch: null,
+  matchType: BadgeMatchType.NONE,
+};
 
-interface BadgeStatus {
+export interface BadgeStatus {
   count: number;
-  exactMatch: ZBookmark | null;
+  exactMatch?: ZBookmark | null;
+  partialMatch?: ZBookmark | null;
+  matchType: BadgeMatchType;
 }
 
 /**
@@ -31,13 +40,41 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
     if (bookmarksLength === 0) {
       return EMPTY_BADGE_STATUS;
     }
+
+    // First check the exact match (including anchor points)
     const exactMatch =
       bookmarks.find(
         (b) => b.content.type === BookmarkTypes.LINK && url === b.content.url,
       ) || null;
+
+    if (exactMatch) {
+      return {
+        count: bookmarksLength,
+        exactMatch,
+        matchType: BadgeMatchType.EXACT,
+      };
+    }
+
+    // If there is no exact match, check the deanstation point match
+    const partialMatch =
+      bookmarks.find(
+        (b) =>
+          b.content.type === BookmarkTypes.LINK &&
+          urlsMatchIgnoringAnchorAndTrailingSlash(url, b.content.url),
+      ) || null;
+
+    if (partialMatch) {
+      return {
+        count: bookmarksLength,
+        partialMatch,
+        matchType: BadgeMatchType.PARTIAL,
+      };
+    }
+
+    // Not any match
     return {
       count: bookmarksLength,
-      exactMatch,
+      matchType: BadgeMatchType.NONE,
     };
   } catch (error) {
     console.error(`[badgeCache] Failed to fetch status for ${url}:`, error);

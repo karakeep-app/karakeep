@@ -4,14 +4,18 @@ import {
   ZNewBookmarkRequest,
 } from "@karakeep/shared/types/bookmarks";
 
-import { clearBadgeStatus, getBadgeStatus } from "../utils/badgeCache";
+import {
+  BadgeStatus,
+  clearBadgeStatus,
+  getBadgeStatus,
+} from "../utils/badgeCache";
 import {
   getPluginSettings,
   Settings,
   subscribeToSettingsChanges,
 } from "../utils/settings";
 import { getApiClient, initializeClients } from "../utils/trpc";
-import { MessageType } from "../utils/type";
+import { BadgeMatchType, MessageType } from "../utils/type";
 import { isHttpUrl } from "../utils/url";
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol";
 
@@ -280,24 +284,37 @@ chrome.commands.onCommand.addListener(handleCommand);
 
 /**
  * Set the badge text and color based on the provided information.
- * @param text The text to display on the badge.
- * @param isExisted Whether the badge should indicate existence.
+ * @param badgeStatus
  * @param tabId The ID of the tab to update.
  */
 export async function setBadge(
-  text: string | number,
-  isExisted: boolean,
+  badgeStatus: BadgeStatus | null,
   tabId?: number,
 ) {
+  if (!tabId) return;
+
+  const { count, matchType } = badgeStatus || {
+    count: 0,
+    matchType: BadgeMatchType.NONE,
+  };
+  let badgeText = `${count}`;
   // If the count is same as the default per-page count, show it as "N+"
-  if (text === DEFAULT_NUM_BOOKMARKS_PER_PAGE) {
-    text = `${text}+`;
+  if (count === DEFAULT_NUM_BOOKMARKS_PER_PAGE) {
+    badgeText = `${count}+`;
   }
+
+  // Determine the color according to the matching type
+  const colors = {
+    [BadgeMatchType.EXACT]: "#4CAF50", // Green - Exact match
+    [BadgeMatchType.PARTIAL]: "#FF9800", // Yellow - Deansing the anchor point match
+    [BadgeMatchType.NONE]: "#F44336", // Red - No match
+  };
+
   return await Promise.all([
-    chrome.action.setBadgeText({ tabId, text: `${text}` }),
+    chrome.action.setBadgeText({ tabId, text: `${badgeText}` }),
     chrome.action.setBadgeBackgroundColor({
       tabId,
-      color: isExisted ? "#4CAF50" : "#F44336",
+      color: colors[matchType],
     }),
   ]);
 }
@@ -325,11 +342,11 @@ async function checkAndUpdateIcon(tabId: number) {
   try {
     const status = await getBadgeStatus(tabInfo.url);
     if (status) {
-      await setBadge(status.count, !!status.exactMatch, tabId);
+      await setBadge(status, tabId);
     }
   } catch (error) {
     console.error("Archive check failed:", error);
-    await setBadge("!", false, tabId);
+    await setBadge(null, tabId);
   }
 }
 
