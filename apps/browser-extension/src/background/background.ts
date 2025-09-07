@@ -63,11 +63,17 @@ function registerContextMenus(settings: Settings) {
     contexts: ["action"],
   });
 
+  chrome.contextMenus.create({
+    id: ADD_LINK_TO_KARAKEEP_ID,
+    title: "Add to Karakeep",
+    contexts: ["link", "page", "selection", "image"],
+  });
+
   if (settings?.showCountBadge) {
     chrome.contextMenus.create({
       id: VIEW_PAGE_IN_KARAKEEP,
       title: "View this page in Karakeep",
-      contexts: ["action"],
+      contexts: ["action", "page"],
     });
     // Add separator
     chrome.contextMenus.create({
@@ -88,12 +94,6 @@ function registerContextMenus(settings: Settings) {
       contexts: ["action"],
     });
   }
-
-  chrome.contextMenus.create({
-    id: ADD_LINK_TO_KARAKEEP_ID,
-    title: "Add to Karakeep",
-    contexts: ["link", "page", "selection", "image"],
-  });
 }
 
 /**
