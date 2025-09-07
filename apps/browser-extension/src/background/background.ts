@@ -238,15 +238,10 @@ async function clearAllCache() {
     await clearBadgeStatus();
     // Refresh the badge for all active tabs
     const windows = await chrome.windows.getAll({ populate: true });
-    for (const window of windows) {
-      if (window.tabs) {
-        for (const tab of window.tabs) {
-          if (tab.active && tab.id) {
-            await checkAndUpdateIcon(tab.id);
-          }
-        }
-      }
-    }
+    const activeTabIds = windows.flatMap((w) =>
+      (w.tabs ?? []).filter((t) => t.active && t.id).map((t) => t.id!),
+    );
+    await Promise.all(activeTabIds.map((id) => checkAndUpdateIcon(id)));
   } catch (error) {
     console.error("Failed to clear all cache:", error);
   }
