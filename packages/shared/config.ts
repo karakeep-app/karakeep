@@ -60,8 +60,8 @@ const allEnv = z.object({
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
-  INFERENCE_TEXT_MODEL: z.string().default("gpt-4.1-mini"),
-  INFERENCE_IMAGE_MODEL: z.string().default("gpt-4o-mini"),
+  INFERENCE_TEXT_MODEL: z.string().default("gpt-5-mini"),
+  INFERENCE_IMAGE_MODEL: z.string().default("gpt-5-mini"),
   EMBEDDING_TEXT_MODEL: z.string().default("text-embedding-3-small"),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
@@ -71,6 +71,11 @@ const allEnv = z.object({
     .default("structured"),
   INFERENCE_ENABLE_AUTO_TAGGING: stringBool("true"),
   INFERENCE_ENABLE_AUTO_SUMMARIZATION: stringBool("false"),
+  // Responses API specific settings
+  INFERENCE_REASONING_EFFORT: z
+    .enum(["minimal", "low", "medium", "high"])
+    .default("low"),
+  INFERENCE_VERBOSITY: z.enum(["low", "medium", "high"]).default("medium"),
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
@@ -233,6 +238,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           : val.INFERENCE_OUTPUT_SCHEMA,
       enableAutoTagging: val.INFERENCE_ENABLE_AUTO_TAGGING,
       enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
+      reasoningEffort: val.INFERENCE_REASONING_EFFORT,
+      verbosity: val.INFERENCE_VERBOSITY,
     },
     embedding: {
       textModel: val.EMBEDDING_TEXT_MODEL,

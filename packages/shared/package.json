@@ -12,7 +12,7 @@
     "liteque": "^0.6.0",
     "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
-    "openai": "^4.86.1",
+    "openai": "^5.19.1",
     "typescript-parsec": "^0.3.4",
     "winston": "^3.11.0",
     "zod": "^3.24.2",
