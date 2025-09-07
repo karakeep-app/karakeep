@@ -72,7 +72,6 @@ export default function OptionsPage() {
         <span className="my-auto">Logged in as:</span>
         {loggedInMessage}
       </div>
-      <Button onClick={onLogout}>Logout</Button>
       <div className="flex gap-2">
         <span className="my-auto">Theme:</span>
         <Select value={theme} onValueChange={setTheme}>
@@ -86,6 +85,7 @@ export default function OptionsPage() {
           </SelectContent>
         </Select>
       </div>
+      <Button onClick={onLogout}>Logout</Button>
     </div>
   );
 }

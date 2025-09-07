@@ -22,7 +22,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const { settings, setSettings } = usePluginSettings();
-  const theme = settings.theme ?? "system";
+  const theme = settings.theme;
 
   useEffect(() => {
     const root = window.document.documentElement;
