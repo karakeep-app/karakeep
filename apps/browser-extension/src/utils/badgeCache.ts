@@ -20,10 +20,7 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
   const api = await getApiClient();
   if (!api) {
     // This case should ideally not happen if settings are correct
-    console.warn(
-      "[badgeCache] API client not configured, returning empty status.",
-    );
-    return EMPTY_BADGE_STATUS;
+    throw new Error("[badgeCache] API client not configured");
   }
   try {
     const data = await api.bookmarks.searchBookmarks.query({
