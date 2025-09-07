@@ -41,6 +41,7 @@ Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a 
 - 🌙 Dark mode support.
 - 💾 Self-hosting first.
 - ⬇️ Bookmark importers from Chrome, Pocket, Linkwarden, Omnivore, Tab Session Manager.
+- 🔄 Automatic sync with browser bookmarks via [floccus](https://floccus.org/).
 - [Planned] Offline reading on mobile, semantic search across bookmarks, ...
 
 **⚠️ This app is under heavy development.**
