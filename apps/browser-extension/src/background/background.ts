@@ -25,6 +25,7 @@ const ADD_LINK_TO_KARAKEEP_ID = "add-link";
 const CLEAR_CURRENT_CACHE_ID = "clear-current-cache";
 const CLEAR_ALL_CACHE_ID = "clear-all-cache";
 const SEPARATOR_ID = "separator-1";
+const VIEW_PAGE_IN_KARAKEEP = "view-page-in-karakeep";
 
 /**
  * Check the current settings state and register or remove context menus accordingly.
@@ -63,6 +64,11 @@ function registerContextMenus(settings: Settings) {
   });
 
   if (settings?.showCountBadge) {
+    chrome.contextMenus.create({
+      id: VIEW_PAGE_IN_KARAKEEP,
+      title: "View this page in Karakeep",
+      contexts: ["action"],
+    });
     // Add separator
     chrome.contextMenus.create({
       id: SEPARATOR_ID,
@@ -93,8 +99,12 @@ function registerContextMenus(settings: Settings) {
 /**
  * Handle context menu clicks by opening a new tab with karakeep or adding a link to karakeep.
  * @param info Information about the context menu click event.
+ * @param tab The current tab.
  */
-async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
+async function handleContextMenuClick(
+  info: chrome.contextMenus.OnClickData,
+  tab?: chrome.tabs.Tab,
+) {
   const { menuItemId, selectionText, srcUrl, linkUrl, pageUrl } = info;
   if (menuItemId === OPEN_KARAKEEP_ID) {
     getPluginSettings().then((settings: Settings) => {
@@ -110,6 +120,10 @@ async function handleContextMenuClick(info: chrome.contextMenus.OnClickData) {
     // NOTE: Firefox only allows opening context menus if it's triggered by a user action.
     // awaiting on any promise before calling this function will lose the "user action" context.
     await chrome.action.openPopup();
+  } else if (menuItemId === VIEW_PAGE_IN_KARAKEEP) {
+    if (tab) {
+      await searchCurrentUrl(tab.url);
+    }
   }
 }
 
@@ -151,6 +165,41 @@ function addLinkToKarakeep({
     chrome.storage.session.set({
       [NEW_BOOKMARK_REQUEST_KEY_NAME]: newBookmark,
     });
+  }
+}
+
+/**
+ * Search current URL and open appropriate page.
+ */
+async function searchCurrentUrl(tabUrl?: string) {
+  try {
+    if (!tabUrl || !isHttpUrl(tabUrl)) {
+      console.warn("Invalid URL, cannot search:", tabUrl);
+      return;
+    }
+
+    console.log("Searching bookmarks for URL:", tabUrl);
+
+    const cachedInfo = await getBadgeStatusSWR(tabUrl);
+    if (cachedInfo) {
+      const exactMatch = cachedInfo.exactMatch;
+      let targetUrl: string;
+      const settings = await getPluginSettings();
+      const serverAddress = settings.address;
+      if (exactMatch) {
+        // Found exact match, open bookmark details page
+        targetUrl = `${serverAddress}/dashboard/preview/${exactMatch.id}`;
+        console.log("Opening bookmark details page:", targetUrl);
+      } else {
+        // No exact match, open search results page
+        const searchQuery = encodeURIComponent(`url:${tabUrl}`);
+        targetUrl = `${serverAddress}/dashboard/search?q=${searchQuery}`;
+        console.log("Opening search results page:", targetUrl);
+      }
+      await chrome.tabs.create({ url: targetUrl, active: true });
+    }
+  } catch (error) {
+    console.error("Failed to search current URL:", error);
   }
 }
 
