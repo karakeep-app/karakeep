@@ -259,10 +259,11 @@ export async function setBadge(
 }
 
 /**
- * Get the count of bookmarks for a given tab URL.
- * @param tabUrl The URL of the tab to check.
+ * Get the bookmark status for a given URL.
+ * @param tabUrl The URL to check.
+ * @returns An object containing the count of bookmarks and an exact match if found.
  */
-export async function getTabCount(tabUrl: string) {
+export async function getBookmarkStatusForUrl(tabUrl: string) {
   const api = await getApiClient();
   if (!api) {
     throw new Error("API client is not configured.");
@@ -311,14 +312,16 @@ async function checkAndUpdateIcon(tabId: number) {
       if (!cachedInfo.fresh) {
         // Revalidate in background
         void (async () => {
-          const { count, exactMatch } = await getTabCount(tabInfo!.url!);
+          const { count, exactMatch } = await getBookmarkStatusForUrl(
+            tabInfo!.url!,
+          );
           await setBadge(count, !!exactMatch, tabId);
           await setBadgeStatusSWR(tabInfo!.url!, count, exactMatch);
         })();
       }
       return;
     }
-    const { count, exactMatch } = await getTabCount(tabInfo.url);
+    const { count, exactMatch } = await getBookmarkStatusForUrl(tabInfo.url);
     await setBadge(count, !!exactMatch, tabId);
     await setBadgeStatusSWR(tabInfo.url, count, exactMatch);
   } catch (error) {
