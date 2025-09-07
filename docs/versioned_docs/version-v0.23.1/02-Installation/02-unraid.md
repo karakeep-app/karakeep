@@ -2,7 +2,7 @@
 
 ## Docker Compose Manager Plugin (Recommended)
 
-You can use [Docker Compose Manager](https://forums.unraid.net/topic/114415-plugin-docker-compose-manager/) plugin to deploy Hoarder using the official docker compose file provided [here](https://github.com/hoarder-app/hoarder/blob/main/docker/docker-compose.yml). After creating the stack, you'll need to setup some env variables similar to that from the docker compose installation docs [here](/Installation/docker#3-populate-the-environment-variables).
+You can use [Docker Compose Manager](https://forums.unraid.net/topic/114415-plugin-docker-compose-manager/) plugin to deploy Hoarder using the official docker compose file provided [here](https://github.com/hoarder-app/hoarder/blob/main/docker/docker-compose.yml). After creating the stack, you'll need to setup some env variables similar to that from the docker compose installation docs [here](/installation/docker#3-populate-the-environment-variables).
 
 ## Community Apps
 
