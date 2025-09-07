@@ -179,27 +179,30 @@ async function searchCurrentUrl(tabUrl?: string) {
       console.warn("Invalid URL, cannot search:", tabUrl);
       return;
     }
-
     console.log("Searching bookmarks for URL:", tabUrl);
 
+    const settings = await getPluginSettings();
+    const serverAddress = settings.address;
+
     const cachedInfo = await getBadgeStatusSWR(tabUrl);
+    let exactMatch;
     if (cachedInfo) {
-      const exactMatch = cachedInfo.exactMatch;
-      let targetUrl: string;
-      const settings = await getPluginSettings();
-      const serverAddress = settings.address;
-      if (exactMatch) {
-        // Found exact match, open bookmark details page
-        targetUrl = `${serverAddress}/dashboard/preview/${exactMatch.id}`;
-        console.log("Opening bookmark details page:", targetUrl);
-      } else {
-        // No exact match, open search results page
-        const searchQuery = encodeURIComponent(`url:${tabUrl}`);
-        targetUrl = `${serverAddress}/dashboard/search?q=${searchQuery}`;
-        console.log("Opening search results page:", targetUrl);
-      }
-      await chrome.tabs.create({ url: targetUrl, active: true });
+      exactMatch = cachedInfo.exactMatch;
+    } else {
+      exactMatch = (await getBookmarkStatusForUrl(tabUrl)).exactMatch;
     }
+    let targetUrl: string;
+    if (exactMatch) {
+      // Found exact match, open bookmark details page
+      targetUrl = `${serverAddress}/dashboard/preview/${exactMatch.id}`;
+      console.log("Opening bookmark details page:", targetUrl);
+    } else {
+      // No exact match, open search results page
+      const searchQuery = encodeURIComponent(`url:${tabUrl}`);
+      targetUrl = `${serverAddress}/dashboard/search?q=${searchQuery}`;
+      console.log("Opening search results page:", targetUrl);
+    }
+    await chrome.tabs.create({ url: targetUrl, active: true });
   } catch (error) {
     console.error("Failed to search current URL:", error);
   }
