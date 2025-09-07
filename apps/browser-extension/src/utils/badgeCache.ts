@@ -44,7 +44,8 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
   } catch (error) {
     console.error(`[badgeCache] Failed to fetch status for ${url}:`, error);
     // In case of API error, return a non-cacheable empty status
-    return EMPTY_BADGE_STATUS;
+    // Propagate so cache treats this as a miss and doesn’t store
+    throw error;
   }
 }
 
