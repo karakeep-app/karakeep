@@ -65,6 +65,14 @@ export async function runSummarization(
       (await Bookmark.getBookmarkPlainTextContent(link, bookmarkData.userId)) ??
       "";
 
+    if (!link.description && !content) {
+      // No content to infer from; skip summarization
+      logger.info(
+        `[inference] No content found for link "${bookmarkId}". Skipping summary.`,
+      );
+      return;
+    }
+
     textToSummarize = `
 Title: ${link.title ?? ""}
 Description: ${link.description ?? ""}

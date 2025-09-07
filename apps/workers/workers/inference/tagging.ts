@@ -3,7 +3,10 @@ import { DequeuedJob, EnqueueOptions } from "liteque";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
-import type { InferenceClient } from "@karakeep/shared/inference";
+import type {
+  InferenceClient,
+  InferenceResponse,
+} from "@karakeep/shared/inference";
 import type { ZOpenAIRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import {
@@ -75,7 +78,7 @@ function tagNormalizer(col: Column) {
 }
 async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
-) {
+): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
     let content =
@@ -85,9 +88,11 @@ async function buildPrompt(
       )) ?? "";
 
     if (!bookmark.link.description && !content) {
-      throw new Error(
-        `No content found for link "${bookmark.id}". Skipping ...`,
+      // No content to infer from; signal skip to avoid marking job as failed
+      logger.info(
+        `[inference] No content found for link "${bookmark.id}". Skipping tagging.`,
       );
+      return null;
     }
     return buildTextPrompt(
       serverConfig.inference.inferredTagLang,
@@ -221,7 +226,11 @@ async function inferTagsFromText(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
-  return await inferenceClient.inferFromText(await buildPrompt(bookmark), {
+  const prompt = await buildPrompt(bookmark);
+  if (!prompt) {
+    return null;
+  }
+  return await inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
     abortSignal,
   });
@@ -233,7 +242,7 @@ async function inferTags(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
-  let response;
+  let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
     response = await inferTagsFromText(bookmark, inferenceClient, abortSignal);
   } else if (bookmark.asset) {
@@ -262,7 +271,8 @@ async function inferTags(
   }
 
   if (!response) {
-    throw new Error(`[inference][${jobId}] Inference response is empty`);
+    // Skipped due to missing content or prompt; propagate skip
+    return null;
   }
 
   try {
@@ -431,6 +441,13 @@ export async function runTagging(
     inferenceClient,
     job.abortSignal,
   );
+
+  if (tags === null) {
+    logger.info(
+      `[inference][${jobId}] Skipping tagging for bookmark "${bookmark.id}" due to missing content.`,
+    );
+    return;
+  }
 
   await connectTags(bookmarkId, tags, bookmark.userId);
 
