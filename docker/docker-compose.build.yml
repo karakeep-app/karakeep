@@ -12,7 +12,7 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:123
+    image: gcr.io/zenika-hub/alpine-chrome:124
     restart: unless-stopped
     command:
       - --no-sandbox

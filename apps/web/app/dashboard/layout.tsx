@@ -17,7 +17,7 @@ import {
   Tag,
 } from "lucide-react";
 
-import serverConfig from "@karakeep/shared/config";
+import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 
 export default async function Dashboard({
   children,
@@ -43,7 +43,7 @@ export default async function Dashboard({
         icon: <Home size={18} />,
         path: "/dashboard/bookmarks",
       },
-      serverConfig.meilisearch
+      PluginManager.isRegistered(PluginType.Search)
         ? [
             {
               name: t("common.search"),

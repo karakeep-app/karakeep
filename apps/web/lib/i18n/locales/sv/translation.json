@@ -36,7 +36,10 @@
     "updated_at": "Uppdaterad",
     "title": "Titel",
     "description": "Beskrivning",
-    "summary": "Sammanfattning"
+    "summary": "Sammanfattning",
+    "quota": "Kvot",
+    "bookmarks": "Bokmärken",
+    "storage": "Lagring"
   },
   "layouts": {
     "grid": "Rutnät",
@@ -229,6 +232,77 @@
         "favourited": "Ett bokmärke är favoritmarkerat",
         "archived": "Ett bokmärke arkiveras"
       }
+    },
+    "stats": {
+      "usage_statistics": "Användningsstatistik",
+      "insights_description": "Insikter i dina bokmärkesvanor och samling",
+      "failed_to_load": "Det gick inte att läsa in statistik",
+      "overview": {
+        "total_bookmarks": "Totalt antal bokmärken",
+        "all_saved_items": "Alla sparade objekt",
+        "favorites": "Favoriter",
+        "starred_bookmarks": "Stjärnmärkta bokmärken",
+        "archived": "Arkiverad",
+        "archived_items": "Arkiverade objekt",
+        "tags": "Taggar",
+        "unique_tags_created": "Unika taggar skapade",
+        "lists": "Listor",
+        "bookmark_collections": "Bokmärkessamlingar",
+        "highlights": "Markeringar",
+        "text_highlights": "Textmarkeringar",
+        "storage_used": "Använt lagringsutrymme",
+        "total_asset_storage": "Total lagring av tillgångar",
+        "this_month": "Den här månaden",
+        "bookmarks_added": "Bokmärken tillagda"
+      },
+      "bookmark_types": {
+        "title": "Bokmärkestyper",
+        "links": "Länkar",
+        "text_notes": "Textanteckningar",
+        "assets": "Tillgångar"
+      },
+      "recent_activity": {
+        "title": "Senaste aktivitet",
+        "this_week": "Den här veckan",
+        "this_month": "Den här månaden",
+        "this_year": "Det här året"
+      },
+      "top_domains": {
+        "title": "Populäraste domäner",
+        "no_domains_found": "Inga domäner hittades"
+      },
+      "most_used_tags": {
+        "title": "Mest använda taggar",
+        "no_tags_found": "Inga taggar hittades"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivitet per timme",
+        "activity_by_day": "Aktivitet per dag"
+      },
+      "storage_breakdown": {
+        "title": "Fördelning av lagring"
+      }
+    },
+    "subscription": {
+      "subscription": "Prenumeration",
+      "manage_subscription": "Hantera din prenumeration och faktureringsinformation",
+      "current_plan": "Nuvarande plan",
+      "billing_period": "Faktureringsperiod",
+      "paid_plan": "Betalplan",
+      "unlock_bigger_quota": "Lås upp större kvot och stöd projektet",
+      "subscribe_now": "Prenumerera nu",
+      "manage_billing": "Hantera fakturering",
+      "subscription_canceled": "Din prenumeration har avbrutits och kommer att avslutas den {{date}}. Du kan prenumerera igen när som helst.",
+      "usage_quotas": "Användning och kvoter",
+      "track_usage": "Kolla din nuvarande användning jämfört med dina gränser",
+      "total_bookmarks_saved": "Totalt antal sparade bokmärken",
+      "assets_file_storage": "Tillgångar och fillagring",
+      "unlimited_usage": "Obegränsad användning",
+      "quota_limit_reached": "Kvotgränsen har nåtts",
+      "approaching_quota_limit": "Närmar sig kvotgränsen",
+      "loading_usage": "Läser in användningsinformation...",
+      "free": "Gratis",
+      "paid": "Betald"
     }
   },
   "admin": {
@@ -275,7 +349,9 @@
       "create_user": "Skapa användare",
       "change_role": "Ändra roll",
       "num_bookmarks": "Antal bokmärken",
-      "asset_sizes": "Tillgångsstorlekar"
+      "asset_sizes": "Tillgångsstorlekar",
+      "delete_user_confirm_description": "Är du säker på att du vill ta bort användaren \"{{name}}\"?",
+      "unlimited": "Obegränsat"
     }
   },
   "options": {
@@ -457,7 +533,8 @@
     "day_s_ago": " Dagar sedan",
     "week_s_ago": " Veckor sedan",
     "month_s_ago": " Månader sedan",
-    "year_s_ago": " År sedan"
+    "year_s_ago": " År sedan",
+    "history": "Senaste sökningar"
   },
   "highlights": {
     "no_highlights": "Du har inga markeringar ännu."

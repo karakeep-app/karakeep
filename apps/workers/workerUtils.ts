@@ -4,7 +4,6 @@ import { db, KarakeepDBTransaction } from "@karakeep/db";
 import { assets, AssetTypes, bookmarks } from "@karakeep/db/schema";
 
 type DBAssetType = typeof assets.$inferInsert;
-
 export async function updateAsset(
   oldAssetId: string | undefined,
   newAsset: DBAssetType,
@@ -47,5 +46,8 @@ export async function getBookmarkDetails(bookmarkId: string) {
     precrawledArchiveAssetId: bookmark.assets
       .filter((a) => a.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE)
       .at(-1)?.id,
+    contentAssetId: bookmark.assets.find(
+      (a) => a.assetType == AssetTypes.LINK_HTML_CONTENT,
+    )?.id,
   };
 }

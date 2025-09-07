@@ -1,4 +1,4 @@
-import { isBookmarkStillLoading } from "@karakeep/shared/utils/bookmarkUtils";
+import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { api } from "../trpc";
 import { useBookmarkGridContext } from "./bookmark-grid-context";
@@ -13,11 +13,7 @@ export function useAutoRefreshingBookmarkQuery(
       if (!data) {
         return false;
       }
-      // If the link is not crawled or not tagged
-      if (isBookmarkStillLoading(data)) {
-        return 1000;
-      }
-      return false;
+      return getBookmarkRefreshInterval(data);
     },
   });
 }

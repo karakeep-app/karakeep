@@ -77,7 +77,10 @@
     "updated_at": "Aggiornato il",
     "title": "Titolo",
     "description": "Descrizione",
-    "summary": "Riepilogo"
+    "summary": "Riepilogo",
+    "quota": "Quota",
+    "bookmarks": "Segnalibri",
+    "storage": "Archiviazione"
   },
   "settings": {
     "broken_links": {
@@ -223,6 +226,77 @@
         "add_tag": "Aggiungi tag",
         "remove_tag": "Rimuovi tag"
       }
+    },
+    "stats": {
+      "usage_statistics": "Statistiche di utilizzo",
+      "insights_description": "Approfondimenti sulle tue abitudini di bookmarking e sulla tua collezione",
+      "failed_to_load": "Impossibile caricare le statistiche",
+      "overview": {
+        "total_bookmarks": "Segnalibri totali",
+        "all_saved_items": "Tutti gli elementi salvati",
+        "favorites": "Preferiti",
+        "starred_bookmarks": "Segnalibri preferiti",
+        "archived": "Archiviato",
+        "archived_items": "Elementi archiviati",
+        "tags": "Tag",
+        "unique_tags_created": "Tag univoci creati",
+        "lists": "Liste",
+        "bookmark_collections": "Raccolte di segnalibri",
+        "highlights": "Evidenziazioni",
+        "text_highlights": "Evidenziazioni di testo",
+        "storage_used": "Spazio di archiviazione utilizzato",
+        "total_asset_storage": "Archiviazione totale degli asset",
+        "this_month": "Questo mese",
+        "bookmarks_added": "Segnalibri aggiunti"
+      },
+      "bookmark_types": {
+        "title": "Tipi di segnalibri",
+        "links": "Link",
+        "text_notes": "Note di testo",
+        "assets": "Asset"
+      },
+      "recent_activity": {
+        "title": "Attività recente",
+        "this_week": "Questa settimana",
+        "this_month": "Questo mese",
+        "this_year": "Quest'anno"
+      },
+      "top_domains": {
+        "title": "Domini principali",
+        "no_domains_found": "Nessun dominio trovato"
+      },
+      "most_used_tags": {
+        "title": "Tag più usati",
+        "no_tags_found": "Nessun tag trovato"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Attività per ora",
+        "activity_by_day": "Attività per giorno"
+      },
+      "storage_breakdown": {
+        "title": "Ripartizione archiviazione"
+      }
+    },
+    "subscription": {
+      "subscription": "Abbonamento",
+      "manage_subscription": "Gestisci il tuo abbonamento e le informazioni di fatturazione",
+      "current_plan": "Piano attuale",
+      "billing_period": "Periodo di fatturazione",
+      "paid_plan": "Piano a pagamento",
+      "unlock_bigger_quota": "Sblocca una quota maggiore e supporta il progetto",
+      "subscribe_now": "Iscriviti ora",
+      "manage_billing": "Gestisci la fatturazione",
+      "subscription_canceled": "Il tuo abbonamento è stato annullato e terminerà il {{date}}. Puoi riabbonarti in qualsiasi momento.",
+      "usage_quotas": "Utilizzo e quote",
+      "track_usage": "Tieni traccia del tuo utilizzo attuale rispetto ai limiti del tuo piano",
+      "total_bookmarks_saved": "Totale segnalibri salvati",
+      "assets_file_storage": "Risorse e archiviazione file",
+      "unlimited_usage": "Utilizzo illimitato",
+      "quota_limit_reached": "Limite di quota raggiunto",
+      "approaching_quota_limit": "Limite di quota in avvicinamento",
+      "loading_usage": "Caricamento delle informazioni sull'utilizzo...",
+      "free": "Gratuito",
+      "paid": "A pagamento"
     }
   },
   "editor": {
@@ -334,7 +408,9 @@
       "confirm_password": "Conferma password",
       "create_user": "Crea utente",
       "delete_user": "Elimina utente",
-      "reset_password": "Ripristina password"
+      "reset_password": "Ripristina password",
+      "delete_user_confirm_description": "Sei sicuro di voler eliminare l'utente \"{{name}}\"?",
+      "unlimited": "Illimitato"
     }
   },
   "options": {
@@ -451,7 +527,8 @@
     "day_s_ago": " Giorni fa",
     "week_s_ago": " Settimane fa",
     "month_s_ago": " Mesi fa",
-    "year_s_ago": " Anni fa"
+    "year_s_ago": " Anni fa",
+    "history": "Ricerche recenti"
   },
   "dialogs": {
     "bookmarks": {

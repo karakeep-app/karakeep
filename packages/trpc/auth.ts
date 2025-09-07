@@ -1,29 +1,33 @@
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcryptjs";
 
-import { db } from "@karakeep/db";
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
-import { authFailureLogger } from "@karakeep/shared/logger";
 
-// API Keys
+import type { Context } from "./index";
 
 const BCRYPT_SALT_ROUNDS = 10;
-const API_KEY_PREFIX = "ak1";
+const API_KEY_PREFIX_V1 = "ak1";
+const API_KEY_PREFIX_V2 = "ak2";
 
 export function generatePasswordSalt() {
   return randomBytes(32).toString("hex");
 }
 
-export async function generateApiKey(name: string, userId: string) {
+export async function generateApiKey(
+  name: string,
+  userId: string,
+  database: Context["db"],
+) {
   const id = randomBytes(10).toString("hex");
-  const secret = randomBytes(10).toString("hex");
-  const secretHash = await bcrypt.hash(secret, BCRYPT_SALT_ROUNDS);
+  const secret = randomBytes(16).toString("hex");
 
-  const plain = `${API_KEY_PREFIX}_${id}_${secret}`;
+  const secretHash = createHash("sha256").update(secret).digest("base64");
+
+  const plain = `${API_KEY_PREFIX_V2}_${id}_${secret}`;
 
   const key = (
-    await db
+    await database
       .insert(apiKeys)
       .values({
         name: name,
@@ -41,6 +45,7 @@ export async function generateApiKey(name: string, userId: string) {
     key: plain,
   };
 }
+
 function parseApiKey(plain: string) {
   const parts = plain.split("_");
   if (parts.length != 3) {
@@ -48,18 +53,19 @@ function parseApiKey(plain: string) {
       `Malformd API key. API keys should have 3 segments, found ${parts.length} instead.`,
     );
   }
-  if (parts[0] !== API_KEY_PREFIX) {
+  if (parts[0] !== API_KEY_PREFIX_V1 && parts[0] !== API_KEY_PREFIX_V2) {
     throw new Error(`Malformd API key. Got unexpected key prefix.`);
   }
   return {
+    version: parts[0] == API_KEY_PREFIX_V1 ? (1 as const) : (2 as const),
     keyId: parts[1],
     keySecret: parts[2],
   };
 }
 
-export async function authenticateApiKey(key: string) {
-  const { keyId, keySecret } = parseApiKey(key);
-  const apiKey = await db.query.apiKeys.findFirst({
+export async function authenticateApiKey(key: string, database: Context["db"]) {
+  const { version, keyId, keySecret } = parseApiKey(key);
+  const apiKey = await database.query.apiKeys.findFirst({
     where: (k, { eq }) => eq(k.keyId, keyId),
     with: {
       user: true,
@@ -72,7 +78,19 @@ export async function authenticateApiKey(key: string) {
 
   const hash = apiKey.keyHash;
 
-  const validation = await bcrypt.compare(keySecret, hash);
+  let validation = false;
+  switch (version) {
+    case 1:
+      validation = await bcrypt.compare(keySecret, hash);
+      break;
+    case 2:
+      validation =
+        createHash("sha256").update(keySecret).digest("base64") == hash;
+      break;
+    default:
+      throw new Error("Invalid API Key");
+  }
+
   if (!validation) {
     throw new Error("Invalid API Key");
   }
@@ -84,15 +102,25 @@ export async function hashPassword(password: string, salt: string | null) {
   return await bcrypt.hash(password + (salt ?? ""), BCRYPT_SALT_ROUNDS);
 }
 
-export async function validatePassword(email: string, password: string) {
+export async function validatePassword(
+  email: string,
+  password: string,
+  database: Context["db"],
+) {
   if (serverConfig.auth.disablePasswordAuth) {
     throw new Error("Password authentication is currently disabled");
   }
-  const user = await db.query.users.findFirst({
+  const user = await database.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, email),
   });
 
   if (!user) {
+    // Run a bcrypt comparison anyways to hide the fact of whether the user exists or not (protecting against timing attacks)
+    await bcrypt.compare(
+      password +
+        "b6bfd1e907eb40462e73986f6cd628c036dc079b101186d36d53b824af3c9d2e",
+      "a-dummy-password-that-should-never-match",
+    );
     throw new Error("User not found");
   }
 
@@ -109,14 +137,4 @@ export async function validatePassword(email: string, password: string) {
   }
 
   return user;
-}
-
-export function logAuthenticationError(
-  user: string,
-  message: string,
-  ip: string | null,
-): void {
-  authFailureLogger.error(
-    `Authentication error. User: "${user}", Message: "${message}", IP-Address: "${ip}"`,
-  );
 }

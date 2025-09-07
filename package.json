@@ -14,22 +14,24 @@
     "workers": "pnpm --filter @karakeep/workers run start",
     "web": "pnpm --filter @karakeep/web run dev",
     "prepare": "husky",
-    "format": "turbo --no-daemon format --continue -- --cache-location node_modules/.cache/.prettiercache",
-    "format:fix": "turbo --no-daemon format --continue -- --write --cache-location node_modules/.cache/.prettiercache",
-    "lint": "turbo --no-daemon lint --continue --",
-    "lint:fix": "turbo --no-daemon lint --continue -- --fix",
-    "typecheck": "turbo --no-daemon typecheck"
+    "format": "turbo --no-daemon format --continue",
+    "format:fix": "turbo --no-daemon format:fix --continue",
+    "lint": "turbo --no-daemon lint --continue",
+    "lint:fix": "turbo --no-daemon lint:fix --continue",
+    "typecheck": "turbo --no-daemon typecheck",
+    "preflight": "turbo run --no-daemon typecheck lint format",
+    "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix"
+  },
+  "dependencies": {
+    "husky": "^9.0.11"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@types/node": "^22",
-    "es-errors": "^1.3.0",
-    "husky": "^9.0.11",
-    "install": "^0.13.0",
-    "oxlint": "^1.2.0",
+    "oxlint": "^1.12.0",
     "prettier": "^3.4.2",
-    "sherif": "^1.2.0",
-    "turbo": "^2.1.2"
+    "sherif": "^1.6.1",
+    "turbo": "^2.5.5"
   },
   "prettier": "@karakeep/prettier-config",
   "packageManager": "pnpm@9.15.9",

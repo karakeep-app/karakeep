@@ -1,20 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq } from "drizzle-orm";
-import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
-import {
-  bookmarkLists,
-  bookmarks,
-  bookmarkTags,
-  highlights,
-  users,
-  userSettings,
-} from "@karakeep/db/schema";
-import { deleteUserAssets } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
+  zResetPasswordSchema,
   zSignUpSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
@@ -22,94 +11,24 @@ import {
   zWhoAmIResponseSchema,
 } from "@karakeep/shared/types/users";
 
-import { generatePasswordSalt, hashPassword, validatePassword } from "../auth";
 import {
   adminProcedure,
   authedProcedure,
-  Context,
+  createRateLimitMiddleware,
   publicProcedure,
   router,
 } from "../index";
-
-export async function createUserRaw(
-  db: Context["db"],
-  input: {
-    name: string;
-    email: string;
-    password?: string;
-    salt?: string;
-    role?: "user" | "admin";
-    emailVerified?: Date | null;
-  },
-) {
-  return await db.transaction(async (trx) => {
-    let userRole = input.role;
-    if (!userRole) {
-      const [{ count: userCount }] = await trx
-        .select({ count: count() })
-        .from(users);
-      userRole = userCount == 0 ? "admin" : "user";
-    }
-
-    try {
-      const [result] = await trx
-        .insert(users)
-        .values({
-          name: input.name,
-          email: input.email,
-          password: input.password,
-          salt: input.salt,
-          role: userRole,
-          emailVerified: input.emailVerified,
-        })
-        .returning({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          role: users.role,
-          emailVerified: users.emailVerified,
-        });
-
-      // Insert user settings for the new user
-      await trx.insert(userSettings).values({
-        userId: result.id,
-      });
-
-      return result;
-    } catch (e) {
-      if (e instanceof SqliteError) {
-        if (e.code == "SQLITE_CONSTRAINT_UNIQUE") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Email is already taken",
-          });
-        }
-      }
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Something went wrong",
-      });
-    }
-  });
-}
-
-export async function createUser(
-  input: z.infer<typeof zSignUpSchema>,
-  ctx: Context,
-  role?: "user" | "admin",
-) {
-  const salt = generatePasswordSalt();
-  return await createUserRaw(ctx.db, {
-    name: input.name,
-    email: input.email,
-    password: await hashPassword(input.password, salt),
-    salt,
-    role,
-  });
-}
+import { User } from "../models/users";
 
 export const usersAppRouter = router({
   create: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.create",
+        windowMs: 60 * 1000,
+        maxRequests: 3,
+      }),
+    )
     .input(zSignUpSchema)
     .output(
       z.object({
@@ -132,7 +51,13 @@ export const usersAppRouter = router({
           message: errorMessage,
         });
       }
-      return createUser(input, ctx);
+      const user = await User.create(ctx, input);
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      };
     }),
   list: adminProcedure
     .output(
@@ -144,26 +69,16 @@ export const usersAppRouter = router({
             email: z.string(),
             role: z.enum(["user", "admin"]).nullable(),
             localUser: z.boolean(),
+            bookmarkQuota: z.number().nullable(),
+            storageQuota: z.number().nullable(),
           }),
         ),
       }),
     )
     .query(async ({ ctx }) => {
-      const dbUsers = await ctx.db
-        .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          role: users.role,
-          password: users.password,
-        })
-        .from(users);
-
+      const users = await User.getAll(ctx);
       return {
-        users: dbUsers.map(({ password, ...user }) => ({
-          ...user,
-          localUser: password !== null,
-        })),
+        users: users.map((u) => u.asPublicUser()),
       };
     }),
   changePassword: authedProcedure
@@ -174,22 +89,8 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      invariant(ctx.user.email, "A user always has an email specified");
-      let user;
-      try {
-        user = await validatePassword(ctx.user.email, input.currentPassword);
-      } catch {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      invariant(user.id, ctx.user.id);
-      const newSalt = generatePasswordSalt();
-      await ctx.db
-        .update(users)
-        .set({
-          password: await hashPassword(input.newPassword, newSalt),
-          salt: newSalt,
-        })
-        .where(eq(users.id, ctx.user.id));
+      const user = await User.fromCtx(ctx);
+      await user.changePassword(input.currentPassword, input.newPassword);
     }),
   delete: adminProcedure
     .input(
@@ -198,113 +99,105 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const res = await ctx.db.delete(users).where(eq(users.id, input.userId));
-      if (res.changes == 0) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      await deleteUserAssets({ userId: input.userId });
+      await User.deleteAsAdmin(ctx, input.userId);
+    }),
+  deleteAccount: authedProcedure
+    .input(
+      z.object({
+        password: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = await User.fromCtx(ctx);
+      await user.deleteAccount(input.password);
     }),
   whoami: authedProcedure
     .output(zWhoAmIResponseSchema)
     .query(async ({ ctx }) => {
-      if (!ctx.user.email) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      const userDb = await ctx.db.query.users.findFirst({
-        where: and(eq(users.id, ctx.user.id), eq(users.email, ctx.user.email)),
-      });
-      if (!userDb) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      return { id: ctx.user.id, name: ctx.user.name, email: ctx.user.email };
+      const user = await User.fromCtx(ctx);
+      return user.asWhoAmI();
     }),
   stats: authedProcedure
     .output(zUserStatsResponseSchema)
     .query(async ({ ctx }) => {
-      const [
-        [{ numBookmarks }],
-        [{ numFavorites }],
-        [{ numArchived }],
-        [{ numTags }],
-        [{ numLists }],
-        [{ numHighlights }],
-      ] = await Promise.all([
-        ctx.db
-          .select({ numBookmarks: count() })
-          .from(bookmarks)
-          .where(eq(bookmarks.userId, ctx.user.id)),
-        ctx.db
-          .select({ numFavorites: count() })
-          .from(bookmarks)
-          .where(
-            and(
-              eq(bookmarks.userId, ctx.user.id),
-              eq(bookmarks.favourited, true),
-            ),
-          ),
-        ctx.db
-          .select({ numArchived: count() })
-          .from(bookmarks)
-          .where(
-            and(
-              eq(bookmarks.userId, ctx.user.id),
-              eq(bookmarks.archived, true),
-            ),
-          ),
-        ctx.db
-          .select({ numTags: count() })
-          .from(bookmarkTags)
-          .where(eq(bookmarkTags.userId, ctx.user.id)),
-        ctx.db
-          .select({ numLists: count() })
-          .from(bookmarkLists)
-          .where(eq(bookmarkLists.userId, ctx.user.id)),
-        ctx.db
-          .select({ numHighlights: count() })
-          .from(highlights)
-          .where(eq(highlights.userId, ctx.user.id)),
-      ]);
-      return {
-        numBookmarks,
-        numFavorites,
-        numArchived,
-        numTags,
-        numLists,
-        numHighlights,
-      };
+      const user = await User.fromCtx(ctx);
+      return await user.getStats();
     }),
   settings: authedProcedure
     .output(zUserSettingsSchema)
     .query(async ({ ctx }) => {
-      const settings = await ctx.db.query.userSettings.findFirst({
-        where: eq(userSettings.userId, ctx.user.id),
-      });
-      if (!settings) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User settings not found",
-        });
-      }
-      return {
-        bookmarkClickAction: settings.bookmarkClickAction,
-        archiveDisplayBehaviour: settings.archiveDisplayBehaviour,
-      };
+      const user = await User.fromCtx(ctx);
+      return await user.getSettings();
     }),
   updateSettings: authedProcedure
     .input(zUpdateUserSettingsSchema)
     .mutation(async ({ input, ctx }) => {
-      if (Object.keys(input).length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No settings provided",
-        });
-      }
-      await ctx.db
-        .update(userSettings)
-        .set({
-          bookmarkClickAction: input.bookmarkClickAction,
-          archiveDisplayBehaviour: input.archiveDisplayBehaviour,
-        })
-        .where(eq(userSettings.userId, ctx.user.id));
+      const user = await User.fromCtx(ctx);
+      await user.updateSettings(input);
+    }),
+  verifyEmail: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.verifyEmail",
+        windowMs: 5 * 60 * 1000,
+        maxRequests: 10,
+      }),
+    )
+    .input(
+      z.object({
+        email: z.string().email(),
+        token: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await User.verifyEmail(ctx, input.email, input.token);
+      return { success: true };
+    }),
+  resendVerificationEmail: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.resendVerificationEmail",
+        windowMs: 5 * 60 * 1000,
+        maxRequests: 3,
+      }),
+    )
+    .input(
+      z.object({
+        email: z.string().email(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await User.resendVerificationEmail(ctx, input.email);
+      return { success: true };
+    }),
+  forgotPassword: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.forgotPassword",
+        windowMs: 15 * 60 * 1000,
+        maxRequests: 3,
+      }),
+    )
+    .input(
+      z.object({
+        email: z.string().email(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await User.forgotPassword(ctx, input.email);
+      return { success: true };
+    }),
+  resetPassword: publicProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.resetPassword",
+        windowMs: 5 * 60 * 1000,
+        maxRequests: 10,
+      }),
+    )
+    .input(zResetPasswordSchema)
+    .mutation(async ({ input, ctx }) => {
+      await User.resetPassword(ctx, input);
+      return { success: true };
     }),
 });

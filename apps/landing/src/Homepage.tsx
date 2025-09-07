@@ -12,16 +12,13 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { DEMO_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
+import NavBar from "./Navbar";
 import appStoreBadge from "/app-store-badge.png?url";
 import chromeExtensionBadge from "/chrome-extension-badge.png?url";
 import firefoxAddonBadge from "/firefox-addon.png?url";
 import playStoreBadge from "/google-play-badge.webp?url";
 import screenshot from "/hero.webp?url";
-import Logo from "/icons/karakeep-full.svg?url";
-
-const GITHUB_LINK = "https://github.com/karakeep-app/karakeep";
-const DOCS_LINK = "https://docs.karakeep.app";
-const DEMO_LINK = "https://try.karakeep.app";
 
 const platforms = [
   {
@@ -92,43 +89,6 @@ const featuresList = [
 ];
 
 const currentYear = new Date().getFullYear();
-
-function NavBar() {
-  return (
-    <div className="flex justify-between px-3 py-4">
-      <img src={Logo} alt="logo" className="w-36" />
-      <div className="hidden items-center gap-6 sm:flex">
-        <a
-          href={DOCS_LINK}
-          target="_blank"
-          className="flex justify-center gap-2 text-center"
-          rel="noreferrer"
-        >
-          Docs
-        </a>
-        <a
-          href={GITHUB_LINK}
-          target="_blank"
-          className="flex justify-center gap-2 text-center"
-          rel="noreferrer"
-        >
-          GitHub
-        </a>
-        <a
-          href={DEMO_LINK}
-          target="_blank"
-          className={cn(
-            "text flex h-full w-28 gap-2",
-            buttonVariants({ variant: "default" }),
-          )}
-          rel="noreferrer"
-        >
-          Try Demo
-        </a>
-      </div>
-    </div>
-  );
-}
 
 function Hero() {
   return (

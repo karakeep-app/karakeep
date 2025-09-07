@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/shared-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@karakeep/db": "workspace:^0.1.0",
+    "@karakeep/plugins-search-meilisearch": "workspace:^0.1.0",
+    "@karakeep/shared": "workspace:^0.1.0"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "vitest"
+  },
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "prettier": "@karakeep/prettier-config"
+}

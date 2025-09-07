@@ -115,6 +115,7 @@ export default function BulkTagAction() {
       {!isBulkEditEnabled ? (
         <Toggle
           variant="outline"
+          className="bg-background"
           aria-label="Toggle bulk edit"
           pressed={isBulkEditEnabled}
           onPressedChange={setIsBulkEditEnabled}
@@ -123,13 +124,13 @@ export default function BulkTagAction() {
           {t("actions.bulk_edit")}
         </Toggle>
       ) : (
-        <div className="flex items-center">
+        <div className="flex items-center rounded-md bg-background">
           {actionList.map(({ name, icon, action, alwaysEnable }) => (
             <ButtonWithTooltip
               tooltip={name}
               disabled={!selectedTagIds.length && !alwaysEnable}
               delayDuration={100}
-              variant="ghost"
+              variant="none"
               key={name}
               onClick={action}
             >

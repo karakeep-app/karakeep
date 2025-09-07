@@ -1,7 +1,8 @@
-import { useState } from "react";
 import Image from "next/image";
-import BookmarkHTMLHighlighter from "@/components/dashboard/preview/BookmarkHtmlHighlighter";
-import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import Link from "next/link";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -10,27 +11,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
-import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
-
 import {
-  useCreateHighlight,
-  useDeleteHighlight,
-  useUpdateHighlight,
-} from "@karakeep/shared-react/hooks/highlights";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useTranslation } from "@/lib/i18n/client";
+import {
+  AlertTriangle,
+  Archive,
+  BookOpen,
+  Camera,
+  ExpandIcon,
+  Video,
+} from "lucide-react";
+import { useQueryState } from "nuqs";
+import { ErrorBoundary } from "react-error-boundary";
+
 import {
   BookmarkTypes,
   ZBookmark,
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
 
+import { contentRendererRegistry } from "./content-renderers";
+import ReaderView from "./ReaderView";
+
+function CustomRendererErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center p-4">
+      <Alert variant="destructive" className="max-w-md">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Renderer Error</AlertTitle>
+        <AlertDescription>
+          Failed to load custom content renderer.{" "}
+          <details className="mt-2">
+            <summary className="cursor-pointer text-xs">
+              Technical details
+            </summary>
+            <code className="mt-1 block text-xs">{error.message}</code>
+          </details>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
 function FullPageArchiveSection({ link }: { link: ZBookmarkedLink }) {
   const archiveAssetId =
     link.fullPageArchiveAssetId ?? link.precrawledArchiveAssetId;
   return (
     <iframe
+      sandbox=""
       title={link.url}
       src={`/api/assets/${archiveAssetId}`}
       className="relative h-full min-w-full"
@@ -53,106 +85,6 @@ function ScreenshotSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
-function CachedContentSection({ bookmarkId }: { bookmarkId: string }) {
-  const { data: highlights } = api.highlights.getForBookmark.useQuery({
-    bookmarkId,
-  });
-  const { data: cachedContent, isPending: isCachedContentLoading } =
-    api.bookmarks.getBookmark.useQuery(
-      {
-        bookmarkId,
-        includeContent: true,
-      },
-      {
-        select: (data) =>
-          data.content.type == BookmarkTypes.LINK
-            ? data.content.htmlContent
-            : null,
-      },
-    );
-
-  const { mutate: createHighlight } = useCreateHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been created!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
-
-  const { mutate: updateHighlight } = useUpdateHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been updated!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
-
-  const { mutate: deleteHighlight } = useDeleteHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been deleted!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
-
-  let content;
-  if (isCachedContentLoading) {
-    content = <FullPageSpinner />;
-  } else if (!cachedContent) {
-    content = (
-      <div className="text-destructive">Failed to fetch link content ...</div>
-    );
-  } else {
-    content = (
-      <BookmarkHTMLHighlighter
-        htmlContent={cachedContent || ""}
-        className="prose mx-auto dark:prose-invert"
-        highlights={highlights?.highlights ?? []}
-        onDeleteHighlight={(h) =>
-          deleteHighlight({
-            highlightId: h.id,
-          })
-        }
-        onUpdateHighlight={(h) =>
-          updateHighlight({
-            highlightId: h.id,
-            color: h.color,
-          })
-        }
-        onHighlight={(h) =>
-          createHighlight({
-            startOffset: h.startOffset,
-            endOffset: h.endOffset,
-            color: h.color,
-            bookmarkId,
-            text: h.text,
-            note: null,
-          })
-        }
-      />
-    );
-  }
-  return <ScrollArea className="h-full">{content}</ScrollArea>;
-}
-
 function VideoSection({ link }: { link: ZBookmarkedLink }) {
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -173,15 +105,37 @@ export default function LinkContentSection({
   bookmark: ZBookmark;
 }) {
   const { t } = useTranslation();
-  const [section, setSection] = useState<string>("cached");
+  const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
+  const defaultSection =
+    availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
+  const [section, setSection] = useQueryState("section", {
+    defaultValue: defaultSection,
+  });
 
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");
   }
 
   let content;
-  if (section === "cached") {
-    content = <CachedContentSection bookmarkId={bookmark.id} />;
+
+  // Check if current section is a custom renderer
+  const customRenderer = availableRenderers.find((r) => r.id === section);
+  if (customRenderer) {
+    const RendererComponent = customRenderer.component;
+    content = (
+      <ErrorBoundary FallbackComponent={CustomRendererErrorFallback}>
+        <RendererComponent bookmark={bookmark} />
+      </ErrorBoundary>
+    );
+  } else if (section === "cached") {
+    content = (
+      <ScrollArea className="h-full">
+        <ReaderView
+          className="prose mx-auto dark:prose-invert"
+          bookmarkId={bookmark.id}
+        />
+      </ScrollArea>
+    );
   } else if (section === "archive") {
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
@@ -192,36 +146,82 @@ export default function LinkContentSection({
 
   return (
     <div className="flex h-full flex-col items-center gap-2">
-      <Select onValueChange={setSection} value={section}>
-        <SelectTrigger className="w-fit">
-          <span className="mr-2">
-            <SelectValue />
-          </span>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectItem value="cached">{t("preview.reader_view")}</SelectItem>
-            <SelectItem
-              value="screenshot"
-              disabled={!bookmark.content.screenshotAssetId}
-            >
-              {t("common.screenshot")}
-            </SelectItem>
-            <SelectItem
-              value="archive"
-              disabled={
-                !bookmark.content.fullPageArchiveAssetId &&
-                !bookmark.content.precrawledArchiveAssetId
-              }
-            >
-              {t("common.archive")}
-            </SelectItem>
-            <SelectItem value="video" disabled={!bookmark.content.videoAssetId}>
-              {t("common.video")}
-            </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-2">
+        <Select onValueChange={setSection} value={section}>
+          <SelectTrigger className="w-fit">
+            <span className="mr-2">
+              <SelectValue />
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {/* Custom renderers first */}
+              {availableRenderers.map((renderer) => {
+                const IconComponent = renderer.icon;
+                return (
+                  <SelectItem key={renderer.id} value={renderer.id}>
+                    <div className="flex items-center">
+                      <IconComponent className="mr-2 h-4 w-4" />
+                      {renderer.name}
+                    </div>
+                  </SelectItem>
+                );
+              })}
+
+              {/* Default renderers */}
+              <SelectItem value="cached">
+                <div className="flex items-center">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  {t("preview.reader_view")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="screenshot"
+                disabled={!bookmark.content.screenshotAssetId}
+              >
+                <div className="flex items-center">
+                  <Camera className="mr-2 h-4 w-4" />
+                  {t("common.screenshot")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="archive"
+                disabled={
+                  !bookmark.content.fullPageArchiveAssetId &&
+                  !bookmark.content.precrawledArchiveAssetId
+                }
+              >
+                <div className="flex items-center">
+                  <Archive className="mr-2 h-4 w-4" />
+                  {t("common.archive")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="video"
+                disabled={!bookmark.content.videoAssetId}
+              >
+                <div className="flex items-center">
+                  <Video className="mr-2 h-4 w-4" />
+                  {t("common.video")}
+                </div>
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {section === "cached" && (
+          <Tooltip>
+            <TooltipTrigger>
+              <Link
+                href={`/reader/${bookmark.id}`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <ExpandIcon className="h-4 w-4" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">FullScreen</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       {content}
     </div>
   );

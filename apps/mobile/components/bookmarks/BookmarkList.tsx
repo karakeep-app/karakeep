@@ -1,6 +1,7 @@
 import { useRef } from "react";
-import { ActivityIndicator, Keyboard, Text, View } from "react-native";
+import { ActivityIndicator, Keyboard, View } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
+import { Text } from "@/components/ui/Text";
 import { useScrollToTop } from "@react-navigation/native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -38,7 +39,7 @@ export default function BookmarkList({
       renderItem={(b) => <BookmarkCard bookmark={b.item} />}
       ListEmptyComponent={
         <View className="items-center justify-center pt-4">
-          <Text className="text-xl text-foreground">No Bookmarks</Text>
+          <Text variant="title3">No Bookmarks</Text>
         </View>
       }
       data={bookmarks}

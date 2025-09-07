@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 
 import { db } from "@karakeep/db";
 import { assets } from "@karakeep/db/schema";
@@ -19,11 +20,13 @@ export class TidyAssetsWorker {
       {
         run: runTidyAssets,
         onComplete: (job) => {
+          workerStatsCounter.labels("tidyAssets", "completed").inc();
           const jobId = job.id;
           logger.info(`[tidyAssets][${jobId}] Completed successfully`);
           return Promise.resolve();
         },
         onError: (job) => {
+          workerStatsCounter.labels("tidyAssets", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[tidyAssets][${jobId}] tidy assets job failed: ${job.error}\n${job.error.stack}`,

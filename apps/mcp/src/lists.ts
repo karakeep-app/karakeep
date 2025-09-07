@@ -8,7 +8,9 @@ mcpServer.tool(
   "get-lists",
   `Retrieves a list of lists.`,
   async (): Promise<CallToolResult> => {
-    const res = await karakeepClient.GET("/lists");
+    const res = await karakeepClient.GET("/lists", {
+      params: {},
+    });
     if (!res.data) {
       return toMcpToolError(res.error);
     }

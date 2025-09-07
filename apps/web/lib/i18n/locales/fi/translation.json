@@ -36,7 +36,10 @@
       "text": "Teksti",
       "media": "Media"
     },
-    "url": "URL"
+    "url": "URL",
+    "quota": "Kiintiö",
+    "bookmarks": "Kirjanmerkit",
+    "storage": "Tallennustila"
   },
   "layouts": {
     "masonry": "Tiililadonta",
@@ -233,6 +236,77 @@
       "rule_has_been_deleted": "Sääntö on poistettu!",
       "no_rules_created_yet": "Ei vielä luotuja sääntöjä",
       "create_your_first_rule": "Luo ensimmäinen sääntösi automatisoidaksesi työnkulkusi"
+    },
+    "stats": {
+      "usage_statistics": "Käyttötilastot",
+      "insights_description": "Näkemyksiä kirjanmerkintätottumuksiisi ja -kokoelmaasi",
+      "failed_to_load": "Tilastojen lataaminen epäonnistui",
+      "overview": {
+        "total_bookmarks": "Kirjanmerkkien kokonaismäärä",
+        "all_saved_items": "Kaikki tallennetut kohteet",
+        "favorites": "Suosikit",
+        "starred_bookmarks": "Tähdellä merkityt kirjanmerkit",
+        "archived": "Arkistoitu",
+        "archived_items": "Arkistoidut kohteet",
+        "tags": "Tunnisteet",
+        "unique_tags_created": "Luotuja yksilöllisiä tunnisteita",
+        "lists": "Listat",
+        "bookmark_collections": "Kirjanmerkkikokoelmat",
+        "highlights": "Kohokohdat",
+        "text_highlights": "Tekstin korostukset",
+        "storage_used": "Käytetty tallennustila",
+        "total_asset_storage": "Omaisuuden kokonaistallennustila",
+        "this_month": "Tässä kuussa",
+        "bookmarks_added": "Kirjanmerkit lisätty"
+      },
+      "bookmark_types": {
+        "title": "Kirjanmerkityypit",
+        "links": "Linkit",
+        "text_notes": "Tekstimuistiinpanot",
+        "assets": "Omaisuus"
+      },
+      "recent_activity": {
+        "title": "Viimeaikainen aktiivisuus",
+        "this_week": "Tällä viikolla",
+        "this_month": "Tässä kuussa",
+        "this_year": "Tänä vuonna"
+      },
+      "top_domains": {
+        "title": "Suosituimmat verkkotunnukset",
+        "no_domains_found": "Verkkotunnuksia ei löytynyt"
+      },
+      "most_used_tags": {
+        "title": "Käytetyimmät tunnisteet",
+        "no_tags_found": "Tunnisteita ei löytynyt"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktiivisuus tunneittain",
+        "activity_by_day": "Aktiivisuus päivittäin"
+      },
+      "storage_breakdown": {
+        "title": "Tallennustilan erittely"
+      }
+    },
+    "subscription": {
+      "subscription": "Tilaus",
+      "manage_subscription": "Hallitse tilaustasi ja laskutustietojasi",
+      "current_plan": "Nykyinen suunnitelma",
+      "billing_period": "Laskutuskausi",
+      "paid_plan": "Maksullinen suunnitelma",
+      "unlock_bigger_quota": "Hanki suurempi kiintiö ja tue projektia",
+      "subscribe_now": "Tilaa nyt",
+      "manage_billing": "Hallitse laskutusta",
+      "subscription_canceled": "Tilauksesi on peruttu ja päättyy {{date}}. Voit tilata uudelleen milloin tahansa.",
+      "usage_quotas": "Käyttö ja kiintiöt",
+      "track_usage": "Seuraa nykyistä käyttöäsi suunnitelmasi rajoja vasten",
+      "total_bookmarks_saved": "Tallennettujen kirjanmerkkien kokonaismäärä",
+      "assets_file_storage": "Resurssien ja tiedostojen tallennus",
+      "unlimited_usage": "Rajoittamaton käyttö",
+      "quota_limit_reached": "Kiintiöraja on saavutettu",
+      "approaching_quota_limit": "Kiintiöraja lähestyy",
+      "loading_usage": "Käyttötietojen lataaminen...",
+      "free": "Ilmainen",
+      "paid": "Maksullinen"
     }
   },
   "admin": {
@@ -279,7 +353,9 @@
       "num_bookmarks": "Kirjanmerkkien määrä",
       "asset_sizes": "Assetin koot",
       "local_user": "Paikallinen käyttäjä",
-      "confirm_password": "Vahvista salasana"
+      "confirm_password": "Vahvista salasana",
+      "delete_user_confirm_description": "Oletko varma, että haluat poistaa käyttäjän \"{{name}}\"?",
+      "unlimited": "Rajoittamaton"
     }
   },
   "options": {
@@ -364,7 +440,8 @@
     "day_s_ago": " Päivä(ä) sitten",
     "week_s_ago": " Viikko(a) sitten",
     "month_s_ago": " Kuukausi(a) sitten",
-    "year_s_ago": " Vuosi(a) sitten"
+    "year_s_ago": " Vuosi(a) sitten",
+    "history": "Viimeaikaiset haut"
   },
   "preview": {
     "view_original": "Näytä alkuperäinen",

@@ -8,7 +8,8 @@
   },
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,7 +19,7 @@
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.3"
   },
   "prettier": "@karakeep/prettier-config"
 }

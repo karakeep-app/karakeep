@@ -1,10 +1,12 @@
 import { eq } from "drizzle-orm";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 import { buildImpersonatingAuthedContext } from "trpc";
 
 import type { ZRuleEngineRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
   RuleEngineQueue,
@@ -20,11 +22,13 @@ export class RuleEngineWorker {
       {
         run: runRuleEngine,
         onComplete: (job) => {
+          workerStatsCounter.labels("ruleEngine", "completed").inc();
           const jobId = job.id;
           logger.info(`[ruleEngine][${jobId}] Completed successfully`);
           return Promise.resolve();
         },
         onError: (job) => {
+          workerStatsCounter.labels("ruleEngine", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[ruleEngine][${jobId}] rule engine job failed: ${job.error}\n${job.error.stack}`,
@@ -33,7 +37,7 @@ export class RuleEngineWorker {
         },
       },
       {
-        concurrency: 1,
+        concurrency: serverConfig.ruleEngine.numWorkers,
         pollIntervalMs: 1000,
         timeoutSecs: 10,
         validator: zRuleEngineRequestSchema,

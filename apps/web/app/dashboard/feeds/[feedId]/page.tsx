@@ -3,11 +3,10 @@ import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
 
-export default async function FeedPage({
-  params,
-}: {
-  params: { feedId: string };
+export default async function FeedPage(props: {
+  params: Promise<{ feedId: string }>;
 }) {
+  const params = await props.params;
   let feed;
   try {
     feed = await api.feeds.get({ feedId: params.feedId });

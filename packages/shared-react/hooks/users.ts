@@ -12,3 +12,13 @@ export function useUpdateUserSettings(
     },
   });
 }
+
+export function useDeleteAccount(
+  ...opts: Parameters<typeof api.users.deleteAccount.useMutation>
+) {
+  return api.users.deleteAccount.useMutation(opts[0]);
+}
+
+export function useWhoAmI() {
+  return api.users.whoami.useQuery();
+}

@@ -27,6 +27,7 @@ import {
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
+import { readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
   createSignedToken,
@@ -46,6 +47,7 @@ import {
   getBookmarkLinkAssetIdOrUrl,
   getBookmarkTitle,
 } from "@karakeep/shared/utils/bookmarkUtils";
+import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
@@ -202,8 +204,11 @@ export class Bookmark implements PrivacyAware {
               imageUrl: row.bookmarkLinks.imageUrl,
               favicon: row.bookmarkLinks.favicon,
               htmlContent: input.includeContent
-                ? row.bookmarkLinks.htmlContent
+                ? row.bookmarkLinks.contentAssetId
+                  ? null // Will be populated later from asset
+                  : row.bookmarkLinks.htmlContent
                 : null,
+              contentAssetId: row.bookmarkLinks.contentAssetId,
               crawledAt: row.bookmarkLinks.crawledAt,
               author: row.bookmarkLinks.author,
               publisher: row.bookmarkLinks.publisher,
@@ -299,6 +304,33 @@ export class Bookmark implements PrivacyAware {
     );
 
     const bookmarksArr = Object.values(bookmarksRes);
+
+    // Fetch HTML content from assets for bookmarks that have contentAssetId (large content)
+    if (input.includeContent) {
+      await Promise.all(
+        bookmarksArr.map(async (bookmark) => {
+          if (
+            bookmark.content.type === BookmarkTypes.LINK &&
+            bookmark.content.contentAssetId &&
+            !bookmark.content.htmlContent // Only fetch if not already inline
+          ) {
+            try {
+              const asset = await readAsset({
+                userId: ctx.user.id,
+                assetId: bookmark.content.contentAssetId,
+              });
+              bookmark.content.htmlContent = asset.asset.toString("utf8");
+            } catch (error) {
+              // If asset reading fails, keep htmlContent as null
+              console.warn(
+                `Failed to read HTML content asset ${bookmark.content.contentAssetId}:`,
+                error,
+              );
+            }
+          }
+        }),
+      );
+    }
 
     bookmarksArr.sort((a, b) => {
       if (a.createdAt != b.createdAt) {
@@ -426,5 +458,51 @@ export class Bookmark implements PrivacyAware {
       content: getContent(this.bookmark.content),
       bannerImageUrl: getBannerImageUrl(this.bookmark.content),
     };
+  }
+
+  static async getBookmarkHtmlContent(
+    {
+      contentAssetId,
+      htmlContent,
+    }: {
+      contentAssetId: string | null;
+      htmlContent: string | null;
+    },
+    userId: string,
+  ): Promise<string | null> {
+    if (contentAssetId) {
+      // Read large HTML content from asset
+      const asset = await readAsset({
+        userId,
+        assetId: contentAssetId,
+      });
+      return asset.asset.toString("utf8");
+    } else if (htmlContent) {
+      return htmlContent;
+    }
+    return null;
+  }
+
+  static async getBookmarkPlainTextContent(
+    {
+      contentAssetId,
+      htmlContent,
+    }: {
+      contentAssetId: string | null;
+      htmlContent: string | null;
+    },
+    userId: string,
+  ): Promise<string | null> {
+    const content = await this.getBookmarkHtmlContent(
+      {
+        contentAssetId,
+        htmlContent,
+      },
+      userId,
+    );
+    if (!content) {
+      return null;
+    }
+    return htmlToPlainText(content);
   }
 }

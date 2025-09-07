@@ -8,9 +8,9 @@ import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
-import { isShuttingDown } from "exit";
+import { exitAbortController } from "exit";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { DequeuedJob, Runner } from "liteque";
+import { DequeuedJob, EnqueueOptions, Runner } from "liteque";
 import metascraper from "metascraper";
 import metascraperAmazon from "metascraper-amazon";
 import metascraperAuthor from "metascraper-author";
@@ -22,11 +22,11 @@ import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
-import fetch from "node-fetch";
-import { Browser } from "playwright";
+import { workerStatsCounter } from "metrics";
+import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { withTimeout } from "utils";
+import { fetchWithProxy } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -38,7 +38,9 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  users,
 } from "@karakeep/db/schema";
+import { QuotaService } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   getAssetSize,
@@ -57,13 +59,25 @@ import {
   LinkCrawlerQueue,
   OpenAIQueue,
   triggerSearchReindex,
-  triggerVideoWorker,
   triggerWebhook,
+  VideoWorkerQueue,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared/queues";
+import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+
+/**
+ * Normalize a Content-Type header by stripping parameters (e.g., charset)
+ * and lowercasing the media type, so comparisons against supported types work.
+ */
+function normalizeContentType(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+  return header.split(";", 1)[0]!.trim().toLowerCase();
+}
 
 const metascraperParser = metascraper([
   metascraperDate({
@@ -105,6 +119,30 @@ const cookieSchema = z.object({
 });
 
 const cookiesSchema = z.array(cookieSchema);
+
+function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
+  const { proxy } = serverConfig;
+
+  if (!proxy.httpProxy && !proxy.httpsProxy) {
+    return undefined;
+  }
+
+  // Use HTTPS proxy if available, otherwise fall back to HTTP proxy
+  const proxyUrl = proxy.httpsProxy || proxy.httpProxy;
+  if (!proxyUrl) {
+    // Unreachable, but TypeScript doesn't know that
+    return undefined;
+  }
+
+  const parsed = new URL(proxyUrl);
+
+  return {
+    server: proxyUrl,
+    username: parsed.username,
+    password: parsed.password,
+    bypass: proxy.noProxy,
+  };
+}
 
 let globalBrowser: Browser | undefined;
 let globalBlocker: PlaywrightBlocker | undefined;
@@ -150,13 +188,12 @@ async function startBrowserInstance() {
 async function launchBrowser() {
   globalBrowser = undefined;
   await browserMutex.runExclusive(async () => {
-    try {
-      globalBrowser = await startBrowserInstance();
-    } catch (e) {
+    const globalBrowserResult = await tryCatch(startBrowserInstance());
+    if (globalBrowserResult.error) {
       logger.error(
-        `[Crawler] Failed to connect to the browser instance, will retry in 5 secs: ${(e as Error).stack}`,
+        `[Crawler] Failed to connect to the browser instance, will retry in 5 secs: ${globalBrowserResult.error.stack}`,
       );
-      if (isShuttingDown) {
+      if (exitAbortController.signal.aborted) {
         logger.info("[Crawler] We're shutting down so won't retry.");
         return;
       }
@@ -165,8 +202,9 @@ async function launchBrowser() {
       }, 5000);
       return;
     }
+    globalBrowser = globalBrowserResult.data;
     globalBrowser?.on("disconnected", () => {
-      if (isShuttingDown) {
+      if (exitAbortController.signal.aborted) {
         logger.info(
           "[Crawler] The Playwright browser got disconnected. But we're shutting down so won't restart it.",
         );
@@ -184,17 +222,20 @@ export class CrawlerWorker {
   static async build() {
     chromium.use(StealthPlugin());
     if (serverConfig.crawler.enableAdblocker) {
-      try {
-        logger.info("[crawler] Loading adblocker ...");
-        globalBlocker = await PlaywrightBlocker.fromPrebuiltFull(fetch, {
+      logger.info("[crawler] Loading adblocker ...");
+      const globalBlockerResult = await tryCatch(
+        PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
           path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
           read: fs.readFile,
           write: fs.writeFile,
-        });
-      } catch (e) {
+        }),
+      );
+      if (globalBlockerResult.error) {
         logger.error(
-          `[crawler] Failed to load adblocker. Will not be blocking ads: ${e}`,
+          `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
         );
+      } else {
+        globalBlocker = globalBlockerResult.data;
       }
     }
     if (!serverConfig.crawler.browserConnectOnDemand) {
@@ -209,11 +250,9 @@ export class CrawlerWorker {
     const worker = new Runner<ZCrawlLinkRequest>(
       LinkCrawlerQueue,
       {
-        run: withTimeout(
-          runCrawler,
-          /* timeoutSec */ serverConfig.crawler.jobTimeoutSec,
-        ),
+        run: runCrawler,
         onComplete: async (job) => {
+          workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
           const bookmarkId = job.data.bookmarkId;
@@ -222,6 +261,7 @@ export class CrawlerWorker {
           }
         },
         onError: async (job) => {
+          workerStatsCounter.labels("crawler", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
@@ -306,7 +346,7 @@ async function browserlessCrawlPage(
   logger.info(
     `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
   );
-  const response = await fetch(url, {
+  const response = await fetchWithProxy(url, {
     signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
   });
   logger.info(
@@ -323,6 +363,7 @@ async function browserlessCrawlPage(
 async function crawlPage(
   jobId: string,
   url: string,
+  userId: string,
   abortSignal: AbortSignal,
 ): Promise<{
   htmlContent: string;
@@ -330,6 +371,22 @@ async function crawlPage(
   statusCode: number;
   url: string;
 }> {
+  // Check user's browser crawling setting
+  const userData = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { browserCrawlingEnabled: true },
+  });
+  if (!userData) {
+    logger.error(`[Crawler][${jobId}] User ${userId} not found`);
+    throw new Error(`User ${userId} not found`);
+  }
+
+  const browserCrawlingEnabled = userData.browserCrawlingEnabled;
+
+  if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
+    return browserlessCrawlPage(jobId, url, abortSignal);
+  }
+
   let browser: Browser | undefined;
   if (serverConfig.crawler.browserConnectOnDemand) {
     browser = await startBrowserInstance();
@@ -344,6 +401,7 @@ async function crawlPage(
     viewport: { width: 1440, height: 900 },
     userAgent:
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    proxy: getPlaywrightProxyConfig(),
   });
   try {
     if (globalCookies.length > 0) {
@@ -387,8 +445,8 @@ async function crawlPage(
     // Take a screenshot if configured
     let screenshot: Buffer | undefined = undefined;
     if (serverConfig.crawler.storeScreenshot) {
-      try {
-        screenshot = await Promise.race<Buffer>([
+      const { data: screenshotData, error: screenshotError } = await tryCatch(
+        Promise.race<Buffer>([
           page.screenshot({
             // If you change this, you need to change the asset type in the store function.
             type: "png",
@@ -403,14 +461,17 @@ async function crawlPage(
               serverConfig.crawler.screenshotTimeoutSec * 1000,
             ),
           ),
-        ]);
+        ]),
+      );
+      if (screenshotError) {
+        logger.warn(
+          `[Crawler][${jobId}] Failed to capture the screenshot. Reason: ${screenshotError}`,
+        );
+      } else {
         logger.info(
           `[Crawler][${jobId}] Finished capturing page content and a screenshot. FullPageScreenshot: ${serverConfig.crawler.fullPageScreenshot}`,
         );
-      } catch (e) {
-        logger.warn(
-          `[Crawler][${jobId}] Failed to capture the screenshot. Reason: ${e}`,
-        );
+        screenshot = screenshotData;
       }
     }
 
@@ -494,11 +555,25 @@ async function storeScreenshot(
   const assetId = newAssetId();
   const contentType = "image/png";
   const fileName = "screenshot.png";
+
+  // Check storage quota before saving the screenshot
+  const { data: quotaApproved, error: quotaError } = await tryCatch(
+    QuotaService.checkStorageQuota(db, userId, screenshot.byteLength),
+  );
+
+  if (quotaError) {
+    logger.warn(
+      `[Crawler][${jobId}] Skipping screenshot storage due to quota exceeded: ${quotaError.message}`,
+    );
+    return null;
+  }
+
   await saveAsset({
     userId,
     assetId,
     metadata: { contentType, fileName },
     asset: screenshot,
+    quotaApproved,
   });
   logger.info(
     `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId}`,
@@ -514,8 +589,10 @@ async function downloadAndStoreFile(
   abortSignal: AbortSignal,
 ) {
   try {
-    logger.info(`[Crawler][${jobId}] Downloading ${fileType} from "${url}"`);
-    const response = await fetch(url, {
+    logger.info(
+      `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+    );
+    const response = await fetchWithProxy(url, {
       signal: abortSignal,
     });
     if (!response.ok) {
@@ -524,9 +601,23 @@ async function downloadAndStoreFile(
     const buffer = await response.arrayBuffer();
     const assetId = newAssetId();
 
-    const contentType = response.headers.get("content-type");
+    const contentType = normalizeContentType(
+      response.headers.get("content-type"),
+    );
     if (!contentType) {
       throw new Error("No content type in the response");
+    }
+
+    // Check storage quota before saving the asset
+    const { data: quotaApproved, error: quotaError } = await tryCatch(
+      QuotaService.checkStorageQuota(db, userId, buffer.byteLength),
+    );
+
+    if (quotaError) {
+      logger.warn(
+        `[Crawler][${jobId}] Skipping ${fileType} storage due to quota exceeded: ${quotaError.message}`,
+      );
+      return null;
     }
 
     await saveAsset({
@@ -534,6 +625,7 @@ async function downloadAndStoreFile(
       assetId,
       metadata: { contentType },
       asset: Buffer.from(buffer),
+      quotaApproved,
     });
 
     logger.info(
@@ -582,6 +674,32 @@ async function archiveWebpage(
 
   const contentType = "text/html";
 
+  // Get file size and check quota before saving
+  const stats = await fs.stat(assetPath);
+  const fileSize = stats.size;
+
+  const { data: quotaApproved, error: quotaError } = await tryCatch(
+    QuotaService.checkStorageQuota(db, userId, fileSize),
+  );
+
+  if (quotaError) {
+    logger.warn(
+      `[Crawler][${jobId}] Skipping page archive storage due to quota exceeded: ${quotaError.message}`,
+    );
+
+    const { error: unlinkError } = await tryCatch(fs.unlink(assetPath));
+    if (unlinkError) {
+      logger.warn(
+        `[Crawler][${jobId}] Failed to clean up temporary archive file: ${unlinkError}`,
+      );
+    } else {
+      logger.info(
+        `[Crawler][${jobId}] Cleaned up temporary archive file: ${assetPath}`,
+      );
+    }
+    return null;
+  }
+
   await saveAssetFromFile({
     userId,
     assetId,
@@ -589,6 +707,7 @@ async function archiveWebpage(
     metadata: {
       contentType,
     },
+    quotaApproved,
   });
 
   logger.info(
@@ -611,11 +730,12 @@ async function getContentType(
     logger.info(
       `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
     );
-    const response = await fetch(url, {
+    const response = await fetchWithProxy(url, {
       method: "HEAD",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
-    const contentType = response.headers.get("content-type");
+    const rawContentType = response.headers.get("content-type");
+    const contentType = normalizeContentType(rawContentType);
     logger.info(
       `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
     );
@@ -690,6 +810,75 @@ async function handleAsAssetBookmark(
   });
 }
 
+const HTML_CONTENT_SIZE_THRESHOLD = 50 * 1024; // 50KB
+
+type StoreHtmlResult =
+  | { result: "stored"; assetId: string; size: number }
+  | { result: "store_inline" }
+  | { result: "not_stored" };
+
+async function storeHtmlContent(
+  htmlContent: string | undefined,
+  userId: string,
+  jobId: string,
+): Promise<StoreHtmlResult> {
+  if (!htmlContent) {
+    return { result: "not_stored" };
+  }
+
+  const contentBuffer = Buffer.from(htmlContent, "utf8");
+  const contentSize = contentBuffer.byteLength;
+
+  // Only store in assets if content is >= 50KB
+  if (contentSize < HTML_CONTENT_SIZE_THRESHOLD) {
+    logger.info(
+      `[Crawler][${jobId}] HTML content size (${contentSize} bytes) is below threshold, storing inline`,
+    );
+    return { result: "store_inline" };
+  }
+
+  const { data: quotaApproved, error: quotaError } = await tryCatch(
+    QuotaService.checkStorageQuota(db, userId, contentBuffer.byteLength),
+  );
+  if (quotaError) {
+    logger.warn(
+      `[Crawler][${jobId}] Skipping HTML content storage due to quota exceeded: ${quotaError.message}`,
+    );
+    return { result: "not_stored" };
+  }
+
+  const assetId = newAssetId();
+
+  const { error: saveError } = await tryCatch(
+    saveAsset({
+      userId,
+      assetId,
+      asset: contentBuffer,
+      metadata: {
+        contentType: ASSET_TYPES.TEXT_HTML,
+        fileName: null,
+      },
+      quotaApproved,
+    }),
+  );
+  if (saveError) {
+    logger.error(
+      `[Crawler][${jobId}] Failed to store HTML content as asset: ${saveError}`,
+    );
+    throw saveError;
+  }
+
+  logger.info(
+    `[Crawler][${jobId}] Stored large HTML content (${contentSize} bytes) as asset: ${assetId}`,
+  );
+
+  return {
+    result: "stored",
+    assetId,
+    size: contentSize,
+  };
+}
+
 async function crawlAndParseUrl(
   url: string,
   userId: string,
@@ -698,6 +887,7 @@ async function crawlAndParseUrl(
   oldScreenshotAssetId: string | undefined,
   oldImageAssetId: string | undefined,
   oldFullPageArchiveAssetId: string | undefined,
+  oldContentAssetId: string | undefined,
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
   abortSignal: AbortSignal,
@@ -724,7 +914,7 @@ async function crawlAndParseUrl(
       url,
     };
   } else {
-    result = await crawlPage(jobId, url, abortSignal);
+    result = await crawlPage(jobId, url, userId, abortSignal);
   }
   abortSignal.throwIfAborted();
 
@@ -735,6 +925,12 @@ async function crawlAndParseUrl(
     extractReadableContent(htmlContent, browserUrl, jobId),
     storeScreenshot(screenshot, userId, jobId),
   ]);
+
+  const htmlContentAssetInfo = await storeHtmlContent(
+    readableContent?.content,
+    userId,
+    jobId,
+  );
   abortSignal.throwIfAborted();
   let imageAssetInfo: DBAssetType | null = null;
   if (meta.image) {
@@ -769,6 +965,7 @@ async function crawlAndParseUrl(
   };
 
   // TODO(important): Restrict the size of content to store
+  const assetDeletionTasks: Promise<void>[] = [];
   await db.transaction(async (txn) => {
     await txn
       .update(bookmarkLinks)
@@ -778,8 +975,14 @@ async function crawlAndParseUrl(
         // Don't store data URIs as they're not valid URLs and are usually quite large
         imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
         favicon: meta.logo,
-        content: readableContent?.textContent,
-        htmlContent: readableContent?.content,
+        htmlContent:
+          htmlContentAssetInfo.result === "store_inline"
+            ? readableContent?.content
+            : null,
+        contentAssetId:
+          htmlContentAssetInfo.result === "stored"
+            ? htmlContentAssetInfo.assetId
+            : null,
         crawledAt: new Date(),
         crawlStatusCode: statusCode,
         author: meta.author,
@@ -803,28 +1006,43 @@ async function crawlAndParseUrl(
         },
         txn,
       );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldScreenshotAssetId));
     }
     if (imageAssetInfo) {
       await updateAsset(oldImageAssetId, imageAssetInfo, txn);
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
+    }
+    if (htmlContentAssetInfo.result === "stored") {
+      await updateAsset(
+        oldContentAssetId,
+        {
+          id: htmlContentAssetInfo.assetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_HTML_CONTENT,
+          contentType: ASSET_TYPES.TEXT_HTML,
+          size: htmlContentAssetInfo.size,
+          fileName: null,
+        },
+        txn,
+      );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
+    } else if (oldContentAssetId) {
+      // Unlink the old content asset
+      await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
     }
   });
 
   // Delete the old assets if any
-  await Promise.all([
-    silentDeleteAsset(userId, oldScreenshotAssetId),
-    silentDeleteAsset(userId, oldImageAssetId),
-  ]);
+  await Promise.all(assetDeletionTasks);
 
   return async () => {
     if (
       !precrawledArchiveAssetId &&
       (serverConfig.crawler.fullPageArchive || archiveFullPage)
     ) {
-      const {
-        assetId: fullPageArchiveAssetId,
-        size,
-        contentType,
-      } = await archiveWebpage(
+      const archiveResult = await archiveWebpage(
         htmlContent,
         browserUrl,
         userId,
@@ -832,23 +1050,31 @@ async function crawlAndParseUrl(
         abortSignal,
       );
 
-      await db.transaction(async (txn) => {
-        await updateAsset(
-          oldFullPageArchiveAssetId,
-          {
-            id: fullPageArchiveAssetId,
-            bookmarkId,
-            userId,
-            assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-            contentType,
-            size,
-            fileName: null,
-          },
-          txn,
-        );
-      });
-      if (oldFullPageArchiveAssetId) {
-        silentDeleteAsset(userId, oldFullPageArchiveAssetId);
+      if (archiveResult) {
+        const {
+          assetId: fullPageArchiveAssetId,
+          size,
+          contentType,
+        } = archiveResult;
+
+        await db.transaction(async (txn) => {
+          await updateAsset(
+            oldFullPageArchiveAssetId,
+            {
+              id: fullPageArchiveAssetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+              contentType,
+              size,
+              fileName: null,
+            },
+            txn,
+          );
+        });
+        if (oldFullPageArchiveAssetId) {
+          await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
+        }
       }
     }
   };
@@ -872,6 +1098,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     screenshotAssetId: oldScreenshotAssetId,
     imageAssetId: oldImageAssetId,
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
+    contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
@@ -916,31 +1143,51 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
       oldScreenshotAssetId,
       oldImageAssetId,
       oldFullPageArchiveAssetId,
+      oldContentAssetId,
       precrawledArchiveAssetId,
       archiveFullPage,
       job.abortSignal,
     );
 
+    // Propagate priority to child jobs
+    const enqueueOpts: EnqueueOptions = {
+      priority: job.priority,
+    };
+
     // Enqueue openai job (if not set, assume it's true for backward compatibility)
     if (job.data.runInference !== false) {
-      await OpenAIQueue.enqueue({
-        bookmarkId,
-        type: "tag",
-      });
-      await OpenAIQueue.enqueue({
-        bookmarkId,
-        type: "summarize",
-      });
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "tag",
+        },
+        enqueueOpts,
+      );
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "summarize",
+        },
+        enqueueOpts,
+      );
     }
 
     // Update the search index
-    await triggerSearchReindex(bookmarkId);
+    await triggerSearchReindex(bookmarkId, enqueueOpts);
 
-    // Trigger a potential download of a video from the URL
-    await triggerVideoWorker(bookmarkId, url);
+    if (serverConfig.crawler.downloadVideo) {
+      // Trigger a potential download of a video from the URL
+      await VideoWorkerQueue.enqueue(
+        {
+          bookmarkId,
+          url,
+        },
+        enqueueOpts,
+      );
+    }
 
     // Trigger a webhook
-    await triggerWebhook(bookmarkId, "crawled");
+    await triggerWebhook(bookmarkId, "crawled", undefined, enqueueOpts);
 
     // Do the archival as a separate last step as it has the potential for failure
     await archivalLogic();

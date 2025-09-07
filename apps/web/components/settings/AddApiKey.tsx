@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -38,7 +37,7 @@ function ApiKeySuccess({ apiKey }: { apiKey: string }) {
   const { t } = useTranslation();
   return (
     <div>
-      <div className="py-4">
+      <div className="py-4 text-sm text-muted-foreground">
         {t("settings.api_keys.key_success_please_copy")}
       </div>
       <div className="flex space-x-2 pt-2">
@@ -117,11 +116,7 @@ function AddApiKeyForm({ onSuccess }: { onSuccess: (key: string) => void }) {
             );
           }}
         />
-        <ActionButton
-          className="h-full"
-          type="submit"
-          loading={mutator.isPending}
-        >
+        <ActionButton type="submit" loading={mutator.isPending}>
           {t("actions.create")}
         </ActionButton>
       </form>
@@ -148,14 +143,12 @@ export default function AddApiKey() {
               ? t("settings.api_keys.key_success")
               : t("settings.api_keys.new_api_key")}
           </DialogTitle>
-          <DialogDescription>
-            {key ? (
-              <ApiKeySuccess apiKey={key} />
-            ) : (
-              <AddApiKeyForm onSuccess={setKey} />
-            )}
-          </DialogDescription>
         </DialogHeader>
+        {key ? (
+          <ApiKeySuccess apiKey={key} />
+        ) : (
+          <AddApiKeyForm onSuccess={setKey} />
+        )}
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
             <Button

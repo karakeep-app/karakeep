@@ -1,5 +1,10 @@
+import { AdminCard } from "@/components/admin/AdminCard";
 import ServerStats from "@/components/admin/ServerStats";
 
 export default function AdminOverviewPage() {
-  return <ServerStats />;
+  return (
+    <AdminCard>
+      <ServerStats />
+    </AdminCard>
+  );
 }

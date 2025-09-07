@@ -1,5 +1,6 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
+import { EnqueueOptions } from "liteque";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ import {
   customPrompts,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
+import { QuotaService } from "@karakeep/shared-server";
 import {
   deleteAsset,
   SUPPORTED_BOOKMARK_ASSET_TYPES,
@@ -31,12 +33,12 @@ import {
   AssetPreprocessingQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
+  SearchIndexingQueue,
   triggerRuleEngineOnEvent,
-  triggerSearchDeletion,
   triggerSearchReindex,
   triggerWebhook,
 } from "@karakeep/shared/queues";
-import { getSearchIdxClient } from "@karakeep/shared/search";
+import { getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
   BookmarkTypes,
@@ -53,7 +55,7 @@ import {
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext, Context } from "../index";
-import { authedProcedure, router } from "../index";
+import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "../models/bookmarks";
@@ -117,7 +119,7 @@ async function getBookmark(
     });
   }
 
-  return toZodSchema(bookmark, includeContent);
+  return await toZodSchema(bookmark, includeContent);
 }
 
 async function attemptToDedupLink(ctx: AuthedContext, url: string) {
@@ -176,10 +178,10 @@ async function cleanupAssetForBookmark(
   );
 }
 
-function toZodSchema(
+async function toZodSchema(
   bookmark: BookmarkQueryReturnType,
   includeContent: boolean,
-): ZBookmark {
+): Promise<ZBookmark> {
   const { tagsOnBookmarks, link, text, asset, assets, ...rest } = bookmark;
 
   let content: ZBookmarkContent = {
@@ -207,7 +209,9 @@ function toZodSchema(
       description: link.description,
       imageUrl: link.imageUrl,
       favicon: link.favicon,
-      htmlContent: includeContent ? link.htmlContent : null,
+      htmlContent: includeContent
+        ? await Bookmark.getBookmarkHtmlContent(link, bookmark.userId)
+        : null,
       crawledAt: link.crawledAt,
       author: link.author,
       publisher: link.publisher,
@@ -267,6 +271,19 @@ export const bookmarksAppRouter = router({
           return { ...alreadyExists, alreadyExists: true };
         }
       }
+
+      // Check user quota
+      const quotaResult = await QuotaService.canCreateBookmark(
+        ctx.db,
+        ctx.user.id,
+      );
+      if (!quotaResult.result) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: quotaResult.error,
+        });
+      }
+
       const bookmark = await ctx.db.transaction(async (tx) => {
         const bookmark = (
           await tx
@@ -395,37 +412,60 @@ export const bookmarksAppRouter = router({
         };
       });
 
+      const enqueueOpts: EnqueueOptions = {
+        // The lower the priority number, the sooner the job will be processed
+        priority: input.crawlPriority === "low" ? 50 : 0,
+      };
+
       // Enqueue crawling request
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
-          await LinkCrawlerQueue.enqueue({
-            bookmarkId: bookmark.id,
-          });
+          await LinkCrawlerQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+            },
+            enqueueOpts,
+          );
           break;
         }
         case BookmarkTypes.TEXT: {
-          await OpenAIQueue.enqueue({
-            bookmarkId: bookmark.id,
-            type: "tag",
-          });
+          await OpenAIQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+              type: "tag",
+            },
+            enqueueOpts,
+          );
           break;
         }
         case BookmarkTypes.ASSET: {
-          await AssetPreprocessingQueue.enqueue({
-            bookmarkId: bookmark.id,
-            fixMode: false,
-          });
+          await AssetPreprocessingQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+              fixMode: false,
+            },
+            enqueueOpts,
+          );
           break;
         }
       }
-      await triggerRuleEngineOnEvent(bookmark.id, [
-        {
-          type: "bookmarkAdded",
-        },
-      ]);
-      await triggerSearchReindex(bookmark.id);
-      await triggerWebhook(bookmark.id, "created");
+      await triggerRuleEngineOnEvent(
+        bookmark.id,
+        [
+          {
+            type: "bookmarkAdded",
+          },
+        ],
+        enqueueOpts,
+      );
+      await triggerSearchReindex(bookmark.id, enqueueOpts);
+      await triggerWebhook(
+        bookmark.id,
+        "created",
+        /* userId */ undefined,
+        enqueueOpts,
+      );
       return bookmark;
     }),
 
@@ -646,7 +686,10 @@ export const bookmarksAppRouter = router({
             eq(bookmarks.id, input.bookmarkId),
           ),
         );
-      await triggerSearchDeletion(input.bookmarkId);
+      await SearchIndexingQueue.enqueue({
+        bookmarkId: input.bookmarkId,
+        type: "delete",
+      });
       await triggerWebhook(input.bookmarkId, "deleted", ctx.user.id);
       if (deleted.changes > 0 && bookmark) {
         await cleanupAssetForBookmark({
@@ -657,6 +700,13 @@ export const bookmarksAppRouter = router({
       }
     }),
   recrawlBookmark: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.recrawlBookmark",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 200,
+      }),
+    )
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -702,7 +752,7 @@ export const bookmarksAppRouter = router({
         input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
       }
       const sortOrder = input.sortOrder || "relevance";
-      const client = await getSearchIdxClient();
+      const client = await getSearchClient();
       if (!client) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -729,10 +779,9 @@ export const bookmarksAppRouter = router({
        */
       const createdAtSortOrder = sortOrder === "relevance" ? "desc" : sortOrder;
 
-      const resp = await client.search(parsedQuery.text, {
+      const resp = await client.search({
+        query: parsedQuery.text,
         filter,
-        showRankingScore: true,
-        attributesToRetrieve: ["id"],
         sort: [`createdAt:${createdAtSortOrder}`],
         limit: input.limit,
         ...(input.cursor
@@ -746,7 +795,7 @@ export const bookmarksAppRouter = router({
         return { bookmarks: [], nextCursor: null };
       }
       const idToRank = resp.hits.reduce<Record<string, number>>((acc, r) => {
-        acc[r.id] = r._rankingScore!;
+        acc[r.id] = r.score || 0;
         return acc;
       }, {});
       const results = await ctx.db.query.bookmarks.findMany({
@@ -783,13 +832,15 @@ export const bookmarksAppRouter = router({
       }
 
       return {
-        bookmarks: results.map((b) => toZodSchema(b, input.includeContent)),
+        bookmarks: await Promise.all(
+          results.map((b) => toZodSchema(b, input.includeContent)),
+        ),
         nextCursor:
-          resp.hits.length + resp.offset >= resp.estimatedTotalHits
+          resp.hits.length + (input.cursor?.offset || 0) >= resp.totalHits
             ? null
             : {
                 ver: 1 as const,
-                offset: resp.hits.length + resp.offset,
+                offset: resp.hits.length + (input.cursor?.offset || 0),
               },
       };
     }),
@@ -999,6 +1050,13 @@ export const bookmarksAppRouter = router({
       };
     }),
   summarizeBookmark: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.summarizeBookmark",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 100,
+      }),
+    )
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -1029,10 +1087,15 @@ export const bookmarksAppRouter = router({
         });
       }
 
+      const content = await Bookmark.getBookmarkPlainTextContent(
+        bookmark,
+        ctx.user.id,
+      );
+
       const bookmarkDetails = `
 Title: ${bookmark.title ?? ""}
 Description: ${bookmark.description ?? ""}
-Content: ${bookmark.content ?? ""}
+Content: ${content}
 Publisher: ${bookmark.publisher ?? ""}
 Author: ${bookmark.author ?? ""}
 `;

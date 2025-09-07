@@ -1,22 +1,20 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
-  Text,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Redirect, useRouter } from "expo-router";
 import Logo from "@/components/Logo";
 import { TailwindResolver } from "@/components/TailwindResolver";
-import { Button, buttonVariants } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
-import { cn } from "@/lib/utils";
-import { Bug } from "lucide-react-native";
+import { Bug, Check, Edit3 } from "lucide-react-native";
 
 enum LoginType {
   Password,
@@ -29,6 +27,15 @@ export default function Signin() {
 
   const [error, setError] = useState<string | undefined>();
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
+  const [isEditingServerAddress, setIsEditingServerAddress] = useState(false);
+  const [tempServerAddress, setTempServerAddress] = useState(
+    "https://cloud.karakeep.app",
+  );
+
+  const emailRef = useRef<string>("");
+  const passwordRef = useRef<string>("");
+  const apiKeyRef = useRef<string>("");
+
   const toggleLoginType = () => {
     setLoginType((prev) => {
       if (prev === LoginType.Password) {
@@ -56,7 +63,8 @@ export default function Signin() {
   const { mutate: validateApiKey, isPending: apiKeyValueRequestIsPending } =
     api.apiKeys.validate.useMutation({
       onSuccess: () => {
-        setSettings({ ...settings, apiKey: formState.apiKey });
+        const apiKey = apiKeyRef.current;
+        setSettings({ ...settings, apiKey: apiKey });
       },
       onError: (e) => {
         if (e.data?.code === "UNAUTHORIZED") {
@@ -67,52 +75,42 @@ export default function Signin() {
       },
     });
 
-  const [formState, setFormState] = useState<{
-    serverAddress: string;
-    email: string;
-    password: string;
-    apiKey: string;
-  }>({
-    serverAddress: "",
-    email: "",
-    password: "",
-    apiKey: "",
-  });
-
   if (settings.apiKey) {
     return <Redirect href="dashboard" />;
   }
 
   const onSignin = () => {
-    if (!formState.serverAddress) {
+    if (!tempServerAddress) {
       setError("Server address is required");
       return;
     }
 
     if (
-      !formState.serverAddress.startsWith("http://") &&
-      !formState.serverAddress.startsWith("https://")
+      !tempServerAddress.startsWith("http://") &&
+      !tempServerAddress.startsWith("https://")
     ) {
       setError("Server address must start with http:// or https://");
       return;
     }
 
     if (loginType === LoginType.Password) {
+      const email = emailRef.current;
+      const password = passwordRef.current;
+
       const randStr = (Math.random() + 1).toString(36).substring(5);
       login({
-        email: formState.email,
-        password: formState.password,
+        email: email.trim(),
+        password: password,
         keyName: `Mobile App: (${randStr})`,
       });
     } else if (loginType === LoginType.ApiKey) {
-      validateApiKey({ apiKey: formState.apiKey });
+      const apiKey = apiKeyRef.current;
+      validateApiKey({ apiKey: apiKey });
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView behavior="padding">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className="flex h-full flex-col justify-center gap-2 px-4">
           <View className="items-center">
@@ -132,17 +130,60 @@ export default function Signin() {
           )}
           <View className="gap-2">
             <Text className="font-bold">Server Address</Text>
-            <Input
-              className="w-full"
-              placeholder="Server Address"
-              value={formState.serverAddress}
-              autoCapitalize="none"
-              keyboardType="url"
-              onChangeText={(e) => {
-                setFormState((s) => ({ ...s, serverAddress: e }));
-                setSettings({ ...settings, address: e.replace(/\/$/, "") });
-              }}
-            />
+            {!isEditingServerAddress ? (
+              <View className="flex-row items-center gap-2">
+                <View className="flex-1 rounded-md border border-border bg-card px-3 py-2">
+                  <Text>{tempServerAddress}</Text>
+                </View>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onPress={() => {
+                    setIsEditingServerAddress(true);
+                  }}
+                >
+                  <TailwindResolver
+                    comp={(styles) => (
+                      <Edit3 size={16} color={styles?.color?.toString()} />
+                    )}
+                    className="color-foreground"
+                  />
+                </Button>
+              </View>
+            ) : (
+              <View className="flex-row items-center gap-2">
+                <Input
+                  className="flex-1"
+                  inputClasses="bg-card"
+                  placeholder="Server Address"
+                  value={tempServerAddress}
+                  autoCapitalize="none"
+                  keyboardType="url"
+                  onChangeText={setTempServerAddress}
+                  autoFocus
+                />
+                <Button
+                  size="icon"
+                  variant="primary"
+                  onPress={() => {
+                    if (tempServerAddress.trim()) {
+                      setSettings({
+                        ...settings,
+                        address: tempServerAddress.trim().replace(/\/$/, ""),
+                      });
+                    }
+                    setIsEditingServerAddress(false);
+                  }}
+                >
+                  <TailwindResolver
+                    comp={(styles) => (
+                      <Check size={16} color={styles?.color?.toString()} />
+                    )}
+                    className="text-white"
+                  />
+                </Button>
+              </View>
+            )}
           </View>
           {loginType === LoginType.Password && (
             <>
@@ -150,27 +191,25 @@ export default function Signin() {
                 <Text className="font-bold">Email</Text>
                 <Input
                   className="w-full"
+                  inputClasses="bg-card"
                   placeholder="Email"
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  value={formState.email}
-                  onChangeText={(e) =>
-                    setFormState((s) => ({ ...s, email: e.trim() }))
-                  }
+                  defaultValue={""}
+                  onChangeText={(text) => (emailRef.current = text)}
                 />
               </View>
               <View className="gap-2">
                 <Text className="font-bold">Password</Text>
                 <Input
                   className="w-full"
+                  inputClasses="bg-card"
                   placeholder="Password"
                   secureTextEntry
-                  value={formState.password}
+                  defaultValue={""}
                   autoCapitalize="none"
                   textContentType="password"
-                  onChangeText={(e) =>
-                    setFormState((s) => ({ ...s, password: e }))
-                  }
+                  onChangeText={(text) => (passwordRef.current = text)}
                 />
               </View>
             </>
@@ -181,30 +220,30 @@ export default function Signin() {
               <Text className="font-bold">API Key</Text>
               <Input
                 className="w-full"
+                inputClasses="bg-card"
                 placeholder="API Key"
                 secureTextEntry
-                value={formState.apiKey}
+                defaultValue={""}
                 autoCapitalize="none"
                 textContentType="password"
-                onChangeText={(e) => setFormState((s) => ({ ...s, apiKey: e }))}
+                onChangeText={(text) => (apiKeyRef.current = text)}
               />
             </View>
           )}
 
           <View className="flex flex-row items-center justify-between gap-2">
             <Button
-              className="flex-1"
-              label="Sign In"
+              size="lg"
+              androidRootClassName="flex-1"
               onPress={onSignin}
               disabled={
                 userNamePasswordRequestIsPending || apiKeyValueRequestIsPending
               }
-            />
-            <Pressable
-              className={cn(
-                buttonVariants({ variant: "default" }),
-                !settings.address && "bg-gray-500",
-              )}
+            >
+              <Text>Sign In</Text>
+            </Button>
+            <Button
+              size="icon"
               onPress={() => router.push("/test-connection")}
               disabled={!settings.address}
             >
@@ -212,9 +251,9 @@ export default function Signin() {
                 comp={(styles) => (
                   <Bug size={20} color={styles?.color?.toString()} />
                 )}
-                className="text-background"
+                className="text-white"
               />
-            </Pressable>
+            </Button>
           </View>
           <Pressable onPress={toggleLoginType}>
             <Text className="mt-2 text-center text-gray-500">

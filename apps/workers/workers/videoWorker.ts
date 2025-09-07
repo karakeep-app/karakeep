@@ -3,12 +3,13 @@ import * as os from "os";
 import path from "path";
 import { execa } from "execa";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
+import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
-  getAssetSize,
   newAssetId,
   saveAssetFromFile,
   silentDeleteAsset,
@@ -21,7 +22,6 @@ import {
   zvideoRequestSchema,
 } from "@karakeep/shared/queues";
 
-import { withTimeout } from "../utils";
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
@@ -33,11 +33,9 @@ export class VideoWorker {
     return new Runner<ZVideoRequest>(
       VideoWorkerQueue,
       {
-        run: withTimeout(
-          runWorker,
-          /* timeoutSec */ serverConfig.crawler.downloadVideoTimeout,
-        ),
+        run: runWorker,
         onComplete: async (job) => {
+          workerStatsCounter.labels("video", "completed").inc();
           const jobId = job.id;
           logger.info(
             `[VideoCrawler][${jobId}] Video Download Completed successfully`,
@@ -45,6 +43,7 @@ export class VideoWorker {
           return Promise.resolve();
         },
         onError: async (job) => {
+          workerStatsCounter.labels("video", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[VideoCrawler][${jobId}] Video Download job failed: ${job.error}`,
@@ -140,32 +139,55 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   logger.info(
     `[VideoCrawler][${jobId}] Finished downloading a file from "${url}" to "${assetPath}"`,
   );
-  await saveAssetFromFile({
-    userId,
-    assetId: videoAssetId,
-    assetPath,
-    metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
-  });
 
-  await db.transaction(async (txn) => {
-    await updateAsset(
-      oldVideoAssetId,
-      {
-        id: videoAssetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.LINK_VIDEO,
-        contentType: ASSET_TYPES.VIDEO_MP4,
-        size: await getAssetSize({ userId, assetId: videoAssetId }),
-      },
-      txn,
+  // Get file size and check quota before saving
+  const stats = await fs.promises.stat(assetPath);
+  const fileSize = stats.size;
+
+  try {
+    const quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      userId,
+      fileSize,
     );
-  });
-  await silentDeleteAsset(userId, oldVideoAssetId);
 
-  logger.info(
-    `[VideoCrawler][${jobId}] Finished downloading video from "${url}" and adding it to the database`,
-  );
+    await saveAssetFromFile({
+      userId,
+      assetId: videoAssetId,
+      assetPath,
+      metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
+      quotaApproved,
+    });
+
+    await db.transaction(async (txn) => {
+      await updateAsset(
+        oldVideoAssetId,
+        {
+          id: videoAssetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_VIDEO,
+          contentType: ASSET_TYPES.VIDEO_MP4,
+          size: fileSize,
+        },
+        txn,
+      );
+    });
+    await silentDeleteAsset(userId, oldVideoAssetId);
+
+    logger.info(
+      `[VideoCrawler][${jobId}] Finished downloading video from "${url}" and adding it to the database`,
+    );
+  } catch (error) {
+    if (error instanceof StorageQuotaError) {
+      logger.warn(
+        `[VideoCrawler][${jobId}] Skipping video storage due to quota exceeded: ${error.message}`,
+      );
+      await deleteLeftOverAssetFile(jobId, videoAssetId);
+      return;
+    }
+    throw error;
+  }
 }
 
 /**

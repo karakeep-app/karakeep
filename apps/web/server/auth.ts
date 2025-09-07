@@ -1,6 +1,6 @@
 import { Adapter, AdapterUser } from "@auth/core/adapters";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import NextAuth, {
   DefaultSession,
   getServerSession,
@@ -9,7 +9,6 @@ import NextAuth, {
 import { Adapter as NextAuthAdapater } from "next-auth/adapters";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { Provider } from "next-auth/providers/index";
-import requestIp from "request-ip";
 
 import { db } from "@karakeep/db";
 import {
@@ -19,8 +18,8 @@ import {
   verificationTokens,
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
-import { logAuthenticationError, validatePassword } from "@karakeep/trpc/auth";
-import { createUserRaw } from "@karakeep/trpc/routers/users";
+import { validatePassword } from "@karakeep/trpc/auth";
+import { User } from "@karakeep/trpc/models/users";
 
 type UserRole = "admin" | "user";
 
@@ -83,7 +82,7 @@ const CustomProvider = (): Adapter => {
   return {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
-      return await createUserRaw(db, {
+      return await User.createRaw(db, {
         name: user.name ?? "",
         email: user.email,
         emailVerified: user.emailVerified,
@@ -100,7 +99,7 @@ const providers: Provider[] = [
       email: { label: "Email", type: "email", placeholder: "Email" },
       password: { label: "Password", type: "password" },
     },
-    async authorize(credentials, req) {
+    async authorize(credentials) {
       if (!credentials) {
         return null;
       }
@@ -109,14 +108,9 @@ const providers: Provider[] = [
         return await validatePassword(
           credentials?.email,
           credentials?.password,
+          db,
         );
-      } catch (e) {
-        const error = e as Error;
-        logAuthenticationError(
-          credentials?.email,
-          error.message,
-          requestIp.getClientIp({ headers: req.headers }),
-        );
+      } catch {
         return null;
       }
     },
@@ -134,7 +128,6 @@ if (oauth.wellKnownUrl) {
     clientId: oauth.clientId,
     clientSecret: oauth.clientSecret,
     allowDangerousEmailAccountLinking: oauth.allowDangerousEmailAccountLinking,
-    idToken: true,
     checks: ["pkce", "state"],
     httpOptions: {
       timeout: oauth.timeout,
@@ -169,22 +162,38 @@ export const authOptions: NextAuthOptions = {
     newUser: "/signin",
   },
   callbacks: {
-    async signIn({ credentials, profile }) {
+    async signIn({ user: credUser, credentials, profile }) {
+      const email = credUser.email || profile?.email;
+      if (!email) {
+        throw new Error("Provider didn't provide an email during signin");
+      }
+      const user = await db.query.users.findFirst({
+        columns: { emailVerified: true },
+        where: eq(users.email, email),
+      });
+
       if (credentials) {
+        if (!user) {
+          throw new Error("Invalid credentials");
+        }
+        if (
+          serverConfig.auth.emailVerificationRequired &&
+          !user.emailVerified
+        ) {
+          throw new Error("Please verify your email address before signing in");
+        }
         return true;
       }
-      if (!profile?.email) {
-        throw new Error("No profile");
-      }
-      const [{ count: userCount }] = await db
-        .select({ count: count() })
-        .from(users)
-        .where(and(eq(users.email, profile.email)));
 
       // If it's a new user and signups are disabled, fail the sign in
-      if (userCount === 0 && serverConfig.auth.disableSignups) {
+      if (!user && serverConfig.auth.disableSignups) {
         throw new Error("Signups are disabled in server config");
       }
+
+      // TODO: We're blindly trusting oauth providers to validate emails
+      // As such, oauth users can sign in even if email verification is enabled.
+      // We might want to change this in the future.
+
       return true;
     },
     async jwt({ token, user }) {

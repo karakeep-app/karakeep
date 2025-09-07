@@ -36,7 +36,10 @@
       "link": "Link",
       "text": "Text",
       "media": "Media"
-    }
+    },
+    "quota": "Quota",
+    "bookmarks": "Bookmarks",
+    "storage": "Storage"
   },
   "layouts": {
     "masonry": "Masonry",
@@ -67,6 +70,7 @@
     "save": "Save",
     "add": "Add",
     "edit": "Edit",
+    "confirm": "Confirm",
     "open_editor": "Open Editor",
     "create": "Create",
     "fetch_now": "Fetch Now",
@@ -112,6 +116,56 @@
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
         }
+      }
+    },
+    "stats": {
+      "usage_statistics": "Usage Statistics",
+      "insights_description": "Insights into your bookmarking habits and collection",
+      "failed_to_load": "Failed to load statistics",
+      "overview": {
+        "total_bookmarks": "Total Bookmarks",
+        "all_saved_items": "All saved items",
+        "favorites": "Favorites",
+        "starred_bookmarks": "Starred bookmarks",
+        "archived": "Archived",
+        "archived_items": "Archived items",
+        "tags": "Tags",
+        "unique_tags_created": "Unique tags created",
+        "lists": "Lists",
+        "bookmark_collections": "Bookmark collections",
+        "highlights": "Highlights",
+        "text_highlights": "Text highlights",
+        "storage_used": "Storage Used",
+        "total_asset_storage": "Total asset storage",
+        "this_month": "This Month",
+        "bookmarks_added": "Bookmarks added"
+      },
+      "bookmark_types": {
+        "title": "Bookmark Types",
+        "links": "Links",
+        "text_notes": "Text Notes",
+        "assets": "Assets"
+      },
+      "recent_activity": {
+        "title": "Recent Activity",
+        "this_week": "This Week",
+        "this_month": "This Month",
+        "this_year": "This Year"
+      },
+      "top_domains": {
+        "title": "Top Domains",
+        "no_domains_found": "No domains found"
+      },
+      "most_used_tags": {
+        "title": "Most Used Tags",
+        "no_tags_found": "No tags found"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Activity by Hour",
+        "activity_by_day": "Activity by Day"
+      },
+      "storage_breakdown": {
+        "title": "Storage Breakdown"
       }
     },
     "ai": {
@@ -232,6 +286,27 @@
         "favourited": "A bookmark is favourited",
         "archived": "A bookmark is archived"
       }
+    },
+    "subscription": {
+      "subscription": "Subscription",
+      "manage_subscription": "Manage your subscription and billing information",
+      "current_plan": "Current Plan",
+      "billing_period": "Billing Period",
+      "paid_plan": "Paid Plan",
+      "unlock_bigger_quota": "Unlock bigger quota and support the project",
+      "subscribe_now": "Subscribe Now",
+      "manage_billing": "Manage Billing",
+      "subscription_canceled": "Your subscription has been canceled and will end on {{date}}. You can resubscribe at any time.",
+      "usage_quotas": "Usage & Quotas",
+      "track_usage": "Track your current usage against your plan limits",
+      "total_bookmarks_saved": "Total bookmarks saved",
+      "assets_file_storage": "Assets and file storage",
+      "unlimited_usage": "Unlimited usage",
+      "quota_limit_reached": "Quota limit reached",
+      "approaching_quota_limit": "Approaching quota limit",
+      "loading_usage": "Loading usage information...",
+      "free": "Free",
+      "paid": "Paid"
     }
   },
   "admin": {
@@ -243,31 +318,71 @@
       "server_version": "Server Version"
     },
     "background_jobs": {
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Web crawling and content extraction from URLs"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-powered tagging and summarization of content"
+        },
+        "indexing": {
+          "title": "Indexing Jobs",
+          "description": "Search index updates"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Preprocessing Jobs",
+          "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Tidy Assets Jobs",
+          "description": "Asset cleanup and storage optimization"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Video extraction and download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "External webhook notifications"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS feed processing and content updates"
+        }
+      },
       "background_jobs": "Background Jobs",
-      "crawler_jobs": "Crawler Jobs",
-      "indexing_jobs": "Indexing Jobs",
-      "inference_jobs": "Inference Jobs",
-      "tidy_assets_jobs": "Tidy Assets Jobs",
-      "video_jobs": "Video Download Jobs",
-      "webhook_jobs": "Webhook Jobs",
-      "asset_preprocessing_jobs": "Asset Preprocessing Jobs",
-      "feed_jobs": "RSS Feed Jobs",
-      "job": "Job",
-      "queued": "Queued",
-      "pending": "Pending",
-      "failed": "Failed"
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Recrawl Failed Links Only",
-      "recrawl_all_links": "Recrawl All Links",
-      "without_inference": "Without Inference",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
-      "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
-      "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
-      "reindex_all_bookmarks": "Reindex All Bookmarks",
-      "compact_assets": "Compact Assets",
-      "reprocess_assets_fix_mode": "Reprocess Assets (Fix Mode)"
+      "monitor_and_manage": "Monitor and manage background job queues and system processing tasks",
+      "active": "Active",
+      "available_actions": "Available Actions",
+      "status": {
+        "title": "Understanding Job States",
+        "queued": {
+          "title": "Queued",
+          "description": "Jobs waiting in line to be processed. They will start automatically when resources are available."
+        },
+        "unprocessed": {
+          "title": "Unprocessed",
+          "description": "Bookmarks that have not yet been processed. They are most likely already queued for processing, if not, you might need to manually re-enqueue them."
+        },
+        "failed": {
+          "title": "Failed",
+          "description": "Bookmarks that encountered errors during processing. These may need manual attention."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Recrawl Failed Links Only",
+        "recrawl_all_links": "Recrawl All Links",
+        "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
+        "reindex_all_bookmarks": "Reindex All Bookmarks",
+        "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
+        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
+      }
     },
     "users_list": {
       "users_list": "Users List",
@@ -279,7 +394,8 @@
       "num_bookmarks": "Num Bookmarks",
       "asset_sizes": "Asset Sizes",
       "local_user": "Local User",
-      "confirm_password": "Confirm Password"
+      "confirm_password": "Confirm Password",
+      "unlimited": "Unlimited"
     }
   },
   "options": {
@@ -364,7 +480,8 @@
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
     "and": "And",
-    "or": "Or"
+    "or": "Or",
+    "history": "Recent Searches"
   },
   "preview": {
     "view_original": "View Original",

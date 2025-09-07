@@ -1,6 +1,7 @@
 import os from "os";
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
+import { DequeuedJob, EnqueueOptions, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
 import { createWorker } from "tesseract.js";
@@ -13,6 +14,7 @@ import {
   bookmarkAssets,
   bookmarks,
 } from "@karakeep/db/schema";
+import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import { newAssetId, readAsset, saveAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -30,11 +32,13 @@ export class AssetPreprocessingWorker {
       {
         run: run,
         onComplete: async (job) => {
+          workerStatsCounter.labels("assetPreprocessing", "completed").inc();
           const jobId = job.id;
           logger.info(`[assetPreprocessing][${jobId}] Completed successfully`);
           return Promise.resolve();
         },
         onError: async (job) => {
+          workerStatsCounter.labels("assetPreProcessing", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,
@@ -43,7 +47,7 @@ export class AssetPreprocessingWorker {
         },
       },
       {
-        concurrency: 1,
+        concurrency: serverConfig.assetPreprocessing.numWorkers,
         pollIntervalMs: 1000,
         timeoutSecs: 30,
       },
@@ -128,6 +132,13 @@ export async function extractAndSavePDFScreenshot(
       return false;
     }
 
+    // Check storage quota before inserting
+    const quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      bookmark.userId,
+      screenshot.buffer.byteLength,
+    );
+
     // Store the screenshot
     const assetId = newAssetId();
     const fileName = "screenshot.png";
@@ -140,6 +151,7 @@ export async function extractAndSavePDFScreenshot(
         contentType,
         fileName,
       },
+      quotaApproved,
     });
 
     // Insert into database
@@ -158,6 +170,12 @@ export async function extractAndSavePDFScreenshot(
     );
     return true;
   } catch (error) {
+    if (error instanceof StorageQuotaError) {
+      logger.warn(
+        `[assetPreprocessing][${jobId}] Skipping PDF screenshot due to quota exceeded: ${error.message}`,
+      );
+      return true; // Return true to indicate the job completed successfully, just skipped the asset
+    }
     logger.error(
       `[assetPreprocessing][${jobId}] Failed to process PDF screenshot: ${error}`,
     );
@@ -327,13 +345,27 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       );
   }
 
+  // Propagate priority to child jobs
+  const enqueueOpts: EnqueueOptions = {
+    priority: req.priority,
+  };
   if (!isFixMode || anythingChanged) {
-    await OpenAIQueue.enqueue({
-      bookmarkId,
-      type: "tag",
-    });
+    await OpenAIQueue.enqueue(
+      {
+        bookmarkId,
+        type: "tag",
+      },
+      enqueueOpts,
+    );
+    await OpenAIQueue.enqueue(
+      {
+        bookmarkId,
+        type: "summarize",
+      },
+      enqueueOpts,
+    );
 
     // Update the search index
-    await triggerSearchReindex(bookmarkId);
+    await triggerSearchReindex(bookmarkId, enqueueOpts);
   }
 }

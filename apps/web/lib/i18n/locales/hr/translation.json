@@ -9,7 +9,9 @@
       "confirm_password": "Potvrdi lozinku",
       "create_user": "Kreiraj korisnika",
       "change_role": "Promijeni ulogu",
-      "asset_sizes": "Veličine resursa"
+      "asset_sizes": "Veličine resursa",
+      "delete_user_confirm_description": "Jesi ziher da želiš izbrisati korisnika \"{{name}}\"?",
+      "unlimited": "Neograničeno"
     },
     "admin_settings": "Postavke administratora",
     "server_stats": {
@@ -89,7 +91,10 @@
     "updated_at": "Ažurirano",
     "title": "Naslov",
     "description": "Opis",
-    "summary": "Sažetak"
+    "summary": "Sažetak",
+    "quota": "Kvota",
+    "bookmarks": "Oznake",
+    "storage": "Pohrana"
   },
   "settings": {
     "ai": {
@@ -235,6 +240,77 @@
       "rule_has_been_deleted": "Pravilo je izbrisano!",
       "no_rules_created_yet": "Još nema stvorenih pravila",
       "create_your_first_rule": "Napravi svoje prvo pravilo za automatizaciju radnog procesa"
+    },
+    "stats": {
+      "usage_statistics": "Statistika korištenja",
+      "insights_description": "Uvid u tvoje navike označavanja i kolekciju",
+      "failed_to_load": "Nije uspjelo učitavanje statistike",
+      "overview": {
+        "total_bookmarks": "Ukupno oznaka",
+        "all_saved_items": "Svi spremljeni predmeti",
+        "favorites": "Favoriti",
+        "starred_bookmarks": "Označene knjižne oznake",
+        "archived": "Arhivirano",
+        "archived_items": "Arhivirane stavke",
+        "tags": "Oznake",
+        "unique_tags_created": "Stvorene jedinstvene oznake",
+        "lists": "Popisi",
+        "bookmark_collections": "Zbirke oznaka",
+        "highlights": "Istaknuto",
+        "text_highlights": "Istaknuti tekstovi",
+        "storage_used": "Iskorištena pohrana",
+        "total_asset_storage": "Ukupna pohrana imovine",
+        "this_month": "Ovaj mjesec",
+        "bookmarks_added": "Dodane oznake"
+      },
+      "bookmark_types": {
+        "title": "Vrste oznaka",
+        "links": "Poveznice",
+        "text_notes": "Tekstualne bilješke",
+        "assets": "Sredstva"
+      },
+      "recent_activity": {
+        "title": "Nedavna aktivnost",
+        "this_week": "Ovaj tjedan",
+        "this_month": "Ovaj mjesec",
+        "this_year": "Ove godine"
+      },
+      "top_domains": {
+        "title": "Vrhunske domene",
+        "no_domains_found": "Nema pronađenih domena"
+      },
+      "most_used_tags": {
+        "title": "Najčešće korištene oznake",
+        "no_tags_found": "Nema pronađenih oznaka"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivnost po satu",
+        "activity_by_day": "Aktivnost po danu"
+      },
+      "storage_breakdown": {
+        "title": "Raščlamba pohrane"
+      }
+    },
+    "subscription": {
+      "subscription": "Pretplata",
+      "manage_subscription": "Upravljaj svojom pretplatom i informacijama o naplati",
+      "current_plan": "Trenutni plan",
+      "billing_period": "Razdoblje naplate",
+      "paid_plan": "Plaćeni plan",
+      "unlock_bigger_quota": "Otključaj veću kvotu i podrži projekt",
+      "subscribe_now": "Pretplati se odmah",
+      "manage_billing": "Upravljaj naplatom",
+      "subscription_canceled": "Tvoja pretplata je otkazana i završit će {{date}}. Možeš se ponovno pretplatiti bilo kada.",
+      "usage_quotas": "Korištenje i kvote",
+      "track_usage": "Prati svoje trenutno korištenje u odnosu na ograničenja plana",
+      "total_bookmarks_saved": "Ukupno spremljenih oznaka",
+      "assets_file_storage": "Spremanje datoteka i imovine",
+      "unlimited_usage": "Neograničeno korištenje",
+      "quota_limit_reached": "Dosegnuta granica kvote",
+      "approaching_quota_limit": "Približavam se granici kvote",
+      "loading_usage": "Učitavam informacije o korištenju...",
+      "free": "Besplatno",
+      "paid": "Plaćeno"
     }
   },
   "actions": {
@@ -454,7 +530,8 @@
     "day_s_ago": " Dana(e) prije",
     "week_s_ago": " Tjedna(i) prije",
     "month_s_ago": " Mjeseca(i) prije",
-    "year_s_ago": " Godina(e) prije"
+    "year_s_ago": " Godina(e) prije",
+    "history": "Nedavne pretrage"
   },
   "dialogs": {
     "bookmarks": {

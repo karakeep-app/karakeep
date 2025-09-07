@@ -144,9 +144,9 @@ export const listsAppRouter = router({
         token: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      const token = await list.regenRssToken();
+    .use(ensureListOwnership)
+    .mutation(async ({ ctx }) => {
+      const token = await ctx.list.regenRssToken();
       return { token: token! };
     }),
   clearRssToken: authedProcedure
@@ -155,9 +155,9 @@ export const listsAppRouter = router({
         listId: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      await list.clearRssToken();
+    .use(ensureListOwnership)
+    .mutation(async ({ ctx }) => {
+      await ctx.list.clearRssToken();
     }),
   getRssToken: authedProcedure
     .input(
@@ -170,8 +170,8 @@ export const listsAppRouter = router({
         token: z.string().nullable(),
       }),
     )
-    .query(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      return { token: await list.getRssToken() };
+    .use(ensureListOwnership)
+    .query(async ({ ctx }) => {
+      return { token: await ctx.list.getRssToken() };
     }),
 });

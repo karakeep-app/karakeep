@@ -22,11 +22,17 @@ function PreWithCopyBtn({ className, ...props }: React.ComponentProps<"pre">) {
   );
 }
 
-export function MarkdownReadonly({ children: markdown }: { children: string }) {
+export function MarkdownReadonly({
+  children: markdown,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
-      className="prose dark:prose-invert"
+      className={cn("prose dark:prose-invert", className)}
       components={{
         pre({ ...props }) {
           return <PreWithCopyBtn {...props} />;
@@ -34,7 +40,6 @@ export function MarkdownReadonly({ children: markdown }: { children: string }) {
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className ?? "");
           return match ? (
-            // @ts-expect-error -- Refs are not compatible for some reason
             <SyntaxHighlighter
               PreTag="div"
               language={match[1]}

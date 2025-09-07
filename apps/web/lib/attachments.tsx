@@ -1,4 +1,11 @@
-import { Archive, Camera, Image, Paperclip, Video } from "lucide-react";
+import {
+  Archive,
+  Camera,
+  FileCode,
+  Image,
+  Paperclip,
+  Video,
+} from "lucide-react";
 
 import { ZAssetType } from "@karakeep/shared/types/bookmarks";
 
@@ -10,5 +17,6 @@ export const ASSET_TYPE_TO_ICON: Record<ZAssetType, React.ReactNode> = {
   bannerImage: <Image className="size-4" />,
   video: <Video className="size-4" />,
   bookmarkAsset: <Paperclip className="size-4" />,
+  linkHtmlContent: <FileCode className="size-4" />,
   unknown: <Paperclip className="size-4" />,
 };

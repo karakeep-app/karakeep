@@ -5,6 +5,7 @@ import {
   bookmarkLinks,
   bookmarks,
   rssFeedImportsTable,
+  users,
 } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -549,5 +550,263 @@ describe("Bookmark Routes", () => {
       .where(eq(bookmarkLinks.id, brokenBookmark.id));
     const emptyResult = await api.getBrokenLinks();
     expect(emptyResult.bookmarks.length).toEqual(0);
+  });
+
+  describe("Bookmark Quotas", () => {
+    test<CustomTestContext>("create bookmark with no quota (unlimited)", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      // User should be able to create bookmarks without any quota restrictions
+      const bookmark1 = await api.createBookmark({
+        url: "https://example1.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark1.alreadyExists).toEqual(false);
+
+      const bookmark2 = await api.createBookmark({
+        url: "https://example2.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark2.alreadyExists).toEqual(false);
+
+      const bookmark3 = await api.createBookmark({
+        text: "Test text bookmark",
+        type: BookmarkTypes.TEXT,
+      });
+      expect(bookmark3.alreadyExists).toEqual(false);
+    });
+
+    test<CustomTestContext>("create bookmark with quota limit", async ({
+      apiCallers,
+      db,
+    }) => {
+      const user = await apiCallers[0].users.whoami();
+      const api = apiCallers[0].bookmarks;
+
+      // Set quota to 2 bookmarks for this user
+      await db
+        .update(users)
+        .set({ bookmarkQuota: 2 })
+        .where(eq(users.id, user.id));
+
+      // First bookmark should succeed
+      const bookmark1 = await api.createBookmark({
+        url: "https://example1.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark1.alreadyExists).toEqual(false);
+
+      // Second bookmark should succeed
+      const bookmark2 = await api.createBookmark({
+        url: "https://example2.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark2.alreadyExists).toEqual(false);
+
+      // Third bookmark should fail due to quota
+      await expect(() =>
+        api.createBookmark({
+          url: "https://example3.com",
+          type: BookmarkTypes.LINK,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 2 bookmarks./,
+      );
+    });
+
+    test<CustomTestContext>("create bookmark with quota limit - different types", async ({
+      apiCallers,
+      db,
+    }) => {
+      const user = await apiCallers[0].users.whoami();
+      const api = apiCallers[0].bookmarks;
+
+      // Set quota to 2 bookmarks for this user
+      await db
+        .update(users)
+        .set({ bookmarkQuota: 2 })
+        .where(eq(users.id, user.id));
+
+      // Create one link bookmark
+      await api.createBookmark({
+        url: "https://example1.com",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Create one text bookmark
+      await api.createBookmark({
+        text: "Test text content",
+        type: BookmarkTypes.TEXT,
+      });
+
+      // Third bookmark (any type) should fail
+      await expect(() =>
+        api.createBookmark({
+          text: "Another text bookmark",
+          type: BookmarkTypes.TEXT,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 2 bookmarks./,
+      );
+    });
+
+    test<CustomTestContext>("quota enforcement after deletion", async ({
+      apiCallers,
+      db,
+    }) => {
+      const user = await apiCallers[0].users.whoami();
+      const api = apiCallers[0].bookmarks;
+
+      // Set quota to 1 bookmark for this user
+      await db
+        .update(users)
+        .set({ bookmarkQuota: 1 })
+        .where(eq(users.id, user.id));
+
+      // Create first bookmark
+      const bookmark1 = await api.createBookmark({
+        url: "https://example1.com",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Second bookmark should fail
+      await expect(() =>
+        api.createBookmark({
+          url: "https://example2.com",
+          type: BookmarkTypes.LINK,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 1 bookmarks./,
+      );
+
+      // Delete the first bookmark
+      await api.deleteBookmark({ bookmarkId: bookmark1.id });
+
+      // Now should be able to create a new bookmark
+      const bookmark2 = await api.createBookmark({
+        url: "https://example2.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark2.alreadyExists).toEqual(false);
+    });
+
+    test<CustomTestContext>("quota isolation between users", async ({
+      apiCallers,
+      db,
+    }) => {
+      const user1 = await apiCallers[0].users.whoami();
+
+      // Set quota to 1 for user1, unlimited for user2
+      await db
+        .update(users)
+        .set({ bookmarkQuota: 1 })
+        .where(eq(users.id, user1.id));
+
+      // User1 creates one bookmark (reaches quota)
+      await apiCallers[0].bookmarks.createBookmark({
+        url: "https://user1-example.com",
+        type: BookmarkTypes.LINK,
+      });
+
+      // User1 cannot create another bookmark
+      await expect(() =>
+        apiCallers[0].bookmarks.createBookmark({
+          url: "https://user1-example2.com",
+          type: BookmarkTypes.LINK,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 1 bookmarks./,
+      );
+
+      // User2 should be able to create multiple bookmarks (no quota)
+      await apiCallers[1].bookmarks.createBookmark({
+        url: "https://user2-example1.com",
+        type: BookmarkTypes.LINK,
+      });
+
+      await apiCallers[1].bookmarks.createBookmark({
+        url: "https://user2-example2.com",
+        type: BookmarkTypes.LINK,
+      });
+
+      await apiCallers[1].bookmarks.createBookmark({
+        text: "User2 text bookmark",
+        type: BookmarkTypes.TEXT,
+      });
+    });
+
+    test<CustomTestContext>("quota with zero limit", async ({
+      apiCallers,
+      db,
+    }) => {
+      const user = await apiCallers[0].users.whoami();
+      const api = apiCallers[0].bookmarks;
+
+      // Set quota to 0 bookmarks for this user
+      await db
+        .update(users)
+        .set({ bookmarkQuota: 0 })
+        .where(eq(users.id, user.id));
+
+      // Any bookmark creation should fail
+      await expect(() =>
+        api.createBookmark({
+          url: "https://example.com",
+          type: BookmarkTypes.LINK,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 0 bookmarks./,
+      );
+
+      await expect(() =>
+        api.createBookmark({
+          text: "Test text",
+          type: BookmarkTypes.TEXT,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 0 bookmarks./,
+      );
+    });
+
+    test<CustomTestContext>("quota does not affect duplicate link detection", async ({
+      apiCallers,
+      db,
+    }) => {
+      const user = await apiCallers[0].users.whoami();
+      const api = apiCallers[0].bookmarks;
+
+      // Set quota to 1 bookmark for this user
+      await db
+        .update(users)
+        .set({ bookmarkQuota: 1 })
+        .where(eq(users.id, user.id));
+
+      // Create first bookmark
+      const bookmark1 = await api.createBookmark({
+        url: "https://example.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark1.alreadyExists).toEqual(false);
+
+      // Try to create the same URL again - should return existing bookmark, not fail with quota
+      const bookmark2 = await api.createBookmark({
+        url: "https://example.com",
+        type: BookmarkTypes.LINK,
+      });
+      expect(bookmark2.alreadyExists).toEqual(true);
+      expect(bookmark2.id).toEqual(bookmark1.id);
+
+      // But creating a different URL should fail due to quota
+      await expect(() =>
+        api.createBookmark({
+          url: "https://different-example.com",
+          type: BookmarkTypes.LINK,
+        }),
+      ).rejects.toThrow(
+        /Bookmark quota exceeded. You can only have 1 bookmarks./,
+      );
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, inject, it } from "vitest";
 
-import { BookmarkTypes } from "../../../shared/types/bookmarks";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
 import { createTestUser } from "../../utils/api";
 import { getTrpcClient } from "../../utils/trpc";
 

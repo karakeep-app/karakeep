@@ -24,7 +24,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { useUploadAsset } from "../UploadDropzone";
 
-function useFocusOnKeyPress(inputRef: React.RefObject<HTMLTextAreaElement>) {
+function useFocusOnKeyPress(
+  inputRef: React.RefObject<HTMLTextAreaElement | null>,
+) {
   useEffect(() => {
     function handleKeyPress(e: KeyboardEvent) {
       if (!inputRef.current) {

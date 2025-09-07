@@ -1,5 +1,5 @@
 import path from "node:path";
-import { buildDBClient, migrateDB, SqliteQueue } from "liteque";
+import { buildDBClient, EnqueueOptions, migrateDB, SqliteQueue } from "liteque";
 import { z } from "zod";
 
 import serverConfig from "./config";
@@ -7,7 +7,9 @@ import { zRuleEngineEventSchema } from "./types/rules";
 
 const QUEUE_DB_PATH = path.join(serverConfig.dataDir, "queue.db");
 
-const queueDB = buildDBClient(QUEUE_DB_PATH);
+const queueDB = buildDBClient(QUEUE_DB_PATH, {
+  walEnabled: serverConfig.database.walMode,
+});
 
 export function runQueueDBMigrations() {
   migrateDB(queueDB);
@@ -86,25 +88,17 @@ export const TidyAssetsQueue = new SqliteQueue<ZTidyAssetsRequest>(
   },
 );
 
-export async function triggerSearchReindex(bookmarkId: string) {
-  await SearchIndexingQueue.enqueue({
-    bookmarkId,
-    type: "index",
-  });
-}
-
-export async function triggerSearchDeletion(bookmarkId: string) {
-  await SearchIndexingQueue.enqueue({
-    bookmarkId: bookmarkId,
-    type: "delete",
-  });
-}
-
-export async function triggerReprocessingFixMode(bookmarkId: string) {
-  await AssetPreprocessingQueue.enqueue({
-    bookmarkId,
-    fixMode: true,
-  });
+export async function triggerSearchReindex(
+  bookmarkId: string,
+  opts?: EnqueueOptions,
+) {
+  await SearchIndexingQueue.enqueue(
+    {
+      bookmarkId,
+      type: "index",
+    },
+    opts,
+  );
 }
 
 export const zvideoRequestSchema = z.object({
@@ -123,13 +117,6 @@ export const VideoWorkerQueue = new SqliteQueue<ZVideoRequest>(
     keepFailedJobs: false,
   },
 );
-
-export async function triggerVideoWorker(bookmarkId: string, url: string) {
-  await VideoWorkerQueue.enqueue({
-    bookmarkId,
-    url,
-  });
-}
 
 // Feed Worker
 export const zFeedRequestSchema = z.object({
@@ -191,12 +178,16 @@ export async function triggerWebhook(
   bookmarkId: string,
   operation: ZWebhookRequest["operation"],
   userId?: string,
+  opts?: EnqueueOptions,
 ) {
-  await WebhookQueue.enqueue({
-    bookmarkId,
-    userId,
-    operation,
-  });
+  await WebhookQueue.enqueue(
+    {
+      bookmarkId,
+      userId,
+      operation,
+    },
+    opts,
+  );
 }
 
 // RuleEngine worker
@@ -219,9 +210,13 @@ export const RuleEngineQueue = new SqliteQueue<ZRuleEngineRequest>(
 export async function triggerRuleEngineOnEvent(
   bookmarkId: string,
   events: z.infer<typeof zRuleEngineEventSchema>[],
+  opts?: EnqueueOptions,
 ) {
-  await RuleEngineQueue.enqueue({
-    events,
-    bookmarkId,
-  });
+  await RuleEngineQueue.enqueue(
+    {
+      events,
+      bookmarkId,
+    },
+    opts,
+  );
 }

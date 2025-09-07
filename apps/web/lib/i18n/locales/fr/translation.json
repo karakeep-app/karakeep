@@ -30,13 +30,16 @@
       "title": "Type de signets",
       "media": "Médias"
     },
-    "highlights": "points saillants",
+    "highlights": "Surlignages",
     "type": "Tapez",
     "size": "Taille",
     "updated_at": "Mis à jour le",
     "title": "Titre",
     "description": "Description",
-    "summary": "Résumé"
+    "summary": "Résumé",
+    "quota": "Quota",
+    "bookmarks": "Marque-pages",
+    "storage": "Stockage"
   },
   "layouts": {
     "masonry": "Mosaïque",
@@ -229,6 +232,77 @@
         "favourited": "Un marque-page est mis en favori",
         "archived": "Un marque-page est archivé"
       }
+    },
+    "stats": {
+      "usage_statistics": "Statistiques d'utilisation",
+      "insights_description": "Aperçu de tes habitudes de signets et de ta collection",
+      "failed_to_load": "Impossible de charger les statistiques",
+      "overview": {
+        "total_bookmarks": "Nombre total de signets",
+        "all_saved_items": "Tous les éléments enregistrés",
+        "favorites": "Favoris",
+        "starred_bookmarks": "Favoris marqués d'une étoile",
+        "archived": "Archivé",
+        "archived_items": "Éléments archivés",
+        "tags": "Balises",
+        "unique_tags_created": "Balises uniques créées",
+        "lists": "Listes",
+        "bookmark_collections": "Collections de signets",
+        "highlights": "Surlignages",
+        "text_highlights": "Surlignages de texte",
+        "storage_used": "Stockage utilisé",
+        "total_asset_storage": "Stockage total des actifs",
+        "this_month": "Ce mois-ci",
+        "bookmarks_added": "Signets ajoutés"
+      },
+      "bookmark_types": {
+        "title": "Types de signets",
+        "links": "Liens",
+        "text_notes": "Notes textuelles",
+        "assets": "Actifs"
+      },
+      "recent_activity": {
+        "title": "Activité récente",
+        "this_week": "Cette semaine",
+        "this_month": "Ce mois-ci",
+        "this_year": "Cette année"
+      },
+      "top_domains": {
+        "title": "Principaux domaines",
+        "no_domains_found": "Aucun domaine trouvé"
+      },
+      "most_used_tags": {
+        "title": "Balises les plus utilisées",
+        "no_tags_found": "Aucune balise trouvée"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Activité par heure",
+        "activity_by_day": "Activité par jour"
+      },
+      "storage_breakdown": {
+        "title": "Répartition du stockage"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonnement",
+      "manage_subscription": "Gérez vos informations d’abonnement et de facturation",
+      "current_plan": "Forfait actuel",
+      "billing_period": "Période de facturation",
+      "paid_plan": "Forfait payant",
+      "unlock_bigger_quota": "Débloquez un quota plus important et soutenez le projet",
+      "subscribe_now": "S’abonner maintenant",
+      "manage_billing": "Gérer la facturation",
+      "subscription_canceled": "Votre abonnement a été annulé et se terminera le {{date}}. Vous pouvez vous réabonner à tout moment.",
+      "usage_quotas": "Utilisation et quotas",
+      "track_usage": "Suivez votre utilisation actuelle par rapport aux limites de votre forfait",
+      "total_bookmarks_saved": "Nombre total de signets enregistrés",
+      "assets_file_storage": "Ressources et stockage de fichiers",
+      "unlimited_usage": "Utilisation illimitée",
+      "quota_limit_reached": "Limite de quota atteinte",
+      "approaching_quota_limit": "Limite de quota atteinte",
+      "loading_usage": "Chargement des informations d’utilisation…",
+      "free": "Gratuit",
+      "paid": "Payant"
     }
   },
   "admin": {
@@ -275,7 +349,9 @@
       "num_bookmarks": "Nombre de favoris",
       "asset_sizes": "Tailles des assets",
       "local_user": "Utilisateur local",
-      "confirm_password": "Confirmer le mot de passe"
+      "confirm_password": "Confirmer le mot de passe",
+      "delete_user_confirm_description": "Êtes-vous sûr de vouloir supprimer l'utilisateur \"{{name}}\" ?",
+      "unlimited": "Illimité"
     }
   },
   "options": {
@@ -451,7 +527,8 @@
     "day_s_ago": " Il y a {days} jour(s)",
     "week_s_ago": " Il y a {weeks} semaine(s)",
     "month_s_ago": " Il y a {months} mois",
-    "year_s_ago": " Il y a {years} an(s)"
+    "year_s_ago": " Il y a {years} an(s)",
+    "history": "Recherches récentes"
   },
   "dialogs": {
     "bookmarks": {
@@ -460,7 +537,7 @@
     }
   },
   "highlights": {
-    "no_highlights": "Vous n'avez pas encore de surlignages."
+    "no_highlights": "Tu n'as pas encore de surlignages."
   },
   "banners": {
     "no_bookmarks": {

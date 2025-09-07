@@ -9,6 +9,7 @@ import logger from "@karakeep/shared/logger";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts";
 import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared/queues";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
   const bookmark = await db.query.bookmarks.findFirst({
@@ -19,7 +20,8 @@ async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
         columns: {
           title: true,
           description: true,
-          content: true,
+          htmlContent: true,
+          contentAssetId: true,
           publisher: true,
           author: true,
           url: true,
@@ -41,7 +43,7 @@ export async function runSummarization(
   inferenceClient: InferenceClient,
 ) {
   if (!serverConfig.inference.enableAutoSummarization) {
-    logger.info(
+    logger.debug(
       `[inference][${job.id}] Skipping summarization job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
     return;
@@ -57,10 +59,24 @@ export async function runSummarization(
   let textToSummarize = "";
   if (bookmarkData.type === BookmarkTypes.LINK && bookmarkData.link) {
     const link = bookmarkData.link;
+
+    // Extract plain text content from HTML for summarization
+    let content =
+      (await Bookmark.getBookmarkPlainTextContent(link, bookmarkData.userId)) ??
+      "";
+
+    if (!link.description && !content) {
+      // No content to infer from; skip summarization
+      logger.info(
+        `[inference] No content found for link "${bookmarkId}". Skipping summary.`,
+      );
+      return;
+    }
+
     textToSummarize = `
 Title: ${link.title ?? ""}
 Description: ${link.description ?? ""}
-Content: ${link.content ?? ""}
+Content: ${content}
 Publisher: ${link.publisher ?? ""}
 Author: ${link.author ?? ""}
 URL: ${link.url ?? ""}
@@ -119,5 +135,7 @@ URL: ${link.url ?? ""}
     })
     .where(eq(bookmarks.id, bookmarkId));
 
-  await triggerSearchReindex(bookmarkId);
+  await triggerSearchReindex(bookmarkId, {
+    priority: job.priority,
+  });
 }

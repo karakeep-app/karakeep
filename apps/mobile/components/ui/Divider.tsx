@@ -12,7 +12,7 @@ function Divider({
   return (
     <View
       className={cn(
-        "bg-accent",
+        "bg-slate-400/20 dark:bg-border/50",
         orientation === "horizontal" ? "h-0.5" : "w-0.5",
         className,
       )}

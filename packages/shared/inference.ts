@@ -90,6 +90,7 @@ class OpenAIInferenceClient implements InferenceClient {
       {
         messages: [{ role: "user", content: prompt }],
         model: serverConfig.inference.textModel,
+        max_tokens: serverConfig.inference.maxOutputTokens,
         response_format: mapInferenceOutputSchema(
           {
             structured: optsWithDefaults.schema
@@ -126,6 +127,7 @@ class OpenAIInferenceClient implements InferenceClient {
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         model: serverConfig.inference.imageModel,
+        max_tokens: serverConfig.inference.maxOutputTokens,
         response_format: mapInferenceOutputSchema(
           {
             structured: optsWithDefaults.schema
@@ -151,7 +153,6 @@ class OpenAIInferenceClient implements InferenceClient {
             ],
           },
         ],
-        max_tokens: 2000,
       },
       {
         signal: optsWithDefaults.abortSignal,
@@ -224,6 +225,7 @@ class OllamaInferenceClient implements InferenceClient {
       keep_alive: serverConfig.inference.ollamaKeepAlive,
       options: {
         num_ctx: serverConfig.inference.contextLength,
+        num_predict: serverConfig.inference.maxOutputTokens,
       },
       messages: [
         { role: "user", content: prompt, images: image ? [image] : undefined },

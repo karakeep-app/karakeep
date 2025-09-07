@@ -1,9 +1,12 @@
 import { and, Column, eq, inArray, sql } from "drizzle-orm";
-import { DequeuedJob } from "liteque";
+import { DequeuedJob, EnqueueOptions } from "liteque";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
-import type { InferenceClient } from "@karakeep/shared/inference";
+import type {
+  InferenceClient,
+  InferenceResponse,
+} from "@karakeep/shared/inference";
 import type { ZOpenAIRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import {
@@ -12,7 +15,7 @@ import {
   customPrompts,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { readAsset } from "@karakeep/shared/assetdb";
+import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
@@ -21,10 +24,47 @@ import {
   triggerSearchReindex,
   triggerWebhook,
 } from "@karakeep/shared/queues";
+import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 const openAIResponseSchema = z.object({
   tags: z.array(z.string()),
 });
+
+function parseJsonFromLLMResponse(response: string): unknown {
+  const trimmedResponse = response.trim();
+
+  // Try parsing the response as-is first
+  try {
+    return JSON.parse(trimmedResponse);
+  } catch {
+    // If that fails, try to extract JSON from markdown code blocks
+    const jsonBlockRegex = /```(?:json)?\s*(\{[\s\S]*?\})\s*```/i;
+    const match = trimmedResponse.match(jsonBlockRegex);
+
+    if (match) {
+      try {
+        return JSON.parse(match[1]);
+      } catch {
+        // Fall through to other extraction methods
+      }
+    }
+
+    // Try to find JSON object boundaries in the text
+    const jsonObjectRegex = /\{[\s\S]*\}/;
+    const objectMatch = trimmedResponse.match(jsonObjectRegex);
+
+    if (objectMatch) {
+      try {
+        return JSON.parse(objectMatch[0]);
+      } catch {
+        // Fall through to final attempt
+      }
+    }
+
+    // Last resort: try to parse the original response again to get the original error
+    return JSON.parse(trimmedResponse);
+  }
+}
 
 function tagNormalizer(col: Column) {
   function normalizeTag(tag: string) {
@@ -38,16 +78,22 @@ function tagNormalizer(col: Column) {
 }
 async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
-) {
+): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
-    if (!bookmark.link.description && !bookmark.link.content) {
-      throw new Error(
-        `No content found for link "${bookmark.id}". Skipping ...`,
-      );
-    }
+    let content =
+      (await Bookmark.getBookmarkPlainTextContent(
+        bookmark.link,
+        bookmark.userId,
+      )) ?? "";
 
-    const content = bookmark.link.content;
+    if (!bookmark.link.description && !content) {
+      // No content to infer from; signal skip to avoid marking job as failed
+      logger.info(
+        `[inference] No content found for link "${bookmark.id}". Skipping tagging.`,
+      );
+      return null;
+    }
     return buildTextPrompt(
       serverConfig.inference.inferredTagLang,
       prompts,
@@ -76,7 +122,7 @@ async function inferTagsFromImage(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
-) {
+): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
     assetId: bookmark.asset.assetId,
@@ -86,6 +132,12 @@ async function inferTagsFromImage(
     throw new Error(
       `[inference][${jobId}] AssetId ${bookmark.asset.assetId} for bookmark ${bookmark.id} not found`,
     );
+  }
+  if (metadata.contentType === ASSET_TYPES.IMAGE_GIF) {
+    logger.info(
+      `[inference][${jobId}] Skipping inference for bookmark with id "${bookmark.id}" because it's a GIF.`,
+    );
+    return null;
   }
 
   const base64 = asset.toString("base64");
@@ -180,7 +232,11 @@ async function inferTagsFromText(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
-  return await inferenceClient.inferFromText(await buildPrompt(bookmark), {
+  const prompt = await buildPrompt(bookmark);
+  if (!prompt) {
+    return null;
+  }
+  return await inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
     abortSignal,
   });
@@ -192,7 +248,7 @@ async function inferTags(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
-  let response;
+  let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
     response = await inferTagsFromText(bookmark, inferenceClient, abortSignal);
   } else if (bookmark.asset) {
@@ -221,11 +277,14 @@ async function inferTags(
   }
 
   if (!response) {
-    throw new Error(`[inference][${jobId}] Inference response is empty`);
+    // Skipped due to missing content or prompt; propagate skip
+    return null;
   }
 
   try {
-    let tags = openAIResponseSchema.parse(JSON.parse(response.response)).tags;
+    let tags = openAIResponseSchema.parse(
+      parseJsonFromLLMResponse(response.response),
+    ).tags;
     logger.info(
       `[inference][${jobId}] Inferring tag for bookmark "${bookmark.id}" used ${response.totalTokens} tokens and inferred: ${tags}`,
     );
@@ -365,7 +424,7 @@ export async function runTagging(
   inferenceClient: InferenceClient,
 ) {
   if (!serverConfig.inference.enableAutoTagging) {
-    logger.info(
+    logger.debug(
       `[inference][${job.id}] Skipping tagging job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
     return;
@@ -389,11 +448,23 @@ export async function runTagging(
     job.abortSignal,
   );
 
+  if (tags === null) {
+    logger.info(
+      `[inference][${jobId}] Skipping tagging for bookmark "${bookmark.id}" due to missing content.`,
+    );
+    return;
+  }
+
   await connectTags(bookmarkId, tags, bookmark.userId);
 
+  // Propagate priority to child jobs
+  const enqueueOpts: EnqueueOptions = {
+    priority: job.priority,
+  };
+
   // Trigger a webhook
-  await triggerWebhook(bookmarkId, "ai tagged");
+  await triggerWebhook(bookmarkId, "ai tagged", undefined, enqueueOpts);
 
   // Update the search index
-  await triggerSearchReindex(bookmarkId);
+  await triggerSearchReindex(bookmarkId, enqueueOpts);
 }

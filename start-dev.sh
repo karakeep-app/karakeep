@@ -50,9 +50,33 @@ if [ ! -d "node_modules" ]; then
     pnpm install
 fi
 
-# Start the web app and workers in parallel
-echo "Starting web app and workers..."
+# Get DATA_DIR from environment or .env file
+if [ -z "$DATA_DIR" ] && [ -f ".env" ]; then
+    DATA_DIR=$(grep "^DATA_DIR=" .env | cut -d'=' -f2)
+fi
+
+# Create DATA_DIR if it doesn't exist
+if [ -n "$DATA_DIR" ] && [ ! -d "$DATA_DIR" ]; then
+    echo "Creating DATA_DIR at $DATA_DIR..."
+    mkdir -p "$DATA_DIR"
+fi
+
+# Start the web app
+echo "Starting web app..."
 pnpm web & WEB_PID=$!
+
+# Wait for web app to be ready
+echo "Waiting for web app to start..."
+until curl -s http://localhost:3000 > /dev/null 2>&1; do
+    sleep 1
+done
+
+# Run database migrations
+echo "Running database migrations..."
+pnpm run db:migrate
+
+# Start workers
+echo "Starting workers..."
 pnpm workers & WORKERS_PID=$!
 
 # Function to handle script termination

@@ -143,6 +143,77 @@
         "favourited": "Zaznamek je med priljubljenimi",
         "archived": "Zaznamek je arhiviran"
       }
+    },
+    "stats": {
+      "usage_statistics": "Statistika uporabe",
+      "insights_description": "Vpogledi v tvoje navade in zbirko zaznamkov",
+      "failed_to_load": "Statistike se niso naložile",
+      "overview": {
+        "total_bookmarks": "Skupno število zaznamkov",
+        "all_saved_items": "Vsi shranjeni elementi",
+        "favorites": "Priljubljene",
+        "starred_bookmarks": "Zaznamki z zvezdicami",
+        "archived": "Arhivirano",
+        "archived_items": "Arhivirani elementi",
+        "tags": "Oznake",
+        "unique_tags_created": "Ustvarjene edinstvene oznake",
+        "lists": "Seznami",
+        "bookmark_collections": "Zbirke zaznamkov",
+        "highlights": "Označbe",
+        "text_highlights": "Označena besedila",
+        "storage_used": "Uporabljena shramba",
+        "total_asset_storage": "Skupna shramba sredstev",
+        "this_month": "Ta mesec",
+        "bookmarks_added": "Zaznamki dodani"
+      },
+      "bookmark_types": {
+        "title": "Vrste zaznamkov",
+        "links": "Povezave",
+        "text_notes": "Besedilne opombe",
+        "assets": "Sredstva"
+      },
+      "recent_activity": {
+        "title": "Nedavna dejavnost",
+        "this_week": "Ta teden",
+        "this_month": "Ta mesec",
+        "this_year": "Letos"
+      },
+      "top_domains": {
+        "title": "Najboljše domene",
+        "no_domains_found": "Nobena domena ni bila najdena"
+      },
+      "most_used_tags": {
+        "title": "Najpogosteje uporabljene oznake",
+        "no_tags_found": "Ni najdenih oznak"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Dejavnost po urah",
+        "activity_by_day": "Dejavnost po dnevih"
+      },
+      "storage_breakdown": {
+        "title": "Razčlenitev shrambe"
+      }
+    },
+    "subscription": {
+      "subscription": "Naročnina",
+      "manage_subscription": "Upravljaj svojo naročnino in informacije o zaračunavanju",
+      "current_plan": "Trenutni paket",
+      "billing_period": "Obdobje zaračunavanja",
+      "paid_plan": "Plačljiv paket",
+      "unlock_bigger_quota": "Odkleni večjo kvoto in podpri projekt",
+      "subscribe_now": "Naroči se zdaj",
+      "manage_billing": "Upravljaj zaračunavanje",
+      "subscription_canceled": "Tvoja naročnina je bila preklicana in se bo končala na {{date}}. Lahko se ponovno naročiš kadarkoli.",
+      "usage_quotas": "Uporaba in kvote",
+      "track_usage": "Spremljaj trenutno uporabo glede na omejitve tvojega paketa",
+      "total_bookmarks_saved": "Skupno število shranjenih zaznamkov",
+      "assets_file_storage": "Sredstva in shramba datotek",
+      "unlimited_usage": "Neomejena uporaba",
+      "quota_limit_reached": "Dosežena omejitev kvote",
+      "approaching_quota_limit": "Se približuješ omejitvi kvote",
+      "loading_usage": "Nalaganje informacij o uporabi ...",
+      "free": "Brezplačno",
+      "paid": "Plačano"
     }
   },
   "admin": {
@@ -161,7 +232,9 @@
       "change_role": "Spremeni vlogo",
       "delete_user": "Izbriši uporabnika",
       "num_bookmarks": "Št. zaznamkov",
-      "asset_sizes": "Velikosti sredstev"
+      "asset_sizes": "Velikosti sredstev",
+      "delete_user_confirm_description": "Ali si prepričan, da želiš izbrisati uporabnika \"{{name}}\"?",
+      "unlimited": "Neomejeno"
     },
     "background_jobs": {
       "failed": "Neuspešno",
@@ -227,7 +300,8 @@
     "day_s_ago": " Dnevi nazaj",
     "week_s_ago": " Tedni nazaj",
     "month_s_ago": " Meseci nazaj",
-    "year_s_ago": " Let(a) nazaj"
+    "year_s_ago": " Let(a) nazaj",
+    "history": "Nedavna iskanja"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",
@@ -279,7 +353,10 @@
     "updated_at": "Posodobljeno ob",
     "title": "Naslov",
     "description": "Opis",
-    "summary": "Povzetek"
+    "summary": "Povzetek",
+    "quota": "Količina",
+    "bookmarks": "Zaznamki",
+    "storage": "Shranjevanje"
   },
   "actions": {
     "close_bulk_edit": "Zapri množično urejanje",

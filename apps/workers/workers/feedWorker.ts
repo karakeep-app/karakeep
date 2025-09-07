@@ -1,13 +1,16 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 import Parser from "rss-parser";
 import { buildImpersonatingTRPCClient } from "trpc";
+import { fetchWithProxy } from "utils";
 import { z } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import { rssFeedImportsTable, rssFeedsTable } from "@karakeep/db/schema";
+import { QuotaService } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 import { FeedQueue } from "@karakeep/shared/queues";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -50,6 +53,7 @@ export class FeedWorker {
       {
         run: run,
         onComplete: async (job) => {
+          workerStatsCounter.labels("feed", "completed").inc();
           const jobId = job.id;
           logger.info(`[feed][${jobId}] Completed successfully`);
           await db
@@ -58,6 +62,7 @@ export class FeedWorker {
             .where(eq(rssFeedsTable.id, job.data?.feedId));
         },
         onError: async (job) => {
+          workerStatsCounter.labels("feed", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[feed][${jobId}] Feed fetch job failed: ${job.error}\n${job.error.stack}`,
@@ -91,11 +96,23 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       `[feed][${jobId}] Feed with id ${req.data.feedId} not found`,
     );
   }
+
+  // If the user doesn't have bookmark quota, don't bother with fetching the feed
+  {
+    const quotaResult = await QuotaService.canCreateBookmark(db, feed.userId);
+    if (!quotaResult.result) {
+      logger.debug(
+        `[feed][${jobId}] User ${feed.userId} doesn't have enough quota to create bookmarks. Skipping feed fetching.`,
+      );
+      return;
+    }
+  }
+
   logger.info(
     `[feed][${jobId}] Starting fetching feed "${feed.name}" (${feed.id}) ...`,
   );
 
-  const response = await fetch(feed.url, {
+  const response = await fetchWithProxy(feed.url, {
     signal: AbortSignal.timeout(5000),
     headers: {
       UserAgent:

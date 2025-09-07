@@ -17,7 +17,7 @@ export async function createContextFromRequest(req: Request) {
   if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
     const token = authorizationHeader.split(" ")[1];
     try {
-      const user = await authenticateApiKey(token);
+      const user = await authenticateApiKey(token, db);
       return {
         user,
         db,
@@ -39,7 +39,7 @@ export const createContext = async (
 ): Promise<Context> => {
   const session = await getServerAuthSession();
   if (ip === undefined) {
-    const hdrs = headers();
+    const hdrs = await headers();
     ip = requestIp.getClientIp({
       headers: Object.fromEntries(hdrs.entries()),
     });

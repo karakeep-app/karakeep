@@ -1,54 +1,27 @@
-import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
-import { webhooksTable } from "@karakeep/db/schema";
 import {
   zNewWebhookSchema,
   zUpdateWebhookSchema,
   zWebhookSchema,
 } from "@karakeep/shared/types/webhooks";
 
-import { authedProcedure, Context, router } from "../index";
-
-function adaptWebhook(webhook: typeof webhooksTable.$inferSelect) {
-  const { token, ...rest } = webhook;
-  return {
-    ...rest,
-    hasToken: token !== null,
-  };
-}
+import type { AuthedContext } from "../index";
+import { authedProcedure, router } from "../index";
+import { Webhook } from "../models/webhooks";
 
 export const ensureWebhookOwnership = experimental_trpcMiddleware<{
-  ctx: Context;
+  ctx: AuthedContext;
   input: { webhookId: string };
 }>().create(async (opts) => {
-  const webhook = await opts.ctx.db.query.webhooksTable.findFirst({
-    where: eq(webhooksTable.id, opts.input.webhookId),
-    columns: {
-      userId: true,
+  const webhook = await Webhook.fromId(opts.ctx, opts.input.webhookId);
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      webhook,
     },
   });
-  if (!opts.ctx.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "User is not authorized",
-    });
-  }
-  if (!webhook) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Webhook not found",
-    });
-  }
-  if (webhook.userId != opts.ctx.user.id) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not allowed to access resource",
-    });
-  }
-
-  return opts.next();
 });
 
 export const webhooksAppRouter = router({
@@ -56,50 +29,22 @@ export const webhooksAppRouter = router({
     .input(zNewWebhookSchema)
     .output(zWebhookSchema)
     .mutation(async ({ input, ctx }) => {
-      const [webhook] = await ctx.db
-        .insert(webhooksTable)
-        .values({
-          url: input.url,
-          events: input.events,
-          token: input.token ?? null,
-          userId: ctx.user.id,
-        })
-        .returning();
-
-      return adaptWebhook(webhook);
+      const webhook = await Webhook.create(ctx, input);
+      return webhook.asPublicWebhook();
     }),
   update: authedProcedure
     .input(zUpdateWebhookSchema)
     .output(zWebhookSchema)
     .use(ensureWebhookOwnership)
     .mutation(async ({ input, ctx }) => {
-      const webhook = await ctx.db
-        .update(webhooksTable)
-        .set({
-          url: input.url,
-          events: input.events,
-          token: input.token,
-        })
-        .where(
-          and(
-            eq(webhooksTable.userId, ctx.user.id),
-            eq(webhooksTable.id, input.webhookId),
-          ),
-        )
-        .returning();
-      if (webhook.length == 0) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-
-      return adaptWebhook(webhook[0]);
+      await ctx.webhook.update(input);
+      return ctx.webhook.asPublicWebhook();
     }),
   list: authedProcedure
     .output(z.object({ webhooks: z.array(zWebhookSchema) }))
     .query(async ({ ctx }) => {
-      const webhooks = await ctx.db.query.webhooksTable.findMany({
-        where: eq(webhooksTable.userId, ctx.user.id),
-      });
-      return { webhooks: webhooks.map(adaptWebhook) };
+      const webhooks = await Webhook.getAll(ctx);
+      return { webhooks: webhooks.map((w) => w.asPublicWebhook()) };
     }),
   delete: authedProcedure
     .input(
@@ -108,17 +53,7 @@ export const webhooksAppRouter = router({
       }),
     )
     .use(ensureWebhookOwnership)
-    .mutation(async ({ input, ctx }) => {
-      const res = await ctx.db
-        .delete(webhooksTable)
-        .where(
-          and(
-            eq(webhooksTable.userId, ctx.user.id),
-            eq(webhooksTable.id, input.webhookId),
-          ),
-        );
-      if (res.changes == 0) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
+    .mutation(async ({ ctx }) => {
+      await ctx.webhook.delete();
     }),
 });

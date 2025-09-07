@@ -1,10 +1,8 @@
-import type { Index } from "meilisearch";
-import { MeiliSearch } from "meilisearch";
 import { z } from "zod";
 
-import serverConfig from "./config";
+import { PluginManager, PluginType } from "./plugins";
 
-export const zBookmarkIdxSchema = z.object({
+export const zBookmarkSearchDocument = z.object({
   id: z.string(),
   userId: z.string(),
   url: z.string().nullish(),
@@ -24,68 +22,35 @@ export const zBookmarkIdxSchema = z.object({
   dateModified: z.date().nullish(),
 });
 
-export type ZBookmarkIdx = z.infer<typeof zBookmarkIdxSchema>;
+export type BookmarkSearchDocument = z.infer<typeof zBookmarkSearchDocument>;
 
-let searchClient: MeiliSearch | undefined;
-
-if (serverConfig.meilisearch) {
-  searchClient = new MeiliSearch({
-    host: serverConfig.meilisearch.address,
-    apiKey: serverConfig.meilisearch.key,
-  });
+export interface SearchResult {
+  id: string;
+  score?: number;
 }
 
-const BOOKMARKS_IDX_NAME = "bookmarks";
+export interface SearchOptions {
+  // TODO: Make query, filter and sort strongly typed
+  query: string;
+  filter?: string[];
+  limit?: number;
+  offset?: number;
+  sort?: string[];
+}
 
-let idxClient: Index<ZBookmarkIdx> | undefined;
+export interface SearchResponse {
+  hits: SearchResult[];
+  totalHits: number;
+  processingTimeMs: number;
+}
 
-export async function getSearchIdxClient(): Promise<Index<ZBookmarkIdx> | null> {
-  if (idxClient) {
-    return idxClient;
-  }
-  if (!searchClient) {
-    return null;
-  }
+export interface SearchIndexClient {
+  addDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
+  deleteDocuments(ids: string[]): Promise<void>;
+  search(options: SearchOptions): Promise<SearchResponse>;
+  clearIndex(): Promise<void>;
+}
 
-  const indicies = await searchClient.getIndexes();
-  let idxFound = indicies.results.find((i) => i.uid == BOOKMARKS_IDX_NAME);
-  if (!idxFound) {
-    const idx = await searchClient.createIndex(BOOKMARKS_IDX_NAME, {
-      primaryKey: "id",
-    });
-    await searchClient.waitForTask(idx.taskUid);
-    idxFound = await searchClient.getIndex<ZBookmarkIdx>(BOOKMARKS_IDX_NAME);
-  }
-
-  const desiredFilterableAttributes = ["id", "userId"].sort();
-  const desiredSortableAttributes = ["createdAt"].sort();
-
-  const settings = await idxFound.getSettings();
-  if (
-    JSON.stringify(settings.filterableAttributes?.sort()) !=
-    JSON.stringify(desiredFilterableAttributes)
-  ) {
-    console.log(
-      `[meilisearch] Updating desired filterable attributes to ${desiredFilterableAttributes} from ${settings.filterableAttributes}`,
-    );
-    const taskId = await idxFound.updateFilterableAttributes(
-      desiredFilterableAttributes,
-    );
-    await searchClient.waitForTask(taskId.taskUid);
-  }
-
-  if (
-    JSON.stringify(settings.sortableAttributes?.sort()) !=
-    JSON.stringify(desiredSortableAttributes)
-  ) {
-    console.log(
-      `[meilisearch] Updating desired sortable attributes to ${desiredSortableAttributes} from ${settings.sortableAttributes}`,
-    );
-    const taskId = await idxFound.updateSortableAttributes(
-      desiredSortableAttributes,
-    );
-    await searchClient.waitForTask(taskId.taskUid);
-  }
-  idxClient = idxFound;
-  return idxFound;
+export async function getSearchClient(): Promise<SearchIndexClient | null> {
+  return PluginManager.getClient(PluginType.Search);
 }

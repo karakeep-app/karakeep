@@ -8,9 +8,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <TRPCProvider settings={settings}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        {children}
-      </ThemeProvider>
+      <ThemeProvider>{children}</ThemeProvider>
     </TRPCProvider>
   );
 }

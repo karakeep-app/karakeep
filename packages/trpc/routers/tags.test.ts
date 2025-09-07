@@ -47,7 +47,7 @@ describe("Tags Routes", () => {
 
     const api = apiCallers[1].tags;
     await expect(() => api.delete({ tagId: createdTag.id })).rejects.toThrow(
-      /Tag not found/,
+      /User is not allowed to access resource/,
     );
   });
 
