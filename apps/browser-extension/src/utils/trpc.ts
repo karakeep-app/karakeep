@@ -75,8 +75,21 @@ export async function initializeClients() {
       },
     });
 
-    const persister = createChromeStorage(chrome.storage.local);
-    await persistQueryClient({ queryClient, persister });
+    const persister = createChromeStorage(
+      globalThis.chrome?.storage?.local as chrome.storage.StorageArea,
+    );
+    if (useBadgeCache) {
+      await persistQueryClient({
+        queryClient,
+        persister,
+        // Avoid restoring very old data and bust on policy changes
+        maxAge: badgeCacheExpireMs * 2,
+        buster: `badge:${badgeCacheExpireMs}`,
+      });
+    } else {
+      // Ensure disk cache is cleared when caching is disabled
+      await persister.removeClient();
+    }
 
     apiClient = createTRPCClient<AppRouter>({
       links: [
