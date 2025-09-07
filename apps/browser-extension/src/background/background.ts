@@ -271,15 +271,16 @@ export async function getTabCount(tabUrl: string) {
     text: "url:" + tabUrl,
   });
   if (!data) {
-    return { count: 0, isExisted: false };
+    return { count: 0, exactMatch: null };
   }
   const bookmarks = data.bookmarks || [];
-  const isExisted = bookmarks.some(
-    (b) => b.content.type === BookmarkTypes.LINK && tabUrl === b.content.url,
-  );
+  const exactMatch =
+    bookmarks.find(
+      (b) => b.content.type === BookmarkTypes.LINK && tabUrl === b.content.url,
+    ) || null;
   return {
     count: bookmarks.length,
-    isExisted,
+    exactMatch,
   };
 }
 
@@ -306,20 +307,20 @@ async function checkAndUpdateIcon(tabId: number) {
   try {
     const cachedInfo = await getBadgeStatusSWR(tabInfo.url);
     if (cachedInfo) {
-      await setBadge(cachedInfo.count, cachedInfo.isExisted, tabId);
+      await setBadge(cachedInfo.count, !!cachedInfo.exactMatch, tabId);
       if (!cachedInfo.fresh) {
         // Revalidate in background
         void (async () => {
-          const { count, isExisted } = await getTabCount(tabInfo!.url!);
-          await setBadge(count, isExisted, tabId);
-          await setBadgeStatusSWR(tabInfo!.url!, count, isExisted);
+          const { count, exactMatch } = await getTabCount(tabInfo!.url!);
+          await setBadge(count, !!exactMatch, tabId);
+          await setBadgeStatusSWR(tabInfo!.url!, count, exactMatch);
         })();
       }
       return;
     }
-    const { count, isExisted } = await getTabCount(tabInfo.url);
-    await setBadge(count, isExisted, tabId);
-    await setBadgeStatusSWR(tabInfo.url, count, isExisted);
+    const { count, exactMatch } = await getTabCount(tabInfo.url);
+    await setBadge(count, !!exactMatch, tabId);
+    await setBadgeStatusSWR(tabInfo.url, count, exactMatch);
   } catch (error) {
     console.error("Archive check failed:", error);
     await setBadge("!", false, tabId);

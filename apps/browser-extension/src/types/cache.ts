@@ -1,6 +1,8 @@
+import { ZBookmark } from "@karakeep/shared/types/bookmarks.ts";
+
 export interface BadgeCacheEntry {
   count: number;
-  isExisted: boolean;
+  exactMatch: ZBookmark | null;
   ts: number;
 }
 

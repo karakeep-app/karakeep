@@ -1,5 +1,7 @@
 // Badge count cache helpers (chrome.storage.local async, shared)
 // Implements dual-layer SWR (memory + persistent) cache for badge status.
+import { ZBookmark } from "@karakeep/shared/types/bookmarks.ts";
+
 import type { BadgeCacheEntry, BadgeCacheStorage } from "../types/cache";
 import { DEFAULT_BADGE_CACHE_EXPIRE_MS, getPluginSettings } from "./settings";
 import { getStorageValue, removeStorageKey, setStorageValue } from "./storage";
@@ -175,13 +177,13 @@ export async function getBadgeStatusSWR(url: string) {
 export async function setBadgeStatusSWR(
   url: string,
   count: number,
-  isExisted: boolean,
+  exactMatch: ZBookmark | null,
 ) {
   console.log(`[badgeCache] setBadgeStatusSWR: key=${url}, value=`, {
     count,
-    isExisted,
+    exactMatch,
   });
-  const entry = { count, isExisted, ts: Date.now() };
+  const entry = { count, exactMatch, ts: Date.now() };
   // 1. Update memory cache immediately
   badgeMemoryCache.set(url, entry);
   // 2. Queue write to persistent storage
