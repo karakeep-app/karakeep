@@ -6,9 +6,8 @@ import {
 
 import {
   checkAndPurgeIfNeeded,
-  clearBadgeStatusSWR,
-  getBadgeStatusSWR,
-  setBadgeStatusSWR,
+  clearBadgeStatus,
+  getBadgeStatus,
 } from "../utils/badgeCache";
 import {
   getPluginSettings,
@@ -184,13 +183,8 @@ async function searchCurrentUrl(tabUrl?: string) {
     const settings = await getPluginSettings();
     const serverAddress = settings.address;
 
-    const cachedInfo = await getBadgeStatusSWR(tabUrl);
-    let exactMatch;
-    if (cachedInfo) {
-      exactMatch = cachedInfo.exactMatch;
-    } else {
-      exactMatch = (await getBookmarkStatusForUrl(tabUrl)).exactMatch;
-    }
+    const status = await getBadgeStatus(tabUrl);
+    const exactMatch = status?.exactMatch;
     let targetUrl: string;
     if (exactMatch) {
       // Found exact match, open bookmark details page
@@ -221,7 +215,7 @@ async function clearCurrentPageCache() {
 
     if (activeTab.url && activeTab.id) {
       console.log("Clearing cache for current page:", activeTab.url);
-      await clearBadgeStatusSWR(activeTab.url);
+      await clearBadgeStatus(activeTab.url);
 
       // Refresh the badge for the current tab
       await checkAndUpdateIcon(activeTab.id);
@@ -237,7 +231,7 @@ async function clearCurrentPageCache() {
 async function clearAllCache() {
   try {
     console.log("Clearing all badge cache");
-    await clearBadgeStatusSWR();
+    await clearBadgeStatus();
     // Refresh the badge for all active tabs
     const windows = await chrome.windows.getAll({ populate: true });
     for (const window of windows) {
@@ -313,39 +307,12 @@ export async function setBadge(
 }
 
 /**
- * Get the bookmark status for a given URL.
- * @param tabUrl The URL to check.
- * @returns An object containing the count of bookmarks and an exact match if found.
- */
-export async function getBookmarkStatusForUrl(tabUrl: string) {
-  const api = await getApiClient();
-  if (!api) {
-    throw new Error("API client is not configured.");
-  }
-  const data = await api.bookmarks.searchBookmarks.query({
-    text: "url:" + tabUrl,
-  });
-  if (!data) {
-    return { count: 0, exactMatch: null };
-  }
-  const bookmarks = data.bookmarks || [];
-  const exactMatch =
-    bookmarks.find(
-      (b) => b.content.type === BookmarkTypes.LINK && tabUrl === b.content.url,
-    ) || null;
-  return {
-    count: bookmarks.length,
-    exactMatch,
-  };
-}
-
-/**
  * Check and update the badge icon for a given tab ID.
  * @param tabId The ID of the tab to update.
  */
 async function checkAndUpdateIcon(tabId: number) {
   const tabInfo = await chrome.tabs.get(tabId);
-  const { showCountBadge, useBadgeCache } = await getPluginSettings();
+  const { showCountBadge } = await getPluginSettings();
   const api = await getApiClient();
   if (
     !api ||
@@ -360,36 +327,16 @@ async function checkAndUpdateIcon(tabId: number) {
   console.log("Tab activated", tabId, tabInfo);
 
   try {
-    if (useBadgeCache) {
-      const cachedInfo = await getBadgeStatusSWR(tabInfo.url);
-      if (cachedInfo) {
-        await setBadge(cachedInfo.count, !!cachedInfo.exactMatch, tabId);
-        if (!cachedInfo.fresh) {
-          // Revalidate in background
-          void (async () => {
-            const { count, exactMatch } = await getBookmarkStatusForUrl(
-              tabInfo!.url!,
-            );
-            await setBadge(count, !!exactMatch, tabId);
-            await setBadgeStatusSWR(tabInfo!.url!, count, exactMatch);
-          })();
-        }
-        return;
-      }
-    }
-    const { count, exactMatch } = await getBookmarkStatusForUrl(tabInfo.url);
-    await setBadge(count, !!exactMatch, tabId);
-    if (useBadgeCache) {
-      await setBadgeStatusSWR(tabInfo.url, count, exactMatch);
+    const status = await getBadgeStatus(tabInfo.url);
+    if (status) {
+      await setBadge(status.count, !!status.exactMatch, tabId);
     }
   } catch (error) {
     console.error("Archive check failed:", error);
     await setBadge("!", false, tabId);
   }
   // Check if we need to purge stale cache entries
-  if (useBadgeCache) {
-    await checkAndPurgeIfNeeded();
-  }
+  await checkAndPurgeIfNeeded();
 }
 
 chrome.tabs.onActivated.addListener(async (tabActiveInfo) => {
@@ -409,7 +356,7 @@ chrome.runtime.onMessage.addListener(async (msg) => {
         msg.currentTab.url,
       );
       if (msg.currentTab.url) {
-        await clearBadgeStatusSWR(msg.currentTab.url);
+        await clearBadgeStatus(msg.currentTab.url);
       }
       if (typeof msg.currentTab.id === "number") {
         await checkAndUpdateIcon(msg.currentTab.id);
