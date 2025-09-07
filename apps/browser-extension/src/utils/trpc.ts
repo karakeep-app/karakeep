@@ -17,16 +17,20 @@ let currentSettings: {
   address: string;
   apiKey: string;
   badgeCacheExpireMs: number;
+  useBadgeCache: boolean;
 } | null = null;
 
 export async function initializeClients() {
-  const { address, apiKey, badgeCacheExpireMs } = await getPluginSettings();
+  const { address, apiKey, badgeCacheExpireMs, useBadgeCache } =
+    await getPluginSettings();
 
   if (currentSettings) {
     const addressChanged = currentSettings.address !== address;
     const apiKeyChanged = currentSettings.apiKey !== apiKey;
     const cacheTimeChanged =
       currentSettings.badgeCacheExpireMs !== badgeCacheExpireMs;
+    const useBadgeCacheChanged =
+      currentSettings.useBadgeCache !== useBadgeCache;
 
     if (!address && !apiKey) {
       // Invalid configuration, clean
@@ -37,34 +41,36 @@ export async function initializeClients() {
     if (addressChanged || apiKeyChanged) {
       // Switch context completely → discard the old instance
       cleanupApiClient();
-    } else if (cacheTimeChanged && queryClient) {
+    } else if ((cacheTimeChanged || useBadgeCacheChanged) && queryClient) {
       // Change the cache policy only → Clean up the data, but reuse the instance
       queryClient.clear();
     }
-  }
 
-  // If there is already existing and there is no major change in settings, reuse it
-  if (
-    queryClient &&
-    apiClient &&
-    currentSettings &&
-    currentSettings.address === address &&
-    currentSettings.apiKey === apiKey &&
-    currentSettings.badgeCacheExpireMs === badgeCacheExpireMs
-  ) {
-    return;
+    // If there is already existing and there is no major change in settings, reuse it
+    if (
+      queryClient &&
+      apiClient &&
+      currentSettings &&
+      !addressChanged &&
+      !apiKeyChanged &&
+      !cacheTimeChanged &&
+      !useBadgeCacheChanged
+    ) {
+      return;
+    }
   }
 
   if (address && apiKey) {
     // Store current settings
-    currentSettings = { address, apiKey, badgeCacheExpireMs };
+    currentSettings = { address, apiKey, badgeCacheExpireMs, useBadgeCache };
 
     // Create new QueryClient with updated settings
     queryClient = new QueryClient({
       defaultOptions: {
         queries: {
-          gcTime: badgeCacheExpireMs * 2, // Keep in memory for twice as long as stale time
-          staleTime: badgeCacheExpireMs, // Use the user-configured cache expire time
+          // If useBadgeCache is false, set cache times to 0 to disable caching
+          gcTime: useBadgeCache ? badgeCacheExpireMs * 2 : 0, // Keep in memory for twice as long as stale time
+          staleTime: useBadgeCache ? badgeCacheExpireMs : 0, // Use the user-configured cache expire time
         },
       },
     });
