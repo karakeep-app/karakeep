@@ -22,7 +22,6 @@
     "@react-native-menu/menu": "^1.2.4",
     "@rn-primitives/hooks": "^1.3.0",
     "@rn-primitives/slot": "^1.2.0",
-    "@roninoss/icons": "^0.0.4",
     "@shopify/flash-list": "^2.0.3",
     "@tanstack/react-query": "^5.80.3",
     "class-variance-authority": "^0.7.0",

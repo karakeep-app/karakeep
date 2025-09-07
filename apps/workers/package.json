@@ -24,7 +24,7 @@
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
     "jsdom": "^24.0.0",
-    "liteque": "^0.5.0",
+    "liteque": "^0.6.0",
     "metascraper": "^5.46.18",
     "metascraper-amazon": "^5.46.18",
     "metascraper-author": "5.46.18",

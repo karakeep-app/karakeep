@@ -89,7 +89,7 @@ Commands:
   help [command]             display help for command
 ```
 
-## Optaining an API Key
+## Obtaining an API Key
 
 To use the CLI, you'll need to get an API key from your karakeep settings. You can validate that it's working by running:
 

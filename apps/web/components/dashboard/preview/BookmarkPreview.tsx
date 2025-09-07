@@ -20,10 +20,10 @@ import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
+  getBookmarkRefreshInterval,
   getBookmarkTitle,
   getSourceUrl,
   isBookmarkStillCrawling,
-  isBookmarkStillLoading,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import SummarizeBookmarkArea from "../bookmarks/SummarizeBookmarkArea";
@@ -129,11 +129,7 @@ export default function BookmarkPreview({
         if (!data) {
           return false;
         }
-        // If the link is not crawled or not tagged
-        if (isBookmarkStillLoading(data)) {
-          return 1000;
-        }
-        return false;
+        return getBookmarkRefreshInterval(data);
       },
     },
   );

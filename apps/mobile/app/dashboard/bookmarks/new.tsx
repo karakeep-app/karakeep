@@ -19,7 +19,7 @@ const NoteEditorPage = () => {
   const [error, setError] = useState<string | undefined>();
   const { toast } = useToast();
 
-  const { mutate: createBookmark } = useCreateBookmark({
+  const { mutate: createBookmark, isPending } = useCreateBookmark({
     onSuccess: (resp) => {
       if (resp.alreadyExists) {
         toast({
@@ -69,7 +69,7 @@ const NoteEditorPage = () => {
           autoCapitalize={"none"}
           textAlignVertical="top"
         />
-        <Button onPress={onSubmit}>
+        <Button onPress={onSubmit} disabled={isPending}>
           <Text>Save</Text>
         </Button>
       </View>

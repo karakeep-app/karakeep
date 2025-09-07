@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks";
-import { Icon } from "@roninoss/icons";
+import { SearchIcon, XIcon } from "lucide-react-native";
 
 import type { SearchInputProps } from "./types";
 
@@ -64,11 +64,7 @@ const SearchInput = React.forwardRef<
           <TailwindResolver
             className="text-muted"
             comp={(styles) => (
-              <Icon
-                color={styles?.color?.toString()}
-                name="magnify"
-                size={24}
-              />
+              <SearchIcon color={styles?.color?.toString()} size={24} />
             )}
           />
         </View>
@@ -94,11 +90,7 @@ const SearchInput = React.forwardRef<
               <TailwindResolver
                 className="text-muted"
                 comp={(styles) => (
-                  <Icon
-                    name="close"
-                    size={24}
-                    color={styles?.color?.toString()}
-                  />
+                  <XIcon size={24} color={styles?.color?.toString()} />
                 )}
               />
             </Pressable>

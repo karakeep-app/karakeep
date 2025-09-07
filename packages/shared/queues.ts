@@ -7,7 +7,9 @@ import { zRuleEngineEventSchema } from "./types/rules";
 
 const QUEUE_DB_PATH = path.join(serverConfig.dataDir, "queue.db");
 
-const queueDB = buildDBClient(QUEUE_DB_PATH);
+const queueDB = buildDBClient(QUEUE_DB_PATH, {
+  walEnabled: serverConfig.database.walMode,
+});
 
 export function runQueueDBMigrations() {
   migrateDB(queueDB);

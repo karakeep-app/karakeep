@@ -11,11 +11,11 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
+import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
-import { useColorScheme } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks";
-import { Icon } from "@roninoss/icons";
+import { SearchIcon } from "lucide-react-native";
 
 import type { SearchInputProps } from "./types";
 
@@ -38,13 +38,12 @@ const SearchInput = React.forwardRef<
       containerClassName,
       iconContainerClassName,
       className,
-      iconColor,
+      iconColor: _iconColor,
       onCancel,
       ...props
     },
     ref,
   ) => {
-    const { colors } = useColorScheme();
     const inputRef = useAugmentedRef({ ref, methods: { focus, blur, clear } });
     const [showCancel, setShowCancel] = React.useState(false);
     const showCancelDerivedValue = useDerivedValue(
@@ -140,7 +139,12 @@ const SearchInput = React.forwardRef<
               iconContainerClassName,
             )}
           >
-            <Icon color={iconColor ?? colors.grey3} name="magnify" size={22} />
+            <TailwindResolver
+              className="text-muted"
+              comp={(styles) => (
+                <SearchIcon color={styles?.color?.toString()} size={20} />
+              )}
+            />
           </View>
           <TextInput
             ref={inputRef}

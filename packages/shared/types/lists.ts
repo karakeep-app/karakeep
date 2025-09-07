@@ -2,16 +2,25 @@ import { z } from "zod";
 
 import { parseSearchQuery } from "../searchQueryParser";
 
+export const MAX_LIST_NAME_LENGTH = 100;
+export const MAX_LIST_DESCRIPTION_LENGTH = 500;
+
 export const zNewBookmarkListSchema = z
   .object({
     name: z
       .string()
       .min(1, "List name can't be empty")
-      .max(40, "List name is at most 40 chars"),
+      .max(
+        MAX_LIST_NAME_LENGTH,
+        `List name is at most ${MAX_LIST_NAME_LENGTH} chars`,
+      ),
     description: z
       .string()
       .min(0, "Description can be empty")
-      .max(100, "Description can have at most 100 chars")
+      .max(
+        MAX_LIST_DESCRIPTION_LENGTH,
+        `Description can have at most ${MAX_LIST_DESCRIPTION_LENGTH} chars`,
+      )
       .optional(),
     icon: z.string(),
     type: z.enum(["manual", "smart"]).optional().default("manual"),
@@ -57,12 +66,18 @@ export const zEditBookmarkListSchema = z.object({
   name: z
     .string()
     .min(1, "List name can't be empty")
-    .max(40, "List name is at most 40 chars")
+    .max(
+      MAX_LIST_NAME_LENGTH,
+      `List name is at most ${MAX_LIST_NAME_LENGTH} chars`,
+    )
     .optional(),
   description: z
     .string()
     .min(0, "Description can be empty")
-    .max(100, "Description can have at most 100 chars")
+    .max(
+      MAX_LIST_DESCRIPTION_LENGTH,
+      `Description can have at most ${MAX_LIST_DESCRIPTION_LENGTH} chars`,
+    )
     .nullish(),
   icon: z.string().optional(),
   parentId: z.string().nullish(),

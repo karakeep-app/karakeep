@@ -28,7 +28,7 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
-  isBookmarkStillLoading,
+  getBookmarkRefreshInterval,
   isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -432,11 +432,7 @@ export default function BookmarkCard({
         if (!data) {
           return false;
         }
-        // If the link is not crawled or not tagged
-        if (isBookmarkStillLoading(data)) {
-          return 1000;
-        }
-        return false;
+        return getBookmarkRefreshInterval(data);
       },
     },
   );
