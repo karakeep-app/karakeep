@@ -112,7 +112,11 @@ export const apiKeysAppRouter = router({
     .input(z.object({ apiKey: z.string() }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      await authenticateApiKey(input.apiKey, ctx.db); // Throws if the key is invalid
+      try {
+        await authenticateApiKey(input.apiKey, ctx.db); // Throws if the key is invalid
+      } catch {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
       return {
         success: true,
       };
