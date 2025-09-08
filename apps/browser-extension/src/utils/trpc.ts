@@ -32,7 +32,7 @@ export async function initializeClients() {
     const useBadgeCacheChanged =
       currentSettings.useBadgeCache !== useBadgeCache;
 
-    if (!address && !apiKey) {
+    if (!address || !apiKey) {
       // Invalid configuration, clean
       cleanupApiClient();
       return;
