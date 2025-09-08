@@ -34,12 +34,16 @@ export async function initializeClients() {
 
     if (!address || !apiKey) {
       // Invalid configuration, clean
+      const persisterForCleanup = createChromeStorage();
+      await persisterForCleanup.removeClient();
       cleanupApiClient();
       return;
     }
 
     if (addressChanged || apiKeyChanged) {
-      // Switch context completely → discard the old instance
+      // Switch context completely → discard the old instance and wipe persisted cache
+      const persisterForCleanup = createChromeStorage();
+      await persisterForCleanup.removeClient();
       cleanupApiClient();
     } else if ((cacheTimeChanged || useBadgeCacheChanged) && queryClient) {
       // Change the cache policy only → Clean up the data, but reuse the instance
@@ -67,9 +71,7 @@ export async function initializeClients() {
     // Create new QueryClient with updated settings
     queryClient = new QueryClient();
 
-    const persister = createChromeStorage(
-      globalThis.chrome?.storage?.local as chrome.storage.StorageArea,
-    );
+    const persister = createChromeStorage();
     if (useBadgeCache) {
       await persistQueryClient({
         queryClient,

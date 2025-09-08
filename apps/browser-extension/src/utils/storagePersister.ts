@@ -23,7 +23,7 @@ declare const chrome: {
  * @returns An object that mimics the AsyncStorage interface.
  */
 export const createChromeStorage = (
-  storage: typeof chrome.storage.local,
+  storage: typeof chrome.storage.local = globalThis.chrome?.storage?.local,
 ): Persister => {
   // Check if we are in a Chrome extension environment
   if (typeof chrome === "undefined" || !chrome.storage) {
