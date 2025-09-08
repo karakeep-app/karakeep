@@ -65,15 +65,7 @@ export async function initializeClients() {
     currentSettings = { address, apiKey, badgeCacheExpireMs, useBadgeCache };
 
     // Create new QueryClient with updated settings
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          // If useBadgeCache is false, set cache times to 0 to disable caching
-          gcTime: useBadgeCache ? badgeCacheExpireMs * 2 : 0, // Keep in memory for twice as long as stale time
-          staleTime: useBadgeCache ? badgeCacheExpireMs : 0, // Use the user-configured cache expire time
-        },
-      },
-    });
+    queryClient = new QueryClient();
 
     const persister = createChromeStorage(
       globalThis.chrome?.storage?.local as chrome.storage.StorageArea,

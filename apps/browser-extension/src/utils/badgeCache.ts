@@ -89,7 +89,7 @@ async function fetchBadgeStatus(url: string): Promise<BadgeStatus> {
  * @param url The URL to get the status for.
  */
 export async function getBadgeStatus(url: string): Promise<BadgeStatus> {
-  const { useBadgeCache } = await getPluginSettings();
+  const { useBadgeCache, badgeCacheExpireMs } = await getPluginSettings();
   if (!useBadgeCache) return fetchBadgeStatus(url);
 
   const queryClient = await getQueryClient();
@@ -98,6 +98,10 @@ export async function getBadgeStatus(url: string): Promise<BadgeStatus> {
   return await queryClient.fetchQuery({
     queryKey: ["badgeStatus", url],
     queryFn: () => fetchBadgeStatus(url),
+    // Keep in memory for twice as long as stale time
+    gcTime: badgeCacheExpireMs * 2,
+    // Use the user-configured cache expire time
+    staleTime: badgeCacheExpireMs,
   });
 }
 
