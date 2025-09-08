@@ -76,7 +76,7 @@ export async function initializeClients() {
         persister,
         // Avoid restoring very old data and bust on policy changes
         maxAge: badgeCacheExpireMs * 2,
-        buster: `badge:${badgeCacheExpireMs}`,
+        buster: `badge:${address}:${badgeCacheExpireMs}`,
       });
     } else {
       // Ensure disk cache is cleared when caching is disabled
