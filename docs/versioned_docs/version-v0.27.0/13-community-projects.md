@@ -12,7 +12,7 @@ _By [@luolei](https://github.com/foru17)._
 
 A user-friendly Raycast extension that seamlessly integrates with Karakeep, bringing powerful bookmark management to your fingertips. Quickly save, search, and organize your bookmarks, texts, and images—all through Raycast's intuitive interface.
 
-Get it [here](https://www.raycast.com/luolei/hoarder).
+Get it [here](https://www.raycast.com/luolei/karakeep).
 
 ### Alfred Workflow
 
