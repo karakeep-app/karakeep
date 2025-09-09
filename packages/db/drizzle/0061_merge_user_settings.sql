@@ -2,13 +2,13 @@ ALTER TABLE `user` ADD `bookmarkClickAction` text DEFAULT 'open_original_link' N
 ALTER TABLE `user` ADD `archiveDisplayBehaviour` text DEFAULT 'show' NOT NULL;--> statement-breakpoint
 ALTER TABLE `user` ADD `timezone` text DEFAULT 'UTC';--> statement-breakpoint
 UPDATE `user` SET
-  `bookmarkClickAction` = (
+  `bookmarkClickAction` = coalesce((
     SELECT `bookmarkClickAction` FROM `userSettings` WHERE `userSettings`.`userId` = `user`.`id`
-  ),
-  `archiveDisplayBehaviour` = (
+  ), 'open_original_link'),
+  `archiveDisplayBehaviour` = coalesce((
     SELECT `archiveDisplayBehaviour` FROM `userSettings` WHERE `userSettings`.`userId` = `user`.`id`
-  ),
-  `timezone` = (
+  ), 'show'),
+  `timezone` = coalesce((
     SELECT `timezone` FROM `userSettings` WHERE `userSettings`.`userId` = `user`.`id`
-  );--> statement-breakpoint
+  ), 'UTC');--> statement-breakpoint
 DROP TABLE `userSettings`;
