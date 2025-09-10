@@ -104,7 +104,7 @@ interface Cookie {
   expires?: number;
   httpOnly?: boolean;
   secure?: boolean;
-  sameSite?: "Strict" | "Lax" | "None";
+  sameSite?: "Strict" | "strict" | "Lax" | "lax" | "None" | "unspecified" | "no_restriction";
 }
 
 const cookieSchema = z.object({
