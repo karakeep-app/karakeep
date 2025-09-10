@@ -115,7 +115,7 @@ const cookieSchema = z.object({
   expires: z.number().optional(),
   httpOnly: z.boolean().optional(),
   secure: z.boolean().optional(),
-  sameSite: z.enum(["Strict", "Lax", "None"]).optional(),
+  sameSite: z.enum(["Strict", "strict", "Lax", "lax", "None", "unspecified", "no_restriction"]).optional(),
 });
 
 const cookiesSchema = z.array(cookieSchema);
