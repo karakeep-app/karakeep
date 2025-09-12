@@ -25,15 +25,55 @@ function PreWithCopyBtn({ className, ...props }: React.ComponentProps<"pre">) {
 export function MarkdownReadonly({
   children: markdown,
   className,
+  onSave,
 }: {
   children: string;
   className?: string;
+  onSave?: (markdown: string) => void;
 }) {
+  /**
+   * This method is triggered when a checkbox is toggled from the masonry view
+   * It finds the index of the clicked checkbox inside of the note
+   * It then finds the corresponding markdown and changes it accordingly
+   */
+  const handleTodoClick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const undoneTodo = "- [ ] ";
+    const doneTodo = "- [X] ";
+    const parent = e.target.closest(".prose");
+    if (!parent) return;
+    const allCheckboxes = parent.querySelectorAll(".todo-checkbox");
+    let checkboxIndex = 0;
+    allCheckboxes.forEach((cb, i) => {
+      if (cb === e.target) checkboxIndex = i;
+    });
+    let i = 0;
+    const newMarkdown = markdown.replace(/^- \[ \] |^- \[X\]/gm, (match) => {
+      i++;
+      const newValue = match === undoneTodo ? doneTodo : undoneTodo;
+      return i - 1 === checkboxIndex ? newValue : match;
+    });
+    if (onSave) {
+      onSave(newMarkdown);
+    }
+  };
+
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
       className={cn("prose dark:prose-invert", className)}
       components={{
+        input: (props) =>
+          props.type === "checkbox" ? (
+            <input
+              checked={props.checked}
+              onChange={handleTodoClick}
+              type="checkbox"
+              className="todo-checkbox"
+            />
+          ) : (
+            <input {...props} readOnly />
+          ),
         pre({ ...props }) {
           return <PreWithCopyBtn {...props} />;
         },
