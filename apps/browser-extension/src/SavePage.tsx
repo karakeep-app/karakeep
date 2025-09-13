@@ -47,68 +47,92 @@ export default function SavePage() {
     }
 
     async function prepareBookmarkData() {
-      let newBookmarkRequest = null;
+      try {
+        let newBookmarkRequest: ZNewBookmarkRequest | null = null;
 
-      const { [NEW_BOOKMARK_REQUEST_KEY_NAME]: req } =
-        await chrome.storage.session.get(NEW_BOOKMARK_REQUEST_KEY_NAME);
+        const { [NEW_BOOKMARK_REQUEST_KEY_NAME]: req } =
+          await chrome.storage.session.get(NEW_BOOKMARK_REQUEST_KEY_NAME);
 
-      if (req) {
-        // Delete the request immediately to avoid issues with lingering values
-        await chrome.storage.session.remove(NEW_BOOKMARK_REQUEST_KEY_NAME);
+        if (req) {
+          // Delete the request immediately to avoid issues with lingering values
+          await chrome.storage.session.remove(NEW_BOOKMARK_REQUEST_KEY_NAME);
 
-        if (req.type === "BULK_SAVE_ALL_TABS") {
-          setShouldTriggerBulkSave(true);
-          return;
-        }
+          if (req.type === "BULK_SAVE_ALL_TABS") {
+            setShouldTriggerBulkSave(true);
+            return;
+          }
 
-        newBookmarkRequest = zNewBookmarkRequestSchema.parse(req);
-      } else {
-        const [currentTab] = await chrome.tabs.query({
-          active: true,
-          lastFocusedWindow: true,
-        });
-
-        setCurrentTab(currentTab);
-
-        if (currentTab?.url) {
-          newBookmarkRequest = {
-            type: BookmarkTypes.LINK,
-            url: currentTab.url,
-          } as ZNewBookmarkRequest;
+          const parsed = zNewBookmarkRequestSchema.safeParse(req);
+          if (parsed.success) {
+            newBookmarkRequest = parsed.data;
+          } else {
+            console.error("Bookmark request validation failed", parsed.error);
+            setError("Invalid bookmark request");
+            return;
+          }
         } else {
-          setError("Couldn't find the URL of the current tab");
-          return;
+          const [currentTab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true,
+          });
+
+          setCurrentTab(currentTab);
+
+          if (currentTab?.url) {
+            const candidate = {
+              type: BookmarkTypes.LINK,
+              url: currentTab.url,
+            };
+            const parsedCandidate =
+              zNewBookmarkRequestSchema.safeParse(candidate);
+            if (parsedCandidate.success) {
+              newBookmarkRequest = parsedCandidate.data;
+            } else {
+              console.error(
+                "Bookmark request validation failed",
+                parsedCandidate.error,
+              );
+              setError("Invalid bookmark request");
+              return;
+            }
+          } else {
+            setError("Couldn't find the URL of the current tab");
+            return;
+          }
         }
-      }
 
-      const tabs = await chrome.tabs.query({});
-      const validTabs = tabs.filter(
-        (tab) =>
-          tab.url &&
-          (tab.url.startsWith("http://") || tab.url.startsWith("https://")) &&
-          !tab.url.startsWith("chrome://") &&
-          !tab.url.startsWith("chrome-extension://") &&
-          !tab.url.startsWith("moz-extension://"),
-      );
-      setAllTabs(validTabs);
+        const tabs = await chrome.tabs.query({});
+        const validTabs = tabs.filter(
+          (tab) =>
+            tab.url &&
+            (tab.url.startsWith("http://") || tab.url.startsWith("https://")) &&
+            !tab.url.startsWith("chrome://") &&
+            !tab.url.startsWith("chrome-extension://") &&
+            !tab.url.startsWith("moz-extension://"),
+        );
+        setAllTabs(validTabs);
 
-      const currentWindowTabsQuery = await chrome.tabs.query({
-        currentWindow: true,
-      });
-      const validCurrentWindowTabs = currentWindowTabsQuery.filter(
-        (tab) =>
-          tab.url &&
-          (tab.url.startsWith("http://") || tab.url.startsWith("https://")) &&
-          !tab.url.startsWith("chrome://") &&
-          !tab.url.startsWith("chrome-extension://") &&
-          !tab.url.startsWith("moz-extension://"),
-      );
-      setCurrentWindowTabs(validCurrentWindowTabs);
+        const currentWindowTabsQuery = await chrome.tabs.query({
+          currentWindow: true,
+        });
+        const validCurrentWindowTabs = currentWindowTabsQuery.filter(
+          (tab) =>
+            tab.url &&
+            (tab.url.startsWith("http://") || tab.url.startsWith("https://")) &&
+            !tab.url.startsWith("chrome://") &&
+            !tab.url.startsWith("chrome-extension://") &&
+            !tab.url.startsWith("moz-extension://"),
+        );
+        setCurrentWindowTabs(validCurrentWindowTabs);
 
-      setBookmarkRequest(newBookmarkRequest);
+        setBookmarkRequest(newBookmarkRequest);
 
-      if (settings.autoSave && newBookmarkRequest) {
-        createBookmark(newBookmarkRequest);
+        if (settings.autoSave && newBookmarkRequest) {
+          createBookmark(newBookmarkRequest);
+        }
+      } catch (e) {
+        console.error("Failed to prepare bookmark data", e);
+        setError("Something went wrong while preparing the bookmark.");
       }
     }
 
@@ -124,7 +148,7 @@ export default function SavePage() {
   useEffect(() => {
     if (shouldTriggerBulkSave) {
       setShouldTriggerBulkSave(false);
-      navigate("/bulk-save?auto=window");
+      navigate("/bulk-save?auto=all");
     }
   }, [shouldTriggerBulkSave, navigate]);
 
