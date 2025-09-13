@@ -1,5 +1,5 @@
 import { Home, RefreshCw, Settings, X } from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
 import { Button } from "./components/ui/button";
 import usePluginSettings from "./utils/settings";
@@ -20,8 +20,7 @@ export default function Layout() {
   }
 
   if (!settings.apiKey || !settings.address) {
-    navigate("/notconfigured");
-    return null;
+    return <Navigate to="/notconfigured" replace />;
   }
 
   return (
