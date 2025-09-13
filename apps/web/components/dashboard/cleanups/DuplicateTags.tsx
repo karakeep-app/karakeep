@@ -6,12 +6,12 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import LoadingSpinner from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -22,12 +22,13 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { distance } from "fastest-levenshtein";
+import { t } from "i18next";
 import { Check, Combine, X } from "lucide-react";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
+import { ZGetTagResponse } from "@karakeep/shared/types/tags";
 
 interface Suggestion {
   mergeIntoId: string;
@@ -198,18 +199,14 @@ function SuggestionRow({
   );
 }
 
-export function TagDuplicationDetection() {
+export function DuplicateTags({ allTags }: { allTags: ZGetTagResponse[] }) {
   const [expanded, setExpanded] = useState(false);
-  let { data: allTags } = api.tags.list.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
 
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =
     useSuggestions();
 
   useEffect(() => {
-    allTags = allTags ?? { tags: [] };
-    const sortedTags = allTags.tags.sort((a, b) =>
+    const sortedTags = allTags.sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );
 
@@ -236,48 +233,51 @@ export function TagDuplicationDetection() {
     setSuggestions(initialSuggestions);
   }, [allTags]);
 
-  if (!allTags) {
-    return <LoadingSpinner />;
-  }
-
   return (
-    <Collapsible open={expanded} onOpenChange={setExpanded}>
-      You have {suggestions.length} suggestions for tag merging.
-      {suggestions.length > 0 && (
-        <CollapsibleTrigger asChild>
-          <Button variant="link" size="sm">
-            {expanded ? "Hide All" : "Show All"}
-          </Button>
-        </CollapsibleTrigger>
-      )}
-      <CollapsibleContent>
-        <p className="text-sm italic text-muted-foreground">
-          For every suggestion, select the tag that you want to keep and other
-          tags will be merged into it.
-        </p>
-        {suggestions.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tags</TableHead>
-                <TableHead className="text-center">
-                  <ApplyAllButton suggestions={suggestions} />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {suggestions.map((suggestion) => (
-                <SuggestionRow
-                  key={suggestion.mergeIntoId}
-                  suggestion={suggestion}
-                  updateMergeInto={updateMergeInto}
-                  deleteSuggestion={deleteSuggestion}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("cleanups.duplicate_tags.title")}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Collapsible open={expanded} onOpenChange={setExpanded}>
+          You have {suggestions.length} suggestions for tag merging.
+          {suggestions.length > 0 && (
+            <CollapsibleTrigger asChild>
+              <Button variant="link" size="sm">
+                {expanded ? "Hide All" : "Show All"}
+              </Button>
+            </CollapsibleTrigger>
+          )}
+          <CollapsibleContent>
+            <p className="text-sm italic text-muted-foreground">
+              For every suggestion, select the tag that you want to keep and
+              other tags will be merged into it.
+            </p>
+            {suggestions.length > 0 && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tags</TableHead>
+                    <TableHead className="text-center">
+                      <ApplyAllButton suggestions={suggestions} />
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {suggestions.map((suggestion) => (
+                    <SuggestionRow
+                      key={suggestion.mergeIntoId}
+                      suggestion={suggestion}
+                      updateMergeInto={updateMergeInto}
+                      deleteSuggestion={deleteSuggestion}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
   );
 }
