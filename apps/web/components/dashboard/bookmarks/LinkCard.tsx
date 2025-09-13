@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { useUserSettings } from "@/lib/userSettings";
 
 import type { ZBookmarkTypeLink } from "@karakeep/shared/types/bookmarks";
@@ -89,15 +90,18 @@ function LinkImage({
 
 export default function LinkCard({
   bookmark: bookmarkLink,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmarkTypeLink;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   return (
     <BookmarkLayoutAdaptingCard
       title={<LinkTitle bookmark={bookmarkLink} />}
       footer={<FooterLinkURL url={getSourceUrl(bookmarkLink)} />}
+      fixedLayout={fixedLayout}
       bookmark={bookmarkLink}
       wrapTags={false}
       image={(_layout, className) => (
