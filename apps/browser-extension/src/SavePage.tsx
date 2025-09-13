@@ -71,17 +71,17 @@ export default function SavePage() {
             return;
           }
         } else {
-          const [currentTab] = await chrome.tabs.query({
+          const [activeTab] = await chrome.tabs.query({
             active: true,
             lastFocusedWindow: true,
           });
 
-          setCurrentTab(currentTab);
+          setCurrentTab(activeTab ?? null);
 
-          if (currentTab?.url) {
+          if (activeTab?.url) {
             const candidate = {
               type: BookmarkTypes.LINK,
-              url: currentTab.url,
+              url: activeTab.url,
             };
             const parsedCandidate =
               zNewBookmarkRequestSchema.safeParse(candidate);
