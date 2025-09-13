@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
@@ -10,6 +9,7 @@ import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
+import FixedRatioImage from "./FixedRatioImage";
 import FooterLinkURL from "./FooterLinkURL";
 
 function AssetImage({
@@ -24,11 +24,11 @@ function AssetImage({
     case "image": {
       return (
         <Link href={`/dashboard/preview/${bookmark.id}`}>
-          <Image
-            alt="asset"
+          <FixedRatioImage
             src={getAssetUrl(bookmarkedAsset.assetId)}
-            fill={true}
-            className={className}
+            unoptimized={false}
+            className="max-h-screen w-full rounded-t-lg object-cover"
+            alt="asset"
           />
         </Link>
       );

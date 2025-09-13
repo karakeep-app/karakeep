@@ -155,18 +155,19 @@ function GridView({
   layout,
   fitHeight = false,
 }: Props & { layout: BookmarksLayoutTypes }) {
-  const img = image("grid", "h-56 min-h-56 w-full object-cover rounded-t-lg");
+  const img = image("grid", "w-full object-cover max-h-screen rounded-t-lg");
 
   return (
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-lg",
         className,
-        fitHeight && layout != "grid" ? "max-h-96" : "h-96",
+        !fitHeight && layout == "grid" && "h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
-      {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
+      {/* {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>} */}
+      {img && <div className="w-full shrink-0">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
           {title && (
