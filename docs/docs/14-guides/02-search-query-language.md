@@ -21,6 +21,8 @@ Here's a comprehensive table of all supported qualifiers:
 | `is:inlist`                      | Bookmarks that are in one or more lists                                                                                                                                                                   | `is:inlist`                                  |
 | `is:link`, `is:text`, `is:media` | Bookmarks that are of type link, text or media                                                                                                                                                            | `is:link`                                    |
 | `url:<value>`                    | Match bookmarks with URL substring                                                                                                                                                                        | `url:example.com`                            |
+| `title:<value>`                  | Match bookmarks with title substring                                                                                                               | `title:example`                              |
+|                                  | Supports quoted strings for titles with spaces                                                                                                   | `title:"my title"`                           |
 | `#<tag>`                         | Match bookmarks with specific tag                                                                                                                                                                         | `#important`                                 |
 |                                  | Supports quoted strings for tags with spaces                                                                                                                                                              | `#"work in progress"`                        |
 | `list:<name>`                    | Match bookmarks in specific list                                                                                                                                                                          | `list:reading`                               |
@@ -41,6 +43,8 @@ is:archived and (list:reading or #work)
 
 # Find bookmarks that are not tagged or not in any list
 -is:tagged or -is:inlist
+# Find bookmarks with "React" in the title
+title:React
 ```
 
 ## Combining Conditions
