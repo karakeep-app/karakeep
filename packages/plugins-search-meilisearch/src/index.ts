@@ -32,6 +32,8 @@ class MeiliSearchIndexClient implements SearchIndexClient {
       limit: options.limit,
       offset: options.offset,
       sort: options.sort,
+      attributesToRetrieve: ["id"],
+      showRankingScore: true,
     });
 
     return {
