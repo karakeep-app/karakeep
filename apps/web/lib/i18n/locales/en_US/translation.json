@@ -571,6 +571,8 @@
     "type_is": "Type is",
     "type_is_not": "Type is not",
     "url_does_not_contain": "URL does not contain",
+    "title_contains": "Title contains",
+    "title_does_not_contain": "Title does not contain",
     "is_from_feed": "Is from RSS feed",
     "is_not_from_feed": "Is not from RSS feed",
     "and": "And",

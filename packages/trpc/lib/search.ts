@@ -5,12 +5,14 @@ import {
   gt,
   gte,
   isNotNull,
+  isNull,
   like,
   lt,
   lte,
   ne,
   notExists,
   notLike,
+  or,
 } from "drizzle-orm";
 
 import {
@@ -241,6 +243,50 @@ async function getIds(
                 // When a user is asking for a link, the inverse matcher should match only assets with URLs.
                 isNotNull(bookmarkAssets.sourceUrl),
                 comp(bookmarkAssets.sourceUrl, `%${matcher.url}%`),
+              ),
+            ),
+        );
+    }
+    case "title": {
+      const comp = matcher.inverse ? notLike : like;
+      if (matcher.inverse) {
+        return db
+          .select({ id: bookmarks.id })
+          .from(bookmarks)
+          .leftJoin(bookmarkLinks, eq(bookmarks.id, bookmarkLinks.id))
+          .where(
+            and(
+              eq(bookmarks.userId, userId),
+              or(
+                isNull(bookmarks.title),
+                comp(bookmarks.title, `%${matcher.title}%`),
+              ),
+              or(
+                isNull(bookmarkLinks.title),
+                comp(bookmarkLinks.title, `%${matcher.title}%`),
+              ),
+            ),
+          );
+      }
+
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            comp(bookmarks.title, `%${matcher.title}%`),
+          ),
+        )
+        .union(
+          db
+            .select({ id: bookmarkLinks.id })
+            .from(bookmarkLinks)
+            .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
+            .where(
+              and(
+                eq(bookmarks.userId, userId),
+                comp(bookmarkLinks.title, `%${matcher.title}%`),
               ),
             ),
         );

@@ -470,6 +470,8 @@
     "year_s_ago": " Year(s) Ago",
     "url_contains": "URL Contains",
     "url_does_not_contain": "URL Does Not Contain",
+    "title_contains": "Title Contains",
+    "title_does_not_contain": "Title Does Not Contain",
     "is_in_list": "Is In List",
     "is_not_in_list": "Is not In List",
     "has_tag": "Has Tag",
