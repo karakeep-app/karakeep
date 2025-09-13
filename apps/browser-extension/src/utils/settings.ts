@@ -5,6 +5,7 @@ const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
   address: z.string(),
+  theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   autoSave: z.boolean(),
   closeTabsOnBulkSave: z.boolean().optional(),
 });
@@ -12,6 +13,7 @@ const zSettingsSchema = z.object({
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   address: "",
+  theme: "system",
   autoSave: true,
   closeTabsOnBulkSave: false,
 };
