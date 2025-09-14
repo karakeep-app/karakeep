@@ -3,6 +3,7 @@ import { listsCmd } from "@/commands/lists";
 import { migrateCmd } from "@/commands/migrate";
 import { tagsCmd } from "@/commands/tags";
 import { whoamiCmd } from "@/commands/whoami";
+import { wipeCmd } from "@/commands/wipe";
 import { setGlobalOptions } from "@/lib/globals";
 import { Command, Option } from "@commander-js/extra-typings";
 
@@ -34,6 +35,7 @@ program.addCommand(listsCmd);
 program.addCommand(tagsCmd);
 program.addCommand(whoamiCmd);
 program.addCommand(migrateCmd);
+program.addCommand(wipeCmd);
 
 setGlobalOptions(program.opts());
 
