@@ -443,7 +443,11 @@
     "delete_all_unused_tags": "Delete All Unused Tags",
     "drag_and_drop_merging": "Drag & Drop Merging",
     "drag_and_drop_merging_info": "Drag and drop tags on each other to merge them",
-    "sort_by_name": "Sort by Name"
+    "sort_by_name": "Sort by Name",
+    "create_tag": "Create Tag",
+    "create_tag_description": "Create a new tag without attaching it to any bookmark",
+    "tag_name": "Tag Name",
+    "enter_tag_name": "Enter tag name"
   },
   "search": {
     "is_favorited": "Is Favorited",

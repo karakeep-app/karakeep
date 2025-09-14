@@ -1,5 +1,19 @@
 import { api } from "../trpc";
 
+export function useCreateTag(
+  ...opts: Parameters<typeof api.tags.create.useMutation>
+) {
+  const apiUtils = api.useUtils();
+
+  return api.tags.create.useMutation({
+    ...opts[0],
+    onSuccess: (res, req, meta) => {
+      apiUtils.tags.list.invalidate();
+      return opts[0]?.onSuccess?.(res, req, meta);
+    },
+  });
+}
+
 export function useUpdateTag(
   ...opts: Parameters<typeof api.tags.update.useMutation>
 ) {
