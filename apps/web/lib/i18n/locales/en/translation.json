@@ -80,6 +80,7 @@
     "close": "Close",
     "merge": "Merge",
     "cancel": "Cancel",
+    "regenerate": "Regenerate",
     "apply_all": "Apply All",
     "ignore": "Ignore",
     "sort": {
@@ -222,7 +223,12 @@
       "new_api_key": "New API Key",
       "new_api_key_desc": "Give your API key a unique name",
       "key_success": "Key was successfully created",
-      "key_success_please_copy": "Please copy the key and store it somewhere safe. Once you close the dialog, you won't be able to access it again."
+      "key_success_please_copy": "Please copy the key and store it somewhere safe. Once you close the dialog, you won't be able to access it again.",
+      "regenerate_api_key": "Regenerate API Key",
+      "key_regenerated": "Key was successfully regenerated",
+      "key_regenerated_please_copy": "Please copy the new key and store it somewhere safe. The old key has been revoked and will no longer work.",
+      "regenerate_warning": "Are you sure you want to regenerate the API key \"{{name}}\"?",
+      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working."
     },
     "broken_links": {
       "broken_links": "Broken Links",

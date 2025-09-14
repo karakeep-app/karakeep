@@ -11,6 +11,7 @@ import { api } from "@/server/api/client";
 
 import AddApiKey from "./AddApiKey";
 import DeleteApiKey from "./DeleteApiKey";
+import RegenerateApiKey from "./RegenerateApiKey";
 
 export default async function ApiKeys() {
   // oxlint-disable-next-line rules-of-hooks
@@ -41,7 +42,10 @@ export default async function ApiKeys() {
                 <TableCell>**_{k.keyId}_**</TableCell>
                 <TableCell>{k.createdAt.toLocaleString()}</TableCell>
                 <TableCell>
-                  <DeleteApiKey name={k.name} id={k.id} />
+                  <div className="flex items-center gap-2">
+                    <RegenerateApiKey name={k.name} id={k.id} />
+                    <DeleteApiKey name={k.name} id={k.id} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
