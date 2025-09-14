@@ -58,6 +58,14 @@ export const wipeCmd = new Command()
   .name("wipe")
   .description("wipe all data for the current user from the server")
   .option("-y, --yes", "skip confirmation prompt")
+  .option("--exclude-lists", "exclude lists from deletion")
+  .option("--exclude-ai-prompts", "exclude AI prompts from deletion")
+  .option("--exclude-rules", "exclude rules from deletion")
+  .option("--exclude-feeds", "exclude RSS feeds from deletion")
+  .option("--exclude-webhooks", "exclude webhooks from deletion")
+  .option("--exclude-bookmarks", "exclude bookmarks from deletion")
+  .option("--exclude-tags", "exclude tags cleanup from deletion")
+  .option("--exclude-user-settings", "exclude user settings (no-op)")
   .option(
     "--batch-size <n>",
     `number of bookmarks per page (max ${MAX_NUM_BOOKMARKS_PER_PAGE})`,
@@ -100,82 +108,96 @@ export const wipeCmd = new Command()
       }
 
       // 1) Rules
-      stepStart("Deleting rule engine rules");
-      const rulesStart = Date.now();
-      const rulesDeleted = await wipeRules(api, (deleted, total) => {
-        progressUpdate("Rules", deleted, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${rulesDeleted} deleted in ${Math.round((Date.now() - rulesStart) / 1000)}s`,
-      );
+      if (!opts.excludeRules) {
+        stepStart("Deleting rule engine rules");
+        const rulesStart = Date.now();
+        const rulesDeleted = await wipeRules(api, (deleted, total) => {
+          progressUpdate("Rules", deleted, total);
+        });
+        progressDone();
+        stepEndSuccess(
+          `${rulesDeleted} deleted in ${Math.round((Date.now() - rulesStart) / 1000)}s`,
+        );
+      }
 
       // 2) Feeds
-      stepStart("Deleting feeds");
-      const feedsStart = Date.now();
-      const feedsDeleted = await wipeFeeds(api, (deleted, total) => {
-        progressUpdate("Feeds", deleted, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${feedsDeleted} deleted in ${Math.round((Date.now() - feedsStart) / 1000)}s`,
-      );
+      if (!opts.excludeFeeds) {
+        stepStart("Deleting feeds");
+        const feedsStart = Date.now();
+        const feedsDeleted = await wipeFeeds(api, (deleted, total) => {
+          progressUpdate("Feeds", deleted, total);
+        });
+        progressDone();
+        stepEndSuccess(
+          `${feedsDeleted} deleted in ${Math.round((Date.now() - feedsStart) / 1000)}s`,
+        );
+      }
 
       // 3) Webhooks
-      stepStart("Deleting webhooks");
-      const webhooksStart = Date.now();
-      const webhooksDeleted = await wipeWebhooks(api, (deleted, total) => {
-        progressUpdate("Webhooks", deleted, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${webhooksDeleted} deleted in ${Math.round((Date.now() - webhooksStart) / 1000)}s`,
-      );
+      if (!opts.excludeWebhooks) {
+        stepStart("Deleting webhooks");
+        const webhooksStart = Date.now();
+        const webhooksDeleted = await wipeWebhooks(api, (deleted, total) => {
+          progressUpdate("Webhooks", deleted, total);
+        });
+        progressDone();
+        stepEndSuccess(
+          `${webhooksDeleted} deleted in ${Math.round((Date.now() - webhooksStart) / 1000)}s`,
+        );
+      }
 
       // 4) Prompts
-      stepStart("Deleting AI prompts");
-      const promptsStart = Date.now();
-      const promptsDeleted = await wipePrompts(api, (deleted, total) => {
-        progressUpdate("Prompts", deleted, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${promptsDeleted} deleted in ${Math.round((Date.now() - promptsStart) / 1000)}s`,
-      );
+      if (!opts.excludeAiPrompts) {
+        stepStart("Deleting AI prompts");
+        const promptsStart = Date.now();
+        const promptsDeleted = await wipePrompts(api, (deleted, total) => {
+          progressUpdate("Prompts", deleted, total);
+        });
+        progressDone();
+        stepEndSuccess(
+          `${promptsDeleted} deleted in ${Math.round((Date.now() - promptsStart) / 1000)}s`,
+        );
+      }
 
       // 5) Bookmarks
-      stepStart("Deleting bookmarks");
-      const bmStart = Date.now();
-      const bookmarksDeleted = await wipeBookmarks(api, {
-        pageSize: Number(opts.batchSize) || 50,
-        total: totalBookmarks,
-        onProgress: (deleted, total) => {
-          progressUpdate("Bookmarks", deleted, total);
-        },
-      });
-      progressDone();
-      stepEndSuccess(
-        `${bookmarksDeleted} deleted in ${Math.round((Date.now() - bmStart) / 1000)}s`,
-      );
+      if (!opts.excludeBookmarks) {
+        stepStart("Deleting bookmarks");
+        const bmStart = Date.now();
+        const bookmarksDeleted = await wipeBookmarks(api, {
+          pageSize: Number(opts.batchSize) || 50,
+          total: totalBookmarks,
+          onProgress: (deleted, total) => {
+            progressUpdate("Bookmarks", deleted, total);
+          },
+        });
+        progressDone();
+        stepEndSuccess(
+          `${bookmarksDeleted} deleted in ${Math.round((Date.now() - bmStart) / 1000)}s`,
+        );
+      }
 
       // 6) Lists
-      stepStart("Deleting lists");
-      const listsStart = Date.now();
-      const listsDeleted = await wipeLists(api, (deleted, total) => {
-        progressUpdate("Lists", deleted, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${listsDeleted} deleted in ${Math.round((Date.now() - listsStart) / 1000)}s`,
-      );
+      if (!opts.excludeLists) {
+        stepStart("Deleting lists");
+        const listsStart = Date.now();
+        const listsDeleted = await wipeLists(api, (deleted, total) => {
+          progressUpdate("Lists", deleted, total);
+        });
+        progressDone();
+        stepEndSuccess(
+          `${listsDeleted} deleted in ${Math.round((Date.now() - listsStart) / 1000)}s`,
+        );
+      }
 
       // 7) Tags (unused)
-      stepStart("Deleting unused tags");
-      const tagsStart = Date.now();
-      const deletedTags = await wipeTags(api);
-      stepEndSuccess(
-        `${deletedTags} deleted in ${Math.round((Date.now() - tagsStart) / 1000)}s`,
-      );
+      if (!opts.excludeTags) {
+        stepStart("Deleting unused tags");
+        const tagsStart = Date.now();
+        const deletedTags = await wipeTags(api);
+        stepEndSuccess(
+          `${deletedTags} deleted in ${Math.round((Date.now() - tagsStart) / 1000)}s`,
+        );
+      }
 
       printStatusMessage(true, "Wipe completed successfully");
     } catch (error) {
@@ -304,6 +326,7 @@ async function wipeBookmarks(
         limit: opts.pageSize,
         cursor,
         useCursorV2: true,
+        includeContent: false,
       });
       for (const b of resp.bookmarks) {
         try {

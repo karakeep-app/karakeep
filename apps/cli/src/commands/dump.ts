@@ -103,6 +103,19 @@ export const dumpCmd = new Command()
   .description("dump all account data and assets into an archive")
   .option("--output <file>", "output archive path (.tar.gz)")
   .option(
+    "--exclude-assets",
+    "exclude binary assets (skip assets index and files)",
+  )
+  .option("--exclude-bookmarks", "exclude bookmarks (metadata/content)")
+  .option("--exclude-lists", "exclude lists and list membership")
+  .option("--exclude-tags", "exclude tags")
+  .option("--exclude-ai-prompts", "exclude AI prompts")
+  .option("--exclude-rules", "exclude rule engine rules")
+  .option("--exclude-feeds", "exclude RSS feeds")
+  .option("--exclude-webhooks", "exclude webhooks")
+  .option("--exclude-user-settings", "exclude user settings")
+  .option("--exclude-link-content", "exclude link content")
+  .option(
     "--batch-size <n>",
     `number of bookmarks per page (max ${MAX_NUM_BOOKMARKS_PER_PAGE})`,
     (v) => Math.min(Number(v || 50), MAX_NUM_BOOKMARKS_PER_PAGE),
@@ -154,150 +167,178 @@ export const dumpCmd = new Command()
       };
 
       // 1) User settings
-      stepStart("Exporting user settings");
-      const settings = await api.users.settings.query();
-      await writeJson(path.join(workRoot, "users", "settings.json"), settings);
-      stepEndSuccess();
+      if (!opts.excludeUserSettings) {
+        stepStart("Exporting user settings");
+        const settings = await api.users.settings.query();
+        await writeJson(
+          path.join(workRoot, "users", "settings.json"),
+          settings,
+        );
+        stepEndSuccess();
+      }
 
       // 2) Lists
-      stepStart("Exporting lists");
-      const { lists } = await api.lists.list.query();
-      await writeJson(path.join(workRoot, "lists", "index.json"), lists);
-      manifest.counts.lists = lists.length;
-      stepEndSuccess();
+      let lists: ZBookmarkList[] | undefined;
+      if (!opts.excludeLists) {
+        stepStart("Exporting lists");
+        const resp = await api.lists.list.query();
+        lists = resp.lists;
+        await writeJson(path.join(workRoot, "lists", "index.json"), lists);
+        manifest.counts.lists = lists.length;
+        stepEndSuccess();
+      }
 
       // 3) Tags
-      stepStart("Exporting tags");
-      const { tags } = await api.tags.list.query();
-      await writeJson(path.join(workRoot, "tags", "index.json"), tags);
-      manifest.counts.tags = tags.length;
-      stepEndSuccess();
+      if (!opts.excludeTags) {
+        stepStart("Exporting tags");
+        const { tags } = await api.tags.list.query();
+        await writeJson(path.join(workRoot, "tags", "index.json"), tags);
+        manifest.counts.tags = tags.length;
+        stepEndSuccess();
+      }
 
       // 4) Rules
-      stepStart("Exporting rules");
-      const { rules } = await api.rules.list.query();
-      await writeJson(path.join(workRoot, "rules", "index.json"), rules);
-      manifest.counts.rules = rules.length;
-      stepEndSuccess();
+      if (!opts.excludeRules) {
+        stepStart("Exporting rules");
+        const { rules } = await api.rules.list.query();
+        await writeJson(path.join(workRoot, "rules", "index.json"), rules);
+        manifest.counts.rules = rules.length;
+        stepEndSuccess();
+      }
 
       // 5) Feeds
-      stepStart("Exporting feeds");
-      const { feeds } = await api.feeds.list.query();
-      await writeJson(path.join(workRoot, "feeds", "index.json"), feeds);
-      manifest.counts.feeds = feeds.length;
-      stepEndSuccess();
+      if (!opts.excludeFeeds) {
+        stepStart("Exporting feeds");
+        const { feeds } = await api.feeds.list.query();
+        await writeJson(path.join(workRoot, "feeds", "index.json"), feeds);
+        manifest.counts.feeds = feeds.length;
+        stepEndSuccess();
+      }
 
       // 6) Prompts
-      stepStart("Exporting AI prompts");
-      const prompts = await api.prompts.list.query();
-      await writeJson(path.join(workRoot, "prompts", "index.json"), prompts);
-      manifest.counts.prompts = prompts.length;
-      stepEndSuccess();
+      if (!opts.excludeAiPrompts) {
+        stepStart("Exporting AI prompts");
+        const prompts = await api.prompts.list.query();
+        await writeJson(path.join(workRoot, "prompts", "index.json"), prompts);
+        manifest.counts.prompts = prompts.length;
+        stepEndSuccess();
+      }
 
       // 7) Webhooks
-      stepStart("Exporting webhooks");
-      const webhooks = await api.webhooks.list.query();
-      await writeJson(
-        path.join(workRoot, "webhooks", "index.json"),
-        webhooks.webhooks,
-      );
-      manifest.counts.webhooks = webhooks.webhooks.length;
-      stepEndSuccess();
+      if (!opts.excludeWebhooks) {
+        stepStart("Exporting webhooks");
+        const webhooks = await api.webhooks.list.query();
+        await writeJson(
+          path.join(workRoot, "webhooks", "index.json"),
+          webhooks.webhooks,
+        );
+        manifest.counts.webhooks = webhooks.webhooks.length;
+        stepEndSuccess();
+      }
 
       // 8) Bookmarks (JSONL + list membership)
-      stepStart("Exporting bookmarks (metadata/content)");
-      const bookmarkJsonl = path.join(workRoot, "bookmarks", "index.jsonl");
-      let bookmarksExported = 0;
-      const bookmarkIterator = async function* (): AsyncGenerator<ZBookmark> {
-        let cursor: ZCursor | null = null;
-        do {
-          const resp = await api.bookmarks.getBookmarks.query({
-            includeContent: true,
-            limit: Number(opts.batchSize) || 50,
-            cursor,
-            useCursorV2: true,
-          });
-          for (const b of resp.bookmarks) {
-            yield b;
-            bookmarksExported++;
-            progressUpdate("Bookmarks", bookmarksExported);
-          }
-          cursor = resp.nextCursor;
-        } while (cursor);
-      };
-      await writeJsonl(bookmarkJsonl, bookmarkIterator());
-      progressDone();
-      manifest.counts.bookmarks = bookmarksExported;
-      stepEndSuccess();
+      if (!opts.excludeBookmarks) {
+        stepStart("Exporting bookmarks (metadata/content)");
+        const bookmarkJsonl = path.join(workRoot, "bookmarks", "index.jsonl");
+        let bookmarksExported = 0;
+        const bookmarkIterator = async function* (): AsyncGenerator<ZBookmark> {
+          let cursor: ZCursor | null = null;
+          do {
+            const resp = await api.bookmarks.getBookmarks.query({
+              includeContent: !opts.excludeLinkContent,
+              limit: Number(opts.batchSize) || 50,
+              cursor,
+              useCursorV2: true,
+            });
+            for (const b of resp.bookmarks) {
+              yield b;
+              bookmarksExported++;
+              progressUpdate("Bookmarks", bookmarksExported);
+            }
+            cursor = resp.nextCursor;
+          } while (cursor);
+        };
+        await writeJsonl(bookmarkJsonl, bookmarkIterator());
+        progressDone();
+        manifest.counts.bookmarks = bookmarksExported;
+        stepEndSuccess();
+      }
 
       // 9) List membership (listId -> [bookmarkId])
-      stepStart("Exporting list membership");
-      const membership = await buildListMembership(api, lists, (p, t) =>
-        progressUpdate("Lists scanned", p, t),
-      );
-      progressDone();
-      await writeJson(
-        path.join(workRoot, "lists", "membership.json"),
-        Object.fromEntries(membership.entries()),
-      );
-      stepEndSuccess();
+      if (!opts.excludeLists && !opts.excludeBookmarks && lists) {
+        stepStart("Exporting list membership");
+        const membership = await buildListMembership(api, lists, (p, t) =>
+          progressUpdate("Lists scanned", p, t),
+        );
+        progressDone();
+        await writeJson(
+          path.join(workRoot, "lists", "membership.json"),
+          Object.fromEntries(membership.entries()),
+        );
+        stepEndSuccess();
+      }
 
       // 10) Assets: index + files
-      stepStart("Exporting assets (binary files)");
-      const assetsDir = path.join(workRoot, "assets", "files");
-      await ensureDir(assetsDir);
-      const assetsIndex: {
-        id: string;
-        assetType: string;
-        size: number;
-        contentType: string | null;
-        fileName: string | null;
-        bookmarkId: string | null;
-        filePath: string; // relative inside archive
-      }[] = [];
-      let assetPageCursor: number | null | undefined = null;
-      let downloaded = 0;
-      let totalAssets: number | undefined = undefined;
-      do {
-        const resp = await api.assets.list.query({
-          limit: 50,
-          cursor: assetPageCursor ?? undefined,
-        });
-        if (totalAssets == null) totalAssets = resp.totalCount;
-        for (const a of resp.assets) {
-          const relPath = path.join("assets", "files", a.id);
-          const absPath = path.join(workRoot, relPath);
-          try {
-            await downloadAsset(
-              globals.serverAddr,
-              globals.apiKey,
-              a.id,
-              absPath,
-            );
-            assetsIndex.push({
-              id: a.id,
-              assetType: a.assetType,
-              size: a.size,
-              contentType: a.contentType,
-              fileName: a.fileName,
-              bookmarkId: a.bookmarkId,
-              filePath: relPath.replace(/\\/g, "/"),
-            });
-            downloaded++;
-            progressUpdate("Assets", downloaded, totalAssets);
-          } catch (e) {
-            printErrorMessageWithReason(
-              `Failed to download asset "${a.id}"`,
-              e as object,
-            );
+      if (!opts.excludeAssets) {
+        stepStart("Exporting assets (binary files)");
+        const assetsDir = path.join(workRoot, "assets", "files");
+        await ensureDir(assetsDir);
+        const assetsIndex: {
+          id: string;
+          assetType: string;
+          size: number;
+          contentType: string | null;
+          fileName: string | null;
+          bookmarkId: string | null;
+          filePath: string; // relative inside archive
+        }[] = [];
+        let assetPageCursor: number | null | undefined = null;
+        let downloaded = 0;
+        let totalAssets: number | undefined = undefined;
+        do {
+          const resp = await api.assets.list.query({
+            limit: 50,
+            cursor: assetPageCursor ?? undefined,
+          });
+          if (totalAssets == null) totalAssets = resp.totalCount;
+          for (const a of resp.assets) {
+            const relPath = path.join("assets", "files", a.id);
+            const absPath = path.join(workRoot, relPath);
+            try {
+              await downloadAsset(
+                globals.serverAddr,
+                globals.apiKey,
+                a.id,
+                absPath,
+              );
+              assetsIndex.push({
+                id: a.id,
+                assetType: a.assetType,
+                size: a.size,
+                contentType: a.contentType,
+                fileName: a.fileName,
+                bookmarkId: a.bookmarkId,
+                filePath: relPath.replace(/\\/g, "/"),
+              });
+              downloaded++;
+              progressUpdate("Assets", downloaded, totalAssets);
+            } catch (e) {
+              printErrorMessageWithReason(
+                `Failed to download asset "${a.id}"`,
+                e as object,
+              );
+            }
           }
-        }
-        assetPageCursor = resp.nextCursor;
-      } while (assetPageCursor);
-      progressDone();
-      manifest.counts.assets = downloaded;
-      await writeJson(path.join(workRoot, "assets", "index.json"), assetsIndex);
-      stepEndSuccess();
+          assetPageCursor = resp.nextCursor;
+        } while (assetPageCursor);
+        progressDone();
+        manifest.counts.assets = downloaded;
+        await writeJson(
+          path.join(workRoot, "assets", "index.json"),
+          assetsIndex,
+        );
+        stepEndSuccess();
+      }
 
       // 11) Manifest
       stepStart("Writing manifest");

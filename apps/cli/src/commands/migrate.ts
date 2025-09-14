@@ -71,6 +71,15 @@ export const migrateCmd = new Command()
   )
   .requiredOption("--dest-api-key <key>", "API key for the destination server")
   .option("-y, --yes", "skip confirmation prompt")
+  .option("--exclude-assets", "exclude assets (skip asset bookmarks)")
+  .option("--exclude-lists", "exclude lists and list membership")
+  .option("--exclude-ai-prompts", "exclude AI prompts")
+  .option("--exclude-rules", "exclude rule engine rules")
+  .option("--exclude-feeds", "exclude RSS feeds")
+  .option("--exclude-webhooks", "exclude webhooks")
+  .option("--exclude-bookmarks", "exclude bookmarks migration")
+  .option("--exclude-tags", "exclude tags migration")
+  .option("--exclude-user-settings", "exclude user settings migration")
   .option(
     "--batch-size <n>",
     `number of bookmarks per page (max ${MAX_NUM_BOOKMARKS_PER_PAGE})`,
@@ -118,130 +127,163 @@ export const migrateCmd = new Command()
       }
 
       // 1) User settings
-      stepStart("Migrating user settings");
-      await migrateUserSettings(src, dest);
-      stepEndSuccess();
+      if (!opts.excludeUserSettings) {
+        stepStart("Migrating user settings");
+        await migrateUserSettings(src, dest);
+        stepEndSuccess();
+      }
 
       // 2) Lists (and mapping)
-      stepStart("Migrating lists");
-      const listsStart = Date.now();
-      const {
-        lists,
-        listIdMap,
-        createdCount: listsCreated,
-      } = await migrateLists(src, dest, (created, alreadyExists, total) => {
-        progressUpdate("Lists (created)", created + alreadyExists, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${listsCreated} created in ${Math.round((Date.now() - listsStart) / 1000)}s`,
-      );
+      let lists: ZBookmarkList[] = [];
+      let listIdMap = new Map<string, string>();
+      if (!opts.excludeLists) {
+        stepStart("Migrating lists");
+        const listsStart = Date.now();
+        const listsRes = await migrateLists(
+          src,
+          dest,
+          (created, alreadyExists, total) => {
+            progressUpdate("Lists (created)", created + alreadyExists, total);
+          },
+        );
+        lists = listsRes.lists;
+        listIdMap = listsRes.listIdMap;
+        progressDone();
+        stepEndSuccess(
+          `${listsRes.createdCount} created in ${Math.round((Date.now() - listsStart) / 1000)}s`,
+        );
+      }
 
       // 3) Feeds
-      stepStart("Migrating feeds");
-      const feedsStart = Date.now();
-      const { idMap: feedIdMap, count: feedsCount } = await migrateFeeds(
-        src,
-        dest,
-        (created, total) => {
+      let feedIdMap = new Map<string, string>();
+      if (!opts.excludeFeeds) {
+        stepStart("Migrating feeds");
+        const feedsStart = Date.now();
+        const res = await migrateFeeds(src, dest, (created, total) => {
           progressUpdate("Feeds", created, total);
-        },
-      );
-      progressDone();
-      stepEndSuccess(
-        `${feedsCount} migrated in ${Math.round((Date.now() - feedsStart) / 1000)}s`,
-      );
+        });
+        feedIdMap = res.idMap;
+        progressDone();
+        stepEndSuccess(
+          `${res.count} migrated in ${Math.round((Date.now() - feedsStart) / 1000)}s`,
+        );
+      }
 
       // 4) AI settings (custom prompts)
-      stepStart("Migrating AI prompts");
-      const promptsStart = Date.now();
-      const promptsCount = await migratePrompts(src, dest, (created, total) => {
-        progressUpdate("Prompts", created, total);
-      });
-      progressDone();
-      stepEndSuccess(
-        `${promptsCount} migrated in ${Math.round((Date.now() - promptsStart) / 1000)}s`,
-      );
+      if (!opts.excludeAiPrompts) {
+        stepStart("Migrating AI prompts");
+        const promptsStart = Date.now();
+        const promptsCount = await migratePrompts(
+          src,
+          dest,
+          (created, total) => {
+            progressUpdate("Prompts", created, total);
+          },
+        );
+        progressDone();
+        stepEndSuccess(
+          `${promptsCount} migrated in ${Math.round((Date.now() - promptsStart) / 1000)}s`,
+        );
+      }
 
       // 5) Webhooks (tokens cannot be read; created without token)
-      stepStart("Migrating webhooks");
-      const webhooksStart = Date.now();
-      const webhooksCount = await migrateWebhooks(
-        src,
-        dest,
-        (created, total) => {
-          progressUpdate("Webhooks", created, total);
-        },
-      );
-      progressDone();
-      stepEndSuccess(
-        `${webhooksCount} migrated in ${Math.round((Date.now() - webhooksStart) / 1000)}s`,
-      );
+      if (!opts.excludeWebhooks) {
+        stepStart("Migrating webhooks");
+        const webhooksStart = Date.now();
+        const webhooksCount = await migrateWebhooks(
+          src,
+          dest,
+          (created, total) => {
+            progressUpdate("Webhooks", created, total);
+          },
+        );
+        progressDone();
+        stepEndSuccess(
+          `${webhooksCount} migrated in ${Math.round((Date.now() - webhooksStart) / 1000)}s`,
+        );
+      }
 
       // 6) Tags (build id map for rules)
-      stepStart("Ensuring tags on destination");
-      const tagsStart = Date.now();
-      const { idMap: tagIdMap, count: tagsCount } = await migrateTags(
-        src,
-        dest,
-        (ensured, total) => {
+      let tagIdMap = new Map<string, string>();
+      if (!opts.excludeTags) {
+        stepStart("Ensuring tags on destination");
+        const tagsStart = Date.now();
+        const res = await migrateTags(src, dest, (ensured, total) => {
           progressUpdate("Tags", ensured, total);
-        },
-      );
-      progressDone();
-      stepEndSuccess(
-        `${tagsCount} ensured in ${Math.round((Date.now() - tagsStart) / 1000)}s`,
-      );
+        });
+        tagIdMap = res.idMap;
+        progressDone();
+        stepEndSuccess(
+          `${res.count} ensured in ${Math.round((Date.now() - tagsStart) / 1000)}s`,
+        );
+      }
 
       // 7) Rules (requires tag/list/feed id maps)
-      stepStart("Migrating rule engine rules");
-      const rulesStart = Date.now();
-      const rulesCount = await migrateRules(
-        src,
-        dest,
-        { tagIdMap, listIdMap, feedIdMap },
-        (created, total) => {
-          progressUpdate("Rules", created, total);
-        },
-      );
-      progressDone();
-      stepEndSuccess(
-        `${rulesCount} migrated in ${Math.round((Date.now() - rulesStart) / 1000)}s`,
-      );
+      if (
+        !opts.excludeRules &&
+        !opts.excludeLists &&
+        !opts.excludeFeeds &&
+        !opts.excludeTags
+      ) {
+        stepStart("Migrating rule engine rules");
+        const rulesStart = Date.now();
+        const rulesCount = await migrateRules(
+          src,
+          dest,
+          { tagIdMap, listIdMap, feedIdMap },
+          (created, total) => {
+            progressUpdate("Rules", created, total);
+          },
+        );
+        progressDone();
+        stepEndSuccess(
+          `${rulesCount} migrated in ${Math.round((Date.now() - rulesStart) / 1000)}s`,
+        );
+      }
 
       // 8) Bookmarks (with list membership + tags)
-      stepStart("Building list membership for bookmarks");
-      const blmStart = Date.now();
-      const { bookmarkListsMap, scannedLists } =
-        await buildBookmarkListMembership(src, lists, (processed, total) => {
-          progressUpdate("Scanning lists", processed, total);
+      let bookmarkListsMap = new Map<string, string[]>();
+      if (!opts.excludeLists && !opts.excludeBookmarks) {
+        stepStart("Building list membership for bookmarks");
+        const blmStart = Date.now();
+        const res = await buildBookmarkListMembership(
+          src,
+          lists,
+          (processed, total) => {
+            progressUpdate("Scanning lists", processed, total);
+          },
+        );
+        bookmarkListsMap = res.bookmarkListsMap;
+        progressDone();
+        stepEndSuccess(
+          `${res.scannedLists} lists scanned in ${Math.round((Date.now() - blmStart) / 1000)}s`,
+        );
+      }
+      if (!opts.excludeBookmarks) {
+        stepStart("Migrating bookmarks");
+        const bmStart = Date.now();
+        const res = await migrateBookmarks(src, dest, {
+          pageSize: Number(opts.batchSize) || 50,
+          listIdMap,
+          bookmarkListsMap,
+          total: totalBookmarks,
+          onProgress: (migrated, skipped, total) => {
+            const suffix =
+              skipped > 0 ? `(skipped ${skipped} assets)` : undefined;
+            progressUpdate("Bookmarks", migrated, total, suffix);
+          },
+          srcServer: globals.serverAddr,
+          srcApiKey: globals.apiKey,
+          destServer: opts.destServer,
+          destApiKey: opts.destApiKey,
+          excludeAssets: !!opts.excludeAssets,
+          excludeLists: !!opts.excludeLists,
         });
-      progressDone();
-      stepEndSuccess(
-        `${scannedLists} lists scanned in ${Math.round((Date.now() - blmStart) / 1000)}s`,
-      );
-
-      stepStart("Migrating bookmarks");
-      const bmStart = Date.now();
-      const res = await migrateBookmarks(src, dest, {
-        pageSize: Number(opts.batchSize) || 50,
-        listIdMap,
-        bookmarkListsMap,
-        total: totalBookmarks,
-        onProgress: (migrated, skipped, total) => {
-          const suffix =
-            skipped > 0 ? `(skipped ${skipped} assets)` : undefined;
-          progressUpdate("Bookmarks", migrated, total, suffix);
-        },
-        srcServer: globals.serverAddr,
-        srcApiKey: globals.apiKey,
-        destServer: opts.destServer,
-        destApiKey: opts.destApiKey,
-      });
-      progressDone();
-      stepEndSuccess(
-        `${res.migrated} migrated${res.skippedAssets ? `, ${res.skippedAssets} skipped` : ""} in ${Math.round((Date.now() - bmStart) / 1000)}s`,
-      );
+        progressDone();
+        stepEndSuccess(
+          `${res.migrated} migrated${res.skippedAssets ? `, ${res.skippedAssets} skipped` : ""} in ${Math.round((Date.now() - bmStart) / 1000)}s`,
+        );
+      }
 
       printStatusMessage(true, "Migration completed successfully");
     } catch (error) {
@@ -629,6 +671,8 @@ async function migrateBookmarks(
     srcApiKey: string;
     destServer: string;
     destApiKey: string;
+    excludeAssets: boolean;
+    excludeLists: boolean;
   },
 ) {
   let cursor: ZCursor | null = null;
@@ -674,6 +718,11 @@ async function migrateBookmarks(
             break;
           }
           case BookmarkTypes.ASSET: {
+            if (opts.excludeAssets) {
+              // Skip migrating asset bookmarks when excluded
+              skippedAssets++;
+              continue;
+            }
             // Download from source and re-upload to destination
             try {
               const downloadResp = await fetch(
@@ -746,14 +795,16 @@ async function migrateBookmarks(
         }
 
         // Add to lists (map src -> dest list ids)
-        const srcListIds = opts.bookmarkListsMap.get(b.id) ?? [];
-        for (const srcListId of srcListIds) {
-          const destListId = opts.listIdMap.get(srcListId);
-          if (destListId) {
-            await dest.lists.addToList.mutate({
-              listId: destListId,
-              bookmarkId: createdId!,
-            });
+        if (!opts.excludeLists) {
+          const srcListIds = opts.bookmarkListsMap.get(b.id) ?? [];
+          for (const srcListId of srcListIds) {
+            const destListId = opts.listIdMap.get(srcListId);
+            if (destListId) {
+              await dest.lists.addToList.mutate({
+                listId: destListId,
+                bookmarkId: createdId!,
+              });
+            }
           }
         }
         migrated++;
