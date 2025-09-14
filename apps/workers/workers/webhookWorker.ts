@@ -1,22 +1,22 @@
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 import fetch from "node-fetch";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
-import serverConfig from "@karakeep/shared/config";
-import logger from "@karakeep/shared/logger";
 import {
   WebhookQueue,
   ZWebhookRequest,
   zWebhookRequestSchema,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 export class WebhookWorker {
-  static build() {
+  static async build() {
     logger.info("Starting webhook worker ...");
-    const worker = new Runner<ZWebhookRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZWebhookRequest>(
       WebhookQueue,
       {
         run: runWebhook,

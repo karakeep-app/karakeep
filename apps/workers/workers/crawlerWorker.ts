@@ -10,7 +10,6 @@ import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { DequeuedJob, EnqueueOptions, Runner } from "liteque";
 import metascraper from "metascraper";
 import metascraperAmazon from "metascraper-amazon";
 import metascraperAuthor from "metascraper-author";
@@ -30,7 +29,7 @@ import { fetchWithProxy } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
-import type { ZCrawlLinkRequest } from "@karakeep/shared/queues";
+import type { ZCrawlLinkRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import {
   assets,
@@ -40,7 +39,16 @@ import {
   bookmarks,
   users,
 } from "@karakeep/db/schema";
-import { QuotaService } from "@karakeep/shared-server";
+import {
+  AssetPreprocessingQueue,
+  LinkCrawlerQueue,
+  OpenAIQueue,
+  QuotaService,
+  triggerSearchReindex,
+  triggerWebhook,
+  VideoWorkerQueue,
+  zCrawlLinkRequestSchema,
+} from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   getAssetSize,
@@ -55,14 +63,10 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
-  AssetPreprocessingQueue,
-  LinkCrawlerQueue,
-  OpenAIQueue,
-  triggerSearchReindex,
-  triggerWebhook,
-  VideoWorkerQueue,
-  zCrawlLinkRequestSchema,
-} from "@karakeep/shared/queues";
+  DequeuedJob,
+  EnqueueOptions,
+  getQueueClient,
+} from "@karakeep/shared/queueing";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -247,7 +251,7 @@ export class CrawlerWorker {
     }
 
     logger.info("Starting crawler worker ...");
-    const worker = new Runner<ZCrawlLinkRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZCrawlLinkRequest>(
       LinkCrawlerQueue,
       {
         run: runCrawler,

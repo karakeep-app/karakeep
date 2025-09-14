@@ -2,7 +2,7 @@ import deepEql from "deep-equal";
 import { and, eq } from "drizzle-orm";
 
 import { bookmarks, tagsOnBookmarks } from "@karakeep/db/schema";
-import { LinkCrawlerQueue } from "@karakeep/shared/queues";
+import { LinkCrawlerQueue } from "@karakeep/shared-server";
 import {
   RuleEngineAction,
   RuleEngineCondition,

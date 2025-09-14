@@ -2,10 +2,9 @@ import "dotenv/config";
 
 import { buildServer } from "server";
 
-import { loadAllPlugins } from "@karakeep/shared-server";
+import { loadAllPlugins, runQueueDBMigrations } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import { runQueueDBMigrations } from "@karakeep/shared/queues";
 
 import { shutdownPromise } from "./exit";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";

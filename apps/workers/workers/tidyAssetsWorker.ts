@@ -1,21 +1,21 @@
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 
 import { db } from "@karakeep/db";
 import { assets } from "@karakeep/db/schema";
-import { deleteAsset, getAllAssets } from "@karakeep/shared/assetdb";
-import logger from "@karakeep/shared/logger";
 import {
   TidyAssetsQueue,
   ZTidyAssetsRequest,
   zTidyAssetsRequestSchema,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
+import { deleteAsset, getAllAssets } from "@karakeep/shared/assetdb";
+import logger from "@karakeep/shared/logger";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 export class TidyAssetsWorker {
-  static build() {
+  static async build() {
     logger.info("Starting tidy assets worker ...");
-    const worker = new Runner<ZTidyAssetsRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZTidyAssetsRequest>(
       TidyAssetsQueue,
       {
         run: runTidyAssets,

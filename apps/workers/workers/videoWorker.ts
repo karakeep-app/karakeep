@@ -2,12 +2,17 @@ import fs from "fs";
 import * as os from "os";
 import path from "path";
 import { execa } from "execa";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
-import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
+import {
+  QuotaService,
+  StorageQuotaError,
+  VideoWorkerQueue,
+  ZVideoRequest,
+  zvideoRequestSchema,
+} from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   newAssetId,
@@ -16,21 +21,17 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import {
-  VideoWorkerQueue,
-  ZVideoRequest,
-  zvideoRequestSchema,
-} from "@karakeep/shared/queues";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
 
 export class VideoWorker {
-  static build() {
+  static async build() {
     logger.info("Starting video worker ...");
 
-    return new Runner<ZVideoRequest>(
+    return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
         run: runWorker,

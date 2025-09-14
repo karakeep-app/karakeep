@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
 import { bookmarkLists, bookmarksInLists } from "@karakeep/db/schema";
-import { triggerRuleEngineOnEvent } from "@karakeep/shared/queues";
+import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
 import {

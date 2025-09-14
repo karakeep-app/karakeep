@@ -1,16 +1,16 @@
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 
-import type { ZSearchIndexingRequest } from "@karakeep/shared/queues";
+import type { ZSearchIndexingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
-import serverConfig from "@karakeep/shared/config";
-import logger from "@karakeep/shared/logger";
 import {
   SearchIndexingQueue,
   zSearchIndexingRequestSchema,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import {
   BookmarkSearchDocument,
   getSearchClient,
@@ -19,33 +19,34 @@ import {
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 export class SearchIndexingWorker {
-  static build() {
+  static async build() {
     logger.info("Starting search indexing worker ...");
-    const worker = new Runner<ZSearchIndexingRequest>(
-      SearchIndexingQueue,
-      {
-        run: runSearchIndexing,
-        onComplete: (job) => {
-          workerStatsCounter.labels("search", "completed").inc();
-          const jobId = job.id;
-          logger.info(`[search][${jobId}] Completed successfully`);
-          return Promise.resolve();
+    const worker =
+      (await getQueueClient())!.createRunner<ZSearchIndexingRequest>(
+        SearchIndexingQueue,
+        {
+          run: runSearchIndexing,
+          onComplete: (job) => {
+            workerStatsCounter.labels("search", "completed").inc();
+            const jobId = job.id;
+            logger.info(`[search][${jobId}] Completed successfully`);
+            return Promise.resolve();
+          },
+          onError: (job) => {
+            workerStatsCounter.labels("search", "failed").inc();
+            const jobId = job.id;
+            logger.error(
+              `[search][${jobId}] search job failed: ${job.error}\n${job.error.stack}`,
+            );
+            return Promise.resolve();
+          },
         },
-        onError: (job) => {
-          workerStatsCounter.labels("search", "failed").inc();
-          const jobId = job.id;
-          logger.error(
-            `[search][${jobId}] search job failed: ${job.error}\n${job.error.stack}`,
-          );
-          return Promise.resolve();
+        {
+          concurrency: serverConfig.search.numWorkers,
+          pollIntervalMs: 1000,
+          timeoutSecs: 30,
         },
-      },
-      {
-        concurrency: serverConfig.search.numWorkers,
-        pollIntervalMs: 1000,
-        timeoutSecs: 30,
-      },
-    );
+      );
 
     return worker;
   }

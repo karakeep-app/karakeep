@@ -1,6 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
-import { EnqueueOptions } from "liteque";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -21,7 +20,16 @@ import {
   customPrompts,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { QuotaService } from "@karakeep/shared-server";
+import {
+  AssetPreprocessingQueue,
+  LinkCrawlerQueue,
+  OpenAIQueue,
+  QuotaService,
+  SearchIndexingQueue,
+  triggerRuleEngineOnEvent,
+  triggerSearchReindex,
+  triggerWebhook,
+} from "@karakeep/shared-server";
 import {
   deleteAsset,
   SUPPORTED_BOOKMARK_ASSET_TYPES,
@@ -29,15 +37,7 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts";
-import {
-  AssetPreprocessingQueue,
-  LinkCrawlerQueue,
-  OpenAIQueue,
-  SearchIndexingQueue,
-  triggerRuleEngineOnEvent,
-  triggerSearchReindex,
-  triggerWebhook,
-} from "@karakeep/shared/queues";
+import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
