@@ -125,7 +125,6 @@ export class LitequeQueueProvider implements PluginProvider<QueueClient> {
   async getClient(): Promise<QueueClient | null> {
     if (!this.client) {
       const client = new LitequeQueueClient();
-      await client.init();
       this.client = client;
     }
     return this.client;

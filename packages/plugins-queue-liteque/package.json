@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@karakeep/shared": "workspace:*",
-    "liteque": "^0.6.0"
+    "liteque": "^0.6.2"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",

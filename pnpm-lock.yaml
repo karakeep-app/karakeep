@@ -832,6 +832,9 @@ importers:
       jsdom:
         specifier: ^24.0.0
         version: 24.1.3
+      liteque:
+        specifier: ^0.6.2
+        version: 0.6.2(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.1.11)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0)
       metascraper:
         specifier: ^5.46.18
         version: 5.47.1
@@ -1142,8 +1145,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
       liteque:
-        specifier: ^0.6.0
-        version: 0.6.0(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.1.11)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0)
+        specifier: ^0.6.2
+        version: 0.6.2(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.1.11)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0)
     devDependencies:
       '@karakeep/prettier-config':
         specifier: workspace:^0.1.0
@@ -9862,8 +9865,8 @@ packages:
     resolution: {integrity: sha512-wUayTU8MS827Dam6MxgD72Ui+KOSF+u/eIqpatOtjnvgJ0+mnDq33uC2M7J0tPK+upe/DpUAuK4JUU89iBoNKQ==}
     engines: {node: '>=4'}
 
-  liteque@0.6.0:
-    resolution: {integrity: sha512-5IjKjT8wz0p49X+A9vXHovznlu7h3tlspt4y6umjuCqnUTy5zbzPqNUILG16de7GYpY/uGXhiYK4Rosg4CrB0g==}
+  liteque@0.6.2:
+    resolution: {integrity: sha512-q99LW+XXHsy3/r1YFTwEmFz1q9Fd8gd9bnBw03gcIlrXjqcmW3av2OrmSKytwUIMdQwbHB0zI5fk/nC/J6xIUQ==}
     peerDependencies:
       better-sqlite3: '>=7'
 
@@ -25317,7 +25320,7 @@ snapshots:
 
   liquid-json@0.3.1: {}
 
-  liteque@0.6.0(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.1.11)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0):
+  liteque@0.6.2(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.1.11)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0):
     dependencies:
       async-mutex: 0.4.1
       better-sqlite3: 11.3.0
