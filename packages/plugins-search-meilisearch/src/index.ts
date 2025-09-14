@@ -3,6 +3,7 @@ import { MeiliSearch } from "meilisearch";
 
 import type {
   BookmarkSearchDocument,
+  FilterQuery,
   SearchIndexClient,
   SearchOptions,
   SearchResponse,
@@ -10,6 +11,19 @@ import type {
 import { PluginProvider } from "@karakeep/shared/plugins";
 
 import { envConfig } from "./env";
+
+function filterToMeiliSearchFilter(filter: FilterQuery): string {
+  switch (filter.type) {
+    case "eq":
+      return `${filter.field} = "${filter.value}"`;
+    case "in":
+      return `${filter.field} IN [${filter.values.join(",")}]`;
+    default: {
+      const exhaustiveCheck: never = filter;
+      throw new Error(`Unhandled color case: ${exhaustiveCheck}`);
+    }
+  }
+}
 
 class MeiliSearchIndexClient implements SearchIndexClient {
   constructor(private index: Index<BookmarkSearchDocument>) {}
@@ -28,10 +42,10 @@ class MeiliSearchIndexClient implements SearchIndexClient {
 
   async search(options: SearchOptions): Promise<SearchResponse> {
     const result = await this.index.search(options.query, {
-      filter: options.filter,
+      filter: options.filter?.map((f) => filterToMeiliSearchFilter(f)),
       limit: options.limit,
       offset: options.offset,
-      sort: options.sort,
+      sort: options.sort?.map((s) => `${s.field}:${s.order}`),
       attributesToRetrieve: ["id"],
       showRankingScore: true,
     });

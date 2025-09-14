@@ -38,7 +38,7 @@ import {
   triggerSearchReindex,
   triggerWebhook,
 } from "@karakeep/shared/queues";
-import { getSearchClient } from "@karakeep/shared/search";
+import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
   BookmarkTypes,
@@ -765,17 +765,18 @@ export const bookmarksAppRouter = router({
       }
       const parsedQuery = parseSearchQuery(input.text);
 
-      let filter: string[];
+      let filter: FilterQuery[];
       if (parsedQuery.matcher) {
         const bookmarkIds = await getBookmarkIdsFromMatcher(
           ctx,
           parsedQuery.matcher,
         );
         filter = [
-          `userId = '${ctx.user.id}' AND id IN [${bookmarkIds.join(",")}]`,
+          { type: "in", field: "id", values: bookmarkIds },
+          { type: "eq", field: "userId", value: ctx.user.id },
         ];
       } else {
-        filter = [`userId = '${ctx.user.id}'`];
+        filter = [{ type: "eq", field: "userId", value: ctx.user.id }];
       }
 
       /**
@@ -786,7 +787,7 @@ export const bookmarksAppRouter = router({
       const resp = await client.search({
         query: parsedQuery.text,
         filter,
-        sort: [`createdAt:${createdAtSortOrder}`],
+        sort: [{ field: "createdAt", order: createdAtSortOrder }],
         limit: input.limit,
         ...(input.cursor
           ? {
