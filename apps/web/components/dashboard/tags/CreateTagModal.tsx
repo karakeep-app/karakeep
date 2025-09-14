@@ -32,7 +32,7 @@ import { z } from "zod";
 import { useCreateTag } from "@karakeep/shared-react/hooks/tags";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Tag name is required").trim(),
+  name: z.string().trim().min(1, "Tag name is required"),
 });
 
 export function CreateTagModal() {
@@ -49,7 +49,7 @@ export function CreateTagModal() {
   const { mutate: createTag, isPending } = useCreateTag({
     onSuccess: () => {
       toast({
-        description: "Tag created successfully!",
+        description: t("toasts.tags.created"),
       });
       setOpen(false);
       form.reset();
@@ -72,8 +72,8 @@ export function CreateTagModal() {
       } else {
         toast({
           variant: "destructive",
-          title: "Something went wrong",
-          description: "Failed to create tag",
+          title: t("common.something_went_wrong"),
+          description: t("toasts.tags.failed_to_create"),
         });
       }
     },

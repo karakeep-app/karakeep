@@ -577,6 +577,10 @@
       "updated": "List has been updated!",
       "merged": "List has been merged!",
       "deleted": "List has been deleted!"
+    },
+    "tags": {
+      "created": "Tag has been created!",
+      "failed_to_create": "Failed to create tag"
     }
   },
   "banners": {
