@@ -1,4 +1,5 @@
 import { bookmarkCmd } from "@/commands/bookmarks";
+import { dumpCmd } from "@/commands/dump";
 import { listsCmd } from "@/commands/lists";
 import { migrateCmd } from "@/commands/migrate";
 import { tagsCmd } from "@/commands/tags";
@@ -36,6 +37,7 @@ program.addCommand(tagsCmd);
 program.addCommand(whoamiCmd);
 program.addCommand(migrateCmd);
 program.addCommand(wipeCmd);
+program.addCommand(dumpCmd);
 
 setGlobalOptions(program.opts());
 
