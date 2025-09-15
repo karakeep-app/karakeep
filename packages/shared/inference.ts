@@ -1,6 +1,5 @@
 import { Ollama } from "ollama";
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
@@ -21,6 +20,11 @@ export interface InferenceOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema: z.ZodSchema<any> | null;
   abortSignal?: AbortSignal;
+  // Responses API specific options
+  reasoningEffort?: "minimal" | "low" | "medium" | "high";
+  verbosity?: "low" | "medium" | "high";
+  previousResponseId?: string;
+  store?: boolean;
 }
 
 const defaultInferenceOptions: InferenceOptions = {
@@ -64,6 +68,7 @@ export class InferenceClientFactory {
   }
 }
 
+// OpenAI client using Responses API exclusively
 class OpenAIInferenceClient implements InferenceClient {
   openAI: OpenAI;
 
@@ -78,6 +83,109 @@ class OpenAIInferenceClient implements InferenceClient {
     });
   }
 
+  private buildTextFormatOptions(
+    model: string,
+    optsWithDefaults: InferenceOptions,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const textOptions: any = {};
+
+    // Only GPT-5 models support verbosity parameter
+    if (model.startsWith("gpt-5")) {
+      textOptions.verbosity =
+        optsWithDefaults.verbosity ||
+        serverConfig.inference.verbosity ||
+        "medium";
+    }
+
+    // Handle structured output
+    if (optsWithDefaults.schema) {
+      textOptions.format = {
+        type: "json_schema",
+        name: "response",
+        strict: true,
+        schema: zodToJsonSchema(optsWithDefaults.schema),
+      };
+    } else if (serverConfig.inference.outputSchema === "json") {
+      textOptions.format = { type: "json" };
+    } else {
+      textOptions.format = { type: "text" };
+    }
+
+    return textOptions;
+  }
+
+  private buildRequestObject(
+    model: string,
+    input: string | unknown[],
+    textOptions: unknown,
+    optsWithDefaults: InferenceOptions,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requestObj: any = {
+      model,
+      input,
+      text: textOptions,
+      store: optsWithDefaults.store ?? false,
+      temperature: 1,
+      top_p: 1,
+    };
+
+    // Handle reasoning parameter based on model capabilities
+    if (model.startsWith("gpt-5")) {
+      requestObj.reasoning = {
+        effort:
+          optsWithDefaults.reasoningEffort ||
+          serverConfig.inference.reasoningEffort ||
+          "low",
+      };
+    } else {
+      // GPT-4 models need empty reasoning object
+      requestObj.reasoning = {};
+    }
+
+    if (model.startsWith("gpt-4")) {
+      requestObj.max_output_tokens = serverConfig.inference.maxOutputTokens;
+    }
+
+    if (optsWithDefaults.previousResponseId) {
+      requestObj.previous_response_id = optsWithDefaults.previousResponseId;
+    }
+
+    return requestObj;
+  }
+
+  private extractAndProcessResponse(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    response: any,
+    optsWithDefaults: InferenceOptions,
+  ): InferenceResponse {
+    const outputText =
+      response.output_text || response.output?.[0]?.content?.[0]?.text;
+    if (!outputText) {
+      throw new Error(`Got no output text from OpenAI Responses API`);
+    }
+
+    // Parse JSON if we're expecting structured output
+    let finalResponse = outputText;
+    if (
+      optsWithDefaults.schema ||
+      serverConfig.inference.outputSchema === "json"
+    ) {
+      try {
+        finalResponse = JSON.stringify(JSON.parse(outputText));
+      } catch {
+        // If parsing fails, return as-is (might already be valid JSON string)
+        finalResponse = outputText;
+      }
+    }
+
+    return {
+      response: finalResponse,
+      totalTokens: response.usage?.total_tokens,
+    };
+  }
+
   async inferFromText(
     prompt: string,
     _opts: Partial<InferenceOptions>,
@@ -86,32 +194,21 @@ class OpenAIInferenceClient implements InferenceClient {
       ...defaultInferenceOptions,
       ..._opts,
     };
-    const chatCompletion = await this.openAI.chat.completions.create(
-      {
-        messages: [{ role: "user", content: prompt }],
-        model: serverConfig.inference.textModel,
-        max_tokens: serverConfig.inference.maxOutputTokens,
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
-          serverConfig.inference.outputSchema,
-        ),
-      },
-      {
-        signal: optsWithDefaults.abortSignal,
-      },
+
+    const model = serverConfig.inference.textModel;
+    const textOptions = this.buildTextFormatOptions(model, optsWithDefaults);
+    const requestObj = this.buildRequestObject(
+      model,
+      prompt,
+      textOptions,
+      optsWithDefaults,
     );
 
-    const response = chatCompletion.choices[0].message.content;
-    if (!response) {
-      throw new Error(`Got no message content from OpenAI`);
-    }
-    return { response, totalTokens: chatCompletion.usage?.total_tokens };
+    const response = await this.openAI.responses.create(requestObj, {
+      signal: optsWithDefaults.abortSignal,
+    });
+
+    return this.extractAndProcessResponse(response, optsWithDefaults);
   }
 
   async inferFromImage(
@@ -124,51 +221,43 @@ class OpenAIInferenceClient implements InferenceClient {
       ...defaultInferenceOptions,
       ..._opts,
     };
-    const chatCompletion = await this.openAI.chat.completions.create(
+
+    const model = serverConfig.inference.imageModel;
+    const textOptions = this.buildTextFormatOptions(model, optsWithDefaults);
+
+    // Responses API handles images as part of structured input
+    const input = [
       {
-        model: serverConfig.inference.imageModel,
-        max_tokens: serverConfig.inference.maxOutputTokens,
-        response_format: mapInferenceOutputSchema(
+        type: "message",
+        role: "user",
+        content: [
+          { type: "input_text", text: prompt },
           {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
-          serverConfig.inference.outputSchema,
-        ),
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${contentType};base64,${image}`,
-                  detail: "low",
-                },
-              },
-            ],
+            type: "input_image",
+            image_url: `data:${contentType};base64,${image}`,
           },
         ],
       },
-      {
-        signal: optsWithDefaults.abortSignal,
-      },
+    ];
+
+    const requestObj = this.buildRequestObject(
+      model,
+      input,
+      textOptions,
+      optsWithDefaults,
     );
 
-    const response = chatCompletion.choices[0].message.content;
-    if (!response) {
-      throw new Error(`Got no message content from OpenAI`);
-    }
-    return { response, totalTokens: chatCompletion.usage?.total_tokens };
+    const response = await this.openAI.responses.create(requestObj, {
+      signal: optsWithDefaults.abortSignal,
+    });
+
+    return this.extractAndProcessResponse(response, optsWithDefaults);
   }
 
   async generateEmbeddingFromText(
     inputs: string[],
   ): Promise<EmbeddingResponse> {
+    // Embeddings still use the same API
     const model = serverConfig.embedding.textModel;
     const embedResponse = await this.openAI.embeddings.create({
       model: model,
@@ -181,6 +270,7 @@ class OpenAIInferenceClient implements InferenceClient {
   }
 }
 
+// Ollama client for local/self-hosted models
 class OllamaInferenceClient implements InferenceClient {
   ollama: Ollama;
 
