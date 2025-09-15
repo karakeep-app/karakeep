@@ -33,10 +33,13 @@ export function BookmarkMarkdownComponent({
       text,
     });
   };
+
   return (
     <div className="h-full">
       {readOnly ? (
-        <MarkdownReadonly>{bookmark.content.text}</MarkdownReadonly>
+        <MarkdownReadonly onSave={onSave}>
+          {bookmark.content.text}
+        </MarkdownReadonly>
       ) : (
         <MarkdownEditor onSave={onSave} isSaving={isPending}>
           {bookmark.content.text}
