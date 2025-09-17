@@ -86,7 +86,8 @@
     },
     "recrawl": "重新抓取",
     "open_editor": "開啟編輯器",
-    "toggle_show_archived": "顯示已封存"
+    "toggle_show_archived": "顯示已封存",
+    "confirm": "確認"
   },
   "settings": {
     "back_to_app": "返回應用程式",
@@ -326,7 +327,71 @@
       "video_jobs": "影片下載工作",
       "feed_jobs": "RSS 訂閱工作",
       "webhook_jobs": "Webhook 工作",
-      "asset_preprocessing_jobs": "資產預處理工作"
+      "asset_preprocessing_jobs": "資產預處理工作",
+      "jobs": {
+        "crawler": {
+          "title": "爬蟲程式任務",
+          "description": "從網址提取網頁內容並進行網頁爬蟲"
+        },
+        "inference": {
+          "title": "推論任務",
+          "description": "AI驅動的內容標記和摘要"
+        },
+        "indexing": {
+          "title": "索引任務",
+          "description": "搜尋索引更新"
+        },
+        "asset_preprocessing": {
+          "title": "資產預處理任務",
+          "description": "圖片和文件預處理（螢幕截圖、文字提取等等）"
+        },
+        "tidy_assets": {
+          "title": "整理資產任務",
+          "description": "資產清理和儲存最佳化"
+        },
+        "video": {
+          "title": "影片下載任務",
+          "description": "影片提取和下載"
+        },
+        "webhook": {
+          "title": "Webhook 任務",
+          "description": "外部 Webhook 通知"
+        },
+        "feed": {
+          "title": "RSS Feed 任務",
+          "description": "RSS feed 處理和內容更新"
+        }
+      },
+      "monitor_and_manage": "監控和管理背景任務佇列和系統處理任務",
+      "active": "啟用中",
+      "available_actions": "可用動作",
+      "status": {
+        "title": "了解任務狀態",
+        "queued": {
+          "title": "已排隊",
+          "description": "正在排隊等候處理的任務。當資源可用時，它們將自動啟動。"
+        },
+        "unprocessed": {
+          "title": "未處理",
+          "description": "尚未處理的書籤。它們很可能已經排隊等待處理，如果沒有，你可能需要手動重新排隊。"
+        },
+        "failed": {
+          "title": "失敗",
+          "description": "處理過程中遇到錯誤的書籤。這些可能需要手動處理。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "僅重新爬取失敗連結",
+        "recrawl_all_links": "重新爬取所有連結",
+        "without_inference": "不推論",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "僅為失敗的書籤重新產生 AI 標籤",
+        "regenerate_ai_tags_for_all_bookmarks": "為所有書籤重新產生 AI 標籤",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "僅為失敗的書籤重新產生 AI 摘要",
+        "regenerate_ai_summaries_for_all_bookmarks": "為所有書籤重新產生 AI 摘要",
+        "reindex_all_bookmarks": "重新索引所有書籤",
+        "clean_assets": "清除懸置資產並重新同步中繼資料",
+        "reprocess_assets_fix_mode": "重新處理未處理的資產"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "僅重新抓取失敗的連結",

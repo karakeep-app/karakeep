@@ -13,7 +13,7 @@ import {
   triggerSearchReindex,
   VideoWorkerQueue,
   WebhookQueue,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
 import { getSearchClient } from "@karakeep/shared/search";
 import {
   resetPasswordSchema,

@@ -13,7 +13,7 @@ import {
   TidyAssetsQueue,
   VideoWorkerQueue,
   WebhookQueue,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
 
 // Queue metrics
 const queuePendingJobsGauge = new Gauge({

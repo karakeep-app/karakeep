@@ -74,7 +74,71 @@
       "inference_jobs": "Inferensjobber",
       "tidy_assets_jobs": "Rydd opp i ressursjobber",
       "job": "Jobb",
-      "queued": "I kø"
+      "queued": "I kø",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler-jobber",
+          "description": "Web-crawling og innholdsekstrahering fra URL-er"
+        },
+        "inference": {
+          "title": "Inferens-jobber",
+          "description": "AI-drevet merking og oppsummering av innhold"
+        },
+        "indexing": {
+          "title": "Indekseringsjobber",
+          "description": "Søkeindeksoppdateringer"
+        },
+        "asset_preprocessing": {
+          "title": "Jobber for forhåndsbehandling av ressurser",
+          "description": "Forhåndsbehandling av bilder og dokumenter (skjermbilder, tekstuttrekk osv.)"
+        },
+        "tidy_assets": {
+          "title": "Ryddige ressursjobber",
+          "description": "Opprydding av ressurser og lagringsoptimalisering"
+        },
+        "video": {
+          "title": "Nedlastingsjobber for video",
+          "description": "Videoekstrahering og nedlasting"
+        },
+        "webhook": {
+          "title": "Webhook-jobber",
+          "description": "Eksterne webhook-varsler"
+        },
+        "feed": {
+          "title": "RSS-feed-jobber",
+          "description": "RSS-feed-behandling og innholdsoppdateringer"
+        }
+      },
+      "monitor_and_manage": "Overvåk og administrer bakgrunnsjobbkøer og systembehandlingsoppgaver",
+      "active": "Aktiv",
+      "available_actions": "Tilgjengelige handlinger",
+      "status": {
+        "title": "Forstå jobbtilstander",
+        "queued": {
+          "title": "I kø",
+          "description": "Jobber som venter på tur for å bli behandlet. De starter automatisk når ressurser er tilgjengelige."
+        },
+        "unprocessed": {
+          "title": "Ubehandlet",
+          "description": "Bokmerker som ikke er behandlet ennå. De er mest sannsynlig allerede satt i kø for behandling, hvis ikke må du kanskje sette dem i kø manuelt på nytt."
+        },
+        "failed": {
+          "title": "Mislyktes",
+          "description": "Bokmerker som støtte på feil under behandling. Disse kan trenge manuell oppmerksomhet."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Gjennomgå bare mislykkede lenker på nytt",
+        "recrawl_all_links": "Gjennomgå alle lenker på nytt",
+        "without_inference": "Uten Inferences",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Gjenskap AI-tagger bare for mislykkede bokmerker",
+        "regenerate_ai_tags_for_all_bookmarks": "Gjenskap AI-tagger for alle bokmerker",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Gjenskap AI-sammendrag bare for mislykkede bokmerker",
+        "regenerate_ai_summaries_for_all_bookmarks": "Gjenskap AI-sammendrag for alle bokmerker",
+        "reindex_all_bookmarks": "Reindekser alle bokmerker",
+        "clean_assets": "Fjern løse filer og synkroniser metadata på nytt",
+        "reprocess_assets_fix_mode": "Behandle aktiva som ikke er behandlet, på nytt"
+      }
     },
     "actions": {
       "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerer AI-tagger bare for mislykkede bokmerker",
@@ -129,7 +193,8 @@
     "ignore": "Ignorer",
     "favorite": "Favoritt",
     "open_editor": "Åpne redigeringsprogram",
-    "toggle_show_archived": "Vis arkiverte"
+    "toggle_show_archived": "Vis arkiverte",
+    "confirm": "Bekreft"
   },
   "settings": {
     "info": {

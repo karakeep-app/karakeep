@@ -38,7 +38,8 @@
       "relevant_first": "関連性の高い順"
     },
     "open_editor": "エディタを開く",
-    "toggle_show_archived": "アーカイブを表示"
+    "toggle_show_archived": "アーカイブを表示",
+    "confirm": "確認"
   },
   "admin": {
     "actions": {
@@ -72,7 +73,71 @@
       "video_jobs": "動画ダウンロードジョブ",
       "webhook_jobs": "Webhookジョブ",
       "asset_preprocessing_jobs": "アセットのプリプロセスジョブ",
-      "feed_jobs": "RSSフィードジョブ"
+      "feed_jobs": "RSSフィードジョブ",
+      "jobs": {
+        "crawler": {
+          "title": "クローラーのジョブ",
+          "description": "URLからのウェブクローリングとコンテンツ抽出"
+        },
+        "inference": {
+          "title": "推論ジョブ",
+          "description": "AIを活用したコンテンツのタグ付けと要約"
+        },
+        "indexing": {
+          "title": "インデックスジョブ",
+          "description": "検索インデックスの更新"
+        },
+        "asset_preprocessing": {
+          "title": "アセットのプレ処理ジョブ",
+          "description": "画像とドキュメントの前処理（スクリーンショット、テキスト抽出など）"
+        },
+        "tidy_assets": {
+          "title": "アセット整理ジョブ",
+          "description": "アセットのクリーンアップとストレージの最適化"
+        },
+        "video": {
+          "title": "ビデオダウンロードジョブ",
+          "description": "動画の抽出とダウンロード"
+        },
+        "webhook": {
+          "title": "Webhookジョブ",
+          "description": "外部Webhook通知"
+        },
+        "feed": {
+          "title": "RSSフィードジョブ",
+          "description": "RSSフィードの処理とコンテンツの更新"
+        }
+      },
+      "monitor_and_manage": "バックグラウンドジョブキューとシステム処理タスクの監視および管理",
+      "active": "アクティブ",
+      "available_actions": "利用可能なアクション",
+      "status": {
+        "title": "ジョブの状態について",
+        "queued": {
+          "title": "キューに追加済み",
+          "description": "処理待ちのジョブが並んでいます。リソースが利用可能になると自動的に開始されます。"
+        },
+        "unprocessed": {
+          "title": "未処理",
+          "description": "まだ処理されていないブックマーク。ほとんどの場合、すでに処理待ちのキューに入っています。そうでない場合は、手動で再キューする必要があるかもしれません。"
+        },
+        "failed": {
+          "title": "失敗",
+          "description": "処理中にエラーが発生したブックマーク。手動での対応が必要になる場合があります。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "失敗したリンクのみを再クロール",
+        "recrawl_all_links": "すべてのリンクを再クロール",
+        "without_inference": "推論なし",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "失敗したブックマークのみAIタグを再生成",
+        "regenerate_ai_tags_for_all_bookmarks": "すべてのブックマークのAIタグを再生成",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "失敗したブックマークのみAI要約を再生成",
+        "regenerate_ai_summaries_for_all_bookmarks": "すべてのブックマークのAI要約を再生成",
+        "reindex_all_bookmarks": "すべてのブックマークを再インデックス",
+        "clean_assets": "宙ぶらりんのアセットをクリーンアップしてメタデータを再同期",
+        "reprocess_assets_fix_mode": "未処理のアセットを再処理"
+      }
     },
     "admin_settings": "管理者設定",
     "users_list": {

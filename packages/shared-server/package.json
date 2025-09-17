@@ -5,6 +5,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@karakeep/db": "workspace:^0.1.0",
+    "@karakeep/plugins-queue-liteque": "workspace:^0.1.0",
     "@karakeep/plugins-search-meilisearch": "workspace:^0.1.0",
     "@karakeep/shared": "workspace:^0.1.0"
   },

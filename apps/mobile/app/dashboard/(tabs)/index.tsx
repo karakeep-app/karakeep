@@ -1,4 +1,4 @@
-import { Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -6,6 +6,7 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import PageTitle from "@/components/ui/PageTitle";
+import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
@@ -89,16 +90,16 @@ export default function Home() {
               />
             </View>
             <Pressable
-              className="flex flex-row items-center gap-1 rounded-lg border border-input bg-background px-4 py-2.5"
+              className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
               onPress={() => router.push("/dashboard/search")}
             >
               <TailwindResolver
-                className="text-muted-foreground"
+                className="text-muted"
                 comp={(styles) => (
                   <Search size={16} color={styles?.color?.toString()} />
                 )}
               />
-              <Text className="text-muted-foreground">Search</Text>
+              <Text className="text-muted">Search</Text>
             </Pressable>
           </View>
         }

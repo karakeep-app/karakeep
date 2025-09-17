@@ -38,7 +38,8 @@
     "add": "Thêm",
     "fetch_now": "Lấy dữ liệu ngay",
     "open_editor": "Mở trình chỉnh sửa",
-    "toggle_show_archived": "Hiển thị đã lưu trữ"
+    "toggle_show_archived": "Hiển thị đã lưu trữ",
+    "confirm": "Xác nhận"
   },
   "layouts": {
     "list": "Danh sách",
@@ -283,7 +284,71 @@
       "queued": "Đã xếp hàng",
       "pending": "Đang chờ xử lý",
       "crawler_jobs": "Việc làm của trình thu thập dữ liệu",
-      "indexing_jobs": "Đang lập chỉ mục công việc"
+      "indexing_jobs": "Đang lập chỉ mục công việc",
+      "jobs": {
+        "crawler": {
+          "title": "Các Công Việc Thu Thập Dữ Liệu",
+          "description": "Thu thập dữ liệu web và trích xuất nội dung từ các URL"
+        },
+        "inference": {
+          "title": "Các Công Việc Suy Luận",
+          "description": "Gắn thẻ và tóm tắt nội dung bằng AI"
+        },
+        "indexing": {
+          "title": "Các Công Việc Lập Chỉ Mục",
+          "description": "Cập nhật chỉ mục tìm kiếm"
+        },
+        "asset_preprocessing": {
+          "title": "Các Công Việc Tiền Xử Lý Tài Sản",
+          "description": "Xử lý trước hình ảnh và tài liệu (chụp ảnh màn hình, trích xuất văn bản, v.v.)"
+        },
+        "tidy_assets": {
+          "title": "Các Công Việc Dọn Dẹp Tài Sản",
+          "description": "Dọn dẹp tài sản và tối ưu hóa lưu trữ"
+        },
+        "video": {
+          "title": "Các Công Việc Tải Xuống Video",
+          "description": "Trích xuất và tải xuống video"
+        },
+        "webhook": {
+          "title": "Các Công Việc Webhook",
+          "description": "Thông báo webhook bên ngoài"
+        },
+        "feed": {
+          "title": "Các Công Việc Nguồn Cấp RSS",
+          "description": "Xử lý nguồn cấp RSS và cập nhật nội dung"
+        }
+      },
+      "monitor_and_manage": "Theo dõi và quản lý hàng đợi công việc nền và các tác vụ xử lý hệ thống",
+      "active": "Đang hoạt động",
+      "available_actions": "Các Hành Động Khả Dụng",
+      "status": {
+        "title": "Tìm Hiểu Trạng Thái Công Việc",
+        "queued": {
+          "title": "Đã xếp hàng chờ",
+          "description": "Các công việc đang chờ trong hàng đợi để được xử lý. Chúng sẽ tự động bắt đầu khi có tài nguyên."
+        },
+        "unprocessed": {
+          "title": "Chưa xử lý",
+          "description": "Các dấu trang chưa được xử lý. Chúng rất có thể đã được xếp hàng chờ xử lý, nếu không, bạn có thể cần phải xếp hàng lại theo cách thủ công."
+        },
+        "failed": {
+          "title": "Thất bại",
+          "description": "Các dấu trang gặp lỗi trong quá trình xử lý. Chúng có thể cần được chú ý thủ công."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Thu thập lại thông tin chỉ các liên kết bị lỗi",
+        "recrawl_all_links": "Thu thập lại thông tin tất cả các liên kết",
+        "without_inference": "Không suy luận",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Tạo lại thẻ AI chỉ cho các dấu trang bị lỗi",
+        "regenerate_ai_tags_for_all_bookmarks": "Tạo lại thẻ AI cho tất cả các dấu trang",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Tạo lại tóm tắt AI chỉ cho các dấu trang bị lỗi",
+        "regenerate_ai_summaries_for_all_bookmarks": "Tạo lại tóm tắt AI cho tất cả các dấu trang",
+        "reindex_all_bookmarks": "Lập chỉ mục lại tất cả các dấu trang",
+        "clean_assets": "Xóa các tài sản treo lơ lửng & Đồng bộ lại siêu dữ liệu",
+        "reprocess_assets_fix_mode": "Xử lý lại các tài sản chưa được xử lý"
+      }
     },
     "admin_settings": "Cài đặt quản trị viên",
     "users_list": {

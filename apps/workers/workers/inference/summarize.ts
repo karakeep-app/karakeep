@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
-import { DequeuedJob } from "liteque";
 
 import { db } from "@karakeep/db";
 import { bookmarks, customPrompts } from "@karakeep/db/schema";
+import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClient } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts";
-import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared/queues";
+import { DequeuedJob } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
@@ -43,7 +43,7 @@ export async function runSummarization(
   inferenceClient: InferenceClient,
 ) {
   if (!serverConfig.inference.enableAutoSummarization) {
-    logger.info(
+    logger.debug(
       `[inference][${job.id}] Skipping summarization job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
     return;
@@ -64,6 +64,14 @@ export async function runSummarization(
     let content =
       (await Bookmark.getBookmarkPlainTextContent(link, bookmarkData.userId)) ??
       "";
+
+    if (!link.description && !content) {
+      // No content to infer from; skip summarization
+      logger.info(
+        `[inference] No content found for link "${bookmarkId}". Skipping summary.`,
+      );
+      return;
+    }
 
     textToSummarize = `
 Title: ${link.title ?? ""}

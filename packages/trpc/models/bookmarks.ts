@@ -342,6 +342,12 @@ export class Bookmark implements PrivacyAware {
       }
     });
 
+    bookmarksArr.forEach((b) => {
+      b.tags.sort((a, b) =>
+        a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
+      );
+    });
+
     let nextCursor = null;
     if (bookmarksArr.length > input.limit) {
       const nextItem = bookmarksArr.pop()!;

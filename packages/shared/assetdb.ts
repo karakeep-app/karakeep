@@ -21,15 +21,26 @@ import { QuotaApproved } from "./storageQuota";
 const ROOT_PATH = serverConfig.assetsDir;
 
 export const enum ASSET_TYPES {
+  IMAGE_GIF = "image/gif",
   IMAGE_JPEG = "image/jpeg",
   IMAGE_PNG = "image/png",
   IMAGE_WEBP = "image/webp",
   APPLICATION_PDF = "application/pdf",
   TEXT_HTML = "text/html",
+
   VIDEO_MP4 = "video/mp4",
+  VIDEO_WEBM = "video/webm",
+  VIDEO_MKV = "video/x-matroska",
 }
 
+export const VIDEO_ASSET_TYPES: Set<string> = new Set<string>([
+  ASSET_TYPES.VIDEO_MP4,
+  ASSET_TYPES.VIDEO_WEBM,
+  ASSET_TYPES.VIDEO_MKV,
+]);
+
 export const IMAGE_ASSET_TYPES: Set<string> = new Set<string>([
+  ASSET_TYPES.IMAGE_GIF,
   ASSET_TYPES.IMAGE_JPEG,
   ASSET_TYPES.IMAGE_PNG,
   ASSET_TYPES.IMAGE_WEBP,
@@ -38,6 +49,7 @@ export const IMAGE_ASSET_TYPES: Set<string> = new Set<string>([
 // The assets that we allow the users to upload
 export const SUPPORTED_UPLOAD_ASSET_TYPES: Set<string> = new Set<string>([
   ...IMAGE_ASSET_TYPES,
+  ...VIDEO_ASSET_TYPES,
   ASSET_TYPES.TEXT_HTML,
   ASSET_TYPES.APPLICATION_PDF,
 ]);

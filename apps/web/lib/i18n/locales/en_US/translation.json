@@ -86,7 +86,8 @@
     "cancel": "Cancel",
     "apply_all": "Apply All",
     "ignore": "Ignore",
-    "toggle_show_archived": "Show Archived"
+    "toggle_show_archived": "Show Archived",
+    "confirm": "Confirm"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
@@ -412,7 +413,71 @@
       "job": "Job",
       "queued": "Queued",
       "pending": "Pending",
-      "failed": "Failed"
+      "failed": "Failed",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Web crawling and content extraction from URLs"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-powered tagging and summarization of content"
+        },
+        "indexing": {
+          "title": "Indexing Jobs",
+          "description": "Search index updates"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Preprocessing Jobs",
+          "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Tidy Assets Jobs",
+          "description": "Asset cleanup and storage optimization"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Video extraction and download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "External webhook notifications"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS feed processing and content updates"
+        }
+      },
+      "monitor_and_manage": "Monitor and manage background job queues and system processing tasks",
+      "active": "Active",
+      "available_actions": "Available Actions",
+      "status": {
+        "title": "Understanding Job States",
+        "queued": {
+          "title": "Queued",
+          "description": "Jobs waitin' in line to be processed. They'll start automatically when resources are available."
+        },
+        "unprocessed": {
+          "title": "Unprocessed",
+          "description": "Bookmarks that ain't been processed yet. They're probably already queued for processin', but if not, you might need to manually re-enqueue 'em."
+        },
+        "failed": {
+          "title": "Failed",
+          "description": "Bookmarks that ran into errors while processin'. These might need a lil' manual attention."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Recrawl Failed Links Only",
+        "recrawl_all_links": "Recrawl All Links",
+        "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
+        "reindex_all_bookmarks": "Reindex All Bookmarks",
+        "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
+        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Recrawl Failed Links Only",
@@ -506,6 +571,8 @@
     "type_is": "Type is",
     "type_is_not": "Type is not",
     "url_does_not_contain": "URL does not contain",
+    "title_contains": "Title contains",
+    "title_does_not_contain": "Title does not contain",
     "is_from_feed": "Is from RSS feed",
     "is_not_from_feed": "Is not from RSS feed",
     "and": "And",

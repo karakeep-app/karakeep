@@ -35,6 +35,7 @@ const v1 = new Hono<{
   .route("/tags", tags)
   .route("/users", users)
   .route("/assets", assets)
+  .route("/admin", admin)
   .route("/rss", rss);
 
 const app = new Hono<{
@@ -68,7 +69,6 @@ const app = new Hono<{
   .route("/health", health)
   .route("/trpc", trpc)
   .route("/v1", v1)
-  .route("/admin", admin)
   .route("/assets", assets)
   .route("/public", publicRoute)
   .route("/metrics", metrics)

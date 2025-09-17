@@ -29,6 +29,7 @@ import type { ZGetTagResponse, ZTagBasic } from "@karakeep/shared/types/tags";
 import { useDeleteUnusedTags } from "@karakeep/shared-react/hooks/tags";
 
 import BulkTagAction from "./BulkTagAction";
+import { CreateTagModal } from "./CreateTagModal";
 import DeleteTagConfirmationDialog from "./DeleteTagConfirmationDialog";
 import { MultiTagSelector } from "./MultiTagSelector";
 import { TagPill } from "./TagPill";
@@ -184,6 +185,7 @@ export default function AllTagsView({
       <div className="flex justify-between gap-x-2">
         <span className="text-2xl">{t("tags.all_tags")}</span>
         <div className="flex gap-x-2">
+          <CreateTagModal />
           <BulkTagAction />
           <Toggle
             variant="outline"

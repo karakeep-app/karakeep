@@ -22,11 +22,17 @@ function PreWithCopyBtn({ className, ...props }: React.ComponentProps<"pre">) {
   );
 }
 
-export function MarkdownReadonly({ children: markdown }: { children: string }) {
+export function MarkdownReadonly({
+  children: markdown,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
-      className="prose dark:prose-invert"
+      className={cn("prose dark:prose-invert", className)}
       components={{
         pre({ ...props }) {
           return <PreWithCopyBtn {...props} />;

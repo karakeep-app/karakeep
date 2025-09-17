@@ -1,6 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, count, eq, gt, inArray, lt, or } from "drizzle-orm";
-import { EnqueueOptions } from "liteque";
+import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -20,8 +19,17 @@ import {
   bookmarkTexts,
   customPrompts,
   tagsOnBookmarks,
-  users,
 } from "@karakeep/db/schema";
+import {
+  AssetPreprocessingQueue,
+  LinkCrawlerQueue,
+  OpenAIQueue,
+  QuotaService,
+  SearchIndexingQueue,
+  triggerRuleEngineOnEvent,
+  triggerSearchReindex,
+  triggerWebhook,
+} from "@karakeep/shared-server";
 import {
   deleteAsset,
   SUPPORTED_BOOKMARK_ASSET_TYPES,
@@ -29,16 +37,8 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts";
-import {
-  AssetPreprocessingQueue,
-  LinkCrawlerQueue,
-  OpenAIQueue,
-  SearchIndexingQueue,
-  triggerRuleEngineOnEvent,
-  triggerSearchReindex,
-  triggerWebhook,
-} from "@karakeep/shared/queues";
-import { getSearchClient } from "@karakeep/shared/search";
+import { EnqueueOptions } from "@karakeep/shared/queueing";
+import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
   BookmarkTypes,
@@ -240,10 +240,14 @@ async function toZodSchema(
   }
 
   return {
-    tags: tagsOnBookmarks.map((t) => ({
-      attachedBy: t.attachedBy,
-      ...t.tag,
-    })),
+    tags: tagsOnBookmarks
+      .map((t) => ({
+        attachedBy: t.attachedBy,
+        ...t.tag,
+      }))
+      .sort((a, b) =>
+        a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
+      ),
     content,
     assets: assets.map((a) => ({
       id: a.id,
@@ -273,26 +277,17 @@ export const bookmarksAppRouter = router({
       }
 
       // Check user quota
-      const user = await ctx.db.query.users.findFirst({
-        where: eq(users.id, ctx.user.id),
-        columns: {
-          bookmarkQuota: true,
-        },
-      });
-
-      if (user?.bookmarkQuota !== null && user?.bookmarkQuota !== undefined) {
-        const currentBookmarkCount = await ctx.db
-          .select({ count: count() })
-          .from(bookmarks)
-          .where(eq(bookmarks.userId, ctx.user.id));
-
-        if (currentBookmarkCount[0].count >= user.bookmarkQuota) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: `Bookmark quota exceeded. You can only have ${user.bookmarkQuota} bookmarks.`,
-          });
-        }
+      const quotaResult = await QuotaService.canCreateBookmark(
+        ctx.db,
+        ctx.user.id,
+      );
+      if (!quotaResult.result) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: quotaResult.error,
+        });
       }
+
       const bookmark = await ctx.db.transaction(async (tx) => {
         const bookmark = (
           await tx
@@ -770,17 +765,18 @@ export const bookmarksAppRouter = router({
       }
       const parsedQuery = parseSearchQuery(input.text);
 
-      let filter: string[];
+      let filter: FilterQuery[];
       if (parsedQuery.matcher) {
         const bookmarkIds = await getBookmarkIdsFromMatcher(
           ctx,
           parsedQuery.matcher,
         );
         filter = [
-          `userId = '${ctx.user.id}' AND id IN [${bookmarkIds.join(",")}]`,
+          { type: "in", field: "id", values: bookmarkIds },
+          { type: "eq", field: "userId", value: ctx.user.id },
         ];
       } else {
-        filter = [`userId = '${ctx.user.id}'`];
+        filter = [{ type: "eq", field: "userId", value: ctx.user.id }];
       }
 
       /**
@@ -791,7 +787,7 @@ export const bookmarksAppRouter = router({
       const resp = await client.search({
         query: parsedQuery.text,
         filter,
-        sort: [`createdAt:${createdAtSortOrder}`],
+        sort: [{ field: "createdAt", order: createdAtSortOrder }],
         limit: input.limit,
         ...(input.cursor
           ? {

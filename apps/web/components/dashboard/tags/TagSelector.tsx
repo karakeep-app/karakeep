@@ -21,13 +21,15 @@ export function TagSelector({
   placeholder?: string;
   className?: string;
 }) {
-  const { data: allTags, isPending } = api.tags.list.useQuery();
+  const { data: allTags, isPending } = api.tags.list.useQuery(undefined, {
+    select: (data) => ({
+      tags: data.tags.sort((a, b) => a.name.localeCompare(b.name)),
+    }),
+  });
 
   if (isPending || !allTags) {
     return <LoadingSpinner />;
   }
-
-  allTags.tags = allTags.tags.sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <Select onValueChange={onChange} value={value ?? ""}>

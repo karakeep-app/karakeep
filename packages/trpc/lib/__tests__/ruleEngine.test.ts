@@ -15,7 +15,7 @@ import {
   tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
-import { LinkCrawlerQueue } from "@karakeep/shared/queues";
+import { LinkCrawlerQueue } from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
@@ -29,7 +29,7 @@ import { TestDB } from "../../testUtils";
 import { RuleEngine } from "../ruleEngine";
 
 // Mock the queue
-vi.mock("@karakeep/shared/queues", () => ({
+vi.mock("@karakeep/shared-server", () => ({
   LinkCrawlerQueue: {
     enqueue: vi.fn(),
   },

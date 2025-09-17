@@ -5,12 +5,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
-import CopyBtn from "@/components/ui/copy-button";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -34,24 +32,7 @@ import { PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-function ApiKeySuccess({ apiKey }: { apiKey: string }) {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <div className="py-4">
-        {t("settings.api_keys.key_success_please_copy")}
-      </div>
-      <div className="flex space-x-2 pt-2">
-        <Input value={apiKey} readOnly />
-        <CopyBtn
-          getStringToCopy={() => {
-            return apiKey;
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+import ApiKeySuccess from "./ApiKeySuccess";
 
 function AddApiKeyForm({ onSuccess }: { onSuccess: (key: string) => void }) {
   const { t } = useTranslation();
@@ -117,11 +98,7 @@ function AddApiKeyForm({ onSuccess }: { onSuccess: (key: string) => void }) {
             );
           }}
         />
-        <ActionButton
-          className="h-full"
-          type="submit"
-          loading={mutator.isPending}
-        >
+        <ActionButton type="submit" loading={mutator.isPending}>
           {t("actions.create")}
         </ActionButton>
       </form>
@@ -148,14 +125,15 @@ export default function AddApiKey() {
               ? t("settings.api_keys.key_success")
               : t("settings.api_keys.new_api_key")}
           </DialogTitle>
-          <DialogDescription>
-            {key ? (
-              <ApiKeySuccess apiKey={key} />
-            ) : (
-              <AddApiKeyForm onSuccess={setKey} />
-            )}
-          </DialogDescription>
         </DialogHeader>
+        {key ? (
+          <ApiKeySuccess
+            apiKey={key}
+            message={t("settings.api_keys.key_success")}
+          />
+        ) : (
+          <AddApiKeyForm onSuccess={setKey} />
+        )}
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
             <Button

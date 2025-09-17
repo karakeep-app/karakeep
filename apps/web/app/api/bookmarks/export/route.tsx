@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
+import { api, createContextFromRequest } from "@/server/api/client";
+import { z } from "zod";
+
 import {
   toExportFormat,
   toNetscapeFormat,
   zExportSchema,
-} from "@/lib/exportBookmarks";
-import { api, createContextFromRequest } from "@/server/api/client";
-import { z } from "zod";
-
+} from "@karakeep/shared/import-export";
 import { MAX_NUM_BOOKMARKS_PER_PAGE } from "@karakeep/shared/types/bookmarks";
 
 export const dynamic = "force-dynamic";

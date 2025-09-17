@@ -1,147 +1,171 @@
 import React from "react";
+import { Alert, Pressable, View } from "react-native";
 import {
-  Keyboard,
-  Pressable,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
-import Animated, {
-  useAnimatedKeyboard,
-  useAnimatedStyle,
-} from "react-native-reanimated";
+  KeyboardAwareScrollView,
+  KeyboardGestureArea,
+} from "react-native-keyboard-controller";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import TagPill from "@/components/bookmarks/TagPill";
 import FullPageError from "@/components/FullPageError";
+import { Button } from "@/components/ui/Button";
+import ChevronRight from "@/components/ui/ChevronRight";
+import { Divider } from "@/components/ui/Divider";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ChevronRight } from "lucide-react-native";
+import { Text } from "@/components/ui/Text";
+import { useToast } from "@/components/ui/Toast";
+import { cn } from "@/lib/utils";
 
 import {
   useAutoRefreshingBookmarkQuery,
+  useDeleteBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 
+function InfoSection({
+  className,
+  ...props
+}: React.ComponentProps<typeof View>) {
+  return (
+    <View
+      className={cn("flex gap-2 rounded-lg bg-card p-3", className)}
+      {...props}
+    />
+  );
+}
+
 function TagList({ bookmark }: { bookmark: ZBookmark }) {
   return (
-    <View className="flex gap-4">
-      <Text className="text-lg text-foreground">Tags</Text>
-      <View className="flex gap-2">
-        {isBookmarkStillTagging(bookmark) ? (
-          <View className="flex gap-4 pb-3">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-          </View>
-        ) : bookmark.tags.length > 0 ? (
-          <View className="flex flex-row flex-wrap gap-2 rounded-lg bg-background p-4">
-            {bookmark.tags.map((t) => (
-              <TagPill key={t.id} tag={t} />
-            ))}
-          </View>
-        ) : (
-          <Text className="text-foreground">No tags</Text>
-        )}
+    <InfoSection>
+      {isBookmarkStillTagging(bookmark) ? (
+        <View className="flex gap-4 pb-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </View>
+      ) : (
+        bookmark.tags.length > 0 && (
+          <>
+            <View className="flex flex-row flex-wrap gap-2 rounded-lg p-2">
+              {bookmark.tags.map((t) => (
+                <TagPill key={t.id} tag={t} />
+              ))}
+            </View>
+            <Divider orientation="horizontal" />
+          </>
+        )
+      )}
+      <View>
         <Pressable
           onPress={() =>
             router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
           }
-          className="flex w-full flex-row justify-between gap-3 rounded-lg bg-white px-4 py-2 dark:bg-accent"
+          className="flex w-full flex-row justify-between gap-3"
         >
-          <Text className="text-lg text-accent-foreground">Manage Tags</Text>
-          <ChevronRight color="rgb(0, 122, 255)" />
+          <Text>Manage Tags</Text>
+          <ChevronRight />
         </Pressable>
       </View>
-    </View>
+    </InfoSection>
   );
 }
 
 function ManageLists({ bookmark }: { bookmark: ZBookmark }) {
   return (
-    <View className="flex gap-4">
-      <Text className="text-lg text-foreground">Lists</Text>
-      <Pressable
-        onPress={() =>
-          router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`)
-        }
-        className="flex w-full flex-row justify-between gap-3 rounded-lg bg-white px-4 py-2 dark:bg-accent"
-      >
-        <Text className="text-lg text-accent-foreground">Manage Lists</Text>
-        <ChevronRight color="rgb(0, 122, 255)" />
-      </Pressable>
-    </View>
+    <InfoSection>
+      <View>
+        <Pressable
+          onPress={() =>
+            router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`)
+          }
+          className="flex w-full flex-row justify-between gap-3 rounded-lg"
+        >
+          <Text>Manage Lists</Text>
+          <ChevronRight />
+        </Pressable>
+      </View>
+    </InfoSection>
   );
 }
 
 function TitleEditor({
-  bookmarkId,
   title,
+  setTitle,
+  isPending,
 }: {
-  bookmarkId: string;
-  title: string;
+  title: string | null | undefined;
+  setTitle: (title: string | null) => void;
+  isPending: boolean;
 }) {
-  const { mutate, isPending } = useUpdateBookmark();
   return (
-    <View className="flex gap-4">
-      <Text className="text-lg text-foreground">Title</Text>
-
+    <InfoSection>
       <Input
         editable={!isPending}
-        multiline={true}
+        multiline={false}
         numberOfLines={1}
-        loading={isPending}
         placeholder="Title"
-        textAlignVertical="top"
-        onEndEditing={(ev) =>
-          mutate({
-            bookmarkId,
-            title: ev.nativeEvent.text ? ev.nativeEvent.text : null,
-          })
-        }
+        onChangeText={(text) => setTitle(text)}
         defaultValue={title ?? ""}
       />
-    </View>
+    </InfoSection>
   );
 }
 
-function NotesEditor({ bookmark }: { bookmark: ZBookmark }) {
-  const { mutate, isPending } = useUpdateBookmark();
+function NotesEditor({
+  notes,
+  setNotes,
+  isPending,
+}: {
+  notes: string | null | undefined;
+  setNotes: (title: string | null) => void;
+  isPending: boolean;
+}) {
   return (
-    <View className="flex gap-4">
-      <Text className="text-lg text-foreground">Notes</Text>
-
+    <InfoSection>
       <Input
         editable={!isPending}
         multiline={true}
-        numberOfLines={3}
-        loading={isPending}
         placeholder="Notes"
+        inputClasses="h-24"
+        onChangeText={(text) => setNotes(text)}
         textAlignVertical="top"
-        onEndEditing={(ev) =>
-          mutate({
-            bookmarkId: bookmark.id,
-            note: ev.nativeEvent.text,
-          })
-        }
-        defaultValue={bookmark.note ?? ""}
+        defaultValue={notes ?? ""}
       />
-    </View>
+    </InfoSection>
   );
 }
 
 const ViewBookmarkPage = () => {
+  const insets = useSafeAreaInsets();
   const { slug } = useLocalSearchParams();
+  const { toast } = useToast();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
   }
 
-  const keyboard = useAnimatedKeyboard();
+  const { mutate: editBookmark, isPending: isEditPending } = useUpdateBookmark({
+    onSuccess: () => {
+      toast({
+        message: "The bookmark has been updated!",
+        showProgress: false,
+      });
+      setEditedBookmark({});
+    },
+  });
 
-  const animatedStyles = useAnimatedStyle(() => ({
-    marginBottom: keyboard.height.value,
-  }));
+  const { mutate: deleteBookmark, isPending: isDeletionPending } =
+    useDeleteBookmark({
+      onSuccess: () => {
+        router.replace("dashboard");
+        toast({
+          message: "The bookmark has been deleted!",
+          showProgress: false,
+        });
+      },
+    });
 
   const {
     data: bookmark,
@@ -150,6 +174,11 @@ const ViewBookmarkPage = () => {
   } = useAutoRefreshingBookmarkQuery({
     bookmarkId: slug,
   });
+
+  const [editedBookmark, setEditedBookmark] = React.useState<{
+    title?: string | null;
+    note?: string;
+  }>({});
 
   if (isPending) {
     return <FullPageSpinner />;
@@ -160,6 +189,42 @@ const ViewBookmarkPage = () => {
       <FullPageError error="Bookmark not found" onRetry={() => refetch()} />
     );
   }
+
+  const handleDeleteBookmark = () => {
+    Alert.alert(
+      "Delete bookmark?",
+      "Are you sure you want to delete this bookmark?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
+          style: "destructive",
+        },
+      ],
+    );
+  };
+
+  const onDone = () => {
+    const doDone = () => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("dashboard");
+      }
+    };
+    if (Object.keys(editedBookmark).length === 0) {
+      doDone();
+      return;
+    }
+    Alert.alert("You have unsaved changes", "Do you still want to leave?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        onPress: doDone,
+      },
+    ]);
+  };
 
   let title = null;
   switch (bookmark.content.type) {
@@ -174,38 +239,77 @@ const ViewBookmarkPage = () => {
       break;
   }
   return (
-    <View>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTransparent: false,
-          headerTitle: title ?? "Untitled",
-          headerRight: () => (
-            <Pressable
-              onPress={() => {
-                if (router.canGoBack()) {
-                  router.back();
-                } else {
-                  router.replace("dashboard");
-                }
-              }}
+    <KeyboardGestureArea interpolator="ios">
+      <KeyboardAwareScrollView
+        className="p-4"
+        bottomOffset={8}
+        keyboardDismissMode="interactive"
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
+      >
+        <Stack.Screen
+          options={{
+            headerShown: true,
+            headerTransparent: false,
+            headerTitle: title ?? "Untitled",
+            headerRight: () => (
+              <Pressable onPress={onDone}>
+                <Text>Done</Text>
+              </Pressable>
+            ),
+          }}
+        />
+        <View className="gap-4">
+          <TitleEditor
+            title={title}
+            setTitle={(title) =>
+              setEditedBookmark((prev) => ({ ...prev, title }))
+            }
+            isPending={isEditPending}
+          />
+          <TagList bookmark={bookmark} />
+          <ManageLists bookmark={bookmark} />
+          <NotesEditor
+            notes={bookmark.note}
+            setNotes={(note) =>
+              setEditedBookmark((prev) => ({ ...prev, note: note ?? "" }))
+            }
+            isPending={isEditPending}
+          />
+          <View className="flex justify-between gap-3">
+            <Button
+              onPress={() =>
+                editBookmark({
+                  bookmarkId: bookmark.id,
+                  ...editedBookmark,
+                })
+              }
+              disabled={isEditPending}
             >
-              <Text className="text-foreground">Done</Text>
-            </Pressable>
-          ),
-        }}
-      />
-      <Animated.ScrollView className="p-4" style={[animatedStyles]}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View className="h-screen gap-4 px-2">
-            <TitleEditor bookmarkId={bookmark.id} title={title ?? ""} />
-            <TagList bookmark={bookmark} />
-            <ManageLists bookmark={bookmark} />
-            <NotesEditor bookmark={bookmark} />
+              <Text>Save</Text>
+            </Button>
+            <Button
+              variant="destructive"
+              onPress={handleDeleteBookmark}
+              disabled={isDeletionPending}
+            >
+              <Text>Delete</Text>
+            </Button>
           </View>
-        </TouchableWithoutFeedback>
-      </Animated.ScrollView>
-    </View>
+          <View className="gap-2">
+            <Text className="items-center text-center">
+              Created {bookmark.createdAt.toLocaleString()}
+            </Text>
+            {bookmark.modifiedAt &&
+              bookmark.modifiedAt.getTime() !==
+                bookmark.createdAt.getTime() && (
+                <Text className="items-center text-center">
+                  Modified {bookmark.modifiedAt.toLocaleString()}
+                </Text>
+              )}
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
+    </KeyboardGestureArea>
   );
 };
 

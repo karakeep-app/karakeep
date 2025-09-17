@@ -86,7 +86,8 @@
       "relevant_first": "Meest relevant eerst"
     },
     "open_editor": "Editor openen",
-    "toggle_show_archived": "Gearchiveerde items weergeven"
+    "toggle_show_archived": "Gearchiveerde items weergeven",
+    "confirm": "Bevestigen"
   },
   "settings": {
     "ai": {
@@ -325,7 +326,71 @@
       "job": "Taak",
       "video_jobs": "Taken voor het downloaden van video's",
       "webhook_jobs": "Webhook-taken",
-      "feed_jobs": "RSS-feedtaken"
+      "feed_jobs": "RSS-feedtaken",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Webcrawling en contentextractie van URL's"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-gestuurde tagging en samenvatting van content"
+        },
+        "indexing": {
+          "title": "Indexing Jobs",
+          "description": "Zoekindexupdates"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Preprocessing Jobs",
+          "description": "Voorbewerking van afbeeldingen en documenten (screenshots, tekstuitlezing, enz.)"
+        },
+        "tidy_assets": {
+          "title": "Tidy Assets Jobs",
+          "description": "Asset opschonen en opslagoptimalisatie"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Video-extractie en download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "Externe webhooknotificaties"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS-feedverwerking en contentupdates"
+        }
+      },
+      "monitor_and_manage": "Monitor en beheer achtergrondtaakwachtrijen en systeemverwerkingstaken",
+      "active": "Actief",
+      "available_actions": "Beschikbare acties",
+      "status": {
+        "title": "Inzicht in taakstatussen",
+        "queued": {
+          "title": "In de wachtrij",
+          "description": "Taken die in de wachtrij staan om verwerkt te worden. Ze starten automatisch wanneer er resources beschikbaar zijn."
+        },
+        "unprocessed": {
+          "title": "Niet verwerkt",
+          "description": "Bladwijzers die nog niet zijn verwerkt. Ze staan hoogstwaarschijnlijk al in de wachtrij voor verwerking, zo niet, dan moet je ze mogelijk handmatig opnieuw in de wachtrij plaatsen."
+        },
+        "failed": {
+          "title": "Mislukt",
+          "description": "Bladwijzers die fouten hebben ondervonden tijdens de verwerking. Deze hebben mogelijk handmatige aandacht nodig."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Alleen mislukte links opnieuw crawlen",
+        "recrawl_all_links": "Alle links opnieuw crawlen",
+        "without_inference": "Zonder gevolgtrekking",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Alleen AI-tags voor mislukte bladwijzers opnieuw genereren",
+        "regenerate_ai_tags_for_all_bookmarks": "AI-tags voor alle bladwijzers opnieuw genereren",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Alleen AI-samenvattingen voor mislukte bladwijzers opnieuw genereren",
+        "regenerate_ai_summaries_for_all_bookmarks": "AI-samenvattingen voor alle bladwijzers opnieuw genereren",
+        "reindex_all_bookmarks": "Alle bladwijzers opnieuw indexeren",
+        "clean_assets": "Zwerfbestanden opschonen en metadata opnieuw synchroniseren",
+        "reprocess_assets_fix_mode": "Niet-verwerkte bestanden opnieuw verwerken"
+      }
     },
     "users_list": {
       "users_list": "Gebruikerslijst",

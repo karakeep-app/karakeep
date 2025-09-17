@@ -31,9 +31,11 @@ export function TagsEditor({
   const [optimisticTags, setOptimisticTags] = useState<ZBookmarkTags[]>(_tags);
 
   const { data: existingTags, isLoading: isExistingTagsLoading } =
-    api.tags.list.useQuery();
-
-  existingTags?.tags.sort((a, b) => a.name.localeCompare(b.name));
+    api.tags.list.useQuery(undefined, {
+      select: (data) => ({
+        tags: data.tags.sort((a, b) => a.name.localeCompare(b.name)),
+      }),
+    });
 
   const onChange = (
     _option: readonly EditableTag[],
@@ -96,14 +98,11 @@ export function TagsEditor({
           attachedBy: "human" as const,
         })) ?? []
       }
-      value={optimisticTags
-        .slice()
-        .sort((a) => (a.attachedBy === "human" ? -1 : 1))
-        .map((t) => ({
-          label: t.name,
-          value: t.id,
-          attachedBy: t.attachedBy,
-        }))}
+      value={optimisticTags.slice().map((t) => ({
+        label: t.name,
+        value: t.id,
+        attachedBy: t.attachedBy,
+      }))}
       isMulti
       closeMenuOnSelect={false}
       isClearable={false}

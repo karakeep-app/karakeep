@@ -448,6 +448,15 @@ update_karakeep() {
     msg_done "Updated $(app) ${CYAN}to v${RELEASE}${CLR}"
     msg_start "Restarting services and cleaning up..."
     rm /tmp/v"$RELEASE".zip
+
+    # Migrations
+    # 0.27 changed the worker compiled file from .mjs to .js
+    if grep -q '^ExecStart=/usr/bin/node\s\+dist/index\.mjs$' /etc/systemd/system/karakeep-workers.service; then
+      sed -i -E 's#^(ExecStart=/usr/bin/node\s+dist/)index\.mjs$#\1index.js#' /etc/systemd/system/karakeep-workers.service
+      systemctl daemon-reload
+    fi
+    # End migrations
+
     systemctl restart karakeep.target
     service_check update
   else

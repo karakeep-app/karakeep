@@ -16,8 +16,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "./ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { DynamicPopoverContent } from "./ui/dynamic-popover";
+import { Popover, PopoverTrigger } from "./ui/popover";
 
 export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
   const { data: allTags } = api.tags.list.useQuery();
@@ -64,7 +66,7 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[320px] p-0">
+      <DynamicPopoverContent className="w-[320px] p-0">
         <Command>
           <CommandInput
             value={input}
@@ -72,6 +74,21 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
             placeholder="Search Tags ..."
           />
           <CommandList>
+            <CommandGroup>
+              <CommandItem
+                onSelect={() =>
+                  mutate({
+                    bookmarkId,
+                    attach: [{ tagName: input }],
+                    detach: [],
+                  })
+                }
+              >
+                <Plus className="mr-2 size-4" />
+                Create &quot;{input}&quot; ...
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
             <CommandGroup>
               {allTags?.tags
                 .sort((a, b) => a.name.localeCompare(b.name))
@@ -95,23 +112,9 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
                   </CommandItem>
                 ))}
             </CommandGroup>
-            <CommandGroup>
-              <CommandItem
-                onSelect={() =>
-                  mutate({
-                    bookmarkId,
-                    attach: [{ tagName: input }],
-                    detach: [],
-                  })
-                }
-              >
-                <Plus className="mr-2 size-4" />
-                Create &quot;{input}&quot; ...
-              </CommandItem>
-            </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
+      </DynamicPopoverContent>
     </Popover>
   );
 }

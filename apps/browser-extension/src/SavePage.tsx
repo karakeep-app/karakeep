@@ -48,6 +48,7 @@ export default function SavePage() {
           newBookmarkRequest = {
             type: BookmarkTypes.LINK,
             url: currentTab.url,
+            title: currentTab.title,
           };
         } else {
           setError("Couldn't find the URL of the current tab");

@@ -2,10 +2,17 @@ import fs from "fs";
 import * as os from "os";
 import path from "path";
 import { execa } from "execa";
-import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
+import {
+  QuotaService,
+  StorageQuotaError,
+  VideoWorkerQueue,
+  ZVideoRequest,
+  zvideoRequestSchema,
+} from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   newAssetId,
@@ -14,33 +21,22 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import {
-  VideoWorkerQueue,
-  ZVideoRequest,
-  zvideoRequestSchema,
-} from "@karakeep/shared/queues";
-import {
-  checkStorageQuota,
-  StorageQuotaError,
-} from "@karakeep/trpc/lib/storageQuota";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
-import { withTimeout } from "../utils";
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
 
 export class VideoWorker {
-  static build() {
+  static async build() {
     logger.info("Starting video worker ...");
 
-    return new Runner<ZVideoRequest>(
+    return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
-        run: withTimeout(
-          runWorker,
-          /* timeoutSec */ serverConfig.crawler.downloadVideoTimeout,
-        ),
+        run: runWorker,
         onComplete: async (job) => {
+          workerStatsCounter.labels("video", "completed").inc();
           const jobId = job.id;
           logger.info(
             `[VideoCrawler][${jobId}] Video Download Completed successfully`,
@@ -48,6 +44,7 @@ export class VideoWorker {
           return Promise.resolve();
         },
         onError: async (job) => {
+          workerStatsCounter.labels("video", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[VideoCrawler][${jobId}] Video Download job failed: ${job.error}`,
@@ -149,7 +146,11 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const fileSize = stats.size;
 
   try {
-    const quotaApproved = await checkStorageQuota(db, userId, fileSize);
+    const quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      userId,
+      fileSize,
+    );
 
     await saveAssetFromFile({
       userId,

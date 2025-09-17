@@ -21,3 +21,20 @@ export function getAPIClient() {
     ],
   });
 }
+
+export function getAPIClientFor(opts: { serverAddr: string; apiKey: string }) {
+  return createTRPCClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: `${opts.serverAddr}/api/trpc`,
+        maxURLLength: 14000,
+        transformer: superjson,
+        headers() {
+          return {
+            authorization: `Bearer ${opts.apiKey}`,
+          };
+        },
+      }),
+    ],
+  });
+}

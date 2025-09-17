@@ -3,7 +3,13 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import BookmarkPreview from "@/components/dashboard/preview/BookmarkPreview";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function BookmarkPreviewPage(props: {
   params: Promise<{ bookmarkId: string }>;
@@ -22,6 +28,11 @@ export default function BookmarkPreviewPage(props: {
 
   return (
     <Dialog open={open} onOpenChange={setOpenWithRouter}>
+      <VisuallyHidden>
+        <DialogHeader>
+          <DialogTitle>Preview</DialogTitle>
+        </DialogHeader>
+      </VisuallyHidden>
       <DialogContent
         className="h-[90%] max-w-[90%] overflow-hidden p-0"
         hideCloseBtn={true}

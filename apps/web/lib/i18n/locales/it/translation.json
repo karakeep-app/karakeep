@@ -38,7 +38,8 @@
       "relevant_first": "Più rilevanti prima"
     },
     "open_editor": "Apri editor",
-    "toggle_show_archived": "Mostra archiviati"
+    "toggle_show_archived": "Mostra archiviati",
+    "confirm": "Conferma"
   },
   "common": {
     "attachments": "Allegati",
@@ -351,7 +352,7 @@
     "multiple_urls_dialog_title": "Importare gli URL come segnalibri separati?",
     "multiple_urls_dialog_desc": "L'input contiene diversi URL su linee separate. Vuoi importarli come segnalibri diversi?",
     "import_as_text": "Importa come segnalibro di testo",
-    "placeholder": "Incolla un link o un'immagine, scrivi una nota o trascina un'immagine qui...",
+    "placeholder": "Incolla un link o un'immagine, scrivi una nota o trascina un'immagine qui…",
     "disabled_submissions": "Le iscrizioni sono disattivate",
     "new_item": "NUOVO ELEMENTO",
     "quickly_focus": "Puoi mettere il focus qui premendo ⌘ + E",
@@ -385,7 +386,71 @@
       "feed_jobs": "Lavori feed RSS",
       "webhook_jobs": "Lavori Webhook",
       "asset_preprocessing_jobs": "Processi di pre-elaborazione asset",
-      "video_jobs": "Lavori di download video"
+      "video_jobs": "Lavori di download video",
+      "jobs": {
+        "crawler": {
+          "title": "Processi di crawling",
+          "description": "Web crawling ed estrazione di contenuti dagli URL"
+        },
+        "inference": {
+          "title": "Processi di inferenza",
+          "description": "Tagging e riepilogo dei contenuti basati sull'intelligenza artificiale"
+        },
+        "indexing": {
+          "title": "Processi di indicizzazione",
+          "description": "Aggiornamenti dell'indice di ricerca"
+        },
+        "asset_preprocessing": {
+          "title": "Processi di pre-elaborazione degli asset",
+          "description": "Pre-elaborazione di immagini e documenti (screenshot, estrazione di testo, ecc.)"
+        },
+        "tidy_assets": {
+          "title": "Processi di pulizia degli asset",
+          "description": "Pulizia degli asset e ottimizzazione dello storage"
+        },
+        "video": {
+          "title": "Processi di download video",
+          "description": "Estrazione e download di video"
+        },
+        "webhook": {
+          "title": "Processi webhook",
+          "description": "Notifiche webhook esterne"
+        },
+        "feed": {
+          "title": "Processi di Feed RSS",
+          "description": "Elaborazione dei feed RSS e aggiornamenti dei contenuti"
+        }
+      },
+      "monitor_and_manage": "Monitora e gestisci le code dei processi in background e le attività di elaborazione del sistema",
+      "active": "Attivo",
+      "available_actions": "Azioni disponibili",
+      "status": {
+        "title": "Comprensione degli stati di un processo",
+        "queued": {
+          "title": "In coda",
+          "description": "Lavori in attesa di essere elaborati. Inizieranno automaticamente quando le risorse saranno disponibili."
+        },
+        "unprocessed": {
+          "title": "Non elaborati",
+          "description": "Segnalibri che non sono ancora stati elaborati. Molto probabilmente sono già in coda per l'elaborazione, in caso contrario, potrebbe essere necessario rimetterli in coda manualmente."
+        },
+        "failed": {
+          "title": "Falliti",
+          "description": "Segnalibri che hanno riscontrato errori durante l'elaborazione. Questi potrebbero richiedere un intervento manuale."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Riesamina solo i link falliti",
+        "recrawl_all_links": "Riesamina tutti i link",
+        "without_inference": "Senza inferenza",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Rigenera i tag AI solo per i segnalibri falliti",
+        "regenerate_ai_tags_for_all_bookmarks": "Rigenera i tag AI per tutti i segnalibri",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Rigenera i riepiloghi AI solo per i segnalibri falliti",
+        "regenerate_ai_summaries_for_all_bookmarks": "Rigenera i riepiloghi AI per tutti i segnalibri",
+        "reindex_all_bookmarks": "Reindicizza tutti i segnalibri",
+        "clean_assets": "Pulisci le risorse orfane e risincronizza i metadati",
+        "reprocess_assets_fix_mode": "Rielabora le risorse non elaborate"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Recupera solo link falliti",

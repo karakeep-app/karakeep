@@ -38,7 +38,8 @@
     "close_bulk_edit": "Tömeges szerkesztés bezárása",
     "save": "Mentés",
     "open_editor": "Szerkesztő megnyitása",
-    "toggle_show_archived": "Archiváltak megjelenítése"
+    "toggle_show_archived": "Archiváltak megjelenítése",
+    "confirm": "Megerősít"
   },
   "settings": {
     "user_settings": "Felhasználói beállítások",
@@ -440,7 +441,71 @@
       "video_jobs": "Videóletöltési feladatok",
       "webhook_jobs": "Webhook feladatok",
       "asset_preprocessing_jobs": "Eszköz-előfeldolgozási feladatok",
-      "feed_jobs": "RSS-hírcsatorna feladatok"
+      "feed_jobs": "RSS-hírcsatorna feladatok",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler munkák",
+          "description": "Weboldal feltérképezése és tartalom kinyerése URL-ekből"
+        },
+        "inference": {
+          "title": "Következtetési munkák",
+          "description": "AI-alapú címkézés és tartalom összefoglalása"
+        },
+        "indexing": {
+          "title": "Indexelő munkák",
+          "description": "Keresési index frissítések"
+        },
+        "asset_preprocessing": {
+          "title": "Eszközök előfeldolgozási munkái",
+          "description": "Kép- és dokumentumfeldolgozás (képernyőképek, szövegkinyerés stb.)"
+        },
+        "tidy_assets": {
+          "title": "Eszközrendezési munkák",
+          "description": "Eszközök tisztítása és tárolás optimalizálása"
+        },
+        "video": {
+          "title": "Videóletöltési munkák",
+          "description": "Videók kivonása és letöltése"
+        },
+        "webhook": {
+          "title": "Webhook munkák",
+          "description": "Külső webhook értesítések"
+        },
+        "feed": {
+          "title": "RSS feed munkák",
+          "description": "RSS feed feldolgozása és tartalomfrissítések"
+        }
+      },
+      "monitor_and_manage": "Háttérfeladat-sorok és rendszerfeldolgozási feladatok figyelése és kezelése",
+      "active": "Aktív",
+      "available_actions": "Elérhető műveletek",
+      "status": {
+        "title": "A munkák állapotának megértése",
+        "queued": {
+          "title": "Sorban",
+          "description": "Feldolgozásra váró feladatok. Automatikusan elindulnak, amint rendelkezésre állnak erőforrások."
+        },
+        "unprocessed": {
+          "title": "Feldolgozatlan",
+          "description": "A még fel nem dolgozott könyvjelzők. Valószínűleg már sorban állnak a feldolgozásra, ha nem, akkor manuálisan újra kell sorba állítani őket."
+        },
+        "failed": {
+          "title": "Sikertelen",
+          "description": "Könyvjelzők, amelyek hibákba ütköztek a feldolgozás során. Ezek manuális beavatkozást igényelhetnek."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Csak a sikertelen hivatkozások újbóli feltérképezése",
+        "recrawl_all_links": "Összes hivatkozás újbóli feltérképezése",
+        "without_inference": "Következtetés nélkül",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "AI-címkék újragenerálása csak a sikertelen könyvjelzőkhöz",
+        "regenerate_ai_tags_for_all_bookmarks": "AI-címkék újragenerálása az összes könyvjelzőhöz",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "AI-összefoglalók újragenerálása csak a sikertelen könyvjelzőkhöz",
+        "regenerate_ai_summaries_for_all_bookmarks": "AI-összefoglalók újragenerálása az összes könyvjelzőhöz",
+        "reindex_all_bookmarks": "Összes könyvjelző újraindexelése",
+        "clean_assets": "Lógó elemek tisztítása és metaadatok újraszinkronizálása",
+        "reprocess_assets_fix_mode": "Feldolgozatlan elemek újrafeldolgozása"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Hibás hivatkozások újratérképezése",

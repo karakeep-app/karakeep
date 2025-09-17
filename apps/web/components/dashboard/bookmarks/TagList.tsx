@@ -24,24 +24,20 @@ export default function TagList({
   }
   return (
     <>
-      {bookmark.tags
-        .sort((a, b) =>
-          a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
-        )
-        .map((t) => (
-          <div key={t.id} className={className}>
-            <Link
-              key={t.id}
-              className={cn(
-                badgeVariants({ variant: "secondary" }),
-                "text-nowrap font-light text-gray-700 hover:bg-foreground hover:text-secondary dark:text-gray-400",
-              )}
-              href={`/dashboard/tags/${t.id}`}
-            >
-              {t.name}
-            </Link>
-          </div>
-        ))}
+      {bookmark.tags.map((t) => (
+        <div key={t.id} className={className}>
+          <Link
+            key={t.id}
+            className={cn(
+              badgeVariants({ variant: "secondary" }),
+              "text-nowrap font-light text-gray-700 hover:bg-foreground hover:text-secondary dark:text-gray-400",
+            )}
+            href={`/dashboard/tags/${t.id}`}
+          >
+            {t.name}
+          </Link>
+        </div>
+      ))}
     </>
   );
 }

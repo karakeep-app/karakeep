@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
 import { SqliteError } from "@karakeep/db";
 import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
-import { triggerSearchReindex } from "@karakeep/shared/queues";
+import { triggerSearchReindex } from "@karakeep/shared-server";
 import {
   zCreateTagRequestSchema,
   zGetTagResponseSchema,

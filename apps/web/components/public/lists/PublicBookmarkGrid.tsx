@@ -58,7 +58,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
               <Link
                 href={bookmark.content.url}
                 target="_blank"
-                className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight text-gray-900"
+                className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight"
               >
                 {bookmark.title}
               </Link>
@@ -70,7 +70,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
         return (
           <div className="space-y-2">
             {bookmark.title && (
-              <h3 className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight text-gray-900">
+              <h3 className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight">
                 {bookmark.title}
               </h3>
             )}
@@ -107,7 +107,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
           <div className="space-y-2">
             {bookmark.bannerImageUrl ? (
               <div className="aspect-video w-full overflow-hidden rounded bg-gray-100">
-                <Link href={bookmark.content.assetUrl}>
+                <Link href={bookmark.content.assetUrl} target="_blank">
                   <img
                     src={bookmark.bannerImageUrl}
                     alt={bookmark.title ?? "Asset preview"}
@@ -128,7 +128,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
               <Link
                 href={bookmark.content.assetUrl}
                 target="_blank"
-                className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight text-gray-900"
+                className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight"
               >
                 {bookmark.title}
               </Link>

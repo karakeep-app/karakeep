@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes, ZBookmark } from "../types/bookmarks";
 
 export const zExportBookmarkSchema = z.object({
   createdAt: z.number(),

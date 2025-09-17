@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -26,6 +25,7 @@ import {
   ExpandIcon,
   Video,
 } from "lucide-react";
+import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
 import {
@@ -62,6 +62,7 @@ function FullPageArchiveSection({ link }: { link: ZBookmarkedLink }) {
     link.fullPageArchiveAssetId ?? link.precrawledArchiveAssetId;
   return (
     <iframe
+      sandbox=""
       title={link.url}
       src={`/api/assets/${archiveAssetId}`}
       className="relative h-full min-w-full"
@@ -107,7 +108,9 @@ export default function LinkContentSection({
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   const defaultSection =
     availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
-  const [section, setSection] = useState<string>(defaultSection);
+  const [section, setSection] = useQueryState("section", {
+    defaultValue: defaultSection,
+  });
 
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");

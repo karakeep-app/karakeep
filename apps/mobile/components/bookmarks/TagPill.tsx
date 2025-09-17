@@ -7,7 +7,7 @@ export default function TagPill({ tag }: { tag: ZBookmarkTags }) {
   return (
     <View
       key={tag.id}
-      className="rounded-full border border-accent px-2.5 py-0.5 text-xs font-semibold"
+      className="rounded-full border border-input px-2.5 py-0.5 text-xs font-semibold"
     >
       <Link className="text-foreground" href={`dashboard/tags/${tag.id}`}>
         {tag.name}

@@ -15,10 +15,6 @@ const nextConfig = withPWA({
     });
     return config;
   },
-  devIndicators: {
-    buildActivity: true,
-    buildActivityPosition: "bottom-left",
-  },
   async headers() {
     return [
       {

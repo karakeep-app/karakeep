@@ -1,11 +1,19 @@
 // Copied from https://gist.github.com/devster31/4e8c6548fd16ffb75c02e6f24e27f9b9
+
 import * as cheerio from "cheerio";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
 
-import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes } from "../types/bookmarks";
+import { zExportSchema } from "./exporters";
 
-import { zExportSchema } from "./exportBookmarks";
+export type ImportSource =
+  | "html"
+  | "pocket"
+  | "omnivore"
+  | "karakeep"
+  | "linkwarden"
+  | "tab-session-manager";
 
 export interface ParsedBookmark {
   title: string;
@@ -19,11 +27,7 @@ export interface ParsedBookmark {
   paths: string[][];
 }
 
-export async function parseNetscapeBookmarkFile(
-  file: File,
-): Promise<ParsedBookmark[]> {
-  const textContent = await file.text();
-
+function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
   if (!textContent.startsWith("<!DOCTYPE NETSCAPE-Bookmark-file-1>")) {
     throw Error("The uploaded html file does not seem to be a bookmark file");
   }
@@ -66,11 +70,7 @@ export async function parseNetscapeBookmarkFile(
     .get();
 }
 
-export async function parsePocketBookmarkFile(
-  file: File,
-): Promise<ParsedBookmark[]> {
-  const textContent = await file.text();
-
+function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
   const records = parse(textContent, {
     columns: true,
     skip_empty_lines: true,
@@ -94,11 +94,7 @@ export async function parsePocketBookmarkFile(
   });
 }
 
-export async function parseKarakeepBookmarkFile(
-  file: File,
-): Promise<ParsedBookmark[]> {
-  const textContent = await file.text();
-
+function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
   const parsed = zExportSchema.safeParse(JSON.parse(textContent));
   if (!parsed.success) {
     throw new Error(
@@ -131,10 +127,7 @@ export async function parseKarakeepBookmarkFile(
   });
 }
 
-export async function parseOmnivoreBookmarkFile(
-  file: File,
-): Promise<ParsedBookmark[]> {
-  const textContent = await file.text();
+function parseOmnivoreBookmarkFile(textContent: string): ParsedBookmark[] {
   const zOmnivoreExportSchema = z.array(
     z.object({
       title: z.string(),
@@ -164,10 +157,7 @@ export async function parseOmnivoreBookmarkFile(
   });
 }
 
-export async function parseLinkwardenBookmarkFile(
-  file: File,
-): Promise<ParsedBookmark[]> {
-  const textContent = await file.text();
+function parseLinkwardenBookmarkFile(textContent: string): ParsedBookmark[] {
   const zLinkwardenExportSchema = z.object({
     collections: z.array(
       z.object({
@@ -201,11 +191,9 @@ export async function parseLinkwardenBookmarkFile(
   });
 }
 
-export async function parseTabSessionManagerStateFile(
-  file: File,
-): Promise<ParsedBookmark[]> {
-  const textContent = await file.text();
-
+function parseTabSessionManagerStateFile(
+  textContent: string,
+): ParsedBookmark[] {
   const zTab = z.object({
     url: z.string(),
     title: z.string(),
@@ -242,9 +230,7 @@ export async function parseTabSessionManagerStateFile(
   );
 }
 
-export function deduplicateBookmarks(
-  bookmarks: ParsedBookmark[],
-): ParsedBookmark[] {
+function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
 
@@ -283,4 +269,32 @@ export function deduplicateBookmarks(
   }
 
   return [...deduplicatedBookmarksMap.values(), ...textBookmarks];
+}
+
+export function parseImportFile(
+  source: ImportSource,
+  textContent: string,
+): ParsedBookmark[] {
+  let result: ParsedBookmark[];
+  switch (source) {
+    case "html":
+      result = parseNetscapeBookmarkFile(textContent);
+      break;
+    case "pocket":
+      result = parsePocketBookmarkFile(textContent);
+      break;
+    case "karakeep":
+      result = parseKarakeepBookmarkFile(textContent);
+      break;
+    case "omnivore":
+      result = parseOmnivoreBookmarkFile(textContent);
+      break;
+    case "linkwarden":
+      result = parseLinkwardenBookmarkFile(textContent);
+      break;
+    case "tab-session-manager":
+      result = parseTabSessionManagerStateFile(textContent);
+      break;
+  }
+  return deduplicateBookmarks(result);
 }

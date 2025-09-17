@@ -80,7 +80,8 @@
     "fetch_now": "Načítať teraz",
     "summarize_with_ai": "Zhrnúť pomocou AI",
     "open_editor": "Otvoriť editor",
-    "toggle_show_archived": "Zobraziť archivované"
+    "toggle_show_archived": "Zobraziť archivované",
+    "confirm": "Potvrdiť"
   },
   "lists": {
     "favourites": "Obľúbené",
@@ -413,7 +414,71 @@
       "failed": "Neúspešné",
       "webhook_jobs": "Úlohy Webhook",
       "asset_preprocessing_jobs": "Úlohy predbežného spracovania aktív",
-      "feed_jobs": "Úlohy RSS kanála"
+      "feed_jobs": "Úlohy RSS kanála",
+      "jobs": {
+        "crawler": {
+          "title": "Úlohy pre prehľadávače",
+          "description": "Webové prehľadávanie a extrakcia obsahu z URL"
+        },
+        "inference": {
+          "title": "Úlohy odvodzovania",
+          "description": "Označovanie obsahu pomocou AI a vytváranie súhrnov"
+        },
+        "indexing": {
+          "title": "Úlohy indexovania",
+          "description": "Aktualizácie indexu vyhľadávania"
+        },
+        "asset_preprocessing": {
+          "title": "Úlohy predbežného spracovania zdrojov",
+          "description": "Predbežné spracovanie obrázkov a dokumentov (snímky obrazovky, extrakcia textu atď.)"
+        },
+        "tidy_assets": {
+          "title": "Úlohy na upratovanie zdrojov",
+          "description": "Čistenie zdrojov a optimalizácia úložiska"
+        },
+        "video": {
+          "title": "Úlohy na sťahovanie videí",
+          "description": "Extrakcia a sťahovanie videí"
+        },
+        "webhook": {
+          "title": "Úlohy Webhook",
+          "description": "Externé upozornenia Webhook"
+        },
+        "feed": {
+          "title": "Úlohy RSS Feed",
+          "description": "Spracovanie RSS kanálov a aktualizácie obsahu"
+        }
+      },
+      "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a systémové úlohy spracovania",
+      "active": "Aktívne",
+      "available_actions": "Dostupné akcie",
+      "status": {
+        "title": "Porozumenie stavom úloh",
+        "queued": {
+          "title": "Zaradené do frontu",
+          "description": "Úlohy čakajúce v rade na spracovanie. Spustia sa automaticky, keď budú dostupné zdroje."
+        },
+        "unprocessed": {
+          "title": "Nespracované",
+          "description": "Záložky, ktoré ešte neboli spracované. S najväčšou pravdepodobnosťou sú už zaradené do frontu na spracovanie, ak nie, možno ich budete musieť znova zaradiť do frontu manuálne."
+        },
+        "failed": {
+          "title": "Neúspešné",
+          "description": "Záložky, pri ktorých sa počas spracovania vyskytli chyby. Môžu vyžadovať manuálnu pozornosť."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Znova preliezť len neúspešné odkazy",
+        "recrawl_all_links": "Znova preliezť všetky odkazy",
+        "without_inference": "Bez odvodzovania",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Znovu vygenerovať značky AI len pre neúspešné záložky",
+        "regenerate_ai_tags_for_all_bookmarks": "Znovu vygenerovať značky AI pre všetky záložky",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Znovu vygenerovať súhrny AI len pre neúspešné záložky",
+        "regenerate_ai_summaries_for_all_bookmarks": "Znovu vygenerovať súhrny AI pre všetky záložky",
+        "reindex_all_bookmarks": "Preindexovať všetky záložky",
+        "clean_assets": "Vyčistiť nepotrebné prostriedky a znova synchronizovať metadáta",
+        "reprocess_assets_fix_mode": "Znova spracovať nespracované prostriedky"
+      }
     },
     "server_stats": {
       "server_version": "Verzia servera",

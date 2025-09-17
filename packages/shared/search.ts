@@ -24,6 +24,22 @@ export const zBookmarkSearchDocument = z.object({
 
 export type BookmarkSearchDocument = z.infer<typeof zBookmarkSearchDocument>;
 
+export type SortOrder = "asc" | "desc";
+export type SortableAttributes = "createdAt";
+
+export type FilterableAttributes = "userId" | "id";
+export type FilterQuery =
+  | {
+      type: "eq";
+      field: FilterableAttributes;
+      value: string;
+    }
+  | {
+      type: "in";
+      field: FilterableAttributes;
+      values: string[];
+    };
+
 export interface SearchResult {
   id: string;
   score?: number;
@@ -31,10 +47,11 @@ export interface SearchResult {
 
 export interface SearchOptions {
   query: string;
-  filter?: string[];
+  // Diffeernt filters are ANDed together
+  filter?: FilterQuery[];
   limit?: number;
   offset?: number;
-  sort?: string[];
+  sort?: { field: SortableAttributes; order: SortOrder }[];
 }
 
 export interface SearchResponse {
@@ -45,8 +62,6 @@ export interface SearchResponse {
 
 export interface SearchIndexClient {
   addDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
-  updateDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
-  deleteDocument(id: string): Promise<void>;
   deleteDocuments(ids: string[]): Promise<void>;
   search(options: SearchOptions): Promise<SearchResponse>;
   clearIndex(): Promise<void>;

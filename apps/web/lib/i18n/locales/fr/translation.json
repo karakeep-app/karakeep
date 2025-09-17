@@ -86,7 +86,8 @@
     },
     "recrawl": "Réexplorer",
     "open_editor": "Ouvrir l'éditeur",
-    "toggle_show_archived": "Afficher les éléments archivés"
+    "toggle_show_archived": "Afficher les éléments archivés",
+    "confirm": "Confirmer"
   },
   "settings": {
     "back_to_app": "Retour à l'application",
@@ -326,7 +327,71 @@
       "video_jobs": "Tâches de téléchargement de vidéos",
       "webhook_jobs": "Tâches Webhook",
       "asset_preprocessing_jobs": "Tâches de prétraitement des ressources",
-      "feed_jobs": "Tâches de flux RSS"
+      "feed_jobs": "Tâches de flux RSS",
+      "jobs": {
+        "crawler": {
+          "title": "Tâches d'exploration",
+          "description": "Exploration du Web et extraction de contenu à partir d'URL"
+        },
+        "inference": {
+          "title": "Tâches d'inférence",
+          "description": "Attribution de balises et résumé de contenu assistés par l'IA"
+        },
+        "indexing": {
+          "title": "Tâches d'indexation",
+          "description": "Mises à jour de l'index de recherche"
+        },
+        "asset_preprocessing": {
+          "title": "Tâches de prétraitement des ressources",
+          "description": "Prétraitement des images et des documents (captures d'écran, extraction de texte, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Tâches concernant le nettoyage des ressources",
+          "description": "Nettoyage des ressources et optimisation du stockage"
+        },
+        "video": {
+          "title": "Tâches de téléchargement de vidéos",
+          "description": "Extraction et téléchargement de vidéos"
+        },
+        "webhook": {
+          "title": "Tâches de Webhook",
+          "description": "Notifications Webhook externes"
+        },
+        "feed": {
+          "title": "Tâches de flux RSS",
+          "description": "Traitement des flux RSS et mises à jour du contenu"
+        }
+      },
+      "monitor_and_manage": "Surveiller et gérer les files d'attente des tâches en arrière-plan et les tâches de traitement du système",
+      "active": "Active",
+      "available_actions": "Actions disponibles",
+      "status": {
+        "title": "Comprendre les états des tâches",
+        "queued": {
+          "title": "En file d'attente",
+          "description": "Tâches en attente de traitement. Elles démarreront automatiquement lorsque des ressources seront disponibles."
+        },
+        "unprocessed": {
+          "title": "Non traité",
+          "description": "Marque-pages qui n'ont pas encore été traités. Ils sont très probablement déjà en file d'attente pour être traités, sinon, vous devrez peut-être les remettre manuellement en file d'attente."
+        },
+        "failed": {
+          "title": "Échec",
+          "description": "Marque-pages qui ont rencontré des erreurs lors du traitement. Ils peuvent nécessiter une attention manuelle."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Réexplorer uniquement les liens ayant échoué",
+        "recrawl_all_links": "Réexplorer tous les liens",
+        "without_inference": "Sans inférence",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Régénérer les balises IA pour les marque-pages ayant échoué uniquement",
+        "regenerate_ai_tags_for_all_bookmarks": "Régénérer les balises IA pour tous les marque-pages",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Régénérer les résumés d'IA pour les marque-pages ayant échoué uniquement",
+        "regenerate_ai_summaries_for_all_bookmarks": "Régénérer les résumés d'IA pour tous les marque-pages",
+        "reindex_all_bookmarks": "Réindexer tous les marque-pages",
+        "clean_assets": "Nettoyer les assets orphelins et resynchroniser les métadonnées",
+        "reprocess_assets_fix_mode": "Retraiter les assets non traités"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Recrawler uniquement les liens échoués",
@@ -537,7 +602,7 @@
     }
   },
   "highlights": {
-    "no_highlights": "T'as pas encore de surlignages."
+    "no_highlights": "Tu n'as pas encore de surlignages."
   },
   "banners": {
     "no_bookmarks": {

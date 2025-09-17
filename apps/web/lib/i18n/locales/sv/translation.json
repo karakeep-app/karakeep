@@ -86,7 +86,8 @@
     "bulk_edit": "Massredigera",
     "apply_all": "Använd alla",
     "open_editor": "Öppna redigeraren",
-    "toggle_show_archived": "Visa arkiverade"
+    "toggle_show_archived": "Visa arkiverade",
+    "confirm": "Bekräfta"
   },
   "settings": {
     "back_to_app": "Tillbaka till app",
@@ -326,7 +327,71 @@
       "failed": "Misslyckades",
       "video_jobs": "Nedladdningsjobb för video",
       "webhook_jobs": "Webhook-jobb",
-      "feed_jobs": "RSS-flödesjobb"
+      "feed_jobs": "RSS-flödesjobb",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Web crawling och innehållsextrahering från URL:er"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-driven taggning och sammanfattning av innehåll"
+        },
+        "indexing": {
+          "title": "Indexeringsjobb",
+          "description": "Uppdateringar av sökindex"
+        },
+        "asset_preprocessing": {
+          "title": "Tillgång Förbehandlingsjobb",
+          "description": "Bild- och dokumentförbehandling (skärmbilder, textutvinning, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Städa Upp Tillgångar Jobb",
+          "description": "Rensning av tillgångar och lagringsoptimering"
+        },
+        "video": {
+          "title": "Nedladdningsjobb för video",
+          "description": "Video extrahering och nedladdning"
+        },
+        "webhook": {
+          "title": "Webhook-jobb",
+          "description": "Externa webhook-aviseringar"
+        },
+        "feed": {
+          "title": "RSS-flödesjobb",
+          "description": "RSS-flödesbearbetning och innehållsuppdateringar"
+        }
+      },
+      "monitor_and_manage": "Övervaka och hantera bakgrundsjobbköer och systembearbetningsuppgifter",
+      "active": "Aktiv",
+      "available_actions": "Tillgängliga åtgärder",
+      "status": {
+        "title": "Förstå Jobbstatusar",
+        "queued": {
+          "title": "Köad",
+          "description": "Jobb som väntar i kön på att behandlas. De startar automatiskt när resurser finns tillgängliga."
+        },
+        "unprocessed": {
+          "title": "Obehandlade",
+          "description": "Bokmärken som ännu inte behandlats. De är troligen redan köade för behandling, om inte kan du behöva ställa dem i kö manuellt igen."
+        },
+        "failed": {
+          "title": "Misslyckades",
+          "description": "Bokmärken som stött på fel under bearbetningen. Dessa kan behöva manuell uppmärksamhet."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Sök om bara misslyckade länkar",
+        "recrawl_all_links": "Sök om alla länkar",
+        "without_inference": "Utan inferens",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Generera om AI-taggar bara för misslyckade bokmärken",
+        "regenerate_ai_tags_for_all_bookmarks": "Generera om AI-taggar för alla bokmärken",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Generera om AI-sammanfattningar bara för misslyckade bokmärken",
+        "regenerate_ai_summaries_for_all_bookmarks": "Generera om AI-sammanfattningar för alla bokmärken",
+        "reindex_all_bookmarks": "Indexera om alla bokmärken",
+        "clean_assets": "Rensa hängande tillgångar och synkronisera om metadata",
+        "reprocess_assets_fix_mode": "Behandla om obehandlade tillgångar"
+      }
     },
     "actions": {
       "reindex_all_bookmarks": "Återindexera alla bokmärken",

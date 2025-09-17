@@ -1813,12 +1813,12 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 100
                   },
                   "description": {
                     "type": "string",
                     "minLength": 0,
-                    "maxLength": 100
+                    "maxLength": 500
                   },
                   "icon": {
                     "type": "string"
@@ -2006,13 +2006,13 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 100
                   },
                   "description": {
                     "type": "string",
                     "nullable": true,
                     "minLength": 0,
-                    "maxLength": 100
+                    "maxLength": 500
                   },
                   "icon": {
                     "type": "string"

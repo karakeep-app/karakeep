@@ -8,11 +8,8 @@ import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
-import { isShuttingDown } from "exit";
-import { HttpProxyAgent } from "http-proxy-agent";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import { exitAbortController } from "exit";
 import { JSDOM, VirtualConsole } from "jsdom";
-import { DequeuedJob, EnqueueOptions, Runner } from "liteque";
 import metascraper from "metascraper";
 import metascraperAmazon from "metascraper-amazon";
 import metascraperAuthor from "metascraper-author";
@@ -24,14 +21,15 @@ import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
-import fetch from "node-fetch";
+import { workerStatsCounter } from "metrics";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { withTimeout } from "utils";
+import { fetchWithProxy } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
+import { z } from "zod";
 
-import type { ZCrawlLinkRequest } from "@karakeep/shared/queues";
+import type { ZCrawlLinkRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import {
   assets,
@@ -41,6 +39,16 @@ import {
   bookmarks,
   users,
 } from "@karakeep/db/schema";
+import {
+  AssetPreprocessingQueue,
+  LinkCrawlerQueue,
+  OpenAIQueue,
+  QuotaService,
+  triggerSearchReindex,
+  triggerWebhook,
+  VideoWorkerQueue,
+  zCrawlLinkRequestSchema,
+} from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   getAssetSize,
@@ -55,19 +63,25 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
-  AssetPreprocessingQueue,
-  LinkCrawlerQueue,
-  OpenAIQueue,
-  triggerSearchReindex,
-  triggerWebhook,
-  VideoWorkerQueue,
-  zCrawlLinkRequestSchema,
-} from "@karakeep/shared/queues";
+  DequeuedJob,
+  EnqueueOptions,
+  getQueueClient,
+} from "@karakeep/shared/queueing";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-import { checkStorageQuota } from "@karakeep/trpc/lib/storageQuota";
 
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+
+/**
+ * Normalize a Content-Type header by stripping parameters (e.g., charset)
+ * and lowercasing the media type, so comparisons against supported types work.
+ */
+function normalizeContentType(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+  return header.split(";", 1)[0]!.trim().toLowerCase();
+}
 
 const metascraperParser = metascraper([
   metascraperDate({
@@ -86,43 +100,29 @@ const metascraperParser = metascraper([
   metascraperUrl(),
 ]);
 
-function getProxyAgent(url: string) {
-  const { proxy } = serverConfig;
-
-  if (!proxy.httpProxy && !proxy.httpsProxy) {
-    return undefined;
-  }
-
-  const urlObj = new URL(url);
-  const protocol = urlObj.protocol;
-
-  // Check if URL should bypass proxy
-  if (proxy.noProxy) {
-    const noProxyList = proxy.noProxy.split(",").map((host) => host.trim());
-    const hostname = urlObj.hostname;
-
-    for (const noProxyHost of noProxyList) {
-      if (
-        noProxyHost === hostname ||
-        (noProxyHost.startsWith(".") && hostname.endsWith(noProxyHost)) ||
-        hostname.endsWith("." + noProxyHost)
-      ) {
-        return undefined;
-      }
-    }
-  }
-
-  if (protocol === "https:" && proxy.httpsProxy) {
-    return new HttpsProxyAgent(proxy.httpsProxy);
-  } else if (protocol === "http:" && proxy.httpProxy) {
-    return new HttpProxyAgent(proxy.httpProxy);
-  } else if (proxy.httpProxy) {
-    // Fallback to HTTP proxy for HTTPS if HTTPS proxy not configured
-    return new HttpProxyAgent(proxy.httpProxy);
-  }
-
-  return undefined;
+interface Cookie {
+  name: string;
+  value: string;
+  domain?: string;
+  path?: string;
+  expires?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: "Strict" | "Lax" | "None";
 }
+
+const cookieSchema = z.object({
+  name: z.string(),
+  value: z.string(),
+  domain: z.string().optional(),
+  path: z.string().optional(),
+  expires: z.number().optional(),
+  httpOnly: z.boolean().optional(),
+  secure: z.boolean().optional(),
+  sameSite: z.enum(["Strict", "Lax", "None"]).optional(),
+});
+
+const cookiesSchema = z.array(cookieSchema);
 
 function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
   const { proxy } = serverConfig;
@@ -148,16 +148,10 @@ function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
   };
 }
 
-const fetchWithProxy = (url: string, options: Record<string, unknown> = {}) => {
-  const agent = getProxyAgent(url);
-  if (agent) {
-    options.agent = agent;
-  }
-  return fetch(url, options);
-};
-
 let globalBrowser: Browser | undefined;
 let globalBlocker: PlaywrightBlocker | undefined;
+// Global variable to store parsed cookies
+let globalCookies: Cookie[] = [];
 // Guards the interactions with the browser instance.
 // This is needed given that most of the browser APIs are async.
 const browserMutex = new Mutex();
@@ -203,7 +197,7 @@ async function launchBrowser() {
       logger.error(
         `[Crawler] Failed to connect to the browser instance, will retry in 5 secs: ${globalBrowserResult.error.stack}`,
       );
-      if (isShuttingDown) {
+      if (exitAbortController.signal.aborted) {
         logger.info("[Crawler] We're shutting down so won't retry.");
         return;
       }
@@ -214,7 +208,7 @@ async function launchBrowser() {
     }
     globalBrowser = globalBrowserResult.data;
     globalBrowser?.on("disconnected", () => {
-      if (isShuttingDown) {
+      if (exitAbortController.signal.aborted) {
         logger.info(
           "[Crawler] The Playwright browser got disconnected. But we're shutting down so won't restart it.",
         );
@@ -257,14 +251,12 @@ export class CrawlerWorker {
     }
 
     logger.info("Starting crawler worker ...");
-    const worker = new Runner<ZCrawlLinkRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZCrawlLinkRequest>(
       LinkCrawlerQueue,
       {
-        run: withTimeout(
-          runCrawler,
-          /* timeoutSec */ serverConfig.crawler.jobTimeoutSec,
-        ),
+        run: runCrawler,
         onComplete: async (job) => {
+          workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
           const bookmarkId = job.data.bookmarkId;
@@ -273,6 +265,7 @@ export class CrawlerWorker {
           }
         },
         onError: async (job) => {
+          workerStatsCounter.labels("crawler", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
@@ -290,7 +283,32 @@ export class CrawlerWorker {
       },
     );
 
+    await loadCookiesFromFile();
+
     return worker;
+  }
+}
+
+async function loadCookiesFromFile(): Promise<void> {
+  try {
+    const path = serverConfig.crawler.browserCookiePath;
+    if (!path) {
+      logger.info(
+        "[Crawler] Not defined in the server configuration BROWSER_COOKIE_PATH",
+      );
+      return;
+    }
+    const data = await fs.readFile(path, "utf8");
+    const cookies = JSON.parse(data);
+    globalCookies = cookiesSchema.parse(cookies);
+  } catch (error) {
+    logger.error("Failed to read or parse cookies file:", error);
+    if (error instanceof z.ZodError) {
+      logger.error("[Crawler] Invalid cookie file format:", error.errors);
+    } else {
+      logger.error("[Crawler] Failed to read or parse cookies file:", error);
+    }
+    throw error;
   }
 }
 
@@ -390,6 +408,13 @@ async function crawlPage(
     proxy: getPlaywrightProxyConfig(),
   });
   try {
+    if (globalCookies.length > 0) {
+      await context.addCookies(globalCookies);
+      logger.info(
+        `[Crawler][${jobId}] Cookies successfully loaded into browser context`,
+      );
+    }
+
     // Create a new page in the context
     const page = await context.newPage();
 
@@ -537,7 +562,7 @@ async function storeScreenshot(
 
   // Check storage quota before saving the screenshot
   const { data: quotaApproved, error: quotaError } = await tryCatch(
-    checkStorageQuota(db, userId, screenshot.byteLength),
+    QuotaService.checkStorageQuota(db, userId, screenshot.byteLength),
   );
 
   if (quotaError) {
@@ -568,7 +593,9 @@ async function downloadAndStoreFile(
   abortSignal: AbortSignal,
 ) {
   try {
-    logger.info(`[Crawler][${jobId}] Downloading ${fileType} from "${url}"`);
+    logger.info(
+      `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+    );
     const response = await fetchWithProxy(url, {
       signal: abortSignal,
     });
@@ -578,14 +605,16 @@ async function downloadAndStoreFile(
     const buffer = await response.arrayBuffer();
     const assetId = newAssetId();
 
-    const contentType = response.headers.get("content-type");
+    const contentType = normalizeContentType(
+      response.headers.get("content-type"),
+    );
     if (!contentType) {
       throw new Error("No content type in the response");
     }
 
     // Check storage quota before saving the asset
     const { data: quotaApproved, error: quotaError } = await tryCatch(
-      checkStorageQuota(db, userId, buffer.byteLength),
+      QuotaService.checkStorageQuota(db, userId, buffer.byteLength),
     );
 
     if (quotaError) {
@@ -654,7 +683,7 @@ async function archiveWebpage(
   const fileSize = stats.size;
 
   const { data: quotaApproved, error: quotaError } = await tryCatch(
-    checkStorageQuota(db, userId, fileSize),
+    QuotaService.checkStorageQuota(db, userId, fileSize),
   );
 
   if (quotaError) {
@@ -709,7 +738,8 @@ async function getContentType(
       method: "HEAD",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
-    const contentType = response.headers.get("content-type");
+    const rawContentType = response.headers.get("content-type");
+    const contentType = normalizeContentType(rawContentType);
     logger.info(
       `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
     );
@@ -812,7 +842,7 @@ async function storeHtmlContent(
   }
 
   const { data: quotaApproved, error: quotaError } = await tryCatch(
-    checkStorageQuota(db, userId, contentBuffer.byteLength),
+    QuotaService.checkStorageQuota(db, userId, contentBuffer.byteLength),
   );
   if (quotaError) {
     logger.warn(
@@ -939,6 +969,7 @@ async function crawlAndParseUrl(
   };
 
   // TODO(important): Restrict the size of content to store
+  const assetDeletionTasks: Promise<void>[] = [];
   await db.transaction(async (txn) => {
     await txn
       .update(bookmarkLinks)
@@ -979,9 +1010,11 @@ async function crawlAndParseUrl(
         },
         txn,
       );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldScreenshotAssetId));
     }
     if (imageAssetInfo) {
       await updateAsset(oldImageAssetId, imageAssetInfo, txn);
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
     }
     if (htmlContentAssetInfo.result === "stored") {
       await updateAsset(
@@ -997,18 +1030,16 @@ async function crawlAndParseUrl(
         },
         txn,
       );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
     } else if (oldContentAssetId) {
       // Unlink the old content asset
       await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
     }
   });
 
   // Delete the old assets if any
-  await Promise.all([
-    silentDeleteAsset(userId, oldScreenshotAssetId),
-    silentDeleteAsset(userId, oldImageAssetId),
-    silentDeleteAsset(userId, oldContentAssetId),
-  ]);
+  await Promise.all(assetDeletionTasks);
 
   return async () => {
     if (
@@ -1148,14 +1179,16 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     // Update the search index
     await triggerSearchReindex(bookmarkId, enqueueOpts);
 
-    // Trigger a potential download of a video from the URL
-    await VideoWorkerQueue.enqueue(
-      {
-        bookmarkId,
-        url,
-      },
-      enqueueOpts,
-    );
+    if (serverConfig.crawler.downloadVideo) {
+      // Trigger a potential download of a video from the URL
+      await VideoWorkerQueue.enqueue(
+        {
+          bookmarkId,
+          url,
+        },
+        enqueueOpts,
+      );
+    }
 
     // Trigger a webhook
     await triggerWebhook(bookmarkId, "crawled", undefined, enqueueOpts);

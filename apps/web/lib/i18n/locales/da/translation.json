@@ -38,7 +38,8 @@
       "relevant_first": "Mest relevant først"
     },
     "open_editor": "Åbn editor",
-    "toggle_show_archived": "Vis arkiverede"
+    "toggle_show_archived": "Vis arkiverede",
+    "confirm": "Bekræft"
   },
   "settings": {
     "import": {
@@ -283,7 +284,71 @@
       "webhook_jobs": "Webhook-opgaver",
       "video_jobs": "Videonedehentningsopgaver",
       "feed_jobs": "RSS-feed-opgaver",
-      "asset_preprocessing_jobs": "Forbehandlingsopgaver for ressourcer"
+      "asset_preprocessing_jobs": "Forbehandlingsopgaver for ressourcer",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Webcrawling og indholdsudtrækning fra URL'er"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-drevet tagning og opsummering af indhold"
+        },
+        "indexing": {
+          "title": "Indexeringsjob",
+          "description": "Søgeindeksopdateringer"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Præprocesseringsjob",
+          "description": "Billed- og dokumentpræprocessering (skærmbilleder, tekstudtrækning osv.)"
+        },
+        "tidy_assets": {
+          "title": "Ryddelige Asset Jobs",
+          "description": "Asset oprydning og lageroptimering"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Videoudtrækning og download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "Eksterne webhook notifikationer"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS-feed behandling og indholdsopdateringer"
+        }
+      },
+      "monitor_and_manage": "Overvåg og administrer baggrundsjobkøer og systembehandlingsopgaver",
+      "active": "Aktiv",
+      "available_actions": "Tilgængelige handlinger",
+      "status": {
+        "title": "Forståelse af Jobtilstande",
+        "queued": {
+          "title": "Sat i kø",
+          "description": "Job, der venter i køen på at blive behandlet. De starter automatisk, når der er ressourcer tilgængelige."
+        },
+        "unprocessed": {
+          "title": "Ikke behandlet",
+          "description": "Bogmærker, der endnu ikke er blevet behandlet. De er sandsynligvis allerede sat i kø til behandling, hvis ikke, skal du måske manuelt sætte dem i kø igen."
+        },
+        "failed": {
+          "title": "Mislykkedes",
+          "description": "Bogmærker, der stødte på fejl under behandlingen. Disse kan kræve manuel opmærksomhed."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Gennemsøg kun links, der er mislykkedes, igen",
+        "recrawl_all_links": "Gennemsøg alle links igen",
+        "without_inference": "Uden inferens",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Opret AI-tags igen kun for mislykkede bogmærker",
+        "regenerate_ai_tags_for_all_bookmarks": "Opret AI-tags for alle bogmærker igen",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Opret AI-oversigter igen kun for mislykkede bogmærker",
+        "regenerate_ai_summaries_for_all_bookmarks": "Opret AI-oversigter for alle bogmærker igen",
+        "reindex_all_bookmarks": "Genindekser alle bogmærker",
+        "clean_assets": "Ryd op i efterladte aktiver og synkroniser metadata igen",
+        "reprocess_assets_fix_mode": "Genbehandl ubehandlede aktiver"
+      }
     },
     "server_stats": {
       "server_version": "Server-version",
