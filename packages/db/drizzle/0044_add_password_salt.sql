@@ -1,1 +1,0 @@
-ALTER TABLE `user` ADD `salt` text DEFAULT '' NOT NULL;

@@ -1,1 +1,0 @@
-ALTER TABLE `bookmarkLists` ADD `description` text;

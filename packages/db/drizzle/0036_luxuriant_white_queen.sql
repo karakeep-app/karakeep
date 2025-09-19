@@ -1,1 +1,0 @@
-ALTER TABLE `highlights` ADD `text` text;

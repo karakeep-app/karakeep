@@ -1,1 +1,0 @@
-ALTER TABLE bookmarkLinks ADD `htmlContent` text;

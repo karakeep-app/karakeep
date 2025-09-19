@@ -1,1 +1,0 @@
-CREATE INDEX `bookmarkLinks_url_idx` ON `bookmarkLinks` (`url`);

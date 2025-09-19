@@ -1,1 +1,0 @@
-ALTER TABLE bookmarkAssets ADD `sourceUrl` text;

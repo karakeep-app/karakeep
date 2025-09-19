@@ -1,1 +1,0 @@
-ALTER TABLE `bookmarkTexts` ADD `sourceUrl` text;

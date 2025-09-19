@@ -1,5 +1,0 @@
-#!/command/with-contenv sh
-# shellcheck shell=bash
-
-cd /app/apps/workers;
-exec node dist/index.js

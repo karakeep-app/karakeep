@@ -1,6 +1,0 @@
-#!/command/with-contenv sh
-# shellcheck shell=bash
-
-echo "Running db migration script";
-cd /db_migrations;
-exec node index.js;

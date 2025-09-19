@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS `apiKey_name_unique`;

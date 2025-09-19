@@ -1,1 +1,0 @@
-ALTER TABLE `userSettings` ADD `timezone` text DEFAULT 'UTC';

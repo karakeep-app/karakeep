@@ -1,8 +1,0 @@
-name: Question / Support Request
-description: Get help with anything related to Karakeep
-labels: ["question"]
-body:
-  - type: markdown
-    attributes:
-      value: |
-        We use Github discussions for anything that's not a bug report or a feature request. Please ask your question in the [Q&A section](https://github.com/karakeep-app/karakeep/discussions/categories/q-a) and someone will answer it soon!

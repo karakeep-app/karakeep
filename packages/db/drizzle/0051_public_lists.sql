@@ -1,1 +1,0 @@
-ALTER TABLE `bookmarkLists` ADD `public` integer DEFAULT false NOT NULL;

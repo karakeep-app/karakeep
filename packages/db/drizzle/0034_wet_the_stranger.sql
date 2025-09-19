@@ -1,1 +1,0 @@
-ALTER TABLE `bookmarkLinks` ADD `crawlStatusCode` integer DEFAULT 200;
