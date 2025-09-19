@@ -1,0 +1,325 @@
+# Universal AI Rules First Run Workflow Template
+# This template can be deployed to any repository with proper .env.tpl configuration
+name: AI Rules (bootstrap once)
+on:
+  push:
+    branches: [main]
+
+jobs:
+  maybe-bootstrap:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check if required rules exist
+        id: check
+        run: |
+          # Load .env.tpl to see what assistant and rules are expected
+          if [ -f ".env.tpl" ]; then
+            # Load environment variables from .env.tpl safely
+            while IFS='=' read -r key value; do
+              # Skip empty lines and comments
+              [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
+              # Export the variable
+              export "$key"="$value"
+            done < .env.tpl
+          fi
+
+          # Default to augment if not specified
+          ASSISTANT=${AI_ASSISTANT:-augment}
+
+          # Get all required rules from environment
+          ALL_RULES="${AI_RULES_COMMON:-} ${AI_RULES:-}"
+          echo "Checking for rules: $ALL_RULES"
+
+          # Check if all expected rules for this assistant exist
+          case "$ASSISTANT" in
+            augment)
+              DEST_DIR=".augment/rules"
+              ;;
+            cursor)
+              DEST_DIR=".cursor/rules"
+              ;;
+            *)
+              # For other assistants, check if any rules exist
+              if [ -f ".rules" ] || [ -f ".windsurfrules" ] || [ -f ".cursorrules" ] \
+                 || [ -f "GEMINI.md" ] || [ -f "CLAUDE.md" ]; then
+                echo "skip=true" >> $GITHUB_OUTPUT
+                echo "Rules exist for $ASSISTANT"
+              else
+                echo "skip=false" >> $GITHUB_OUTPUT
+                echo "No rules found for $ASSISTANT - will bootstrap"
+              fi
+              exit 0
+              ;;
+          esac
+
+          # For augment and cursor, check individual rule files
+          missing_rules=""
+          if [ -d "$DEST_DIR" ]; then
+            for rule_spec in $ALL_RULES; do
+              rule_file="$(basename "$rule_spec")"
+              if [ ! -f "$DEST_DIR/$rule_file" ]; then
+                missing_rules="$missing_rules $rule_file"
+              fi
+            done
+          else
+            # Directory doesn't exist, so all rules are missing
+            for rule_spec in $ALL_RULES; do
+              rule_file="$(basename "$rule_spec")"
+              missing_rules="$missing_rules $rule_file"
+            done
+          fi
+
+          if [ -z "$missing_rules" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "All required rules exist for $ASSISTANT"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Missing rules for $ASSISTANT: $missing_rules - will bootstrap"
+          fi
+    # call reusable only when needed
+  call-sync:
+    if: needs.maybe-bootstrap.outputs.skip == 'false'
+    needs: [maybe-bootstrap]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          # Configurable 1Password vault and path
+          GITHUB_PAT: op://${{ vars.AI_WORKFLOWS_SECRETS_VAULT || 'SECRETS' }}/${{ vars.AI_WORKFLOWS_GITHUB_PAT_PATH || 'Github/PAT_Claude' }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Checkout rules repository
+        uses: actions/checkout@v4
+        with:
+          # Configurable source repository and reference
+          repository: ${{ vars.AI_WORKFLOWS_SOURCE_REPO || 'carsaig/llm-context' }}
+          ref: ${{ vars.AI_WORKFLOWS_SOURCE_REF || 'main' }}
+          token: ${{ env.GITHUB_PAT }}
+          path: _rules
+
+      - name: Load env
+        run: |
+          set -e
+          if [ -f ".env.tpl" ]; then
+            echo "Using .env.tpl"
+            # Filter out comments and empty lines, then load into GITHUB_ENV
+            grep -E '^[A-Z_]+=.*' ".env.tpl" >> $GITHUB_ENV || echo "No valid environment variables found in .env.tpl"
+          else
+            echo "Missing .env.tpl"; exit 1
+          fi
+
+      - name: Resolve inputs
+        id: vars
+        run: |
+          to_lines() { tr ' ' '\n' | sed '/^$/d'; }
+          echo "MODE=single" >> $GITHUB_ENV
+          echo "ASSISTANT=${AI_ASSISTANT:-cursor}" >> $GITHUB_ENV
+          # Normalize lists
+          echo "RULES=$(echo "${AI_RULES:-}" | to_lines | paste -sd' ' -)" >> $GITHUB_ENV
+          echo "COMMON=$(echo "${AI_RULES_COMMON:-}" | to_lines | paste -sd' ' -)" >> $GITHUB_ENV
+          echo "DEST=${AI_RULES_DEST:-.ai/rules}" >> $GITHUB_ENV
+          echo "RULES_REPO=${AI_RULES_REPO:-${{ vars.AI_WORKFLOWS_SOURCE_REPO || 'carsaig/llm-context' }}}" >> $GITHUB_ENV
+          echo "RULES_REF=${AI_RULES_REF:-${{ vars.AI_WORKFLOWS_SOURCE_REF || 'main' }}}" >> $GITHUB_ENV
+          echo "RULES_DIR=${AI_RULES_DIR:-${{ vars.AI_RULES_DIR || '.rules' }}}" >> $GITHUB_ENV
+
+      - name: Generate for selected assistant
+        run: |
+          set -euo pipefail
+          echo "Assistant: $ASSISTANT"
+          echo "Mode: ${MODE:-single}"
+          mkdir -p "$DEST"
+
+          # collect files (case-insensitive matching) and create mapping
+          FILES=""
+          FILE_MAPPING=""
+          for f in $COMMON $RULES; do
+            rule_file="${f#.rules/}"
+            found_file=""
+
+            # Try exact match first
+            if [ -f "_rules/$RULES_DIR/$rule_file" ]; then
+              found_file="_rules/$RULES_DIR/$rule_file"
+            else
+              # Case-insensitive search
+              found_file=$(find "_rules/$RULES_DIR" -iname "$rule_file" | head -1)
+            fi
+
+            if [ -n "$found_file" ]; then
+              FILES="$FILES $found_file"
+              FILE_MAPPING="$FILE_MAPPING $f:$found_file"
+              echo "Found: $f -> $found_file"
+            else
+              echo "Warning: $f not found in _rules/$RULES_DIR/"
+            fi
+          done
+
+          if [ -z "$FILES" ]; then
+            echo "No rule files found!"; exit 1
+          fi
+
+          # Function to combine files with headers
+          combine() {
+            local output="$1"; shift
+            echo "# Combined AI Rules" > "$output"
+            echo "# Generated on $(date)" >> "$output"
+            echo "" >> "$output"
+            for src in "$@"; do
+              echo "# === $(basename "$src") ===" >> "$output"
+              cat "$src" >> "$output"
+              echo "" >> "$output"
+            done
+          }
+
+          case "$ASSISTANT" in
+            cursor)
+              if [ "${MODE:-single}" = "single" ]; then
+                mkdir -p .cursor/rules
+                # write individual files using base names, preserving existing
+                for src in $FILES; do
+                  base="$(basename "$src")"
+                  target=".cursor/rules/$base"
+                  if [ ! -f "$target" ]; then
+                    cp -f "$src" "$target"
+                    echo "added: $src -> $target"
+                  else
+                    echo "preserved existing: $target"
+                  fi
+                done
+                # optional legacy combined file
+                cat .cursor/rules/* > .cursorrules || true
+              else
+                mkdir -p "$DEST/cursor"
+                combine "$DEST/cursor/rules.md" $FILES
+              fi
+              ;;
+            zed)
+              if [ "${MODE:-single}" = "single" ]; then
+                combine ".rules" $FILES
+              else
+                mkdir -p "$DEST/zed"
+                combine "$DEST/zed/rules.md" $FILES
+              fi
+              ;;
+            windsurf)
+              if [ "${MODE:-single}" = "single" ]; then
+                combine ".windsurfrules" $FILES
+              else
+                mkdir -p "$DEST/windsurf"
+                combine "$DEST/windsurf/rules.md" $FILES
+              fi
+              ;;
+            gemini)
+              if [ "${MODE:-single}" = "single" ]; then
+                combine "GEMINI.md" $FILES
+              else
+                mkdir -p "$DEST/gemini"
+                combine "$DEST/gemini/rules.md" $FILES
+              fi
+              ;;
+            claude)
+              if [ "${MODE:-single}" = "single" ]; then
+                combine "CLAUDE.md" $FILES
+              else
+                mkdir -p "$DEST/claude"
+                combine "$DEST/claude/rules.md" $FILES
+              fi
+              ;;
+            augment)
+              if [ "${MODE:-single}" = "single" ]; then
+                mkdir -p .augment/rules
+                # Handle case-sensitive file operations for augment
+                for mapping in $FILE_MAPPING; do
+                  requested="${mapping%:*}"
+                  src="${mapping#*:}"
+                  base="$(basename "$requested")"
+                  target=".augment/rules/$base"
+
+                  # Check if file exists with different case
+                  existing_file=""
+                  if [ -d ".augment/rules" ]; then
+                    existing_file=$(find ".augment/rules" -iname "$base" | head -1)
+                  fi
+
+                  if [ -n "$existing_file" ] && [ "$existing_file" != "$target" ]; then
+                    # File exists with different case - remove old and add new
+                    rm -f "$existing_file"
+                    cp -f "$src" "$target"
+                    echo "updated case: $existing_file -> $target"
+                  elif [ ! -f "$target" ]; then
+                    # File doesn't exist - add new
+                    cp -f "$src" "$target"
+                    echo "added: $src -> $target"
+                  else
+                    # File exists with same case - update content
+                    cp -f "$src" "$target"
+                    echo "updated: $src -> $target"
+                  fi
+                done
+              else
+                mkdir -p "$DEST/augment"
+                combine "$DEST/augment/rules.md" $FILES
+              fi
+              ;;
+            *)
+              echo "Unknown assistant: $ASSISTANT"; exit 1;;
+          esac
+
+      - name: Copy templates folder
+        run: |
+          set -e
+          if [ -d "_rules/.templates" ]; then
+            rm -rf .templates
+            cp -R "_rules/.templates" ".templates"
+            echo "Copied templates -> .templates/"
+          else
+            echo "No _rules/.templates in ${RULES_REPO}@${RULES_REF}"
+          fi
+
+      - name: Show outputs
+        run: |
+          echo "---- outputs ----"
+          find . -maxdepth 2 -name ".rules" -o -name ".windsurfrules" -o -name ".cursorrules" -o -name "GEMINI.md" -o -name "CLAUDE.md" -o -name "AUGMENT.md" -o -path "./.cursor/rules/*" -o -path "./.ai/rules/*" | sed 's|^./||' | sort
+
+      - name: Commit and push rules
+        run: |
+          # Configurable git user information
+          git config --local user.email "${{ vars.AI_WORKFLOWS_GIT_EMAIL || 'action@github.com' }}"
+          git config --local user.name "${{ vars.AI_WORKFLOWS_GIT_NAME || 'GitHub Action' }}"
+          # Configure Git to be case-sensitive for proper case handling
+          git config --local core.ignorecase false
+          # Configure pull strategy to handle divergent branches
+          git config --local pull.rebase false
+          # Add only the generated files, not the temporary _rules checkout
+          # Add each path individually to avoid errors from non-existent directories
+          [ -d ".augment" ] && git add .augment/
+          [ -d ".cursor" ] && git add .cursor/
+          [ -d ".templates" ] && git add .templates/
+          [ -f ".rules" ] && git add .rules
+          [ -f ".windsurfrules" ] && git add .windsurfrules
+          [ -f ".cursorrules" ] && git add .cursorrules
+          [ -f "GEMINI.md" ] && git add GEMINI.md
+          [ -f "CLAUDE.md" ] && git add CLAUDE.md
+          [ -f "AUGMENT.md" ] && git add AUGMENT.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Bootstrap AI rules from central repository (${ASSISTANT})"
+            # Handle potential push conflicts by pulling and retrying
+            if ! git push; then
+              echo "Push failed, pulling and retrying..."
+              # Pull from the correct remote (origin) and branch (main)
+              git pull origin main --no-edit
+              git push
+            fi
+          fi

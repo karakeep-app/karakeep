@@ -1,12 +1,10 @@
 services:
   web:
-    build:
-      dockerfile: docker/Dockerfile
-      context: ..
-      target: aio
+    image: ${WEB_IMAGE:-ghcr.io/carsaig/karakeep:latest}
     restart: unless-stopped
     volumes:
       - data:/data
+      - /home/ubuntu/backups/karakeep/data/:/data
     ports:
       - 3000:3000
     environment:
@@ -22,7 +20,7 @@ services:
       start_period: 60s
 
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:124
+    image: gcr.io/zenika-hub/alpine-chrome:123
     restart: unless-stopped
     command:
       - --no-sandbox
@@ -37,13 +35,14 @@ services:
       timeout: 5s
       retries: 3
 
-  meilisearch:
+  meilisearch: 
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
     environment:
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch:/meili_data
+      - /home/ubuntu/backups/karakeep/meili_data/:/maili_data
     healthcheck:
       test: ["CMD", "true"]
       interval: 30s
@@ -51,5 +50,5 @@ services:
       retries: 3
 
 volumes:
-  meilisearch:
+  meilisearch: 
   data:

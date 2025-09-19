@@ -1,0 +1,78 @@
+name: Build and Push Docker
+on:
+  release:
+    types:
+      - created
+  push:
+    branches:
+      - main
+
+jobs:
+  push:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: karakeep-web
+            target: web
+            tags_latest: ghcr.io/hoarder-app/hoarder-web:latest,ghcr.io/mohamedbassem/hoarder-web:latest,ghcr.io/karakeep-app/karakeep-web:latest
+            tags_release: ghcr.io/hoarder-app/hoarder-web:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-web:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-web:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-web:release,ghcr.io/mohamedbassem/hoarder-web:release,ghcr.io/karakeep-app/karakeep-web:release
+          - name: karakeep-workers
+            target: workers
+            tags_latest: ghcr.io/hoarder-app/hoarder-workers:latest,ghcr.io/mohamedbassem/hoarder-workers:latest,ghcr.io/karakeep-app/karakeep-workers:latest
+            tags_release: ghcr.io/hoarder-app/hoarder-workers:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-workers:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-workers:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-workers:release,ghcr.io/mohamedbassem/hoarder-workers:release,ghcr.io/karakeep-app/karakeep-workers:release
+          - name: karakeep-cli
+            target: cli
+            tags_latest: ghcr.io/hoarder-app/hoarder-cli:latest,ghcr.io/mohamedbassem/hoarder-cli:latest,ghcr.io/karakeep-app/karakeep-cli:latest
+            tags_release: ghcr.io/hoarder-app/hoarder-cli:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-cli:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-cli:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-cli:release,ghcr.io/mohamedbassem/hoarder-cli:release,ghcr.io/karakeep-app/karakeep-cli:release
+          - name: karakeep-mcp
+            target: mcp
+            tags_latest: ghcr.io/karakeep-app/karakeep-mcp:latest
+            tags_release: ghcr.io/karakeep-app/karakeep-mcp:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-mcp:release
+          - name: karakeep-aio
+            target: aio
+            tags_latest: ghcr.io/hoarder-app/hoarder:latest,ghcr.io/karakeep-app/karakeep:latest
+            tags_release: ghcr.io/hoarder-app/hoarder:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder:release,ghcr.io/karakeep-app/karakeep:release
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Github Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_GITHUB_PAT }}
+
+      - name: Build ${{ matrix.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          build-args: SERVER_VERSION=nightly
+          file: docker/Dockerfile
+          target: ${{ matrix.target }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ matrix.tags_latest }}
+          cache-from: type=registry,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
+          cache-to: type=registry,mode=max,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
+
+      - name: Build ${{ matrix.name }} (release)
+        uses: docker/build-push-action@v5
+        if: github.event_name == 'release'
+        with:
+          context: .
+          build-args: SERVER_VERSION=${{ github.event.release.name }}
+          file: docker/Dockerfile
+          target: ${{ matrix.target }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ matrix.tags_release }}
+          cache-from: type=registry,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
+          cache-to: type=registry,mode=max,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
