@@ -1,0 +1,1 @@
+CREATE INDEX `bookmarks_createdAt_idx` ON `bookmarks` (`createdAt`);

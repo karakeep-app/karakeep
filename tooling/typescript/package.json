@@ -1,0 +1,12 @@
+{
+  "name": "@karakeep/tsconfig",
+  "private": true,
+  "version": "0.1.0",
+  "files": [
+    "base.json",
+    "node.json"
+  ],
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.0"
+  }
+}

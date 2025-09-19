@@ -1,0 +1,623 @@
+{
+  "actions": {
+    "add_to_list": "リストに追加",
+    "apply_all": "全て適用",
+    "create": "作成",
+    "fetch_now": "フェッチする",
+    "summarize_with_ai": "AIで要約する",
+    "add": "追加",
+    "delete": "削除",
+    "archive": "アーカイブ",
+    "favorite": "お気に入り",
+    "edit_tags": "タグを編集",
+    "select_all": "全選択",
+    "unselect_all": "全ての選択を解除",
+    "bulk_edit": "一括編集",
+    "manage_lists": "リストの管理",
+    "remove_from_list": "リストから削除",
+    "save": "保存",
+    "edit_title": "タイトルの編集",
+    "sign_out": "サインアウト",
+    "close": "閉じる",
+    "merge": "マージする",
+    "close_bulk_edit": "一括編集を閉じる",
+    "unarchive": "アーカイブを解除",
+    "copy_link": "リンクのコピー",
+    "change_layout": "レイアウトの変更",
+    "edit": "編集",
+    "unfavorite": "お気に入りを解除",
+    "refresh": "リフレッシュ",
+    "recrawl": "再クロール",
+    "ignore": "無視する",
+    "cancel": "キャンセル",
+    "download_full_page_archive": "全てのページアーカイブをダウンロード",
+    "sort": {
+      "title": "並び替え",
+      "newest_first": "新しい順",
+      "oldest_first": "古い順",
+      "relevant_first": "関連性の高い順"
+    },
+    "open_editor": "エディタを開く",
+    "toggle_show_archived": "アーカイブを表示",
+    "confirm": "確認"
+  },
+  "admin": {
+    "actions": {
+      "regenerate_ai_tags_for_failed_bookmarks_only": "失敗したブックマークのみの AI タグを再生成する",
+      "regenerate_ai_tags_for_all_bookmarks": "すべてのブックマークの AI タグを再生成",
+      "without_inference": "推論なし",
+      "reindex_all_bookmarks": "すべてのブックマークを再インデックスする",
+      "recrawl_failed_links_only": "失敗したリンクのみ再クロール",
+      "recrawl_all_links": "すべてのリンクを再クロール",
+      "compact_assets": "コンパクトアセット",
+      "reprocess_assets_fix_mode": "アセットの再処理（修正モード）",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "失敗したブックマークのみAI要約を再生成",
+      "regenerate_ai_summaries_for_all_bookmarks": "すべてのブックマークのAI要約を再生成"
+    },
+    "server_stats": {
+      "server_version": "サーバーバージョン",
+      "server_stats": "サーバー統計情報",
+      "total_bookmarks": "総ブックマーク",
+      "total_users": "総ユーザ数"
+    },
+    "background_jobs": {
+      "job": "ジョブ",
+      "failed": "失敗",
+      "background_jobs": "バックグラウンドジョブ",
+      "inference_jobs": "推論ジョブ",
+      "tidy_assets_jobs": "Tidy アセットジョブ",
+      "queued": "キュー",
+      "indexing_jobs": "インデックス作成ジョブ",
+      "crawler_jobs": "クローラージョブ",
+      "pending": "保留中",
+      "video_jobs": "動画ダウンロードジョブ",
+      "webhook_jobs": "Webhookジョブ",
+      "asset_preprocessing_jobs": "アセットのプリプロセスジョブ",
+      "feed_jobs": "RSSフィードジョブ",
+      "jobs": {
+        "crawler": {
+          "title": "クローラーのジョブ",
+          "description": "URLからのウェブクローリングとコンテンツ抽出"
+        },
+        "inference": {
+          "title": "推論ジョブ",
+          "description": "AIを活用したコンテンツのタグ付けと要約"
+        },
+        "indexing": {
+          "title": "インデックスジョブ",
+          "description": "検索インデックスの更新"
+        },
+        "asset_preprocessing": {
+          "title": "アセットのプレ処理ジョブ",
+          "description": "画像とドキュメントの前処理（スクリーンショット、テキスト抽出など）"
+        },
+        "tidy_assets": {
+          "title": "アセット整理ジョブ",
+          "description": "アセットのクリーンアップとストレージの最適化"
+        },
+        "video": {
+          "title": "ビデオダウンロードジョブ",
+          "description": "動画の抽出とダウンロード"
+        },
+        "webhook": {
+          "title": "Webhookジョブ",
+          "description": "外部Webhook通知"
+        },
+        "feed": {
+          "title": "RSSフィードジョブ",
+          "description": "RSSフィードの処理とコンテンツの更新"
+        }
+      },
+      "monitor_and_manage": "バックグラウンドジョブキューとシステム処理タスクの監視および管理",
+      "active": "アクティブ",
+      "available_actions": "利用可能なアクション",
+      "status": {
+        "title": "ジョブの状態について",
+        "queued": {
+          "title": "キューに追加済み",
+          "description": "処理待ちのジョブが並んでいます。リソースが利用可能になると自動的に開始されます。"
+        },
+        "unprocessed": {
+          "title": "未処理",
+          "description": "まだ処理されていないブックマーク。ほとんどの場合、すでに処理待ちのキューに入っています。そうでない場合は、手動で再キューする必要があるかもしれません。"
+        },
+        "failed": {
+          "title": "失敗",
+          "description": "処理中にエラーが発生したブックマーク。手動での対応が必要になる場合があります。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "失敗したリンクのみを再クロール",
+        "recrawl_all_links": "すべてのリンクを再クロール",
+        "without_inference": "推論なし",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "失敗したブックマークのみAIタグを再生成",
+        "regenerate_ai_tags_for_all_bookmarks": "すべてのブックマークのAIタグを再生成",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "失敗したブックマークのみAI要約を再生成",
+        "regenerate_ai_summaries_for_all_bookmarks": "すべてのブックマークのAI要約を再生成",
+        "reindex_all_bookmarks": "すべてのブックマークを再インデックス",
+        "clean_assets": "宙ぶらりんのアセットをクリーンアップしてメタデータを再同期",
+        "reprocess_assets_fix_mode": "未処理のアセットを再処理"
+      }
+    },
+    "admin_settings": "管理者設定",
+    "users_list": {
+      "asset_sizes": "アセットサイズ",
+      "local_user": "ローカルユーザー",
+      "confirm_password": "パスワードの確認",
+      "create_user": "ユーザーを作成",
+      "change_role": "ロールの変更",
+      "num_bookmarks": "ブックマーク数",
+      "users_list": "ユーザーリスト",
+      "reset_password": "パスワードをリセット",
+      "delete_user": "ユーザーを削除",
+      "delete_user_confirm_description": "ほんまにユーザー「{{name}}」を削除してええん？",
+      "unlimited": "無制限"
+    }
+  },
+  "settings": {
+    "info": {
+      "user_info": "ユーザ情報",
+      "new_password": "新しいパスワード",
+      "basic_details": "基本情報",
+      "change_password": "パスワードを変更する",
+      "current_password": "現在のパスワード",
+      "confirm_new_password": "新しいパスワードの確認",
+      "options": "オプション",
+      "interface_lang": "インターフェース言語",
+      "user_settings": {
+        "user_settings_updated": "ユーザー設定が更新されました！",
+        "bookmark_click_action": {
+          "title": "ブックマーククリック時の動作",
+          "open_external_url": "元のURLを開く",
+          "open_bookmark_details": "ブックマークの詳細を開く"
+        },
+        "archive_display_behaviour": {
+          "show": "タグとリストにアーカイブされたブックマークを表示する",
+          "title": "アーカイブされたブックマーク",
+          "hide": "タグとリストにアーカイブされたブックマークを非表示にする"
+        }
+      }
+    },
+    "ai": {
+      "prompt_preview": "プロンプトプレビュー",
+      "images_prompt": "画像プロンプト",
+      "tagging_rule_description": "ここで追加したプロンプトは、タグ生成時にモデルのルールとして組み込まれます。最終的なプロンプトは、プロンプト プレビュー セクションで確認できます。",
+      "ai_settings": "AI設定",
+      "text_prompt": "テキストプロンプト",
+      "tagging_rules": "タグ付けルール",
+      "summarization_prompt": "要約プロンプト",
+      "all_tagging": "すべてのタグ付け",
+      "text_tagging": "テキストタグ付け",
+      "image_tagging": "画像タグ付け",
+      "summarization": "要約"
+    },
+    "import": {
+      "import_export_bookmarks": "ブックマークのインポート/エクスポート",
+      "import_bookmarks_from_html_file": "HTML ファイルからブックマークをインポートする",
+      "import_bookmarks_from_karakeep_export": "Karakeep エクスポートからブックマークをインポート",
+      "imported_bookmarks": "インポートされたブックマーク",
+      "import_bookmarks_from_pocket_export": "Pocketのエクスポートからブックマークをインポート",
+      "import_bookmarks_from_omnivore_export": "Omnivoreエクスポートからブックマークをインポート",
+      "export_links_and_notes": "リンクとメモをエクスポートする",
+      "import_export": "インポート/エクスポート",
+      "import_bookmarks_from_linkwarden_export": "Linkwardenのエクスポートからブックマークをインポート",
+      "import_bookmarks_from_tab_session_manager_export": "Tab Session Managerからブックマークをインポート"
+    },
+    "api_keys": {
+      "key_success_please_copy": "キーをコピーして安全な場所に保管してください。ダイアログを閉じると、再度アクセスできなくなります。",
+      "new_api_key_desc": "APIキーに一意の名前を付ける",
+      "key_success": "キーが正常に作成されました",
+      "api_keys": "APIキー",
+      "new_api_key": "新しいAPIキー"
+    },
+    "broken_links": {
+      "broken_links": "リンク切れ",
+      "last_crawled_at": "最終クロール日時",
+      "crawling_status": "クロールステータス",
+      "crawling_failed": "クロールに失敗しました"
+    },
+    "back_to_app": "アプリに戻る",
+    "user_settings": "ユーザ設定",
+    "feeds": {
+      "add_a_subscription": "サブスクリプションを追加する",
+      "rss_subscriptions": "RSS 購読",
+      "feed_enabled": "RSSフィードは有効です",
+      "feed_disabled": "RSSフィードは無効です"
+    },
+    "manage_assets": {
+      "manage_assets": "アセットの管理",
+      "no_assets": "まだアセットがありません。",
+      "asset_type": "アセットタイプ",
+      "bookmark_link": "ブックマークリンク",
+      "asset_link": "アセットリンク",
+      "delete_asset": "アセットを削除",
+      "delete_asset_confirmation": "このアセットを削除してもよろしいですか？"
+    },
+    "webhooks": {
+      "webhooks": "ウェブフック",
+      "description": "Webhook を使用して、ブックマークの作成、変更、またはクロール時にアクションをトリガーできます。",
+      "events": {
+        "title": "イベント",
+        "crawled": "クロール済み",
+        "created": "作成済み",
+        "edited": "編集済み"
+      },
+      "auth_token": "認証トークン",
+      "add_auth_token": "認証トークンを追加",
+      "edit_auth_token": "認証トークンを編集",
+      "create_webhook": "Webhookを作成",
+      "delete_webhook": "Webhookを削除",
+      "delete_webhook_confirmation": "このWebhookを削除してもよろしいですか？",
+      "edit_webhook": "Webhook を編集",
+      "webhook_url": "Webhook URL"
+    },
+    "rules": {
+      "if": "もし…",
+      "rules": "ルールエンジン",
+      "rule_name": "ルール名",
+      "description": "ルールを使用すると、イベントが発生したときにアクションをトリガーできます。",
+      "ceate_rule": "ルールを作成",
+      "edit_rule": "ルールを編集",
+      "save_rule": "ルールを保存",
+      "delete_rule": "ルールを削除",
+      "delete_rule_confirmation": "このルールを削除してもよろしいですか？",
+      "whenever": "いつでも…",
+      "enter_rule_name": "ルール名を入力",
+      "describe_what_this_rule_does": "このルールの内容を説明してください",
+      "rule_has_been_created": "ルールが作成されたぞ！",
+      "rule_has_been_updated": "ルールを更新しました！",
+      "rule_has_been_deleted": "ルールが削除されたぞ！",
+      "no_rules_created_yet": "まだルールは作られてないぞ",
+      "create_your_first_rule": "最初のルールを作成して、ワークフローを自動化しましょう",
+      "conditions_types": {
+        "always": "常に",
+        "url_contains": "URLに以下を含む",
+        "imported_from_feed": "フィードからインポート",
+        "bookmark_type_is": "ブックマークの種類",
+        "has_tag": "タグあり",
+        "is_favourited": "お気に入り登録されている",
+        "is_archived": "アーカイブ済み",
+        "and": "次の条件がすべて当てはまる",
+        "or": "次のいずれかが当てはまる場合"
+      },
+      "actions_types": {
+        "add_tag": "タグを追加",
+        "remove_tag": "タグを削除",
+        "add_to_list": "リストに追加",
+        "remove_from_list": "リストから削除",
+        "download_full_page_archive": "ページ全体のアーカイブをダウンロード",
+        "favourite_bookmark": "ブックマークをお気に入りに追加",
+        "archive_bookmark": "ブックマークをアーカイブ"
+      },
+      "events_types": {
+        "bookmark_added": "ブックマークが追加されたとき",
+        "tag_added": "このタグがブックマークに追加されたとき",
+        "tag_removed": "このタグがブックマークから削除された",
+        "added_to_list": "ブックマークがこのリストに追加された",
+        "removed_from_list": "ブックマークがこのリストから削除された",
+        "favourited": "ブックマークがお気に入りに追加されたとき",
+        "archived": "ブックマークがアーカイブされた"
+      }
+    },
+    "stats": {
+      "usage_statistics": "利用状況の統計",
+      "insights_description": "ブックマークの習慣とコレクションに関するインサイト",
+      "failed_to_load": "統計のロードに失敗しました",
+      "overview": {
+        "total_bookmarks": "ブックマークの総数",
+        "all_saved_items": "保存されたすべてのアイテム",
+        "favorites": "お気に入り",
+        "starred_bookmarks": "スター付きのブックマーク",
+        "archived": "アーカイブ済み",
+        "archived_items": "アーカイブされたアイテム",
+        "tags": "タグ",
+        "unique_tags_created": "一意のタグが作成されました",
+        "lists": "リスト",
+        "bookmark_collections": "ブックマークコレクション",
+        "highlights": "ハイライト",
+        "text_highlights": "テキストのハイライト",
+        "storage_used": "使用ストレージ",
+        "total_asset_storage": "アセットストレージの合計",
+        "this_month": "今月",
+        "bookmarks_added": "ブックマークが追加されました"
+      },
+      "bookmark_types": {
+        "title": "ブックマークの種類",
+        "links": "リンク",
+        "text_notes": "テキストメモ",
+        "assets": "アセット"
+      },
+      "recent_activity": {
+        "title": "最近のアクティビティ",
+        "this_week": "今週",
+        "this_month": "今月",
+        "this_year": "今年"
+      },
+      "top_domains": {
+        "title": "トップドメイン",
+        "no_domains_found": "ドメインが見つかりませんでした"
+      },
+      "most_used_tags": {
+        "title": "最も使用されたタグ",
+        "no_tags_found": "タグが見つかりません"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "時間ごとのアクティビティ",
+        "activity_by_day": "日ごとのアクティビティ"
+      },
+      "storage_breakdown": {
+        "title": "ストレージの内訳"
+      }
+    },
+    "subscription": {
+      "subscription": "サブスクリプション",
+      "manage_subscription": "サブスクリプションと請求情報を管理する",
+      "current_plan": "現在のプラン",
+      "billing_period": "請求期間",
+      "paid_plan": "有料プラン",
+      "unlock_bigger_quota": "より大きなクォータをアンロックしてプロジェクトを支援する",
+      "subscribe_now": "今すぐ登録",
+      "manage_billing": "請求の管理",
+      "subscription_canceled": "お客様のサブスクリプションはキャンセルされ、{{date}} に終了します。いつでも再登録できます。",
+      "usage_quotas": "使用量とクォータ",
+      "track_usage": "現在の使用状況をプランの制限と比較して追跡する",
+      "total_bookmarks_saved": "保存されたブックマークの総数",
+      "assets_file_storage": "アセットとファイルストレージ",
+      "unlimited_usage": "無制限の使用",
+      "quota_limit_reached": "クォータ制限に達しました",
+      "approaching_quota_limit": "クォータ制限に近づいています",
+      "loading_usage": "使用状況情報を読み込み中...",
+      "free": "無料",
+      "paid": "有料"
+    }
+  },
+  "common": {
+    "role": "ロール",
+    "roles": {
+      "admin": "管理者",
+      "user": "ユーザ"
+    },
+    "url": "URL",
+    "password": "パスワード",
+    "email": "メールアドレス",
+    "name": "Name",
+    "something_went_wrong": "問題が発生しました",
+    "experimental": "実験的",
+    "search": "検索",
+    "action": "アクション",
+    "tags": "タグ",
+    "note": "ノート",
+    "attachments": "添付ファイル",
+    "screenshot": "スクリーンショット",
+    "video": "ビデオ",
+    "archive": "アーカイブ",
+    "key": "キー",
+    "home": "ホーム",
+    "actions": "アクション",
+    "created_at": "作成日",
+    "type": "種類",
+    "size": "サイズ",
+    "bookmark_types": {
+      "title": "ブックマークの種類",
+      "link": "リンク",
+      "text": "テキスト",
+      "media": "メディア"
+    },
+    "highlights": "ハイライト",
+    "source": "ソース",
+    "updated_at": "更新日",
+    "title": "タイトル",
+    "description": "説明",
+    "summary": "概要",
+    "quota": "割り当て",
+    "bookmarks": "ブックマーク",
+    "storage": "ストレージ"
+  },
+  "layouts": {
+    "grid": "グリッド",
+    "list": "リスト",
+    "masonry": "石積み",
+    "compact": "コンパクト"
+  },
+  "lists": {
+    "manual_list": "手動リスト",
+    "all_lists": "すべてのリスト",
+    "favourites": "お気に入り",
+    "edit_list": "リストを編集",
+    "new_nested_list": "新しいネストされたリスト",
+    "parent_list": "親リスト",
+    "no_parent": "親なし",
+    "list_type": "リストの種類",
+    "new_list": "新しいリスト",
+    "search_query_help": "検索クエリ言語についてもっと学ぼう。",
+    "search_query": "検索クエリ",
+    "smart_list": "スマートリスト",
+    "merge_list": "リストをマージ",
+    "destination_list": "マージ先リスト",
+    "delete_after_merge": "マージ後に元のリストを削除",
+    "no_destination": "マージ先なし",
+    "description": "説明（任意）",
+    "share_list": "リストを共有",
+    "rss": {
+      "title": "RSSフィード",
+      "description": "このリストのRSSフィードを有効にする",
+      "feed_url": "RSSフィードのURL"
+    },
+    "public_list": {
+      "title": "公開リスト",
+      "description": "他のユーザーにこのリストの表示を許可する",
+      "share_link": "リンクを共有"
+    }
+  },
+  "options": {
+    "dark_mode": "ダークモード",
+    "light_mode": "ライトモード"
+  },
+  "tags": {
+    "drag_and_drop_merging": "ドラッグ＆ドロップマージ",
+    "drag_and_drop_merging_info": "タグ同士をドラッグ＆ドロップして結合",
+    "unused_tags_info": "どのブックマークにも付いていないタグ",
+    "all_tags": "すべてのタグ",
+    "your_tags_info": "あなたが少なくとも一度は付けたタグ",
+    "delete_all_unused_tags": "未使用のタグをすべて削除",
+    "your_tags": "あなたのタグ",
+    "ai_tags": "AIタグ",
+    "ai_tags_info": "自動的に（AIによって）付与されただけのタグ",
+    "unused_tags": "未使用のタグ",
+    "sort_by_name": "名前でソート"
+  },
+  "search": {
+    "created_on_or_after": "作成日以降",
+    "url_does_not_contain": "URLに含まない",
+    "is_not_in_any_list": "どのリストにも含まれていません",
+    "is_not_archived": "アーカイブされていません",
+    "type_is": "種類は",
+    "has_any_tag": "いずれかのタグを持つ",
+    "has_no_tags": "タグなし",
+    "is_in_any_list": "いずれかのリストに入っている",
+    "not_created_on_or_before": "以前に作成されていません",
+    "url_contains": "URLに含む",
+    "has_tag": "タグあり",
+    "does_not_have_tag": "タグがない",
+    "full_text_search": "全文検索",
+    "created_on_or_before": "作成日（以前）",
+    "is_in_list": "リストに入ってる？",
+    "is_not_in_list": "リストにない",
+    "type_is_not": "タイプが違う",
+    "and": "そして",
+    "or": "または",
+    "is_favorited": "お気に入り",
+    "is_not_favorited": "お気に入りではない",
+    "is_archived": "アーカイブ済み？",
+    "not_created_on_or_after": "以降に作成されなかった",
+    "is_not_from_feed": "RSSフィードからではない",
+    "is_from_feed": "RSSフィードから",
+    "created_within": "作成期間",
+    "created_earlier_than": "作成日",
+    "day_s": " ～日",
+    "week_s": " ～週間",
+    "month_s": " ～か月",
+    "year_s": " ～年",
+    "day_s_ago": " ～日前",
+    "week_s_ago": " ～週間前",
+    "month_s_ago": " ～か月前",
+    "year_s_ago": " ～年前",
+    "history": "最近の検索"
+  },
+  "preview": {
+    "cached_content": "キャッシュされたコンテンツ",
+    "view_original": "オリジナルを見る",
+    "reader_view": "リーダー表示",
+    "tabs": {
+      "content": "コンテンツ",
+      "details": "詳細"
+    }
+  },
+  "editor": {
+    "quickly_focus": "⌘ + E を押すと、このフィールドにすばやくフォーカスできます",
+    "multiple_urls_dialog_title": "URLを個別のブックマークとしてインポートしますか？",
+    "import_as_text": "テキストブックマークとしてインポート",
+    "import_as_separate_bookmarks": "別のブックマークとしてインポート",
+    "placeholder": "リンクまたは画像を貼り付けたり、メモを書いたり、ここに画像をドラッグアンドドロップしたりできます…",
+    "text_toolbar": {
+      "bold": "太字",
+      "underline": "下線",
+      "strikethrough": "取り消し線",
+      "align_center": "中央揃え",
+      "align_right": "右揃え",
+      "markdown_shortcuts": {
+        "block_code": {
+          "example": "``` + スペース",
+          "label": "ブロックコード"
+        },
+        "ordered_list": {
+          "label": "順序付きリスト",
+          "example": "1. リスト項目"
+        },
+        "inline_code": {
+          "label": "インラインコード",
+          "example": "`コード`"
+        },
+        "unordered_list": {
+          "label": "順不同リスト",
+          "example": "- リスト項目"
+        },
+        "label": "マークダウンショートカット",
+        "heading": {
+          "label": "見出し",
+          "example": "# H1、## H2、### H3"
+        },
+        "bold": {
+          "label": "太字",
+          "example": "**テキスト** または CTRL+b"
+        },
+        "blockquote": {
+          "example": "> 引用",
+          "label": "引用"
+        },
+        "italic": {
+          "label": "イタリック",
+          "example": "*斜体* または _斜体_ または CTRL+i"
+        }
+      },
+      "code": "コード",
+      "redo": "やり直し",
+      "undo": "元に戻す",
+      "italic": "イタリック",
+      "highlight": "ハイライト",
+      "align_left": "左揃え"
+    },
+    "disabled_submissions": "投稿は無効です",
+    "multiple_urls_dialog_desc": "入力には複数のURLが別々の行に含まれています。それらを個別のブックマークとしてインポートしますか？",
+    "new_item": "新しいアイテム",
+    "placeholder_v2": "リンクをペーストするか、メモを書くか、画像をドロップしてくれ…"
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "ブックマークを削除する？",
+      "delete_confirmation_description": "このブックマークを削除してもよろしいですか？"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "ブックマークが更新されたよ！",
+      "clipboard_copied": "リンクをクリップボードに追加したぞ！",
+      "full_page_archive": "フルページアーカイブの作成が開始されました",
+      "delete_from_list": "ブックマークがリストから削除されました",
+      "deleted": "ブックマークが削除されたよ！",
+      "refetch": "再取得をエンキューしたぞ！"
+    },
+    "lists": {
+      "created": "リストが作成されました！",
+      "updated": "リストが更新されました！",
+      "merged": "リストがマージされたぞ！",
+      "deleted": "リストが削除されたぞ！"
+    }
+  },
+  "cleanups": {
+    "duplicate_tags": {
+      "title": "重複タグ",
+      "merge_all_suggestions": "すべての提案をマージしますか？"
+    },
+    "cleanups": "クリーンアップ"
+  },
+  "highlights": {
+    "no_highlights": "まだハイライトがありません。"
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "ブックマークはまだありません",
+      "description": "気になる記事、リンク、ページを保存して、後ですぐにアクセスできるようにしよう。"
+    }
+  },
+  "bookmark_editor": {
+    "title": "ブックマークを編集",
+    "subtitle": "ブックマークの詳細を変更する。完了したら「保存」をクリックしてください。",
+    "author": "著者",
+    "publisher": "出版社",
+    "date_published": "公開日",
+    "pick_a_date": "日付を選択",
+    "save_changes": "変更を保存",
+    "extracted_content": "抽出されたコンテンツ"
+  }
+}

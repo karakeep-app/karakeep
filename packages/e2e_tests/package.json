@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/e2e_tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:no-build": "E2E_TEST_NO_BUILD=1 vitest run"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.842.0",
+    "@karakeep/sdk": "workspace:*",
+    "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/trpc": "workspace:^0.1.0",
+    "@trpc/client": "^11.4.3",
+    "superjson": "^2.2.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^3.2.4"
+  },
+  "prettier": "@karakeep/prettier-config"
+}

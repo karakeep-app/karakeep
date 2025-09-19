@@ -1,0 +1,623 @@
+{
+  "common": {
+    "name": "Meno",
+    "action": "Akcia",
+    "created_at": "Vytvorené",
+    "url": "URL",
+    "email": "E-mail",
+    "password": "Heslo",
+    "actions": "Akcie",
+    "key": "Kľúč",
+    "role": "Rola",
+    "roles": {
+      "user": "Používateľ",
+      "admin": "Admin"
+    },
+    "something_went_wrong": "Niečo sa pokazilo",
+    "search": "Hľadať",
+    "tags": "Značky",
+    "attachments": "Prílohy",
+    "experimental": "Experimentálne",
+    "note": "Poznámka",
+    "highlights": "Zvýraznenia",
+    "source": "Zdroj",
+    "screenshot": "Snímka obrazovky",
+    "video": "Video",
+    "home": "Domov",
+    "bookmark_types": {
+      "title": "Typ záložky",
+      "link": "Odkaz",
+      "text": "Text",
+      "media": "Médiá"
+    },
+    "archive": "Archív",
+    "type": "Typ",
+    "size": "Veľkosť",
+    "updated_at": "Aktualizované",
+    "title": "Názov",
+    "description": "Popis",
+    "summary": "Zhrnutie",
+    "quota": "Kvóta",
+    "bookmarks": "Záložky",
+    "storage": "Úložisko"
+  },
+  "actions": {
+    "cancel": "Zrušiť",
+    "edit": "Upraviť",
+    "merge": "Zlúčiť",
+    "edit_tags": "Upraviť značky",
+    "create": "Vytvoriť",
+    "select_all": "Vybrať všetko",
+    "unfavorite": "Odobrať z obľúbených",
+    "delete": "Odstrániť",
+    "copy_link": "Kopírovať odkaz",
+    "close_bulk_edit": "Zavrieť hromadnú úpravu",
+    "bulk_edit": "Hromadná úprava",
+    "manage_lists": "Spravovať zoznamy",
+    "remove_from_list": "Odstrániť zo zoznamu",
+    "edit_title": "Upraviť nadpis",
+    "sign_out": "Odhlásiť sa",
+    "close": "Zavrieť",
+    "apply_all": "Všetko aplikovať",
+    "ignore": "Ignorovať",
+    "sort": {
+      "title": "Zoradiť",
+      "newest_first": "Od najnovších",
+      "oldest_first": "Od najstarších",
+      "relevant_first": "Najrelevantnejšie ako prvé"
+    },
+    "change_layout": "Zmena rozloženia",
+    "archive": "Archivovať",
+    "favorite": "Pridať medzi obľúbené",
+    "unselect_all": "Zrušiť výber",
+    "save": "Uložiť",
+    "add_to_list": "Pridať do zoznamu",
+    "add": "Pridať",
+    "refresh": "Obnoviť",
+    "unarchive": "Obnoviť z archívu",
+    "download_full_page_archive": "Stiahnuť archív celej stránky",
+    "recrawl": "Znova prehľadať",
+    "fetch_now": "Načítať teraz",
+    "summarize_with_ai": "Zhrnúť pomocou AI",
+    "open_editor": "Otvoriť editor",
+    "toggle_show_archived": "Zobraziť archivované",
+    "confirm": "Potvrdiť"
+  },
+  "lists": {
+    "favourites": "Obľúbené",
+    "edit_list": "Upraviť zoznam",
+    "all_lists": "Všetky zoznamy",
+    "new_list": "Nový zoznam",
+    "new_nested_list": "Nový podzoznam",
+    "parent_list": "Nadradený zoznam",
+    "list_type": "Typ zoznamu",
+    "manual_list": "Manuálny zoznam",
+    "smart_list": "Automatický zoznam",
+    "search_query": "Vyhľadávací reťazec",
+    "no_parent": "Žiadny nadradený zoznam",
+    "search_query_help": "Zistite viac o syntaxi vyhľadávacích reťazcov.",
+    "merge_list": "Zlúčiť zoznam",
+    "destination_list": "Cieľový zoznam",
+    "delete_after_merge": "Po zlúčení odstrániť pôvodný zoznam",
+    "no_destination": "Žiadny cieľ",
+    "description": "Popis (voliteľný)",
+    "rss": {
+      "title": "RSS kanál",
+      "description": "Povoliť RSS kanál pre tento zoznam",
+      "feed_url": "URL RSS kanála"
+    },
+    "public_list": {
+      "title": "Verejný zoznam",
+      "description": "Povoliť ostatným zobraziť tento zoznam",
+      "share_link": "Zdieľať odkaz"
+    },
+    "share_list": "Zdieľať zoznam"
+  },
+  "settings": {
+    "import": {
+      "import_bookmarks_from_omnivore_export": "Importovať záložky z Omnivore exportu",
+      "import_export_bookmarks": "Importovať / exportovať záložky",
+      "import_bookmarks_from_html_file": "Importovať záložky z HTML súboru",
+      "import_bookmarks_from_pocket_export": "Importovať záložky z Pocket exportu",
+      "import_bookmarks_from_linkwarden_export": "Importovať záložky z Linkwarden exportu",
+      "import_bookmarks_from_karakeep_export": "Importovať záložky z Karakeep exportu",
+      "export_links_and_notes": "Exportovať odkazy a poznámky",
+      "imported_bookmarks": "Importovať záložky",
+      "import_export": "Importovať / exportovať",
+      "import_bookmarks_from_tab_session_manager_export": "Importovať záložky zo správcu relácií kariet"
+    },
+    "back_to_app": "Naspäť do aplikácie",
+    "user_settings": "Používateľské nastavenia",
+    "info": {
+      "basic_details": "Základné údaje",
+      "change_password": "Zmena hesla",
+      "new_password": "Nové heslo",
+      "confirm_new_password": "Potvrdiť nové heslo",
+      "current_password": "Súčasné heslo",
+      "options": "Možnosti",
+      "interface_lang": "Jazyk rozhrania",
+      "user_info": "Informácie o používateľovi",
+      "user_settings": {
+        "user_settings_updated": "Používateľské nastavenia boli aktualizované!",
+        "bookmark_click_action": {
+          "title": "Akcia po kliknutí na záložku",
+          "open_external_url": "Otvoriť pôvodnú URL",
+          "open_bookmark_details": "Otvoriť podrobnosti záložky"
+        },
+        "archive_display_behaviour": {
+          "title": "Archivované záložky",
+          "hide": "Skryť archivované záložky v tagoch a zoznamoch",
+          "show": "Zobraziť archivované záložky v tagoch a zoznamoch"
+        }
+      }
+    },
+    "ai": {
+      "ai_settings": "Nastavenia AI",
+      "tagging_rules": "Pravidlá označovania",
+      "tagging_rule_description": "Výzvy, ktoré tu pridáte, budú zahrnuté ako pravidlá pre model počas generovania značiek. Konečné výzvy si môžete pozrieť v sekcii ukážky výziev.",
+      "prompt_preview": "Náhľad výzvy",
+      "text_prompt": "Textová výzva",
+      "all_tagging": "Všetko označené",
+      "text_tagging": "Označovanie textu",
+      "image_tagging": "Označovanie obrázkov",
+      "summarization": "Zhrnutie",
+      "images_prompt": "Výzva obrázka",
+      "summarization_prompt": "Výzva na sumarizáciu"
+    },
+    "webhooks": {
+      "add_auth_token": "Pridať autorizačný token",
+      "edit_auth_token": "Upraviť autorizačný token",
+      "delete_webhook": "Odstrániť webhook",
+      "edit_webhook": "Upraviť webhook",
+      "webhook_url": "URL webhooku",
+      "auth_token": "Autorizačný token",
+      "create_webhook": "Vytvoriť webhook",
+      "delete_webhook_confirmation": "Naozaj chcete odstrániť tento webhook?",
+      "description": "Webhooks môžeš použiť na spustenie akcií, keď sú záložky vytvorené, zmenené alebo prehľadané.",
+      "webhooks": "Webhooks",
+      "events": {
+        "crawled": "Prehľadané",
+        "created": "Vytvorené",
+        "edited": "Upravené",
+        "title": "Udalosti"
+      }
+    },
+    "api_keys": {
+      "api_keys": "API kľúče",
+      "new_api_key": "Nový API kľúč",
+      "key_success_please_copy": "Prosím, skopírujte si kľúč a uložte ho na bezpečné miesto. Keď zatvoríte dialógové okno, už k nemu nebudete mať prístup.",
+      "new_api_key_desc": "Daj svojmu API kľúču jedinečný názov",
+      "key_success": "Kľúč bol úspešne vytvorený"
+    },
+    "manage_assets": {
+      "asset_link": "Odkaz na majetok",
+      "delete_asset": "Odstrániť aktívum",
+      "delete_asset_confirmation": "Naozaj chceš vymazať toto aktívum?",
+      "bookmark_link": "Odkaz na záložku",
+      "manage_assets": "Spravovať aktíva",
+      "no_assets": "Zatiaľ nemáš žiadne aktíva.",
+      "asset_type": "Typ aktíva"
+    },
+    "feeds": {
+      "rss_subscriptions": "Odbery RSS",
+      "add_a_subscription": "Pridať odber",
+      "feed_enabled": "RSS kanál je zapnutý",
+      "feed_disabled": "RSS kanál je vypnutý"
+    },
+    "broken_links": {
+      "broken_links": "Nefunkčné odkazy",
+      "last_crawled_at": "Naposledy prehľadané",
+      "crawling_status": "Stav prehľadávania",
+      "crawling_failed": "Prehľadávanie zlyhalo"
+    },
+    "rules": {
+      "enter_rule_name": "Zadajte názov pravidla",
+      "describe_what_this_rule_does": "Popíš, čo toto pravidlo robí",
+      "rule_has_been_created": "Pravidlo bolo vytvorené!",
+      "conditions_types": {
+        "has_tag": "Má značku",
+        "is_favourited": "Je obľúbená",
+        "is_archived": "Archivované",
+        "and": "Platia všetky nasledujúce podmienky",
+        "or": "Ak platí niektoré z nasledujúcich",
+        "always": "Vždy",
+        "url_contains": "URL obsahuje",
+        "imported_from_feed": "Importované zo zdroja",
+        "bookmark_type_is": "Typ záložky je"
+      },
+      "actions_types": {
+        "add_tag": "Pridať štítok",
+        "remove_tag": "Odstrániť značku",
+        "add_to_list": "Pridať do zoznamu",
+        "remove_from_list": "Odstrániť zo zoznamu",
+        "download_full_page_archive": "Stiahnuť archív celej stránky",
+        "favourite_bookmark": "Obľúbená záložka",
+        "archive_bookmark": "Archivovať záložku"
+      },
+      "rules": "Systém pravidiel",
+      "rule_name": "Názov pravidla",
+      "description": "Pravidlá môžeš použiť na spustenie akcií, keď sa spustí udalosť.",
+      "ceate_rule": "Vytvoriť pravidlo",
+      "edit_rule": "Upraviť pravidlo",
+      "save_rule": "Uložiť pravidlo",
+      "delete_rule": "Zmazať pravidlo",
+      "delete_rule_confirmation": "Naozaj chceš zmazať toto pravidlo?",
+      "whenever": "Kedykoľvek ...",
+      "if": "Ak ...",
+      "rule_has_been_updated": "Pravidlo bolo aktualizované!",
+      "rule_has_been_deleted": "Pravidlo bolo zmazané!",
+      "no_rules_created_yet": "Zatiaľ neboli vytvorené žiadne pravidlá",
+      "create_your_first_rule": "Vytvor si prvé pravidlo na automatizáciu tvojho pracovného postupu",
+      "events_types": {
+        "bookmark_added": "Záložka je pridaná",
+        "tag_added": "Tento štítok je pridaný do záložky",
+        "tag_removed": "Táto značka je odstránená zo záložky",
+        "added_to_list": "Záložka je pridaná do tohto zoznamu",
+        "removed_from_list": "Záložka je odstránená z tohto zoznamu",
+        "favourited": "Záložka je pridaná medzi obľúbené",
+        "archived": "Záložka je archivovaná"
+      }
+    },
+    "stats": {
+      "usage_statistics": "Štatistiky používania",
+      "insights_description": "Štatistiky o tvojich návykoch a zbierke záložiek",
+      "failed_to_load": "Nepodarilo sa načítať štatistiky",
+      "overview": {
+        "total_bookmarks": "Celkový počet záložiek",
+        "all_saved_items": "Všetky uložené položky",
+        "favorites": "Obľúbené",
+        "starred_bookmarks": "Označené záložky hviezdičkou",
+        "archived": "Archivované",
+        "archived_items": "Archivované položky",
+        "tags": "Značky",
+        "unique_tags_created": "Vytvorené jedinečné štítky",
+        "lists": "Zoznamy",
+        "bookmark_collections": "Zbierky záložiek",
+        "highlights": "Zvýraznenia",
+        "text_highlights": "Zvýraznenia textu",
+        "storage_used": "Použité úložisko",
+        "total_asset_storage": "Celkové úložisko aktív",
+        "this_month": "Tento mesiac",
+        "bookmarks_added": "Pridané záložky"
+      },
+      "bookmark_types": {
+        "title": "Typy záložiek",
+        "links": "Odkazy",
+        "text_notes": "Textové poznámky",
+        "assets": "Aktíva"
+      },
+      "recent_activity": {
+        "title": "Nedávna aktivita",
+        "this_week": "Tento týždeň",
+        "this_month": "Tento mesiac",
+        "this_year": "Tento rok"
+      },
+      "top_domains": {
+        "title": "Najlepšie domény",
+        "no_domains_found": "Nenašli sa žiadne domény"
+      },
+      "most_used_tags": {
+        "title": "Najpoužívanejšie štítky",
+        "no_tags_found": "Nenašli sa žiadne značky"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivita podľa hodiny",
+        "activity_by_day": "Aktivita podľa dňa"
+      },
+      "storage_breakdown": {
+        "title": "Rozdelenie úložiska"
+      }
+    },
+    "subscription": {
+      "subscription": "Predplatné",
+      "manage_subscription": "Spravuj svoje predplatné a fakturačné údaje",
+      "current_plan": "Aktuálny plán",
+      "billing_period": "Fakturačné obdobie",
+      "paid_plan": "Platený plán",
+      "unlock_bigger_quota": "Odomkni väčšiu kvótu a podpor projekt",
+      "subscribe_now": "Prihlás sa na odber",
+      "manage_billing": "Spravovať fakturáciu",
+      "subscription_canceled": "Tvoje predplatné bolo zrušené a skončí {{date}}. Môžeš sa kedykoľvek znova prihlásiť na odber.",
+      "usage_quotas": "Využitie a kvóty",
+      "track_usage": "Sleduj aktuálne využitie v porovnaní s limitmi tvojho plánu",
+      "total_bookmarks_saved": "Celkový počet uložených záložiek",
+      "assets_file_storage": "Úložisko aktív a súborov",
+      "unlimited_usage": "Neobmedzené použitie",
+      "quota_limit_reached": "Bol dosiahnutý limit kvóty",
+      "approaching_quota_limit": "Blíži sa limit kvóty",
+      "loading_usage": "Načítavajú sa informácie o využití...",
+      "free": "Zadarmo",
+      "paid": "Platené"
+    }
+  },
+  "search": {
+    "or": "Alebo",
+    "is_favorited": "Je obľúbené",
+    "is_archived": "Je archivované",
+    "is_not_archived": "Nie je archivované",
+    "has_any_tag": "Má nejakú značku",
+    "is_not_in_any_list": "Nie je v žiadnom zozname",
+    "created_on_or_after": "Vytvorené dňa alebo neskôr",
+    "not_created_on_or_after": "Nevytvorené dňa alebo neskôr",
+    "created_on_or_before": "Vytvorené dňa alebo pred",
+    "not_created_on_or_before": "Nevytvorené dňa alebo pred",
+    "url_contains": "URL obsahuje",
+    "url_does_not_contain": "URL neobsahuje",
+    "is_in_list": "Je v zozname",
+    "is_not_in_list": "Nie je v zozname",
+    "has_tag": "Má značku",
+    "type_is": "Typ je",
+    "has_no_tags": "Nemá žiadnu značku",
+    "type_is_not": "Typ nie je",
+    "and": "A",
+    "is_not_favorited": "Nie je obľúbené",
+    "full_text_search": "Fulltextové vyhľadávanie",
+    "does_not_have_tag": "Nemá značku",
+    "is_in_any_list": "Je v nejakom zozname",
+    "is_from_feed": "Je z RSS kanála",
+    "is_not_from_feed": "Nie je z RSS kanála",
+    "created_within": "Vytvorené v priebehu",
+    "created_earlier_than": "Vytvorené skôr ako",
+    "day_s": " Deň(dni)",
+    "week_s": " Týždeň(ne)",
+    "month_s": " Mesiac(e)",
+    "year_s": " Rok(y)",
+    "day_s_ago": " Deň(dni) dozadu",
+    "week_s_ago": " Týždeň(ne) dozadu",
+    "month_s_ago": " Mesiac(e) dozadu",
+    "year_s_ago": " Rok(y) dozadu",
+    "history": "Nedávne vyhľadávania"
+  },
+  "layouts": {
+    "masonry": "Dlaždice",
+    "grid": "Mriežka",
+    "list": "Zoznam",
+    "compact": "Kompaktné"
+  },
+  "admin": {
+    "actions": {
+      "reindex_all_bookmarks": "Preindexovať všetky záložky",
+      "compact_assets": "Optimalizovať dáta",
+      "regenerate_ai_tags_for_failed_bookmarks_only": "Pregenerovať AI značky len pre zlyhané záložky",
+      "regenerate_ai_tags_for_all_bookmarks": "Pregenerovať AI značky pre všetky záložky",
+      "without_inference": "Bez odvodzovania",
+      "reprocess_assets_fix_mode": "Spracovať aktíva znova (režim opravy)",
+      "recrawl_all_links": "Znova prehľadať všetky odkazy",
+      "recrawl_failed_links_only": "Znova prehľadať iba nefunkčné odkazy",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "Znova vygenerovať AI súhrny iba pre záložky, ktoré zlyhali",
+      "regenerate_ai_summaries_for_all_bookmarks": "Znova vygenerovať AI súhrny pre všetky záložky"
+    },
+    "users_list": {
+      "users_list": "Zoznam používateľov",
+      "reset_password": "Resetovať heslo",
+      "num_bookmarks": "Počet záložiek",
+      "local_user": "Lokálny používateľ",
+      "asset_sizes": "Veľkosť dát",
+      "change_role": "Zmeniť rolu",
+      "delete_user": "Odstrániť používateľa",
+      "confirm_password": "Potvrdiť heslo",
+      "create_user": "Vytvoriť používateľa",
+      "delete_user_confirm_description": "Naozaj chceš vymazať používateľa „{{name}}“?",
+      "unlimited": "Neobmedzené"
+    },
+    "admin_settings": "Nastavenia správcu",
+    "background_jobs": {
+      "background_jobs": "Úlohy na pozadí",
+      "queued": "Zaradené do frontu",
+      "video_jobs": "Úlohy sťahovania videa",
+      "crawler_jobs": "Úlohy prehľadávača",
+      "indexing_jobs": "Úlohy indexovania",
+      "inference_jobs": "Úlohy odvodzovania",
+      "tidy_assets_jobs": "Úlohy na upratanie aktív",
+      "job": "Úloha",
+      "pending": "Čaká sa",
+      "failed": "Neúspešné",
+      "webhook_jobs": "Úlohy Webhook",
+      "asset_preprocessing_jobs": "Úlohy predbežného spracovania aktív",
+      "feed_jobs": "Úlohy RSS kanála",
+      "jobs": {
+        "crawler": {
+          "title": "Úlohy pre prehľadávače",
+          "description": "Webové prehľadávanie a extrakcia obsahu z URL"
+        },
+        "inference": {
+          "title": "Úlohy odvodzovania",
+          "description": "Označovanie obsahu pomocou AI a vytváranie súhrnov"
+        },
+        "indexing": {
+          "title": "Úlohy indexovania",
+          "description": "Aktualizácie indexu vyhľadávania"
+        },
+        "asset_preprocessing": {
+          "title": "Úlohy predbežného spracovania zdrojov",
+          "description": "Predbežné spracovanie obrázkov a dokumentov (snímky obrazovky, extrakcia textu atď.)"
+        },
+        "tidy_assets": {
+          "title": "Úlohy na upratovanie zdrojov",
+          "description": "Čistenie zdrojov a optimalizácia úložiska"
+        },
+        "video": {
+          "title": "Úlohy na sťahovanie videí",
+          "description": "Extrakcia a sťahovanie videí"
+        },
+        "webhook": {
+          "title": "Úlohy Webhook",
+          "description": "Externé upozornenia Webhook"
+        },
+        "feed": {
+          "title": "Úlohy RSS Feed",
+          "description": "Spracovanie RSS kanálov a aktualizácie obsahu"
+        }
+      },
+      "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a systémové úlohy spracovania",
+      "active": "Aktívne",
+      "available_actions": "Dostupné akcie",
+      "status": {
+        "title": "Porozumenie stavom úloh",
+        "queued": {
+          "title": "Zaradené do frontu",
+          "description": "Úlohy čakajúce v rade na spracovanie. Spustia sa automaticky, keď budú dostupné zdroje."
+        },
+        "unprocessed": {
+          "title": "Nespracované",
+          "description": "Záložky, ktoré ešte neboli spracované. S najväčšou pravdepodobnosťou sú už zaradené do frontu na spracovanie, ak nie, možno ich budete musieť znova zaradiť do frontu manuálne."
+        },
+        "failed": {
+          "title": "Neúspešné",
+          "description": "Záložky, pri ktorých sa počas spracovania vyskytli chyby. Môžu vyžadovať manuálnu pozornosť."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Znova preliezť len neúspešné odkazy",
+        "recrawl_all_links": "Znova preliezť všetky odkazy",
+        "without_inference": "Bez odvodzovania",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Znovu vygenerovať značky AI len pre neúspešné záložky",
+        "regenerate_ai_tags_for_all_bookmarks": "Znovu vygenerovať značky AI pre všetky záložky",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Znovu vygenerovať súhrny AI len pre neúspešné záložky",
+        "regenerate_ai_summaries_for_all_bookmarks": "Znovu vygenerovať súhrny AI pre všetky záložky",
+        "reindex_all_bookmarks": "Preindexovať všetky záložky",
+        "clean_assets": "Vyčistiť nepotrebné prostriedky a znova synchronizovať metadáta",
+        "reprocess_assets_fix_mode": "Znova spracovať nespracované prostriedky"
+      }
+    },
+    "server_stats": {
+      "server_version": "Verzia servera",
+      "server_stats": "Štatistiky servera",
+      "total_users": "Celkový počet používateľov",
+      "total_bookmarks": "Celkový počet záložiek"
+    }
+  },
+  "options": {
+    "dark_mode": "Tmavý motív",
+    "light_mode": "Svetlý motív"
+  },
+  "tags": {
+    "all_tags": "Všetky značky",
+    "your_tags": "Vaše značky",
+    "ai_tags": "AI značky",
+    "your_tags_info": "Značky priradené aspoň raz aj vami",
+    "unused_tags": "Nepoužité značky",
+    "drag_and_drop_merging": "Zlúčenie potiahnutím",
+    "drag_and_drop_merging_info": "Potiahnite značku na inú značku pre ich zlúčenie",
+    "sort_by_name": "Zoradiť podľa názvu",
+    "delete_all_unused_tags": "Odstrániť všetky nepoužité značky",
+    "unused_tags_info": "Značky nepriradené k žiadnym záložkám",
+    "ai_tags_info": "Značky priradené iba automaticky (pomocou AI)"
+  },
+  "editor": {
+    "quickly_focus": "Na rýchle presunutie na toto pole môžete použiť skratku CTRL + E",
+    "multiple_urls_dialog_title": "Importovať zadané URL ako samostatné záložky?",
+    "import_as_text": "Importovať ako textovú záložku",
+    "import_as_separate_bookmarks": "Importovať ako samostatné záložky",
+    "placeholder": "Vložte odkaz, napíšte poznámku alebo sem vložte či potiahnite obrázok…",
+    "new_item": "NOVÁ POLOŽKA",
+    "text_toolbar": {
+      "italic": "Šikmé",
+      "underline": "Podčiarknuté",
+      "code": "Kód",
+      "highlight": "Zvýraznenie",
+      "align_left": "Zarovnanie vľavo",
+      "align_right": "Zarovnanie vpravo",
+      "markdown_shortcuts": {
+        "label": "Skratky syntaxe Markdown",
+        "heading": {
+          "label": "Nadpis",
+          "example": "# Nadpis1, ## Nadpis2, ### Nadpis3"
+        },
+        "bold": {
+          "label": "Tučné",
+          "example": "**text** or CTRL+b"
+        },
+        "italic": {
+          "label": "Šikmé",
+          "example": "*text* alebo _text_ alebo CTRL+i"
+        },
+        "blockquote": {
+          "label": "Bloková citácia",
+          "example": "> text"
+        },
+        "ordered_list": {
+          "label": "Zoradený zoznam",
+          "example": "1. Položka zoznamu"
+        },
+        "unordered_list": {
+          "label": "Neusporiadaný zoznam",
+          "example": "- Položka zoznamu"
+        },
+        "inline_code": {
+          "label": "Vložený kód",
+          "example": "`Kód`"
+        },
+        "block_code": {
+          "label": "Blokovať kód",
+          "example": "``` + medzera"
+        }
+      },
+      "align_center": "Zarovnanie na stred",
+      "bold": "Tučné",
+      "strikethrough": "Preškrtnuté",
+      "undo": "Späť",
+      "redo": "Znova"
+    },
+    "multiple_urls_dialog_desc": "Vstup obsahuje viaceré URL na samostatných riadkoch. Chcete ich importovať ako samostatné záložky?",
+    "disabled_submissions": "Odosielanie je vypnuté",
+    "placeholder_v2": "Vložte odkaz, napíšte poznámku alebo presuňte obrázok…"
+  },
+  "preview": {
+    "view_original": "Zobraziť originál",
+    "cached_content": "Obsah uložený vo vyrovnávacej pamäti",
+    "reader_view": "Zobrazenie čítačky",
+    "tabs": {
+      "content": "Obsah",
+      "details": "Podrobnosti"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "clipboard_copied": "Odkaz bol pridaný do schránky!",
+      "updated": "Záložka bola aktualizovaná!",
+      "delete_from_list": "Záložka bola odstránená zo zoznamu",
+      "deleted": "Záložka bola zmazaná!",
+      "refetch": "Opätovné načítanie bolo zaradené do frontu!",
+      "full_page_archive": "Bolo spustené vytváranie archívu celej stránky"
+    },
+    "lists": {
+      "updated": "Zoznam bol aktualizovaný!",
+      "created": "Zoznam bol vytvorený!",
+      "merged": "Zoznam bol zlúčený!",
+      "deleted": "Zoznam bol odstránený!"
+    }
+  },
+  "cleanups": {
+    "cleanups": "Čistenie",
+    "duplicate_tags": {
+      "title": "Duplicitné štítky",
+      "merge_all_suggestions": "Zlúčiť všetky návrhy?"
+    }
+  },
+  "highlights": {
+    "no_highlights": "Zatiaľ nemáš žiadne zvýraznenia."
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_description": "Naozaj chceš vymazať túto záložku?",
+      "delete_confirmation_title": "Odstrániť záložku?"
+    }
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "Zatiaľ žiadne záložky",
+      "description": "Ukladaj si zaujímavé články, odkazy a stránky, aby si sa k nim neskôr rýchlo dostal."
+    }
+  },
+  "bookmark_editor": {
+    "title": "Upraviť záložku",
+    "subtitle": "Urob zmeny v podrobnostiach záložky. Keď skončíš, klikni na uložiť.",
+    "author": "Autor",
+    "publisher": "Vydavateľ",
+    "date_published": "Dátum publikovania",
+    "pick_a_date": "Vyber dátum",
+    "save_changes": "Ulož zmeny",
+    "extracted_content": "Extrahovaný obsah"
+  }
+}

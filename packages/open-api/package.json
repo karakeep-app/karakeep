@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/open-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.2.0",
+    "@karakeep/shared": "workspace:^0.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "tsx": "^4.8.1"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check": "tsx index.ts check",
+    "generate": "tsx index.ts",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
+  },
+  "main": "index.ts",
+  "prettier": "@karakeep/prettier-config"
+}

@@ -1,0 +1,1 @@
+ALTER TABLE `bookmarks` ADD `summarizationStatus` text DEFAULT 'pending';

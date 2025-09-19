@@ -1,0 +1,623 @@
+{
+  "common": {
+    "url": "الرابط",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "action": "إجراء",
+    "actions": "إجراءات",
+    "created_at": "أنشئ في",
+    "key": "المفتاح",
+    "role": "الدور",
+    "roles": {
+      "user": "مستخدم",
+      "admin": "مدير"
+    },
+    "something_went_wrong": "حدث خطأ ما",
+    "experimental": "تجريبي",
+    "search": "بحث",
+    "tags": "وسوم",
+    "note": "ملاحظة",
+    "attachments": "مرفقات",
+    "highlights": "تمييزات",
+    "source": "المصدر",
+    "screenshot": "لقطة شاشة",
+    "video": "فيديو",
+    "archive": "أرشيف",
+    "home": "الرئيسية",
+    "bookmark_types": {
+      "title": "نوع الإشارة المرجعية",
+      "link": "رابط",
+      "text": "نص",
+      "media": "وسائط متعددة"
+    },
+    "type": "نوع",
+    "size": "حجم",
+    "title": "العنوان",
+    "description": "الوصف",
+    "summary": "ملخص",
+    "updated_at": "تم التحديث في",
+    "quota": "حصة",
+    "bookmarks": "الإشارات المرجعية",
+    "storage": "تخزين"
+  },
+  "layouts": {
+    "masonry": "متعدد الأعمدة",
+    "grid": "شبكة",
+    "list": "قائمة",
+    "compact": "مضغوط"
+  },
+  "actions": {
+    "change_layout": "تغيير التخطيط",
+    "archive": "أرشفة",
+    "unarchive": "إلغاء الأرشفة",
+    "favorite": "إضافة للمفضلة",
+    "unfavorite": "إزالة من المفضلة",
+    "delete": "حذف",
+    "refresh": "تحديث",
+    "recrawl": "إعادة الاستكشاف",
+    "download_full_page_archive": "تحميل أرشيف الصفحة الكامل",
+    "edit_tags": "تحرير الوسوم",
+    "add_to_list": "إضافة إلى القائمة",
+    "select_all": "تحديد الكل",
+    "unselect_all": "إلغاء تحديد الكل",
+    "copy_link": "نسخ الرابط",
+    "close_bulk_edit": "إغلاق التحرير الجماعي",
+    "bulk_edit": "تحرير جماعي",
+    "manage_lists": "إدارة القوائم",
+    "remove_from_list": "إزالة من القائمة",
+    "save": "حفظ",
+    "add": "إضافة",
+    "edit": "تحرير",
+    "create": "إنشاء",
+    "fetch_now": "جلب الآن",
+    "summarize_with_ai": "تلخيص باستخدام الذكاء الاصطناعي",
+    "edit_title": "تحرير العنوان",
+    "sign_out": "تسجيل الخروج",
+    "close": "إغلاق",
+    "merge": "دمج",
+    "cancel": "إلغاء",
+    "apply_all": "تطبيق الكل",
+    "ignore": "تجاهل",
+    "sort": {
+      "title": "ترتيب",
+      "newest_first": "الأحدث أولاً",
+      "oldest_first": "الأقدم أولاً",
+      "relevant_first": "الأكثر صلة أولاً"
+    },
+    "open_editor": "فتح المحرر",
+    "toggle_show_archived": "اعرض المؤرشفة",
+    "confirm": "تأكيد"
+  },
+  "highlights": {
+    "no_highlights": "ليس لديك أي تمييزات بعد."
+  },
+  "settings": {
+    "back_to_app": "العودة إلى التطبيق",
+    "user_settings": "إعدادات المستخدم",
+    "info": {
+      "user_info": "معلومات المستخدم",
+      "basic_details": "التفاصيل الأساسية",
+      "change_password": "تغيير كلمة المرور",
+      "current_password": "كلمة المرور الحالية",
+      "new_password": "كلمة المرور الجديدة",
+      "confirm_new_password": "تأكيد كلمة المرور الجديدة",
+      "options": "خيارات",
+      "interface_lang": "لغة الواجهة",
+      "user_settings": {
+        "user_settings_updated": "تم تحديث إعدادات المستخدم!",
+        "bookmark_click_action": {
+          "title": "إجراء النقر على الإشارة المرجعية",
+          "open_external_url": "افتح عنوان URL الأصلي",
+          "open_bookmark_details": "افتح تفاصيل الإشارة المرجعية"
+        },
+        "archive_display_behaviour": {
+          "title": "الإشارات المرجعية المؤرشفة",
+          "show": "اعرض الإشارات المرجعية المؤرشفة في العلامات والقوائم",
+          "hide": "إخفاء الإشارات المرجعية المؤرشفة في العلامات والقوائم"
+        }
+      }
+    },
+    "ai": {
+      "ai_settings": "إعدادات الذكاء الاصطناعي",
+      "tagging_rules": "قواعد التوسيم",
+      "tagging_rule_description": "سيتم استخدام الإرشادات التي تضيفها هنا كقواعد للنموذج عند إنشاء الوسوم. يمكنك مراجعة الإرشادات النهائية في قسم المعاينة.",
+      "prompt_preview": "معاينة الإرشادات",
+      "text_prompt": "إرشادات النص",
+      "images_prompt": "إرشادات الصور",
+      "summarization_prompt": "إرشادات التلخيص",
+      "all_tagging": "التوسيم الشامل",
+      "text_tagging": "توسيم النصوص",
+      "image_tagging": "توسيم الصور",
+      "summarization": "التلخيص"
+    },
+    "feeds": {
+      "rss_subscriptions": "اشتراكات RSS",
+      "add_a_subscription": "إضافة اشتراك",
+      "feed_enabled": "تمكين موجز RSS",
+      "feed_disabled": "تم تعطيل موجز RSS"
+    },
+    "webhooks": {
+      "webhooks": "واجهات الربط",
+      "description": "يمكنك استخدام واجهات الربط لتنفيذ إجراءات عند إنشاء الإشارات المرجعية أو تحديثها أو معالجتها",
+      "events": {
+        "title": "الأحداث",
+        "crawled": "تم الاستكشاف",
+        "created": "تم الإنشاء",
+        "edited": "تم التعديل"
+      },
+      "auth_token": "رمز التفويض",
+      "add_auth_token": "إضافة رمز تفويض",
+      "edit_auth_token": "تعديل رمز التفويض",
+      "create_webhook": "إنشاء واجهة ربط",
+      "delete_webhook": "حذف واجهة الربط",
+      "delete_webhook_confirmation": "هل تريد حذف واجهة الربط هذه؟",
+      "edit_webhook": "تعديل واجهة الربط",
+      "webhook_url": "رابط واجهة الربط"
+    },
+    "import": {
+      "import_export": "استيراد / تصدير",
+      "import_export_bookmarks": "استيراد / تصدير الإشارات المرجعية",
+      "import_bookmarks_from_html_file": "استيراد إشارات مرجعية من ملف HTML",
+      "import_bookmarks_from_pocket_export": "استيراد إشارات مرجعية من تصدير Pocket",
+      "import_bookmarks_from_omnivore_export": "استيراد إشارات مرجعية من تصدير Omnivore",
+      "import_bookmarks_from_linkwarden_export": "استيراد إشارات مرجعية من تصدير Linkwarden",
+      "import_bookmarks_from_karakeep_export": "استيراد إشارات مرجعية من تصدير Karakeep",
+      "export_links_and_notes": "تصدير الروابط والملاحظات",
+      "imported_bookmarks": "الإشارات المرجعية المستوردة",
+      "import_bookmarks_from_tab_session_manager_export": "استيراد الإشارات المرجعية من مدير جلسة علامات التبويب"
+    },
+    "api_keys": {
+      "api_keys": "مفاتيح API",
+      "new_api_key": "مفتاح API جديد",
+      "new_api_key_desc": "أعط مفتاح API اسماً فريداً",
+      "key_success": "تم إنشاء المفتاح بنجاح",
+      "key_success_please_copy": "يرجى نسخ المفتاح وتخزينه في مكان آمن. لن تتمكن من الوصول إليه مرة أخرى بعد إغلاق هذا الحوار."
+    },
+    "broken_links": {
+      "broken_links": "روابط معطلة",
+      "last_crawled_at": "آخر استكشاف في",
+      "crawling_status": "حالة الاستكشاف",
+      "crawling_failed": "فشل الاستكشاف"
+    },
+    "manage_assets": {
+      "asset_type": "نوع الأصل",
+      "bookmark_link": "رابط الإشارة المرجعية",
+      "delete_asset": "حذف الأصل",
+      "delete_asset_confirmation": "هل أنت متأكد أنك تريد حذف هذا الأصل؟",
+      "asset_link": "رابط الأصل",
+      "manage_assets": "إدارة الأصول",
+      "no_assets": "ليس لديك أي أصول حتى الآن."
+    },
+    "rules": {
+      "enter_rule_name": "أدخل اسم القاعدة",
+      "conditions_types": {
+        "or": "أي مما يلي صحيح",
+        "always": "دائمًا",
+        "url_contains": "عنوان URL يحتوي على",
+        "imported_from_feed": "تم الاستيراد من الخلاصة",
+        "bookmark_type_is": "نوع الإشارة المرجعية هو",
+        "has_tag": "يحتوي على وسم",
+        "is_favourited": "مفضل",
+        "is_archived": "مؤرشف",
+        "and": "كل ما يلي صحيح"
+      },
+      "actions_types": {
+        "add_tag": "إضافة علامة",
+        "remove_tag": "إزالة الوسم",
+        "add_to_list": "أضف إلى القائمة",
+        "remove_from_list": "إزالة من القائمة",
+        "download_full_page_archive": "تنزيل أرشيف الصفحة الكاملة",
+        "favourite_bookmark": "إشارة مرجعية مفضلة",
+        "archive_bookmark": "أرشفة الإشارة المرجعية"
+      },
+      "rules": "محرك القواعد",
+      "rule_name": "اسم القاعدة",
+      "description": "يمكنك استخدام القواعد لتشغيل الإجراءات عند إطلاق حدث.",
+      "ceate_rule": "إنشاء قاعدة",
+      "edit_rule": "تعديل القاعدة",
+      "save_rule": "حفظ القاعدة",
+      "delete_rule": "حذف القاعدة",
+      "delete_rule_confirmation": "هل أنت متأكد أنك تريد حذف هذه القاعدة؟",
+      "whenever": "كلما ...",
+      "if": "إذا ...",
+      "describe_what_this_rule_does": "صف ما تفعله هذه القاعدة",
+      "rule_has_been_created": "تم إنشاء القاعدة!",
+      "rule_has_been_updated": "تم تحديث القاعدة!",
+      "rule_has_been_deleted": "تم حذف القاعدة!",
+      "no_rules_created_yet": "لم يتم إنشاء أي قواعد حتى الآن",
+      "create_your_first_rule": "أنشئ قاعدتك الأولى لأتمتة سير عملك",
+      "events_types": {
+        "bookmark_added": "تمت إضافة إشارة مرجعية",
+        "tag_added": "تمت إضافة هذه العلامة إلى إشارة مرجعية",
+        "tag_removed": "تمت إزالة هذا الوسم من إشارة مرجعية",
+        "added_to_list": "تمت إضافة إشارة مرجعية إلى هذه القائمة",
+        "removed_from_list": "تمت إزالة إشارة مرجعية من هذه القائمة",
+        "favourited": "تم تفضيل إشارة مرجعية",
+        "archived": "تم أرشفة إشارة مرجعية"
+      }
+    },
+    "stats": {
+      "usage_statistics": "إحصائيات الاستخدام",
+      "insights_description": "نظرة ثاقبة على عاداتك في وضع الإشارات المرجعية ومجموعتك",
+      "failed_to_load": "فشل تحميل الإحصائيات",
+      "overview": {
+        "total_bookmarks": "إجمالي الإشارات المرجعية",
+        "all_saved_items": "جميع العناصر المحفوظة",
+        "favorites": "المفضلة",
+        "starred_bookmarks": "الإشارات المرجعية المميزة بنجمة",
+        "archived": "مؤرشف",
+        "archived_items": "العناصر المؤرشفة",
+        "tags": "العلامات",
+        "unique_tags_created": "تم إنشاء علامات فريدة",
+        "lists": "قوائم",
+        "bookmark_collections": "مجموعات الإشارات المرجعية",
+        "highlights": "أبرز النقاط",
+        "text_highlights": "أبرز النقاط النصية",
+        "storage_used": "التخزين المستخدم",
+        "total_asset_storage": "إجمالي مساحة تخزين الأصول",
+        "this_month": "هذا الشهر",
+        "bookmarks_added": "تمت إضافة الإشارات المرجعية"
+      },
+      "bookmark_types": {
+        "title": "أنواع الإشارات المرجعية",
+        "links": "روابط",
+        "text_notes": "ملاحظات نصية",
+        "assets": "الأصول"
+      },
+      "recent_activity": {
+        "title": "النشاط الأخير",
+        "this_week": "هذا الأسبوع",
+        "this_month": "هذا الشهر",
+        "this_year": "هذا العام"
+      },
+      "top_domains": {
+        "title": "أهم النطاقات",
+        "no_domains_found": "لم يتم العثور على نطاقات"
+      },
+      "most_used_tags": {
+        "title": "العلامات الأكثر استخدامًا",
+        "no_tags_found": "لم يتم العثور على علامات"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "النشاط حسب الساعة",
+        "activity_by_day": "النشاط حسب اليوم"
+      },
+      "storage_breakdown": {
+        "title": "تفصيل التخزين"
+      }
+    },
+    "subscription": {
+      "subscription": "اشتراك",
+      "manage_subscription": "إدارة معلومات الاشتراك والفوترة الخاصة بك",
+      "current_plan": "الخطة الحالية",
+      "billing_period": "فترة الفوترة",
+      "paid_plan": "خطة مدفوعة",
+      "unlock_bigger_quota": "افتح حصة أكبر وادعم المشروع",
+      "subscribe_now": "اشترك الآن",
+      "manage_billing": "إدارة الفوترة",
+      "subscription_canceled": "تم إلغاء اشتراكك وسينتهي في {{date}}. يمكنك إعادة الاشتراك في أي وقت.",
+      "usage_quotas": "الاستخدام والحصص",
+      "track_usage": "تتبع استخدامك الحالي مقابل حدود خطتك",
+      "total_bookmarks_saved": "إجمالي الإشارات المرجعية المحفوظة",
+      "assets_file_storage": "الأصول وتخزين الملفات",
+      "unlimited_usage": "استخدام غير محدود",
+      "quota_limit_reached": "تم الوصول إلى حد الحصة",
+      "approaching_quota_limit": "الاقتراب من حد الحصة",
+      "loading_usage": "جارٍ تحميل معلومات الاستخدام...",
+      "free": "مجاني",
+      "paid": "مدفوعة"
+    }
+  },
+  "admin": {
+    "admin_settings": "إعدادات المشرف",
+    "server_stats": {
+      "server_stats": "إحصائيات الخادم",
+      "total_users": "إجمالي المستخدمين",
+      "total_bookmarks": "إجمالي الإشارات المرجعية",
+      "server_version": "إصدار الخادم"
+    },
+    "background_jobs": {
+      "background_jobs": "المهام الخلفية",
+      "crawler_jobs": "مهام الاستكشاف",
+      "indexing_jobs": "مهام الفهرسة",
+      "inference_jobs": "مهام الاستدلال",
+      "tidy_assets_jobs": "مهام تنظيم الوسائط",
+      "job": "مهمة",
+      "queued": "في قائمة الانتظار",
+      "pending": "قيد الانتظار",
+      "failed": "فشلت",
+      "feed_jobs": "وظائف موجز RSS",
+      "video_jobs": "وظائف تنزيل الفيديو",
+      "webhook_jobs": "وظائف Webhook",
+      "asset_preprocessing_jobs": "وظائف المعالجة المسبقة للأصول",
+      "jobs": {
+        "crawler": {
+          "title": "وظائف الزحف",
+          "description": "الزحف على الويب واستخراج المحتوى من عناوين URL"
+        },
+        "inference": {
+          "title": "وظائف الاستدلال",
+          "description": "وضع العلامات وتلخيص المحتوى المدعوم بالذكاء الاصطناعي"
+        },
+        "indexing": {
+          "title": "وظائف الفهرسة",
+          "description": "تحديثات فهرس البحث"
+        },
+        "asset_preprocessing": {
+          "title": "وظائف المعالجة المسبقة للأصول",
+          "description": "معالجة الصور والمستندات (لقطات الشاشة، واستخراج النصوص، إلخ.)"
+        },
+        "tidy_assets": {
+          "title": "وظائف تنظيف الأصول",
+          "description": "تنظيف الأصول وتحسين التخزين"
+        },
+        "video": {
+          "title": "وظائف تنزيل الفيديو",
+          "description": "استخراج الفيديو وتنزيله"
+        },
+        "webhook": {
+          "title": "وظائف Webhook",
+          "description": "إشعارات Webhook الخارجية"
+        },
+        "feed": {
+          "title": "وظائف تغذية RSS",
+          "description": "معالجة موجز RSS وتحديثات المحتوى"
+        }
+      },
+      "monitor_and_manage": "مراقبة وإدارة قوائم انتظار الوظائف الخلفية ومهام معالجة النظام",
+      "active": "نشط",
+      "available_actions": "الإجراءات المتاحة",
+      "status": {
+        "title": "فهم حالات الوظائف",
+        "queued": {
+          "title": "في الانتظار",
+          "description": "الوظائف في انتظار دورها للمعالجة. ستبدأ تلقائيًا عندما تتوفر الموارد."
+        },
+        "unprocessed": {
+          "title": "لم تتم معالجته",
+          "description": "الإشارات المرجعية التي لم تتم معالجتها بعد. من المرجح أنها قيد الانتظار للمعالجة بالفعل، وإذا لم يكن الأمر كذلك، فقد تحتاج إلى إعادة إدخالها يدويًا."
+        },
+        "failed": {
+          "title": "فشل",
+          "description": "علامات مرجعية واجهت أخطاء أثناء المعالجة. قد تحتاج هذه إلى اهتمام يدوي."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "إعادة زحف الروابط الفاشلة فقط",
+        "recrawl_all_links": "إعادة زحف جميع الروابط",
+        "without_inference": "بدون استدلال",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "إعادة إنشاء علامات الذكاء الاصطناعي فقط للمعلومات المرجعية التي فشلت",
+        "regenerate_ai_tags_for_all_bookmarks": "إعادة إنشاء علامات الذكاء الاصطناعي لجميع الإشارات المرجعية",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "إعادة إنشاء ملخصات الذكاء الاصطناعي للإشارات المرجعية الفاشلة فقط",
+        "regenerate_ai_summaries_for_all_bookmarks": "إعادة إنشاء ملخصات الذكاء الاصطناعي لجميع الإشارات المرجعية",
+        "reindex_all_bookmarks": "إعادة فهرسة جميع الإشارات المرجعية",
+        "clean_assets": "تنظيف الأصول المتدلية وإعادة مزامنة البيانات الوصفية",
+        "reprocess_assets_fix_mode": "إعادة معالجة الأصول غير المعالجة"
+      }
+    },
+    "actions": {
+      "recrawl_failed_links_only": "إعادة استكشاف الروابط الفاشلة فقط",
+      "recrawl_all_links": "إعادة استكشاف جميع الروابط",
+      "without_inference": "بدون استدلال",
+      "regenerate_ai_tags_for_failed_bookmarks_only": "إعادة إنشاء علامات الذكاء الاصطناعي للإشارات المرجعية الفاشلة فقط",
+      "regenerate_ai_tags_for_all_bookmarks": "إعادة إنشاء علامات الذكاء الاصطناعي لجميع الإشارات المرجعية",
+      "reindex_all_bookmarks": "إعادة فهرسة جميع الإشارات المرجعية",
+      "compact_assets": "ضغط الوسائط",
+      "reprocess_assets_fix_mode": "إعادة معالجة الوسائط (وضع الإصلاح)",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "أعد إنشاء ملخصات الذكاء الاصطناعي للإشارات المرجعية الفاشلة فقط",
+      "regenerate_ai_summaries_for_all_bookmarks": "أعد إنشاء ملخصات الذكاء الاصطناعي لجميع الإشارات المرجعية"
+    },
+    "users_list": {
+      "users_list": "قائمة المستخدمين",
+      "create_user": "إنشاء مستخدم",
+      "change_role": "تغيير الدور",
+      "reset_password": "إعادة تعيين كلمة المرور",
+      "delete_user": "حذف المستخدم",
+      "num_bookmarks": "عدد الإشارات المرجعية",
+      "asset_sizes": "أحجام الوسائط",
+      "local_user": "مستخدم محلي",
+      "confirm_password": "تأكيد كلمة المرور",
+      "delete_user_confirm_description": "هل أنت متأكد أنك تريد حذف المستخدم \"{{name}}؟\"",
+      "unlimited": "غير محدود"
+    }
+  },
+  "options": {
+    "dark_mode": "الوضع الداكن",
+    "light_mode": "الوضع الفاتح"
+  },
+  "lists": {
+    "all_lists": "جميع القوائم",
+    "favourites": "المفضلة",
+    "new_list": "قائمة جديدة",
+    "edit_list": "تحرير القائمة",
+    "new_nested_list": "قائمة متداخلة جديدة",
+    "parent_list": "القائمة الأم",
+    "no_parent": "بدون أم",
+    "list_type": "نوع القائمة",
+    "manual_list": "قائمة يدوية",
+    "smart_list": "قائمة ذكية",
+    "search_query": "استعلام البحث",
+    "search_query_help": "تعرف المزيد عن لغة استعلام البحث.",
+    "merge_list": "دمج القائمة",
+    "destination_list": "القائمة الوجهة",
+    "delete_after_merge": "حذف القائمة الأصلية بعد الدمج",
+    "no_destination": "لا توجد وجهة",
+    "description": "الوصف (اختياري)",
+    "rss": {
+      "title": "موجز RSS",
+      "description": "تمكين موجز RSS لهذه القائمة",
+      "feed_url": "عنوان URL لموجز RSS"
+    },
+    "share_list": "شارك القائمة",
+    "public_list": {
+      "title": "قائمة عامة",
+      "description": "السماح للآخرين بعرض هذه القائمة",
+      "share_link": "شارك الرابط"
+    }
+  },
+  "tags": {
+    "all_tags": "جميع الوسوم",
+    "your_tags": "وسومك",
+    "your_tags_info": "الوسوم التي أضفتها مرة واحدة على الأقل",
+    "ai_tags": "وسوم الذكاء الاصطناعي",
+    "ai_tags_info": "الوسوم التي تم إضافتها تلقائياً فقط (بواسطة الذكاء الاصطناعي)",
+    "unused_tags": "وسوم غير مستخدمة",
+    "unused_tags_info": "وسوم غير مرتبطة بأي إشارات مرجعية",
+    "delete_all_unused_tags": "حذف جميع الوسوم غير المستخدمة",
+    "drag_and_drop_merging": "دمج بالسحب والإفلات",
+    "drag_and_drop_merging_info": "اسحب وأفلت الوسوم على بعضها البعض لدمجها",
+    "sort_by_name": "ترتيب حسب الاسم"
+  },
+  "search": {
+    "is_favorited": "في المفضلة",
+    "is_not_favorited": "ليس في المفضلة",
+    "is_archived": "مؤرشف",
+    "is_not_archived": "غير مؤرشف",
+    "has_any_tag": "له أي وسم",
+    "has_no_tags": "ليس له وسوم",
+    "is_in_any_list": "في أي قائمة",
+    "is_not_in_any_list": "ليس في أي قائمة",
+    "created_on_or_after": "تم إنشاؤه في أو بعد",
+    "not_created_on_or_after": "لم يتم إنشاؤه في أو بعد",
+    "created_on_or_before": "تم إنشاؤه في أو قبل",
+    "not_created_on_or_before": "لم يتم إنشاؤه في أو قبل",
+    "url_contains": "الرابط يحتوي على",
+    "url_does_not_contain": "الرابط لا يحتوي على",
+    "is_in_list": "في القائمة",
+    "is_not_in_list": "ليس في القائمة",
+    "has_tag": "له وسم",
+    "does_not_have_tag": "ليس له وسم",
+    "full_text_search": "البحث النصي الكامل",
+    "type_is": "النوع هو",
+    "type_is_not": "النوع ليس كـ",
+    "and": "و",
+    "or": "أو",
+    "is_from_feed": "من موجز RSS",
+    "is_not_from_feed": "ليس من موجز RSS",
+    "created_within": "تم إنشاؤه في غضون",
+    "month_s_ago": " منذ شهر (أشهر)",
+    "year_s_ago": " منذ سنة (سنوات)",
+    "created_earlier_than": "تم إنشاؤه في وقت أبكر من",
+    "day_s": " يوم (أيام)",
+    "week_s": " أسبوع (أسابيع)",
+    "month_s": " شهر (أشهر)",
+    "year_s": " سنة (سنوات)",
+    "day_s_ago": " منذ يوم (أيام)",
+    "week_s_ago": " منذ أسبوع (أسابيع)",
+    "history": "عمليات البحث الأخيرة"
+  },
+  "preview": {
+    "view_original": "عرض النسخة الأصلية",
+    "cached_content": "النسخة المخزنة",
+    "reader_view": "عرض القارئ",
+    "tabs": {
+      "content": "المحتوى",
+      "details": "التفاصيل"
+    }
+  },
+  "editor": {
+    "quickly_focus": "يمكنك التركيز سريعاً على هذا الحقل بالضغط على ⌘ + E",
+    "multiple_urls_dialog_title": "هل تريد استيراد الروابط كإشارات مرجعية منفصلة؟",
+    "multiple_urls_dialog_desc": "يحتوي المدخل على روابط متعددة في أسطر منفصلة. هل تريد استيرادها كإشارات مرجعية منفصلة؟",
+    "import_as_text": "استيراد كإشارة مرجعية نصية",
+    "import_as_separate_bookmarks": "استيراد كإشارات مرجعية منفصلة",
+    "placeholder": "الصق رابطاً، أو اكتب ملاحظة، أو اسحب صورة وأفلتها هنا...",
+    "new_item": "عنصر جديد",
+    "disabled_submissions": "الإرسال معطل",
+    "text_toolbar": {
+      "undo": "تراجع",
+      "redo": "إعادة",
+      "bold": "عريض",
+      "italic": "مائل",
+      "underline": "تحته خط",
+      "strikethrough": "مشطوب",
+      "code": "كود",
+      "highlight": "تمييز",
+      "align_left": "محاذاة لليسار",
+      "align_center": "محاذاة للوسط",
+      "align_right": "محاذاة لليمين",
+      "markdown_shortcuts": {
+        "label": "اختصارات التنسيق",
+        "heading": {
+          "label": "عنوان",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "عريض",
+          "example": "**نص** أو CTRL+b"
+        },
+        "italic": {
+          "label": "مائل",
+          "example": "*مائل* أو _مائل_ أو CTRL+i"
+        },
+        "blockquote": {
+          "label": "اقتباس",
+          "example": "> اقتباس"
+        },
+        "ordered_list": {
+          "label": "قائمة مرتبة",
+          "example": "1. عنصر القائمة"
+        },
+        "unordered_list": {
+          "label": "قائمة غير مرتبة",
+          "example": "- عنصر القائمة"
+        },
+        "inline_code": {
+          "label": "كود ضمني",
+          "example": "`كود`"
+        },
+        "block_code": {
+          "label": "كتلة كود",
+          "example": "``` + مسافة"
+        }
+      }
+    },
+    "placeholder_v2": "الصق رابطًا أو اكتب ملاحظة أو أسقط صورة…"
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "حذف الإشارة المرجعية؟",
+      "delete_confirmation_description": "هل أنت متأكد من رغبتك في حذف هذه الإشارة المرجعية؟"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "تم تحديث الإشارة المرجعية!",
+      "deleted": "تم حذف الإشارة المرجعية!",
+      "refetch": "تم إضافة إعادة الجلب إلى قائمة الانتظار!",
+      "full_page_archive": "تم بدء إنشاء أرشيف الصفحة الكامل",
+      "delete_from_list": "تم حذف الإشارة المرجعية من القائمة",
+      "clipboard_copied": "تم نسخ الرابط إلى الحافظة!"
+    },
+    "lists": {
+      "created": "تم إنشاء القائمة!",
+      "updated": "تم تحديث القائمة!",
+      "merged": "تم دمج القائمة!",
+      "deleted": "تم حذف القائمة!"
+    }
+  },
+  "cleanups": {
+    "cleanups": "التنظيفات",
+    "duplicate_tags": {
+      "title": "وسوم مكررة",
+      "merge_all_suggestions": "دمج جميع الاقتراحات؟"
+    }
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "لا توجد إشارات مرجعية حتى الآن",
+      "description": "احفظ المقالات والروابط والصفحات الشيقة للوصول إليها بسرعة لاحقًا."
+    }
+  },
+  "bookmark_editor": {
+    "title": "تعديل الإشارة المرجعية",
+    "subtitle": "قم بإجراء تغييرات على تفاصيل الإشارة المرجعية. انقر فوق حفظ عند الانتهاء.",
+    "author": "المؤلف",
+    "publisher": "الناشر",
+    "date_published": "تاريخ النشر",
+    "pick_a_date": "اختر تاريخًا",
+    "save_changes": "حفظ التغييرات",
+    "extracted_content": "المحتوى المستخرج"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.842.0",
+    "glob": "^11.0.0",
+    "html-to-text": "^9.0.5",
+    "js-tiktoken": "^1.0.20",
+    "nodemailer": "^7.0.4",
+    "ollama": "^0.5.14",
+    "openai": "^4.86.1",
+    "typescript-parsec": "^0.3.4",
+    "winston": "^3.11.0",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.3"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@types/html-to-text": "^9.0.4",
+    "@types/nodemailer": "^6.4.17",
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^3.2.4"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "vitest"
+  },
+  "main": "index.ts",
+  "prettier": "@karakeep/prettier-config"
+}

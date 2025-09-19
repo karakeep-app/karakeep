@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Karakeep",
+  "description": "An extension to bookmark links to karakeep.app",
+  "version": "1.2.6",
+  "icons": {
+    "16": "public/logo-16.png",
+    "48": "public/logo-48.png",
+    "128": "public/logo-128.png"
+  },
+  "action": {
+    "default_popup": "index.html",
+    "theme_icons": [
+      {
+        "light": "logo-16-darkmode.png",
+        "dark": "logo-16.png",
+        "size": 16
+      },
+      {
+        "light": "logo-48-darkmode.png",
+        "dark": "logo-48.png",
+        "size": 48
+      },
+      {
+        "light": "logo-128-darkmode.png",
+        "dark": "logo-128.png",
+        "size": 128
+      }
+    ]
+  },
+  "background": {
+    "service_worker": "src/background/background.ts",
+    "scripts": ["src/background/background.ts"]
+  },
+  "options_ui": {
+    "page": "index.html#options",
+    "open_in_tab": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "addon@karakeep.app"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "permissions": ["storage", "tabs", "contextMenus"],
+  "commands": {
+    "add-link": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Send the current page URL to Karakeep."
+    }
+  }
+}

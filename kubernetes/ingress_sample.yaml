@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: karakeep-web-ingress
+  namespace: karakeep
+spec:
+  rules:
+  - host: "karakeep.example.com"
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: "web"
+            port:
+              number: 3000

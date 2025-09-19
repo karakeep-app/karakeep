@@ -1,0 +1,623 @@
+{
+  "actions": {
+    "select_all": "Vælg alle",
+    "sign_out": "Log ud",
+    "apply_all": "Anvend på alle",
+    "unarchive": "Fjern arkivering",
+    "favorite": "Stjernemarker",
+    "change_layout": "Skift visning",
+    "download_full_page_archive": "Download hele siden til arkiv",
+    "recrawl": "Gennemsøg igen",
+    "add_to_list": "Tilføj til liste",
+    "copy_link": "Kopiér link",
+    "close_bulk_edit": "Luk masseredigering",
+    "bulk_edit": "Masseredigering",
+    "manage_lists": "Administrer lister",
+    "remove_from_list": "Fjern fra liste",
+    "add": "Tilføj",
+    "create": "Opret",
+    "fetch_now": "Hent nu",
+    "summarize_with_ai": "Opsummer med AI",
+    "edit_title": "Rediger titel",
+    "cancel": "Annuller",
+    "ignore": "Ignorer",
+    "unselect_all": "Fravælg alle",
+    "refresh": "Genopfrisk",
+    "unfavorite": "Fjern stjernemarkering",
+    "archive": "Arkivér",
+    "delete": "Slet",
+    "edit": "Rediger",
+    "close": "Luk",
+    "edit_tags": "Rediger tags",
+    "save": "Gem",
+    "merge": "Sammenflet",
+    "sort": {
+      "title": "Sortér",
+      "newest_first": "Nyeste først",
+      "oldest_first": "Ældste først",
+      "relevant_first": "Mest relevant først"
+    },
+    "open_editor": "Åbn editor",
+    "toggle_show_archived": "Vis arkiverede",
+    "confirm": "Bekræft"
+  },
+  "settings": {
+    "import": {
+      "export_links_and_notes": "Eksporter links og noter",
+      "import_bookmarks_from_omnivore_export": "Importer bogmærker fra Omnivore-eksport",
+      "import_bookmarks_from_karakeep_export": "Importer bogmærker fra Karakeep-eksport",
+      "import_export": "Import / eksport",
+      "import_export_bookmarks": "Import / eksport bogmærker",
+      "import_bookmarks_from_html_file": "Importer bogmærker fra HTML-fil",
+      "import_bookmarks_from_pocket_export": "Importer bogmærker fra Pocket-eksport",
+      "imported_bookmarks": "Importerede bogmærker",
+      "import_bookmarks_from_linkwarden_export": "Importer bogmærker fra Linkwarden-eksport",
+      "import_bookmarks_from_tab_session_manager_export": "Importer bogmærker fra Tab Session Manager"
+    },
+    "back_to_app": "Tilbage til app",
+    "info": {
+      "basic_details": "Grundlæggende",
+      "user_info": "Brugeroplysninger",
+      "interface_lang": "Grænseflade sprog",
+      "current_password": "Nuværende adgangskode",
+      "new_password": "Ny adgangskode",
+      "confirm_new_password": "Bekræft ny adgangskode",
+      "change_password": "Skift adgangskode",
+      "options": "Indstillinger",
+      "user_settings": {
+        "user_settings_updated": "Brugerindstillinger er blevet opdateret!",
+        "bookmark_click_action": {
+          "title": "Bogmærke klik handling",
+          "open_external_url": "Åbn original URL",
+          "open_bookmark_details": "Åbn bogmærke detaljer"
+        },
+        "archive_display_behaviour": {
+          "title": "Arkiverede bogmærker",
+          "show": "Vis arkiverede bogmærker i tags og lister",
+          "hide": "Skjul arkiverede bogmærker i tags og lister"
+        }
+      }
+    },
+    "feeds": {
+      "add_a_subscription": "Tilføj et abonnement",
+      "rss_subscriptions": "RSS-abonnementer",
+      "feed_enabled": "RSS-feed aktiveret",
+      "feed_disabled": "RSS-feed deaktiveret"
+    },
+    "ai": {
+      "tagging_rules": "Regler for tagging",
+      "tagging_rule_description": "Prompts, som du tilføjer her, vil blive inkluderet som regler i modellen under taggenereringen. Du kan se de endelige prompts i afsnittet med forhåndsvisning af prompts.",
+      "ai_settings": "AI-indstillinger",
+      "images_prompt": "Billede-prompt",
+      "prompt_preview": "Forhåndsvisning af prompt",
+      "text_prompt": "Tekst-prompt",
+      "summarization_prompt": "Opsummeringsprompt",
+      "summarization": "Opsummering",
+      "all_tagging": "Tagging for alle typer",
+      "text_tagging": "Tekst-tagging",
+      "image_tagging": "Billede-tagging"
+    },
+    "broken_links": {
+      "crawling_status": "Gennemsøgningsstatus",
+      "broken_links": "Ugyldige links",
+      "last_crawled_at": "Sidst gennemsøgt",
+      "crawling_failed": "Gennemsøgning mislykkedes"
+    },
+    "api_keys": {
+      "new_api_key_desc": "Giv din API-nøgle et unikt navn",
+      "api_keys": "API-nøgler",
+      "new_api_key": "Ny API-nøgle",
+      "key_success": "Nøglen blev succesfuldt oprettet",
+      "key_success_please_copy": "Kopiér venligst nøglen og gem den et sikkert sted. Vær opmærksom på, at du ikke vil kunne få adgang til den igen, efter dialogboksen lukkes."
+    },
+    "user_settings": "Brugerindstillinger",
+    "webhooks": {
+      "webhooks": "Webhooks",
+      "events": {
+        "title": "Begivenheder",
+        "created": "Oprettet",
+        "edited": "Redigeret",
+        "crawled": "Gennemgået"
+      },
+      "description": "Du kan bruge webhooks til at udløse handlinger, når bogmærker oprettes, ændres eller gennemgås.",
+      "auth_token": "Adgangstoken",
+      "add_auth_token": "Tilføj adgangstoken",
+      "edit_auth_token": "Rediger adgangstoken",
+      "create_webhook": "Opret webhook",
+      "delete_webhook": "Slet webhook",
+      "delete_webhook_confirmation": "Er du sikker på, at du vil slette denne webhook?",
+      "edit_webhook": "Rediger webhook",
+      "webhook_url": "Webhook URL"
+    },
+    "manage_assets": {
+      "manage_assets": "Administrér ressourcer",
+      "no_assets": "Du har ingen ressourcer endnu.",
+      "delete_asset": "Slet ressource",
+      "asset_link": "Ressourcelink",
+      "asset_type": "Ressourcetype",
+      "delete_asset_confirmation": "Er du sikker på, at du vil slette denne ressource?",
+      "bookmark_link": "Bogmærkelink"
+    },
+    "rules": {
+      "whenever": "Når som helst ...",
+      "rules": "Regelmotor",
+      "rule_name": "Regelnavn",
+      "description": "Du kan bruge regler til at udløse handlinger, når en begivenhed udløses.",
+      "ceate_rule": "Opret regel",
+      "edit_rule": "Rediger regel",
+      "save_rule": "Gem regel",
+      "delete_rule": "Slet regel",
+      "delete_rule_confirmation": "Er du sikker på, at du vil slette denne regel?",
+      "if": "Hvis ...",
+      "enter_rule_name": "Indtast regelnavn",
+      "describe_what_this_rule_does": "Beskriv, hvad denne regel gør",
+      "rule_has_been_created": "Reglen er blevet oprettet!",
+      "rule_has_been_updated": "Reglen er blevet opdateret!",
+      "rule_has_been_deleted": "Reglen er blevet slettet!",
+      "no_rules_created_yet": "Ingen regler er oprettet endnu",
+      "create_your_first_rule": "Opret din første regel for at automatisere dit workflow",
+      "conditions_types": {
+        "always": "Altid",
+        "url_contains": "URL indeholder",
+        "imported_from_feed": "Importeret fra feed",
+        "bookmark_type_is": "Bogmærketype er",
+        "has_tag": "Har tag",
+        "is_favourited": "Er favoriseret",
+        "is_archived": "Er Arkiveret",
+        "and": "Alle følgende er sande",
+        "or": "Et af følgende er sandt"
+      },
+      "actions_types": {
+        "remove_tag": "Fjern tag",
+        "add_to_list": "Tilføj til liste",
+        "add_tag": "Tilføj tag",
+        "remove_from_list": "Fjern fra liste",
+        "download_full_page_archive": "Download fuld sidearkiv",
+        "favourite_bookmark": "Favoritbogmærke",
+        "archive_bookmark": "Arkiver bogmærke"
+      },
+      "events_types": {
+        "bookmark_added": "Et bogmærke er tilføjet",
+        "tag_added": "Dette tag er føjet til et bogmærke",
+        "tag_removed": "Dette tag er fjernet fra et bogmærke",
+        "added_to_list": "Et bogmærke er tilføjet til denne liste",
+        "removed_from_list": "Et bogmærke er fjernet fra denne liste",
+        "favourited": "Et bogmærke er markeret som favorit",
+        "archived": "Et bogmærke er arkiveret"
+      }
+    },
+    "stats": {
+      "usage_statistics": "Anvendelsesstatistik",
+      "insights_description": "Indsigt i dine bogmærkevaner og -samling",
+      "failed_to_load": "Kunne ikke indlæse statistik",
+      "overview": {
+        "total_bookmarks": "Samlede bogmærker",
+        "all_saved_items": "Alle gemte elementer",
+        "favorites": "Favoritter",
+        "starred_bookmarks": "Stjerne-markerede bogmærker",
+        "archived": "Arkiveret",
+        "archived_items": "Arkiverede elementer",
+        "tags": "Tags",
+        "unique_tags_created": "Unikke tags oprettet",
+        "lists": "Lister",
+        "bookmark_collections": "Bogmærkesamlinger",
+        "highlights": "Fremhævelser",
+        "text_highlights": "Tekstfremhævelser",
+        "storage_used": "Brugt lagerplads",
+        "total_asset_storage": "Samlet lagerplads til aktiver",
+        "this_month": "Denne måned",
+        "bookmarks_added": "Bogmærker tilføjet"
+      },
+      "bookmark_types": {
+        "title": "Bogmærketyper",
+        "links": "Links",
+        "text_notes": "Tekstnoter",
+        "assets": "Aktiver"
+      },
+      "recent_activity": {
+        "title": "Seneste aktivitet",
+        "this_week": "Denne uge",
+        "this_month": "Denne måned",
+        "this_year": "I år"
+      },
+      "top_domains": {
+        "title": "Topdomæner",
+        "no_domains_found": "Ingen domæner fundet"
+      },
+      "most_used_tags": {
+        "title": "Mest brugte tags",
+        "no_tags_found": "Ingen tags fundet"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivitet pr. time",
+        "activity_by_day": "Aktivitet efter dag"
+      },
+      "storage_breakdown": {
+        "title": "Opdeling af lagerplads"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonnement",
+      "manage_subscription": "Administrer dit abonnement og dine faktureringsoplysninger",
+      "current_plan": "Nuværende abonnement",
+      "billing_period": "Faktureringsperiode",
+      "paid_plan": "Betalt abonnement",
+      "unlock_bigger_quota": "Lås op for større kvote, og støt projektet",
+      "subscribe_now": "Abonner nu",
+      "manage_billing": "Administrer fakturering",
+      "subscription_canceled": "Dit abonnement er blevet annulleret og udløber den {{date}}. Du kan genabonnere når som helst.",
+      "usage_quotas": "Forbrug og kvoter",
+      "track_usage": "Hold øje med dit nuværende forbrug i forhold til dine planbegrænsninger",
+      "total_bookmarks_saved": "Samlet antal gemte bogmærker",
+      "assets_file_storage": "Aktiver og fillagring",
+      "unlimited_usage": "Ubegrænset brug",
+      "quota_limit_reached": "Kvotegrænse nået",
+      "approaching_quota_limit": "Nærmer sig kvotegrænsen",
+      "loading_usage": "Indlæser forbrugsinformation...",
+      "free": "Gratis",
+      "paid": "Betalt"
+    }
+  },
+  "admin": {
+    "actions": {
+      "regenerate_ai_tags_for_failed_bookmarks_only": "Genopret AI-tags kun for mislykkede bogmærker",
+      "recrawl_failed_links_only": "Gennemsøg kun mislykkede links igen",
+      "compact_assets": "Komprimér ressourcer",
+      "recrawl_all_links": "Gennemsøg alle links",
+      "without_inference": "Uden inferens",
+      "regenerate_ai_tags_for_all_bookmarks": "Genopret AI-tags for alle bogmærker",
+      "reindex_all_bookmarks": "Genindeksér alle bogmærker",
+      "reprocess_assets_fix_mode": "Genbehandling af aktiver (Fix Mode)",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "Gendan AI-opsummeringer kun for mislykkede bogmærker",
+      "regenerate_ai_summaries_for_all_bookmarks": "Gendan AI-opsummeringer for alle bogmærker"
+    },
+    "background_jobs": {
+      "inference_jobs": "Inferensopgaver",
+      "failed": "Mislykket",
+      "background_jobs": "Baggrundsjobs",
+      "crawler_jobs": "Gennemsøgningsopgaver",
+      "indexing_jobs": "Indekseringsopgaver",
+      "tidy_assets_jobs": "Oprydningsopgaver for ressourcer",
+      "job": "Opgave",
+      "queued": "I kø",
+      "pending": "Afventer",
+      "webhook_jobs": "Webhook-opgaver",
+      "video_jobs": "Videonedehentningsopgaver",
+      "feed_jobs": "RSS-feed-opgaver",
+      "asset_preprocessing_jobs": "Forbehandlingsopgaver for ressourcer",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Webcrawling og indholdsudtrækning fra URL'er"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-drevet tagning og opsummering af indhold"
+        },
+        "indexing": {
+          "title": "Indexeringsjob",
+          "description": "Søgeindeksopdateringer"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Præprocesseringsjob",
+          "description": "Billed- og dokumentpræprocessering (skærmbilleder, tekstudtrækning osv.)"
+        },
+        "tidy_assets": {
+          "title": "Ryddelige Asset Jobs",
+          "description": "Asset oprydning og lageroptimering"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Videoudtrækning og download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "Eksterne webhook notifikationer"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS-feed behandling og indholdsopdateringer"
+        }
+      },
+      "monitor_and_manage": "Overvåg og administrer baggrundsjobkøer og systembehandlingsopgaver",
+      "active": "Aktiv",
+      "available_actions": "Tilgængelige handlinger",
+      "status": {
+        "title": "Forståelse af Jobtilstande",
+        "queued": {
+          "title": "Sat i kø",
+          "description": "Job, der venter i køen på at blive behandlet. De starter automatisk, når der er ressourcer tilgængelige."
+        },
+        "unprocessed": {
+          "title": "Ikke behandlet",
+          "description": "Bogmærker, der endnu ikke er blevet behandlet. De er sandsynligvis allerede sat i kø til behandling, hvis ikke, skal du måske manuelt sætte dem i kø igen."
+        },
+        "failed": {
+          "title": "Mislykkedes",
+          "description": "Bogmærker, der stødte på fejl under behandlingen. Disse kan kræve manuel opmærksomhed."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Gennemsøg kun links, der er mislykkedes, igen",
+        "recrawl_all_links": "Gennemsøg alle links igen",
+        "without_inference": "Uden inferens",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Opret AI-tags igen kun for mislykkede bogmærker",
+        "regenerate_ai_tags_for_all_bookmarks": "Opret AI-tags for alle bogmærker igen",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Opret AI-oversigter igen kun for mislykkede bogmærker",
+        "regenerate_ai_summaries_for_all_bookmarks": "Opret AI-oversigter for alle bogmærker igen",
+        "reindex_all_bookmarks": "Genindekser alle bogmærker",
+        "clean_assets": "Ryd op i efterladte aktiver og synkroniser metadata igen",
+        "reprocess_assets_fix_mode": "Genbehandl ubehandlede aktiver"
+      }
+    },
+    "server_stats": {
+      "server_version": "Server-version",
+      "server_stats": "Serverstatistik",
+      "total_users": "Brugere i alt",
+      "total_bookmarks": "Bogmærker i alt"
+    },
+    "admin_settings": "Admin-indstillinger",
+    "users_list": {
+      "create_user": "Opret bruger",
+      "users_list": "Liste over brugere",
+      "change_role": "Skift rolle",
+      "reset_password": "Nulstil adgangskode",
+      "delete_user": "Slet bruger",
+      "num_bookmarks": "Antal bogmærker",
+      "asset_sizes": "Størrelse på ressourcer",
+      "local_user": "Lokal bruger",
+      "confirm_password": "Bekræft adgangskode",
+      "delete_user_confirm_description": "Er du sikker på, at du vil slette brugeren \"{{name}}\"?",
+      "unlimited": "Ubegrænset"
+    }
+  },
+  "tags": {
+    "unused_tags": "Ikke-anvendte tags",
+    "your_tags": "Dine tags",
+    "ai_tags": "AI-tags",
+    "all_tags": "Alle tags",
+    "delete_all_unused_tags": "Fjern alle ikke-anvendte tags",
+    "drag_and_drop_merging": "Træk og slip-sammenfletning",
+    "your_tags_info": "Tags, du har anvendt mindst én gang",
+    "ai_tags_info": "Tags, der er tilføjet automatisk (af AI)",
+    "unused_tags_info": "Tags, der ikke er knyttet til nogen bogmærker",
+    "drag_and_drop_merging_info": "Træk og slip tags oven på hinanden for at sammenflette dem",
+    "sort_by_name": "Sorter efter navn"
+  },
+  "options": {
+    "light_mode": "Lys tilstand",
+    "dark_mode": "Mørk tilstand"
+  },
+  "editor": {
+    "quickly_focus": "Du kan hurtigt fokusere på dette felt ved at bruge genvejen ⌘ + E",
+    "multiple_urls_dialog_title": "Importer URL’er som separate bogmærker?",
+    "multiple_urls_dialog_desc": "Indtastningen indeholder flere URL’er på separate linjer. Ønsker du at importere dem som individuelle bogmærker?",
+    "import_as_text": "Importer som tekstbogmærke",
+    "import_as_separate_bookmarks": "Importer som separate bogmærker",
+    "new_item": "NYT ELEMENT",
+    "disabled_submissions": "Indsendelser er deaktiveret",
+    "text_toolbar": {
+      "undo": "Fortryd",
+      "redo": "Annuller fortryd",
+      "italic": "Kursiv",
+      "underline": "Understregning",
+      "strikethrough": "Gennemstreget",
+      "code": "Kode",
+      "highlight": "Fremhæv",
+      "align_left": "Venstrejuster",
+      "align_center": "Centreret",
+      "align_right": "Højrejuster",
+      "markdown_shortcuts": {
+        "label": "Markdown-genveje",
+        "heading": {
+          "label": "Overskrift",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "Fed",
+          "example": "**tekst** eller CTRL+b"
+        },
+        "blockquote": {
+          "label": "Blokcitat",
+          "example": "> Blokcitat"
+        },
+        "ordered_list": {
+          "label": "Opstilling med tal",
+          "example": "1. Listepunkt"
+        },
+        "unordered_list": {
+          "label": "Punktopstilling",
+          "example": "- Listepunkt"
+        },
+        "inline_code": {
+          "label": "Indlejret kode",
+          "example": "`Kode`"
+        },
+        "block_code": {
+          "label": "Blokkode",
+          "example": "``` + mellemrum"
+        },
+        "italic": {
+          "label": "Kursiv",
+          "example": "*Kursiv* eller _Kursiv_ eller CTRL+i"
+        }
+      },
+      "bold": "Fed"
+    },
+    "placeholder": "Indsæt et link eller billede, skriv en note, eller træk og slip et billede her…",
+    "placeholder_v2": "Indsæt et link, skriv en note eller slip et billede…"
+  },
+  "common": {
+    "roles": {
+      "user": "Bruger",
+      "admin": "Admin"
+    },
+    "tags": "Tags",
+    "experimental": "Eksperimentel",
+    "role": "Rolle",
+    "archive": "Arkiv",
+    "actions": "Handlinger",
+    "action": "Handling",
+    "created_at": "Oprettet",
+    "attachments": "Vedhæftninger",
+    "screenshot": "Skærmbillede",
+    "something_went_wrong": "Noget gik galt",
+    "search": "Søg",
+    "key": "Nøgle",
+    "name": "Navn",
+    "note": "Note",
+    "url": "URL",
+    "email": "E-mail",
+    "password": "Adganskode",
+    "video": "Video",
+    "home": "Hjem",
+    "bookmark_types": {
+      "link": "Link",
+      "text": "Tekst",
+      "media": "Medie",
+      "title": "Bogmærketype"
+    },
+    "highlights": "Fremhævninger",
+    "source": "Kilde",
+    "type": "Type",
+    "size": "Størrelse",
+    "updated_at": "Opdateret den",
+    "title": "Titel",
+    "description": "Beskrivelse",
+    "summary": "Opsummering",
+    "quota": "Kvote",
+    "bookmarks": "Bogmærker",
+    "storage": "Lagring"
+  },
+  "layouts": {
+    "masonry": "Fliser",
+    "grid": "Gitter",
+    "list": "Liste",
+    "compact": "Kompakt"
+  },
+  "lists": {
+    "all_lists": "Alle lister",
+    "favourites": "Stjernemarkeringer",
+    "new_list": "Ny liste",
+    "new_nested_list": "Ny underliste",
+    "edit_list": "Rediger liste",
+    "list_type": "Liste Type",
+    "manual_list": "Manuel liste",
+    "parent_list": "Overordnet liste",
+    "no_parent": "Ingen overordnet",
+    "smart_list": "Smart liste",
+    "search_query": "Søgestreng",
+    "search_query_help": "Lær mere om sproget til søgeforespørgsler.",
+    "merge_list": "Flet liste",
+    "destination_list": "Destinationsliste",
+    "delete_after_merge": "Slet den oprindelige liste efter fletning",
+    "no_destination": "Ingen destination",
+    "description": "Beskrivelse (Valgfrit)",
+    "rss": {
+      "title": "RSS-feed",
+      "description": "Aktiver et RSS-feed for denne liste",
+      "feed_url": "RSS-feed URL"
+    },
+    "share_list": "Del liste",
+    "public_list": {
+      "title": "Offentlig liste",
+      "description": "Tillad andre at se denne liste",
+      "share_link": "Del link"
+    }
+  },
+  "preview": {
+    "view_original": "Se original",
+    "cached_content": "Cachelagret indhold",
+    "reader_view": "Læsevisning",
+    "tabs": {
+      "content": "Indhold",
+      "details": "Detaljer"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "refetch": "Genhentning er blevet sat i kø!",
+      "full_page_archive": "Oprettelse af hele siden til arkivering er blevet igangsat",
+      "delete_from_list": "Bogmærket er blevet slettet fra listen",
+      "deleted": "Bogmærket er blevet slettet!",
+      "clipboard_copied": "Linket er kopieret til din udklipsholder!",
+      "updated": "Bogmærket er blevet opdateret!"
+    },
+    "lists": {
+      "created": "Listen er oprettet!",
+      "updated": "Listen er blevet opdateret!",
+      "merged": "Listen er blevet flettet!",
+      "deleted": "Listen er blevet slettet!"
+    }
+  },
+  "cleanups": {
+    "cleanups": "Oprydning",
+    "duplicate_tags": {
+      "title": "Dublerede tags",
+      "merge_all_suggestions": "Sammenflet alle forslag?"
+    }
+  },
+  "highlights": {
+    "no_highlights": "Du har ikke nogen fremhævninger endnu."
+  },
+  "search": {
+    "has_no_tags": "Har ingen tags",
+    "url_contains": "URL indeholder",
+    "is_not_in_any_list": "Er ikke i nogen liste",
+    "type_is": "Typen er",
+    "and": "og",
+    "does_not_have_tag": "Har ikke et tag",
+    "url_does_not_contain": "URL indeholder ikke",
+    "is_in_list": "Er i listen",
+    "is_archived": "Er arkiveret",
+    "is_not_favorited": "Er ikke stjernemarkeret",
+    "not_created_on_or_before": "Ikke oprettet den eller før",
+    "is_not_archived": "Er ikke arkiveret",
+    "has_tag": "Har tag",
+    "or": "eller",
+    "created_on_or_before": "Oprettet den eller før",
+    "is_favorited": "Er stjermarkeret",
+    "full_text_search": "Fuldtekstsøgning",
+    "not_created_on_or_after": "Ikke oprettet den eller efter",
+    "has_any_tag": "Har et tag",
+    "is_in_any_list": "Er i en liste",
+    "created_on_or_after": "Oprettet den eller efter",
+    "is_not_in_list": "Er ikke i listen",
+    "type_is_not": "Typen er ikke",
+    "is_from_feed": "Er fra RSS-feed",
+    "is_not_from_feed": "Er ikke fra RSS-feed",
+    "created_within": "Oprettet inden for",
+    "created_earlier_than": "Oprettet tidligere end",
+    "day_s": " Dag(e)",
+    "week_s": " Uge(r)",
+    "month_s": " Måned(er)",
+    "year_s": " År",
+    "day_s_ago": " Dag(e) siden",
+    "week_s_ago": " Uge(r) siden",
+    "month_s_ago": " Måned(er) siden",
+    "year_s_ago": " År siden",
+    "history": "Seneste søgninger"
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "Slet bogmærke?",
+      "delete_confirmation_description": "Er du sikker på, at du vil slette dette bogmærke?"
+    }
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "Ingen bogmærker endnu",
+      "description": "Gem interessante artikler, links og sider for at få adgang til dem hurtigt senere."
+    }
+  },
+  "bookmark_editor": {
+    "title": "Rediger bogmærke",
+    "subtitle": "Foretag ændringer i bogmærkeoplysningerne. Klik på Gem, når du er færdig.",
+    "author": "Forfatter",
+    "publisher": "Udgiver",
+    "date_published": "Udgivelsesdato",
+    "pick_a_date": "Vælg en dato",
+    "save_changes": "Gem ændringer",
+    "extracted_content": "Udtrukket indhold"
+  }
+}

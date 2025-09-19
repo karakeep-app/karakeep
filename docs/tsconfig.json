@@ -1,0 +1,9 @@
+{
+  "extends": "@docusaurus/tsconfig",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "include": [
+    "../node_modules/docusaurus-plugin-openapi-docs/src/plugin-content-docs-types.d.ts"
+  ]
+}

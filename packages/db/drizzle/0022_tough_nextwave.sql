@@ -1,0 +1,1 @@
+ALTER TABLE bookmarkLinks ADD `fullPageArchiveAssetId` text;

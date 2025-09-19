@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "build", "dist", ".next", ".expo"],
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "incremental": true,
+    "isolatedModules": true,
+    "strict": true,
+    "esModuleInterop": true
+  }
+}

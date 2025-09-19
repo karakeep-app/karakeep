@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: karakeep-web
+  template:
+    metadata:
+      labels:
+        app: karakeep-web
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/karakeep-app/karakeep
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MEILI_ADDR
+              value: http://meilisearch:7700
+            - name: BROWSER_WEB_URL
+              value: http://chrome:9222
+            - name: DATA_DIR
+              value: /data
+            # Add OPENAI_API_KEY to the ConfigMap if necessary
+          volumeMounts:
+            - mountPath: /data
+              name: data
+          envFrom:
+            - secretRef:
+                name: karakeep-secrets
+            - configMapRef:
+                name: karakeep-configuration
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: data-pvc

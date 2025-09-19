@@ -1,0 +1,623 @@
+{
+  "common": {
+    "url": "URL",
+    "name": "名称",
+    "email": "电子邮件",
+    "password": "密码",
+    "action": "操作",
+    "actions": "操作",
+    "created_at": "创建于",
+    "key": "键",
+    "role": "角色",
+    "roles": {
+      "user": "用户",
+      "admin": "管理员"
+    },
+    "something_went_wrong": "出了些问题",
+    "experimental": "实验性",
+    "search": "搜索",
+    "tags": "标签",
+    "note": "笔记",
+    "attachments": "附件",
+    "screenshot": "截图",
+    "video": "视频",
+    "archive": "归档",
+    "home": "主页",
+    "highlights": "高亮",
+    "source": "来源",
+    "bookmark_types": {
+      "title": "书签类型",
+      "link": "链接",
+      "text": "文字",
+      "media": "媒体"
+    },
+    "type": "类型",
+    "size": "大小",
+    "updated_at": "更新于",
+    "title": "标题",
+    "description": "描述",
+    "summary": "摘要",
+    "quota": "配额",
+    "bookmarks": "书签",
+    "storage": "存储"
+  },
+  "layouts": {
+    "masonry": "砌体",
+    "grid": "网格",
+    "list": "列表",
+    "compact": "紧凑"
+  },
+  "actions": {
+    "change_layout": "更改布局",
+    "archive": "归档",
+    "unarchive": "取消归档",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
+    "delete": "删除",
+    "refresh": "刷新",
+    "download_full_page_archive": "下载完整页面归档",
+    "edit_tags": "编辑标签",
+    "add_to_list": "添加到列表",
+    "select_all": "全选",
+    "unselect_all": "取消全选",
+    "copy_link": "复制链接",
+    "close_bulk_edit": "关闭批量编辑",
+    "bulk_edit": "批量编辑",
+    "manage_lists": "管理列表",
+    "remove_from_list": "从列表中移除",
+    "save": "保存",
+    "add": "添加",
+    "edit": "编辑",
+    "create": "创建",
+    "fetch_now": "立即获取",
+    "summarize_with_ai": "使用AI总结",
+    "edit_title": "编辑标题",
+    "sign_out": "登出",
+    "close": "关闭",
+    "merge": "合并",
+    "cancel": "取消",
+    "apply_all": "全部应用",
+    "ignore": "忽略",
+    "recrawl": "重新抓取",
+    "sort": {
+      "title": "排序",
+      "newest_first": "最新优先",
+      "oldest_first": "最早优先",
+      "relevant_first": "最相关优先"
+    },
+    "open_editor": "打开编辑器",
+    "toggle_show_archived": "显示已存档",
+    "confirm": "确认"
+  },
+  "settings": {
+    "back_to_app": "返回应用",
+    "user_settings": "用户设置",
+    "info": {
+      "user_info": "用户信息",
+      "basic_details": "基本详情",
+      "change_password": "更改密码",
+      "current_password": "当前密码",
+      "new_password": "新密码",
+      "confirm_new_password": "确认新密码",
+      "options": "选项",
+      "interface_lang": "界面语言",
+      "user_settings": {
+        "user_settings_updated": "用户设置已更新！",
+        "bookmark_click_action": {
+          "title": "书签点击操作",
+          "open_external_url": "打开原始 URL",
+          "open_bookmark_details": "打开书签详情"
+        },
+        "archive_display_behaviour": {
+          "title": "已存档的书签",
+          "show": "在标签和列表中显示已存档的书签",
+          "hide": "在标签和列表中隐藏已存档的书签"
+        }
+      }
+    },
+    "ai": {
+      "ai_settings": "AI设置",
+      "tagging_rules": "标签规则",
+      "tagging_rule_description": "在此添加的提示将包含在模型生成标签的规则中。您可以在提示预览部分查看最终的提示。",
+      "prompt_preview": "提示预览",
+      "text_prompt": "文本提示",
+      "images_prompt": "图像提示",
+      "summarization": "总结",
+      "image_tagging": "图片标记",
+      "text_tagging": "文字标记",
+      "all_tagging": "所有标记",
+      "summarization_prompt": "摘要生成提示"
+    },
+    "feeds": {
+      "rss_subscriptions": "RSS订阅",
+      "add_a_subscription": "添加订阅",
+      "feed_enabled": "RSS 订阅已启用",
+      "feed_disabled": "RSS 订阅已禁用"
+    },
+    "import": {
+      "import_export": "导入/导出",
+      "import_export_bookmarks": "导入/导出书签",
+      "import_bookmarks_from_html_file": "从HTML文件导入书签",
+      "import_bookmarks_from_pocket_export": "从Pocket导出导入书签",
+      "import_bookmarks_from_omnivore_export": "从Omnivore导出导入书签",
+      "import_bookmarks_from_karakeep_export": "从Karakeep导出导入书签",
+      "export_links_and_notes": "导出链接和笔记",
+      "imported_bookmarks": "已导入书签",
+      "import_bookmarks_from_linkwarden_export": "导入 Linkwarden 导出的书签",
+      "import_bookmarks_from_tab_session_manager_export": "从 Tab Session Manager 导入书签"
+    },
+    "api_keys": {
+      "api_keys": "API密钥",
+      "new_api_key": "新API密钥",
+      "new_api_key_desc": "给您的API密钥一个唯一名称",
+      "key_success": "密钥创建成功",
+      "key_success_please_copy": "请复制密钥并妥善保存。一旦关闭对话框，您将无法再次访问它。"
+    },
+    "broken_links": {
+      "broken_links": "失效链接",
+      "last_crawled_at": "最后抓取时间",
+      "crawling_status": "抓取状态",
+      "crawling_failed": "抓取失败"
+    },
+    "webhooks": {
+      "edit_webhook": "修改网络钩子",
+      "webhook_url": "网络钩子链接",
+      "webhooks": "网络钩子",
+      "description": "您可以用网络钩子在创建、更改或爬取书签时触发操作。",
+      "events": {
+        "created": "创造了",
+        "edited": "已修改",
+        "crawled": "已爬取",
+        "title": "事件"
+      },
+      "auth_token": "认证 Token",
+      "add_auth_token": "添加认证 Token",
+      "edit_auth_token": "修改认证 Token",
+      "create_webhook": "创建网络钩子",
+      "delete_webhook": "删除网络钩子",
+      "delete_webhook_confirmation": "是否确定要删除这个网络钩子？"
+    },
+    "manage_assets": {
+      "manage_assets": "管理资源",
+      "no_assets": "你还没有任何资源。",
+      "asset_type": "资源类型",
+      "bookmark_link": "书签链接",
+      "asset_link": "资源链接",
+      "delete_asset": "删除资源",
+      "delete_asset_confirmation": "确定要删除此资源吗？"
+    },
+    "rules": {
+      "if": "如果...",
+      "rules": "规则引擎",
+      "rule_name": "规则名称",
+      "description": "你可以使用规则在事件触发时触发操作。",
+      "ceate_rule": "创建规则",
+      "edit_rule": "编辑规则",
+      "save_rule": "保存规则",
+      "delete_rule": "删除规则",
+      "delete_rule_confirmation": "你确定要删除此规则吗？",
+      "whenever": "无论何时...",
+      "enter_rule_name": "输入规则名称",
+      "describe_what_this_rule_does": "描述此规则的作用",
+      "rule_has_been_created": "规则已创建！",
+      "rule_has_been_updated": "规则已更新！",
+      "rule_has_been_deleted": "规则已被删除！",
+      "no_rules_created_yet": "尚未创建任何规则",
+      "create_your_first_rule": "创建你的第一个规则来自动化你的工作流程",
+      "conditions_types": {
+        "always": "总是",
+        "url_contains": "URL 包含",
+        "imported_from_feed": "从订阅源导入",
+        "bookmark_type_is": "书签类型为",
+        "has_tag": "具有标签",
+        "is_favourited": "已收藏",
+        "is_archived": "已归档",
+        "and": "以下全部为真",
+        "or": "以下任一条件为真"
+      },
+      "actions_types": {
+        "add_tag": "添加标签",
+        "remove_tag": "删除标签",
+        "add_to_list": "添加到列表",
+        "remove_from_list": "从列表中删除",
+        "download_full_page_archive": "下载完整页面存档",
+        "favourite_bookmark": "收藏书签",
+        "archive_bookmark": "存档书签"
+      },
+      "events_types": {
+        "bookmark_added": "已添加书签",
+        "tag_added": "此标签已添加到书签",
+        "tag_removed": "从此书签中删除此标签",
+        "added_to_list": "书签已添加到此列表",
+        "removed_from_list": "书签已从此列表中删除",
+        "favourited": "已收藏书签",
+        "archived": "书签已存档"
+      }
+    },
+    "stats": {
+      "usage_statistics": "使用统计信息",
+      "insights_description": "深入了解你的书签习惯和收藏",
+      "failed_to_load": "加载统计信息失败",
+      "overview": {
+        "total_bookmarks": "书签总数",
+        "all_saved_items": "所有已保存项目",
+        "favorites": "收藏夹",
+        "starred_bookmarks": "已加星标的书签",
+        "archived": "已存档",
+        "archived_items": "已归档的项目",
+        "tags": "标签",
+        "unique_tags_created": "已创建唯一标签",
+        "lists": "列表",
+        "bookmark_collections": "书签集合",
+        "highlights": "高亮",
+        "text_highlights": "文本高亮",
+        "storage_used": "已用存储",
+        "total_asset_storage": "总资产存储",
+        "this_month": "本月",
+        "bookmarks_added": "已添加书签"
+      },
+      "bookmark_types": {
+        "title": "书签类型",
+        "links": "链接",
+        "text_notes": "文本笔记",
+        "assets": "资产"
+      },
+      "recent_activity": {
+        "title": "最近的活动",
+        "this_week": "本周",
+        "this_month": "本月",
+        "this_year": "今年"
+      },
+      "top_domains": {
+        "title": "热门域名",
+        "no_domains_found": "未找到域名"
+      },
+      "most_used_tags": {
+        "title": "最常用的标签",
+        "no_tags_found": "未找到标签"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "按小时统计的活动",
+        "activity_by_day": "每日活动"
+      },
+      "storage_breakdown": {
+        "title": "存储细分"
+      }
+    },
+    "subscription": {
+      "subscription": "订阅",
+      "manage_subscription": "管理您的订阅和账单信息",
+      "current_plan": "当前计划",
+      "billing_period": "结算周期",
+      "paid_plan": "付费计划",
+      "unlock_bigger_quota": "解锁更大的配额并支持该项目",
+      "subscribe_now": "立即订阅",
+      "manage_billing": "管理账单",
+      "subscription_canceled": "您的订阅已取消，将于 {{date}} 结束。您可以随时重新订阅。",
+      "usage_quotas": "使用情况和配额",
+      "track_usage": "跟踪您当前的使用量与计划限制",
+      "total_bookmarks_saved": "已保存的书签总数",
+      "assets_file_storage": "资产和文件存储",
+      "unlimited_usage": "无限制使用",
+      "quota_limit_reached": "已达到配额限制",
+      "approaching_quota_limit": "即将达到配额限制",
+      "loading_usage": "正在加载使用信息...",
+      "free": "免费",
+      "paid": "已付费"
+    }
+  },
+  "admin": {
+    "admin_settings": "管理员设置",
+    "server_stats": {
+      "server_stats": "服务器统计",
+      "total_users": "总用户数",
+      "total_bookmarks": "总书签数",
+      "server_version": "服务器版本"
+    },
+    "background_jobs": {
+      "background_jobs": "后台任务",
+      "crawler_jobs": "爬虫任务",
+      "indexing_jobs": "索引任务",
+      "inference_jobs": "推理任务",
+      "tidy_assets_jobs": "整理资产任务",
+      "job": "任务",
+      "queued": "已排队",
+      "pending": "待处理",
+      "failed": "失败",
+      "feed_jobs": "RSS 订阅作业",
+      "video_jobs": "视频下载作业",
+      "webhook_jobs": "Webhook 作业",
+      "asset_preprocessing_jobs": "资源预处理作业",
+      "jobs": {
+        "crawler": {
+          "title": "爬虫任务",
+          "description": "从 URL 抓取网页内容并提取信息"
+        },
+        "inference": {
+          "title": "推理任务",
+          "description": "用人工智能给内容打标签和做总结"
+        },
+        "indexing": {
+          "title": "索引任务",
+          "description": "搜索索引更新"
+        },
+        "asset_preprocessing": {
+          "title": "资源预处理任务",
+          "description": "图片和文档预处理（截图、文本提取等）"
+        },
+        "tidy_assets": {
+          "title": "整理资源任务",
+          "description": "资源清理和存储优化"
+        },
+        "video": {
+          "title": "视频下载任务",
+          "description": "视频提取和下载"
+        },
+        "webhook": {
+          "title": "Webhook 任务",
+          "description": "外部 webhook 通知"
+        },
+        "feed": {
+          "title": "RSS 订阅任务",
+          "description": "RSS 订阅源处理和内容更新"
+        }
+      },
+      "monitor_and_manage": "监控和管理后台任务队列和系统处理任务",
+      "active": "活跃",
+      "available_actions": "可用操作",
+      "status": {
+        "title": "了解任务状态",
+        "queued": {
+          "title": "已加入队列",
+          "description": "正在排队等待处理的任务。当资源可用时，它们将自动启动。"
+        },
+        "unprocessed": {
+          "title": "未处理",
+          "description": "尚未处理的书签。如果它们没有排队，它们很可能已经在排队等待处理，如果没有，你可能需要手动重新将它们加入队列。"
+        },
+        "failed": {
+          "title": "失败",
+          "description": "处理过程中遇到错误的书签。这些书签可能需要手动处理。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "仅重新抓取失败链接",
+        "recrawl_all_links": "重新抓取所有链接",
+        "without_inference": "不进行推断",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 标签",
+        "regenerate_ai_tags_for_all_bookmarks": "为所有书签重新生成 AI 标签",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 摘要",
+        "regenerate_ai_summaries_for_all_bookmarks": "为所有书签重新生成 AI 摘要",
+        "reindex_all_bookmarks": "重新索引所有书签",
+        "clean_assets": "清理悬空资产并重新同步元数据",
+        "reprocess_assets_fix_mode": "重新处理未处理的资产"
+      }
+    },
+    "actions": {
+      "recrawl_failed_links_only": "仅重新抓取失败链接",
+      "recrawl_all_links": "重新抓取所有链接",
+      "without_inference": "无推理",
+      "regenerate_ai_tags_for_failed_bookmarks_only": "仅为失败书签重新生成AI标签",
+      "regenerate_ai_tags_for_all_bookmarks": "为所有书签重新生成AI标签",
+      "reindex_all_bookmarks": "重新索引所有书签",
+      "compact_assets": "压缩资产",
+      "reprocess_assets_fix_mode": "重新处理资产(固定模式)",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 摘要",
+      "regenerate_ai_summaries_for_all_bookmarks": "为所有书签重新生成 AI 摘要"
+    },
+    "users_list": {
+      "users_list": "用户列表",
+      "create_user": "创建用户",
+      "change_role": "更改角色",
+      "reset_password": "重置密码",
+      "delete_user": "删除用户",
+      "num_bookmarks": "书签数",
+      "asset_sizes": "资产大小",
+      "local_user": "本地用户",
+      "confirm_password": "确认密码",
+      "delete_user_confirm_description": "你确定要删除用户“{{name}}”吗？",
+      "unlimited": "无限制"
+    }
+  },
+  "options": {
+    "dark_mode": "暗模式",
+    "light_mode": "亮模式"
+  },
+  "lists": {
+    "all_lists": "所有列表",
+    "favourites": "收藏",
+    "new_list": "新列表",
+    "new_nested_list": "新嵌套列表",
+    "merge_list": "合并列表",
+    "destination_list": "目标列表",
+    "delete_after_merge": "合并后删除源列表",
+    "no_destination": "未选中目标",
+    "no_parent": "没有父级",
+    "parent_list": "父级列表",
+    "list_type": "列表类型",
+    "manual_list": "手动列表",
+    "smart_list": "智能列表",
+    "search_query": "搜索查询",
+    "edit_list": "修改列表",
+    "search_query_help": "了解更多关于搜索查询语言。",
+    "description": "描述（可选）",
+    "rss": {
+      "title": "RSS订阅",
+      "description": "为此列表启用 RSS 订阅",
+      "feed_url": "RSS 订阅 URL"
+    },
+    "share_list": "分享列表",
+    "public_list": {
+      "title": "公共列表",
+      "description": "允许其他人查看此列表",
+      "share_link": "分享链接"
+    }
+  },
+  "tags": {
+    "all_tags": "所有标签",
+    "your_tags": "您的标签",
+    "your_tags_info": "至少一次由您附加的标签",
+    "ai_tags": "AI标签",
+    "ai_tags_info": "仅由AI自动附加的标签",
+    "unused_tags": "未使用标签",
+    "unused_tags_info": "未附加到任何书签的标签",
+    "delete_all_unused_tags": "删除所有未使用标签",
+    "drag_and_drop_merging": "拖放合并",
+    "drag_and_drop_merging_info": "拖放标签以相互合并",
+    "sort_by_name": "按名称排序"
+  },
+  "preview": {
+    "view_original": "查看原文",
+    "cached_content": "缓存内容",
+    "reader_view": "阅读器视图",
+    "tabs": {
+      "content": "内容",
+      "details": "详情"
+    }
+  },
+  "editor": {
+    "quickly_focus": "您可以按⌘ + E快速聚焦到此字段",
+    "multiple_urls_dialog_title": "将URL导入为单独的书签？",
+    "multiple_urls_dialog_desc": "输入包含多行上的多个URL。您要将它们作为单独的书签导入吗？",
+    "import_as_text": "作为文本书签导入",
+    "import_as_separate_bookmarks": "作为单独书签导入",
+    "placeholder": "粘贴链接或图像，写笔记或将图像拖放到此处…",
+    "new_item": "新项目",
+    "disabled_submissions": "提交已禁用",
+    "text_toolbar": {
+      "bold": "粗体",
+      "underline": "下划线",
+      "code": "代码",
+      "align_center": "居中对齐",
+      "align_right": "右对齐",
+      "markdown_shortcuts": {
+        "label": "Markdown快捷键",
+        "heading": {
+          "label": "标题",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "粗体",
+          "example": "**text** 或 CTRL+b"
+        },
+        "italic": {
+          "label": "斜体",
+          "example": "*Italic* 或 _Italic_ 或 CTRL+i"
+        },
+        "blockquote": {
+          "label": "块引用",
+          "example": "> 块引用"
+        },
+        "ordered_list": {
+          "example": "1. 列表项",
+          "label": "有序列表"
+        },
+        "unordered_list": {
+          "label": "无序列表",
+          "example": "- 列表项"
+        },
+        "inline_code": {
+          "label": "内联代码",
+          "example": "`代码`"
+        },
+        "block_code": {
+          "label": "代码块",
+          "example": "``` + 空格"
+        }
+      },
+      "italic": "斜体",
+      "highlight": "高亮",
+      "strikethrough": "删除线",
+      "undo": "取消",
+      "redo": "重做",
+      "align_left": "左对齐"
+    },
+    "placeholder_v2": "粘贴链接、写笔记或拖放图片……"
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "书签已更新！",
+      "deleted": "书签已删除！",
+      "refetch": "重新获取已排队！",
+      "full_page_archive": "已触发完整页面归档创建",
+      "delete_from_list": "书签已从列表中删除",
+      "clipboard_copied": "链接已添加到您的剪贴板！"
+    },
+    "lists": {
+      "created": "列表已创建！",
+      "updated": "列表已更新！",
+      "merged": "列表已合并！",
+      "deleted": "列表已删除！"
+    }
+  },
+  "cleanups": {
+    "cleanups": "清理",
+    "duplicate_tags": {
+      "title": "重复标签",
+      "merge_all_suggestions": "合并所有建议？"
+    }
+  },
+  "search": {
+    "type_is_not": "类型不是",
+    "is_favorited": "已收藏",
+    "is_archived": "已存档",
+    "is_not_archived": "未存档",
+    "has_any_tag": "有任何标签",
+    "has_no_tags": "没有标签",
+    "is_in_any_list": "在任何列表里",
+    "is_not_in_any_list": "不在任何列表里",
+    "created_on_or_after": "创建于或晚于",
+    "not_created_on_or_after": "创建时间不晚于",
+    "is_in_list": "在列表里",
+    "is_not_in_list": "不在列表里",
+    "has_tag": "有标签",
+    "and": "和",
+    "is_not_favorited": "未收藏",
+    "created_on_or_before": "创建于或早于",
+    "not_created_on_or_before": "创建时间不早于",
+    "url_contains": "链接包含",
+    "url_does_not_contain": "链接不包含",
+    "does_not_have_tag": "没有标签",
+    "type_is": "类型是",
+    "or": "或",
+    "full_text_search": "全文搜索",
+    "is_from_feed": "来自 RSS 订阅",
+    "is_not_from_feed": "不是来自 RSS 订阅",
+    "month_s_ago": " {months} 个月前",
+    "year_s_ago": " {years} 年前",
+    "created_within": "创建于",
+    "created_earlier_than": "创建时间早于",
+    "day_s": " {days} 天",
+    "week_s": " {weeks} 周",
+    "month_s": " {months} 个月",
+    "year_s": " {years} 年",
+    "day_s_ago": " {days} 天前",
+    "week_s_ago": " {weeks} 周前",
+    "history": "最近搜索"
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "删除书签？",
+      "delete_confirmation_description": "是否确定要删除此标签？"
+    }
+  },
+  "highlights": {
+    "no_highlights": "你目前没有高亮的地方。"
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "还没有书签",
+      "description": "保存你感兴趣的文章、链接和页面，以便稍后快速访问。"
+    }
+  },
+  "bookmark_editor": {
+    "title": "编辑书签",
+    "subtitle": "更改书签详细信息。完成后点击保存。",
+    "author": "作者",
+    "publisher": "发布者",
+    "date_published": "发布日期",
+    "pick_a_date": "选择一个日期",
+    "save_changes": "保存更改",
+    "extracted_content": "提取的内容"
+  }
+}

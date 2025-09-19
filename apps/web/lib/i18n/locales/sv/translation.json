@@ -1,0 +1,623 @@
+{
+  "common": {
+    "url": "URL",
+    "email": "Email",
+    "password": "Lösenord",
+    "created_at": "Skapad den",
+    "key": "Nyckel",
+    "action": "Åtgärd",
+    "actions": "Åtgärder",
+    "experimental": "Experimentell",
+    "attachments": "Bilagor",
+    "screenshot": "Skärmdump",
+    "roles": {
+      "admin": "Admin",
+      "user": "Användare"
+    },
+    "note": "Anteckning",
+    "video": "Video",
+    "archive": "Arkiv",
+    "name": "Namn",
+    "role": "Roll",
+    "something_went_wrong": "Något gick fel",
+    "search": "Sök",
+    "tags": "Taggar",
+    "home": "Hem",
+    "highlights": "Höjdpunkter",
+    "source": "Källa",
+    "bookmark_types": {
+      "title": "Bokmärkestyp",
+      "link": "Länk",
+      "text": "Text",
+      "media": "Media"
+    },
+    "size": "Storlek",
+    "type": "Typ",
+    "updated_at": "Uppdaterad",
+    "title": "Titel",
+    "description": "Beskrivning",
+    "summary": "Sammanfattning",
+    "quota": "Kvot",
+    "bookmarks": "Bokmärken",
+    "storage": "Lagring"
+  },
+  "layouts": {
+    "grid": "Rutnät",
+    "compact": "Kompakt",
+    "list": "Lista",
+    "masonry": "Murverk"
+  },
+  "actions": {
+    "delete": "Radera",
+    "archive": "Arkivera",
+    "unarchive": "Avarkivera",
+    "add_to_list": "Lägg till i lista",
+    "download_full_page_archive": "Ladda ner fullsidesarkiv",
+    "select_all": "Markera allt",
+    "manage_lists": "Hantera listor",
+    "remove_from_list": "Ta bort från lista",
+    "unselect_all": "Avmarkera allt",
+    "add": "Lägg till",
+    "fetch_now": "Hämta nu",
+    "edit": "Ändra",
+    "sign_out": "Logga ut",
+    "close": "Stäng",
+    "edit_title": "Ändra titel",
+    "cancel": "Avbryt",
+    "ignore": "Ignorera",
+    "refresh": "Uppdatera",
+    "favorite": "Favorit",
+    "copy_link": "Kopiera länk",
+    "create": "Skapa",
+    "change_layout": "Andra layout",
+    "edit_tags": "Ändra taggar",
+    "summarize_with_ai": "Sammanfatta med AI",
+    "save": "Spara",
+    "merge": "Sammanfoga",
+    "sort": {
+      "title": "Sortera",
+      "newest_first": "Nyast först",
+      "oldest_first": "Äldst först",
+      "relevant_first": "Mest relevant först"
+    },
+    "recrawl": "Omindexera",
+    "unfavorite": "Sluta favorisera",
+    "close_bulk_edit": "Stäng massredigering",
+    "bulk_edit": "Massredigera",
+    "apply_all": "Använd alla",
+    "open_editor": "Öppna redigeraren",
+    "toggle_show_archived": "Visa arkiverade",
+    "confirm": "Bekräfta"
+  },
+  "settings": {
+    "back_to_app": "Tillbaka till app",
+    "info": {
+      "user_info": "Användarinfo",
+      "basic_details": "Grundläggande detaljer",
+      "interface_lang": "Gränsnittsspråk",
+      "current_password": "Nuvarande lösenord",
+      "confirm_new_password": "Bekräfta nytt lösenord",
+      "change_password": "Ändra lösenord",
+      "new_password": "Nytt lösenord",
+      "options": "Alternativ",
+      "user_settings": {
+        "user_settings_updated": "Användarinställningarna har uppdaterats!",
+        "bookmark_click_action": {
+          "title": "Åtgärd vid klick på bokmärke",
+          "open_external_url": "Öppna ursprunglig URL",
+          "open_bookmark_details": "Öppna bokmärkesdetaljer"
+        },
+        "archive_display_behaviour": {
+          "title": "Arkiverade bokmärken",
+          "show": "Visa arkiverade bokmärken i taggar och listor",
+          "hide": "Dölj arkiverade bokmärken i taggar och listor"
+        }
+      }
+    },
+    "feeds": {
+      "rss_subscriptions": "RSS-prenumerationer",
+      "add_a_subscription": "Lägg till en prenumeration",
+      "feed_enabled": "RSS-flöde aktiverat",
+      "feed_disabled": "RSS-flöde inaktiverat"
+    },
+    "ai": {
+      "images_prompt": "Bildprompt",
+      "text_prompt": "Textprompt",
+      "tagging_rules": "Taggningsregler",
+      "ai_settings": "AI-inställningar",
+      "tagging_rule_description": "Prompter som du lägger till här kommer att inkluderas som regler i modellen under taggenereringen. Du kan se de slutliga prompterna i avsnittet förhandsvisning av prompter.",
+      "prompt_preview": "Förhandsvisning av prompt",
+      "text_tagging": "Texttaggning",
+      "image_tagging": "Bildtaggning",
+      "summarization": "Sammanfattning",
+      "summarization_prompt": "Sammanfattningsprompt",
+      "all_tagging": "All taggning"
+    },
+    "import": {
+      "import_export": "Importera / exportera",
+      "import_export_bookmarks": "Exportera bokmärken",
+      "import_bookmarks_from_omnivore_export": "Importera bokmärken från Omnivore-export",
+      "imported_bookmarks": "Importerade bokmärken",
+      "import_bookmarks_from_karakeep_export": "Importera bokmärken från Karakeep-export",
+      "import_bookmarks_from_html_file": "Importera bokmärken från HTML-fil",
+      "import_bookmarks_from_pocket_export": "Importera bokmärken från Pocket-export",
+      "export_links_and_notes": "Exportera länkar och anteckningar",
+      "import_bookmarks_from_linkwarden_export": "Importera bokmärken från Linkwarden-export",
+      "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager"
+    },
+    "api_keys": {
+      "api_keys": "API-nycklar",
+      "new_api_key": "Ny API-nyckel",
+      "new_api_key_desc": "Ge din API-nyckel ett unikt namn",
+      "key_success_please_copy": "Kopiera nyckeln och lagra den på en saker plats. Efter att du stängt denna dialogruta kommer su inte att kunna nå den igen.",
+      "key_success": "Nyckeln skapades utan problem"
+    },
+    "user_settings": "Användarinställningar",
+    "webhooks": {
+      "webhook_url": "Webhook-URL",
+      "delete_webhook_confirmation": "Är du säker på att du vill ta bort denna webhook?",
+      "webhooks": "Webhooks",
+      "description": "Du kan använda webhooks för att utlösa åtgärder när bokmärken skapas, ändras eller genomsöks.",
+      "events": {
+        "title": "Händelser",
+        "crawled": "Genomsökt",
+        "created": "Skapad",
+        "edited": "Redigerad"
+      },
+      "auth_token": "Autentiseringstoken",
+      "add_auth_token": "Lägg till autentiseringstoken",
+      "edit_auth_token": "Redigera Auth-token",
+      "create_webhook": "Skapa Webhook",
+      "delete_webhook": "Ta bort webhook",
+      "edit_webhook": "Redigera Webhook"
+    },
+    "manage_assets": {
+      "bookmark_link": "Bokmärkeslänk",
+      "asset_link": "Tillgångslänk",
+      "delete_asset": "Ta bort tillgång",
+      "delete_asset_confirmation": "Är du säker på att du vill ta bort den här tillgången?",
+      "manage_assets": "Hantera tillgångar",
+      "no_assets": "Du har inga tillgångar än.",
+      "asset_type": "Tillgångstyp"
+    },
+    "broken_links": {
+      "crawling_status": "Krypstatus",
+      "crawling_failed": "Crawling misslyckades",
+      "broken_links": "Trasiga länkar",
+      "last_crawled_at": "Senaste genomsökning"
+    },
+    "rules": {
+      "rules": "Regelmotor",
+      "rule_name": "Regelnamn",
+      "description": "Du kan använda regler för att utlösa åtgärder när en händelse inträffar.",
+      "ceate_rule": "Skapa regel",
+      "edit_rule": "Redigera regel",
+      "save_rule": "Spara regel",
+      "delete_rule": "Ta bort regel",
+      "delete_rule_confirmation": "Är du säker på att du vill ta bort den här regeln?",
+      "whenever": "Närhelst ...",
+      "if": "Om ...",
+      "enter_rule_name": "Ange regelnamn",
+      "describe_what_this_rule_does": "Beskriv vad den här regeln gör",
+      "rule_has_been_created": "Regeln har skapats!",
+      "rule_has_been_updated": "Regeln har uppdaterats!",
+      "rule_has_been_deleted": "Regeln har tagits bort!",
+      "no_rules_created_yet": "Inga regler har skapats ännu",
+      "create_your_first_rule": "Skapa din första regel för att automatisera ditt arbetsflöde",
+      "conditions_types": {
+        "always": "Alltid",
+        "url_contains": "URL innehåller",
+        "imported_from_feed": "Importerad från flöde",
+        "bookmark_type_is": "Bokmärkestyp är",
+        "has_tag": "Har tagg",
+        "is_favourited": "Är favoriterad",
+        "is_archived": "Är Arkiverad",
+        "and": "Allt följande är sant",
+        "or": "Något av följande är sant"
+      },
+      "actions_types": {
+        "add_tag": "Lägg till tagg",
+        "remove_tag": "Ta bort tagg",
+        "add_to_list": "Lägg till i lista",
+        "remove_from_list": "Ta bort från lista",
+        "download_full_page_archive": "Ladda ner fullständig sidarkivering",
+        "favourite_bookmark": "Favoritmarkera bokmärke",
+        "archive_bookmark": "Arkivera bokmärke"
+      },
+      "events_types": {
+        "bookmark_added": "Ett bokmärke läggs till",
+        "tag_added": "Den här taggen läggs till i ett bokmärke",
+        "tag_removed": "Den här taggen tas bort från ett bokmärke",
+        "added_to_list": "Ett bokmärke läggs till i den här listan",
+        "removed_from_list": "Ett bokmärke tas bort från den här listan",
+        "favourited": "Ett bokmärke är favoritmarkerat",
+        "archived": "Ett bokmärke arkiveras"
+      }
+    },
+    "stats": {
+      "usage_statistics": "Användningsstatistik",
+      "insights_description": "Insikter i dina bokmärkesvanor och samling",
+      "failed_to_load": "Det gick inte att läsa in statistik",
+      "overview": {
+        "total_bookmarks": "Totalt antal bokmärken",
+        "all_saved_items": "Alla sparade objekt",
+        "favorites": "Favoriter",
+        "starred_bookmarks": "Stjärnmärkta bokmärken",
+        "archived": "Arkiverad",
+        "archived_items": "Arkiverade objekt",
+        "tags": "Taggar",
+        "unique_tags_created": "Unika taggar skapade",
+        "lists": "Listor",
+        "bookmark_collections": "Bokmärkessamlingar",
+        "highlights": "Markeringar",
+        "text_highlights": "Textmarkeringar",
+        "storage_used": "Använt lagringsutrymme",
+        "total_asset_storage": "Total lagring av tillgångar",
+        "this_month": "Den här månaden",
+        "bookmarks_added": "Bokmärken tillagda"
+      },
+      "bookmark_types": {
+        "title": "Bokmärkestyper",
+        "links": "Länkar",
+        "text_notes": "Textanteckningar",
+        "assets": "Tillgångar"
+      },
+      "recent_activity": {
+        "title": "Senaste aktivitet",
+        "this_week": "Den här veckan",
+        "this_month": "Den här månaden",
+        "this_year": "Det här året"
+      },
+      "top_domains": {
+        "title": "Populäraste domäner",
+        "no_domains_found": "Inga domäner hittades"
+      },
+      "most_used_tags": {
+        "title": "Mest använda taggar",
+        "no_tags_found": "Inga taggar hittades"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivitet per timme",
+        "activity_by_day": "Aktivitet per dag"
+      },
+      "storage_breakdown": {
+        "title": "Fördelning av lagring"
+      }
+    },
+    "subscription": {
+      "subscription": "Prenumeration",
+      "manage_subscription": "Hantera din prenumeration och faktureringsinformation",
+      "current_plan": "Nuvarande plan",
+      "billing_period": "Faktureringsperiod",
+      "paid_plan": "Betalplan",
+      "unlock_bigger_quota": "Lås upp större kvot och stöd projektet",
+      "subscribe_now": "Prenumerera nu",
+      "manage_billing": "Hantera fakturering",
+      "subscription_canceled": "Din prenumeration har avbrutits och kommer att avslutas den {{date}}. Du kan prenumerera igen när som helst.",
+      "usage_quotas": "Användning och kvoter",
+      "track_usage": "Kolla din nuvarande användning jämfört med dina gränser",
+      "total_bookmarks_saved": "Totalt antal sparade bokmärken",
+      "assets_file_storage": "Tillgångar och fillagring",
+      "unlimited_usage": "Obegränsad användning",
+      "quota_limit_reached": "Kvotgränsen har nåtts",
+      "approaching_quota_limit": "Närmar sig kvotgränsen",
+      "loading_usage": "Läser in användningsinformation...",
+      "free": "Gratis",
+      "paid": "Betald"
+    }
+  },
+  "admin": {
+    "server_stats": {
+      "server_stats": "Serverstatistik",
+      "server_version": "Serverversion",
+      "total_bookmarks": "Totalt antal bokmärken",
+      "total_users": "Totalt antal användare"
+    },
+    "admin_settings": "Admin-inställningar",
+    "background_jobs": {
+      "background_jobs": "Bakgrundsjobb",
+      "job": "Jobb",
+      "pending": "Pågående",
+      "indexing_jobs": "Indexeringsjobb",
+      "inference_jobs": "Inferensjobb",
+      "queued": "Köade",
+      "asset_preprocessing_jobs": "Jobb för förbearbetning av tillgångar",
+      "crawler_jobs": "Crawler-jobb",
+      "tidy_assets_jobs": "Jobb för att städa upp tillgångar",
+      "failed": "Misslyckades",
+      "video_jobs": "Nedladdningsjobb för video",
+      "webhook_jobs": "Webhook-jobb",
+      "feed_jobs": "RSS-flödesjobb",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Web crawling och innehållsextrahering från URL:er"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-driven taggning och sammanfattning av innehåll"
+        },
+        "indexing": {
+          "title": "Indexeringsjobb",
+          "description": "Uppdateringar av sökindex"
+        },
+        "asset_preprocessing": {
+          "title": "Tillgång Förbehandlingsjobb",
+          "description": "Bild- och dokumentförbehandling (skärmbilder, textutvinning, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Städa Upp Tillgångar Jobb",
+          "description": "Rensning av tillgångar och lagringsoptimering"
+        },
+        "video": {
+          "title": "Nedladdningsjobb för video",
+          "description": "Video extrahering och nedladdning"
+        },
+        "webhook": {
+          "title": "Webhook-jobb",
+          "description": "Externa webhook-aviseringar"
+        },
+        "feed": {
+          "title": "RSS-flödesjobb",
+          "description": "RSS-flödesbearbetning och innehållsuppdateringar"
+        }
+      },
+      "monitor_and_manage": "Övervaka och hantera bakgrundsjobbköer och systembearbetningsuppgifter",
+      "active": "Aktiv",
+      "available_actions": "Tillgängliga åtgärder",
+      "status": {
+        "title": "Förstå Jobbstatusar",
+        "queued": {
+          "title": "Köad",
+          "description": "Jobb som väntar i kön på att behandlas. De startar automatiskt när resurser finns tillgängliga."
+        },
+        "unprocessed": {
+          "title": "Obehandlade",
+          "description": "Bokmärken som ännu inte behandlats. De är troligen redan köade för behandling, om inte kan du behöva ställa dem i kö manuellt igen."
+        },
+        "failed": {
+          "title": "Misslyckades",
+          "description": "Bokmärken som stött på fel under bearbetningen. Dessa kan behöva manuell uppmärksamhet."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Sök om bara misslyckade länkar",
+        "recrawl_all_links": "Sök om alla länkar",
+        "without_inference": "Utan inferens",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Generera om AI-taggar bara för misslyckade bokmärken",
+        "regenerate_ai_tags_for_all_bookmarks": "Generera om AI-taggar för alla bokmärken",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Generera om AI-sammanfattningar bara för misslyckade bokmärken",
+        "regenerate_ai_summaries_for_all_bookmarks": "Generera om AI-sammanfattningar för alla bokmärken",
+        "reindex_all_bookmarks": "Indexera om alla bokmärken",
+        "clean_assets": "Rensa hängande tillgångar och synkronisera om metadata",
+        "reprocess_assets_fix_mode": "Behandla om obehandlade tillgångar"
+      }
+    },
+    "actions": {
+      "reindex_all_bookmarks": "Återindexera alla bokmärken",
+      "without_inference": "Utan inferens",
+      "regenerate_ai_tags_for_all_bookmarks": "Återskapa AI-taggar för alla bokmärken",
+      "reprocess_assets_fix_mode": "Bearbeta om tillgångar (fixläge)",
+      "recrawl_failed_links_only": "Genomsök endast misslyckade länkar igen",
+      "recrawl_all_links": "Omkryp alla länkar",
+      "regenerate_ai_tags_for_failed_bookmarks_only": "Återskapa AI-taggar endast för misslyckade bokmärken",
+      "compact_assets": "Komprimera tillgångar",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "Återskapa AI-sammanfattningar endast för misslyckade bokmärken",
+      "regenerate_ai_summaries_for_all_bookmarks": "Återskapa AI-sammanfattningar för alla bokmärken"
+    },
+    "users_list": {
+      "reset_password": "Återställ lösenord",
+      "delete_user": "Radera användare",
+      "users_list": "Användarlista",
+      "local_user": "Lokal användare",
+      "confirm_password": "Bekräfta lösenord",
+      "create_user": "Skapa användare",
+      "change_role": "Ändra roll",
+      "num_bookmarks": "Antal bokmärken",
+      "asset_sizes": "Tillgångsstorlekar",
+      "delete_user_confirm_description": "Är du säker på att du vill ta bort användaren \"{{name}}\"?",
+      "unlimited": "Obegränsat"
+    }
+  },
+  "options": {
+    "light_mode": "Ljust läge",
+    "dark_mode": "Mörkt läge"
+  },
+  "lists": {
+    "new_nested_list": "Ny nästlad lista",
+    "all_lists": "Alla listor",
+    "favourites": "Favoriter",
+    "new_list": "Ny lista",
+    "search_query_help": "Lär dig mer om sökspråket.",
+    "edit_list": "Redigera lista",
+    "smart_list": "Smart lista",
+    "list_type": "Listtyp",
+    "manual_list": "Manuell lista",
+    "parent_list": "Föräldralista",
+    "no_parent": "Ingen förälder",
+    "search_query": "Sökfråga",
+    "no_destination": "Ingen destination",
+    "description": "Beskrivning (Valfritt)",
+    "merge_list": "Slå samman lista",
+    "destination_list": "Destinationslista",
+    "delete_after_merge": "Ta bort originallistan efter sammanslagning",
+    "share_list": "Dela lista",
+    "rss": {
+      "title": "RSS-flöde",
+      "description": "Aktivera ett RSS-flöde för den här listan",
+      "feed_url": "URL för RSS-flöde"
+    },
+    "public_list": {
+      "title": "Offentlig lista",
+      "description": "Tillåt andra att visa den här listan",
+      "share_link": "Dela länk"
+    }
+  },
+  "tags": {
+    "drag_and_drop_merging_info": "Dra och släpp taggar på varandra för att sammanfoga dem",
+    "delete_all_unused_tags": "Radera alla oanvända taggar",
+    "all_tags": "Alla taggar",
+    "unused_tags": "Oanvända taggar",
+    "sort_by_name": "Sortera efter namn",
+    "your_tags": "Dina taggar",
+    "ai_tags": "AI-taggar",
+    "drag_and_drop_merging": "Dra och släpp-sammanslagning",
+    "your_tags_info": "Taggar som du har bifogat minst en gång",
+    "ai_tags_info": "Taggar som bara lades till automatiskt (av AI)",
+    "unused_tags_info": "Taggar som inte är kopplade till några bokmärken"
+  },
+  "editor": {
+    "import_as_separate_bookmarks": "Importera som separata bokmärken",
+    "import_as_text": "Importera som textbokmärke",
+    "placeholder": "Klistra in en länk eller bild, skriv en anteckning eller dra och släpp en bild här...",
+    "new_item": "NY POST",
+    "multiple_urls_dialog_title": "Importera URL:er som separata bokmärken?",
+    "multiple_urls_dialog_desc": "Inmatningen innehåller flera URL:er på separata rader. Vill du importera dem som separata bokmärken?",
+    "text_toolbar": {
+      "code": "Kod",
+      "markdown_shortcuts": {
+        "italic": {
+          "label": "Kursiv",
+          "example": "*Kursiv* eller _Kursiv_ eller CTRL+i"
+        },
+        "inline_code": {
+          "example": "`Kod`",
+          "label": "Inbäddad kod"
+        },
+        "unordered_list": {
+          "example": "- Listobjekt",
+          "label": "Osorterad lista"
+        },
+        "blockquote": {
+          "label": "Blockcitat",
+          "example": "> Blockcitat"
+        },
+        "block_code": {
+          "label": "Blockkod",
+          "example": "``` + mellanslag"
+        },
+        "label": "Genvägar för Markdown",
+        "heading": {
+          "label": "Rubrik",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "Fet",
+          "example": "**text** eller CTRL+b"
+        },
+        "ordered_list": {
+          "label": "Ordnad lista",
+          "example": "1. Listobjekt"
+        }
+      },
+      "undo": "Ångra",
+      "redo": "Gör om",
+      "bold": "Fet",
+      "italic": "Kursiv",
+      "underline": "Understrykning",
+      "strikethrough": "Genomstruken",
+      "highlight": "Markera",
+      "align_left": "Vänsterjustera",
+      "align_center": "Centrera",
+      "align_right": "Högerjustera"
+    },
+    "disabled_submissions": "Inlämningar är inaktiverade",
+    "quickly_focus": "Du kan snabbt fokusera på det här fältet genom att trycka på ⌘ + E",
+    "placeholder_v2": "Klistra in en länk, skriv en anteckning eller släpp en bild…"
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "Bokmärket har uppdaters!",
+      "full_page_archive": "Skapande av fullsidesarkiv har startats",
+      "deleted": "Bokmärket har raderats!",
+      "delete_from_list": "Bokmärket har raderats från listan",
+      "clipboard_copied": "Länken har lags till i ditt urklipp!",
+      "refetch": "Hämtning har köats!"
+    },
+    "lists": {
+      "created": "Listan har skapats!",
+      "updated": "Listan har uppdaterats!",
+      "merged": "Listan har slagits samman!",
+      "deleted": "Listan har tagits bort!"
+    }
+  },
+  "cleanups": {
+    "duplicate_tags": {
+      "title": "Dublettaggar",
+      "merge_all_suggestions": "Slå ihop alla förslag?"
+    },
+    "cleanups": "Rensningar"
+  },
+  "preview": {
+    "view_original": "Visa orginal",
+    "cached_content": "Cachelagrat innehåll",
+    "reader_view": "Läsarvy",
+    "tabs": {
+      "content": "Innehåll",
+      "details": "Detaljer"
+    }
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "Ta bort bokmärke?",
+      "delete_confirmation_description": "Är du säker på att du vill ta bort det här bokmärket?"
+    }
+  },
+  "search": {
+    "is_archived": "Är arkiverad",
+    "is_not_archived": "Är inte arkiverad",
+    "is_in_any_list": "Finns i någon lista",
+    "is_not_in_any_list": "Finns inte i någon lista",
+    "or": "Eller",
+    "is_not_favorited": "Är inte favoritmarkerad",
+    "is_favorited": "Är favoriterad",
+    "has_any_tag": "Har någon tagg",
+    "has_no_tags": "Har ingen tagg",
+    "url_contains": "URL innehåller",
+    "has_tag": "Har tagg",
+    "does_not_have_tag": "Har inte taggen",
+    "full_text_search": "Fulltextsökning",
+    "type_is": "Typ är",
+    "is_in_list": "Finns i lista",
+    "is_not_in_list": "Finns inte i listan",
+    "and": "Och",
+    "created_on_or_before": "Skapad på eller före",
+    "created_on_or_after": "Skapad på eller efter",
+    "not_created_on_or_after": "Inte skapad på eller efter",
+    "not_created_on_or_before": "Inte skapad på eller före",
+    "url_does_not_contain": "URL innehåller inte",
+    "type_is_not": "Typen är inte",
+    "is_from_feed": "Kommer från RSS-flöde",
+    "is_not_from_feed": "Kommer inte från RSS-flöde",
+    "created_within": "Skapad inom",
+    "created_earlier_than": "Skapad tidigare än",
+    "day_s": " Dagar",
+    "week_s": " Veckor",
+    "month_s": " Månader",
+    "year_s": " År",
+    "day_s_ago": " Dagar sedan",
+    "week_s_ago": " Veckor sedan",
+    "month_s_ago": " Månader sedan",
+    "year_s_ago": " År sedan",
+    "history": "Senaste sökningar"
+  },
+  "highlights": {
+    "no_highlights": "Du har inga markeringar ännu."
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "Inga bokmärken än",
+      "description": "Spara intressanta artiklar, länkar och sidor för att snabbt komma åt dem senare."
+    }
+  },
+  "bookmark_editor": {
+    "title": "Redigera bokmärke",
+    "subtitle": "Gör ändringar i bokmärkesinformationen. Klicka på spara när du är klar.",
+    "author": "Författare",
+    "publisher": "Utgivare",
+    "date_published": "Publiceringsdatum",
+    "pick_a_date": "Välj ett datum",
+    "save_changes": "Spara ändringar",
+    "extracted_content": "Extraherat innehåll"
+  }
+}

@@ -1,0 +1,623 @@
+{
+  "actions": {
+    "unfavorite": "Rimuovi dai preferiti",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "ignore": "Ignora",
+    "unselect_all": "Deseleziona tutto",
+    "change_layout": "Cambia layout",
+    "select_all": "Seleziona tutto",
+    "archive": "Archivia",
+    "unarchive": "Rimuovi dall'archivio",
+    "favorite": "Preferito",
+    "refresh": "Aggiorna",
+    "recrawl": "Ricontrolla",
+    "download_full_page_archive": "Scarica un archivio della pagina completa",
+    "edit_tags": "Modifica tags",
+    "add_to_list": "Aggiungi alla lista",
+    "close_bulk_edit": "Chiudi modifica massiva",
+    "bulk_edit": "Modifica massiva",
+    "manage_lists": "Gestisci liste",
+    "remove_from_list": "Rimuovi dalla lista",
+    "save": "Salva",
+    "add": "Aggiungi",
+    "create": "Crea",
+    "fetch_now": "Recupera ora",
+    "summarize_with_ai": "Riassumi con AI",
+    "edit_title": "Modifica titolo",
+    "sign_out": "Esci",
+    "close": "Chiudi",
+    "merge": "Unisci",
+    "cancel": "Cancella",
+    "apply_all": "Applica a tutto",
+    "copy_link": "Copia link",
+    "sort": {
+      "title": "Ordina",
+      "newest_first": "Prima i più recenti",
+      "oldest_first": "Prima i più vecchi",
+      "relevant_first": "Più rilevanti prima"
+    },
+    "open_editor": "Apri editor",
+    "toggle_show_archived": "Mostra archiviati",
+    "confirm": "Conferma"
+  },
+  "common": {
+    "attachments": "Allegati",
+    "something_went_wrong": "Qualcosa è andato storto",
+    "roles": {
+      "user": "Utente",
+      "admin": "Admin"
+    },
+    "video": "Video",
+    "name": "Nome",
+    "email": "Email",
+    "password": "Password",
+    "action": "Azione",
+    "actions": "Azioni",
+    "created_at": "Creato il",
+    "key": "Chiave",
+    "role": "Ruolo",
+    "experimental": "Sperimentale",
+    "search": "Cerca",
+    "tags": "Tags",
+    "note": "Note",
+    "screenshot": "Screenshot",
+    "archive": "Archivio",
+    "home": "Home",
+    "url": "URL",
+    "type": "Digita",
+    "bookmark_types": {
+      "link": "Collegamento",
+      "text": "Testo",
+      "media": "Media",
+      "title": "Tipo di segnalibro"
+    },
+    "size": "Dimensione",
+    "highlights": "Evidenziazioni",
+    "source": "Origine",
+    "updated_at": "Aggiornato il",
+    "title": "Titolo",
+    "description": "Descrizione",
+    "summary": "Riepilogo",
+    "quota": "Quota",
+    "bookmarks": "Segnalibri",
+    "storage": "Archiviazione"
+  },
+  "settings": {
+    "broken_links": {
+      "broken_links": "Link rotti",
+      "last_crawled_at": "Ultimo recupero il",
+      "crawling_status": "Stato recupero",
+      "crawling_failed": "Recupero fallito"
+    },
+    "info": {
+      "confirm_new_password": "Conferma nuova password",
+      "interface_lang": "Lingua interfaccia",
+      "user_info": "Info utente",
+      "basic_details": "Informazioni base",
+      "change_password": "Cambia password",
+      "current_password": "Password attuale",
+      "new_password": "Nuova password",
+      "options": "Opzioni",
+      "user_settings": {
+        "user_settings_updated": "Le impostazioni utente sono state aggiornate!",
+        "bookmark_click_action": {
+          "title": "Azione al clic sul segnalibro",
+          "open_external_url": "Apri URL originale",
+          "open_bookmark_details": "Apri dettagli segnalibro"
+        },
+        "archive_display_behaviour": {
+          "title": "Segnalibri archiviati",
+          "show": "Mostra i segnalibri archiviati in tag e liste",
+          "hide": "Nascondi i segnalibri archiviati in tag e liste"
+        }
+      }
+    },
+    "back_to_app": "Torna all'App",
+    "user_settings": "Impostazioni utente",
+    "ai": {
+      "ai_settings": "Impostazioni AI",
+      "tagging_rules": "Regole dei tag",
+      "prompt_preview": "Anteprima prompt",
+      "text_prompt": "Prompt testo",
+      "images_prompt": "Prompt immagini",
+      "tagging_rule_description": "Il testo che scriverai qui verrà incluso come regole al modello AI durante la generazione dei tag. Puoi vedere il prompt finale nella sezione anteprima.",
+      "summarization_prompt": "Prompt di riepilogo",
+      "image_tagging": "Tagging immagini",
+      "text_tagging": "Tagging testo",
+      "all_tagging": "Tutte le etichette",
+      "summarization": "Riassunto"
+    },
+    "feeds": {
+      "rss_subscriptions": "Iscrizione RSS",
+      "add_a_subscription": "Aggiungi un'iscrizione",
+      "feed_enabled": "Feed RSS abilitato",
+      "feed_disabled": "Feed RSS disabilitato"
+    },
+    "import": {
+      "import_export": "Importa / Esporta",
+      "import_bookmarks_from_pocket_export": "Importa segnalibri da esportazione Pocket",
+      "import_bookmarks_from_karakeep_export": "Importa segnalibri da esportazione Karakeep",
+      "export_links_and_notes": "Esporta link e note",
+      "imported_bookmarks": "Segnalibri importati",
+      "import_bookmarks_from_html_file": "Importa segnalibri da file HTML",
+      "import_export_bookmarks": "Importa / Esporta segnalibri",
+      "import_bookmarks_from_omnivore_export": "Importa segnalibri da esportazione Omnivore",
+      "import_bookmarks_from_linkwarden_export": "Importa i segnalibri dall'esportazione di Linkwarden",
+      "import_bookmarks_from_tab_session_manager_export": "Importa i segnalibri da Tab Session Manager"
+    },
+    "api_keys": {
+      "api_keys": "Chiavi API",
+      "new_api_key_desc": "Dai un nome univoco alla chiave API",
+      "key_success": "Chiave creata con successo",
+      "key_success_please_copy": "Copia la chiave e salvala in modo sicuro. Una volta chiuso questo messaggio, non potrai accederci di nuovo.",
+      "new_api_key": "Nuova chiave API"
+    },
+    "manage_assets": {
+      "no_assets": "Non hai ancora nessun asset.",
+      "asset_type": "Tipo di risorsa",
+      "bookmark_link": "Collegamento segnalibro",
+      "asset_link": "Link risorsa",
+      "delete_asset": "Elimina risorsa",
+      "delete_asset_confirmation": "Sei sicuro di voler eliminare questa risorsa?",
+      "manage_assets": "Gestisci risorse"
+    },
+    "webhooks": {
+      "description": "Puoi usare i webhook per attivare azioni quando i segnalibri vengono creati, modificati o scansionati.",
+      "events": {
+        "crawled": "Scansionato",
+        "created": "Creato",
+        "title": "Eventi",
+        "edited": "Modificato"
+      },
+      "auth_token": "Token di autenticazione",
+      "add_auth_token": "Aggiungi token di autenticazione",
+      "edit_auth_token": "Modifica token di autenticazione",
+      "create_webhook": "Crea Webhook",
+      "delete_webhook": "Elimina webhook",
+      "edit_webhook": "Modifica Webhook",
+      "webhook_url": "URL del webhook",
+      "delete_webhook_confirmation": "Sei sicuro di voler eliminare questo webhook?",
+      "webhooks": "Webhook"
+    },
+    "rules": {
+      "conditions_types": {
+        "url_contains": "L'URL contiene",
+        "imported_from_feed": "Importato dal feed",
+        "always": "Sempre",
+        "bookmark_type_is": "Il tipo di segnalibro è",
+        "has_tag": "Ha il tag",
+        "is_favourited": "È tra i preferiti",
+        "is_archived": "Archiviato",
+        "and": "Tutte le seguenti sono vere",
+        "or": "Se una qualsiasi delle seguenti condizioni è vera"
+      },
+      "events_types": {
+        "tag_removed": "Questo tag viene rimosso da un segnalibro",
+        "added_to_list": "Un segnalibro viene aggiunto a questo elenco",
+        "removed_from_list": "Un segnalibro viene rimosso da questo elenco",
+        "favourited": "Un segnalibro è tra i preferiti",
+        "bookmark_added": "Un segnalibro viene aggiunto",
+        "tag_added": "Questo tag viene aggiunto a un segnalibro",
+        "archived": "Un segnalibro è archiviato"
+      },
+      "description": "Puoi usare le regole per attivare azioni quando viene attivato un evento.",
+      "rules": "Motore di regole",
+      "rule_name": "Nome regola",
+      "ceate_rule": "Crea regola",
+      "edit_rule": "Modifica regola",
+      "save_rule": "Salva regola",
+      "delete_rule": "Elimina regola",
+      "delete_rule_confirmation": "Sei sicuro di voler eliminare questa regola?",
+      "whenever": "Quando...",
+      "if": "Se...",
+      "enter_rule_name": "Inserisci il nome della regola",
+      "describe_what_this_rule_does": "Descrivi cosa fa questa regola",
+      "rule_has_been_created": "Regola creata!",
+      "rule_has_been_updated": "Regola aggiornata!",
+      "rule_has_been_deleted": "Regola eliminata!",
+      "no_rules_created_yet": "Nessuna regola creata finora",
+      "create_your_first_rule": "Crea la tua prima regola per automatizzare il tuo flusso di lavoro",
+      "actions_types": {
+        "add_to_list": "Aggiungi alla lista",
+        "remove_from_list": "Rimuovi dalla lista",
+        "download_full_page_archive": "Scarica l'archivio della pagina completa",
+        "favourite_bookmark": "Segnalibro preferito",
+        "archive_bookmark": "Archivia segnalibro",
+        "add_tag": "Aggiungi tag",
+        "remove_tag": "Rimuovi tag"
+      }
+    },
+    "stats": {
+      "usage_statistics": "Statistiche di utilizzo",
+      "insights_description": "Approfondimenti sulle tue abitudini di bookmarking e sulla tua collezione",
+      "failed_to_load": "Impossibile caricare le statistiche",
+      "overview": {
+        "total_bookmarks": "Segnalibri totali",
+        "all_saved_items": "Tutti gli elementi salvati",
+        "favorites": "Preferiti",
+        "starred_bookmarks": "Segnalibri preferiti",
+        "archived": "Archiviato",
+        "archived_items": "Elementi archiviati",
+        "tags": "Tag",
+        "unique_tags_created": "Tag univoci creati",
+        "lists": "Liste",
+        "bookmark_collections": "Raccolte di segnalibri",
+        "highlights": "Evidenziazioni",
+        "text_highlights": "Evidenziazioni di testo",
+        "storage_used": "Spazio di archiviazione utilizzato",
+        "total_asset_storage": "Archiviazione totale degli asset",
+        "this_month": "Questo mese",
+        "bookmarks_added": "Segnalibri aggiunti"
+      },
+      "bookmark_types": {
+        "title": "Tipi di segnalibri",
+        "links": "Link",
+        "text_notes": "Note di testo",
+        "assets": "Asset"
+      },
+      "recent_activity": {
+        "title": "Attività recente",
+        "this_week": "Questa settimana",
+        "this_month": "Questo mese",
+        "this_year": "Quest'anno"
+      },
+      "top_domains": {
+        "title": "Domini principali",
+        "no_domains_found": "Nessun dominio trovato"
+      },
+      "most_used_tags": {
+        "title": "Tag più usati",
+        "no_tags_found": "Nessun tag trovato"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Attività per ora",
+        "activity_by_day": "Attività per giorno"
+      },
+      "storage_breakdown": {
+        "title": "Ripartizione archiviazione"
+      }
+    },
+    "subscription": {
+      "subscription": "Abbonamento",
+      "manage_subscription": "Gestisci il tuo abbonamento e le informazioni di fatturazione",
+      "current_plan": "Piano attuale",
+      "billing_period": "Periodo di fatturazione",
+      "paid_plan": "Piano a pagamento",
+      "unlock_bigger_quota": "Sblocca una quota maggiore e supporta il progetto",
+      "subscribe_now": "Iscriviti ora",
+      "manage_billing": "Gestisci la fatturazione",
+      "subscription_canceled": "Il tuo abbonamento è stato annullato e terminerà il {{date}}. Puoi riabbonarti in qualsiasi momento.",
+      "usage_quotas": "Utilizzo e quote",
+      "track_usage": "Tieni traccia del tuo utilizzo attuale rispetto ai limiti del tuo piano",
+      "total_bookmarks_saved": "Totale segnalibri salvati",
+      "assets_file_storage": "Risorse e archiviazione file",
+      "unlimited_usage": "Utilizzo illimitato",
+      "quota_limit_reached": "Limite di quota raggiunto",
+      "approaching_quota_limit": "Limite di quota in avvicinamento",
+      "loading_usage": "Caricamento delle informazioni sull'utilizzo...",
+      "free": "Gratuito",
+      "paid": "A pagamento"
+    }
+  },
+  "editor": {
+    "text_toolbar": {
+      "markdown_shortcuts": {
+        "ordered_list": {
+          "label": "Lista ordinata",
+          "example": "1. Elemento"
+        },
+        "label": "Comandi brevi Markdown",
+        "heading": {
+          "example": "# H1, ## H2, ### H3",
+          "label": "Intestazione"
+        },
+        "bold": {
+          "example": "**text** o CTRL+b",
+          "label": "Grassetto"
+        },
+        "italic": {
+          "example": "*Italic* o _Italic_ o CTRL+i",
+          "label": "Corsivo"
+        },
+        "blockquote": {
+          "label": "Citazione",
+          "example": "> Citazione"
+        },
+        "unordered_list": {
+          "label": "Lista non ordinata",
+          "example": "- Elemento"
+        },
+        "inline_code": {
+          "label": "Codice in linea",
+          "example": "`Codice`"
+        },
+        "block_code": {
+          "label": "Blocco di codice",
+          "example": "``` + spazio"
+        }
+      },
+      "undo": "Annulla",
+      "bold": "Grassetto",
+      "italic": "Corsivo",
+      "underline": "Sottolineato",
+      "strikethrough": "Barrato",
+      "code": "Codice",
+      "highlight": "Evidenziato",
+      "align_left": "Allinea a sinistra",
+      "align_center": "Allinea al centro",
+      "align_right": "Allinea a destra",
+      "redo": "Ripeti"
+    },
+    "multiple_urls_dialog_title": "Importare gli URL come segnalibri separati?",
+    "multiple_urls_dialog_desc": "L'input contiene diversi URL su linee separate. Vuoi importarli come segnalibri diversi?",
+    "import_as_text": "Importa come segnalibro di testo",
+    "placeholder": "Incolla un link o un'immagine, scrivi una nota o trascina un'immagine qui…",
+    "disabled_submissions": "Le iscrizioni sono disattivate",
+    "new_item": "NUOVO ELEMENTO",
+    "quickly_focus": "Puoi mettere il focus qui premendo ⌘ + E",
+    "import_as_separate_bookmarks": "Importa come segnalibri separati",
+    "placeholder_v2": "Incolla un link, scrivi una nota o rilascia un'immagine…"
+  },
+  "layouts": {
+    "masonry": "Masonry",
+    "grid": "Griglia",
+    "list": "Lista",
+    "compact": "Compatto"
+  },
+  "admin": {
+    "admin_settings": "Impostazioni amministratore",
+    "server_stats": {
+      "server_stats": "Statistiche server",
+      "total_bookmarks": "Segnalibri totali",
+      "server_version": "Versione server",
+      "total_users": "Utenti totali"
+    },
+    "background_jobs": {
+      "background_jobs": "Lavori in background",
+      "crawler_jobs": "Lavori di recupero",
+      "indexing_jobs": "Lavori di indicizzazione",
+      "job": "Lavoro",
+      "queued": "In coda",
+      "pending": "In attesa",
+      "failed": "Fallito",
+      "tidy_assets_jobs": "Lavori di pulizia Asset",
+      "inference_jobs": "Lavori di generazione testo",
+      "feed_jobs": "Lavori feed RSS",
+      "webhook_jobs": "Lavori Webhook",
+      "asset_preprocessing_jobs": "Processi di pre-elaborazione asset",
+      "video_jobs": "Lavori di download video",
+      "jobs": {
+        "crawler": {
+          "title": "Processi di crawling",
+          "description": "Web crawling ed estrazione di contenuti dagli URL"
+        },
+        "inference": {
+          "title": "Processi di inferenza",
+          "description": "Tagging e riepilogo dei contenuti basati sull'intelligenza artificiale"
+        },
+        "indexing": {
+          "title": "Processi di indicizzazione",
+          "description": "Aggiornamenti dell'indice di ricerca"
+        },
+        "asset_preprocessing": {
+          "title": "Processi di pre-elaborazione degli asset",
+          "description": "Pre-elaborazione di immagini e documenti (screenshot, estrazione di testo, ecc.)"
+        },
+        "tidy_assets": {
+          "title": "Processi di pulizia degli asset",
+          "description": "Pulizia degli asset e ottimizzazione dello storage"
+        },
+        "video": {
+          "title": "Processi di download video",
+          "description": "Estrazione e download di video"
+        },
+        "webhook": {
+          "title": "Processi webhook",
+          "description": "Notifiche webhook esterne"
+        },
+        "feed": {
+          "title": "Processi di Feed RSS",
+          "description": "Elaborazione dei feed RSS e aggiornamenti dei contenuti"
+        }
+      },
+      "monitor_and_manage": "Monitora e gestisci le code dei processi in background e le attività di elaborazione del sistema",
+      "active": "Attivo",
+      "available_actions": "Azioni disponibili",
+      "status": {
+        "title": "Comprensione degli stati di un processo",
+        "queued": {
+          "title": "In coda",
+          "description": "Lavori in attesa di essere elaborati. Inizieranno automaticamente quando le risorse saranno disponibili."
+        },
+        "unprocessed": {
+          "title": "Non elaborati",
+          "description": "Segnalibri che non sono ancora stati elaborati. Molto probabilmente sono già in coda per l'elaborazione, in caso contrario, potrebbe essere necessario rimetterli in coda manualmente."
+        },
+        "failed": {
+          "title": "Falliti",
+          "description": "Segnalibri che hanno riscontrato errori durante l'elaborazione. Questi potrebbero richiedere un intervento manuale."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Riesamina solo i link falliti",
+        "recrawl_all_links": "Riesamina tutti i link",
+        "without_inference": "Senza inferenza",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Rigenera i tag AI solo per i segnalibri falliti",
+        "regenerate_ai_tags_for_all_bookmarks": "Rigenera i tag AI per tutti i segnalibri",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Rigenera i riepiloghi AI solo per i segnalibri falliti",
+        "regenerate_ai_summaries_for_all_bookmarks": "Rigenera i riepiloghi AI per tutti i segnalibri",
+        "reindex_all_bookmarks": "Reindicizza tutti i segnalibri",
+        "clean_assets": "Pulisci le risorse orfane e risincronizza i metadati",
+        "reprocess_assets_fix_mode": "Rielabora le risorse non elaborate"
+      }
+    },
+    "actions": {
+      "recrawl_failed_links_only": "Recupera solo link falliti",
+      "recrawl_all_links": "Recupera tutti i link",
+      "without_inference": "Senza generazione testo",
+      "regenerate_ai_tags_for_failed_bookmarks_only": "Rigenera tag AI solo per i segnalibri falliti",
+      "regenerate_ai_tags_for_all_bookmarks": "Rigenera tag AI per tutti i segnalibri",
+      "compact_assets": "Compatta asset",
+      "reindex_all_bookmarks": "Reindicizza tutti i segnalibri",
+      "reprocess_assets_fix_mode": "Riprocessa asset (modalità fissa)",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "Rigenera i riassunti AI solo per i segnalibri falliti",
+      "regenerate_ai_summaries_for_all_bookmarks": "Rigenera i riassunti AI per tutti i segnalibri"
+    },
+    "users_list": {
+      "users_list": "Lista utenti",
+      "change_role": "Cambia ruolo",
+      "num_bookmarks": "Num segnalibri",
+      "asset_sizes": "Dimensione Asset",
+      "local_user": "Utente locale",
+      "confirm_password": "Conferma password",
+      "create_user": "Crea utente",
+      "delete_user": "Elimina utente",
+      "reset_password": "Ripristina password",
+      "delete_user_confirm_description": "Sei sicuro di voler eliminare l'utente \"{{name}}\"?",
+      "unlimited": "Illimitato"
+    }
+  },
+  "options": {
+    "dark_mode": "Modalità scura",
+    "light_mode": "Modalità chiara"
+  },
+  "lists": {
+    "all_lists": "Tutte le liste",
+    "favourites": "Preferiti",
+    "new_list": "Nuova lista",
+    "new_nested_list": "Nuova sottolista",
+    "search_query_help": "Ulteriori informazioni sul linguaggio delle query di ricerca.",
+    "manual_list": "Lista manuale",
+    "smart_list": "Lista intelligente",
+    "search_query": "Query di ricerca",
+    "parent_list": "Elenco elementi principali",
+    "no_parent": "Nessun elemento principale",
+    "list_type": "Tipo di elenco",
+    "edit_list": "Modifica elenco",
+    "merge_list": "Unisci elenco",
+    "destination_list": "Elenco di destinazione",
+    "delete_after_merge": "Elimina l'elenco originale dopo l'unione",
+    "no_destination": "Nessuna destinazione",
+    "description": "Descrizione (facoltativa)",
+    "rss": {
+      "title": "Feed RSS",
+      "description": "Abilita un feed RSS per questa lista",
+      "feed_url": "URL del feed RSS"
+    },
+    "public_list": {
+      "description": "Consenti ad altri di visualizzare questa lista",
+      "title": "Lista pubblica",
+      "share_link": "Condividi link"
+    },
+    "share_list": "Condividi lista"
+  },
+  "tags": {
+    "your_tags": "I tuoi tag",
+    "your_tags_info": "Tag che sono stati utilizzati almeno una volta da te",
+    "ai_tags": "Tag AI",
+    "ai_tags_info": "Tag che sono solo stati usati automaticamente (dall'AI)",
+    "unused_tags": "Tag inutilizzati",
+    "unused_tags_info": "Tag che non sono collegati a nessun segnalibro",
+    "drag_and_drop_merging": "Unione con Drag&Drop",
+    "drag_and_drop_merging_info": "Trascina e rilascia i tag per unirli",
+    "sort_by_name": "Ordina per nome",
+    "all_tags": "Tutti i tag",
+    "delete_all_unused_tags": "Elimina tutti i tag inutilizzati"
+  },
+  "preview": {
+    "view_original": "Vedi originale",
+    "cached_content": "Contenuto salvato in cache",
+    "reader_view": "Visualizzazione Reader",
+    "tabs": {
+      "content": "Contenuto",
+      "details": "Dettagli"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "Il segnalibro è stato aggiornato!",
+      "deleted": "Il segnalibro è stato eliminato!",
+      "refetch": "L'aggiornamento è stato messo in coda!",
+      "full_page_archive": "L'archivio della pagina completa è stato attivato",
+      "delete_from_list": "Il segnalibro è stato eliminato dalla lista",
+      "clipboard_copied": "Il link è stato copiato!"
+    },
+    "lists": {
+      "created": "Lista creata!",
+      "updated": "Lista aggiornata!",
+      "merged": "L'elenco è stato unito!",
+      "deleted": "L'elenco è stato eliminato!"
+    }
+  },
+  "cleanups": {
+    "cleanups": "Pulizie",
+    "duplicate_tags": {
+      "title": "Tag duplicati",
+      "merge_all_suggestions": "Unire tutti i suggerimenti?"
+    }
+  },
+  "search": {
+    "or": "Oppure",
+    "and": "E",
+    "is_in_any_list": "È in qualsiasi lista",
+    "is_not_in_any_list": "Non è in nessun elenco",
+    "not_created_on_or_after": "Non creato in o dopo",
+    "has_tag": "Ha tag",
+    "full_text_search": "Ricerca di testo completo",
+    "does_not_have_tag": "Non ha il tag",
+    "has_any_tag": "Ha qualsiasi tag",
+    "not_created_on_or_before": "Non creato in o prima di",
+    "url_contains": "L'URL contiene",
+    "is_in_list": "È in elenco",
+    "is_not_in_list": "Non è nella lista",
+    "type_is": "Il tipo è",
+    "is_not_favorited": "Non è tra i preferiti",
+    "is_archived": "È archiviato",
+    "is_not_archived": "Non è archiviato",
+    "has_no_tags": "Non ha tag",
+    "created_on_or_after": "Creato il o dopo il",
+    "is_favorited": "È tra i preferiti",
+    "created_on_or_before": "Creato in data o prima del",
+    "type_is_not": "Il tipo non è",
+    "url_does_not_contain": "L'URL non contiene",
+    "is_from_feed": "Proviene da un feed RSS",
+    "is_not_from_feed": "Non proviene da un feed RSS",
+    "created_within": "Creato entro",
+    "created_earlier_than": "Creato prima di",
+    "day_s": " Giorni",
+    "week_s": " Settimane",
+    "month_s": " Mesi",
+    "year_s": " Anni",
+    "day_s_ago": " Giorni fa",
+    "week_s_ago": " Settimane fa",
+    "month_s_ago": " Mesi fa",
+    "year_s_ago": " Anni fa",
+    "history": "Ricerche recenti"
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_description": "Sei sicuro di voler eliminare questo segnalibro?",
+      "delete_confirmation_title": "Eliminare il segnalibro?"
+    }
+  },
+  "highlights": {
+    "no_highlights": "Non hai ancora nessun evidenziatore."
+  },
+  "banners": {
+    "no_bookmarks": {
+      "description": "Salva articoli, link e pagine interessanti per accedervi rapidamente in seguito.",
+      "title": "Ancora nessun segnalibro"
+    }
+  },
+  "bookmark_editor": {
+    "subtitle": "Apporta modifiche ai dettagli del segnalibro. Clicca su salva quando hai finito.",
+    "author": "Autore",
+    "publisher": "Editore",
+    "date_published": "Data di pubblicazione",
+    "pick_a_date": "Scegli una data",
+    "save_changes": "Salva le modifiche",
+    "title": "Modifica segnalibro",
+    "extracted_content": "Contenuto estratto"
+  }
+}

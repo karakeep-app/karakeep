@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/cli",
+  "version": "0.27.1",
+  "description": "Command Line Interface (CLI) for Karakeep",
+  "license": "GNU Affero General Public License version 3",
+  "type": "module",
+  "keywords": [
+    "hoarder",
+    "karakeep",
+    "cli"
+  ],
+  "exports": "./dist/index.mjs",
+  "bin": {
+    "karakeep": "dist/index.mjs"
+  },
+  "devDependencies": {
+    "@commander-js/extra-typings": "^12.0.1",
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/trpc": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@trpc/client": "^11.4.3",
+    "@trpc/server": "^11.4.3",
+    "@tsconfig/node22": "^22.0.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "superjson": "^2.2.1",
+    "table": "^6.8.2",
+    "tsx": "^4.8.1",
+    "vite": "^7.0.6",
+    "vite-tsconfig-paths": "^4.3.1"
+  },
+  "scripts": {
+    "build": "vite build && chmod +x dist/index.mjs",
+    "run": "tsx src/index.ts",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karakeep-app/karakeep.git",
+    "directory": "apps/cli"
+  },
+  "prettier": "@karakeep/prettier-config"
+}

@@ -1,0 +1,23 @@
+name: "Setup and install"
+description: "Common setup steps for Actions"
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v2
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: "pnpm"
+        registry-url: https://registry.npmjs.org
+
+    - shell: bash
+      run: pnpm add -g turbo
+
+    - shell: bash
+      run: npm install -g corepack@0.31.0 && corepack enable
+
+    - shell: bash
+      run: pnpm install
+      env:
+        PUPPETEER_SKIP_DOWNLOAD: "true"

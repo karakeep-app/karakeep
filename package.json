@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "karakeep",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo --no-daemon build",
+    "dev": "turbo --no-daemon dev --parallel",
+    "clean": "git clean -xdf node_modules",
+    "clean:workspaces": "turbo --no-daemon clean",
+    "db:generate": "pnpm --filter @karakeep/db run generate",
+    "db:migrate": "pnpm --filter @karakeep/db run migrate",
+    "db:studio": "pnpm --filter @karakeep/db studio",
+    "workers": "pnpm --filter @karakeep/workers run start",
+    "web": "pnpm --filter @karakeep/web run dev",
+    "prepare": "husky",
+    "format": "turbo --no-daemon format --continue",
+    "format:fix": "turbo --no-daemon format:fix --continue",
+    "lint": "turbo --no-daemon lint --continue",
+    "lint:fix": "turbo --no-daemon lint:fix --continue",
+    "typecheck": "turbo --no-daemon typecheck",
+    "preflight": "turbo run --no-daemon typecheck lint format",
+    "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix"
+  },
+  "dependencies": {
+    "husky": "^9.0.11"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@types/node": "^22",
+    "oxlint": "^1.12.0",
+    "prettier": "^3.4.2",
+    "sherif": "^1.6.1",
+    "turbo": "^2.5.5"
+  },
+  "prettier": "@karakeep/prettier-config",
+  "packageManager": "pnpm@9.15.9",
+  "pnpm": {
+    "patchedDependencies": {
+      "xcode@3.0.1": "patches/xcode@3.0.1.patch"
+    }
+  }
+}

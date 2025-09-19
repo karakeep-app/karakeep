@@ -1,0 +1,3446 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Karakeep API",
+    "description": "The API for the Karakeep app"
+  },
+  "servers": [
+    {
+      "url": "{address}/api/v1",
+      "variables": {
+        "address": {
+          "default": "https://try.karakeep.app",
+          "description": "The address of the Karakeep server"
+        }
+      }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "BookmarkId": {
+        "type": "string",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "ListId": {
+        "type": "string",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "TagId": {
+        "type": "string",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "HighlightId": {
+        "type": "string",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "AssetId": {
+        "type": "string",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "Bookmark": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "modifiedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "favourited": {
+            "type": "boolean"
+          },
+          "taggingStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending"
+            ]
+          },
+          "summarizationStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "attachedBy": {
+                  "type": "string",
+                  "enum": [
+                    "ai",
+                    "human"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "attachedBy"
+              ]
+            }
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "link"
+                    ]
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "imageAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "screenshotAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "fullPageArchiveAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "precrawledArchiveAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "videoAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "favicon": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "htmlContent": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "contentAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "crawledAt": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "author": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "publisher": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "datePublished": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "dateModified": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "type",
+                  "url"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text"
+                    ]
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "sourceUrl": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "type",
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "asset"
+                    ]
+                  },
+                  "assetType": {
+                    "type": "string",
+                    "enum": [
+                      "image",
+                      "pdf"
+                    ]
+                  },
+                  "assetId": {
+                    "type": "string"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "sourceUrl": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "size": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "content": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "type",
+                  "assetType",
+                  "assetId"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "assetType": {
+                  "type": "string",
+                  "enum": [
+                    "linkHtmlContent",
+                    "screenshot",
+                    "assetScreenshot",
+                    "bannerImage",
+                    "fullPageArchive",
+                    "video",
+                    "bookmarkAsset",
+                    "precrawledArchive",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "assetType"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "modifiedAt",
+          "archived",
+          "favourited",
+          "taggingStatus",
+          "summarizationStatus",
+          "tags",
+          "content",
+          "assets"
+        ]
+      },
+      "PaginatedBookmarks": {
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bookmark"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "bookmarks",
+          "nextCursor"
+        ]
+      },
+      "Cursor": {
+        "type": "string"
+      },
+      "Highlight": {
+        "type": "object",
+        "properties": {
+          "bookmarkId": {
+            "type": "string"
+          },
+          "startOffset": {
+            "type": "number"
+          },
+          "endOffset": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "yellow",
+              "red",
+              "green",
+              "blue"
+            ],
+            "default": "yellow"
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookmarkId",
+          "startOffset",
+          "endOffset",
+          "text",
+          "note",
+          "id",
+          "userId",
+          "createdAt"
+        ]
+      },
+      "List": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "smart"
+            ],
+            "default": "manual"
+          },
+          "query": {
+            "type": "string",
+            "nullable": true
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "icon",
+          "parentId",
+          "public"
+        ]
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "numBookmarks": {
+            "type": "number"
+          },
+          "numBookmarksByAttachedType": {
+            "type": "object",
+            "properties": {
+              "ai": {
+                "type": "number"
+              },
+              "human": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "numBookmarks",
+          "numBookmarksByAttachedType"
+        ]
+      },
+      "PaginatedHighlights": {
+        "type": "object",
+        "properties": {
+          "highlights": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Highlight"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "highlights",
+          "nextCursor"
+        ]
+      },
+      "Asset": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "fileName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "assetId",
+          "contentType",
+          "size",
+          "fileName"
+        ]
+      },
+      "File to be uploaded": {}
+    },
+    "parameters": {
+      "BookmarkId": {
+        "schema": {
+          "$ref": "#/components/schemas/BookmarkId"
+        },
+        "required": true,
+        "name": "bookmarkId",
+        "in": "path"
+      },
+      "ListId": {
+        "schema": {
+          "$ref": "#/components/schemas/ListId"
+        },
+        "required": true,
+        "name": "listId",
+        "in": "path"
+      },
+      "TagId": {
+        "schema": {
+          "$ref": "#/components/schemas/TagId"
+        },
+        "required": true,
+        "name": "tagId",
+        "in": "path"
+      },
+      "HighlightId": {
+        "schema": {
+          "$ref": "#/components/schemas/HighlightId"
+        },
+        "required": true,
+        "name": "highlightId",
+        "in": "path"
+      },
+      "AssetId": {
+        "schema": {
+          "$ref": "#/components/schemas/AssetId"
+        },
+        "required": true,
+        "name": "assetId",
+        "in": "path"
+      }
+    }
+  },
+  "paths": {
+    "/bookmarks": {
+      "get": {
+        "description": "Get all bookmarks",
+        "summary": "Get all bookmarks",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false,
+            "name": "archived",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false,
+            "name": "favourited",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Cursor"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+            },
+            "required": false,
+            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "name": "includeContent",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with all bookmarks data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBookmarks"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new bookmark",
+        "summary": "Create a new bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The bookmark to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "nullable": true,
+                        "maxLength": 1000
+                      },
+                      "archived": {
+                        "type": "boolean"
+                      },
+                      "favourited": {
+                        "type": "boolean"
+                      },
+                      "note": {
+                        "type": "string"
+                      },
+                      "summary": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "crawlPriority": {
+                        "type": "string",
+                        "enum": [
+                          "low",
+                          "normal"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "link"
+                            ]
+                          },
+                          "url": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "precrawledArchiveId": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "url"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "text"
+                            ]
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "sourceUrl": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "text"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "asset"
+                            ]
+                          },
+                          "assetType": {
+                            "type": "string",
+                            "enum": [
+                              "image",
+                              "pdf"
+                            ]
+                          },
+                          "assetId": {
+                            "type": "string"
+                          },
+                          "fileName": {
+                            "type": "string"
+                          },
+                          "sourceUrl": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "assetType",
+                          "assetId"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/search": {
+      "get": {
+        "description": "Search bookmarks",
+        "summary": "Search bookmarks",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc",
+                "relevance"
+              ],
+              "default": "relevance"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Cursor"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+            },
+            "required": false,
+            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "name": "includeContent",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with the search results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBookmarks"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}": {
+      "get": {
+        "description": "Get bookmark by its id",
+        "summary": "Get a single bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+            },
+            "required": false,
+            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "name": "includeContent",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with bookmark data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete bookmark by its id",
+        "summary": "Delete a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - the bookmark was deleted"
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Update bookmark by its id",
+        "summary": "Update a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "requestBody": {
+          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "archived": {
+                    "type": "boolean"
+                  },
+                  "favourited": {
+                    "type": "boolean"
+                  },
+                  "summary": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 1000
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "author": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "publisher": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "datePublished": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "dateModified": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "text": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "assetContent": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "modifiedAt": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "title": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "archived": {
+                      "type": "boolean"
+                    },
+                    "favourited": {
+                      "type": "boolean"
+                    },
+                    "taggingStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending"
+                      ]
+                    },
+                    "summarizationStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending"
+                      ]
+                    },
+                    "note": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "createdAt",
+                    "modifiedAt",
+                    "archived",
+                    "favourited",
+                    "taggingStatus",
+                    "summarizationStatus"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/summarize": {
+      "post": {
+        "description": "Attaches a summary to the bookmark and returns the updated record.",
+        "summary": "Summarize a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The updated bookmark with summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "modifiedAt": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "title": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "archived": {
+                      "type": "boolean"
+                    },
+                    "favourited": {
+                      "type": "boolean"
+                    },
+                    "taggingStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending"
+                      ]
+                    },
+                    "summarizationStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending"
+                      ]
+                    },
+                    "note": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "summary": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "createdAt",
+                    "modifiedAt",
+                    "archived",
+                    "favourited",
+                    "taggingStatus",
+                    "summarizationStatus"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/tags": {
+      "post": {
+        "description": "Attach tags to a bookmark",
+        "summary": "Attach tags to a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "requestBody": {
+          "description": "The tags to attach.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tagId": {
+                          "type": "string"
+                        },
+                        "tagName": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "tags"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The list of attached tag ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "attached": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TagId"
+                      }
+                    }
+                  },
+                  "required": [
+                    "attached"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Detach tags from a bookmark",
+        "summary": "Detach tags from a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "requestBody": {
+          "description": "The tags to detach.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tagId": {
+                          "type": "string"
+                        },
+                        "tagName": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "tags"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The list of detached tag ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detached": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TagId"
+                      }
+                    }
+                  },
+                  "required": [
+                    "detached"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/highlights": {
+      "get": {
+        "description": "Get highlights of a bookmark",
+        "summary": "Get highlights of a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of highlights",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "highlights": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Highlight"
+                      }
+                    }
+                  },
+                  "required": [
+                    "highlights"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/assets": {
+      "post": {
+        "description": "Attach a new asset to a bookmark",
+        "summary": "Attach asset",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "requestBody": {
+          "description": "The asset to attach",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "assetType": {
+                    "type": "string",
+                    "enum": [
+                      "linkHtmlContent",
+                      "screenshot",
+                      "assetScreenshot",
+                      "bannerImage",
+                      "fullPageArchive",
+                      "video",
+                      "bookmarkAsset",
+                      "precrawledArchive",
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "assetType"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The attached asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "assetType": {
+                      "type": "string",
+                      "enum": [
+                        "linkHtmlContent",
+                        "screenshot",
+                        "assetScreenshot",
+                        "bannerImage",
+                        "fullPageArchive",
+                        "video",
+                        "bookmarkAsset",
+                        "precrawledArchive",
+                        "unknown"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "assetType"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/assets/{assetId}": {
+      "put": {
+        "description": "Replace an existing asset with a new one",
+        "summary": "Replace asset",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          },
+          {
+            "$ref": "#/components/parameters/AssetId"
+          }
+        ],
+        "requestBody": {
+          "description": "The new asset to replace with",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assetId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No content - asset was replaced successfully"
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Detach an asset from a bookmark",
+        "summary": "Detach asset",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          },
+          {
+            "$ref": "#/components/parameters/AssetId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - asset was detached successfully"
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lists": {
+      "get": {
+        "description": "Get all lists",
+        "summary": "Get all lists",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with all lists data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lists": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/List"
+                      }
+                    }
+                  },
+                  "required": [
+                    "lists"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new list",
+        "summary": "Create a new list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The list to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 500
+                  },
+                  "icon": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "smart"
+                    ],
+                    "default": "manual"
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "name",
+                  "icon"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lists/{listId}": {
+      "get": {
+        "description": "Get list by its id",
+        "summary": "Get a single list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with list data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "List not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete list by its id",
+        "summary": "Delete a list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - the bookmark was deleted"
+          },
+          "404": {
+            "description": "List not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Update list by its id",
+        "summary": "Update a list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          }
+        ],
+        "requestBody": {
+          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 0,
+                    "maxLength": 500
+                  },
+                  "icon": {
+                    "type": "string"
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "public": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/List"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "List not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lists/{listId}/bookmarks": {
+      "get": {
+        "description": "Get bookmarks in the list",
+        "summary": "Get bookmarks in the list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Cursor"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+            },
+            "required": false,
+            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "name": "includeContent",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with list data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBookmarks"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "List not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lists/{listId}/bookmarks/{bookmarkId}": {
+      "put": {
+        "description": "Add the bookmarks to a list",
+        "summary": "Add a bookmark to a list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          },
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - the bookmark was added"
+          },
+          "404": {
+            "description": "List or bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Remove the bookmarks from a list",
+        "summary": "Remove a bookmark from a list",
+        "tags": [
+          "Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          },
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - the bookmark was added"
+          },
+          "400": {
+            "description": "Bookmark already not in list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "List or bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "description": "Get all tags",
+        "summary": "Get all tags",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with all tags data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Tag"
+                      }
+                    }
+                  },
+                  "required": [
+                    "tags"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new tag",
+        "summary": "Create a new tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The data to create the tag with.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags/{tagId}": {
+      "get": {
+        "description": "Get tag by its id",
+        "summary": "Get a single tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TagId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with list data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tag not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete tag by its id",
+        "summary": "Delete a tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TagId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - the bookmark was deleted"
+          },
+          "404": {
+            "description": "Tag not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Update tag by its id",
+        "summary": "Update a tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TagId"
+          }
+        ],
+        "requestBody": {
+          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated tag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tag not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags/{tagId}/bookmarks": {
+      "get": {
+        "description": "Get bookmarks with the tag",
+        "summary": "Get bookmarks with the tag",
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TagId"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "required": false,
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Cursor"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."
+            },
+            "required": false,
+            "description": "If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.",
+            "name": "includeContent",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with list data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedBookmarks"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tag not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/highlights": {
+      "get": {
+        "description": "Get all highlights",
+        "summary": "Get all highlights",
+        "tags": [
+          "Highlights"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "number"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Cursor"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with all highlights data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedHighlights"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new highlight",
+        "summary": "Create a new highlight",
+        "tags": [
+          "Highlights"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The highlight to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bookmarkId": {
+                    "type": "string"
+                  },
+                  "startOffset": {
+                    "type": "number"
+                  },
+                  "endOffset": {
+                    "type": "number"
+                  },
+                  "color": {
+                    "type": "string",
+                    "enum": [
+                      "yellow",
+                      "red",
+                      "green",
+                      "blue"
+                    ],
+                    "default": "yellow"
+                  },
+                  "text": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "note": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "bookmarkId",
+                  "startOffset",
+                  "endOffset",
+                  "text",
+                  "note"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created highlight",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Highlight"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad highlight request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/highlights/{highlightId}": {
+      "get": {
+        "description": "Get highlight by its id",
+        "summary": "Get a single highlight",
+        "tags": [
+          "Highlights"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/HighlightId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with highlight data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Highlight"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Highlight not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete highlight by its id",
+        "summary": "Delete a highlight",
+        "tags": [
+          "Highlights"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/HighlightId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deleted highlight",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Highlight"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Highlight not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "Update highlight by its id",
+        "summary": "Update a highlight",
+        "tags": [
+          "Highlights"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/HighlightId"
+          }
+        ],
+        "requestBody": {
+          "description": "The data to update. Only the fields you want to update need to be provided.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "enum": [
+                      "yellow",
+                      "red",
+                      "green",
+                      "blue"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated highlight",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Highlight"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Highlight not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "description": "Returns info about the current user",
+        "summary": "Get current user info",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with user data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "email": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "localUser": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "localUser"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/stats": {
+      "get": {
+        "description": "Returns stats about the current user",
+        "summary": "Get current user stats",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with user stats.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "numBookmarks": {
+                      "type": "number"
+                    },
+                    "numFavorites": {
+                      "type": "number"
+                    },
+                    "numArchived": {
+                      "type": "number"
+                    },
+                    "numTags": {
+                      "type": "number"
+                    },
+                    "numLists": {
+                      "type": "number"
+                    },
+                    "numHighlights": {
+                      "type": "number"
+                    },
+                    "bookmarksByType": {
+                      "type": "object",
+                      "properties": {
+                        "link": {
+                          "type": "number"
+                        },
+                        "text": {
+                          "type": "number"
+                        },
+                        "asset": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "link",
+                        "text",
+                        "asset"
+                      ]
+                    },
+                    "topDomains": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "domain": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "domain",
+                          "count"
+                        ]
+                      },
+                      "maxItems": 10
+                    },
+                    "totalAssetSize": {
+                      "type": "number"
+                    },
+                    "assetsByType": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          },
+                          "totalSize": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "count",
+                          "totalSize"
+                        ]
+                      }
+                    },
+                    "bookmarkingActivity": {
+                      "type": "object",
+                      "properties": {
+                        "thisWeek": {
+                          "type": "number"
+                        },
+                        "thisMonth": {
+                          "type": "number"
+                        },
+                        "thisYear": {
+                          "type": "number"
+                        },
+                        "byHour": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "hour": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "hour",
+                              "count"
+                            ]
+                          }
+                        },
+                        "byDayOfWeek": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "day": {
+                                "type": "number"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "day",
+                              "count"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "thisWeek",
+                        "thisMonth",
+                        "thisYear",
+                        "byHour",
+                        "byDayOfWeek"
+                      ]
+                    },
+                    "tagUsage": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "count"
+                        ]
+                      },
+                      "maxItems": 10
+                    }
+                  },
+                  "required": [
+                    "numBookmarks",
+                    "numFavorites",
+                    "numArchived",
+                    "numTags",
+                    "numLists",
+                    "numHighlights",
+                    "bookmarksByType",
+                    "topDomains",
+                    "totalAssetSize",
+                    "assetsByType",
+                    "bookmarkingActivity",
+                    "tagUsage"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets": {
+      "post": {
+        "description": "Upload a new asset",
+        "summary": "Upload a new asset",
+        "tags": [
+          "Assets"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The data to create the asset with.",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/File to be uploaded"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Details about the created asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets/{assetId}": {
+      "get": {
+        "description": "Get asset by its id",
+        "summary": "Get a single asset",
+        "tags": [
+          "Assets"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AssetId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset content. Content type is determined by the asset type."
+          }
+        }
+      }
+    },
+    "/admin/users/{userId}": {
+      "put": {
+        "description": "Update a user's role, bookmark quota, or storage quota. Admin access required.",
+        "summary": "Update user",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the user to update",
+              "example": "user_123"
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "admin"
+                    ]
+                  },
+                  "bookmarkQuota": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "storageQuota": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "browserCrawlingEnabled": {
+                    "type": "boolean",
+                    "nullable": true
+                  }
+                },
+                "description": "User update data",
+                "example": {
+                  "role": "admin",
+                  "bookmarkQuota": 1000,
+                  "storageQuota": 5000000000
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input data or cannot update own user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
