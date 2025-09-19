@@ -4,7 +4,7 @@
 
 # AI Assistant Configuration
 AI_ASSISTANT=augment
-AI_RULES=.rules/MEMORY.md .rules/GLOBAL_RULE.md .rules/CODING_STYLE.md .rules/CODE_ANALYSIS.md
+AI_RULES=.rules/UNIFIED_MEMORY.md .rules/GLOBAL_RULE.md .rules/CODING_STYLE.md .rules/CODE_ANALYSIS.md
 
 # Workflow Configuration
 AI_WORKFLOWS=ai-rules,ai-rules-first-run

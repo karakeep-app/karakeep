@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: ["main"]
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# You can leverage Vercel Remote Caching with Turbo to speed up your builds
+env:
+  FORCE_COLOR: 3
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Lint
+        run: pnpm lint && pnpm exec sherif
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Format
+        run: pnpm format
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Typecheck
+        run: pnpm typecheck
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Shared Package Tests
+        working-directory: packages/shared
+        run: pnpm test
+
+      - name: TRPC Tests
+        working-directory: packages/trpc
+        run: pnpm test
+
+      - name: E2E Tests
+        working-directory: packages/e2e_tests
+        run: pnpm test
+  open-api-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Regenerate OpenAPI spec
+        working-directory: packages/open-api
+        run: pnpm run generate
+
+      - name: Check for changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Error: Generated files are not up to date!"
+            echo "The following files have changes:"
+            git status --porcelain
+            echo ""
+            echo "Please regenerate the files locally with (pnpm run generate) and commit the changes."
+            git diff
+            exit 1
+          else
+            echo "✅ Generated files are up to date!"
+          fi
