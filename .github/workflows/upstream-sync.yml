@@ -1,0 +1,133 @@
+name: Upstream Sync
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Daily 12:00 CET (fixed at 11:00 UTC year-round)
+    - cron: "0 11 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  UPSTREAM_URL: https://github.com/karakeep-app/karakeep.git
+  UPSTREAM_BRANCH: main
+  SYNC_BRANCH: chore/upstream-sync
+  UPSTREAM_OWNER: karakeep-app
+  UPSTREAM_REPO: karakeep
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure jq is available
+        run: sudo apt-get update -y && sudo apt-get install -y jq
+
+      - name: Resolve latest upstream release tag
+        id: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG=$(curl -sSL -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                 -H "Accept: application/vnd.github+json" \
+                 "https://api.github.com/repos/${UPSTREAM_OWNER}/${UPSTREAM_REPO}/releases/latest" | jq -r '.tag_name')
+          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+            echo "No release tag found" >&2
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare sync branch from latest release tag
+        id: prep
+        if: steps.latest.outputs.tag != ''
+        run: |
+          set -euo pipefail
+          git remote add upstream "${UPSTREAM_URL}" || true
+          TAG="${{ steps.latest.outputs.tag }}"
+          TMPBR="_upstream_${TAG}"
+          # Fetch upstream tag into a temporary local tag, peel to commit, then create branch
+          git fetch --no-tags upstream "refs/tags/${TAG}:refs/tags/_tmp_upstream_tag" || {
+            echo "Unable to fetch upstream tag ${TAG}" >&2
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+          OID=$(git rev-parse "_tmp_upstream_tag^{commit}")
+          # Determine if that commit is already in origin/main
+          git fetch origin main
+          if git merge-base --is-ancestor "${OID}" origin/main; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            git tag -d _tmp_upstream_tag >/dev/null 2>&1 || true
+            exit 0
+          fi
+          BRANCH="chore/upstream-sync-${TAG}"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          # Create branch at the upstream release commit
+          git checkout -B "${BRANCH}" "${OID}"
+          # Clean up temp tag
+          git tag -d _tmp_upstream_tag >/dev/null 2>&1 || true
+
+      - name: Evaluate change status
+        id: diffcheck
+        if: steps.latest.outputs.tag != ''
+        run: |
+          echo "changed=${{ steps.prep.outputs.changed }}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure PAT for workflow-file pushes (optional)
+        if: steps.diffcheck.outputs.changed == 'true'
+        env:
+          GH_PAT: ${{ secrets.GHCR_PAT }}
+        run: |
+          if [ -n "${GH_PAT}" ]; then
+            git config user.name "Carsaig Automation"
+            git config user.email "56911+carsaig@users.noreply.github.com"
+            # Unset checkout's GITHUB_TOKEN auth header so PAT is used
+            git config --local --unset-all http.https://github.com/.extraheader || true
+            git remote set-url origin "https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git"
+            echo "Using GHCR_PAT for push"
+          else
+            echo "GHCR_PAT not set; will use GITHUB_TOKEN. If push rejects workflow changes, ensure PAT has repo scope or strip workflows from sync." >&2
+          fi
+
+      - name: Push sync branch
+        if: steps.diffcheck.outputs.changed == 'true'
+        run: |
+          git push --force-with-lease -u origin "${{ steps.prep.outputs.branch }}"
+
+      - name: Create or update PR
+        id: cpr
+        if: steps.diffcheck.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          base: ${{ github.event.repository.default_branch }}
+          branch: ${{ steps.prep.outputs.branch }}
+          title: "chore: sync upstream release ${{ steps.latest.outputs.tag }}"
+          body: |
+            This PR merges upstream release `${{ steps.latest.outputs.tag }}` from **${{ env.UPSTREAM_URL }}** into this repo.
+
+            - CI must be green (branch protection enforces this).
+          labels: |
+            dependencies
+            upstream-sync
+          signoff: true
+          delete-branch: false
+
+      - name: Enable PR auto-merge (squash) once checks pass
+        if: steps.diffcheck.outputs.changed == 'true' && steps.cpr.outputs.pull-request-number && steps.cpr.outputs.pull-request-number != ''
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
