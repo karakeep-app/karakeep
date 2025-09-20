@@ -15,6 +15,7 @@ import {
   Highlighter,
   Home,
   Search,
+  Shuffle,
   Tag,
 } from "lucide-react";
 
@@ -79,6 +80,11 @@ export default async function Dashboard({
         name: t("common.highlights"),
         icon: <Highlighter size={18} />,
         path: "/dashboard/highlights",
+      },
+      {
+        name: "Rediscover",
+        icon: <Shuffle size={18} />,
+        path: "/dashboard/rediscover",
       },
       {
         name: t("common.archive"),
