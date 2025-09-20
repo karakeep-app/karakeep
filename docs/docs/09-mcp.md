@@ -11,7 +11,7 @@ Karakeep comes with a Model Context Protocol server that can be used to interact
 - Creating text and URL bookmarks
 
 
-## Usage with Claude Desktop
+## Usage with Claude Desktop (stdio transport)
 
 From NPM:
 
@@ -50,6 +50,49 @@ From Docker:
     }
   }
 }
+```
+
+## Running from a terminal (stdio transport)
+
+To run the stdio transport directly from a terminal without a Claude manifest,
+use one of the following approaches:
+
+```bash
+KARAKEEP_API_ADDR=https://<YOUR_SERVER_ADDR> \
+KARAKEEP_API_KEY=<YOUR_TOKEN> \
+npx @karakeep/mcp
+```
+
+```bash
+docker run \
+  -e KARAKEEP_API_ADDR=https://<YOUR_SERVER_ADDR> \
+  -e KARAKEEP_API_KEY=<YOUR_TOKEN> \
+  ghcr.io/karakeep-app/karakeep-mcp:latest
+```
+
+## HTTP Streamable transport (terminal only)
+
+The HTTP Streamable transport is designed for terminal workflows and is not
+available through Claude Desktop manifests. Enable it by setting
+`KARAKEEP_MCP_TRANSPORT=HTTPstreamable`. You can adjust the port with
+`KARAKEEP_MCP_STREAM_PORT` (default: `3000`).
+
+```bash
+KARAKEEP_API_ADDR=https://<YOUR_SERVER_ADDR> \
+KARAKEEP_API_KEY=<YOUR_TOKEN> \
+KARAKEEP_MCP_TRANSPORT=HTTPstreamable \
+KARAKEEP_MCP_STREAM_PORT=3000 \
+npx @karakeep/mcp
+```
+
+```bash
+docker run \
+  -e KARAKEEP_API_ADDR=https://<YOUR_SERVER_ADDR> \
+  -e KARAKEEP_API_KEY=<YOUR_TOKEN> \
+  -e KARAKEEP_MCP_TRANSPORT=HTTPstreamable \
+  -e KARAKEEP_MCP_STREAM_PORT=3000 \
+  -p 3000:3000 \
+  ghcr.io/karakeep-app/karakeep-mcp:latest
 ```
 
 
