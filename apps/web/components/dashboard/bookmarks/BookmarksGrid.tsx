@@ -8,6 +8,7 @@ import {
   useBookmarkLayout,
   useGridColumns,
 } from "@/lib/userLocalSettings/bookmarksLayout";
+import { cn } from "@/lib/utils";
 import tailwindConfig from "@/tailwind.config";
 import { Slot } from "@radix-ui/react-slot";
 import { ErrorBoundary } from "react-error-boundary";
@@ -16,14 +17,36 @@ import Masonry from "react-masonry-css";
 import resolveConfig from "tailwindcss/resolveConfig";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import {
+  getReminderTheme,
+  getReminderType,
+} from "@karakeep/shared/utils/reminderThemeUtils";
 
 import BookmarkCard from "./BookmarkCard";
 import EditorCard from "./EditorCard";
 import UnknownCard from "./UnknownCard";
 
-function StyledBookmarkCard({ children }: { children: React.ReactNode }) {
+function StyledBookmarkCard({
+  bookmark,
+  children,
+}: {
+  bookmark?: ZBookmark;
+  children: React.ReactNode;
+}) {
+  const reminderTheme =
+    bookmark?.reminder && bookmark.reminder.status !== "dismissed"
+      ? getReminderTheme(getReminderType(bookmark.reminder))
+      : null;
+
   return (
-    <Slot className="mb-4 border border-border bg-card duration-300 ease-in hover:shadow-lg hover:transition-all">
+    <Slot
+      className={cn(
+        "mb-4 border duration-300 ease-in hover:shadow-lg hover:transition-all",
+        reminderTheme
+          ? [reminderTheme.cardBg, reminderTheme.cardBorder]
+          : ["border-border", "bg-card"],
+      )}
+    >
       {children}
     </Slot>
   );
@@ -102,7 +125,7 @@ export default function BookmarksGrid({
     ),
     ...bookmarks.map((b) => (
       <ErrorBoundary key={b.id} fallback={<UnknownCard bookmark={b} />}>
-        <StyledBookmarkCard>
+        <StyledBookmarkCard bookmark={b}>
           <BookmarkCard bookmark={b} />
         </StyledBookmarkCard>
       </ErrorBoundary>

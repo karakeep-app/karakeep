@@ -7,6 +7,7 @@ import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import BookmarkOptions from "./BookmarkOptions";
 import { FavouritedActionIcon } from "./icons";
+import RemindMeButton from "./RemindMeButton";
 
 export default function BookmarkActionBar({
   bookmark,
@@ -24,6 +25,7 @@ export default function BookmarkActionBar({
       >
         <Maximize2 size={16} />
       </Link>
+      <RemindMeButton bookmark={bookmark} />
       <BookmarkOptions bookmark={bookmark} />
     </div>
   );

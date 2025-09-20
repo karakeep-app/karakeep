@@ -110,6 +110,7 @@ async function getBookmark(
       text: true,
       asset: true,
       assets: true,
+      reminder: true,
     },
   });
   if (!bookmark) {
@@ -149,6 +150,7 @@ async function dummyDrizzleReturnType() {
       text: true,
       asset: true,
       assets: true,
+      reminder: true,
     },
   });
   if (!x) {
@@ -182,7 +184,8 @@ async function toZodSchema(
   bookmark: BookmarkQueryReturnType,
   includeContent: boolean,
 ): Promise<ZBookmark> {
-  const { tagsOnBookmarks, link, text, asset, assets, ...rest } = bookmark;
+  const { tagsOnBookmarks, link, text, asset, assets, reminder, ...rest } =
+    bookmark;
 
   let content: ZBookmarkContent = {
     type: BookmarkTypes.UNKNOWN,
@@ -253,6 +256,7 @@ async function toZodSchema(
       id: a.id,
       assetType: mapDBAssetTypeToUserType(a.assetType),
     })),
+    reminder: reminder || undefined,
     ...rest,
   };
 }
@@ -821,6 +825,7 @@ export const bookmarksAppRouter = router({
           text: true,
           asset: true,
           assets: true,
+          reminder: true,
         },
       });
 

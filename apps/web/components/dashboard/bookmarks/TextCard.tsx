@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BookmarkMarkdownComponent } from "@/components/dashboard/bookmarks/BookmarkMarkdownComponent";
 import { bookmarkLayoutSwitch } from "@/lib/userLocalSettings/bookmarksLayout";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { cn } from "@/lib/utils";
 
 import type { ZBookmarkTypeText } from "@karakeep/shared/types/bookmarks";
@@ -15,9 +16,11 @@ import FooterLinkURL from "./FooterLinkURL";
 
 export default function TextCard({
   bookmark,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmarkTypeText;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   const banner = bookmark.assets.find((a) => a.assetType == "bannerImage");
@@ -36,6 +39,7 @@ export default function TextCard({
           )
         }
         wrapTags={true}
+        fixedLayout={fixedLayout}
         bookmark={bookmark}
         className={className}
         fitHeight={true}

@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
+import { api } from "@/lib/trpc";
 import {
+  Clock,
   FileDown,
   Link,
   List,
@@ -21,6 +25,7 @@ import {
   RotateCw,
   SquarePen,
   Trash2,
+  X,
 } from "lucide-react";
 
 import type {
@@ -35,6 +40,8 @@ import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks//lists";
 import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { getReminderType } from "@karakeep/shared/utils/reminderThemeUtils";
+import { getNextReminderDescription } from "@karakeep/shared/utils/reminderTimeslotsUtils";
 
 import { BookmarkedTextEditor } from "./BookmarkedTextEditor";
 import DeleteBookmarkConfirmationDialog from "./DeleteBookmarkConfirmationDialog";
@@ -45,9 +52,11 @@ import { useManageListsModal } from "./ManageListsModal";
 export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const utils = api.useUtils();
   const linkId = bookmark.id;
 
   const demoMode = !!useClientConfig().demoMode;
+  const pathname = usePathname();
 
   const [isClipboardAvailable, setIsClipboardAvailable] = useState(false);
 
@@ -113,6 +122,99 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     },
     onError,
   });
+
+  const updateReminderMutation = api.reminders.updateReminder.useMutation({
+    onSuccess: () => {
+      toast({
+        description: "Reminder updated",
+      });
+      utils.bookmarks.invalidate();
+    },
+    onError,
+  });
+
+  const deleteReminderMutation = api.reminders.deleteReminder.useMutation({
+    onSuccess: () => {
+      toast({
+        description: "Reminder deleted",
+      });
+      utils.bookmarks.invalidate();
+      utils.reminders.invalidate();
+    },
+    onError,
+  });
+
+  const snoozeReminderMutation = api.reminders.snoozeReminder.useMutation({
+    onSuccess: () => {
+      toast({
+        description: "Reminder snoozed to this evening",
+      });
+      utils.bookmarks.invalidate();
+    },
+    onError,
+  });
+
+  const reminderType = getReminderType(bookmark.reminder);
+
+  const reminderItems = [];
+
+  if (reminderType === "due" || reminderType === "upcoming") {
+    reminderItems.push(
+      <DropdownMenuItem
+        key="dismiss-reminder"
+        disabled={demoMode}
+        onClick={() =>
+          updateReminderMutation.mutate({
+            reminderId: bookmark.reminder!.id,
+            status: "dismissed",
+          })
+        }
+      >
+        <X className="mr-2 size-4" />
+        <span>Dismiss reminder</span>
+      </DropdownMenuItem>,
+    );
+  }
+
+  if (reminderType === "due") {
+    reminderItems.push(
+      <DropdownMenuItem
+        key="snooze-reminder"
+        disabled={demoMode}
+        onClick={() =>
+          snoozeReminderMutation.mutate({
+            reminderId: bookmark.reminder!.id,
+            clientTimestamp: Date.now(),
+          })
+        }
+      >
+        <Clock className="mr-2 size-4" />
+        <span>Snooze to {getNextReminderDescription()}</span>
+      </DropdownMenuItem>,
+    );
+  }
+
+  if (
+    bookmark?.reminder?.status !== "dismissed" ||
+    pathname === "/dashboard/reminders"
+  ) {
+    reminderItems.push(
+      <DropdownMenuItem
+        key="delete-reminder"
+        disabled={demoMode}
+        className="text-destructive"
+        onClick={() =>
+          bookmark?.reminder?.id &&
+          deleteReminderMutation.mutate({
+            reminderId: bookmark.reminder.id,
+          })
+        }
+      >
+        <Trash2 className="mr-2 size-4" />
+        <span>Delete reminder</span>
+      </DropdownMenuItem>,
+    );
+  }
 
   return (
     <>
@@ -263,6 +365,13 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             <Trash2 className="mr-2 size-4" />
             <span>{t("actions.delete")}</span>
           </DropdownMenuItem>
+
+          {reminderItems.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              {reminderItems}
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
