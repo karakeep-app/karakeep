@@ -134,11 +134,19 @@ For detailed setup instructions, refer to the [Expo documentation](https://docs.
 
 #### Running the app
 
-- `cd apps/mobile`
-- `pnpm exec expo prebuild --no-install` to build the app.
+- `pnpm --filter mobile expo prebuild --no-install` to build the app.
+  - add `--clean` if you need to, for example, change the bundleIdentifier/package
+    it doesn't change with e.g. `expo run:android` alone
+    `pnpm --filter mobile expo prebuild --no-install --clean`
+    or
+    `pnpm --filter mobile clean:prebuild`
+    - you might also want to add `APP_VARIANT=development`, so you can install the `dev` variant on your phone along side the production version
+      `APP_VARIANT=development pnpm --filter mobile expo prebuild --no-install --clean`
+      or
+      `pnpm --filter mobile clean:prebuild:dev`
 
 **For iOS:**
-- `pnpm exec expo run:ios`
+- `pnpm ios`
 - The app will be installed and started in the simulator.
 
 **Troubleshooting iOS Setup:**
@@ -149,10 +157,20 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 **For Android:**
 - Start the Android emulator or connect a physical device.
-- `pnpm exec expo run:android`
+- `pnpm android`
 - The app will be installed and started on the emulator/device.
+- You might need to add `APP_VARIANT=development` if you intend to run the dev variant, however, my personal experience is that instead, the key is to run `prebuild` with `APP_VARIANT=development` instead
+  `APP_VARIANT=development pnpm android`
+  or 
+  `pnpm --filter mobile clean:prebuild:dev && pnpm android`
 
 Changing the code will hot reload the app. However, installing new packages requires restarting the expo server.
+
+**Installing a release build:**
+
+It might be slightly confusing, but if you want to install the `dev` variant of the app, but you want it to be a "release" build; does not use the dev server, you can do the following:
+- `pnpm --filter mobile clean:prebuild:dev`
+- `pnpm --filter mobile android:dev:release`
 
 ### Browser Extension
 
