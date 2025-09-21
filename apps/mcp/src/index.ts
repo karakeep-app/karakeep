@@ -136,6 +136,59 @@ async function startStreamableHttpServer() {
   });
 }
 
+function extractErrorMessage(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return undefined;
+}
+
+function deriveStartupHints(error: unknown): string[] {
+  const hints = new Set<string>();
+  const message = extractErrorMessage(error)?.toLowerCase() ?? "";
+
+  if (message.includes("failed to parse url")) {
+    hints.add(
+      "Ensure KARAKEEP_API_ADDR is set to a full HTTP(S) URL, including the protocol (e.g. https://karakeep.example.com).",
+    );
+  }
+
+  if (message.includes("unable to reach karakeep api")) {
+    hints.add(
+      "Confirm that the Karakeep API is reachable from this environment and that the configured address is correct.",
+    );
+  }
+
+  if (message.includes("api key verification failed")) {
+    hints.add(
+      "Verify that KARAKEEP_API_KEY is valid and has access to the Karakeep API.",
+    );
+  }
+
+  hints.add(
+    "Double-check the KARAKEEP_API_ADDR and KARAKEEP_API_KEY environment variables before restarting the server.",
+  );
+
+  return Array.from(hints);
+}
+
+function logStartupFailure(error: unknown) {
+  logger.error("Fatal error while starting Karakeep MCP server", error);
+
+  const hints = deriveStartupHints(error);
+  if (hints.length > 0) {
+    logger.info("Troubleshooting tips:");
+    for (const hint of hints) {
+      logger.info(`  • ${hint}`);
+    }
+  }
+}
+
 async function run() {
   logger.info(
     `Starting Karakeep MCP server with ${
@@ -154,6 +207,6 @@ async function run() {
 }
 
 run().catch((error) => {
-  logger.error("Fatal error while starting Karakeep MCP server", error);
+  logStartupFailure(error);
   process.exitCode = 1;
 });
