@@ -25,6 +25,7 @@ fi
 # Start Meilisearch if not already running
 if ! port_in_use 7700; then
     echo "Starting Meilisearch..."
+    docker pull getmeili/meilisearch:v1.13.3
     docker run -d -p 7700:7700 --name karakeep-meilisearch getmeili/meilisearch:v1.13.3
 else
     echo "Meilisearch is already running on port 7700"
