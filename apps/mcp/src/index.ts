@@ -7,7 +7,12 @@ import express from "express";
 
 import { registerBookmarkTools } from "./bookmarks";
 import { registerListTools } from "./lists";
-import { config, createMcpServer, logger } from "./shared";
+import {
+  config,
+  createMcpServer,
+  logger,
+  verifyKarakeepApiAccess,
+} from "./shared";
 import { registerTagTools } from "./tags";
 
 function buildServer() {
@@ -137,6 +142,8 @@ async function run() {
       config.transportMode === "httpstreamable" ? "HTTP streamable" : "stdio"
     } transport.`,
   );
+
+  await verifyKarakeepApiAccess();
 
   if (config.transportMode === "httpstreamable") {
     await startStreamableHttpServer();

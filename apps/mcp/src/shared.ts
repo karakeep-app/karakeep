@@ -128,6 +128,40 @@ export const karakeepClient = createKarakeepClient({
 
 export const turndownService = new TurndownService();
 
+export async function verifyKarakeepApiAccess(): Promise<void> {
+  logger.info("Verifying Karakeep API credentials...");
+
+  const response = await karakeepClient
+    .GET("/users/me")
+    .catch((error: unknown): never => {
+      throw new Error(
+        `Unable to reach Karakeep API at ${config.apiAddr}: ${formatError(error)}`,
+      );
+    });
+
+  if ("error" in response) {
+    const status = response.response?.status;
+    const statusText = response.response?.statusText;
+    const statusMessage =
+      status !== undefined
+        ? `status ${status}${statusText ? ` (${statusText})` : ""}`
+        : "an unknown status";
+
+    throw new Error(
+      `Karakeep API key verification failed with ${statusMessage}: ${formatError(response.error)}`,
+    );
+  }
+
+  const { email, name, id } = response.data;
+  const identity = email ?? name ?? id;
+
+  logger.info(
+    `Karakeep API key verified${
+      identity ? ` (authenticated as ${identity})` : ""
+    }.`,
+  );
+}
+
 export function createMcpServer(): McpServer {
   return new McpServer({
     name: "Karakeep",
