@@ -64,6 +64,7 @@
     "dayjs": "^1.11.10",
     "drizzle-orm": "^0.44.2",
     "fastest-levenshtein": "^1.0.16",
+    "framer-motion": "^12.23.11",
     "i18next": "^23.16.5",
     "i18next-resources-to-backend": "^1.2.1",
     "lexical": "^0.20.2",

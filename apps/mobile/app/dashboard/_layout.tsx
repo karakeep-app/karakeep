@@ -118,6 +118,14 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="rediscover"
+        options={{
+          headerTitle: "",
+          headerBackTitle: "Back",
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
         name="search"
         options={{
           headerTitle: "",
