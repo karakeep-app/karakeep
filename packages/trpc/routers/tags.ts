@@ -5,6 +5,7 @@ import {
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
+  zTagSearchRequestSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -96,7 +97,22 @@ export const tagsAppRouter = router({
       }),
     )
     .query(async ({ ctx }) => {
-      const tags = await Tag.getAllWithStats(ctx);
+      const tags = await Tag.getAll(ctx);
+      return { tags };
+    }),
+  search: authedProcedure
+    .input(zTagSearchRequestSchema)
+    .output(
+      z.object({
+        tags: z.array(zGetTagResponseSchema),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const tags = await Tag.getAll(ctx, {
+        nameContains: input.query,
+        attachedBy: input.attachedBy,
+        sortBy: input.sortBy,
+      });
       return { tags };
     }),
 });

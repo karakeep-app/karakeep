@@ -38,3 +38,9 @@ export const zTagBasicSchema = z.object({
   name: z.string(),
 });
 export type ZTagBasic = z.infer<typeof zTagBasicSchema>;
+
+export const zTagSearchRequestSchema = z.object({
+  query: z.string(),
+  attachedBy: zAttachedByEnumSchema.optional(),
+  sortBy: z.enum(["name", "usage"]).optional().default("usage"),
+});

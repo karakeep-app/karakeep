@@ -9,7 +9,7 @@ import Draggable from "react-draggable";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
 
-export function TagPill({
+export const TagPill = React.memo(function TagPill({
   id,
   name,
   count,
@@ -118,4 +118,4 @@ export function TagPill({
       {pill}
     </Draggable>
   );
-}
+});

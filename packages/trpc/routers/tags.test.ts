@@ -251,4 +251,31 @@ describe("Tags Routes", () => {
     });
     expect(row?.name).toBe("bar");
   });
+
+  test<CustomTestContext>("search tags", async ({ apiCallers }) => {
+    const api = apiCallers[0].tags;
+
+    await api.create({ name: "alpha" });
+    await api.create({ name: "beta" });
+    await api.create({ name: "alph2" });
+
+    {
+      const res = await api.search({ query: "al" });
+      expect(res.tags.length).toBe(2);
+      expect(res.tags.some((tag) => tag.name === "alpha")).toBeTruthy();
+      expect(res.tags.some((tag) => tag.name === "beta")).not.toBeTruthy();
+      expect(res.tags.some((tag) => tag.name === "alph2")).toBeTruthy();
+    }
+
+    {
+      const res = await api.search({ query: "beta" });
+      expect(res.tags.length).toBe(1);
+      expect(res.tags.some((tag) => tag.name === "beta")).toBeTruthy();
+    }
+
+    {
+      const res = await api.search({ query: "" });
+      expect(res.tags.length).toBe(3);
+    }
+  });
 });

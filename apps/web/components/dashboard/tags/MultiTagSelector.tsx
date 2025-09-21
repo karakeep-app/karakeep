@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { useTheme } from "next-themes";
 
-export function MultiTagSelector({
+export const MultiTagSelector = React.memo(function MultiTagSelector({
   id,
   name,
   count,
@@ -58,4 +58,4 @@ export function MultiTagSelector({
   );
 
   return pill;
-}
+});

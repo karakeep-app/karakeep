@@ -1,5 +1,16 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, notExists } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  inArray,
+  like,
+  notExists,
+  sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
@@ -70,18 +81,42 @@ export class Tag implements PrivacyAware {
     }
   }
 
-  static async getAllWithStats(ctx: AuthedContext) {
+  static async getAll(
+    ctx: AuthedContext,
+    opts: {
+      nameContains?: string;
+      attachedBy?: ZAttachedByEnum;
+      sortBy?: "name" | "usage";
+    } = {},
+  ) {
+    const sortBy = opts.sortBy ?? "usage";
     const tags = await ctx.db
       .select({
         id: bookmarkTags.id,
         name: bookmarkTags.name,
         attachedBy: tagsOnBookmarks.attachedBy,
-        count: count(),
+        count: count().as("count"),
       })
       .from(bookmarkTags)
       .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
-      .where(and(eq(bookmarkTags.userId, ctx.user.id)))
-      .groupBy(bookmarkTags.id, tagsOnBookmarks.attachedBy);
+      .where(
+        and(
+          eq(bookmarkTags.userId, ctx.user.id),
+          opts.nameContains
+            ? like(bookmarkTags.name, `%${opts.nameContains}%`)
+            : undefined,
+        ),
+      )
+      .groupBy(bookmarkTags.id, bookmarkTags.name, tagsOnBookmarks.attachedBy)
+      .orderBy(sortBy === "name" ? asc(bookmarkTags.name) : desc(sql`count`))
+      .having(
+        opts.attachedBy
+          ? and(
+              eq(tagsOnBookmarks.attachedBy, opts.attachedBy),
+              gt(sql<number>`count`, 0),
+            )
+          : undefined,
+      );
 
     if (tags.length === 0) {
       return [];
@@ -105,11 +140,18 @@ export class Tag implements PrivacyAware {
       return acc;
     }, {});
 
-    return Object.entries(tagsById).map(([k, t]) => ({
+    const results = Object.entries(tagsById).map(([k, t]) => ({
       id: k,
       name: t[0].name,
       ...Tag._aggregateStats(t),
     }));
+    results.sort((a, b) =>
+      sortBy === "name"
+        ? a.name.localeCompare(b.name)
+        : b.numBookmarks - a.numBookmarks,
+    );
+
+    return results;
   }
 
   static async deleteUnused(ctx: AuthedContext): Promise<number> {
