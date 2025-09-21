@@ -48,11 +48,42 @@ function readRequiredEnv(name: string): string {
   return value;
 }
 
-function sanitizeBaseUrl(url: string): string {
-  if (url.endsWith("/")) {
-    return url.slice(0, -1);
+function normalizeApiAddress(rawUrl: string): string {
+  const value = rawUrl.trim();
+
+  if (!/^https?:\/\//i.test(value)) {
+    logger.error(
+      `Invalid KARAKEEP_API_ADDR value '${rawUrl}'. Please include the protocol, e.g. 'https://app.karakeep.com'.`,
+    );
+    process.exit(1);
   }
-  return url;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch (error) {
+    logger.error(
+      `Invalid KARAKEEP_API_ADDR value '${rawUrl}'. ${formatError(error)}`,
+    );
+    process.exit(1);
+  }
+
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    logger.error(
+      `Invalid KARAKEEP_API_ADDR value '${rawUrl}'. Only HTTP and HTTPS URLs are supported.`,
+    );
+    process.exit(1);
+  }
+
+  parsed.hash = "";
+  parsed.search = "";
+
+  let normalized = parsed.toString();
+  if (normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  return normalized;
 }
 
 function resolveTransportMode(): TransportMode {
@@ -90,7 +121,7 @@ function resolveStreamPort(): number {
 }
 
 const rawAddr = readRequiredEnv("KARAKEEP_API_ADDR");
-const apiAddr = sanitizeBaseUrl(rawAddr);
+const apiAddr = normalizeApiAddress(rawAddr);
 const apiKey = readRequiredEnv("KARAKEEP_API_KEY");
 
 const transportMode = resolveTransportMode();
