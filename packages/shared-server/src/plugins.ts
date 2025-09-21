@@ -9,6 +9,9 @@ export async function loadAllPlugins() {
   // Queue provider(s)
   await import("@karakeep/plugins-queue-liteque");
   await import("@karakeep/plugins-search-meilisearch");
+  // Rate limiter providers (memory first, then redis to override if configured)
+  await import("@karakeep/plugins-ratelimiter-memory");
+  await import("@karakeep/plugins-ratelimiter-redis");
   PluginManager.logAllPlugins();
   pluginsLoaded = true;
 }
