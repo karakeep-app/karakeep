@@ -12,7 +12,7 @@ import { authedProcedure, Context, publicProcedure, router } from "../index";
 
 const stripe = serverConfig.stripe.secretKey
   ? new Stripe(serverConfig.stripe.secretKey, {
-      apiVersion: "2025-06-30.basil",
+      apiVersion: "2025-08-27.basil",
     })
   : null;
 
