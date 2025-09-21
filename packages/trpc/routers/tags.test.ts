@@ -20,6 +20,42 @@ describe("Tags Routes", () => {
     expect(res.numBookmarks).toBeGreaterThanOrEqual(0);
   });
 
+  test<CustomTestContext>("get tag returns bookmark stats", async ({
+    apiCallers,
+  }) => {
+    const tagsApi = apiCallers[0].tags;
+    const bookmarksApi = apiCallers[0].bookmarks;
+
+    const firstBookmark = await bookmarksApi.createBookmark({
+      url: "https://example.com/first",
+      type: BookmarkTypes.LINK,
+    });
+    const secondBookmark = await bookmarksApi.createBookmark({
+      url: "https://example.com/second",
+      type: BookmarkTypes.LINK,
+    });
+
+    const firstAttachment = await bookmarksApi.updateTags({
+      bookmarkId: firstBookmark.id,
+      attach: [{ tagName: "stats-tag" }],
+      detach: [],
+    });
+
+    const tagId = firstAttachment.attached[0];
+
+    await bookmarksApi.updateTags({
+      bookmarkId: secondBookmark.id,
+      attach: [{ tagId }],
+      detach: [],
+    });
+
+    const stats = await tagsApi.get({ tagId });
+
+    expect(stats.numBookmarks).toBe(2);
+    expect(stats.numBookmarksByAttachedType.human).toBe(2);
+    expect(stats.numBookmarksByAttachedType.ai).toBe(0);
+  });
+
   test<CustomTestContext>("get tag - not found", async ({ apiCallers }) => {
     const api = apiCallers[0].tags;
     await expect(() => api.get({ tagId: "nonExistentId" })).rejects.toThrow(
@@ -133,6 +169,44 @@ describe("Tags Routes", () => {
     expect(res.tags.length).toBeGreaterThanOrEqual(2);
     expect(res.tags.some((tag) => tag.name === "tag1")).toBeTruthy();
     expect(res.tags.some((tag) => tag.name === "tag2")).toBeTruthy();
+  });
+
+  test<CustomTestContext>("list tags includes bookmark stats", async ({
+    apiCallers,
+  }) => {
+    const tagsApi = apiCallers[0].tags;
+    const bookmarksApi = apiCallers[0].bookmarks;
+
+    const firstBookmark = await bookmarksApi.createBookmark({
+      url: "https://example.com/list-first",
+      type: BookmarkTypes.LINK,
+    });
+    const secondBookmark = await bookmarksApi.createBookmark({
+      url: "https://example.com/list-second",
+      type: BookmarkTypes.LINK,
+    });
+
+    const firstAttachment = await bookmarksApi.updateTags({
+      bookmarkId: firstBookmark.id,
+      attach: [{ tagName: "list-stats-tag" }],
+      detach: [],
+    });
+
+    const tagId = firstAttachment.attached[0];
+
+    await bookmarksApi.updateTags({
+      bookmarkId: secondBookmark.id,
+      attach: [{ tagId }],
+      detach: [],
+    });
+
+    const list = await tagsApi.list();
+    const tagStats = list.tags.find((tag) => tag.id === tagId);
+
+    expect(tagStats).toBeDefined();
+    expect(tagStats!.numBookmarks).toBe(2);
+    expect(tagStats!.numBookmarksByAttachedType.human).toBe(2);
+    expect(tagStats!.numBookmarksByAttachedType.ai).toBe(0);
   });
 
   test<CustomTestContext>("list tags - privacy", async ({ apiCallers }) => {

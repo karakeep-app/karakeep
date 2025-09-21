@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, notExists } from "drizzle-orm";
+import { and, count, eq, inArray, notExists } from "drizzle-orm";
 import { z } from "zod";
 
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
@@ -70,40 +70,45 @@ export class Tag implements PrivacyAware {
     }
   }
 
-  static async getAll(ctx: AuthedContext): Promise<Tag[]> {
-    const tags = await ctx.db.query.bookmarkTags.findMany({
-      where: eq(bookmarkTags.userId, ctx.user.id),
-    });
-
-    return tags.map((t) => new Tag(ctx, t));
-  }
-
   static async getAllWithStats(ctx: AuthedContext) {
-    const tags = await ctx.db.query.bookmarkTags.findMany({
-      where: eq(bookmarkTags.userId, ctx.user.id),
-      with: {
-        tagsOnBookmarks: {
-          columns: {
-            attachedBy: true,
-          },
-        },
-      },
-    });
+    const tags = await ctx.db
+      .select({
+        id: bookmarkTags.id,
+        name: bookmarkTags.name,
+        attachedBy: tagsOnBookmarks.attachedBy,
+        count: count(),
+      })
+      .from(bookmarkTags)
+      .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
+      .where(and(eq(bookmarkTags.userId, ctx.user.id)))
+      .groupBy(bookmarkTags.id, tagsOnBookmarks.attachedBy);
 
-    return tags.map(({ tagsOnBookmarks, ...rest }) => ({
-      ...rest,
-      numBookmarks: tagsOnBookmarks.length,
-      numBookmarksByAttachedType: tagsOnBookmarks.reduce<
-        Record<ZAttachedByEnum, number>
-      >(
-        (acc, curr) => {
-          if (curr.attachedBy) {
-            acc[curr.attachedBy]++;
-          }
-          return acc;
-        },
-        { ai: 0, human: 0 },
-      ),
+    if (tags.length === 0) {
+      return [];
+    }
+
+    const tagsById = tags.reduce<
+      Record<
+        string,
+        {
+          id: string;
+          name: string;
+          attachedBy: "ai" | "human" | null;
+          count: number;
+        }[]
+      >
+    >((acc, curr) => {
+      if (!acc[curr.id]) {
+        acc[curr.id] = [];
+      }
+      acc[curr.id].push(curr);
+      return acc;
+    }, {});
+
+    return Object.entries(tagsById).map(([k, t]) => ({
+      id: k,
+      name: t[0].name,
+      ...Tag._aggregateStats(t),
     }));
   }
 
@@ -310,12 +315,34 @@ export class Tag implements PrivacyAware {
     }
   }
 
+  static _aggregateStats(
+    res: { attachedBy: "ai" | "human" | null; count: number }[],
+  ) {
+    const numBookmarksByAttachedType = res.reduce<
+      Record<ZAttachedByEnum, number>
+    >(
+      (acc, curr) => {
+        if (curr.attachedBy) {
+          acc[curr.attachedBy] += curr.count;
+        }
+        return acc;
+      },
+      { ai: 0, human: 0 },
+    );
+    return {
+      numBookmarks:
+        numBookmarksByAttachedType.ai + numBookmarksByAttachedType.human,
+      numBookmarksByAttachedType,
+    };
+  }
+
   async getStats(): Promise<z.infer<typeof zGetTagResponseSchema>> {
     const res = await this.ctx.db
       .select({
         id: bookmarkTags.id,
         name: bookmarkTags.name,
         attachedBy: tagsOnBookmarks.attachedBy,
+        count: count(),
       })
       .from(bookmarkTags)
       .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
@@ -324,32 +351,17 @@ export class Tag implements PrivacyAware {
           eq(bookmarkTags.id, this.tag.id),
           eq(bookmarkTags.userId, this.ctx.user.id),
         ),
-      );
+      )
+      .groupBy(tagsOnBookmarks.attachedBy);
 
     if (res.length === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const numBookmarksByAttachedType = res.reduce<
-      Record<ZAttachedByEnum, number>
-    >(
-      (acc, curr) => {
-        if (curr.attachedBy) {
-          acc[curr.attachedBy]++;
-        }
-        return acc;
-      },
-      { ai: 0, human: 0 },
-    );
-
     return {
       id: res[0].id,
       name: res[0].name,
-      numBookmarks: Object.values(numBookmarksByAttachedType).reduce(
-        (s, a) => s + a,
-        0,
-      ),
-      numBookmarksByAttachedType,
+      ...Tag._aggregateStats(res),
     };
   }
 
