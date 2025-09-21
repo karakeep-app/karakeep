@@ -139,7 +139,7 @@ export async function verifyKarakeepApiAccess(): Promise<void> {
       );
     });
 
-  if ("error" in response) {
+  if (!response.response?.ok) {
     const status = response.response?.status;
     const statusText = response.response?.statusText;
     const statusMessage =
@@ -147,12 +147,25 @@ export async function verifyKarakeepApiAccess(): Promise<void> {
         ? `status ${status}${statusText ? ` (${statusText})` : ""}`
         : "an unknown status";
 
+    const errorPayload = (response as { error?: unknown }).error;
+    const errorMessage =
+      errorPayload !== undefined
+        ? formatError(errorPayload)
+        : "No error payload returned.";
+
     throw new Error(
-      `Karakeep API key verification failed with ${statusMessage}: ${formatError(response.error)}`,
+      `Karakeep API key verification failed with ${statusMessage}: ${errorMessage}`,
     );
   }
 
-  const { email, name, id } = response.data;
+  const user = response.data;
+  if (!user) {
+    throw new Error(
+      "Karakeep API key verification succeeded but returned no user payload.",
+    );
+  }
+
+  const { email, name, id } = user;
   const identity = email ?? name ?? id;
 
   logger.info(
