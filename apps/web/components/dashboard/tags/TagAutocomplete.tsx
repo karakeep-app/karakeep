@@ -16,6 +16,7 @@ import {
 import LoadingSpinner from "@/components/ui/spinner";
 import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { keepPreviousData } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
 interface TagAutocompleteProps {
@@ -29,17 +30,22 @@ export function TagAutocomplete({
   onChange,
   className,
 }: TagAutocompleteProps) {
-  const { data: tags, isPending } = api.tags.list.useQuery(undefined, {
-    select: (data) => data.tags,
-  });
-
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { data: tags, isLoading } = api.tags.search.useQuery(
+    {
+      query: searchQuery,
+      limit: 10,
+    },
+    {
+      select: (data) => data.tags,
+      placeholderData: keepPreviousData,
+    },
+  );
+
   // Filter tags based on search query
-  const filteredTags = (tags ?? [])
-    .filter((tag) => tag.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    .slice(0, 10); // Only show first 10 matches for performance
+  const filteredTags = tags ?? [];
 
   const handleSelect = (currentValue: string) => {
     setOpen(false);
@@ -55,7 +61,7 @@ export function TagAutocomplete({
     return tags?.find((t) => t.id === tagId) ?? null;
   }, [tags, tagId]);
 
-  if (isPending) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
