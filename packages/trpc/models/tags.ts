@@ -7,7 +7,6 @@ import {
   eq,
   gt,
   inArray,
-  isNull,
   like,
   notExists,
   sql,
@@ -25,6 +24,7 @@ import {
   zTagBasicSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
 import { PrivacyAware } from "./privacy";
@@ -97,12 +97,22 @@ export class Tag implements PrivacyAware {
     },
   ) {
     const sortBy = opts.sortBy ?? "usage";
+
+    const countAi = sql<number>`
+      SUM(CASE WHEN ${tagsOnBookmarks.attachedBy} = 'ai' THEN 1 ELSE 0 END)
+    `;
+    const countHuman = sql<number>`
+      SUM(CASE WHEN ${tagsOnBookmarks.attachedBy} = 'human' THEN 1 ELSE 0 END)
+    `;
+    // Count only matched right rows; will be 0 when there are none
+    const countAny = sql<number>`COUNT(${tagsOnBookmarks.tagId})`;
     const tags = await ctx.db
       .select({
         id: bookmarkTags.id,
         name: bookmarkTags.name,
-        attachedBy: tagsOnBookmarks.attachedBy,
-        count: count().as("count"),
+        countAttachedByAi: countAi.as("countAttachedByAi"),
+        countAttachedByHuman: countHuman.as("countAttachedByHuman"),
+        count: countAny.as("count"),
       })
       .from(bookmarkTags)
       .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
@@ -114,16 +124,15 @@ export class Tag implements PrivacyAware {
             : undefined,
         ),
       )
-      .groupBy(bookmarkTags.id, bookmarkTags.name, tagsOnBookmarks.attachedBy)
+      .groupBy(bookmarkTags.id, bookmarkTags.name)
       .orderBy(sortBy === "name" ? asc(bookmarkTags.name) : desc(sql`count`))
       .having(
         opts.attachedBy
-          ? opts.attachedBy === "none"
-            ? isNull(tagsOnBookmarks.attachedBy)
-            : and(
-                eq(tagsOnBookmarks.attachedBy, opts.attachedBy),
-                gt(sql<number>`count`, 0),
-              )
+          ? switchCase(opts.attachedBy, {
+              ai: and(eq(countHuman, 0), gt(countAi, 0)),
+              human: gt(countHuman, 0),
+              none: eq(countAny, 0),
+            })
           : undefined,
       )
       .offset(opts.page * opts.limit)
@@ -133,36 +142,15 @@ export class Tag implements PrivacyAware {
       return [];
     }
 
-    const tagsById = tags.reduce<
-      Record<
-        string,
-        {
-          id: string;
-          name: string;
-          attachedBy: "ai" | "human" | null;
-          count: number;
-        }[]
-      >
-    >((acc, curr) => {
-      if (!acc[curr.id]) {
-        acc[curr.id] = [];
-      }
-      acc[curr.id].push(curr);
-      return acc;
-    }, {});
-
-    const results = Object.entries(tagsById).map(([k, t]) => ({
-      id: k,
-      name: t[0].name,
-      ...Tag._aggregateStats(t),
+    return tags.map((t) => ({
+      id: t.id,
+      name: t.name,
+      numBookmarks: t.count,
+      numBookmarksByAttachedType: {
+        ai: t.countAttachedByAi,
+        human: t.countAttachedByHuman,
+      },
     }));
-    results.sort((a, b) =>
-      sortBy === "name"
-        ? a.name.localeCompare(b.name)
-        : b.numBookmarks - a.numBookmarks,
-    );
-
-    return results;
   }
 
   static async deleteUnused(ctx: AuthedContext): Promise<number> {
