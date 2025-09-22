@@ -131,6 +131,7 @@ export default function AllTagsView() {
     isLoading: isHumanTagsLoading,
     hasNextPage: hasNextPageHumanTags,
     fetchNextPage: fetchNextPageHumanTags,
+    isFetchingNextPage: isFetchingNextPageHumanTags,
   } = usePaginatedSearchTags({
     query: searchQuery,
     sortBy,
@@ -143,6 +144,7 @@ export default function AllTagsView() {
     isLoading: isAiTagsLoading,
     hasNextPage: hasNextPageAiTags,
     fetchNextPage: fetchNextPageAiTags,
+    isFetchingNextPage: isFetchingNextPageAiTags,
   } = usePaginatedSearchTags({
     query: searchQuery,
     sortBy,
@@ -155,6 +157,7 @@ export default function AllTagsView() {
     isLoading: isEmptyTagsLoading,
     hasNextPage: hasNextPageEmptyTags,
     fetchNextPage: fetchNextPageEmptyTags,
+    isFetchingNextPage: isFetchingNextPageEmptyTags,
   } = usePaginatedSearchTags({
     query: searchQuery,
     sortBy,
@@ -360,12 +363,14 @@ export default function AllTagsView() {
             isHumanTagsLoading,
           )}
           {hasNextPageHumanTags && (
-            <Button
+            <ActionButton
               variant="secondary"
               onClick={() => fetchNextPageHumanTags()}
+              loading={isFetchingNextPageHumanTags}
+              ignoreDemoMode
             >
               Load More
-            </Button>
+            </ActionButton>
           )}
         </CardContent>
       </Card>
@@ -388,9 +393,14 @@ export default function AllTagsView() {
             isAiTagsLoading,
           )}
           {hasNextPageAiTags && (
-            <Button variant="secondary" onClick={() => fetchNextPageAiTags()}>
+            <ActionButton
+              variant="secondary"
+              onClick={() => fetchNextPageAiTags()}
+              loading={isFetchingNextPageAiTags}
+              ignoreDemoMode
+            >
               Load More
-            </Button>
+            </ActionButton>
           )}
         </CardContent>
       </Card>
@@ -413,12 +423,14 @@ export default function AllTagsView() {
             isEmptyTagsLoading,
           )}
           {hasNextPageEmptyTags && (
-            <Button
+            <ActionButton
               variant="secondary"
               onClick={() => fetchNextPageEmptyTags()}
+              loading={isFetchingNextPageEmptyTags}
+              ignoreDemoMode
             >
               Load More
-            </Button>
+            </ActionButton>
           )}
           {allEmptyTags.length > 0 && (
             <DeleteAllUnusedTags numUnusedTags={allEmptyTags.length} />
