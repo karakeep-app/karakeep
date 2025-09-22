@@ -112,6 +112,8 @@ export const tagsAppRouter = router({
         nameContains: input.query,
         attachedBy: input.attachedBy,
         sortBy: input.sortBy,
+        page: input.cursor.page,
+        limit: input.limit,
       });
       return { tags };
     }),

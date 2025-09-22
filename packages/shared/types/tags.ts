@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { normalizeTagName } from "../utils/tag";
 
+export const MAX_NUM_TAGS_PER_PAGE = 1000;
+
 const zTagNameSchemaWithValidation = z
   .string()
   .transform((s) => normalizeTagName(s).trim())
@@ -39,8 +41,14 @@ export const zTagBasicSchema = z.object({
 });
 export type ZTagBasic = z.infer<typeof zTagBasicSchema>;
 
+export const zTagCusrsorSchema = z.object({
+  page: z.number(),
+});
+
 export const zTagSearchRequestSchema = z.object({
   query: z.string(),
-  attachedBy: zAttachedByEnumSchema.optional(),
+  attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
   sortBy: z.enum(["name", "usage"]).optional().default("usage"),
+  cursor: zTagCusrsorSchema.default({ page: 0 }),
+  limit: z.number().max(MAX_NUM_TAGS_PER_PAGE).optional().default(50),
 });

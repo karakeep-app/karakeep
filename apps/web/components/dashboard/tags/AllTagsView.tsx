@@ -13,11 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
@@ -31,13 +26,14 @@ import { Toggle } from "@/components/ui/toggle";
 import { toast } from "@/components/ui/use-toast";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
-import { keepPreviousData } from "@tanstack/react-query";
 import { ArrowDownAZ, ChevronDown, Combine, Search, Tag } from "lucide-react";
 import { parseAsStringEnum, useQueryState } from "nuqs";
 
 import type { ZGetTagResponse, ZTagBasic } from "@karakeep/shared/types/tags";
-import { useDeleteUnusedTags } from "@karakeep/shared-react/hooks/tags";
+import {
+  useDeleteUnusedTags,
+  usePaginatedSearchTags,
+} from "@karakeep/shared-react/hooks/tags";
 
 import BulkTagAction from "./BulkTagAction";
 import { CreateTagModal } from "./CreateTagModal";
@@ -128,20 +124,56 @@ export default function AllTagsView() {
     setDraggingEnabled(!draggingEnabled);
   }
 
-  const { data, isFetching, isPending } = api.tags.search.useQuery(
-    {
-      query: searchQuery,
-      sortBy,
-    },
-    {
-      placeholderData: keepPreviousData,
-    },
-  );
+  const {
+    data: allHumanTagsRaw,
+    isPending: isHumanTagsPending,
+    isFetching: isHumanTagsFetching,
+  } = usePaginatedSearchTags({
+    query: searchQuery,
+    sortBy,
+    attachedBy: "human",
+  });
 
-  const visibleTagIds = React.useMemo(
-    () => data?.tags.map((tag) => tag.id) ?? [],
-    [data?.tags],
-  );
+  const {
+    data: allAiTagsRaw,
+    isPending: isAiTagsPending,
+    isFetching: isAiTagsFetching,
+  } = usePaginatedSearchTags({
+    query: searchQuery,
+    sortBy,
+    attachedBy: "ai",
+  });
+
+  const {
+    data: allEmptyTagsRaw,
+    isPending: isEmptyTagsPending,
+    isFetching: isEmptyTagsFetching,
+  } = usePaginatedSearchTags({
+    query: searchQuery,
+    sortBy,
+    attachedBy: "none",
+  });
+
+  const isPending =
+    isHumanTagsPending ||
+    isAiTagsPending ||
+    isEmptyTagsPending ||
+    isHumanTagsFetching ||
+    isAiTagsFetching ||
+    isEmptyTagsFetching;
+
+  const { allHumanTags, allAiTags, allEmptyTags } = React.useMemo(() => {
+    return {
+      allHumanTags: allHumanTagsRaw?.tags ?? [],
+      allAiTags: allAiTagsRaw?.tags ?? [],
+      allEmptyTags: allEmptyTagsRaw?.tags ?? [],
+    };
+  }, [allHumanTagsRaw, allAiTagsRaw, allEmptyTagsRaw]);
+
+  const visibleTagIds = React.useMemo(() => {
+    const allTags = [...allHumanTags, ...allAiTags, ...allEmptyTags];
+    return allTags.map((tag) => tag.id) ?? [];
+  }, [allHumanTags, allAiTags, allEmptyTags]);
 
   useEffect(() => {
     setVisibleTagIds(visibleTagIds);
@@ -150,52 +182,12 @@ export default function AllTagsView() {
     };
   }, [setVisibleTagIds, visibleTagIds]);
 
-  const groupTags = React.useMemo(() => {
-    return (tags: ZGetTagResponse[]) => {
-      const human: ZGetTagResponse[] = [];
-      const ai: ZGetTagResponse[] = [];
-      const empty: ZGetTagResponse[] = [];
-
-      for (const tag of tags) {
-        if (tag.numBookmarks === 0) {
-          empty.push(tag);
-        } else if ((tag.numBookmarksByAttachedType.human ?? 0) > 0) {
-          human.push(tag);
-        } else if ((tag.numBookmarksByAttachedType.ai ?? 0) > 0) {
-          ai.push(tag);
-        }
-      }
-
-      return { human, ai, empty };
-    };
-  }, []);
-
-  const allGroupedTags = React.useMemo(
-    () => groupTags(data?.tags ?? []),
-    [groupTags, data?.tags.map((t) => t.id)],
-  );
-
-  const {
-    human: allHumanTags,
-    ai: allAiTags,
-    empty: allEmptyTags,
-  } = allGroupedTags;
-
   const sortByUsageLabel = t("tags.sort_by_usage", {
     defaultValue: "Sort by Usage",
   });
   const sortByNameLabel = t("tags.sort_by_name");
   const sortMode = sortBy;
   const sortLabel = sortBy == "name" ? sortByNameLabel : sortByUsageLabel;
-
-  const unusedButtonLabel =
-    allEmptyTags.length > 0
-      ? `Show ${allEmptyTags.length} unused tags`
-      : hasActiveSearch
-        ? "No unused tags matching your search"
-        : "You don't have any unused tags";
-
-  const shouldDisableUnusedButton = allEmptyTags.length === 0;
 
   const tagsToPill = React.useMemo(
     () =>
@@ -242,7 +234,7 @@ export default function AllTagsView() {
           </div>
         );
       },
-    [draggingEnabled, handleOpenDialog],
+    [draggingEnabled, handleOpenDialog, hasActiveSearch],
   );
   return (
     <div className="flex flex-col gap-4">
@@ -289,9 +281,7 @@ export default function AllTagsView() {
                 placeholder={t("common.search")}
                 aria-label={t("common.search")}
                 startIcon={<Search className="h-4 w-4 text-muted-foreground" />}
-                endIcon={
-                  (isPending || isFetching) && <Spinner className="h-4 w-4" />
-                }
+                endIcon={isPending && <Spinner className="h-4 w-4" />}
                 autoComplete="off"
                 className="h-10"
               />
@@ -363,31 +353,22 @@ export default function AllTagsView() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>{t("tags.unused_tags")}</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <span>{t("tags.unused_tags")}</span>
+            <Badge variant="secondary">{allEmptyTags.length}</Badge>
+          </CardTitle>
           <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Collapsible>
-            <div className="space-x-1 pb-2">
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="secondary"
-                  disabled={shouldDisableUnusedButton}
-                >
-                  {unusedButtonLabel}
-                </Button>
-              </CollapsibleTrigger>
-              {allEmptyTags.length > 0 && (
-                <DeleteAllUnusedTags numUnusedTags={allEmptyTags.length} />
-              )}
-            </div>
-            <CollapsibleContent>
-              {tagsToPill(allEmptyTags, isBulkEditEnabled, {
-                emptyMessage: "You don't have any unused tags",
-                searchEmptyMessage: "No unused tags match your search",
-              })}
-            </CollapsibleContent>
-          </Collapsible>
+        <CardContent className="flex flex-col gap-4">
+          <div>
+            {tagsToPill(allEmptyTags, isBulkEditEnabled, {
+              emptyMessage: "You don't have any unused tags",
+              searchEmptyMessage: "No unused tags match your search",
+            })}
+          </div>
+          {allEmptyTags.length > 0 && (
+            <DeleteAllUnusedTags numUnusedTags={allEmptyTags.length} />
+          )}
         </CardContent>
       </Card>
     </div>

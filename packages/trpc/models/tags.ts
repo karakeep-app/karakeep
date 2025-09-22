@@ -7,6 +7,7 @@ import {
   eq,
   gt,
   inArray,
+  isNull,
   like,
   notExists,
   sql,
@@ -18,6 +19,7 @@ import { SqliteError } from "@karakeep/db";
 import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
 import { triggerSearchReindex } from "@karakeep/shared-server";
 import {
+  MAX_NUM_TAGS_PER_PAGE,
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
@@ -85,9 +87,14 @@ export class Tag implements PrivacyAware {
     ctx: AuthedContext,
     opts: {
       nameContains?: string;
-      attachedBy?: ZAttachedByEnum;
+      attachedBy?: "ai" | "human" | "none";
       sortBy?: "name" | "usage";
-    } = {},
+      page: number;
+      limit: number;
+    } = {
+      page: 0,
+      limit: MAX_NUM_TAGS_PER_PAGE,
+    },
   ) {
     const sortBy = opts.sortBy ?? "usage";
     const tags = await ctx.db
@@ -111,12 +118,16 @@ export class Tag implements PrivacyAware {
       .orderBy(sortBy === "name" ? asc(bookmarkTags.name) : desc(sql`count`))
       .having(
         opts.attachedBy
-          ? and(
-              eq(tagsOnBookmarks.attachedBy, opts.attachedBy),
-              gt(sql<number>`count`, 0),
-            )
+          ? opts.attachedBy === "none"
+            ? isNull(tagsOnBookmarks.attachedBy)
+            : and(
+                eq(tagsOnBookmarks.attachedBy, opts.attachedBy),
+                gt(sql<number>`count`, 0),
+              )
           : undefined,
-      );
+      )
+      .offset(opts.page * opts.limit)
+      .limit(opts.limit);
 
     if (tags.length === 0) {
       return [];
