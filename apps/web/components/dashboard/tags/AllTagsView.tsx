@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import InfoTooltip from "@/components/ui/info-tooltip";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import Spinner from "@/components/ui/spinner";
 import { Toggle } from "@/components/ui/toggle";
 import { toast } from "@/components/ui/use-toast";
@@ -160,13 +161,11 @@ export default function AllTagsView() {
     attachedBy: "none",
   });
 
-  const isPending =
-    isHumanTagsPending ||
-    isAiTagsPending ||
-    isEmptyTagsPending ||
-    isHumanTagsFetching ||
-    isAiTagsFetching ||
-    isEmptyTagsFetching;
+  const isHumanTagsLoading = isHumanTagsPending || isHumanTagsFetching;
+  const isAiTagsLoading = isAiTagsPending || isAiTagsFetching;
+  const isEmptyTagsLoading = isEmptyTagsPending || isEmptyTagsFetching;
+
+  const isPending = isHumanTagsLoading || isAiTagsLoading || isEmptyTagsLoading;
 
   const { allHumanTags, allAiTags, allEmptyTags } = React.useMemo(() => {
     return {
@@ -204,7 +203,18 @@ export default function AllTagsView() {
           emptyMessage,
           searchEmptyMessage,
         }: { emptyMessage: string; searchEmptyMessage: string },
+        isLoading: boolean,
       ) => {
+        if (isLoading && tags.length === 0) {
+          return (
+            <div className="flex flex-wrap gap-3">
+              {Array.from({ length: 15 }).map((_, index) => (
+                <Skeleton key={`tag-skeleton-${index}`} className="h-9 w-24" />
+              ))}
+            </div>
+          );
+        }
+
         if (tags.length === 0) {
           return (
             <div className="py-8 text-center">
@@ -237,6 +247,13 @@ export default function AllTagsView() {
                 />
               ),
             )}
+            {isLoading &&
+              Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton
+                  key={`tag-skeleton-loading-${index}`}
+                  className="h-9 w-24"
+                />
+              ))}
           </div>
         );
       },
@@ -336,10 +353,15 @@ export default function AllTagsView() {
           <CardDescription>{t("tags.your_tags_info")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {tagsToPill(allHumanTags, isBulkEditEnabled, {
-            emptyMessage: "No custom tags yet",
-            searchEmptyMessage: "No tags match your search",
-          })}
+          {tagsToPill(
+            allHumanTags,
+            isBulkEditEnabled,
+            {
+              emptyMessage: "No custom tags yet",
+              searchEmptyMessage: "No tags match your search",
+            },
+            isHumanTagsLoading,
+          )}
           {hasNextPageHumanTags && (
             <Button
               variant="secondary"
@@ -359,10 +381,15 @@ export default function AllTagsView() {
           <CardDescription>{t("tags.ai_tags_info")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {tagsToPill(allAiTags, isBulkEditEnabled, {
-            emptyMessage: "No AI tags yet",
-            searchEmptyMessage: "No tags match your search",
-          })}
+          {tagsToPill(
+            allAiTags,
+            isBulkEditEnabled,
+            {
+              emptyMessage: "No AI tags yet",
+              searchEmptyMessage: "No tags match your search",
+            },
+            isAiTagsLoading,
+          )}
           {hasNextPageAiTags && (
             <Button variant="secondary" onClick={() => fetchNextPageAiTags()}>
               Load More
@@ -379,10 +406,15 @@ export default function AllTagsView() {
           <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {tagsToPill(allEmptyTags, isBulkEditEnabled, {
-            emptyMessage: "You don't have any unused tags",
-            searchEmptyMessage: "No unused tags match your search",
-          })}
+          {tagsToPill(
+            allEmptyTags,
+            isBulkEditEnabled,
+            {
+              emptyMessage: "You don't have any unused tags",
+              searchEmptyMessage: "No unused tags match your search",
+            },
+            isEmptyTagsLoading,
+          )}
           {hasNextPageEmptyTags && (
             <Button
               variant="secondary"
