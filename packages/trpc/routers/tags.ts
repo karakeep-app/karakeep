@@ -94,27 +94,35 @@ export const tagsAppRouter = router({
     .output(
       z.object({
         tags: z.array(zGetTagResponseSchema),
+        // TODO: The optional is here for backwards compatibility.
+        // Newer clients might expect it from servers that are older and not
+        // sending it. Those servers are before pagination, so they return
+        // all the tags. Hence the default being false.
+        hasNextPage: z.boolean().optional().default(false),
       }),
     )
     .query(async ({ ctx }) => {
-      const tags = await Tag.getAll(ctx);
-      return { tags };
+      return await Tag.getAll(ctx);
     }),
   search: authedProcedure
     .input(zTagSearchRequestSchema)
     .output(
       z.object({
         tags: z.array(zGetTagResponseSchema),
+        // TODO: The optional is here for backwards compatibility.
+        // Newer clients might expect it from servers that are older and not
+        // sending it. Those servers are before pagination, so they return
+        // all the tags. Hence the default being false.
+        hasNextPage: z.boolean().optional().default(false),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const tags = await Tag.getAll(ctx, {
+      return await Tag.getAll(ctx, {
         nameContains: input.query,
         attachedBy: input.attachedBy,
         sortBy: input.sortBy,
         page: input.cursor.page,
         limit: input.limit,
       });
-      return { tags };
     }),
 });

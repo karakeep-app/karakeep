@@ -136,21 +136,25 @@ export class Tag implements PrivacyAware {
           : undefined,
       )
       .offset(opts.page * opts.limit)
-      .limit(opts.limit);
+      .limit(opts.limit + 1);
 
-    if (tags.length === 0) {
-      return [];
+    const hasNextPage = tags.length > opts.limit;
+    if (tags.length > opts.limit) {
+      tags.pop();
     }
 
-    return tags.map((t) => ({
-      id: t.id,
-      name: t.name,
-      numBookmarks: t.count,
-      numBookmarksByAttachedType: {
-        ai: t.countAttachedByAi,
-        human: t.countAttachedByHuman,
-      },
-    }));
+    return {
+      tags: tags.map((t) => ({
+        id: t.id,
+        name: t.name,
+        numBookmarks: t.count,
+        numBookmarksByAttachedType: {
+          ai: t.countAttachedByAi,
+          human: t.countAttachedByHuman,
+        },
+      })),
+      hasNextPage,
+    };
   }
 
   static async deleteUnused(ctx: AuthedContext): Promise<number> {
