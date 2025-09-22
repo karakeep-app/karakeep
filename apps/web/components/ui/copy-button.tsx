@@ -57,7 +57,7 @@ export function CopyBtnV2({
     } catch {
       toast({
         description:
-          "Failed to copy link. Browsers only support copying to the clipboard from https pages.",
+          "Failed to copy. Browsers only support copying to the clipboard from https pages.",
         variant: "destructive",
       });
     }
