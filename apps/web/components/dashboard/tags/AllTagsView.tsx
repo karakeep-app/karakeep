@@ -127,8 +127,8 @@ export default function AllTagsView() {
 
   const {
     data: allHumanTagsRaw,
-    isPending: isHumanTagsPending,
     isFetching: isHumanTagsFetching,
+    isLoading: isHumanTagsLoading,
     hasNextPage: hasNextPageHumanTags,
     fetchNextPage: fetchNextPageHumanTags,
   } = usePaginatedSearchTags({
@@ -139,8 +139,8 @@ export default function AllTagsView() {
 
   const {
     data: allAiTagsRaw,
-    isPending: isAiTagsPending,
     isFetching: isAiTagsFetching,
+    isLoading: isAiTagsLoading,
     hasNextPage: hasNextPageAiTags,
     fetchNextPage: fetchNextPageAiTags,
   } = usePaginatedSearchTags({
@@ -151,8 +151,8 @@ export default function AllTagsView() {
 
   const {
     data: allEmptyTagsRaw,
-    isPending: isEmptyTagsPending,
     isFetching: isEmptyTagsFetching,
+    isLoading: isEmptyTagsLoading,
     hasNextPage: hasNextPageEmptyTags,
     fetchNextPage: fetchNextPageEmptyTags,
   } = usePaginatedSearchTags({
@@ -161,11 +161,8 @@ export default function AllTagsView() {
     attachedBy: "none",
   });
 
-  const isHumanTagsLoading = isHumanTagsPending || isHumanTagsFetching;
-  const isAiTagsLoading = isAiTagsPending || isAiTagsFetching;
-  const isEmptyTagsLoading = isEmptyTagsPending || isEmptyTagsFetching;
-
-  const isPending = isHumanTagsLoading || isAiTagsLoading || isEmptyTagsLoading;
+  const isFetching =
+    isHumanTagsFetching || isAiTagsFetching || isEmptyTagsFetching;
 
   const { allHumanTags, allAiTags, allEmptyTags } = React.useMemo(() => {
     return {
@@ -304,7 +301,7 @@ export default function AllTagsView() {
                 placeholder={t("common.search")}
                 aria-label={t("common.search")}
                 startIcon={<Search className="h-4 w-4 text-muted-foreground" />}
-                endIcon={isPending && <Spinner className="h-4 w-4" />}
+                endIcon={isFetching && <Spinner className="h-4 w-4" />}
                 autoComplete="off"
                 className="h-10"
               />
