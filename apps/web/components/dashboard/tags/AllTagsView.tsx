@@ -128,6 +128,8 @@ export default function AllTagsView() {
     data: allHumanTagsRaw,
     isPending: isHumanTagsPending,
     isFetching: isHumanTagsFetching,
+    hasNextPage: hasNextPageHumanTags,
+    fetchNextPage: fetchNextPageHumanTags,
   } = usePaginatedSearchTags({
     query: searchQuery,
     sortBy,
@@ -138,6 +140,8 @@ export default function AllTagsView() {
     data: allAiTagsRaw,
     isPending: isAiTagsPending,
     isFetching: isAiTagsFetching,
+    hasNextPage: hasNextPageAiTags,
+    fetchNextPage: fetchNextPageAiTags,
   } = usePaginatedSearchTags({
     query: searchQuery,
     sortBy,
@@ -148,6 +152,8 @@ export default function AllTagsView() {
     data: allEmptyTagsRaw,
     isPending: isEmptyTagsPending,
     isFetching: isEmptyTagsFetching,
+    hasNextPage: hasNextPageEmptyTags,
+    fetchNextPage: fetchNextPageEmptyTags,
   } = usePaginatedSearchTags({
     query: searchQuery,
     sortBy,
@@ -329,11 +335,19 @@ export default function AllTagsView() {
           </CardTitle>
           <CardDescription>{t("tags.your_tags_info")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           {tagsToPill(allHumanTags, isBulkEditEnabled, {
             emptyMessage: "No custom tags yet",
             searchEmptyMessage: "No tags match your search",
           })}
+          {hasNextPageHumanTags && (
+            <Button
+              variant="secondary"
+              onClick={() => fetchNextPageHumanTags()}
+            >
+              Load More
+            </Button>
+          )}
         </CardContent>
       </Card>
       <Card>
@@ -344,11 +358,16 @@ export default function AllTagsView() {
           </CardTitle>
           <CardDescription>{t("tags.ai_tags_info")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           {tagsToPill(allAiTags, isBulkEditEnabled, {
             emptyMessage: "No AI tags yet",
             searchEmptyMessage: "No tags match your search",
           })}
+          {hasNextPageAiTags && (
+            <Button variant="secondary" onClick={() => fetchNextPageAiTags()}>
+              Load More
+            </Button>
+          )}
         </CardContent>
       </Card>
       <Card>
@@ -360,12 +379,18 @@ export default function AllTagsView() {
           <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div>
-            {tagsToPill(allEmptyTags, isBulkEditEnabled, {
-              emptyMessage: "You don't have any unused tags",
-              searchEmptyMessage: "No unused tags match your search",
-            })}
-          </div>
+          {tagsToPill(allEmptyTags, isBulkEditEnabled, {
+            emptyMessage: "You don't have any unused tags",
+            searchEmptyMessage: "No unused tags match your search",
+          })}
+          {hasNextPageEmptyTags && (
+            <Button
+              variant="secondary"
+              onClick={() => fetchNextPageEmptyTags()}
+            >
+              Load More
+            </Button>
+          )}
           {allEmptyTags.length > 0 && (
             <DeleteAllUnusedTags numUnusedTags={allEmptyTags.length} />
           )}
