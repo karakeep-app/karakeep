@@ -11,6 +11,29 @@ Karakeep comes with a Model Context Protocol server that can be used to interact
 - Creating text and URL bookmarks
 
 
+## Building from source
+
+Build the MCP server locally from the repository root with pnpm:
+
+```bash
+pnpm install
+pnpm --filter @karakeep/mcp build
+pnpm --filter @karakeep/mcp run
+```
+
+The build step emits the executable at `apps/mcp/dist/index.js`. Before
+running the compiled binary (either via the `run` script or with
+`node apps/mcp/dist/index.js`), export the required API credentials and any
+transport overrides:
+
+```bash
+export KARAKEEP_API_ADDR="https://<YOUR_SERVER_ADDR>"
+export KARAKEEP_API_KEY="<YOUR_TOKEN>"
+# Optional transport configuration
+export KARAKEEP_MCP_TRANSPORT=HTTPstreamable
+export KARAKEEP_MCP_STREAM_PORT=3000
+```
+
 ## Usage with Claude Desktop (stdio transport)
 
 From NPM:
