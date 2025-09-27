@@ -84,6 +84,7 @@
     "react-hook-form": "^7.57.0",
     "react-i18next": "^15.1.1",
     "react-intersection-observer": "^9.13.1",
+    "react-virtuoso": "^4.12.1",
     "react-markdown": "^9.0.1",
     "react-masonry-css": "^1.0.16",
     "react-select": "^5.10.1",
