@@ -200,9 +200,12 @@ function SuggestionRow({
 
 export function TagDuplicationDetection() {
   const [expanded, setExpanded] = useState(false);
-  let { data: allTags } = api.tags.list.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+  let { data: allTags } = api.tags.list.useQuery(
+    {},
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =
     useSuggestions();

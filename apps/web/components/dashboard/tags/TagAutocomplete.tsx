@@ -33,9 +33,9 @@ export function TagAutocomplete({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: tags, isLoading } = api.tags.search.useQuery(
+  const { data: tags, isLoading } = api.tags.list.useQuery(
     {
-      query: searchQuery,
+      nameContains: searchQuery,
       limit: 50,
     },
     {

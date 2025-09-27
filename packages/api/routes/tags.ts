@@ -15,7 +15,7 @@ const app = new Hono()
 
   // GET /tags
   .get("/", async (c) => {
-    const tags = await c.var.api.tags.list();
+    const tags = await c.var.api.tags.list({});
     return c.json(tags, 200);
   })
 

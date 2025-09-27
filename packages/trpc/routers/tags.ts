@@ -5,7 +5,7 @@ import {
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
-  zTagSearchRequestSchema,
+  zTagListRequestSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -91,21 +91,10 @@ export const tagsAppRouter = router({
       return await Tag.merge(ctx, input);
     }),
   list: authedProcedure
-    .output(
-      z.object({
-        tags: z.array(zGetTagResponseSchema),
-        // TODO: The optional is here for backwards compatibility.
-        // Newer clients might expect it from servers that are older and not
-        // sending it. Those servers are before pagination, so they return
-        // all the tags. Hence the default being false.
-        hasNextPage: z.boolean().optional().default(false),
-      }),
+    .input(
+      // TODO: Remove the optional and default once the next release is out.
+      zTagListRequestSchema.optional().default(zTagListRequestSchema.parse({})),
     )
-    .query(async ({ ctx }) => {
-      return await Tag.getAll(ctx);
-    }),
-  search: authedProcedure
-    .input(zTagSearchRequestSchema)
     .output(
       z.object({
         tags: z.array(zGetTagResponseSchema),
@@ -118,11 +107,15 @@ export const tagsAppRouter = router({
     )
     .query(async ({ ctx, input }) => {
       return await Tag.getAll(ctx, {
-        nameContains: input.query,
+        nameContains: input.nameContains,
         attachedBy: input.attachedBy,
         sortBy: input.sortBy,
-        page: input.cursor.page,
-        limit: input.limit,
+        pagination: input.limit
+          ? {
+              page: input.cursor.page,
+              limit: input.limit,
+            }
+          : undefined,
       });
     }),
 });

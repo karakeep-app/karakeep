@@ -45,10 +45,11 @@ export const zTagCusrsorSchema = z.object({
   page: z.number(),
 });
 
-export const zTagSearchRequestSchema = z.object({
-  query: z.string(),
+export const zTagListRequestSchema = z.object({
+  nameContains: z.string().optional(),
   attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
   sortBy: z.enum(["name", "usage"]).optional().default("usage"),
   cursor: zTagCusrsorSchema.default({ page: 0 }),
-  limit: z.number().max(MAX_NUM_TAGS_PER_PAGE).optional().default(50),
+  // TODO: Enforce a maximum limit after the next release
+  limit: z.number().optional(),
 });

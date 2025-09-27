@@ -63,9 +63,9 @@ export function TagsEditor({
   }, [_tags]);
 
   const { data: filteredOptions, isLoading: isExistingTagsLoading } =
-    api.tags.search.useQuery(
+    api.tags.list.useQuery(
       {
-        query: inputValue,
+        nameContains: inputValue,
         limit: 50,
       },
       {

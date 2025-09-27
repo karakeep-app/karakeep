@@ -191,7 +191,7 @@ export const dumpCmd = new Command()
       // 3) Tags
       if (!opts.excludeTags) {
         stepStart("Exporting tags");
-        const { tags } = await api.tags.list.query();
+        const { tags } = await api.tags.list.query({});
         await writeJson(path.join(workRoot, "tags", "index.json"), tags);
         manifest.counts.tags = tags.length;
         stepEndSuccess();

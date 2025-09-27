@@ -3,9 +3,9 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { api } from "../trpc";
 
 export function usePaginatedSearchTags(
-  input: Parameters<typeof api.tags.search.useInfiniteQuery>[0],
+  input: Parameters<typeof api.tags.list.useInfiniteQuery>[0],
 ) {
-  return api.tags.search.useInfiniteQuery(input, {
+  return api.tags.list.useInfiniteQuery(input, {
     placeholderData: keepPreviousData,
     getNextPageParam: (lastPage, _, lastPageParam) =>
       lastPage.hasNextPage
@@ -28,7 +28,6 @@ export function useCreateTag(
     ...opts[0],
     onSuccess: (res, req, meta) => {
       apiUtils.tags.list.invalidate();
-      apiUtils.tags.search.invalidate();
       return opts[0]?.onSuccess?.(res, req, meta);
     },
   });
@@ -43,7 +42,6 @@ export function useUpdateTag(
     ...opts[0],
     onSuccess: (res, req, meta) => {
       apiUtils.tags.list.invalidate();
-      apiUtils.tags.search.invalidate();
       apiUtils.tags.get.invalidate({ tagId: res.id });
       apiUtils.bookmarks.getBookmarks.invalidate({ tagId: res.id });
 
@@ -63,7 +61,6 @@ export function useMergeTag(
     ...opts[0],
     onSuccess: (res, req, meta) => {
       apiUtils.tags.list.invalidate();
-      apiUtils.tags.search.invalidate();
       [res.mergedIntoTagId, ...res.deletedTags].forEach((tagId) => {
         apiUtils.tags.get.invalidate({ tagId });
         apiUtils.bookmarks.getBookmarks.invalidate({ tagId });
@@ -84,7 +81,6 @@ export function useDeleteTag(
     ...opts[0],
     onSuccess: (res, req, meta) => {
       apiUtils.tags.list.invalidate();
-      apiUtils.tags.search.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate();
       return opts[0]?.onSuccess?.(res, req, meta);
     },
@@ -100,7 +96,6 @@ export function useDeleteUnusedTags(
     ...opts[0],
     onSuccess: (res, req, meta) => {
       apiUtils.tags.list.invalidate();
-      apiUtils.tags.search.invalidate();
       return opts[0]?.onSuccess?.(res, req, meta);
     },
   });

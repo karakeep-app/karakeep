@@ -18,7 +18,6 @@ import { SqliteError } from "@karakeep/db";
 import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
 import { triggerSearchReindex } from "@karakeep/shared-server";
 import {
-  MAX_NUM_TAGS_PER_PAGE,
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
@@ -89,12 +88,11 @@ export class Tag implements PrivacyAware {
       nameContains?: string;
       attachedBy?: "ai" | "human" | "none";
       sortBy?: "name" | "usage";
-      page: number;
-      limit: number;
-    } = {
-      page: 0,
-      limit: MAX_NUM_TAGS_PER_PAGE,
-    },
+      pagination?: {
+        page: number;
+        limit: number;
+      };
+    } = {},
   ) {
     const sortBy = opts.sortBy ?? "usage";
 
@@ -106,7 +104,7 @@ export class Tag implements PrivacyAware {
     `;
     // Count only matched right rows; will be 0 when there are none
     const countAny = sql<number>`COUNT(${tagsOnBookmarks.tagId})`;
-    const tags = await ctx.db
+    let qSql = ctx.db
       .select({
         id: bookmarkTags.id,
         name: bookmarkTags.name,
@@ -134,12 +132,17 @@ export class Tag implements PrivacyAware {
               none: eq(countAny, 0),
             })
           : undefined,
-      )
-      .offset(opts.page * opts.limit)
-      .limit(opts.limit + 1);
+      );
 
-    const hasNextPage = tags.length > opts.limit;
-    if (tags.length > opts.limit) {
+    if (opts.pagination) {
+      qSql = qSql.offset(opts.pagination.page * opts.pagination.limit);
+      qSql = qSql.limit(opts.pagination.limit + 1);
+    }
+    const tags = await qSql;
+
+    const hasNextPage = opts.pagination && tags.length > opts.pagination.limit;
+
+    if (opts.pagination && tags.length > opts.pagination.limit) {
       tags.pop();
     }
 

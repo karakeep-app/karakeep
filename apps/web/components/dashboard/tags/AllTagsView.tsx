@@ -133,9 +133,10 @@ export default function AllTagsView() {
     fetchNextPage: fetchNextPageHumanTags,
     isFetchingNextPage: isFetchingNextPageHumanTags,
   } = usePaginatedSearchTags({
-    query: searchQuery,
+    nameContains: searchQuery,
     sortBy,
     attachedBy: "human",
+    limit: 50,
   });
 
   const {
@@ -146,9 +147,10 @@ export default function AllTagsView() {
     fetchNextPage: fetchNextPageAiTags,
     isFetchingNextPage: isFetchingNextPageAiTags,
   } = usePaginatedSearchTags({
-    query: searchQuery,
+    nameContains: searchQuery,
     sortBy,
     attachedBy: "ai",
+    limit: 50,
   });
 
   const {
@@ -159,9 +161,10 @@ export default function AllTagsView() {
     fetchNextPage: fetchNextPageEmptyTags,
     isFetchingNextPage: isFetchingNextPageEmptyTags,
   } = usePaginatedSearchTags({
-    query: searchQuery,
+    nameContains: searchQuery,
     sortBy,
     attachedBy: "none",
+    limit: 50,
   });
 
   const isFetching =

@@ -22,7 +22,7 @@ import { DynamicPopoverContent } from "./ui/dynamic-popover";
 import { Popover, PopoverTrigger } from "./ui/popover";
 
 export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
-  const { data: allTags } = api.tags.list.useQuery();
+  const { data: allTags } = api.tags.list.useQuery({});
   const { data: bookmark } = useAutoRefreshingBookmarkQuery({ bookmarkId });
 
   const existingTagIds = new Set(bookmark?.tags.map((t) => t.id) ?? []);

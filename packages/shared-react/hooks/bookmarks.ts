@@ -123,7 +123,6 @@ export function useUpdateBookmarkTags(
         apiUtils.bookmarks.getBookmarks.invalidate({ tagId: id });
       });
       apiUtils.tags.list.invalidate();
-      apiUtils.tags.search.invalidate();
       apiUtils.lists.stats.invalidate();
       return opts[0]?.onSuccess?.(res, req, meta);
     },
