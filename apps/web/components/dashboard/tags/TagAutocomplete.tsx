@@ -36,7 +36,7 @@ export function TagAutocomplete({
   const { data: tags, isLoading } = api.tags.search.useQuery(
     {
       query: searchQuery,
-      limit: 10,
+      limit: 50,
     },
     {
       select: (data) => data.tags,
