@@ -8,8 +8,10 @@ import {
 import { getAPIClient } from "@/lib/trpc";
 import { Command } from "@commander-js/extra-typings";
 import { getBorderCharacters, table } from "table";
+import { registerSynonymSuggestCommand } from "./tags/synonymSuggest";
 
 export const tagsCmd = new Command()
+
   .name("tags")
   .description("manipulating tags");
 
@@ -56,3 +58,5 @@ tagsCmd
       .then(printSuccess(`Successfully deleted the tag with the id "${id}"`))
       .catch(printError(`Failed to delete the tag with the id "${id}"`));
   });
+
+registerSynonymSuggestCommand(tagsCmd);
