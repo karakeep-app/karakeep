@@ -211,7 +211,7 @@ export function TagDuplicationDetection() {
     useSuggestions();
 
   useEffect(() => {
-    allTags = allTags ?? { tags: [] };
+    allTags = allTags ?? { tags: [], hasNextPage: false };
     const sortedTags = allTags.tags.sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );

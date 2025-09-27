@@ -135,8 +135,8 @@ export class Tag implements PrivacyAware {
       );
 
     if (opts.pagination) {
-      qSql = qSql.offset(opts.pagination.page * opts.pagination.limit);
-      qSql = qSql.limit(opts.pagination.limit + 1);
+      qSql.offset(opts.pagination.page * opts.pagination.limit);
+      qSql.limit(opts.pagination.limit + 1);
     }
     const tags = await qSql;
 

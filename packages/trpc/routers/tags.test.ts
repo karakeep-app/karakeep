@@ -260,7 +260,7 @@ describe("Tags Routes", () => {
     await api.create({ name: "alph2" });
 
     {
-      const res = await api.search({ query: "al" });
+      const res = await api.list({ nameContains: "al" });
       expect(res.tags.length).toBe(2);
       expect(res.tags.some((tag) => tag.name === "alpha")).toBeTruthy();
       expect(res.tags.some((tag) => tag.name === "beta")).not.toBeTruthy();
@@ -268,13 +268,13 @@ describe("Tags Routes", () => {
     }
 
     {
-      const res = await api.search({ query: "beta" });
+      const res = await api.list({ nameContains: "beta" });
       expect(res.tags.length).toBe(1);
       expect(res.tags.some((tag) => tag.name === "beta")).toBeTruthy();
     }
 
     {
-      const res = await api.search({ query: "" });
+      const res = await api.list({});
       expect(res.tags.length).toBe(3);
     }
   });

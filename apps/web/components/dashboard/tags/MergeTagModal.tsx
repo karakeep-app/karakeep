@@ -25,7 +25,7 @@ import { z } from "zod";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
 
-import { TagAutocomplete } from "./TagAutocomplete.tsx";
+import { TagAutocomplete } from "./TagAutocomplete";
 
 export function MergeTagModal({
   open,

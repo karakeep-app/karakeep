@@ -7,10 +7,10 @@ export function usePaginatedSearchTags(
 ) {
   return api.tags.list.useInfiniteQuery(input, {
     placeholderData: keepPreviousData,
-    getNextPageParam: (lastPage, _, lastPageParam) =>
+    getNextPageParam: (lastPage, allPages) =>
       lastPage.hasNextPage
         ? {
-            page: (lastPageParam?.page ?? 0) + 1,
+            page: allPages.length,
           }
         : undefined,
     select: (data) => ({
