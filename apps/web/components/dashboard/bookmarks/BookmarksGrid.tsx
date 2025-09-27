@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { forwardRef, useCallback, useEffect, useMemo } from "react";
 import NoBookmarksBanner from "@/components/dashboard/bookmarks/NoBookmarksBanner";
 import { ActionButton } from "@/components/ui/action-button";
 import useBulkActionsStore from "@/lib/bulkActions";
@@ -11,8 +11,7 @@ import {
 import tailwindConfig from "@/tailwind.config";
 import { Slot } from "@radix-ui/react-slot";
 import { ErrorBoundary } from "react-error-boundary";
-import { useInView } from "react-intersection-observer";
-import Masonry from "react-masonry-css";
+import { MasonryVirtuoso, Virtuoso } from "react-virtuoso";
 import resolveConfig from "tailwindcss/resolveConfig";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -47,6 +46,24 @@ function getBreakpointConfig(userColumns: number) {
   return breakpointColumnsObj;
 }
 
+type BookmarkGridItem =
+  | { type: "editor" }
+  | { type: "bookmark"; bookmark: ZBookmark };
+
+const MasonryItem = forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
+  ({ children, style, className, ...props }, ref) => (
+    <div
+      {...props}
+      ref={ref}
+      style={style}
+      className={[className, "px-2"].filter(Boolean).join(" ")}
+    >
+      {children}
+    </div>
+  ),
+);
+MasonryItem.displayName = "MasonryItem";
+
 export default function BookmarksGrid({
   bookmarks,
   hasNextPage = false,
@@ -68,7 +85,96 @@ export default function BookmarksGrid({
     () => getBreakpointConfig(gridColumns),
     [gridColumns],
   );
-  const { ref: loadMoreRef, inView: loadMoreButtonInView } = useInView();
+
+  const items = useMemo<BookmarkGridItem[]>(() => {
+    const baseItems = bookmarks.map<BookmarkGridItem>((bookmark) => ({
+      type: "bookmark",
+      bookmark,
+    }));
+    if (showEditorCard) {
+      return [{ type: "editor" }, ...baseItems];
+    }
+    return baseItems;
+  }, [bookmarks, showEditorCard]);
+
+  const loadMoreFooter = useMemo(() => {
+    if (!hasNextPage) {
+      return null;
+    }
+    return (
+      <div className="flex justify-center py-4">
+        <ActionButton
+          ignoreDemoMode={true}
+          loading={isFetchingNextPage}
+          onClick={() => fetchNextPage()}
+          variant="ghost"
+        >
+          Load More
+        </ActionButton>
+      </div>
+    );
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const getItemKey = useCallback(
+    (index: number) => {
+      const item = items[index];
+      if (!item) {
+        return `bookmark-${index}`;
+      }
+      return item.type === "editor" ? "editor" : item.bookmark.id;
+    },
+    [items],
+  );
+
+  const renderItem = useCallback((item: BookmarkGridItem | undefined) => {
+    if (!item) {
+      return null;
+    }
+    if (item.type === "editor") {
+      return (
+        <StyledBookmarkCard key="editor">
+          <EditorCard />
+        </StyledBookmarkCard>
+      );
+    }
+
+    return (
+      <ErrorBoundary
+        key={item.bookmark.id}
+        fallback={<UnknownCard bookmark={item.bookmark} />}
+      >
+        <StyledBookmarkCard>
+          <BookmarkCard bookmark={item.bookmark} />
+        </StyledBookmarkCard>
+      </ErrorBoundary>
+    );
+  }, []);
+
+  const columnsResolver = useMemo(() => {
+    const entries = Object.entries(breakpointConfig)
+      .filter(([key]) => key !== "default")
+      .map(([key, value]) => ({
+        breakpoint: Number.parseInt(key, 10),
+        columns: value,
+      }))
+      .filter(({ breakpoint }) => !Number.isNaN(breakpoint))
+      .sort((a, b) => a.breakpoint - b.breakpoint);
+
+    return (width: number) => {
+      for (const entry of entries) {
+        if (width <= entry.breakpoint) {
+          return entry.columns;
+        }
+      }
+      return breakpointConfig.default;
+    };
+  }, [breakpointConfig]);
 
   useEffect(() => {
     bulkActionsStore.setVisibleBookmarks(bookmarks);
@@ -84,59 +190,66 @@ export default function BookmarksGrid({
     };
   }, []);
 
-  useEffect(() => {
-    if (loadMoreButtonInView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [loadMoreButtonInView]);
-
-  if (bookmarks.length == 0 && !showEditorCard) {
+  if (items.length === 0 && !showEditorCard) {
     return <NoBookmarksBanner />;
   }
 
-  const children = [
-    showEditorCard && (
-      <StyledBookmarkCard key={"editor"}>
-        <EditorCard />
-      </StyledBookmarkCard>
-    ),
-    ...bookmarks.map((b) => (
-      <ErrorBoundary key={b.id} fallback={<UnknownCard bookmark={b} />}>
-        <StyledBookmarkCard>
-          <BookmarkCard bookmark={b} />
-        </StyledBookmarkCard>
-      </ErrorBoundary>
-    )),
-  ];
   return (
     <>
       {bookmarkLayoutSwitch(layout, {
         masonry: (
-          <Masonry className="flex gap-4" breakpointCols={breakpointConfig}>
-            {children}
-          </Masonry>
+          <MasonryVirtuoso
+            useWindowScroll
+            totalCount={items.length}
+            endReached={handleEndReached}
+            overscan={500}
+            computeItemKey={getItemKey}
+            columns={columnsResolver}
+            components={{
+              Footer: () => loadMoreFooter,
+              Item: MasonryItem,
+            }}
+            itemContent={(index) => renderItem(items[index])}
+          />
         ),
         grid: (
-          <Masonry className="flex gap-4" breakpointCols={breakpointConfig}>
-            {children}
-          </Masonry>
+          <MasonryVirtuoso
+            useWindowScroll
+            totalCount={items.length}
+            endReached={handleEndReached}
+            overscan={500}
+            computeItemKey={getItemKey}
+            columns={columnsResolver}
+            components={{
+              Footer: () => loadMoreFooter,
+              Item: MasonryItem,
+            }}
+            itemContent={(index) => renderItem(items[index])}
+          />
         ),
-        list: <div className="grid grid-cols-1">{children}</div>,
-        compact: <div className="grid grid-cols-1">{children}</div>,
+        list: (
+          <Virtuoso
+            useWindowScroll
+            data={items}
+            endReached={handleEndReached}
+            overscan={500}
+            computeItemKey={(index) => getItemKey(index)}
+            components={{ Footer: () => loadMoreFooter }}
+            itemContent={(index, item) => renderItem(item)}
+          />
+        ),
+        compact: (
+          <Virtuoso
+            useWindowScroll
+            data={items}
+            endReached={handleEndReached}
+            overscan={500}
+            computeItemKey={(index) => getItemKey(index)}
+            components={{ Footer: () => loadMoreFooter }}
+            itemContent={(index, item) => renderItem(item)}
+          />
+        ),
       })}
-      {hasNextPage && (
-        <div className="flex justify-center">
-          <ActionButton
-            ref={loadMoreRef}
-            ignoreDemoMode={true}
-            loading={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
-            variant="ghost"
-          >
-            Load More
-          </ActionButton>
-        </div>
-      )}
     </>
   );
 }

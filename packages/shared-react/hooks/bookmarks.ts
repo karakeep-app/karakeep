@@ -1,8 +1,102 @@
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+
 import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { api } from "../trpc";
 import { useBookmarkGridContext } from "./bookmark-grid-context";
 import { useAddBookmarkToList } from "./lists";
+
+type DeleteBookmarkMutation = ReturnType<
+  typeof api.bookmarks.deleteBookmark.useMutation
+>;
+type DeleteBookmarkVariables = Parameters<DeleteBookmarkMutation["mutate"]>[0];
+type DeleteBookmarkOptions = Parameters<DeleteBookmarkMutation["mutate"]>[1];
+type DeleteBookmarkResult = Awaited<
+  ReturnType<DeleteBookmarkMutation["mutateAsync"]>
+>;
+
+type DeleteQueueItem = {
+  variables: DeleteBookmarkVariables;
+  options?: DeleteBookmarkOptions;
+  resolve?: (value: DeleteBookmarkResult) => void;
+  reject?: (error: unknown) => void;
+};
+
+type DeleteQueueState = {
+  size: number;
+  isProcessing: boolean;
+};
+
+const deleteQueueListeners = new Set<(state: DeleteQueueState) => void>();
+let deleteQueue: DeleteQueueItem[] = [];
+let deleteQueueProcessing = false;
+let deleteQueueProcessor:
+  | ((
+      variables: DeleteBookmarkVariables,
+      options?: DeleteBookmarkOptions,
+    ) => Promise<DeleteBookmarkResult>)
+  | null = null;
+
+function getDeleteQueueState(): DeleteQueueState {
+  return {
+    size: deleteQueue.length,
+    isProcessing: deleteQueueProcessing,
+  };
+}
+
+function emitDeleteQueueState() {
+  const state = getDeleteQueueState();
+  deleteQueueListeners.forEach((listener) => listener(state));
+}
+
+function subscribeToDeleteQueue(listener: (state: DeleteQueueState) => void) {
+  deleteQueueListeners.add(listener);
+  return () => deleteQueueListeners.delete(listener);
+}
+
+function processDeleteQueue() {
+  if (deleteQueueProcessing) {
+    return;
+  }
+
+  if (!deleteQueueProcessor) {
+    return;
+  }
+
+  const nextItem = deleteQueue.shift();
+  if (!nextItem) {
+    emitDeleteQueueState();
+    return;
+  }
+
+  deleteQueueProcessing = true;
+  emitDeleteQueueState();
+
+  deleteQueueProcessor(nextItem.variables, nextItem.options)
+    .then((result) => {
+      nextItem.resolve?.(result);
+    })
+    .catch((error) => {
+      nextItem.reject?.(error);
+    })
+    .finally(() => {
+      deleteQueueProcessing = false;
+      emitDeleteQueueState();
+      if (deleteQueue.length > 0) {
+        Promise.resolve().then(() => {
+          processDeleteQueue();
+        });
+      }
+    });
+}
+
+function enqueueDeleteTask(task: DeleteQueueItem) {
+  deleteQueue.push(task);
+  emitDeleteQueueState();
+  if (!deleteQueueProcessing) {
+    processDeleteQueue();
+  }
+}
 
 export function useAutoRefreshingBookmarkQuery(
   input: Parameters<typeof api.bookmarks.getBookmark.useQuery>[0],
@@ -53,7 +147,7 @@ export function useDeleteBookmark(
   ...opts: Parameters<typeof api.bookmarks.deleteBookmark.useMutation>
 ) {
   const apiUtils = api.useUtils();
-  return api.bookmarks.deleteBookmark.useMutation({
+  const mutation = api.bookmarks.deleteBookmark.useMutation({
     ...opts[0],
     onSuccess: (res, req, meta) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
@@ -63,6 +157,51 @@ export function useDeleteBookmark(
       return opts[0]?.onSuccess?.(res, req, meta);
     },
   });
+
+  const queueState = useSyncExternalStore(
+    subscribeToDeleteQueue,
+    getDeleteQueueState,
+    getDeleteQueueState,
+  );
+
+  useEffect(() => {
+    deleteQueueProcessor = (variables, options) =>
+      mutation.mutateAsync(variables, options);
+    if (deleteQueue.length > 0 && !deleteQueueProcessing) {
+      processDeleteQueue();
+    }
+
+    return () => {
+      if (deleteQueue.length === 0) {
+        deleteQueueProcessor = null;
+      }
+    };
+  }, [mutation.mutateAsync]);
+
+  const mutateQueued = useCallback(
+    (variables: DeleteBookmarkVariables, options?: DeleteBookmarkOptions) => {
+      enqueueDeleteTask({ variables, options });
+    },
+    [],
+  );
+
+  const mutateAsyncQueued = useCallback(
+    (variables: DeleteBookmarkVariables, options?: DeleteBookmarkOptions) =>
+      new Promise<DeleteBookmarkResult>((resolve, reject) => {
+        enqueueDeleteTask({ variables, options, resolve, reject });
+      }),
+    [],
+  );
+
+  return {
+    ...mutation,
+    mutate: mutateQueued,
+    mutateAsync: mutateAsyncQueued,
+    isPending:
+      mutation.isPending || queueState.isProcessing || queueState.size > 0,
+    isQueueProcessing: queueState.isProcessing,
+    queuedDeletes: queueState.size,
+  };
 }
 
 export function useUpdateBookmark(

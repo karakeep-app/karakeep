@@ -169,18 +169,12 @@ export default function BulkBookmarksAction() {
     });
   };
 
-  const deleteBookmarks = async () => {
-    await Promise.all(
-      limitConcurrency(
-        selectedBookmarks.map(
-          (item) => () =>
-            deleteBookmarkMutator.mutateAsync({ bookmarkId: item.id }),
-        ),
-        MAX_CONCURRENT_BULK_ACTIONS,
-      ),
+  const deleteBookmarks = () => {
+    selectedBookmarks.forEach((item) =>
+      deleteBookmarkMutator.mutate({ bookmarkId: item.id }),
     );
     toast({
-      description: `${selectedBookmarks.length} bookmarks have been deleted!`,
+      description: `${selectedBookmarks.length} bookmarks queued for deletion!`,
     });
     setIsDeleteDialogOpen(false);
   };
