@@ -452,6 +452,25 @@ async function crawlPage(
       await globalBlocker.enableBlockingInPage(page);
     }
 
+    // Block audio/video resources
+    await page.route("**/*", (route) => {
+      const request = route.request();
+      const resourceType = request.resourceType();
+
+      // Block audio/video resources
+      if (
+        resourceType === "media" ||
+        request.headers()["content-type"]?.includes("video/") ||
+        request.headers()["content-type"]?.includes("audio/")
+      ) {
+        route.abort();
+        return;
+      }
+
+      // Continue with other requests
+      route.continue();
+    });
+
     // Navigate to the target URL
     logger.info(`[Crawler][${jobId}] Navigating to "${url}"`);
     const response = await Promise.race([
