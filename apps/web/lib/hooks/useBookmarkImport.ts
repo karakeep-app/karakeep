@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
 import { useMutation } from "@tanstack/react-query";
@@ -32,7 +31,6 @@ export interface ImportProgress {
 
 export function useBookmarkImport() {
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
@@ -171,9 +169,6 @@ export function useBookmarkImport() {
           console.error("Failed to start import session processing:", error);
         }
       }
-
-      if (result.rootListId)
-        router.push(`/dashboard/lists/${result.rootListId}`);
     },
     onError: (error) => {
       setImportProgress(null);
