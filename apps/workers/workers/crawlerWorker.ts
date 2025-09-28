@@ -77,16 +77,29 @@ import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
 const streamPipeline = promisify(pipeline);
 
-function abortPromise(signal: AbortSignal) {
-  return new Promise((_, reject) => {
-    if (signal.aborted) {
-      reject("AbortError");
-    }
-    const onAbort = () => {
-      reject("AbortError");
-    };
-    signal.addEventListener("abort", onAbort, { once: true });
+function abortPromise(signal: AbortSignal): Promise<never> {
+  if (signal.aborted) {
+    const p = Promise.reject(signal.reason ?? new Error("AbortError"));
+    p.catch(() => {
+      /* empty */
+    }); // suppress unhandledRejection if not awaited
+    return p;
+  }
+
+  const p = new Promise<never>((_, reject) => {
+    signal.addEventListener(
+      "abort",
+      () => {
+        reject(signal.reason ?? new Error("AbortError"));
+      },
+      { once: true },
+    );
   });
+
+  p.catch(() => {
+    /* empty */
+  });
+  return p;
 }
 
 /**
