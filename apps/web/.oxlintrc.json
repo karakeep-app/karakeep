@@ -27,6 +27,7 @@
     ".next",
     "dist",
     "build",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "public/*.js"
   ]
 }
