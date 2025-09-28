@@ -35,28 +35,13 @@ import {
   useDeleteUnusedTags,
   usePaginatedSearchTags,
 } from "@karakeep/shared-react/hooks/tags";
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
 import BulkTagAction from "./BulkTagAction";
 import { CreateTagModal } from "./CreateTagModal";
 import DeleteTagConfirmationDialog from "./DeleteTagConfirmationDialog";
 import { MultiTagSelector } from "./MultiTagSelector";
 import { TagPill } from "./TagPill";
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
-
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
 
 function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
   const { t } = useTranslation();

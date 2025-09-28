@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
+import { api } from "@karakeep/shared-react/trpc";
 
 interface TagAutocompleteProps {
   tagId: string;
@@ -32,11 +34,26 @@ export function TagAutocomplete({
 }: TagAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchQueryDebounced = useDebounce(searchQuery, 500);
 
   const { data: tags, isLoading } = useTagAutocomplete({
-    nameContains: searchQuery,
+    nameContains: searchQueryDebounced,
     select: (data) => data.tags,
   });
+
+  const { data: selectedTag, isLoading: isSelectedTagLoading } =
+    api.tags.get.useQuery(
+      {
+        tagId,
+      },
+      {
+        select: ({ id, name }) => ({
+          id,
+          name,
+        }),
+        enabled: !!tagId,
+      },
+    );
 
   const handleSelect = (currentValue: string) => {
     setOpen(false);
@@ -47,12 +64,7 @@ export function TagAutocomplete({
     onChange?.("");
   };
 
-  const selectedTag = React.useMemo(() => {
-    if (!tagId) return null;
-    return tags?.find((t) => t.id === tagId) ?? null;
-  }, [tags, tagId]);
-
-  if (!tags || isLoading) {
+  if (!tags || isLoading || isSelectedTagLoading) {
     return <LoadingSpinner />;
   }
 
