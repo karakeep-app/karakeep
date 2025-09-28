@@ -27,26 +27,6 @@ export function useImportSessionStats(importSessionId: string) {
   );
 }
 
-export function useCreateImportSession() {
-  const apiUtils = api.useUtils();
-
-  return api.importSessions.createImportSession.useMutation({
-    onSuccess: () => {
-      apiUtils.importSessions.listImportSessions.invalidate();
-      toast({
-        description: "Import session created successfully",
-        variant: "default",
-      });
-    },
-    onError: (error) => {
-      toast({
-        description: error.message || "Failed to create import session",
-        variant: "destructive",
-      });
-    },
-  });
-}
-
 export function useStartImportSessionProcessing() {
   const apiUtils = api.useUtils();
 

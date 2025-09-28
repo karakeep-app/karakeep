@@ -1,45 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  useCreateImportSession,
-  useListImportSessions,
-} from "@/lib/hooks/useImportSessions";
-import { Loader2, Package, Plus } from "lucide-react";
+import { useListImportSessions } from "@/lib/hooks/useImportSessions";
+import { Loader2, Package } from "lucide-react";
 
 import { ImportSessionCard } from "./ImportSessionCard";
 
 export function ImportSessionsSection() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [sessionName, setSessionName] = useState("");
-
   const { data: sessions, isLoading, error } = useListImportSessions();
-  const createSession = useCreateImportSession();
-
-  const handleCreateSession = async () => {
-    if (!sessionName.trim()) return;
-
-    try {
-      await createSession.mutateAsync({ name: sessionName.trim() });
-      setSessionName("");
-      setIsCreateDialogOpen(false);
-    } catch {
-      // Error is handled by the mutation hook
-    }
-  };
 
   if (isLoading) {
     return (
@@ -71,64 +39,12 @@ export function ImportSessionsSection() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium">Import Sessions</h3>
-          <p className="mt-1 text-sm text-gray-600">
-            Manage your bulk import sessions and track their progress
-          </p>
-        </div>
-
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              New Session
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Import Session</DialogTitle>
-              <DialogDescription>
-                Create a new import session to organize and track your bulk
-                imports.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="session-name">Session Name</Label>
-                <Input
-                  id="session-name"
-                  placeholder="e.g., Browser Bookmarks, Pocket Export"
-                  value={sessionName}
-                  onChange={(e) => setSessionName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && sessionName.trim()) {
-                      handleCreateSession();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateSession}
-                disabled={!sessionName.trim() || createSession.isPending}
-              >
-                {createSession.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Create Session
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <div>
+        <h3 className="text-lg font-medium">Import Sessions</h3>
+        <p className="mt-1 text-sm text-gray-600">
+          View and manage your bulk import sessions. Sessions are automatically
+          created when you import bookmarks.
+        </p>
       </div>
 
       {sessions && sessions.length > 0 ? (
@@ -144,17 +60,10 @@ export function ImportSessionsSection() {
             <p className="mb-2 text-center text-gray-600">
               No import sessions yet
             </p>
-            <p className="mb-4 text-center text-sm text-gray-500">
-              Create an import session to organize and track bulk bookmark
-              imports
+            <p className="text-center text-sm text-gray-500">
+              Import sessions will appear here automatically when you import
+              bookmarks
             </p>
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateDialogOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Your First Session
-            </Button>
           </CardContent>
         </Card>
       )}
