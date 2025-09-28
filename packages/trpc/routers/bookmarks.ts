@@ -18,6 +18,7 @@ import {
   bookmarkTags,
   bookmarkTexts,
   customPrompts,
+  importSessionBookmarks,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
 import {
@@ -421,39 +422,105 @@ export const bookmarksAppRouter = router({
         priority: input.crawlPriority === "low" ? 50 : 0,
       };
 
-      // Enqueue crawling request
-      switch (bookmark.content.type) {
-        case BookmarkTypes.LINK: {
-          // The crawling job triggers openai when it's done
-          await LinkCrawlerQueue.enqueue(
-            {
-              bookmarkId: bookmark.id,
-            },
-            enqueueOpts,
-          );
-          break;
+      // Enqueue crawling request (unless skipped for import)
+      const skipCrawling = input.skipCrawling ?? false;
+      const skipInference = input.skipInference ?? false;
+      const skipPreprocessing = input.skipPreprocessing ?? false;
+
+      if (!skipCrawling && !skipInference && !skipPreprocessing) {
+        switch (bookmark.content.type) {
+          case BookmarkTypes.LINK: {
+            // The crawling job triggers openai when it's done
+            await LinkCrawlerQueue.enqueue(
+              {
+                bookmarkId: bookmark.id,
+              },
+              enqueueOpts,
+            );
+            break;
+          }
+          case BookmarkTypes.TEXT: {
+            await OpenAIQueue.enqueue(
+              {
+                bookmarkId: bookmark.id,
+                type: "tag",
+              },
+              enqueueOpts,
+            );
+            break;
+          }
+          case BookmarkTypes.ASSET: {
+            await AssetPreprocessingQueue.enqueue(
+              {
+                bookmarkId: bookmark.id,
+                fixMode: false,
+              },
+              enqueueOpts,
+            );
+            break;
+          }
         }
-        case BookmarkTypes.TEXT: {
-          await OpenAIQueue.enqueue(
-            {
-              bookmarkId: bookmark.id,
-              type: "tag",
-            },
-            enqueueOpts,
-          );
-          break;
-        }
-        case BookmarkTypes.ASSET: {
-          await AssetPreprocessingQueue.enqueue(
-            {
-              bookmarkId: bookmark.id,
-              fixMode: false,
-            },
-            enqueueOpts,
-          );
-          break;
+      } else {
+        // Handle selective skipping for more granular control
+        switch (bookmark.content.type) {
+          case BookmarkTypes.LINK: {
+            if (!skipCrawling) {
+              await LinkCrawlerQueue.enqueue(
+                {
+                  bookmarkId: bookmark.id,
+                  runInference: !skipInference,
+                },
+                enqueueOpts,
+              );
+            } else if (!skipInference) {
+              await OpenAIQueue.enqueue(
+                {
+                  bookmarkId: bookmark.id,
+                  type: "tag",
+                },
+                enqueueOpts,
+              );
+            }
+            break;
+          }
+          case BookmarkTypes.TEXT: {
+            if (!skipInference) {
+              await OpenAIQueue.enqueue(
+                {
+                  bookmarkId: bookmark.id,
+                  type: "tag",
+                },
+                enqueueOpts,
+              );
+            }
+            break;
+          }
+          case BookmarkTypes.ASSET: {
+            if (!skipPreprocessing) {
+              await AssetPreprocessingQueue.enqueue(
+                {
+                  bookmarkId: bookmark.id,
+                  fixMode: false,
+                },
+                enqueueOpts,
+              );
+            }
+            break;
+          }
         }
       }
+      // Attach to import session if provided
+      if (input.importSessionId) {
+        await ctx.db
+          .insert(importSessionBookmarks)
+          .values({
+            importSessionId: input.importSessionId,
+            bookmarkId: bookmark.id,
+            status: "pending",
+          })
+          .onConflictDoNothing();
+      }
+
       await triggerRuleEngineOnEvent(
         bookmark.id,
         [

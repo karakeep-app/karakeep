@@ -14,6 +14,7 @@ import {
   useAddBookmarkToList,
   useCreateBookmarkList,
 } from "@karakeep/shared-react/hooks/lists";
+import { api } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
@@ -36,11 +37,15 @@ export function useBookmarkImport() {
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
   );
+  const [currentImportSessionId, setCurrentImportSessionId] = useState<
+    string | null
+  >(null);
 
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook();
   const { mutateAsync: createList } = useCreateBookmarkList();
   const { mutateAsync: addToList } = useAddBookmarkToList();
   const { mutateAsync: updateTags } = useUpdateBookmarkTags();
+  const apiUtils = api.useUtils();
 
   const uploadBookmarkFileMutation = useMutation({
     mutationFn: async ({
@@ -50,6 +55,14 @@ export function useBookmarkImport() {
       file: File;
       source: ImportSource;
     }) => {
+      // Create an import session for this file import
+      const sessionName = `${source.charAt(0).toUpperCase() + source.slice(1)} Import - ${new Date().toLocaleDateString()}`;
+      const sessionResult =
+        await apiUtils.client.importSessions.createImportSession.mutate({
+          name: sessionName,
+        });
+      setCurrentImportSessionId(sessionResult.id);
+
       const result = await importBookmarksFromFile(
         {
           file,
@@ -69,6 +82,11 @@ export function useBookmarkImport() {
                   : undefined,
                 note: bookmark.notes,
                 archived: bookmark.archived,
+                // Import session flags to skip background jobs initially
+                skipCrawling: true,
+                skipInference: true,
+                skipPreprocessing: true,
+                importSessionId: sessionResult.id,
                 ...(bookmark.content.type === BookmarkTypes.LINK
                   ? {
                       type: BookmarkTypes.LINK,
@@ -120,6 +138,9 @@ export function useBookmarkImport() {
       return result;
     },
     onSuccess: async (result) => {
+      setImportProgress(null);
+      setCurrentImportSessionId(null);
+
       if (result.counts.total === 0) {
         toast({ description: "No bookmarks found in the file." });
         return;
@@ -127,7 +148,7 @@ export function useBookmarkImport() {
       const { successes, failures, alreadyExisted } = result.counts;
       if (successes > 0 || alreadyExisted > 0) {
         toast({
-          description: `Imported ${successes} bookmarks and skipped ${alreadyExisted} bookmarks that already existed`,
+          description: `Imported ${successes} bookmarks into import session. Background processing will start automatically.`,
           variant: "default",
         });
       }
@@ -138,11 +159,25 @@ export function useBookmarkImport() {
         });
       }
 
+      // Start processing the import session if there were successful imports
+      if (successes > 0 && currentImportSessionId) {
+        try {
+          await apiUtils.client.importSessions.startImportSessionProcessing.mutate(
+            {
+              importSessionId: currentImportSessionId,
+            },
+          );
+        } catch (error) {
+          console.error("Failed to start import session processing:", error);
+        }
+      }
+
       if (result.rootListId)
         router.push(`/dashboard/lists/${result.rootListId}`);
     },
     onError: (error) => {
       setImportProgress(null);
+      setCurrentImportSessionId(null);
       toast({
         description: error.message,
         variant: "destructive",

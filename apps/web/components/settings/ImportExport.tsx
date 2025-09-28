@@ -18,7 +18,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
+import { Separator } from "../ui/separator";
 import { toast } from "../ui/use-toast";
+import { ImportSessionsSection } from "./ImportSessionsSection";
 
 function ImportCard({
   text,
@@ -266,11 +268,17 @@ export function ImportExportRow() {
 export default function ImportExport() {
   const { t } = useTranslation();
   return (
-    <div className="flex w-full flex-col gap-2">
-      <p className="mb-4 text-lg font-medium">
-        {t("settings.import.import_export_bookmarks")}
-      </p>
-      <ImportExportRow />
+    <div className="flex w-full flex-col gap-6">
+      <div>
+        <p className="mb-4 text-lg font-medium">
+          {t("settings.import.import_export_bookmarks")}
+        </p>
+        <ImportExportRow />
+      </div>
+
+      <Separator />
+
+      <ImportSessionsSection />
     </div>
   );
 }
