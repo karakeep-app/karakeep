@@ -86,9 +86,9 @@ export default function AllTagsView() {
     defaultValue: "",
   });
   const searchQuery = useDebounce(searchQueryRaw, 100);
-  const [sortBy, setSortBy] = useQueryState<"name" | "usage">(
+  const [sortBy, setSortBy] = useQueryState<"name" | "usage" | "relevance">(
     "sort",
-    parseAsStringEnum(["name", "usage"])
+    parseAsStringEnum(["name", "usage", "relevance"])
       .withOptions({
         clearOnDefault: true,
       })
@@ -175,12 +175,11 @@ export default function AllTagsView() {
     };
   }, [setVisibleTagIds, visibleTagIds]);
 
-  const sortByUsageLabel = t("tags.sort_by_usage", {
-    defaultValue: "Sort by Usage",
-  });
-  const sortByNameLabel = t("tags.sort_by_name");
-  const sortMode = sortBy;
-  const sortLabel = sortBy == "name" ? sortByNameLabel : sortByUsageLabel;
+  const sortLabels: Record<typeof sortBy, string> = {
+    name: t("tags.sort_by_name"),
+    usage: t("tags.sort_by_usage"),
+    relevance: t("tags.sort_by_relevance"),
+  };
 
   const tagsToPill = React.useMemo(
     () =>
@@ -308,23 +307,24 @@ export default function AllTagsView() {
                     {t("actions.sort.title")}
                   </span>
                   <span className="hidden text-sm font-medium sm:inline">
-                    {sortLabel}
+                    {sortLabels[sortBy]}
                   </span>
                   <ChevronDown className="ml-2 size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuRadioGroup
-                  value={sortMode}
-                  onValueChange={(value) =>
-                    setSortBy(value === "name" ? "name" : "usage")
-                  }
+                  value={sortBy}
+                  onValueChange={(value) => setSortBy(value as typeof sortBy)}
                 >
                   <DropdownMenuRadioItem value="usage">
-                    {sortByUsageLabel}
+                    {sortLabels["usage"]}
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="name">
-                    {sortByNameLabel}
+                    {sortLabels["name"]}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="relevance">
+                    {sortLabels["relevance"]}
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
@@ -345,8 +345,8 @@ export default function AllTagsView() {
             allHumanTags,
             isBulkEditEnabled,
             {
-              emptyMessage: "No custom tags yet",
-              searchEmptyMessage: "No tags match your search",
+              emptyMessage: t("tags.no_custom_tags"),
+              searchEmptyMessage: t("tags.no_tags_match_your_search"),
             },
             isHumanTagsLoading,
           )}
@@ -357,7 +357,7 @@ export default function AllTagsView() {
               loading={isFetchingNextPageHumanTags}
               ignoreDemoMode
             >
-              Load More
+              {t("actions.load_more")}
             </ActionButton>
           )}
         </CardContent>
@@ -375,8 +375,8 @@ export default function AllTagsView() {
             allAiTags,
             isBulkEditEnabled,
             {
-              emptyMessage: "No AI tags yet",
-              searchEmptyMessage: "No tags match your search",
+              emptyMessage: t("tags.no_ai_tags"),
+              searchEmptyMessage: t("tags.no_tags_match_your_search"),
             },
             isAiTagsLoading,
           )}
@@ -387,7 +387,7 @@ export default function AllTagsView() {
               loading={isFetchingNextPageAiTags}
               ignoreDemoMode
             >
-              Load More
+              {t("actions.load_more")}
             </ActionButton>
           )}
         </CardContent>
@@ -405,8 +405,8 @@ export default function AllTagsView() {
             allEmptyTags,
             isBulkEditEnabled,
             {
-              emptyMessage: "You don't have any unused tags",
-              searchEmptyMessage: "No unused tags match your search",
+              emptyMessage: t("tags.no_unused_tags"),
+              searchEmptyMessage: t("tags.no_unused_tags_match_your_search"),
             },
             isEmptyTagsLoading,
           )}
@@ -417,7 +417,7 @@ export default function AllTagsView() {
               loading={isFetchingNextPageEmptyTags}
               ignoreDemoMode
             >
-              Load More
+              {t("actions.load_more")}
             </ActionButton>
           )}
           {allEmptyTags.length > 0 && (
