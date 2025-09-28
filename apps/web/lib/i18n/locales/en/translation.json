@@ -428,6 +428,12 @@
     "search_query": "Search Query",
     "search_query_help": "Learn more about the search query language.",
     "description": "Description (Optional)",
+    "delete_list": {
+      "title": "Delete List",
+      "description": "Deleting a list doesn't delete any bookmarks in that list.",
+      "delete_children": "Delete children lists (recursively)",
+      "delete_children_description": "If not checked, all direct children lists will become root lists"
+    },
     "rss": {
       "title": "RSS Feed",
       "description": "Enable an RSS feed for this list",
