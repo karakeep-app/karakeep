@@ -6,6 +6,7 @@ import {
   zGetTagResponseSchema,
   zTagBasicSchema,
   zTagListRequestSchema,
+  zTagListResponseSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -95,16 +96,7 @@ export const tagsAppRouter = router({
       // TODO: Remove the optional and default once the next release is out.
       zTagListRequestSchema.optional().default(zTagListRequestSchema.parse({})),
     )
-    .output(
-      z.object({
-        tags: z.array(zGetTagResponseSchema),
-        // TODO: The optional is here for backwards compatibility.
-        // Newer clients might expect it from servers that are older and not
-        // sending it. Those servers are before pagination, so they return
-        // all the tags. Hence the default being false.
-        hasNextPage: z.boolean().optional().default(false),
-      }),
-    )
+    .output(zTagListResponseSchema)
     .query(async ({ ctx, input }) => {
       return await Tag.getAll(ctx, {
         nameContains: input.nameContains,

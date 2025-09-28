@@ -14,10 +14,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import LoadingSpinner from "@/components/ui/spinner";
-import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { keepPreviousData } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, X } from "lucide-react";
+
+import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 
 interface TagAutocompleteProps {
   tagId: string;
@@ -33,16 +33,10 @@ export function TagAutocomplete({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: tags, isLoading } = api.tags.list.useQuery(
-    {
-      nameContains: searchQuery,
-      limit: 50,
-    },
-    {
-      select: (data) => data.tags,
-      placeholderData: keepPreviousData,
-    },
-  );
+  const { data: tags, isLoading } = useTagAutocomplete({
+    nameContains: searchQuery,
+    select: (data) => data.tags,
+  });
 
   // Filter tags based on search query
   const filteredTags = tags ?? [];

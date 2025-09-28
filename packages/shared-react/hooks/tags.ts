@@ -1,5 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 
+import { ZTagListResponse } from "@karakeep/shared/types/tags";
+
 import { api } from "../trpc";
 
 export function usePaginatedSearchTags(
@@ -16,7 +18,26 @@ export function usePaginatedSearchTags(
     select: (data) => ({
       tags: data.pages.flatMap((page) => page.tags),
     }),
+    gcTime: 60_000,
   });
+}
+
+export function useTagAutocomplete<T>(opts: {
+  nameContains: string;
+  select?: (tags: ZTagListResponse) => T;
+}) {
+  return api.tags.list.useQuery(
+    {
+      nameContains: opts.nameContains,
+      limit: 50,
+      sortBy: opts.nameContains ? "relevance" : "usage",
+    },
+    {
+      select: opts.select,
+      placeholderData: keepPreviousData,
+      gcTime: opts.nameContains?.length > 0 ? 60_000 : 3_600_000,
+    },
+  );
 }
 
 export function useCreateTag(

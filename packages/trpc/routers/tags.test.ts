@@ -543,6 +543,90 @@ describe("Tags Routes", () => {
         expect(usageSort.tags[1].name).toBe("medium-use");
         expect(usageSort.tags[2].name).toBe("single-use");
       });
+
+      test<CustomTestContext>("relevance sorting", async ({ apiCallers }) => {
+        const tagsApi = apiCallers[0].tags;
+        const bookmarksApi = apiCallers[0].bookmarks;
+
+        // Create bookmarks to give tags usage
+        const bookmark1 = await bookmarksApi.createBookmark({
+          url: "https://example.com/rel1",
+          type: BookmarkTypes.LINK,
+        });
+
+        // Create tags with different relevance to search term "java"
+        await bookmarksApi.updateTags({
+          bookmarkId: bookmark1.id,
+          attach: [
+            { tagName: "java" }, // Exact match - highest relevance
+            { tagName: "javascript" }, // Prefix match
+            { tagName: "java-script" }, // Prefix match (shorter)
+            { tagName: "advanced-java" }, // Substring match
+          ],
+          detach: [],
+        });
+
+        // Test relevance sorting
+        const relevanceSort = await tagsApi.list({
+          nameContains: "java",
+          sortBy: "relevance",
+        });
+
+        expect(relevanceSort.tags.length).toBe(4);
+
+        // Exact match should be first
+        expect(relevanceSort.tags[0].name).toBe("java");
+
+        // Prefix matches should come next, shorter first (by length)
+        expect(relevanceSort.tags[1].name).toBe("javascript"); // length 10
+        expect(relevanceSort.tags[2].name).toBe("java-script"); // length 11
+
+        // Substring matches should be last
+        expect(relevanceSort.tags[3].name).toBe("advanced-java");
+      });
+
+      test<CustomTestContext>("relevance sorting case insensitive", async ({
+        apiCallers,
+      }) => {
+        const tagsApi = apiCallers[0].tags;
+        const bookmarksApi = apiCallers[0].bookmarks;
+
+        const bookmark1 = await bookmarksApi.createBookmark({
+          url: "https://example.com/case",
+          type: BookmarkTypes.LINK,
+        });
+
+        await bookmarksApi.updateTags({
+          bookmarkId: bookmark1.id,
+          attach: [
+            { tagName: "React" }, // Exact match (different case)
+            { tagName: "ReactJS" }, // Prefix match
+            { tagName: "my-react" }, // Substring match
+          ],
+          detach: [],
+        });
+
+        const relevanceSort = await tagsApi.list({
+          nameContains: "react",
+          sortBy: "relevance",
+        });
+
+        expect(relevanceSort.tags.length).toBe(3);
+        expect(relevanceSort.tags[0].name).toBe("React"); // Exact match first
+        expect(relevanceSort.tags[1].name).toBe("ReactJS"); // Prefix match second
+        expect(relevanceSort.tags[2].name).toBe("my-react"); // Substring match last
+      });
+
+      test<CustomTestContext>("relevance sorting without search term is prevented by validation", async ({
+        apiCallers,
+      }) => {
+        const tagsApi = apiCallers[0].tags;
+
+        // Without nameContains, relevance sorting should throw validation error
+        await expect(() =>
+          tagsApi.list({ sortBy: "relevance" }),
+        ).rejects.toThrow(/Relevance sorting requires a nameContains filter/);
+      });
     });
 
     describe("combination filtering", () => {

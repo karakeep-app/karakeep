@@ -45,11 +45,29 @@ export const zTagCusrsorSchema = z.object({
   page: z.number(),
 });
 
-export const zTagListRequestSchema = z.object({
-  nameContains: z.string().optional(),
-  attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
-  sortBy: z.enum(["name", "usage"]).optional().default("usage"),
-  cursor: zTagCusrsorSchema.default({ page: 0 }),
-  // TODO: Enforce a maximum limit after the next release
-  limit: z.number().optional(),
+export const zTagListRequestSchema = z
+  .object({
+    nameContains: z.string().optional(),
+    attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
+    sortBy: z.enum(["name", "usage", "relevance"]).optional().default("usage"),
+    cursor: zTagCusrsorSchema.default({ page: 0 }),
+    // TODO: Enforce a maximum limit after the next release
+    limit: z.number().optional(),
+  })
+  .refine(
+    (val) => val.sortBy != "relevance" || val.nameContains !== undefined,
+    {
+      message: "Relevance sorting requires a nameContains filter",
+      path: ["sortBy"],
+    },
+  );
+
+export const zTagListResponseSchema = z.object({
+  tags: z.array(zGetTagResponseSchema),
+  // TODO: The optional is here for backwards compatibility.
+  // Newer clients might expect it from servers that are older and not
+  // sending it. Those servers are before pagination, so they return
+  // all the tags. Hence the default being false.
+  hasNextPage: z.boolean().optional().default(false),
 });
+export type ZTagListResponse = z.infer<typeof zTagListResponseSchema>;

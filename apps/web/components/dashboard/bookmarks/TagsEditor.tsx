@@ -67,21 +67,20 @@ export function TagsEditor({
       {
         nameContains: inputValue,
         limit: 50,
+        sortBy: inputValue.length > 0 ? "relevance" : "usage",
       },
       {
         select: (data) =>
-          data.tags
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((t) => ({
-              id: t.id,
-              name: t.name,
-              attachedBy:
-                (t.numBookmarksByAttachedType.human ?? 0) > 0
-                  ? ("human" as const)
-                  : ("ai" as const),
-            })),
+          data.tags.map((t) => ({
+            id: t.id,
+            name: t.name,
+            attachedBy:
+              (t.numBookmarksByAttachedType.human ?? 0) > 0
+                ? ("human" as const)
+                : ("ai" as const),
+          })),
         placeholderData: keepPreviousData,
-        gcTime: 0,
+        gcTime: inputValue.length > 0 ? 60_000 : 3_600_000,
       },
     );
 

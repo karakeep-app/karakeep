@@ -87,7 +87,7 @@ export class Tag implements PrivacyAware {
     opts: {
       nameContains?: string;
       attachedBy?: "ai" | "human" | "none";
-      sortBy?: "name" | "usage";
+      sortBy?: "name" | "usage" | "relevance";
       pagination?: {
         page: number;
         limit: number;
@@ -123,7 +123,21 @@ export class Tag implements PrivacyAware {
         ),
       )
       .groupBy(bookmarkTags.id, bookmarkTags.name)
-      .orderBy(sortBy === "name" ? asc(bookmarkTags.name) : desc(sql`count`))
+      .orderBy(
+        ...switchCase(sortBy, {
+          name: [asc(bookmarkTags.name)],
+          usage: [desc(sql`count`)],
+          relevance: [
+            desc(sql<number>`
+            CASE
+              WHEN lower(${opts.nameContains ?? ""}) = lower(${bookmarkTags.name}) THEN 2
+              WHEN ${bookmarkTags.name} LIKE ${opts.nameContains ? opts.nameContains + "%" : ""} THEN 1
+              ELSE 0
+            END`),
+            asc(sql<number>`length(${bookmarkTags.name})`),
+          ],
+        }),
+      )
       .having(
         opts.attachedBy
           ? switchCase(opts.attachedBy, {
