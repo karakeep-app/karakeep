@@ -99,57 +99,65 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
       <CardContent className="pt-0">
         <div className="space-y-3">
           {/* Progress Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span>Progress</span>
-              <span>
-                {stats.completedBookmarks} / {stats.totalBookmarks} bookmarks
-              </span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-muted-foreground">Progress</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  {stats.completedBookmarks} / {stats.totalBookmarks}
+                </span>
+                <Badge variant="outline" className="text-xs">
+                  {Math.round(progress)}%
+                </Badge>
+              </div>
             </div>
             {stats.totalBookmarks > 0 && (
-              <Progress value={progress} className="h-2" />
+              <Progress value={progress} className="h-3" />
             )}
           </div>
 
           {/* Stats Breakdown */}
           {stats.totalBookmarks > 0 && (
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {stats.pendingBookmarks > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Pending:</span>
-                  <span>{stats.pendingBookmarks}</span>
-                </div>
-              )}
-              {stats.processingBookmarks > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-blue-600">Processing:</span>
-                  <span>{stats.processingBookmarks}</span>
-                </div>
-              )}
-              {stats.completedBookmarks > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-green-600">Completed:</span>
-                  <span>{stats.completedBookmarks}</span>
-                </div>
-              )}
-              {stats.failedBookmarks > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-red-600">Failed:</span>
-                  <span>{stats.failedBookmarks}</span>
-                </div>
-              )}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Breakdown</h4>
+              <div className="flex flex-wrap gap-2">
+                {stats.pendingBookmarks > 0 && (
+                  <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
+                    <Clock className="mr-1.5 h-3 w-3" />
+                    {stats.pendingBookmarks} pending
+                  </Badge>
+                )}
+                {stats.processingBookmarks > 0 && (
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
+                    <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                    {stats.processingBookmarks} processing
+                  </Badge>
+                )}
+                {stats.completedBookmarks > 0 && (
+                  <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                    <CheckCircle2 className="mr-1.5 h-3 w-3" />
+                    {stats.completedBookmarks} completed
+                  </Badge>
+                )}
+                {stats.failedBookmarks > 0 && (
+                  <Badge variant="secondary" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800">
+                    <AlertCircle className="mr-1.5 h-3 w-3" />
+                    {stats.failedBookmarks} failed
+                  </Badge>
+                )}
+              </div>
             </div>
           )}
 
           {/* Root List Link */}
           {session.rootListId && (
-            <div className="rounded bg-blue-50 p-3">
+            <div className="rounded-lg border bg-muted/50 p-3 dark:bg-muted/20">
               <div className="flex items-center gap-2 text-sm">
-                <ClipboardList className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-700">Imported to:</span>
+                <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-muted-foreground">Imported to:</span>
                 <Link
                   href={`/dashboard/lists/${session.rootListId}`}
-                  className="flex items-center gap-1 text-blue-600 underline underline-offset-2 hover:text-blue-800"
+                  className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium transition-colors"
                   target="_blank"
                 >
                   View List
@@ -161,7 +169,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
 
           {/* Message */}
           {stats.message && (
-            <div className="rounded bg-gray-50 p-2 text-sm text-gray-600">
+            <div className="rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground dark:bg-muted/20">
               {stats.message}
             </div>
           )}
