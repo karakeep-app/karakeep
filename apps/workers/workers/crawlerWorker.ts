@@ -671,10 +671,26 @@ async function archiveWebpage(
   const assetId = newAssetId();
   const assetPath = `/tmp/${assetId}`;
 
-  await execa({
+  let res = await execa({
     input: html,
     cancelSignal: abortSignal,
   })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
+
+  if (res.isCanceled) {
+    logger.error(
+      `[Crawler][${jobId}] Canceled archiving the page as we hit global timeout.`,
+    );
+    await tryCatch(fs.unlink(assetPath));
+    return null;
+  }
+
+  if (res.exitCode !== 0) {
+    logger.error(
+      `[Crawler][${jobId}] Failed to archive the page as the command exited with code ${res.exitCode}`,
+    );
+    await tryCatch(fs.unlink(assetPath));
+    return null;
+  }
 
   const contentType = "text/html";
 
