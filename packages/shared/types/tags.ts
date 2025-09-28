@@ -64,10 +64,7 @@ export const zTagListRequestSchema = z
 
 export const zTagListResponseSchema = z.object({
   tags: z.array(zGetTagResponseSchema),
-  // TODO: The optional is here for backwards compatibility.
-  // Newer clients might expect it from servers that are older and not
-  // sending it. Those servers are before pagination, so they return
-  // all the tags. Hence the default being false.
-  hasNextPage: z.boolean().optional().default(false),
+  // TODO: Change to nullable once the next release is out.
+  nextCursor: zTagCusrsorSchema.nullish(),
 });
 export type ZTagListResponse = z.infer<typeof zTagListResponseSchema>;

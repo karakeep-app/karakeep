@@ -154,10 +154,14 @@ export class Tag implements PrivacyAware {
     }
     const tags = await qSql;
 
-    const hasNextPage = opts.pagination && tags.length > opts.pagination.limit;
-
-    if (opts.pagination && tags.length > opts.pagination.limit) {
-      tags.pop();
+    let nextCursor = null;
+    if (opts.pagination) {
+      if (tags.length > opts.pagination.limit) {
+        tags.pop();
+        nextCursor = {
+          page: opts.pagination.page + 1,
+        };
+      }
     }
 
     return {
@@ -170,7 +174,7 @@ export class Tag implements PrivacyAware {
           human: t.countAttachedByHuman,
         },
       })),
-      hasNextPage,
+      nextCursor,
     };
   }
 

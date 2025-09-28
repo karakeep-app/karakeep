@@ -265,15 +265,15 @@ describe("Tags Routes", () => {
           cursor: { page: 0 },
         });
         expect(firstPage.tags.length).toBe(2);
-        expect(firstPage.hasNextPage).toBe(true);
+        expect(firstPage.nextCursor).not.toBeNull();
 
         // Test second page
         const secondPage = await api.list({
           limit: 2,
-          cursor: { page: 1 },
+          cursor: firstPage.nextCursor!,
         });
         expect(secondPage.tags.length).toBe(2);
-        expect(secondPage.hasNextPage).toBe(true);
+        expect(secondPage.nextCursor).not.toBeNull();
 
         // Test third page (last page)
         const thirdPage = await api.list({
@@ -281,7 +281,7 @@ describe("Tags Routes", () => {
           cursor: { page: 2 },
         });
         expect(thirdPage.tags.length).toBe(1);
-        expect(thirdPage.hasNextPage).toBe(false);
+        expect(thirdPage.nextCursor).toBeNull();
       });
 
       test<CustomTestContext>("no limit returns all tags", async ({
@@ -295,7 +295,7 @@ describe("Tags Routes", () => {
 
         const res = await api.list({});
         expect(res.tags.length).toBe(3);
-        expect(res.hasNextPage).toBe(false);
+        expect(res.nextCursor).toBeNull();
       });
 
       test<CustomTestContext>("empty page", async ({ apiCallers }) => {
@@ -308,7 +308,7 @@ describe("Tags Routes", () => {
           cursor: { page: 5 }, // Way beyond available data
         });
         expect(emptyPage.tags.length).toBe(0);
-        expect(emptyPage.hasNextPage).toBe(false);
+        expect(emptyPage.nextCursor).toBeNull();
       });
 
       test<CustomTestContext>("edge cases", async ({ apiCallers }) => {
@@ -320,7 +320,7 @@ describe("Tags Routes", () => {
           cursor: { page: 0 },
         });
         expect(emptyResult.tags.length).toBe(0);
-        expect(emptyResult.hasNextPage).toBe(false);
+        expect(emptyResult.nextCursor).toBeNull();
 
         // Create exactly one page worth of tags
         await api.create({ name: "tag1" });
@@ -331,7 +331,7 @@ describe("Tags Routes", () => {
           cursor: { page: 0 },
         });
         expect(exactPage.tags.length).toBe(2);
-        expect(exactPage.hasNextPage).toBe(false);
+        expect(exactPage.nextCursor).toBeNull();
 
         // Test with limit larger than available tags
         const oversizedLimit = await api.list({
@@ -339,7 +339,7 @@ describe("Tags Routes", () => {
           cursor: { page: 0 },
         });
         expect(oversizedLimit.tags.length).toBe(2);
-        expect(oversizedLimit.hasNextPage).toBe(false);
+        expect(oversizedLimit.nextCursor).toBeNull();
       });
     });
 
@@ -742,7 +742,7 @@ describe("Tags Routes", () => {
         expect(result.tags.length).toBe(1);
         expect(result.tags[0].name).toBe("filter-high"); // Highest usage
         expect(result.tags[0].numBookmarks).toBe(3);
-        expect(result.hasNextPage).toBe(true);
+        expect(result.nextCursor).not.toBeNull();
 
         // Get second page
         const secondPage = await tagsApi.list({
@@ -750,13 +750,13 @@ describe("Tags Routes", () => {
           attachedBy: "human",
           sortBy: "usage",
           limit: 1,
-          cursor: { page: 1 },
+          cursor: result.nextCursor!,
         });
 
         expect(secondPage.tags.length).toBe(1);
         expect(secondPage.tags[0].name).toBe("filter-low"); // Lower usage
         expect(secondPage.tags[0].numBookmarks).toBe(1);
-        expect(secondPage.hasNextPage).toBe(false);
+        expect(secondPage.nextCursor).toBeNull();
       });
     });
   });
