@@ -163,17 +163,13 @@ export default function AllTagsView() {
     };
   }, [allHumanTagsRaw, allAiTagsRaw, allEmptyTagsRaw]);
 
-  const visibleTagIds = React.useMemo(() => {
-    const allTags = [...allHumanTags, ...allAiTags, ...allEmptyTags];
-    return allTags.map((tag) => tag.id) ?? [];
-  }, [allHumanTags, allAiTags, allEmptyTags]);
-
   useEffect(() => {
-    setVisibleTagIds(visibleTagIds);
+    const allTags = [...allHumanTags, ...allAiTags, ...allEmptyTags];
+    setVisibleTagIds(allTags.map((tag) => tag.id) ?? []);
     return () => {
       setVisibleTagIds([]);
     };
-  }, [setVisibleTagIds, visibleTagIds]);
+  }, [allHumanTags, allAiTags, allEmptyTags, setVisibleTagIds]);
 
   const sortLabels: Record<typeof sortBy, string> = {
     name: t("tags.sort_by_name"),
