@@ -609,7 +609,7 @@ async function storeScreenshot(
     quotaApproved,
   });
   logger.info(
-    `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId}`,
+    `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId} (${screenshot.byteLength} bytes)`,
   );
   return { assetId, contentType, fileName, size: screenshot.byteLength };
 }
@@ -692,7 +692,7 @@ async function downloadAndStoreFile(
     });
 
     logger.info(
-      `[Crawler][${jobId}] Downloaded ${fileType} as assetId: ${assetId}`,
+      `[Crawler][${jobId}] Downloaded ${fileType} as assetId: ${assetId} (${bytesRead} bytes)`,
     );
 
     return { assetId, userId, contentType, size: bytesRead };
