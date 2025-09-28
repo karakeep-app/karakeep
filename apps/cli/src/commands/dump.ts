@@ -12,6 +12,7 @@ import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import { MAX_NUM_BOOKMARKS_PER_PAGE } from "@karakeep/shared/types/bookmarks";
 import { ZCursor } from "@karakeep/shared/types/pagination";
+import { MAX_NUM_TAGS_PER_PAGE } from "@karakeep/shared/types/tags";
 
 const OK = chalk.green("✓");
 const FAIL = chalk.red("✗");
@@ -191,9 +192,19 @@ export const dumpCmd = new Command()
       // 3) Tags
       if (!opts.excludeTags) {
         stepStart("Exporting tags");
-        const { tags } = await api.tags.list.query();
-        await writeJson(path.join(workRoot, "tags", "index.json"), tags);
-        manifest.counts.tags = tags.length;
+
+        let cursor = null;
+        let allTags = [];
+        do {
+          const { tags, nextCursor } = await api.tags.list.query({
+            limit: MAX_NUM_TAGS_PER_PAGE,
+            cursor,
+          });
+          allTags.push(...tags);
+          cursor = nextCursor;
+        } while (cursor);
+        await writeJson(path.join(workRoot, "tags", "index.json"), allTags);
+        manifest.counts.tags = allTags.length;
         stepEndSuccess();
       }
 

@@ -1,8 +1,11 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { z } from "zod";
 
 import {
   zCreateTagRequestSchema,
+  zTagListApiResultSchema,
+  zTagListQueryParamsSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -14,9 +17,23 @@ const app = new Hono()
   .use(authMiddleware)
 
   // GET /tags
-  .get("/", async (c) => {
-    const tags = await c.var.api.tags.list();
-    return c.json(tags, 200);
+  .get("/", zValidator("query", zTagListQueryParamsSchema), async (c) => {
+    const searchParams = c.req.valid("query");
+    const tags = await c.var.api.tags.list({
+      nameContains: searchParams.nameContains,
+      attachedBy: searchParams.attachedBy,
+      sortBy: searchParams.sort,
+      cursor: searchParams.cursor,
+      limit: searchParams.limit,
+    });
+
+    const resp: z.infer<typeof zTagListApiResultSchema> = {
+      tags: tags.tags,
+      nextCursor: tags.nextCursor
+        ? Buffer.from(JSON.stringify(tags.nextCursor)).toString("base64url")
+        : null,
+    };
+    return c.json(resp, 200);
   })
 
   // POST /tags

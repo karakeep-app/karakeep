@@ -490,7 +490,7 @@ async function migrateTags(
   onProgress?: (ensured: number, total: number) => void,
 ) {
   try {
-    const { tags: srcTags } = await src.tags.list.query();
+    const { tags: srcTags } = await src.tags.list.query({});
     // Create tags by name; ignore if exist
     let ensured = 0;
     for (const t of srcTags) {
@@ -503,7 +503,7 @@ async function migrateTags(
       onProgress?.(ensured, srcTags.length);
     }
     // Build id map using destination's current tags
-    const { tags: destTags } = await dest.tags.list.query();
+    const { tags: destTags } = await dest.tags.list.query({});
     const nameToDestId = destTags.reduce<Record<string, string>>((acc, t) => {
       acc[t.name] = t.id;
       return acc;

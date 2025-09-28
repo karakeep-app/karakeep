@@ -1,5 +1,16 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, notExists } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  inArray,
+  like,
+  notExists,
+  sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
@@ -12,6 +23,7 @@ import {
   zTagBasicSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
 import { PrivacyAware } from "./privacy";
@@ -70,46 +82,100 @@ export class Tag implements PrivacyAware {
     }
   }
 
-  static async getAllWithStats(ctx: AuthedContext) {
-    const tags = await ctx.db
+  static async getAll(
+    ctx: AuthedContext,
+    opts: {
+      nameContains?: string;
+      attachedBy?: "ai" | "human" | "none";
+      sortBy?: "name" | "usage" | "relevance";
+      pagination?: {
+        page: number;
+        limit: number;
+      };
+    } = {},
+  ) {
+    const sortBy = opts.sortBy ?? "usage";
+
+    const countAi = sql<number>`
+      SUM(CASE WHEN ${tagsOnBookmarks.attachedBy} = 'ai' THEN 1 ELSE 0 END)
+    `;
+    const countHuman = sql<number>`
+      SUM(CASE WHEN ${tagsOnBookmarks.attachedBy} = 'human' THEN 1 ELSE 0 END)
+    `;
+    // Count only matched right rows; will be 0 when there are none
+    const countAny = sql<number>`COUNT(${tagsOnBookmarks.tagId})`;
+    let qSql = ctx.db
       .select({
         id: bookmarkTags.id,
         name: bookmarkTags.name,
-        attachedBy: tagsOnBookmarks.attachedBy,
-        count: count(),
+        countAttachedByAi: countAi.as("countAttachedByAi"),
+        countAttachedByHuman: countHuman.as("countAttachedByHuman"),
+        count: countAny.as("count"),
       })
       .from(bookmarkTags)
       .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
-      .where(and(eq(bookmarkTags.userId, ctx.user.id)))
-      .groupBy(bookmarkTags.id, tagsOnBookmarks.attachedBy);
+      .where(
+        and(
+          eq(bookmarkTags.userId, ctx.user.id),
+          opts.nameContains
+            ? like(bookmarkTags.name, `%${opts.nameContains}%`)
+            : undefined,
+        ),
+      )
+      .groupBy(bookmarkTags.id, bookmarkTags.name)
+      .orderBy(
+        ...switchCase(sortBy, {
+          name: [asc(bookmarkTags.name)],
+          usage: [desc(sql`count`)],
+          relevance: [
+            desc(sql<number>`
+            CASE
+              WHEN lower(${opts.nameContains ?? ""}) = lower(${bookmarkTags.name}) THEN 2
+              WHEN ${bookmarkTags.name} LIKE ${opts.nameContains ? opts.nameContains + "%" : ""} THEN 1
+              ELSE 0
+            END`),
+            asc(sql<number>`length(${bookmarkTags.name})`),
+          ],
+        }),
+      )
+      .having(
+        opts.attachedBy
+          ? switchCase(opts.attachedBy, {
+              ai: and(eq(countHuman, 0), gt(countAi, 0)),
+              human: gt(countHuman, 0),
+              none: eq(countAny, 0),
+            })
+          : undefined,
+      );
 
-    if (tags.length === 0) {
-      return [];
+    if (opts.pagination) {
+      qSql.offset(opts.pagination.page * opts.pagination.limit);
+      qSql.limit(opts.pagination.limit + 1);
+    }
+    const tags = await qSql;
+
+    let nextCursor = null;
+    if (opts.pagination) {
+      if (tags.length > opts.pagination.limit) {
+        tags.pop();
+        nextCursor = {
+          page: opts.pagination.page + 1,
+        };
+      }
     }
 
-    const tagsById = tags.reduce<
-      Record<
-        string,
-        {
-          id: string;
-          name: string;
-          attachedBy: "ai" | "human" | null;
-          count: number;
-        }[]
-      >
-    >((acc, curr) => {
-      if (!acc[curr.id]) {
-        acc[curr.id] = [];
-      }
-      acc[curr.id].push(curr);
-      return acc;
-    }, {});
-
-    return Object.entries(tagsById).map(([k, t]) => ({
-      id: k,
-      name: t[0].name,
-      ...Tag._aggregateStats(t),
-    }));
+    return {
+      tags: tags.map((t) => ({
+        id: t.id,
+        name: t.name,
+        numBookmarks: t.count,
+        numBookmarksByAttachedType: {
+          ai: t.countAttachedByAi,
+          human: t.countAttachedByHuman,
+        },
+      })),
+      nextCursor,
+    };
   }
 
   static async deleteUnused(ctx: AuthedContext): Promise<number> {

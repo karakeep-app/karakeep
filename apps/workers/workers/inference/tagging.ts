@@ -179,7 +179,7 @@ async function replaceTagsPlaceholders(
   userId: string,
 ): Promise<string[]> {
   const api = await buildImpersonatingTRPCClient(userId);
-  const tags = (await api.tags.list()).tags;
+  const tags = (await api.tags.list({})).tags;
   const tagsString = `[${tags.map((tag) => tag.name).join(", ")}]`;
   const aiTagsString = `[${tags
     .filter((tag) => tag.numBookmarksByAttachedType.human ?? true)

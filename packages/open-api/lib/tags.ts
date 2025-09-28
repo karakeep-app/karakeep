@@ -9,6 +9,7 @@ import {
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
+  zTagListQueryParamsSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -43,7 +44,9 @@ registry.registerPath({
   summary: "Get all tags",
   tags: ["Tags"],
   security: [{ [BearerAuth.name]: [] }],
-  request: {},
+  request: {
+    query: zTagListQueryParamsSchema,
+  },
   responses: {
     200: {
       description: "Object with all tags data.",
@@ -51,6 +54,7 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             tags: z.array(TagSchema),
+            nextCursor: z.string().nullable(),
           }),
         },
       },
