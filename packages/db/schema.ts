@@ -645,6 +645,9 @@ export const importSessions = sqliteTable(
       .notNull()
       .default("pending"),
     message: text("message"),
+    rootListId: text("rootListId").references(() => bookmarkLists.id, {
+      onDelete: "set null",
+    }),
     createdAt: createdAtField(),
     modifiedAt: modifiedAtField(),
   },

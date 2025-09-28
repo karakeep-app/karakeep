@@ -4,6 +4,22 @@ import { toast } from "@/components/ui/use-toast";
 
 import { api } from "@karakeep/shared-react/trpc";
 
+export function useCreateImportSession() {
+  const apiUtils = api.useUtils();
+
+  return api.importSessions.createImportSession.useMutation({
+    onSuccess: () => {
+      apiUtils.importSessions.listImportSessions.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        description: error.message || "Failed to create import session",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
 export function useListImportSessions() {
   return api.importSessions.listImportSessions.useQuery(
     {

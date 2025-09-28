@@ -442,6 +442,13 @@
       "when": 1759080506930,
       "tag": "0062_add_import_sessions_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "6",
+      "when": 1759084784500,
+      "tag": "0063_add_root_list_id_to_import",
+      "breakpoints": true
     }
   ]
 }

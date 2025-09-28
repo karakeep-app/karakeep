@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,9 @@ import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
   CheckCircle2,
+  ClipboardList,
   Clock,
+  ExternalLink,
   Loader2,
   Play,
   Trash2,
@@ -58,7 +60,6 @@ function getStatusIcon(status: string) {
 }
 
 export function ImportSessionCard({ session }: ImportSessionCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
   const { data: liveStats } = useImportSessionStats(session.id);
   const startProcessing = useStartImportSessionProcessing();
   const deleteSession = useDeleteImportSession();
@@ -111,7 +112,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           </div>
 
           {/* Stats Breakdown */}
-          {(stats.totalBookmarks > 0 || showDetails) && (
+          {stats.totalBookmarks > 0 && (
             <div className="grid grid-cols-2 gap-4 text-sm">
               {stats.pendingBookmarks > 0 && (
                 <div className="flex justify-between">
@@ -140,6 +141,24 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
             </div>
           )}
 
+          {/* Root List Link */}
+          {session.rootListId && (
+            <div className="rounded bg-blue-50 p-3">
+              <div className="flex items-center gap-2 text-sm">
+                <ClipboardList className="h-4 w-4 text-blue-600" />
+                <span className="font-medium text-blue-700">Imported to:</span>
+                <Link
+                  href={`/dashboard/lists/${session.rootListId}`}
+                  className="flex items-center gap-1 text-blue-600 underline underline-offset-2 hover:text-blue-800"
+                  target="_blank"
+                >
+                  View List
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Message */}
           {stats.message && (
             <div className="rounded bg-gray-50 p-2 text-sm text-gray-600">
@@ -148,15 +167,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDetails(!showDetails)}
-            >
-              {showDetails ? "Hide" : "Show"} Details
-            </Button>
-
+          <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
               {canStart && (
                 <Button

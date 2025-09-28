@@ -17,6 +17,7 @@ export interface ImportDeps {
   }) => Promise<{ id: string }>;
   createBookmark: (
     bookmark: ParsedBookmark,
+    sessionId: string,
   ) => Promise<{ id: string; alreadyExists?: boolean }>;
   addBookmarkToLists: (input: {
     bookmarkId: string;
@@ -26,6 +27,10 @@ export interface ImportDeps {
     bookmarkId: string;
     tags: string[];
   }) => Promise<void>;
+  createImportSession: (input: {
+    name: string;
+    rootListId: string;
+  }) => Promise<{ id: string }>;
 }
 
 export interface ImportOptions {
@@ -38,6 +43,7 @@ export interface ImportOptions {
 export interface ImportResult {
   counts: ImportCounts;
   rootListId: string | null;
+  importSessionId: string | null;
 }
 
 export async function importBookmarksFromFile(
@@ -66,10 +72,15 @@ export async function importBookmarksFromFile(
     return {
       counts: { successes: 0, failures: 0, alreadyExisted: 0, total: 0 },
       rootListId: null,
+      importSessionId: null,
     };
   }
 
   const rootList = await deps.createList({ name: rootListName, icon: "⬆️" });
+  const session = await deps.createImportSession({
+    name: `${source.charAt(0).toUpperCase() + source.slice(1)} Import - ${new Date().toLocaleDateString()}`,
+    rootListId: rootList.id,
+  });
 
   onProgress?.(0, parsedBookmarks.length);
 
@@ -115,7 +126,7 @@ export async function importBookmarksFromFile(
     );
     if (listIds.length === 0) listIds.push(rootList.id);
 
-    const created = await deps.createBookmark(bookmark);
+    const created = await deps.createBookmark(bookmark, session.id);
     await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
     if (bookmark.tags && bookmark.tags.length > 0) {
       await deps.updateBookmarkTags({
@@ -145,7 +156,6 @@ export async function importBookmarksFromFile(
     done += 1;
     onProgress?.(done, parsedBookmarks.length);
   }
-
   return {
     counts: {
       successes,
@@ -154,5 +164,6 @@ export async function importBookmarksFromFile(
       total: parsedBookmarks.length,
     },
     rootListId: rootList.id,
+    importSessionId: session.id,
   };
 }

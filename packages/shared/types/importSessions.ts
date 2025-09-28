@@ -24,6 +24,7 @@ export const zImportSessionSchema = z.object({
   userId: z.string(),
   status: zImportSessionStatusSchema,
   message: z.string().nullable(),
+  rootListId: z.string().nullable(),
   createdAt: z.date(),
   modifiedAt: z.date().nullable(),
 });
@@ -42,6 +43,7 @@ export type ZImportSessionWithStats = z.infer<
 
 export const zCreateImportSessionRequestSchema = z.object({
   name: z.string().min(1).max(255),
+  rootListId: z.string().optional(),
 });
 export type ZCreateImportSessionRequest = z.infer<
   typeof zCreateImportSessionRequestSchema

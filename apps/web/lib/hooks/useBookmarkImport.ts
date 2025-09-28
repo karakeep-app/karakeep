@@ -24,6 +24,8 @@ import {
   MAX_BOOKMARK_TITLE_LENGTH,
 } from "@karakeep/shared/types/bookmarks";
 
+import { useCreateImportSession } from "./useImportSessions";
+
 export interface ImportProgress {
   done: number;
   total: number;
@@ -35,10 +37,8 @@ export function useBookmarkImport() {
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
   );
-  const [currentImportSessionId, setCurrentImportSessionId] = useState<
-    string | null
-  >(null);
 
+  const { mutateAsync: createImportSession } = useCreateImportSession();
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook();
   const { mutateAsync: createList } = useCreateBookmarkList();
   const { mutateAsync: addToList } = useAddBookmarkToList();
@@ -53,22 +53,18 @@ export function useBookmarkImport() {
       file: File;
       source: ImportSource;
     }) => {
-      // Create an import session for this file import
-      const sessionName = `${source.charAt(0).toUpperCase() + source.slice(1)} Import - ${new Date().toLocaleDateString()}`;
-      const sessionResult =
-        await apiUtils.client.importSessions.createImportSession.mutate({
-          name: sessionName,
-        });
-      setCurrentImportSessionId(sessionResult.id);
-
       const result = await importBookmarksFromFile(
         {
           file,
           source,
           rootListName: t("settings.import.imported_bookmarks"),
           deps: {
-            createList: createList,
-            createBookmark: async (bookmark: ParsedBookmark) => {
+            createImportSession,
+            createList,
+            createBookmark: async (
+              bookmark: ParsedBookmark,
+              sessionId: string,
+            ) => {
               if (bookmark.content === undefined) {
                 throw new Error("Content is undefined");
               }
@@ -84,7 +80,7 @@ export function useBookmarkImport() {
                 skipCrawling: true,
                 skipInference: true,
                 skipPreprocessing: true,
-                importSessionId: sessionResult.id,
+                importSessionId: sessionId,
                 ...(bookmark.content.type === BookmarkTypes.LINK
                   ? {
                       type: BookmarkTypes.LINK,
@@ -137,7 +133,6 @@ export function useBookmarkImport() {
     },
     onSuccess: async (result) => {
       setImportProgress(null);
-      setCurrentImportSessionId(null);
 
       if (result.counts.total === 0) {
         toast({ description: "No bookmarks found in the file." });
@@ -158,11 +153,11 @@ export function useBookmarkImport() {
       }
 
       // Start processing the import session if there were successful imports
-      if (successes > 0 && currentImportSessionId) {
+      if ((successes > 0 || alreadyExisted > 0) && result.importSessionId) {
         try {
           await apiUtils.client.importSessions.startImportSessionProcessing.mutate(
             {
-              importSessionId: currentImportSessionId,
+              importSessionId: result.importSessionId,
             },
           );
         } catch (error) {
@@ -172,7 +167,6 @@ export function useBookmarkImport() {
     },
     onError: (error) => {
       setImportProgress(null);
-      setCurrentImportSessionId(null);
       toast({
         description: error.message,
         variant: "destructive",

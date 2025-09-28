@@ -85,6 +85,8 @@ describe("importBookmarksFromFile", () => {
       },
     );
 
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
     const progress: number[] = [];
     const res = await importBookmarksFromFile(
       {
@@ -96,6 +98,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark,
           addBookmarkToLists,
           updateBookmarkTags,
+          createImportSession,
         },
         onProgress: (d, t) => progress.push(d / t),
       },
@@ -167,6 +170,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark: vi.fn(),
           addBookmarkToLists: vi.fn(),
           updateBookmarkTags: vi.fn(),
+          createImportSession: vi.fn(async () => ({ id: "session-1" })),
         },
       },
       { parsers },
@@ -244,6 +248,8 @@ describe("importBookmarksFromFile", () => {
       },
     );
 
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
     const progress: number[] = [];
     const res = await importBookmarksFromFile(
       {
@@ -255,6 +261,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark,
           addBookmarkToLists,
           updateBookmarkTags,
+          createImportSession,
         },
         onProgress: (d, t) => progress.push(d / t),
       },
@@ -353,6 +360,8 @@ describe("importBookmarksFromFile", () => {
       },
     );
 
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
     const progress: number[] = [];
     const res = await importBookmarksFromFile(
       {
@@ -364,6 +373,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark,
           addBookmarkToLists,
           updateBookmarkTags,
+          createImportSession,
         },
         onProgress: (d, t) => progress.push(d / t),
       },

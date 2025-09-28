@@ -60,6 +60,7 @@ export const importSessionsRouter = router({
           name: input.name,
           userId: ctx.user.id,
           status: "pending",
+          rootListId: input.rootListId,
         })
         .returning();
 
