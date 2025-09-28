@@ -45,26 +45,53 @@ export const zTagCusrsorSchema = z.object({
   page: z.number(),
 });
 
-export const zTagListRequestSchema = z
-  .object({
-    nameContains: z.string().optional(),
-    attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
-    sortBy: z.enum(["name", "usage", "relevance"]).optional().default("usage"),
-    cursor: zTagCusrsorSchema.default({ page: 0 }),
-    // TODO: Enforce a maximum limit after the next release
-    limit: z.number().optional(),
-  })
-  .refine(
-    (val) => val.sortBy != "relevance" || val.nameContains !== undefined,
-    {
-      message: "Relevance sorting requires a nameContains filter",
-      path: ["sortBy"],
-    },
-  );
+export const zTagListRequestSchema = z.object({
+  nameContains: z.string().optional(),
+  attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
+  sortBy: z.enum(["name", "usage", "relevance"]).optional().default("usage"),
+  cursor: zTagCusrsorSchema.default({ page: 0 }),
+  // TODO: Enforce a maximum limit after the next release
+  limit: z.number().optional(),
+});
+
+export const zTagListValidatedRequestSchema = zTagListRequestSchema.refine(
+  (val) => val.sortBy != "relevance" || val.nameContains !== undefined,
+  {
+    message: "Relevance sorting requires a nameContains filter",
+    path: ["sortBy"],
+  },
+);
 
 export const zTagListResponseSchema = z.object({
   tags: z.array(zGetTagResponseSchema),
-  // TODO: Change to nullable once the next release is out.
   nextCursor: zTagCusrsorSchema.nullish(),
 });
 export type ZTagListResponse = z.infer<typeof zTagListResponseSchema>;
+
+// API Types
+
+export const zTagListQueryParamsSchema = z.object({
+  nameContains: zTagListRequestSchema.shape.nameContains,
+  sort: zTagListRequestSchema.shape.sortBy,
+  cursor: z
+    .string()
+    .transform((val, ctx) => {
+      try {
+        return JSON.parse(atob(val));
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          message: "Invalid cursor",
+        });
+        return z.NEVER;
+      }
+    })
+    .optional()
+    .pipe(zTagListRequestSchema.shape.cursor),
+  limit: z.coerce.number().optional(),
+});
+
+export const zTagListApiResultSchema = z.object({
+  tags: zTagListResponseSchema.shape.tags,
+  nextCursor: z.string().nullish(),
+});

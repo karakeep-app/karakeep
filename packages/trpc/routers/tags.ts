@@ -5,8 +5,8 @@ import {
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
-  zTagListRequestSchema,
   zTagListResponseSchema,
+  zTagListValidatedRequestSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -94,7 +94,9 @@ export const tagsAppRouter = router({
   list: authedProcedure
     .input(
       // TODO: Remove the optional and default once the next release is out.
-      zTagListRequestSchema.optional().default(zTagListRequestSchema.parse({})),
+      zTagListValidatedRequestSchema
+        .optional()
+        .default(zTagListValidatedRequestSchema.parse({})),
     )
     .output(zTagListResponseSchema)
     .query(async ({ ctx, input }) => {
