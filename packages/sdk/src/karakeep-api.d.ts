@@ -1149,6 +1149,7 @@ export interface paths {
         query?: {
           nameContains?: string;
           sort?: "name" | "usage" | "relevance";
+          attachedBy?: "ai" | "human" | "none";
           cursor?: string;
           limit?: number | null;
         };

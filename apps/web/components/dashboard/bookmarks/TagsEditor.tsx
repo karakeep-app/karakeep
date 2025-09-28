@@ -53,12 +53,19 @@ export function TagsEditor({
 
   React.useEffect(() => {
     setOptimisticTags((prev) => {
+      let results = prev;
       for (const tag of _tags) {
-        if (!prev.some((t) => t.id === tag.id)) {
-          return [...prev, tag];
+        const idx = results.findIndex((t) => t.name === tag.name);
+        if (idx == -1) {
+          results.push(tag);
+          continue;
+        }
+        if (results[idx].id.startsWith("temp-")) {
+          results[idx] = tag;
+          continue;
         }
       }
-      return prev;
+      return results;
     });
   }, [_tags]);
 
@@ -302,7 +309,8 @@ export function TagsEditor({
                 value={inputValue}
                 onKeyDown={handleKeyDown}
                 onValueChange={(v) => setInputValue(v)}
-                className="w-1 bg-transparent outline-none placeholder:text-muted-foreground"
+                className="bg-transparent outline-none placeholder:text-muted-foreground"
+                style={{ width: `${Math.max(inputValue.length, 1)}ch` }}
                 disabled={isDisabled}
               />
               {isExistingTagsLoading && (

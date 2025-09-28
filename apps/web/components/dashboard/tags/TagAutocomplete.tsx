@@ -38,9 +38,6 @@ export function TagAutocomplete({
     select: (data) => data.tags,
   });
 
-  // Filter tags based on search query
-  const filteredTags = tags ?? [];
-
   const handleSelect = (currentValue: string) => {
     setOpen(false);
     onChange?.(currentValue);
@@ -55,7 +52,7 @@ export function TagAutocomplete({
     return tags?.find((t) => t.id === tagId) ?? null;
   }, [tags, tagId]);
 
-  if (isLoading) {
+  if (!tags || isLoading) {
     return <LoadingSpinner />;
   }
 
@@ -96,7 +93,7 @@ export function TagAutocomplete({
           <CommandList>
             <CommandEmpty>No tags found.</CommandEmpty>
             <CommandGroup className="max-h-60 overflow-y-auto">
-              {filteredTags.map((tag) => (
+              {tags.map((tag) => (
                 <CommandItem
                   key={tag.id}
                   value={tag.id}
@@ -112,11 +109,6 @@ export function TagAutocomplete({
                   {tag.name}
                 </CommandItem>
               ))}
-              {searchQuery && filteredTags.length >= 10 && (
-                <div className="px-2 py-2 text-center text-xs text-muted-foreground">
-                  Showing first 10 results. Keep typing to refine your search.
-                </div>
-              )}
             </CommandGroup>
           </CommandList>
         </Command>

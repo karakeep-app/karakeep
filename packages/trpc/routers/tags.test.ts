@@ -364,7 +364,7 @@ describe("Tags Routes", () => {
         await tagsApi.create({ name: "unused-tag" });
 
         const aiTag = await tagsApi.create({ name: "ai-tag" });
-        db.insert(tagsOnBookmarks).values([
+        await db.insert(tagsOnBookmarks).values([
           {
             bookmarkId: bookmark.id,
             tagId: aiTag.id,

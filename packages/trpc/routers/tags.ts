@@ -106,7 +106,7 @@ export const tagsAppRouter = router({
         sortBy: input.sortBy,
         pagination: input.limit
           ? {
-              page: input.cursor.page,
+              page: input.cursor?.page ?? 0,
               limit: input.limit,
             }
           : undefined,

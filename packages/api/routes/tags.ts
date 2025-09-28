@@ -21,6 +21,7 @@ const app = new Hono()
     const searchParams = c.req.valid("query");
     const tags = await c.var.api.tags.list({
       nameContains: searchParams.nameContains,
+      attachedBy: searchParams.attachedBy,
       sortBy: searchParams.sort,
       cursor: searchParams.cursor,
       limit: searchParams.limit,
@@ -29,7 +30,7 @@ const app = new Hono()
     const resp: z.infer<typeof zTagListApiResultSchema> = {
       tags: tags.tags,
       nextCursor: tags.nextCursor
-        ? btoa(JSON.stringify(tags.nextCursor))
+        ? Buffer.from(JSON.stringify(tags.nextCursor)).toString("base64url")
         : null,
     };
     return c.json(resp, 200);

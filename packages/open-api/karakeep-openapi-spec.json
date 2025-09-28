@@ -2317,6 +2317,19 @@
           },
           {
             "schema": {
+              "type": "string",
+              "enum": [
+                "ai",
+                "human",
+                "none"
+              ]
+            },
+            "required": false,
+            "name": "attachedBy",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string"
             },
             "required": false,

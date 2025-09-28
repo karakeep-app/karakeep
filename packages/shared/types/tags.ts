@@ -41,17 +41,17 @@ export const zTagBasicSchema = z.object({
 });
 export type ZTagBasic = z.infer<typeof zTagBasicSchema>;
 
-export const zTagCusrsorSchema = z.object({
-  page: z.number(),
+export const zTagCursorSchema = z.object({
+  page: z.number().int().min(0),
 });
 
 export const zTagListRequestSchema = z.object({
   nameContains: z.string().optional(),
   attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
   sortBy: z.enum(["name", "usage", "relevance"]).optional().default("usage"),
-  cursor: zTagCusrsorSchema.default({ page: 0 }),
-  // TODO: Enforce a maximum limit after the next release
-  limit: z.number().optional(),
+  cursor: zTagCursorSchema.nullish().default({ page: 0 }),
+  // TODO: Remove the optional to enforce a limit after the next release
+  limit: z.number().int().min(1).max(MAX_NUM_TAGS_PER_PAGE).optional(),
 });
 
 export const zTagListValidatedRequestSchema = zTagListRequestSchema.refine(
@@ -64,7 +64,7 @@ export const zTagListValidatedRequestSchema = zTagListRequestSchema.refine(
 
 export const zTagListResponseSchema = z.object({
   tags: z.array(zGetTagResponseSchema),
-  nextCursor: zTagCusrsorSchema.nullish(),
+  nextCursor: zTagCursorSchema.nullish(),
 });
 export type ZTagListResponse = z.infer<typeof zTagListResponseSchema>;
 
@@ -73,11 +73,12 @@ export type ZTagListResponse = z.infer<typeof zTagListResponseSchema>;
 export const zTagListQueryParamsSchema = z.object({
   nameContains: zTagListRequestSchema.shape.nameContains,
   sort: zTagListRequestSchema.shape.sortBy,
+  attachedBy: zTagListRequestSchema.shape.attachedBy,
   cursor: z
     .string()
     .transform((val, ctx) => {
       try {
-        return JSON.parse(atob(val));
+        return JSON.parse(Buffer.from(val, "base64url").toString("utf8"));
       } catch {
         ctx.addIssue({
           code: "custom",
