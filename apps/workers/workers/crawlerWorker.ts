@@ -640,8 +640,6 @@ async function downloadAndStoreFile(
       throw new Error("No content type in the response");
     }
 
-    const expectedLength = response.headers.get("content-length");
-
     const assetId = newAssetId();
     assetPath = path.join(os.tmpdir(), assetId);
 
@@ -663,15 +661,7 @@ async function downloadAndStoreFile(
         }
       },
       flush(callback) {
-        if (expectedLength && bytesRead !== Number(expectedLength)) {
-          callback(
-            new Error(
-              `Content length mismatch: expected ${expectedLength}, got ${bytesRead}`,
-            ),
-          );
-        } else {
-          callback();
-        }
+        callback();
       },
     });
 
@@ -1003,12 +993,15 @@ async function crawlAndParseUrl(
 
   const { htmlContent, screenshot, statusCode, url: browserUrl } = result;
 
-  const [meta, readableContent, screenshotAssetInfo] = await Promise.all([
+  const abortableWork = Promise.all([
     extractMetadata(htmlContent, browserUrl, jobId),
     extractReadableContent(htmlContent, browserUrl, jobId),
     storeScreenshot(screenshot, userId, jobId),
-    abortPromise(abortSignal),
   ]);
+
+  await Promise.race([abortableWork, abortPromise(abortSignal)]);
+
+  const [meta, readableContent, screenshotAssetInfo] = await abortableWork;
 
   abortSignal.throwIfAborted();
 
