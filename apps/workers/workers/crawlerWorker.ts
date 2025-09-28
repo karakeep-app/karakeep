@@ -510,8 +510,9 @@ async function crawlPage(
         Promise.race<Buffer>([
           page.screenshot({
             // If you change this, you need to change the asset type in the store function.
-            type: "png",
+            type: "jpeg",
             fullPage: serverConfig.crawler.fullPageScreenshot,
+            quality: 80,
           }),
           new Promise((_, reject) =>
             setTimeout(
@@ -616,7 +617,7 @@ async function storeScreenshot(
     return null;
   }
   const assetId = newAssetId();
-  const contentType = "image/png";
+  const contentType = "image/jpeg";
   const fileName = "screenshot.png";
 
   // Check storage quota before saving the screenshot
