@@ -3,8 +3,8 @@ import { promises as fs } from "fs";
 import * as fsSync from "fs";
 import * as path from "node:path";
 import * as os from "os";
-import { pipeline, Transform } from "stream";
-import { promisify } from "util";
+import { Transform } from "stream";
+import { pipeline } from "stream/promises";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
@@ -74,8 +74,6 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
-
-const streamPipeline = promisify(pipeline);
 
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
@@ -678,7 +676,7 @@ async function downloadAndStoreFile(
       },
     });
 
-    await streamPipeline(
+    await pipeline(
       response.body,
       contentLengthEnforcer,
       fsSync.createWriteStream(assetPath),
