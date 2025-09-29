@@ -168,12 +168,34 @@ export const bookmarks = sqliteTable(
     type: text("type", {
       enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
     }).notNull(),
+    lastRediscoveredAt: integer("lastRediscoveredAt", { mode: "timestamp" }),
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
     index("bookmarks_archived_idx").on(b.archived),
     index("bookmarks_favourited_idx").on(b.favourited),
     index("bookmarks_createdAt_idx").on(b.createdAt),
+  ],
+);
+
+export const discoveryQueue = sqliteTable(
+  "discoveryQueue",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    addedAt: integer("addedAt", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    position: integer("position").notNull(),
+  },
+  (dq) => [
+    primaryKey({ columns: [dq.userId, dq.bookmarkId] }),
+    index("discoveryQueue_userId_idx").on(dq.userId),
+    index("discoveryQueue_position_idx").on(dq.userId, dq.position),
   ],
 );
 
@@ -795,3 +817,14 @@ export const passwordResetTokensRelations = relations(
     }),
   }),
 );
+
+export const discoveryQueueRelations = relations(discoveryQueue, ({ one }) => ({
+  user: one(users, {
+    fields: [discoveryQueue.userId],
+    references: [users.id],
+  }),
+  bookmark: one(bookmarks, {
+    fields: [discoveryQueue.bookmarkId],
+    references: [bookmarks.id],
+  }),
+}));

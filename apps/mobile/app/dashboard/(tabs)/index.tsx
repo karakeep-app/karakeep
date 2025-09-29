@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/Toast";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { MenuView } from "@react-native-menu/menu";
-import { Plus, Search } from "lucide-react-native";
+import { Plus, Search, Shuffle } from "lucide-react-native";
 
 function HeaderRight({
   openNewBookmarkModal,
@@ -89,18 +89,32 @@ export default function Home() {
                 }
               />
             </View>
-            <Pressable
-              className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
-              onPress={() => router.push("/dashboard/search")}
-            >
-              <TailwindResolver
-                className="text-muted"
-                comp={(styles) => (
-                  <Search size={16} color={styles?.color?.toString()} />
-                )}
-              />
-              <Text className="text-muted">Search</Text>
-            </Pressable>
+            <View className="flex flex-row gap-2">
+              <Pressable
+                className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
+                onPress={() => router.push("/dashboard/search")}
+              >
+                <TailwindResolver
+                  className="text-muted"
+                  comp={(styles) => (
+                    <Search size={16} color={styles?.color?.toString()} />
+                  )}
+                />
+                <Text className="text-muted">Search</Text>
+              </Pressable>
+              <Pressable
+                className="flex-1 flex-row items-center gap-1 rounded-lg border border-input bg-background px-4 py-2.5"
+                onPress={() => router.push("/dashboard/rediscover")}
+              >
+                <TailwindResolver
+                  className="text-muted-foreground"
+                  comp={(styles) => (
+                    <Shuffle size={16} color={styles?.color?.toString()} />
+                  )}
+                />
+                <Text className="text-muted-foreground">Rediscover</Text>
+              </Pressable>
+            </View>
           </View>
         }
       />
