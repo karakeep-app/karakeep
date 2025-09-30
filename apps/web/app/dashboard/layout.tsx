@@ -12,6 +12,7 @@ import { TFunction } from "i18next";
 import {
   Archive,
   ClipboardList,
+  Clock,
   Highlighter,
   Home,
   Search,
@@ -79,6 +80,11 @@ export default async function Dashboard({
         name: t("common.highlights"),
         icon: <Highlighter size={18} />,
         path: "/dashboard/highlights",
+      },
+      {
+        name: "Reminders", // TODO: Add translation key
+        icon: <Clock size={18} />,
+        path: "/dashboard/reminders",
       },
       {
         name: t("common.archive"),
