@@ -6,7 +6,6 @@ import {
   zNewBookmarkRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import {
-  zAttachBookmarkToSessionRequestSchema,
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
   zGetImportSessionStatsRequestSchema,
@@ -20,10 +19,11 @@ import { defaultBeforeEach } from "../testUtils";
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("ImportSessions Routes", () => {
-  async function createTestBookmark(api: APICallerType) {
+  async function createTestBookmark(api: APICallerType, sessionId: string) {
     const newBookmarkInput: z.infer<typeof zNewBookmarkRequestSchema> = {
       type: BookmarkTypes.TEXT,
       text: "Test bookmark text",
+      importSessionId: sessionId,
     };
     const createdBookmark =
       await api.bookmarks.createBookmark(newBookmarkInput);
@@ -89,53 +89,16 @@ describe("ImportSessions Routes", () => {
     expect(sessionFromList?.rootListId).toBeNull();
   });
 
-  test<CustomTestContext>("attach bookmark to session", async ({
-    apiCallers,
-  }) => {
-    const api = apiCallers[0];
-    const bookmarkId = await createTestBookmark(api);
-
-    const session = await api.importSessions.createImportSession({
-      name: "Test Import Session",
-    });
-
-    const attachInput: z.infer<typeof zAttachBookmarkToSessionRequestSchema> = {
-      importSessionId: session.id,
-      bookmarkId,
-    };
-
-    const result =
-      await api.importSessions.attachBookmarkToSession(attachInput);
-    expect(result.success).toBe(true);
-
-    // Verify stats show the attached bookmark
-    const stats = await api.importSessions.getImportSessionStats({
-      importSessionId: session.id,
-    });
-    expect(stats.totalBookmarks).toBe(1);
-    expect(stats.pendingBookmarks).toBe(1);
-  });
-
   test<CustomTestContext>("get import session stats", async ({
     apiCallers,
   }) => {
     const api = apiCallers[0];
-    const bookmarkId1 = await createTestBookmark(api);
-    const bookmarkId2 = await createTestBookmark(api);
 
     const session = await api.importSessions.createImportSession({
       name: "Test Import Session",
     });
-
-    // Attach multiple bookmarks
-    await api.importSessions.attachBookmarkToSession({
-      importSessionId: session.id,
-      bookmarkId: bookmarkId1,
-    });
-    await api.importSessions.attachBookmarkToSession({
-      importSessionId: session.id,
-      bookmarkId: bookmarkId2,
-    });
+    await createTestBookmark(api, session.id);
+    await createTestBookmark(api, session.id);
 
     const statsInput: z.infer<typeof zGetImportSessionStatsRequestSchema> = {
       importSessionId: session.id,
@@ -146,7 +109,7 @@ describe("ImportSessions Routes", () => {
     expect(stats).toMatchObject({
       id: session.id,
       name: "Test Import Session",
-      status: "pending",
+      status: "in_progress",
       totalBookmarks: 2,
       pendingBookmarks: 2,
       completedBookmarks: 0,
@@ -184,51 +147,6 @@ describe("ImportSessions Routes", () => {
 
     expect(secondPage.sessions).toHaveLength(1);
     expect(secondPage.nextCursor).toBeNull();
-  });
-
-  test<CustomTestContext>("start import session processing", async ({
-    apiCallers,
-  }) => {
-    const api = apiCallers[0];
-    const bookmarkId = await createTestBookmark(api);
-
-    const session = await api.importSessions.createImportSession({
-      name: "Test Import Session",
-    });
-
-    // Attach a bookmark first
-    await api.importSessions.attachBookmarkToSession({
-      importSessionId: session.id,
-      bookmarkId,
-    });
-
-    const result = await api.importSessions.startImportSessionProcessing({
-      importSessionId: session.id,
-    });
-
-    expect(result.success).toBe(true);
-
-    // Verify session status changed
-    const stats = await api.importSessions.getImportSessionStats({
-      importSessionId: session.id,
-    });
-    expect(stats.status).toBe("in_progress");
-  });
-
-  test<CustomTestContext>("start processing fails with no bookmarks", async ({
-    apiCallers,
-  }) => {
-    const api = apiCallers[0].importSessions;
-
-    const session = await api.createImportSession({
-      name: "Empty Session",
-    });
-
-    await expect(
-      api.startImportSessionProcessing({
-        importSessionId: session.id,
-      }),
-    ).rejects.toThrow("Import session has no bookmarks to process");
   });
 
   test<CustomTestContext>("delete import session", async ({ apiCallers }) => {
@@ -288,14 +206,10 @@ describe("ImportSessions Routes", () => {
     const session = await api1.importSessions.createImportSession({
       name: "User 1 Session",
     });
-    const bookmarkId = await createTestBookmark(api2); // User 2's bookmark
 
     // User 1 tries to attach User 2's bookmark
     await expect(
-      api1.importSessions.attachBookmarkToSession({
-        importSessionId: session.id,
-        bookmarkId,
-      }),
-    ).rejects.toThrow("Bookmark not found");
+      createTestBookmark(api2, session.id), // User 2's bookmark
+    ).rejects.toThrow("User is not allowed to access this import session");
   });
 });

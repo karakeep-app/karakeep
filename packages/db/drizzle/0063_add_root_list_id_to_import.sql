@@ -1,1 +1,0 @@
-ALTER TABLE `importSessions` ADD `rootListId` text REFERENCES bookmarkLists(id);

@@ -10,7 +10,6 @@ import { shutdownPromise } from "./exit";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
-import { ImportSessionWorker } from "./workers/importSessionWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
 import { RuleEngineWorker } from "./workers/ruleEngineWorker";
 import { SearchIndexingWorker } from "./workers/searchWorker";
@@ -28,7 +27,6 @@ const workerBuilders = {
   assetPreprocessing: () => AssetPreprocessingWorker.build(),
   webhook: () => WebhookWorker.build(),
   ruleEngine: () => RuleEngineWorker.build(),
-  importSession: () => ImportSessionWorker.build(),
 } as const;
 
 type WorkerName = keyof typeof workerBuilders;

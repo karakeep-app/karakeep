@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import {
-  zAttachBookmarkToSessionRequestSchema,
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
   zGetImportSessionStatsRequestSchema,
@@ -20,15 +19,6 @@ export const importSessionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const session = await ImportSession.create(ctx, input);
       return { id: session.session.id };
-    }),
-
-  attachBookmarkToSession: authedProcedure
-    .input(zAttachBookmarkToSessionRequestSchema)
-    .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input, ctx }) => {
-      const session = await ImportSession.fromId(ctx, input.importSessionId);
-      await session.attachBookmark(input);
-      return { success: true };
     }),
 
   getImportSessionStats: authedProcedure
@@ -55,15 +45,6 @@ export const importSessionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const session = await ImportSession.fromId(ctx, input.importSessionId);
       await session.delete();
-      return { success: true };
-    }),
-
-  startImportSessionProcessing: authedProcedure
-    .input(z.object({ importSessionId: z.string() }))
-    .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input, ctx }) => {
-      const session = await ImportSession.fromId(ctx, input.importSessionId);
-      await session.startProcessing();
       return { success: true };
     }),
 });

@@ -3,13 +3,12 @@ import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import {
+  bookmarkLinks,
   bookmarks,
   importSessionBookmarks,
   importSessions,
 } from "@karakeep/db/schema";
-import { ImportSessionQueue } from "@karakeep/shared-server";
 import {
-  zAttachBookmarkToSessionRequestSchema,
   zCreateImportSessionRequestSchema,
   ZImportSession,
   ZImportSessionWithStats,
@@ -117,16 +116,29 @@ export class ImportSession implements PrivacyAware {
     }
   }
 
+  async attachBookmark(bookmarkId: string): Promise<void> {
+    await this.ctx.db.insert(importSessionBookmarks).values({
+      importSessionId: this.session.id,
+      bookmarkId,
+    });
+  }
+
   async getWithStats(): Promise<ZImportSessionWithStats> {
     // Get bookmark counts by status
     const statusCounts = await this.ctx.db
       .select({
-        status: importSessionBookmarks.status,
+        crawlStatus: bookmarkLinks.crawlStatus,
+        taggingStatus: bookmarks.taggingStatus,
         count: count(),
       })
       .from(importSessionBookmarks)
       .where(eq(importSessionBookmarks.importSessionId, this.session.id))
-      .groupBy(importSessionBookmarks.status);
+      .leftJoin(bookmarks, eq(bookmarks.id, importSessionBookmarks.bookmarkId))
+      .leftJoin(
+        bookmarkLinks,
+        eq(bookmarkLinks.id, importSessionBookmarks.bookmarkId),
+      )
+      .groupBy(bookmarkLinks.crawlStatus, bookmarks.taggingStatus);
 
     const stats = {
       totalBookmarks: 0,
@@ -138,91 +150,29 @@ export class ImportSession implements PrivacyAware {
 
     statusCounts.forEach((statusCount) => {
       stats.totalBookmarks += statusCount.count;
-      switch (statusCount.status) {
-        case "completed":
-          stats.completedBookmarks = statusCount.count;
-          break;
-        case "failed":
-          stats.failedBookmarks = statusCount.count;
-          break;
-        case "pending":
-          stats.pendingBookmarks = statusCount.count;
-          break;
-        case "processing":
-          stats.processingBookmarks = statusCount.count;
-          break;
+      if (
+        statusCount.crawlStatus === "success" &&
+        statusCount.taggingStatus === "success"
+      ) {
+        stats.completedBookmarks += statusCount.count;
+      } else if (
+        statusCount.crawlStatus === "failure" ||
+        statusCount.taggingStatus === "failure"
+      ) {
+        stats.failedBookmarks += statusCount.count;
+      } else if (
+        statusCount.crawlStatus === "pending" ||
+        statusCount.taggingStatus === "pending"
+      ) {
+        stats.pendingBookmarks += statusCount.count;
       }
     });
 
     return {
       ...this.session,
+      status: stats.pendingBookmarks > 0 ? "in_progress" : "completed",
       ...stats,
     };
-  }
-
-  async attachBookmark(
-    input: z.infer<typeof zAttachBookmarkToSessionRequestSchema>,
-  ): Promise<void> {
-    // Ensure bookmark ownership
-    const bookmark = await this.ctx.db.query.bookmarks.findFirst({
-      where: and(
-        eq(bookmarks.id, input.bookmarkId),
-        eq(bookmarks.userId, this.ctx.user.id),
-      ),
-      columns: {
-        id: true,
-      },
-    });
-
-    if (!bookmark) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Bookmark not found",
-      });
-    }
-
-    // Attach bookmark to session
-    await this.ctx.db
-      .insert(importSessionBookmarks)
-      .values({
-        importSessionId: this.session.id,
-        bookmarkId: input.bookmarkId,
-        status: "pending",
-      })
-      .onConflictDoNothing();
-  }
-
-  async startProcessing(): Promise<void> {
-    // Check if session has bookmarks to process
-    const bookmarkCount = await this.ctx.db
-      .select({ count: count() })
-      .from(importSessionBookmarks)
-      .where(eq(importSessionBookmarks.importSessionId, this.session.id));
-
-    if (bookmarkCount[0]?.count === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Import session has no bookmarks to process",
-      });
-    }
-
-    // Update session status to in_progress and enqueue processing
-    await this.ctx.db
-      .update(importSessions)
-      .set({
-        status: "in_progress",
-        modifiedAt: new Date(),
-      })
-      .where(eq(importSessions.id, this.session.id));
-
-    // Update local session object
-    this.session.status = "in_progress";
-    this.session.modifiedAt = new Date();
-
-    // Enqueue the import session for processing
-    await ImportSessionQueue.enqueue({
-      importSessionId: this.session.id,
-    });
   }
 
   async delete(): Promise<void> {

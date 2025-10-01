@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ac0fd1fc-26a4-4246-a803-4a4208fc57d2",
+  "id": "b26e2d7f-3e00-48f4-9d56-7da15a420666",
   "prevId": "e868f89a-f304-428c-8e96-705453facb18",
   "tables": {
     "account": {
@@ -1235,14 +1235,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'pending'"
-        },
         "createdAt": {
           "name": "createdAt",
           "type": "integer",
@@ -1263,13 +1255,6 @@
           "name": "importSessionBookmarks_bookmarkId_idx",
           "columns": [
             "bookmarkId"
-          ],
-          "isUnique": false
-        },
-        "importSessionBookmarks_status_idx": {
-          "name": "importSessionBookmarks_status_idx",
-          "columns": [
-            "status"
           ],
           "isUnique": false
         },
@@ -1353,6 +1338,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "rootListId": {
+          "name": "rootListId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "integer",
@@ -1396,6 +1388,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "importSessions_rootListId_bookmarkLists_id_fk": {
+          "name": "importSessions_rootListId_bookmarkLists_id_fk",
+          "tableFrom": "importSessions",
+          "tableTo": "bookmarkLists",
+          "columnsFrom": [
+            "rootListId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },

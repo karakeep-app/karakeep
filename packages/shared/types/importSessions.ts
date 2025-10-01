@@ -49,14 +49,6 @@ export type ZCreateImportSessionRequest = z.infer<
   typeof zCreateImportSessionRequestSchema
 >;
 
-export const zAttachBookmarkToSessionRequestSchema = z.object({
-  importSessionId: z.string(),
-  bookmarkId: z.string(),
-});
-export type ZAttachBookmarkToSessionRequest = z.infer<
-  typeof zAttachBookmarkToSessionRequestSchema
->;
-
 export const zGetImportSessionStatsRequestSchema = z.object({
   importSessionId: z.string(),
 });

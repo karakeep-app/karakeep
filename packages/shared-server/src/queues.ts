@@ -209,17 +209,3 @@ export async function triggerRuleEngineOnEvent(
     opts,
   );
 }
-
-// Import Session Worker
-export const zImportSessionRequestSchema = z.object({
-  importSessionId: z.string(),
-});
-export type ZImportSessionRequest = z.infer<typeof zImportSessionRequestSchema>;
-
-export const ImportSessionQueue =
-  QUEUE_CLIENT.createQueue<ZImportSessionRequest>("import_session_queue", {
-    defaultJobArgs: {
-      numRetries: 3,
-    },
-    keepFailedJobs: false,
-  });

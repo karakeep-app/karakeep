@@ -9,7 +9,6 @@ import { Progress } from "@/components/ui/progress";
 import {
   useDeleteImportSession,
   useImportSessionStats,
-  useStartImportSessionProcessing,
 } from "@/lib/hooks/useImportSessions";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -19,7 +18,6 @@ import {
   Clock,
   ExternalLink,
   Loader2,
-  Play,
   Trash2,
 } from "lucide-react";
 
@@ -61,17 +59,17 @@ function getStatusIcon(status: string) {
 
 export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const { data: liveStats } = useImportSessionStats(session.id);
-  const startProcessing = useStartImportSessionProcessing();
   const deleteSession = useDeleteImportSession();
 
   // Use live stats if available, otherwise fallback to session stats
   const stats = liveStats || session;
   const progress =
     stats.totalBookmarks > 0
-      ? (stats.completedBookmarks / stats.totalBookmarks) * 100
+      ? ((stats.completedBookmarks + stats.failedBookmarks) /
+          stats.totalBookmarks) *
+        100
       : 0;
 
-  const canStart = stats.status === "pending" && stats.totalBookmarks > 0;
   const canDelete = stats.status !== "in_progress";
 
   return (
@@ -101,10 +99,13 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Progress Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium text-muted-foreground">Progress</h4>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Progress
+              </h4>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  {stats.completedBookmarks} / {stats.totalBookmarks}
+                  {stats.completedBookmarks + stats.failedBookmarks} /{" "}
+                  {stats.totalBookmarks}
                 </span>
                 <Badge variant="outline" className="text-xs">
                   {Math.round(progress)}%
@@ -119,28 +120,39 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Stats Breakdown */}
           {stats.totalBookmarks > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Breakdown</h4>
               <div className="flex flex-wrap gap-2">
                 {stats.pendingBookmarks > 0 && (
-                  <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
+                  <Badge
+                    variant="secondary"
+                    className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                  >
                     <Clock className="mr-1.5 h-3 w-3" />
                     {stats.pendingBookmarks} pending
                   </Badge>
                 )}
                 {stats.processingBookmarks > 0 && (
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
+                  <Badge
+                    variant="secondary"
+                    className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                  >
                     <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
                     {stats.processingBookmarks} processing
                   </Badge>
                 )}
                 {stats.completedBookmarks > 0 && (
-                  <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800">
+                  <Badge
+                    variant="secondary"
+                    className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300"
+                  >
                     <CheckCircle2 className="mr-1.5 h-3 w-3" />
                     {stats.completedBookmarks} completed
                   </Badge>
                 )}
                 {stats.failedBookmarks > 0 && (
-                  <Badge variant="secondary" className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800">
+                  <Badge
+                    variant="secondary"
+                    className="border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+                  >
                     <AlertCircle className="mr-1.5 h-3 w-3" />
                     {stats.failedBookmarks} failed
                   </Badge>
@@ -154,10 +166,12 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
             <div className="rounded-lg border bg-muted/50 p-3 dark:bg-muted/20">
               <div className="flex items-center gap-2 text-sm">
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium text-muted-foreground">Imported to:</span>
+                <span className="font-medium text-muted-foreground">
+                  Imported to:
+                </span>
                 <Link
                   href={`/dashboard/lists/${session.rootListId}`}
-                  className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium transition-colors"
+                  className="flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
                   target="_blank"
                 >
                   View List
@@ -177,20 +191,6 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
-              {canStart && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() =>
-                    startProcessing.mutateAsync({ importSessionId: session.id })
-                  }
-                  disabled={startProcessing.isPending}
-                >
-                  <Play className="mr-1 h-4 w-4" />
-                  Start Processing
-                </Button>
-              )}
-
               {canDelete && (
                 <ActionConfirmingDialog
                   title="Delete Import Session"

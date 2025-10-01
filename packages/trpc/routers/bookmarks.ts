@@ -18,7 +18,6 @@ import {
   bookmarkTags,
   bookmarkTexts,
   customPrompts,
-  importSessionBookmarks,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
 import {
@@ -60,6 +59,7 @@ import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "../models/bookmarks";
+import { ImportSession } from "../models/importSessions";
 import { ensureAssetOwnership } from "./assets";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
@@ -273,6 +273,13 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
+          if (input.importSessionId) {
+            const session = await ImportSession.fromId(
+              ctx,
+              input.importSessionId,
+            );
+            await session.attachBookmark(alreadyExists.id);
+          }
           return { ...alreadyExists, alreadyExists: true };
         }
       }
@@ -417,108 +424,47 @@ export const bookmarksAppRouter = router({
         };
       });
 
+      if (input.importSessionId) {
+        const session = await ImportSession.fromId(ctx, input.importSessionId);
+        await session.attachBookmark(bookmark.id);
+      }
+
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
         priority: input.crawlPriority === "low" ? 50 : 0,
       };
 
-      // Enqueue crawling request (unless skipped for import)
-      const skipCrawling = input.skipCrawling ?? false;
-      const skipInference = input.skipInference ?? false;
-      const skipPreprocessing = input.skipPreprocessing ?? false;
-
-      if (!skipCrawling && !skipInference && !skipPreprocessing) {
-        switch (bookmark.content.type) {
-          case BookmarkTypes.LINK: {
-            // The crawling job triggers openai when it's done
-            await LinkCrawlerQueue.enqueue(
-              {
-                bookmarkId: bookmark.id,
-              },
-              enqueueOpts,
-            );
-            break;
-          }
-          case BookmarkTypes.TEXT: {
-            await OpenAIQueue.enqueue(
-              {
-                bookmarkId: bookmark.id,
-                type: "tag",
-              },
-              enqueueOpts,
-            );
-            break;
-          }
-          case BookmarkTypes.ASSET: {
-            await AssetPreprocessingQueue.enqueue(
-              {
-                bookmarkId: bookmark.id,
-                fixMode: false,
-              },
-              enqueueOpts,
-            );
-            break;
-          }
+      switch (bookmark.content.type) {
+        case BookmarkTypes.LINK: {
+          // The crawling job triggers openai when it's done
+          await LinkCrawlerQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+            },
+            enqueueOpts,
+          );
+          break;
         }
-      } else {
-        // Handle selective skipping for more granular control
-        switch (bookmark.content.type) {
-          case BookmarkTypes.LINK: {
-            if (!skipCrawling) {
-              await LinkCrawlerQueue.enqueue(
-                {
-                  bookmarkId: bookmark.id,
-                  runInference: !skipInference,
-                },
-                enqueueOpts,
-              );
-            } else if (!skipInference) {
-              await OpenAIQueue.enqueue(
-                {
-                  bookmarkId: bookmark.id,
-                  type: "tag",
-                },
-                enqueueOpts,
-              );
-            }
-            break;
-          }
-          case BookmarkTypes.TEXT: {
-            if (!skipInference) {
-              await OpenAIQueue.enqueue(
-                {
-                  bookmarkId: bookmark.id,
-                  type: "tag",
-                },
-                enqueueOpts,
-              );
-            }
-            break;
-          }
-          case BookmarkTypes.ASSET: {
-            if (!skipPreprocessing) {
-              await AssetPreprocessingQueue.enqueue(
-                {
-                  bookmarkId: bookmark.id,
-                  fixMode: false,
-                },
-                enqueueOpts,
-              );
-            }
-            break;
-          }
+        case BookmarkTypes.TEXT: {
+          await OpenAIQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+              type: "tag",
+            },
+            enqueueOpts,
+          );
+          break;
         }
-      }
-      // Attach to import session if provided
-      if (input.importSessionId) {
-        await ctx.db
-          .insert(importSessionBookmarks)
-          .values({
-            importSessionId: input.importSessionId,
-            bookmarkId: bookmark.id,
-            status: "pending",
-          })
-          .onConflictDoNothing();
+        case BookmarkTypes.ASSET: {
+          await AssetPreprocessingQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+              fixMode: false,
+            },
+            enqueueOpts,
+          );
+          break;
+        }
       }
 
       await triggerRuleEngineOnEvent(

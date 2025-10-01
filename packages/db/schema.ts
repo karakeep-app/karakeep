@@ -670,17 +670,11 @@ export const importSessionBookmarks = sqliteTable(
     bookmarkId: text("bookmarkId")
       .notNull()
       .references(() => bookmarks.id, { onDelete: "cascade" }),
-    status: text("status", {
-      enum: ["pending", "processing", "completed", "failed"],
-    })
-      .notNull()
-      .default("pending"),
     createdAt: createdAtField(),
   },
   (isb) => [
     index("importSessionBookmarks_sessionId_idx").on(isb.importSessionId),
     index("importSessionBookmarks_bookmarkId_idx").on(isb.bookmarkId),
-    index("importSessionBookmarks_status_idx").on(isb.status),
     unique().on(isb.importSessionId, isb.bookmarkId),
   ],
 );

@@ -142,10 +142,6 @@ export const zNewBookmarkRequestSchema = z
     // A mechanism to prioritize crawling of bookmarks depending on whether
     // they were created by a user interaction or by a bulk import.
     crawlPriority: z.enum(["low", "normal"]).optional(),
-    // Import session flags to skip background jobs
-    skipCrawling: z.boolean().optional(),
-    skipInference: z.boolean().optional(),
-    skipPreprocessing: z.boolean().optional(),
     importSessionId: z.string().optional(),
   })
   .and(

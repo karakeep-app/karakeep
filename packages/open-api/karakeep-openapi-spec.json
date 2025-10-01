@@ -693,6 +693,9 @@
                           "low",
                           "normal"
                         ]
+                      },
+                      "importSessionId": {
+                        "type": "string"
                       }
                     }
                   },

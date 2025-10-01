@@ -13,7 +13,6 @@ import {
   useAddBookmarkToList,
   useCreateBookmarkList,
 } from "@karakeep/shared-react/hooks/lists";
-import { api } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
@@ -43,7 +42,6 @@ export function useBookmarkImport() {
   const { mutateAsync: createList } = useCreateBookmarkList();
   const { mutateAsync: addToList } = useAddBookmarkToList();
   const { mutateAsync: updateTags } = useUpdateBookmarkTags();
-  const apiUtils = api.useUtils();
 
   const uploadBookmarkFileMutation = useMutation({
     mutationFn: async ({
@@ -76,10 +74,6 @@ export function useBookmarkImport() {
                   : undefined,
                 note: bookmark.notes,
                 archived: bookmark.archived,
-                // Import session flags to skip background jobs initially
-                skipCrawling: true,
-                skipInference: true,
-                skipPreprocessing: true,
                 importSessionId: sessionId,
                 ...(bookmark.content.type === BookmarkTypes.LINK
                   ? {
@@ -150,19 +144,6 @@ export function useBookmarkImport() {
           description: `Failed to import ${failures} bookmarks. Check console for details.`,
           variant: "destructive",
         });
-      }
-
-      // Start processing the import session if there were successful imports
-      if ((successes > 0 || alreadyExisted > 0) && result.importSessionId) {
-        try {
-          await apiUtils.client.importSessions.startImportSessionProcessing.mutate(
-            {
-              importSessionId: result.importSessionId,
-            },
-          );
-        } catch (error) {
-          console.error("Failed to start import session processing:", error);
-        }
       }
     },
     onError: (error) => {

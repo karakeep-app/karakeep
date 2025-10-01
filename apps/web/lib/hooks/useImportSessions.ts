@@ -43,28 +43,6 @@ export function useImportSessionStats(importSessionId: string) {
   );
 }
 
-export function useStartImportSessionProcessing() {
-  const apiUtils = api.useUtils();
-
-  return api.importSessions.startImportSessionProcessing.useMutation({
-    onSuccess: () => {
-      apiUtils.importSessions.listImportSessions.invalidate();
-      apiUtils.importSessions.getImportSessionStats.invalidate();
-      toast({
-        description: "Import session processing started",
-        variant: "default",
-      });
-    },
-    onError: (error) => {
-      toast({
-        description:
-          error.message || "Failed to start import session processing",
-        variant: "destructive",
-      });
-    },
-  });
-}
-
 export function useDeleteImportSession() {
   const apiUtils = api.useUtils();
 
