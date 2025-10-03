@@ -81,14 +81,17 @@ export const TidyAssetsQueue = QUEUE_CLIENT.createQueue<ZTidyAssetsRequest>(
 
 export async function triggerSearchReindex(
   bookmarkId: string,
-  opts?: EnqueueOptions,
+  opts?: Omit<EnqueueOptions, "idempotencyKey">,
 ) {
   await SearchIndexingQueue.enqueue(
     {
       bookmarkId,
       type: "index",
     },
-    opts,
+    {
+      ...opts,
+      idempotencyKey: `index:${bookmarkId}`,
+    },
   );
 }
 

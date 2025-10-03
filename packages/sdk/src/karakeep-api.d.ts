@@ -1146,7 +1146,13 @@ export interface paths {
      */
     get: {
       parameters: {
-        query?: never;
+        query?: {
+          nameContains?: string;
+          sort?: "name" | "usage" | "relevance";
+          attachedBy?: "ai" | "human" | "none";
+          cursor?: string;
+          limit?: number | null;
+        };
         header?: never;
         path?: never;
         cookie?: never;
@@ -1161,6 +1167,7 @@ export interface paths {
           content: {
             "application/json": {
               tags: components["schemas"]["Tag"][];
+              nextCursor: string | null;
             };
           };
         };

@@ -88,7 +88,8 @@
       "relevant_first": "Most Relevant First",
       "newest_first": "Newest First",
       "oldest_first": "Oldest First"
-    }
+    },
+    "load_more": "Load More"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
@@ -427,6 +428,12 @@
     "search_query": "Search Query",
     "search_query_help": "Learn more about the search query language.",
     "description": "Description (Optional)",
+    "delete_list": {
+      "title": "Delete List",
+      "description": "Deleting a list doesn't delete any bookmarks in that list.",
+      "delete_children": "Delete children lists (recursively)",
+      "delete_children_description": "If not checked, all direct children lists will become root lists"
+    },
     "rss": {
       "title": "RSS Feed",
       "description": "Enable an RSS feed for this list",
@@ -450,10 +457,17 @@
     "drag_and_drop_merging": "Drag & Drop Merging",
     "drag_and_drop_merging_info": "Drag and drop tags on each other to merge them",
     "sort_by_name": "Sort by Name",
+    "sort_by_usage": "Sort by Usage",
+    "sort_by_relevance": "Sort by Relevance",
     "create_tag": "Create Tag",
     "create_tag_description": "Create a new tag without attaching it to any bookmark",
     "tag_name": "Tag Name",
-    "enter_tag_name": "Enter tag name"
+    "enter_tag_name": "Enter tag name",
+    "no_custom_tags": "No custom tags yet",
+    "no_ai_tags": "No AI tags yet",
+    "no_unused_tags": "You don't have any unused tags",
+    "no_unused_tags_match_your_search": "No unused tags match your search",
+    "no_tags_match_your_search": "No tags match your search"
   },
   "search": {
     "is_favorited": "Is Favorited",

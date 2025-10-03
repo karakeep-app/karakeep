@@ -10,9 +10,9 @@ import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData } from "@tanstack/react-query";
-import { useDebounce } from "use-debounce";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 

@@ -215,6 +215,41 @@ export abstract class List implements PrivacyAware {
     }
   }
 
+  async getChildren(): Promise<(ManualList | SmartList)[]> {
+    const lists = await List.getAll(this.ctx);
+    const listById = new Map(lists.map((l) => [l.list.id, l]));
+
+    const adjecencyList = new Map<string, string[]>();
+
+    // Initialize all lists with empty arrays first
+    lists.forEach((l) => {
+      adjecencyList.set(l.list.id, []);
+    });
+
+    // Then populate the parent-child relationships
+    lists.forEach((l) => {
+      if (l.list.parentId) {
+        const currentChildren = adjecencyList.get(l.list.parentId) ?? [];
+        currentChildren.push(l.list.id);
+        adjecencyList.set(l.list.parentId, currentChildren);
+      }
+    });
+
+    const resultIds: string[] = [];
+    const queue: string[] = [this.list.id];
+
+    while (queue.length > 0) {
+      const id = queue.pop()!;
+      const children = adjecencyList.get(id) ?? [];
+      children.forEach((childId) => {
+        queue.push(childId);
+        resultIds.push(childId);
+      });
+    }
+
+    return resultIds.map((id) => listById.get(id)!);
+  }
+
   async update(
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {

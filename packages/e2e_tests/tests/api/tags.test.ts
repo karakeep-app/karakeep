@@ -198,4 +198,105 @@ describe("Tags API", () => {
     expect(updatedTaggedBookmarks!.bookmarks.length).toBe(1);
     expect(updatedTaggedBookmarks!.bookmarks[0].id).toBe(secondBookmark!.id);
   });
+
+  it("should paginate through tags", async () => {
+    // Create multiple tags
+    const tagNames = ["Tag A", "Tag B", "Tag C", "Tag D", "Tag E"];
+    const createdTags = [];
+
+    for (const name of tagNames) {
+      const { data: tag } = await client.POST("/tags", {
+        body: { name },
+      });
+      createdTags.push(tag!);
+    }
+
+    // Test pagination with limit of 2
+    const { data: firstPage, response: firstResponse } = await client.GET(
+      "/tags",
+      {
+        params: {
+          query: {
+            limit: 2,
+          },
+        },
+      },
+    );
+
+    expect(firstResponse.status).toBe(200);
+    expect(firstPage!.tags.length).toBe(2);
+    expect(firstPage!.nextCursor).toBeDefined();
+
+    // Get second page using cursor
+    const { data: secondPage, response: secondResponse } = await client.GET(
+      "/tags",
+      {
+        params: {
+          query: {
+            limit: 2,
+            cursor: firstPage!.nextCursor!,
+          },
+        },
+      },
+    );
+
+    expect(secondResponse.status).toBe(200);
+    expect(secondPage!.tags.length).toBe(2);
+    expect(secondPage!.nextCursor).toBeDefined();
+
+    // Get third page
+    const { data: thirdPage, response: thirdResponse } = await client.GET(
+      "/tags",
+      {
+        params: {
+          query: {
+            limit: 2,
+            cursor: secondPage!.nextCursor!,
+          },
+        },
+      },
+    );
+
+    expect(thirdResponse.status).toBe(200);
+    expect(thirdPage!.tags.length).toBe(1); // Only one tag remaining
+    expect(thirdPage!.nextCursor).toBeNull(); // No more pages
+
+    // Verify all tags are accounted for across pages
+    const allPagedTags = [
+      ...firstPage!.tags,
+      ...secondPage!.tags,
+      ...thirdPage!.tags,
+    ];
+    expect(allPagedTags.length).toBe(5);
+
+    // Verify all created tags are included
+    const allPagedTagIds = allPagedTags.map((tag) => tag.id);
+    const createdTagIds = createdTags.map((tag) => tag.id);
+    expect(allPagedTagIds.sort()).toEqual(createdTagIds.sort());
+  });
+
+  it("Invalid cursor should return 400", async () => {
+    const { response } = await client.GET("/tags", {
+      params: {
+        query: {
+          limit: 2,
+          cursor: "{}",
+        },
+      },
+    });
+    expect(response.status).toBe(400);
+  });
+
+  it("Listing without args returns all tags", async () => {
+    const tagNames = ["Tag A", "Tag B", "Tag C", "Tag D", "Tag E"];
+
+    for (const name of tagNames) {
+      await client.POST("/tags", {
+        body: { name },
+      });
+    }
+
+    const { data } = await client.GET("/tags");
+    expect(data?.tags).toHaveLength(tagNames.length);
+  });
 });

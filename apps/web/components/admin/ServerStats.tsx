@@ -34,6 +34,7 @@ function ReleaseInfo() {
   let newRelease;
   if (latestRelease && currentRelease != latestRelease) {
     newRelease = (
+      // oxlint-disable-next-line no-html-link-for-pages
       <a
         href={REPO_RELEASE_PAGE}
         target="_blank"
