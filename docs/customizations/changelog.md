@@ -150,24 +150,77 @@ jobs:
 **Root Cause:**
 Both deployment mechanisms are active simultaneously, creating conflicting triggers.
 
-### 🔧 CORRECTED SOLUTION: Disable GitHub App Integration
+### ✅ FINAL SOLUTION: Disable Per-Project Auto Deploy Setting
+
+**CORRECTED UNDERSTANDING:**
+- Coolify DOES have per-project Auto Deploy settings (contrary to initial assumption)
+- GitHub App integration remains global, but Auto Deploy is configurable per-project
+- Found in project's "Advanced Settings" section
 
 **Required Actions:**
-1. **DISABLE GitHub App integration in Coolify**:
-   - Go to Coolify project settings
-   - Disconnect/disable the GitHub App integration
-   - This prevents immediate deployment on push events
+1. **Go to Coolify Dashboard → Karakeep Project → Advanced Settings**
+2. **Find "Auto Deploy" setting** (enabled by default for GitHub App projects)
+3. **Disable Auto Deploy** for this project only
+4. **Save changes**
 
-2. **Rely solely on webhook approach**:
-   - Keep the updated workflow with 1Password webhook integration
-   - Webhook URL: `op://SECRETS/Karakeep/WEBHOOK`
-   - Only our workflow will trigger deployments
+**Benefits:**
+- ✅ **Karakeep**: Uses webhook-only deployment (no automatic GitHub App deployment)
+- ✅ **Other projects**: Continue using GitHub App with automatic deployments
+- ✅ **Same GitHub App**: Remains connected and functional for all projects
+- ✅ **Per-project control**: Each project has independent Auto Deploy settings
 
-3. **Test the corrected approach**:
-   - Push to main should NOT trigger immediate Coolify deployment
-   - Only the webhook call after build completion should trigger deployment
-
-**Expected Behavior (Corrected):**
-1. Push to main → GitHub Actions starts → **Coolify does NOTHING** (no GitHub App)
+**Expected Behavior (Final):**
+1. Push to main → GitHub Actions starts → **Coolify does NOTHING** (Auto Deploy disabled)
 2. Build completes (34 minutes) → Webhook triggers Coolify → Deployment begins with new image
 3. Version display shows correct version
+
+**Source:** [Official Coolify Documentation](https://coolify.io/docs/applications/) and [verified implementation](https://developkerr.com/blog/self-hosting-aspnet-core/)
+
+### ✅ SUCCESS: Auto Deploy Setting Disabled
+
+**Status Update:**
+- ✅ **Auto Deploy checkbox found** in Coolify project Advanced Settings
+- ✅ **Auto Deploy disabled** for Karakeep project only
+- ✅ **No premature deployment** when GitHub Actions workflow started (confirming setting works)
+- ⏳ **Build in progress** (~34-minute Docker image build)
+- ⏳ **Awaiting webhook test** when build completes
+
+**Verification Steps:**
+1. ✅ **Workflow started** → No immediate Coolify deployment (Auto Deploy disabled working)
+2. ⏳ **Build completes** → `notify-deployment` job should execute webhook call
+3. ⏳ **Webhook triggers Coolify** → Single deployment with new Docker image
+4. ⏳ **Version displays correctly** → UI shows proper version after deployment
+
+**Expected Final Outcome:**
+- **Issue 1 RESOLVED**: No premature deployment (Auto Deploy disabled)
+- **Issue 2 RESOLVED**: Correct version display (webhook deployment with new image)
+- **Other projects unaffected**: GitHub App continues working for other repositories
+
+### ❌ ISSUE: Webhook Not Triggering Deployment
+
+**Problem:**
+- ✅ GitHub Actions workflow completed successfully (including `notify-deployment` job)
+- ❌ Coolify did NOT start deployment after webhook call
+- **Possible causes**: Webhook URL incorrect, authentication failure, or payload issues
+
+**Debugging Solution: Test Webhook Created**
+- ✅ **Created**: `.github/workflows/test-coolify-webhook.yml`
+- **Purpose**: Rapid webhook testing without 34-minute Docker build
+- **Features**:
+  - Manual trigger only (workflow_dispatch)
+  - 1Password integration verification
+  - Webhook connectivity testing
+  - HTTP response code capture
+  - Detailed error reporting
+  - Completes in <2 minutes
+
+**Test Workflow Capabilities:**
+1. **1Password Integration Test**: Verifies webhook URL loading from `op://SECRETS/Karakeep/WEBHOOK`
+2. **Connectivity Test**: HEAD request to verify endpoint reachability
+3. **Webhook Call Test**: POST request with test payload and response analysis
+4. **Error Diagnosis**: Identifies authentication, connectivity, or configuration issues
+
+**Next Steps:**
+1. Run test workflow manually to diagnose webhook issues
+2. Fix any identified problems (URL, authentication, payload format)
+3. Re-test main workflow once webhook is confirmed working
