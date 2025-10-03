@@ -97,7 +97,7 @@ jobs:
     if: success()
 
     steps:
-      - name: Load Coolify webhook URL and token from 1Password
+      - name: Load Coolify secrets from 1Password
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
@@ -105,6 +105,25 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           COOLIFY_WEBHOOK_URL: op://SECRETS/Karakeep/WEBHOOK
           COOLIFY_DEPLOYMENT_TOKEN: op://SECRETS/Karakeep/DEPLOYMENT_TOKEN
+          COOLIFY_BASE_URL: op://SECRETS/Coolify/BASE_URL
+          COOLIFY_APPLICATION_UUID: op://SECRETS/Karakeep/APPLICATION_UUID
+
+      - name: Update Coolify Environment Variables
+        run: |
+          echo "## 🔧 Updating Coolify Environment Variables" >> $GITHUB_STEP_SUMMARY
+          echo "**Updating SERVER_VERSION to:** \`${{ needs.build-and-push.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+
+          # Update SERVER_VERSION environment variable in Coolify
+          curl -X PATCH "${COOLIFY_BASE_URL}/api/v1/applications/${COOLIFY_APPLICATION_UUID}/envs" \
+            -H "Authorization: Bearer $COOLIFY_DEPLOYMENT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '[{
+              "key": "SERVER_VERSION",
+              "value": "${{ needs.build-and-push.outputs.version }}",
+              "is_preview": false
+            }]'
+
+          echo "✅ Environment variables updated successfully"
 
       - name: Trigger Coolify Deployment
         run: |
@@ -117,4 +136,4 @@ jobs:
         run: |
           curl --request GET "$COOLIFY_WEBHOOK_URL" \
             --header "Authorization: Bearer $COOLIFY_DEPLOYMENT_TOKEN"
-          echo "Coolify webhook triggered successfully"
+          echo "✅ Coolify webhook triggered successfully"

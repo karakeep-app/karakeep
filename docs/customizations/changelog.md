@@ -288,6 +288,54 @@ curl --request GET "$COOLIFY_WEBHOOK_URL" \
 - `op://SECRETS/Karakeep/DEPLOYMENT_TOKEN`: Coolify API token for Bearer authentication
 
 **Next Steps:**
-1. Ensure Coolify API token is stored in 1Password at `op://SECRETS/Karakeep/TOKEN`
-2. Run updated test workflow to verify HTTP 200 response
-3. Test main deployment workflow once webhook format is confirmed working
+1. ✅ Ensure Coolify API token is stored in 1Password at `op://SECRETS/Karakeep/DEPLOYMENT_TOKEN`
+2. ✅ Run updated test workflow to verify HTTP 200 response
+3. ✅ Test main deployment workflow once webhook format is confirmed working
+
+### ❌ NEW ISSUE DISCOVERED: Webhook Triggers Deployment But App Not Updated
+
+**Problem Identified:**
+- ✅ Webhook call now works (HTTP 200 response)
+- ✅ Coolify deployment is triggered successfully
+- ❌ **App still shows old version** - deployment uses cached/old Docker image
+
+**Root Cause:**
+The webhook only tells Coolify to "deploy" but doesn't specify which Docker image version to use. Coolify needs environment variables to know about the new image.
+
+**Required Coolify Configuration:**
+In Coolify's environment variables, you need to set:
+```bash
+WEB_IMAGE=ghcr.io/carsaig/karakeep:latest
+SERVER_VERSION=<actual-version-number>
+```
+
+**✅ SOLUTION IMPLEMENTED: Dynamic Environment Variable Updates**
+
+**Changes Made:**
+1. ✅ **Added Coolify API integration** to workflow:
+   - `COOLIFY_API_URL: op://SECRETS/Karakeep/API_URL`
+   - `COOLIFY_APPLICATION_UUID: op://SECRETS/Karakeep/APPLICATION_UUID`
+
+2. ✅ **Added environment variable update step**:
+   - Uses Coolify API to update `SERVER_VERSION` dynamically
+   - Sets version to the actual built version from GitHub Actions
+   - Runs before webhook deployment trigger
+
+3. ✅ **Automated CI/CD process**:
+   - No manual intervention required
+   - `SERVER_VERSION` automatically updated with each deployment
+   - Ensures app always shows correct version
+
+**Required 1Password Setup (UPDATED):**
+- `op://SECRETS/Karakeep/WEBHOOK`: Webhook URL
+- `op://SECRETS/Karakeep/DEPLOYMENT_TOKEN`: Coolify API token
+- `op://SECRETS/Coolify/BASE_URL`: Coolify base URL (e.g., `https://your-coolify.com`)
+- `op://SECRETS/Karakeep/APPLICATION_UUID`: Your Karakeep application UUID from Coolify
+
+**Note**: The workflow automatically appends `/api/v1` to the base URL as per Coolify API documentation.
+
+**Workflow Process:**
+1. Build Docker image with version
+2. Update Coolify `SERVER_VERSION` environment variable via API
+3. Trigger deployment via webhook
+4. Coolify deploys with correct version and environment variables
