@@ -224,3 +224,67 @@ Both deployment mechanisms are active simultaneously, creating conflicting trigg
 1. Run test workflow manually to diagnose webhook issues
 2. Fix any identified problems (URL, authentication, payload format)
 3. Re-test main workflow once webhook is confirmed working
+
+### ❌ CONFIRMED: Webhook Authentication Failure (HTTP 401)
+
+**Test Results:**
+- ✅ **1Password Integration**: Successfully loaded webhook URL from `op://SECRETS/Karakeep/WEBHOOK`
+- ✅ **Connectivity**: Webhook endpoint is reachable
+- ❌ **Authentication**: HTTP 401 Unauthorized error on POST request
+- **Root Cause**: Webhook URL missing authentication credentials or incorrect format
+
+**Coolify Webhook URL Format Requirements:**
+Coolify webhook URLs should include authentication as query parameters:
+```
+https://<coolify-domain>/api/v1/deploy?uuid=<resource-uuid>&token=<auth-token>
+```
+Or similar format with embedded authentication.
+
+**Required Actions:**
+1. **Get correct webhook URL from Coolify**:
+   - Go to Coolify Dashboard → Karakeep Project → Webhooks section
+   - Copy the complete webhook URL (includes authentication token)
+
+2. **Update 1Password secret**:
+   - Verify `op://SECRETS/Karakeep/WEBHOOK` contains the complete URL with auth token
+   - Ensure no trailing spaces or formatting issues
+
+3. **Re-test**: Run test workflow to confirm HTTP 200/201/202 response
+
+**Expected Resolution:**
+Once webhook URL includes correct authentication, both test and main workflows should successfully trigger Coolify deployments.
+
+### ✅ SOLUTION IDENTIFIED: Incorrect Webhook API Format
+
+**Root Cause Found:**
+Based on official Coolify documentation, the webhook API requires:
+- **HTTP Method**: GET (not POST)
+- **Authentication**: Bearer token in Authorization header (not embedded in URL)
+- **No payload required**: Coolify webhook endpoints don't expect JSON payloads
+
+**Official Coolify Webhook Format:**
+```bash
+curl --request GET "$COOLIFY_WEBHOOK_URL" \
+  --header "Authorization: Bearer $COOLIFY_TOKEN"
+```
+
+**Changes Made:**
+1. **Updated main workflow** (`.github/workflows/coolify.yml`):
+   - Changed from POST to GET request
+   - Removed JSON payload
+   - Added Bearer token authentication via Authorization header
+   - Added `COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN` to 1Password integration
+
+2. **Updated test workflow** (`.github/workflows/test-coolify-webhook.yml`):
+   - Applied same changes for consistency
+   - Added token verification in 1Password integration test
+   - Updated webhook call to match Coolify API specification
+
+**Required 1Password Setup:**
+- `op://SECRETS/Karakeep/WEBHOOK`: Webhook URL (without embedded token)
+- `op://SECRETS/Karakeep/TOKEN`: Coolify API token for Bearer authentication
+
+**Next Steps:**
+1. Ensure Coolify API token is stored in 1Password at `op://SECRETS/Karakeep/TOKEN`
+2. Run updated test workflow to verify HTTP 200 response
+3. Test main deployment workflow once webhook format is confirmed working

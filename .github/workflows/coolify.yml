@@ -97,13 +97,14 @@ jobs:
     if: success()
 
     steps:
-      - name: Load Coolify webhook URL from 1Password
+      - name: Load Coolify webhook URL and token from 1Password
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           COOLIFY_WEBHOOK_URL: op://SECRETS/Karakeep/WEBHOOK
+          COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN
 
       - name: Trigger Coolify Deployment
         run: |
@@ -114,13 +115,6 @@ jobs:
 
       - name: Trigger Coolify Deployment via Webhook
         run: |
-          curl -X POST "$COOLIFY_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "version": "${{ needs.build-and-push.outputs.version }}",
-              "image_digest": "${{ needs.build-and-push.outputs.image-digest }}",
-              "commit_sha": "${{ github.sha }}",
-              "ref": "${{ github.ref }}",
-              "repository": "${{ github.repository }}"
-            }'
+          curl --request GET "$COOLIFY_WEBHOOK_URL" \
+            --header "Authorization: Bearer $COOLIFY_TOKEN"
           echo "Coolify webhook triggered successfully"

@@ -6,7 +6,7 @@ on:
       test_payload:
         description: 'Include test payload in webhook call'
         required: false
-        default: 'true'
+        default: true
         type: boolean
 
 jobs:
@@ -17,13 +17,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load Coolify webhook URL from 1Password
+      - name: Load Coolify webhook URL and token from 1Password
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           COOLIFY_WEBHOOK_URL: op://SECRETS/Karakeep/WEBHOOK
+          COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN
 
       - name: Verify 1Password secret loading
         run: |
@@ -32,11 +33,17 @@ jobs:
             echo "❌ **FAILED**: COOLIFY_WEBHOOK_URL is empty or not loaded" >> $GITHUB_STEP_SUMMARY
             echo "ERROR: Webhook URL not loaded from 1Password"
             exit 1
+          elif [ -z "$COOLIFY_TOKEN" ]; then
+            echo "❌ **FAILED**: COOLIFY_TOKEN is empty or not loaded" >> $GITHUB_STEP_SUMMARY
+            echo "ERROR: Coolify token not loaded from 1Password"
+            exit 1
           else
-            echo "✅ **SUCCESS**: Webhook URL loaded from 1Password" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **SUCCESS**: Webhook URL and token loaded from 1Password" >> $GITHUB_STEP_SUMMARY
             echo "✅ Webhook URL loaded successfully (length: ${#COOLIFY_WEBHOOK_URL} characters)"
-            # Show first and last few characters for verification without exposing full URL
+            echo "✅ Coolify token loaded successfully (length: ${#COOLIFY_TOKEN} characters)"
+            # Show first and last few characters for verification without exposing full secrets
             echo "URL preview: ${COOLIFY_WEBHOOK_URL:0:20}...${COOLIFY_WEBHOOK_URL: -10}"
+            echo "Token preview: ${COOLIFY_TOKEN:0:8}...${COOLIFY_TOKEN: -4}"
           fi
 
       - name: Test webhook connectivity (HEAD request)
@@ -61,33 +68,16 @@ jobs:
             echo "⚠️ **WARNING**: Unexpected response code: $HTTP_CODE" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Test webhook call with minimal payload
+      - name: Test webhook call (Coolify API format)
         run: |
           echo "## 🚀 Webhook Call Test" >> $GITHUB_STEP_SUMMARY
-          echo "Making test webhook call..."
-          
-          # Prepare test payload
-          if [ "${{ inputs.test_payload }}" = "true" ]; then
-            PAYLOAD='{
-              "test": true,
-              "version": "test-webhook-v1.0.0",
-              "commit_sha": "${{ github.sha }}",
-              "ref": "${{ github.ref }}",
-              "repository": "${{ github.repository }}",
-              "workflow_run_id": "${{ github.run_id }}"
-            }'
-          else
-            PAYLOAD='{}'
-          fi
-          
-          echo "Payload: $PAYLOAD"
-          
-          # Make the webhook call and capture response
-          echo "Calling webhook..."
+          echo "Making test webhook call using Coolify API format..."
+
+          # Make the webhook call using GET request with Bearer token (as per Coolify docs)
+          echo "Calling webhook with GET request and Bearer token..."
           RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}\nTIME_TOTAL:%{time_total}" \
-            -X POST "$COOLIFY_WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD" 2>&1)
+            --request GET "$COOLIFY_WEBHOOK_URL" \
+            --header "Authorization: Bearer $COOLIFY_TOKEN" 2>&1)
           
           # Extract HTTP code and response time
           HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
