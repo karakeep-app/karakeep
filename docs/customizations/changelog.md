@@ -112,9 +112,40 @@ jobs:
 - **Improved monitoring**: Clear separation between build and deployment phases
 - **Deployment control**: Explicit control over deployment timing
 
-### Status: Ready for Testing
+### Status: UPDATED SOLUTION - Repository Dispatch Not Supported
 
-Both issues should now be resolved. The next push to main branch will test:
+**Test Results from 34-minute workflow run (18227634849):**
 
-1. Whether Coolify waits for build completion before deploying
-2. Whether version display shows correct information after deployment
+✅ **Confirmed Working:**
+- No premature deployment (Issue 1 partially resolved)
+- Two-job workflow structure works perfectly
+- `build-and-push` job completed successfully (34 minutes)
+- `notify-deployment` job executed successfully
+- Repository dispatch event `coolify-deploy` was sent with correct payload
+
+❌ **Issue Discovered:**
+- Coolify did NOT respond to repository dispatch event
+- **Root Cause**: Coolify's GitHub App integration does not support repository dispatch events for deployment triggers
+
+### Updated Solution: Coolify Webhook URL (Solution B) - IMPLEMENTED
+
+**Changes Made:**
+- ✅ **Replaced repository dispatch with Coolify webhook**: Removed `peter-evans/repository-dispatch@v3` action
+- ✅ **Added 1Password integration**: Uses `1password/load-secrets-action@v2` to securely load webhook URL
+- ✅ **Maintained two-job workflow structure**: Build → Deploy sequence preserved
+- ✅ **Uses existing 1Password setup**: Leverages `OP_SERVICE_ACCOUNT_TOKEN` secret already configured
+
+**Implementation Details:**
+- **1Password Reference**: `op://SECRETS/Karakeep/WEBHOOK`
+- **Webhook Method**: HTTP POST with JSON payload containing version, image digest, commit SHA, ref, and repository
+- **Security**: Webhook URL loaded at runtime, not stored in GitHub secrets
+
+**Next Steps Required:**
+1. **Ensure webhook URL is stored in 1Password** at `op://SECRETS/Karakeep/WEBHOOK`
+2. **Re-enable "Push" event** in GitHub App settings (paths-ignore will prevent premature deployment)
+3. **Test the webhook approach** with next deployment
+
+**Expected Behavior:**
+1. Push to main → GitHub Actions starts → Coolify does NOT deploy (paths-ignore prevents it)
+2. Build completes (34 minutes) → 1Password loads webhook URL → HTTP POST triggers Coolify
+3. Coolify receives webhook → Deployment begins with new image → Version display shows correct version
