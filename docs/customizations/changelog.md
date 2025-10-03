@@ -317,8 +317,10 @@ SERVER_VERSION=<actual-version-number>
    - `COOLIFY_APPLICATION_UUID: op://SECRETS/Karakeep/APPLICATION_UUID`
 
 2. ✅ **Added environment variable update step**:
-   - Uses Coolify API to update `SERVER_VERSION` dynamically
+   - Uses Coolify bulk update API endpoint: `/api/v1/applications/{uuid}/envs/bulk`
+   - Correct request format: `{"data": [{"key": "...", "value": "...", "is_preview": false}]}`
    - Sets version to the actual built version from GitHub Actions
+   - Includes error handling and response validation
    - Runs before webhook deployment trigger
 
 3. ✅ **Automated CI/CD process**:

@@ -113,17 +113,35 @@ jobs:
           echo "## 🔧 Updating Coolify Environment Variables" >> $GITHUB_STEP_SUMMARY
           echo "**Updating SERVER_VERSION to:** \`${{ needs.build-and-push.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
 
-          # Update SERVER_VERSION environment variable in Coolify
-          curl -X PATCH "${COOLIFY_BASE_URL}/api/v1/applications/${COOLIFY_APPLICATION_UUID}/envs" \
+          # Update SERVER_VERSION environment variable in Coolify using bulk update endpoint
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" \
+            -X PATCH "${COOLIFY_BASE_URL}/api/v1/applications/${COOLIFY_APPLICATION_UUID}/envs/bulk" \
             -H "Authorization: Bearer $COOLIFY_DEPLOYMENT_TOKEN" \
             -H "Content-Type: application/json" \
-            -d '[{
-              "key": "SERVER_VERSION",
-              "value": "${{ needs.build-and-push.outputs.version }}",
-              "is_preview": false
-            }]'
+            -d '{
+              "data": [{
+                "key": "SERVER_VERSION",
+                "value": "${{ needs.build-and-push.outputs.version }}",
+                "is_preview": false
+              }]
+            }')
 
-          echo "✅ Environment variables updated successfully"
+          # Extract HTTP code and check response
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+
+          echo "API Response Code: $HTTP_CODE"
+          echo "API Response Body: $RESPONSE_BODY"
+
+          if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Environment variable SERVER_VERSION updated successfully to ${{ needs.build-and-push.outputs.version }}"
+          else
+            echo "❌ Failed to update environment variable. HTTP Code: $HTTP_CODE"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
+          fi
+
+
 
       - name: Trigger Coolify Deployment
         run: |
