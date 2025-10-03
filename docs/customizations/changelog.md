@@ -140,12 +140,34 @@ jobs:
 - **Webhook Method**: HTTP POST with JSON payload containing version, image digest, commit SHA, ref, and repository
 - **Security**: Webhook URL loaded at runtime, not stored in GitHub secrets
 
-**Next Steps Required:**
-1. **Ensure webhook URL is stored in 1Password** at `op://SECRETS/Karakeep/WEBHOOK`
-2. **Re-enable "Push" event** in GitHub App settings (paths-ignore will prevent premature deployment)
-3. **Test the webhook approach** with next deployment
+### ❌ ISSUE DISCOVERED: Dual Deployment Triggers
 
-**Expected Behavior:**
-1. Push to main → GitHub Actions starts → Coolify does NOT deploy (paths-ignore prevents it)
-2. Build completes (34 minutes) → 1Password loads webhook URL → HTTP POST triggers Coolify
-3. Coolify receives webhook → Deployment begins with new image → Version display shows correct version
+**Problem Identified:**
+- GitHub App "Push" event triggers Coolify immediately when workflow starts (OLD IMAGE)
+- Our webhook call triggers Coolify again after build completes (NEW IMAGE)
+- **Result**: Race condition with premature deployment still occurring
+
+**Root Cause:**
+Both deployment mechanisms are active simultaneously, creating conflicting triggers.
+
+### 🔧 CORRECTED SOLUTION: Disable GitHub App Integration
+
+**Required Actions:**
+1. **DISABLE GitHub App integration in Coolify**:
+   - Go to Coolify project settings
+   - Disconnect/disable the GitHub App integration
+   - This prevents immediate deployment on push events
+
+2. **Rely solely on webhook approach**:
+   - Keep the updated workflow with 1Password webhook integration
+   - Webhook URL: `op://SECRETS/Karakeep/WEBHOOK`
+   - Only our workflow will trigger deployments
+
+3. **Test the corrected approach**:
+   - Push to main should NOT trigger immediate Coolify deployment
+   - Only the webhook call after build completion should trigger deployment
+
+**Expected Behavior (Corrected):**
+1. Push to main → GitHub Actions starts → **Coolify does NOTHING** (no GitHub App)
+2. Build completes (34 minutes) → Webhook triggers Coolify → Deployment begins with new image
+3. Version display shows correct version
