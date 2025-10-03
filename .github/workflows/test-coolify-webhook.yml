@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load Coolify webhook URL and token from 1Password
+      - name: Load Coolify secrets from 1Password
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
@@ -25,6 +25,8 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           COOLIFY_WEBHOOK_URL: op://SECRETS/Karakeep/WEBHOOK
           COOLIFY_DEPLOYMENT_TOKEN: op://SECRETS/Karakeep/DEPLOYMENT_TOKEN
+          COOLIFY_BASE_URL: op://SECRETS/Coolify/BASE_URL
+          COOLIFY_APPLICATION_UUID: op://SECRETS/Karakeep/APPLICATION_UUID
 
       - name: Verify 1Password secret loading
         run: |
@@ -37,13 +39,72 @@ jobs:
             echo "❌ **FAILED**: COOLIFY_DEPLOYMENT_TOKEN is empty or not loaded" >> $GITHUB_STEP_SUMMARY
             echo "ERROR: Coolify deployment token not loaded from 1Password"
             exit 1
+          elif [ -z "$COOLIFY_BASE_URL" ]; then
+            echo "❌ **FAILED**: COOLIFY_BASE_URL is empty or not loaded" >> $GITHUB_STEP_SUMMARY
+            echo "ERROR: Coolify base URL not loaded from 1Password"
+            exit 1
+          elif [ -z "$COOLIFY_APPLICATION_UUID" ]; then
+            echo "❌ **FAILED**: COOLIFY_APPLICATION_UUID is empty or not loaded" >> $GITHUB_STEP_SUMMARY
+            echo "ERROR: Coolify application UUID not loaded from 1Password"
+            exit 1
           else
-            echo "✅ **SUCCESS**: Webhook URL and token loaded from 1Password" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **SUCCESS**: All Coolify secrets loaded from 1Password" >> $GITHUB_STEP_SUMMARY
             echo "✅ Webhook URL loaded successfully (length: ${#COOLIFY_WEBHOOK_URL} characters)"
             echo "✅ Coolify deployment token loaded successfully (length: ${#COOLIFY_DEPLOYMENT_TOKEN} characters)"
+            echo "✅ Coolify base URL loaded successfully (length: ${#COOLIFY_BASE_URL} characters)"
+            echo "✅ Coolify application UUID loaded successfully (length: ${#COOLIFY_APPLICATION_UUID} characters)"
             # Show first and last few characters for verification without exposing full secrets
             echo "URL preview: ${COOLIFY_WEBHOOK_URL:0:20}...${COOLIFY_WEBHOOK_URL: -10}"
             echo "Token preview: ${COOLIFY_DEPLOYMENT_TOKEN:0:8}...${COOLIFY_DEPLOYMENT_TOKEN: -4}"
+            echo "Base URL preview: ${COOLIFY_BASE_URL:0:15}...${COOLIFY_BASE_URL: -5}"
+            echo "App UUID preview: ${COOLIFY_APPLICATION_UUID:0:8}...${COOLIFY_APPLICATION_UUID: -4}"
+          fi
+
+      - name: Test environment variable update
+        run: |
+          echo "## 🔧 Environment Variable Update Test" >> $GITHUB_STEP_SUMMARY
+          echo "Testing Coolify environment variable update..."
+
+          # Use a test version for the test workflow
+          TEST_VERSION="test-$(date +%s)"
+          echo "**Test Version:** \`$TEST_VERSION\`" >> $GITHUB_STEP_SUMMARY
+
+          # Update SERVER_VERSION environment variable in Coolify using bulk update endpoint
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" \
+            -X PATCH "${COOLIFY_BASE_URL}/api/v1/applications/${COOLIFY_APPLICATION_UUID}/envs/bulk" \
+            -H "Authorization: Bearer $COOLIFY_DEPLOYMENT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "data": [{
+                "key": "SERVER_VERSION",
+                "value": "'$TEST_VERSION'",
+                "is_preview": false
+              }]
+            }')
+
+          # Extract HTTP code and check response
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+
+          echo "API Response Code: $HTTP_CODE"
+          echo "API Response Body: $RESPONSE_BODY"
+
+          echo "**API Response Code:** \`$HTTP_CODE\`" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$RESPONSE_BODY" ] && [ "$RESPONSE_BODY" != "" ]; then
+            echo "**API Response:**" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$RESPONSE_BODY" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ **SUCCESS**: Environment variable updated successfully to $TEST_VERSION" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Environment variable SERVER_VERSION updated successfully to $TEST_VERSION"
+          else
+            echo "❌ **FAILED**: Failed to update environment variable. HTTP Code: $HTTP_CODE" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Failed to update environment variable. HTTP Code: $HTTP_CODE"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
           fi
 
       - name: Test webhook connectivity (HEAD request)
