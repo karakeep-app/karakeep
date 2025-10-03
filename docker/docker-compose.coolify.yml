@@ -12,6 +12,7 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
       NEXTAUTH_SECRET : ${NEXTAUTH_SECRET}
+      SERVER_VERSION: ${SERVER_VERSION:-latest}
     healthcheck:
       test: ["CMD", "sh", "-c", "ps aux | grep -q 'next-server' || exit 1"]
       interval: 30s
