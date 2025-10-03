@@ -104,7 +104,7 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           COOLIFY_WEBHOOK_URL: op://SECRETS/Karakeep/WEBHOOK
-          COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN
+          COOLIFY_DEPLOYMENT_TOKEN: op://SECRETS/Karakeep/DEPLOYMENT_TOKEN
 
       - name: Trigger Coolify Deployment
         run: |
@@ -116,5 +116,5 @@ jobs:
       - name: Trigger Coolify Deployment via Webhook
         run: |
           curl --request GET "$COOLIFY_WEBHOOK_URL" \
-            --header "Authorization: Bearer $COOLIFY_TOKEN"
+            --header "Authorization: Bearer $COOLIFY_DEPLOYMENT_TOKEN"
           echo "Coolify webhook triggered successfully"

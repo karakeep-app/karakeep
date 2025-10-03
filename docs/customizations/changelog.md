@@ -138,7 +138,7 @@ jobs:
 **Implementation Details (UPDATED):**
 - **1Password References**:
   - `op://SECRETS/Karakeep/WEBHOOK`: Webhook URL
-  - `op://SECRETS/Karakeep/TOKEN`: Coolify API token
+  - `op://SECRETS/Karakeep/DEPLOYMENT_TOKEN`: Coolify API token
 - **Webhook Method**: HTTP GET with Bearer token authentication (per Coolify API specification)
 - **Security**: Webhook URL and token loaded at runtime, not stored in GitHub secrets
 
@@ -275,7 +275,7 @@ curl --request GET "$COOLIFY_WEBHOOK_URL" \
    - Changed from POST to GET request
    - Removed JSON payload
    - Added Bearer token authentication via Authorization header
-   - Added `COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN` to 1Password integration
+   - Added `COOLIFY_DEPLOYMENT_TOKEN: op://SECRETS/Karakeep/DEPLOYMENT_TOKEN` to 1Password integration
 
 2. ✅ **Updated test workflow** (`.github/workflows/test-coolify-webhook.yml`):
    - Applied same changes for consistency
@@ -285,7 +285,7 @@ curl --request GET "$COOLIFY_WEBHOOK_URL" \
 
 **Required 1Password Setup:**
 - `op://SECRETS/Karakeep/WEBHOOK`: Webhook URL (without embedded token)
-- `op://SECRETS/Karakeep/TOKEN`: Coolify API token for Bearer authentication
+- `op://SECRETS/Karakeep/DEPLOYMENT_TOKEN`: Coolify API token for Bearer authentication
 
 **Next Steps:**
 1. Ensure Coolify API token is stored in 1Password at `op://SECRETS/Karakeep/TOKEN`

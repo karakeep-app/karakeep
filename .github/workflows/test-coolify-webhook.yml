@@ -24,7 +24,7 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           COOLIFY_WEBHOOK_URL: op://SECRETS/Karakeep/WEBHOOK
-          COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN
+          COOLIFY_DEPLOYMENT_TOKEN: op://SECRETS/Karakeep/DEPLOYMENT_TOKEN
 
       - name: Verify 1Password secret loading
         run: |
@@ -33,17 +33,17 @@ jobs:
             echo "❌ **FAILED**: COOLIFY_WEBHOOK_URL is empty or not loaded" >> $GITHUB_STEP_SUMMARY
             echo "ERROR: Webhook URL not loaded from 1Password"
             exit 1
-          elif [ -z "$COOLIFY_TOKEN" ]; then
-            echo "❌ **FAILED**: COOLIFY_TOKEN is empty or not loaded" >> $GITHUB_STEP_SUMMARY
-            echo "ERROR: Coolify token not loaded from 1Password"
+          elif [ -z "$COOLIFY_DEPLOYMENT_TOKEN" ]; then
+            echo "❌ **FAILED**: COOLIFY_DEPLOYMENT_TOKEN is empty or not loaded" >> $GITHUB_STEP_SUMMARY
+            echo "ERROR: Coolify deployment token not loaded from 1Password"
             exit 1
           else
             echo "✅ **SUCCESS**: Webhook URL and token loaded from 1Password" >> $GITHUB_STEP_SUMMARY
             echo "✅ Webhook URL loaded successfully (length: ${#COOLIFY_WEBHOOK_URL} characters)"
-            echo "✅ Coolify token loaded successfully (length: ${#COOLIFY_TOKEN} characters)"
+            echo "✅ Coolify deployment token loaded successfully (length: ${#COOLIFY_DEPLOYMENT_TOKEN} characters)"
             # Show first and last few characters for verification without exposing full secrets
             echo "URL preview: ${COOLIFY_WEBHOOK_URL:0:20}...${COOLIFY_WEBHOOK_URL: -10}"
-            echo "Token preview: ${COOLIFY_TOKEN:0:8}...${COOLIFY_TOKEN: -4}"
+            echo "Token preview: ${COOLIFY_DEPLOYMENT_TOKEN:0:8}...${COOLIFY_DEPLOYMENT_TOKEN: -4}"
           fi
 
       - name: Test webhook connectivity (HEAD request)
@@ -77,7 +77,7 @@ jobs:
           echo "Calling webhook with GET request and Bearer token..."
           RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}\nTIME_TOTAL:%{time_total}" \
             --request GET "$COOLIFY_WEBHOOK_URL" \
-            --header "Authorization: Bearer $COOLIFY_TOKEN" 2>&1)
+            --header "Authorization: Bearer $COOLIFY_DEPLOYMENT_TOKEN" 2>&1)
           
           # Extract HTTP code and response time
           HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
