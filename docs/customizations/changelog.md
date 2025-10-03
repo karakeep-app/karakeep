@@ -135,10 +135,12 @@ jobs:
 - ✅ **Maintained two-job workflow structure**: Build → Deploy sequence preserved
 - ✅ **Uses existing 1Password setup**: Leverages `OP_SERVICE_ACCOUNT_TOKEN` secret already configured
 
-**Implementation Details:**
-- **1Password Reference**: `op://SECRETS/Karakeep/WEBHOOK`
-- **Webhook Method**: HTTP POST with JSON payload containing version, image digest, commit SHA, ref, and repository
-- **Security**: Webhook URL loaded at runtime, not stored in GitHub secrets
+**Implementation Details (UPDATED):**
+- **1Password References**:
+  - `op://SECRETS/Karakeep/WEBHOOK`: Webhook URL
+  - `op://SECRETS/Karakeep/TOKEN`: Coolify API token
+- **Webhook Method**: HTTP GET with Bearer token authentication (per Coolify API specification)
+- **Security**: Webhook URL and token loaded at runtime, not stored in GitHub secrets
 
 ### ❌ ISSUE DISCOVERED: Dual Deployment Triggers
 
@@ -269,16 +271,17 @@ curl --request GET "$COOLIFY_WEBHOOK_URL" \
 ```
 
 **Changes Made:**
-1. **Updated main workflow** (`.github/workflows/coolify.yml`):
+1. ✅ **Updated main workflow** (`.github/workflows/coolify.yml`):
    - Changed from POST to GET request
    - Removed JSON payload
    - Added Bearer token authentication via Authorization header
    - Added `COOLIFY_TOKEN: op://SECRETS/Karakeep/TOKEN` to 1Password integration
 
-2. **Updated test workflow** (`.github/workflows/test-coolify-webhook.yml`):
+2. ✅ **Updated test workflow** (`.github/workflows/test-coolify-webhook.yml`):
    - Applied same changes for consistency
    - Added token verification in 1Password integration test
    - Updated webhook call to match Coolify API specification
+   - Fixed boolean input type for workflow dispatch
 
 **Required 1Password Setup:**
 - `op://SECRETS/Karakeep/WEBHOOK`: Webhook URL (without embedded token)
