@@ -11,16 +11,40 @@
   "timezone": "Europe/Vienna",
   "prConcurrentLimit": 2,
   "prHourlyLimit": 1,
+  "enabledManagers": [
+    "github-actions",
+    "docker-compose"
+  ],
+  "ignorePaths": [
+    "**/package.json",
+    "**/pnpm-lock.yaml",
+    "**/Dockerfile*",
+    "docker/docker-compose.build.yml",
+    "docker/docker-compose.dev.yml",
+    "docker/docker-compose.yml",
+    "packages/**/docker-compose.yml",
+    ".github/workflows/_upstream/**"
+  ],
   "packageRules": [
     {
-      "description": "Only monitor GitHub Actions workflows",
+      "description": "Only monitor specific GitHub Actions workflows",
       "matchManagers": ["github-actions"],
+      "matchFileNames": [
+        ".github/workflows/ai-rules-first-run.yml",
+        ".github/workflows/ai-rules.yml",
+        ".github/workflows/coolify.yml",
+        ".github/workflows/test-coolify-webhook.yml",
+        ".github/workflows/upstream-sync.yml"
+      ],
       "enabled": true
     },
     {
-      "description": "Disable all other package managers to prevent drift from upstream",
-      "matchManagers": ["npm", "pnpm", "docker", "dockerfile"],
-      "enabled": false
+      "description": "Only monitor Coolify docker-compose file",
+      "matchManagers": ["docker-compose"],
+      "matchFileNames": [
+        "docker/docker-compose.coolify.yml"
+      ],
+      "enabled": true
     }
   ],
   "lockFileMaintenance": {
