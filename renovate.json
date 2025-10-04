@@ -11,10 +11,6 @@
   "timezone": "Europe/Vienna",
   "prConcurrentLimit": 2,
   "prHourlyLimit": 1,
-  "enabledManagers": [
-    "github-actions",
-    "docker-compose"
-  ],
   "ignorePaths": [
     "**/package.json",
     "**/pnpm-lock.yaml",
@@ -28,6 +24,11 @@
   ],
   "packageRules": [
     {
+      "description": "Disable all managers by default",
+      "matchManagers": ["*"],
+      "enabled": false
+    },
+    {
       "description": "Only monitor specific GitHub Actions workflows",
       "matchManagers": ["github-actions"],
       "matchFileNames": [
@@ -40,15 +41,7 @@
       "enabled": true
     },
     {
-      "description": "Only monitor Coolify docker-compose file",
-      "matchManagers": ["docker-compose"],
-      "matchFileNames": [
-        "docker/docker-compose.coolify.yml"
-      ],
-      "enabled": true
-    },
-    {
-      "description": "Exclude specific Docker images from updates",
+      "description": "Monitor Coolify docker-compose file but exclude specific images",
       "matchManagers": ["docker-compose"],
       "matchFileNames": [
         "docker/docker-compose.coolify.yml"
@@ -58,7 +51,7 @@
         "gcr.io/zenika-hub/alpine-chrome",
         "getmeili/meilisearch"
       ],
-      "enabled": false
+      "enabled": true
     }
   ],
   "lockFileMaintenance": {
