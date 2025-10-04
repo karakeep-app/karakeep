@@ -178,6 +178,7 @@ describe("importBookmarksFromFile", () => {
     expect(res).toEqual({
       counts: { successes: 0, failures: 0, alreadyExisted: 0, total: 0 },
       rootListId: null,
+      importSessionId: null,
     });
   });
 
@@ -381,6 +382,7 @@ describe("importBookmarksFromFile", () => {
     );
 
     expect(res.rootListId).toBe("Imported");
+    expect(res.importSessionId).toBe("session-1");
 
     // All bookmarks are created successfully, but 2 fail in post-processing
     expect(res.counts).toEqual({
