@@ -110,7 +110,7 @@ jobs:
       - name: Create or update PR
         id: cpr
         if: steps.diffcheck.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           base: ${{ github.event.repository.default_branch }}
           branch: ${{ steps.prep.outputs.branch }}
