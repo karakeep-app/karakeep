@@ -122,23 +122,26 @@ export async function importBookmarksFromFile(
 
   let done = 0;
   const importPromises = parsedBookmarks.map((bookmark) => async () => {
-    const listIds = bookmark.paths.map(
-      (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
-    );
-    if (listIds.length === 0) listIds.push(rootList.id);
+    try {
+      const listIds = bookmark.paths.map(
+        (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
+      );
+      if (listIds.length === 0) listIds.push(rootList.id);
 
-    const created = await deps.createBookmark(bookmark, session.id);
-    await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
-    if (bookmark.tags && bookmark.tags.length > 0) {
-      await deps.updateBookmarkTags({
-        bookmarkId: created.id,
-        tags: bookmark.tags,
-      });
+      const created = await deps.createBookmark(bookmark, session.id);
+      await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
+      if (bookmark.tags && bookmark.tags.length > 0) {
+        await deps.updateBookmarkTags({
+          bookmarkId: created.id,
+          tags: bookmark.tags,
+        });
+      }
+
+      return created;
+    } finally {
+      done += 1;
+      onProgress?.(done, parsedBookmarks.length);
     }
-
-    done += 1;
-    onProgress?.(done, parsedBookmarks.length);
-    return created;
   });
 
   const resultsPromises = limitConcurrency(importPromises, concurrencyLimit);
