@@ -8,6 +8,7 @@ import type {
 } from "@karakeep/shared/queueing";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
+import { genId } from "./idProvider";
 import { RestateSemaphore } from "./semaphore";
 
 export function buildRestateService<T>(
@@ -26,6 +27,7 @@ export function buildRestateService<T>(
     },
     handlers: {
       run: async (ctx: restate.Context, data: T) => {
+        const id = `${await genId(ctx)}`;
         if (opts.validator) {
           const res = opts.validator.safeParse(data);
           if (!res.success) {
@@ -37,14 +39,12 @@ export function buildRestateService<T>(
         }
 
         // TODO: respect priority
-
         const semaphore = new RestateSemaphore(
           ctx,
           `queue:${queue.name()}`,
           opts.concurrency,
         );
 
-        const id = ctx.rand.uuidv4();
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
           await semaphore.acquire();
           const res = await tryCatch(

@@ -15,6 +15,7 @@ import logger from "@karakeep/shared/logger";
 
 import { AdminClient } from "./admin";
 import { envConfig } from "./env";
+import { idProvider } from "./idProvider";
 import { semaphore } from "./semaphore";
 import { buildRestateService } from "./service";
 
@@ -122,6 +123,7 @@ class RestateQueueClient implements QueueClient {
       services: [
         ...[...this.services.values()].map((svc) => svc.def),
         semaphore,
+        idProvider,
       ],
     });
     logger.info(`Restate listening on port ${port}`);

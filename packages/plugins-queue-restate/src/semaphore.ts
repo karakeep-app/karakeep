@@ -6,7 +6,7 @@ interface QueueState {
 }
 
 export const semaphore = object({
-  name: "semaphore",
+  name: "Semaphore",
   handlers: {
     acquire: async (
       ctx: ObjectContext<QueueState>,
@@ -68,7 +68,7 @@ export class RestateSemaphore {
   async acquire() {
     const awk = this.ctx.awakeable();
     await this.ctx
-      .objectClient<typeof semaphore>({ name: "semaphore" }, this.id)
+      .objectClient<typeof semaphore>({ name: "Semaphore" }, this.id)
       .acquire({
         awkableId: awk.id,
         capacity: this.capacity,
@@ -77,7 +77,7 @@ export class RestateSemaphore {
   }
   async release() {
     await this.ctx
-      .objectClient<typeof semaphore>({ name: "semaphore" }, this.id)
+      .objectClient<typeof semaphore>({ name: "Semaphore" }, this.id)
       .release(this.capacity);
   }
 }
