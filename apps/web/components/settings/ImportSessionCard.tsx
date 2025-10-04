@@ -31,15 +31,15 @@ interface ImportSessionCardProps {
 function getStatusColor(status: string) {
   switch (status) {
     case "pending":
-      return "bg-gray-100 text-gray-800";
+      return "bg-muted text-muted-foreground";
     case "in_progress":
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
     case "completed":
-      return "bg-green-100 text-green-800";
+      return "bg-green-500/10 text-green-700 dark:text-green-400";
     case "failed":
-      return "bg-red-100 text-red-800";
+      return "bg-destructive/10 text-destructive";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-muted text-muted-foreground";
   }
 }
 
@@ -96,7 +96,9 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(stats.status)}>
+            <Badge
+              className={`${getStatusColor(stats.status)} hover:bg-inherit`}
+            >
               {getStatusIcon(stats.status)}
               <span className="ml-1 capitalize">
                 {statusLabels[stats.status] ?? stats.status.replace("_", " ")}
@@ -136,7 +138,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                 {stats.pendingBookmarks > 0 && (
                   <Badge
                     variant="secondary"
-                    className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                    className="bg-amber-500/10 text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
                   >
                     <Clock className="mr-1.5 h-3 w-3" />
                     {t("settings.import_sessions.badges.pending", {
@@ -147,7 +149,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                 {stats.processingBookmarks > 0 && (
                   <Badge
                     variant="secondary"
-                    className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                    className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/10 dark:text-blue-400"
                   >
                     <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
                     {t("settings.import_sessions.badges.processing", {
@@ -158,7 +160,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                 {stats.completedBookmarks > 0 && (
                   <Badge
                     variant="secondary"
-                    className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300"
+                    className="bg-green-500/10 text-green-700 hover:bg-green-500/10 dark:text-green-400"
                   >
                     <CheckCircle2 className="mr-1.5 h-3 w-3" />
                     {t("settings.import_sessions.badges.completed", {
@@ -169,7 +171,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                 {stats.failedBookmarks > 0 && (
                   <Badge
                     variant="secondary"
-                    className="border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+                    className="bg-destructive/10 text-destructive hover:bg-destructive/10"
                   >
                     <AlertCircle className="mr-1.5 h-3 w-3" />
                     {t("settings.import_sessions.badges.failed", {

@@ -120,6 +120,7 @@ export async function importBookmarksFromFile(
     pathMap[pathKey] = folderList.id;
   }
 
+  let done = 0;
   const importPromises = parsedBookmarks.map((bookmark) => async () => {
     const listIds = bookmark.paths.map(
       (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
@@ -135,6 +136,8 @@ export async function importBookmarksFromFile(
       });
     }
 
+    done += 1;
+    onProgress?.(done, parsedBookmarks.length);
     return created;
   });
 
@@ -145,7 +148,6 @@ export async function importBookmarksFromFile(
   let failures = 0;
   let alreadyExisted = 0;
 
-  let done = 0;
   for (const r of results) {
     if (r.status === "fulfilled") {
       if (r.value.alreadyExists) alreadyExisted++;
@@ -153,8 +155,6 @@ export async function importBookmarksFromFile(
     } else {
       failures++;
     }
-    done += 1;
-    onProgress?.(done, parsedBookmarks.length);
   }
   return {
     counts: {
