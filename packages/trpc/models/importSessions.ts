@@ -106,11 +106,20 @@ export class ImportSession implements PrivacyAware {
         count: count(),
       })
       .from(importSessionBookmarks)
-      .where(eq(importSessionBookmarks.importSessionId, this.session.id))
+      .innerJoin(
+        importSessions,
+        eq(importSessions.id, importSessionBookmarks.importSessionId),
+      )
       .leftJoin(bookmarks, eq(bookmarks.id, importSessionBookmarks.bookmarkId))
       .leftJoin(
         bookmarkLinks,
         eq(bookmarkLinks.id, importSessionBookmarks.bookmarkId),
+      )
+      .where(
+        and(
+          eq(importSessionBookmarks.importSessionId, this.session.id),
+          eq(importSessions.userId, this.ctx.user.id),
+        ),
       )
       .groupBy(bookmarkLinks.crawlStatus, bookmarks.taggingStatus);
 
