@@ -63,6 +63,7 @@ export class ImportSession implements PrivacyAware {
     const sessions = await ctx.db.query.importSessions.findMany({
       where: eq(importSessions.userId, ctx.user.id),
       orderBy: (importSessions, { desc }) => [desc(importSessions.createdAt)],
+      limit: 50,
     });
 
     return sessions.map((session) => new ImportSession(ctx, session));
@@ -71,15 +72,11 @@ export class ImportSession implements PrivacyAware {
   static async getAllWithStats(
     ctx: AuthedContext,
   ): Promise<ZImportSessionWithStats[]> {
-    const sessions = await ctx.db.query.importSessions.findMany({
-      where: eq(importSessions.userId, ctx.user.id),
-      orderBy: (importSessions, { desc }) => [desc(importSessions.createdAt)],
-    });
+    const sessions = await this.getAll(ctx);
 
     return await Promise.all(
       sessions.map(async (session) => {
-        const importSession = new ImportSession(ctx, session);
-        return await importSession.getWithStats();
+        return await session.getWithStats();
       }),
     );
   }
