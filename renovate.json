@@ -5,6 +5,8 @@
   ],
   "includeForks": true,
   "forkProcessing": "enabled",
+  "onboarding": false,
+  "requireConfig": "optional",
   "dependencyDashboard": false,
   "timezone": "Europe/Vienna",
   "prConcurrentLimit": 2,
