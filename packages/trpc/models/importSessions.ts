@@ -52,7 +52,6 @@ export class ImportSession implements PrivacyAware {
       .values({
         name: input.name,
         userId: ctx.user.id,
-        status: "pending",
         rootListId: input.rootListId,
       })
       .returning();

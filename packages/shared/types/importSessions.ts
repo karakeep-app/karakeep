@@ -22,7 +22,6 @@ export const zImportSessionSchema = z.object({
   id: z.string(),
   name: z.string(),
   userId: z.string(),
-  status: zImportSessionStatusSchema,
   message: z.string().nullable(),
   rootListId: z.string().nullable(),
   createdAt: z.date(),
@@ -31,6 +30,7 @@ export const zImportSessionSchema = z.object({
 export type ZImportSession = z.infer<typeof zImportSessionSchema>;
 
 export const zImportSessionWithStatsSchema = zImportSessionSchema.extend({
+  status: z.enum(["pending", "in_progress", "completed", "failed"]),
   totalBookmarks: z.number(),
   completedBookmarks: z.number(),
   failedBookmarks: z.number(),

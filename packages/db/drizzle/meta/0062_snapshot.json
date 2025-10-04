@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b26e2d7f-3e00-48f4-9d56-7da15a420666",
+  "id": "85dc1c66-ccf6-4db8-b722-c5cbaf18f806",
   "prevId": "e868f89a-f304-428c-8e96-705453facb18",
   "tables": {
     "account": {
@@ -1323,14 +1323,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'pending'"
-        },
         "message": {
           "name": "message",
           "type": "text",
@@ -1365,13 +1357,6 @@
           "name": "importSessions_userId_idx",
           "columns": [
             "userId"
-          ],
-          "isUnique": false
-        },
-        "importSessions_status_idx": {
-          "name": "importSessions_status_idx",
-          "columns": [
-            "status"
           ],
           "isUnique": false
         }

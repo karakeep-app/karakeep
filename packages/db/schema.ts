@@ -639,11 +639,6 @@ export const importSessions = sqliteTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status", {
-      enum: ["pending", "in_progress", "completed", "failed"],
-    })
-      .notNull()
-      .default("pending"),
     message: text("message"),
     rootListId: text("rootListId").references(() => bookmarkLists.id, {
       onDelete: "set null",
@@ -651,10 +646,7 @@ export const importSessions = sqliteTable(
     createdAt: createdAtField(),
     modifiedAt: modifiedAtField(),
   },
-  (is) => [
-    index("importSessions_userId_idx").on(is.userId),
-    index("importSessions_status_idx").on(is.status),
-  ],
+  (is) => [index("importSessions_userId_idx").on(is.userId)],
 );
 
 export const importSessionBookmarks = sqliteTable(

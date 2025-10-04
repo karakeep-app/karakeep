@@ -14,7 +14,6 @@ CREATE TABLE `importSessions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`userId` text NOT NULL,
-	`status` text DEFAULT 'pending' NOT NULL,
 	`message` text,
 	`rootListId` text,
 	`createdAt` integer NOT NULL,
@@ -23,5 +22,4 @@ CREATE TABLE `importSessions` (
 	FOREIGN KEY (`rootListId`) REFERENCES `bookmarkLists`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `importSessions_userId_idx` ON `importSessions` (`userId`);--> statement-breakpoint
-CREATE INDEX `importSessions_status_idx` ON `importSessions` (`status`);
+CREATE INDEX `importSessions_userId_idx` ON `importSessions` (`userId`);
