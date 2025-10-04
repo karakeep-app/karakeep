@@ -56,17 +56,13 @@ export type ZGetImportSessionStatsRequest = z.infer<
   typeof zGetImportSessionStatsRequestSchema
 >;
 
-export const zListImportSessionsRequestSchema = z.object({
-  limit: z.number().min(1).max(100).optional().default(20),
-  cursor: z.string().optional(),
-});
+export const zListImportSessionsRequestSchema = z.object({});
 export type ZListImportSessionsRequest = z.infer<
   typeof zListImportSessionsRequestSchema
 >;
 
 export const zListImportSessionsResponseSchema = z.object({
   sessions: z.array(zImportSessionWithStatsSchema),
-  nextCursor: z.string().nullable(),
 });
 export type ZListImportSessionsResponse = z.infer<
   typeof zListImportSessionsResponseSchema

@@ -68,42 +68,20 @@ export class ImportSession implements PrivacyAware {
     return sessions.map((session) => new ImportSession(ctx, session));
   }
 
-  static async getAllWithPagination(
+  static async getAllWithStats(
     ctx: AuthedContext,
-    options: {
-      limit: number;
-      cursor?: string;
-    },
-  ): Promise<{
-    sessions: ZImportSessionWithStats[];
-    nextCursor: string | null;
-  }> {
+  ): Promise<ZImportSessionWithStats[]> {
     const sessions = await ctx.db.query.importSessions.findMany({
       where: eq(importSessions.userId, ctx.user.id),
       orderBy: (importSessions, { desc }) => [desc(importSessions.createdAt)],
-      limit: options.limit + 1, // Get one extra to determine if there's a next page
-      ...(options.cursor ? { offset: parseInt(options.cursor) } : {}),
     });
 
-    const hasNextPage = sessions.length > options.limit;
-    const sessionsToReturn = hasNextPage ? sessions.slice(0, -1) : sessions;
-
-    // Get stats for each session
-    const sessionsWithStats = await Promise.all(
-      sessionsToReturn.map(async (session) => {
+    return await Promise.all(
+      sessions.map(async (session) => {
         const importSession = new ImportSession(ctx, session);
         return await importSession.getWithStats();
       }),
     );
-
-    const nextCursor = hasNextPage
-      ? String(parseInt(options.cursor || "0") + options.limit)
-      : null;
-
-    return {
-      sessions: sessionsWithStats,
-      nextCursor,
-    };
   }
 
   ensureCanAccess(ctx: AuthedContext): void {

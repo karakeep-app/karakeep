@@ -22,9 +22,7 @@ export function useCreateImportSession() {
 
 export function useListImportSessions() {
   return api.importSessions.listImportSessions.useQuery(
-    {
-      limit: 50,
-    },
+    {},
     {
       select: (data) => data.sessions,
     },

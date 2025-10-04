@@ -32,11 +32,9 @@ export const importSessionsRouter = router({
   listImportSessions: authedProcedure
     .input(zListImportSessionsRequestSchema)
     .output(zListImportSessionsResponseSchema)
-    .query(async ({ input, ctx }) => {
-      return await ImportSession.getAllWithPagination(ctx, {
-        limit: input.limit,
-        cursor: input.cursor,
-      });
+    .query(async ({ ctx }) => {
+      const sessions = await ImportSession.getAllWithStats(ctx);
+      return { sessions };
     }),
 
   deleteImportSession: authedProcedure

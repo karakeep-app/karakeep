@@ -9,7 +9,6 @@ import {
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
   zGetImportSessionStatsRequestSchema,
-  zListImportSessionsRequestSchema,
 } from "@karakeep/shared/types/importSessions";
 import { zNewBookmarkListSchema } from "@karakeep/shared/types/lists";
 
@@ -57,7 +56,7 @@ describe("ImportSessions Routes", () => {
     });
 
     // Verify session appears in list
-    const sessions = await api.listImportSessions({ limit: 10 });
+    const sessions = await api.listImportSessions({});
     const sessionFromList = sessions.sessions.find(
       (s) => s.id === createdSession.id,
     );
@@ -82,7 +81,7 @@ describe("ImportSessions Routes", () => {
     });
 
     // Verify session appears in list
-    const sessions = await api.listImportSessions({ limit: 10 });
+    const sessions = await api.listImportSessions({});
     const sessionFromList = sessions.sessions.find(
       (s) => s.id === createdSession.id,
     );
@@ -118,35 +117,25 @@ describe("ImportSessions Routes", () => {
     });
   });
 
-  test<CustomTestContext>("list import sessions with pagination", async ({
+  test<CustomTestContext>("list import sessions returns all sessions", async ({
     apiCallers,
   }) => {
     const api = apiCallers[0].importSessions;
 
-    // Create multiple sessions
-    await Promise.all([
-      api.createImportSession({ name: "Session 1" }),
-      api.createImportSession({ name: "Session 2" }),
-      api.createImportSession({ name: "Session 3" }),
-    ]);
+    const sessionNames = ["Session 1", "Session 2", "Session 3"];
+    for (const name of sessionNames) {
+      await api.createImportSession({ name });
+    }
 
-    const listInput: z.infer<typeof zListImportSessionsRequestSchema> = {
-      limit: 2,
-    };
+    const result = await api.listImportSessions({});
 
-    const result = await api.listImportSessions(listInput);
-
-    expect(result.sessions).toHaveLength(2);
-    expect(result.nextCursor).toBeDefined();
-
-    // Test second page
-    const secondPage = await api.listImportSessions({
-      limit: 2,
-      cursor: result.nextCursor!,
-    });
-
-    expect(secondPage.sessions).toHaveLength(1);
-    expect(secondPage.nextCursor).toBeNull();
+    expect(result.sessions).toHaveLength(3);
+    expect(result.sessions.map((session) => session.name)).toEqual(
+      sessionNames,
+    );
+    expect(
+      result.sessions.every((session) => session.totalBookmarks === 0),
+    ).toBe(true);
   });
 
   test<CustomTestContext>("delete import session", async ({ apiCallers }) => {
