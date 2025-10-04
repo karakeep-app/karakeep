@@ -3,7 +3,6 @@ import { ZodType } from "zod";
 import { PluginManager, PluginType } from "./plugins";
 
 export interface EnqueueOptions {
-  numRetries?: number;
   idempotencyKey?: string;
   priority?: number;
   delayMs?: number;
