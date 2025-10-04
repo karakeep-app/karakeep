@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:base"
   ],
   "includeForks": true,
   "forkProcessing": "enabled",
@@ -11,25 +11,17 @@
   "timezone": "Europe/Vienna",
   "prConcurrentLimit": 2,
   "prHourlyLimit": 1,
-  "ignorePaths": [
-    "**/package.json",
-    "**/pnpm-lock.yaml",
-    "**/Dockerfile*",
-    "docker/docker-compose.build.yml",
-    "docker/docker-compose.dev.yml",
-    "docker/docker-compose.yml",
-    "packages/**/docker-compose.yml",
-    ".github/workflows/_upstream/**",
-    "tooling/github/setup/action.yml"
+  "enabledManagers": [],
+  "includePaths": [
+    ".github/workflows/ai-rules-first-run.yml",
+    ".github/workflows/ai-rules.yml",
+    ".github/workflows/coolify.yml",
+    ".github/workflows/test-coolify-webhook.yml",
+    ".github/workflows/upstream-sync.yml"
   ],
   "packageRules": [
     {
-      "description": "Disable all managers by default",
-      "matchManagers": ["*"],
-      "enabled": false
-    },
-    {
-      "description": "Only monitor specific GitHub Actions workflows",
+      "description": "Enable GitHub Actions for specific files only",
       "matchManagers": ["github-actions"],
       "matchFileNames": [
         ".github/workflows/ai-rules-first-run.yml",
@@ -37,19 +29,6 @@
         ".github/workflows/coolify.yml",
         ".github/workflows/test-coolify-webhook.yml",
         ".github/workflows/upstream-sync.yml"
-      ],
-      "enabled": true
-    },
-    {
-      "description": "Monitor Coolify docker-compose file but exclude specific images",
-      "matchManagers": ["docker-compose"],
-      "matchFileNames": [
-        "docker/docker-compose.coolify.yml"
-      ],
-      "excludePackageNames": [
-        "ghcr.io/carsaig/karakeep",
-        "gcr.io/zenika-hub/alpine-chrome",
-        "getmeili/meilisearch"
       ],
       "enabled": true
     }
