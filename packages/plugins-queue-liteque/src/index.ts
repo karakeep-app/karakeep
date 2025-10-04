@@ -60,8 +60,12 @@ class LitequeQueueClient implements QueueClient {
 
   private queues = new Map<string, LitequeQueueWrapper<unknown>>();
 
-  async init(): Promise<void> {
+  async prepare(): Promise<void> {
     migrateDB(this.db);
+  }
+
+  async start(): Promise<void> {
+    // No-op for sqlite
   }
 
   createQueue<T>(name: string, options: QueueOptions): Queue<T> {

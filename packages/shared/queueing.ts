@@ -65,7 +65,8 @@ export interface Runner<_T> {
 }
 
 export interface QueueClient {
-  init(): Promise<void>;
+  prepare(): Promise<void>;
+  start(): Promise<void>;
   createQueue<T>(name: string, options: QueueOptions): Queue<T>;
   createRunner<T>(
     queue: Queue<T>,

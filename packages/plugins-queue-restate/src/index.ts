@@ -1,0 +1,188 @@
+import * as restate from "@restatedev/restate-sdk";
+import * as restateClient from "@restatedev/restate-sdk-clients";
+
+import type { PluginProvider } from "@karakeep/shared/plugins";
+import type {
+  EnqueueOptions,
+  Queue,
+  QueueClient,
+  QueueOptions,
+  Runner,
+  RunnerFuncs,
+  RunnerOptions,
+} from "@karakeep/shared/queueing";
+import logger from "@karakeep/shared/logger";
+
+import { envConfig } from "./env";
+
+class RestateQueueWrapper<T> implements Queue<T> {
+  constructor(
+    private readonly _name: string,
+    private readonly client: restateClient.Ingress,
+  ) {}
+
+  name(): string {
+    return this._name;
+  }
+
+  async enqueue(
+    payload: T,
+    _options?: EnqueueOptions,
+  ): Promise<string | undefined> {
+    interface MyService {
+      run: (ctx: restate.Context, data: T) => Promise<void>;
+    }
+    const cl = this.client.serviceSendClient<MyService>({ name: this.name() });
+    const res = await cl.run(payload);
+    return res.invocationId;
+  }
+
+  async stats(): Promise<{
+    pending: number;
+    pending_retry: number;
+    running: number;
+    failed: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  async cancelAllNonRunning(): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+}
+
+class RestateRunnerWrapper<T> implements Runner<T> {
+  constructor(
+    private readonly _name: string,
+    private readonly wf: restate.WorkflowDefinition<
+      string,
+      {
+        run: (ctx: restate.WorkflowContext, data: T) => Promise<void>;
+      }
+    >,
+  ) {}
+
+  async run(): Promise<void> {
+    // No-op for restate
+  }
+
+  async stop(): Promise<void> {
+    // No-op for restate
+  }
+
+  async runUntilEmpty(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  get def(): restate.WorkflowDefinition<string, unknown> {
+    return this.wf;
+  }
+}
+
+class RestateQueueClient implements QueueClient {
+  private client: restateClient.Ingress;
+  private queues = new Map<string, RestateQueueWrapper<unknown>>();
+  private services = new Map<string, RestateRunnerWrapper<unknown>>();
+
+  constructor() {
+    this.client = restateClient.connect({
+      url: envConfig.RESTATE_INGRESS_ADDR,
+    });
+  }
+
+  async prepare(): Promise<void> {
+    // No-op for restate
+  }
+
+  async start(): Promise<void> {
+    const port = await restate.serve({
+      port: envConfig.RESTATE_LISTEN_PORT ?? 0,
+      services: [...this.services.values()].map((svc) => svc.def),
+    });
+    logger.info(`Restate listening on port ${port}`);
+  }
+
+  createQueue<T>(name: string, _options: QueueOptions): Queue<T> {
+    if (this.queues.has(name)) {
+      throw new Error(`Queue ${name} already exists`);
+    }
+    const wrapper = new RestateQueueWrapper<T>(name, this.client);
+    this.queues.set(name, wrapper);
+    return wrapper;
+  }
+
+  createRunner<T>(
+    queue: Queue<T>,
+    funcs: RunnerFuncs<T>,
+    _opts: RunnerOptions<T>,
+  ): Runner<T> {
+    // TODO: handle opts
+    const name = queue.name();
+    let wrapper = this.services.get(name);
+    if (wrapper) {
+      throw new Error(`Queue ${name} already exists`);
+    }
+
+    const wf = restate.service({
+      name: queue.name(),
+      handlers: {
+        run: async (ctx: restate.Context, data: T) => {
+          const id = ctx.rand.uuidv4();
+          // TODO: Handle timeouts
+          const req = {
+            id,
+            data,
+            priority: 0,
+            runNumber: 0,
+            abortSignal: new AbortSignal(),
+          };
+
+          try {
+            await ctx.run("main logic", async () => {
+              await funcs.run(req);
+            });
+
+            await ctx.run("onComplete", async () => {
+              if (funcs.onComplete) {
+                await funcs.onComplete(req);
+              }
+            });
+          } catch (e) {
+            await ctx.run("onError", async () => {
+              if (funcs.onError) {
+                await funcs.onError({
+                  id,
+                  data,
+                  priority: 0,
+                  error: e as Error,
+                  runNumber: 0,
+                  numRetriesLeft: 0,
+                });
+              }
+            });
+          }
+        },
+      },
+    });
+
+    const svc = new RestateRunnerWrapper<T>(name, wf);
+    this.services.set(name, svc);
+    return svc;
+  }
+
+  async shutdown(): Promise<void> {
+    // No-op for sqlite
+  }
+}
+
+export class RestateQueueProvider implements PluginProvider<QueueClient> {
+  private client: QueueClient | null = null;
+
+  async getClient(): Promise<QueueClient | null> {
+    if (!this.client) {
+      const client = new RestateQueueClient();
+      this.client = client;
+    }
+    return this.client;
+  }
+}

@@ -1158,6 +1158,31 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@22.15.30)(happy-dom@17.4.9)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)
 
+  packages/plugins-queue-restate:
+    dependencies:
+      '@karakeep/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@restatedev/restate-sdk':
+        specifier: ^1.9.0
+        version: 1.9.0
+      '@restatedev/restate-sdk-clients':
+        specifier: ^1.8.0
+        version: 1.9.0
+    devDependencies:
+      '@karakeep/prettier-config':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/prettier
+      '@karakeep/tsconfig':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/typescript
+      vite-tsconfig-paths:
+        specifier: ^4.3.1
+        version: 4.3.2(typescript@5.8.3)(vite@7.0.6(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0))
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.15.30)(happy-dom@17.4.9)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)
+
   packages/plugins-search-meilisearch:
     dependencies:
       '@karakeep/shared':
@@ -1302,6 +1327,9 @@ importers:
       '@karakeep/plugins-queue-liteque':
         specifier: workspace:^0.1.0
         version: link:../plugins-queue-liteque
+      '@karakeep/plugins-queue-restate':
+        specifier: workspace:^0.1.0
+        version: link:../plugins-queue-restate
       '@karakeep/plugins-search-meilisearch':
         specifier: workspace:^0.1.0
         version: link:../plugins-search-meilisearch
@@ -4894,6 +4922,18 @@ packages:
 
   '@remusao/trie@2.1.0':
     resolution: {integrity: sha512-Er3Q8q0/2OcCJPQYJOPLmCuqO0wu7cav3SPtpjlxSbjFi1x+A1pZkkLD6c9q2rGEkGW/tkrRzfrhNMt8VQjzXg==}
+
+  '@restatedev/restate-sdk-clients@1.9.0':
+    resolution: {integrity: sha512-vgKlDXQ4fkR9EU+MF/37edxmrLfFlGlorXsbumhkriGgBVimTKigdl/sdSphcAqdnPIq/tBd3H18Qj83uxKezQ==}
+    engines: {node: '>= 20.19'}
+
+  '@restatedev/restate-sdk-core@1.9.0':
+    resolution: {integrity: sha512-q3S7hnxcP3zU8cDcaAkYmO50zT8dykzaBm65D+hyJgba74gs/h5HMjbS8gbZgRezbJHtRrRsJmnNFet/qCj4pQ==}
+    engines: {node: '>= 20.19'}
+
+  '@restatedev/restate-sdk@1.9.0':
+    resolution: {integrity: sha512-PSvFpiD7qGN1DVBWuFHR4x5j8Mk6rAl5r75/XUAfW/YN/YchuTK4jIO4nqBLvbJ4dzioDlFbLmLZprKBVfX2tA==}
+    engines: {node: '>= 20.19'}
 
   '@rn-primitives/hooks@1.3.0':
     resolution: {integrity: sha512-BR97reSu7uVDpyMeQdRJHT0w8KdS6jdYnOL6xQtqS2q3H6N7vXBlX4LFERqJZphD+aziJFIAJ3HJF1vtt6XlpQ==}
@@ -19778,6 +19818,16 @@ snapshots:
       '@remusao/smaz-decompress': 2.2.0
 
   '@remusao/trie@2.1.0': {}
+
+  '@restatedev/restate-sdk-clients@1.9.0':
+    dependencies:
+      '@restatedev/restate-sdk-core': 1.9.0
+
+  '@restatedev/restate-sdk-core@1.9.0': {}
+
+  '@restatedev/restate-sdk@1.9.0':
+    dependencies:
+      '@restatedev/restate-sdk-core': 1.9.0
 
   '@rn-primitives/hooks@1.3.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
