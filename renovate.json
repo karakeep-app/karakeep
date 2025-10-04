@@ -3,6 +3,8 @@
   "extends": [
     "config:recommended"
   ],
+  "includeForks": true,
+  "forkProcessing": "enabled",
   "dependencyDashboard": false,
   "timezone": "Europe/Vienna",
   "prConcurrentLimit": 2,
