@@ -23,7 +23,8 @@
     "docker/docker-compose.dev.yml",
     "docker/docker-compose.yml",
     "packages/**/docker-compose.yml",
-    ".github/workflows/_upstream/**"
+    ".github/workflows/_upstream/**",
+    "tooling/github/setup/action.yml"
   ],
   "packageRules": [
     {
@@ -45,6 +46,19 @@
         "docker/docker-compose.coolify.yml"
       ],
       "enabled": true
+    },
+    {
+      "description": "Exclude specific Docker images from updates",
+      "matchManagers": ["docker-compose"],
+      "matchFileNames": [
+        "docker/docker-compose.coolify.yml"
+      ],
+      "excludePackageNames": [
+        "ghcr.io/carsaig/karakeep",
+        "gcr.io/zenika-hub/alpine-chrome",
+        "getmeili/meilisearch"
+      ],
+      "enabled": false
     }
   ],
   "lockFileMaintenance": {
