@@ -13,12 +13,17 @@
   "prHourlyLimit": 1,
   "packageRules": [
     {
-      "description": "Test rule - group linting packages",
-      "matchPackageNames": ["/eslint/", "prettier", "oxlint"],
-      "groupName": "linting"
+      "description": "Only monitor GitHub Actions workflows",
+      "matchManagers": ["github-actions"],
+      "enabled": true
+    },
+    {
+      "description": "Disable all other package managers to prevent drift from upstream",
+      "matchManagers": ["npm", "pnpm", "docker", "dockerfile"],
+      "enabled": false
     }
   ],
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": false
   }
 }
