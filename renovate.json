@@ -9,7 +9,6 @@
     "workarounds:all"
   ],
   "timezone": "Europe/Vienna",
-  "schedule": ["before 6am on monday"],
   "prConcurrentLimit": 3,
   "prHourlyLimit": 2,
   "packageRules": [
