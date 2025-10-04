@@ -45,6 +45,8 @@ export function buildRestateService<T>(
           payload = res.data;
         }
 
+        const priority = data.priority ?? 0;
+
         const semaphore = new RestateSemaphore(
           ctx,
           `queue:${queue.name()}`,
@@ -53,7 +55,7 @@ export function buildRestateService<T>(
 
         let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
-          await semaphore.acquire(data.priority);
+          await semaphore.acquire(priority);
           const res = await tryCatch(
             ctx.run(
               `main logic`,
@@ -61,7 +63,7 @@ export function buildRestateService<T>(
                 await funcs.run({
                   id,
                   data: payload,
-                  priority: 0,
+                  priority,
                   runNumber,
                   abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
                 });
@@ -79,7 +81,7 @@ export function buildRestateService<T>(
                   funcs.onError?.({
                     id,
                     data: payload,
-                    priority: 0,
+                    priority,
                     error: res.error,
                     runNumber,
                     numRetriesLeft: NUM_RETRIES - runNumber - 1,
@@ -103,7 +105,7 @@ export function buildRestateService<T>(
                     await funcs.onComplete({
                       id,
                       data: payload,
-                      priority: 0,
+                      priority,
                       runNumber,
                       abortSignal: controller.signal,
                     });

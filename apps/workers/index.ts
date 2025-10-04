@@ -50,7 +50,7 @@ function isWorkerEnabled(name: WorkerName) {
 async function main() {
   await loadAllPlugins();
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
-  prepareQueue();
+  await prepareQueue();
 
   const httpServer = buildServer();
 
@@ -63,7 +63,7 @@ async function main() {
       })),
   );
 
-  startQueue();
+  await startQueue();
 
   if (workers.some((w) => w.name === "feed")) {
     FeedRefreshingWorker.start();

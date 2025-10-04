@@ -1,4 +1,4 @@
-// Auto-register the Liteque queue provider when this package is imported
+// Auto-register the Restate queue provider when this package is imported
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 
 import { RestateQueueProvider } from "./src";
