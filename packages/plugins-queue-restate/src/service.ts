@@ -51,6 +51,7 @@ export function buildRestateService<T>(
           opts.concurrency,
         );
 
+        let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
           await semaphore.acquire(data.priority);
           const res = await tryCatch(
@@ -89,6 +90,7 @@ export function buildRestateService<T>(
               ),
             );
             await semaphore.release();
+            lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000);
           } else {
@@ -115,6 +117,12 @@ export function buildRestateService<T>(
             await semaphore.release();
             break;
           }
+        }
+        if (lastError) {
+          throw new restate.TerminalError(lastError.message, {
+            errorCode: 500,
+            cause: "cause" in lastError ? lastError.cause : undefined,
+          });
         }
       },
     },
