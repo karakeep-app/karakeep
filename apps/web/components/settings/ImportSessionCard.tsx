@@ -10,6 +10,7 @@ import {
   useDeleteImportSession,
   useImportSessionStats,
 } from "@/lib/hooks/useImportSessions";
+import { useTranslation } from "@/lib/i18n/client";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
@@ -58,8 +59,16 @@ function getStatusIcon(status: string) {
 }
 
 export function ImportSessionCard({ session }: ImportSessionCardProps) {
+  const { t } = useTranslation();
   const { data: liveStats } = useImportSessionStats(session.id);
   const deleteSession = useDeleteImportSession();
+
+  const statusLabels: Record<string, string> = {
+    pending: t("settings.import_sessions.status.pending"),
+    in_progress: t("settings.import_sessions.status.in_progress"),
+    completed: t("settings.import_sessions.status.completed"),
+    failed: t("settings.import_sessions.status.failed"),
+  };
 
   // Use live stats if available, otherwise fallback to session stats
   const stats = liveStats || session;
@@ -79,15 +88,18 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           <div className="flex-1">
             <h3 className="font-medium">{session.name}</h3>
             <p className="mt-1 text-sm text-gray-600">
-              Created{" "}
-              {formatDistanceToNow(session.createdAt, { addSuffix: true })}
+              {t("settings.import_sessions.created_at", {
+                time: formatDistanceToNow(session.createdAt, {
+                  addSuffix: true,
+                }),
+              })}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge className={getStatusColor(stats.status)}>
               {getStatusIcon(stats.status)}
               <span className="ml-1 capitalize">
-                {stats.status.replace("_", " ")}
+                {statusLabels[stats.status] ?? stats.status.replace("_", " ")}
               </span>
             </Badge>
           </div>
@@ -100,7 +112,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium text-muted-foreground">
-                Progress
+                {t("settings.import_sessions.progress")}
               </h4>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
@@ -127,7 +139,9 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
                   >
                     <Clock className="mr-1.5 h-3 w-3" />
-                    {stats.pendingBookmarks} pending
+                    {t("settings.import_sessions.badges.pending", {
+                      count: stats.pendingBookmarks,
+                    })}
                   </Badge>
                 )}
                 {stats.processingBookmarks > 0 && (
@@ -136,7 +150,9 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
                   >
                     <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                    {stats.processingBookmarks} processing
+                    {t("settings.import_sessions.badges.processing", {
+                      count: stats.processingBookmarks,
+                    })}
                   </Badge>
                 )}
                 {stats.completedBookmarks > 0 && (
@@ -145,7 +161,9 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     className="border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300"
                   >
                     <CheckCircle2 className="mr-1.5 h-3 w-3" />
-                    {stats.completedBookmarks} completed
+                    {t("settings.import_sessions.badges.completed", {
+                      count: stats.completedBookmarks,
+                    })}
                   </Badge>
                 )}
                 {stats.failedBookmarks > 0 && (
@@ -154,7 +172,9 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     className="border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
                   >
                     <AlertCircle className="mr-1.5 h-3 w-3" />
-                    {stats.failedBookmarks} failed
+                    {t("settings.import_sessions.badges.failed", {
+                      count: stats.failedBookmarks,
+                    })}
                   </Badge>
                 )}
               </div>
@@ -167,14 +187,14 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
               <div className="flex items-center gap-2 text-sm">
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium text-muted-foreground">
-                  Imported to:
+                  {t("settings.import_sessions.imported_to")}
                 </span>
                 <Link
                   href={`/dashboard/lists/${session.rootListId}`}
                   className="flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
                   target="_blank"
                 >
-                  View List
+                  {t("settings.import_sessions.view_list")}
                   <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
@@ -193,12 +213,12 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
             <div className="flex items-center gap-2">
               {canDelete && (
                 <ActionConfirmingDialog
-                  title="Delete Import Session"
+                  title={t("settings.import_sessions.delete_dialog_title")}
                   description={
                     <div>
-                      Are you sure you want to delete &quot;{session.name}
-                      &quot;? This action cannot be undone. The bookmarks
-                      themselves will not be deleted.
+                      {t("settings.import_sessions.delete_dialog_description", {
+                        name: session.name,
+                      })}
                     </div>
                   }
                   actionButton={(setDialogOpen) => (
@@ -212,7 +232,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                       }}
                       disabled={deleteSession.isPending}
                     >
-                      Delete Session
+                      {t("settings.import_sessions.delete_session")}
                     </Button>
                   )}
                 >
@@ -222,7 +242,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     disabled={deleteSession.isPending}
                   >
                     <Trash2 className="mr-1 h-4 w-4" />
-                    Delete
+                    {t("actions.delete")}
                   </Button>
                 </ActionConfirmingDialog>
               )}
