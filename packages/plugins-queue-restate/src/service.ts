@@ -84,7 +84,7 @@ export function buildRestateService<T>(
                     priority,
                     error: res.error,
                     runNumber,
-                    numRetriesLeft: NUM_RETRIES - runNumber - 1,
+                    numRetriesLeft: NUM_RETRIES - runNumber,
                   }),
                 {
                   maxRetryAttempts: 1,
