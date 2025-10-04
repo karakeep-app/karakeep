@@ -11,7 +11,7 @@ jobs:
     outputs:
       skip: ${{ steps.check.outputs.skip }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check if required rules exist
         id: check
         run: |
@@ -88,7 +88,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout current repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Load secrets from 1Password
         uses: 1password/load-secrets-action@v3
@@ -100,7 +100,7 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Checkout rules repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Configurable source repository and reference
           repository: ${{ vars.AI_WORKFLOWS_SOURCE_REPO || 'carsaig/llm-context' }}
