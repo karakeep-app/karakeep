@@ -36,6 +36,8 @@ export function buildRestateService<T>(
           data = res.data;
         }
 
+        // TODO: respect priority
+
         const semaphore = new RestateSemaphore(
           ctx,
           `queue:${queue.name()}`,
@@ -81,6 +83,7 @@ export function buildRestateService<T>(
               ),
             );
             await semaphore.release();
+            // TODO: add backoff
             await ctx.sleep(1000);
           } else {
             const controller = new AbortController();
