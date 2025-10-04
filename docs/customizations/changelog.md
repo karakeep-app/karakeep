@@ -1,5 +1,32 @@
 # Karakeep Customizations Changelog
 
+## 2025-10-04 - Renovate Configuration
+
+### Added Automated Dependency Management
+
+**What was added:**
+- `renovate.json` configuration file for automated dependency updates
+- Configured Renovate GitHub App for the repository
+
+**Configuration highlights:**
+- **Auto-merge strategy**: Safe updates (dev dependencies, patches) are automatically merged
+- **Package grouping**: Related packages (React, TypeScript, linting tools) are grouped into single PRs
+- **Scheduling**: Updates run Monday mornings before 6am to minimize disruption
+- **Safety measures**: Major updates require manual approval via Dependency Dashboard
+- **Rate limiting**: Maximum 3 concurrent PRs, 2 per hour to prevent spam
+
+**Benefits:**
+- Automated security updates and dependency maintenance
+- Reduced manual effort for routine dependency updates
+- Grouped updates reduce PR noise
+- Confidence scores and test validation ensure safe auto-merging
+- Vulnerability alerts for security issues
+
+**Monitoring:**
+- Check Mend.io dashboard for Renovate status
+- Monitor "Dependency Dashboard" GitHub issue for pending updates
+- Review auto-merged PRs in GitHub Actions for any failures
+
 ## 2025-01-03 - GitHub Actions Workflow Split & Version Display Fix
 
 ### Final Solution Implemented: GitHub App Event Configuration (Solution E)
