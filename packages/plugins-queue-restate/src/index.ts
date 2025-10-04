@@ -44,7 +44,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
       restateClient.rpc.sendOpts({
         delay: options?.delayMs
           ? {
-              seconds: options.delayMs,
+              milliseconds: options.delayMs,
             }
           : undefined,
         idempotencyKey: options?.idempotencyKey,
