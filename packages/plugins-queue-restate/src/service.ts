@@ -87,22 +87,24 @@ export function buildRestateService<T>(
             await ctx.sleep(1000);
           } else {
             const controller = new AbortController();
-            await ctx.run(
-              "onComplete",
-              async () => {
-                if (funcs.onComplete) {
-                  await funcs.onComplete({
-                    id,
-                    data,
-                    priority: 0,
-                    runNumber,
-                    abortSignal: controller.signal,
-                  });
-                }
-              },
-              {
-                maxRetryAttempts: 1,
-              },
+            await tryCatch(
+              ctx.run(
+                "onComplete",
+                async () => {
+                  if (funcs.onComplete) {
+                    await funcs.onComplete({
+                      id,
+                      data,
+                      priority: 0,
+                      runNumber,
+                      abortSignal: controller.signal,
+                    });
+                  }
+                },
+                {
+                  maxRetryAttempts: 1,
+                },
+              ),
             );
             await semaphore.release();
             break;
