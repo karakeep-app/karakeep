@@ -1,8 +1,15 @@
+// Inspired from https://github.com/restatedev/examples/blob/main/typescript/patterns-use-cases/src/priorityqueue/queue.ts
+
 import { Context, object, ObjectContext } from "@restatedev/restate-sdk";
 
+interface QueueItem {
+  awakeable: string;
+  priority: number;
+}
+
 interface QueueState {
-  awakeables: string[];
-  available: number;
+  items: QueueItem[];
+  inFlight: number;
 }
 
 export const semaphore = object({
@@ -10,17 +17,17 @@ export const semaphore = object({
   handlers: {
     acquire: async (
       ctx: ObjectContext<QueueState>,
-      req: { awkableId: string; capacity: number },
+      req: { awakeableId: string; priority: number; capacity: number },
     ): Promise<void> => {
-      const state = await getState(ctx, req.capacity);
-      if (state.available > 0) {
-        state.available--;
-        ctx.resolveAwakeable(req.awkableId);
-        setState(ctx, state);
-        return;
-      }
+      const state = await getState(ctx);
 
-      state.awakeables.push(req.awkableId);
+      state.items.push({
+        awakeable: req.awakeableId,
+        priority: req.priority,
+      });
+
+      tick(ctx, state, req.capacity);
+
       setState(ctx, state);
     },
 
@@ -28,49 +35,64 @@ export const semaphore = object({
       ctx: ObjectContext<QueueState>,
       capacity: number,
     ): Promise<void> => {
-      const state = await getState(ctx, capacity);
-
-      if (state.awakeables.length === 0) {
-        state.available++;
-        setState(ctx, state);
-        return;
-      }
-
-      const id = state.awakeables.shift()!;
-      ctx.resolveAwakeable(id);
+      const state = await getState(ctx);
+      state.inFlight--;
+      tick(ctx, state, capacity);
       setState(ctx, state);
     },
   },
 });
 
-async function getState(
+function selectAndPopItem(items: QueueItem[]): QueueItem {
+  let highest = { priority: Number.MIN_SAFE_INTEGER, index: 0 };
+  for (const [i, item] of items.entries()) {
+    if (item.priority > highest.priority) {
+      highest.priority = item.priority;
+      highest.index = i;
+    }
+  }
+  const [item] = items.splice(highest.index, 1);
+  return item;
+}
+
+function tick(
   ctx: ObjectContext<QueueState>,
+  state: QueueState,
   capacity: number,
-): Promise<QueueState> {
+) {
+  while (state.inFlight < capacity && state.items.length > 0) {
+    const item = selectAndPopItem(state.items);
+    state.inFlight++;
+    ctx.resolveAwakeable(item.awakeable);
+  }
+}
+
+async function getState(ctx: ObjectContext<QueueState>): Promise<QueueState> {
   return {
-    awakeables: (await ctx.get("awakeables")) ?? [],
-    available: (await ctx.get("available")) ?? capacity,
+    items: (await ctx.get("items")) ?? [],
+    inFlight: (await ctx.get("inFlight")) ?? 0,
   };
 }
 
 function setState(ctx: ObjectContext<QueueState>, state: QueueState) {
-  ctx.set("awakeables", state.awakeables);
-  ctx.set("available", state.available);
+  ctx.set("items", state.items);
+  ctx.set("inFlight", state.inFlight);
 }
 
 export class RestateSemaphore {
   constructor(
-    private ctx: Context,
-    private id: string,
-    private capacity: number,
+    private readonly ctx: Context,
+    private readonly id: string,
+    private readonly capacity: number,
   ) {}
 
-  async acquire() {
+  async acquire(priority: number) {
     const awk = this.ctx.awakeable();
     await this.ctx
       .objectClient<typeof semaphore>({ name: "Semaphore" }, this.id)
       .acquire({
-        awkableId: awk.id,
+        awakeableId: awk.id,
+        priority,
         capacity: this.capacity,
       });
     await awk.promise;

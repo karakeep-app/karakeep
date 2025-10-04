@@ -36,11 +36,20 @@ class RestateQueueWrapper<T> implements Queue<T> {
     options?: EnqueueOptions,
   ): Promise<string | undefined> {
     interface MyService {
-      run: (ctx: restate.Context, data: T) => Promise<void>;
+      run: (
+        ctx: restate.Context,
+        data: {
+          payload: T;
+          priority: number;
+        },
+      ) => Promise<void>;
     }
     const cl = this.client.serviceSendClient<MyService>({ name: this.name() });
     const res = await cl.run(
-      payload,
+      {
+        payload,
+        priority: options?.priority ?? 0,
+      },
       restateClient.rpc.sendOpts({
         delay: options?.delayMs
           ? {

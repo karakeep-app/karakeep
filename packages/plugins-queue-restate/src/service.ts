@@ -26,19 +26,25 @@ export function buildRestateService<T>(
       },
     },
     handlers: {
-      run: async (ctx: restate.Context, data: T) => {
+      run: async (
+        ctx: restate.Context,
+        data: {
+          payload: T;
+          priority: number;
+        },
+      ) => {
         const id = `${await genId(ctx)}`;
+        let payload = data.payload;
         if (opts.validator) {
-          const res = opts.validator.safeParse(data);
+          const res = opts.validator.safeParse(data.payload);
           if (!res.success) {
             throw new restate.TerminalError(res.error.message, {
               errorCode: 400,
             });
           }
-          data = res.data;
+          payload = res.data;
         }
 
-        // TODO: respect priority
         const semaphore = new RestateSemaphore(
           ctx,
           `queue:${queue.name()}`,
@@ -46,14 +52,14 @@ export function buildRestateService<T>(
         );
 
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
-          await semaphore.acquire();
+          await semaphore.acquire(data.priority);
           const res = await tryCatch(
             ctx.run(
               `main logic`,
               async () => {
                 await funcs.run({
                   id,
-                  data,
+                  data: payload,
                   priority: 0,
                   runNumber,
                   abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
@@ -71,7 +77,7 @@ export function buildRestateService<T>(
                 async () =>
                   funcs.onError?.({
                     id,
-                    data,
+                    data: payload,
                     priority: 0,
                     error: res.error,
                     runNumber,
@@ -94,7 +100,7 @@ export function buildRestateService<T>(
                   if (funcs.onComplete) {
                     await funcs.onComplete({
                       id,
-                      data,
+                      data: payload,
                       priority: 0,
                       runNumber,
                       abortSignal: controller.signal,

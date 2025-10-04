@@ -94,17 +94,16 @@ describe("Restate Queue Provider", () => {
             testState.errors.push(job.data.value);
           }
         },
-        onComplete: async (job) => {
+        onComplete: async () => {
           testState.inFlight--;
           testState.maxInFlight = Math.max(
             testState.maxInFlight,
             testState.inFlight,
           );
-          console.log(`Job ${job.id} completed with value ${job.data?.value}`);
         },
       },
       {
-        concurrency: 5,
+        concurrency: 3,
         timeoutSecs: 30,
         pollIntervalMs: 100,
       },
@@ -171,9 +170,38 @@ describe("Restate Queue Provider", () => {
     for (let i = 300; i < 320; i++) {
       promises.push(queue.enqueue({ value: i }));
     }
+    await Promise.all(promises);
 
     await waitUntilQueueEmpty();
 
-    expect(testState.maxInFlight).toEqual(5);
+    expect(testState.maxInFlight).toEqual(3);
+  }, 60000);
+
+  it("should handle priorities", async () => {
+    // Those will probably go together
+    await queue.enqueue({ value: 100 }, { priority: 10 });
+    await queue.enqueue({ value: 101 }, { priority: 11 });
+    await queue.enqueue({ value: 102 }, { priority: 12 });
+
+    // Then those will get reprioritized
+    await Promise.all([
+      queue.enqueue({ value: 200 }, { priority: -1 }),
+      queue.enqueue({ value: 201 }, { priority: -2 }),
+      queue.enqueue({ value: 202 }, { priority: -3 }),
+
+      queue.enqueue({ value: 300 }, { priority: 0 }),
+      queue.enqueue({ value: 301 }, { priority: 1 }),
+      queue.enqueue({ value: 302 }, { priority: 2 }),
+    ]);
+
+    await waitUntilQueueEmpty();
+
+    expect(testState.results).toEqual([
+      // The initial batch
+      100, 101, 102,
+
+      // Then in order of increasing priority
+      302, 301, 300, 200, 201, 202,
+    ]);
   }, 60000);
 });
