@@ -3,8 +3,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useListImportSessions } from "@/lib/hooks/useImportSessions";
 import { useTranslation } from "@/lib/i18n/client";
-import { Loader2, Package } from "lucide-react";
+import { Package } from "lucide-react";
 
+import { FullPageSpinner } from "../ui/full-page-spinner";
 import { ImportSessionCard } from "./ImportSessionCard";
 
 export function ImportSessionsSection() {
@@ -19,9 +20,7 @@ export function ImportSessionsSection() {
             {t("settings.import_sessions.title")}
           </h3>
         </div>
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
+        <FullPageSpinner />
       </div>
     );
   }
@@ -51,7 +50,7 @@ export function ImportSessionsSection() {
         <h3 className="text-lg font-medium">
           {t("settings.import_sessions.title")}
         </h3>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-accent-foreground">
           {t("settings.import_sessions.description")}
         </p>
       </div>

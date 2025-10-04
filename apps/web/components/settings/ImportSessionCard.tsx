@@ -87,7 +87,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h3 className="font-medium">{session.name}</h3>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-accent-foreground">
               {t("settings.import_sessions.created_at", {
                 time: formatDistanceToNow(session.createdAt, {
                   addSuffix: true,
