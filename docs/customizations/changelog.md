@@ -2,30 +2,41 @@
 
 ## 2025-10-04 - Renovate Configuration
 
-### Added Automated Dependency Management
+### Added Automated Dependency Management (GitHub Actions Only)
 
 **What was added:**
 - `renovate.json` configuration file for automated dependency updates
-- Configured Renovate GitHub App for the repository
+- Configured Renovate GitHub App for fork repository
+- Comprehensive documentation at `docs/customizations/dependency-management.md`
 
-**Configuration highlights:**
-- **Auto-merge strategy**: Safe updates (dev dependencies, patches) are automatically merged
-- **Package grouping**: Related packages (React, TypeScript, linting tools) are grouped into single PRs
-- **Scheduling**: Updates run Monday mornings before 6am to minimize disruption
-- **Safety measures**: Major updates require manual approval via Dependency Dashboard
-- **Rate limiting**: Maximum 3 concurrent PRs, 2 per hour to prevent spam
+**Final configuration highlights:**
+- **Fork-specific settings**: `includeForks: true` and `forkProcessing: enabled` to work on fork repositories
+- **GitHub Actions only**: Only monitors `.github/workflows/` files for action updates
+- **Application dependencies disabled**: Prevents drift from upstream karakeep-app/karakeep repository
+- **Lock file maintenance disabled**: Avoids conflicts with upstream dependency versions
+- **Rate limiting**: Maximum 2 concurrent PRs, 1 per hour for conservative updates
+
+**Rationale for GitHub Actions only:**
+- Keeps workflow automation up-to-date without affecting core application
+- Prevents fork from drifting from upstream repository
+- Avoids breaking core features through dependency updates
+- Maintains compatibility for future upstream merges
+
+**Upstream release monitoring:**
+- **Renovate limitation confirmed**: Cannot monitor upstream repository releases for forks
+- **Current solution maintained**: GitHub Actions + Coolify API workflow continues to handle upstream release tracking
+- **Alternative solutions evaluated**: No better options available for fork upstream monitoring
 
 **Benefits:**
-- Automated security updates and dependency maintenance
-- Reduced manual effort for routine dependency updates
-- Grouped updates reduce PR noise
-- Confidence scores and test validation ensure safe auto-merging
-- Vulnerability alerts for security issues
+- Automated GitHub Actions updates for security and features
+- Maintains fork compatibility with upstream repository
+- Documented configuration for future reference
+- Clear separation between workflow automation and application dependencies
 
 **Monitoring:**
 - Check Mend.io dashboard for Renovate status
-- Monitor "Dependency Dashboard" GitHub issue for pending updates
-- Review auto-merged PRs in GitHub Actions for any failures
+- Monitor GitHub Actions update PRs
+- Upstream releases continue to be handled by existing custom workflow
 
 ## 2025-01-03 - GitHub Actions Workflow Split & Version Display Fix
 
