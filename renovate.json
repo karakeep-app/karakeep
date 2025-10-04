@@ -1,0 +1,83 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticPrefixFixDepsChoreOthers",
+    "group:monorepos",
+    "group:recommended",
+    "workarounds:all"
+  ],
+  "timezone": "Europe/Vienna",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "packageRules": [
+    {
+      "description": "Automerge non-major updates for development dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Automerge patch updates for production dependencies",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group ESLint and linting related packages",
+      "matchPackageNames": ["/eslint/", "/lint/", "prettier", "oxlint"],
+      "groupName": "linting",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group TypeScript related packages",
+      "matchPackageNames": ["/^@types/", "typescript", "tsx"],
+      "groupName": "typescript",
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group React related packages",
+      "matchPackageNames": ["/^react/", "/^@react/"],
+      "groupName": "react"
+    },
+    {
+      "description": "Group Next.js related packages",
+      "matchPackageNames": ["/^next/", "/^@next/"],
+      "groupName": "nextjs"
+    },
+    {
+      "description": "Group database related packages",
+      "matchPackageNames": ["drizzle-orm", "drizzle-kit", "better-sqlite3"],
+      "groupName": "database"
+    },
+    {
+      "description": "Group build tools",
+      "matchPackageNames": ["turbo", "vite", "vitest", "@vitejs/*"],
+      "groupName": "build-tools"
+    },
+    {
+      "description": "Require manual approval for major updates",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Docker images - pin to specific versions",
+      "matchDatasources": ["docker"],
+      "rangeStrategy": "pin"
+    }
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["before 6am on sunday"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
+}
