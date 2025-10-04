@@ -8,5 +8,6 @@ export const envConfig = z
       .optional()
       .default("http://localhost:8080"),
     RESTATE_ADMIN_ADDR: z.string().optional().default("http://localhost:9070"),
+    RESTATE_PUB_KEY: z.string().optional(),
   })
   .parse(process.env);

@@ -125,6 +125,16 @@ class RestateQueueClient implements QueueClient {
         semaphore,
         idProvider,
       ],
+      identityKeys: envConfig.RESTATE_PUB_KEY
+        ? [envConfig.RESTATE_PUB_KEY]
+        : undefined,
+      logger: (meta, msg) => {
+        if (meta.context) {
+          // No need to log invocation logs
+        } else {
+          logger.log(meta.level, `[restate] ${msg}`);
+        }
+      },
     });
     logger.info(`Restate listening on port ${port}`);
   }
