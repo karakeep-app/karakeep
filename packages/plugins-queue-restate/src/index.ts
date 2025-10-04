@@ -14,6 +14,7 @@ import type {
 import logger from "@karakeep/shared/logger";
 
 import { envConfig } from "./env";
+import { semaphore } from "./semaphore";
 import { buildRestateService } from "./service";
 
 class RestateQueueWrapper<T> implements Queue<T> {
@@ -108,7 +109,10 @@ class RestateQueueClient implements QueueClient {
   async start(): Promise<void> {
     const port = await restate.serve({
       port: envConfig.RESTATE_LISTEN_PORT ?? 0,
-      services: [...this.services.values()].map((svc) => svc.def),
+      services: [
+        ...[...this.services.values()].map((svc) => svc.def),
+        semaphore,
+      ],
     });
     logger.info(`Restate listening on port ${port}`);
   }

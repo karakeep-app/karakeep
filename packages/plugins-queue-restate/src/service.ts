@@ -8,6 +8,8 @@ import type {
 } from "@karakeep/shared/queueing";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
+import { RestateSemaphore } from "./semaphore";
+
 export function buildRestateService<T>(
   queue: Queue<T>,
   funcs: RunnerFuncs<T>,
@@ -34,10 +36,15 @@ export function buildRestateService<T>(
           data = res.data;
         }
 
-        // TODO: Respect concurrency
+        const semaphore = new RestateSemaphore(
+          ctx,
+          `queue:${queue.name()}`,
+          opts.concurrency,
+        );
 
         const id = ctx.rand.uuidv4();
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
+          await semaphore.acquire();
           const res = await tryCatch(
             ctx.run(
               `main logic`,
@@ -73,6 +80,7 @@ export function buildRestateService<T>(
                 },
               ),
             );
+            await semaphore.release();
             await ctx.sleep(1000);
           } else {
             const controller = new AbortController();
@@ -93,6 +101,7 @@ export function buildRestateService<T>(
                 maxRetryAttempts: 1,
               },
             );
+            await semaphore.release();
             break;
           }
         }
