@@ -3,8 +3,10 @@ import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 
 import { RestateQueueProvider } from "./src";
 
-PluginManager.register({
-  type: PluginType.Queue,
-  name: "Restate",
-  provider: new RestateQueueProvider(),
-});
+if (RestateQueueProvider.isConfigured()) {
+  PluginManager.register({
+    type: PluginType.Queue,
+    name: "Restate",
+    provider: new RestateQueueProvider(),
+  });
+}

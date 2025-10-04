@@ -14,11 +14,13 @@ import type {
 import logger from "@karakeep/shared/logger";
 
 import { envConfig } from "./env";
+import { buildRestateService } from "./service";
 
 class RestateQueueWrapper<T> implements Queue<T> {
   constructor(
     private readonly _name: string,
     private readonly client: restateClient.Ingress,
+    public readonly opts: QueueOptions,
   ) {}
 
   name(): string {
@@ -53,11 +55,10 @@ class RestateQueueWrapper<T> implements Queue<T> {
 
 class RestateRunnerWrapper<T> implements Runner<T> {
   constructor(
-    private readonly _name: string,
-    private readonly wf: restate.WorkflowDefinition<
+    private readonly wf: restate.ServiceDefinition<
       string,
       {
-        run: (ctx: restate.WorkflowContext, data: T) => Promise<void>;
+        run: (ctx: restate.Context, data: T) => Promise<void>;
       }
     >,
   ) {}
@@ -102,11 +103,11 @@ class RestateQueueClient implements QueueClient {
     logger.info(`Restate listening on port ${port}`);
   }
 
-  createQueue<T>(name: string, _options: QueueOptions): Queue<T> {
+  createQueue<T>(name: string, opts: QueueOptions): Queue<T> {
     if (this.queues.has(name)) {
       throw new Error(`Queue ${name} already exists`);
     }
-    const wrapper = new RestateQueueWrapper<T>(name, this.client);
+    const wrapper = new RestateQueueWrapper<T>(name, this.client, opts);
     this.queues.set(name, wrapper);
     return wrapper;
   }
@@ -114,58 +115,16 @@ class RestateQueueClient implements QueueClient {
   createRunner<T>(
     queue: Queue<T>,
     funcs: RunnerFuncs<T>,
-    _opts: RunnerOptions<T>,
+    opts: RunnerOptions<T>,
   ): Runner<T> {
-    // TODO: handle opts
     const name = queue.name();
     let wrapper = this.services.get(name);
     if (wrapper) {
       throw new Error(`Queue ${name} already exists`);
     }
-
-    const wf = restate.service({
-      name: queue.name(),
-      handlers: {
-        run: async (ctx: restate.Context, data: T) => {
-          const id = ctx.rand.uuidv4();
-          // TODO: Handle timeouts
-          const req = {
-            id,
-            data,
-            priority: 0,
-            runNumber: 0,
-            abortSignal: new AbortSignal(),
-          };
-
-          try {
-            await ctx.run("main logic", async () => {
-              await funcs.run(req);
-            });
-
-            await ctx.run("onComplete", async () => {
-              if (funcs.onComplete) {
-                await funcs.onComplete(req);
-              }
-            });
-          } catch (e) {
-            await ctx.run("onError", async () => {
-              if (funcs.onError) {
-                await funcs.onError({
-                  id,
-                  data,
-                  priority: 0,
-                  error: e as Error,
-                  runNumber: 0,
-                  numRetriesLeft: 0,
-                });
-              }
-            });
-          }
-        },
-      },
-    });
-
-    const svc = new RestateRunnerWrapper<T>(name, wf);
+    const svc = new RestateRunnerWrapper<T>(
+      buildRestateService(queue, funcs, opts, queue.opts),
+    );
     this.services.set(name, svc);
     return svc;
   }
@@ -177,6 +136,10 @@ class RestateQueueClient implements QueueClient {
 
 export class RestateQueueProvider implements PluginProvider<QueueClient> {
   private client: QueueClient | null = null;
+
+  static isConfigured(): boolean {
+    return envConfig.RESTATE_LISTEN_PORT !== undefined;
+  }
 
   async getClient(): Promise<QueueClient | null> {
     if (!this.client) {

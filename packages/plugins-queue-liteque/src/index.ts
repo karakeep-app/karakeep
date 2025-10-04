@@ -24,6 +24,7 @@ class LitequeQueueWrapper<T> implements Queue<T> {
   constructor(
     private readonly _name: string,
     private readonly lq: LQ<T>,
+    public readonly opts: QueueOptions,
   ) {}
 
   name(): string {
@@ -76,7 +77,7 @@ class LitequeQueueClient implements QueueClient {
       defaultJobArgs: { numRetries: options.defaultJobArgs.numRetries },
       keepFailedJobs: options.keepFailedJobs,
     });
-    const wrapper = new LitequeQueueWrapper<T>(name, lq);
+    const wrapper = new LitequeQueueWrapper<T>(name, lq, options);
     this.queues.set(name, wrapper);
     return wrapper;
   }
