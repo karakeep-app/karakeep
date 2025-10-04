@@ -176,13 +176,13 @@ describe("ImportSessions Routes", () => {
       api2.getImportSessionStats({
         importSessionId: session.id,
       }),
-    ).rejects.toThrow("User is not allowed to access this import session");
+    ).rejects.toThrow("Import session not found");
 
     await expect(
       api2.deleteImportSession({
         importSessionId: session.id,
       }),
-    ).rejects.toThrow("User is not allowed to access this import session");
+    ).rejects.toThrow("Import session not found");
   });
 
   test<CustomTestContext>("cannot attach other user's bookmark", async ({
@@ -199,6 +199,6 @@ describe("ImportSessions Routes", () => {
     // User 1 tries to attach User 2's bookmark
     await expect(
       createTestBookmark(api2, session.id), // User 2's bookmark
-    ).rejects.toThrow("User is not allowed to access this import session");
+    ).rejects.toThrow("Import session not found");
   });
 });

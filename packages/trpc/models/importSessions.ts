@@ -28,7 +28,10 @@ export class ImportSession implements PrivacyAware {
     importSessionId: string,
   ): Promise<ImportSession> {
     const session = await ctx.db.query.importSessions.findFirst({
-      where: eq(importSessions.id, importSessionId),
+      where: and(
+        eq(importSessions.id, importSessionId),
+        eq(importSessions.userId, ctx.user.id),
+      ),
     });
 
     if (!session) {
@@ -38,9 +41,7 @@ export class ImportSession implements PrivacyAware {
       });
     }
 
-    const importSession = new ImportSession(ctx, session);
-    importSession.ensureCanAccess(ctx);
-    return importSession;
+    return new ImportSession(ctx, session);
   }
 
   static async create(
