@@ -56,67 +56,20 @@ export function buildRestateService<T>(
         let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
           await semaphore.acquire(priority);
-          const res = await tryCatch(
-            ctx.run(
-              `main logic`,
-              async () => {
-                await funcs.run({
-                  id,
-                  data: payload,
-                  priority,
-                  runNumber,
-                  abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
-                });
-              },
-              {
-                maxRetryAttempts: 1,
-              },
-            ),
-          );
+          const res = await runWorkerLogic(ctx, funcs, {
+            id,
+            data: payload,
+            priority,
+            runNumber,
+            numRetriesLeft: NUM_RETRIES - runNumber,
+            abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
+          });
+          await semaphore.release();
           if (res.error) {
-            await tryCatch(
-              ctx.run(
-                `onError`,
-                async () =>
-                  funcs.onError?.({
-                    id,
-                    data: payload,
-                    priority,
-                    error: res.error,
-                    runNumber,
-                    numRetriesLeft: NUM_RETRIES - runNumber,
-                  }),
-                {
-                  maxRetryAttempts: 1,
-                },
-              ),
-            );
-            await semaphore.release();
             lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000);
           } else {
-            const controller = new AbortController();
-            await tryCatch(
-              ctx.run(
-                "onComplete",
-                async () => {
-                  if (funcs.onComplete) {
-                    await funcs.onComplete({
-                      id,
-                      data: payload,
-                      priority,
-                      runNumber,
-                      abortSignal: controller.signal,
-                    });
-                  }
-                },
-                {
-                  maxRetryAttempts: 1,
-                },
-              ),
-            );
-            await semaphore.release();
             break;
           }
         }
@@ -129,4 +82,52 @@ export function buildRestateService<T>(
       },
     },
   });
+}
+
+async function runWorkerLogic<T>(
+  ctx: restate.Context,
+  { run, onError, onComplete }: RunnerFuncs<T>,
+  data: {
+    id: string;
+    data: T;
+    priority: number;
+    runNumber: number;
+    numRetriesLeft: number;
+    abortSignal: AbortSignal;
+  },
+) {
+  const res = await tryCatch(
+    ctx.run(
+      `main logic`,
+      async () => {
+        await run(data);
+      },
+      {
+        maxRetryAttempts: 1,
+      },
+    ),
+  );
+  if (res.error) {
+    await tryCatch(
+      ctx.run(
+        `onError`,
+        async () =>
+          onError?.({
+            ...data,
+            error: res.error,
+          }),
+        {
+          maxRetryAttempts: 1,
+        },
+      ),
+    );
+    return res;
+  }
+
+  await tryCatch(
+    ctx.run("onComplete", async () => await onComplete?.(data), {
+      maxRetryAttempts: 1,
+    }),
+  );
+  return res;
 }

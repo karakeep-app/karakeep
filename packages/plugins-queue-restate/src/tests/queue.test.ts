@@ -1,5 +1,6 @@
 import {
   afterAll,
+  afterEach,
   beforeAll,
   beforeEach,
   describe,
@@ -14,14 +15,19 @@ import { AdminClient } from "../admin.js";
 import { RestateQueueProvider } from "../index.js";
 import { waitUntil } from "./utils.js";
 
+type TestAction =
+  | { type: "val"; val: number }
+  | { type: "err"; err: string }
+  | { type: "stall"; durSec: number };
+
 describe("Restate Queue Provider", () => {
   let queueClient: QueueClient;
-  let queue: Queue<{ value: number }>;
+  let queue: Queue<TestAction>;
   let adminClient: AdminClient;
 
   const testState = {
     results: [] as number[],
-    errors: [] as number[],
+    errors: [] as string[],
     inFlight: 0,
     maxInFlight: 0,
   };
@@ -43,6 +49,9 @@ describe("Restate Queue Provider", () => {
     testState.inFlight = 0;
     testState.maxInFlight = 0;
   });
+  afterEach(async () => {
+    await waitUntilQueueEmpty();
+  });
 
   beforeAll(async () => {
     const ingressPort = inject("restateIngressPort");
@@ -62,7 +71,7 @@ describe("Restate Queue Provider", () => {
     queueClient = client;
     adminClient = new AdminClient(process.env.RESTATE_ADMIN_ADDR);
 
-    queue = queueClient.createQueue<{ value: number }>("test-queue", {
+    queue = queueClient.createQueue<TestAction>("test-queue", {
       defaultJobArgs: {
         numRetries: 3,
       },
@@ -78,10 +87,18 @@ describe("Restate Queue Provider", () => {
             testState.maxInFlight,
             testState.inFlight,
           );
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          testState.results.push(job.data.value);
-          if (job.data.value === 999) {
-            throw new Error("Test error");
+          const jobData = job.data;
+          switch (jobData.type) {
+            case "val":
+              testState.results.push(jobData.val);
+              break;
+            case "err":
+              throw new Error(jobData.err);
+            case "stall":
+              await new Promise((resolve) =>
+                setTimeout(resolve, jobData.durSec * 1000),
+              );
+              break;
           }
         },
         onError: async (job) => {
@@ -90,8 +107,9 @@ describe("Restate Queue Provider", () => {
             testState.maxInFlight,
             testState.inFlight,
           );
-          if (job.data) {
-            testState.errors.push(job.data.value);
+          const jobData = job.data;
+          if (jobData && jobData.type === "err") {
+            testState.errors.push(jobData.err);
           }
         },
         onComplete: async () => {
@@ -104,8 +122,8 @@ describe("Restate Queue Provider", () => {
       },
       {
         concurrency: 3,
-        timeoutSecs: 30,
-        pollIntervalMs: 100,
+        timeoutSecs: 2,
+        pollIntervalMs: 0 /* Doesn't matter */,
       },
     );
 
@@ -122,7 +140,7 @@ describe("Restate Queue Provider", () => {
   });
 
   it("should enqueue and process a job", async () => {
-    const jobId = await queue.enqueue({ value: 42 });
+    const jobId = await queue.enqueue({ type: "val", val: 42 });
 
     expect(jobId).toBeDefined();
     expect(typeof jobId).toBe("string");
@@ -133,9 +151,9 @@ describe("Restate Queue Provider", () => {
   }, 60000);
 
   it("should process multiple jobs", async () => {
-    await queue.enqueue({ value: 1 });
-    await queue.enqueue({ value: 2 });
-    await queue.enqueue({ value: 3 });
+    await queue.enqueue({ type: "val", val: 1 });
+    await queue.enqueue({ type: "val", val: 2 });
+    await queue.enqueue({ type: "val", val: 3 });
 
     await waitUntilQueueEmpty();
 
@@ -146,19 +164,24 @@ describe("Restate Queue Provider", () => {
   }, 60000);
 
   it("should retry failed jobs", async () => {
-    await queue.enqueue({ value: 999 });
+    await queue.enqueue({ type: "err", err: "Test error" });
 
     await waitUntilQueueEmpty();
 
     // Initial attempt + 3 retries
-    expect(testState.errors).toEqual([999, 999, 999, 999]);
+    expect(testState.errors).toEqual([
+      "Test error",
+      "Test error",
+      "Test error",
+      "Test error",
+    ]);
   }, 90000);
 
   it("should use idempotency key", async () => {
     const idempotencyKey = `test-${Date.now()}`;
 
-    await queue.enqueue({ value: 200 }, { idempotencyKey });
-    await queue.enqueue({ value: 200 }, { idempotencyKey });
+    await queue.enqueue({ type: "val", val: 200 }, { idempotencyKey });
+    await queue.enqueue({ type: "val", val: 200 }, { idempotencyKey });
 
     await waitUntilQueueEmpty();
 
@@ -168,7 +191,7 @@ describe("Restate Queue Provider", () => {
   it("should handle concurrent jobs", async () => {
     const promises = [];
     for (let i = 300; i < 320; i++) {
-      promises.push(queue.enqueue({ value: i }));
+      promises.push(queue.enqueue({ type: "stall", durSec: 0.1 }));
     }
     await Promise.all(promises);
 
@@ -178,28 +201,27 @@ describe("Restate Queue Provider", () => {
   }, 60000);
 
   it("should handle priorities", async () => {
-    // Those will probably go together
-    await queue.enqueue({ value: 100 }, { priority: 10 });
-    await queue.enqueue({ value: 101 }, { priority: 11 });
-    await queue.enqueue({ value: 102 }, { priority: 12 });
+    // Hog the queue first
+    await Promise.all([
+      queue.enqueue({ type: "stall", durSec: 1 }, { priority: 0 }),
+      queue.enqueue({ type: "stall", durSec: 1 }, { priority: 1 }),
+      queue.enqueue({ type: "stall", durSec: 1 }, { priority: 2 }),
+    ]);
 
     // Then those will get reprioritized
     await Promise.all([
-      queue.enqueue({ value: 200 }, { priority: -1 }),
-      queue.enqueue({ value: 201 }, { priority: -2 }),
-      queue.enqueue({ value: 202 }, { priority: -3 }),
+      queue.enqueue({ type: "val", val: 200 }, { priority: -1 }),
+      queue.enqueue({ type: "val", val: 201 }, { priority: -2 }),
+      queue.enqueue({ type: "val", val: 202 }, { priority: -3 }),
 
-      queue.enqueue({ value: 300 }, { priority: 0 }),
-      queue.enqueue({ value: 301 }, { priority: 1 }),
-      queue.enqueue({ value: 302 }, { priority: 2 }),
+      queue.enqueue({ type: "val", val: 300 }, { priority: 0 }),
+      queue.enqueue({ type: "val", val: 301 }, { priority: 1 }),
+      queue.enqueue({ type: "val", val: 302 }, { priority: 2 }),
     ]);
 
     await waitUntilQueueEmpty();
 
     expect(testState.results).toEqual([
-      // The initial batch
-      100, 101, 102,
-
       // Then in order of increasing priority
       302, 301, 300, 200, 201, 202,
     ]);
