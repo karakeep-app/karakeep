@@ -1,9 +1,10 @@
-import { useTranslation } from "@/lib/i18n/server";
+"use client";
+
+import { useTranslation } from "@/lib/i18n/client";
 import { Bookmark } from "lucide-react";
 
-export default async function NoBookmarksBanner() {
-  // oxlint-disable-next-line rules-of-hooks
-  const { t } = await useTranslation();
+export default function NoBookmarksBanner() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 p-10 text-center shadow-sm dark:bg-slate-700/50 dark:shadow-md">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
