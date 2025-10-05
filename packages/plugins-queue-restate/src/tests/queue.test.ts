@@ -103,10 +103,6 @@ describe("Restate Queue Provider", () => {
         },
         onError: async (job) => {
           testState.inFlight--;
-          testState.maxInFlight = Math.max(
-            testState.maxInFlight,
-            testState.inFlight,
-          );
           const jobData = job.data;
           if (jobData && jobData.type === "err") {
             testState.errors.push(jobData.err);
@@ -114,10 +110,6 @@ describe("Restate Queue Provider", () => {
         },
         onComplete: async () => {
           testState.inFlight--;
-          testState.maxInFlight = Math.max(
-            testState.maxInFlight,
-            testState.inFlight,
-          );
         },
       },
       {
