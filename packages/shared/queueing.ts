@@ -3,7 +3,6 @@ import { ZodType } from "zod";
 import { PluginManager, PluginType } from "./plugins";
 
 export interface EnqueueOptions {
-  numRetries?: number;
   idempotencyKey?: string;
   priority?: number;
   delayMs?: number;
@@ -47,6 +46,7 @@ export interface RunnerOptions<T> {
 }
 
 export interface Queue<T> {
+  opts: QueueOptions;
   name(): string;
   enqueue(payload: T, options?: EnqueueOptions): Promise<string | undefined>;
   stats(): Promise<{
@@ -65,7 +65,8 @@ export interface Runner<_T> {
 }
 
 export interface QueueClient {
-  init(): Promise<void>;
+  prepare(): Promise<void>;
+  start(): Promise<void>;
   createQueue<T>(name: string, options: QueueOptions): Queue<T>;
   createRunner<T>(
     queue: Queue<T>,

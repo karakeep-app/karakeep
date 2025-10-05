@@ -1,0 +1,8 @@
+services:
+  restate:
+    image: docker.restate.dev/restatedev/restate:1.5
+    ports:
+      - "${RESTATE_INGRESS_PORT:-8080}:8080"
+      - "${RESTATE_ADMIN_PORT:-9070}:9070"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

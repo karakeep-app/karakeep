@@ -2,7 +2,11 @@ import "dotenv/config";
 
 import { buildServer } from "server";
 
-import { loadAllPlugins, runQueueDBMigrations } from "@karakeep/shared-server";
+import {
+  loadAllPlugins,
+  prepareQueue,
+  startQueue,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
@@ -46,7 +50,7 @@ function isWorkerEnabled(name: WorkerName) {
 async function main() {
   await loadAllPlugins();
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
-  runQueueDBMigrations();
+  await prepareQueue();
 
   const httpServer = buildServer();
 
@@ -58,6 +62,8 @@ async function main() {
         worker: await builder(),
       })),
   );
+
+  await startQueue();
 
   if (workers.some((w) => w.name === "feed")) {
     FeedRefreshingWorker.start();

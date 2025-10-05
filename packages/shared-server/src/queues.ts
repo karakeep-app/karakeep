@@ -8,8 +8,12 @@ import { loadAllPlugins } from ".";
 await loadAllPlugins();
 const QUEUE_CLIENT = await getQueueClient();
 
-export function runQueueDBMigrations() {
-  QUEUE_CLIENT.init();
+export async function prepareQueue() {
+  await QUEUE_CLIENT.prepare();
+}
+
+export async function startQueue() {
+  await QUEUE_CLIENT.start();
 }
 
 // Link Crawler
