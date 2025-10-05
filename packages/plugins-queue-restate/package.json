@@ -15,7 +15,7 @@
   "dependencies": {
     "@karakeep/shared": "workspace:*",
     "@restatedev/restate-sdk": "^1.9.0",
-    "@restatedev/restate-sdk-clients": "^1.8.0"
+    "@restatedev/restate-sdk-clients": "^1.9.0"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
