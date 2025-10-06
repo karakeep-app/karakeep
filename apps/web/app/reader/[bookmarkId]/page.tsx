@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
 import ReaderView from "@/components/dashboard/preview/ReaderView";
+import { NoteEditModal } from "@/components/dashboard/preview/NoteEditModal";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import {
@@ -21,6 +22,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import {
+  Edit,
   HighlighterIcon as Highlight,
   Minus,
   Plus,
@@ -53,6 +55,7 @@ export default function ReaderViewPage({
   const [fontFamily, setFontFamily] = useState("serif");
   const [showHighlights, setShowHighlights] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
 
   const fontFamilies = {
     serif: "ui-serif, Georgia, Cambria, serif",
@@ -88,6 +91,17 @@ export default function ReaderViewPage({
             <Button variant="ghost" size="icon" onClick={handlePrint}>
               <Printer className="h-4 w-4" />
             </Button>
+
+            {bookmark && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setShowNoteEditor(true)}
+                title="Edit Note"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
 
             <Popover open={showSettings} onOpenChange={setShowSettings}>
               <PopoverTrigger asChild>
@@ -307,6 +321,15 @@ export default function ReaderViewPage({
           </aside>
         )}
       </div>
+
+      {/* Note Edit Modal */}
+      {bookmark && (
+        <NoteEditModal
+          bookmark={bookmark}
+          open={showNoteEditor}
+          setOpen={setShowNoteEditor}
+        />
+      )}
     </div>
   );
 }
