@@ -26,13 +26,18 @@ export const FeedRefreshingWorker = cron.schedule(
         where: eq(rssFeedsTable.enabled, true),
       })
       .then((feeds) => {
+        const currentHour = new Date();
+        currentHour.setMinutes(0, 0, 0);
+        const hourlyWindow = currentHour.toISOString();
+
         for (const feed of feeds) {
+          const idempotencyKey = `${feed.id}-${hourlyWindow}`;
           FeedQueue.enqueue(
             {
               feedId: feed.id,
             },
             {
-              idempotencyKey: feed.id,
+              idempotencyKey,
             },
           );
         }
