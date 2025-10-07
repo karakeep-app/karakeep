@@ -1,6 +1,8 @@
+const IS_DEV = process.env.APP_VARIANT === "development";
+
 export default {
   expo: {
-    name: "Karakeep",
+    name: IS_DEV ? "Karakeep Dev" : "Karakeep",
     slug: "hoarder",
     scheme: "karakeep",
     version: "1.8.0",
@@ -16,7 +18,9 @@ export default {
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "app.hoarder.hoardermobile",
+      bundleIdentifier: IS_DEV
+        ? "app.hoarder.hoardermobile.dev"
+        : "app.hoarder.hoardermobile",
       splash: {
         image: "./assets/splash.png",
         resizeMode: "contain",
@@ -53,12 +57,14 @@ export default {
           backgroundColor: "#000000",
         },
       },
-      package: "app.hoarder.hoardermobile",
+      package: IS_DEV
+        ? "app.hoarder.hoardermobile.dev"
+        : "app.hoarder.hoardermobile",
       versionCode: 25,
     },
     plugins: [
-      "./plugins/trust-local-certs.js",
-      "./plugins/camera-not-required.js",
+      "./plugins/trust-local-certs.cjs",
+      "./plugins/camera-not-required.cjs",
       "expo-router",
       [
         "expo-share-intent",

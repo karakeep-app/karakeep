@@ -18,34 +18,51 @@ type Mode =
   | { type: "error" };
 
 function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
+  const { hasShareIntent, shareIntent, resetShareIntent } =
+    useShareIntentContext();
+  const { settings, isLoading } = useAppSettings();
+
   const onSaved = (d: ZBookmark & { alreadyExists: boolean }) => {
     invalidateAllBookmarks();
     setMode({
       type: d.alreadyExists ? "alreadyExists" : "success",
       bookmarkId: d.id,
     });
+
+    if (hasShareIntent) {
+      resetShareIntent();
+    }
   };
 
-  const { hasShareIntent, shareIntent, resetShareIntent } =
-    useShareIntentContext();
-  const { settings, isLoading } = useAppSettings();
+  const onError = () => {
+    setMode({ type: "error" });
+
+    if (hasShareIntent) {
+      resetShareIntent();
+    }
+  };
+
   const { uploadAsset } = useUploadAsset(settings, {
     onSuccess: onSaved,
-    onError: () => {
-      setMode({ type: "error" });
-    },
+    onError,
   });
 
   const invalidateAllBookmarks =
     api.useUtils().bookmarks.getBookmarks.invalidate;
 
+  const { mutate, isPending } = api.bookmarks.createBookmark.useMutation({
+    onSuccess: onSaved,
+    onError: onError,
+  });
+
   useEffect(() => {
     if (isLoading) {
       return;
     }
+
     if (!isPending && shareIntent.webUrl) {
       mutate({ type: BookmarkTypes.LINK, url: shareIntent.webUrl });
-    } else if (!isPending && shareIntent?.text) {
+    } else if (!isPending && shareIntent.text) {
       const val = z.string().url();
       if (val.safeParse(shareIntent.text).success) {
         // This is a URL, else treated as text
@@ -53,28 +70,22 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
       } else {
         mutate({ type: BookmarkTypes.TEXT, text: shareIntent.text });
       }
-    } else if (!isPending && shareIntent?.files) {
+    } else if (
+      !isPending &&
+      shareIntent?.files &&
+      shareIntent.files.length > 0
+    ) {
       uploadAsset({
         type: shareIntent.files[0].mimeType,
         name: shareIntent.files[0].fileName ?? "",
         uri: shareIntent.files[0].path,
       });
     }
-    if (hasShareIntent) {
-      resetShareIntent();
-    }
-  }, [isLoading]);
-
-  const { mutate, isPending } = api.bookmarks.createBookmark.useMutation({
-    onSuccess: onSaved,
-    onError: () => {
-      setMode({ type: "error" });
-    },
-  });
+  }, [isLoading, shareIntent, isPending, mutate, uploadAsset, hasShareIntent]);
 
   return (
     <View className="flex flex-row gap-3">
-      <Text variant="largeTitle">Hoarding</Text>
+      <Text variant="largeTitle">Saving</Text>
       <ActivityIndicator />
     </View>
   );
@@ -97,7 +108,7 @@ export default function Sharing() {
       comp = (
         <View className="items-center gap-4">
           <Text variant="largeTitle">
-            {mode.type === "alreadyExists" ? "Already Hoarded!" : "Hoarded!"}
+            {mode.type === "alreadyExists" ? "Already Saved!" : "Saved!"}
           </Text>
           <Button
             onPress={() => {
