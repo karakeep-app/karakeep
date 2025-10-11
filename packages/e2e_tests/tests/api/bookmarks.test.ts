@@ -288,6 +288,54 @@ describe("Bookmarks API", () => {
     expect(removeTagsRes.status).toBe(200);
   });
 
+  it("should get lists for a bookmark", async () => {
+    const { data: createdBookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Test Bookmark",
+        text: "This is a test bookmark",
+      },
+    });
+
+    const { data: createdList } = await client.POST("/lists", {
+      body: {
+        name: "Test List",
+        icon: "📚",
+      },
+    });
+
+    const { response: addBookmarkResponse } = await client.PUT(
+      "/lists/{listId}/bookmarks/{bookmarkId}",
+      {
+        params: {
+          path: {
+            listId: createdList!.id,
+            bookmarkId: createdBookmark!.id,
+          },
+        },
+      },
+    );
+
+    expect(addBookmarkResponse.status).toBe(204);
+
+    const { data: lists, response: getListsResponse } = await client.GET(
+      "/bookmarks/{bookmarkId}/lists",
+      {
+        params: {
+          path: {
+            bookmarkId: createdBookmark!.id,
+          },
+        },
+      },
+    );
+
+    expect(getListsResponse.status).toBe(200);
+    expect(lists!.lists.length).toBe(1);
+    expect(lists!.lists[0].id).toBe(createdList!.id);
+    expect(lists!.lists[0].name).toBe("Test List");
+    expect(lists!.lists[0].icon).toBe("📚");
+  });
+
   it("should search bookmarks", async () => {
     // Create test bookmarks
     await client.POST("/bookmarks", {
