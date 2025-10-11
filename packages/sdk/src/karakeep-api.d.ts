@@ -67,6 +67,7 @@ export interface paths {
             createdAt?: string | null;
             /** @enum {string} */
             crawlPriority?: "low" | "normal";
+            importSessionId?: string;
           } & (
             | {
                 /** @enum {string} */
@@ -506,6 +507,61 @@ export interface paths {
         };
       };
     };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/bookmarks/{bookmarkId}/lists": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get lists of a bookmark
+     * @description Get lists of a bookmark
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          bookmarkId: components["parameters"]["BookmarkId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description The list of highlights */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              lists: components["schemas"]["List"][];
+            };
+          };
+        };
+        /** @description Bookmark not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;
@@ -2048,6 +2104,20 @@ export interface components {
       nextCursor: string | null;
     };
     Cursor: string;
+    List: {
+      id: string;
+      name: string;
+      description?: string | null;
+      icon: string;
+      parentId: string | null;
+      /**
+       * @default manual
+       * @enum {string}
+       */
+      type: "manual" | "smart";
+      query?: string | null;
+      public: boolean;
+    };
     Highlight: {
       bookmarkId: string;
       startOffset: number;
@@ -2062,20 +2132,6 @@ export interface components {
       id: string;
       userId: string;
       createdAt: string;
-    };
-    List: {
-      id: string;
-      name: string;
-      description?: string | null;
-      icon: string;
-      parentId: string | null;
-      /**
-       * @default manual
-       * @enum {string}
-       */
-      type: "manual" | "smart";
-      query?: string | null;
-      public: boolean;
     };
     Tag: {
       id: string;

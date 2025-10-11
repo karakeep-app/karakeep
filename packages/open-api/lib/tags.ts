@@ -7,7 +7,6 @@ import { z } from "zod";
 import { zSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
   zCreateTagRequestSchema,
-  zGetTagResponseSchema,
   zTagBasicSchema,
   zTagListQueryParamsSchema,
   zUpdateTagRequestSchema,
@@ -20,11 +19,10 @@ import {
   PaginatedBookmarksSchema,
   PaginationSchema,
 } from "./pagination";
+import { TagSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
 extendZodWithOpenApi(z);
-
-export const TagSchema = zGetTagResponseSchema.openapi("Tag");
 
 export const TagIdSchema = registry.registerParameter(
   "TagId",
