@@ -95,7 +95,16 @@ export interface paths {
         };
       };
       responses: {
-        /** @description The created bookmark */
+        /** @description The bookmark already exists */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["Bookmark"];
+          };
+        };
+        /** @description The bookmark got created */
         201: {
           headers: {
             [name: string]: unknown;

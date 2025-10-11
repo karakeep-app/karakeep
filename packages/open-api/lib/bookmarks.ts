@@ -117,8 +117,16 @@ registry.registerPath({
     },
   },
   responses: {
+    200: {
+      description: "The bookmark already exists",
+      content: {
+        "application/json": {
+          schema: BookmarkSchema,
+        },
+      },
+    },
     201: {
-      description: "The created bookmark",
+      description: "The bookmark got created",
       content: {
         "application/json": {
           schema: BookmarkSchema,

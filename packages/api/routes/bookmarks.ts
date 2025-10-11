@@ -47,7 +47,7 @@ const app = new Hono()
   .post("/", zValidator("json", zNewBookmarkRequestSchema), async (c) => {
     const body = c.req.valid("json");
     const bookmark = await c.var.api.bookmarks.createBookmark(body);
-    return c.json(bookmark, 201);
+    return c.json(bookmark, bookmark.alreadyExists ? 200 : 201);
   })
 
   // GET /bookmarks/search
