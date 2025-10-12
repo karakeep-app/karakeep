@@ -336,7 +336,6 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
-          "source",
           "tags",
           "content",
           "assets"
@@ -1199,8 +1198,7 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus",
-                    "source"
+                    "summarizationStatus"
                   ]
                 }
               }
@@ -1324,8 +1322,7 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus",
-                    "source"
+                    "summarizationStatus"
                   ]
                 }
               }

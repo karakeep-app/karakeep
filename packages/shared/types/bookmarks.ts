@@ -104,7 +104,7 @@ export const zBareBookmarkSchema = z.object({
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
   note: z.string().nullish(),
   summary: z.string().nullish(),
-  source: zBookmarkSourceSchema.nullable(),
+  source: zBookmarkSourceSchema.nullish(),
 });
 
 export const zBookmarkSchema = zBareBookmarkSchema.merge(
