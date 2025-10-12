@@ -34,7 +34,12 @@ export function useUploadAsset() {
     onSuccess: async (resp) => {
       const assetType =
         resp.contentType === "application/pdf" ? "pdf" : "image";
-      await createBookmark({ ...resp, type: BookmarkTypes.ASSET, assetType });
+      await createBookmark({
+        ...resp,
+        type: BookmarkTypes.ASSET,
+        assetType,
+        source: "web",
+      });
     },
     onError: (err, req) => {
       toast({
@@ -54,6 +59,7 @@ export function useUploadAsset() {
             type: BookmarkTypes.TEXT,
             text: content,
             title: file.name.replace(/\.md$/i, ""), // Remove .md extension from title
+            source: "web",
           });
         } catch {
           toast({

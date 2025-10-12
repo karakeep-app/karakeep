@@ -75,6 +75,7 @@ export function useBookmarkImport() {
                 note: bookmark.notes,
                 archived: bookmark.archived,
                 importSessionId: sessionId,
+                source: "web",
                 ...(bookmark.content.type === BookmarkTypes.LINK
                   ? {
                       type: BookmarkTypes.LINK,

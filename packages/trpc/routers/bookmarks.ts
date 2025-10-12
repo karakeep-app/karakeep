@@ -309,6 +309,7 @@ export const bookmarksAppRouter = router({
               note: input.note,
               summary: input.summary,
               createdAt: input.createdAt,
+              source: input.source,
             })
             .returning()
         )[0];

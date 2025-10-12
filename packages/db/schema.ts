@@ -168,6 +168,9 @@ export const bookmarks = sqliteTable(
     type: text("type", {
       enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
     }).notNull(),
+    source: text("source", {
+      enum: ["api", "web", "cli", "mobile", "singlefile", "rss"],
+    }),
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
