@@ -14,6 +14,11 @@ export const UserLocalSettingsCtx = createContext<
   bookmarkGridLayout: defaultLayout,
   lang: fallbackLng,
   gridColumns: 3,
+  showImages: true,
+  showText: true,
+  showTags: true,
+  restrictCardHeight: true,
+  imageFit: "cover",
 });
 
 function useUserLocalSettings() {
@@ -33,6 +38,31 @@ export function useInterfaceLang() {
 export function useGridColumns() {
   const settings = useUserLocalSettings();
   return settings.gridColumns;
+}
+
+export function useShowImages() {
+  const settings = useUserLocalSettings();
+  return settings.showImages;
+}
+
+export function useShowText() {
+  const settings = useUserLocalSettings();
+  return settings.showText;
+}
+
+export function useShowTags() {
+  const settings = useUserLocalSettings();
+  return settings.showTags;
+}
+
+export function useRestrictCardHeight() {
+  const settings = useUserLocalSettings();
+  return settings.restrictCardHeight;
+}
+
+export function useImageFit() {
+  const settings = useUserLocalSettings();
+  return settings.imageFit;
 }
 
 export function bookmarkLayoutSwitch<T>(

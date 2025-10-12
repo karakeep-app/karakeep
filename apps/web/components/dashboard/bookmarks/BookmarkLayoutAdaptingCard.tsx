@@ -6,6 +6,11 @@ import useBulkActionsStore from "@/lib/bulkActions";
 import {
   bookmarkLayoutSwitch,
   useBookmarkLayout,
+  useShowImages,
+  useShowText,
+  useShowTags,
+  useRestrictCardHeight,
+  useImageFit,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
 import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
@@ -112,6 +117,13 @@ function ListView({
   footer,
   className,
 }: Props) {
+  const showImages = useShowImages();
+  const showText = useShowText();
+  const showTags = useShowTags();
+  const imageFit = useImageFit();
+
+  const objectFitClass = imageFit === "contain" ? "object-contain" : "object-cover";
+
   return (
     <div
       className={cn(
@@ -120,9 +132,11 @@ function ListView({
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
-      <div className="flex size-32 items-center justify-center overflow-hidden">
-        {image("list", "object-cover rounded-lg size-32")}
-      </div>
+      {showImages && (
+        <div className="flex size-32 items-center justify-center overflow-hidden">
+          {image("list", `${objectFitClass} rounded-lg size-32`)}
+        </div>
+      )}
       <div className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden">
         <div className="flex flex-col gap-2 overflow-hidden">
           {title && (
@@ -130,13 +144,17 @@ function ListView({
               {title}
             </div>
           )}
-          {content && <div className="shrink-1 overflow-hidden">{content}</div>}
-          <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
-            <TagList
-              bookmark={bookmark}
-              loading={isBookmarkStillTagging(bookmark)}
-            />
-          </div>
+          {showText && content && (
+            <div className="shrink-1 overflow-hidden">{content}</div>
+          )}
+          {showTags && (
+            <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
+              <TagList
+                bookmark={bookmark}
+                loading={isBookmarkStillTagging(bookmark)}
+              />
+            </div>
+          )}
         </div>
         <BottomRow footer={footer} bookmark={bookmark} />
       </div>
@@ -155,14 +173,27 @@ function GridView({
   layout,
   fitHeight = false,
 }: Props & { layout: BookmarksLayoutTypes }) {
-  const img = image("grid", "h-56 min-h-56 w-full object-cover rounded-t-lg");
+  const showImages = useShowImages();
+  const showText = useShowText();
+  const showTags = useShowTags();
+  const restrictCardHeight = useRestrictCardHeight();
+  const imageFit = useImageFit();
+
+  const objectFitClass = imageFit === "contain" ? "object-contain" : "object-cover";
+  const img = showImages
+    ? image("grid", `h-56 min-h-56 w-full ${objectFitClass} rounded-t-lg`)
+    : null;
 
   return (
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-lg",
         className,
-        fitHeight && layout != "grid" ? "max-h-96" : "h-96",
+        fitHeight && layout != "grid"
+          ? restrictCardHeight
+            ? "max-h-96"
+            : ""
+          : "h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
@@ -174,14 +205,18 @@ function GridView({
               {title}
             </div>
           )}
-          {content && <div className="shrink-1 overflow-hidden">{content}</div>}
-          <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
-            <TagList
-              className={wrapTags ? undefined : "h-full"}
-              bookmark={bookmark}
-              loading={isBookmarkStillTagging(bookmark)}
-            />
-          </div>
+          {showText && content && (
+            <div className="shrink-1 overflow-hidden">{content}</div>
+          )}
+          {showTags && (
+            <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
+              <TagList
+                className={wrapTags ? undefined : "h-full"}
+                bookmark={bookmark}
+                loading={isBookmarkStillTagging(bookmark)}
+              />
+            </div>
+          )}
         </div>
         <BottomRow footer={footer} bookmark={bookmark} />
       </div>

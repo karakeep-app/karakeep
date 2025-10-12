@@ -13,13 +13,27 @@ import { Slider } from "@/components/ui/slider";
 import {
   useBookmarkLayout,
   useGridColumns,
+  useShowImages,
+  useShowText,
+  useShowTags,
+  useRestrictCardHeight,
+  useImageFit,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import {
   updateBookmarksLayout,
   updateGridColumns,
+  updateShowImages,
+  updateShowText,
+  updateShowTags,
+  updateRestrictCardHeight,
+  updateImageFit,
 } from "@/lib/userLocalSettings/userLocalSettings";
 import {
   Check,
+  Image as ImageIcon,
+  FileText,
+  Tags,
+  Maximize2,
   LayoutDashboard,
   LayoutGrid,
   LayoutList,
@@ -27,6 +41,8 @@ import {
   LucideIcon,
   Settings,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 type LayoutType = "masonry" | "grid" | "list" | "compact";
 
@@ -47,9 +63,15 @@ const layoutNames: Record<LayoutType, string> = {
 export default function ViewOptions() {
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
+  const showImages = useShowImages();
+  const showText = useShowText();
+  const showTags = useShowTags();
+  const restrictCardHeight = useRestrictCardHeight();
+  const imageFit = useImageFit();
   const [tempColumns, setTempColumns] = React.useState(gridColumns);
 
   const showColumnSlider = layout === "grid" || layout === "masonry";
+  const showRestrictHeightToggle = layout === "masonry";
 
   // Update temp value when actual value changes
   React.useEffect(() => {
@@ -109,6 +131,78 @@ export default function ViewOptions() {
             </div>
           </>
         )}
+
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1.5 text-sm font-semibold">Display Options</div>
+
+        <div className="px-2 py-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="show-images" className="flex items-center gap-2 text-sm cursor-pointer">
+              <ImageIcon size={16} />
+              <span>Show Images</span>
+            </Label>
+            <Switch
+              id="show-images"
+              checked={showImages}
+              onCheckedChange={updateShowImages}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="show-text" className="flex items-center gap-2 text-sm cursor-pointer">
+              <FileText size={16} />
+              <span>Show Text</span>
+            </Label>
+            <Switch
+              id="show-text"
+              checked={showText}
+              onCheckedChange={updateShowText}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="show-tags" className="flex items-center gap-2 text-sm cursor-pointer">
+              <Tags size={16} />
+              <span>Show Tags</span>
+            </Label>
+            <Switch
+              id="show-tags"
+              checked={showTags}
+              onCheckedChange={updateShowTags}
+            />
+          </div>
+
+          {showRestrictHeightToggle && (
+            <div className="flex items-center justify-between">
+              <Label htmlFor="restrict-height" className="flex items-center gap-2 text-sm cursor-pointer">
+                <Maximize2 size={16} />
+                <span>Restrict Card Height</span>
+              </Label>
+              <Switch
+                id="restrict-height"
+                checked={restrictCardHeight}
+                onCheckedChange={updateRestrictCardHeight}
+              />
+            </div>
+          )}
+        </div>
+
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1.5 text-sm font-semibold">Image Fit</div>
+        <DropdownMenuItem
+          className="cursor-pointer justify-between"
+          onClick={async () => await updateImageFit("cover")}
+        >
+          <span>Cover</span>
+          {imageFit === "cover" && <Check className="ml-2 size-4" />}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer justify-between"
+          onClick={async () => await updateImageFit("contain")}
+        >
+          <span>Contain</span>
+          {imageFit === "contain" && <Check className="ml-2 size-4" />}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
