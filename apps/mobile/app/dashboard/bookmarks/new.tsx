@@ -50,7 +50,11 @@ const NoteEditorPage = () => {
       }
       createBookmark({ type: BookmarkTypes.LINK, url: data, source: "mobile" });
     } catch {
-      createBookmark({ type: BookmarkTypes.TEXT, text: data, source: "mobile" });
+      createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: data,
+        source: "mobile",
+      });
     }
   };
 

@@ -94,6 +94,19 @@
             "type": "string",
             "nullable": true
           },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "api",
+              "web",
+              "cli",
+              "mobile",
+              "extension",
+              "singlefile",
+              "rss"
+            ]
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -322,6 +335,7 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "source",
           "tags",
           "content",
           "assets"
@@ -696,6 +710,18 @@
                       },
                       "importSessionId": {
                         "type": "string"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "api",
+                          "web",
+                          "cli",
+                          "mobile",
+                          "extension",
+                          "singlefile",
+                          "rss"
+                        ]
                       }
                     }
                   },
@@ -1148,6 +1174,19 @@
                     "summary": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "api",
+                        "web",
+                        "cli",
+                        "mobile",
+                        "extension",
+                        "singlefile",
+                        "rss"
+                      ]
                     }
                   },
                   "required": [
@@ -1157,7 +1196,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "source"
                   ]
                 }
               }
@@ -1258,6 +1298,19 @@
                     "summary": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "api",
+                        "web",
+                        "cli",
+                        "mobile",
+                        "extension",
+                        "singlefile",
+                        "rss"
+                      ]
                     }
                   },
                   "required": [
@@ -1267,7 +1320,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "source"
                   ]
                 }
               }
