@@ -442,6 +442,13 @@
       "when": 1759573697911,
       "tag": "0062_add_import_session",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "6",
+      "when": 1759573700000,
+      "tag": "0063_add_import_tags_to_feeds",
+      "breakpoints": true
     }
   ]
 }
