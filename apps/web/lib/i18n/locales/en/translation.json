@@ -351,6 +351,18 @@
       "total_bookmarks": "Total Bookmarks",
       "server_version": "Server Version"
     },
+    "service_connections": {
+      "title": "Service Connections",
+      "description": "Monitor the health and connectivity of external system dependencies",
+      "search_engine": "Search Engine",
+      "browser": "Browser",
+      "queue_system": "Queue System",
+      "status": {
+        "not_configured": "Not Configured",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
+      }
+    },
     "background_jobs": {
       "jobs": {
         "crawler": {

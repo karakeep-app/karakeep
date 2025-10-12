@@ -14,6 +14,8 @@ import {
   VideoWorkerQueue,
   WebhookQueue,
 } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
+import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 import { getSearchClient } from "@karakeep/shared/search";
 import {
   resetPasswordSchema,
@@ -415,6 +417,120 @@ export const adminAppRouter = router({
     .query(() => {
       return {
         // Unused for now
+      };
+    }),
+  checkConnections: adminProcedure
+    .output(
+      z.object({
+        searchEngine: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
+        browser: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
+        queue: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
+      }),
+    )
+    .query(async () => {
+      const searchEngineStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: false, connected: false };
+      const browserStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: false, connected: false };
+      const queueStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: true, connected: false };
+
+      const searchClient = await getSearchClient();
+      searchEngineStatus.configured = searchClient !== null;
+
+      if (searchClient) {
+        const pluginName = PluginManager.getPluginName(PluginType.Search);
+        if (pluginName) {
+          searchEngineStatus.pluginName = pluginName;
+        }
+        try {
+          await searchClient.search({ query: "", limit: 1 });
+          searchEngineStatus.connected = true;
+        } catch (error) {
+          searchEngineStatus.error =
+            error instanceof Error ? error.message : "Unknown error";
+        }
+      }
+
+      browserStatus.configured =
+        !!serverConfig.crawler.browserWebUrl ||
+        !!serverConfig.crawler.browserWebSocketUrl;
+
+      if (browserStatus.configured) {
+        if (serverConfig.crawler.browserWebUrl) {
+          browserStatus.pluginName = "Browserless/Chrome";
+        } else if (serverConfig.crawler.browserWebSocketUrl) {
+          browserStatus.pluginName = "WebSocket Browser";
+        }
+
+        try {
+          if (serverConfig.crawler.browserWebUrl) {
+            const response = await fetch(
+              `${serverConfig.crawler.browserWebUrl}/json/version`,
+              {
+                signal: AbortSignal.timeout(5000),
+              },
+            );
+            if (response.ok) {
+              browserStatus.connected = true;
+            } else {
+              browserStatus.error = `HTTP ${response.status}: ${response.statusText}`;
+            }
+          } else if (serverConfig.crawler.browserWebSocketUrl) {
+            browserStatus.connected = true;
+            browserStatus.error =
+              "WebSocket URL configured (connection check not supported)";
+          }
+        } catch (error) {
+          browserStatus.error =
+            error instanceof Error ? error.message : "Unknown error";
+        }
+      }
+
+      const queuePluginName = PluginManager.getPluginName(PluginType.Queue);
+      if (queuePluginName) {
+        queueStatus.pluginName = queuePluginName;
+      }
+
+      try {
+        await LinkCrawlerQueue.stats();
+        queueStatus.connected = true;
+      } catch (error) {
+        queueStatus.error =
+          error instanceof Error ? error.message : "Unknown error";
+      }
+
+      return {
+        searchEngine: searchEngineStatus,
+        browser: browserStatus,
+        queue: queueStatus,
       };
     }),
 });
