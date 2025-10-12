@@ -671,6 +671,32 @@ export const importSessionBookmarks = sqliteTable(
   ],
 );
 
+export const ignoredTagPairs = sqliteTable(
+  "ignoredTagPairs",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tagId1: text("tagId1")
+      .notNull()
+      .references(() => bookmarkTags.id, { onDelete: "cascade" }),
+    tagId2: text("tagId2")
+      .notNull()
+      .references(() => bookmarkTags.id, { onDelete: "cascade" }),
+    createdAt: createdAtField(),
+  },
+  (itp) => [
+    index("ignoredTagPairs_userId_idx").on(itp.userId),
+    // Ensure we don't store duplicate pairs (order-independent)
+    // We'll always store tagId1 < tagId2 alphabetically
+    unique().on(itp.userId, itp.tagId1, itp.tagId2),
+  ],
+);
+
 // Relations
 
 export const userRelations = relations(users, ({ many, one }) => ({
@@ -681,6 +707,7 @@ export const userRelations = relations(users, ({ many, one }) => ({
   invites: many(invites),
   subscription: one(subscriptions),
   importSessions: many(importSessions),
+  ignoredTagPairs: many(ignoredTagPairs),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -862,6 +889,24 @@ export const importSessionBookmarksRelations = relations(
     bookmark: one(bookmarks, {
       fields: [importSessionBookmarks.bookmarkId],
       references: [bookmarks.id],
+    }),
+  }),
+);
+
+export const ignoredTagPairsRelations = relations(
+  ignoredTagPairs,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [ignoredTagPairs.userId],
+      references: [users.id],
+    }),
+    tag1: one(bookmarkTags, {
+      fields: [ignoredTagPairs.tagId1],
+      references: [bookmarkTags.id],
+    }),
+    tag2: one(bookmarkTags, {
+      fields: [ignoredTagPairs.tagId2],
+      references: [bookmarkTags.id],
     }),
   }),
 );

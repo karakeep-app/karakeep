@@ -1,7 +1,8 @@
+import { IgnoredTagPairs } from "@/components/dashboard/cleanups/IgnoredTagPairs";
 import { TagDuplicationDetection } from "@/components/dashboard/cleanups/TagDuplicationDetention";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/server";
-import { Paintbrush, Tags } from "lucide-react";
+import { EyeOff, Paintbrush, Tags } from "lucide-react";
 
 export default async function Cleanups() {
   // oxlint-disable-next-line rules-of-hooks
@@ -20,6 +21,12 @@ export default async function Cleanups() {
       </span>
       <Separator />
       <TagDuplicationDetection />
+      <Separator />
+      <span className="flex items-center gap-1 text-lg">
+        <EyeOff />
+        Ignored Tag Pairs
+      </span>
+      <IgnoredTagPairs />
     </div>
   );
 }

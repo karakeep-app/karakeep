@@ -9,13 +9,18 @@ import {
   inArray,
   like,
   notExists,
+  or,
   sql,
 } from "drizzle-orm";
 import { z } from "zod";
 
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
 import { SqliteError } from "@karakeep/db";
-import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
+import {
+  bookmarkTags,
+  ignoredTagPairs,
+  tagsOnBookmarks,
+} from "@karakeep/db/schema";
 import { triggerSearchReindex } from "@karakeep/shared-server";
 import {
   zCreateTagRequestSchema,
@@ -435,6 +440,121 @@ export class Tag implements PrivacyAware {
     return {
       id: this.tag.id,
       name: this.tag.name,
+    };
+  }
+
+  static async ignoreDuplicateSuggestion(
+    ctx: AuthedContext,
+    input: {
+      tagId1: string;
+      tagId2: string;
+    },
+  ): Promise<void> {
+    // Validate that both tags exist and belong to the user
+    const tags = await ctx.db.query.bookmarkTags.findMany({
+      where: and(
+        eq(bookmarkTags.userId, ctx.user.id),
+        inArray(bookmarkTags.id, [input.tagId1, input.tagId2]),
+      ),
+    });
+
+    if (tags.length !== 2) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "One or both tags not found",
+      });
+    }
+
+    // Always store in alphabetical order to ensure uniqueness
+    const [tagId1, tagId2] =
+      input.tagId1 < input.tagId2
+        ? [input.tagId1, input.tagId2]
+        : [input.tagId2, input.tagId1];
+
+    try {
+      await ctx.db.insert(ignoredTagPairs).values({
+        userId: ctx.user.id,
+        tagId1,
+        tagId2,
+      });
+    } catch (e) {
+      if (e instanceof SqliteError && e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+        // Already ignored, this is fine
+        return;
+      }
+      throw e;
+    }
+  }
+
+  static async listIgnoredPairs(ctx: AuthedContext): Promise<{
+    ignoredPairs: Array<{
+      id: string;
+      tag1: z.infer<typeof zTagBasicSchema>;
+      tag2: z.infer<typeof zTagBasicSchema>;
+      createdAt: Date;
+    }>;
+  }> {
+    const pairs = await ctx.db.query.ignoredTagPairs.findMany({
+      where: eq(ignoredTagPairs.userId, ctx.user.id),
+      with: {
+        tag1: true,
+        tag2: true,
+      },
+    });
+
+    return {
+      ignoredPairs: pairs.map((p) => ({
+        id: p.id,
+        tag1: {
+          id: p.tag1.id,
+          name: p.tag1.name,
+        },
+        tag2: {
+          id: p.tag2.id,
+          name: p.tag2.name,
+        },
+        createdAt: p.createdAt,
+      })),
+    };
+  }
+
+  static async unignorePair(
+    ctx: AuthedContext,
+    pairId: string,
+  ): Promise<void> {
+    const res = await ctx.db
+      .delete(ignoredTagPairs)
+      .where(
+        and(
+          eq(ignoredTagPairs.id, pairId),
+          eq(ignoredTagPairs.userId, ctx.user.id),
+        ),
+      );
+
+    if (res.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Ignored pair not found",
+      });
+    }
+  }
+
+  static async getIgnoredPairIds(ctx: AuthedContext): Promise<{
+    pairs: Array<{
+      tagId1: string;
+      tagId2: string;
+    }>;
+  }> {
+    const pairs = await ctx.db.query.ignoredTagPairs.findMany({
+      where: eq(ignoredTagPairs.userId, ctx.user.id),
+      columns: {
+        tagId1: true,
+        tagId2: true,
+      },
+    });
+
+    return {
+      pairs,
     };
   }
 }
