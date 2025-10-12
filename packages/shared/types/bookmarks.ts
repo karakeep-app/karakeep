@@ -86,6 +86,7 @@ export const zBookmarkSourceSchema = z.enum([
   "web",
   "cli",
   "mobile",
+  "extension",
   "singlefile",
   "rss",
 ]);

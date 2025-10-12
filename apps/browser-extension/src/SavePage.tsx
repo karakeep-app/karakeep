@@ -49,7 +49,7 @@ export default function SavePage() {
             type: BookmarkTypes.LINK,
             url: currentTab.url,
             title: currentTab.title,
-            source: "web",
+            source: "extension",
           };
         } else {
           setError("Couldn't find the URL of the current tab");
@@ -59,7 +59,7 @@ export default function SavePage() {
 
       createBookmark({
         ...newBookmarkRequest,
-        source: newBookmarkRequest.source || "web",
+        source: newBookmarkRequest.source || "extension",
       });
     }
     runSave();
