@@ -209,6 +209,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       trpcClient.bookmarks.createBookmark({
         type: BookmarkTypes.LINK,
         url: item.link!,
+        source: "rss",
       }),
     ),
   );
