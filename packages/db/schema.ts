@@ -169,7 +169,16 @@ export const bookmarks = sqliteTable(
       enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
     }).notNull(),
     source: text("source", {
-      enum: ["api", "web", "extension", "cli", "mobile", "singlefile", "rss"],
+      enum: [
+        "api",
+        "web",
+        "extension",
+        "cli",
+        "mobile",
+        "singlefile",
+        "rss",
+        "import",
+      ],
     }),
   },
   (b) => [

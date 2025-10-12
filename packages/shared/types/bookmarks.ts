@@ -89,6 +89,7 @@ export const zBookmarkSourceSchema = z.enum([
   "extension",
   "singlefile",
   "rss",
+  "import",
 ]);
 export type ZBookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 

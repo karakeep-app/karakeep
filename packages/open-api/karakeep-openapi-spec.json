@@ -104,7 +104,8 @@
               "mobile",
               "extension",
               "singlefile",
-              "rss"
+              "rss",
+              "import"
             ]
           },
           "tags": {
@@ -720,7 +721,8 @@
                           "mobile",
                           "extension",
                           "singlefile",
-                          "rss"
+                          "rss",
+                          "import"
                         ]
                       }
                     }
@@ -1185,7 +1187,8 @@
                         "mobile",
                         "extension",
                         "singlefile",
-                        "rss"
+                        "rss",
+                        "import"
                       ]
                     }
                   },
@@ -1309,7 +1312,8 @@
                         "mobile",
                         "extension",
                         "singlefile",
-                        "rss"
+                        "rss",
+                        "import"
                       ]
                     }
                   },
