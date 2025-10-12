@@ -1,1 +1,0 @@
-ALTER TABLE `bookmarks` ADD `source` text;
