@@ -158,8 +158,14 @@ const allEnv = z.object({
   PAID_BROWSER_CRAWLING_ENABLED: optionalStringBool(),
 
   // Proxy configuration
-  CRAWLER_HTTP_PROXY: z.string().optional(),
-  CRAWLER_HTTPS_PROXY: z.string().optional(),
+  CRAWLER_HTTP_PROXY: z
+    .string()
+    .transform((val) => val.split(","))
+    .optional(),
+  CRAWLER_HTTPS_PROXY: z
+    .string()
+    .transform((val) => val.split(","))
+    .optional(),
   CRAWLER_NO_PROXY: z.string().optional(),
 
   // Database configuration
