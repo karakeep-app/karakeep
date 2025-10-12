@@ -222,8 +222,8 @@ If your Karakeep instance needs to connect through a proxy server, you can confi
 
 | Name                | Required | Default | Description                                                                                                                                                                           |
 | ------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CRAWLER_HTTP_PROXY  | No       | Not set | HTTP proxy server URL for outgoing HTTP requests (e.g., `http://proxy.example.com:8080`). You can pass multiple comma separated proxies and the used one will be choosed at random.   |
-| CRAWLER_HTTPS_PROXY | No       | Not set | HTTPS proxy server URL for outgoing HTTPS requests (e.g., `http://proxy.example.com:8080`). You can pass multiple comma separated proxies and the used one will be choosed at random. |
+| CRAWLER_HTTP_PROXY  | No       | Not set | HTTP proxy server URL for outgoing HTTP requests (e.g., `http://proxy.example.com:8080`). You can pass multiple comma separated proxies and the used one will be chosen at random.   |
+| CRAWLER_HTTPS_PROXY | No       | Not set | HTTPS proxy server URL for outgoing HTTPS requests (e.g., `http://proxy.example.com:8080`). You can pass multiple comma separated proxies and the used one will be chosen at random. |
 | CRAWLER_NO_PROXY    | No       | Not set | Comma-separated list of hostnames/IPs that should bypass the proxy (e.g., `localhost,127.0.0.1,.local`)                                                                               |
 
 :::info
