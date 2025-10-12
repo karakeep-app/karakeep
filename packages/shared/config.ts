@@ -160,11 +160,21 @@ const allEnv = z.object({
   // Proxy configuration
   CRAWLER_HTTP_PROXY: z
     .string()
-    .transform((val) => val.split(","))
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
     .optional(),
   CRAWLER_HTTPS_PROXY: z
     .string()
-    .transform((val) => val.split(","))
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
     .optional(),
   CRAWLER_NO_PROXY: z.string().optional(),
 
