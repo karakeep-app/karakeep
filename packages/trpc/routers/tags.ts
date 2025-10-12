@@ -112,4 +112,53 @@ export const tagsAppRouter = router({
           : undefined,
       });
     }),
+  ignoreDuplicateSuggestion: authedProcedure
+    .input(
+      z.object({
+        tagId1: z.string(),
+        tagId2: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      return await Tag.ignoreDuplicateSuggestion(ctx, input);
+    }),
+  listIgnoredPairs: authedProcedure
+    .output(
+      z.object({
+        ignoredPairs: z.array(
+          z.object({
+            id: z.string(),
+            tag1: zTagBasicSchema,
+            tag2: zTagBasicSchema,
+            createdAt: z.date(),
+          }),
+        ),
+      }),
+    )
+    .query(async ({ ctx }) => {
+      return await Tag.listIgnoredPairs(ctx);
+    }),
+  unignorePair: authedProcedure
+    .input(
+      z.object({
+        pairId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await Tag.unignorePair(ctx, input.pairId);
+    }),
+  getIgnoredPairIds: authedProcedure
+    .output(
+      z.object({
+        pairs: z.array(
+          z.object({
+            tagId1: z.string(),
+            tagId2: z.string(),
+          }),
+        ),
+      }),
+    )
+    .query(async ({ ctx }) => {
+      return await Tag.getIgnoredPairIds(ctx);
+    }),
 });

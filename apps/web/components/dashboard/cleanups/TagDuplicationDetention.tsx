@@ -56,6 +56,15 @@ const useSuggestions = () => {
   return { suggestions, updateMergeInto, deleteSuggestion, setSuggestions };
 };
 
+function isPairIgnored(
+  tag1Id: string,
+  tag2Id: string,
+  ignoredPairs: { tagId1: string; tagId2: string }[],
+): boolean {
+  const [id1, id2] = tag1Id < tag2Id ? [tag1Id, tag2Id] : [tag2Id, tag1Id];
+  return ignoredPairs.some((p) => p.tagId1 === id1 && p.tagId2 === id2);
+}
+
 function ApplyAllButton({ suggestions }: { suggestions: Suggestion[] }) {
   const { t } = useTranslation();
   const [applying, setApplying] = useState(false);
@@ -137,6 +146,36 @@ function SuggestionRow({
       });
     },
   });
+
+  const { mutate: ignoreTagPair } = api.tags.ignoreDuplicateSuggestion.useMutation({
+    onSuccess: () => {
+      deleteSuggestion(suggestion);
+      toast({
+        description: "Tag pair ignored",
+      });
+    },
+    onError: (e) => {
+      toast({
+        description: e.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleIgnore = () => {
+    // Get all pairs of tags in this suggestion
+    const tagIds = suggestion.tags.map((t) => t.id);
+    // For simplicity, we'll ignore all pairwise combinations
+    for (let i = 0; i < tagIds.length; i++) {
+      for (let j = i + 1; j < tagIds.length; j++) {
+        ignoreTagPair({
+          tagId1: tagIds[i],
+          tagId2: tagIds[j],
+        });
+      }
+    }
+  };
+
   return (
     <TableRow key={suggestion.mergeIntoId}>
       <TableCell className="flex flex-wrap gap-1">
@@ -186,10 +225,7 @@ function SuggestionRow({
           {t("actions.merge")}
         </ActionButton>
 
-        <Button
-          variant={"secondary"}
-          onClick={() => deleteSuggestion(suggestion)}
-        >
+        <Button variant={"secondary"} onClick={handleIgnore}>
           <X className="mr-2 size-4" />
           {t("actions.ignore")}
         </Button>
@@ -207,6 +243,8 @@ export function TagDuplicationDetection() {
     },
   );
 
+  const { data: ignoredPairsData } = api.tags.getIgnoredPairIds.useQuery();
+
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =
     useSuggestions();
 
@@ -215,6 +253,8 @@ export function TagDuplicationDetection() {
     const sortedTags = allTags.tags.sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );
+
+    const ignoredPairs = ignoredPairsData?.pairs ?? [];
 
     const initialSuggestions: Suggestion[] = [];
     for (let i = 0; i < sortedTags.length; i++) {
@@ -229,15 +269,29 @@ export function TagDuplicationDetection() {
         }
       }
       if (suggestion.length > 1) {
-        initialSuggestions.push({
-          mergeIntoId: suggestion[0].id,
-          tags: suggestion,
-        });
+        // Check if any pair in this suggestion is ignored
+        let hasIgnoredPair = false;
+        for (let x = 0; x < suggestion.length && !hasIgnoredPair; x++) {
+          for (let y = x + 1; y < suggestion.length && !hasIgnoredPair; y++) {
+            if (
+              isPairIgnored(suggestion[x].id, suggestion[y].id, ignoredPairs)
+            ) {
+              hasIgnoredPair = true;
+            }
+          }
+        }
+
+        if (!hasIgnoredPair) {
+          initialSuggestions.push({
+            mergeIntoId: suggestion[0].id,
+            tags: suggestion,
+          });
+        }
         i += suggestion.length - 1;
       }
     }
     setSuggestions(initialSuggestions);
-  }, [allTags]);
+  }, [allTags, ignoredPairsData]);
 
   if (!allTags) {
     return <LoadingSpinner />;
