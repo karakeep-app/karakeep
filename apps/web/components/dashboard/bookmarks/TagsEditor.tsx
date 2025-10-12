@@ -255,7 +255,7 @@ export function TagsEditor({
   };
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="w-full">
       <Popover open={open && !isDisabled} onOpenChange={handleOpenChange}>
         <Command shouldFilter={false}>
           <PopoverTrigger asChild>
