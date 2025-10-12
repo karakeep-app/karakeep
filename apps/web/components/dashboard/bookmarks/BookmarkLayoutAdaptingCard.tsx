@@ -6,11 +6,7 @@ import useBulkActionsStore from "@/lib/bulkActions";
 import {
   bookmarkLayoutSwitch,
   useBookmarkLayout,
-  useShowImages,
-  useShowText,
-  useShowTags,
-  useRestrictCardHeight,
-  useImageFit,
+  useBookmarkDisplaySettings,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
 import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
@@ -117,10 +113,8 @@ function ListView({
   footer,
   className,
 }: Props) {
-  const showImages = useShowImages();
-  const showText = useShowText();
-  const showTags = useShowTags();
-  const imageFit = useImageFit();
+  const { showImages, showText, showTags, imageFit } =
+    useBookmarkDisplaySettings();
 
   const objectFitClass = imageFit === "contain" ? "object-contain" : "object-cover";
 
@@ -173,11 +167,8 @@ function GridView({
   layout,
   fitHeight = false,
 }: Props & { layout: BookmarksLayoutTypes }) {
-  const showImages = useShowImages();
-  const showText = useShowText();
-  const showTags = useShowTags();
-  const restrictCardHeight = useRestrictCardHeight();
-  const imageFit = useImageFit();
+  const { showImages, showText, showTags, restrictCardHeight, imageFit } =
+    useBookmarkDisplaySettings();
 
   const objectFitClass = imageFit === "contain" ? "object-contain" : "object-cover";
   const img = showImages

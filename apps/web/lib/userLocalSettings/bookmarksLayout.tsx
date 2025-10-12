@@ -40,29 +40,15 @@ export function useGridColumns() {
   return settings.gridColumns;
 }
 
-export function useShowImages() {
+export function useBookmarkDisplaySettings() {
   const settings = useUserLocalSettings();
-  return settings.showImages;
-}
-
-export function useShowText() {
-  const settings = useUserLocalSettings();
-  return settings.showText;
-}
-
-export function useShowTags() {
-  const settings = useUserLocalSettings();
-  return settings.showTags;
-}
-
-export function useRestrictCardHeight() {
-  const settings = useUserLocalSettings();
-  return settings.restrictCardHeight;
-}
-
-export function useImageFit() {
-  const settings = useUserLocalSettings();
-  return settings.imageFit;
+  return {
+    showImages: settings.showImages,
+    showText: settings.showText,
+    showTags: settings.showTags,
+    restrictCardHeight: settings.restrictCardHeight,
+    imageFit: settings.imageFit,
+  };
 }
 
 export function bookmarkLayoutSwitch<T>(

@@ -13,11 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import {
   useBookmarkLayout,
   useGridColumns,
-  useShowImages,
-  useShowText,
-  useShowTags,
-  useRestrictCardHeight,
-  useImageFit,
+  useBookmarkDisplaySettings,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import {
   updateBookmarksLayout,
@@ -63,11 +59,8 @@ const layoutNames: Record<LayoutType, string> = {
 export default function ViewOptions() {
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
-  const showImages = useShowImages();
-  const showText = useShowText();
-  const showTags = useShowTags();
-  const restrictCardHeight = useRestrictCardHeight();
-  const imageFit = useImageFit();
+  const { showImages, showText, showTags, restrictCardHeight, imageFit } =
+    useBookmarkDisplaySettings();
   const [tempColumns, setTempColumns] = React.useState(gridColumns);
 
   const showColumnSlider = layout === "grid" || layout === "masonry";
