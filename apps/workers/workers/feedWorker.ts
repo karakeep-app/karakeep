@@ -154,6 +154,8 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
     id: z.coerce.string(),
     link: z.string().optional(),
     guid: z.string().optional(),
+    title: z.string().optional(),
+    categories: z.array(z.string()).optional(),
   });
 
   const feedItems = unparseFeedData.items
@@ -209,9 +211,36 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       trpcClient.bookmarks.createBookmark({
         type: BookmarkTypes.LINK,
         url: item.link!,
+        title: item.title,
       }),
     ),
   );
+
+  // If importTags is enabled, attach categories as tags to the created bookmarks
+  if (feed.importTags) {
+    await Promise.allSettled(
+      newEntries.map(async (item, idx) => {
+        const bookmark = createdBookmarks[idx];
+        if (
+          bookmark.status === "fulfilled" &&
+          item.categories &&
+          item.categories.length > 0
+        ) {
+          try {
+            await trpcClient.bookmarks.updateTags({
+              bookmarkId: bookmark.value.id,
+              attach: item.categories.map((tagName) => ({ tagName })),
+              detach: [],
+            });
+          } catch (error) {
+            logger.warn(
+              `[feed][${jobId}] Failed to attach tags to bookmark ${bookmark.value.id}: ${error}`,
+            );
+          }
+        }
+      }),
+    );
+  }
 
   // It's ok if this is not transactional as the bookmarks will get linked in the next iteration.
   await db
