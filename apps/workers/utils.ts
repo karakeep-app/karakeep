@@ -21,6 +21,10 @@ export function withTimeout<T, Ret>(
   };
 }
 
+export function getRandomProxy(proxyList: string[]): string {
+  return proxyList[Math.floor(Math.random() * proxyList.length)].trim();
+}
+
 function getProxyAgent(url: string) {
   const { proxy } = serverConfig;
 
@@ -48,12 +52,14 @@ function getProxyAgent(url: string) {
   }
 
   if (protocol === "https:" && proxy.httpsProxy) {
-    return new HttpsProxyAgent(proxy.httpsProxy);
+    const selectedProxy = getRandomProxy(proxy.httpsProxy);
+    return new HttpsProxyAgent(selectedProxy);
   } else if (protocol === "http:" && proxy.httpProxy) {
-    return new HttpProxyAgent(proxy.httpProxy);
+    const selectedProxy = getRandomProxy(proxy.httpProxy);
+    return new HttpProxyAgent(selectedProxy);
   } else if (proxy.httpProxy) {
-    // Fallback to HTTP proxy for HTTPS if HTTPS proxy not configured
-    return new HttpProxyAgent(proxy.httpProxy);
+    const selectedProxy = getRandomProxy(proxy.httpProxy);
+    return new HttpProxyAgent(selectedProxy);
   }
 
   return undefined;

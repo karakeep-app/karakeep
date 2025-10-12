@@ -28,7 +28,7 @@ import { workerStatsCounter } from "metrics";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { fetchWithProxy } from "utils";
+import { fetchWithProxy, getRandomProxy } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -160,12 +160,13 @@ function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
   }
 
   // Use HTTPS proxy if available, otherwise fall back to HTTP proxy
-  const proxyUrl = proxy.httpsProxy || proxy.httpProxy;
-  if (!proxyUrl) {
+  const proxyList = proxy.httpsProxy || proxy.httpProxy;
+  if (!proxyList) {
     // Unreachable, but TypeScript doesn't know that
     return undefined;
   }
 
+  const proxyUrl = getRandomProxy(proxyList);
   const parsed = new URL(proxyUrl);
 
   return {
