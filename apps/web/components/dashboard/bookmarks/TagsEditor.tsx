@@ -255,13 +255,13 @@ export function TagsEditor({
   };
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="w-full">
       <Popover open={open && !isDisabled} onOpenChange={handleOpenChange}>
         <Command shouldFilter={false}>
           <PopoverTrigger asChild>
             <div
               className={cn(
-                "relative flex min-h-10 min-w-64 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
                 isDisabled && "cursor-not-allowed opacity-50",
               )}
             >
