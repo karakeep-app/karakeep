@@ -186,8 +186,10 @@ async function getIds(
         ? db
             .selectDistinct({ id: bookmarksInLists.bookmarkId })
             .from(bookmarksInLists)
+            .innerJoin(bookmarks, eq(bookmarksInLists.bookmarkId, bookmarks.id))
             .where(
               and(
+                eq(bookmarks.userId, userId),
                 // user scoping ensured by lists query; membership rows imply same user via listId
                 // Fetch all bookmarks that are in any of the manual lists with this name
                 inArray(bookmarksInLists.listId, manualListIds),
