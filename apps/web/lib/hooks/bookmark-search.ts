@@ -8,9 +8,24 @@ import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 
 import { useInSearchPageStore } from "../store/useInSearchPageStore";
 
+// Safely decode URI component with specific URIError handling
+function safeDecodeURIComponent(uri: string): string {
+  try {
+    return decodeURIComponent(uri);
+  } catch (error) {
+    // Specifically handle URIError by falling back to raw query
+    if (error instanceof URIError) {
+      return uri;
+    }
+    // Re-throw any other types of errors
+    throw error;
+  }
+}
+
 function useSearchQuery() {
   const searchParams = useSearchParams();
-  const searchQuery = decodeURIComponent(searchParams.get("q") ?? "");
+  const rawQuery = searchParams.get("q") ?? "";
+  const searchQuery = safeDecodeURIComponent(rawQuery);
 
   const parsed = useMemo(() => parseSearchQuery(searchQuery), [searchQuery]);
   return { searchQuery, parsedSearchQuery: parsed };

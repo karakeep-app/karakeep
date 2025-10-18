@@ -699,4 +699,68 @@ describe("Bookmarks API", () => {
       expect(secondAssetId).toBeDefined();
     });
   });
+
+  it("should handle search with special characters like % symbol", async () => {
+    // Create test bookmarks with % symbol in content
+    await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Test with 100% accuracy",
+        text: "This bookmark contains percentage symbol",
+      },
+    });
+    await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Another test",
+        text: "Regular bookmark without special chars",
+      },
+    });
+
+    // Wait for the search index to be updated
+    await new Promise((f) => setTimeout(f, 3000));
+
+    // Search for bookmarks with % symbol - this should not throw URIError
+    const { data: searchResults, response: searchResponse } = await client.GET(
+      "/bookmarks/search",
+      {
+        params: {
+          query: {
+            q: "%", // Search for the % symbol specifically
+          },
+        },
+      },
+    );
+
+    // The request should succeed without throwing URIError
+    expect(searchResponse.status).toBe(200);
+    expect(searchResults).toBeDefined();
+    expect(searchResults!.bookmarks).toBeDefined();
+
+    // Search for "100%" specifically
+    const { data: percentSearchResults, response: percentSearchResponse } =
+      await client.GET("/bookmarks/search", {
+        params: {
+          query: {
+            q: "100%", // Search for "100%" specifically
+          },
+        },
+      });
+
+    // This should also succeed without throwing URIError
+    expect(percentSearchResponse.status).toBe(200);
+    expect(percentSearchResults).toBeDefined();
+    expect(percentSearchResults!.bookmarks).toBeDefined();
+
+    // Verify that we found the bookmark with "100%" in the title
+    const bookmarksWithPercent = percentSearchResults!.bookmarks.filter(
+      (bookmark) =>
+        (bookmark.title && bookmark.title.includes("100%")) ||
+        (bookmark.content &&
+          "text" in bookmark.content &&
+          bookmark.content.text &&
+          bookmark.content.text.includes("100%")),
+    );
+    expect(bookmarksWithPercent.length).toBeGreaterThanOrEqual(1);
+  });
 });
