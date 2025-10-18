@@ -727,4 +727,63 @@ describe("Bookmarks API", () => {
       expect(secondAssetId).toBeDefined();
     });
   });
+
+  it("should search bookmarks in smart lists using list: syntax", async () => {
+    // Create a bookmark that will match our smart list criteria
+    const { data: createdBookmark1 } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Favourite Bookmark",
+        text: "This is a favourite bookmark for testing smart list search",
+        favourited: true,
+      },
+    });
+
+    // Create another bookmark that won't match
+    await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Regular Bookmark",
+        text: "This is a regular bookmark that won't match our smart list",
+        favourited: false,
+      },
+    });
+
+    // Create a smart list for favourited bookmarks
+    const { data: createdList } = await client.POST("/lists", {
+      body: {
+        name: "NOT ASSIGNED", // Using the same name as in the issue
+        icon: "🧠",
+        type: "smart",
+        query: "is:fav",
+      },
+    });
+
+    // Verify the list was created successfully
+    expect(createdList).toBeDefined();
+    expect(createdList!.name).toBe("NOT ASSIGNED");
+    expect(createdList!.icon).toBe("🧠");
+    expect(createdList!.type).toBe("smart");
+    expect(createdList!.query).toBe("is:fav");
+
+    // Wait for the search index to be updated
+    await new Promise((f) => setTimeout(f, 3000));
+
+    // Search using the list: syntax for the smart list
+    const { data: searchResults, response: searchResponse } = await client.GET(
+      "/bookmarks/search",
+      {
+        params: {
+          query: {
+            q: 'list:"NOT ASSIGNED"',
+          },
+        },
+      },
+    );
+
+    expect(searchResponse.status).toBe(200);
+    expect(searchResults!.bookmarks.length).toBe(1);
+    expect(searchResults!.bookmarks[0].id).toBe(createdBookmark1!.id);
+    expect(searchResults!.bookmarks[0].title).toBe("Favourite Bookmark");
+  });
 });
