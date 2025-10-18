@@ -148,94 +148,93 @@ async function getIds(
       if (visitedListNames.has(matcher.listName)) {
         return [];
       }
-      visitedListNames.add(matcher.listName);
-      try {
-        const lists = await db
-          .select({
-            id: bookmarkLists.id,
-            type: bookmarkLists.type,
-            query: bookmarkLists.query,
-          })
-          .from(bookmarkLists)
-          .where(
-            and(
-              eq(bookmarkLists.userId, userId),
-              eq(bookmarkLists.name, matcher.listName),
-            ),
-          );
 
-        // If no such list exists, either empty (non-inverse) or all user's bookmarks (inverse)
-        if (!lists || lists.length === 0) {
-          if (matcher.inverse) {
-            return db
-              .select({ id: bookmarks.id })
-              .from(bookmarks)
-              .where(eq(bookmarks.userId, userId));
-          }
-          return [];
+      // Clone the visitedListNames set to avoid mutation issues across branches
+      const newVisitedListNames = new Set(visitedListNames);
+      newVisitedListNames.add(matcher.listName);
+
+      const lists = await db
+        .select({
+          id: bookmarkLists.id,
+          type: bookmarkLists.type,
+          query: bookmarkLists.query,
+        })
+        .from(bookmarkLists)
+        .where(
+          and(
+            eq(bookmarkLists.userId, userId),
+            eq(bookmarkLists.name, matcher.listName),
+          ),
+        );
+
+      // If no such list exists, either empty (non-inverse) or all user's bookmarks (inverse)
+      if (!lists || lists.length === 0) {
+        if (matcher.inverse) {
+          return db
+            .select({ id: bookmarks.id })
+            .from(bookmarks)
+            .where(eq(bookmarks.userId, userId));
         }
-
-        // 2) Collect IDs from manual lists via membership table
-        const manualListIds = lists
-          .filter((l) => l.type === "manual")
-          .map((l) => l.id);
-        const manualIdsPromise = manualListIds.length
-          ? db
-              .selectDistinct({ id: bookmarksInLists.bookmarkId })
-              .from(bookmarksInLists)
-              .where(
-                and(
-                  // user scoping ensured by lists query; membership rows imply same user via listId
-                  // Fetch all bookmarks that are in any of the manual lists with this name
-                  inArray(bookmarksInLists.listId, manualListIds),
-                ),
-              )
-          : Promise.resolve([] as { id: string }[]);
-
-        // 3) Collect IDs from smart lists by evaluating their queries recursively
-        const smartLists = lists.filter((l) => l.type === "smart");
-        const smartIdsPromise = (async () => {
-          if (smartLists.length === 0) return [] as BookmarkQueryReturnType[];
-          const results: BookmarkQueryReturnType[][] = [];
-          for (const sl of smartLists) {
-            if (!sl.query) continue;
-            const parsed = parseSearchQuery(sl.query);
-            if (!parsed.matcher) continue;
-            const ids = await getIds(
-              db,
-              userId,
-              parsed.matcher,
-              new Set(visitedListNames),
-            );
-            results.push(ids);
-          }
-          return union(results);
-        })();
-
-        const [manualIds, smartIds] = await Promise.all([
-          manualIdsPromise,
-          smartIdsPromise,
-        ]);
-
-        const includedSet = new Set<string>([
-          ...manualIds.map((r) => r.id),
-          ...smartIds.map((r) => r.id),
-        ]);
-
-        if (!matcher.inverse) {
-          return Array.from(includedSet).map((id) => ({ id }));
-        }
-
-        // 4) Inverse: return all user's bookmarks excluding includedSet
-        const allUser = await db
-          .select({ id: bookmarks.id })
-          .from(bookmarks)
-          .where(eq(bookmarks.userId, userId));
-        return allUser.filter((r) => !includedSet.has(r.id));
-      } finally {
-        // Ensure path-scoped cycle detection
-        visitedListNames.delete(matcher.listName);
+        return [];
       }
+
+      // 2) Collect IDs from manual lists via membership table
+      const manualListIds = lists
+        .filter((l) => l.type === "manual")
+        .map((l) => l.id);
+      const manualIdsPromise = manualListIds.length
+        ? db
+            .selectDistinct({ id: bookmarksInLists.bookmarkId })
+            .from(bookmarksInLists)
+            .where(
+              and(
+                // user scoping ensured by lists query; membership rows imply same user via listId
+                // Fetch all bookmarks that are in any of the manual lists with this name
+                inArray(bookmarksInLists.listId, manualListIds),
+              ),
+            )
+        : Promise.resolve([] as { id: string }[]);
+
+      // 3) Collect IDs from smart lists by evaluating their queries recursively
+      const smartLists = lists.filter((l) => l.type === "smart");
+      const smartIdsPromise = (async () => {
+        if (smartLists.length === 0) return [] as BookmarkQueryReturnType[];
+        const results: BookmarkQueryReturnType[][] = [];
+        for (const sl of smartLists) {
+          if (!sl.query) continue;
+          const parsed = parseSearchQuery(sl.query);
+          if (!parsed.matcher) continue;
+          const ids = await getIds(
+            db,
+            userId,
+            parsed.matcher,
+            new Set(newVisitedListNames),
+          );
+          results.push(ids);
+        }
+        return union(results);
+      })();
+
+      const [manualIds, smartIds] = await Promise.all([
+        manualIdsPromise,
+        smartIdsPromise,
+      ]);
+
+      const includedSet = new Set<string>([
+        ...manualIds.map((r) => r.id),
+        ...smartIds.map((r) => r.id),
+      ]);
+
+      if (!matcher.inverse) {
+        return Array.from(includedSet).map((id) => ({ id }));
+      }
+
+      // 4) Inverse: return all user's bookmarks excluding includedSet
+      const allUser = await db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, userId));
+      return allUser.filter((r) => !includedSet.has(r.id));
     }
     case "inlist": {
       const comp = matcher.inList ? exists : notExists;
