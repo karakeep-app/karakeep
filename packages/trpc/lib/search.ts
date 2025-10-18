@@ -11,6 +11,7 @@ import {
   lt,
   lte,
   ne,
+  not,
   notExists,
   notLike,
   or,
@@ -152,6 +153,10 @@ async function getIds(
       // Clone the visitedListNames set to avoid mutation issues across branches
       const newVisitedListNames = new Set(visitedListNames);
       newVisitedListNames.add(matcher.listName);
+      // Hard cap to avoid runaway recursion from adversarial list references
+      if (newVisitedListNames.size > 32) {
+        return [];
+      }
 
       const lists = await db
         .select({
@@ -232,11 +237,21 @@ async function getIds(
       }
 
       // 4) Inverse: return all user's bookmarks excluding includedSet
-      const allUser = await db
+      if (includedSet.size === 0) {
+        return db
+          .select({ id: bookmarks.id })
+          .from(bookmarks)
+          .where(eq(bookmarks.userId, userId));
+      }
+      return db
         .select({ id: bookmarks.id })
         .from(bookmarks)
-        .where(eq(bookmarks.userId, userId));
-      return allUser.filter((r) => !includedSet.has(r.id));
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            not(inArray(bookmarks.id, Array.from(includedSet))),
+          ),
+        );
     }
     case "inlist": {
       const comp = matcher.inList ? exists : notExists;
