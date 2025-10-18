@@ -424,13 +424,17 @@ async function getIds(
     }
     case "and": {
       const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(db, userId, m, new Set(visitedListNames))),
+        matcher.matchers.map((m) =>
+          getIds(db, userId, m, new Set(visitedListNames)),
+        ),
       );
       return intersect(vals);
     }
     case "or": {
       const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(db, userId, m, new Set(visitedListNames))),
+        matcher.matchers.map((m) =>
+          getIds(db, userId, m, new Set(visitedListNames)),
+        ),
       );
       return union(vals);
     }
