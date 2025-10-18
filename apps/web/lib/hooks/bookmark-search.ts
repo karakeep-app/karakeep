@@ -19,7 +19,7 @@ import { useInSearchPageStore } from "../store/useInSearchPageStore";
  * @returns The decoded string or the original string if decoding fails
  * @throws Error - Re-throws any non-URIError exceptions
  */
-function safeDecodeURIComponent(uri: string): string {
+export function safeDecodeURIComponent(uri: string): string {
   try {
     return decodeURIComponent(uri);
   } catch (error) {
@@ -35,16 +35,15 @@ function safeDecodeURIComponent(uri: string): string {
 /**
  * Custom hook to extract and parse the search query from URL parameters
  *
- * This hook retrieves the search query parameter from the URL, safely decodes
- * it to handle percent-encoded characters, and parses it using the search
+ * This hook retrieves the search query parameter from the URL (which is
+ * automatically decoded by the browser) and parses it using the search
  * query parser.
  *
  * @returns An object containing the raw search query and parsed search query
  */
-function useSearchQuery() {
+export function useSearchQuery() {
   const searchParams = useSearchParams();
-  const rawQuery = searchParams.get("q") ?? "";
-  const searchQuery = safeDecodeURIComponent(rawQuery);
+  const searchQuery = searchParams.get("q") ?? "";
 
   const parsed = useMemo(() => parseSearchQuery(searchQuery), [searchQuery]);
   return { searchQuery, parsedSearchQuery: parsed };
