@@ -26,6 +26,6 @@ resources:
 ## Makefile
 - Clone this repo
 - Edit the object definitions to suit your needs
-- Edit the configuration in `.env` and `.secret`
+- Edit the configuration in `.env` and `.secrets`
 - Run `make deploy`
 
