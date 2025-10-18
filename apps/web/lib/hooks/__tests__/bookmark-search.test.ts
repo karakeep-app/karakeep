@@ -1,5 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  safeDecodeURIComponent,
+  useDoBookmarkSearch,
+  useSearchQuery,
+} from "../bookmark-search";
 
 // Mock Next.js navigation hooks
 let mockQueryString = "";
@@ -47,8 +53,6 @@ vi.mock("@karakeep/shared/searchQueryParser", () => ({
     value: query,
   })),
 }));
-
-import { safeDecodeURIComponent, useSearchQuery, useDoBookmarkSearch } from "../bookmark-search";
 
 describe("safeDecodeURIComponent", () => {
   it("should decode properly encoded URI components", () => {
