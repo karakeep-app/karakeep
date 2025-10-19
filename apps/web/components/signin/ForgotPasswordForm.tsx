@@ -20,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
@@ -40,12 +40,12 @@ export default function ForgotPasswordForm() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const forgotPasswordMutation = api.users.forgotPassword.useMutation();
-
   const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setErrorMessage("");
-      await forgotPasswordMutation.mutateAsync(values);
+      await authClient.forgetPassword({
+        email: values.email,
+      });
       setIsSubmitted(true);
     } catch (error) {
       if (error instanceof TRPCClientError) {

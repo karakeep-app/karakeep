@@ -22,6 +22,7 @@ import {
   generatePasswordSalt,
   hashPassword,
 } from "@karakeep/trpc/auth";
+import { sendPasswordResetEmail } from "@karakeep/trpc/email";
 
 function createCredentialPasswordPayload(
   hash: string,
@@ -161,6 +162,9 @@ export const auth = betterAuth({
         password: {
           hash: customHashPassword,
           verify: customVerifyPassword,
+        },
+        sendResetPassword: async ({ user, token }) => {
+          await sendPasswordResetEmail(user.email, user.name, token);
         },
       },
   plugins,

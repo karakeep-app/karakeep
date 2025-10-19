@@ -34,8 +34,6 @@ export const users = sqliteTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
-  password: text("password"),
-  salt: text("salt").notNull().default(""),
   role: text("role", { enum: ["admin", "user"] }).default("user"),
 
   // Admin Only Settings
@@ -107,23 +105,6 @@ export const verificationTokens = sqliteTable(
     updatedAt: modifiedAtField(),
   },
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
-);
-
-export const passwordResetTokens = sqliteTable(
-  "passwordResetToken",
-  {
-    id: text("id")
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    token: text("token").notNull().unique(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-    createdAt: createdAtField(),
-  },
-  (prt) => [index("passwordResetTokens_userId_idx").on(prt.userId)],
 );
 
 export const apiKeys = sqliteTable(
@@ -691,6 +672,7 @@ export const importSessionBookmarks = sqliteTable(
 
 export const userRelations = relations(users, ({ many, one }) => ({
   tags: many(bookmarkTags),
+  accounts: many(accounts),
   bookmarks: many(bookmarks),
   webhooks: many(webhooksTable),
   rules: many(ruleEngineRulesTable),
@@ -846,16 +828,6 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     references: [users.id],
   }),
 }));
-
-export const passwordResetTokensRelations = relations(
-  passwordResetTokens,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [passwordResetTokens.userId],
-      references: [users.id],
-    }),
-  }),
-);
 
 export const importSessionsRelations = relations(
   importSessions,

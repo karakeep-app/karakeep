@@ -13,7 +13,6 @@ import {
   bookmarks,
   bookmarkTags,
   highlights,
-  passwordResetTokens,
   tagsOnBookmarks,
   users,
   verificationTokens,
@@ -21,7 +20,6 @@ import {
 import { deleteUserAssets } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
-  zResetPasswordSchema,
   zSignUpSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
@@ -36,7 +34,7 @@ import {
   hashPassword,
   validatePassword,
 } from "../auth";
-import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
+import { sendVerificationEmail } from "../email";
 import { PrivacyAware } from "./privacy";
 
 export class User implements PrivacyAware {
@@ -116,8 +114,6 @@ export class User implements PrivacyAware {
           .values({
             name: input.name,
             email: input.email,
-            password: input.password,
-            salt: input.salt,
             role: userRole,
             emailVerified: input.emailVerified,
             bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
@@ -292,97 +288,6 @@ export class User implements PrivacyAware {
         message: "Failed to send verification email",
       });
     }
-  }
-
-  static async forgotPassword(ctx: Context, email: string): Promise<void> {
-    if (!serverConfig.email.smtp) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Email service is not configured",
-      });
-    }
-
-    const user = await ctx.db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
-
-    if (!user || !user.password) {
-      return; // Don't reveal if user exists or not for security
-    }
-
-    try {
-      const token = randomBytes(32).toString("hex");
-      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-      await ctx.db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      await sendPasswordResetEmail(email, user.name, token);
-    } catch (error) {
-      console.error("Failed to send password reset email:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to send password reset email",
-      });
-    }
-  }
-
-  static async resetPassword(
-    ctx: Context,
-    input: z.infer<typeof zResetPasswordSchema>,
-  ): Promise<void> {
-    const resetToken = await ctx.db.query.passwordResetTokens.findFirst({
-      where: eq(passwordResetTokens.token, input.token),
-      with: {
-        user: {
-          columns: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    if (!resetToken) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid or expired reset token",
-      });
-    }
-
-    if (resetToken.expires < new Date()) {
-      await ctx.db
-        .delete(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, input.token));
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid or expired reset token",
-      });
-    }
-
-    if (!resetToken.user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
-      });
-    }
-
-    const newSalt = generatePasswordSalt();
-    const hashedPassword = await hashPassword(input.newPassword, newSalt);
-
-    await ctx.db
-      .update(users)
-      .set({
-        password: hashedPassword,
-        salt: newSalt,
-      })
-      .where(eq(users.id, resetToken.user.id));
-
-    await ctx.db
-      .delete(passwordResetTokens)
-      .where(eq(passwordResetTokens.token, input.token));
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
