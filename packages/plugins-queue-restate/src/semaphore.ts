@@ -41,6 +41,9 @@ export const semaphore = object({
       setState(ctx, state);
     },
   },
+  options: {
+    ingressPrivate: true,
+  },
 });
 
 function selectAndPopItem(items: QueueItem[]): QueueItem {
