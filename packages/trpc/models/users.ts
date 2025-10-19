@@ -131,10 +131,9 @@ export class User implements PrivacyAware {
               .insert(accounts)
               .values({
                 userId: result.id,
-                type: "oauth",
-                provider: "credential",
-                providerAccountId: result.id,
-                session_state: encodeCredentialPassword(
+                providerId: "credential",
+                accountId: result.id,
+                password: encodeCredentialPassword(
                   input.password,
                   input.salt ?? "",
                 ),

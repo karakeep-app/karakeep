@@ -1,4 +1,3 @@
-import type { AdapterAccount } from "@auth/core/adapters";
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
 import {
@@ -66,34 +65,32 @@ export const accounts = sqliteTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccount["type"]>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
+    providerId: text("provider").notNull(),
+    accountId: text("providerAccountId").notNull(),
+    refreshToken: text("refresh_token"),
+    accessToken: text("access_token"),
+    accessTokenExpiresAt: integer("expires_at"),
     scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
+    idToken: text("id_token"),
+    password: text("password"),
   },
   (account) => [
     primaryKey({
-      columns: [account.provider, account.providerAccountId],
+      columns: [account.providerId, account.accountId],
     }),
   ],
 );
 
 export const sessions = sqliteTable("session", {
   id: text("id").notNull().unique(),
-  sessionToken: text("sessionToken")
+  token: text("sessionToken")
     .notNull()
     .primaryKey()
     .$defaultFn(() => createId()),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  expiresAt: integer("expires", { mode: "timestamp_ms" }).notNull(),
   createdAt: createdAtField(),
   updatedAt: modifiedAtField(),
   ipAddress: text("ipAddress"),
@@ -106,6 +103,8 @@ export const verificationTokens = sqliteTable(
     identifier: text("identifier").notNull(),
     token: text("token").notNull(),
     expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+    createdAt: createdAtField(),
+    updatedAt: modifiedAtField(),
   },
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
 );

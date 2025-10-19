@@ -16,7 +16,6 @@
     "lint:fix": "oxlint . --fix"
   },
   "dependencies": {
-    "@auth/core": "^0.27.0",
     "@karakeep/shared": "workspace:*",
     "@paralleldrive/cuid2": "^2.2.2",
     "better-sqlite3": "^11.3.0",

@@ -110,7 +110,7 @@ export const auth = betterAuth({
       user: users,
       session: sessions,
       account: accounts,
-      verification: verificationTokens,
+      verificationToken: verificationTokens,
     },
   }),
   user: {
@@ -139,32 +139,8 @@ export const auth = betterAuth({
       },
     },
   },
-  session: {
-    modelName: "session",
-    fields: {
-      id: "sessionToken",
-      token: "sessionToken",
-      expiresAt: "expires",
-      userId: "userId",
-      createdAt: "createdAt",
-      updatedAt: "updatedAt",
-      ipAddress: "ipAddress",
-      userAgent: "userAgent",
-    },
-  },
   account: {
     modelName: "account",
-    fields: {
-      accountId: "providerAccountId",
-      providerId: "provider",
-      userId: "userId",
-      password: "session_state",
-      accessToken: "access_token",
-      refreshToken: "refresh_token",
-      accessTokenExpiresAt: "expires_at",
-      scope: "scope",
-      idToken: "id_token",
-    },
     accountLinking: {
       enabled: oauthConfig.allowDangerousEmailAccountLinking,
     },
@@ -172,7 +148,6 @@ export const auth = betterAuth({
   verification: {
     modelName: "verificationToken",
     fields: {
-      identifier: "identifier",
       value: "token",
       expiresAt: "expires",
     },
