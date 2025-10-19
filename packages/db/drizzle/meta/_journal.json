@@ -449,27 +449,6 @@
       "when": 1760302856618,
       "tag": "0063_add_bookmark_source",
       "breakpoints": true
-    },
-    {
-      "idx": 64,
-      "version": "6",
-      "when": 1760789756588,
-      "tag": "0064_backfill_credential_accounts",
-      "breakpoints": true
-    },
-    {
-      "idx": 65,
-      "version": "6",
-      "when": 1760790329315,
-      "tag": "0065_add_session_metadata",
-      "breakpoints": true
-    },
-    {
-      "idx": 66,
-      "version": "6",
-      "when": 1760790532348,
-      "tag": "0066_add_session_id",
-      "breakpoints": true
     }
   ]
 }
