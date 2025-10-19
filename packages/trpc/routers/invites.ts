@@ -188,7 +188,7 @@ export const invitesAppRouter = router({
       const user = await User.createRaw(ctx.db, {
         name: input.name,
         email: invite.email,
-        password: await hashPassword(input.password, ""),
+        password: await hashPassword(input.password),
         role: "user",
         emailVerified: new Date(), // Auto-verify invited users
       });

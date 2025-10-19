@@ -557,7 +557,6 @@ describe("User Routes", () => {
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauth@test.com",
-        password: null,
       });
 
       const oauthUser = await db
@@ -628,7 +627,6 @@ describe("User Routes", () => {
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauthdelete@test.com",
-        password: null,
       });
 
       const oauthUser = await db
@@ -676,7 +674,6 @@ describe("User Routes", () => {
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauthwhoami@test.com",
-        password: null,
       });
 
       const oauthUser = await db
