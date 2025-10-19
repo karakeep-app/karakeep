@@ -93,6 +93,9 @@ export const auth = betterAuth({
   },
   account: {
     modelName: "account",
+    fields: {
+      updatedAt: "modifiedAt",
+    },
     accountLinking: {
       enabled: oauthConfig.allowDangerousEmailAccountLinking,
     },

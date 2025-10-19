@@ -63,14 +63,17 @@ export const accounts = sqliteTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    providerId: text("provider").notNull(),
+    providerId: text("type").notNull(),
     accountId: text("providerAccountId").notNull(),
     refreshToken: text("refresh_token"),
     accessToken: text("access_token"),
     accessTokenExpiresAt: integer("expires_at"),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at"),
     scope: text("scope"),
     idToken: text("id_token"),
     password: text("password"),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
   },
   (account) => [
     primaryKey({
@@ -80,11 +83,11 @@ export const accounts = sqliteTable(
 );
 
 export const sessions = sqliteTable("session", {
-  id: text("id").notNull().unique(),
-  token: text("sessionToken")
+  id: text("id")
     .notNull()
     .primaryKey()
     .$defaultFn(() => createId()),
+  token: text("sessionToken").notNull().unique(),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -679,6 +682,13 @@ export const userRelations = relations(users, ({ many, one }) => ({
   invites: many(invites),
   subscription: one(subscriptions),
   importSessions: many(importSessions),
+}));
+
+export const accountRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
