@@ -78,7 +78,7 @@ export class User implements PrivacyAware {
     const user = await User.createRaw(ctx.db, {
       name: input.name,
       email: input.email,
-      password: await hashPassword(input.password),
+      password: input.password,
       role,
     });
 
