@@ -97,11 +97,18 @@ export const auth = betterAuth({
       enabled: oauthConfig.allowDangerousEmailAccountLinking,
     },
   },
+  session: {
+    modelName: "session",
+    fields: {
+      updatedAt: "modifiedAt",
+    },
+  },
   verification: {
     modelName: "verificationToken",
     fields: {
       value: "token",
       expiresAt: "expires",
+      updatedAt: "modifiedAt",
     },
   },
   emailAndPassword: serverConfig.auth.disablePasswordAuth

@@ -90,7 +90,7 @@ export const sessions = sqliteTable("session", {
     .references(() => users.id, { onDelete: "cascade" }),
   expiresAt: integer("expires", { mode: "timestamp_ms" }).notNull(),
   createdAt: createdAtField(),
-  updatedAt: modifiedAtField(),
+  modifiedAt: modifiedAtField(),
   ipAddress: text("ipAddress"),
   userAgent: text("userAgent"),
 });
@@ -102,7 +102,7 @@ export const verificationTokens = sqliteTable(
     token: text("token").notNull(),
     expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
     createdAt: createdAtField(),
-    updatedAt: modifiedAtField(),
+    modifiedAt: modifiedAtField(),
   },
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
 );
