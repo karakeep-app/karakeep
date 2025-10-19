@@ -1,6 +1,5 @@
 "use client";
 
-import type { AuthSession } from "@/server/auth";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useToggleTheme } from "@/components/theme-provider";
@@ -12,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { authClient } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { useTranslation } from "@/lib/i18n/client";
 import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -43,8 +42,7 @@ function DarkModeToggle() {
 export default function SidebarProfileOptions() {
   const { t } = useTranslation();
   const toggleTheme = useToggleTheme();
-  const { data } = authClient.useSession();
-  const session = data as AuthSession | null;
+  const session = useSession();
   const router = useRouter();
   if (!session) return redirect("/");
   const userRole =
