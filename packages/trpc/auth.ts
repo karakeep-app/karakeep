@@ -10,6 +10,64 @@ import type { Context } from "./index";
 const BCRYPT_SALT_ROUNDS = 10;
 const API_KEY_PREFIX_V1 = "ak1";
 const API_KEY_PREFIX_V2 = "ak2";
+const CREDENTIAL_PASSWORD_VERSION = 1;
+
+export interface CredentialPasswordPayload {
+  hash: string;
+  salt: string;
+  version?: number;
+}
+
+export function encodeCredentialPassword(
+  hash: string,
+  salt: string | null | undefined,
+): string {
+  return JSON.stringify({
+    v: CREDENTIAL_PASSWORD_VERSION,
+    hash,
+    salt: salt ?? "",
+  });
+}
+
+export function decodeCredentialPassword(
+  value: string | null | undefined,
+): CredentialPasswordPayload | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as
+      | { hash?: unknown; salt?: unknown; v?: unknown }
+      | undefined;
+    if (parsed && typeof parsed.hash === "string") {
+      return {
+        hash: parsed.hash,
+        salt: typeof parsed.salt === "string" ? parsed.salt : "",
+        version: typeof parsed.v === "number" ? parsed.v : undefined,
+      };
+    }
+  } catch {
+    // Not a JSON payload – fall back to legacy formats
+  }
+
+  if (value.startsWith("bcrypt:")) {
+    const [, salt, hash] = value.split(":");
+    if (salt && hash) {
+      return { hash, salt };
+    }
+  }
+
+  const legacyParts = value.split(":");
+  if (legacyParts.length === 2) {
+    const [salt, hash] = legacyParts;
+    if (salt && hash) {
+      return { hash, salt };
+    }
+  }
+
+  return { hash: value, salt: "" };
+}
 
 function generateApiKeySecret() {
   const secret = randomBytes(16).toString("hex");

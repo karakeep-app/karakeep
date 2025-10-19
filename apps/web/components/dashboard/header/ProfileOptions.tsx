@@ -1,5 +1,6 @@
 "use client";
 
+import type { AuthSession } from "@/server/auth";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useToggleTheme } from "@/components/theme-provider";
@@ -11,9 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { authClient } from "@/lib/auth-client";
 import { useTranslation } from "@/lib/i18n/client";
 import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
@@ -42,9 +43,14 @@ function DarkModeToggle() {
 export default function SidebarProfileOptions() {
   const { t } = useTranslation();
   const toggleTheme = useToggleTheme();
-  const { data: session } = useSession();
+  const { data } = authClient.useSession();
+  const session = data as AuthSession | null;
   const router = useRouter();
   if (!session) return redirect("/");
+  const userRole =
+    session.user.role === "admin" || session.user.role === "user"
+      ? session.user.role
+      : "user";
 
   return (
     <DropdownMenu>
@@ -73,7 +79,7 @@ export default function SidebarProfileOptions() {
             {t("settings.user_settings")}
           </Link>
         </DropdownMenuItem>
-        {session.user.role == "admin" && (
+        {userRole === "admin" && (
           <DropdownMenuItem asChild>
             <Link href="/admin" className="flex justify-between">
               <div className="items-cente flex gap-2">

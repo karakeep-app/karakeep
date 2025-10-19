@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { authOptions } from "@/server/auth";
 import { Info } from "lucide-react";
 
 import serverConfig from "@karakeep/shared/config";
@@ -15,14 +14,17 @@ import CredentialsForm from "./CredentialsForm";
 import SignInProviderButton from "./SignInProviderButton";
 
 export default async function SignInForm() {
-  const providers = authOptions.providers;
-  let providerValues;
-  if (providers) {
-    providerValues = Object.values(providers).filter(
-      // Credentials are handled manually by the sign in form
-      (p) => p.id != "credentials",
-    );
-  }
+  const providerValues =
+    serverConfig.auth.oauth.wellKnownUrl &&
+    serverConfig.auth.oauth.clientId &&
+    serverConfig.auth.oauth.clientSecret
+      ? [
+          {
+            id: "custom",
+            name: serverConfig.auth.oauth.name,
+          },
+        ]
+      : [];
 
   return (
     <div className="w-full">
@@ -47,7 +49,7 @@ export default async function SignInForm() {
 
           <CredentialsForm />
 
-          {providerValues && providerValues.length > 0 && (
+          {providerValues.length > 0 && (
             <>
               <div className="flex w-full items-center">
                 <div className="flex-1 grow border-t border-gray-200"></div>

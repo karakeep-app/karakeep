@@ -85,6 +85,7 @@ export const accounts = sqliteTable(
 );
 
 export const sessions = sqliteTable("session", {
+  id: text("id").notNull().unique(),
   sessionToken: text("sessionToken")
     .notNull()
     .primaryKey()
@@ -93,6 +94,10 @@ export const sessions = sqliteTable("session", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  createdAt: createdAtField(),
+  updatedAt: modifiedAtField(),
+  ipAddress: text("ipAddress"),
+  userAgent: text("userAgent"),
 });
 
 export const verificationTokens = sqliteTable(

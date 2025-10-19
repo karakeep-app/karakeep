@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 
@@ -13,14 +13,25 @@ export default function Logout() {
     setItem: (k: string, v: string) => localStorage.setItem(k, v),
     removeItem: (k: string) => localStorage.removeItem(k),
   });
+
   useEffect(() => {
-    signOut({
-      redirect: false,
-      callbackUrl: "/",
-    }).then((d) => {
+    let isMounted = true;
+    (async () => {
+      const { error } = await authClient.signOut();
+      if (!isMounted) {
+        return;
+      }
+      if (error) {
+        console.error("Failed to sign out", error);
+      }
       clearHistory();
-      router.push(d.url);
-    });
-  }, []);
+      router.push("/");
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [clearHistory, router]);
+
   return <span />;
 }

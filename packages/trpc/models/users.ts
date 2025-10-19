@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
 import {
+  accounts,
   assets,
   bookmarkLinks,
   bookmarkLists,
@@ -29,7 +30,12 @@ import {
 } from "@karakeep/shared/types/users";
 
 import { AuthedContext, Context } from "..";
-import { generatePasswordSalt, hashPassword, validatePassword } from "../auth";
+import {
+  encodeCredentialPassword,
+  generatePasswordSalt,
+  hashPassword,
+  validatePassword,
+} from "../auth";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
 import { PrivacyAware } from "./privacy";
 
@@ -118,6 +124,31 @@ export class User implements PrivacyAware {
             storageQuota: serverConfig.quotas.free.assetSizeBytes,
           })
           .returning();
+
+        if (input.password) {
+          try {
+            await trx
+              .insert(accounts)
+              .values({
+                userId: result.id,
+                type: "oauth",
+                provider: "credential",
+                providerAccountId: result.id,
+                session_state: encodeCredentialPassword(
+                  input.password,
+                  input.salt ?? "",
+                ),
+              })
+              .onConflictDoNothing();
+          } catch (accountError) {
+            if (
+              !(accountError instanceof SqliteError) ||
+              accountError.code !== "SQLITE_CONSTRAINT_UNIQUE"
+            ) {
+              throw accountError;
+            }
+          }
+        }
 
         return result;
       } catch (e) {

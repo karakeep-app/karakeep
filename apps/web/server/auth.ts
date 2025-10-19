@@ -1,14 +1,11 @@
-import { Adapter, AdapterUser } from "@auth/core/adapters";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { headers } from "next/headers";
+import * as bcrypt from "bcryptjs";
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { verifyPassword as defaultVerifyPassword } from "better-auth/crypto";
+import { nextCookies } from "better-auth/next-js";
+import { genericOAuth } from "better-auth/plugins";
 import { count, eq } from "drizzle-orm";
-import NextAuth, {
-  DefaultSession,
-  getServerSession,
-  NextAuthOptions,
-} from "next-auth";
-import { Adapter as NextAuthAdapater } from "next-auth/adapters";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { Provider } from "next-auth/providers/index";
 
 import { db } from "@karakeep/db";
 import {
@@ -18,203 +15,263 @@ import {
   verificationTokens,
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
-import { validatePassword } from "@karakeep/trpc/auth";
-import { User } from "@karakeep/trpc/models/users";
+import {
+  CredentialPasswordPayload,
+  decodeCredentialPassword,
+  encodeCredentialPassword,
+  generatePasswordSalt,
+  hashPassword,
+} from "@karakeep/trpc/auth";
 
-type UserRole = "admin" | "user";
+const CREDENTIAL_PROVIDER_ID = "credential";
 
-declare module "next-auth/jwt" {
-  export interface JWT {
-    user: {
-      id: string;
-      role: UserRole;
-    } & DefaultSession["user"];
+function createCredentialPasswordPayload(
+  hash: string,
+  salt: string | null | undefined,
+): string {
+  return encodeCredentialPassword(hash, salt ?? "");
+}
+
+function parseCredentialPassword(
+  value: string | null | undefined,
+): CredentialPasswordPayload | null {
+  return decodeCredentialPassword(value);
+}
+
+async function customHashPassword(password: string): Promise<string> {
+  const salt = generatePasswordSalt();
+  const hashed = await hashPassword(password, salt);
+  return createCredentialPasswordPayload(hashed, salt);
+}
+
+async function customVerifyPassword({
+  hash,
+  password,
+}: {
+  hash: string;
+  password: string;
+}): Promise<boolean> {
+  const payload = parseCredentialPassword(hash);
+  if (payload) {
+    try {
+      const saltAugmentedPassword = `${password}${payload.salt ?? ""}`;
+      const match = await bcrypt.compare(saltAugmentedPassword, payload.hash);
+      if (match) {
+        return true;
+      }
+    } catch {
+      // fall through to default verifier
+    }
+  }
+  try {
+    return await defaultVerifyPassword({ hash, password });
+  } catch {
+    return false;
   }
 }
 
-declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  export interface Session {
-    user: {
-      id: string;
-      role: UserRole;
-    } & DefaultSession["user"];
+async function syncCredentialPasswordWithUser(account: {
+  providerId?: string;
+  userId: string;
+  password?: string | null;
+}) {
+  if (account.providerId !== CREDENTIAL_PROVIDER_ID || !account.password) {
+    return;
   }
-
-  export interface DefaultUser {
-    role: UserRole | null;
+  const payload = parseCredentialPassword(account.password);
+  if (!payload) {
+    return;
   }
+  await db
+    .update(users)
+    .set({
+      password: payload.hash,
+      salt: payload.salt ?? "",
+    })
+    .where(eq(users.id, account.userId));
 }
 
-/**
- * Returns true if the user table is empty, which indicates that this user is going to be
- * the first one. This can be racy if multiple users are created at the same time, but
- * that should be fine.
- */
 async function isFirstUser(): Promise<boolean> {
   const [{ count: userCount }] = await db
     .select({ count: count() })
     .from(users);
-  return userCount == 0;
+  return userCount === 0;
 }
 
-/**
- * Returns true if the user is an admin
- */
-async function isAdmin(email: string): Promise<boolean> {
-  const res = await db.query.users.findFirst({
-    columns: { role: true },
-    where: eq(users.email, email),
-  });
-  return res?.role == "admin";
+const oauthConfig = serverConfig.auth.oauth;
+
+const plugins = [];
+
+if (
+  oauthConfig.wellKnownUrl &&
+  oauthConfig.clientId &&
+  oauthConfig.clientSecret
+) {
+  plugins.push(
+    genericOAuth({
+      config: [
+        {
+          providerId: "custom",
+          discoveryUrl: oauthConfig.wellKnownUrl,
+          clientId: oauthConfig.clientId,
+          clientSecret: oauthConfig.clientSecret,
+          scopes: oauthConfig.scope.split(" "),
+        },
+      ],
+    }),
+  );
 }
 
-const CustomProvider = (): Adapter => {
-  const adapter = DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  });
+plugins.push(nextCookies());
 
-  return {
-    ...adapter,
-    createUser: async (user: Omit<AdapterUser, "id">) => {
-      return await User.createRaw(db, {
-        name: user.name ?? "",
-        email: user.email,
-        emailVerified: user.emailVerified,
-      });
-    },
-  };
-};
-
-const providers: Provider[] = [
-  CredentialsProvider({
-    // The name to display on the sign in form (e.g. "Sign in with...")
-    name: "Credentials",
-    credentials: {
-      email: { label: "Email", type: "email", placeholder: "Email" },
-      password: { label: "Password", type: "password" },
-    },
-    async authorize(credentials) {
-      if (!credentials) {
-        return null;
-      }
-
-      try {
-        return await validatePassword(
-          credentials?.email,
-          credentials?.password,
-          db,
-        );
-      } catch {
-        return null;
-      }
+export const auth = betterAuth({
+  basePath: "/api/auth",
+  secret: serverConfig.signingSecret(),
+  database: drizzleAdapter(db, {
+    provider: "sqlite",
+    schema: {
+      user: users,
+      session: sessions,
+      account: accounts,
+      verification: verificationTokens,
     },
   }),
-];
-
-const oauth = serverConfig.auth.oauth;
-if (oauth.wellKnownUrl) {
-  providers.push({
-    id: "custom",
-    name: oauth.name,
-    type: "oauth",
-    wellKnown: oauth.wellKnownUrl,
-    authorization: { params: { scope: oauth.scope } },
-    clientId: oauth.clientId,
-    clientSecret: oauth.clientSecret,
-    allowDangerousEmailAccountLinking: oauth.allowDangerousEmailAccountLinking,
-    checks: ["pkce", "state"],
-    httpOptions: {
-      timeout: oauth.timeout,
+  user: {
+    modelName: "user",
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "user",
+        input: false,
+      },
+      bookmarkQuota: {
+        type: "number",
+        required: false,
+        input: false,
+      },
+      storageQuota: {
+        type: "number",
+        required: false,
+        input: false,
+      },
+      browserCrawlingEnabled: {
+        type: "boolean",
+        required: false,
+        input: false,
+      },
     },
-    async profile(profile: Record<string, string>) {
-      const [admin, firstUser] = await Promise.all([
-        isAdmin(profile.email),
-        isFirstUser(),
-      ]);
-      return {
-        id: profile.sub,
-        name: profile.name || profile.email,
-        email: profile.email,
-        image: profile.picture,
-        role: admin || firstUser ? "admin" : "user",
-      };
-    },
-  });
-}
-
-export const authOptions: NextAuthOptions = {
-  // https://github.com/nextauthjs/next-auth/issues/9493
-  adapter: CustomProvider() as NextAuthAdapater,
-  providers: providers,
+  },
   session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/signin",
-    signOut: "/signin",
-    error: "/signin",
-    newUser: "/signin",
-  },
-  callbacks: {
-    async signIn({ user: credUser, credentials, profile }) {
-      const email = credUser.email || profile?.email;
-      if (!email) {
-        throw new Error("Provider didn't provide an email during signin");
-      }
-      const user = await db.query.users.findFirst({
-        columns: { emailVerified: true },
-        where: eq(users.email, email),
-      });
-
-      if (credentials) {
-        if (!user) {
-          throw new Error("Invalid credentials");
-        }
-        if (
-          serverConfig.auth.emailVerificationRequired &&
-          !user.emailVerified
-        ) {
-          throw new Error("Please verify your email address before signing in");
-        }
-        return true;
-      }
-
-      // If it's a new user and signups are disabled, fail the sign in
-      if (!user && serverConfig.auth.disableSignups) {
-        throw new Error("Signups are disabled in server config");
-      }
-
-      // TODO: We're blindly trusting oauth providers to validate emails
-      // As such, oauth users can sign in even if email verification is enabled.
-      // We might want to change this in the future.
-
-      return true;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.user = {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: user.role ?? "user",
-        };
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.user = { ...token.user };
-      return session;
+    modelName: "session",
+    fields: {
+      id: "sessionToken",
+      token: "sessionToken",
+      expiresAt: "expires",
+      userId: "userId",
+      createdAt: "createdAt",
+      updatedAt: "updatedAt",
+      ipAddress: "ipAddress",
+      userAgent: "userAgent",
     },
   },
-};
+  account: {
+    modelName: "account",
+    fields: {
+      accountId: "providerAccountId",
+      providerId: "provider",
+      userId: "userId",
+      password: "session_state",
+      accessToken: "access_token",
+      refreshToken: "refresh_token",
+      accessTokenExpiresAt: "expires_at",
+      scope: "scope",
+      idToken: "id_token",
+    },
+    accountLinking: {
+      enabled: oauthConfig.allowDangerousEmailAccountLinking,
+    },
+  },
+  verification: {
+    modelName: "verificationToken",
+    fields: {
+      identifier: "identifier",
+      value: "token",
+      expiresAt: "expires",
+    },
+  },
+  emailAndPassword: serverConfig.auth.disablePasswordAuth
+    ? { enabled: false }
+    : {
+        enabled: true,
+        disableSignUp: serverConfig.auth.disableSignups,
+        requireEmailVerification: serverConfig.auth.emailVerificationRequired,
+        password: {
+          hash: customHashPassword,
+          verify: customVerifyPassword,
+        },
+      },
+  plugins,
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (userData) => {
+          const firstUser = await isFirstUser();
+          return {
+            data: {
+              ...userData,
+              email: userData.email?.toLowerCase() ?? userData.email,
+              role:
+                (userData.role as "admin" | "user" | undefined) ??
+                (firstUser ? "admin" : "user"),
+              bookmarkQuota:
+                userData.bookmarkQuota ??
+                serverConfig.quotas.free.bookmarkLimit ??
+                null,
+              storageQuota:
+                userData.storageQuota ??
+                serverConfig.quotas.free.assetSizeBytes ??
+                null,
+              browserCrawlingEnabled:
+                userData.browserCrawlingEnabled ??
+                serverConfig.quotas.free.browserCrawlingEnabled ??
+                null,
+            },
+          };
+        },
+      },
+    },
+    account: {
+      create: {
+        after: async (account) => {
+          await syncCredentialPasswordWithUser({
+            providerId: account.providerId,
+            userId: account.userId,
+            password: account.password ?? null,
+          });
+        },
+      },
+      update: {
+        after: async (account) => {
+          await syncCredentialPasswordWithUser({
+            providerId: account.providerId,
+            userId: account.userId,
+            password: account.password ?? null,
+          });
+        },
+      },
+    },
+  },
+});
 
-export const authHandler = NextAuth(authOptions);
+export type AuthSession = typeof auth.$Infer.Session;
 
-export const getServerAuthSession = () => getServerSession(authOptions);
+export async function getServerAuthSession(): Promise<AuthSession | null> {
+  try {
+    return await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch {
+    return null;
+  }
+}

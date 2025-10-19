@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { signIn } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignInProviderButton({
   provider,
@@ -13,11 +13,19 @@ export default function SignInProviderButton({
 }) {
   return (
     <Button
-      onClick={() =>
-        signIn(provider.id, {
-          callbackUrl: "/",
-        })
-      }
+      onClick={async () => {
+        const { data, error } = await authClient.signIn.oauth2({
+          providerId: provider.id,
+          callbackURL: "/",
+        });
+        if (error) {
+          console.error("OAuth sign-in failed", error);
+          return;
+        }
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      }}
       className="w-full"
     >
       Sign in with {provider.name}

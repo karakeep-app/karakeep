@@ -12,10 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
+import { authClient } from "@/lib/auth-client";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { Check, KeyRound, Pencil, Trash, UserPlus, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
 import AddUserDialog from "./AddUserDialog";
@@ -33,7 +33,7 @@ function toHumanReadableSize(size: number) {
 
 export default function UsersSection() {
   const { t } = useTranslation();
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const invalidateUserList = api.useUtils().users.list.invalidate;
   const { data: users } = api.users.list.useQuery();
   const { data: userStats } = api.admin.userStats.useQuery();
