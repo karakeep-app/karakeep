@@ -300,6 +300,12 @@ describe("Invites Router", () => {
         token: dbInvite!.token,
       }),
     ).rejects.toThrow(/Invite not found or has been used/);
+
+    await unauthedAPICaller.apiKeys.exchange({
+      keyName: "API Key",
+      email: "newuser@test.com",
+      password: "newpass123",
+    });
   });
 
   test<CustomTestContext>("can accept valid invite", async ({

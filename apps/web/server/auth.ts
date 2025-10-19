@@ -16,10 +16,6 @@ import serverConfig from "@karakeep/shared/config";
 import { hashPassword, verifyPassword } from "@karakeep/trpc/auth";
 import { sendPasswordResetEmail } from "@karakeep/trpc/email";
 
-async function customHashPassword(password: string): Promise<string> {
-  return await hashPassword(password);
-}
-
 async function isFirstUser(): Promise<boolean> {
   const [{ count: userCount }] = await db
     .select({ count: count() })
@@ -121,7 +117,7 @@ export const auth = betterAuth({
         disableSignUp: serverConfig.auth.disableSignups,
         requireEmailVerification: serverConfig.auth.emailVerificationRequired,
         password: {
-          hash: customHashPassword,
+          hash: hashPassword,
           verify: verifyPassword,
         },
         sendResetPassword: async ({ user, token }) => {

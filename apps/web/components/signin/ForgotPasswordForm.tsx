@@ -22,7 +22,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -43,16 +42,16 @@ export default function ForgotPasswordForm() {
   const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setErrorMessage("");
-      await authClient.forgetPassword({
+      const resp = await authClient.forgetPassword({
         email: values.email,
       });
-      setIsSubmitted(true);
-    } catch (error) {
-      if (error instanceof TRPCClientError) {
-        setErrorMessage(error.message);
+      if (resp.data) {
+        setIsSubmitted(true);
       } else {
-        setErrorMessage("An unexpected error occurred. Please try again.");
+        setErrorMessage(resp.error.message ?? "An unexpected error occurred");
       }
+    } catch {
+      setErrorMessage("An unexpected error occurred. Please try again.");
     }
   };
 

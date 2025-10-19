@@ -5,7 +5,6 @@ import { z } from "zod";
 
 import { invites, users } from "@karakeep/db/schema";
 
-import { hashPassword } from "../auth";
 import { sendInviteEmail } from "../email";
 import {
   adminProcedure,
@@ -188,7 +187,7 @@ export const invitesAppRouter = router({
       const user = await User.createRaw(ctx.db, {
         name: input.name,
         email: invite.email,
-        password: await hashPassword(input.password),
+        password: input.password,
         role: "user",
         emailVerified: new Date(), // Auto-verify invited users
       });
