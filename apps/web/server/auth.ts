@@ -5,7 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { verifyPassword as defaultVerifyPassword } from "better-auth/crypto";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth } from "better-auth/plugins";
-import { count, eq } from "drizzle-orm";
+import { count } from "drizzle-orm";
 
 import { db } from "@karakeep/db";
 import {
@@ -22,8 +22,6 @@ import {
   generatePasswordSalt,
   hashPassword,
 } from "@karakeep/trpc/auth";
-
-const CREDENTIAL_PROVIDER_ID = "credential";
 
 function createCredentialPasswordPayload(
   hash: string,
@@ -68,27 +66,6 @@ async function customVerifyPassword({
   } catch {
     return false;
   }
-}
-
-async function syncCredentialPasswordWithUser(account: {
-  providerId?: string;
-  userId: string;
-  password?: string | null;
-}) {
-  if (account.providerId !== CREDENTIAL_PROVIDER_ID || !account.password) {
-    return;
-  }
-  const payload = parseCredentialPassword(account.password);
-  if (!payload) {
-    return;
-  }
-  await db
-    .update(users)
-    .set({
-      password: payload.hash,
-      salt: payload.salt ?? "",
-    })
-    .where(eq(users.id, account.userId));
 }
 
 async function isFirstUser(): Promise<boolean> {
@@ -238,26 +215,6 @@ export const auth = betterAuth({
                 null,
             },
           };
-        },
-      },
-    },
-    account: {
-      create: {
-        after: async (account) => {
-          await syncCredentialPasswordWithUser({
-            providerId: account.providerId,
-            userId: account.userId,
-            password: account.password ?? null,
-          });
-        },
-      },
-      update: {
-        after: async (account) => {
-          await syncCredentialPasswordWithUser({
-            providerId: account.providerId,
-            userId: account.userId,
-            password: account.password ?? null,
-          });
         },
       },
     },
