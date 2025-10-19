@@ -28,24 +28,29 @@ import {
 } from "@karakeep/shared/types/users";
 
 import { AuthedContext, Context } from "..";
-import {
-  encodeCredentialPassword,
-  generatePasswordSalt,
-  hashPassword,
-  validatePassword,
-} from "../auth";
+import { hashPassword, validatePassword } from "../auth";
 import { sendVerificationEmail } from "../email";
 import { PrivacyAware } from "./privacy";
 
 export class User implements PrivacyAware {
   constructor(
     protected ctx: AuthedContext,
-    public user: typeof users.$inferSelect,
+    public user: typeof users.$inferSelect & {
+      password: string | null;
+    },
   ) {}
 
   static async fromId_DANGEROUS(ctx: AuthedContext, id: string): Promise<User> {
     const user = await ctx.db.query.users.findFirst({
       where: eq(users.id, id),
+      with: {
+        accounts: {
+          where: (a, { eq }) => eq(a.providerId, "credential"),
+          columns: {
+            password: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -55,7 +60,10 @@ export class User implements PrivacyAware {
       });
     }
 
-    return new User(ctx, user);
+    return new User(ctx, {
+      ...user,
+      password: user.accounts.length == 1 ? user.accounts[0].password : null,
+    });
   }
 
   static async fromCtx(ctx: AuthedContext): Promise<User> {
@@ -67,12 +75,10 @@ export class User implements PrivacyAware {
     input: z.infer<typeof zSignUpSchema>,
     role?: "user" | "admin",
   ) {
-    const salt = generatePasswordSalt();
     const user = await User.createRaw(ctx.db, {
       name: input.name,
       email: input.email,
-      password: await hashPassword(input.password, salt),
-      salt,
+      password: await hashPassword(input.password),
       role,
     });
 
@@ -94,7 +100,6 @@ export class User implements PrivacyAware {
       name: string;
       email: string;
       password?: string;
-      salt?: string;
       role?: "user" | "admin";
       emailVerified?: Date | null;
     },
@@ -122,27 +127,12 @@ export class User implements PrivacyAware {
           .returning();
 
         if (input.password) {
-          try {
-            await trx
-              .insert(accounts)
-              .values({
-                userId: result.id,
-                providerId: "credential",
-                accountId: result.id,
-                password: encodeCredentialPassword(
-                  input.password,
-                  input.salt ?? "",
-                ),
-              })
-              .onConflictDoNothing();
-          } catch (accountError) {
-            if (
-              !(accountError instanceof SqliteError) ||
-              accountError.code !== "SQLITE_CONSTRAINT_UNIQUE"
-            ) {
-              throw accountError;
-            }
-          }
+          await trx.insert(accounts).values({
+            userId: result.id,
+            providerId: "credential",
+            accountId: result.id,
+            password: await hashPassword(input.password),
+          });
         }
 
         return result;
@@ -164,9 +154,24 @@ export class User implements PrivacyAware {
   }
 
   static async getAll(ctx: AuthedContext): Promise<User[]> {
-    const dbUsers = await ctx.db.select().from(users);
+    const dbUsers = await ctx.db.query.users.findMany({
+      with: {
+        accounts: {
+          where: (a, { eq }) => eq(a.providerId, "credential"),
+          columns: {
+            password: true,
+          },
+        },
+      },
+    });
 
-    return dbUsers.map((u) => new User(ctx, u));
+    return dbUsers.map(
+      (u) =>
+        new User(ctx, {
+          ...u,
+          password: u.accounts.length == 1 ? u.accounts[0].password : null,
+        }),
+    );
   }
 
   static async genEmailVerificationToken(
@@ -341,6 +346,24 @@ export class User implements PrivacyAware {
     await User.deleteInternal(this.ctx.db, this.user.id);
   }
 
+  async setPassword(newPassword: string): Promise<void> {
+    const hashed = await hashPassword(newPassword);
+    await this.ctx.db
+      .insert(accounts)
+      .values({
+        userId: this.user.id,
+        providerId: "credential",
+        accountId: this.user.id,
+        password: hashed,
+      })
+      .onConflictDoUpdate({
+        target: [accounts.providerId, accounts.accountId],
+        set: {
+          password: hashed,
+        },
+      });
+  }
+
   async changePassword(
     currentPassword: string,
     newPassword: string,
@@ -357,15 +380,7 @@ export class User implements PrivacyAware {
     } catch {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-
-    const newSalt = generatePasswordSalt();
-    await this.ctx.db
-      .update(users)
-      .set({
-        password: await hashPassword(newPassword, newSalt),
-        salt: newSalt,
-      })
-      .where(eq(users.id, this.user.id));
+    await this.setPassword(newPassword);
   }
 
   async getSettings(): Promise<z.infer<typeof zUserSettingsSchema>> {
@@ -683,7 +698,7 @@ export class User implements PrivacyAware {
   }
 
   asPublicUser() {
-    const { password, salt: _salt, ...rest } = this.user;
+    const { password, ...rest } = this.user;
     return {
       ...rest,
       localUser: password !== null,

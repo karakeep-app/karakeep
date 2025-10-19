@@ -1,12 +1,7 @@
 import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  assets,
-  AssetTypes,
-  bookmarks,
-  users,
-} from "@karakeep/db/schema";
+import { assets, AssetTypes, bookmarks, users } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";

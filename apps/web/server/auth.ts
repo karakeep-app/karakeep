@@ -1,8 +1,6 @@
 import { headers } from "next/headers";
-import * as bcrypt from "bcryptjs";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { verifyPassword as defaultVerifyPassword } from "better-auth/crypto";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth } from "better-auth/plugins";
 import { count } from "drizzle-orm";
@@ -15,58 +13,11 @@ import {
   verificationTokens,
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
-import {
-  CredentialPasswordPayload,
-  decodeCredentialPassword,
-  encodeCredentialPassword,
-  generatePasswordSalt,
-  hashPassword,
-} from "@karakeep/trpc/auth";
+import { hashPassword, verifyPassword } from "@karakeep/trpc/auth";
 import { sendPasswordResetEmail } from "@karakeep/trpc/email";
 
-function createCredentialPasswordPayload(
-  hash: string,
-  salt: string | null | undefined,
-): string {
-  return encodeCredentialPassword(hash, salt ?? "");
-}
-
-function parseCredentialPassword(
-  value: string | null | undefined,
-): CredentialPasswordPayload | null {
-  return decodeCredentialPassword(value);
-}
-
 async function customHashPassword(password: string): Promise<string> {
-  const salt = generatePasswordSalt();
-  const hashed = await hashPassword(password, salt);
-  return createCredentialPasswordPayload(hashed, salt);
-}
-
-async function customVerifyPassword({
-  hash,
-  password,
-}: {
-  hash: string;
-  password: string;
-}): Promise<boolean> {
-  const payload = parseCredentialPassword(hash);
-  if (payload) {
-    try {
-      const saltAugmentedPassword = `${password}${payload.salt ?? ""}`;
-      const match = await bcrypt.compare(saltAugmentedPassword, payload.hash);
-      if (match) {
-        return true;
-      }
-    } catch {
-      // fall through to default verifier
-    }
-  }
-  try {
-    return await defaultVerifyPassword({ hash, password });
-  } catch {
-    return false;
-  }
+  return await hashPassword(password);
 }
 
 async function isFirstUser(): Promise<boolean> {
@@ -161,7 +112,7 @@ export const auth = betterAuth({
         requireEmailVerification: serverConfig.auth.emailVerificationRequired,
         password: {
           hash: customHashPassword,
-          verify: customVerifyPassword,
+          verify: verifyPassword,
         },
         sendResetPassword: async ({ user, token }) => {
           await sendPasswordResetEmail(user.email, user.name, token);

@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
@@ -12,61 +13,40 @@ const API_KEY_PREFIX_V1 = "ak1";
 const API_KEY_PREFIX_V2 = "ak2";
 const CREDENTIAL_PASSWORD_VERSION = 1;
 
-export interface CredentialPasswordPayload {
-  hash: string;
-  salt: string;
-  version?: number;
-}
+const zCredentialPasswordPayload = z.object({
+  hash: z.string(),
+  salt: z.string().optional(),
+  v: z.number(),
+});
 
-export function encodeCredentialPassword(
+function encodeCredentialPassword(
   hash: string,
-  salt: string | null | undefined,
+  salt: string | null | undefined = undefined,
 ): string {
   return JSON.stringify({
     v: CREDENTIAL_PASSWORD_VERSION,
     hash,
-    salt: salt ?? "",
-  });
+    salt: salt ?? undefined,
+  } satisfies z.infer<typeof zCredentialPasswordPayload>);
 }
 
-export function decodeCredentialPassword(
+function decodeCredentialPassword(
   value: string | null | undefined,
-): CredentialPasswordPayload | null {
+): z.infer<typeof zCredentialPasswordPayload> | null {
   if (!value) {
     return null;
   }
 
   try {
-    const parsed = JSON.parse(value) as
-      | { hash?: unknown; salt?: unknown; v?: unknown }
-      | undefined;
-    if (parsed && typeof parsed.hash === "string") {
-      return {
-        hash: parsed.hash,
-        salt: typeof parsed.salt === "string" ? parsed.salt : "",
-        version: typeof parsed.v === "number" ? parsed.v : undefined,
-      };
+    const parsed = zCredentialPasswordPayload.safeParse(JSON.parse(value));
+    if (parsed.success) {
+      return parsed.data;
+    } else {
+      return null;
     }
   } catch {
-    // Not a JSON payload – fall back to legacy formats
+    return null;
   }
-
-  if (value.startsWith("bcrypt:")) {
-    const [, salt, hash] = value.split(":");
-    if (salt && hash) {
-      return { hash, salt };
-    }
-  }
-
-  const legacyParts = value.split(":");
-  if (legacyParts.length === 2) {
-    const [salt, hash] = legacyParts;
-    if (salt && hash) {
-      return { hash, salt };
-    }
-  }
-
-  return { hash: value, salt: "" };
 }
 
 function generateApiKeySecret() {
@@ -76,10 +56,6 @@ function generateApiKeySecret() {
     secret,
     secretHash: createHash("sha256").update(secret).digest("base64"),
   };
-}
-
-export function generatePasswordSalt() {
-  return randomBytes(32).toString("hex");
 }
 
 export async function regenerateApiKey(
@@ -186,8 +162,29 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
   return apiKey.user;
 }
 
-export async function hashPassword(password: string, salt: string | null) {
-  return await bcrypt.hash(password + (salt ?? ""), BCRYPT_SALT_ROUNDS);
+export async function hashPassword(password: string) {
+  const hashed = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+  return encodeCredentialPassword(hashed);
+}
+
+export async function verifyPassword({
+  hash,
+  password,
+}: {
+  hash: string;
+  password: string;
+}): Promise<boolean> {
+  const payload = decodeCredentialPassword(hash);
+  if (!payload) {
+    return false;
+  }
+  try {
+    const saltAugmentedPassword = `${password}${payload.salt ?? ""}`;
+    const match = await bcrypt.compare(saltAugmentedPassword, payload.hash);
+    return match;
+  } catch {
+    return false;
+  }
 }
 
 export async function validatePassword(
@@ -200,6 +197,14 @@ export async function validatePassword(
   }
   const user = await database.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, email),
+    with: {
+      accounts: {
+        where: (a, { eq }) => eq(a.providerId, "credential"),
+        columns: {
+          password: true,
+        },
+      },
+    },
   });
 
   if (!user) {
@@ -212,17 +217,13 @@ export async function validatePassword(
     throw new Error("User not found");
   }
 
-  if (!user.password) {
+  if (user.accounts.length != 1 || !user.accounts[0].password) {
     throw new Error("This user doesn't have a password defined");
   }
 
-  const validation = await bcrypt.compare(
-    password + (user.salt ?? ""),
-    user.password,
-  );
-  if (!validation) {
+  if (await verifyPassword({ hash: user.accounts[0].password, password })) {
+    return user;
+  } else {
     throw new Error("Wrong password");
   }
-
-  return user;
 }
