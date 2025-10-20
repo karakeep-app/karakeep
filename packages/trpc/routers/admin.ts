@@ -4,15 +4,16 @@ import { z } from "zod";
 
 import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
+  AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   FeedQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
   SearchIndexingQueue,
-  TidyAssetsQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
   WebhookQueue,
+  zAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
@@ -63,7 +64,7 @@ export const adminAppRouter = router({
         indexingStats: z.object({
           queued: z.number(),
         }),
-        tidyAssetsStats: z.object({
+        adminMaintenanceStats: z.object({
           queued: z.number(),
         }),
         videoStats: z.object({
@@ -95,8 +96,8 @@ export const adminAppRouter = router({
         [{ value: pendingInference }],
         [{ value: failedInference }],
 
-        // Tidy Assets
-        queuedTidyAssets,
+        // Admin maintenance
+        queuedAdminMaintenance,
 
         // Video
         queuedVideo,
@@ -145,8 +146,8 @@ export const adminAppRouter = router({
             ),
           ),
 
-        // Tidy Assets
-        TidyAssetsQueue.stats(),
+        // Admin maintenance
+        AdminMaintenanceQueue.stats(),
 
         // Video
         VideoWorkerQueue.stats(),
@@ -175,8 +176,10 @@ export const adminAppRouter = router({
         indexingStats: {
           queued: queuedIndexing.pending + queuedIndexing.pending_retry,
         },
-        tidyAssetsStats: {
-          queued: queuedTidyAssets.pending + queuedTidyAssets.pending_retry,
+        adminMaintenanceStats: {
+          queued:
+            queuedAdminMaintenance.pending +
+            queuedAdminMaintenance.pending_retry,
         },
         videoStats: {
           queued: queuedVideo.pending + queuedVideo.pending_retry,
@@ -277,12 +280,11 @@ export const adminAppRouter = router({
         ),
       );
     }),
-  tidyAssets: adminProcedure.mutation(async () => {
-    await TidyAssetsQueue.enqueue({
-      cleanDanglingAssets: true,
-      syncAssetMetadata: true,
-    });
-  }),
+  runAdminMaintenanceTask: adminProcedure
+    .input(zAdminMaintenanceTaskSchema)
+    .mutation(async ({ input }) => {
+      await AdminMaintenanceQueue.enqueue(input);
+    }),
   userStats: adminProcedure
     .output(
       z.record(

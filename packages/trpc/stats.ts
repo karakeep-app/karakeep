@@ -4,13 +4,13 @@ import { Counter, Gauge, Histogram, register } from "prom-client";
 import { db } from "@karakeep/db";
 import { assets, bookmarks, users } from "@karakeep/db/schema";
 import {
+  AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   FeedQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
   RuleEngineQueue,
   SearchIndexingQueue,
-  TidyAssetsQueue,
   VideoWorkerQueue,
   WebhookQueue,
 } from "@karakeep/shared-server";
@@ -25,7 +25,7 @@ const queuePendingJobsGauge = new Gauge({
       { name: "link_crawler", queue: LinkCrawlerQueue },
       { name: "openai", queue: OpenAIQueue },
       { name: "search_indexing", queue: SearchIndexingQueue },
-      { name: "tidy_assets", queue: TidyAssetsQueue },
+      { name: "admin_maintenance", queue: AdminMaintenanceQueue },
       { name: "video_worker", queue: VideoWorkerQueue },
       { name: "feed", queue: FeedQueue },
       { name: "asset_preprocessing", queue: AssetPreprocessingQueue },

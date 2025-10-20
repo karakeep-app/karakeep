@@ -320,20 +320,22 @@ function useJobActions() {
     },
   });
 
-  const { mutateAsync: tidyAssets, isPending: isTidyAssetsPending } =
-    api.admin.tidyAssets.useMutation({
-      onSuccess: () => {
-        toast({
-          description: "Tidy assets request has been enqueued!",
-        });
-      },
-      onError: (e) => {
-        toast({
-          variant: "destructive",
-          description: e.message,
-        });
-      },
-    });
+  const {
+    mutateAsync: runAdminMaintenanceTask,
+    isPending: isAdminMaintenancePending,
+  } = api.admin.runAdminMaintenanceTask.useMutation({
+    onSuccess: () => {
+      toast({
+        description: "Admin maintenance request has been enqueued!",
+      });
+    },
+    onError: (e) => {
+      toast({
+        variant: "destructive",
+        description: e.message,
+      });
+    },
+  });
 
   return {
     crawlActions: [
@@ -409,11 +411,18 @@ function useJobActions() {
         loading: isReprocessingPending,
       },
     ],
-    tidyAssetsActions: [
+    adminMaintenanceActions: [
       {
         label: t("admin.background_jobs.actions.clean_assets"),
-        onClick: () => tidyAssets(),
-        loading: isTidyAssetsPending,
+        onClick: () =>
+          runAdminMaintenanceTask({
+            type: "tidy_assets",
+            args: {
+              cleanDanglingAssets: true,
+              syncAssetMetadata: true,
+            },
+          }),
+        loading: isAdminMaintenancePending,
       },
     ],
   };
@@ -482,9 +491,9 @@ export default function BackgroundJobs() {
     {
       title: t("admin.background_jobs.jobs.tidy_assets.title"),
       icon: Database,
-      stats: { queued: serverStats.tidyAssetsStats.queued },
+      stats: { queued: serverStats.adminMaintenanceStats.queued },
       description: t("admin.background_jobs.jobs.tidy_assets.description"),
-      actions: actions.tidyAssetsActions,
+      actions: actions.adminMaintenanceActions,
     },
     {
       title: t("admin.background_jobs.jobs.video.title"),
