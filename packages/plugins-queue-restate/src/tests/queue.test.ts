@@ -214,8 +214,8 @@ describe("Restate Queue Provider", () => {
     await waitUntilQueueEmpty();
 
     expect(testState.results).toEqual([
-      // Then in order of increasing priority
-      302, 301, 300, 200, 201, 202,
+      // Lower numeric priority value should run first
+      202, 201, 200, 300, 301, 302,
     ]);
   }, 60000);
 });

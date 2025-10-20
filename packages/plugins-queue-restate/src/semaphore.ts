@@ -46,15 +46,16 @@ export const semaphore = object({
   },
 });
 
+// Lower numbers represent higher priority, mirroring Liteque’s semantics.
 function selectAndPopItem(items: QueueItem[]): QueueItem {
-  let highest = { priority: Number.MIN_SAFE_INTEGER, index: 0 };
+  let selected = { priority: Number.MAX_SAFE_INTEGER, index: 0 };
   for (const [i, item] of items.entries()) {
-    if (item.priority > highest.priority) {
-      highest.priority = item.priority;
-      highest.index = i;
+    if (item.priority < selected.priority) {
+      selected.priority = item.priority;
+      selected.index = i;
     }
   }
-  const [item] = items.splice(highest.index, 1);
+  const [item] = items.splice(selected.index, 1);
   return item;
 }
 
