@@ -28,7 +28,7 @@ import { workerStatsCounter } from "metrics";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { fetchWithProxy, getRandomProxy } from "utils";
+import { fetchWithProxy, getGotProxyAgentOptions, getRandomProxy } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -124,7 +124,10 @@ const metascraperParser = metascraper([
   metascraperDescription(),
   metascraperTwitter(),
   metascraperImage(),
-  metascraperLogo(),
+  // Configure logo fetching to respect proxy settings via got options
+  metascraperLogo({
+    gotOpts: getGotProxyAgentOptions(),
+  }),
   metascraperUrl(),
 ]);
 
@@ -563,6 +566,7 @@ async function extractMetadata(
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
   );
+
   const meta = await metascraperParser({
     url,
     html: htmlContent,

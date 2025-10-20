@@ -178,6 +178,9 @@ const allEnv = z.object({
     .optional(),
   CRAWLER_NO_PROXY: z.string().optional(),
 
+  // Proxy agent cache configuration
+  CRAWLER_PROXY_AGENT_CACHE_MAX: z.coerce.number().default(64),
+
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
 });
@@ -304,6 +307,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       httpProxy: val.CRAWLER_HTTP_PROXY,
       httpsProxy: val.CRAWLER_HTTPS_PROXY,
       noProxy: val.CRAWLER_NO_PROXY,
+      agentCacheMax: val.CRAWLER_PROXY_AGENT_CACHE_MAX,
     },
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
