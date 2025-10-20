@@ -32,7 +32,7 @@ export const users = sqliteTable("user", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
+  emailVerified: integer("emailVerified", { mode: "boolean" }),
   image: text("image"),
   role: text("role", { enum: ["admin", "user"] }).default("user"),
 
@@ -60,6 +60,7 @@ export const users = sqliteTable("user", {
 export const accounts = sqliteTable(
   "account",
   {
+    id: text("id").notNull(),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -67,8 +68,10 @@ export const accounts = sqliteTable(
     accountId: text("providerAccountId").notNull(),
     refreshToken: text("refresh_token"),
     accessToken: text("access_token"),
-    accessTokenExpiresAt: integer("expires_at"),
-    refreshTokenExpiresAt: integer("refresh_token_expires_at"),
+    accessTokenExpiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+      mode: "timestamp_ms",
+    }),
     scope: text("scope"),
     idToken: text("id_token"),
     password: text("password"),
@@ -98,17 +101,14 @@ export const sessions = sqliteTable("session", {
   userAgent: text("userAgent"),
 });
 
-export const verificationTokens = sqliteTable(
-  "verificationToken",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-    createdAt: createdAtField(),
-    modifiedAt: modifiedAtField(),
-  },
-  (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
-);
+export const verificationTokens = sqliteTable("verificationToken", {
+  id: text("id").notNull().primaryKey(),
+  identifier: text("identifier").notNull(),
+  token: text("token").notNull(),
+  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+});
 
 export const apiKeys = sqliteTable(
   "apiKey",

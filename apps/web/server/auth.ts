@@ -41,6 +41,7 @@ if (
           clientId: oauthConfig.clientId,
           clientSecret: oauthConfig.clientSecret,
           scopes: oauthConfig.scope.split(" "),
+          redirectURI: `${serverConfig.publicApiUrl}/auth/callback/custom`,
         },
       ],
     }),
