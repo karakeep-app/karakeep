@@ -2,6 +2,7 @@ import { workerStatsCounter } from "metrics";
 
 import {
   AdminMaintenanceQueue,
+  ZAdminMaintenanceMigrateLargeLinkHtmlTask,
   ZAdminMaintenanceTask,
   zAdminMaintenanceTaskSchema,
   ZAdminMaintenanceTidyAssetsTask,
@@ -9,6 +10,7 @@ import {
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { runMigrateLargeLinkHtmlTask } from "./adminMaintenance/tasks/migrateLinkHtmlContent";
 import { runTidyAssetsTask } from "./adminMaintenance/tasks/tidyAssets";
 
 export class AdminMaintenanceWorker {
@@ -59,16 +61,21 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
   }
 
   const task = parsed.data;
+  const taskType = task.type;
 
-  switch (task.type) {
+  switch (taskType) {
     case "tidy_assets":
       return runTidyAssetsTask(
         job as DequeuedJob<ZAdminMaintenanceTidyAssetsTask>,
         task,
       );
+    case "migrate_large_link_html":
+      return runMigrateLargeLinkHtmlTask(
+        job as DequeuedJob<ZAdminMaintenanceMigrateLargeLinkHtmlTask>,
+      );
     default:
       throw new Error(
-        `[adminMaintenance][${jobId}] No handler registered for task ${task.type}`,
+        `[adminMaintenance][${jobId}] No handler registered for task ${taskType}`,
       );
   }
 }
