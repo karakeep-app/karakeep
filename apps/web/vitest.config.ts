@@ -10,5 +10,9 @@ export default defineConfig({
     alias: {
       "@/*": "./*",
     },
+    environment: "jsdom",
+    setupFiles: ["./vitest.setup.ts"],
+    // Optional: set a stable origin for APIs relying on URL
+    // environmentOptions: { jsdom: { url: "http://localhost" } },
   },
 });
