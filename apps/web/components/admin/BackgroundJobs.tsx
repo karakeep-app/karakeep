@@ -424,6 +424,15 @@ function useJobActions() {
           }),
         loading: isAdminMaintenancePending,
       },
+      {
+        label: t(
+          "admin.background_jobs.actions.migrate_large_link_html_content",
+        ),
+        onClick: () =>
+          runAdminMaintenanceTask({ type: "migrate_large_link_html" }),
+        loading: isAdminMaintenancePending,
+        variant: "secondary" as const,
+      },
     ],
   };
 }

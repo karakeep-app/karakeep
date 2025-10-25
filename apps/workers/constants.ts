@@ -1,0 +1,1 @@
+export const HTML_CONTENT_SIZE_THRESHOLD = 50 * 1024; // 50KB
