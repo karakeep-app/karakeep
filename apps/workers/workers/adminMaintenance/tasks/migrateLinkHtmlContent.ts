@@ -5,7 +5,12 @@ import type { DequeuedJob } from "@karakeep/shared/queueing";
 import { db } from "@karakeep/db";
 import { AssetTypes, bookmarkLinks, bookmarks } from "@karakeep/db/schema";
 import { QuotaService } from "@karakeep/shared-server";
-import { ASSET_TYPES, newAssetId, saveAsset } from "@karakeep/shared/assetdb";
+import {
+  ASSET_TYPES,
+  deleteAsset,
+  newAssetId,
+  saveAsset,
+} from "@karakeep/shared/assetdb";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
@@ -35,12 +40,12 @@ async function getBookmarksWithLargeInlineHtml(limit: number, cursor?: string) {
             gt(bookmarkLinks.id, cursor),
             isNotNull(bookmarkLinks.htmlContent),
             isNull(bookmarkLinks.contentAssetId),
-            sql`length(${bookmarkLinks.htmlContent}) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
+            sql`length(CAST(${bookmarkLinks.htmlContent} AS BLOB)) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
           )
         : and(
             isNotNull(bookmarkLinks.htmlContent),
             isNull(bookmarkLinks.contentAssetId),
-            sql`length(${bookmarkLinks.htmlContent}) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
+            sql`length(CAST(${bookmarkLinks.htmlContent} AS BLOB)) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
           ),
     )
     .orderBy(asc(bookmarkLinks.id))
@@ -55,10 +60,9 @@ async function migrateBookmarkHtml(
 ): Promise<boolean> {
   const { bookmarkId, userId, htmlContent } = bookmark;
 
-  const contentBuffer = Buffer.from(htmlContent, "utf8");
-  const contentSize = contentBuffer.byteLength;
+  const contentSize = Buffer.byteLength(htmlContent, "utf8");
 
-  if (contentSize < HTML_CONTENT_SIZE_THRESHOLD) {
+  if (contentSize <= HTML_CONTENT_SIZE_THRESHOLD) {
     logger.debug(
       `[adminMaintenance:migrate_large_link_html][${jobId}] Bookmark ${bookmarkId} inline HTML (${contentSize} bytes) below threshold, skipping`,
     );
@@ -76,6 +80,7 @@ async function migrateBookmarkHtml(
     return false;
   }
 
+  const contentBuffer = Buffer.from(htmlContent, "utf8");
   const assetId = newAssetId();
   const { error: saveError } = await tryCatch(
     saveAsset({
@@ -91,11 +96,28 @@ async function migrateBookmarkHtml(
     logger.error(
       `[adminMaintenance:migrate_large_link_html][${jobId}] Failed to persist HTML for bookmark ${bookmarkId} as asset: ${saveError}`,
     );
+    await deleteAsset({ userId, assetId }).catch(() => {
+      /* ignore */
+    });
     return false;
   }
 
   try {
     await db.transaction(async (txn) => {
+      const res = await txn
+        .update(bookmarkLinks)
+        .set({ htmlContent: null, contentAssetId: assetId })
+        .where(
+          and(
+            eq(bookmarkLinks.id, bookmarkId),
+            isNull(bookmarkLinks.contentAssetId),
+          ),
+        );
+
+      if (res.changes === 0) {
+        throw new Error("Failed to update bookmark");
+      }
+
       await updateAsset(
         undefined,
         {
@@ -109,13 +131,11 @@ async function migrateBookmarkHtml(
         },
         txn,
       );
-
-      await txn
-        .update(bookmarkLinks)
-        .set({ htmlContent: null, contentAssetId: assetId })
-        .where(eq(bookmarkLinks.id, bookmarkId));
     });
   } catch (error) {
+    await deleteAsset({ userId, assetId }).catch(() => {
+      /* ignore */
+    });
     logger.error(
       `[adminMaintenance:migrate_large_link_html][${jobId}] Failed to update bookmark ${bookmarkId} after storing asset: ${error}`,
     );
@@ -137,8 +157,10 @@ export async function runMigrateLargeLinkHtmlTask(
   let cursor: string | undefined;
 
   while (true) {
-    const bookmarksToMigrate =
-      await getBookmarksWithLargeInlineHtml(BATCH_SIZE, cursor);
+    const bookmarksToMigrate = await getBookmarksWithLargeInlineHtml(
+      BATCH_SIZE,
+      cursor,
+    );
 
     if (bookmarksToMigrate.length === 0) {
       break;

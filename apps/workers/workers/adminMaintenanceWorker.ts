@@ -61,9 +61,8 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
   }
 
   const task = parsed.data;
-  const taskType = task.type;
 
-  switch (taskType) {
+  switch (task.type) {
     case "tidy_assets":
       return runTidyAssetsTask(
         job as DequeuedJob<ZAdminMaintenanceTidyAssetsTask>,
@@ -73,9 +72,11 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
       return runMigrateLargeLinkHtmlTask(
         job as DequeuedJob<ZAdminMaintenanceMigrateLargeLinkHtmlTask>,
       );
-    default:
+    default: {
+      const exhaustiveCheck: never = task;
       throw new Error(
-        `[adminMaintenance][${jobId}] No handler registered for task ${taskType}`,
+        `[adminMaintenance][${jobId}] No handler registered for task ${(exhaustiveCheck as ZAdminMaintenanceTask).type}`,
       );
+    }
   }
 }
