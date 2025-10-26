@@ -489,10 +489,12 @@ export default function BackgroundJobs() {
       actions: actions.assetPreprocessingActions,
     },
     {
-      title: t("admin.background_jobs.jobs.tidy_assets.title"),
+      title: t("admin.background_jobs.jobs.admin_maintenance.title"),
       icon: Database,
       stats: { queued: serverStats.adminMaintenanceStats.queued },
-      description: t("admin.background_jobs.jobs.tidy_assets.description"),
+      description: t(
+        "admin.background_jobs.jobs.admin_maintenance.description",
+      ),
       actions: actions.adminMaintenanceActions,
     },
     {

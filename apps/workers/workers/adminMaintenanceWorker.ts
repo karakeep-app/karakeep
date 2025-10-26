@@ -7,11 +7,7 @@ import {
   ZAdminMaintenanceTidyAssetsTask,
 } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
-import {
-  DequeuedJob,
-  DequeuedJobError,
-  getQueueClient,
-} from "@karakeep/shared/queueing";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 import { runTidyAssetsTask } from "./adminMaintenance/tasks/tidyAssets";
 
@@ -24,18 +20,20 @@ export class AdminMaintenanceWorker {
         {
           run: runAdminMaintenance,
           onComplete: (job) => {
-            const taskLabel = getTaskLabel(job);
-            workerStatsCounter.labels("adminMaintenance", "completed").inc();
+            workerStatsCounter
+              .labels(`adminMaintenance:${job.data.type}`, "completed")
+              .inc();
             logger.info(
-              `[adminMaintenance${taskLabel}][${job.id}] Completed successfully`,
+              `[adminMaintenance:${job.data.type}][${job.id}] Completed successfully`,
             );
             return Promise.resolve();
           },
           onError: (job) => {
-            const taskLabel = getTaskLabel(job);
-            workerStatsCounter.labels("adminMaintenance", "failed").inc();
+            workerStatsCounter
+              .labels(`adminMaintenance:${job.data?.type}`, "failed")
+              .inc();
             logger.error(
-              `[adminMaintenance${taskLabel}][${job.id}] Job failed: ${job.error}\n${job.error.stack}`,
+              `[adminMaintenance:${job.data?.type}][${job.id}] Job failed: ${job.error}\n${job.error.stack}`,
             );
             return Promise.resolve();
           },
@@ -73,17 +71,4 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
         `[adminMaintenance][${jobId}] No handler registered for task ${task.type}`,
       );
   }
-}
-
-function getTaskLabel(
-  job:
-    | DequeuedJob<ZAdminMaintenanceTask>
-    | DequeuedJobError<ZAdminMaintenanceTask>,
-) {
-  const parsed = zAdminMaintenanceTaskSchema.safeParse(job.data);
-  if (!parsed.success) {
-    return "";
-  }
-
-  return `:${parsed.data.type}`;
 }

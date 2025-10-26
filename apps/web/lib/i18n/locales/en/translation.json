@@ -381,7 +381,7 @@
           "title": "Asset Preprocessing Jobs",
           "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
         },
-        "tidy_assets": {
+        "admin_maintenance": {
           "title": "Admin Maintenance Jobs",
           "description": "Administrative cleanup and asset maintenance"
         },
