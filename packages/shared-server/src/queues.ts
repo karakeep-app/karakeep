@@ -67,21 +67,34 @@ export const SearchIndexingQueue =
     keepFailedJobs: false,
   });
 
-// Tidy Assets Worker
+// Admin maintenance worker
 export const zTidyAssetsRequestSchema = z.object({
   cleanDanglingAssets: z.boolean().optional().default(false),
   syncAssetMetadata: z.boolean().optional().default(false),
 });
 export type ZTidyAssetsRequest = z.infer<typeof zTidyAssetsRequestSchema>;
-export const TidyAssetsQueue = QUEUE_CLIENT.createQueue<ZTidyAssetsRequest>(
-  "tidy_assets_queue",
-  {
+
+export const zAdminMaintenanceTaskSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("tidy_assets"),
+    args: zTidyAssetsRequestSchema,
+  }),
+]);
+
+export type ZAdminMaintenanceTask = z.infer<typeof zAdminMaintenanceTaskSchema>;
+export type ZAdminMaintenanceTaskType = ZAdminMaintenanceTask["type"];
+export type ZAdminMaintenanceTidyAssetsTask = Extract<
+  ZAdminMaintenanceTask,
+  { type: "tidy_assets" }
+>;
+
+export const AdminMaintenanceQueue =
+  QUEUE_CLIENT.createQueue<ZAdminMaintenanceTask>("admin_maintenance_queue", {
     defaultJobArgs: {
       numRetries: 1,
     },
     keepFailedJobs: false,
-  },
-);
+  });
 
 export async function triggerSearchReindex(
   bookmarkId: string,
