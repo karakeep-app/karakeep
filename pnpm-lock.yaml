@@ -833,44 +833,44 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.2.2)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0)
       metascraper:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-amazon:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-author:
-        specifier: 5.46.18
-        version: 5.46.18
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-date:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-description:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-image:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-logo:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-logo-favicon:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-publisher:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-readability:
         specifier: ^5.49.6
         version: 5.49.6(postcss@8.5.6)
       metascraper-title:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       metascraper-twitter:
         specifier: ^5.45.6
         version: 5.45.6
       metascraper-url:
-        specifier: ^5.46.18
-        version: 5.47.1
+        specifier: ^5.49.5
+        version: 5.49.5(postcss@8.5.6)
       node-cron:
         specifier: ^3.0.3
         version: 3.0.3
@@ -3856,12 +3856,12 @@ packages:
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
 
-  '@keyvhq/core@2.1.7':
-    resolution: {integrity: sha512-+XLdAto9ItxJcc5g11QRmuGTppn3lLkjR3+UrK1RsQow/piNlXIJKWls4duZWlxgzxTYUykyrMBnmY8ByFOT7A==}
+  '@keyvhq/core@2.1.11':
+    resolution: {integrity: sha512-17xBRTwkRnvx1vsIO2j7xUKNh6L1kLSRLuy+4TvcSSO0bi1VrbYhbRiT5AgLYdlnBlRDiRYOYxLGZnzY3mD8tA==}
     engines: {node: '>= 18'}
 
-  '@keyvhq/memoize@2.1.9':
-    resolution: {integrity: sha512-2Mx3HRTZRvNRwyOinU8dTcjX+f6TDaQQDpJ8+NmF9ntKYALUvNtHlz42SS2Ls2dDEqXw0q/mGfOBKLt61mDJ0g==}
+  '@keyvhq/memoize@2.1.11':
+    resolution: {integrity: sha512-C+Cuj8s3KWxHEfiei4RSsSAUGl2Wo+p8c/ReQVXsQvpbwH0P3+dNy2S5T0cT2bH0Ew5PDCfHMSRPdDPN05j/Fw==}
     engines: {node: '>= 18'}
 
   '@kikobeats/time-span@1.0.5':
@@ -3950,10 +3950,6 @@ packages:
     peerDependencies:
       '@types/react': '>=16'
       react: '>=16'
-
-  '@metascraper/helpers@5.46.18':
-    resolution: {integrity: sha512-OBF7zyyIWmvMYmScPw9jcoxAReeHFMmZOQ1uvVQHKbXw1HMilwUcfoCFfySpLUny50C0uQuGoecwfP8qu4wIzg==}
-    engines: {node: '>= 16'}
 
   '@metascraper/helpers@5.47.1':
     resolution: {integrity: sha512-XKbkMBjFGDSV4IFKWVfIh0Ewe0KMlLB/GkBn03NU62HaC7QEPwG90CgA1XsbizHX5Zsq8OE5UKJk4PoG8YGnPA==}
@@ -6837,6 +6833,10 @@ packages:
     resolution: {integrity: sha512-VqR8m68vM46BNnuZ5NtnGBKIE/DfN0cRIzg9n40EIq9NOv90ayxLBXA8fXC5gquFRGJSTRqBq25Jt2ECLR431Q==}
     engines: {node: '>= 6'}
 
+  cheerio@1.1.2:
+    resolution: {integrity: sha512-IkxPpb5rS/d1IiLbHMgfPuS0FgiWTtFIm/Nj+2woXDLTZ7fOT2eqzgYbdMlLweqlHbsZjxEChoVK+7iph7jyQg==}
+    engines: {node: '>=20.18.1'}
+
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
@@ -7915,6 +7915,9 @@ packages:
 
   encoding-sniffer@0.2.0:
     resolution: {integrity: sha512-ju7Wq1kg04I3HtiYIOrUrdfdDvkyO9s5XM8QAj/bN61Yo/Vb4vgJxy5vi4Yxk01gWHbrofpPtpxM8bKger9jhg==}
+
+  encoding-sniffer@0.2.1:
+    resolution: {integrity: sha512-5gvq20T6vfpekVtqrYQsSCFZ1wEg5+wW0/QaZMWkFr6BqD3NfKs0rLCx4rrVlSWJeZb5NBJgVLswK/w2MWU+Gw==}
 
   encoding@0.1.13:
     resolution: {integrity: sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==}
@@ -9025,6 +9028,9 @@ packages:
         optional: true
       webpack:
         optional: true
+
+  htmlparser2@10.0.0:
+    resolution: {integrity: sha512-TwAZM+zE5Tq3lrEHvOlvwgj1XLWQCtaaibSN11Q+gGBAS7Y1uZSWwXXRe4iF6OXnaq1riyQAPFOBtYc77Mxq0g==}
 
   htmlparser2@6.1.0:
     resolution: {integrity: sha512-gyyPk6rgonLFEDGoeRgQNaEUvdJ4ktTmmUh/h2t7s+M8oPpIPxgNACWa+6ESR57kXstwqPiCut0V8NRpcwgU7A==}
@@ -10284,56 +10290,56 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
-  metascraper-amazon@5.47.1:
-    resolution: {integrity: sha512-L3Fc3EmhqbpQd6Gf597HUfUAWG15hEGJihi+wEVaE5p5NhvtW04tDBDUnou0TwkCrIPqz213fJfiVuyIrb93xQ==}
+  metascraper-amazon@5.49.5:
+    resolution: {integrity: sha512-9gn50UL8BRSC5XDBS+6KLeYNkLMEwb2UILlz+wMMvQZ7LRcxkyAp1I3NGx4fxHjDwbb26SPe+gXWSbi4BkMyLg==}
     engines: {node: '>= 16'}
 
-  metascraper-author@5.46.18:
-    resolution: {integrity: sha512-sjyT2syAepMEPtzTxDv0yN3TZV59yHjiJgrqt2aQNEezblF1RlLCKzEd1TX1laXxcyo5WVEqw2tPXom3j/KC1g==}
+  metascraper-author@5.49.5:
+    resolution: {integrity: sha512-36NR9B9eQKFrpBxnQgHpTRA67tczetsyelzRnCeY5drRBXKPWS56FaHc+S+VjpNrUq0mpPo6eG1nR++BkSm6aQ==}
     engines: {node: '>= 16'}
 
-  metascraper-date@5.47.1:
-    resolution: {integrity: sha512-1SPAYMlVUP4JpBg1BMh1tes5cVj+YdDHbJETGUcA0cWNcaeCQ1BA4ucILwi57g15zRR+19cvzl0Yb8JmdSEXiw==}
+  metascraper-date@5.49.5:
+    resolution: {integrity: sha512-pc2MIhEXpWGhAuCZPAQuWoBI2pogJhRcZq5/1q6Odb4AkDW6NsN9s+wewSL2i8/A54pAnC9s0wK8/NJQ1m1JzA==}
     engines: {node: '>= 16'}
 
-  metascraper-description@5.47.1:
-    resolution: {integrity: sha512-ifggUx56xu7HnNEYuT8uGPB2OsnJNkdte/xjndlZj++ib9JgQZRmR5iLiRKuxuPM+BSoh5yuGRNfFzA4HDt7sw==}
+  metascraper-description@5.49.5:
+    resolution: {integrity: sha512-5krr6h0viwKsA//oLyah3SPLJZ+ZrKjsro8RJNtO/YOUW1X82K14Kt92S2Xhnpva4Hk2UuRHVlaPCpbDv3DZ6g==}
     engines: {node: '>= 16'}
 
-  metascraper-image@5.47.1:
-    resolution: {integrity: sha512-2MpzmngbtCrcP90PaW1S6pW+JfzLHMFZqkDhQdNgEluXzibDkhZiwSC5A60vVMP7tdjKE5tBfeXBDHygf7Q3vw==}
+  metascraper-image@5.49.5:
+    resolution: {integrity: sha512-/uXrqNTjD8t+eyKVnmqk8IwmIRM0LV3+OE2eRUk64njVJ6OKyazIQpNKGCIdkYKV70kZ0YuaKXflc69kpex3vA==}
     engines: {node: '>= 16'}
 
-  metascraper-logo-favicon@5.47.1:
-    resolution: {integrity: sha512-eYCTHhytDOcCEr0FTVHN4RZMEfHicWvc8WnLr3t+P3cQ9snC4N0X1qB6gZfKx/XGYTIpPJWbZuyTvtHTckIs4A==}
+  metascraper-logo-favicon@5.49.5:
+    resolution: {integrity: sha512-ObgNGGNo0xtZDH2zp6WRtVbzDRHpLGSuU4YsE9/38Q0yg5RcIX7p5WZ2nmF+st36r93mRvxsgmYzm/vE6YplMQ==}
     engines: {node: '>= 16'}
 
-  metascraper-logo@5.47.1:
-    resolution: {integrity: sha512-ei5pv5vYqnKFr/bZgORlpMEqsA99pQC+ECM8Mdr6HHisP7EoAFoFJdZRAkAS8BKdDYI7jRTItzyemsUmbztWLw==}
+  metascraper-logo@5.49.5:
+    resolution: {integrity: sha512-6CNHi0WfFam6XUuButvC5Y+ts+BqhqEOlDodAQG9Rm883QIF2kd1XpobwNQ4JZ4qpmJNVQacU87H+bCSLtd1HA==}
     engines: {node: '>= 16'}
 
-  metascraper-publisher@5.47.1:
-    resolution: {integrity: sha512-jCNVvQP7i6gYJ47QIXlWYfsSE2qEvcsxYHRQf1oxNqzX51zzIBOxn4JHrEYqr0nah4mJa6G+wcUcX1NjA+jqsA==}
+  metascraper-publisher@5.49.5:
+    resolution: {integrity: sha512-4QEDfzaJFDojtsoJzr9mxuH/po9Rv9Kv2F1YPifXdSJIf4vigzK5MNYWtqoZQIDGtYGH7O7MscKzJQgZwDo5Tg==}
     engines: {node: '>= 16'}
 
   metascraper-readability@5.49.6:
     resolution: {integrity: sha512-AaQqp93e15m75g/e7lyMslAt//BqaBFIdUxjgzh4qrfamG9ncTD7iWs0xHLjDz7EUQojqze63dwe9/mGiiKTtw==}
     engines: {node: '>= 16'}
 
-  metascraper-title@5.47.1:
-    resolution: {integrity: sha512-3E1dF0Vfrfka6Nxf5ILdIZEr2LdpkSI4VU5ziUh+fIWD9npvxrpgG8RC5lEqnnddDkpWVdf2k6gAB4mZoN5BHw==}
+  metascraper-title@5.49.5:
+    resolution: {integrity: sha512-ZZVEtaHryN0konetrQYXRaYI2OFJpn3WHu8wJEzXcUxmXPdKC/6IDs5fdrFO/1VPinmXfvs/sM0HMXUu7A2v8g==}
     engines: {node: '>= 16'}
 
   metascraper-twitter@5.45.6:
     resolution: {integrity: sha512-uImZVlzkOhGYBXemJJYV/4317l4hPPf2Wur3mmXkjW2XPq2+VHnAPLAn6LHFj/3qykgidzcK7C9rR5raEZriMA==}
     engines: {node: '>= 16'}
 
-  metascraper-url@5.47.1:
-    resolution: {integrity: sha512-OtU6CioGZq+VXfpXY66/D0I6I24BKvELfZujSYFNakNFYhBLwv6+doO6f5HMMFBBNKNkxdb46bZV4qxHU2URwA==}
+  metascraper-url@5.49.5:
+    resolution: {integrity: sha512-0QHMRJCfuU9F7nZDCMf/171WJhk6l1fnQswgaLszchEn/Qg+0K7D0oFj/oPLrQXUxMpt0ViOvfZXMbJl1ObGSw==}
     engines: {node: '>= 16'}
 
-  metascraper@5.47.1:
-    resolution: {integrity: sha512-zcWFCSarDaZAffFqp1neIwuBkq+WSwtr36+UMAcNtTIaOSS4SooRtG73VeTRp8LXytYJRMWqicLSFiE0Tirxng==}
+  metascraper@5.49.5:
+    resolution: {integrity: sha512-AbGZ2wQkFxacsl2U01E/c3blWeOceYxnl00QQg9dtZqrnAXjgm/xSxWb4yI3yq3AjDLDsy+7y/fH46VNRhWSkg==}
     engines: {node: '>= 16'}
 
   methods@1.1.2:
@@ -12259,8 +12265,8 @@ packages:
   re2@1.22.1:
     resolution: {integrity: sha512-E4J0EtgyNLdIr0wTg0dQPefuiqNY29KaLacytiUAYYRzxCG+zOkWoUygt1rI+TA1LrhN49/njrfSO1DHtVC5Vw==}
 
-  reachable-url@1.8.1:
-    resolution: {integrity: sha512-6skrNl6GMGXF/H91T/bz1aznkLDd+y5ApwpqCE8h3OdJ9pQgzfK1j2wh4MFtRvfLq5TH69+oXLq5CsiHL+zN1g==}
+  reachable-url@1.8.3:
+    resolution: {integrity: sha512-qQnVOlFlTHBgFmOC5siHh17fcR9Zu7eNIBO95bJw3+Ln90raTY45h5mmHVmkKsukbA5z6ds/Me631VuQKAf2cw==}
     engines: {node: '>=8'}
 
   react-day-picker@9.9.0:
@@ -14011,6 +14017,10 @@ packages:
     resolution: {integrity: sha512-gBLkYIlEnSp8pFbT64yFgGE6UIB9tAkhukC23PmMDCe5Nd+cRqKxSjw5y54MK2AZMgZfJWMaNE4nYUHgi1XEOw==}
     engines: {node: '>=18.17'}
 
+  undici@7.16.0:
+    resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}
+    engines: {node: '>=20.18.1'}
+
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
     engines: {node: '>=4'}
@@ -14564,8 +14574,8 @@ packages:
     engines: {node: ^18.17.0 || >=20.5.0}
     hasBin: true
 
-  whoops@5.0.1:
-    resolution: {integrity: sha512-H2sKu1asxnFE2mNUeRzNY0CQuvl+n6iyE6phvzOaBfZblItNKpC1EzKWy2Zx+woZ3qUFK/wbmmNiLeqXwzk+FA==}
+  whoops@5.0.4:
+    resolution: {integrity: sha512-dyjoZ/dMgFbjznmxDN74mQcdVI2lxpR/rdPLDx2vYeN8sxRdpCMwzc7KsN9klCfofV5Jd3z22fPHA0lDdl8eSw==}
     engines: {node: '>= 8'}
 
   why-is-node-running@2.3.0:
@@ -18665,13 +18675,13 @@ snapshots:
 
   '@jsdevtools/ono@7.1.3': {}
 
-  '@keyvhq/core@2.1.7':
+  '@keyvhq/core@2.1.11':
     dependencies:
       json-buffer: 3.0.1
 
-  '@keyvhq/memoize@2.1.9':
+  '@keyvhq/memoize@2.1.11':
     dependencies:
-      '@keyvhq/core': 2.1.7
+      '@keyvhq/core': 2.1.11
       mimic-fn: 3.0.0
       null-prototype-object: 1.0.0
 
@@ -18861,38 +18871,6 @@ snapshots:
       '@types/mdx': 2.0.13
       '@types/react': 19.2.2
       react: 19.1.0
-
-  '@metascraper/helpers@5.46.18':
-    dependencies:
-      audio-extensions: 0.0.0
-      chrono-node: 2.8.0
-      condense-whitespace: 2.0.0
-      data-uri-utils: 1.0.8
-      debug-logfmt: 1.2.3
-      entities: 6.0.0
-      file-extension: 4.0.5
-      has-values: 2.0.1
-      image-extensions: 1.1.0
-      is-relative-url: 3.0.0
-      is-uri: 1.2.7
-      iso-639-3: 2.2.0
-      isostring: 0.0.1
-      jsdom: 26.1.0
-      lodash: 4.17.21
-      memoize-one: 6.0.0
-      microsoft-capitalize: 1.0.5
-      mime: 3.0.0
-      normalize-url: 6.1.0
-      re2: 1.22.1
-      smartquotes: 2.3.2
-      tldts: 7.0.8
-      url-regex-safe: 4.0.0(re2@1.22.1)
-      video-extensions: 1.2.0
-    transitivePeerDependencies:
-      - bufferutil
-      - canvas
-      - supports-color
-      - utf-8-validate
 
   '@metascraper/helpers@5.47.1':
     dependencies:
@@ -22238,6 +22216,20 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
 
+  cheerio@1.1.2:
+    dependencies:
+      cheerio-select: 2.1.0
+      dom-serializer: 2.0.0
+      domhandler: 5.0.3
+      domutils: 3.2.2
+      encoding-sniffer: 0.2.1
+      htmlparser2: 10.0.0
+      parse5: 7.3.0
+      parse5-htmlparser2-tree-adapter: 7.1.0
+      parse5-parser-stream: 7.1.2
+      undici: 7.16.0
+      whatwg-mimetype: 4.0.0
+
   chokidar@3.6.0:
     dependencies:
       anymatch: 3.1.3
@@ -23232,6 +23224,11 @@ snapshots:
   encodeurl@2.0.0: {}
 
   encoding-sniffer@0.2.0:
+    dependencies:
+      iconv-lite: 0.6.3
+      whatwg-encoding: 3.1.1
+
+  encoding-sniffer@0.2.1:
     dependencies:
       iconv-lite: 0.6.3
       whatwg-encoding: 3.1.1
@@ -24723,6 +24720,13 @@ snapshots:
     optionalDependencies:
       webpack: 5.99.9
 
+  htmlparser2@10.0.0:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      domutils: 3.2.2
+      entities: 6.0.1
+
   htmlparser2@6.1.0:
     dependencies:
       domelementtype: 2.3.0
@@ -26199,79 +26203,87 @@ snapshots:
 
   merge2@1.4.1: {}
 
-  metascraper-amazon@5.47.1:
+  metascraper-amazon@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-author@5.46.18:
+  metascraper-author@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.46.18
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-date@5.47.1:
+  metascraper-date@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-description@5.47.1:
+  metascraper-description@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-image@5.47.1:
+  metascraper-image@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-logo-favicon@5.47.1:
+  metascraper-logo-favicon@5.49.5(postcss@8.5.6):
     dependencies:
-      '@keyvhq/memoize': 2.1.9
-      '@metascraper/helpers': 5.47.1
+      '@keyvhq/memoize': 2.1.11
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
       lodash: 4.17.21
-      reachable-url: 1.8.1
+      reachable-url: 1.8.3
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-logo@5.47.1:
+  metascraper-logo@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
       lodash: 4.17.21
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper-publisher@5.47.1:
+  metascraper-publisher@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
@@ -26288,12 +26300,13 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  metascraper-title@5.47.1:
+  metascraper-title@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
@@ -26306,25 +26319,26 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  metascraper-url@5.47.1:
+  metascraper-url@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
-  metascraper@5.47.1:
+  metascraper@5.49.5(postcss@8.5.6):
     dependencies:
-      '@metascraper/helpers': 5.47.1
-      cheerio: 1.0.0
-      debug-logfmt: 1.2.3
-      lodash: 4.17.21
-      whoops: 5.0.1
+      '@metascraper/helpers': 5.49.5(postcss@8.5.6)
+      cheerio: 1.1.2
+      debug-logfmt: 1.4.6
+      whoops: 5.0.4
     transitivePeerDependencies:
       - bufferutil
       - canvas
+      - postcss
       - supports-color
       - utf-8-validate
 
@@ -28645,7 +28659,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  reachable-url@1.8.1:
+  reachable-url@1.8.3:
     dependencies:
       got: 11.8.6
       p-reflect: 2.1.0
@@ -30918,6 +30932,8 @@ snapshots:
 
   undici@6.21.3: {}
 
+  undici@7.16.0: {}
+
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
   unicode-emoji-modifier-base@1.0.0: {}
@@ -31646,7 +31662,7 @@ snapshots:
     dependencies:
       isexe: 3.1.1
 
-  whoops@5.0.1: {}
+  whoops@5.0.4: {}
 
   why-is-node-running@2.3.0:
     dependencies:
