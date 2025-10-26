@@ -584,20 +584,30 @@ function extractReadableContent(
   );
   const virtualConsole = new VirtualConsole();
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
-  const readableContent = new Readability(dom.window.document).parse();
-  if (!readableContent || typeof readableContent.content !== "string") {
-    return null;
+  let result: { content: string } | null = null;
+  try {
+    const readableContent = new Readability(dom.window.document).parse();
+    if (!readableContent || typeof readableContent.content !== "string") {
+      return null;
+    }
+
+    const purifyWindow = new JSDOM("").window;
+    try {
+      const purify = DOMPurify(purifyWindow);
+      const purifiedHTML = purify.sanitize(readableContent.content);
+
+      logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
+      result = {
+        content: purifiedHTML,
+      };
+    } finally {
+      purifyWindow.close();
+    }
+  } finally {
+    dom.window.close();
   }
 
-  const window = new JSDOM("").window;
-  const purify = DOMPurify(window);
-  const purifiedHTML = purify.sanitize(readableContent.content);
-
-  logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
-  return {
-    content: purifiedHTML,
-    textContent: readableContent.textContent,
-  };
+  return result;
 }
 
 async function storeScreenshot(
@@ -929,8 +939,7 @@ async function storeHtmlContent(
     return { result: "not_stored" };
   }
 
-  const contentBuffer = Buffer.from(htmlContent, "utf8");
-  const contentSize = contentBuffer.byteLength;
+  const contentSize = Buffer.byteLength(htmlContent, "utf8");
 
   // Only store in assets if content is >= 50KB
   if (contentSize < serverConfig.crawler.htmlContentSizeThreshold) {
@@ -941,7 +950,7 @@ async function storeHtmlContent(
   }
 
   const { data: quotaApproved, error: quotaError } = await tryCatch(
-    QuotaService.checkStorageQuota(db, userId, contentBuffer.byteLength),
+    QuotaService.checkStorageQuota(db, userId, contentSize),
   );
   if (quotaError) {
     logger.warn(
@@ -956,7 +965,7 @@ async function storeHtmlContent(
     saveAsset({
       userId,
       assetId,
-      asset: contentBuffer,
+      asset: Buffer.from(htmlContent, "utf8"),
       metadata: {
         contentType: ASSET_TYPES.TEXT_HTML,
         fileName: null,
@@ -1023,16 +1032,22 @@ async function crawlAndParseUrl(
 
   const { htmlContent, screenshot, statusCode, url: browserUrl } = result;
 
-  const abortableWork = Promise.all([
+  const meta = await Promise.race([
     extractMetadata(htmlContent, browserUrl, jobId),
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    storeScreenshot(screenshot, userId, jobId),
+    abortPromise(abortSignal),
   ]);
+  abortSignal.throwIfAborted();
 
-  await Promise.race([abortableWork, abortPromise(abortSignal)]);
+  let readableContent = await Promise.race([
+    extractReadableContent(htmlContent, browserUrl, jobId),
+    abortPromise(abortSignal),
+  ]);
+  abortSignal.throwIfAborted();
 
-  const [meta, readableContent, screenshotAssetInfo] = await abortableWork;
-
+  const screenshotAssetInfo = await Promise.race([
+    storeScreenshot(screenshot, userId, jobId),
+    abortPromise(abortSignal),
+  ]);
   abortSignal.throwIfAborted();
 
   const htmlContentAssetInfo = await storeHtmlContent(
@@ -1075,6 +1090,11 @@ async function crawlAndParseUrl(
 
   // TODO(important): Restrict the size of content to store
   const assetDeletionTasks: Promise<void>[] = [];
+  const inlineHtmlContent =
+    htmlContentAssetInfo.result === "store_inline"
+      ? (readableContent?.content ?? null)
+      : null;
+  readableContent = null;
   await db.transaction(async (txn) => {
     await txn
       .update(bookmarkLinks)
@@ -1084,10 +1104,7 @@ async function crawlAndParseUrl(
         // Don't store data URIs as they're not valid URLs and are usually quite large
         imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
         favicon: meta.logo,
-        htmlContent:
-          htmlContentAssetInfo.result === "store_inline"
-            ? readableContent?.content
-            : null,
+        htmlContent: inlineHtmlContent,
         contentAssetId:
           htmlContentAssetInfo.result === "stored"
             ? htmlContentAssetInfo.assetId
