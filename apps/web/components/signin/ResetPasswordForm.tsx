@@ -20,20 +20,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/trpc";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { zResetPasswordSchema } from "@karakeep/shared/types/users";
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+} from "@karakeep/shared/types/users";
 
 const resetPasswordSchema = z
   .object({
+    newPassword: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
   })
-  .merge(zResetPasswordSchema.pick({ newPassword: true }))
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -52,22 +54,20 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const resetPasswordMutation = api.users.resetPassword.useMutation();
-
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {
       setErrorMessage("");
-      await resetPasswordMutation.mutateAsync({
+      const resp = await authClient.resetPassword({
         token,
         newPassword: values.newPassword,
       });
-      setIsSuccess(true);
-    } catch (error) {
-      if (error instanceof TRPCClientError) {
-        setErrorMessage(error.message);
+      if (resp.data) {
+        setIsSuccess(true);
       } else {
-        setErrorMessage("An unexpected error occurred. Please try again.");
+        setErrorMessage(resp.error.message ?? "An unexpected error occurred");
       }
+    } catch {
+      setErrorMessage("An unexpected error occurred. Please try again.");
     }
   };
 

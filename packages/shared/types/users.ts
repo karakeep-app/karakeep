@@ -15,11 +15,6 @@ export const zSignUpSchema = z
     path: ["confirmPassword"],
   });
 
-export const zResetPasswordSchema = z.object({
-  token: z.string(),
-  newPassword: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
-});
-
 export const zChangePasswordSchema = z
   .object({
     currentPassword: z.string(),

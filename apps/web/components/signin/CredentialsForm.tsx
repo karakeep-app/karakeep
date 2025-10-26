@@ -14,10 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { useClientConfig } from "@/lib/clientConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Lock } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -28,8 +28,6 @@ const signInSchema = z.object({
 
 const SIGNIN_FAILED = "Incorrect email or password";
 const OAUTH_FAILED = "OAuth login failed: ";
-
-const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 
 export default function CredentialsForm() {
   const [signinError, setSigninError] = useState("");
@@ -70,20 +68,20 @@ export default function CredentialsForm() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(async (value) => {
-            const resp = await signIn("credentials", {
-              redirect: false,
+            const { error: signInError } = await authClient.signIn.email({
               email: value.email.trim(),
               password: value.password,
+              rememberMe: true,
             });
-            if (!resp || !resp?.ok || resp.error) {
-              if (resp?.error === "CredentialsSignin") {
+            if (signInError) {
+              if (signInError.message === "INVALID_EMAIL_OR_PASSWORD") {
                 setSigninError(SIGNIN_FAILED);
-              } else if (resp?.error === VERIFY_EMAIL_ERROR) {
+              } else if (signInError.message === "EMAIL_NOT_VERIFIED") {
                 router.replace(
                   `/check-email?email=${encodeURIComponent(value.email.trim())}`,
                 );
               } else {
-                setSigninError(resp?.error ?? SIGNIN_FAILED);
+                setSigninError(signInError.message ?? SIGNIN_FAILED);
               }
               return;
             }

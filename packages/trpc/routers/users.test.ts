@@ -1,13 +1,7 @@
 import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
-import {
-  assets,
-  AssetTypes,
-  bookmarks,
-  passwordResetTokens,
-  users,
-} from "@karakeep/db/schema";
+import { assets, AssetTypes, bookmarks, users } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
@@ -515,256 +509,6 @@ describe("User Routes", () => {
     ).toBe(true);
   });
 
-  describe("Password Reset", () => {
-    test<CustomTestContext>("forgotPassword - successful email sending", async ({
-      unauthedAPICaller,
-    }) => {
-      // Create a user first
-      await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "reset@test.com",
-        password: "pass1234",
-        confirmPassword: "pass1234",
-      });
-
-      // With mocked email service, this should succeed
-      const result = await unauthedAPICaller.users.forgotPassword({
-        email: "reset@test.com",
-      });
-
-      expect(result.success).toBe(true);
-
-      // Verify that the email function was called with correct parameters
-      expect(emailModule.sendPasswordResetEmail).toHaveBeenCalledWith(
-        "reset@test.com",
-        "Test User",
-        expect.any(String), // token
-      );
-    });
-
-    test<CustomTestContext>("forgotPassword - non-existing user", async ({
-      unauthedAPICaller,
-    }) => {
-      // Should not reveal if user exists or not
-      const result = await unauthedAPICaller.users.forgotPassword({
-        email: "nonexistent@test.com",
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    test<CustomTestContext>("forgotPassword - OAuth user (no password)", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user without password (OAuth user)
-      await db.insert(users).values({
-        name: "OAuth User",
-        email: "oauth@test.com",
-        password: null,
-      });
-
-      // Should not send reset email for OAuth users
-      const result = await unauthedAPICaller.users.forgotPassword({
-        email: "oauth@test.com",
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    test<CustomTestContext>("resetPassword - valid token", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "validreset@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token directly in the database
-      const token = "valid-reset-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Reset the password
-      const result = await unauthedAPICaller.users.resetPassword({
-        token,
-        newPassword: "newpass123",
-      });
-
-      expect(result.success).toBe(true);
-
-      // Verify the token was consumed (deleted)
-      const remainingTokens = await db
-        .select()
-        .from(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, token));
-
-      expect(remainingTokens).toHaveLength(0);
-
-      // The password reset was successful if we got here without errors
-    });
-
-    test<CustomTestContext>("resetPassword - invalid token", async ({
-      unauthedAPICaller,
-    }) => {
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token: "invalid-token",
-          newPassword: "newpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-    });
-
-    test<CustomTestContext>("resetPassword - expired token", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "expiredtoken@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create an expired password reset token
-      const token = "expired-reset-token";
-      const expires = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago (expired)
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "newpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-
-      // Verify the expired token was cleaned up
-      const remainingTokens = await db
-        .select()
-        .from(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, token));
-
-      expect(remainingTokens).toHaveLength(0);
-    });
-
-    test<CustomTestContext>("resetPassword - user not found", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user first, then delete them to create an orphaned token
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "orphaned@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token
-      const token = "orphaned-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Delete the user to make the token orphaned
-      // Due to foreign key cascade, this will also delete the token
-      // So we expect "Invalid or expired reset token" instead of "User not found"
-      await db.delete(users).where(eq(users.id, user.id));
-
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "newpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-    });
-    test<CustomTestContext>("resetPassword - password validation", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "validation@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token
-      const token = "validation-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Try to reset with a password that's too short
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "123", // Too short
-        }),
-      ).rejects.toThrow();
-    });
-
-    test<CustomTestContext>("resetPassword - token reuse prevention", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "reuse@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token
-      const token = "reuse-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Use the token once
-      await unauthedAPICaller.users.resetPassword({
-        token,
-        newPassword: "newpass123",
-      });
-
-      // Try to use the same token again
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "anotherpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-    });
-  });
-
   describe("Change Password", () => {
     test<CustomTestContext>("changePassword - successful change", async ({
       db,
@@ -813,7 +557,6 @@ describe("User Routes", () => {
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauth@test.com",
-        password: null,
       });
 
       const oauthUser = await db
@@ -884,7 +627,6 @@ describe("User Routes", () => {
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauthdelete@test.com",
-        password: null,
       });
 
       const oauthUser = await db
@@ -932,7 +674,6 @@ describe("User Routes", () => {
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauthwhoami@test.com",
-        password: null,
       });
 
       const oauthUser = await db

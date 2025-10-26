@@ -6,13 +6,13 @@ import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
 import {
+  accounts,
   assets,
   bookmarkLinks,
   bookmarkLists,
   bookmarks,
   bookmarkTags,
   highlights,
-  passwordResetTokens,
   tagsOnBookmarks,
   users,
   verificationTokens,
@@ -20,7 +20,6 @@ import {
 import { deleteUserAssets } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
-  zResetPasswordSchema,
   zSignUpSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
@@ -29,19 +28,29 @@ import {
 } from "@karakeep/shared/types/users";
 
 import { AuthedContext, Context } from "..";
-import { generatePasswordSalt, hashPassword, validatePassword } from "../auth";
-import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
+import { hashPassword, validatePassword } from "../auth";
+import { sendVerificationEmail } from "../email";
 import { PrivacyAware } from "./privacy";
 
 export class User implements PrivacyAware {
   constructor(
     protected ctx: AuthedContext,
-    public user: typeof users.$inferSelect,
+    public user: typeof users.$inferSelect & {
+      password: string | null;
+    },
   ) {}
 
   static async fromId_DANGEROUS(ctx: AuthedContext, id: string): Promise<User> {
     const user = await ctx.db.query.users.findFirst({
       where: eq(users.id, id),
+      with: {
+        accounts: {
+          where: (a, { eq }) => eq(a.providerId, "credential"),
+          columns: {
+            password: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -51,7 +60,10 @@ export class User implements PrivacyAware {
       });
     }
 
-    return new User(ctx, user);
+    return new User(ctx, {
+      ...user,
+      password: user.accounts.length == 1 ? user.accounts[0].password : null,
+    });
   }
 
   static async fromCtx(ctx: AuthedContext): Promise<User> {
@@ -63,12 +75,10 @@ export class User implements PrivacyAware {
     input: z.infer<typeof zSignUpSchema>,
     role?: "user" | "admin",
   ) {
-    const salt = generatePasswordSalt();
     const user = await User.createRaw(ctx.db, {
       name: input.name,
       email: input.email,
-      password: await hashPassword(input.password, salt),
-      salt,
+      password: input.password,
       role,
     });
 
@@ -90,7 +100,6 @@ export class User implements PrivacyAware {
       name: string;
       email: string;
       password?: string;
-      salt?: string;
       role?: "user" | "admin";
       emailVerified?: Date | null;
     },
@@ -110,14 +119,21 @@ export class User implements PrivacyAware {
           .values({
             name: input.name,
             email: input.email,
-            password: input.password,
-            salt: input.salt,
             role: userRole,
             emailVerified: input.emailVerified,
             bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
             storageQuota: serverConfig.quotas.free.assetSizeBytes,
           })
           .returning();
+
+        if (input.password) {
+          await trx.insert(accounts).values({
+            userId: result.id,
+            providerId: "credential",
+            accountId: result.id,
+            password: await hashPassword(input.password),
+          });
+        }
 
         return result;
       } catch (e) {
@@ -138,9 +154,24 @@ export class User implements PrivacyAware {
   }
 
   static async getAll(ctx: AuthedContext): Promise<User[]> {
-    const dbUsers = await ctx.db.select().from(users);
+    const dbUsers = await ctx.db.query.users.findMany({
+      with: {
+        accounts: {
+          where: (a, { eq }) => eq(a.providerId, "credential"),
+          columns: {
+            password: true,
+          },
+        },
+      },
+    });
 
-    return dbUsers.map((u) => new User(ctx, u));
+    return dbUsers.map(
+      (u) =>
+        new User(ctx, {
+          ...u,
+          password: u.accounts.length == 1 ? u.accounts[0].password : null,
+        }),
+    );
   }
 
   static async genEmailVerificationToken(
@@ -264,97 +295,6 @@ export class User implements PrivacyAware {
     }
   }
 
-  static async forgotPassword(ctx: Context, email: string): Promise<void> {
-    if (!serverConfig.email.smtp) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Email service is not configured",
-      });
-    }
-
-    const user = await ctx.db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
-
-    if (!user || !user.password) {
-      return; // Don't reveal if user exists or not for security
-    }
-
-    try {
-      const token = randomBytes(32).toString("hex");
-      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-      await ctx.db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      await sendPasswordResetEmail(email, user.name, token);
-    } catch (error) {
-      console.error("Failed to send password reset email:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to send password reset email",
-      });
-    }
-  }
-
-  static async resetPassword(
-    ctx: Context,
-    input: z.infer<typeof zResetPasswordSchema>,
-  ): Promise<void> {
-    const resetToken = await ctx.db.query.passwordResetTokens.findFirst({
-      where: eq(passwordResetTokens.token, input.token),
-      with: {
-        user: {
-          columns: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    if (!resetToken) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid or expired reset token",
-      });
-    }
-
-    if (resetToken.expires < new Date()) {
-      await ctx.db
-        .delete(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, input.token));
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid or expired reset token",
-      });
-    }
-
-    if (!resetToken.user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
-      });
-    }
-
-    const newSalt = generatePasswordSalt();
-    const hashedPassword = await hashPassword(input.newPassword, newSalt);
-
-    await ctx.db
-      .update(users)
-      .set({
-        password: hashedPassword,
-        salt: newSalt,
-      })
-      .where(eq(users.id, resetToken.user.id));
-
-    await ctx.db
-      .delete(passwordResetTokens)
-      .where(eq(passwordResetTokens.token, input.token));
-  }
-
   ensureCanAccess(ctx: AuthedContext): void {
     if (this.user.id !== ctx.user.id) {
       throw new TRPCError({
@@ -406,6 +346,24 @@ export class User implements PrivacyAware {
     await User.deleteInternal(this.ctx.db, this.user.id);
   }
 
+  async setPassword(newPassword: string): Promise<void> {
+    const hashed = await hashPassword(newPassword);
+    await this.ctx.db
+      .insert(accounts)
+      .values({
+        userId: this.user.id,
+        providerId: "credential",
+        accountId: this.user.id,
+        password: hashed,
+      })
+      .onConflictDoUpdate({
+        target: [accounts.providerId, accounts.accountId],
+        set: {
+          password: hashed,
+        },
+      });
+  }
+
   async changePassword(
     currentPassword: string,
     newPassword: string,
@@ -422,15 +380,7 @@ export class User implements PrivacyAware {
     } catch {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-
-    const newSalt = generatePasswordSalt();
-    await this.ctx.db
-      .update(users)
-      .set({
-        password: await hashPassword(newPassword, newSalt),
-        salt: newSalt,
-      })
-      .where(eq(users.id, this.user.id));
+    await this.setPassword(newPassword);
   }
 
   async getSettings(): Promise<z.infer<typeof zUserSettingsSchema>> {
@@ -748,7 +698,7 @@ export class User implements PrivacyAware {
   }
 
   asPublicUser() {
-    const { password, salt: _salt, ...rest } = this.user;
+    const { password, ...rest } = this.user;
     return {
       ...rest,
       localUser: password !== null,

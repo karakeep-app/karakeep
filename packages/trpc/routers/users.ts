@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import serverConfig from "@karakeep/shared/config";
 import {
-  zResetPasswordSchema,
   zSignUpSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
@@ -168,36 +167,6 @@ export const usersAppRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       await User.resendVerificationEmail(ctx, input.email);
-      return { success: true };
-    }),
-  forgotPassword: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.forgotPassword",
-        windowMs: 15 * 60 * 1000,
-        maxRequests: 3,
-      }),
-    )
-    .input(
-      z.object({
-        email: z.string().email(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await User.forgotPassword(ctx, input.email);
-      return { success: true };
-    }),
-  resetPassword: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.resetPassword",
-        windowMs: 5 * 60 * 1000,
-        maxRequests: 10,
-      }),
-    )
-    .input(zResetPasswordSchema)
-    .mutation(async ({ input, ctx }) => {
-      await User.resetPassword(ctx, input);
       return { success: true };
     }),
 });

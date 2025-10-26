@@ -22,18 +22,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { useClientConfig } from "@/lib/clientConfig";
 import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, UserX } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { zSignUpSchema } from "@karakeep/shared/types/users";
-
-const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 
 export default function SignUpForm() {
   const form = useForm<z.infer<typeof zSignUpSchema>>({
@@ -99,19 +97,20 @@ export default function SignUpForm() {
                 }
                 return;
               }
-              const resp = await signIn("credentials", {
-                redirect: false,
+              const { error: signInError } = await authClient.signIn.email({
                 email: value.email.trim(),
                 password: value.password,
+                rememberMe: true,
               });
-              if (!resp || !resp.ok || resp.error) {
-                if (resp?.error === VERIFY_EMAIL_ERROR) {
+              if (signInError) {
+                if (signInError.message === "EMAIL_NOT_VERIFIED") {
                   router.replace(
                     `/check-email?email=${encodeURIComponent(value.email.trim())}`,
                   );
                 } else {
                   setErrorMessage(
-                    resp?.error ?? "Hit an unexpected error while signing in",
+                    signInError.message ??
+                      "Hit an unexpected error while signing in",
                   );
                 }
                 return;

@@ -24,7 +24,6 @@ import {
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
 
-import { generatePasswordSalt, hashPassword } from "../auth";
 import { adminProcedure, router } from "../index";
 import { User } from "../models/users";
 
@@ -396,19 +395,8 @@ export const adminAppRouter = router({
           message: "Cannot reset own password",
         });
       }
-      const newSalt = generatePasswordSalt();
-      const hashedPassword = await hashPassword(input.newPassword, newSalt);
-      const result = await ctx.db
-        .update(users)
-        .set({ password: hashedPassword, salt: newSalt })
-        .where(eq(users.id, input.userId));
-
-      if (result.changes == 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
-      }
+      const user = await User.fromId_DANGEROUS(ctx, input.userId);
+      await user.setPassword(input.newPassword);
     }),
   getAdminNoticies: adminProcedure
     .output(

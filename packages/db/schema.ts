@@ -1,4 +1,3 @@
-import type { AdapterAccount } from "@auth/core/adapters";
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
 import {
@@ -33,10 +32,8 @@ export const users = sqliteTable("user", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
+  emailVerified: integer("emailVerified", { mode: "boolean" }),
   image: text("image"),
-  password: text("password"),
-  salt: text("salt").notNull().default(""),
   role: text("role", { enum: ["admin", "user"] }).default("user"),
 
   // Admin Only Settings
@@ -63,64 +60,55 @@ export const users = sqliteTable("user", {
 export const accounts = sqliteTable(
   "account",
   {
+    id: text("id").notNull(),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccount["type"]>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
+    providerId: text("type").notNull(),
+    accountId: text("providerAccountId").notNull(),
+    refreshToken: text("refresh_token"),
+    accessToken: text("access_token"),
+    accessTokenExpiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+      mode: "timestamp_ms",
+    }),
     scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
+    idToken: text("id_token"),
+    password: text("password"),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
   },
   (account) => [
     primaryKey({
-      columns: [account.provider, account.providerAccountId],
+      columns: [account.providerId, account.accountId],
     }),
   ],
 );
 
 export const sessions = sqliteTable("session", {
-  sessionToken: text("sessionToken")
+  id: text("id")
     .notNull()
     .primaryKey()
     .$defaultFn(() => createId()),
+  token: text("sessionToken").notNull().unique(),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  expiresAt: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+  ipAddress: text("ipAddress"),
+  userAgent: text("userAgent"),
 });
 
-export const verificationTokens = sqliteTable(
-  "verificationToken",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-  },
-  (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
-);
-
-export const passwordResetTokens = sqliteTable(
-  "passwordResetToken",
-  {
-    id: text("id")
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    token: text("token").notNull().unique(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-    createdAt: createdAtField(),
-  },
-  (prt) => [index("passwordResetTokens_userId_idx").on(prt.userId)],
-);
+export const verificationTokens = sqliteTable("verificationToken", {
+  id: text("id").notNull().primaryKey(),
+  identifier: text("identifier").notNull(),
+  token: text("token").notNull(),
+  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+});
 
 export const apiKeys = sqliteTable(
   "apiKey",
@@ -687,12 +675,20 @@ export const importSessionBookmarks = sqliteTable(
 
 export const userRelations = relations(users, ({ many, one }) => ({
   tags: many(bookmarkTags),
+  accounts: many(accounts),
   bookmarks: many(bookmarks),
   webhooks: many(webhooksTable),
   rules: many(ruleEngineRulesTable),
   invites: many(invites),
   subscription: one(subscriptions),
   importSessions: many(importSessions),
+}));
+
+export const accountRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -842,16 +838,6 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     references: [users.id],
   }),
 }));
-
-export const passwordResetTokensRelations = relations(
-  passwordResetTokens,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [passwordResetTokens.userId],
-      references: [users.id],
-    }),
-  }),
-);
 
 export const importSessionsRelations = relations(
   importSessions,

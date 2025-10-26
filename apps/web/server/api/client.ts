@@ -44,8 +44,19 @@ export const createContext = async (
       headers: Object.fromEntries(hdrs.entries()),
     });
   }
+  const contextUser: Context["user"] = session
+    ? {
+        id: session.user.id,
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+        role:
+          session.user.role === "admin" || session.user.role === "user"
+            ? session.user.role
+            : null,
+      }
+    : null;
   return {
-    user: session?.user ?? null,
+    user: contextUser,
     db: database ?? db,
     req: {
       ip,

@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
@@ -10,6 +11,43 @@ import type { Context } from "./index";
 const BCRYPT_SALT_ROUNDS = 10;
 const API_KEY_PREFIX_V1 = "ak1";
 const API_KEY_PREFIX_V2 = "ak2";
+const CREDENTIAL_PASSWORD_VERSION = 1;
+
+const zCredentialPasswordPayload = z.object({
+  hash: z.string(),
+  salt: z.string().optional(),
+  v: z.number(),
+});
+
+function encodeCredentialPassword(
+  hash: string,
+  salt: string | null | undefined = undefined,
+): string {
+  return JSON.stringify({
+    v: CREDENTIAL_PASSWORD_VERSION,
+    hash,
+    salt: salt ?? undefined,
+  } satisfies z.infer<typeof zCredentialPasswordPayload>);
+}
+
+function decodeCredentialPassword(
+  value: string | null | undefined,
+): z.infer<typeof zCredentialPasswordPayload> | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = zCredentialPasswordPayload.safeParse(JSON.parse(value));
+    if (parsed.success) {
+      return parsed.data;
+    } else {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
 
 function generateApiKeySecret() {
   const secret = randomBytes(16).toString("hex");
@@ -18,10 +56,6 @@ function generateApiKeySecret() {
     secret,
     secretHash: createHash("sha256").update(secret).digest("base64"),
   };
-}
-
-export function generatePasswordSalt() {
-  return randomBytes(32).toString("hex");
 }
 
 export async function regenerateApiKey(
@@ -128,8 +162,29 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
   return apiKey.user;
 }
 
-export async function hashPassword(password: string, salt: string | null) {
-  return await bcrypt.hash(password + (salt ?? ""), BCRYPT_SALT_ROUNDS);
+export async function hashPassword(password: string) {
+  const hashed = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+  return encodeCredentialPassword(hashed);
+}
+
+export async function verifyPassword({
+  hash,
+  password,
+}: {
+  hash: string;
+  password: string;
+}): Promise<boolean> {
+  const payload = decodeCredentialPassword(hash);
+  if (!payload) {
+    return false;
+  }
+  try {
+    const saltAugmentedPassword = `${password}${payload.salt ?? ""}`;
+    const match = await bcrypt.compare(saltAugmentedPassword, payload.hash);
+    return match;
+  } catch {
+    return false;
+  }
 }
 
 export async function validatePassword(
@@ -142,6 +197,14 @@ export async function validatePassword(
   }
   const user = await database.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, email),
+    with: {
+      accounts: {
+        where: (a, { eq }) => eq(a.providerId, "credential"),
+        columns: {
+          password: true,
+        },
+      },
+    },
   });
 
   if (!user) {
@@ -154,17 +217,13 @@ export async function validatePassword(
     throw new Error("User not found");
   }
 
-  if (!user.password) {
+  if (user.accounts.length != 1 || !user.accounts[0].password) {
     throw new Error("This user doesn't have a password defined");
   }
 
-  const validation = await bcrypt.compare(
-    password + (user.salt ?? ""),
-    user.password,
-  );
-  if (!validation) {
+  if (await verifyPassword({ hash: user.accounts[0].password, password })) {
+    return user;
+  } else {
     throw new Error("Wrong password");
   }
-
-  return user;
 }

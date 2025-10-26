@@ -1,18 +1,18 @@
 "use client";
 
 import type { UserLocalSettings } from "@/lib/userLocalSettings/types";
-import type { Session } from "next-auth";
+import type { AuthSession } from "@/server/auth";
 import React, { useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserLocalSettingsCtx } from "@/lib/userLocalSettings/bookmarksLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
-import { SessionProvider } from "next-auth/react";
 import superjson from "superjson";
 
 import type { ClientConfig } from "@karakeep/shared/config";
 
+import { SessionContext } from "./auth-client";
 import { ClientConfigCtx } from "./clientConfig";
 import CustomI18nextProvider from "./i18n/provider";
 import { api } from "./trpc";
@@ -52,7 +52,7 @@ export default function Providers({
   userLocalSettings,
 }: {
   children: React.ReactNode;
-  session: Session | null;
+  session: AuthSession | null;
   clientConfig: ClientConfig;
   userLocalSettings: UserLocalSettings;
 }) {
@@ -79,7 +79,7 @@ export default function Providers({
   return (
     <ClientConfigCtx.Provider value={clientConfig}>
       <UserLocalSettingsCtx.Provider value={userLocalSettings}>
-        <SessionProvider session={session}>
+        <SessionContext.Provider value={session}>
           <api.Provider client={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
               <CustomI18nextProvider lang={userLocalSettings.lang}>
@@ -96,7 +96,7 @@ export default function Providers({
               </CustomI18nextProvider>
             </QueryClientProvider>
           </api.Provider>
-        </SessionProvider>
+        </SessionContext.Provider>
       </UserLocalSettingsCtx.Provider>
     </ClientConfigCtx.Provider>
   );
