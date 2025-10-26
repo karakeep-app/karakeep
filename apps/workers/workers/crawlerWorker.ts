@@ -619,7 +619,7 @@ async function storeScreenshot(
   }
   const assetId = newAssetId();
   const contentType = "image/jpeg";
-  const fileName = "screenshot.png";
+  const fileName = "screenshot.jpeg";
 
   // Check storage quota before saving the screenshot
   const { data: quotaApproved, error: quotaError } = await tryCatch(
