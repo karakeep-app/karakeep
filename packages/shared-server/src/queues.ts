@@ -79,6 +79,9 @@ export const zAdminMaintenanceTaskSchema = z.discriminatedUnion("type", [
     type: z.literal("tidy_assets"),
     args: zTidyAssetsRequestSchema,
   }),
+  z.object({
+    type: z.literal("migrate_large_link_html"),
+  }),
 ]);
 
 export type ZAdminMaintenanceTask = z.infer<typeof zAdminMaintenanceTaskSchema>;
@@ -86,6 +89,10 @@ export type ZAdminMaintenanceTaskType = ZAdminMaintenanceTask["type"];
 export type ZAdminMaintenanceTidyAssetsTask = Extract<
   ZAdminMaintenanceTask,
   { type: "tidy_assets" }
+>;
+export type ZAdminMaintenanceMigrateLargeLinkHtmlTask = Extract<
+  ZAdminMaintenanceTask,
+  { type: "migrate_large_link_html" }
 >;
 
 export const AdminMaintenanceQueue =

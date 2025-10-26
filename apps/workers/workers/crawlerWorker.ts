@@ -73,6 +73,7 @@ import {
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import { HTML_CONTENT_SIZE_THRESHOLD } from "../constants";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
@@ -914,8 +915,6 @@ async function handleAsAssetBookmark(
     fixMode: false,
   });
 }
-
-const HTML_CONTENT_SIZE_THRESHOLD = 50 * 1024; // 50KB
 
 type StoreHtmlResult =
   | { result: "stored"; assetId: string; size: number }
