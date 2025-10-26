@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 
 import type { ZAdminMaintenanceMigrateLargeLinkHtmlTask } from "@karakeep/shared-server";
 import type { DequeuedJob } from "@karakeep/shared/queueing";
@@ -20,7 +20,7 @@ interface BookmarkHtmlRow {
   htmlContent: string;
 }
 
-async function getBookmarksWithLargeInlineHtml(limit: number) {
+async function getBookmarksWithLargeInlineHtml(limit: number, cursor?: string) {
   const rows = await db
     .select({
       bookmarkId: bookmarkLinks.id,
@@ -30,12 +30,20 @@ async function getBookmarksWithLargeInlineHtml(limit: number) {
     .from(bookmarkLinks)
     .innerJoin(bookmarks, eq(bookmarkLinks.id, bookmarks.id))
     .where(
-      and(
-        isNotNull(bookmarkLinks.htmlContent),
-        isNull(bookmarkLinks.contentAssetId),
-        sql`length(${bookmarkLinks.htmlContent}) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
-      ),
+      cursor
+        ? and(
+            gt(bookmarkLinks.id, cursor),
+            isNotNull(bookmarkLinks.htmlContent),
+            isNull(bookmarkLinks.contentAssetId),
+            sql`length(${bookmarkLinks.htmlContent}) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
+          )
+        : and(
+            isNotNull(bookmarkLinks.htmlContent),
+            isNull(bookmarkLinks.contentAssetId),
+            sql`length(${bookmarkLinks.htmlContent}) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
+          ),
     )
+    .orderBy(asc(bookmarkLinks.id))
     .limit(limit);
 
   return rows.filter((row): row is BookmarkHtmlRow => row.htmlContent !== null);
@@ -126,10 +134,11 @@ export async function runMigrateLargeLinkHtmlTask(
 ): Promise<void> {
   const jobId = job.id;
   let migratedCount = 0;
+  let cursor: string | undefined;
 
   while (true) {
     const bookmarksToMigrate =
-      await getBookmarksWithLargeInlineHtml(BATCH_SIZE);
+      await getBookmarksWithLargeInlineHtml(BATCH_SIZE, cursor);
 
     if (bookmarksToMigrate.length === 0) {
       break;
@@ -147,6 +156,8 @@ export async function runMigrateLargeLinkHtmlTask(
         );
       }
     }
+
+    cursor = bookmarksToMigrate[bookmarksToMigrate.length - 1]?.bookmarkId;
   }
 
   logger.info(
