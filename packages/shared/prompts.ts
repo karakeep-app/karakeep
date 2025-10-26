@@ -15,6 +15,9 @@ function calculateNumTokens(text: string) {
 
 function truncateContent(content: string, length: number) {
   const tokens = encoding.encode(content);
+  if (tokens.length <= length) {
+    return content;
+  }
   const truncatedTokens = tokens.slice(0, length);
   return encoding.decode(truncatedTokens);
 }
