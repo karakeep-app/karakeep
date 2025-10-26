@@ -11,10 +11,10 @@ import {
   newAssetId,
   saveAsset,
 } from "@karakeep/shared/assetdb";
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
-import { HTML_CONTENT_SIZE_THRESHOLD } from "../../../constants";
 import { updateAsset } from "../../../workerUtils";
 
 const BATCH_SIZE = 25;
@@ -40,12 +40,12 @@ async function getBookmarksWithLargeInlineHtml(limit: number, cursor?: string) {
             gt(bookmarkLinks.id, cursor),
             isNotNull(bookmarkLinks.htmlContent),
             isNull(bookmarkLinks.contentAssetId),
-            sql`length(CAST(${bookmarkLinks.htmlContent} AS BLOB)) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
+            sql`length(CAST(${bookmarkLinks.htmlContent} AS BLOB)) > ${serverConfig.crawler.htmlContentSizeThreshold}`,
           )
         : and(
             isNotNull(bookmarkLinks.htmlContent),
             isNull(bookmarkLinks.contentAssetId),
-            sql`length(CAST(${bookmarkLinks.htmlContent} AS BLOB)) > ${HTML_CONTENT_SIZE_THRESHOLD}`,
+            sql`length(CAST(${bookmarkLinks.htmlContent} AS BLOB)) > ${serverConfig.crawler.htmlContentSizeThreshold}`,
           ),
     )
     .orderBy(asc(bookmarkLinks.id))
@@ -62,7 +62,7 @@ async function migrateBookmarkHtml(
 
   const contentSize = Buffer.byteLength(htmlContent, "utf8");
 
-  if (contentSize <= HTML_CONTENT_SIZE_THRESHOLD) {
+  if (contentSize <= serverConfig.crawler.htmlContentSizeThreshold) {
     logger.debug(
       `[adminMaintenance:migrate_large_link_html][${jobId}] Bookmark ${bookmarkId} inline HTML (${contentSize} bytes) below threshold, skipping`,
     );

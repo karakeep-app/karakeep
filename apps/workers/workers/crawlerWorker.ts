@@ -73,7 +73,6 @@ import {
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import { HTML_CONTENT_SIZE_THRESHOLD } from "../constants";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
@@ -934,7 +933,7 @@ async function storeHtmlContent(
   const contentSize = contentBuffer.byteLength;
 
   // Only store in assets if content is >= 50KB
-  if (contentSize < HTML_CONTENT_SIZE_THRESHOLD) {
+  if (contentSize < serverConfig.crawler.htmlContentSizeThreshold) {
     logger.info(
       `[Crawler][${jobId}] HTML content size (${contentSize} bytes) is below threshold, storing inline`,
     );

@@ -112,6 +112,7 @@ const allEnv = z.object({
   DATA_DIR: z.string().default(""),
   ASSETS_DIR: z.string().optional(),
   MAX_ASSET_SIZE_MB: z.coerce.number().default(50),
+  HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES: z.coerce.number().default(5 * 1024),
   INFERENCE_LANG: z.string().default("english"),
   WEBHOOK_TIMEOUT_SEC: z.coerce.number().default(5),
   WEBHOOK_RETRY_TIMES: z.coerce.number().int().min(0).default(3),
@@ -274,6 +275,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
+      htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
     },
     ocr: {
       langs: val.OCR_LANGS,
