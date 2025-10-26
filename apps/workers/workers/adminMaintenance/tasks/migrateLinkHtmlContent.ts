@@ -157,6 +157,12 @@ export async function runMigrateLargeLinkHtmlTask(
   let cursor: string | undefined;
 
   while (true) {
+    if (job.abortSignal.aborted) {
+      logger.warn(
+        `[adminMaintenance:migrate_large_link_html][${jobId}] Aborted`,
+      );
+      break;
+    }
     const bookmarksToMigrate = await getBookmarksWithLargeInlineHtml(
       BATCH_SIZE,
       cursor,

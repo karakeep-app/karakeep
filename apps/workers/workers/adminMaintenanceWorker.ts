@@ -43,7 +43,7 @@ export class AdminMaintenanceWorker {
         {
           concurrency: 1,
           pollIntervalMs: 1000,
-          timeoutSecs: 30,
+          timeoutSecs: 600,
         },
       );
 

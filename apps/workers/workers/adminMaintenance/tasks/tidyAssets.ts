@@ -67,6 +67,10 @@ export async function runTidyAssetsTask(
   }
 
   for await (const asset of getAllAssets()) {
+    if (job.abortSignal.aborted) {
+      logger.warn(`[adminMaintenance:tidy_assets][${jobId}] Aborted`);
+      break;
+    }
     try {
       await handleAsset(asset, parseResult.data, jobId);
     } catch (error) {
