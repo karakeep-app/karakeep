@@ -64,3 +64,25 @@ OPENAI_API_KEY: Your Perplexity API Key
 INFERENCE_TEXT_MODEL: sonar-pro
 INFERENCE_IMAGE_MODEL: sonar-pro
 ```
+
+## Azure
+
+Azure has an OpenAI-compatible API.
+
+You can get your API key from the Overview page of Azure the AI Foundry Portal or via "Keys + Endpoints" on the resource in the Azure Portal.
+
+:::warning
+The [model name is the deployment name](https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/switching-endpoints#keyword-argument-for-model) you specified when deploying the model, which may differ from the base model name.
+:::
+
+```
+# Deployed via Azure AI Foundry:
+OPENAI_BASE_URL=https://{your-azure-ai-foundry-resource-name}.cognitiveservices.azure.com/openai/v1/
+
+# Deployed via Azure OpenAI Service:
+OPENAI_BASE_URL=https://{your-azure-openai-resource-name}.openai.azure.com/openai/v1/
+
+OPENAI_API_KEY=YOUR_API_KEY
+INFERENCE_TEXT_MODEL=YOUR_DEPLOYMENT_NAME
+INFERENCE_IMAGE_MODEL=YOUR_DEPLOYMENT_NAME
+```
