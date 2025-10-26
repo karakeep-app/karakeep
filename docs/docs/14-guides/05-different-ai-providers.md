@@ -69,7 +69,7 @@ INFERENCE_IMAGE_MODEL: sonar-pro
 
 Azure has an OpenAI-compatible API.
 
-You can get your API key from the Overview page of Azure the AI Foundry Portal or via "Keys + Endpoints" on the resource in the Azure Portal.
+You can get your API key from the Overview page of the Azure AI Foundry Portal or via "Keys + Endpoints" on the resource in the Azure Portal.
 
 :::warning
 The [model name is the deployment name](https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/switching-endpoints#keyword-argument-for-model) you specified when deploying the model, which may differ from the base model name.
