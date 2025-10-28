@@ -172,6 +172,33 @@ export default function EditorCard({ className }: { className?: string }) {
     }
   };
 
+  /**
+   * Methods that triggers when "enter" is pressed (without ctrl)
+   * It checks if the current line is a todo
+   * if it is it automatically appends a todo a the start of the new line
+   */
+  const handleNewTodo = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const todoMarkup = "- [ ] ";
+    const textarea = inputRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.slice(0, start);
+    const lines = textBefore.split("\n");
+    const currentLine = lines[lines.length - 1];
+    const currentLineIsTodo = currentLine.startsWith(todoMarkup);
+    if (!currentLineIsTodo) return;
+    e.preventDefault();
+    const newValue =
+      textarea.value.slice(0, start) +
+      "\n" +
+      todoMarkup +
+      textarea.value.slice(end);
+    textarea.value = newValue;
+    textarea.selectionStart = start + todoMarkup.length + 1;
+    textarea.selectionEnd = start + todoMarkup.length + 1;
+  };
+
   const OS = getOS();
 
   return (
@@ -204,6 +231,12 @@ export default function EditorCard({ className }: { className?: string }) {
               onKeyDown={(e) => {
                 if (demoMode) {
                   return;
+                }
+                if (
+                  e.key === "Enter" &&
+                  !(e.metaKey || e.ctrlKey || e.shiftKey)
+                ) {
+                  handleNewTodo(e);
                 }
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   form.handleSubmit(onSubmit, onError)();
