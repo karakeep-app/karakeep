@@ -44,7 +44,7 @@ export class SearchIndexingWorker {
         {
           concurrency: serverConfig.search.numWorkers,
           pollIntervalMs: 1000,
-          timeoutSecs: 30,
+          timeoutSecs: serverConfig.search.jobTimeoutSec,
         },
       );
 

@@ -9,6 +9,9 @@ export const idProvider = object({
       return state;
     },
   },
+  options: {
+    ingressPrivate: true,
+  },
 });
 
 export async function genId(ctx: Context) {

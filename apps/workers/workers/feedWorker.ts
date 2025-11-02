@@ -1,9 +1,9 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
+import { fetchWithProxy } from "network";
 import cron from "node-cron";
 import Parser from "rss-parser";
 import { buildImpersonatingTRPCClient } from "trpc";
-import { fetchWithProxy } from "utils";
 import { z } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
@@ -212,6 +212,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
         type: BookmarkTypes.LINK,
         url: item.link!,
         title: item.title,
+        source: "rss",
       }),
     ),
   );

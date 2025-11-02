@@ -1,10 +1,11 @@
-import { AdminCard } from "@/components/admin/AdminCard";
-import ServerStats from "@/components/admin/ServerStats";
+import BasicStats from "@/components/admin/BasicStats";
+import ServiceConnections from "@/components/admin/ServiceConnections";
 
 export default function AdminOverviewPage() {
   return (
-    <AdminCard>
-      <ServerStats />
-    </AdminCard>
+    <div className="flex flex-col gap-6">
+      <BasicStats />
+      <ServiceConnections />
+    </div>
   );
 }

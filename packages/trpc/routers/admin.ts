@@ -1,19 +1,23 @@
+import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
 import { count, eq, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
+  AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   FeedQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
   SearchIndexingQueue,
-  TidyAssetsQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
   WebhookQueue,
+  zAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
+import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 import { getSearchClient } from "@karakeep/shared/search";
 import {
   resetPasswordSchema,
@@ -61,7 +65,7 @@ export const adminAppRouter = router({
         indexingStats: z.object({
           queued: z.number(),
         }),
-        tidyAssetsStats: z.object({
+        adminMaintenanceStats: z.object({
           queued: z.number(),
         }),
         videoStats: z.object({
@@ -93,8 +97,8 @@ export const adminAppRouter = router({
         [{ value: pendingInference }],
         [{ value: failedInference }],
 
-        // Tidy Assets
-        queuedTidyAssets,
+        // Admin maintenance
+        queuedAdminMaintenance,
 
         // Video
         queuedVideo,
@@ -143,8 +147,8 @@ export const adminAppRouter = router({
             ),
           ),
 
-        // Tidy Assets
-        TidyAssetsQueue.stats(),
+        // Admin maintenance
+        AdminMaintenanceQueue.stats(),
 
         // Video
         VideoWorkerQueue.stats(),
@@ -173,8 +177,10 @@ export const adminAppRouter = router({
         indexingStats: {
           queued: queuedIndexing.pending + queuedIndexing.pending_retry,
         },
-        tidyAssetsStats: {
-          queued: queuedTidyAssets.pending + queuedTidyAssets.pending_retry,
+        adminMaintenanceStats: {
+          queued:
+            queuedAdminMaintenance.pending +
+            queuedAdminMaintenance.pending_retry,
         },
         videoStats: {
           queued: queuedVideo.pending + queuedVideo.pending_retry,
@@ -275,12 +281,11 @@ export const adminAppRouter = router({
         ),
       );
     }),
-  tidyAssets: adminProcedure.mutation(async () => {
-    await TidyAssetsQueue.enqueue({
-      cleanDanglingAssets: true,
-      syncAssetMetadata: true,
-    });
-  }),
+  runAdminMaintenanceTask: adminProcedure
+    .input(zAdminMaintenanceTaskSchema)
+    .mutation(async ({ input }) => {
+      await AdminMaintenanceQueue.enqueue(input);
+    }),
   userStats: adminProcedure
     .output(
       z.record(
@@ -415,6 +420,121 @@ export const adminAppRouter = router({
     .query(() => {
       return {
         // Unused for now
+      };
+    }),
+  checkConnections: adminProcedure
+    .output(
+      z.object({
+        searchEngine: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
+        browser: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
+        queue: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
+      }),
+    )
+    .query(async () => {
+      const searchEngineStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: false, connected: false };
+      const browserStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: false, connected: false };
+      const queueStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: true, connected: false };
+
+      const searchClient = await getSearchClient();
+      searchEngineStatus.configured = searchClient !== null;
+
+      if (searchClient) {
+        const pluginName = PluginManager.getPluginName(PluginType.Search);
+        if (pluginName) {
+          searchEngineStatus.pluginName = pluginName;
+        }
+        try {
+          await searchClient.search({ query: "", limit: 1 });
+          searchEngineStatus.connected = true;
+        } catch (error) {
+          searchEngineStatus.error =
+            error instanceof Error ? error.message : "Unknown error";
+        }
+      }
+
+      browserStatus.configured =
+        !!serverConfig.crawler.browserWebUrl ||
+        !!serverConfig.crawler.browserWebSocketUrl;
+
+      if (browserStatus.configured) {
+        if (serverConfig.crawler.browserWebUrl) {
+          browserStatus.pluginName = "Browserless/Chrome";
+        } else if (serverConfig.crawler.browserWebSocketUrl) {
+          browserStatus.pluginName = "WebSocket Browser";
+        }
+
+        try {
+          if (serverConfig.crawler.browserWebUrl) {
+            const webUrl = new URL(serverConfig.crawler.browserWebUrl);
+            const { address } = await dns.promises.lookup(webUrl.hostname);
+            webUrl.hostname = address;
+            webUrl.pathname = "/json/version";
+            const response = await fetch(`${webUrl.toString()}`, {
+              signal: AbortSignal.timeout(5000),
+            });
+            if (response.ok) {
+              browserStatus.connected = true;
+            } else {
+              browserStatus.error = `HTTP ${response.status}: ${response.statusText}`;
+            }
+          } else if (serverConfig.crawler.browserWebSocketUrl) {
+            browserStatus.connected = true;
+            browserStatus.error =
+              "WebSocket URL configured (connection check not supported)";
+          }
+        } catch (error) {
+          browserStatus.error =
+            error instanceof Error ? error.message : "Unknown error";
+        }
+      }
+
+      const queuePluginName = PluginManager.getPluginName(PluginType.Queue);
+      if (queuePluginName) {
+        queueStatus.pluginName = queuePluginName;
+      }
+
+      try {
+        await LinkCrawlerQueue.stats();
+        queueStatus.connected = true;
+      } catch (error) {
+        queueStatus.error =
+          error instanceof Error ? error.message : "Unknown error";
+      }
+
+      return {
+        searchEngine: searchEngineStatus,
+        browser: browserStatus,
+        queue: queueStatus,
       };
     }),
 });

@@ -90,7 +90,9 @@ class OpenAIInferenceClient implements InferenceClient {
       {
         messages: [{ role: "user", content: prompt }],
         model: serverConfig.inference.textModel,
-        max_tokens: serverConfig.inference.maxOutputTokens,
+        ...(serverConfig.inference.useMaxCompletionTokens
+          ? { max_completion_tokens: serverConfig.inference.maxOutputTokens }
+          : { max_tokens: serverConfig.inference.maxOutputTokens }),
         response_format: mapInferenceOutputSchema(
           {
             structured: optsWithDefaults.schema
@@ -127,7 +129,9 @@ class OpenAIInferenceClient implements InferenceClient {
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         model: serverConfig.inference.imageModel,
-        max_tokens: serverConfig.inference.maxOutputTokens,
+        ...(serverConfig.inference.useMaxCompletionTokens
+          ? { max_completion_tokens: serverConfig.inference.maxOutputTokens }
+          : { max_tokens: serverConfig.inference.maxOutputTokens }),
         response_format: mapInferenceOutputSchema(
           {
             structured: optsWithDefaults.schema

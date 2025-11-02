@@ -51,6 +51,14 @@ export class PluginManager {
     return PluginManager.providers[type].length > 0;
   }
 
+  static getPluginName<T extends PluginType>(type: T): string | null {
+    const providers: TPlugin<T>[] = PluginManager.providers[type];
+    if (providers.length === 0) {
+      return null;
+    }
+    return providers[providers.length - 1]!.name;
+  }
+
   static logAllPlugins() {
     logger.info("Plugins (Last one wins):");
     for (const type of Object.values(PluginType)) {

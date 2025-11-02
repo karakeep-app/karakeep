@@ -91,12 +91,30 @@ const SearchInput = React.forwardRef<
 
   const inputRef = useRef<HTMLInputElement>(null);
   const isHistorySelected = useRef(false);
+  const isComposing = useRef(false);
 
   const handleValueChange = useCallback(
     (newValue: string) => {
       setValue(newValue);
-      debounceSearch(newValue);
+      // Only trigger debounced search if not in IME composition mode
+      if (!isComposing.current) {
+        debounceSearch(newValue);
+      }
       isHistorySelected.current = false; // Reset flag when user types
+    },
+    [debounceSearch],
+  );
+
+  const handleCompositionStart = useCallback(() => {
+    isComposing.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLInputElement>) => {
+      isComposing.current = false;
+      // Trigger search with the final composed value
+      const target = e.target as HTMLInputElement;
+      debounceSearch(target.value);
     },
     [debounceSearch],
   );
@@ -210,6 +228,8 @@ const SearchInput = React.forwardRef<
                 placeholder={t("common.search")}
                 value={value}
                 onValueChange={handleValueChange}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 className={cn("h-10", className)}
