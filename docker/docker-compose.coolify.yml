@@ -8,7 +8,7 @@ services:
     ports:
       - 3000:3000
     environment:
-      MEILI_ADDR8?: http://meilisearch:7700
+      MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       DATA_DIR: /data
       NEXTAUTH_SECRET : ${NEXTAUTH_SECRET}
