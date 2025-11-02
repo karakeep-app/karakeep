@@ -38,8 +38,6 @@ export function MarkdownReadonly({
    */
   const handleTodoClick = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const undoneTodo = "- [ ] ";
-    const doneTodo = "- [X] ";
     const parent = e.target.closest(".prose");
     if (!parent) return;
     const allCheckboxes = parent.querySelectorAll(".todo-checkbox");
@@ -48,11 +46,19 @@ export function MarkdownReadonly({
       if (cb === e.target) checkboxIndex = i;
     });
     let i = 0;
-    const newMarkdown = markdown.replace(/^- \[ \] |^- \[X\]/gm, (match) => {
-      i++;
-      const newValue = match === undoneTodo ? doneTodo : undoneTodo;
-      return i - 1 === checkboxIndex ? newValue : match;
-    });
+    const todoPattern = /^(\s*[-*+]\s*\[)( |x|X)(\])/gm;
+    const newMarkdown = markdown.replace(
+      todoPattern,
+      (match, prefix: string, state: string, suffix: string) => {
+        const currentIndex = i++;
+        if (currentIndex !== checkboxIndex) {
+          return match;
+        }
+        const isDone = state.toLowerCase() === "x";
+        const nextState = isDone ? " " : "x";
+        return `${prefix}${nextState}${suffix}`;
+      },
+    );
     if (onSave) {
       onSave(newMarkdown);
     }

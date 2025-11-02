@@ -194,9 +194,11 @@ export default function EditorCard({ className }: { className?: string }) {
       "\n" +
       todoMarkup +
       textarea.value.slice(end);
+    form.setValue("text", newValue, { shouldDirty: true, shouldTouch: true });
     textarea.value = newValue;
     textarea.selectionStart = start + todoMarkup.length + 1;
     textarea.selectionEnd = start + todoMarkup.length + 1;
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
   };
 
   const OS = getOS();
