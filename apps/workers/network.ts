@@ -9,6 +9,7 @@ import fetch, { Headers } from "node-fetch";
 import serverConfig from "@karakeep/shared/config";
 
 const DISALLOWED_IP_RANGES = new Set([
+  // IPv4 ranges
   "unspecified",
   "broadcast",
   "multicast",
@@ -17,7 +18,13 @@ const DISALLOWED_IP_RANGES = new Set([
   "private",
   "reserved",
   "carrierGradeNat",
+  // IPv6 ranges
   "uniqueLocal",
+  "6to4", // RFC 3056 - IPv6 transition mechanism
+  "teredo", // RFC 4380 - IPv6 tunneling
+  "benchmarking", // RFC 5180 - benchmarking addresses
+  "deprecated", // RFC 3879 - deprecated IPv6 addresses
+  "discard", // RFC 6666 - discard-only prefix
 ]);
 
 // DNS cache with 5 minute TTL and max 1000 entries
