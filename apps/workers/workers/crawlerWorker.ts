@@ -466,13 +466,16 @@ async function crawlPage(
       }
 
       const requestUrl = request.url();
+      const requestIsRunningInProxyContext =
+        proxyConfig !== undefined &&
+        !matchesNoProxy(requestUrl, proxyConfig.bypass?.split(",") ?? []);
       if (
         requestUrl.startsWith("http://") ||
         requestUrl.startsWith("https://")
       ) {
         const validation = await validateUrl(
           requestUrl,
-          isRunningInProxyContext,
+          requestIsRunningInProxyContext,
         );
         if (!validation.ok) {
           logger.warn(
