@@ -13,6 +13,7 @@ import {
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
+import FixedRatioImage from "./FixedRatioImage";
 import FooterLinkURL from "./FooterLinkURL";
 
 const useOnClickUrl = (bookmark: ZBookmarkTypeLink) => {
@@ -65,7 +66,12 @@ function LinkImage({
   if (isBookmarkStillCrawling(bookmark)) {
     img = imgComponent("/blur.avif", false);
   } else if (imageDetails) {
-    img = imgComponent(imageDetails.url, !imageDetails.localAsset);
+    img = FixedRatioImage({
+      src: imageDetails.url,
+      unoptimized: !imageDetails.localAsset,
+      className: className,
+      alt: "card banner",
+    });
   } else {
     // No image found
     // A dummy white pixel for when there's no image.
