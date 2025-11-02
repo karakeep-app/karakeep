@@ -187,7 +187,15 @@ const allEnv = z.object({
         .filter((p) => p),
     )
     .optional(),
-  ALLOW_INTERNAL_IP_REQUESTS: stringBool("false"),
+  CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: z
+    .string()
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .optional(),
 
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
@@ -318,7 +326,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       httpsProxy: val.CRAWLER_HTTPS_PROXY,
       noProxy: val.CRAWLER_NO_PROXY,
     },
-    allowInternalIpRequests: val.ALLOW_INTERNAL_IP_REQUESTS,
+    allowedInternalHostnames: val.CRAWLER_ALLOWED_INTERNAL_HOSTNAMES,
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
     },

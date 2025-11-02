@@ -45,6 +45,36 @@ export type UrlValidationResult =
   | { ok: true; url: URL }
   | { ok: false; reason: string };
 
+function hostnameMatchesAnyPattern(
+  hostname: string,
+  patterns: string[],
+): boolean {
+  function hostnameMatchesPattern(hostname: string, pattern: string): boolean {
+    return (
+      pattern === hostname ||
+      (pattern.startsWith(".") && hostname.endsWith(pattern)) ||
+      hostname.endsWith("." + pattern)
+    );
+  }
+
+  for (const pattern of patterns) {
+    if (hostnameMatchesPattern(hostname, pattern)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isHostnameAllowedForInternalAccess(hostname: string): boolean {
+  if (!serverConfig.allowedInternalHostnames) {
+    return false;
+  }
+  return hostnameMatchesAnyPattern(
+    hostname,
+    serverConfig.allowedInternalHostnames,
+  );
+}
+
 export async function validateUrl(
   urlCandidate: string,
   runningInProxyContext: boolean,
@@ -61,10 +91,6 @@ export async function validateUrl(
     } as const;
   }
 
-  if (serverConfig.allowInternalIpRequests) {
-    return { ok: true, url: parsedUrl } as const;
-  }
-
   if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
     return {
       ok: false,
@@ -78,6 +104,10 @@ export async function validateUrl(
       ok: false,
       reason: `URL ${parsedUrl.toString()} must include a hostname`,
     } as const;
+  }
+
+  if (isHostnameAllowedForInternalAccess(hostname)) {
+    return { ok: true, url: parsedUrl } as const;
   }
 
   if (ipaddr.isValid(hostname)) {
@@ -145,16 +175,7 @@ export function getRandomProxy(proxyList: string[]): string {
 export function matchesNoProxy(url: string, noProxy: string[]) {
   const urlObj = new URL(url);
   const hostname = urlObj.hostname;
-  for (const noProxyHost of noProxy) {
-    if (
-      noProxyHost === hostname ||
-      (noProxyHost.startsWith(".") && hostname.endsWith(noProxyHost)) ||
-      hostname.endsWith("." + noProxyHost)
-    ) {
-      return true;
-    }
-  }
-  return false;
+  return hostnameMatchesAnyPattern(hostname, noProxy);
 }
 
 export function getProxyAgent(url: string) {
