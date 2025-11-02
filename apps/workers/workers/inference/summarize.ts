@@ -1,13 +1,13 @@
 import { and, eq } from "drizzle-orm";
-import { DequeuedJob } from "liteque";
 
 import { db } from "@karakeep/db";
 import { bookmarks, customPrompts } from "@karakeep/db/schema";
+import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClient } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts";
-import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared/queues";
+import { DequeuedJob } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 

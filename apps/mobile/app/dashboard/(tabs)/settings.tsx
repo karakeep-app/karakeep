@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, Switch, View } from "react-native";
 import { Slider } from "react-native-awesome-slider";
 import { useSharedValue } from "react-native-reanimated";
 import { Link } from "expo-router";
@@ -86,6 +86,18 @@ export default function Dashboard() {
               </View>
             </Pressable>
           </Link>
+        </View>
+        <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
+          <Text>Show note preview in bookmark</Text>
+          <Switch
+            value={settings.showNotes}
+            onValueChange={(value) =>
+              setSettings({
+                ...settings,
+                showNotes: value,
+              })
+            }
+          />
         </View>
         <Text className="w-full p-1 text-2xl font-bold text-foreground">
           Upload Settings

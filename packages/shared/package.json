@@ -9,7 +9,6 @@
     "glob": "^11.0.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
-    "liteque": "^0.6.0",
     "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
     "openai": "^4.86.1",

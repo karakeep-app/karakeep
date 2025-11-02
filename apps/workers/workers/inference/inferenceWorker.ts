@@ -1,14 +1,14 @@
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 
-import type { ZOpenAIRequest } from "@karakeep/shared/queues";
+import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
+import { OpenAIQueue, zOpenAIRequestSchema } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
-import { OpenAIQueue, zOpenAIRequestSchema } from "@karakeep/shared/queues";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 import { runSummarization } from "./summarize";
 import { runTagging } from "./tagging";
@@ -37,9 +37,9 @@ async function attemptMarkStatus(
 }
 
 export class OpenAiWorker {
-  static build() {
+  static async build() {
     logger.info("Starting inference worker ...");
-    const worker = new Runner<ZOpenAIRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZOpenAIRequest>(
       OpenAIQueue,
       {
         run: runOpenAI,

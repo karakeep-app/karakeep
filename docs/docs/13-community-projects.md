@@ -70,3 +70,10 @@ _By [@thiswillbeyourgithub](https://github.com/thiswillbeyourgithub/)_
 A python script to automatically create Karakeep bookmarks from your [FreshRSS](https://github.com/FreshRSS/FreshRSS) *favourites/saved* RSS item. Made to be called periodically. Based on the community project `Karakeep-Python-API` above, by the same author.
 
 Get it [here](https://github.com/thiswillbeyourgithub/freshrss_to_karakeep).
+
+### karakeep-sync
+_By [@sidoshi](https://github.com/sidoshi/)_
+
+Sync links from Hacker News upvotes, Reddit Saves to Karakeep for centralized bookmark management.
+
+Get it [here](https://github.com/sidoshi/karakeep-sync)

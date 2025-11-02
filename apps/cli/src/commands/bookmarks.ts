@@ -85,7 +85,12 @@ bookmarkCmd
     const promises = [
       ...opts.link.map((url) =>
         api.bookmarks.createBookmark
-          .mutate({ type: BookmarkTypes.LINK, url, title: opts.title })
+          .mutate({
+            type: BookmarkTypes.LINK,
+            url,
+            title: opts.title,
+            source: "cli",
+          })
           .then((bookmark: ZBookmark) => {
             results.push(normalizeBookmark(bookmark));
           })
@@ -93,7 +98,12 @@ bookmarkCmd
       ),
       ...opts.note.map((text) =>
         api.bookmarks.createBookmark
-          .mutate({ type: BookmarkTypes.TEXT, text, title: opts.title })
+          .mutate({
+            type: BookmarkTypes.TEXT,
+            text,
+            title: opts.title,
+            source: "cli",
+          })
           .then((bookmark: ZBookmark) => {
             results.push(normalizeBookmark(bookmark));
           })
@@ -109,7 +119,12 @@ bookmarkCmd
       const text = fs.readFileSync(0, "utf-8");
       promises.push(
         api.bookmarks.createBookmark
-          .mutate({ type: BookmarkTypes.TEXT, text, title: opts.title })
+          .mutate({
+            type: BookmarkTypes.TEXT,
+            text,
+            title: opts.title,
+            source: "cli",
+          })
           .then((bookmark: ZBookmark) => {
             results.push(normalizeBookmark(bookmark));
           })

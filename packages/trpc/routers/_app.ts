@@ -5,6 +5,7 @@ import { assetsAppRouter } from "./assets";
 import { bookmarksAppRouter } from "./bookmarks";
 import { feedsAppRouter } from "./feeds";
 import { highlightsAppRouter } from "./highlights";
+import { importSessionsRouter } from "./importSessions";
 import { invitesAppRouter } from "./invites";
 import { listsAppRouter } from "./lists";
 import { promptsAppRouter } from "./prompts";
@@ -25,6 +26,7 @@ export const appRouter = router({
   admin: adminAppRouter,
   feeds: feedsAppRouter,
   highlights: highlightsAppRouter,
+  importSessions: importSessionsRouter,
   webhooks: webhooksAppRouter,
   assets: assetsAppRouter,
   rules: rulesAppRouter,

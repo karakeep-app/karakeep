@@ -1,10 +1,10 @@
 "use client";
 
-import LoadingSpinner from "@/components/ui/spinner";
+import { AdminCard } from "@/components/admin/AdminCard";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 const REPO_LATEST_RELEASE_API =
   "https://api.github.com/repos/karakeep-app/karakeep/releases/latest";
@@ -34,6 +34,7 @@ function ReleaseInfo() {
   let newRelease;
   if (latestRelease && currentRelease != latestRelease) {
     newRelease = (
+      // oxlint-disable-next-line no-html-link-for-pages
       <a
         href={REPO_RELEASE_PAGE}
         target="_blank"
@@ -53,20 +54,35 @@ function ReleaseInfo() {
   );
 }
 
-export default function ServerStats() {
+function StatsSkeleton() {
+  return (
+    <AdminCard>
+      <div className="mb-4 h-7 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="flex flex-col gap-4 sm:flex-row">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-md border bg-background p-4 sm:w-1/4">
+            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div className="h-9 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+        ))}
+      </div>
+    </AdminCard>
+  );
+}
+
+export default function BasicStats() {
   const { t } = useTranslation();
   const { data: serverStats } = api.admin.stats.useQuery(undefined, {
     refetchInterval: 5000,
-    placeholderData: keepPreviousData,
   });
 
   if (!serverStats) {
-    return <LoadingSpinner />;
+    return <StatsSkeleton />;
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="mb-2 text-xl font-medium">
+    <AdminCard>
+      <div className="mb-4 text-xl font-medium">
         {t("admin.server_stats.server_stats")}
       </div>
       <div className="flex flex-col gap-4 sm:flex-row">
@@ -91,6 +107,6 @@ export default function ServerStats() {
           <ReleaseInfo />
         </div>
       </div>
-    </div>
+    </AdminCard>
   );
 }

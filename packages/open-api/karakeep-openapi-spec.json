@@ -94,6 +94,20 @@
             "type": "string",
             "nullable": true
           },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "api",
+              "web",
+              "cli",
+              "mobile",
+              "extension",
+              "singlefile",
+              "rss",
+              "import"
+            ]
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -349,6 +363,50 @@
       "Cursor": {
         "type": "string"
       },
+      "List": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "smart"
+            ],
+            "default": "manual"
+          },
+          "query": {
+            "type": "string",
+            "nullable": true
+          },
+          "public": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "icon",
+          "parentId",
+          "public"
+        ]
+      },
       "Highlight": {
         "type": "object",
         "properties": {
@@ -398,50 +456,6 @@
           "id",
           "userId",
           "createdAt"
-        ]
-      },
-      "List": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "icon": {
-            "type": "string"
-          },
-          "parentId": {
-            "type": "string",
-            "nullable": true
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "manual",
-              "smart"
-            ],
-            "default": "manual"
-          },
-          "query": {
-            "type": "string",
-            "nullable": true
-          },
-          "public": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "icon",
-          "parentId",
-          "public"
         ]
       },
       "Tag": {
@@ -693,6 +707,22 @@
                           "low",
                           "normal"
                         ]
+                      },
+                      "importSessionId": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "api",
+                          "web",
+                          "cli",
+                          "mobile",
+                          "extension",
+                          "singlefile",
+                          "rss",
+                          "import"
+                        ]
                       }
                     }
                   },
@@ -781,8 +811,18 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "The bookmark already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
           "201": {
-            "description": "The created bookmark",
+            "description": "The bookmark got created",
             "content": {
               "application/json": {
                 "schema": {
@@ -1135,6 +1175,20 @@
                     "summary": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "api",
+                        "web",
+                        "cli",
+                        "mobile",
+                        "extension",
+                        "singlefile",
+                        "rss",
+                        "import"
+                      ]
                     }
                   },
                   "required": [
@@ -1245,6 +1299,20 @@
                     "summary": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "source": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "api",
+                        "web",
+                        "cli",
+                        "mobile",
+                        "extension",
+                        "singlefile",
+                        "rss",
+                        "import"
+                      ]
                     }
                   },
                   "required": [
@@ -1439,6 +1507,70 @@
                   },
                   "required": [
                     "detached"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/lists": {
+      "get": {
+        "description": "Get lists of a bookmark",
+        "summary": "Get lists of a bookmark",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of highlights",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lists": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/List"
+                      }
+                    }
+                  },
+                  "required": [
+                    "lists"
                   ]
                 }
               }
@@ -2292,6 +2424,60 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "nameContains",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "name",
+                "usage",
+                "relevance"
+              ],
+              "default": "usage"
+            },
+            "required": false,
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ai",
+                "human",
+                "none"
+              ]
+            },
+            "required": false,
+            "name": "attachedBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "nullable": true
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Object with all tags data.",
@@ -2305,10 +2491,15 @@
                       "items": {
                         "$ref": "#/components/schemas/Tag"
                       }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [
-                    "tags"
+                    "tags",
+                    "nextCursor"
                   ]
                 }
               }

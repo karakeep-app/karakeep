@@ -7,8 +7,8 @@ import { z } from "zod";
 import { zSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
   zCreateTagRequestSchema,
-  zGetTagResponseSchema,
   zTagBasicSchema,
+  zTagListQueryParamsSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -19,11 +19,10 @@ import {
   PaginatedBookmarksSchema,
   PaginationSchema,
 } from "./pagination";
+import { TagSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
 extendZodWithOpenApi(z);
-
-export const TagSchema = zGetTagResponseSchema.openapi("Tag");
 
 export const TagIdSchema = registry.registerParameter(
   "TagId",
@@ -43,7 +42,9 @@ registry.registerPath({
   summary: "Get all tags",
   tags: ["Tags"],
   security: [{ [BearerAuth.name]: [] }],
-  request: {},
+  request: {
+    query: zTagListQueryParamsSchema,
+  },
   responses: {
     200: {
       description: "Object with all tags data.",
@@ -51,6 +52,7 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             tags: z.array(TagSchema),
+            nextCursor: z.string().nullable(),
           }),
         },
       },

@@ -20,7 +20,6 @@
     "bcryptjs": "^2.4.3",
     "deep-equal": "^2.2.3",
     "drizzle-orm": "^0.44.2",
-    "liteque": "^0.6.0",
     "nodemailer": "^7.0.4",
     "prom-client": "^15.1.3",
     "stripe": "^18.3.0",

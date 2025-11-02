@@ -5,7 +5,6 @@ import {
 import { z } from "zod";
 
 import {
-  zHighlightSchema,
   zNewHighlightSchema,
   zUpdateHighlightSchema,
 } from "@karakeep/shared/types/highlights";
@@ -13,18 +12,10 @@ import {
 import { BearerAuth } from "./common";
 import { ErrorSchema } from "./errors";
 import { PaginationSchema } from "./pagination";
+import { HighlightSchema, PaginatedHighlightsSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
 extendZodWithOpenApi(z);
-
-export const HighlightSchema = zHighlightSchema.openapi("Highlight");
-
-export const PaginatedHighlightsSchema = z
-  .object({
-    highlights: z.array(HighlightSchema),
-    nextCursor: z.string().nullable(),
-  })
-  .openapi("PaginatedHighlights");
 
 export const HighlightIdSchema = registry.registerParameter(
   "HighlightId",

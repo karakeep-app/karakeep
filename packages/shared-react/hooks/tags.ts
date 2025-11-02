@@ -1,4 +1,53 @@
+import { keepPreviousData } from "@tanstack/react-query";
+
+import { ZTagListResponse } from "@karakeep/shared/types/tags";
+
 import { api } from "../trpc";
+
+export function usePaginatedSearchTags(
+  input: Parameters<typeof api.tags.list.useInfiniteQuery>[0],
+) {
+  return api.tags.list.useInfiniteQuery(input, {
+    placeholderData: keepPreviousData,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    select: (data) => ({
+      tags: data.pages.flatMap((page) => page.tags),
+    }),
+    gcTime: 60_000,
+  });
+}
+
+export function useTagAutocomplete<T>(opts: {
+  nameContains: string;
+  select?: (tags: ZTagListResponse) => T;
+}) {
+  return api.tags.list.useQuery(
+    {
+      nameContains: opts.nameContains,
+      limit: 50,
+      sortBy: opts.nameContains ? "relevance" : "usage",
+    },
+    {
+      select: opts.select,
+      placeholderData: keepPreviousData,
+      gcTime: opts.nameContains?.length > 0 ? 60_000 : 3_600_000,
+    },
+  );
+}
+
+export function useCreateTag(
+  ...opts: Parameters<typeof api.tags.create.useMutation>
+) {
+  const apiUtils = api.useUtils();
+
+  return api.tags.create.useMutation({
+    ...opts[0],
+    onSuccess: (res, req, meta) => {
+      apiUtils.tags.list.invalidate();
+      return opts[0]?.onSuccess?.(res, req, meta);
+    },
+  });
+}
 
 export function useUpdateTag(
   ...opts: Parameters<typeof api.tags.update.useMutation>

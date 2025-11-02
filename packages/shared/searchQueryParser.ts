@@ -41,7 +41,7 @@ const lexerRules: [RegExp, TokenType][] = [
   [/^\s+or/i, TokenType.Or],
 
   [/^#/, TokenType.Hash],
-  [/^(is|url|list|after|before|age|feed):/, TokenType.Qualifier],
+  [/^(is|url|list|after|before|age|feed|title):/, TokenType.Qualifier],
 
   [/^"([^"]+)"/, TokenType.StringLiteral],
 
@@ -194,6 +194,11 @@ MATCHER.setPattern(
             return {
               text: "",
               matcher: { type: "url", url: ident, inverse: !!minus },
+            };
+          case "title:":
+            return {
+              text: "",
+              matcher: { type: "title", title: ident, inverse: !!minus },
             };
           case "#":
             return {

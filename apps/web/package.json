@@ -78,7 +78,7 @@
     "react": "^19.1.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.1.0",
-    "react-draggable": "^4.4.6",
+    "react-draggable": "^4.5.0",
     "react-dropzone": "^14.2.3",
     "react-error-boundary": "^5.0.0",
     "react-hook-form": "^7.57.0",
