@@ -179,6 +179,7 @@ const allEnv = z.object({
     )
     .optional(),
   CRAWLER_NO_PROXY: z.string().optional(),
+  ALLOW_INTERNAL_IP_REQUESTS: stringBool("false"),
 
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
@@ -309,6 +310,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       httpsProxy: val.CRAWLER_HTTPS_PROXY,
       noProxy: val.CRAWLER_NO_PROXY,
     },
+    allowInternalIpRequests: val.ALLOW_INTERNAL_IP_REQUESTS,
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
     },

@@ -826,6 +826,9 @@ importers:
       https-proxy-agent:
         specifier: ^7.0.6
         version: 7.0.6(supports-color@10.0.0)
+      ipaddr.js:
+        specifier: ^1.9.1
+        version: 1.9.1
       jsdom:
         specifier: ^24.0.0
         version: 24.1.3

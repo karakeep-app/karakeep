@@ -23,6 +23,7 @@
     "hono": "^4.7.10",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
+    "ipaddr.js": "^1.9.1",
     "jsdom": "^24.0.0",
     "liteque": "^0.6.2",
     "metascraper": "^5.49.5",

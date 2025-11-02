@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
-import fetch from "node-fetch";
+import { fetchWithProxy } from "network";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
@@ -102,7 +102,7 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
 
         while (attempt < maxRetries && !success) {
           try {
-            const response = await fetch(url, {
+            const response = await fetchWithProxy(url, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
