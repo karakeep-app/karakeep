@@ -1,3 +1,4 @@
+import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
 import { count, eq, or, sum } from "drizzle-orm";
 import { z } from "zod";
@@ -494,12 +495,13 @@ export const adminAppRouter = router({
 
         try {
           if (serverConfig.crawler.browserWebUrl) {
-            const response = await fetch(
-              `${serverConfig.crawler.browserWebUrl}/json/version`,
-              {
-                signal: AbortSignal.timeout(5000),
-              },
-            );
+            const webUrl = new URL(serverConfig.crawler.browserWebUrl);
+            const { address } = await dns.promises.lookup(webUrl.hostname);
+            webUrl.hostname = address;
+            webUrl.pathname = "/json/version";
+            const response = await fetch(`${webUrl.toString()}`, {
+              signal: AbortSignal.timeout(5000),
+            });
             if (response.ok) {
               browserStatus.connected = true;
             } else {
