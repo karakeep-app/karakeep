@@ -42,9 +42,9 @@ export function useCreateTag(
 
   return api.tags.create.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.tags.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -56,14 +56,14 @@ export function useUpdateTag(
 
   return api.tags.update.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.tags.list.invalidate();
       apiUtils.tags.get.invalidate({ tagId: res.id });
       apiUtils.bookmarks.getBookmarks.invalidate({ tagId: res.id });
 
       // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
       apiUtils.bookmarks.getBookmark.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -75,7 +75,7 @@ export function useMergeTag(
 
   return api.tags.merge.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.tags.list.invalidate();
       [res.mergedIntoTagId, ...res.deletedTags].forEach((tagId) => {
         apiUtils.tags.get.invalidate({ tagId });
@@ -83,7 +83,7 @@ export function useMergeTag(
       });
       // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
       apiUtils.bookmarks.getBookmark.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -95,10 +95,10 @@ export function useDeleteTag(
 
   return api.tags.delete.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.tags.list.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -110,9 +110,9 @@ export function useDeleteUnusedTags(
 
   return api.tags.deleteUnused.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.tags.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }

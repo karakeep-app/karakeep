@@ -12,9 +12,9 @@ export function useCreateBookmarkList(
   const apiUtils = api.useUtils();
   return api.lists.create.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.lists.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -25,13 +25,13 @@ export function useEditBookmarkList(
   const apiUtils = api.useUtils();
   return api.lists.edit.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.lists.list.invalidate();
       apiUtils.lists.get.invalidate({ listId: req.listId });
       if (res.type === "smart") {
         apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.listId });
       }
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -42,11 +42,11 @@ export function useMergeLists(
   const apiUtils = api.useUtils();
   return api.lists.merge.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.lists.list.invalidate();
       apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.targetId });
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -57,13 +57,13 @@ export function useAddBookmarkToList(
   const apiUtils = api.useUtils();
   return api.lists.addToList.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.listId });
       apiUtils.lists.getListsOfBookmark.invalidate({
         bookmarkId: req.bookmarkId,
       });
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -74,13 +74,13 @@ export function useRemoveBookmarkFromList(
   const apiUtils = api.useUtils();
   return api.lists.removeFromList.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.listId });
       apiUtils.lists.getListsOfBookmark.invalidate({
         bookmarkId: req.bookmarkId,
       });
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -91,10 +91,10 @@ export function useDeleteBookmarkList(
   const apiUtils = api.useUtils();
   return api.lists.delete.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.lists.list.invalidate();
       apiUtils.lists.get.invalidate({ listId: req.listId });
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
