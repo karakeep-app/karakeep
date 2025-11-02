@@ -52,6 +52,7 @@ export class Feed implements PrivacyAware {
         url: input.url,
         userId: ctx.user.id,
         enabled: input.enabled,
+        importTags: input.importTags ?? false,
       })
       .returning();
 
@@ -97,6 +98,7 @@ export class Feed implements PrivacyAware {
         name: input.name,
         url: input.url,
         enabled: input.enabled,
+        importTags: input.importTags,
       })
       .where(
         and(
