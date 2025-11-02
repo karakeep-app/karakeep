@@ -89,9 +89,12 @@ export async function validateUrl(
     return { ok: true, url: parsedUrl } as const;
   }
 
-  let records;
+  let records: string[];
   try {
-    records = await dns.lookup(hostname, { all: true });
+    const resolver = new dns.Resolver({
+      timeout: 1000,
+    });
+    records = await resolver.resolve(hostname);
   } catch (error) {
     return {
       ok: false,
@@ -108,10 +111,10 @@ export async function validateUrl(
   }
 
   for (const record of records) {
-    if (isAddressForbidden(record.address)) {
+    if (isAddressForbidden(record)) {
       return {
         ok: false,
-        reason: `Refusing to access disallowed resolved address ${record.address} for host ${hostname}`,
+        reason: `Refusing to access disallowed resolved address ${record} for host ${hostname}`,
       } as const;
     }
   }
@@ -121,6 +124,21 @@ export async function validateUrl(
 
 export function getRandomProxy(proxyList: string[]): string {
   return proxyList[Math.floor(Math.random() * proxyList.length)].trim();
+}
+
+export function matchesNoProxy(url: string, noProxy: string[]) {
+  const urlObj = new URL(url);
+  const hostname = urlObj.hostname;
+  for (const noProxyHost of noProxy) {
+    if (
+      noProxyHost === hostname ||
+      (noProxyHost.startsWith(".") && hostname.endsWith(noProxyHost)) ||
+      hostname.endsWith("." + noProxyHost)
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function getProxyAgent(url: string) {
@@ -134,18 +152,8 @@ export function getProxyAgent(url: string) {
   const protocol = urlObj.protocol;
 
   // Check if URL should bypass proxy
-  if (proxy.noProxy) {
-    const hostname = urlObj.hostname;
-
-    for (const noProxyHost of proxy.noProxy) {
-      if (
-        noProxyHost === hostname ||
-        (noProxyHost.startsWith(".") && hostname.endsWith(noProxyHost)) ||
-        hostname.endsWith("." + noProxyHost)
-      ) {
-        return undefined;
-      }
-    }
+  if (proxy.noProxy && matchesNoProxy(url, proxy.noProxy)) {
+    return undefined;
   }
 
   if (protocol === "https:" && proxy.httpsProxy) {
@@ -202,14 +210,16 @@ function isRedirectResponse(response: Response): boolean {
   );
 }
 
-export type FetchWithProxyOptions = RequestInit & {
-  maxRedirects?: number;
-};
+export type FetchWithProxyOptions = Omit<
+  RequestInit & {
+    maxRedirects?: number;
+  },
+  "agent"
+>;
 
 interface PreparedFetchOptions {
   maxRedirects: number;
   baseHeaders: Headers;
-  agentOverride?: RequestInit["agent"];
   method: string;
   body?: RequestInit["body"];
   baseOptions: RequestInit;
@@ -221,7 +231,6 @@ export function prepareFetchOptions(
   const {
     maxRedirects = 5,
     headers: initHeaders,
-    agent: initAgent,
     method: initMethod,
     body: initBody,
     redirect: _ignoredRedirect,
@@ -233,7 +242,6 @@ export function prepareFetchOptions(
   return {
     maxRedirects,
     baseHeaders: cloneHeaders(initHeaders),
-    agentOverride: initAgent,
     method: initMethod?.toUpperCase?.() ?? "GET",
     body: initBody,
     baseOptions,
@@ -272,7 +280,6 @@ export const fetchWithProxy = async (
   const {
     maxRedirects,
     baseHeaders,
-    agentOverride,
     method: preparedMethod,
     body: preparedBody,
     baseOptions,
@@ -284,7 +291,7 @@ export const fetchWithProxy = async (
   let currentBody = preparedBody;
 
   while (true) {
-    const agent = getProxyAgent(currentUrl) ?? agentOverride;
+    const agent = getProxyAgent(currentUrl);
 
     const validation = await validateUrl(currentUrl, !!agent);
     if (!validation.ok) {

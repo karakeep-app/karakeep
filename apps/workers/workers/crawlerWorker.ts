@@ -25,7 +25,12 @@ import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
 import { workerStatsCounter } from "metrics";
-import { fetchWithProxy, getRandomProxy, validateUrl } from "network";
+import {
+  fetchWithProxy,
+  getRandomProxy,
+  matchesNoProxy,
+  validateUrl,
+} from "network";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -415,6 +420,9 @@ async function crawlPage(
   }
 
   const proxyConfig = getPlaywrightProxyConfig();
+  const isRunningInProxyContext =
+    proxyConfig !== undefined &&
+    !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     userAgent:
@@ -462,7 +470,10 @@ async function crawlPage(
         requestUrl.startsWith("http://") ||
         requestUrl.startsWith("https://")
       ) {
-        const validation = await validateUrl(requestUrl, !!proxyConfig);
+        const validation = await validateUrl(
+          requestUrl,
+          isRunningInProxyContext,
+        );
         if (!validation.ok) {
           logger.warn(
             `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
@@ -477,7 +488,10 @@ async function crawlPage(
     });
 
     // Navigate to the target URL
-    const navigationValidation = await validateUrl(url, !!proxyConfig);
+    const navigationValidation = await validateUrl(
+      url,
+      isRunningInProxyContext,
+    );
     if (!navigationValidation.ok) {
       throw new Error(
         `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
