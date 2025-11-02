@@ -807,6 +807,15 @@ async function archiveWebpage(
   let res = await execa({
     input: html,
     cancelSignal: abortSignal,
+    env: {
+      https_proxy: serverConfig.proxy.httpsProxy
+        ? getRandomProxy(serverConfig.proxy.httpsProxy)
+        : undefined,
+      http_proxy: serverConfig.proxy.httpProxy
+        ? getRandomProxy(serverConfig.proxy.httpProxy)
+        : undefined,
+      no_proxy: serverConfig.proxy.noProxy?.join(","),
+    },
   })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
 
   if (res.isCanceled) {
