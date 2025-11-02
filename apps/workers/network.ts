@@ -133,7 +133,7 @@ export async function validateUrl(
     // Cache miss or expired - perform DNS resolution
     try {
       const resolver = new dns.Resolver({
-        timeout: 1000,
+        timeout: serverConfig.crawler.ipValidation.dnsResolverTimeoutSec * 1000,
       });
       records = await resolver.resolve(hostname);
 

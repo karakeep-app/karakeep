@@ -104,6 +104,7 @@ const allEnv = z.object({
     .default("")
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
+  CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
@@ -293,6 +294,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
+      ipValidation: {
+        dnsResolverTimeoutSec:
+          val.CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC,
+      },
     },
     ocr: {
       langs: val.OCR_LANGS,
