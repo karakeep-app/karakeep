@@ -9,6 +9,7 @@ export const zUserLocalSettings = z.object({
   bookmarkGridLayout: zBookmarkGridLayout.optional().default("masonry"),
   lang: z.string().optional().default("en"),
   gridColumns: z.number().min(1).max(6).optional().default(3),
+  showNotes: z.boolean().optional().default(false),
 });
 
 export type UserLocalSettings = z.infer<typeof zUserLocalSettings>;

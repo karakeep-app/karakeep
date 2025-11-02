@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { createElement, useEffect, useState } from "react";
 import { ButtonWithTooltip } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,14 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { useTranslation } from "@/lib/i18n/client";
 import {
+  useBookmarkDisplaySettings,
   useBookmarkLayout,
   useGridColumns,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import {
   updateBookmarksLayout,
   updateGridColumns,
+  updateShowNotes,
 } from "@/lib/userLocalSettings/userLocalSettings";
 import {
   Check,
@@ -25,6 +30,7 @@ import {
   LayoutList,
   List,
   LucideIcon,
+  NotepadText,
   Settings,
 } from "lucide-react";
 
@@ -37,22 +43,17 @@ const iconMap: Record<LayoutType, LucideIcon> = {
   compact: List,
 };
 
-const layoutNames: Record<LayoutType, string> = {
-  masonry: "Masonry",
-  grid: "Grid",
-  list: "List",
-  compact: "Compact",
-};
-
 export default function ViewOptions() {
+  const { t } = useTranslation();
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
-  const [tempColumns, setTempColumns] = React.useState(gridColumns);
+  const { showNotes } = useBookmarkDisplaySettings();
+  const [tempColumns, setTempColumns] = useState(gridColumns);
 
   const showColumnSlider = layout === "grid" || layout === "masonry";
 
   // Update temp value when actual value changes
-  React.useEffect(() => {
+  useEffect(() => {
     setTempColumns(gridColumns);
   }, [gridColumns]);
 
@@ -60,7 +61,7 @@ export default function ViewOptions() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <ButtonWithTooltip
-          tooltip="View Options"
+          tooltip={t("view_options.title")}
           delayDuration={100}
           variant="ghost"
         >
@@ -68,7 +69,9 @@ export default function ViewOptions() {
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <div className="px-2 py-1.5 text-sm font-semibold">Layout</div>
+        <div className="px-2 py-1.5 text-sm font-semibold">
+          {t("view_options.layout")}
+        </div>
         {(Object.keys(iconMap) as LayoutType[]).map((key) => (
           <DropdownMenuItem
             key={key}
@@ -76,8 +79,8 @@ export default function ViewOptions() {
             onClick={async () => await updateBookmarksLayout(key as LayoutType)}
           >
             <div className="flex items-center gap-2">
-              {React.createElement(iconMap[key as LayoutType], { size: 18 })}
-              <span>{layoutNames[key]}</span>
+              {createElement(iconMap[key as LayoutType], { size: 18 })}
+              <span>{t(`layouts.${key}`)}</span>
             </div>
             {layout === key && <Check className="ml-2 size-4" />}
           </DropdownMenuItem>
@@ -88,7 +91,9 @@ export default function ViewOptions() {
             <DropdownMenuSeparator />
             <div className="px-2 py-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-semibold">Columns</span>
+                <span className="text-sm font-semibold">
+                  {t("view_options.columns")}
+                </span>
                 <span className="text-sm text-muted-foreground">
                   {tempColumns}
                 </span>
@@ -109,6 +114,28 @@ export default function ViewOptions() {
             </div>
           </>
         )}
+
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1.5 text-sm font-semibold">
+          {t("view_options.display_options")}
+        </div>
+
+        <div className="space-y-3 px-2 py-2">
+          <div className="flex items-center justify-between">
+            <Label
+              htmlFor="show-notes"
+              className="flex cursor-pointer items-center gap-2 text-sm"
+            >
+              <NotepadText size={16} />
+              <span>{t("view_options.show_note_previews")}</span>
+            </Label>
+            <Switch
+              id="show-notes"
+              checked={showNotes}
+              onCheckedChange={updateShowNotes}
+            />
+          </div>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

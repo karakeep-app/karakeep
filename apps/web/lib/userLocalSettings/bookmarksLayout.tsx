@@ -14,10 +14,18 @@ export const UserLocalSettingsCtx = createContext<
   bookmarkGridLayout: defaultLayout,
   lang: fallbackLng,
   gridColumns: 3,
+  showNotes: false,
 });
 
 function useUserLocalSettings() {
   return useContext(UserLocalSettingsCtx);
+}
+
+export function useBookmarkDisplaySettings() {
+  const settings = useUserLocalSettings();
+  return {
+    showNotes: settings.showNotes,
+  };
 }
 
 export function useBookmarkLayout() {

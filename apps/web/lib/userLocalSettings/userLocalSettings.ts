@@ -48,3 +48,14 @@ export async function updateGridColumns(gridColumns: number) {
     sameSite: "lax",
   });
 }
+
+export async function updateShowNotes(showNotes: boolean) {
+  const userSettings = (await cookies()).get(USER_LOCAL_SETTINGS_COOKIE_NAME);
+  const parsed = parseUserLocalSettings(userSettings?.value);
+  (await cookies()).set({
+    name: USER_LOCAL_SETTINGS_COOKIE_NAME,
+    value: JSON.stringify({ ...parsed, showNotes }),
+    maxAge: 34560000, // Chrome caps max age to 400 days
+    sameSite: "lax",
+  });
+}
