@@ -1,6 +1,12 @@
 "use client";
 
-import { createElement, useEffect, useState } from "react";
+import {
+  createElement,
+  useEffect,
+  useOptimistic,
+  useState,
+  useTransition,
+} from "react";
 import { ButtonWithTooltip } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,10 +27,15 @@ import {
 import {
   updateBookmarksLayout,
   updateGridColumns,
+  updateImageFit,
   updateShowNotes,
+  updateShowTags,
+  updateShowTitle,
 } from "@/lib/userLocalSettings/userLocalSettings";
 import {
   Check,
+  Heading,
+  Image,
   LayoutDashboard,
   LayoutGrid,
   LayoutList,
@@ -32,6 +43,7 @@ import {
   LucideIcon,
   NotepadText,
   Settings,
+  Tag,
 } from "lucide-react";
 
 type LayoutType = "masonry" | "grid" | "list" | "compact";
@@ -47,15 +59,72 @@ export default function ViewOptions() {
   const { t } = useTranslation();
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
-  const { showNotes } = useBookmarkDisplaySettings();
+  const actualDisplaySettings = useBookmarkDisplaySettings();
   const [tempColumns, setTempColumns] = useState(gridColumns);
+  const [, startTransition] = useTransition();
 
-  const showColumnSlider = layout === "grid" || layout === "masonry";
+  // Optimistic state for all toggles
+  const [optimisticDisplaySettings, setOptimisticDisplaySettings] =
+    useOptimistic(actualDisplaySettings);
+
+  const [optimisticLayout, setOptimisticLayout] = useOptimistic(layout);
+
+  const [optimisticImageFit, setOptimisticImageFit] = useOptimistic(
+    actualDisplaySettings.imageFit,
+  );
+
+  const showColumnSlider =
+    optimisticLayout === "grid" || optimisticLayout === "masonry";
 
   // Update temp value when actual value changes
   useEffect(() => {
     setTempColumns(gridColumns);
   }, [gridColumns]);
+
+  // Handlers with optimistic updates
+  const handleLayoutChange = (newLayout: LayoutType) => {
+    startTransition(async () => {
+      setOptimisticLayout(newLayout);
+      await updateBookmarksLayout(newLayout);
+    });
+  };
+
+  const handleShowNotesChange = (checked: boolean) => {
+    startTransition(async () => {
+      setOptimisticDisplaySettings({
+        ...optimisticDisplaySettings,
+        showNotes: checked,
+      });
+      await updateShowNotes(checked);
+    });
+  };
+
+  const handleShowTagsChange = (checked: boolean) => {
+    startTransition(async () => {
+      setOptimisticDisplaySettings({
+        ...optimisticDisplaySettings,
+        showTags: checked,
+      });
+      await updateShowTags(checked);
+    });
+  };
+
+  const handleShowTitleChange = (checked: boolean) => {
+    startTransition(async () => {
+      setOptimisticDisplaySettings({
+        ...optimisticDisplaySettings,
+        showTitle: checked,
+      });
+      await updateShowTitle(checked);
+    });
+  };
+
+  const handleImageFitChange = (fit: "cover" | "contain") => {
+    startTransition(async () => {
+      setOptimisticImageFit(fit);
+      await updateImageFit(fit);
+    });
+  };
 
   return (
     <DropdownMenu>
@@ -76,13 +145,16 @@ export default function ViewOptions() {
           <DropdownMenuItem
             key={key}
             className="cursor-pointer justify-between"
-            onClick={async () => await updateBookmarksLayout(key as LayoutType)}
+            onSelect={(e) => {
+              e.preventDefault();
+              handleLayoutChange(key);
+            }}
           >
             <div className="flex items-center gap-2">
               {createElement(iconMap[key as LayoutType], { size: 18 })}
               <span>{t(`layouts.${key}`)}</span>
             </div>
-            {layout === key && <Check className="ml-2 size-4" />}
+            {optimisticLayout === key && <Check className="ml-2 size-4" />}
           </DropdownMenuItem>
         ))}
 
@@ -131,10 +203,78 @@ export default function ViewOptions() {
             </Label>
             <Switch
               id="show-notes"
-              checked={showNotes}
-              onCheckedChange={updateShowNotes}
+              checked={optimisticDisplaySettings.showNotes}
+              onCheckedChange={handleShowNotesChange}
             />
           </div>
+
+          <div className="flex items-center justify-between">
+            <Label
+              htmlFor="show-tags"
+              className="flex cursor-pointer items-center gap-2 text-sm"
+            >
+              <Tag size={16} />
+              <span>{t("view_options.show_tags")}</span>
+            </Label>
+            <Switch
+              id="show-tags"
+              checked={optimisticDisplaySettings.showTags}
+              onCheckedChange={handleShowTagsChange}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label
+              htmlFor="show-title"
+              className="flex cursor-pointer items-center gap-2 text-sm"
+            >
+              <Heading size={16} />
+              <span>{t("view_options.show_title")}</span>
+            </Label>
+            <Switch
+              id="show-title"
+              checked={optimisticDisplaySettings.showTitle}
+              onCheckedChange={handleShowTitleChange}
+            />
+          </div>
+        </div>
+
+        <DropdownMenuSeparator />
+        <div className="px-2 py-1.5 text-sm font-semibold">
+          {t("view_options.image_options")}
+        </div>
+
+        <div className="space-y-1 px-2 py-2">
+          <DropdownMenuItem
+            className="cursor-pointer justify-between"
+            onSelect={(e) => {
+              e.preventDefault();
+              handleImageFitChange("cover");
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Image size={16} />
+              <span>{t("view_options.image_fit_cover")}</span>
+            </div>
+            {optimisticImageFit === "cover" && (
+              <Check className="ml-2 size-4" />
+            )}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer justify-between"
+            onSelect={(e) => {
+              e.preventDefault();
+              handleImageFitChange("contain");
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Image size={16} />
+              <span>{t("view_options.image_fit_contain")}</span>
+            </div>
+            {optimisticImageFit === "contain" && (
+              <Check className="ml-2 size-4" />
+            )}
+          </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

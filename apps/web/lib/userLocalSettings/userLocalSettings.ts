@@ -46,3 +46,15 @@ export async function updateGridColumns(gridColumns: number) {
 export async function updateShowNotes(showNotes: boolean) {
   await readModifyWrite(() => ({ showNotes }));
 }
+
+export async function updateShowTags(showTags: boolean) {
+  await readModifyWrite(() => ({ showTags }));
+}
+
+export async function updateShowTitle(showTitle: boolean) {
+  await readModifyWrite(() => ({ showTitle }));
+}
+
+export async function updateImageFit(imageFit: "cover" | "contain") {
+  await readModifyWrite(() => ({ imageFit }));
+}

@@ -52,7 +52,12 @@
     "layout": "Layout",
     "columns": "Columns",
     "display_options": "Display Options",
-    "show_note_previews": "Show Notes"
+    "show_note_previews": "Show Notes",
+    "show_tags": "Show Tags",
+    "show_title": "Show Title",
+    "image_options": "Image Options",
+    "image_fit_cover": "Cover (Fill)",
+    "image_fit_contain": "Contain (Fit)"
   },
   "actions": {
     "change_layout": "Change Layout",

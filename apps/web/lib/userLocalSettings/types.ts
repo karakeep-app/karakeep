@@ -10,6 +10,9 @@ export const zUserLocalSettings = z.object({
   lang: z.string().optional().default("en"),
   gridColumns: z.number().min(1).max(6).optional().default(3),
   showNotes: z.boolean().optional().default(false),
+  showTags: z.boolean().optional().default(true),
+  showTitle: z.boolean().optional().default(true),
+  imageFit: z.enum(["cover", "contain"]).optional().default("cover"),
 });
 
 export type UserLocalSettings = z.infer<typeof zUserLocalSettings>;
