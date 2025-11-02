@@ -33,6 +33,43 @@ const dnsCache = new LRUCache<string, string[]>({
   ttl: 5 * 60 * 1000, // 5 minutes in milliseconds
 });
 
+async function resolveHostAddresses(hostname: string): Promise<string[]> {
+  const resolver = new dns.Resolver({
+    timeout: serverConfig.crawler.ipValidation.dnsResolverTimeoutSec * 1000,
+  });
+
+  const results = await Promise.allSettled([
+    resolver.resolve4(hostname),
+    resolver.resolve6(hostname),
+  ]);
+
+  const addresses: string[] = [];
+  const errors: string[] = [];
+
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      addresses.push(...result.value);
+    } else {
+      const reason = result.reason;
+      if (reason instanceof Error) {
+        errors.push(reason.message);
+      } else {
+        errors.push(String(reason));
+      }
+    }
+  }
+
+  if (addresses.length > 0) {
+    return addresses;
+  }
+
+  const errorMessage =
+    errors.length > 0
+      ? errors.join("; ")
+      : "DNS lookup did not return any A or AAAA records";
+  throw new Error(errorMessage);
+}
+
 function isAddressForbidden(address: string): boolean {
   if (!ipaddr.isValid(address)) {
     return true;
@@ -139,12 +176,7 @@ export async function validateUrl(
   if (!records) {
     // Cache miss or expired - perform DNS resolution
     try {
-      const resolver = new dns.Resolver({
-        timeout: serverConfig.crawler.ipValidation.dnsResolverTimeoutSec * 1000,
-      });
-      records = await resolver.resolve(hostname);
-
-      // Store in cache (TTL is handled automatically by lru-cache)
+      records = await resolveHostAddresses(hostname);
       dnsCache.set(hostname, records);
     } catch (error) {
       return {
