@@ -25,10 +25,15 @@ import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
 import { workerStatsCounter } from "metrics";
+import {
+  fetchWithProxy,
+  getRandomProxy,
+  matchesNoProxy,
+  validateUrl,
+} from "network";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { fetchWithProxy, getRandomProxy } from "utils";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -173,7 +178,7 @@ function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
     server: proxyUrl,
     username: parsed.username,
     password: parsed.password,
-    bypass: proxy.noProxy,
+    bypass: proxy.noProxy?.join(","),
   };
 }
 
@@ -355,22 +360,6 @@ async function changeBookmarkStatus(
     .where(eq(bookmarkLinks.id, bookmarkId));
 }
 
-/**
- * This provides some "basic" protection from malicious URLs. However, all of those
- * can be easily circumvented by pointing dns of origin to localhost, or with
- * redirects.
- */
-function validateUrl(url: string) {
-  const urlParsed = new URL(url);
-  if (urlParsed.protocol != "http:" && urlParsed.protocol != "https:") {
-    throw new Error(`Unsupported URL protocol: ${urlParsed.protocol}`);
-  }
-
-  if (["localhost", "127.0.0.1", "0.0.0.0"].includes(urlParsed.hostname)) {
-    throw new Error(`Link hostname rejected: ${urlParsed.hostname}`);
-  }
-}
-
 async function browserlessCrawlPage(
   jobId: string,
   url: string,
@@ -430,11 +419,15 @@ async function crawlPage(
     return browserlessCrawlPage(jobId, url, abortSignal);
   }
 
+  const proxyConfig = getPlaywrightProxyConfig();
+  const isRunningInProxyContext =
+    proxyConfig !== undefined &&
+    !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     userAgent:
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    proxy: getPlaywrightProxyConfig(),
+    proxy: proxyConfig,
   });
 
   try {
@@ -453,8 +446,12 @@ async function crawlPage(
       await globalBlocker.enableBlockingInPage(page);
     }
 
-    // Block audio/video resources
-    await page.route("**/*", (route) => {
+    // Block audio/video resources and disallowed sub-requests
+    await page.route("**/*", async (route) => {
+      if (abortSignal.aborted) {
+        await route.abort("aborted");
+        return;
+      }
       const request = route.request();
       const resourceType = request.resourceType();
 
@@ -464,18 +461,49 @@ async function crawlPage(
         request.headers()["content-type"]?.includes("video/") ||
         request.headers()["content-type"]?.includes("audio/")
       ) {
-        route.abort();
+        await route.abort("aborted");
         return;
       }
 
+      const requestUrl = request.url();
+      const requestIsRunningInProxyContext =
+        proxyConfig !== undefined &&
+        !matchesNoProxy(requestUrl, proxyConfig.bypass?.split(",") ?? []);
+      if (
+        requestUrl.startsWith("http://") ||
+        requestUrl.startsWith("https://")
+      ) {
+        const validation = await validateUrl(
+          requestUrl,
+          requestIsRunningInProxyContext,
+        );
+        if (!validation.ok) {
+          logger.warn(
+            `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
+          );
+          await route.abort("blockedbyclient");
+          return;
+        }
+      }
+
       // Continue with other requests
-      route.continue();
+      await route.continue();
     });
 
     // Navigate to the target URL
-    logger.info(`[Crawler][${jobId}] Navigating to "${url}"`);
+    const navigationValidation = await validateUrl(
+      url,
+      isRunningInProxyContext,
+    );
+    if (!navigationValidation.ok) {
+      throw new Error(
+        `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
+      );
+    }
+    const targetUrl = navigationValidation.url.toString();
+    logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
     const response = await Promise.race([
-      page.goto(url, {
+      page.goto(targetUrl, {
         timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
         waitUntil: "domcontentloaded",
       }),
@@ -483,7 +511,7 @@ async function crawlPage(
     ]);
 
     logger.info(
-      `[Crawler][${jobId}] Successfully navigated to "${url}". Waiting for the page to load ...`,
+      `[Crawler][${jobId}] Successfully navigated to "${targetUrl}". Waiting for the page to load ...`,
     );
 
     // Wait until network is relatively idle or timeout after 5 seconds
@@ -1231,7 +1259,6 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
-  validateUrl(url);
 
   const contentType = await getContentType(url, jobId, job.abortSignal);
   job.abortSignal.throwIfAborted();

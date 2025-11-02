@@ -104,6 +104,7 @@ const allEnv = z.object({
     .default("")
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
+  CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
@@ -178,7 +179,24 @@ const allEnv = z.object({
         .filter((p) => p),
     )
     .optional(),
-  CRAWLER_NO_PROXY: z.string().optional(),
+  CRAWLER_NO_PROXY: z
+    .string()
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .optional(),
+  CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: z
+    .string()
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .optional(),
 
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
@@ -276,6 +294,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
+      ipValidation: {
+        dnsResolverTimeoutSec:
+          val.CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC,
+      },
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -309,6 +331,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       httpsProxy: val.CRAWLER_HTTPS_PROXY,
       noProxy: val.CRAWLER_NO_PROXY,
     },
+    allowedInternalHostnames: val.CRAWLER_ALLOWED_INTERNAL_HOSTNAMES,
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
     },
