@@ -3,6 +3,7 @@ import type { HeadersInit, RequestInit, Response } from "node-fetch";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import ipaddr from "ipaddr.js";
+import { LRUCache } from "lru-cache";
 import fetch, { Headers } from "node-fetch";
 
 import serverConfig from "@karakeep/shared/config";
@@ -18,6 +19,12 @@ const DISALLOWED_IP_RANGES = new Set([
   "carrierGradeNat",
   "uniqueLocal",
 ]);
+
+// DNS cache with 5 minute TTL and max 1000 entries
+const dnsCache = new LRUCache<string, string[]>({
+  max: 1000,
+  ttl: 5 * 60 * 1000, // 5 minutes in milliseconds
+});
 
 function isAddressForbidden(address: string): boolean {
   if (!ipaddr.isValid(address)) {
@@ -89,20 +96,29 @@ export async function validateUrl(
     return { ok: true, url: parsedUrl } as const;
   }
 
-  let records: string[];
-  try {
-    const resolver = new dns.Resolver({
-      timeout: 1000,
-    });
-    records = await resolver.resolve(hostname);
-  } catch (error) {
-    return {
-      ok: false,
-      reason: `Failed to resolve hostname ${hostname}: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    } as const;
+  // Check cache first
+  let records = dnsCache.get(hostname);
+
+  if (!records) {
+    // Cache miss or expired - perform DNS resolution
+    try {
+      const resolver = new dns.Resolver({
+        timeout: 1000,
+      });
+      records = await resolver.resolve(hostname);
+
+      // Store in cache (TTL is handled automatically by lru-cache)
+      dnsCache.set(hostname, records);
+    } catch (error) {
+      return {
+        ok: false,
+        reason: `Failed to resolve hostname ${hostname}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      } as const;
+    }
   }
+
   if (!records || records.length === 0) {
     return {
       ok: false,
