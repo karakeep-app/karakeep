@@ -38,8 +38,9 @@ export type UrlValidationResult =
   | { ok: true; url: URL }
   | { ok: false; reason: string };
 
-export async function assertUrlIsAllowed(
+export async function validateUrl(
   urlCandidate: string,
+  runningInProxyContext: boolean,
 ): Promise<UrlValidationResult> {
   let parsedUrl: URL;
   try {
@@ -82,6 +83,12 @@ export async function assertUrlIsAllowed(
     return { ok: true, url: parsedUrl } as const;
   }
 
+  if (runningInProxyContext) {
+    // If we're running in a proxy context, we must skip DNS resolution
+    // as the DNS resolution will be handled by the proxy
+    return { ok: true, url: parsedUrl } as const;
+  }
+
   let records;
   try {
     records = await dns.lookup(hostname, { all: true });
@@ -116,7 +123,7 @@ export function getRandomProxy(proxyList: string[]): string {
   return proxyList[Math.floor(Math.random() * proxyList.length)].trim();
 }
 
-function getProxyAgent(url: string) {
+export function getProxyAgent(url: string) {
   const { proxy } = serverConfig;
 
   if (!proxy.httpProxy && !proxy.httpsProxy) {
@@ -128,10 +135,9 @@ function getProxyAgent(url: string) {
 
   // Check if URL should bypass proxy
   if (proxy.noProxy) {
-    const noProxyList = proxy.noProxy.split(",").map((host) => host.trim());
     const hostname = urlObj.hostname;
 
-    for (const noProxyHost of noProxyList) {
+    for (const noProxyHost of proxy.noProxy) {
       if (
         noProxyHost === hostname ||
         (noProxyHost.startsWith(".") && hostname.endsWith(noProxyHost)) ||
@@ -278,14 +284,14 @@ export const fetchWithProxy = async (
   let currentBody = preparedBody;
 
   while (true) {
-    const validation = await assertUrlIsAllowed(currentUrl);
+    const agent = getProxyAgent(currentUrl) ?? agentOverride;
+
+    const validation = await validateUrl(currentUrl, !!agent);
     if (!validation.ok) {
       throw new Error(validation.reason);
     }
     const requestUrl = validation.url;
     currentUrl = requestUrl.toString();
-
-    const agent = getProxyAgent(currentUrl) ?? agentOverride;
 
     const response = await fetch(
       currentUrl,
@@ -312,11 +318,6 @@ export const fetchWithProxy = async (
     }
 
     const nextUrl = new URL(locationHeader, currentUrl);
-
-    if (requestUrl.origin !== nextUrl.origin) {
-      baseHeaders.delete("authorization");
-      baseHeaders.delete("cookie");
-    }
 
     if (
       response.status === 303 ||

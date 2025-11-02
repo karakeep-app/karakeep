@@ -25,7 +25,7 @@ import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
 import { workerStatsCounter } from "metrics";
-import { assertUrlIsAllowed, fetchWithProxy, getRandomProxy } from "network";
+import { fetchWithProxy, getRandomProxy, validateUrl } from "network";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -173,7 +173,7 @@ function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
     server: proxyUrl,
     username: parsed.username,
     password: parsed.password,
-    bypass: proxy.noProxy,
+    bypass: proxy.noProxy?.join(","),
   };
 }
 
@@ -414,11 +414,12 @@ async function crawlPage(
     return browserlessCrawlPage(jobId, url, abortSignal);
   }
 
+  const proxyConfig = getPlaywrightProxyConfig();
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     userAgent:
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    proxy: getPlaywrightProxyConfig(),
+    proxy: proxyConfig,
   });
 
   try {
@@ -461,7 +462,7 @@ async function crawlPage(
         requestUrl.startsWith("http://") ||
         requestUrl.startsWith("https://")
       ) {
-        const validation = await assertUrlIsAllowed(requestUrl);
+        const validation = await validateUrl(requestUrl, !!proxyConfig);
         if (!validation.ok) {
           logger.warn(
             `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
@@ -476,7 +477,7 @@ async function crawlPage(
     });
 
     // Navigate to the target URL
-    const navigationValidation = await assertUrlIsAllowed(url);
+    const navigationValidation = await validateUrl(url, !!proxyConfig);
     if (!navigationValidation.ok) {
       throw new Error(
         `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
@@ -1241,21 +1242,8 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
-  const validationResult = await assertUrlIsAllowed(url);
-  if (!validationResult.ok) {
-    logger.error(
-      `[Crawler][${jobId}] Refusing to crawl disallowed URL "${url}": ${validationResult.reason}`,
-    );
-    await changeBookmarkStatus(bookmarkId, "failure");
-    return;
-  }
-  const validatedUrl = validationResult.url.toString();
 
-  const contentType = await getContentType(
-    validatedUrl,
-    jobId,
-    job.abortSignal,
-  );
+  const contentType = await getContentType(url, jobId, job.abortSignal);
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
@@ -1263,7 +1251,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
 
   if (isPdf) {
     await handleAsAssetBookmark(
-      validatedUrl,
+      url,
       "pdf",
       userId,
       jobId,
@@ -1276,7 +1264,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
   ) {
     await handleAsAssetBookmark(
-      validatedUrl,
+      url,
       "image",
       userId,
       jobId,
@@ -1285,7 +1273,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     );
   } else {
     const archivalLogic = await crawlAndParseUrl(
-      validatedUrl,
+      url,
       userId,
       jobId,
       bookmarkId,
@@ -1329,7 +1317,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
       await VideoWorkerQueue.enqueue(
         {
           bookmarkId,
-          url: validatedUrl,
+          url,
         },
         enqueueOpts,
       );

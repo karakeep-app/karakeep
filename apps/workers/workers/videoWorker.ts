@@ -3,7 +3,7 @@ import * as os from "os";
 import path from "path";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
-import { assertUrlIsAllowed } from "network";
+import { getProxyAgent, validateUrl } from "network";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
@@ -63,7 +63,11 @@ export class VideoWorker {
   }
 }
 
-function prepareYtDlpArguments(url: string, assetPath: string) {
+function prepareYtDlpArguments(
+  url: string,
+  proxy: string | undefined,
+  assetPath: string,
+) {
   const ytDlpArguments = [url];
   if (serverConfig.crawler.maxVideoDownloadSize > 0) {
     ytDlpArguments.push(
@@ -75,6 +79,9 @@ function prepareYtDlpArguments(url: string, assetPath: string) {
   ytDlpArguments.push(...serverConfig.crawler.ytDlpArguments);
   ytDlpArguments.push("-o", assetPath);
   ytDlpArguments.push("--no-playlist");
+  if (proxy) {
+    ytDlpArguments.push("--proxy", proxy);
+  }
   return ytDlpArguments;
 }
 
@@ -95,7 +102,8 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     return;
   }
 
-  const validation = await assertUrlIsAllowed(url);
+  const proxy = getProxyAgent(url);
+  const validation = await validateUrl(url, !!proxy);
   if (!validation.ok) {
     logger.warn(
       `[VideoCrawler][${jobId}] Skipping video download to disallowed URL "${url}": ${validation.reason}`,
@@ -108,7 +116,11 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   let assetPath = `${TMP_FOLDER}/${videoAssetId}`;
   await fs.promises.mkdir(TMP_FOLDER, { recursive: true });
 
-  const ytDlpArguments = prepareYtDlpArguments(normalizedUrl, assetPath);
+  const ytDlpArguments = prepareYtDlpArguments(
+    normalizedUrl,
+    proxy?.proxy.toString(),
+    assetPath,
+  );
 
   try {
     logger.info(

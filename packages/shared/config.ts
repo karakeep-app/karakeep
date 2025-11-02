@@ -178,7 +178,15 @@ const allEnv = z.object({
         .filter((p) => p),
     )
     .optional(),
-  CRAWLER_NO_PROXY: z.string().optional(),
+  CRAWLER_NO_PROXY: z
+    .string()
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .optional(),
   ALLOW_INTERNAL_IP_REQUESTS: stringBool("false"),
 
   // Database configuration
