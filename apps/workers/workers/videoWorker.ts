@@ -2,12 +2,18 @@ import fs from "fs";
 import * as os from "os";
 import path from "path";
 import { execa } from "execa";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
+import { getProxyAgent, validateUrl } from "network";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
-import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
+import {
+  QuotaService,
+  StorageQuotaError,
+  VideoWorkerQueue,
+  ZVideoRequest,
+  zvideoRequestSchema,
+} from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   newAssetId,
@@ -16,21 +22,17 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import {
-  VideoWorkerQueue,
-  ZVideoRequest,
-  zvideoRequestSchema,
-} from "@karakeep/shared/queues";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
 
 export class VideoWorker {
-  static build() {
+  static async build() {
     logger.info("Starting video worker ...");
 
-    return new Runner<ZVideoRequest>(
+    return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
         run: runWorker,
@@ -61,7 +63,11 @@ export class VideoWorker {
   }
 }
 
-function prepareYtDlpArguments(url: string, assetPath: string) {
+function prepareYtDlpArguments(
+  url: string,
+  proxy: string | undefined,
+  assetPath: string,
+) {
   const ytDlpArguments = [url];
   if (serverConfig.crawler.maxVideoDownloadSize > 0) {
     ytDlpArguments.push(
@@ -73,6 +79,9 @@ function prepareYtDlpArguments(url: string, assetPath: string) {
   ytDlpArguments.push(...serverConfig.crawler.ytDlpArguments);
   ytDlpArguments.push("-o", assetPath);
   ytDlpArguments.push("--no-playlist");
+  if (proxy) {
+    ytDlpArguments.push("--proxy", proxy);
+  }
   return ytDlpArguments;
 }
 
@@ -93,15 +102,29 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     return;
   }
 
+  const proxy = getProxyAgent(url);
+  const validation = await validateUrl(url, !!proxy);
+  if (!validation.ok) {
+    logger.warn(
+      `[VideoCrawler][${jobId}] Skipping video download to disallowed URL "${url}": ${validation.reason}`,
+    );
+    return;
+  }
+  const normalizedUrl = validation.url.toString();
+
   const videoAssetId = newAssetId();
   let assetPath = `${TMP_FOLDER}/${videoAssetId}`;
   await fs.promises.mkdir(TMP_FOLDER, { recursive: true });
 
-  const ytDlpArguments = prepareYtDlpArguments(url, assetPath);
+  const ytDlpArguments = prepareYtDlpArguments(
+    normalizedUrl,
+    proxy?.proxy.toString(),
+    assetPath,
+  );
 
   try {
     logger.info(
-      `[VideoCrawler][${jobId}] Attempting to download a file from "${url}" to "${assetPath}" using the following arguments: "${ytDlpArguments}"`,
+      `[VideoCrawler][${jobId}] Attempting to download a file from "${normalizedUrl}" to "${assetPath}" using the following arguments: "${ytDlpArguments}"`,
     );
 
     await execa("yt-dlp", ytDlpArguments, {
@@ -122,11 +145,11 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       err.message.includes("No media found")
     ) {
       logger.info(
-        `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it's not one of the supported yt-dlp URLs`,
+        `[VideoCrawler][${jobId}] Skipping video download from "${normalizedUrl}", because it's not one of the supported yt-dlp URLs`,
       );
       return;
     }
-    const genericError = `[VideoCrawler][${jobId}] Failed to download a file from "${url}" to "${assetPath}"`;
+    const genericError = `[VideoCrawler][${jobId}] Failed to download a file from "${normalizedUrl}" to "${assetPath}"`;
     if ("stderr" in err) {
       logger.error(`${genericError}: ${err.stderr}`);
     } else {
@@ -137,7 +160,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   }
 
   logger.info(
-    `[VideoCrawler][${jobId}] Finished downloading a file from "${url}" to "${assetPath}"`,
+    `[VideoCrawler][${jobId}] Finished downloading a file from "${normalizedUrl}" to "${assetPath}"`,
   );
 
   // Get file size and check quota before saving
@@ -176,7 +199,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     await silentDeleteAsset(userId, oldVideoAssetId);
 
     logger.info(
-      `[VideoCrawler][${jobId}] Finished downloading video from "${url}" and adding it to the database`,
+      `[VideoCrawler][${jobId}] Finished downloading video from "${normalizedUrl}" and adding it to the database`,
     );
   } catch (error) {
     if (error instanceof StorageQuotaError) {

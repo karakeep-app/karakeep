@@ -58,6 +58,7 @@ function AmazonRendererComponent({ bookmark }: { bookmark: ZBookmark }) {
         {/* Product Image */}
         {imageUrl && (
           <div className="mb-6 w-full max-w-md">
+            {/* oxlint-disable-next-line no-img-element */}
             <img
               src={imageUrl}
               alt={title || "Amazon Product"}
@@ -98,6 +99,7 @@ function AmazonRendererComponent({ bookmark }: { bookmark: ZBookmark }) {
 
           {/* Action Buttons */}
           <div className="flex gap-3">
+            {/* oxlint-disable-next-line no-html-link-for-pages */}
             <a
               href={bookmark.content.url}
               target="_blank"
@@ -107,6 +109,7 @@ function AmazonRendererComponent({ bookmark }: { bookmark: ZBookmark }) {
               <ShoppingCart size={16} />
               View on Amazon
             </a>
+            {/* oxlint-disable-next-line no-html-link-for-pages */}
             <a
               href={`https://www.amazon.${productInfo.domain}/dp/${productInfo.asin}`}
               target="_blank"

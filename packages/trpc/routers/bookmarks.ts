@@ -1,6 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
-import { EnqueueOptions } from "liteque";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -21,7 +20,16 @@ import {
   customPrompts,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { QuotaService } from "@karakeep/shared-server";
+import {
+  AssetPreprocessingQueue,
+  LinkCrawlerQueue,
+  OpenAIQueue,
+  QuotaService,
+  SearchIndexingQueue,
+  triggerRuleEngineOnEvent,
+  triggerSearchReindex,
+  triggerWebhook,
+} from "@karakeep/shared-server";
 import {
   deleteAsset,
   SUPPORTED_BOOKMARK_ASSET_TYPES,
@@ -29,16 +37,8 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts";
-import {
-  AssetPreprocessingQueue,
-  LinkCrawlerQueue,
-  OpenAIQueue,
-  SearchIndexingQueue,
-  triggerRuleEngineOnEvent,
-  triggerSearchReindex,
-  triggerWebhook,
-} from "@karakeep/shared/queues";
-import { getSearchClient } from "@karakeep/shared/search";
+import { EnqueueOptions } from "@karakeep/shared/queueing";
+import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
   BookmarkTypes,
@@ -59,6 +59,7 @@ import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "../models/bookmarks";
+import { ImportSession } from "../models/importSessions";
 import { ensureAssetOwnership } from "./assets";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
@@ -272,6 +273,13 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
+          if (input.importSessionId) {
+            const session = await ImportSession.fromId(
+              ctx,
+              input.importSessionId,
+            );
+            await session.attachBookmark(alreadyExists.id);
+          }
           return { ...alreadyExists, alreadyExists: true };
         }
       }
@@ -301,6 +309,7 @@ export const bookmarksAppRouter = router({
               note: input.note,
               summary: input.summary,
               createdAt: input.createdAt,
+              source: input.source,
             })
             .returning()
         )[0];
@@ -416,12 +425,16 @@ export const bookmarksAppRouter = router({
         };
       });
 
+      if (input.importSessionId) {
+        const session = await ImportSession.fromId(ctx, input.importSessionId);
+        await session.attachBookmark(bookmark.id);
+      }
+
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
         priority: input.crawlPriority === "low" ? 50 : 0,
       };
 
-      // Enqueue crawling request
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
@@ -454,6 +467,7 @@ export const bookmarksAppRouter = router({
           break;
         }
       }
+
       await triggerRuleEngineOnEvent(
         bookmark.id,
         [
@@ -765,17 +779,18 @@ export const bookmarksAppRouter = router({
       }
       const parsedQuery = parseSearchQuery(input.text);
 
-      let filter: string[];
+      let filter: FilterQuery[];
       if (parsedQuery.matcher) {
         const bookmarkIds = await getBookmarkIdsFromMatcher(
           ctx,
           parsedQuery.matcher,
         );
         filter = [
-          `userId = '${ctx.user.id}' AND id IN [${bookmarkIds.join(",")}]`,
+          { type: "in", field: "id", values: bookmarkIds },
+          { type: "eq", field: "userId", value: ctx.user.id },
         ];
       } else {
-        filter = [`userId = '${ctx.user.id}'`];
+        filter = [{ type: "eq", field: "userId", value: ctx.user.id }];
       }
 
       /**
@@ -786,7 +801,7 @@ export const bookmarksAppRouter = router({
       const resp = await client.search({
         query: parsedQuery.text,
         filter,
-        sort: [`createdAt:${createdAtSortOrder}`],
+        sort: [{ field: "createdAt", order: createdAtSortOrder }],
         limit: input.limit,
         ...(input.cursor
           ? {

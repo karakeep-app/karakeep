@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -37,6 +36,7 @@ import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkTextMarkdown from "./BookmarkTextMarkdown";
+import { NotePreview } from "./NotePreview";
 import TagPill from "./TagPill";
 
 function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
@@ -285,6 +285,7 @@ function LinkCard({
     throw new Error("Wrong content type rendered");
   }
 
+  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const url = bookmark.content.url;
   const parsedUrl = new URL(url);
 
@@ -329,6 +330,7 @@ function LinkCard({
         >
           {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
         </Text>
+        {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
@@ -347,9 +349,11 @@ function TextCard({
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
 }) {
+  const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
     throw new Error("Wrong content type rendered");
   }
+  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const content = bookmark.content.text;
   return (
     <View className="flex max-h-96 gap-2 p-2">
@@ -365,6 +369,7 @@ function TextCard({
           <BookmarkTextMarkdown text={content} />
         </Pressable>
       </View>
+      {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
       <TagList bookmark={bookmark} />
       <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
       <View className="flex flex-row justify-between p-2">
@@ -382,9 +387,11 @@ function AssetCard({
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
 }) {
+  const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.ASSET) {
     throw new Error("Wrong content type rendered");
   }
+  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const title = bookmark.title ?? bookmark.content.fileName;
 
   const assetImage =
@@ -405,6 +412,7 @@ function AssetCard({
             <Text className="line-clamp-2 text-xl font-bold">{title}</Text>
           )}
         </Pressable>
+        {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">

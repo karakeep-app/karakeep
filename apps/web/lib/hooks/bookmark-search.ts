@@ -10,7 +10,7 @@ import { useInSearchPageStore } from "../store/useInSearchPageStore";
 
 function useSearchQuery() {
   const searchParams = useSearchParams();
-  const searchQuery = decodeURIComponent(searchParams.get("q") ?? "");
+  const searchQuery = searchParams.get("q") ?? "";
 
   const parsed = useMemo(() => parseSearchQuery(searchQuery), [searchQuery]);
   return { searchQuery, parsedSearchQuery: parsed };

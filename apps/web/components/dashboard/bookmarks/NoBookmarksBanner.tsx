@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslation } from "@/lib/i18n/client";
 import { Bookmark } from "lucide-react";
 

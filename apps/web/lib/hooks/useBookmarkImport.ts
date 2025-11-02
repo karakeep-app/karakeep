@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
 import { useMutation } from "@tanstack/react-query";
@@ -24,6 +23,8 @@ import {
   MAX_BOOKMARK_TITLE_LENGTH,
 } from "@karakeep/shared/types/bookmarks";
 
+import { useCreateImportSession } from "./useImportSessions";
+
 export interface ImportProgress {
   done: number;
   total: number;
@@ -31,12 +32,12 @@ export interface ImportProgress {
 
 export function useBookmarkImport() {
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
   );
 
+  const { mutateAsync: createImportSession } = useCreateImportSession();
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook();
   const { mutateAsync: createList } = useCreateBookmarkList();
   const { mutateAsync: addToList } = useAddBookmarkToList();
@@ -56,8 +57,12 @@ export function useBookmarkImport() {
           source,
           rootListName: t("settings.import.imported_bookmarks"),
           deps: {
-            createList: createList,
-            createBookmark: async (bookmark: ParsedBookmark) => {
+            createImportSession,
+            createList,
+            createBookmark: async (
+              bookmark: ParsedBookmark,
+              sessionId: string,
+            ) => {
               if (bookmark.content === undefined) {
                 throw new Error("Content is undefined");
               }
@@ -69,6 +74,8 @@ export function useBookmarkImport() {
                   : undefined,
                 note: bookmark.notes,
                 archived: bookmark.archived,
+                importSessionId: sessionId,
+                source: "import",
                 ...(bookmark.content.type === BookmarkTypes.LINK
                   ? {
                       type: BookmarkTypes.LINK,
@@ -120,6 +127,8 @@ export function useBookmarkImport() {
       return result;
     },
     onSuccess: async (result) => {
+      setImportProgress(null);
+
       if (result.counts.total === 0) {
         toast({ description: "No bookmarks found in the file." });
         return;
@@ -127,7 +136,7 @@ export function useBookmarkImport() {
       const { successes, failures, alreadyExisted } = result.counts;
       if (successes > 0 || alreadyExisted > 0) {
         toast({
-          description: `Imported ${successes} bookmarks and skipped ${alreadyExisted} bookmarks that already existed`,
+          description: `Imported ${successes} bookmarks into import session. Background processing will start automatically.`,
           variant: "default",
         });
       }
@@ -137,9 +146,6 @@ export function useBookmarkImport() {
           variant: "destructive",
         });
       }
-
-      if (result.rootListId)
-        router.push(`/dashboard/lists/${result.rootListId}`);
     },
     onError: (error) => {
       setImportProgress(null);

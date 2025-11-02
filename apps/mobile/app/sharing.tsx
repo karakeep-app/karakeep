@@ -44,14 +44,26 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
       return;
     }
     if (!isPending && shareIntent.webUrl) {
-      mutate({ type: BookmarkTypes.LINK, url: shareIntent.webUrl });
+      mutate({
+        type: BookmarkTypes.LINK,
+        url: shareIntent.webUrl,
+        source: "mobile",
+      });
     } else if (!isPending && shareIntent?.text) {
       const val = z.string().url();
       if (val.safeParse(shareIntent.text).success) {
         // This is a URL, else treated as text
-        mutate({ type: BookmarkTypes.LINK, url: shareIntent.text });
+        mutate({
+          type: BookmarkTypes.LINK,
+          url: shareIntent.text,
+          source: "mobile",
+        });
       } else {
-        mutate({ type: BookmarkTypes.TEXT, text: shareIntent.text });
+        mutate({
+          type: BookmarkTypes.TEXT,
+          text: shareIntent.text,
+          source: "mobile",
+        });
       }
     } else if (!isPending && shareIntent?.files) {
       uploadAsset({

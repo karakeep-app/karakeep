@@ -6,12 +6,12 @@ export function useCreateHighlight(
   const apiUtils = api.useUtils();
   return api.highlights.create.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.highlights.getForBookmark.invalidate({
         bookmarkId: req.bookmarkId,
       });
       apiUtils.highlights.getAll.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -22,12 +22,12 @@ export function useUpdateHighlight(
   const apiUtils = api.useUtils();
   return api.highlights.update.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.highlights.getForBookmark.invalidate({
         bookmarkId: res.bookmarkId,
       });
       apiUtils.highlights.getAll.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -38,12 +38,12 @@ export function useDeleteHighlight(
   const apiUtils = api.useUtils();
   return api.highlights.delete.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.highlights.getForBookmark.invalidate({
         bookmarkId: res.bookmarkId,
       });
       apiUtils.highlights.getAll.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }

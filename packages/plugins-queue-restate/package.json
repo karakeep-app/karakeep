@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/plugins-queue-restate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --ignore-path ../../.prettierignore --write",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@karakeep/shared": "workspace:*",
+    "@restatedev/restate-sdk": "^1.9.0",
+    "@restatedev/restate-sdk-clients": "^1.9.0"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^3.2.4"
+  },
+  "prettier": "@karakeep/prettier-config"
+}

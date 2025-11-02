@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,7 +9,7 @@ import Draggable from "react-draggable";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
 
-export function TagPill({
+export const TagPill = React.memo(function TagPill({
   id,
   name,
   count,
@@ -23,6 +23,7 @@ export function TagPill({
   onOpenDialog: (tag: { id: string; name: string }) => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const draggableRef = useRef<HTMLDivElement>(null);
 
   const handleMouseOver = () => setIsHovered(true);
   const handleMouseOut = () => setIsHovered(false);
@@ -74,6 +75,7 @@ export function TagPill({
       onFocus={handleMouseOver}
       onMouseOut={handleMouseOut}
       onBlur={handleMouseOut}
+      ref={draggableRef}
     >
       <Link
         className={
@@ -111,8 +113,9 @@ export function TagPill({
       disabled={!isDraggable}
       defaultClassNameDragging={"position-relative z-10 pointer-events-none"}
       position={{ x: 0, y: 0 }}
+      nodeRef={draggableRef}
     >
       {pill}
     </Draggable>
   );
-}
+});

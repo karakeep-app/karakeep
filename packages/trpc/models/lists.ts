@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
 import { bookmarkLists, bookmarksInLists } from "@karakeep/db/schema";
-import { triggerRuleEngineOnEvent } from "@karakeep/shared/queues";
+import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
@@ -213,6 +213,41 @@ export abstract class List implements PrivacyAware {
     if (res.changes == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
+  }
+
+  async getChildren(): Promise<(ManualList | SmartList)[]> {
+    const lists = await List.getAll(this.ctx);
+    const listById = new Map(lists.map((l) => [l.list.id, l]));
+
+    const adjecencyList = new Map<string, string[]>();
+
+    // Initialize all lists with empty arrays first
+    lists.forEach((l) => {
+      adjecencyList.set(l.list.id, []);
+    });
+
+    // Then populate the parent-child relationships
+    lists.forEach((l) => {
+      if (l.list.parentId) {
+        const currentChildren = adjecencyList.get(l.list.parentId) ?? [];
+        currentChildren.push(l.list.id);
+        adjecencyList.set(l.list.parentId, currentChildren);
+      }
+    });
+
+    const resultIds: string[] = [];
+    const queue: string[] = [this.list.id];
+
+    while (queue.length > 0) {
+      const id = queue.pop()!;
+      const children = adjecencyList.get(id) ?? [];
+      children.forEach((childId) => {
+        queue.push(childId);
+        resultIds.push(childId);
+      });
+    }
+
+    return resultIds.map((id) => listById.get(id)!);
   }
 
   async update(

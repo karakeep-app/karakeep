@@ -435,6 +435,27 @@
       "when": 1754236017965,
       "tag": "0061_merge_user_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "6",
+      "when": 1759573697911,
+      "tag": "0062_add_import_session",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "6",
+      "when": 1760302856618,
+      "tag": "0063_add_bookmark_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "6",
+      "when": 1762115406895,
+      "tag": "0064_add_import_tags_to_feeds",
+      "breakpoints": true
     }
   ]
 }

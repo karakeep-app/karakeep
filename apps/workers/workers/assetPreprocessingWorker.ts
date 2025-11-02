@@ -1,12 +1,11 @@
 import os from "os";
 import { eq } from "drizzle-orm";
-import { DequeuedJob, EnqueueOptions, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
 import { createWorker } from "tesseract.js";
 
-import type { AssetPreprocessingRequest } from "@karakeep/shared/queues";
+import type { AssetPreprocessingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import {
   assets,
@@ -14,44 +13,53 @@ import {
   bookmarkAssets,
   bookmarks,
 } from "@karakeep/db/schema";
-import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
+import {
+  AssetPreprocessingQueue,
+  OpenAIQueue,
+  QuotaService,
+  StorageQuotaError,
+  triggerSearchReindex,
+} from "@karakeep/shared-server";
 import { newAssetId, readAsset, saveAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
-  AssetPreprocessingQueue,
-  OpenAIQueue,
-  triggerSearchReindex,
-} from "@karakeep/shared/queues";
+  DequeuedJob,
+  EnqueueOptions,
+  getQueueClient,
+} from "@karakeep/shared/queueing";
 
 export class AssetPreprocessingWorker {
-  static build() {
+  static async build() {
     logger.info("Starting asset preprocessing worker ...");
-    const worker = new Runner<AssetPreprocessingRequest>(
-      AssetPreprocessingQueue,
-      {
-        run: run,
-        onComplete: async (job) => {
-          workerStatsCounter.labels("assetPreprocessing", "completed").inc();
-          const jobId = job.id;
-          logger.info(`[assetPreprocessing][${jobId}] Completed successfully`);
-          return Promise.resolve();
+    const worker =
+      (await getQueueClient())!.createRunner<AssetPreprocessingRequest>(
+        AssetPreprocessingQueue,
+        {
+          run: run,
+          onComplete: async (job) => {
+            workerStatsCounter.labels("assetPreprocessing", "completed").inc();
+            const jobId = job.id;
+            logger.info(
+              `[assetPreprocessing][${jobId}] Completed successfully`,
+            );
+            return Promise.resolve();
+          },
+          onError: async (job) => {
+            workerStatsCounter.labels("assetPreProcessing", "failed").inc();
+            const jobId = job.id;
+            logger.error(
+              `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,
+            );
+            return Promise.resolve();
+          },
         },
-        onError: async (job) => {
-          workerStatsCounter.labels("assetPreProcessing", "failed").inc();
-          const jobId = job.id;
-          logger.error(
-            `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,
-          );
-          return Promise.resolve();
+        {
+          concurrency: serverConfig.assetPreprocessing.numWorkers,
+          pollIntervalMs: 1000,
+          timeoutSecs: 30,
         },
-      },
-      {
-        concurrency: serverConfig.assetPreprocessing.numWorkers,
-        pollIntervalMs: 1000,
-        timeoutSecs: 30,
-      },
-    );
+      );
 
     return worker;
   }

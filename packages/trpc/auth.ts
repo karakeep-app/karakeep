@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcryptjs";
+import { and, eq } from "drizzle-orm";
 
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
@@ -10,8 +11,40 @@ const BCRYPT_SALT_ROUNDS = 10;
 const API_KEY_PREFIX_V1 = "ak1";
 const API_KEY_PREFIX_V2 = "ak2";
 
+function generateApiKeySecret() {
+  const secret = randomBytes(16).toString("hex");
+  return {
+    keyId: randomBytes(10).toString("hex"),
+    secret,
+    secretHash: createHash("sha256").update(secret).digest("base64"),
+  };
+}
+
 export function generatePasswordSalt() {
   return randomBytes(32).toString("hex");
+}
+
+export async function regenerateApiKey(
+  id: string,
+  userId: string,
+  database: Context["db"],
+) {
+  const { keyId, secret, secretHash } = generateApiKeySecret();
+
+  const plain = `${API_KEY_PREFIX_V2}_${keyId}_${secret}`;
+
+  const res = await database
+    .update(apiKeys)
+    .set({
+      keyId: keyId,
+      keyHash: secretHash,
+    })
+    .where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)));
+
+  if (res.changes == 0) {
+    throw new Error("Failed to regenerate API key");
+  }
+  return plain;
 }
 
 export async function generateApiKey(
@@ -19,12 +52,9 @@ export async function generateApiKey(
   userId: string,
   database: Context["db"],
 ) {
-  const id = randomBytes(10).toString("hex");
-  const secret = randomBytes(16).toString("hex");
+  const { keyId, secret, secretHash } = generateApiKeySecret();
 
-  const secretHash = createHash("sha256").update(secret).digest("base64");
-
-  const plain = `${API_KEY_PREFIX_V2}_${id}_${secret}`;
+  const plain = `${API_KEY_PREFIX_V2}_${keyId}_${secret}`;
 
   const key = (
     await database
@@ -32,7 +62,7 @@ export async function generateApiKey(
       .values({
         name: name,
         userId: userId,
-        keyId: id,
+        keyId,
         keyHash: secretHash,
       })
       .returning()

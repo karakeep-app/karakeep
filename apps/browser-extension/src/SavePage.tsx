@@ -74,7 +74,10 @@ export default function SavePage() {
         };
       }
 
-      createBookmark(newBookmarkRequest);
+      createBookmark({
+        ...newBookmarkRequest,
+        source: newBookmarkRequest.source || "extension",
+      });
     }
 
     runSave();

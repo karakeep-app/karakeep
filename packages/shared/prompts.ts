@@ -15,13 +15,16 @@ function calculateNumTokens(text: string) {
 
 function truncateContent(content: string, length: number) {
   const tokens = encoding.encode(content);
+  if (tokens.length <= length) {
+    return content;
+  }
   const truncatedTokens = tokens.slice(0, length);
   return encoding.decode(truncatedTokens);
 }
 
 export function buildImagePrompt(lang: string, customPrompts: string[]) {
   return `
-You are an expert who's responsibility is to help with automatic text tagging for a read-it-later app.
+You are an expert whose responsibility is to help with automatic text tagging for a read-it-later app.
 Please analyze the attached image and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
 - Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
 - The tags must be in ${lang}.
@@ -40,7 +43,7 @@ export function buildTextPrompt(
 ) {
   content = preprocessContent(content);
   const constructPrompt = (c: string) => `
-You are an expert who's your responsibility is to help with automatic tagging for a read-it-later app.
+You are an expert whose responsibility is to help with automatic tagging for a read-it-later app.
 Please analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
 - Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
 - The tags must be in ${lang}.

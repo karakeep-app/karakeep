@@ -61,7 +61,12 @@ export function useUploadAsset(
       const assetId = resp.assetId;
       const assetType =
         resp.contentType === "application/pdf" ? "pdf" : "image";
-      createBookmark({ type: BookmarkTypes.ASSET, assetId, assetType });
+      createBookmark({
+        type: BookmarkTypes.ASSET,
+        assetId,
+        assetType,
+        source: "mobile",
+      });
     },
     onError: (e) => {
       if (options.onError) {
