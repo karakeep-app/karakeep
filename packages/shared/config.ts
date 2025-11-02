@@ -88,6 +88,7 @@ const allEnv = z.object({
   CRAWLER_NUM_WORKERS: z.coerce.number().default(1),
   INFERENCE_NUM_WORKERS: z.coerce.number().default(1),
   SEARCH_NUM_WORKERS: z.coerce.number().default(1),
+  SEARCH_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   WEBHOOK_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_NUM_WORKERS: z.coerce.number().default(1),
   RULE_ENGINE_NUM_WORKERS: z.coerce.number().default(1),
@@ -306,6 +307,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     search: {
       numWorkers: val.SEARCH_NUM_WORKERS,
+      jobTimeoutSec: val.SEARCH_JOB_TIMEOUT_SEC,
     },
     logLevel: val.LOG_LEVEL,
     logNoColor: val.NO_COLOR,

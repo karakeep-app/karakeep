@@ -8,6 +8,7 @@ import type {
   SearchOptions,
   SearchResponse,
 } from "@karakeep/shared/search";
+import serverConfig from "@karakeep/shared/config";
 import { PluginProvider } from "@karakeep/shared/plugins";
 
 import { envConfig } from "./env";
@@ -68,6 +69,7 @@ class MeiliSearchIndexClient implements SearchIndexClient {
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
     const task = await this.index.waitForTask(taskUid, {
       intervalMs: 200,
+      timeOutMs: serverConfig.search.jobTimeoutSec * 1000 * 0.9,
     });
     if (task.error) {
       throw new Error(`Search task failed: ${task.error.message}`);
