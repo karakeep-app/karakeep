@@ -401,4 +401,108 @@ describe("importBookmarksFromFile", () => {
     // updateBookmarkTags should be called 2 times (once fails at list assignment, one fails at tag update)
     expect(updateBookmarkTags).toHaveBeenCalledTimes(2);
   });
+
+  it("reuses existing lists under an existing root", async () => {
+    const existingLists = [
+      {
+        id: "root-1",
+        name: "Imported",
+        parentId: null,
+        icon: "⬆️",
+        type: "manual" as const,
+      },
+      {
+        id: "child-existing",
+        name: "Existing",
+        parentId: "root-1",
+        icon: "📁",
+        type: "manual" as const,
+      },
+    ];
+
+    const parsers = {
+      html: vi.fn().mockReturnValue([
+        {
+          title: "Existing bookmark",
+          content: {
+            type: "link",
+            url: "https://example.com/existing",
+          },
+          tags: [],
+          addDate: 100,
+          paths: [["Existing"]],
+        },
+        {
+          title: "New bookmark",
+          content: {
+            type: "link",
+            url: "https://example.com/new",
+          },
+          tags: [],
+          addDate: 200,
+          paths: [["Fresh"]],
+        },
+      ]),
+    };
+
+    const createdLists: { name: string; parentId?: string }[] = [];
+    const createList = vi.fn(
+      async (input: { name: string; icon: string; parentId?: string }) => {
+        createdLists.push({ name: input.name, parentId: input.parentId });
+        return {
+          id: `${input.parentId ?? "root"}/${input.name}`,
+        };
+      },
+    );
+
+    const createdBookmarks: ParsedBookmark[] = [];
+    const createBookmark = vi.fn(async (bookmark: ParsedBookmark) => {
+      createdBookmarks.push(bookmark);
+      return {
+        id: `bookmark-${createdBookmarks.length}`,
+        alreadyExists: false,
+      };
+    });
+
+    const addedToLists: { bookmarkId: string; listIds: string[] }[] = [];
+    const addBookmarkToLists = vi.fn(
+      async (input: { bookmarkId: string; listIds: string[] }) => {
+        addedToLists.push(input);
+      },
+    );
+
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
+    const res = await importBookmarksFromFile(
+      {
+        file: fakeFile,
+        source: "html",
+        rootListName: "Imported",
+        deps: {
+          createList,
+          createBookmark,
+          addBookmarkToLists,
+          updateBookmarkTags: vi.fn(),
+          createImportSession,
+          getExistingLists: async () => existingLists,
+        },
+      },
+      { parsers },
+    );
+
+    expect(res.rootListId).toBe("root-1");
+    expect(createList).toHaveBeenCalledTimes(1);
+    expect(createdLists).toEqual([{ name: "Fresh", parentId: "root-1" }]);
+    expect(addedToLists).toHaveLength(2);
+
+    const existingAssignment = addedToLists.find((entry) =>
+      entry.listIds.includes("child-existing"),
+    );
+    expect(existingAssignment?.listIds).toEqual(["child-existing"]);
+
+    const newAssignment = addedToLists.find((entry) =>
+      entry.listIds.includes("root-1/Fresh"),
+    );
+    expect(newAssignment?.listIds).toEqual(["root-1/Fresh"]);
+  });
 });

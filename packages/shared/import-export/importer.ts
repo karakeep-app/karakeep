@@ -1,3 +1,4 @@
+import type { ZBookmarkList } from "../types/lists";
 import { limitConcurrency } from "../concurrency";
 import { MAX_LIST_NAME_LENGTH } from "../types/lists";
 import { ImportSource, ParsedBookmark, parseImportFile } from "./parsers";
@@ -31,6 +32,9 @@ export interface ImportDeps {
     name: string;
     rootListId: string;
   }) => Promise<{ id: string }>;
+  getExistingLists?: () => Promise<
+    Pick<ZBookmarkList, "id" | "name" | "parentId" | "icon" | "type">[]
+  >;
 }
 
 export interface ImportOptions {
@@ -76,15 +80,75 @@ export async function importBookmarksFromFile(
     };
   }
 
-  const rootList = await deps.createList({ name: rootListName, icon: "⬆️" });
+  const PATH_DELIMITER = "$$__$$";
+
+  const existingLists =
+    (await deps.getExistingLists?.()) ??
+    ([] as Pick<ZBookmarkList, "id" | "name" | "parentId" | "icon" | "type">[]);
+  const manualExistingLists = existingLists.filter((l) => l.type === "manual");
+
+  const rootCandidates = manualExistingLists.filter(
+    (l) => !l.parentId && l.name === rootListName && l.icon === "⬆️",
+  );
+
+  let rootListId: string;
+  let usedExistingRoot = false;
+
+  if (rootCandidates.length === 1) {
+    rootListId = rootCandidates[0].id;
+    usedExistingRoot = true;
+  } else {
+    const rootList = await deps.createList({
+      name: rootListName,
+      icon: "⬆️",
+    });
+    rootListId = rootList.id;
+  }
+  const pathMap: Record<string, string> = { "": rootListId };
+
+  if (usedExistingRoot) {
+    const root = rootCandidates[0];
+    const childrenByParent = manualExistingLists.reduce<
+      Map<
+        string,
+        Pick<ZBookmarkList, "id" | "name" | "parentId" | "icon" | "type">[]
+      >
+    >((acc, list) => {
+      if (!list.parentId) {
+        return acc;
+      }
+      const current = acc.get(list.parentId) ?? [];
+      current.push(list);
+      acc.set(list.parentId, current);
+      return acc;
+    }, new Map());
+
+    const stack = (childrenByParent.get(root.id) ?? []).map((child) => ({
+      list: child,
+      path: [child.name],
+    }));
+
+    while (stack.length > 0) {
+      const { list, path } = stack.pop()!;
+      const key = path.join(PATH_DELIMITER);
+      pathMap[key] = list.id;
+
+      const children = childrenByParent.get(list.id) ?? [];
+      children.forEach((child) =>
+        stack.push({
+          list: child,
+          path: [...path, child.name],
+        }),
+      );
+    }
+  }
+
   const session = await deps.createImportSession({
     name: `${source.charAt(0).toUpperCase() + source.slice(1)} Import - ${new Date().toLocaleDateString()}`,
-    rootListId: rootList.id,
+    rootListId,
   });
 
   onProgress?.(0, parsedBookmarks.length);
-
-  const PATH_DELIMITER = "$$__$$";
 
   // Build required paths
   const allRequiredPaths = new Set<string>();
@@ -104,12 +168,11 @@ export async function importBookmarksFromFile(
     (a, b) => a.split(PATH_DELIMITER).length - b.split(PATH_DELIMITER).length,
   );
 
-  const pathMap: Record<string, string> = { "": rootList.id };
-
   for (const pathKey of allRequiredPathsArray) {
+    if (pathMap[pathKey]) continue;
     const parts = pathKey.split(PATH_DELIMITER);
     const parentKey = parts.slice(0, -1).join(PATH_DELIMITER);
-    const parentId = pathMap[parentKey] || rootList.id;
+    const parentId = pathMap[parentKey] || rootListId;
 
     const folderName = parts[parts.length - 1];
     const folderList = await deps.createList({
@@ -124,9 +187,9 @@ export async function importBookmarksFromFile(
   const importPromises = parsedBookmarks.map((bookmark) => async () => {
     try {
       const listIds = bookmark.paths.map(
-        (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
+        (path) => pathMap[path.join(PATH_DELIMITER)] || rootListId,
       );
-      if (listIds.length === 0) listIds.push(rootList.id);
+      if (listIds.length === 0) listIds.push(rootListId);
 
       const created = await deps.createBookmark(bookmark, session.id);
       await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
@@ -166,7 +229,7 @@ export async function importBookmarksFromFile(
       alreadyExisted,
       total: parsedBookmarks.length,
     },
-    rootListId: rootList.id,
+    rootListId,
     importSessionId: session.id,
   };
 }

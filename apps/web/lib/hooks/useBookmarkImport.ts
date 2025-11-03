@@ -13,6 +13,7 @@ import {
   useAddBookmarkToList,
   useCreateBookmarkList,
 } from "@karakeep/shared-react/hooks/lists";
+import { api } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
@@ -42,6 +43,7 @@ export function useBookmarkImport() {
   const { mutateAsync: createList } = useCreateBookmarkList();
   const { mutateAsync: addToList } = useAddBookmarkToList();
   const { mutateAsync: updateTags } = useUpdateBookmarkTags();
+  const apiUtils = api.useUtils();
 
   const uploadBookmarkFileMutation = useMutation({
     mutationFn: async ({
@@ -51,6 +53,11 @@ export function useBookmarkImport() {
       file: File;
       source: ImportSource;
     }) => {
+      const existingListsResponse = await apiUtils.lists.list
+        .fetch()
+        .catch(() => null);
+      const existingLists = existingListsResponse?.lists ?? [];
+
       const result = await importBookmarksFromFile(
         {
           file,
@@ -59,6 +66,7 @@ export function useBookmarkImport() {
           deps: {
             createImportSession,
             createList,
+            getExistingLists: async () => existingLists,
             createBookmark: async (
               bookmark: ParsedBookmark,
               sessionId: string,
