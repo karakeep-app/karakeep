@@ -288,13 +288,17 @@ chrome.commands.onCommand.addListener(handleCommand);
 export async function setBadge(badgeStatus: string | null, tabId?: number) {
   if (!tabId || !badgeStatus) return;
 
-  return await Promise.all([
-    chrome.action.setBadgeText({ tabId, text: ` ` }),
-    chrome.action.setBadgeBackgroundColor({
-      tabId,
-      color: "#4CAF50",
-    }),
-  ]);
+  if (badgeStatus) {
+    return await Promise.all([
+      chrome.action.setBadgeText({ tabId, text: ` ` }),
+      chrome.action.setBadgeBackgroundColor({
+        tabId,
+        color: "#4CAF50",
+      }),
+    ]);
+  } else {
+    await chrome.action.setBadgeText({ tabId, text: `` });
+  }
 }
 
 /**

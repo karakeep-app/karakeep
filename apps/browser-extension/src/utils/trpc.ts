@@ -73,7 +73,7 @@ export async function initializeClients() {
 
     const persister = createChromeStorage();
     if (useBadgeCache) {
-      await persistQueryClient({
+      persistQueryClient({
         queryClient,
         persister,
         // Avoid restoring very old data and bust on policy changes
