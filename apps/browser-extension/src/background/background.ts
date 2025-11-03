@@ -120,7 +120,13 @@ async function handleContextMenuClick(
   } else if (menuItemId === CLEAR_ALL_CACHE_ID) {
     await clearAllCache();
   } else if (menuItemId === ADD_LINK_TO_KARAKEEP_ID) {
-    addLinkToKarakeep({ selectionText, srcUrl, linkUrl, pageUrl });
+    addLinkToKarakeep({
+      selectionText,
+      srcUrl,
+      linkUrl,
+      pageUrl,
+      title: tab?.title,
+    });
 
     // NOTE: Firefox only allows opening context menus if it's triggered by a user action.
     // awaiting on any promise before calling this function will lose the "user action" context.
@@ -141,11 +147,13 @@ function addLinkToKarakeep({
   srcUrl,
   linkUrl,
   pageUrl,
+  title,
 }: {
   selectionText?: string;
   srcUrl?: string;
   linkUrl?: string;
   pageUrl?: string;
+  title?: string;
 }) {
   let newBookmark: ZNewBookmarkRequest | null = null;
   if (selectionText) {
@@ -153,6 +161,7 @@ function addLinkToKarakeep({
       type: BookmarkTypes.TEXT,
       text: selectionText,
       sourceUrl: pageUrl,
+      source: "extension",
     };
   } else {
     const finalUrl = srcUrl ?? linkUrl ?? pageUrl;
@@ -161,6 +170,8 @@ function addLinkToKarakeep({
       newBookmark = {
         type: BookmarkTypes.LINK,
         url: finalUrl,
+        source: "extension",
+        title,
       };
     } else {
       console.warn("Invalid URL, bookmark not created:", finalUrl);

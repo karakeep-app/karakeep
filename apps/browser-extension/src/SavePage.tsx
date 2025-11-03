@@ -70,7 +70,9 @@ export default function SavePage() {
 
         newBookmarkRequest = {
           type: BookmarkTypes.LINK,
+          title: currentTab.title,
           url: currentTab.url,
+          source: "extension",
         };
       }
 
