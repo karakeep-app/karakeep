@@ -181,7 +181,7 @@ function GridView({
   const note = showNotes ? bookmark.note?.trim() : undefined;
   const img = image(
     "grid",
-    cn("h-52 min-h-52 w-full rounded-t-lg", imgFitClass),
+    cn("h-56 min-h-56 w-full rounded-t-lg", imgFitClass),
   );
 
   return (
@@ -193,7 +193,7 @@ function GridView({
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
-      {img && <div className="h-52 w-full shrink-0 overflow-hidden">{img}</div>}
+      {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
           {showTitle && title && (
