@@ -286,7 +286,7 @@ chrome.commands.onCommand.addListener(handleCommand);
  * @param tabId The ID of the tab to update.
  */
 export async function setBadge(badgeStatus: string | null, tabId?: number) {
-  if (!tabId || !badgeStatus) return;
+  if (!tabId) return;
 
   if (badgeStatus) {
     return await Promise.all([
