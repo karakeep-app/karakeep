@@ -43,6 +43,9 @@ export async function getBookmarkDetails(bookmarkId: string) {
     videoAssetId: bookmark.assets.find(
       (a) => a.assetType == AssetTypes.LINK_VIDEO,
     )?.id,
+    gitRepoAssetId: bookmark.assets.find(
+      (a) => a.assetType == AssetTypes.LINK_GIT_REPO,
+    )?.id,
     precrawledArchiveAssetId: bookmark.assets
       .filter((a) => a.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE)
       .at(-1)?.id,

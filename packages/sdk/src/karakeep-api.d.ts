@@ -2063,6 +2063,7 @@ export interface components {
             fullPageArchiveAssetId?: string | null;
             precrawledArchiveAssetId?: string | null;
             videoAssetId?: string | null;
+            gitRepoAssetId?: string | null;
             favicon?: string | null;
             htmlContent?: string | null;
             contentAssetId?: string | null;

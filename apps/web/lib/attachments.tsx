@@ -5,6 +5,7 @@ import {
   Image,
   Paperclip,
   Video,
+  FolderGit2,
 } from "lucide-react";
 
 import { ZAssetType } from "@karakeep/shared/types/bookmarks";
@@ -16,6 +17,7 @@ export const ASSET_TYPE_TO_ICON: Record<ZAssetType, React.ReactNode> = {
   precrawledArchive: <Archive className="size-4" />,
   bannerImage: <Image className="size-4" />,
   video: <Video className="size-4" />,
+  gitRepo: <FolderGit2 className="size-4" />,
   bookmarkAsset: <Paperclip className="size-4" />,
   linkHtmlContent: <FileCode className="size-4" />,
   unknown: <Paperclip className="size-4" />,

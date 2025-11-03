@@ -124,10 +124,27 @@ export const zvideoRequestSchema = z.object({
   bookmarkId: z.string(),
   url: z.string(),
 });
+
+export const zgitRequestSchema = z.object({
+  bookmarkId: z.string(),
+  url: z.string(),
+});
+
 export type ZVideoRequest = z.infer<typeof zvideoRequestSchema>;
+export type ZGitRequest = z.infer<typeof zgitRequestSchema>;
 
 export const VideoWorkerQueue = QUEUE_CLIENT.createQueue<ZVideoRequest>(
   "video_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 5,
+    },
+    keepFailedJobs: false,
+  },
+);
+
+export const GitWorkerQueue = QUEUE_CLIENT.createQueue<ZGitRequest>(
+  "git_queue",
   {
     defaultJobArgs: {
       numRetries: 5,

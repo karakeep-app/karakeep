@@ -205,6 +205,9 @@ async function toZodSchema(
       )?.id,
       videoAssetId: assets.find((a) => a.assetType == AssetTypes.LINK_VIDEO)
         ?.id,
+      gitRepoAssetId: assets.find(
+        (a) => a.assetType == AssetTypes.LINK_GIT_REPO,
+      )?.id,
       url: link.url,
       title: link.title,
       description: link.description,

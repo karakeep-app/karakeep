@@ -103,6 +103,13 @@ const allEnv = z.object({
     .string()
     .default("")
     .transform((t) => t.split("%%").filter((a) => a)),
+
+  CRAWLER_GIT_REPO_DOWNLOAD: stringBool("false"),
+  CRAWLER_GIT_CLONE_TIMEOUT: z.coerce.number().default(5),
+  CRAWLER_GIT_REPO_MIRROR: stringBool("false"),
+  CRAWLER_GIT_CLONE_DEPTH: z.coerce.number().default(-1),
+  CRAWLER_GIT_CLONE_ALL_BRANCHES: stringBool("false"),
+
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
@@ -274,6 +281,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
+      downloadGitRepo: val.CRAWLER_GIT_REPO_DOWNLOAD,
+      downloadGitRepoTimeout: val.CRAWLER_GIT_REPO_TIMEOUT,
+      gitRepoMirror: val.CRAWLER_GIT_REPO_MIRROR,
+      gitRepoCloneDepth: val.CRAWLER_GIT_CLONE_DEPTH,
+      gitRepoCloneAllBranches: val.CRAWLER_GIT_CLONE_ALL_BRANCHES,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
     },

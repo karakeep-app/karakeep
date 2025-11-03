@@ -31,6 +31,8 @@ export const enum ASSET_TYPES {
   VIDEO_MP4 = "video/mp4",
   VIDEO_WEBM = "video/webm",
   VIDEO_MKV = "video/x-matroska",
+
+  APPLICATION_GZIP = 'application/gzip',
 }
 
 export const VIDEO_ASSET_TYPES: Set<string> = new Set<string>([
@@ -65,6 +67,7 @@ export const SUPPORTED_ASSET_TYPES: Set<string> = new Set<string>([
   ...SUPPORTED_UPLOAD_ASSET_TYPES,
   ASSET_TYPES.TEXT_HTML,
   ASSET_TYPES.VIDEO_MP4,
+  ASSET_TYPES.APPLICATION_GZIP,
 ]);
 
 export const zAssetMetadataSchema = z.object({
