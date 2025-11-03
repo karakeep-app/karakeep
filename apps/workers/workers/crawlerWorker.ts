@@ -12,6 +12,8 @@ import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
+import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { JSDOM, VirtualConsole } from "jsdom";
 import metascraper from "metascraper";
 import metascraperAmazon from "metascraper-amazon";
@@ -129,7 +131,18 @@ const metascraperParser = metascraper([
   metascraperDescription(),
   metascraperTwitter(),
   metascraperImage(),
-  metascraperLogo(),
+  metascraperLogo({
+    gotOpts: {
+      agent: {
+        http: serverConfig.proxy.httpProxy
+          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+          : undefined,
+        https: serverConfig.proxy.httpsProxy
+          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+          : undefined,
+      },
+    },
+  }),
   metascraperUrl(),
 ]);
 
