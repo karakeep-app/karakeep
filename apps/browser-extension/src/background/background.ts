@@ -1,21 +1,16 @@
 import {
   BookmarkTypes,
-  DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   ZNewBookmarkRequest,
 } from "@karakeep/shared/types/bookmarks";
 
-import {
-  BadgeStatus,
-  clearBadgeStatus,
-  getBadgeStatus,
-} from "../utils/badgeCache";
+import { clearBadgeStatus, getBadgeStatus } from "../utils/badgeCache";
 import {
   getPluginSettings,
   Settings,
   subscribeToSettingsChanges,
 } from "../utils/settings";
 import { getApiClient, initializeClients } from "../utils/trpc";
-import { BadgeMatchType, MessageType } from "../utils/type";
+import { MessageType } from "../utils/type";
 import { isHttpUrl } from "../utils/url";
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol";
 
@@ -198,12 +193,11 @@ async function searchCurrentUrl(tabUrl?: string) {
     const settings = await getPluginSettings();
     const serverAddress = settings.address;
 
-    const status = await getBadgeStatus(tabUrl);
-    const matchedBookmark = status?.exactMatch ?? status?.partialMatch;
+    const matchedBookmarkId = await getBadgeStatus(tabUrl);
     let targetUrl: string;
-    if (matchedBookmark) {
+    if (matchedBookmarkId) {
       // Found exact match, open bookmark details page
-      targetUrl = `${serverAddress}/dashboard/preview/${matchedBookmark.id}`;
+      targetUrl = `${serverAddress}/dashboard/preview/${matchedBookmarkId}`;
       console.log("Opening bookmark details page:", targetUrl);
     } else {
       // No exact match, open search results page
@@ -247,12 +241,6 @@ async function clearAllCache() {
   try {
     console.log("Clearing all badge cache");
     await clearBadgeStatus();
-    // Refresh the badge for all active tabs
-    const windows = await chrome.windows.getAll({ populate: true });
-    const activeTabIds = windows.flatMap((w) =>
-      (w.tabs ?? []).filter((t) => t.active && t.id).map((t) => t.id!),
-    );
-    await Promise.all(activeTabIds.map((id) => checkAndUpdateIcon(id)));
   } catch (error) {
     console.error("Failed to clear all cache:", error);
   }
@@ -297,34 +285,14 @@ chrome.commands.onCommand.addListener(handleCommand);
  * @param badgeStatus
  * @param tabId The ID of the tab to update.
  */
-export async function setBadge(
-  badgeStatus: BadgeStatus | null,
-  tabId?: number,
-) {
-  if (!tabId) return;
-
-  const { count, matchType } = badgeStatus || {
-    count: 0,
-    matchType: BadgeMatchType.NONE,
-  };
-  let badgeText = `${count}`;
-  // If the count is same as the default per-page count, show it as "N+"
-  if (count === DEFAULT_NUM_BOOKMARKS_PER_PAGE) {
-    badgeText = `${count}+`;
-  }
-
-  // Determine the color according to the matching type
-  const colors = {
-    [BadgeMatchType.EXACT]: "#4CAF50", // Green - Exact match
-    [BadgeMatchType.PARTIAL]: "#FF9800", // Yellow - Deansing the anchor point match
-    [BadgeMatchType.NONE]: "#F44336", // Red - No match
-  };
+export async function setBadge(badgeStatus: string | null, tabId?: number) {
+  if (!tabId || !badgeStatus) return;
 
   return await Promise.all([
-    chrome.action.setBadgeText({ tabId, text: `${badgeText}` }),
+    chrome.action.setBadgeText({ tabId, text: ` ` }),
     chrome.action.setBadgeBackgroundColor({
       tabId,
-      color: colors[matchType],
+      color: "#4CAF50",
     }),
   ]);
 }
