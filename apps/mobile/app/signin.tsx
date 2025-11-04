@@ -29,7 +29,7 @@ export default function Signin() {
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
   const [isEditingServerAddress, setIsEditingServerAddress] = useState(false);
   const [tempServerAddress, setTempServerAddress] = useState(
-    "https://cloud.karakeep.app",
+    settings.address || "https://cloud.karakeep.app",
   );
 
   const emailRef = useRef<string>("");
@@ -79,7 +79,7 @@ export default function Signin() {
     return <Redirect href="dashboard" />;
   }
 
-  const onSignin = () => {
+  const onSignin = async () => {
     if (!tempServerAddress) {
       setError("Server address is required");
       return;
@@ -92,6 +92,17 @@ export default function Signin() {
       setError("Server address must start with http:// or https://");
       return;
     }
+
+    // Save the server address to settings before attempting to sign in
+    // This ensures tRPC client uses the correct server address
+    const normalizedAddress = tempServerAddress.trim().replace(/\/$/, "");
+    await setSettings({
+      ...settings,
+      address: normalizedAddress,
+    });
+
+    // Wait for React to re-render and TRPCProvider to initialize with new address
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     if (loginType === LoginType.Password) {
       const email = emailRef.current;
