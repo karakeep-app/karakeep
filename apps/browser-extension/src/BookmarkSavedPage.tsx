@@ -2,10 +2,14 @@ import { useState } from "react";
 import { ArrowUpRightFromSquare, Trash } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import {
+  useAutoRefreshingBookmarkQuery,
+  useDeleteBookmark,
+} from "@karakeep/shared-react/hooks/bookmarks";
 
 import BookmarkLists from "./components/BookmarkLists";
 import { ListsSelector } from "./components/ListsSelector";
+import { NoteEditor } from "./components/NoteEditor";
 import TagList from "./components/TagList";
 import { TagsSelector } from "./components/TagsSelector";
 import { Button, buttonVariants } from "./components/ui/button";
@@ -18,6 +22,10 @@ export default function BookmarkSavedPage() {
   const { bookmarkId } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+
+  const { data: bookmark } = useAutoRefreshingBookmarkQuery({
+    bookmarkId: bookmarkId ?? "",
+  });
 
   const { mutate: deleteBookmark, isPending } = useDeleteBookmark({
     onSuccess: async () => {
@@ -40,6 +48,10 @@ export default function BookmarkSavedPage() {
 
   if (!bookmarkId) {
     return <div>NOT FOUND</div>;
+  }
+
+  if (!bookmark) {
+    return null;
   }
 
   return (
@@ -78,6 +90,9 @@ export default function BookmarkSavedPage() {
           </Button>
         </div>
       </div>
+      <hr />
+      <p className="text-lg">Notes</p>
+      <NoteEditor bookmark={bookmark} />
       <hr />
       <p className="text-lg">Tags</p>
       <TagList bookmarkId={bookmarkId} />
