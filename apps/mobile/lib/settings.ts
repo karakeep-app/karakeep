@@ -15,6 +15,7 @@ const zSettingsSchema = z.object({
     .optional()
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
+  customHeaders: z.record(z.string(), z.string()).optional().default({}),
 });
 
 export type Settings = z.infer<typeof zSettingsSchema>;
@@ -34,6 +35,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       theme: "system",
       defaultBookmarkView: "reader",
       showNotes: false,
+      customHeaders: {},
     },
   },
   setSettings: async (settings) => {
