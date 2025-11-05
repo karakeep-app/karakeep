@@ -11,7 +11,7 @@ import {
   StorageQuotaError,
   GitWorkerQueue,
   ZGitRequest,
-  zgitRequestSchema,
+  zdownloadRequestSchema,
 } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
@@ -57,7 +57,7 @@ export class GitWorker {
         // timeoutSecs: serverConfig.crawler.downloadGitTimeout,
         timeoutSecs: 60,
         concurrency: 1,
-        validator: zgitRequestSchema,
+        validator: zdownloadRequestSchema,
       },
     );
   }

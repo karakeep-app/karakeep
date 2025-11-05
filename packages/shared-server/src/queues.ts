@@ -120,18 +120,13 @@ export async function triggerSearchReindex(
   );
 }
 
-export const zvideoRequestSchema = z.object({
+export const zdownloadRequestSchema = z.object({
   bookmarkId: z.string(),
   url: z.string(),
 });
 
-export const zgitRequestSchema = z.object({
-  bookmarkId: z.string(),
-  url: z.string(),
-});
-
-export type ZVideoRequest = z.infer<typeof zvideoRequestSchema>;
-export type ZGitRequest = z.infer<typeof zgitRequestSchema>;
+export type ZVideoRequest = z.infer<typeof zdownloadRequestSchema>;
+export type ZGitRequest = z.infer<typeof zdownloadRequestSchema>;
 
 export const VideoWorkerQueue = QUEUE_CLIENT.createQueue<ZVideoRequest>(
   "video_queue",
