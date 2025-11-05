@@ -286,7 +286,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadGitTimeout: val.CRAWLER_GIT_TIMEOUT,
       gitRepoMirror: val.CRAWLER_GIT_REPO_MIRROR,
       gitRepoCloneDepth: val.CRAWLER_GIT_CLONE_DEPTH,
-      gitRepoCloneAllBranches: val.CRAWLER_GIT_CLONE_ALL_BRANCHES,
+      gitRepoCloneAllBranches: val.CRAWLER_GIT_CLONE_ALL_BRANCHES, // TODO: actually implement this
 
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
