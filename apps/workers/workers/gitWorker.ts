@@ -149,7 +149,7 @@ async function runWorker(job: DequeuedJob<ZGitRequest>) {
     } else {
       logger.error(genericError);
     }
-    await deleteLeftOverAssets(jobId, assetFolder, assetPath);
+    await deleteLeftOverAssets(jobId, gitAssetId);
     return;
   }
 
@@ -200,7 +200,7 @@ async function runWorker(job: DequeuedJob<ZGitRequest>) {
       logger.warn(
         `[GitCrawler][${jobId}] Skipping git storage due to quota exceeded: ${error.message}`,
       );
-      await deleteLeftOverAssetFile(jobId, gitAssetId);
+      await deleteLeftOverAssets(jobId, gitAssetId);
       return;
     }
     throw error;
@@ -213,14 +213,16 @@ async function runWorker(job: DequeuedJob<ZGitRequest>) {
  * @param jobId the id of the job
  * @param assetId the id of the asset to delete
  */
-async function deleteLeftOverAssetFile(
+async function deleteLeftOverAssets(
   jobId: string,
-  assetFolder: string,
-  assetPath: string,
+  gitAssetId: string,
 ): Promise<void> {
   logger.info(
     `[GitCrawler][${jobId}] Deleting leftover git asset "${assetFile}".`,
   );
+  let assetFolder = `${TMP_FOLDER}/${gitAssetId}`;
+  let assetPath= `${TMP_FOLDER}/${gitAssetId}.tar.gz`;
+
   try {
     await fs.promises.rm(assetFolder, { recursive: true });
   } catch {
