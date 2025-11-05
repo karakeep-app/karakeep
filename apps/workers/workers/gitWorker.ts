@@ -54,8 +54,7 @@ export class GitWorker {
       },
       {
         pollIntervalMs: 1000,
-        // timeoutSecs: serverConfig.crawler.downloadGitTimeout,
-        timeoutSecs: 60,
+        timeoutSecs: serverConfig.crawler.downloadGitTimeout,
         concurrency: 1,
         validator: zdownloadRequestSchema,
       },

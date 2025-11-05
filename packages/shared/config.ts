@@ -105,7 +105,7 @@ const allEnv = z.object({
     .transform((t) => t.split("%%").filter((a) => a)),
 
   CRAWLER_GIT_DOWNLOAD: stringBool("false"),
-  CRAWLER_GIT_CLONE_TIMEOUT: z.coerce.number().default(5),
+  CRAWLER_GIT_TIMEOUT: z.coerce.number().default(60),
   CRAWLER_GIT_MIRROR: stringBool("false"),
   CRAWLER_GIT_CLONE_DEPTH: z.coerce.number().default(-1),
   CRAWLER_GIT_CLONE_ALL_BRANCHES: stringBool("false"),
