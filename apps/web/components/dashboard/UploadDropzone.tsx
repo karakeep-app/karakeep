@@ -34,7 +34,12 @@ export function useUploadAsset() {
     onSuccess: async (resp) => {
       const assetType =
         resp.contentType === "application/pdf" ? "pdf" : "image";
-      await createBookmark({ ...resp, type: BookmarkTypes.ASSET, assetType });
+      await createBookmark({
+        ...resp,
+        type: BookmarkTypes.ASSET,
+        assetType,
+        source: "web",
+      });
     },
     onError: (err, req) => {
       toast({
@@ -45,8 +50,26 @@ export function useUploadAsset() {
   });
 
   return useCallback(
-    (file: File) => {
-      return runUploadAsset(file);
+    async (file: File) => {
+      // Handle markdown files as text bookmarks
+      if (file.type === "text/markdown" || file.name.endsWith(".md")) {
+        try {
+          const content = await file.text();
+          await createBookmark({
+            type: BookmarkTypes.TEXT,
+            text: content,
+            title: file.name.replace(/\.md$/i, ""), // Remove .md extension from title
+            source: "web",
+          });
+        } catch {
+          toast({
+            description: `${file.name}: Failed to read markdown file`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        return runUploadAsset(file);
+      }
     },
     [runUploadAsset],
   );
@@ -134,7 +157,7 @@ export default function UploadDropzone({
               </div>
             ) : (
               <p className="text-2xl font-bold text-gray-700">
-                Drop Your Image / Bookmark file
+                Drop Your Image / PDF / Markdown file
               </p>
             )}
           </div>

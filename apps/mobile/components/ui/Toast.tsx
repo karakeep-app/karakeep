@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { Animated, Text, View } from "react-native";
+import { Animated, View } from "react-native";
+import { Text } from "@/components/ui/Text";
 import { cn } from "@/lib/utils";
 
 const toastVariants = {

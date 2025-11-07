@@ -36,7 +36,10 @@
     "updated_at": "更新于",
     "title": "标题",
     "description": "描述",
-    "summary": "摘要"
+    "summary": "摘要",
+    "quota": "配额",
+    "bookmarks": "书签",
+    "storage": "存储"
   },
   "layouts": {
     "masonry": "砌体",
@@ -83,7 +86,8 @@
       "relevant_first": "最相关优先"
     },
     "open_editor": "打开编辑器",
-    "toggle_show_archived": "显示已存档"
+    "toggle_show_archived": "显示已存档",
+    "confirm": "确认"
   },
   "settings": {
     "back_to_app": "返回应用",
@@ -229,6 +233,77 @@
         "favourited": "已收藏书签",
         "archived": "书签已存档"
       }
+    },
+    "stats": {
+      "usage_statistics": "使用统计信息",
+      "insights_description": "深入了解你的书签习惯和收藏",
+      "failed_to_load": "加载统计信息失败",
+      "overview": {
+        "total_bookmarks": "书签总数",
+        "all_saved_items": "所有已保存项目",
+        "favorites": "收藏夹",
+        "starred_bookmarks": "已加星标的书签",
+        "archived": "已存档",
+        "archived_items": "已归档的项目",
+        "tags": "标签",
+        "unique_tags_created": "已创建唯一标签",
+        "lists": "列表",
+        "bookmark_collections": "书签集合",
+        "highlights": "高亮",
+        "text_highlights": "文本高亮",
+        "storage_used": "已用存储",
+        "total_asset_storage": "总资产存储",
+        "this_month": "本月",
+        "bookmarks_added": "已添加书签"
+      },
+      "bookmark_types": {
+        "title": "书签类型",
+        "links": "链接",
+        "text_notes": "文本笔记",
+        "assets": "资产"
+      },
+      "recent_activity": {
+        "title": "最近的活动",
+        "this_week": "本周",
+        "this_month": "本月",
+        "this_year": "今年"
+      },
+      "top_domains": {
+        "title": "热门域名",
+        "no_domains_found": "未找到域名"
+      },
+      "most_used_tags": {
+        "title": "最常用的标签",
+        "no_tags_found": "未找到标签"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "按小时统计的活动",
+        "activity_by_day": "每日活动"
+      },
+      "storage_breakdown": {
+        "title": "存储细分"
+      }
+    },
+    "subscription": {
+      "subscription": "订阅",
+      "manage_subscription": "管理您的订阅和账单信息",
+      "current_plan": "当前计划",
+      "billing_period": "结算周期",
+      "paid_plan": "付费计划",
+      "unlock_bigger_quota": "解锁更大的配额并支持该项目",
+      "subscribe_now": "立即订阅",
+      "manage_billing": "管理账单",
+      "subscription_canceled": "您的订阅已取消，将于 {{date}} 结束。您可以随时重新订阅。",
+      "usage_quotas": "使用情况和配额",
+      "track_usage": "跟踪您当前的使用量与计划限制",
+      "total_bookmarks_saved": "已保存的书签总数",
+      "assets_file_storage": "资产和文件存储",
+      "unlimited_usage": "无限制使用",
+      "quota_limit_reached": "已达到配额限制",
+      "approaching_quota_limit": "即将达到配额限制",
+      "loading_usage": "正在加载使用信息...",
+      "free": "免费",
+      "paid": "已付费"
     }
   },
   "admin": {
@@ -252,7 +327,71 @@
       "feed_jobs": "RSS 订阅作业",
       "video_jobs": "视频下载作业",
       "webhook_jobs": "Webhook 作业",
-      "asset_preprocessing_jobs": "资源预处理作业"
+      "asset_preprocessing_jobs": "资源预处理作业",
+      "jobs": {
+        "crawler": {
+          "title": "爬虫任务",
+          "description": "从 URL 抓取网页内容并提取信息"
+        },
+        "inference": {
+          "title": "推理任务",
+          "description": "用人工智能给内容打标签和做总结"
+        },
+        "indexing": {
+          "title": "索引任务",
+          "description": "搜索索引更新"
+        },
+        "asset_preprocessing": {
+          "title": "资源预处理任务",
+          "description": "图片和文档预处理（截图、文本提取等）"
+        },
+        "tidy_assets": {
+          "title": "整理资源任务",
+          "description": "资源清理和存储优化"
+        },
+        "video": {
+          "title": "视频下载任务",
+          "description": "视频提取和下载"
+        },
+        "webhook": {
+          "title": "Webhook 任务",
+          "description": "外部 webhook 通知"
+        },
+        "feed": {
+          "title": "RSS 订阅任务",
+          "description": "RSS 订阅源处理和内容更新"
+        }
+      },
+      "monitor_and_manage": "监控和管理后台任务队列和系统处理任务",
+      "active": "活跃",
+      "available_actions": "可用操作",
+      "status": {
+        "title": "了解任务状态",
+        "queued": {
+          "title": "已加入队列",
+          "description": "正在排队等待处理的任务。当资源可用时，它们将自动启动。"
+        },
+        "unprocessed": {
+          "title": "未处理",
+          "description": "尚未处理的书签。如果它们没有排队，它们很可能已经在排队等待处理，如果没有，你可能需要手动重新将它们加入队列。"
+        },
+        "failed": {
+          "title": "失败",
+          "description": "处理过程中遇到错误的书签。这些书签可能需要手动处理。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "仅重新抓取失败链接",
+        "recrawl_all_links": "重新抓取所有链接",
+        "without_inference": "不进行推断",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 标签",
+        "regenerate_ai_tags_for_all_bookmarks": "为所有书签重新生成 AI 标签",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 摘要",
+        "regenerate_ai_summaries_for_all_bookmarks": "为所有书签重新生成 AI 摘要",
+        "reindex_all_bookmarks": "重新索引所有书签",
+        "clean_assets": "清理悬空资产并重新同步元数据",
+        "reprocess_assets_fix_mode": "重新处理未处理的资产"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "仅重新抓取失败链接",
@@ -275,7 +414,9 @@
       "num_bookmarks": "书签数",
       "asset_sizes": "资产大小",
       "local_user": "本地用户",
-      "confirm_password": "确认密码"
+      "confirm_password": "确认密码",
+      "delete_user_confirm_description": "你确定要删除用户“{{name}}”吗？",
+      "unlimited": "无限制"
     }
   },
   "options": {
@@ -451,7 +592,8 @@
     "month_s": " {months} 个月",
     "year_s": " {years} 年",
     "day_s_ago": " {days} 天前",
-    "week_s_ago": " {weeks} 周前"
+    "week_s_ago": " {weeks} 周前",
+    "history": "最近搜索"
   },
   "dialogs": {
     "bookmarks": {

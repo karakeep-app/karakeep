@@ -36,7 +36,10 @@
     "summary": "요약",
     "updated_at": "업데이트된 날짜",
     "title": "제목",
-    "description": "설명"
+    "description": "설명",
+    "quota": "할당량",
+    "bookmarks": "북마크",
+    "storage": "저장 공간"
   },
   "layouts": {
     "list": "목록",
@@ -83,7 +86,8 @@
       "relevant_first": "관련성 높은 순서대로"
     },
     "open_editor": "편집기 열기",
-    "toggle_show_archived": "보관된 항목 표시"
+    "toggle_show_archived": "보관된 항목 표시",
+    "confirm": "확인"
   },
   "tags": {
     "unused_tags": "사용되지 않은 태그",
@@ -133,7 +137,8 @@
     "day_s_ago": " 일 전",
     "week_s_ago": " 주 전",
     "month_s_ago": " 개월 전",
-    "year_s_ago": " 년 전"
+    "year_s_ago": " 년 전",
+    "history": "최근 검색어"
   },
   "preview": {
     "view_original": "원본 보기",
@@ -376,6 +381,77 @@
         "and": "다음 조건이 모두 참입니다",
         "or": "다음 중 하나라도 참이면"
       }
+    },
+    "stats": {
+      "usage_statistics": "사용 통계",
+      "insights_description": "북마크 습관 및 컬렉션에 대한 통찰력",
+      "failed_to_load": "통계 로드 실패",
+      "overview": {
+        "total_bookmarks": "총 북마크 수",
+        "all_saved_items": "저장된 모든 항목",
+        "favorites": "즐겨찾기",
+        "starred_bookmarks": "별표 표시된 북마크",
+        "archived": "보관됨",
+        "archived_items": "보관된 항목",
+        "tags": "태그",
+        "unique_tags_created": "고유 태그 생성됨",
+        "lists": "목록",
+        "bookmark_collections": "북마크 컬렉션",
+        "highlights": "하이라이트",
+        "text_highlights": "텍스트 하이라이트",
+        "storage_used": "사용된 저장 공간",
+        "total_asset_storage": "총 자산 저장 공간",
+        "this_month": "이번 달",
+        "bookmarks_added": "북마크 추가됨"
+      },
+      "bookmark_types": {
+        "title": "북마크 유형",
+        "links": "링크",
+        "text_notes": "텍스트 노트",
+        "assets": "자산"
+      },
+      "recent_activity": {
+        "title": "최근 활동",
+        "this_week": "이번 주",
+        "this_month": "이번 달",
+        "this_year": "올해"
+      },
+      "top_domains": {
+        "title": "인기 도메인",
+        "no_domains_found": "도메인 없음"
+      },
+      "most_used_tags": {
+        "title": "가장 많이 사용된 태그",
+        "no_tags_found": "태그를 찾을 수 없음"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "시간별 활동",
+        "activity_by_day": "일별 활동"
+      },
+      "storage_breakdown": {
+        "title": "저장 공간 분석"
+      }
+    },
+    "subscription": {
+      "subscription": "구독",
+      "manage_subscription": "구독 및 결제 정보 관리",
+      "current_plan": "현재 플랜",
+      "billing_period": "결제 기간",
+      "paid_plan": "유료 플랜",
+      "unlock_bigger_quota": "더 큰 할당량을 확보하고 프로젝트를 지원하세요",
+      "subscribe_now": "지금 구독하기",
+      "manage_billing": "결제 관리",
+      "subscription_canceled": "구독이 취소되었으며 {{date}}에 종료됩니다. 언제든지 다시 구독할 수 있습니다.",
+      "usage_quotas": "사용량 및 할당량",
+      "track_usage": "현재 사용량을 플랜 제한과 비교하여 추적하세요",
+      "total_bookmarks_saved": "총 저장된 북마크 수",
+      "assets_file_storage": "에셋 및 파일 저장소",
+      "unlimited_usage": "무제한 사용",
+      "quota_limit_reached": "할당량 제한에 도달했습니다",
+      "approaching_quota_limit": "할당량 제한에 거의 도달했습니다",
+      "loading_usage": "사용량 정보 로딩 중...",
+      "free": "무료",
+      "paid": "유료"
     }
   },
   "admin": {
@@ -388,7 +464,9 @@
       "num_bookmarks": "북마크 갯수",
       "asset_sizes": "애셋 크기",
       "local_user": "로컬 사용자",
-      "confirm_password": "암호 확인"
+      "confirm_password": "암호 확인",
+      "delete_user_confirm_description": "진짜 \"{{name}}\" 유저를 삭제하시겠어요?",
+      "unlimited": "무제한"
     },
     "admin_settings": "관리자 설정",
     "server_stats": {
@@ -410,7 +488,71 @@
       "asset_preprocessing_jobs": "에셋 전처리 작업",
       "feed_jobs": "RSS 피드 작업",
       "video_jobs": "비디오 다운로드 작업",
-      "webhook_jobs": "웹훅 작업"
+      "webhook_jobs": "웹훅 작업",
+      "monitor_and_manage": "백그라운드 작업 대기열 및 시스템 처리 작업 모니터링 및 관리",
+      "jobs": {
+        "crawler": {
+          "title": "크롤러 작업",
+          "description": "URL에서 웹 크롤링 및 콘텐츠 추출"
+        },
+        "inference": {
+          "title": "추론 작업",
+          "description": "AI 기반 콘텐츠 태깅 및 요약"
+        },
+        "indexing": {
+          "title": "색인 작업",
+          "description": "검색 색인 업데이트"
+        },
+        "asset_preprocessing": {
+          "title": "자산 전처리 작업",
+          "description": "이미지 및 문서 전처리 (스크린샷, 텍스트 추출 등)"
+        },
+        "tidy_assets": {
+          "title": "자산 정리 작업",
+          "description": "자산 정리 및 저장소 최적화"
+        },
+        "video": {
+          "title": "비디오 다운로드 작업",
+          "description": "비디오 추출 및 다운로드"
+        },
+        "webhook": {
+          "title": "Webhook 작업",
+          "description": "외부 웹후크 알림"
+        },
+        "feed": {
+          "title": "RSS 피드 작업",
+          "description": "RSS 피드 처리 및 콘텐츠 업데이트"
+        }
+      },
+      "active": "활성",
+      "available_actions": "사용 가능한 액션",
+      "status": {
+        "title": "작업 상태 이해",
+        "queued": {
+          "title": "대기 중",
+          "description": "처리되기를 기다리는 작업들. 리소스가 확보되면 자동으로 시작될 거야."
+        },
+        "unprocessed": {
+          "title": "미처리됨",
+          "description": "아직 처리되지 않은 북마크들. 대부분 이미 처리 대기 중일 거고, 아니면 수동으로 다시 대기열에 넣어야 할 수도 있어."
+        },
+        "failed": {
+          "title": "실패함",
+          "description": "처리 중에 오류가 발생한 북마크들. 수동으로 확인해야 할 수도 있어."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "실패한 링크만 다시 크롤링",
+        "recrawl_all_links": "모든 링크 다시 크롤링",
+        "without_inference": "추론 없이",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "실패한 북마크만 AI 태그 다시 생성",
+        "regenerate_ai_tags_for_all_bookmarks": "모든 북마크 AI 태그 다시 생성",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "실패한 북마크만 AI 요약 다시 생성",
+        "regenerate_ai_summaries_for_all_bookmarks": "모든 북마크 AI 요약 다시 생성",
+        "reindex_all_bookmarks": "모든 북마크 다시 색인하기",
+        "clean_assets": "연결되지 않은 에셋 정리 및 메타데이터 재동기화",
+        "reprocess_assets_fix_mode": "미처리된 에셋 다시 처리"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "실패한 링크만 다시 가져오기",

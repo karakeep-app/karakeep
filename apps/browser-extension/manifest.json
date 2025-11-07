@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Karakeep",
   "description": "An extension to bookmark links to karakeep.app",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "icons": {
     "16": "public/logo-16.png",
     "48": "public/logo-48.png",
@@ -44,5 +44,13 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "permissions": ["storage", "tabs", "contextMenus"]
+  "permissions": ["storage", "tabs", "contextMenus"],
+  "commands": {
+    "add-link": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Send the current page URL to Karakeep."
+    }
+  }
 }

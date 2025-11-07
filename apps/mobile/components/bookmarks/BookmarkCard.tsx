@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -6,15 +5,19 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
+  Share,
   View,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { router, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
+import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
-import { Ellipsis, Star } from "lucide-react-native";
+import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
@@ -24,7 +27,7 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
-  isBookmarkStillLoading,
+  getBookmarkRefreshInterval,
   isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -33,10 +36,12 @@ import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkTextMarkdown from "./BookmarkTextMarkdown";
+import { NotePreview } from "./NotePreview";
 import TagPill from "./TagPill";
 
 function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
   const { toast } = useToast();
+  const { settings } = useAppSettings();
 
   const onError = () => {
     toast({
@@ -86,6 +91,71 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
       ],
     );
 
+  const handleShare = async () => {
+    try {
+      switch (bookmark.content.type) {
+        case BookmarkTypes.LINK:
+          await Share.share({
+            url: bookmark.content.url,
+            message: bookmark.content.url,
+          });
+          break;
+
+        case BookmarkTypes.TEXT:
+          await Clipboard.setStringAsync(bookmark.content.text);
+          toast({
+            message: "Text copied to clipboard",
+            showProgress: false,
+          });
+          break;
+
+        case BookmarkTypes.ASSET:
+          if (bookmark.content.assetType === "image") {
+            if (await Sharing.isAvailableAsync()) {
+              const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+              const fileUri = `${FileSystem.documentDirectory}temp_image.jpg`;
+
+              const downloadResult = await FileSystem.downloadAsync(
+                assetUrl,
+                fileUri,
+                {
+                  headers: {
+                    Authorization: `Bearer ${settings.apiKey}`,
+                  },
+                },
+              );
+
+              if (downloadResult.status === 200) {
+                await Sharing.shareAsync(downloadResult.uri);
+                // Clean up the temporary file
+                await FileSystem.deleteAsync(downloadResult.uri, {
+                  idempotent: true,
+                });
+              } else {
+                throw new Error("Failed to download image");
+              }
+            }
+          } else {
+            // For PDFs, share the URL
+            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+            await Share.share({
+              url: assetUrl,
+              message:
+                bookmark.title || bookmark.content.fileName || "PDF Document",
+            });
+          }
+          break;
+      }
+    } catch (error) {
+      console.error("Share error:", error);
+      toast({
+        message: "Failed to share",
+        variant: "destructive",
+        showProgress: false,
+      });
+    }
+  };
+
   return (
     <View className="flex flex-row gap-4">
       {(isArchivePending || isDeletionPending) && <ActivityIndicator />}
@@ -105,6 +175,15 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         )}
       </Pressable>
 
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync();
+          handleShare();
+        }}
+      >
+        <ShareIcon color="gray" />
+      </Pressable>
+
       <MenuView
         onPressAction={({ nativeEvent }) => {
           Haptics.selectionAsync();
@@ -119,9 +198,32 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`);
           } else if (nativeEvent.event === "manage_tags") {
             router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`);
+          } else if (nativeEvent.event === "edit") {
+            router.push(`/dashboard/bookmarks/${bookmark.id}/info`);
           }
         }}
         actions={[
+          {
+            id: "edit",
+            title: "Edit",
+            image: Platform.select({
+              ios: "pencil",
+            }),
+          },
+          {
+            id: "manage_list",
+            title: "Manage Lists",
+            image: Platform.select({
+              ios: "list.bullet",
+            }),
+          },
+          {
+            id: "manage_tags",
+            title: "Manage Tags",
+            image: Platform.select({
+              ios: "tag",
+            }),
+          },
           {
             id: "archive",
             title: bookmark.archived ? "Un-archive" : "Archive",
@@ -137,20 +239,6 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             },
             image: Platform.select({
               ios: "trash",
-            }),
-          },
-          {
-            id: "manage_list",
-            title: "Manage Lists",
-            image: Platform.select({
-              ios: "list",
-            }),
-          },
-          {
-            id: "manage_tags",
-            title: "Manage Tags",
-            image: Platform.select({
-              ios: "tag",
             }),
           },
         ]}
@@ -197,6 +285,7 @@ function LinkCard({
     throw new Error("Wrong content type rendered");
   }
 
+  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const url = bookmark.content.url;
   const parsedUrl = new URL(url);
 
@@ -224,7 +313,7 @@ function LinkCard({
   } else {
     imageComp = (
       <Image
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // oxlint-disable-next-line no-require-imports
         source={require("@/assets/blur.jpeg")}
         className="h-56 w-full rounded-t-lg"
       />
@@ -241,12 +330,11 @@ function LinkCard({
         >
           {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
         </Text>
+        {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto line-clamp-1 text-foreground">
-            {parsedUrl.host}
-          </Text>
+          <Text className="my-auto line-clamp-1">{parsedUrl.host}</Text>
           <ActionBar bookmark={bookmark} />
         </View>
       </View>
@@ -261,15 +349,17 @@ function TextCard({
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
 }) {
+  const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
     throw new Error("Wrong content type rendered");
   }
+  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const content = bookmark.content.text;
   return (
     <View className="flex max-h-96 gap-2 p-2">
       <Pressable onPress={onOpenBookmark}>
         {bookmark.title && (
-          <Text className="line-clamp-2 text-xl font-bold text-foreground">
+          <Text className="line-clamp-2 text-xl font-bold">
             {bookmark.title}
           </Text>
         )}
@@ -279,6 +369,7 @@ function TextCard({
           <BookmarkTextMarkdown text={content} />
         </Pressable>
       </View>
+      {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
       <TagList bookmark={bookmark} />
       <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
       <View className="flex flex-row justify-between p-2">
@@ -296,9 +387,11 @@ function AssetCard({
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
 }) {
+  const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.ASSET) {
     throw new Error("Wrong content type rendered");
   }
+  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const title = bookmark.title ?? bookmark.content.fileName;
 
   const assetImage =
@@ -316,11 +409,10 @@ function AssetCard({
       <View className="flex gap-2 p-2">
         <Pressable onPress={onOpenBookmark}>
           {title && (
-            <Text className="line-clamp-2 text-xl font-bold text-foreground">
-              {title}
-            </Text>
+            <Text className="line-clamp-2 text-xl font-bold">{title}</Text>
           )}
         </Pressable>
+        {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
@@ -348,11 +440,7 @@ export default function BookmarkCard({
         if (!data) {
           return false;
         }
-        // If the link is not crawled or not tagged
-        if (isBookmarkStillLoading(data)) {
-          return 1000;
-        }
-        return false;
+        return getBookmarkRefreshInterval(data);
       },
     },
   );
@@ -393,9 +481,5 @@ export default function BookmarkCard({
       break;
   }
 
-  return (
-    <View className="overflow-hidden rounded-xl border-b border-accent bg-background">
-      {comp}
-    </View>
-  );
+  return <View className="overflow-hidden rounded-xl bg-card">{comp}</View>;
 }

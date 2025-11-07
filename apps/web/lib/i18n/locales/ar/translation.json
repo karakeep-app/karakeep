@@ -36,7 +36,10 @@
     "title": "العنوان",
     "description": "الوصف",
     "summary": "ملخص",
-    "updated_at": "تم التحديث في"
+    "updated_at": "تم التحديث في",
+    "quota": "حصة",
+    "bookmarks": "الإشارات المرجعية",
+    "storage": "تخزين"
   },
   "layouts": {
     "masonry": "متعدد الأعمدة",
@@ -83,7 +86,8 @@
       "relevant_first": "الأكثر صلة أولاً"
     },
     "open_editor": "فتح المحرر",
-    "toggle_show_archived": "اعرض المؤرشفة"
+    "toggle_show_archived": "اعرض المؤرشفة",
+    "confirm": "تأكيد"
   },
   "highlights": {
     "no_highlights": "ليس لديك أي تمييزات بعد."
@@ -232,6 +236,77 @@
         "favourited": "تم تفضيل إشارة مرجعية",
         "archived": "تم أرشفة إشارة مرجعية"
       }
+    },
+    "stats": {
+      "usage_statistics": "إحصائيات الاستخدام",
+      "insights_description": "نظرة ثاقبة على عاداتك في وضع الإشارات المرجعية ومجموعتك",
+      "failed_to_load": "فشل تحميل الإحصائيات",
+      "overview": {
+        "total_bookmarks": "إجمالي الإشارات المرجعية",
+        "all_saved_items": "جميع العناصر المحفوظة",
+        "favorites": "المفضلة",
+        "starred_bookmarks": "الإشارات المرجعية المميزة بنجمة",
+        "archived": "مؤرشف",
+        "archived_items": "العناصر المؤرشفة",
+        "tags": "العلامات",
+        "unique_tags_created": "تم إنشاء علامات فريدة",
+        "lists": "قوائم",
+        "bookmark_collections": "مجموعات الإشارات المرجعية",
+        "highlights": "أبرز النقاط",
+        "text_highlights": "أبرز النقاط النصية",
+        "storage_used": "التخزين المستخدم",
+        "total_asset_storage": "إجمالي مساحة تخزين الأصول",
+        "this_month": "هذا الشهر",
+        "bookmarks_added": "تمت إضافة الإشارات المرجعية"
+      },
+      "bookmark_types": {
+        "title": "أنواع الإشارات المرجعية",
+        "links": "روابط",
+        "text_notes": "ملاحظات نصية",
+        "assets": "الأصول"
+      },
+      "recent_activity": {
+        "title": "النشاط الأخير",
+        "this_week": "هذا الأسبوع",
+        "this_month": "هذا الشهر",
+        "this_year": "هذا العام"
+      },
+      "top_domains": {
+        "title": "أهم النطاقات",
+        "no_domains_found": "لم يتم العثور على نطاقات"
+      },
+      "most_used_tags": {
+        "title": "العلامات الأكثر استخدامًا",
+        "no_tags_found": "لم يتم العثور على علامات"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "النشاط حسب الساعة",
+        "activity_by_day": "النشاط حسب اليوم"
+      },
+      "storage_breakdown": {
+        "title": "تفصيل التخزين"
+      }
+    },
+    "subscription": {
+      "subscription": "اشتراك",
+      "manage_subscription": "إدارة معلومات الاشتراك والفوترة الخاصة بك",
+      "current_plan": "الخطة الحالية",
+      "billing_period": "فترة الفوترة",
+      "paid_plan": "خطة مدفوعة",
+      "unlock_bigger_quota": "افتح حصة أكبر وادعم المشروع",
+      "subscribe_now": "اشترك الآن",
+      "manage_billing": "إدارة الفوترة",
+      "subscription_canceled": "تم إلغاء اشتراكك وسينتهي في {{date}}. يمكنك إعادة الاشتراك في أي وقت.",
+      "usage_quotas": "الاستخدام والحصص",
+      "track_usage": "تتبع استخدامك الحالي مقابل حدود خطتك",
+      "total_bookmarks_saved": "إجمالي الإشارات المرجعية المحفوظة",
+      "assets_file_storage": "الأصول وتخزين الملفات",
+      "unlimited_usage": "استخدام غير محدود",
+      "quota_limit_reached": "تم الوصول إلى حد الحصة",
+      "approaching_quota_limit": "الاقتراب من حد الحصة",
+      "loading_usage": "جارٍ تحميل معلومات الاستخدام...",
+      "free": "مجاني",
+      "paid": "مدفوعة"
     }
   },
   "admin": {
@@ -255,7 +330,71 @@
       "feed_jobs": "وظائف موجز RSS",
       "video_jobs": "وظائف تنزيل الفيديو",
       "webhook_jobs": "وظائف Webhook",
-      "asset_preprocessing_jobs": "وظائف المعالجة المسبقة للأصول"
+      "asset_preprocessing_jobs": "وظائف المعالجة المسبقة للأصول",
+      "jobs": {
+        "crawler": {
+          "title": "وظائف الزحف",
+          "description": "الزحف على الويب واستخراج المحتوى من عناوين URL"
+        },
+        "inference": {
+          "title": "وظائف الاستدلال",
+          "description": "وضع العلامات وتلخيص المحتوى المدعوم بالذكاء الاصطناعي"
+        },
+        "indexing": {
+          "title": "وظائف الفهرسة",
+          "description": "تحديثات فهرس البحث"
+        },
+        "asset_preprocessing": {
+          "title": "وظائف المعالجة المسبقة للأصول",
+          "description": "معالجة الصور والمستندات (لقطات الشاشة، واستخراج النصوص، إلخ.)"
+        },
+        "tidy_assets": {
+          "title": "وظائف تنظيف الأصول",
+          "description": "تنظيف الأصول وتحسين التخزين"
+        },
+        "video": {
+          "title": "وظائف تنزيل الفيديو",
+          "description": "استخراج الفيديو وتنزيله"
+        },
+        "webhook": {
+          "title": "وظائف Webhook",
+          "description": "إشعارات Webhook الخارجية"
+        },
+        "feed": {
+          "title": "وظائف تغذية RSS",
+          "description": "معالجة موجز RSS وتحديثات المحتوى"
+        }
+      },
+      "monitor_and_manage": "مراقبة وإدارة قوائم انتظار الوظائف الخلفية ومهام معالجة النظام",
+      "active": "نشط",
+      "available_actions": "الإجراءات المتاحة",
+      "status": {
+        "title": "فهم حالات الوظائف",
+        "queued": {
+          "title": "في الانتظار",
+          "description": "الوظائف في انتظار دورها للمعالجة. ستبدأ تلقائيًا عندما تتوفر الموارد."
+        },
+        "unprocessed": {
+          "title": "لم تتم معالجته",
+          "description": "الإشارات المرجعية التي لم تتم معالجتها بعد. من المرجح أنها قيد الانتظار للمعالجة بالفعل، وإذا لم يكن الأمر كذلك، فقد تحتاج إلى إعادة إدخالها يدويًا."
+        },
+        "failed": {
+          "title": "فشل",
+          "description": "علامات مرجعية واجهت أخطاء أثناء المعالجة. قد تحتاج هذه إلى اهتمام يدوي."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "إعادة زحف الروابط الفاشلة فقط",
+        "recrawl_all_links": "إعادة زحف جميع الروابط",
+        "without_inference": "بدون استدلال",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "إعادة إنشاء علامات الذكاء الاصطناعي فقط للمعلومات المرجعية التي فشلت",
+        "regenerate_ai_tags_for_all_bookmarks": "إعادة إنشاء علامات الذكاء الاصطناعي لجميع الإشارات المرجعية",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "إعادة إنشاء ملخصات الذكاء الاصطناعي للإشارات المرجعية الفاشلة فقط",
+        "regenerate_ai_summaries_for_all_bookmarks": "إعادة إنشاء ملخصات الذكاء الاصطناعي لجميع الإشارات المرجعية",
+        "reindex_all_bookmarks": "إعادة فهرسة جميع الإشارات المرجعية",
+        "clean_assets": "تنظيف الأصول المتدلية وإعادة مزامنة البيانات الوصفية",
+        "reprocess_assets_fix_mode": "إعادة معالجة الأصول غير المعالجة"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "إعادة استكشاف الروابط الفاشلة فقط",
@@ -278,7 +417,9 @@
       "num_bookmarks": "عدد الإشارات المرجعية",
       "asset_sizes": "أحجام الوسائط",
       "local_user": "مستخدم محلي",
-      "confirm_password": "تأكيد كلمة المرور"
+      "confirm_password": "تأكيد كلمة المرور",
+      "delete_user_confirm_description": "هل أنت متأكد أنك تريد حذف المستخدم \"{{name}}؟\"",
+      "unlimited": "غير محدود"
     }
   },
   "options": {
@@ -363,7 +504,8 @@
     "month_s": " شهر (أشهر)",
     "year_s": " سنة (سنوات)",
     "day_s_ago": " منذ يوم (أيام)",
-    "week_s_ago": " منذ أسبوع (أسابيع)"
+    "week_s_ago": " منذ أسبوع (أسابيع)",
+    "history": "عمليات البحث الأخيرة"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",

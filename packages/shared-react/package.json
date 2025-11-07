@@ -3,21 +3,21 @@
   "name": "@karakeep/shared-react",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
-    "@tanstack/react-query": "^5.67.1",
-    "@trpc/client": "11.0.0",
+    "@tanstack/react-query": "5.90.2",
+    "@trpc/client": "^11.4.3",
     "superjson": "^2.2.1"
   },
   "devDependencies": {
-    "@karakeep/eslint-config": "workspace:^0.2.0",
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-native": "^0.76.3"
+    "react": "^19.0.0",
+    "react-native": "0.79.3"
   },
   "peerDependenciesMeta": {
     "react-native": {
@@ -26,15 +26,10 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "lint": "eslint ."
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@karakeep/eslint-config/base",
-      "@karakeep/eslint-config/react"
-    ]
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
   },
   "prettier": "@karakeep/prettier-config"
 }

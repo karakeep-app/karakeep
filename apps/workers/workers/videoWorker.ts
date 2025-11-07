@@ -2,42 +2,42 @@ import fs from "fs";
 import * as os from "os";
 import path from "path";
 import { execa } from "execa";
-import { DequeuedJob, Runner } from "liteque";
+import { workerStatsCounter } from "metrics";
+import { getProxyAgent, validateUrl } from "network";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
 import {
+  QuotaService,
+  StorageQuotaError,
+  VideoWorkerQueue,
+  ZVideoRequest,
+  zvideoRequestSchema,
+} from "@karakeep/shared-server";
+import {
   ASSET_TYPES,
-  getAssetSize,
   newAssetId,
   saveAssetFromFile,
   silentDeleteAsset,
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import {
-  VideoWorkerQueue,
-  ZVideoRequest,
-  zvideoRequestSchema,
-} from "@karakeep/shared/queues";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
-import { withTimeout } from "../utils";
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
 
 export class VideoWorker {
-  static build() {
+  static async build() {
     logger.info("Starting video worker ...");
 
-    return new Runner<ZVideoRequest>(
+    return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
-        run: withTimeout(
-          runWorker,
-          /* timeoutSec */ serverConfig.crawler.downloadVideoTimeout,
-        ),
+        run: runWorker,
         onComplete: async (job) => {
+          workerStatsCounter.labels("video", "completed").inc();
           const jobId = job.id;
           logger.info(
             `[VideoCrawler][${jobId}] Video Download Completed successfully`,
@@ -45,6 +45,7 @@ export class VideoWorker {
           return Promise.resolve();
         },
         onError: async (job) => {
+          workerStatsCounter.labels("video", "failed").inc();
           const jobId = job.id;
           logger.error(
             `[VideoCrawler][${jobId}] Video Download job failed: ${job.error}`,
@@ -62,7 +63,11 @@ export class VideoWorker {
   }
 }
 
-function prepareYtDlpArguments(url: string, assetPath: string) {
+function prepareYtDlpArguments(
+  url: string,
+  proxy: string | undefined,
+  assetPath: string,
+) {
   const ytDlpArguments = [url];
   if (serverConfig.crawler.maxVideoDownloadSize > 0) {
     ytDlpArguments.push(
@@ -74,6 +79,9 @@ function prepareYtDlpArguments(url: string, assetPath: string) {
   ytDlpArguments.push(...serverConfig.crawler.ytDlpArguments);
   ytDlpArguments.push("-o", assetPath);
   ytDlpArguments.push("--no-playlist");
+  if (proxy) {
+    ytDlpArguments.push("--proxy", proxy);
+  }
   return ytDlpArguments;
 }
 
@@ -94,15 +102,29 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     return;
   }
 
+  const proxy = getProxyAgent(url);
+  const validation = await validateUrl(url, !!proxy);
+  if (!validation.ok) {
+    logger.warn(
+      `[VideoCrawler][${jobId}] Skipping video download to disallowed URL "${url}": ${validation.reason}`,
+    );
+    return;
+  }
+  const normalizedUrl = validation.url.toString();
+
   const videoAssetId = newAssetId();
   let assetPath = `${TMP_FOLDER}/${videoAssetId}`;
   await fs.promises.mkdir(TMP_FOLDER, { recursive: true });
 
-  const ytDlpArguments = prepareYtDlpArguments(url, assetPath);
+  const ytDlpArguments = prepareYtDlpArguments(
+    normalizedUrl,
+    proxy?.proxy.toString(),
+    assetPath,
+  );
 
   try {
     logger.info(
-      `[VideoCrawler][${jobId}] Attempting to download a file from "${url}" to "${assetPath}" using the following arguments: "${ytDlpArguments}"`,
+      `[VideoCrawler][${jobId}] Attempting to download a file from "${normalizedUrl}" to "${assetPath}" using the following arguments: "${ytDlpArguments}"`,
     );
 
     await execa("yt-dlp", ytDlpArguments, {
@@ -123,46 +145,72 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       err.message.includes("No media found")
     ) {
       logger.info(
-        `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it's not one of the supported yt-dlp URLs`,
+        `[VideoCrawler][${jobId}] Skipping video download from "${normalizedUrl}", because it's not one of the supported yt-dlp URLs`,
       );
       return;
     }
-    logger.error(
-      `[VideoCrawler][${jobId}] Failed to download a file from "${url}" to "${assetPath}"`,
-    );
+    const genericError = `[VideoCrawler][${jobId}] Failed to download a file from "${normalizedUrl}" to "${assetPath}"`;
+    if ("stderr" in err) {
+      logger.error(`${genericError}: ${err.stderr}`);
+    } else {
+      logger.error(genericError);
+    }
     await deleteLeftOverAssetFile(jobId, videoAssetId);
     return;
   }
 
   logger.info(
-    `[VideoCrawler][${jobId}] Finished downloading a file from "${url}" to "${assetPath}"`,
+    `[VideoCrawler][${jobId}] Finished downloading a file from "${normalizedUrl}" to "${assetPath}"`,
   );
-  await saveAssetFromFile({
-    userId,
-    assetId: videoAssetId,
-    assetPath,
-    metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
-  });
 
-  await db.transaction(async (txn) => {
-    await updateAsset(
-      oldVideoAssetId,
-      {
-        id: videoAssetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.LINK_VIDEO,
-        contentType: ASSET_TYPES.VIDEO_MP4,
-        size: await getAssetSize({ userId, assetId: videoAssetId }),
-      },
-      txn,
+  // Get file size and check quota before saving
+  const stats = await fs.promises.stat(assetPath);
+  const fileSize = stats.size;
+
+  try {
+    const quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      userId,
+      fileSize,
     );
-  });
-  await silentDeleteAsset(userId, oldVideoAssetId);
 
-  logger.info(
-    `[VideoCrawler][${jobId}] Finished downloading video from "${url}" and adding it to the database`,
-  );
+    await saveAssetFromFile({
+      userId,
+      assetId: videoAssetId,
+      assetPath,
+      metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
+      quotaApproved,
+    });
+
+    await db.transaction(async (txn) => {
+      await updateAsset(
+        oldVideoAssetId,
+        {
+          id: videoAssetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_VIDEO,
+          contentType: ASSET_TYPES.VIDEO_MP4,
+          size: fileSize,
+        },
+        txn,
+      );
+    });
+    await silentDeleteAsset(userId, oldVideoAssetId);
+
+    logger.info(
+      `[VideoCrawler][${jobId}] Finished downloading video from "${normalizedUrl}" and adding it to the database`,
+    );
+  } catch (error) {
+    if (error instanceof StorageQuotaError) {
+      logger.warn(
+        `[VideoCrawler][${jobId}] Skipping video storage due to quota exceeded: ${error.message}`,
+      );
+      await deleteLeftOverAssetFile(jobId, videoAssetId);
+      return;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -190,7 +238,7 @@ async function deleteLeftOverAssetFile(
   );
   try {
     await fs.promises.rm(assetFile);
-  } catch (e) {
+  } catch {
     logger.error(
       `[VideoCrawler][${jobId}] Failed deleting leftover video asset "${assetFile}".`,
     );

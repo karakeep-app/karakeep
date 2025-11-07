@@ -8,14 +8,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useIsSearchPage } from "@/lib/hooks/bookmark-search";
 import { useTranslation } from "@/lib/i18n/client";
+import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { Check, ListFilter, SortAsc, SortDesc } from "lucide-react";
 
 export default function SortOrderToggle() {
   const { t } = useTranslation();
-  const isInSearchPage = useIsSearchPage();
+  const isInSearchPage = useInSearchPageStore();
 
   const { sortOrder: currentSort, setSortOrder } = useSortOrderStore();
 

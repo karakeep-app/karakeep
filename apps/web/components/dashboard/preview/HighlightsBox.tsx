@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,10 +29,10 @@ export default function HighlightsBox({ bookmarkId }: { bookmarkId: string }) {
       </CollapsibleTrigger>
       <CollapsibleContent className="group flex flex-col py-3 text-sm">
         {highlights.highlights.map((highlight) => (
-          <>
-            <HighlightCard key={highlight.id} highlight={highlight} clickable />
+          <Fragment key={highlight.id}>
+            <HighlightCard highlight={highlight} clickable />
             <Separator className="m-2 h-0.5 bg-gray-200 last:hidden" />
-          </>
+          </Fragment>
         ))}
       </CollapsibleContent>
     </Collapsible>

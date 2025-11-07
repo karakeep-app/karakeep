@@ -25,7 +25,6 @@ import {
   CircleDashed,
   CirclePlus,
   Edit,
-  FlaskConical,
   Plus,
   Save,
   Trash2,
@@ -72,6 +71,7 @@ export function FeedsEditorDialog() {
       name: "",
       url: "",
       enabled: true,
+      importTags: false,
     },
   });
 
@@ -143,6 +143,28 @@ export function FeedsEditorDialog() {
                 );
               }}
             />
+            <FormField
+              control={form.control}
+              name="importTags"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Import Tags</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        Automatically import categories from RSS feed as tags
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
+            />
           </form>
         </Form>
         <DialogFooter>
@@ -178,6 +200,7 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
         feedId: feed.id,
         name: feed.name,
         url: feed.url,
+        importTags: feed.importTags,
       });
     }
   }, [open]);
@@ -197,6 +220,7 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
       feedId: feed.id,
       name: feed.name,
       url: feed.url,
+      importTags: feed.importTags,
     },
   });
   return (
@@ -263,6 +287,28 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
                       <Input placeholder="Feed url" type="text" {...field} />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="importTags"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Import Tags</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        Automatically import categories from RSS feed as tags
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
                   </FormItem>
                 );
               }}
@@ -419,14 +465,6 @@ export default function FeedSettings() {
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-lg font-medium">
               {t("settings.feeds.rss_subscriptions")}
-              <Tooltip>
-                <TooltipTrigger className="text-muted-foreground">
-                  <FlaskConical size={15} />
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {t("common.experimental")}
-                </TooltipContent>
-              </Tooltip>
             </span>
             <FeedsEditorDialog />
           </div>

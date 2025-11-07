@@ -8,9 +8,12 @@ export const zRoleSchema = z.object({
 
 export const zAdminCreateUserSchema = zSignUpSchema.and(zRoleSchema);
 
-export const changeRoleSchema = z.object({
+export const updateUserSchema = z.object({
   userId: z.string(),
-  role: z.enum(["user", "admin"]),
+  role: z.enum(["user", "admin"]).optional(),
+  bookmarkQuota: z.number().int().min(0).nullable().optional(),
+  storageQuota: z.number().int().min(0).nullable().optional(),
+  browserCrawlingEnabled: z.boolean().nullable().optional(),
 });
 
 export const resetPasswordSchema = z

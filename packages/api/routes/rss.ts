@@ -14,7 +14,7 @@ const app = new Hono().get(
   zValidator(
     "query",
     z.object({
-      token: z.string().min(1),
+      token: z.string().min(1).optional(),
       limit: z.coerce
         .number()
         .min(1)
@@ -28,11 +28,16 @@ const app = new Hono().get(
     const searchParams = c.req.valid("query");
     const token = searchParams.token;
 
-    const res = await List.getPublicListContents(c.var.ctx, listId, token, {
-      limit: searchParams.limit ?? 20,
-      order: "desc",
-      cursor: null,
-    });
+    const res = await List.getPublicListContents(
+      c.var.ctx,
+      listId,
+      token ?? null,
+      {
+        limit: searchParams.limit ?? 20,
+        order: "desc",
+        cursor: null,
+      },
+    );
     const list = res.list;
 
     const rssFeed = toRSS(

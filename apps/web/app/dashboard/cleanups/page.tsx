@@ -4,6 +4,7 @@ import { useTranslation } from "@/lib/i18n/server";
 import { Paintbrush, Tags } from "lucide-react";
 
 export default async function Cleanups() {
+  // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
 
   return (

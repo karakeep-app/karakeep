@@ -1,9 +1,11 @@
 import React, { useLayoutEffect } from "react";
 import { Tabs, useNavigation } from "expo-router";
 import { StyledTabs } from "@/components/navigation/tabs";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { ClipboardList, Home, Settings } from "lucide-react-native";
 
 export default function TabLayout() {
+  const { colors } = useColorScheme();
   const navigation = useNavigation();
   // Hide the header on the parent screen
   useLayoutEffect(() => {
@@ -18,6 +20,7 @@ export default function TabLayout() {
       sceneClassName="bg-gray-100 dark:bg-background"
       screenOptions={{
         headerShown: false,
+        tabBarActiveTintColor: colors.foreground,
       }}
     >
       <Tabs.Screen

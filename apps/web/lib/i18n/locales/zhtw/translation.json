@@ -36,7 +36,10 @@
     "updated_at": "更新於",
     "title": "標題",
     "description": "描述",
-    "summary": "摘要"
+    "summary": "摘要",
+    "quota": "配額",
+    "bookmarks": "書籤",
+    "storage": "儲存空間"
   },
   "layouts": {
     "masonry": "瀑布式",
@@ -83,7 +86,8 @@
     },
     "recrawl": "重新抓取",
     "open_editor": "開啟編輯器",
-    "toggle_show_archived": "顯示已封存"
+    "toggle_show_archived": "顯示已封存",
+    "confirm": "確認"
   },
   "settings": {
     "back_to_app": "返回應用程式",
@@ -229,6 +233,77 @@
         "favourited": "已將書籤設為我的最愛",
         "archived": "已封存書籤"
       }
+    },
+    "stats": {
+      "usage_statistics": "使用量統計",
+      "insights_description": "深入瞭解你的書籤習慣和收藏",
+      "failed_to_load": "載入統計資料失敗",
+      "overview": {
+        "total_bookmarks": "書籤總數",
+        "all_saved_items": "所有已儲存項目",
+        "favorites": "我的最愛",
+        "starred_bookmarks": "已加星號的書籤",
+        "archived": "已封存",
+        "archived_items": "已封存的項目",
+        "tags": "標籤",
+        "unique_tags_created": "已建立的唯一標籤",
+        "lists": "清單",
+        "bookmark_collections": "書籤收藏",
+        "highlights": "醒目提示",
+        "text_highlights": "文字醒目提示",
+        "storage_used": "已使用的儲存空間",
+        "total_asset_storage": "資產儲存總量",
+        "this_month": "本月",
+        "bookmarks_added": "已新增書籤"
+      },
+      "bookmark_types": {
+        "title": "書籤類型",
+        "links": "連結",
+        "text_notes": "文字筆記",
+        "assets": "資產"
+      },
+      "recent_activity": {
+        "title": "近期活動",
+        "this_week": "本週",
+        "this_month": "本月",
+        "this_year": "今年"
+      },
+      "top_domains": {
+        "title": "熱門網域",
+        "no_domains_found": "找不到網域"
+      },
+      "most_used_tags": {
+        "title": "最常使用的標籤",
+        "no_tags_found": "找不到標籤"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "依小時區分的活動",
+        "activity_by_day": "每日活動"
+      },
+      "storage_breakdown": {
+        "title": "儲存空間明細"
+      }
+    },
+    "subscription": {
+      "subscription": "訂閱",
+      "manage_subscription": "管理你的訂閱和帳單資訊",
+      "current_plan": "目前方案",
+      "billing_period": "帳單週期",
+      "paid_plan": "付費方案",
+      "unlock_bigger_quota": "解鎖更大的配額並支持這個專案",
+      "subscribe_now": "立即訂閱",
+      "manage_billing": "管理帳單",
+      "subscription_canceled": "你的訂閱已取消，將於 {{date}} 結束。你可以隨時重新訂閱。",
+      "usage_quotas": "使用量和配額",
+      "track_usage": "追蹤你目前的使用量，看看有沒有超過方案限制",
+      "total_bookmarks_saved": "已儲存的書籤總數",
+      "assets_file_storage": "資產和檔案儲存空間",
+      "unlimited_usage": "無限制使用",
+      "quota_limit_reached": "已達到配額上限",
+      "approaching_quota_limit": "快要達到配額上限了",
+      "loading_usage": "正在載入使用量資訊...",
+      "free": "免費",
+      "paid": "已付費"
     }
   },
   "admin": {
@@ -252,7 +327,71 @@
       "video_jobs": "影片下載工作",
       "feed_jobs": "RSS 訂閱工作",
       "webhook_jobs": "Webhook 工作",
-      "asset_preprocessing_jobs": "資產預處理工作"
+      "asset_preprocessing_jobs": "資產預處理工作",
+      "jobs": {
+        "crawler": {
+          "title": "爬蟲程式任務",
+          "description": "從網址提取網頁內容並進行網頁爬蟲"
+        },
+        "inference": {
+          "title": "推論任務",
+          "description": "AI驅動的內容標記和摘要"
+        },
+        "indexing": {
+          "title": "索引任務",
+          "description": "搜尋索引更新"
+        },
+        "asset_preprocessing": {
+          "title": "資產預處理任務",
+          "description": "圖片和文件預處理（螢幕截圖、文字提取等等）"
+        },
+        "tidy_assets": {
+          "title": "整理資產任務",
+          "description": "資產清理和儲存最佳化"
+        },
+        "video": {
+          "title": "影片下載任務",
+          "description": "影片提取和下載"
+        },
+        "webhook": {
+          "title": "Webhook 任務",
+          "description": "外部 Webhook 通知"
+        },
+        "feed": {
+          "title": "RSS Feed 任務",
+          "description": "RSS feed 處理和內容更新"
+        }
+      },
+      "monitor_and_manage": "監控和管理背景任務佇列和系統處理任務",
+      "active": "啟用中",
+      "available_actions": "可用動作",
+      "status": {
+        "title": "了解任務狀態",
+        "queued": {
+          "title": "已排隊",
+          "description": "正在排隊等候處理的任務。當資源可用時，它們將自動啟動。"
+        },
+        "unprocessed": {
+          "title": "未處理",
+          "description": "尚未處理的書籤。它們很可能已經排隊等待處理，如果沒有，你可能需要手動重新排隊。"
+        },
+        "failed": {
+          "title": "失敗",
+          "description": "處理過程中遇到錯誤的書籤。這些可能需要手動處理。"
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "僅重新爬取失敗連結",
+        "recrawl_all_links": "重新爬取所有連結",
+        "without_inference": "不推論",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "僅為失敗的書籤重新產生 AI 標籤",
+        "regenerate_ai_tags_for_all_bookmarks": "為所有書籤重新產生 AI 標籤",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "僅為失敗的書籤重新產生 AI 摘要",
+        "regenerate_ai_summaries_for_all_bookmarks": "為所有書籤重新產生 AI 摘要",
+        "reindex_all_bookmarks": "重新索引所有書籤",
+        "clean_assets": "清除懸置資產並重新同步中繼資料",
+        "reprocess_assets_fix_mode": "重新處理未處理的資產"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "僅重新抓取失敗的連結",
@@ -275,7 +414,9 @@
       "num_bookmarks": "書籤數量",
       "asset_sizes": "資源大小",
       "local_user": "本機使用者",
-      "confirm_password": "確認密碼"
+      "confirm_password": "確認密碼",
+      "delete_user_confirm_description": "你確定要刪除使用者「{{name}}」嗎？",
+      "unlimited": "無限制"
     }
   },
   "options": {
@@ -451,7 +592,8 @@
     "day_s_ago": " 幾天前",
     "week_s_ago": " 幾週前",
     "month_s_ago": " 幾個月前",
-    "year_s_ago": " 幾年前"
+    "year_s_ago": " 幾年前",
+    "history": "近期搜尋"
   },
   "dialogs": {
     "bookmarks": {

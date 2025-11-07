@@ -18,8 +18,10 @@ services:
       prep:
         condition: service_completed_successfully
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:123
+    image: gcr.io/zenika-hub/alpine-chrome:124
     restart: unless-stopped
+    ports:
+      - 9222:9222
     command:
       - --no-sandbox
       - --disable-gpu

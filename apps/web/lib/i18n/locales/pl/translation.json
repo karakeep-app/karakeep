@@ -36,7 +36,10 @@
     "updated_at": "Zaktualizowano",
     "title": "Tytuł",
     "description": "Opis",
-    "summary": "Podsumowanie"
+    "summary": "Podsumowanie",
+    "quota": "Limit",
+    "bookmarks": "Zakładki",
+    "storage": "Miejsce na dane"
   },
   "actions": {
     "remove_from_list": "Usuń z listy",
@@ -77,7 +80,8 @@
       "relevant_first": "Najbardziej trafne na początku"
     },
     "open_editor": "Otwórz edytor",
-    "toggle_show_archived": "Pokaż zarchiwizowane"
+    "toggle_show_archived": "Pokaż zarchiwizowane",
+    "confirm": "Potwierdź"
   },
   "settings": {
     "info": {
@@ -223,6 +227,77 @@
         "favourited": "Zakładka jest oznaczona jako ulubiona",
         "archived": "Zakładka jest archiwizowana"
       }
+    },
+    "stats": {
+      "usage_statistics": "Statystyki użycia",
+      "insights_description": "Informacje o Twoich nawykach dotyczących zakładek i kolekcji",
+      "failed_to_load": "Nie udało się załadować statystyk",
+      "overview": {
+        "total_bookmarks": "Wszystkie zakładki",
+        "all_saved_items": "Wszystkie zapisane elementy",
+        "favorites": "Ulubione",
+        "starred_bookmarks": "Zakładki oznaczone gwiazdką",
+        "archived": "Zarchiwizowane",
+        "archived_items": "Zarchiwizowane elementy",
+        "tags": "Tagi",
+        "unique_tags_created": "Utworzono unikalne tagi",
+        "lists": "Listy",
+        "bookmark_collections": "Kolekcje zakładek",
+        "highlights": "Podświetlenia",
+        "text_highlights": "Podświetlenia tekstu",
+        "storage_used": "Wykorzystane miejsce",
+        "total_asset_storage": "Całkowita ilość miejsca na zasoby",
+        "this_month": "W tym miesiącu",
+        "bookmarks_added": "Dodano zakładki"
+      },
+      "bookmark_types": {
+        "title": "Typy zakładek",
+        "links": "Linki",
+        "text_notes": "Notatki tekstowe",
+        "assets": "Zasoby"
+      },
+      "recent_activity": {
+        "title": "Ostatnia aktywność",
+        "this_week": "W tym tygodniu",
+        "this_month": "W tym miesiącu",
+        "this_year": "W tym roku"
+      },
+      "top_domains": {
+        "title": "Najpopularniejsze domeny",
+        "no_domains_found": "Nie znaleziono domen"
+      },
+      "most_used_tags": {
+        "title": "Najczęściej używane tagi",
+        "no_tags_found": "Nie znaleziono tagów"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktywność według godziny",
+        "activity_by_day": "Aktywność według dnia"
+      },
+      "storage_breakdown": {
+        "title": "Podział pamięci"
+      }
+    },
+    "subscription": {
+      "subscription": "Subskrypcja",
+      "manage_subscription": "Zarządzaj subskrypcją i informacjami rozliczeniowymi",
+      "current_plan": "Aktualny plan",
+      "billing_period": "Okres rozliczeniowy",
+      "paid_plan": "Płatny plan",
+      "unlock_bigger_quota": "Odblokuj większy limit i wesprzyj projekt",
+      "subscribe_now": "Subskrybuj teraz",
+      "manage_billing": "Zarządzaj rozliczeniami",
+      "subscription_canceled": "Twoja subskrypcja została anulowana i zakończy się {{date}}. Możesz ją wznowić w dowolnym momencie.",
+      "usage_quotas": "Wykorzystanie i limity",
+      "track_usage": "Śledź swoje bieżące zużycie w porównaniu z limitami planu",
+      "total_bookmarks_saved": "Całkowita liczba zapisanych zakładek",
+      "assets_file_storage": "Zasoby i przechowywanie plików",
+      "unlimited_usage": "Nieograniczone użycie",
+      "quota_limit_reached": "Limit wykorzystania osiągnięty",
+      "approaching_quota_limit": "Zbliżasz się do limitu",
+      "loading_usage": "Ładowanie informacji o zużyciu...",
+      "free": "Darmowy",
+      "paid": "Płatny"
     }
   },
   "admin": {
@@ -235,7 +310,9 @@
       "change_role": "Zmień rolę",
       "delete_user": "Usuń użytkownika",
       "local_user": "Lokalny użytkownik",
-      "confirm_password": "Potwierdź hasło"
+      "confirm_password": "Potwierdź hasło",
+      "delete_user_confirm_description": "Na pewno chcesz usunąć użytkownika „{{name}}”?",
+      "unlimited": "Nielimitowane"
     },
     "admin_settings": "Ustawienia administratora",
     "server_stats": {
@@ -257,7 +334,71 @@
       "feed_jobs": "Praca z kanałem RSS",
       "webhook_jobs": "Zadania Webhook",
       "asset_preprocessing_jobs": "Zadania przetwarzania zasobów",
-      "video_jobs": "Zadania pobierania wideo"
+      "video_jobs": "Zadania pobierania wideo",
+      "jobs": {
+        "crawler": {
+          "title": "Zadania Crawlera",
+          "description": "Web crawling i wyciąganie treści z URL-i"
+        },
+        "inference": {
+          "title": "Zadania wnioskowania",
+          "description": "Tagowanie i podsumowywanie treści przy użyciu AI"
+        },
+        "indexing": {
+          "title": "Zadania indeksowania",
+          "description": "Aktualizacje indeksu wyszukiwania"
+        },
+        "asset_preprocessing": {
+          "title": "Zadania przetwarzania zasobów",
+          "description": "Przetwarzanie obrazów i dokumentów (zrzuty ekranu, wyciąganie tekstu, itp.)"
+        },
+        "tidy_assets": {
+          "title": "Zadania czyszczenia zasobów",
+          "description": "Czyszczenie zasobów i optymalizacja przechowywania"
+        },
+        "video": {
+          "title": "Zadania pobierania wideo",
+          "description": "Wyciąganie i pobieranie wideo"
+        },
+        "webhook": {
+          "title": "Zadania Webhook",
+          "description": "Zewnętrzne powiadomienia webhook"
+        },
+        "feed": {
+          "title": "Zadania kanału RSS",
+          "description": "Przetwarzanie kanałów RSS i aktualizacje treści"
+        }
+      },
+      "monitor_and_manage": "Monitoruj i zarządzaj kolejkami zadań w tle i zadaniami przetwarzania systemu",
+      "active": "Aktywne",
+      "available_actions": "Dostępne akcje",
+      "status": {
+        "title": "Zrozumienie stanów zadań",
+        "queued": {
+          "title": "W kolejce",
+          "description": "Zadania czekają w kolejce do przetworzenia. Uruchomią się automatycznie, gdy zasoby będą dostępne."
+        },
+        "unprocessed": {
+          "title": "Nieprzetworzone",
+          "description": "Zakładki, które nie zostały jeszcze przetworzone. Najprawdopodobniej są już w kolejce do przetworzenia, jeśli nie, może być konieczne ręczne ponowne umieszczenie ich w kolejce."
+        },
+        "failed": {
+          "title": "Nie powiodło się",
+          "description": "Zakładki, które napotkały błędy podczas przetwarzania. Mogą one wymagać ręcznej interwencji."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Przeskanuj ponownie tylko uszkodzone linki",
+        "recrawl_all_links": "Przeskanuj ponownie wszystkie linki",
+        "without_inference": "Bez wnioskowania",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Wygeneruj ponownie tagi AI tylko dla zakładek, które się nie powiodły",
+        "regenerate_ai_tags_for_all_bookmarks": "Wygeneruj ponownie tagi AI dla wszystkich zakładek",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Wygeneruj ponownie streszczenia AI tylko dla zakładek, które się nie powiodły",
+        "regenerate_ai_summaries_for_all_bookmarks": "Wygeneruj ponownie streszczenia AI dla wszystkich zakładek",
+        "reindex_all_bookmarks": "Zreindeksuj wszystkie zakładki",
+        "clean_assets": "Wyczyść wiszące zasoby i ponownie zsynchronizuj metadane",
+        "reprocess_assets_fix_mode": "Ponownie przetwarzaj nieprzetworzone zasoby"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Ponowne skanowanie tylko nieudanych linków",
@@ -454,7 +595,8 @@
     "day_s_ago": " Dni temu",
     "week_s_ago": " Tygodni temu",
     "month_s_ago": " Miesięcy temu",
-    "year_s_ago": " Lat(a) temu"
+    "year_s_ago": " Lat(a) temu",
+    "history": "Ostatnie wyszukiwania"
   },
   "dialogs": {
     "bookmarks": {

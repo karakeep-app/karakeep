@@ -5,6 +5,7 @@ import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
+import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import {
   newAssetId,
   saveAssetFromFile,
@@ -24,7 +25,7 @@ export function webStreamToNode(
 }
 
 export function toWebReadableStream(
-  nodeStream: fs.ReadStream,
+  nodeStream: NodeJS.ReadableStream,
 ): ReadableStream<Uint8Array> {
   const reader = nodeStream as unknown as Readable;
 
@@ -42,7 +43,7 @@ export async function uploadAsset(
   db: AuthedContext["db"],
   formData: { file: File } | { image: File },
 ): Promise<
-  | { error: string; status: 400 | 413 }
+  | { error: string; status: 400 | 413 | 403 }
   | {
       assetId: string;
       contentType: string;
@@ -58,12 +59,27 @@ export async function uploadAsset(
   }
 
   const contentType = data.type;
-  const fileName = data.name;
+  // Replace all non-ascii characters with underscores
+  const fileName = data.name.replace(/[^\x20-\x7E]/g, "_");
   if (!SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)) {
     return { error: "Unsupported asset type", status: 400 };
   }
   if (data.size > MAX_UPLOAD_SIZE_BYTES) {
     return { error: "Asset is too big", status: 413 };
+  }
+
+  let quotaApproved;
+  try {
+    quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      user.id,
+      data.size,
+    );
+  } catch (error) {
+    if (error instanceof StorageQuotaError) {
+      return { error: error.message, status: 403 };
+    }
+    throw error;
   }
 
   let tempFilePath: string | undefined;
@@ -94,6 +110,7 @@ export async function uploadAsset(
       assetId: assetDb.id,
       assetPath: tempFilePath,
       metadata: { contentType, fileName },
+      quotaApproved,
     });
 
     return {
@@ -103,7 +120,13 @@ export async function uploadAsset(
       fileName,
     };
   } finally {
-    if (tempFilePath) {
+    if (
+      tempFilePath &&
+      (await fs.promises
+        .access(tempFilePath)
+        .then(() => true)
+        .catch(() => false))
+    ) {
       await fs.promises.unlink(tempFilePath).catch(() => ({}));
     }
   }

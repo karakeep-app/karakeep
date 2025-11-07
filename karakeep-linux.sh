@@ -1,34 +1,183 @@
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
-
-# v2.2
+# v3.0.0
 # Copyright 2024-2025
 # Author: vhsdream
 # Adapted from: The Karakeep installation script from https://github.com/community-scripts/ProxmoxVE
 # License: MIT
 
-# Basic error handling
-trap 'catch $? $LINENO' ERR
+set -Eeuo pipefail
+trap 'catch $LINENO "$BASH_COMMAND"' SIGINT SIGTERM ERR
+verbose=0
+SPINNER_PID=""
+
+usage() {
+  header
+  cat <<EOF
+This script has three functions:
+
+'install'   Installs $(app) on a clean Debian 12/Ubuntu 24.04 system.
+'update'    Checks for, and installs updates for $(app) on a system that previously installed $(app) by running this script.
+'migrate'   Performs a full Hoarder ==> $(app) migration on a previous install. Also checks for updates afterwards.
+
+Available options:
+
+-h, --help      Print this help and exit
+-v, --verbose   Print script StandardOutput
+--no-color      Disable colours
+
+This script WILL NOT update or migrate a $(app)/Hoarder install that was installed in any other way.
+Please back up your existing installation before running this script!
+If you encounter any errors please create a GitHub issue (https://github.com/karakeep-app/karakeep/issues) and tag vhsdream
+
+Usage: bash $(basename "${BASH_SOURCE[0]}") [-h] [-v] [install|update|migrate]
+
+EOF
+  exit
+}
+
+header() {
+  t_width=$(tput cols 2>/dev/null)
+  if [[ "$t_width" -gt 115 ]]; then
+    echo -e "$(
+      cat <<EOF
+  ${YELLOW}
+  oMMWWWWWMMMMMMMMMMMo    ....                                      ...
+  oMM     'MMMMMMMMMMo    xMMX                                     ;MMM.
+  oMM     'MMOxkXMMMMo    kMMX                                     ;MMM.
+  oMM     'MM'   .OMMo    kMMX   ,;;;. .;lll:.   ';;. :l  ,cloc,   ;MMM.  .;;;.  .:loc,      .:llc'    ;;; .clc,
+  oMM     'MM'    .MMo    kMMX .0MMX, dMMXKWMMO  0MM0NMM'WMNKXMMW' ;MMM. dMMWl 'KMW0OXMWl  ;NMW0ONMN: .MMMXMWMMMWl
+  oMM     .MM'     MMo    kMMNlWMWl    ...',NMM: 0MMWc.   '.',xMMK ;MMMlNMMk. .WMW:'''KMMc;MMW,'''XMM,.MMMk.  ;WMM:
+  oMM     .MM'     MMo    kMMWKMMX.  .xWMN0ONMMo 0MMO   cXMWKOKMMW ;MMM0MMW:  cMMMXXXXXXXddMMWXXXXXXXc.MMM.    KMMx
+  oMM     .MM'.ol. MMo    kMMX xMMWl dMM0  .XMMo 0MMO  .MMM.  dMMW ;MMM.:WMMO .NMMo...lc. .WMWc...o:  .MMMX:',xMMM'
+  oMMXKKKKXMMWMMMMNMMo    kMMX  :WMM0,0MMMWX0MMo 0MMO   dWMMWWxMMW ;MMM. .KMMN,.dNMMMMMNo  .kWMMMMMXc .MMM0WMMMM0'
+  .:cccccccccccccccc:.                  ...               ...                     ..'..       .''.    .MMM, ...
+                                                                                                      .MMM,
+                                                                                                      .OOO.${CLR}
+                                                                               The ${PURPLE}Bookmark${CLR} ${RED}Everything${CLR} ${YELLOW}App${CLR}
+                                                                               script version ${GREEN}3.0.0${CLR}
+EOF
+    )"
+  fi
+}
+
+# Handling output suppression
+set_verbosity() {
+  if [ "$verbose" -eq 1 ]; then
+    shh=""
+  else
+    shh="silent_running"
+  fi
+}
+
+silent_running() {
+  "$@" >/dev/null 2>&1
+}
+
+set_verbosity
+
+# Colour handling
+setup_colours() {
+  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
+    CLR='\033[0m' GREEN='\033[0;32m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m' RED='\033[0;31m'
+  else
+    CLR='' GREEN='' PURPLE='' CYAN='' YELLOW='' RED=''
+  fi
+}
+setup_colours
+
+# Flash and bling
+app() {
+  echo -e "${CLR}${PURPLE}Karakeep${CLR}"
+}
+
+spinner() {
+  local frames=('▹▹▹▹▹' '▸▹▹▹▹' '▹▸▹▹▹' '▹▹▸▹▹' '▹▹▹▸▹' '▹▹▹▹▸')
+  local spin_i=0
+  local interval=0.1
+  printf "\e[?25l"
+
+  while true; do
+    printf "\r${PURPLE}%s${CLR}" "${frames[spin_i]}"
+    spin_i=$(((spin_i + 1) % ${#frames[@]}))
+    sleep "$interval"
+  done
+}
+
+msg_start() {
+  printf "       "
+  echo >&1 -ne "${CYAN}${1-}${CLR}"
+  spinner &
+  SPINNER_PID=$!
+}
+
+msg_done() {
+  if [[ -n "$SPINNER_PID" ]] && ps -p "$SPINNER_PID" >/dev/null; then kill "$SPINNER_PID" >/dev/null; fi
+  printf "\e[?25h"
+  local msg="${1-}"
+  echo -e "\r"
+  echo >&1 -e "${GREEN}Done ✔ ${msg}${CLR}"
+}
+
+msg_info() {
+  if [[ -n "$SPINNER_PID" ]] && ps -p "$SPINNER_PID" >/dev/null; then kill "$SPINNER_PID" >/dev/null; fi
+  printf "\e[?25h"
+  echo >&1 -e "${1-}\r"
+}
+
+# Exception and error handling
+msg_err() {
+  if [[ -n "$SPINNER_PID" ]] && ps -p "$SPINNER_PID" >/dev/null; then kill "$SPINNER_PID" >/dev/null; fi
+  echo >&2 -e "${RED}${1-}${CLR}"
+}
+
+die() {
+  local err=$1
+  local code=${2-1}
+  msg_err "$err"
+  exit "$code"
+}
 
 catch() {
-  if [ "$1" == 0 ]; then
-    return
-  fi
-  echo "Caught error $1 on line $2"
+  local code=$?
+  local line=$1
+  local command=$2
+  msg_err "Caught error in line $line: exit code $code: while executing $command"
 }
+
+parse_params() {
+  while :; do
+    case "${1-}" in
+    -h | --help) usage ;;
+    -v | --verbose) verbose=1 && set_verbosity ;;
+    --no-color) NO_COLOR=1 ;;
+    -?*) die "Unknown flag: $1. Use -h|--help for help" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  args=("$@")
+  [[ ${#args[@]} -eq 0 ]] && die "Missing script arguments. Use -h|--help for help"
+  return 0
+}
+
+parse_params "$@"
 
 OS="$(awk -F'=' '/^VERSION_CODENAME=/{ print $NF }' /etc/os-release)"
 INSTALL_DIR=/opt/karakeep
+APP_DIR="$INSTALL_DIR"/apps
 export DATA_DIR=/var/lib/karakeep
 CONFIG_DIR=/etc/karakeep
 LOG_DIR=/var/log/karakeep
 ENV_FILE=${CONFIG_DIR}/karakeep.env
 
-install() {
-  echo "Karakeep installation for Debian 12/Ubuntu 24.04" && sleep 4
-  echo "Installing Dependencies..." && sleep 1
-  apt-get install --no-install-recommends -y \
+install_karakeep() {
+  header
+  msg_info "$(app) installation for Debian 12/Ubuntu 24.04" && sleep 3
+  echo -e "\n"
+  msg_start "Installing dependencies..."
+  $shh apt-get install --no-install-recommends -y \
     g++ \
     curl \
     build-essential \
@@ -39,60 +188,59 @@ install() {
     ghostscript \
     ca-certificates
   if [[ "$OS" == "noble" ]]; then
-    apt-get install -y software-properties-common
-    add-apt-repository ppa:xtradeb/apps -y
-    apt-get install --no-install-recommends -y ungoogled-chromium yt-dlp
+    $shh apt-get install -y software-properties-common
+    $shh add-apt-repository ppa:xtradeb/apps -y
+    $shh apt-get install --no-install-recommends -y ungoogled-chromium yt-dlp
     ln -s /usr/bin/ungoogled-chromium /usr/bin/chromium
   else
-    apt-get install --no-install-recommends -y chromium
-    wget -q https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -O /usr/bin/yt-dlp && chmod +x /usr/bin/yt-dlp
+    $shh apt-get install --no-install-recommends -y chromium
+    curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o /usr/bin/yt-dlp && chmod +x /usr/bin/yt-dlp
   fi
 
-  wget -q https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -O /usr/bin/monolith && chmod +x /usr/bin/monolith
-  wget -q https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb &&
-    DEBIAN_FRONTEND=noninteractive dpkg -i meilisearch.deb && rm meilisearch.deb
-  echo "Installed Dependencies" && sleep 1
+  curl -fsSL https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -o /usr/bin/monolith && chmod +x /usr/bin/monolith
+  curl -fsSLO https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
+  DEBIAN_FRONTEND=noninteractive $shh apt-get install -y ./meilisearch.deb && rm ./meilisearch.deb
+  msg_done "Installed dependencies"
 
-  echo "Installing Node.js..."
+  msg_start "Installing Node.js..."
   mkdir -p /etc/apt/keyrings
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
   echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
-  apt-get update
-  apt-get install -y nodejs
+  $shh apt-get update
+  $shh apt-get install -y nodejs
   # https://github.com/karakeep-app/karakeep/issues/967
-  npm install -g corepack@0.31.0
-  echo "Installed Node.js" && sleep 1
+  $shh npm install -g corepack@0.31.0
+  msg_done "Installed Node.js"
 
-  echo "Installing Karakeep..."
-  mkdir -p "$DATA_DIR"
-  mkdir -p "$CONFIG_DIR"
-  mkdir -p "$LOG_DIR"
+  msg_start "Installing $(app)${CYAN}, please wait...${CLR}"
+  mkdir -p {"$DATA_DIR","$CONFIG_DIR","$LOG_DIR"}
   M_DATA_DIR=/var/lib/meilisearch
   M_CONFIG_FILE=/etc/meilisearch.toml
-  RELEASE=$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
+  RELEASE="$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')"
   cd /tmp
-  wget -q "https://github.com/karakeep-app/karakeep/archive/refs/tags/v${RELEASE}.zip"
+  curl -fsSLO "https://github.com/karakeep-app/karakeep/archive/refs/tags/v${RELEASE}.zip"
   unzip -q v"$RELEASE".zip
-  mv karakeep-"$RELEASE" "$INSTALL_DIR" && cd "$INSTALL_DIR"/apps/web
+  mv karakeep-"$RELEASE" "$INSTALL_DIR" && cd "$APP_DIR"/web
   corepack enable
   export NEXT_TELEMETRY_DISABLED=1
-  export PUPPETEER_SKIP_DOWNLOAD="true"
+  export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD="true"
   export CI="true"
-  pnpm i --frozen-lockfile
-  pnpm build
-  cd "$INSTALL_DIR"/apps/workers
-  pnpm i --frozen-lockfile
-  cd "$INSTALL_DIR"/apps/cli
-  pnpm i --frozen-lockfile
-  pnpm build
+  $shh pnpm i --frozen-lockfile
+  $shh pnpm build
+  cd "$APP_DIR"/workers
+  $shh pnpm i --frozen-lockfile
+  $shh pnpm build
+  cd "$APP_DIR"/cli
+  $shh pnpm i --frozen-lockfile
+  $shh pnpm build
   cd "$INSTALL_DIR"/packages/db
-  pnpm migrate
-  echo "Installed Karakeep" && sleep 1
+  $shh pnpm migrate
+  msg_done "Installed $(app)"
 
-  echo "Creating configuration files..."
+  msg_start "Creating configuration files..."
   cd "$INSTALL_DIR"
   MASTER_KEY="$(openssl rand -base64 12)"
-  cat <<EOF >${M_CONFIG_FILE}
+  cat <<EOF >"$M_CONFIG_FILE"
 env = "production"
 master_key = "$MASTER_KEY"
 db_path = "${M_DATA_DIR}/data"
@@ -103,7 +251,7 @@ EOF
   chmod 600 "$M_CONFIG_FILE"
 
   karakeep_SECRET="$(openssl rand -base64 36 | cut -c1-24)"
-  cat <<EOF >${ENV_FILE}
+  cat <<EOF >"$ENV_FILE"
 NODE_ENV=production
 SERVER_VERSION=${RELEASE}
 NEXTAUTH_SECRET="${karakeep_SECRET}"
@@ -121,16 +269,17 @@ BROWSER_WEB_URL="http://127.0.0.1:9222"
 EOF
   chmod 600 "$ENV_FILE"
   echo "$RELEASE" >"$INSTALL_DIR"/version.txt
-  echo "Configuration complete" && sleep 1
+  msg_done "Configuration complete"
 
-  echo "Creating users and modifying permissions..."
+  msg_start "Creating users and modifying permissions..."
   useradd -U -s /usr/sbin/nologin -r -m -d "$M_DATA_DIR" meilisearch
   useradd -U -s /usr/sbin/nologin -r -M -d "$INSTALL_DIR" karakeep
   chown meilisearch:meilisearch "$M_CONFIG_FILE"
+  touch "$LOG_DIR"/{karakeep-workers.log,karakeep-web.log}
   chown -R karakeep:karakeep "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"
-  echo "Users created, permissions modified" && sleep 1
+  msg_done "Users created, permissions modified"
 
-  echo "Creating service files..."
+  msg_start "Creating service files and configuring log rotation..."
   cat <<EOF >/etc/systemd/system/meilisearch.service
 [Unit]
 Description=MeiliSearch is a RESTful search API
@@ -193,10 +342,10 @@ User=karakeep
 Group=karakeep
 Restart=always
 EnvironmentFile=${ENV_FILE}
-WorkingDirectory=${INSTALL_DIR}/apps/workers
-ExecStart=/usr/bin/pnpm run start:prod
-StandardOutput=file:${LOG_DIR}/karakeep-workers.log
-StandardError=file:${LOG_DIR}/karakeep-workers.log
+WorkingDirectory=${APP_DIR}/workers
+ExecStart=/usr/bin/node dist/index.js
+StandardOutput=append:${LOG_DIR}/karakeep-workers.log
+StandardError=append:${LOG_DIR}/karakeep-workers.log
 TimeoutStopSec=5
 SyslogIdentifier=karakeep-workers
 
@@ -215,10 +364,10 @@ User=karakeep
 Group=karakeep
 Restart=on-failure
 EnvironmentFile=${ENV_FILE}
-WorkingDirectory=${INSTALL_DIR}/apps/web
+WorkingDirectory=${APP_DIR}/web
 ExecStart=/usr/bin/pnpm start
-StandardOutput=file:${LOG_DIR}/karakeep-web.log
-StandardError=file:${LOG_DIR}/karakeep-web.log
+StandardOutput=append:${LOG_DIR}/karakeep-web.log
+StandardError=append:${LOG_DIR}/karakeep-web.log
 TimeoutStopSec=5
 SyslogIdentifier=karakeep-web
 
@@ -235,72 +384,90 @@ Wants=meilisearch.service karakeep-browser.service karakeep-workers.service kara
 [Install]
 WantedBy=multi-user.target
 EOF
-  echo "Service files created" && sleep 1
 
-  echo "Cleaning up" && sleep 1
-  rm /tmp/v"$RELEASE".zip
-  apt -y autoremove
-  apt -y autoclean
-  echo "Cleaned" && sleep 1
+  cat <<EOF >/etc/logrotate.d/karakeep
+/var/log/karakeep/*.log
+{
+  su karakeep karakeep
+  weekly
+  missingok
+  rotate 4
+  compress
+  notifempty
+}
+EOF
 
-  echo "Enabling and starting services, please wait..." && sleep 3
-  systemctl enable -q --now karakeep.target
+  msg_done "Service files created, log rotation configured"
+
+  msg_start "Enabling and starting services, please wait..." && sleep 3
+  systemctl enable -q --now meilisearch.service karakeep.target
   service_check install
+  exit 0
 }
 
-update() {
+update_karakeep() {
+  msg_info "${YELLOW}Checking for an update...${CLR}" && sleep 1
   if [[ ! -d ${INSTALL_DIR} ]]; then
-    echo "Is Karakeep even installed?"
-    exit 1
+    die "Is Karakeep even installed?"
   fi
-  RELEASE=$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')
-  PREV_RELEASE=$(cat "$INSTALL_DIR"/version.txt)
+  RELEASE="$(curl -s https://api.github.com/repos/karakeep-app/karakeep/releases/latest | grep "tag_name" | awk '{print substr($2, 3, length($2)-4) }')"
+  PREV_RELEASE="$(cat "$INSTALL_DIR"/version.txt)"
   if [[ "$RELEASE" != "$PREV_RELEASE" ]]; then
     if [[ "$(systemctl is-active karakeep-web)" == "active" ]]; then
-      echo "Stopping affected services..." && sleep 1
+      msg_start "Stopping affected services..."
       systemctl stop karakeep-web karakeep-workers
-      echo "Stopped services" && sleep 1
+      msg_done "Stopped services"
     fi
     if [[ "$OS" == "bookworm" ]]; then
-      yt-dlp -U
+      $shh yt-dlp -U
     fi
-    echo "Updating Karakeep to v${RELEASE}..." && sleep 1
+    msg_start "Updating $(app) ${CYAN}to v${RELEASE}...${CLR}"
     sed -i "s|SERVER_VERSION=${PREV_RELEASE}|SERVER_VERSION=${RELEASE}|" "$ENV_FILE"
     rm -R "$INSTALL_DIR"
     cd /tmp
-    wget -q "https://github.com/karakeep-app/karakeep/archive/refs/tags/v${RELEASE}.zip"
+    curl -fsSLO "https://github.com/karakeep-app/karakeep/archive/refs/tags/v${RELEASE}.zip"
     unzip -q v"$RELEASE".zip
     mv karakeep-"$RELEASE" "$INSTALL_DIR"
     # https://github.com/karakeep-app/karakeep/issues/967
-    if [[ $(corepack -v) < "0.31.0" ]]; then
-      npm install -g corepack@0.31.0
+    if [[ "$(corepack -v)" < "0.31.0" ]]; then
+      $shh npm install -g corepack@0.31.0
     fi
     corepack enable
     export NEXT_TELEMETRY_DISABLED=1
-    export PUPPETEER_SKIP_DOWNLOAD="true"
+    export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD="true"
     export CI="true"
-    cd "$INSTALL_DIR"/apps/web && pnpm i --frozen-lockfile
-    pnpm build
-    cd "$INSTALL_DIR"/apps/workers && pnpm i --frozen-lockfile
-    cd "$INSTALL_DIR"/apps/cli && pnpm i --frozen-lockfile
-    pnpm build
-    cd "$INSTALL_DIR"/packages/db && pnpm migrate
+    cd "$APP_DIR"/web && $shh pnpm i --frozen-lockfile
+    $shh pnpm build
+    cd "$APP_DIR"/workers && $shh pnpm i --frozen-lockfile
+    $shh pnpm build
+    cd "$APP_DIR"/cli && $shh pnpm i --frozen-lockfile
+    $shh pnpm build
+    cd "$INSTALL_DIR"/packages/db && $shh pnpm migrate
     echo "$RELEASE" >"$INSTALL_DIR"/version.txt
     chown -R karakeep:karakeep "$INSTALL_DIR" "$DATA_DIR"
-    echo "Updated Karakeep to v${RELEASE}" && sleep 1
-    echo "Restarting services..." && sleep 1
+    msg_done "Updated $(app) ${CYAN}to v${RELEASE}${CLR}"
+    msg_start "Restarting services and cleaning up..."
     rm /tmp/v"$RELEASE".zip
+
+    # Migrations
+    # 0.27 changed the worker compiled file from .mjs to .js
+    if grep -q '^ExecStart=/usr/bin/node\s\+dist/index\.mjs$' /etc/systemd/system/karakeep-workers.service; then
+      sed -i -E 's#^(ExecStart=/usr/bin/node\s+dist/)index\.mjs$#\1index.js#' /etc/systemd/system/karakeep-workers.service
+      systemctl daemon-reload
+    fi
+    # End migrations
+
     systemctl restart karakeep.target
     service_check update
   else
-    echo "No update required."
+    msg_info "${YELLOW}No update required.${CLR}"
   fi
   exit 0
 }
 
-migrate() {
+migrate_karakeep() {
   if [[ ! -d /opt/karakeep ]]; then
-    echo "Migrating your Hoarder installation to Karakeep, then checking for an update..." && sleep 3
+    msg_start "Migrating your Hoarder installation to $(app), ${CYAN}then checking for an update...${CLR}"
     systemctl stop hoarder-browser hoarder-workers hoarder-web
     sed -i -e "s|hoarder|karakeep|g" /etc/hoarder/hoarder.env /etc/systemd/system/hoarder-{browser,web,workers}.service /etc/systemd/system/hoarder.target \
       -e "s|Hoarder|Karakeep|g" /etc/systemd/system/hoarder-{browser,web,workers}.service /etc/systemd/system/hoarder.target
@@ -323,60 +490,50 @@ migrate() {
     systemctl -q enable --now karakeep.target
     service_check migrate
   else
-    echo "There is no need for a migration: Karakeep is already installed."
-    exit 1
+    msg_info "${YELLOW}There is no need for a migration: $(app) ${YELLOW}is already installed.${CLR}"
   fi
 }
 
 service_check() {
-  local services=("karakeep-browser" "karakeep-workers" "karakeep-web")
-  local status=""
+  local services=("karakeep-browser" "karakeep-workers" "karakeep-web" "meilisearch")
   readarray -t status < <(for service in "${services[@]}"; do
     systemctl is-active "$service" | grep "^active" -
   done)
-  if [[ "${#status[@]}" -eq 3 ]]; then
+  if [[ "${#status[@]}" -eq 4 ]]; then
     if [[ "$1" == "install" ]]; then
-      echo "Karakeep is running!"
+      msg_done "$(app) ${CYAN}is running!${CLR}"
       sleep 1
       LOCAL_IP="$(hostname -I | awk '{print $1}')"
-      echo "Go to http://$LOCAL_IP:3000 to create your account"
+      msg_info "Go to ${YELLOW}http://$LOCAL_IP:3000 ${CLR}to create your account"
+      msg_info "Change settings at ${YELLOW}'/etc/karakeep/karakeep.env'${CLR}"
       exit 0
     elif [[ "$1" == "update" ]]; then
-      echo "Karakeep is updated and running!"
+      msg_done "$(app) ${CYAN}is updated and running!${CLR}"
       sleep 1
       exit 0
     elif [[ "$1" == "migrate" ]]; then
-      echo "Karakeep migration complete!"
+      msg_done "$(app) ${CYAN}migration complete!${CLR}"
       sleep 1
       exit 0
     fi
   else
-    echo "Some services have failed. Check 'journalctl -xeu <service-name>' to see what is going on"
-    exit 1
+    die "Some services have failed. Check 'journalctl -xeu <service-name>' to see what is going on"
   fi
 }
 
-[ "$(id -u)" -ne 0 ] && echo "This script requires root privileges. Please run with sudo or as the root user." && exit 1
-command="${1:-}"
-if [ "$command" = "" ]; then
-  echo -e "\nRun script with:\r
-parameter 'install' to install Karakeep\r
-parameter 'update' to update Karakeep\r
-parameter 'migrate' to migrate your Hoarder install to Karakeep\n
-Note: 'migrate' will also update to the latest version if necessary" && exit 1
-fi
+[ "$(id -u)" -ne 0 ] && die "This script requires root privileges. Please run with sudo or as the root user."
 
-case "$command" in
+case "${args[0]}" in
 install)
-  install
+  install_karakeep
   ;;
 update)
-  update
+  update_karakeep
   ;;
 migrate)
-  migrate && update
+  migrate_karakeep && update_karakeep
   ;;
 *)
-  echo -e "Unknown command. Choose 'install', 'update' or 'migrate'." && exit 1
+  die "Unknown command. Choose 'install', 'update' or 'migrate.'"
   ;;
 esac

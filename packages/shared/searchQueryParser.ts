@@ -41,7 +41,7 @@ const lexerRules: [RegExp, TokenType][] = [
   [/^\s+or/i, TokenType.Or],
 
   [/^#/, TokenType.Hash],
-  [/^(is|url|list|after|before|age|feed):/, TokenType.Qualifier],
+  [/^(is|url|list|after|before|age|feed|title):/, TokenType.Qualifier],
 
   [/^"([^"]+)"/, TokenType.StringLiteral],
 
@@ -195,6 +195,11 @@ MATCHER.setPattern(
               text: "",
               matcher: { type: "url", url: ident, inverse: !!minus },
             };
+          case "title:":
+            return {
+              text: "",
+              matcher: { type: "title", title: ident, inverse: !!minus },
+            };
           case "#":
             return {
               text: "",
@@ -224,7 +229,7 @@ MATCHER.setPattern(
                   inverse: !!minus,
                 },
               };
-            } catch (e) {
+            } catch {
               return {
                 // If parsing the date fails, emit it as pure text
                 text: (minus?.text ?? "") + qualifier.text + ident,
@@ -241,7 +246,7 @@ MATCHER.setPattern(
                   inverse: !!minus,
                 },
               };
-            } catch (e) {
+            } catch {
               return {
                 // If parsing the date fails, emit it as pure text
                 text: (minus?.text ?? "") + qualifier.text + ident,
@@ -258,7 +263,7 @@ MATCHER.setPattern(
                   relativeDate: { direction, amount, unit },
                 },
               };
-            } catch (e) {
+            } catch {
               return {
                 // If parsing the relative time fails, emit it as pure text
                 text: (minus?.text ?? "") + qualifier.text + ident,

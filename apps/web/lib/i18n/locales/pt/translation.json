@@ -36,7 +36,10 @@
     "updated_at": "Atualizado em",
     "title": "Título",
     "description": "Descrição",
-    "summary": "Resumo"
+    "summary": "Resumo",
+    "quota": "Quota",
+    "bookmarks": "Favoritos",
+    "storage": "Armazenamento"
   },
   "actions": {
     "close": "Fechar",
@@ -77,7 +80,8 @@
     "edit_title": "Editar título",
     "sign_out": "Sair",
     "open_editor": "Abrir editor",
-    "toggle_show_archived": "Mostrar arquivados"
+    "toggle_show_archived": "Mostrar arquivados",
+    "confirm": "Confirmar"
   },
   "settings": {
     "webhooks": {
@@ -223,6 +227,77 @@
         "favourited": "Um marcador é favoritado",
         "archived": "Um marcador é arquivado"
       }
+    },
+    "stats": {
+      "usage_statistics": "Estatísticas de uso",
+      "insights_description": "Informações sobre seus hábitos de favoritos e coleção",
+      "failed_to_load": "Falha ao carregar estatísticas",
+      "overview": {
+        "total_bookmarks": "Total de favoritos",
+        "all_saved_items": "Todos os itens salvos",
+        "favorites": "Favoritos",
+        "starred_bookmarks": "Favoritos marcados com estrela",
+        "archived": "Arquivado",
+        "archived_items": "Itens arquivados",
+        "tags": "Tags",
+        "unique_tags_created": "Tags únicos criados",
+        "lists": "Listas",
+        "bookmark_collections": "Coleções de favoritos",
+        "highlights": "Destaques",
+        "text_highlights": "Destaques de texto",
+        "storage_used": "Armazenamento usado",
+        "total_asset_storage": "Armazenamento total de ativos",
+        "this_month": "Este mês",
+        "bookmarks_added": "Favoritos adicionados"
+      },
+      "bookmark_types": {
+        "title": "Tipos de favoritos",
+        "links": "Links",
+        "text_notes": "Notas de texto",
+        "assets": "Ativos"
+      },
+      "recent_activity": {
+        "title": "Atividade recente",
+        "this_week": "Esta semana",
+        "this_month": "Este mês",
+        "this_year": "Este ano"
+      },
+      "top_domains": {
+        "title": "Domínios principais",
+        "no_domains_found": "Nenhum domínio encontrado"
+      },
+      "most_used_tags": {
+        "title": "Tags mais usadas",
+        "no_tags_found": "Nenhuma tag encontrada"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Atividade por hora",
+        "activity_by_day": "Atividade por dia"
+      },
+      "storage_breakdown": {
+        "title": "Detalhes do armazenamento"
+      }
+    },
+    "subscription": {
+      "subscription": "Assinatura",
+      "manage_subscription": "Gerencie sua assinatura e informações de faturamento",
+      "current_plan": "Plano atual",
+      "billing_period": "Período de faturamento",
+      "paid_plan": "Plano Pago",
+      "unlock_bigger_quota": "Desbloqueie uma cota maior e apoie o projeto",
+      "subscribe_now": "Assine agora",
+      "manage_billing": "Gerenciar faturamento",
+      "subscription_canceled": "Sua assinatura foi cancelada e terminará em {{date}}. Você pode se reinscrever a qualquer momento.",
+      "usage_quotas": "Uso e cotas",
+      "track_usage": "Acompanhe seu uso atual em relação aos limites do seu plano",
+      "total_bookmarks_saved": "Total de favoritos salvos",
+      "assets_file_storage": "Armazenamento de arquivos e ativos",
+      "unlimited_usage": "Uso ilimitado",
+      "quota_limit_reached": "Limite de cota atingido",
+      "approaching_quota_limit": "Limite de cota se aproximando",
+      "loading_usage": "Carregando informações de uso...",
+      "free": "Grátis",
+      "paid": "Pago"
     }
   },
   "admin": {
@@ -239,7 +314,71 @@
       "indexing_jobs": "Tarefas de Indexação",
       "inference_jobs": "Tarefas de Inferência",
       "tidy_assets_jobs": "Tarefas de organização de ativos",
-      "job": "Trabalho"
+      "job": "Trabalho",
+      "jobs": {
+        "crawler": {
+          "title": "Tarefas do Crawler",
+          "description": "Rastreamento da web e extração de conteúdo de URLs"
+        },
+        "inference": {
+          "title": "Tarefas de Inferência",
+          "description": "Marcação e resumo de conteúdo alimentados por IA"
+        },
+        "indexing": {
+          "title": "Tarefas de Indexação",
+          "description": "Atualizações do índice de pesquisa"
+        },
+        "asset_preprocessing": {
+          "title": "Tarefas de Pré-processamento de Ativos",
+          "description": "Pré-processamento de imagem e documento (capturas de tela, extração de texto, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Tarefas de Organização de Ativos",
+          "description": "Limpeza de ativos e otimização de armazenamento"
+        },
+        "video": {
+          "title": "Tarefas de Download de Vídeo",
+          "description": "Extração e download de vídeo"
+        },
+        "webhook": {
+          "title": "Tarefas de Webhook",
+          "description": "Notificações de webhook externo"
+        },
+        "feed": {
+          "title": "Tarefas de Feed RSS",
+          "description": "Processamento de feed RSS e atualizações de conteúdo"
+        }
+      },
+      "monitor_and_manage": "Monitore e gerencie filas de tarefas em segundo plano e tarefas de processamento do sistema",
+      "active": "Ativo",
+      "available_actions": "Ações Disponíveis",
+      "status": {
+        "title": "Entendendo os estados de tarefas",
+        "queued": {
+          "title": "Na fila",
+          "description": "Tarefas esperando na fila para serem processadas. Elas serão iniciadas automaticamente quando os recursos estiverem disponíveis."
+        },
+        "unprocessed": {
+          "title": "Não processado",
+          "description": "Favoritos que ainda não foram processados. Eles provavelmente já estão na fila para processamento, caso contrário, você pode precisar reativá-los manualmente."
+        },
+        "failed": {
+          "title": "Falhou",
+          "description": "Favoritos que encontraram erros durante o processamento. Estes podem precisar de atenção manual."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Rastrear novamente apenas links com falha",
+        "recrawl_all_links": "Rastrear novamente todos os links",
+        "without_inference": "Sem inferência",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar tags de IA apenas para favoritos com falha",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerar tags de IA para todos os favoritos",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerar resumos de IA apenas para favoritos com falha",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resumos de IA para todos os favoritos",
+        "reindex_all_bookmarks": "Reindexar todos os favoritos",
+        "clean_assets": "Limpar ativos soltos e resincronizar metadados",
+        "reprocess_assets_fix_mode": "Reprocessar ativos não processados"
+      }
     },
     "actions": {
       "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar tags de IA apenas para marcadores com falha",
@@ -262,7 +401,9 @@
       "create_user": "Criar usuário",
       "change_role": "Alterar função",
       "reset_password": "Redefinir Senha",
-      "local_user": "Usuário local"
+      "local_user": "Usuário local",
+      "delete_user_confirm_description": "Tens a certeza que queres apagar o utilizador \"{{name}}\"?",
+      "unlimited": "Ilimitado"
     },
     "server_stats": {
       "total_bookmarks": "Total de favoritos",
@@ -354,7 +495,8 @@
     "day_s_ago": " Dia(s) atrás",
     "week_s_ago": " Semana(s) atrás",
     "month_s_ago": " Mês(es) atrás",
-    "year_s_ago": " Ano(s) atrás"
+    "year_s_ago": " Ano(s) atrás",
+    "history": "Pesquisas recentes"
   },
   "preview": {
     "cached_content": "Conteúdo em cache",

@@ -161,6 +161,17 @@ export default function QueryExplainerTooltip({
             <TableCell>{matcher.url}</TableCell>
           </TableRow>
         );
+      case "title":
+        return (
+          <TableRow>
+            <TableCell>
+              {matcher.inverse
+                ? t("search.title_does_not_contain")
+                : t("search.title_contains")}
+            </TableCell>
+            <TableCell>{matcher.title}</TableCell>
+          </TableRow>
+        );
       case "rssFeedName":
         return (
           <TableRow>

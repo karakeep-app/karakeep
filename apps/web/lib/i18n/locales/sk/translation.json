@@ -36,7 +36,10 @@
     "updated_at": "Aktualizované",
     "title": "Názov",
     "description": "Popis",
-    "summary": "Zhrnutie"
+    "summary": "Zhrnutie",
+    "quota": "Kvóta",
+    "bookmarks": "Záložky",
+    "storage": "Úložisko"
   },
   "actions": {
     "cancel": "Zrušiť",
@@ -77,7 +80,8 @@
     "fetch_now": "Načítať teraz",
     "summarize_with_ai": "Zhrnúť pomocou AI",
     "open_editor": "Otvoriť editor",
-    "toggle_show_archived": "Zobraziť archivované"
+    "toggle_show_archived": "Zobraziť archivované",
+    "confirm": "Potvrdiť"
   },
   "lists": {
     "favourites": "Obľúbené",
@@ -253,6 +257,77 @@
         "favourited": "Záložka je pridaná medzi obľúbené",
         "archived": "Záložka je archivovaná"
       }
+    },
+    "stats": {
+      "usage_statistics": "Štatistiky používania",
+      "insights_description": "Štatistiky o tvojich návykoch a zbierke záložiek",
+      "failed_to_load": "Nepodarilo sa načítať štatistiky",
+      "overview": {
+        "total_bookmarks": "Celkový počet záložiek",
+        "all_saved_items": "Všetky uložené položky",
+        "favorites": "Obľúbené",
+        "starred_bookmarks": "Označené záložky hviezdičkou",
+        "archived": "Archivované",
+        "archived_items": "Archivované položky",
+        "tags": "Značky",
+        "unique_tags_created": "Vytvorené jedinečné štítky",
+        "lists": "Zoznamy",
+        "bookmark_collections": "Zbierky záložiek",
+        "highlights": "Zvýraznenia",
+        "text_highlights": "Zvýraznenia textu",
+        "storage_used": "Použité úložisko",
+        "total_asset_storage": "Celkové úložisko aktív",
+        "this_month": "Tento mesiac",
+        "bookmarks_added": "Pridané záložky"
+      },
+      "bookmark_types": {
+        "title": "Typy záložiek",
+        "links": "Odkazy",
+        "text_notes": "Textové poznámky",
+        "assets": "Aktíva"
+      },
+      "recent_activity": {
+        "title": "Nedávna aktivita",
+        "this_week": "Tento týždeň",
+        "this_month": "Tento mesiac",
+        "this_year": "Tento rok"
+      },
+      "top_domains": {
+        "title": "Najlepšie domény",
+        "no_domains_found": "Nenašli sa žiadne domény"
+      },
+      "most_used_tags": {
+        "title": "Najpoužívanejšie štítky",
+        "no_tags_found": "Nenašli sa žiadne značky"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivita podľa hodiny",
+        "activity_by_day": "Aktivita podľa dňa"
+      },
+      "storage_breakdown": {
+        "title": "Rozdelenie úložiska"
+      }
+    },
+    "subscription": {
+      "subscription": "Predplatné",
+      "manage_subscription": "Spravuj svoje predplatné a fakturačné údaje",
+      "current_plan": "Aktuálny plán",
+      "billing_period": "Fakturačné obdobie",
+      "paid_plan": "Platený plán",
+      "unlock_bigger_quota": "Odomkni väčšiu kvótu a podpor projekt",
+      "subscribe_now": "Prihlás sa na odber",
+      "manage_billing": "Spravovať fakturáciu",
+      "subscription_canceled": "Tvoje predplatné bolo zrušené a skončí {{date}}. Môžeš sa kedykoľvek znova prihlásiť na odber.",
+      "usage_quotas": "Využitie a kvóty",
+      "track_usage": "Sleduj aktuálne využitie v porovnaní s limitmi tvojho plánu",
+      "total_bookmarks_saved": "Celkový počet uložených záložiek",
+      "assets_file_storage": "Úložisko aktív a súborov",
+      "unlimited_usage": "Neobmedzené použitie",
+      "quota_limit_reached": "Bol dosiahnutý limit kvóty",
+      "approaching_quota_limit": "Blíži sa limit kvóty",
+      "loading_usage": "Načítavajú sa informácie o využití...",
+      "free": "Zadarmo",
+      "paid": "Platené"
     }
   },
   "search": {
@@ -290,7 +365,8 @@
     "day_s_ago": " Deň(dni) dozadu",
     "week_s_ago": " Týždeň(ne) dozadu",
     "month_s_ago": " Mesiac(e) dozadu",
-    "year_s_ago": " Rok(y) dozadu"
+    "year_s_ago": " Rok(y) dozadu",
+    "history": "Nedávne vyhľadávania"
   },
   "layouts": {
     "masonry": "Dlaždice",
@@ -320,7 +396,9 @@
       "change_role": "Zmeniť rolu",
       "delete_user": "Odstrániť používateľa",
       "confirm_password": "Potvrdiť heslo",
-      "create_user": "Vytvoriť používateľa"
+      "create_user": "Vytvoriť používateľa",
+      "delete_user_confirm_description": "Naozaj chceš vymazať používateľa „{{name}}“?",
+      "unlimited": "Neobmedzené"
     },
     "admin_settings": "Nastavenia správcu",
     "background_jobs": {
@@ -336,7 +414,71 @@
       "failed": "Neúspešné",
       "webhook_jobs": "Úlohy Webhook",
       "asset_preprocessing_jobs": "Úlohy predbežného spracovania aktív",
-      "feed_jobs": "Úlohy RSS kanála"
+      "feed_jobs": "Úlohy RSS kanála",
+      "jobs": {
+        "crawler": {
+          "title": "Úlohy pre prehľadávače",
+          "description": "Webové prehľadávanie a extrakcia obsahu z URL"
+        },
+        "inference": {
+          "title": "Úlohy odvodzovania",
+          "description": "Označovanie obsahu pomocou AI a vytváranie súhrnov"
+        },
+        "indexing": {
+          "title": "Úlohy indexovania",
+          "description": "Aktualizácie indexu vyhľadávania"
+        },
+        "asset_preprocessing": {
+          "title": "Úlohy predbežného spracovania zdrojov",
+          "description": "Predbežné spracovanie obrázkov a dokumentov (snímky obrazovky, extrakcia textu atď.)"
+        },
+        "tidy_assets": {
+          "title": "Úlohy na upratovanie zdrojov",
+          "description": "Čistenie zdrojov a optimalizácia úložiska"
+        },
+        "video": {
+          "title": "Úlohy na sťahovanie videí",
+          "description": "Extrakcia a sťahovanie videí"
+        },
+        "webhook": {
+          "title": "Úlohy Webhook",
+          "description": "Externé upozornenia Webhook"
+        },
+        "feed": {
+          "title": "Úlohy RSS Feed",
+          "description": "Spracovanie RSS kanálov a aktualizácie obsahu"
+        }
+      },
+      "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a systémové úlohy spracovania",
+      "active": "Aktívne",
+      "available_actions": "Dostupné akcie",
+      "status": {
+        "title": "Porozumenie stavom úloh",
+        "queued": {
+          "title": "Zaradené do frontu",
+          "description": "Úlohy čakajúce v rade na spracovanie. Spustia sa automaticky, keď budú dostupné zdroje."
+        },
+        "unprocessed": {
+          "title": "Nespracované",
+          "description": "Záložky, ktoré ešte neboli spracované. S najväčšou pravdepodobnosťou sú už zaradené do frontu na spracovanie, ak nie, možno ich budete musieť znova zaradiť do frontu manuálne."
+        },
+        "failed": {
+          "title": "Neúspešné",
+          "description": "Záložky, pri ktorých sa počas spracovania vyskytli chyby. Môžu vyžadovať manuálnu pozornosť."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Znova preliezť len neúspešné odkazy",
+        "recrawl_all_links": "Znova preliezť všetky odkazy",
+        "without_inference": "Bez odvodzovania",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Znovu vygenerovať značky AI len pre neúspešné záložky",
+        "regenerate_ai_tags_for_all_bookmarks": "Znovu vygenerovať značky AI pre všetky záložky",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Znovu vygenerovať súhrny AI len pre neúspešné záložky",
+        "regenerate_ai_summaries_for_all_bookmarks": "Znovu vygenerovať súhrny AI pre všetky záložky",
+        "reindex_all_bookmarks": "Preindexovať všetky záložky",
+        "clean_assets": "Vyčistiť nepotrebné prostriedky a znova synchronizovať metadáta",
+        "reprocess_assets_fix_mode": "Znova spracovať nespracované prostriedky"
+      }
     },
     "server_stats": {
       "server_version": "Verzia servera",

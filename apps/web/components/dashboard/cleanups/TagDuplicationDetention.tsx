@@ -200,15 +200,18 @@ function SuggestionRow({
 
 export function TagDuplicationDetection() {
   const [expanded, setExpanded] = useState(false);
-  let { data: allTags } = api.tags.list.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
+  let { data: allTags } = api.tags.list.useQuery(
+    {},
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =
     useSuggestions();
 
   useEffect(() => {
-    allTags = allTags ?? { tags: [] };
+    allTags = allTags ?? { tags: [], nextCursor: null };
     const sortedTags = allTags.tags.sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );

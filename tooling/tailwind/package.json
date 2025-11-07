@@ -11,8 +11,10 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "format": "prettier --check . --ignore-path ../../.gitignore",
-    "lint": "eslint .",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,18 +25,10 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@karakeep/eslint-config": "workspace:^0.2.0",
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "eslint": "^8.57.0",
     "prettier": "^3.4.2",
-    "typescript": "^5.7.3"
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@karakeep/eslint-config/base"
-    ]
+    "typescript": "^5.8.3"
   },
   "prettier": "@karakeep/prettier-config"
 }

@@ -54,7 +54,7 @@ export function CopyBtnV2({
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast({
         description:
           "Failed to copy link. Browsers only support copying to the clipboard from https pages.",

@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import { zSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
-  zBookmarkListSchema,
   zEditBookmarkListSchema,
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
@@ -19,6 +18,7 @@ import {
   PaginatedBookmarksSchema,
   PaginationSchema,
 } from "./pagination";
+import { ListSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
 extendZodWithOpenApi(z);
@@ -33,8 +33,6 @@ export const ListIdSchema = registry.registerParameter(
     example: "ieidlxygmwj87oxz5hxttoc8",
   }),
 );
-
-export const ListSchema = zBookmarkListSchema.openapi("List");
 
 registry.registerPath({
   method: "get",

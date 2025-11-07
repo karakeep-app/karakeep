@@ -38,7 +38,8 @@
       "relevant_first": "Mest relevant først"
     },
     "open_editor": "Åbn editor",
-    "toggle_show_archived": "Vis arkiverede"
+    "toggle_show_archived": "Vis arkiverede",
+    "confirm": "Bekræft"
   },
   "settings": {
     "import": {
@@ -184,6 +185,77 @@
         "favourited": "Et bogmærke er markeret som favorit",
         "archived": "Et bogmærke er arkiveret"
       }
+    },
+    "stats": {
+      "usage_statistics": "Anvendelsesstatistik",
+      "insights_description": "Indsigt i dine bogmærkevaner og -samling",
+      "failed_to_load": "Kunne ikke indlæse statistik",
+      "overview": {
+        "total_bookmarks": "Samlede bogmærker",
+        "all_saved_items": "Alle gemte elementer",
+        "favorites": "Favoritter",
+        "starred_bookmarks": "Stjerne-markerede bogmærker",
+        "archived": "Arkiveret",
+        "archived_items": "Arkiverede elementer",
+        "tags": "Tags",
+        "unique_tags_created": "Unikke tags oprettet",
+        "lists": "Lister",
+        "bookmark_collections": "Bogmærkesamlinger",
+        "highlights": "Fremhævelser",
+        "text_highlights": "Tekstfremhævelser",
+        "storage_used": "Brugt lagerplads",
+        "total_asset_storage": "Samlet lagerplads til aktiver",
+        "this_month": "Denne måned",
+        "bookmarks_added": "Bogmærker tilføjet"
+      },
+      "bookmark_types": {
+        "title": "Bogmærketyper",
+        "links": "Links",
+        "text_notes": "Tekstnoter",
+        "assets": "Aktiver"
+      },
+      "recent_activity": {
+        "title": "Seneste aktivitet",
+        "this_week": "Denne uge",
+        "this_month": "Denne måned",
+        "this_year": "I år"
+      },
+      "top_domains": {
+        "title": "Topdomæner",
+        "no_domains_found": "Ingen domæner fundet"
+      },
+      "most_used_tags": {
+        "title": "Mest brugte tags",
+        "no_tags_found": "Ingen tags fundet"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivitet pr. time",
+        "activity_by_day": "Aktivitet efter dag"
+      },
+      "storage_breakdown": {
+        "title": "Opdeling af lagerplads"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonnement",
+      "manage_subscription": "Administrer dit abonnement og dine faktureringsoplysninger",
+      "current_plan": "Nuværende abonnement",
+      "billing_period": "Faktureringsperiode",
+      "paid_plan": "Betalt abonnement",
+      "unlock_bigger_quota": "Lås op for større kvote, og støt projektet",
+      "subscribe_now": "Abonner nu",
+      "manage_billing": "Administrer fakturering",
+      "subscription_canceled": "Dit abonnement er blevet annulleret og udløber den {{date}}. Du kan genabonnere når som helst.",
+      "usage_quotas": "Forbrug og kvoter",
+      "track_usage": "Hold øje med dit nuværende forbrug i forhold til dine planbegrænsninger",
+      "total_bookmarks_saved": "Samlet antal gemte bogmærker",
+      "assets_file_storage": "Aktiver og fillagring",
+      "unlimited_usage": "Ubegrænset brug",
+      "quota_limit_reached": "Kvotegrænse nået",
+      "approaching_quota_limit": "Nærmer sig kvotegrænsen",
+      "loading_usage": "Indlæser forbrugsinformation...",
+      "free": "Gratis",
+      "paid": "Betalt"
     }
   },
   "admin": {
@@ -212,7 +284,71 @@
       "webhook_jobs": "Webhook-opgaver",
       "video_jobs": "Videonedehentningsopgaver",
       "feed_jobs": "RSS-feed-opgaver",
-      "asset_preprocessing_jobs": "Forbehandlingsopgaver for ressourcer"
+      "asset_preprocessing_jobs": "Forbehandlingsopgaver for ressourcer",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler Jobs",
+          "description": "Webcrawling og indholdsudtrækning fra URL'er"
+        },
+        "inference": {
+          "title": "Inference Jobs",
+          "description": "AI-drevet tagning og opsummering af indhold"
+        },
+        "indexing": {
+          "title": "Indexeringsjob",
+          "description": "Søgeindeksopdateringer"
+        },
+        "asset_preprocessing": {
+          "title": "Asset Præprocesseringsjob",
+          "description": "Billed- og dokumentpræprocessering (skærmbilleder, tekstudtrækning osv.)"
+        },
+        "tidy_assets": {
+          "title": "Ryddelige Asset Jobs",
+          "description": "Asset oprydning og lageroptimering"
+        },
+        "video": {
+          "title": "Video Download Jobs",
+          "description": "Videoudtrækning og download"
+        },
+        "webhook": {
+          "title": "Webhook Jobs",
+          "description": "Eksterne webhook notifikationer"
+        },
+        "feed": {
+          "title": "RSS Feed Jobs",
+          "description": "RSS-feed behandling og indholdsopdateringer"
+        }
+      },
+      "monitor_and_manage": "Overvåg og administrer baggrundsjobkøer og systembehandlingsopgaver",
+      "active": "Aktiv",
+      "available_actions": "Tilgængelige handlinger",
+      "status": {
+        "title": "Forståelse af Jobtilstande",
+        "queued": {
+          "title": "Sat i kø",
+          "description": "Job, der venter i køen på at blive behandlet. De starter automatisk, når der er ressourcer tilgængelige."
+        },
+        "unprocessed": {
+          "title": "Ikke behandlet",
+          "description": "Bogmærker, der endnu ikke er blevet behandlet. De er sandsynligvis allerede sat i kø til behandling, hvis ikke, skal du måske manuelt sætte dem i kø igen."
+        },
+        "failed": {
+          "title": "Mislykkedes",
+          "description": "Bogmærker, der stødte på fejl under behandlingen. Disse kan kræve manuel opmærksomhed."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Gennemsøg kun links, der er mislykkedes, igen",
+        "recrawl_all_links": "Gennemsøg alle links igen",
+        "without_inference": "Uden inferens",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Opret AI-tags igen kun for mislykkede bogmærker",
+        "regenerate_ai_tags_for_all_bookmarks": "Opret AI-tags for alle bogmærker igen",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Opret AI-oversigter igen kun for mislykkede bogmærker",
+        "regenerate_ai_summaries_for_all_bookmarks": "Opret AI-oversigter for alle bogmærker igen",
+        "reindex_all_bookmarks": "Genindekser alle bogmærker",
+        "clean_assets": "Ryd op i efterladte aktiver og synkroniser metadata igen",
+        "reprocess_assets_fix_mode": "Genbehandl ubehandlede aktiver"
+      }
     },
     "server_stats": {
       "server_version": "Server-version",
@@ -230,7 +366,9 @@
       "num_bookmarks": "Antal bogmærker",
       "asset_sizes": "Størrelse på ressourcer",
       "local_user": "Lokal bruger",
-      "confirm_password": "Bekræft adgangskode"
+      "confirm_password": "Bekræft adgangskode",
+      "delete_user_confirm_description": "Er du sikker på, at du vil slette brugeren \"{{name}}\"?",
+      "unlimited": "Ubegrænset"
     }
   },
   "tags": {
@@ -346,7 +484,10 @@
     "updated_at": "Opdateret den",
     "title": "Titel",
     "description": "Beskrivelse",
-    "summary": "Opsummering"
+    "summary": "Opsummering",
+    "quota": "Kvote",
+    "bookmarks": "Bogmærker",
+    "storage": "Lagring"
   },
   "layouts": {
     "masonry": "Fliser",
@@ -454,7 +595,8 @@
     "day_s_ago": " Dag(e) siden",
     "week_s_ago": " Uge(r) siden",
     "month_s_ago": " Måned(er) siden",
-    "year_s_ago": " År siden"
+    "year_s_ago": " År siden",
+    "history": "Seneste søgninger"
   },
   "dialogs": {
     "bookmarks": {

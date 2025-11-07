@@ -5,6 +5,7 @@ import { api } from "@/server/api/client";
 import { Highlighter } from "lucide-react";
 
 export default async function HighlightsPage() {
+  // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
   const highlights = await api.highlights.getAll({});
   return (

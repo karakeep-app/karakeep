@@ -33,8 +33,10 @@ export default async function ({ provide }: GlobalSetupContext) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const port = await getRandomPort();
 
+  const buildArg = process.env.E2E_TEST_NO_BUILD ? "" : "--build";
+
   console.log(`Starting docker compose on port ${port}...`);
-  execSync(`docker compose up --build -d`, {
+  execSync(`docker compose up ${buildArg} -d`, {
     cwd: __dirname,
     stdio: "inherit",
     env: {

@@ -1,4 +1,3 @@
-pnpm typecheck
-pnpm format --check
-pnpm lint
+pnpm preflight
 pnpm exec sherif
+pnpm run --filter @karakeep/open-api check

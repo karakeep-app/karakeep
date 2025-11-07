@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
 import { updateInterfaceLang } from "@/lib/userLocalSettings/userLocalSettings";
 import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Archive, Bookmark, Clock, Globe } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,6 +18,7 @@ import {
   zUserSettingsSchema,
 } from "@karakeep/shared/types/users";
 
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Form, FormField } from "../ui/form";
 import { Label } from "../ui/label";
 import {
@@ -37,7 +39,7 @@ const LanguageSelect = () => {
         await updateInterfaceLang(val);
       }}
     >
-      <SelectTrigger>
+      <SelectTrigger className="h-11">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -51,7 +53,7 @@ const LanguageSelect = () => {
   );
 };
 
-export default function UserSettings() {
+export default function UserOptions() {
   const { t } = useTranslation();
   const clientConfig = useClientConfig();
   const data = useUserSettings();
@@ -68,6 +70,9 @@ export default function UserSettings() {
       });
     },
   });
+  const [timezones, setTimezones] = useState<
+    { label: string; value: string }[] | null
+  >(null);
 
   const bookmarkClickActionTranslation: Record<
     ZUserSettings["bookmarkClickAction"],
@@ -89,6 +94,39 @@ export default function UserSettings() {
     hide: t("settings.info.user_settings.archive_display_behaviour.hide"),
   };
 
+  // Get all supported timezones and format them nicely
+  useEffect(() => {
+    try {
+      const browserTimezones = Intl.supportedValuesOf("timeZone");
+      setTimezones(
+        browserTimezones
+          .map((tz) => {
+            // Create a more readable label by replacing underscores with spaces
+            // and showing the current time offset
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat("en", {
+              timeZone: tz,
+              timeZoneName: "short",
+            });
+            const parts = formatter.formatToParts(now);
+            const timeZoneName =
+              parts.find((part) => part.type === "timeZoneName")?.value || "";
+
+            // Format the timezone name for display
+            const displayName = tz.replace(/_/g, " ").replace("/", " / ");
+            const label = timeZoneName
+              ? `${displayName} (${timeZoneName})`
+              : displayName;
+
+            return { value: tz, label };
+          })
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      );
+    } catch {
+      setTimezones(null);
+    }
+  }, []);
+
   const form = useForm<z.infer<typeof zUserSettingsSchema>>({
     resolver: zodResolver(zUserSettingsSchema),
     defaultValues: data,
@@ -101,97 +139,142 @@ export default function UserSettings() {
 
   return (
     <Form {...form}>
-      <FormField
-        control={form.control}
-        name="bookmarkClickAction"
-        render={({ field }) => (
-          <div className="flex w-full flex-col gap-2">
-            <Label>
-              {t("settings.info.user_settings.bookmark_click_action.title")}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2  text-xl">
+            <Globe className="h-5 w-5" />
+            {t("settings.info.options")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              {t("settings.info.interface_lang")}
             </Label>
-            <Select
-              disabled={!!clientConfig.demoMode}
-              value={field.value}
-              onValueChange={(value) => {
-                mutate({
-                  bookmarkClickAction:
-                    value as ZUserSettings["bookmarkClickAction"],
-                });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue>
-                  {bookmarkClickActionTranslation[field.value]}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(bookmarkClickActionTranslation).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
+            <LanguageSelect />
           </div>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="archiveDisplayBehaviour"
-        render={({ field }) => (
-          <div className="flex w-full flex-col gap-2">
-            <Label>
-              {t("settings.info.user_settings.archive_display_behaviour.title")}
-            </Label>
-            <Select
-              disabled={!!clientConfig.demoMode}
-              value={field.value}
-              onValueChange={(value) => {
-                mutate({
-                  archiveDisplayBehaviour:
-                    value as ZUserSettings["archiveDisplayBehaviour"],
-                });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue>
-                  {archiveDisplayBehaviourTranslation[field.value]}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(archiveDisplayBehaviourTranslation).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
+
+          <FormField
+            control={form.control}
+            name="timezone"
+            render={({ field }) => (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-medium">
+                  <Clock className="h-4 w-4" />
+                  Timezone
+                </Label>
+                <Select
+                  disabled={!!clientConfig.demoMode || timezones === null}
+                  value={field.value}
+                  onValueChange={(value) => {
+                    mutate({
+                      timezone: value,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue>
+                      {timezones?.find(
+                        (tz: { value: string; label: string }) =>
+                          tz.value === field.value,
+                      )?.label || field.value}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timezones?.map((tz: { value: string; label: string }) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="bookmarkClickAction"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm font-medium">
+                    <Bookmark className="h-4 w-4" />
+                    {t(
+                      "settings.info.user_settings.bookmark_click_action.title",
+                    )}
+                  </Label>
+                  <Select
+                    disabled={!!clientConfig.demoMode}
+                    value={field.value}
+                    onValueChange={(value) => {
+                      mutate({
+                        bookmarkClickAction:
+                          value as ZUserSettings["bookmarkClickAction"],
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue>
+                        {bookmarkClickActionTranslation[field.value]}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(bookmarkClickActionTranslation).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="archiveDisplayBehaviour"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm font-medium">
+                    <Archive className="h-4 w-4" />
+                    {t(
+                      "settings.info.user_settings.archive_display_behaviour.title",
+                    )}
+                  </Label>
+                  <Select
+                    disabled={!!clientConfig.demoMode}
+                    value={field.value}
+                    onValueChange={(value) => {
+                      mutate({
+                        archiveDisplayBehaviour:
+                          value as ZUserSettings["archiveDisplayBehaviour"],
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue>
+                        {archiveDisplayBehaviourTranslation[field.value]}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(archiveDisplayBehaviourTranslation).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
           </div>
-        )}
-      />
+        </CardContent>
+      </Card>
     </Form>
-  );
-}
-
-export function UserOptions() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="flex flex-col sm:flex-row">
-      <div className="mb-4 w-full text-lg font-medium sm:w-1/3">
-        {t("settings.info.options")}
-      </div>
-      <div className="flex w-full flex-col gap-3">
-        <div className="flex w-full flex-col gap-2">
-          <Label>{t("settings.info.interface_lang")}</Label>
-          <LanguageSelect />
-        </div>
-        <UserSettings />
-      </div>
-    </div>
   );
 }

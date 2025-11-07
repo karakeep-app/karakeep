@@ -13,7 +13,7 @@ RUN apk add --no-cache libc6-compat make g++ py3-pip linux-headers
 
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV PUPPETEER_SKIP_DOWNLOAD true
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
 # Build the db migration script
@@ -26,6 +26,7 @@ RUN cd packages/db && \
 RUN (cd apps/web && pnpm exec next build --experimental-build-mode compile)
 
 # Build the worker code
+RUN (cd apps/workers && pnpm build)
 RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/workers
 
 # Build the cli
@@ -40,13 +41,8 @@ FROM node:22-alpine AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
-# https://github.com/karakeep-app/karakeep/issues/967
-RUN npm install -g corepack@0.31.0
-
 ARG SERVER_VERSION=nightly
 ENV SERVER_VERSION=${SERVER_VERSION}
-
-USER root
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
@@ -55,7 +51,7 @@ EXPOSE 3000
 ######################
 # Prepare s6-overlay
 ######################
-ARG S6_OVERLAY_VERSION=3.2.0.0
+ARG S6_OVERLAY_VERSION=3.2.1.0
 ARG TARGETARCH
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
@@ -100,7 +96,6 @@ COPY --from=base --chown=node:node /app/apps/web/.next/static ./apps/web/.next/s
 # Prepare the workers app
 ######################
 COPY --from=base /prod/workers /app/apps/workers
-RUN corepack enable && corepack pack
 
 ENTRYPOINT ["/init"]
 

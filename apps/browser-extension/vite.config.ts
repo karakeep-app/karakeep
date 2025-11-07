@@ -13,4 +13,9 @@ export default defineConfig({
       browser: process.env.VITE_BUILD_FIREFOX ? "firefox" : "chrome",
     }),
   ],
+  server: {
+    cors: {
+      origin: [/chrome-extension:\/\//],
+    },
+  },
 });

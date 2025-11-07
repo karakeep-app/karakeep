@@ -57,10 +57,15 @@ export const listsAppRouter = router({
     .input(
       z.object({
         listId: z.string(),
+        deleteChildren: z.boolean().optional().default(false),
       }),
     )
     .use(ensureListOwnership)
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx, input }) => {
+      if (input.deleteChildren) {
+        const children = await ctx.list.getChildren();
+        await Promise.all(children.map((l) => l.delete()));
+      }
       await ctx.list.delete();
     }),
   addToList: authedProcedure
@@ -144,9 +149,9 @@ export const listsAppRouter = router({
         token: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      const token = await list.regenRssToken();
+    .use(ensureListOwnership)
+    .mutation(async ({ ctx }) => {
+      const token = await ctx.list.regenRssToken();
       return { token: token! };
     }),
   clearRssToken: authedProcedure
@@ -155,9 +160,9 @@ export const listsAppRouter = router({
         listId: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      await list.clearRssToken();
+    .use(ensureListOwnership)
+    .mutation(async ({ ctx }) => {
+      await ctx.list.clearRssToken();
     }),
   getRssToken: authedProcedure
     .input(
@@ -170,8 +175,8 @@ export const listsAppRouter = router({
         token: z.string().nullable(),
       }),
     )
-    .query(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      return { token: await list.getRssToken() };
+    .use(ensureListOwnership)
+    .query(async ({ ctx }) => {
+      return { token: await ctx.list.getRssToken() };
     }),
 });

@@ -9,7 +9,7 @@ The app is mainly configured by environment variables. All the used environment 
 | NEXTAUTH_URL              | Yes                                   | Not set | Should point to the address of your server. The app will function without it, but will redirect you to wrong addresses on signout for example. |
 | NEXTAUTH_SECRET           | Yes                                   | Not set | Random string used to sign the JWT tokens. Generate one with `openssl rand -base64 36`.                                                        |
 | MEILI_ADDR                | No                                    | Not set | The address of meilisearch. If not set, Search will be disabled. E.g. (`http://meilisearch:7700`)                                              |
-| MEILI_MASTER_KEY          | Only in Prod and if search is enabled | Not set | The master key configured for meilisearch. Not needed in development environment. Generate one with `openssl rand -base64 36`                  |
+| MEILI_MASTER_KEY          | Only in Prod and if search is enabled | Not set | The master key configured for meilisearch. Not needed in development environment. Generate one with `openssl rand -base64 36 \| tr -dc 'A-Za-z0-9'`                   |
 | MAX_ASSET_SIZE_MB         | No                                    | 50      | Sets the maximum allowed asset size (in MB) to be uploaded                                                                                     |
 | DISABLE_NEW_RELEASE_CHECK | No                                    | false   | If set to true, latest release check will be disabled in the admin panel.                                                                      |
 

@@ -16,14 +16,14 @@ import {
 import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
+  getBookmarkRefreshInterval,
   getBookmarkTitle,
   getSourceUrl,
   isBookmarkStillCrawling,
-  isBookmarkStillLoading,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import SummarizeBookmarkArea from "../bookmarks/SummarizeBookmarkArea";
@@ -61,6 +61,53 @@ function CreationTime({ createdAt }: { createdAt: Date }) {
   );
 }
 
+function BookmarkMetadata({ bookmark }: { bookmark: ZBookmark }) {
+  if (bookmark.content.type !== BookmarkTypes.LINK) {
+    return null;
+  }
+
+  const { author, publisher, datePublished } = bookmark.content;
+
+  if (!author && !publisher && !datePublished) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {author && (
+        <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+          <User size={16} />
+          <span>By {author}</span>
+        </div>
+      )}
+      {publisher && (
+        <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+          <Building size={16} />
+          <span>{publisher}</span>
+        </div>
+      )}
+      {datePublished && <PublishedDate datePublished={datePublished} />}
+    </div>
+  );
+}
+
+function PublishedDate({ datePublished }: { datePublished: Date }) {
+  const { fromNow, localCreatedAt } = useRelativeTime(datePublished);
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+          <CalendarDays size={16} />
+          <span>Published {fromNow}</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipPortal>
+        <TooltipContent>{localCreatedAt}</TooltipContent>
+      </TooltipPortal>
+    </Tooltip>
+  );
+}
+
 export default function BookmarkPreview({
   bookmarkId,
   initialData,
@@ -82,11 +129,7 @@ export default function BookmarkPreview({
         if (!data) {
           return false;
         }
-        // If the link is not crawled or not tagged
-        if (isBookmarkStillLoading(data)) {
-          return 1000;
-        }
-        return false;
+        return getBookmarkRefreshInterval(data);
       },
     },
   );
@@ -142,6 +185,7 @@ export default function BookmarkPreview({
         <Separator />
       </div>
       <CreationTime createdAt={bookmark.createdAt} />
+      <BookmarkMetadata bookmark={bookmark} />
       <SummarizeBookmarkArea bookmark={bookmark} />
       <div className="flex items-center gap-4">
         <p className="text-sm text-gray-400">{t("common.tags")}</p>

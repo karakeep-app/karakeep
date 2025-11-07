@@ -188,6 +188,7 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
                 </div>
 
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => handleRemoveAction(index)}

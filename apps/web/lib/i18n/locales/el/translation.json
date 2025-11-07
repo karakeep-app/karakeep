@@ -1,0 +1,623 @@
+{
+  "common": {
+    "url": "URL",
+    "name": "Όνομα",
+    "email": "Email",
+    "password": "Κωδικός Πρόσβασης",
+    "action": "Ενέργεια",
+    "actions": "Ενέργειες",
+    "created_at": "Δημιουργήθηκε στις",
+    "updated_at": "Ανανεώθηκε στις",
+    "key": "Κλειδί",
+    "role": "Ρόλος",
+    "type": "Τύπος",
+    "size": "Μέγεθος",
+    "roles": {
+      "user": "Χρήστης",
+      "admin": "Διαχειριστής"
+    },
+    "something_went_wrong": "Κάτι πήγε στραβά",
+    "experimental": "Πειραματικό",
+    "search": "Αναζήτηση",
+    "tags": "Ετικέτες",
+    "note": "Σημείωση",
+    "attachments": "Συνημμένα",
+    "highlights": "Επιλογές",
+    "source": "Πηγή",
+    "screenshot": "Στιγμιότυπο οθόνης",
+    "video": "Βίντεο",
+    "archive": "Αρχείο",
+    "home": "Αρχική",
+    "title": "Τίτλος",
+    "description": "Περιγραφή",
+    "summary": "Περίληψη",
+    "bookmark_types": {
+      "title": "Τύπος Σελιδοδείκτη",
+      "link": "Σύνδεσμος",
+      "text": "Κείμενο",
+      "media": "Πολυμέσα"
+    },
+    "quota": "Ποσόστωση",
+    "bookmarks": "Σελιδοδείκτες",
+    "storage": "Αποθήκευση"
+  },
+  "layouts": {
+    "masonry": "Πλινθοδομή",
+    "grid": "Πλέγμα",
+    "list": "Λίστα",
+    "compact": "Συμπαγής"
+  },
+  "actions": {
+    "change_layout": "Αλλαγή Διάταξης",
+    "archive": "Αρχειοθέτηση",
+    "unarchive": "Αναίρεση Αρχειοθέτησης",
+    "favorite": "Αγαπημένο",
+    "unfavorite": "Αφαίρεση από Αγαπημένα",
+    "delete": "Διαγραφή",
+    "toggle_show_archived": "Εμφάνιση Αρχειοθετημένων",
+    "refresh": "Ανανέωση",
+    "recrawl": "Επαναφόρτωση",
+    "download_full_page_archive": "Λήψη Πλήρους Αρχείου Σελίδας",
+    "edit_tags": "Επεξεργασία Ετικετών",
+    "add_to_list": "Προσθήκη στη Λίστα",
+    "select_all": "Επιλογή Όλων",
+    "unselect_all": "Αποεπιλογή Όλων",
+    "copy_link": "Αντιγραφή Συνδέσμου",
+    "close_bulk_edit": "Κλείσιμο Μαζικής Επεξεργασίας",
+    "bulk_edit": "Μαζική Επεξεργασία",
+    "manage_lists": "Διαχείριση Λιστών",
+    "remove_from_list": "Αφαίρεση από Λίστα",
+    "save": "Αποθήκευση",
+    "add": "Προσθήκη",
+    "edit": "Επεξεργασία",
+    "open_editor": "Άνοιγμα Επεξεργαστή",
+    "create": "Δημιουργία",
+    "fetch_now": "Φόρτωση Τώρα",
+    "summarize_with_ai": "Περίληψη με AI",
+    "edit_title": "Επεξεργασία Τίτλου",
+    "sign_out": "Αποσύνδεση",
+    "close": "Κλείσιμο",
+    "merge": "Συγχώνευση",
+    "cancel": "Ακύρωση",
+    "apply_all": "Εφαρμογή σε Όλα",
+    "ignore": "Αγνόηση",
+    "sort": {
+      "title": "Ταξινόμηση",
+      "relevant_first": "Πιο Σχετικά Πρώτα",
+      "newest_first": "Νεότερα Πρώτα",
+      "oldest_first": "Παλαιότερα Πρώτα"
+    },
+    "confirm": "Επιβεβαίωση"
+  },
+  "highlights": {
+    "no_highlights": "Δεν έχετε ακόμα επιλογές."
+  },
+  "settings": {
+    "back_to_app": "Επιστροφή στην Εφαρμογή",
+    "user_settings": "Ρυθμίσεις Χρήστη",
+    "info": {
+      "user_info": "Πληροφορίες Χρήστη",
+      "basic_details": "Βασικές Λεπτομέρειες",
+      "change_password": "Αλλαγή Κωδικού Πρόσβασης",
+      "current_password": "Τρέχων Κωδικός Πρόσβασης",
+      "new_password": "Νέος Κωδικός Πρόσβασης",
+      "confirm_new_password": "Επιβεβαίωση Νέου Κωδικού Πρόσβασης",
+      "options": "Επιλογές",
+      "interface_lang": "Γλώσσα Διεπαφής",
+      "user_settings": {
+        "user_settings_updated": "Οι ρυθμίσεις χρήστη ενημερώθηκαν!",
+        "bookmark_click_action": {
+          "title": "Ενέργεια Κλικ Σελιδοδείκτη",
+          "open_external_url": "Άνοιγμα Αρχικού URL",
+          "open_bookmark_details": "Άνοιγμα Λεπτομερειών Σελιδοδείκτη"
+        },
+        "archive_display_behaviour": {
+          "title": "Αρχειοθετημένοι Σελιδοδείκτες",
+          "show": "Εμφάνιση αρχειοθετημένων σελιδοδεικτών σε ετικέτες και λίστες",
+          "hide": "Απόκρυψη αρχειοθετημένων σελιδοδεικτών από ετικέτες και λίστες"
+        }
+      }
+    },
+    "ai": {
+      "ai_settings": "Ρυθμίσεις AI",
+      "tagging_rules": "Κανόνες Ετικετοποίησης",
+      "tagging_rule_description": "Οι οδηγίες που θα προσθέσετε εδώ θα συμπεριληφθούν ως κανόνες στο μοντέλο κατά τη δημιουργία ετικετών. Μπορείτε να δείτε τις τελικές οδηγίες στην ενότητα προεπισκόπησης οδηγιών.",
+      "prompt_preview": "Προεπισκόπηση Οδηγιών",
+      "text_prompt": "Οδηγία Κειμένου",
+      "images_prompt": "Οδηγία Εικόνων",
+      "summarization_prompt": "Οδηγία Περίληψης",
+      "all_tagging": "Όλη η Ετικετοποίηση",
+      "text_tagging": "Ετικετοποίηση Κειμένου",
+      "image_tagging": "Ετικετοποίηση Εικόνων",
+      "summarization": "Περίληψη"
+    },
+    "feeds": {
+      "rss_subscriptions": "Συνδρομές RSS",
+      "add_a_subscription": "Προσθήκη Συνδρομής",
+      "feed_enabled": "RSS Feed ενεργοποιημένο",
+      "feed_disabled": "RSS Feed απενεργοποιημένο"
+    },
+    "webhooks": {
+      "webhooks": "Webhooks",
+      "description": "Μπορείτε να χρησιμοποιήσετε webhooks για να ενεργοποιήσετε ενέργειες όταν δημιουργούνται, αλλάζουν ή σαρώνονται σελιδοδείκτες.",
+      "events": {
+        "title": "Γεγονότα",
+        "crawled": "Σαρώθηκε",
+        "created": "Δημιουργήθηκε",
+        "edited": "Επεξεργάστηκε"
+      },
+      "auth_token": "Διακριτικό Πιστοποίησης",
+      "add_auth_token": "Προσθήκη Διακριτικού Πιστοποίησης",
+      "edit_auth_token": "Επεξεργασία Διακριτικού Πιστοποίησης",
+      "create_webhook": "Δημιουργία Webhook",
+      "delete_webhook": "Διαγραφή Webhook",
+      "delete_webhook_confirmation": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το webhook;",
+      "edit_webhook": "Επεξεργασία Webhook",
+      "webhook_url": "URL Webhook"
+    },
+    "import": {
+      "import_export": "Εισαγωγή / Εξαγωγή",
+      "import_export_bookmarks": "Εισαγωγή / Εξαγωγή Σελιδοδεικτών",
+      "import_bookmarks_from_html_file": "Εισαγωγή Σελιδοδεικτών από αρχείο HTML",
+      "import_bookmarks_from_pocket_export": "Εισαγωγή Σελιδοδεικτών από εξαγωγή Pocket",
+      "import_bookmarks_from_omnivore_export": "Εισαγωγή Σελιδοδεικτών από εξαγωγή Omnivore",
+      "import_bookmarks_from_linkwarden_export": "Εισαγωγή Σελιδοδεικτών από εξαγωγή Linkwarden",
+      "import_bookmarks_from_karakeep_export": "Εισαγωγή Σελιδοδεικτών από εξαγωγή Karakeep",
+      "import_bookmarks_from_tab_session_manager_export": "Εισαγωγή Σελιδοδεικτών από Tab Session Manager",
+      "export_links_and_notes": "Εξαγωγή Συνδέσμων και Σημειώσεων",
+      "imported_bookmarks": "Εισαγόμενοι Σελιδοδείκτες"
+    },
+    "api_keys": {
+      "api_keys": "Κλειδιά API",
+      "new_api_key": "Νέο Κλειδί API",
+      "new_api_key_desc": "Δώστε στο κλειδί API σας ένα μοναδικό όνομα",
+      "key_success": "Το κλειδί δημιουργήθηκε επιτυχώς",
+      "key_success_please_copy": "Παρακαλώ αντιγράψτε το κλειδί και αποθηκεύστε το σε ασφαλές μέρος. Μόλις κλείσετε το παράθυρο διαλόγου, δεν θα μπορείτε να το αποκτήσετε ξανά."
+    },
+    "broken_links": {
+      "broken_links": "Χαλασμένοι Σύνδεσμοι",
+      "last_crawled_at": "Τελευταία Σάρωση στις",
+      "crawling_status": "Κατάσταση Σάρωσης",
+      "crawling_failed": "Η Σάρωση Απέτυχε"
+    },
+    "manage_assets": {
+      "manage_assets": "Διαχείριση Στοιχείων",
+      "no_assets": "Δεν έχετε ακόμα στοιχεία.",
+      "asset_type": "Τύπος Στοιχείου",
+      "bookmark_link": "Σύνδεσμος Σελιδοδείκτη",
+      "asset_link": "Σύνδεσμος Στοιχείου",
+      "delete_asset": "Διαγραφή Στοιχείου",
+      "delete_asset_confirmation": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το στοιχείο;"
+    },
+    "rules": {
+      "rules": "Μηχανή Κανόνων",
+      "rule_name": "Όνομα Κανόνα",
+      "description": "Μπορείτε να χρησιμοποιήσετε κανόνες για να ενεργοποιήσετε ενέργειες όταν συμβαίνει ένα γεγονός.",
+      "ceate_rule": "Δημιουργία Κανόνα",
+      "edit_rule": "Επεξεργασία Κανόνα",
+      "save_rule": "Αποθήκευση Κανόνα",
+      "delete_rule": "Διαγραφή Κανόνα",
+      "delete_rule_confirmation": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον κανόνα;",
+      "whenever": "Όποτε ...",
+      "if": "Αν ...",
+      "enter_rule_name": "Εισάγετε όνομα κανόνα",
+      "describe_what_this_rule_does": "Περιγράψτε τι κάνει αυτός ο κανόνας",
+      "rule_has_been_created": "Ο κανόνας δημιουργήθηκε!",
+      "rule_has_been_updated": "Ο κανόνας ενημερώθηκε!",
+      "rule_has_been_deleted": "Ο κανόνας διαγράφηκε!",
+      "no_rules_created_yet": "Δεν έχουν δημιουργηθεί κανόνες ακόμα",
+      "create_your_first_rule": "Δημιουργήστε τον πρώτο σας κανόνα για να αυτοματοποιήσετε τη ροή εργασίας σας",
+      "conditions_types": {
+        "always": "Πάντα",
+        "url_contains": "Το URL Περιέχει",
+        "imported_from_feed": "Εισάγεται από Feed",
+        "bookmark_type_is": "Ο Τύπος Σελιδοδείκτη Είναι",
+        "has_tag": "Έχει Ετικέτα",
+        "is_favourited": "Είναι Αγαπημένο",
+        "is_archived": "Είναι Αρχειοθετημένο",
+        "and": "Όλα τα παρακάτω είναι αληθή",
+        "or": "Οποιοδήποτε από τα παρακάτω είναι αληθές"
+      },
+      "actions_types": {
+        "add_tag": "Προσθήκη Ετικέτας",
+        "remove_tag": "Αφαίρεση Ετικέτας",
+        "add_to_list": "Προσθήκη στη Λίστα",
+        "remove_from_list": "Αφαίρεση από Λίστα",
+        "download_full_page_archive": "Λήψη Πλήρους Αρχείου Σελίδας",
+        "favourite_bookmark": "Σημείωση ως Αγαπημένο",
+        "archive_bookmark": "Αρχειοθέτηση Σελιδοδείκτη"
+      },
+      "events_types": {
+        "bookmark_added": "Προστίθεται ένας σελιδοδείκτης",
+        "tag_added": "Αυτή η ετικέτα προστίθεται σε έναν σελιδοδείκτη",
+        "tag_removed": "Αυτή η ετικέτα αφαιρείται από έναν σελιδοδείκτη",
+        "added_to_list": "Ένας σελιδοδείκτης προστίθεται σε αυτή τη λίστα",
+        "removed_from_list": "Ένας σελιδοδείκτης αφαιρείται από αυτή τη λίστα",
+        "favourited": "Ένας σελιδοδείκτης σημειώνεται ως αγαπημένος",
+        "archived": "Ένας σελιδοδείκτης αρχειοθετείται"
+      }
+    },
+    "stats": {
+      "usage_statistics": "Στατιστικά Χρήσης",
+      "insights_description": "Πληροφορίες για τις συνήθειες και τη συλλογή σελιδοδεικτών σου",
+      "failed_to_load": "Αποτυχία φόρτωσης στατιστικών",
+      "overview": {
+        "total_bookmarks": "Σύνολο σελιδοδεικτών",
+        "all_saved_items": "Όλα τα αποθηκευμένα στοιχεία",
+        "favorites": "Αγαπημένα",
+        "starred_bookmarks": "Σελιδοδείκτες με αστέρι",
+        "archived": "Αρχειοθετημένα",
+        "archived_items": "Αρχειοθετημένα στοιχεία",
+        "tags": "Ετικέτες",
+        "unique_tags_created": "Δημιουργήθηκαν μοναδικά tags",
+        "lists": "Λίστες",
+        "bookmark_collections": "Συλλογές σελιδοδεικτών",
+        "highlights": "Επισημάνσεις",
+        "text_highlights": "Επισημάνσεις κειμένου",
+        "storage_used": "Χώρος αποθήκευσης που χρησιμοποιείται",
+        "total_asset_storage": "Συνολικός αποθηκευτικός χώρος στοιχείων",
+        "this_month": "Αυτόν τον μήνα",
+        "bookmarks_added": "Προστέθηκαν σελιδοδείκτες"
+      },
+      "bookmark_types": {
+        "title": "Τύποι σελιδοδεικτών",
+        "links": "Σύνδεσμοι",
+        "text_notes": "Σημειώσεις κειμένου",
+        "assets": "Στοιχεία"
+      },
+      "recent_activity": {
+        "title": "Πρόσφατη δραστηριότητα",
+        "this_week": "Αυτή την εβδομάδα",
+        "this_month": "Αυτόν τον μήνα",
+        "this_year": "Φέτος"
+      },
+      "top_domains": {
+        "title": "Κορυφαίοι τομείς",
+        "no_domains_found": "Δεν βρέθηκαν τομείς"
+      },
+      "most_used_tags": {
+        "title": "Tags που χρησιμοποιούνται περισσότερο",
+        "no_tags_found": "Δεν βρέθηκαν ετικέτες"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Δραστηριότητα ανά ώρα",
+        "activity_by_day": "Δραστηριότητα ανά ημέρα"
+      },
+      "storage_breakdown": {
+        "title": "Ανάλυση αποθήκευσης"
+      }
+    },
+    "subscription": {
+      "subscription": "Συνδρομή",
+      "manage_subscription": "Διαχειρίσου τη συνδρομή σου και τις πληροφορίες χρέωσης",
+      "current_plan": "Τρέχον πρόγραμμα",
+      "billing_period": "Περίοδος χρέωσης",
+      "paid_plan": "Πληρωμένο πρόγραμμα",
+      "unlock_bigger_quota": "Ξεκλείδωσε μεγαλύτερη ποσόστωση και υποστήριξε το έργο",
+      "subscribe_now": "Εγγραφή τώρα",
+      "manage_billing": "Διαχείριση χρεώσεων",
+      "subscription_canceled": "Η συνδρομή σου έχει ακυρωθεί και θα λήξει στις {{date}}. Μπορείς να εγγραφείς ξανά ανά πάσα στιγμή.",
+      "usage_quotas": "Χρήση & Ποσοστώσεις",
+      "track_usage": "Παρακολούθησε την τρέχουσα χρήση σου σε σχέση με τα όρια του προγράμματός σου",
+      "total_bookmarks_saved": "Σύνολο αποθηκευμένων σελιδοδεικτών",
+      "assets_file_storage": "Αποθήκευση στοιχείων και αρχείων",
+      "unlimited_usage": "Απεριόριστη χρήση",
+      "quota_limit_reached": "Έφτασες το όριο ποσόστωσης",
+      "approaching_quota_limit": "Πλησιάζει το όριο ποσόστωσης",
+      "loading_usage": "Φόρτωση πληροφοριών χρήσης...",
+      "free": "Δωρεάν",
+      "paid": "Πληρωμένο"
+    }
+  },
+  "admin": {
+    "admin_settings": "Ρυθμίσεις Διαχειριστή",
+    "server_stats": {
+      "server_stats": "Στατιστικά Διακομιστή",
+      "total_users": "Συνολικοί Χρήστες",
+      "total_bookmarks": "Συνολικοί Σελιδοδείκτες",
+      "server_version": "Έκδοση Διακομιστή"
+    },
+    "background_jobs": {
+      "background_jobs": "Εργασίες Παρασκηνίου",
+      "crawler_jobs": "Εργασίες Σάρωσης",
+      "indexing_jobs": "Εργασίες Ευρετηρίασης",
+      "inference_jobs": "Εργασίες Εξαγωγής Συμπερασμάτων",
+      "tidy_assets_jobs": "Εργασίες Οργάνωσης Στοιχείων",
+      "video_jobs": "Εργασίες Λήψης Βίντεο",
+      "webhook_jobs": "Εργασίες Webhook",
+      "asset_preprocessing_jobs": "Εργασίες Προεπεξεργασίας Στοιχείων",
+      "feed_jobs": "Εργασίες RSS Feed",
+      "job": "Εργασία",
+      "queued": "Στην Ουρά",
+      "pending": "Εκκρεμής",
+      "failed": "Απέτυχε",
+      "jobs": {
+        "crawler": {
+          "title": "Εργασίες ανίχνευσης",
+          "description": "Ανίχνευση ιστού και εξαγωγή περιεχομένου από URL"
+        },
+        "inference": {
+          "title": "Εργασίες συμπερασμού",
+          "description": "Προσθήκη ετικετών και περιληπτική παρουσίαση περιεχομένου μέσω τεχνητής νοημοσύνης"
+        },
+        "indexing": {
+          "title": "Εργασίες ευρετηρίασης",
+          "description": "Ενημερώσεις ευρετηρίου αναζήτησης"
+        },
+        "asset_preprocessing": {
+          "title": "Εργασίες προεπεξεργασίας στοιχείων",
+          "description": "Επεξεργασία εικόνων και εγγράφων (στιγμιότυπα οθόνης, εξαγωγή κειμένου, κ.λπ.)"
+        },
+        "tidy_assets": {
+          "title": "Εργασίες τακτοποίησης στοιχείων",
+          "description": "Εκκαθάριση στοιχείων και βελτιστοποίηση χώρου αποθήκευσης"
+        },
+        "video": {
+          "title": "Εργασίες λήψης βίντεο",
+          "description": "Εξαγωγή και λήψη βίντεο"
+        },
+        "webhook": {
+          "title": "Εργασίες Webhook",
+          "description": "Εξωτερικές ειδοποιήσεις webhook"
+        },
+        "feed": {
+          "title": "Εργασίες RSS Feed",
+          "description": "Επεξεργασία RSS feed και ενημερώσεις περιεχομένου"
+        }
+      },
+      "monitor_and_manage": "Παρακολούθηση και διαχείριση ουρών εργασιών παρασκηνίου και εργασιών επεξεργασίας συστήματος",
+      "active": "Ενεργό",
+      "available_actions": "Διαθέσιμες ενέργειες",
+      "status": {
+        "title": "Κατανόηση των καταστάσεων εργασίας",
+        "queued": {
+          "title": "Σε αναμονή",
+          "description": "Εργασίες που περιμένουν στην ουρά για να υποβληθούν σε επεξεργασία. Θα ξεκινήσουν αυτόματα όταν υπάρχουν διαθέσιμοι πόροι."
+        },
+        "unprocessed": {
+          "title": "Ανέπεξεργαστο",
+          "description": "Σελιδοδείκτες που δεν έχουν υποστεί ακόμη επεξεργασία. Πιθανότατα έχουν ήδη μπει στην ουρά για επεξεργασία, αν όχι, ίσως χρειαστεί να τους προσθέσετε ξανά στην ουρά χειροκίνητα."
+        },
+        "failed": {
+          "title": "Αποτυχία",
+          "description": "Σελιδοδείκτες που αντιμετώπισαν σφάλματα κατά την επεξεργασία. Αυτά μπορεί να χρειάζονται χειροκίνητη προσοχή."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Επανέλεγχος μόνο των συνδέσμων που απέτυχαν",
+        "recrawl_all_links": "Επανέλεγχος όλων των συνδέσμων",
+        "without_inference": "Χωρίς συμπεράσματα",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Αναδημιουργία ετικετών AI μόνο για σελιδοδείκτες που απέτυχαν",
+        "regenerate_ai_tags_for_all_bookmarks": "Αναδημιουργία ετικετών AI για όλους τους σελιδοδείκτες",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Αναδημιουργία περιλήψεων AI μόνο για σελιδοδείκτες που απέτυχαν",
+        "regenerate_ai_summaries_for_all_bookmarks": "Αναδημιουργία περιλήψεων AI για όλους τους σελιδοδείκτες",
+        "reindex_all_bookmarks": "Επανευρετηρίαση όλων των σελιδοδεικτών",
+        "clean_assets": "Εκκαθάριση εκκρεμών στοιχείων και επανασυγχρονισμός μεταδεδομένων",
+        "reprocess_assets_fix_mode": "Επανεξεργασία μη επεξεργασμένων στοιχείων"
+      }
+    },
+    "actions": {
+      "recrawl_failed_links_only": "Επανασάρωση Μόνο Αποτυχημένων Συνδέσμων",
+      "recrawl_all_links": "Επανασάρωση Όλων των Συνδέσμων",
+      "without_inference": "Χωρίς Εξαγωγή Συμπερασμάτων",
+      "regenerate_ai_tags_for_failed_bookmarks_only": "Αναδημιουργία Ετικετών AI Μόνο για Αποτυχημένους Σελιδοδείκτες",
+      "regenerate_ai_tags_for_all_bookmarks": "Αναδημιουργία Ετικετών AI για Όλους τους Σελιδοδείκτες",
+      "regenerate_ai_summaries_for_failed_bookmarks_only": "Αναδημιουργία Περιλήψεων AI Μόνο για Αποτυχημένους Σελιδοδείκτες",
+      "regenerate_ai_summaries_for_all_bookmarks": "Αναδημιουργία Περιλήψεων AI για Όλους τους Σελιδοδείκτες",
+      "reindex_all_bookmarks": "Επαναευρετηρίαση Όλων των Σελιδοδεικτών",
+      "compact_assets": "Συμπίεση Στοιχείων",
+      "reprocess_assets_fix_mode": "Επαναεπεξεργασία Στοιχείων (Λειτουργία Διόρθωσης)"
+    },
+    "users_list": {
+      "users_list": "Λίστα Χρηστών",
+      "create_user": "Δημιουργία Χρήστη",
+      "change_role": "Αλλαγή Ρόλου",
+      "reset_password": "Επαναφορά Κωδικού Πρόσβασης",
+      "delete_user": "Διαγραφή Χρήστη",
+      "num_bookmarks": "Αριθμός Σελιδοδεικτών",
+      "asset_sizes": "Μεγέθη Στοιχείων",
+      "local_user": "Τοπικός Χρήστης",
+      "confirm_password": "Επιβεβαίωση Κωδικού Πρόσβασης",
+      "delete_user_confirm_description": "Είσαι σίγουρος ότι θέλεις να διαγράψεις τον χρήστη \"{{name}}\";",
+      "unlimited": "Απεριόριστο"
+    }
+  },
+  "options": {
+    "dark_mode": "Σκοτεινή Λειτουργία",
+    "light_mode": "Ανοιχτή Λειτουργία"
+  },
+  "lists": {
+    "all_lists": "Όλες οι Λίστες",
+    "favourites": "Αγαπημένα",
+    "new_list": "Νέα Λίστα",
+    "edit_list": "Επεξεργασία Λίστας",
+    "share_list": "Κοινοποίηση Λίστας",
+    "new_nested_list": "Νέα Ένθετη Λίστα",
+    "merge_list": "Συγχώνευση Λίστας",
+    "destination_list": "Λίστα Προορισμού",
+    "delete_after_merge": "Διαγραφή αρχικής λίστας μετά τη συγχώνευση",
+    "no_destination": "Χωρίς Προορισμό",
+    "parent_list": "Γονική Λίστα",
+    "no_parent": "Χωρίς Γονέα",
+    "list_type": "Τύπος Λίστας",
+    "manual_list": "Χειροκίνητη Λίστα",
+    "smart_list": "Έξυπνη Λίστα",
+    "search_query": "Ερώτημα Αναζήτησης",
+    "search_query_help": "Μάθετε περισσότερα για τη γλώσσα ερωτημάτων αναζήτησης.",
+    "description": "Περιγραφή (Προαιρετική)",
+    "rss": {
+      "title": "Ροή RSS",
+      "description": "Ενεργοποίηση RSS feed για αυτή τη λίστα",
+      "feed_url": "URL RSS Feed"
+    },
+    "public_list": {
+      "title": "Δημόσια Λίστα",
+      "description": "Επιτρέψτε σε άλλους να βλέπουν αυτή τη λίστα",
+      "share_link": "Σύνδεσμος Κοινοποίησης"
+    }
+  },
+  "tags": {
+    "all_tags": "Όλες οι Ετικέτες",
+    "your_tags": "Οι Ετικέτες σας",
+    "your_tags_info": "Ετικέτες που έχουν προσαρτηθεί τουλάχιστον μία φορά από εσάς",
+    "ai_tags": "Ετικέτες AI",
+    "ai_tags_info": "Ετικέτες που προσαρτήθηκαν μόνο αυτόματα (από AI)",
+    "unused_tags": "Αχρησιμοποίητες Ετικέτες",
+    "unused_tags_info": "Ετικέτες που δεν είναι προσαρτημένες σε κανέναν σελιδοδείκτη",
+    "delete_all_unused_tags": "Διαγραφή Όλων των Αχρησιμοποίητων Ετικετών",
+    "drag_and_drop_merging": "Συγχώνευση με Σύρσιμο & Απόθεση",
+    "drag_and_drop_merging_info": "Σύρετε και αποθέστε ετικέτες η μία πάνω στην άλλη για να τις συγχωνεύσετε",
+    "sort_by_name": "Ταξινόμηση κατά Όνομα"
+  },
+  "search": {
+    "is_favorited": "Είναι Αγαπημένο",
+    "is_not_favorited": "Δεν Είναι Αγαπημένο",
+    "is_archived": "Είναι Αρχειοθετημένο",
+    "is_not_archived": "Δεν Είναι Αρχειοθετημένο",
+    "has_any_tag": "Έχει Οποιαδήποτε Ετικέτα",
+    "has_no_tags": "Δεν Έχει Ετικέτες",
+    "is_in_any_list": "Είναι σε Οποιαδήποτε Λίστα",
+    "is_not_in_any_list": "Δεν Είναι σε Καμία Λίστα",
+    "created_on_or_after": "Δημιουργήθηκε την ή μετά την",
+    "not_created_on_or_after": "Δεν Δημιουργήθηκε την ή μετά την",
+    "created_on_or_before": "Δημιουργήθηκε την ή πριν την",
+    "not_created_on_or_before": "Δεν Δημιουργήθηκε την ή πριν την",
+    "created_within": "Δημιουργήθηκε Εντός",
+    "created_earlier_than": "Δημιουργήθηκε Νωρίτερα από",
+    "day_s": " Ημέρα(ες)",
+    "week_s": " Εβδομάδα(ες)",
+    "month_s": " Μήνας(ες)",
+    "year_s": " Έτος(η)",
+    "day_s_ago": " Ημέρα(ες) Πριν",
+    "week_s_ago": " Εβδομάδα(ες) Πριν",
+    "month_s_ago": " Μήνας(ες) Πριν",
+    "year_s_ago": " Έτος(η) Πριν",
+    "url_contains": "Το URL Περιέχει",
+    "url_does_not_contain": "Το URL Δεν Περιέχει",
+    "is_in_list": "Είναι στη Λίστα",
+    "is_not_in_list": "Δεν Είναι στη Λίστα",
+    "has_tag": "Έχει Ετικέτα",
+    "does_not_have_tag": "Δεν Έχει Ετικέτα",
+    "full_text_search": "Αναζήτηση Πλήρους Κειμένου",
+    "type_is": "Ο Τύπος είναι",
+    "type_is_not": "Ο Τύπος δεν είναι",
+    "is_from_feed": "Είναι από RSS Feed",
+    "is_not_from_feed": "Δεν είναι από RSS Feed",
+    "and": "Και",
+    "or": "Ή",
+    "history": "Πρόσφατες αναζητήσεις"
+  },
+  "preview": {
+    "view_original": "Προβολή Πρωτότυπου",
+    "cached_content": "Περιεχόμενο σε Cache",
+    "reader_view": "Προβολή Ανάγνωσης",
+    "tabs": {
+      "content": "Περιεχόμενο",
+      "details": "Λεπτομέρειες"
+    }
+  },
+  "editor": {
+    "quickly_focus": "Μπορείτε να εστιάσετε γρήγορα σε αυτό το πεδίο πατώντας ⌘ + E",
+    "multiple_urls_dialog_title": "Εισαγωγή URLs ως Ξεχωριστών Σελιδοδεικτών;",
+    "multiple_urls_dialog_desc": "Η είσοδος περιέχει πολλαπλά URLs σε ξεχωριστές γραμμές. Θέλετε να τα εισάγετε ως ξεχωριστούς σελιδοδείκτες;",
+    "import_as_text": "Εισαγωγή ως Σελιδοδείκτης Κειμένου",
+    "import_as_separate_bookmarks": "Εισαγωγή ως Ξεχωριστούς Σελιδοδείκτες",
+    "placeholder": "Επικολλήστε έναν σύνδεσμο ή μια εικόνα, γράψτε μια σημείωση ή σύρετε και αποθέστε μια εικόνα εδώ…",
+    "placeholder_v2": "Επικολλήστε έναν σύνδεσμο, γράψτε μια σημείωση ή αποθέστε μια εικόνα…",
+    "new_item": "ΝΈΟ ΣΤΟΙΧΕΊΟ",
+    "disabled_submissions": "Οι υποβολές είναι απενεργοποιημένες",
+    "text_toolbar": {
+      "undo": "Αναίρεση",
+      "redo": "Επανάληψη",
+      "bold": "Έντονα",
+      "italic": "Πλάγια",
+      "underline": "Υπογράμμιση",
+      "strikethrough": "Διαγράμμιση",
+      "code": "Κώδικας",
+      "highlight": "Επισήμανση",
+      "align_left": "Αριστερή Στοίχιση",
+      "align_center": "Κεντρική Στοίχιση",
+      "align_right": "Δεξιά Στοίχιση",
+      "markdown_shortcuts": {
+        "label": "Συντομεύσεις Markdown",
+        "heading": {
+          "label": "Επικεφαλίδα",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "Έντονα",
+          "example": "**κείμενο** ή CTRL+b"
+        },
+        "italic": {
+          "label": "Πλάγια",
+          "example": "*Πλάγια* ή _Πλάγια_ ή CTRL+i"
+        },
+        "blockquote": {
+          "label": "Παράθεμα",
+          "example": "> Παράθεμα"
+        },
+        "ordered_list": {
+          "label": "Αριθμημένη Λίστα",
+          "example": "1. Στοιχείο λίστας"
+        },
+        "unordered_list": {
+          "label": "Μη Αριθμημένη Λίστα",
+          "example": "- Στοιχείο λίστας"
+        },
+        "inline_code": {
+          "label": "Κώδικας στη Γραμμή",
+          "example": "`Κώδικας`"
+        },
+        "block_code": {
+          "label": "Μπλοκ Κώδικα",
+          "example": "``` + διάστημα"
+        }
+      }
+    }
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "Διαγραφή Σελιδοδείκτη;",
+      "delete_confirmation_description": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον σελιδοδείκτη;"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "Ο σελιδοδείκτης ενημερώθηκε!",
+      "deleted": "Ο σελιδοδείκτης διαγράφηκε!",
+      "refetch": "Η επαναφόρτωση μπήκε στην ουρά!",
+      "full_page_archive": "Η δημιουργία Πλήρους Αρχείου Σελίδας ενεργοποιήθηκε",
+      "delete_from_list": "Ο σελιδοδείκτης διαγράφηκε από τη λίστα",
+      "clipboard_copied": "Ο σύνδεσμος προστέθηκε στο πρόχειρό σας!"
+    },
+    "lists": {
+      "created": "Η λίστα δημιουργήθηκε!",
+      "updated": "Η λίστα ενημερώθηκε!",
+      "merged": "Η λίστα συγχωνεύτηκε!",
+      "deleted": "Η λίστα διαγράφηκε!"
+    }
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "Δεν υπάρχουν σελιδοδείκτες ακόμα",
+      "description": "Αποθηκεύστε ενδιαφέροντα άρθρα, συνδέσμους και σελίδες για να τα προσπελάσετε γρήγορα αργότερα."
+    }
+  },
+  "cleanups": {
+    "cleanups": "Καθαρισμοί",
+    "duplicate_tags": {
+      "title": "Διπλότυπες Ετικέτες",
+      "merge_all_suggestions": "Συγχώνευση όλων των προτάσεων;"
+    }
+  },
+  "bookmark_editor": {
+    "title": "Επεξεργασία Σελιδοδείκτη",
+    "subtitle": "Κάντε αλλαγές στις λεπτομέρειες του σελιδοδείκτη. Κάντε κλικ στο αποθήκευση όταν τελειώσετε.",
+    "author": "Συγγραφέας",
+    "publisher": "Εκδότης",
+    "date_published": "Ημερομηνία Δημοσίευσης",
+    "pick_a_date": "Επιλέξτε μια ημερομηνία",
+    "save_changes": "Αποθήκευση αλλαγών",
+    "extracted_content": "Εξαγόμενο Περιεχόμενο"
+  }
+}

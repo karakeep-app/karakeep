@@ -1,5 +1,6 @@
 import React from "react";
 import { ActionButton } from "@/components/ui/action-button";
+import { MarkdownReadonly } from "@/components/ui/markdown/markdown-readonly";
 import LoadingSpinner from "@/components/ui/spinner";
 import { toast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
@@ -52,11 +53,11 @@ function AISummary({
         onClick={() => !isExpanded && setIsExpanded(true)}
       >
         <div className="h-full rounded-lg bg-accent p-2">
-          <p
-            className={`text-sm text-gray-700 dark:text-gray-300 ${!isExpanded && "line-clamp-3"}`}
+          <MarkdownReadonly
+            className={`text-sm ${!isExpanded && "line-clamp-3"}`}
           >
             {summary}
-          </p>
+          </MarkdownReadonly>
           {isExpanded && (
             <span className="flex justify-end gap-2 pt-2">
               <ActionButton

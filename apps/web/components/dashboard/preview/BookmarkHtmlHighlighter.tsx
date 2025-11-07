@@ -92,6 +92,7 @@ export interface Highlight {
 
 interface HTMLHighlighterProps {
   htmlContent: string;
+  style?: React.CSSProperties;
   className?: string;
   highlights?: Highlight[];
   onHighlight?: (highlight: Highlight) => void;
@@ -102,6 +103,7 @@ interface HTMLHighlighterProps {
 function BookmarkHTMLHighlighter({
   htmlContent,
   className,
+  style,
   highlights = [],
   onHighlight,
   onUpdateHighlight,
@@ -345,6 +347,7 @@ function BookmarkHTMLHighlighter({
         dangerouslySetInnerHTML={{ __html: htmlContent }}
         onPointerUp={handlePointerUp}
         className={className}
+        style={style}
       />
       <ColorPickerMenu
         position={menuPosition}

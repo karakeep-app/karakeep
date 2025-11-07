@@ -3,21 +3,23 @@ import "expo-dev-client";
 
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
 import { Providers } from "@/lib/providers";
-import useAppSettings from "@/lib/settings";
+import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
-import { useColorScheme } from "nativewind";
+import { NAV_THEME } from "@/theme";
+import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 
 export default function RootLayout() {
+  useInitialAndroidBarSync();
   const router = useRouter();
   const { hasShareIntent } = useShareIntent();
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const { settings } = useAppSettings();
+  const { colorScheme, isDarkColorScheme } = useColorScheme();
 
   useEffect(() => {
     if (hasShareIntent) {
@@ -27,15 +29,20 @@ export default function RootLayout() {
     }
   }, [hasShareIntent]);
 
-  useEffect(() => {
-    setColorScheme(settings.theme);
-  }, [settings.theme]);
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ShareIntentProvider>
-        <Providers>
+    <>
+      <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+        <NavThemeProvider value={NAV_THEME[colorScheme]}>
           <StyledStack
+            layout={(props) => {
+              return (
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <ShareIntentProvider>
+                    <Providers>{props.children}</Providers>
+                  </ShareIntentProvider>
+                </GestureHandlerRootView>
+              );
+            }}
             contentClassName={cn(
               "w-full flex-1 bg-gray-100 text-foreground dark:bg-background",
               colorScheme == "dark" ? "dark" : "light",
@@ -65,9 +72,12 @@ export default function RootLayout() {
               }}
             />
           </StyledStack>
-          <StatusBar style="auto" />
-        </Providers>
-      </ShareIntentProvider>
-    </GestureHandlerRootView>
+        </NavThemeProvider>
+      </KeyboardProvider>
+      <StatusBar
+        key={`root-status-bar-${isDarkColorScheme ? "light" : "dark"}`}
+        style={isDarkColorScheme ? "light" : "dark"}
+      />
+    </>
   );
 }

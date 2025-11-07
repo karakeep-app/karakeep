@@ -46,8 +46,11 @@ const app = new Hono()
   // POST /bookmarks
   .post("/", zValidator("json", zNewBookmarkRequestSchema), async (c) => {
     const body = c.req.valid("json");
-    const bookmark = await c.var.api.bookmarks.createBookmark(body);
-    return c.json(bookmark, 201);
+    const bookmark = await c.var.api.bookmarks.createBookmark({
+      ...body,
+      source: body.source || "api",
+    });
+    return c.json(bookmark, bookmark.alreadyExists ? 200 : 201);
   })
 
   // GET /bookmarks/search
@@ -121,6 +124,7 @@ const app = new Hono()
         type: BookmarkTypes.LINK,
         url: form.url,
         precrawledArchiveId: up.assetId,
+        source: "singlefile",
       });
       if (bookmark.alreadyExists) {
         const ifexists = c.req.valid("query").ifexists;

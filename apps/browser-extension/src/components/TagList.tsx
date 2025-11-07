@@ -14,11 +14,11 @@ export default function TagList({ bookmarkId }: { bookmarkId: string }) {
       {bookmark.tags.length === 0 && !isBookmarkStillTagging(bookmark) && (
         <Badge variant="secondary">No tags</Badge>
       )}
-      {bookmark.tags.map((tag) => (
+      {[...bookmark.tags].map((tag) => (
         <Badge
           key={tag.id}
           className={
-            tag.attachedBy == "ai" ? "bg-purple-500 text-white" : undefined
+            tag.attachedBy === "ai" ? "bg-purple-500 text-white" : undefined
           }
         >
           {tag.name}

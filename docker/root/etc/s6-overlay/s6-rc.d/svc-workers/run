@@ -2,4 +2,4 @@
 # shellcheck shell=bash
 
 cd /app/apps/workers;
-exec pnpm run start:prod;
+exec node dist/index.js

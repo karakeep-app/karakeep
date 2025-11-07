@@ -1,7 +1,7 @@
 import web from "@karakeep/tailwind-config/web";
 
 const config = {
-  darkMode: "media",
+  darkMode: "selector",
   content: web.content,
   presets: [web],
 };

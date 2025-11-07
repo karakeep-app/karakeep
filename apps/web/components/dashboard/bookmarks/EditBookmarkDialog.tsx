@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { useDialogFormReset } from "@/lib/hooks/useDialogFormReset";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -124,12 +125,10 @@ export function EditBookmarkDialog({
     updateBookmarkMutate(payload);
   }
 
-  // Reset form when bookmark data changes externally or dialog reopens
-  React.useEffect(() => {
-    if (open) {
-      form.reset(bookmarkToDefault(bookmark));
-    }
-  }, [bookmark, form, open]);
+  // Reset form only when dialog is initially opened to preserve unsaved changes
+  // This prevents losing unsaved title edits when tags are updated, which would
+  // cause the bookmark prop to change and trigger a form reset
+  useDialogFormReset(open, form, bookmarkToDefault(bookmark));
 
   const isLink = bookmark.content.type === BookmarkTypes.LINK;
   const isAsset = bookmark.content.type === BookmarkTypes.ASSET;

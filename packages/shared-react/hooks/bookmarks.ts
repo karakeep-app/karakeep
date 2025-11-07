@@ -1,4 +1,4 @@
-import { isBookmarkStillLoading } from "@karakeep/shared/utils/bookmarkUtils";
+import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { api } from "../trpc";
 import { useBookmarkGridContext } from "./bookmark-grid-context";
@@ -13,11 +13,7 @@ export function useAutoRefreshingBookmarkQuery(
       if (!data) {
         return false;
       }
-      // If the link is not crawled or not tagged
-      if (isBookmarkStillLoading(data)) {
-        return 1000;
-      }
-      return false;
+      return getBookmarkRefreshInterval(data);
     },
   });
 }
@@ -28,11 +24,11 @@ export function useCreateBookmark(
   const apiUtils = api.useUtils();
   return api.bookmarks.createBookmark.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -44,11 +40,11 @@ export function useCreateBookmarkWithPostHook(
   const postCreationCB = useBookmarkPostCreationHook();
   return api.bookmarks.createBookmark.useMutation({
     ...opts[0],
-    onSuccess: async (res, req, meta) => {
+    onSuccess: async (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       await postCreationCB(res.id);
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -59,12 +55,12 @@ export function useDeleteBookmark(
   const apiUtils = api.useUtils();
   return api.bookmarks.deleteBookmark.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -75,12 +71,12 @@ export function useUpdateBookmark(
   const apiUtils = api.useUtils();
   return api.bookmarks.updateBookmark.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -91,11 +87,11 @@ export function useSummarizeBookmark(
   const apiUtils = api.useUtils();
   return api.bookmarks.summarizeBookmark.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -106,9 +102,9 @@ export function useRecrawlBookmark(
   const apiUtils = api.useUtils();
   return api.bookmarks.recrawlBookmark.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -119,7 +115,7 @@ export function useUpdateBookmarkTags(
   const apiUtils = api.useUtils();
   return api.bookmarks.updateTags.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
 
       [...res.attached, ...res.detached].forEach((id) => {
@@ -128,7 +124,7 @@ export function useUpdateBookmarkTags(
       });
       apiUtils.tags.list.invalidate();
       apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }

@@ -14,6 +14,7 @@ export default async function Sidebar({
   items: (t: TFunction) => TSidebarItem[];
   extraSections?: React.ReactNode;
 }) {
+  // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
 
   return (

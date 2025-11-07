@@ -143,6 +143,77 @@
         "favourited": "Zaznamek je med priljubljenimi",
         "archived": "Zaznamek je arhiviran"
       }
+    },
+    "stats": {
+      "usage_statistics": "Statistika uporabe",
+      "insights_description": "Vpogledi v tvoje navade in zbirko zaznamkov",
+      "failed_to_load": "Statistike se niso naložile",
+      "overview": {
+        "total_bookmarks": "Skupno število zaznamkov",
+        "all_saved_items": "Vsi shranjeni elementi",
+        "favorites": "Priljubljene",
+        "starred_bookmarks": "Zaznamki z zvezdicami",
+        "archived": "Arhivirano",
+        "archived_items": "Arhivirani elementi",
+        "tags": "Oznake",
+        "unique_tags_created": "Ustvarjene edinstvene oznake",
+        "lists": "Seznami",
+        "bookmark_collections": "Zbirke zaznamkov",
+        "highlights": "Označbe",
+        "text_highlights": "Označena besedila",
+        "storage_used": "Uporabljena shramba",
+        "total_asset_storage": "Skupna shramba sredstev",
+        "this_month": "Ta mesec",
+        "bookmarks_added": "Zaznamki dodani"
+      },
+      "bookmark_types": {
+        "title": "Vrste zaznamkov",
+        "links": "Povezave",
+        "text_notes": "Besedilne opombe",
+        "assets": "Sredstva"
+      },
+      "recent_activity": {
+        "title": "Nedavna dejavnost",
+        "this_week": "Ta teden",
+        "this_month": "Ta mesec",
+        "this_year": "Letos"
+      },
+      "top_domains": {
+        "title": "Najboljše domene",
+        "no_domains_found": "Nobena domena ni bila najdena"
+      },
+      "most_used_tags": {
+        "title": "Najpogosteje uporabljene oznake",
+        "no_tags_found": "Ni najdenih oznak"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Dejavnost po urah",
+        "activity_by_day": "Dejavnost po dnevih"
+      },
+      "storage_breakdown": {
+        "title": "Razčlenitev shrambe"
+      }
+    },
+    "subscription": {
+      "subscription": "Naročnina",
+      "manage_subscription": "Upravljaj svojo naročnino in informacije o zaračunavanju",
+      "current_plan": "Trenutni paket",
+      "billing_period": "Obdobje zaračunavanja",
+      "paid_plan": "Plačljiv paket",
+      "unlock_bigger_quota": "Odkleni večjo kvoto in podpri projekt",
+      "subscribe_now": "Naroči se zdaj",
+      "manage_billing": "Upravljaj zaračunavanje",
+      "subscription_canceled": "Tvoja naročnina je bila preklicana in se bo končala na {{date}}. Lahko se ponovno naročiš kadarkoli.",
+      "usage_quotas": "Uporaba in kvote",
+      "track_usage": "Spremljaj trenutno uporabo glede na omejitve tvojega paketa",
+      "total_bookmarks_saved": "Skupno število shranjenih zaznamkov",
+      "assets_file_storage": "Sredstva in shramba datotek",
+      "unlimited_usage": "Neomejena uporaba",
+      "quota_limit_reached": "Dosežena omejitev kvote",
+      "approaching_quota_limit": "Se približuješ omejitvi kvote",
+      "loading_usage": "Nalaganje informacij o uporabi ...",
+      "free": "Brezplačno",
+      "paid": "Plačano"
     }
   },
   "admin": {
@@ -161,7 +232,9 @@
       "change_role": "Spremeni vlogo",
       "delete_user": "Izbriši uporabnika",
       "num_bookmarks": "Št. zaznamkov",
-      "asset_sizes": "Velikosti sredstev"
+      "asset_sizes": "Velikosti sredstev",
+      "delete_user_confirm_description": "Ali si prepričan, da želiš izbrisati uporabnika \"{{name}}\"?",
+      "unlimited": "Neomejeno"
     },
     "background_jobs": {
       "failed": "Neuspešno",
@@ -176,7 +249,71 @@
       "video_jobs": "Opravila za prenos videoposnetkov",
       "asset_preprocessing_jobs": "Opravila za predobdelavo sredstev",
       "feed_jobs": "Opravila za vire RSS",
-      "inference_jobs": "Opravila za sklepanje"
+      "inference_jobs": "Opravila za sklepanje",
+      "jobs": {
+        "crawler": {
+          "title": "Posli za pajkanje",
+          "description": "Spletno pajkanje in pridobivanje vsebine iz URLjev"
+        },
+        "inference": {
+          "title": "Posli sklepanja",
+          "description": "Označevanje in povzemanje vsebine s pomočjo umetne inteligence"
+        },
+        "indexing": {
+          "title": "Posli indeksiranja",
+          "description": "Posodobitve iskalnega indeksa"
+        },
+        "asset_preprocessing": {
+          "title": "Posli predobdelave sredstev",
+          "description": "Predobdelava slik in dokumentov (posnetki zaslona, izvleček besedila itd.)"
+        },
+        "tidy_assets": {
+          "title": "Posli urejanja sredstev",
+          "description": "Čiščenje sredstev in optimizacija shranjevanja"
+        },
+        "video": {
+          "title": "Posli prenosa videoposnetkov",
+          "description": "Izvleček in prenos videoposnetkov"
+        },
+        "webhook": {
+          "title": "Posli spletne kljuke",
+          "description": "Obvestila prek zunanje spletne kljuke"
+        },
+        "feed": {
+          "title": "Posli RSS-vira",
+          "description": "Obdelava RSS-vira in posodobitve vsebine"
+        }
+      },
+      "monitor_and_manage": "Spremljajte in upravljajte čakalne vrste opravil v ozadju ter sistemske naloge obdelave",
+      "active": "Aktivno",
+      "available_actions": "Razpoložljiva dejanja",
+      "status": {
+        "title": "Razumevanje stanj opravil",
+        "queued": {
+          "title": "Na vrsti",
+          "description": "Opravila čakajo v vrsti za obdelavo. Samodejno se bodo začela, ko bodo na voljo viri."
+        },
+        "unprocessed": {
+          "title": "Nepredelano",
+          "description": "Zaznamki, ki še niso bili obdelani. Najverjetneje so že v čakalni vrsti za obdelavo, če ne, jih boste morda morali ročno znova uvrstiti v čakalno vrsto."
+        },
+        "failed": {
+          "title": "Neuspešno",
+          "description": "Zaznamki, pri katerih je prišlo do napak med obdelavo. Ti bodo morda potrebovali ročno pozornost."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Ponovno preišči samo neuspele povezave",
+        "recrawl_all_links": "Ponovno preišči vse povezave",
+        "without_inference": "Brez sklepanja",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Znova ustvari oznake AI samo za neuspele zaznamke",
+        "regenerate_ai_tags_for_all_bookmarks": "Znova ustvari oznake AI za vse zaznamke",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Ustvari znova izvlečke AI samo za neuspele zaznamke",
+        "regenerate_ai_summaries_for_all_bookmarks": "Ustvari znova izvlečke AI za vse zaznamke",
+        "reindex_all_bookmarks": "Ponovno indeksiraj vse zaznamke",
+        "clean_assets": "Očisti viseča sredstva in ponovno sinhroniziraj metapodatke",
+        "reprocess_assets_fix_mode": "Ponovno obdelaj nepredelana sredstva"
+      }
     },
     "admin_settings": "Administratorske nastavitve",
     "actions": {
@@ -227,7 +364,8 @@
     "day_s_ago": " Dnevi nazaj",
     "week_s_ago": " Tedni nazaj",
     "month_s_ago": " Meseci nazaj",
-    "year_s_ago": " Let(a) nazaj"
+    "year_s_ago": " Let(a) nazaj",
+    "history": "Nedavna iskanja"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",
@@ -279,7 +417,10 @@
     "updated_at": "Posodobljeno ob",
     "title": "Naslov",
     "description": "Opis",
-    "summary": "Povzetek"
+    "summary": "Povzetek",
+    "quota": "Količina",
+    "bookmarks": "Zaznamki",
+    "storage": "Shranjevanje"
   },
   "actions": {
     "close_bulk_edit": "Zapri množično urejanje",
@@ -320,7 +461,8 @@
     "fetch_now": "Poberi zdaj",
     "apply_all": "Uporabi vse",
     "open_editor": "Odpri urejevalnik",
-    "toggle_show_archived": "Prikaži arhivirano"
+    "toggle_show_archived": "Prikaži arhivirano",
+    "confirm": "Potrdi"
   },
   "layouts": {
     "compact": "Kompaktno",

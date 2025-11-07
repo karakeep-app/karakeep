@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { buttonVariants } from "@/components/ui/button";
+import { useCallback, useEffect, useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import FilePickerButton from "@/components/ui/file-picker-button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -13,34 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { useBookmarkImport } from "@/lib/hooks/useBookmarkImport";
 import { useTranslation } from "@/lib/i18n/client";
-import {
-  deduplicateBookmarks,
-  ParsedBookmark,
-  parseKarakeepBookmarkFile,
-  parseLinkwardenBookmarkFile,
-  parseNetscapeBookmarkFile,
-  parseOmnivoreBookmarkFile,
-  parsePocketBookmarkFile,
-  parseTabSessionManagerStateFile,
-} from "@/lib/importBookmarkParser";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import { Download, Upload } from "lucide-react";
-
-import {
-  useCreateBookmarkWithPostHook,
-  useUpdateBookmarkTags,
-} from "@karakeep/shared-react/hooks/bookmarks";
-import {
-  useAddBookmarkToList,
-  useCreateBookmarkList,
-} from "@karakeep/shared-react/hooks/lists";
-import { limitConcurrency } from "@karakeep/shared/concurrency";
-import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
+import { toast } from "../ui/use-toast";
+import { ImportSessionsSection } from "./ImportSessionsSection";
 
 function ImportCard({
   text,
@@ -55,7 +34,7 @@ function ImportCard({
     <Card className="transition-all hover:shadow-md">
       <CardContent className="flex items-center gap-3 p-4">
         <div className="rounded-full bg-primary/10 p-2">
-          <Upload className="h-5 w-5 text-primary" />
+          <Download className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1">
           <h3 className="font-medium">{text}</h3>
@@ -70,12 +49,53 @@ function ImportCard({
 function ExportButton() {
   const { t } = useTranslation();
   const [format, setFormat] = useState<"json" | "netscape">("json");
+  const queryClient = useQueryClient();
+  const { isFetching, refetch, error } = useQuery({
+    queryKey: ["exportBookmarks"],
+    queryFn: async () => {
+      const res = await fetch(`/api/bookmarks/export?format=${format}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error?.error || "Failed to export bookmarks");
+      }
+      const match = res.headers
+        .get("Content-Disposition")
+        ?.match(/filename\*?=(?:UTF-8''|")?([^"]+)/i);
+      const filename = match
+        ? match[1]
+        : `karakeep-export-${new Date().toISOString()}.${format}`;
+      return { blob: res.blob(), filename };
+    },
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  }, [error]);
+
+  const onExport = useCallback(async () => {
+    const { data } = await refetch();
+    if (!data) return;
+    const { blob, filename } = data;
+    const url = window.URL.createObjectURL(await blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    queryClient.setQueryData(["exportBookmarks"], () => null);
+  }, [refetch]);
 
   return (
     <Card className="transition-all hover:shadow-md">
       <CardContent className="flex items-center gap-3 p-4">
         <div className="rounded-full bg-primary/10 p-2">
-          <Download className="h-5 w-5 text-primary" />
+          <Upload className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1">
           <h3 className="font-medium">Export File</h3>
@@ -93,15 +113,17 @@ function ExportButton() {
             </SelectContent>
           </Select>
         </div>
-        <Link
-          href={`/api/bookmarks/export?format=${format}`}
+        <Button
           className={cn(
             buttonVariants({ variant: "default", size: "sm" }),
             "flex items-center gap-2",
           )}
+          onClick={onExport}
+          disabled={isFetching}
         >
+          {isFetching && <Loader2 className="mr-2 animate-spin" />}
           <p>Export</p>
-        </Link>
+        </Button>
       </CardContent>
     </Card>
   );
@@ -109,240 +131,7 @@ function ExportButton() {
 
 export function ImportExportRow() {
   const { t } = useTranslation();
-  const router = useRouter();
-
-  const [importProgress, setImportProgress] = useState<{
-    done: number;
-    total: number;
-  } | null>(null);
-
-  const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook();
-  const { mutateAsync: createList } = useCreateBookmarkList();
-  const { mutateAsync: addToList } = useAddBookmarkToList();
-  const { mutateAsync: updateTags } = useUpdateBookmarkTags();
-
-  const { mutateAsync: parseAndCreateBookmark } = useMutation({
-    mutationFn: async (toImport: {
-      bookmark: ParsedBookmark;
-      listIds: string[];
-    }) => {
-      const bookmark = toImport.bookmark;
-      if (bookmark.content === undefined) {
-        throw new Error("Content is undefined");
-      }
-      const created = await createBookmark({
-        title: bookmark.title,
-        createdAt: bookmark.addDate
-          ? new Date(bookmark.addDate * 1000)
-          : undefined,
-        note: bookmark.notes,
-        archived: bookmark.archived,
-        ...(bookmark.content.type === BookmarkTypes.LINK
-          ? {
-              type: BookmarkTypes.LINK,
-              url: bookmark.content.url,
-            }
-          : {
-              type: BookmarkTypes.TEXT,
-              text: bookmark.content.text,
-            }),
-      });
-
-      await Promise.all([
-        // Add to import list
-        ...[
-          toImport.listIds.map((listId) =>
-            addToList({
-              bookmarkId: created.id,
-              listId,
-            }),
-          ),
-        ],
-        // Update tags
-        bookmark.tags.length > 0
-          ? updateTags({
-              bookmarkId: created.id,
-              attach: bookmark.tags.map((t) => ({ tagName: t })),
-              detach: [],
-            })
-          : undefined,
-      ]);
-      return created;
-    },
-  });
-
-  const { mutateAsync: runUploadBookmarkFile } = useMutation({
-    mutationFn: async ({
-      file,
-      source,
-    }: {
-      file: File;
-      source:
-        | "html"
-        | "pocket"
-        | "omnivore"
-        | "karakeep"
-        | "linkwarden"
-        | "tab-session-manager";
-    }) => {
-      if (source === "html") {
-        return await parseNetscapeBookmarkFile(file);
-      } else if (source === "pocket") {
-        return await parsePocketBookmarkFile(file);
-      } else if (source === "karakeep") {
-        return await parseKarakeepBookmarkFile(file);
-      } else if (source === "omnivore") {
-        return await parseOmnivoreBookmarkFile(file);
-      } else if (source === "linkwarden") {
-        return await parseLinkwardenBookmarkFile(file);
-      } else if (source === "tab-session-manager") {
-        return await parseTabSessionManagerStateFile(file);
-      } else {
-        throw new Error("Unknown source");
-      }
-    },
-    onSuccess: async (parsedBookmarks) => {
-      if (parsedBookmarks.length === 0) {
-        toast({ description: "No bookmarks found in the file." });
-        return;
-      }
-
-      const rootList = await createList({
-        name: t("settings.import.imported_bookmarks"),
-        icon: "⬆️",
-      });
-
-      const finalBookmarksToImport = deduplicateBookmarks(parsedBookmarks);
-
-      setImportProgress({ done: 0, total: finalBookmarksToImport.length });
-
-      // Precreate folder lists
-      const allRequiredPaths = new Set<string>();
-      // collect the paths of all bookmarks that have non-empty paths
-      for (const bookmark of finalBookmarksToImport) {
-        for (const path of bookmark.paths) {
-          if (path && path.length > 0) {
-            // We need every prefix of the path for the hierarchy
-            for (let i = 1; i <= path.length; i++) {
-              const subPath = path.slice(0, i);
-              const pathKey = subPath.join("/");
-              allRequiredPaths.add(pathKey);
-            }
-          }
-        }
-      }
-
-      // Convert to array and sort by depth (so that parent paths come first)
-      const allRequiredPathsArray = Array.from(allRequiredPaths).sort(
-        (a, b) => a.split("/").length - b.split("/").length,
-      );
-
-      const pathMap: Record<string, string> = {};
-
-      // Root list is the parent for top-level folders
-      // Represent root as empty string
-      pathMap[""] = rootList.id;
-
-      for (const pathKey of allRequiredPathsArray) {
-        const parts = pathKey.split("/");
-        const parentKey = parts.slice(0, -1).join("/");
-        const parentId = pathMap[parentKey] || rootList.id;
-
-        const folderName = parts[parts.length - 1];
-        // Create the list
-        const folderList = await createList({
-          name: folderName,
-          parentId: parentId,
-          icon: "📁",
-        });
-        pathMap[pathKey] = folderList.id;
-      }
-
-      const importPromises = finalBookmarksToImport.map(
-        (bookmark) => async () => {
-          // Determine the target list ids
-          const listIds = bookmark.paths.map(
-            (path) => pathMap[path.join("/")] || rootList.id,
-          );
-          if (listIds.length === 0) {
-            listIds.push(rootList.id);
-          }
-
-          try {
-            const created = await parseAndCreateBookmark({
-              bookmark: bookmark,
-              listIds,
-            });
-
-            setImportProgress((prev) => {
-              const newDone = (prev?.done ?? 0) + 1;
-              return {
-                done: newDone,
-                total: finalBookmarksToImport.length,
-              };
-            });
-            return { status: "fulfilled" as const, value: created };
-          } catch (e) {
-            setImportProgress((prev) => {
-              const newDone = (prev?.done ?? 0) + 1;
-              return {
-                done: newDone,
-                total: finalBookmarksToImport.length,
-              };
-            });
-            return { status: "rejected" as const };
-          }
-        },
-      );
-
-      const CONCURRENCY_LIMIT = 20;
-      const resultsPromises = limitConcurrency(
-        importPromises,
-        CONCURRENCY_LIMIT,
-      );
-
-      const results = await Promise.all(resultsPromises);
-
-      let successes = 0;
-      let failures = 0;
-      let alreadyExisted = 0;
-
-      for (const result of results) {
-        if (result.status === "fulfilled") {
-          if (result.value.alreadyExists) {
-            alreadyExisted++;
-          } else {
-            successes++;
-          }
-        } else {
-          failures++;
-        }
-      }
-
-      if (successes > 0 || alreadyExisted > 0) {
-        toast({
-          description: `Imported ${successes} bookmarks and skipped ${alreadyExisted} bookmarks that already existed`,
-          variant: "default",
-        });
-      }
-
-      if (failures > 0) {
-        toast({
-          description: `Failed to import ${failures} bookmarks. Check console for details.`,
-          variant: "destructive",
-        });
-      }
-
-      router.push(`/dashboard/lists/${rootList.id}`);
-    },
-    onError: (error) => {
-      setImportProgress(null); // Clear progress on initial parsing error
-      toast({
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const { importProgress, runUploadBookmarkFile } = useBookmarkImport();
 
   return (
     <div className="flex flex-col gap-3">
@@ -478,11 +267,21 @@ export function ImportExportRow() {
 export default function ImportExport() {
   const { t } = useTranslation();
   return (
-    <div className="flex w-full flex-col gap-2">
-      <p className="mb-4 text-lg font-medium">
-        {t("settings.import.import_export_bookmarks")}
-      </p>
-      <ImportExportRow />
+    <div className="space-y-3">
+      <div className="rounded-md border bg-background p-4">
+        <div className="flex w-full flex-col gap-6">
+          <div>
+            <p className="mb-4 text-lg font-medium">
+              {t("settings.import.import_export_bookmarks")}
+            </p>
+            <ImportExportRow />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-md border bg-background p-4">
+        <ImportSessionsSection />
+      </div>
     </div>
   );
 }

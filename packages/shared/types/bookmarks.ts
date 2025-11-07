@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zCursorV2 } from "./pagination";
 import { zBookmarkTagSchema } from "./tags";
 
-const MAX_TITLE_LENGTH = 1000;
+export const MAX_BOOKMARK_TITLE_LENGTH = 1000;
 
 export const enum BookmarkTypes {
   LINK = "link",
@@ -16,6 +16,7 @@ export const zSortOrder = z.enum(["asc", "desc", "relevance"]);
 export type ZSortOrder = z.infer<typeof zSortOrder>;
 
 export const zAssetTypesSchema = z.enum([
+  "linkHtmlContent",
   "screenshot",
   "assetScreenshot",
   "bannerImage",
@@ -45,6 +46,7 @@ export const zBookmarkedLinkSchema = z.object({
   videoAssetId: z.string().nullish(),
   favicon: z.string().nullish(),
   htmlContent: z.string().nullish(),
+  contentAssetId: z.string().nullish(),
   crawledAt: z.date().nullish(),
   author: z.string().nullish(),
   publisher: z.string().nullish(),
@@ -79,6 +81,18 @@ export const zBookmarkContentSchema = z.discriminatedUnion("type", [
 ]);
 export type ZBookmarkContent = z.infer<typeof zBookmarkContentSchema>;
 
+export const zBookmarkSourceSchema = z.enum([
+  "api",
+  "web",
+  "cli",
+  "mobile",
+  "extension",
+  "singlefile",
+  "rss",
+  "import",
+]);
+export type ZBookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
+
 export const zBareBookmarkSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
@@ -90,6 +104,7 @@ export const zBareBookmarkSchema = z.object({
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
   note: z.string().nullish(),
   summary: z.string().nullish(),
+  source: zBookmarkSourceSchema.nullish(),
 });
 
 export const zBookmarkSchema = zBareBookmarkSchema.merge(
@@ -131,12 +146,17 @@ export type ZBookmarkTypeAsset = z.infer<typeof zBookmarkTypeAssetSchema>;
 // POST /v1/bookmarks
 export const zNewBookmarkRequestSchema = z
   .object({
-    title: z.string().max(MAX_TITLE_LENGTH).nullish(),
+    title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
     archived: z.boolean().optional(),
     favourited: z.boolean().optional(),
     note: z.string().optional(),
     summary: z.string().optional(),
     createdAt: z.coerce.date().optional(),
+    // A mechanism to prioritize crawling of bookmarks depending on whether
+    // they were created by a user interaction or by a bulk import.
+    crawlPriority: z.enum(["low", "normal"]).optional(),
+    importSessionId: z.string().optional(),
+    source: zBookmarkSourceSchema.optional(),
   })
   .and(
     z.discriminatedUnion("type", [
@@ -197,7 +217,7 @@ export const zUpdateBookmarksRequestSchema = z.object({
   favourited: z.boolean().optional(),
   summary: z.string().nullish(),
   note: z.string().optional(),
-  title: z.string().max(MAX_TITLE_LENGTH).nullish(),
+  title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
   createdAt: z.coerce.date().optional(),
   // Link specific fields (optional)
   url: z.string().url().optional(),

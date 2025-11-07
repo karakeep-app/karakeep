@@ -25,7 +25,7 @@ import { z } from "zod";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
 
-import { TagSelector } from "./TagSelector";
+import { TagAutocomplete } from "./TagAutocomplete";
 
 export function MergeTagModal({
   open,
@@ -50,7 +50,7 @@ export function MergeTagModal({
     },
   });
 
-  const { mutate: mergeTag, isPending: isPending } = useMergeTag({
+  const { mutate: mergeTag, isPending } = useMergeTag({
     onSuccess: (resp) => {
       toast({
         description: "Tag has been updated!",
@@ -119,10 +119,10 @@ export function MergeTagModal({
                 return (
                   <FormItem className="grow py-4">
                     <FormControl>
-                      <TagSelector
-                        value={field.value}
+                      <TagAutocomplete
+                        tagId={field.value}
                         onChange={field.onChange}
-                        placeholder="Select a tag to merge into"
+                        className="w-full"
                       />
                     </FormControl>
                     <FormMessage />

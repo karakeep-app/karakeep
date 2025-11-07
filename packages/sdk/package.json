@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@karakeep/sdk",
-  "version": "0.23.2",
+  "version": "0.27.0",
   "description": "Typescript SDK for Karakeep",
   "license": "GNU Affero General Public License version 3",
   "keywords": [
@@ -18,37 +18,27 @@
     "types": "./dist/index.d.ts"
   },
   "devDependencies": {
-    "@karakeep/eslint-config": "workspace:^0.2.0",
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "openapi-typescript": "^7.6.1",
-    "tsx": "^4.7.1",
-    "vite": "^5.1.0",
+    "tsx": "^4.8.1",
+    "vite": "^7.0.6",
     "vite-plugin-dts": "^4.4.0"
   },
   "scripts": {
     "build": "vite build",
     "run": "tsx src/index.ts",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier . --ignore-path ../../.prettierignore",
-    "format:fix": "prettier . --write --ignore-path ../../.prettierignore",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/karakeep-app/karakeep.git",
     "directory": "packages/sdk"
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@karakeep/eslint-config/base"
-    ],
-    "ignorePatterns": [
-      "src/karakeep-api.d.ts"
-    ]
   },
   "prettier": "@karakeep/prettier-config",
   "dependencies": {

@@ -38,7 +38,8 @@
     "close_bulk_edit": "Tömeges szerkesztés bezárása",
     "save": "Mentés",
     "open_editor": "Szerkesztő megnyitása",
-    "toggle_show_archived": "Archiváltak megjelenítése"
+    "toggle_show_archived": "Archiváltak megjelenítése",
+    "confirm": "Megerősít"
   },
   "settings": {
     "user_settings": "Felhasználói beállítások",
@@ -184,6 +185,77 @@
         "favourited": "A könyvjelző kedvencként van megjelölve",
         "archived": "Egy könyvjelző archiválva van"
       }
+    },
+    "stats": {
+      "usage_statistics": "Használati statisztikák",
+      "insights_description": "Betekintés a könyvjelzőzési szokásaidba és gyűjteményedbe",
+      "failed_to_load": "Nem sikerült betölteni a statisztikákat",
+      "overview": {
+        "total_bookmarks": "Könyvjelzők összesen",
+        "all_saved_items": "Minden mentett elem",
+        "favorites": "Kedvencek",
+        "starred_bookmarks": "Csillagozott könyvjelzők",
+        "archived": "Archivált",
+        "archived_items": "Archivált elemek",
+        "tags": "Címkék",
+        "unique_tags_created": "Egyedi címkék létrehozva",
+        "lists": "Listák",
+        "bookmark_collections": "Könyvjelzőgyűjtemények",
+        "highlights": "Kiemelések",
+        "text_highlights": "Szövegkiemelések",
+        "storage_used": "Felhasznált tárhely",
+        "total_asset_storage": "Eszközök teljes tárolókapacitása",
+        "this_month": "Ebben a hónapban",
+        "bookmarks_added": "Könyvjelzők hozzáadva"
+      },
+      "bookmark_types": {
+        "title": "Könyvjelzőtípusok",
+        "links": "Linkek",
+        "text_notes": "Szöveges jegyzetek",
+        "assets": "Eszközök"
+      },
+      "recent_activity": {
+        "title": "Legutóbbi tevékenység",
+        "this_week": "Ezen a héten",
+        "this_month": "Ebben a hónapban",
+        "this_year": "Ebben az évben"
+      },
+      "top_domains": {
+        "title": "Legnépszerűbb domainek",
+        "no_domains_found": "Nem található domain"
+      },
+      "most_used_tags": {
+        "title": "Leggyakrabban használt címkék",
+        "no_tags_found": "Nem találhatók címkék"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Tevékenység óránként",
+        "activity_by_day": "Napi aktivitás"
+      },
+      "storage_breakdown": {
+        "title": "Tárhely lebontása"
+      }
+    },
+    "subscription": {
+      "subscription": "Előfizetés",
+      "manage_subscription": "Az előfizetésed és a számlázási adataid kezelése",
+      "current_plan": "Jelenlegi csomag",
+      "billing_period": "Számlázási időszak",
+      "paid_plan": "Fizetős csomag",
+      "unlock_bigger_quota": "Szerezz nagyobb kvótát és támogasd a projektet",
+      "subscribe_now": "Iratkozz fel most",
+      "manage_billing": "Számlázás kezelése",
+      "subscription_canceled": "Az előfizetésed le lett mondva, és {{date}}-kor fog véget érni. Bármikor újra előfizethetsz.",
+      "usage_quotas": "Használat és kvóták",
+      "track_usage": "Kövesd nyomon a jelenlegi használatodat a csomagod korlátaihoz képest",
+      "total_bookmarks_saved": "Összes mentett könyvjelző",
+      "assets_file_storage": "Eszközök és fájltárolás",
+      "unlimited_usage": "Korlátlan használat",
+      "quota_limit_reached": "Elérted a kvóta korlátot",
+      "approaching_quota_limit": "Közeledik a kvóta korlát",
+      "loading_usage": "A használati adatok betöltése...",
+      "free": "Ingyenes",
+      "paid": "Fizetős"
     }
   },
   "common": {
@@ -223,7 +295,10 @@
     "updated_at": "Frissítve",
     "title": "Cím",
     "description": "Leírás",
-    "summary": "Összegzés"
+    "summary": "Összegzés",
+    "quota": "Keret",
+    "bookmarks": "Könyvjelzők",
+    "storage": "Tárhely"
   },
   "editor": {
     "import_as_text": "Importálás szöveges könyvjelzőként",
@@ -319,7 +394,8 @@
     "day_s_ago": " Nap(ok)kal ezelőtt",
     "week_s_ago": " Hét(ek)kel ezelőtt",
     "month_s_ago": " Hónap(ok)kal ezelőtt",
-    "year_s_ago": " Év(ek)kel ezelőtt"
+    "year_s_ago": " Év(ek)kel ezelőtt",
+    "history": "Legutóbbi keresések"
   },
   "lists": {
     "manual_list": "Manuális lista",
@@ -365,7 +441,71 @@
       "video_jobs": "Videóletöltési feladatok",
       "webhook_jobs": "Webhook feladatok",
       "asset_preprocessing_jobs": "Eszköz-előfeldolgozási feladatok",
-      "feed_jobs": "RSS-hírcsatorna feladatok"
+      "feed_jobs": "RSS-hírcsatorna feladatok",
+      "jobs": {
+        "crawler": {
+          "title": "Crawler munkák",
+          "description": "Weboldal feltérképezése és tartalom kinyerése URL-ekből"
+        },
+        "inference": {
+          "title": "Következtetési munkák",
+          "description": "AI-alapú címkézés és tartalom összefoglalása"
+        },
+        "indexing": {
+          "title": "Indexelő munkák",
+          "description": "Keresési index frissítések"
+        },
+        "asset_preprocessing": {
+          "title": "Eszközök előfeldolgozási munkái",
+          "description": "Kép- és dokumentumfeldolgozás (képernyőképek, szövegkinyerés stb.)"
+        },
+        "tidy_assets": {
+          "title": "Eszközrendezési munkák",
+          "description": "Eszközök tisztítása és tárolás optimalizálása"
+        },
+        "video": {
+          "title": "Videóletöltési munkák",
+          "description": "Videók kivonása és letöltése"
+        },
+        "webhook": {
+          "title": "Webhook munkák",
+          "description": "Külső webhook értesítések"
+        },
+        "feed": {
+          "title": "RSS feed munkák",
+          "description": "RSS feed feldolgozása és tartalomfrissítések"
+        }
+      },
+      "monitor_and_manage": "Háttérfeladat-sorok és rendszerfeldolgozási feladatok figyelése és kezelése",
+      "active": "Aktív",
+      "available_actions": "Elérhető műveletek",
+      "status": {
+        "title": "A munkák állapotának megértése",
+        "queued": {
+          "title": "Sorban",
+          "description": "Feldolgozásra váró feladatok. Automatikusan elindulnak, amint rendelkezésre állnak erőforrások."
+        },
+        "unprocessed": {
+          "title": "Feldolgozatlan",
+          "description": "A még fel nem dolgozott könyvjelzők. Valószínűleg már sorban állnak a feldolgozásra, ha nem, akkor manuálisan újra kell sorba állítani őket."
+        },
+        "failed": {
+          "title": "Sikertelen",
+          "description": "Könyvjelzők, amelyek hibákba ütköztek a feldolgozás során. Ezek manuális beavatkozást igényelhetnek."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Csak a sikertelen hivatkozások újbóli feltérképezése",
+        "recrawl_all_links": "Összes hivatkozás újbóli feltérképezése",
+        "without_inference": "Következtetés nélkül",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "AI-címkék újragenerálása csak a sikertelen könyvjelzőkhöz",
+        "regenerate_ai_tags_for_all_bookmarks": "AI-címkék újragenerálása az összes könyvjelzőhöz",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "AI-összefoglalók újragenerálása csak a sikertelen könyvjelzőkhöz",
+        "regenerate_ai_summaries_for_all_bookmarks": "AI-összefoglalók újragenerálása az összes könyvjelzőhöz",
+        "reindex_all_bookmarks": "Összes könyvjelző újraindexelése",
+        "clean_assets": "Lógó elemek tisztítása és metaadatok újraszinkronizálása",
+        "reprocess_assets_fix_mode": "Feldolgozatlan elemek újrafeldolgozása"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Hibás hivatkozások újratérképezése",
@@ -388,7 +528,9 @@
       "reset_password": "Jelszó alaphelyzetbe állítása",
       "delete_user": "Felhasználó törlése",
       "num_bookmarks": "Számozott könyvjelzők",
-      "confirm_password": "Jelszó megerősítése"
+      "confirm_password": "Jelszó megerősítése",
+      "delete_user_confirm_description": "Biztosan törölni akarod a(z) \"{{name}}\" felhasználót?",
+      "unlimited": "Korlátlan"
     },
     "admin_settings": "Rendszergazdai beállítások",
     "server_stats": {

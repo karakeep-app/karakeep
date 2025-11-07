@@ -12,6 +12,28 @@ import { publicProcedure, router } from "../index";
 import { List } from "../models/lists";
 
 export const publicBookmarks = router({
+  getPublicListMetadata: publicProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+      }),
+    )
+    .output(
+      zBookmarkListSchema
+        .pick({
+          name: true,
+          description: true,
+          icon: true,
+        })
+        .merge(z.object({ ownerName: z.string() })),
+    )
+    .query(async ({ input, ctx }) => {
+      return await List.getPublicListMetadata(
+        ctx,
+        input.listId,
+        /* token */ null,
+      );
+    }),
   getPublicBookmarksInList: publicProcedure
     .input(
       z.object({
@@ -29,7 +51,7 @@ export const publicBookmarks = router({
             description: true,
             icon: true,
           })
-          .merge(z.object({ numItems: z.number() })),
+          .merge(z.object({ numItems: z.number(), ownerName: z.string() })),
         bookmarks: z.array(zPublicBookmarkSchema),
         nextCursor: zCursorV2.nullable(),
       }),

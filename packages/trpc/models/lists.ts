@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
 import { bookmarkLists, bookmarksInLists } from "@karakeep/db/schema";
-import { triggerRuleEngineOnEvent } from "@karakeep/shared/queues";
+import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
@@ -63,6 +63,51 @@ export abstract class List implements PrivacyAware {
     }
   }
 
+  private static async getPublicList(
+    ctx: Context,
+    listId: string,
+    token: string | null,
+  ) {
+    const listdb = await ctx.db.query.bookmarkLists.findFirst({
+      where: and(
+        eq(bookmarkLists.id, listId),
+        or(
+          eq(bookmarkLists.public, true),
+          token !== null ? eq(bookmarkLists.rssToken, token) : undefined,
+        ),
+      ),
+      with: {
+        user: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
+    if (!listdb) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "List not found",
+      });
+    }
+    return listdb;
+  }
+
+  static async getPublicListMetadata(
+    ctx: Context,
+    listId: string,
+    token: string | null,
+  ) {
+    const listdb = await this.getPublicList(ctx, listId, token);
+    return {
+      userId: listdb.userId,
+      name: listdb.name,
+      description: listdb.description,
+      icon: listdb.icon,
+      ownerName: listdb.user.name,
+    };
+  }
+
   static async getPublicListContents(
     ctx: Context,
     listId: string,
@@ -73,21 +118,7 @@ export abstract class List implements PrivacyAware {
       cursor: ZCursor | null | undefined;
     },
   ) {
-    const listdb = await ctx.db.query.bookmarkLists.findFirst({
-      where: and(
-        eq(bookmarkLists.id, listId),
-        or(
-          eq(bookmarkLists.public, true),
-          token !== null ? eq(bookmarkLists.rssToken, token) : undefined,
-        ),
-      ),
-    });
-    if (!listdb) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "List not found",
-      });
-    }
+    const listdb = await this.getPublicList(ctx, listId, token);
 
     // The token here acts as an authed context, so we can create
     // an impersonating context for the list owner as long as
@@ -109,6 +140,7 @@ export abstract class List implements PrivacyAware {
         icon: list.list.icon,
         name: list.list.name,
         description: list.list.description,
+        ownerName: listdb.user.name,
         numItems: bookmarkIds.length,
       },
       bookmarks: bookmarks.bookmarks.map((b) => b.asPublicBookmark()),
@@ -181,6 +213,41 @@ export abstract class List implements PrivacyAware {
     if (res.changes == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
+  }
+
+  async getChildren(): Promise<(ManualList | SmartList)[]> {
+    const lists = await List.getAll(this.ctx);
+    const listById = new Map(lists.map((l) => [l.list.id, l]));
+
+    const adjecencyList = new Map<string, string[]>();
+
+    // Initialize all lists with empty arrays first
+    lists.forEach((l) => {
+      adjecencyList.set(l.list.id, []);
+    });
+
+    // Then populate the parent-child relationships
+    lists.forEach((l) => {
+      if (l.list.parentId) {
+        const currentChildren = adjecencyList.get(l.list.parentId) ?? [];
+        currentChildren.push(l.list.id);
+        adjecencyList.set(l.list.parentId, currentChildren);
+      }
+    });
+
+    const resultIds: string[] = [];
+    const queue: string[] = [this.list.id];
+
+    while (queue.length > 0) {
+      const id = queue.pop()!;
+      const children = adjecencyList.get(id) ?? [];
+      children.forEach((childId) => {
+        queue.push(childId);
+        resultIds.push(childId);
+      });
+    }
+
+    return resultIds.map((id) => listById.get(id)!);
   }
 
   async update(

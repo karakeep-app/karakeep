@@ -45,6 +45,7 @@ beforeEach(async () => {
       archived: false,
       favourited: false,
       createdAt: new Date("2024-01-01"),
+      title: null,
     },
     {
       id: "b2",
@@ -53,6 +54,7 @@ beforeEach(async () => {
       archived: true,
       favourited: true,
       createdAt: new Date("2024-01-02"),
+      title: "example domain page",
     },
     {
       id: "b3",
@@ -61,6 +63,7 @@ beforeEach(async () => {
       archived: true,
       favourited: false,
       createdAt: new Date("2024-01-03"),
+      title: "third bookmark",
     },
     {
       id: "b4",
@@ -69,6 +72,7 @@ beforeEach(async () => {
       archived: false,
       favourited: true,
       createdAt: new Date("2024-01-04"),
+      title: "another example page",
     },
     {
       id: "b5",
@@ -77,6 +81,7 @@ beforeEach(async () => {
       archived: false,
       favourited: false,
       createdAt: new Date("2024-01-05"),
+      title: "fifth text",
     },
     {
       id: "b6",
@@ -85,11 +90,12 @@ beforeEach(async () => {
       archived: true,
       favourited: false,
       createdAt: new Date("2024-01-06"),
+      title: "example asset",
     },
   ]);
 
   await db.insert(bookmarkLinks).values([
-    { id: "b1", url: "https://example.com/page1" },
+    { id: "b1", url: "https://example.com/page1", title: "example link" },
     { id: "b2", url: "https://test.com/page2" },
     { id: "b4", url: "https://example.com/page3" },
   ]);
@@ -277,6 +283,26 @@ describe("getBookmarkIdsFromMatcher", () => {
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
     // Not that only bookmarks of type link are returned
     expect(result.sort()).toEqual(["b2"]);
+  });
+
+  it("should handle title matcher", async () => {
+    const matcher: Matcher = {
+      type: "title",
+      title: "example",
+      inverse: false,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b1", "b2", "b4", "b6"]);
+  });
+
+  it("should handle title matcher with inverse=true", async () => {
+    const matcher: Matcher = {
+      type: "title",
+      title: "example",
+      inverse: true,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b3", "b5"]);
   });
 
   it("should handle dateAfter matcher", async () => {

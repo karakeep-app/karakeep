@@ -9,7 +9,8 @@ module.exports = withTurborepoManagedCache(
     // eslint-disable-next-line no-undef
     withNativeWind(getDefaultConfig(__dirname), {
       input: "./globals.css",
-      configPath: "./tailwind.config.ts",
+      configPath: "./tailwind.config.js",
+      inlineRem: 16,
     }),
   ),
 );

@@ -12,6 +12,7 @@ import { Button, buttonVariants } from "./components/ui/button";
 import Spinner from "./Spinner";
 import { cn } from "./utils/css";
 import usePluginSettings from "./utils/settings";
+import { MessageType } from "./utils/type";
 
 export default function BookmarkSavedPage() {
   const { bookmarkId } = useParams();
@@ -19,7 +20,15 @@ export default function BookmarkSavedPage() {
   const [error, setError] = useState("");
 
   const { mutate: deleteBookmark, isPending } = useDeleteBookmark({
-    onSuccess: () => {
+    onSuccess: async () => {
+      const [currentTab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      });
+      await chrome.runtime.sendMessage({
+        type: MessageType.BOOKMARK_REFRESH_BADGE,
+        currentTab: currentTab,
+      });
       navigate("/bookmarkdeleted");
     },
     onError: (e) => {

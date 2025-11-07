@@ -36,7 +36,10 @@
     "summary": "Resumen",
     "updated_at": "Actualizado el",
     "title": "Título",
-    "description": "Descripción"
+    "description": "Descripción",
+    "quota": "Cuota",
+    "bookmarks": "Marcadores",
+    "storage": "Almacenamiento"
   },
   "settings": {
     "info": {
@@ -182,6 +185,77 @@
         "favourited": "Un marcador se ha marcado como favorito",
         "archived": "Se archiva un marcador"
       }
+    },
+    "stats": {
+      "usage_statistics": "Estadísticas de uso",
+      "insights_description": "Información sobre tus hábitos de marcación y colección",
+      "failed_to_load": "No se pudieron cargar las estadísticas",
+      "overview": {
+        "total_bookmarks": "Total de marcadores",
+        "all_saved_items": "Todos los elementos guardados",
+        "favorites": "Favoritos",
+        "starred_bookmarks": "Marcadores destacados",
+        "archived": "Archivado",
+        "archived_items": "Elementos archivados",
+        "tags": "Etiquetas",
+        "unique_tags_created": "Etiquetas únicas creadas",
+        "lists": "Listas",
+        "bookmark_collections": "Colecciones de marcadores",
+        "highlights": "Resaltados",
+        "text_highlights": "Resaltados de texto",
+        "storage_used": "Almacenamiento utilizado",
+        "total_asset_storage": "Almacenamiento total de activos",
+        "this_month": "Este mes",
+        "bookmarks_added": "Marcadores añadidos"
+      },
+      "bookmark_types": {
+        "title": "Tipos de marcadores",
+        "links": "Enlaces",
+        "text_notes": "Notas de texto",
+        "assets": "Activos"
+      },
+      "recent_activity": {
+        "title": "Actividad reciente",
+        "this_week": "Esta semana",
+        "this_month": "Este mes",
+        "this_year": "Este año"
+      },
+      "top_domains": {
+        "title": "Dominios principales",
+        "no_domains_found": "No se encontraron dominios"
+      },
+      "most_used_tags": {
+        "title": "Etiquetas más usadas",
+        "no_tags_found": "No se encontraron etiquetas"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Actividad por hora",
+        "activity_by_day": "Actividad por día"
+      },
+      "storage_breakdown": {
+        "title": "Desglose del almacenamiento"
+      }
+    },
+    "subscription": {
+      "subscription": "Suscripción",
+      "manage_subscription": "Gestiona tu suscripción e información de facturación",
+      "current_plan": "Plan actual",
+      "billing_period": "Periodo de facturación",
+      "paid_plan": "Plan de pago",
+      "unlock_bigger_quota": "Desbloquea una cuota mayor y apoya el proyecto",
+      "subscribe_now": "Suscríbete ahora",
+      "manage_billing": "Gestionar la facturación",
+      "subscription_canceled": "Tu suscripción ha sido cancelada y finalizará el {{date}}. Puedes volver a suscribirte en cualquier momento.",
+      "usage_quotas": "Uso y cuotas",
+      "track_usage": "Haz un seguimiento de tu uso actual en comparación con los límites de tu plan",
+      "total_bookmarks_saved": "Total de marcadores guardados",
+      "assets_file_storage": "Almacenamiento de archivos y recursos",
+      "unlimited_usage": "Uso ilimitado",
+      "quota_limit_reached": "Límite de cuota alcanzado",
+      "approaching_quota_limit": "Te estás acercando al límite de la cuota",
+      "loading_usage": "Cargando información de uso...",
+      "free": "Gratis",
+      "paid": "De pago"
     }
   },
   "actions": {
@@ -223,7 +297,8 @@
       "relevant_first": "Más relevantes primero"
     },
     "open_editor": "Abrir editor",
-    "toggle_show_archived": "Mostrar archivados"
+    "toggle_show_archived": "Mostrar archivados",
+    "confirm": "Confirmar"
   },
   "layouts": {
     "compact": "Compacto",
@@ -252,7 +327,71 @@
       "webhook_jobs": "Trabajos de Webhook",
       "asset_preprocessing_jobs": "Trabajos de preprocesamiento de activos",
       "feed_jobs": "Trabajos de fuente RSS",
-      "video_jobs": "Trabajos de descarga de vídeo"
+      "video_jobs": "Trabajos de descarga de vídeo",
+      "jobs": {
+        "crawler": {
+          "title": "Trabajos de rastreador",
+          "description": "Rastreo web y extracción de contenido de URLs"
+        },
+        "inference": {
+          "title": "Trabajos de inferencia",
+          "description": "Etiquetado y resumen de contenido impulsado por IA"
+        },
+        "indexing": {
+          "title": "Trabajos de indexación",
+          "description": "Actualizaciones del índice de búsqueda"
+        },
+        "asset_preprocessing": {
+          "title": "Trabajos de preprocesamiento de activos",
+          "description": "Preprocesamiento de imágenes y documentos (capturas de pantalla, extracción de texto, etc.)"
+        },
+        "tidy_assets": {
+          "title": "Trabajos de activos ordenados",
+          "description": "Limpieza de activos y optimización de almacenamiento"
+        },
+        "video": {
+          "title": "Trabajos de descarga de video",
+          "description": "Extracción y descarga de video"
+        },
+        "webhook": {
+          "title": "Trabajos de webhook",
+          "description": "Notificaciones de webhook externas"
+        },
+        "feed": {
+          "title": "Trabajos de fuentes RSS",
+          "description": "Procesamiento de feeds RSS y actualizaciones de contenido"
+        }
+      },
+      "monitor_and_manage": "Monitoriza y gestiona las colas de trabajos en segundo plano y las tareas de procesamiento del sistema",
+      "active": "Activo",
+      "available_actions": "Acciones disponibles",
+      "status": {
+        "title": "Entendiendo los estados del trabajo",
+        "queued": {
+          "title": "En cola",
+          "description": "Tareas esperando en la cola para ser procesadas. Comenzarán automáticamente cuando haya recursos disponibles."
+        },
+        "unprocessed": {
+          "title": "Sin procesar",
+          "description": "Marcadores que aún no han sido procesados. Lo más probable es que ya estén en cola para ser procesados, si no, es posible que tengas que volver a ponerlos en cola manualmente."
+        },
+        "failed": {
+          "title": "Fallidos",
+          "description": "Marcadores que encontraron errores durante el procesamiento. Estos pueden necesitar atención manual."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Volver a rastrear solo los enlaces fallidos",
+        "recrawl_all_links": "Volver a rastrear todos los enlaces",
+        "without_inference": "Sin inferencia",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar etiquetas de IA solo para los marcadores fallidos",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerar etiquetas de IA para todos los marcadores",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerar resúmenes de IA solo para los marcadores fallidos",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resúmenes de IA para todos los marcadores",
+        "reindex_all_bookmarks": "Volver a indexar todos los marcadores",
+        "clean_assets": "Limpiar los activos colgantes y volver a sincronizar los metadatos",
+        "reprocess_assets_fix_mode": "Volver a procesar los activos no procesados"
+      }
     },
     "actions": {
       "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar etiquetas IA solo en marcadores fallidos",
@@ -275,7 +414,9 @@
       "num_bookmarks": "Núm. Marcadores",
       "asset_sizes": "Espacio utilizado",
       "local_user": "Usuario local",
-      "confirm_password": "Confirmar contraseña"
+      "confirm_password": "Confirmar contraseña",
+      "delete_user_confirm_description": "¿Seguro que quieres eliminar al usuario \"{{name}}\"?",
+      "unlimited": "Ilimitado"
     }
   },
   "options": {
@@ -454,7 +595,8 @@
     "day_s_ago": " Hace día(s)",
     "week_s_ago": " Hace semana(s)",
     "month_s_ago": " Hace mes(es)",
-    "year_s_ago": " Hace año(s)"
+    "year_s_ago": " Hace año(s)",
+    "history": "Búsquedas recientes"
   },
   "dialogs": {
     "bookmarks": {

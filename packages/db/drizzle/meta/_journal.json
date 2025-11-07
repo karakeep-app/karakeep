@@ -365,6 +365,97 @@
       "when": 1748804695561,
       "tag": "0051_public_lists",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "6",
+      "when": 1751409503089,
+      "tag": "0052_add_bookmark_quota",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1751816757805,
+      "tag": "0053_storage_quota",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "6",
+      "when": 1751826417328,
+      "tag": "0054_add_timezone",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "6",
+      "when": 1751839469055,
+      "tag": "0055_content_asset_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "6",
+      "when": 1752180326709,
+      "tag": "0056_user_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "6",
+      "when": 1752314617600,
+      "tag": "0057_salty_carmella_unuscione",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "6",
+      "when": 1752436258865,
+      "tag": "0058_add_subscription",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "6",
+      "when": 1752922057728,
+      "tag": "0059_browserless_user_setting",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "6",
+      "when": 1754187929331,
+      "tag": "0060_drop_invite_expire_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "6",
+      "when": 1754236017965,
+      "tag": "0061_merge_user_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "6",
+      "when": 1759573697911,
+      "tag": "0062_add_import_session",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "6",
+      "when": 1760302856618,
+      "tag": "0063_add_bookmark_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "6",
+      "when": 1762115406895,
+      "tag": "0064_add_import_tags_to_feeds",
+      "breakpoints": true
     }
   ]
 }

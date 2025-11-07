@@ -192,7 +192,11 @@ export function EditListModal({
     (value: z.infer<typeof zNewBookmarkListSchema>) => {
       value.parentId = value.parentId === "" ? null : value.parentId;
       value.query = value.type === "smart" ? value.query : undefined;
-      isEdit ? editList({ ...value, listId: list.id }) : createList(value);
+      if (isEdit) {
+        editList({ ...value, listId: list.id });
+      } else {
+        createList(value);
+      }
     },
   );
 
@@ -302,7 +306,7 @@ export function EditListModal({
                         type="button"
                         variant="ghost"
                         onClick={() => {
-                          form.reset({ parentId: null });
+                          form.setValue("parentId", "");
                         }}
                       >
                         <X />
@@ -373,6 +377,7 @@ export function EditListModal({
                         <Link
                           href="https://docs.karakeep.app/Guides/search-query-language"
                           className="italic"
+                          target="_blank"
                         >
                           {t("lists.search_query_help")}
                         </Link>

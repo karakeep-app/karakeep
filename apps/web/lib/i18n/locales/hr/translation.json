@@ -9,7 +9,9 @@
       "confirm_password": "Potvrdi lozinku",
       "create_user": "Kreiraj korisnika",
       "change_role": "Promijeni ulogu",
-      "asset_sizes": "Veličine resursa"
+      "asset_sizes": "Veličine resursa",
+      "delete_user_confirm_description": "Jesi ziher da želiš izbrisati korisnika \"{{name}}\"?",
+      "unlimited": "Neograničeno"
     },
     "admin_settings": "Postavke administratora",
     "server_stats": {
@@ -31,7 +33,71 @@
       "video_jobs": "Poslovi preuzimanja videozapisa",
       "asset_preprocessing_jobs": "Poslovi preprocesiranja resursa",
       "feed_jobs": "RSS Feed poslovi",
-      "webhook_jobs": "Webhook poslovi"
+      "webhook_jobs": "Webhook poslovi",
+      "jobs": {
+        "feed": {
+          "title": "Poslovi RSS feeda",
+          "description": "Obrada RSS feeda i ažuriranja sadržaja"
+        },
+        "crawler": {
+          "title": "Poslovi indeksiranja",
+          "description": "Web crawling i izdvajanje sadržaja iz URL-ova"
+        },
+        "inference": {
+          "title": "Poslovi zaključivanja",
+          "description": "Označavanje i sažimanje sadržaja pomoću umjetne inteligencije"
+        },
+        "indexing": {
+          "title": "Poslovi indeksiranja",
+          "description": "Ažuriranja indeksa pretraživanja"
+        },
+        "asset_preprocessing": {
+          "title": "Poslovi preprocesiranja sredstava",
+          "description": "Pretprocesiranje slika i dokumenata (snimke zaslona, izdvajanje teksta, itd.)"
+        },
+        "tidy_assets": {
+          "title": "Poslovi za sređivanje sredstava",
+          "description": "Čišćenje sredstava i optimizacija pohrane"
+        },
+        "video": {
+          "title": "Poslovi preuzimanja videozapisa",
+          "description": "Izdvajanje i preuzimanje videozapisa"
+        },
+        "webhook": {
+          "title": "Webhook poslovi",
+          "description": "Vanjske webhook obavijesti"
+        }
+      },
+      "monitor_and_manage": "Pratite i upravljajte redovima pozadinskih poslova i zadacima obrade sustava",
+      "active": "Aktivan",
+      "available_actions": "Dostupne radnje",
+      "status": {
+        "title": "Razumijevanje stanja posla",
+        "queued": {
+          "title": "U redu čekanja",
+          "description": "Poslovi čekaju u redu za obradu. Automatski će se pokrenuti kad budu dostupni resursi."
+        },
+        "unprocessed": {
+          "title": "Neobrađeno",
+          "description": "Oznake koje još nisu obrađene. Najvjerojatnije su već u redu čekanja za obradu, ako ne, možda ćete ih morati ručno ponovno staviti u red čekanja."
+        },
+        "failed": {
+          "title": "Neuspjelo",
+          "description": "Oznake koje su naišle na pogreške tijekom obrade. Možda će trebati ručnu intervenciju."
+        }
+      },
+      "actions": {
+        "recrawl_failed_links_only": "Ponovno indeksiraj samo neuspjele poveznice",
+        "recrawl_all_links": "Ponovno indeksiraj sve poveznice",
+        "without_inference": "Bez zaključivanja",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Ponovno generiraj AI oznake samo za neuspjele oznake",
+        "regenerate_ai_tags_for_all_bookmarks": "Ponovno generiraj AI oznake za sve oznake",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Ponovno generiraj AI sažetke samo za neuspjele oznake",
+        "regenerate_ai_summaries_for_all_bookmarks": "Ponovno generiraj AI sažetke za sve oznake",
+        "reindex_all_bookmarks": "Ponovno indeksiraj sve oznake",
+        "clean_assets": "Očisti viseću imovinu i ponovno sinkroniziraj metapodatke",
+        "reprocess_assets_fix_mode": "Ponovno obradi neobrađenu imovinu"
+      }
     },
     "actions": {
       "recrawl_failed_links_only": "Ponovno pregledavanje samo neuspjelih veza",
@@ -89,7 +155,10 @@
     "updated_at": "Ažurirano",
     "title": "Naslov",
     "description": "Opis",
-    "summary": "Sažetak"
+    "summary": "Sažetak",
+    "quota": "Kvota",
+    "bookmarks": "Oznake",
+    "storage": "Pohrana"
   },
   "settings": {
     "ai": {
@@ -235,6 +304,77 @@
       "rule_has_been_deleted": "Pravilo je izbrisano!",
       "no_rules_created_yet": "Još nema stvorenih pravila",
       "create_your_first_rule": "Napravi svoje prvo pravilo za automatizaciju radnog procesa"
+    },
+    "stats": {
+      "usage_statistics": "Statistika korištenja",
+      "insights_description": "Uvid u tvoje navike označavanja i kolekciju",
+      "failed_to_load": "Nije uspjelo učitavanje statistike",
+      "overview": {
+        "total_bookmarks": "Ukupno oznaka",
+        "all_saved_items": "Svi spremljeni predmeti",
+        "favorites": "Favoriti",
+        "starred_bookmarks": "Označene knjižne oznake",
+        "archived": "Arhivirano",
+        "archived_items": "Arhivirane stavke",
+        "tags": "Oznake",
+        "unique_tags_created": "Stvorene jedinstvene oznake",
+        "lists": "Popisi",
+        "bookmark_collections": "Zbirke oznaka",
+        "highlights": "Istaknuto",
+        "text_highlights": "Istaknuti tekstovi",
+        "storage_used": "Iskorištena pohrana",
+        "total_asset_storage": "Ukupna pohrana imovine",
+        "this_month": "Ovaj mjesec",
+        "bookmarks_added": "Dodane oznake"
+      },
+      "bookmark_types": {
+        "title": "Vrste oznaka",
+        "links": "Poveznice",
+        "text_notes": "Tekstualne bilješke",
+        "assets": "Sredstva"
+      },
+      "recent_activity": {
+        "title": "Nedavna aktivnost",
+        "this_week": "Ovaj tjedan",
+        "this_month": "Ovaj mjesec",
+        "this_year": "Ove godine"
+      },
+      "top_domains": {
+        "title": "Vrhunske domene",
+        "no_domains_found": "Nema pronađenih domena"
+      },
+      "most_used_tags": {
+        "title": "Najčešće korištene oznake",
+        "no_tags_found": "Nema pronađenih oznaka"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Aktivnost po satu",
+        "activity_by_day": "Aktivnost po danu"
+      },
+      "storage_breakdown": {
+        "title": "Raščlamba pohrane"
+      }
+    },
+    "subscription": {
+      "subscription": "Pretplata",
+      "manage_subscription": "Upravljaj svojom pretplatom i informacijama o naplati",
+      "current_plan": "Trenutni plan",
+      "billing_period": "Razdoblje naplate",
+      "paid_plan": "Plaćeni plan",
+      "unlock_bigger_quota": "Otključaj veću kvotu i podrži projekt",
+      "subscribe_now": "Pretplati se odmah",
+      "manage_billing": "Upravljaj naplatom",
+      "subscription_canceled": "Tvoja pretplata je otkazana i završit će {{date}}. Možeš se ponovno pretplatiti bilo kada.",
+      "usage_quotas": "Korištenje i kvote",
+      "track_usage": "Prati svoje trenutno korištenje u odnosu na ograničenja plana",
+      "total_bookmarks_saved": "Ukupno spremljenih oznaka",
+      "assets_file_storage": "Spremanje datoteka i imovine",
+      "unlimited_usage": "Neograničeno korištenje",
+      "quota_limit_reached": "Dosegnuta granica kvote",
+      "approaching_quota_limit": "Približavam se granici kvote",
+      "loading_usage": "Učitavam informacije o korištenju...",
+      "free": "Besplatno",
+      "paid": "Plaćeno"
     }
   },
   "actions": {
@@ -276,7 +416,8 @@
       "relevant_first": "Najrelevantnije prvo"
     },
     "open_editor": "Otvori uređivač",
-    "toggle_show_archived": "Prikaži arhivirano"
+    "toggle_show_archived": "Prikaži arhivirano",
+    "confirm": "Potvrdi"
   },
   "highlights": {
     "no_highlights": "Još nemate nijednu istaknutu stavku."
@@ -454,7 +595,8 @@
     "day_s_ago": " Dana(e) prije",
     "week_s_ago": " Tjedna(i) prije",
     "month_s_ago": " Mjeseca(i) prije",
-    "year_s_ago": " Godina(e) prije"
+    "year_s_ago": " Godina(e) prije",
+    "history": "Nedavne pretrage"
   },
   "dialogs": {
     "bookmarks": {

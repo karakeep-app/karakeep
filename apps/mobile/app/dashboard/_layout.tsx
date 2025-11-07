@@ -136,6 +136,14 @@ export default function Dashboard() {
           headerBackTitle: "Back",
         }}
       />
+      <Stack.Screen
+        name="settings/bookmark-default-view"
+        options={{
+          title: "Bookmark View Mode",
+          headerTitle: "Bookmark View Mode",
+          headerBackTitle: "Back",
+        }}
+      />
     </StyledStack>
   );
 }

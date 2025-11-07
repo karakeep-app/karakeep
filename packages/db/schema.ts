@@ -38,6 +38,26 @@ export const users = sqliteTable("user", {
   password: text("password"),
   salt: text("salt").notNull().default(""),
   role: text("role", { enum: ["admin", "user"] }).default("user"),
+
+  // Admin Only Settings
+  bookmarkQuota: integer("bookmarkQuota"),
+  storageQuota: integer("storageQuota"),
+  browserCrawlingEnabled: integer("browserCrawlingEnabled", {
+    mode: "boolean",
+  }),
+
+  // User Settings
+  bookmarkClickAction: text("bookmarkClickAction", {
+    enum: ["open_original_link", "expand_bookmark_preview"],
+  })
+    .notNull()
+    .default("open_original_link"),
+  archiveDisplayBehaviour: text("archiveDisplayBehaviour", {
+    enum: ["show", "hide"],
+  })
+    .notNull()
+    .default("show"),
+  timezone: text("timezone").default("UTC"),
 });
 
 export const accounts = sqliteTable(
@@ -83,6 +103,23 @@ export const verificationTokens = sqliteTable(
     expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
   },
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
+);
+
+export const passwordResetTokens = sqliteTable(
+  "passwordResetToken",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+    createdAt: createdAtField(),
+  },
+  (prt) => [index("passwordResetTokens_userId_idx").on(prt.userId)],
 );
 
 export const apiKeys = sqliteTable(
@@ -131,6 +168,18 @@ export const bookmarks = sqliteTable(
     type: text("type", {
       enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
     }).notNull(),
+    source: text("source", {
+      enum: [
+        "api",
+        "web",
+        "extension",
+        "cli",
+        "mobile",
+        "singlefile",
+        "rss",
+        "import",
+      ],
+    }),
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
@@ -159,8 +208,8 @@ export const bookmarkLinks = sqliteTable(
     dateModified: integer("dateModified", { mode: "timestamp" }),
     imageUrl: text("imageUrl"),
     favicon: text("favicon"),
-    content: text("content"),
     htmlContent: text("htmlContent"),
+    contentAssetId: text("contentAssetId"),
     crawledAt: integer("crawledAt", { mode: "timestamp" }),
     crawlStatus: text("crawlStatus", {
       enum: ["pending", "failure", "success"],
@@ -177,6 +226,7 @@ export const enum AssetTypes {
   LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
   LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
   LINK_VIDEO = "linkVideo",
+  LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
   UNKNOWN = "unknown",
 }
@@ -194,6 +244,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         AssetTypes.LINK_PRECRAWLED_ARCHIVE,
         AssetTypes.LINK_VIDEO,
+        AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.UNKNOWN,
       ],
@@ -396,6 +447,9 @@ export const rssFeedsTable = sqliteTable(
     name: text("name").notNull(),
     url: text("url").notNull(),
     enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    importTags: integer("importTags", { mode: "boolean" })
+      .notNull()
+      .default(false),
     createdAt: createdAtField(),
     lastFetchedAt: integer("lastFetchedAt", { mode: "timestamp" }),
     lastFetchedStatus: text("lastFetchedStatus", {
@@ -530,22 +584,107 @@ export const ruleEngineActionsTable = sqliteTable(
   ],
 );
 
-export const userSettings = sqliteTable("userSettings", {
-  userId: text("userId")
+export const invites = sqliteTable("invites", {
+  id: text("id")
     .notNull()
     .primaryKey()
+    .$defaultFn(() => createId()),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: createdAtField(),
+  usedAt: integer("usedAt", { mode: "timestamp" }),
+  invitedBy: text("invitedBy")
+    .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  bookmarkClickAction: text("bookmarkClickAction", {
-    enum: ["open_original_link", "expand_bookmark_preview"],
-  })
-    .notNull()
-    .default("open_original_link"),
-  archiveDisplayBehaviour: text("archiveDisplayBehaviour", {
-    enum: ["show", "hide"],
-  })
-    .notNull()
-    .default("show"),
 });
+
+export const subscriptions = sqliteTable(
+  "subscriptions",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+    stripeCustomerId: text("stripeCustomerId").notNull(),
+    stripeSubscriptionId: text("stripeSubscriptionId"),
+    status: text("status", {
+      enum: [
+        "active",
+        "canceled",
+        "past_due",
+        "unpaid",
+        "incomplete",
+        "trialing",
+        "incomplete_expired",
+        "paused",
+      ],
+    }).notNull(),
+    tier: text("tier", {
+      enum: ["free", "paid"],
+    })
+      .notNull()
+      .default("free"),
+    priceId: text("priceId"),
+    cancelAtPeriodEnd: integer("cancelAtPeriodEnd", {
+      mode: "boolean",
+    }).default(false),
+    startDate: integer("startDate", { mode: "timestamp" }),
+    endDate: integer("endDate", { mode: "timestamp" }),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (s) => [
+    index("subscriptions_userId_idx").on(s.userId),
+    index("subscriptions_stripeCustomerId_idx").on(s.stripeCustomerId),
+  ],
+);
+
+export const importSessions = sqliteTable(
+  "importSessions",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    message: text("message"),
+    rootListId: text("rootListId").references(() => bookmarkLists.id, {
+      onDelete: "set null",
+    }),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (is) => [index("importSessions_userId_idx").on(is.userId)],
+);
+
+export const importSessionBookmarks = sqliteTable(
+  "importSessionBookmarks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    importSessionId: text("importSessionId")
+      .notNull()
+      .references(() => importSessions.id, { onDelete: "cascade" }),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    createdAt: createdAtField(),
+  },
+  (isb) => [
+    index("importSessionBookmarks_sessionId_idx").on(isb.importSessionId),
+    index("importSessionBookmarks_bookmarkId_idx").on(isb.bookmarkId),
+    unique().on(isb.importSessionId, isb.bookmarkId),
+  ],
+);
 
 // Relations
 
@@ -554,10 +693,9 @@ export const userRelations = relations(users, ({ many, one }) => ({
   bookmarks: many(bookmarks),
   webhooks: many(webhooksTable),
   rules: many(ruleEngineRulesTable),
-  settings: one(userSettings, {
-    fields: [users.id],
-    references: [userSettings.userId],
-  }),
+  invites: many(invites),
+  subscription: one(subscriptions),
+  importSessions: many(importSessions),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -581,6 +719,7 @@ export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
   bookmarksInLists: many(bookmarksInLists),
   assets: many(assets),
   rssFeeds: many(rssFeedImportsTable),
+  importSessionBookmarks: many(importSessionBookmarks),
 }));
 
 export const assetRelations = relations(assets, ({ one }) => ({
@@ -693,9 +832,51 @@ export const rssFeedImportsTableRelations = relations(
   }),
 );
 
-export const userSettingsRelations = relations(userSettings, ({ one }) => ({
-  user: one(users, {
-    fields: [userSettings.userId],
+export const invitesRelations = relations(invites, ({ one }) => ({
+  invitedBy: one(users, {
+    fields: [invites.invitedBy],
     references: [users.id],
   }),
 }));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const passwordResetTokensRelations = relations(
+  passwordResetTokens,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [passwordResetTokens.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const importSessionsRelations = relations(
+  importSessions,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [importSessions.userId],
+      references: [users.id],
+    }),
+    bookmarks: many(importSessionBookmarks),
+  }),
+);
+
+export const importSessionBookmarksRelations = relations(
+  importSessionBookmarks,
+  ({ one }) => ({
+    importSession: one(importSessions, {
+      fields: [importSessionBookmarks.importSessionId],
+      references: [importSessions.id],
+    }),
+    bookmark: one(bookmarks, {
+      fields: [importSessionBookmarks.bookmarkId],
+      references: [bookmarks.id],
+    }),
+  }),
+);
