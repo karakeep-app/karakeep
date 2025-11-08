@@ -50,7 +50,6 @@ interface SidebarVersionProps {
 }
 
 export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
-  serverVersion = "0.26.0";
   const { disableNewReleaseCheck } = useClientConfig();
   const { t } = useTranslation();
 
