@@ -230,8 +230,8 @@
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
       "add_a_subscription": "Add a Subscription",
-      "feed_enabled": "RSS Feed enabled, mate",
-      "feed_disabled": "RSS Feed disabled, mate"
+      "feed_enabled": "RSS Feed enabled",
+      "feed_disabled": "RSS Feed disabled"
     },
     "webhooks": {
       "webhooks": "Webhooks",
@@ -273,7 +273,7 @@
       "regenerate_api_key": "Regenerate API Key",
       "key_regenerated": "Key was successfully regenerated",
       "key_regenerated_please_copy": "Please copy the new key and store it somewhere safe. The old key has been revoked and will no longer work.",
-      "regenerate_warning": "Are you sure you wanna regenerate the API key \"{{name}}\"?",
+      "regenerate_warning": "Are you sure you want to regenerate the API key \"{{name}}\"?",
       "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working."
     },
     "broken_links": {
@@ -289,7 +289,7 @@
       "bookmark_link": "Bookmark Link",
       "asset_link": "Asset Link",
       "delete_asset": "Delete Asset",
-      "delete_asset_confirmation": "Are you sure you wanna delete this asset?"
+      "delete_asset_confirmation": "Are you sure you want to delete this asset?"
     },
     "rules": {
       "rules": "Rule Engine",
@@ -299,14 +299,14 @@
       "edit_rule": "Edit Rule",
       "save_rule": "Save Rule",
       "delete_rule": "Delete Rule",
-      "delete_rule_confirmation": "Are you sure you wanna delete this rule?",
+      "delete_rule_confirmation": "Are you sure you want to delete this rule?",
       "whenever": "Whenever...",
       "if": "If...",
       "enter_rule_name": "Enter rule name",
       "describe_what_this_rule_does": "Describe what this rule does",
-      "rule_has_been_created": "Rule's been created!",
+      "rule_has_been_created": "Rule has been created!",
       "rule_has_been_updated": "Rule has been updated!",
-      "rule_has_been_deleted": "Rule's been deleted!",
+      "rule_has_been_deleted": "Rule has been deleted!",
       "no_rules_created_yet": "No rules have been created yet",
       "create_your_first_rule": "Create your first rule to automate your workflow",
       "conditions_types": {
@@ -398,7 +398,7 @@
       "unlock_bigger_quota": "Get a bigger quota and help keep the project going",
       "subscribe_now": "Subscribe Now",
       "manage_billing": "Manage Billing",
-      "subscription_canceled": "Your subscription's been canceled and will end on {{date}}. You can resubscribe whenever you want.",
+      "subscription_canceled": "Your subscription has been canceled and will end on {{date}}. You can resubscribe at any time.",
       "usage_quotas": "Usage & Quotas",
       "track_usage": "Track how much you're using compared to your plan",
       "total_bookmarks_saved": "Total bookmarks saved",
@@ -412,9 +412,9 @@
     },
     "import_sessions": {
       "title": "Import Sessions",
-      "description": "Check out and handle your bulk import sessions. Sessions pop up automatically when you import bookmarks.",
-      "load_error": "Couldn't load import sessions",
-      "no_sessions": "No import sessions yet, dude!",
+      "description": "View and manage your bulk import sessions. Sessions are automatically created when you import bookmarks.",
+      "load_error": "Failed to load import sessions",
+      "no_sessions": "No import sessions yet",
       "no_sessions_detail": "Import sessions will show up here automatically when you import bookmarks",
       "created_at": "Created {{time}}",
       "progress": "Progress",
@@ -434,7 +434,7 @@
       "imported_to": "Imported to:",
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
-      "delete_dialog_description": "Are you sure you wanna delete \"{{name}}\"? This can't be undone. The bookmarks themselves won't be deleted, though.",
+      "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
       "delete_session": "Delete Session"
     }
   },
@@ -505,15 +505,15 @@
         "title": "Understanding Job States",
         "queued": {
           "title": "Queued",
-          "description": "Jobs waitin' in line to be processed. They'll start automatically when resources are available."
+          "description": "Jobs waiting in line to be processed. They will start automatically when resources are available."
         },
         "unprocessed": {
           "title": "Unprocessed",
-          "description": "Bookmarks that ain't been processed yet. They're probably already queued for processin', but if not, you might need to manually re-enqueue 'em."
+          "description": "Bookmarks that have not yet been processed. They are most likely already queued for processing, if not, you might need to manually re-enqueue them."
         },
         "failed": {
           "title": "Failed",
-          "description": "Bookmarks that ran into errors while processin'. These might need a lil' manual attention."
+          "description": "Bookmarks that encountered errors during processing. These may need manual attention."
         }
       },
       "actions": {
@@ -552,7 +552,7 @@
       "asset_sizes": "Asset Sizes",
       "local_user": "Local User",
       "confirm_password": "Confirm Password",
-      "delete_user_confirm_description": "Are you sure you wanna delete user \"{{name}}\"?",
+      "delete_user_confirm_description": "Are you sure you want to delete user \"{{name}}\"?",
       "unlimited": "Unlimited"
     },
     "service_connections": {
@@ -709,13 +709,13 @@
     "image_fit_contain": "Contain (Fit)"
   },
   "version": {
-    "new_release_available": "Fresh release notes are here!",
-    "whats_new_title": "Peep what's new in v{{version}}",
-    "release_notes_description": "Feast your eyes on the latest updates, snatched right from the GitHub release notes.",
-    "loading_release_notes": "Loading up the release notes…",
-    "unable_to_load_release_notes": "Oops! Couldn't snag the release notes right now. Give it another shot later, mate.",
-    "no_release_notes": "Looks like no release notes were dropped for this version.",
-    "release_notes_synced": "Release notes are hooked up and synced from GitHub.",
-    "view_on_github": "Scope it out on GitHub"
+    "new_release_available": "New release notes available",
+    "whats_new_title": "What's new in v{{version}}",
+    "release_notes_description": "Here are the latest updates fetched from the GitHub release notes.",
+    "loading_release_notes": "Loading release notes…",
+    "unable_to_load_release_notes": "Unable to load release notes right now. Please try again later.",
+    "no_release_notes": "No release notes were published for this version.",
+    "release_notes_synced": "Release notes are synced from GitHub.",
+    "view_on_github": "View on GitHub"
   }
 }
