@@ -16,6 +16,7 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
     [AssetTypes.LINK_VIDEO]: "video",
     [AssetTypes.LINK_HTML_CONTENT]: "linkHtmlContent",
     [AssetTypes.BOOKMARK_ASSET]: "bookmarkAsset",
+    [AssetTypes.USER_UPLOADED]: "userUploaded",
     [AssetTypes.UNKNOWN]: "bannerImage",
   };
   return map[assetType];
@@ -33,6 +34,7 @@ export function mapSchemaAssetTypeToDB(
     video: AssetTypes.LINK_VIDEO,
     bookmarkAsset: AssetTypes.BOOKMARK_ASSET,
     linkHtmlContent: AssetTypes.LINK_HTML_CONTENT,
+    userUploaded: AssetTypes.USER_UPLOADED,
     unknown: AssetTypes.UNKNOWN,
   };
   return map[assetType];
@@ -48,6 +50,7 @@ export function humanFriendlyNameForAssertType(type: ZAssetType) {
     video: "Video",
     bookmarkAsset: "Bookmark Asset",
     linkHtmlContent: "HTML Content",
+    userUploaded: "User Uploaded File",
     unknown: "Unknown",
   };
   return map[type];
@@ -63,6 +66,7 @@ export function isAllowedToAttachAsset(type: ZAssetType) {
     video: true,
     bookmarkAsset: false,
     linkHtmlContent: false,
+    userUploaded: true,
     unknown: false,
   };
   return map[type];
@@ -78,6 +82,7 @@ export function isAllowedToDetachAsset(type: ZAssetType) {
     video: true,
     bookmarkAsset: false,
     linkHtmlContent: false,
+    userUploaded: true,
     unknown: false,
   };
   return map[type];

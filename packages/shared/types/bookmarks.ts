@@ -24,6 +24,7 @@ export const zAssetTypesSchema = z.enum([
   "video",
   "bookmarkAsset",
   "precrawledArchive",
+  "userUploaded",
   "unknown",
 ]);
 export type ZAssetType = z.infer<typeof zAssetTypesSchema>;
@@ -31,6 +32,7 @@ export type ZAssetType = z.infer<typeof zAssetTypesSchema>;
 export const zAssetSchema = z.object({
   id: z.string(),
   assetType: zAssetTypesSchema,
+  fileName: z.string().nullish(),
 });
 
 export const zBookmarkedLinkSchema = z.object({

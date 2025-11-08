@@ -99,7 +99,10 @@ export const assetsAppRouter = router({
     .input(
       z.object({
         bookmarkId: z.string(),
-        asset: zAssetSchema,
+        asset: z.object({
+          id: z.string(),
+          assetType: zAssetTypesSchema,
+        }),
       }),
     )
     .output(zAssetSchema)
@@ -112,7 +115,7 @@ export const assetsAppRouter = router({
           message: "You can't attach this type of asset",
         });
       }
-      await ctx.db
+      const [updatedAsset] = await ctx.db
         .update(assets)
         .set({
           assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
@@ -120,8 +123,14 @@ export const assetsAppRouter = router({
         })
         .where(
           and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
-        );
-      return input.asset;
+        )
+        .returning();
+
+      return {
+        id: updatedAsset.id,
+        assetType: mapDBAssetTypeToUserType(updatedAsset.assetType),
+        fileName: updatedAsset.fileName,
+      };
     }),
   replaceAsset: authedProcedure
     .input(
