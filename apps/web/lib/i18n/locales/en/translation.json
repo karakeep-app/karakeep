@@ -678,5 +678,15 @@
     "pick_a_date": "Pick a date",
     "save_changes": "Save changes",
     "extracted_content": "Extracted Content"
+  },
+  "version": {
+    "new_release_available": "New release notes available",
+    "whats_new_title": "What's new in v{{version}}",
+    "release_notes_description": "Here are the latest updates fetched from the GitHub release notes.",
+    "loading_release_notes": "Loading release notes…",
+    "unable_to_load_release_notes": "Unable to load release notes right now. Please try again later.",
+    "no_release_notes": "No release notes were published for this version.",
+    "release_notes_synced": "Release notes are synced from GitHub.",
+    "view_on_github": "View on GitHub"
   }
 }
