@@ -667,8 +667,8 @@ async function crawlAndParseUrl(
       url,
     };
   } else {
-    // Use the crawler plugin
-    const crawler = await getCrawlerClient();
+    // Use the crawler plugin (getCrawlerClient decides which crawler to use)
+    const crawler = await getCrawlerClient({ userId, jobId });
     result = await crawler.crawl(url, {
       userId,
       jobId,

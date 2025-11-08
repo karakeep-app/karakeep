@@ -6,6 +6,8 @@
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.842.0",
+    "@karakeep/db": "workspace:*",
+    "drizzle-orm": "*",
     "glob": "^11.0.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",

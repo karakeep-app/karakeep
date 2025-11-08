@@ -11,8 +11,9 @@ export async function loadAllPlugins() {
   await import("@karakeep/plugins/queue-restate");
   // Search provider(s)
   await import("@karakeep/plugins/search-meilisearch");
-  // Crawler provider - Smart crawler that decides between browser and fetch
-  await import("@karakeep/plugins/crawler-smart");
+  // Crawler provider(s) - Both are loaded, getCrawlerClient() decides which to use
+  await import("@karakeep/plugins/crawler-fetch");
+  await import("@karakeep/plugins/crawler-browser");
   PluginManager.logAllPlugins();
   pluginsLoaded = true;
 }
