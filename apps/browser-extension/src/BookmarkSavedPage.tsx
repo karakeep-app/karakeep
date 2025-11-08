@@ -2,10 +2,7 @@ import { useState } from "react";
 import { ArrowUpRightFromSquare, Trash } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import {
-  useAutoRefreshingBookmarkQuery,
-  useDeleteBookmark,
-} from "@karakeep/shared-react/hooks/bookmarks";
+import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 import BookmarkLists from "./components/BookmarkLists";
 import { ListsSelector } from "./components/ListsSelector";
@@ -22,10 +19,6 @@ export default function BookmarkSavedPage() {
   const { bookmarkId } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState("");
-
-  const { data: bookmark } = useAutoRefreshingBookmarkQuery({
-    bookmarkId: bookmarkId ?? "",
-  });
 
   const { mutate: deleteBookmark, isPending } = useDeleteBookmark({
     onSuccess: async () => {
@@ -48,10 +41,6 @@ export default function BookmarkSavedPage() {
 
   if (!bookmarkId) {
     return <div>NOT FOUND</div>;
-  }
-
-  if (!bookmark) {
-    return null;
   }
 
   return (
@@ -92,7 +81,7 @@ export default function BookmarkSavedPage() {
       </div>
       <hr />
       <p className="text-lg">Notes</p>
-      <NoteEditor bookmark={bookmark} />
+      <NoteEditor bookmarkId={bookmarkId} />
       <hr />
       <p className="text-lg">Tags</p>
       <TagList bookmarkId={bookmarkId} />

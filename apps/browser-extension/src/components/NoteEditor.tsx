@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import { Check, Save } from "lucide-react";
 
-import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
-import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import {
+  useAutoRefreshingBookmarkQuery,
+  useUpdateBookmark,
+} from "@karakeep/shared-react/hooks/bookmarks";
 
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
-export function NoteEditor({ bookmark }: { bookmark: ZBookmark }) {
+export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
+  const { data: bookmark } = useAutoRefreshingBookmarkQuery({ bookmarkId });
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [noteValue, setNoteValue] = useState(bookmark.note ?? "");
+  const [noteValue, setNoteValue] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Update local state when bookmark changes
+  // Update local state when bookmark changes, but only if there are no unsaved changes
+  // This prevents overwriting user's edits while they're typing
   useEffect(() => {
-    setNoteValue(bookmark.note ?? "");
-    setHasUnsavedChanges(false);
-  }, [bookmark.note]);
+    if (bookmark && !hasUnsavedChanges) {
+      setNoteValue(bookmark.note ?? "");
+    }
+  }, [bookmark?.note, bookmark, hasUnsavedChanges]);
 
   const updateBookmarkMutator = useUpdateBookmark({
     onSuccess: () => {
@@ -32,7 +37,7 @@ export function NoteEditor({ bookmark }: { bookmark: ZBookmark }) {
   });
 
   const handleSave = () => {
-    if (noteValue === bookmark.note || isSaving) {
+    if (!bookmark || noteValue === bookmark.note || isSaving) {
       return;
     }
     setIsSaving(true);
@@ -42,6 +47,10 @@ export function NoteEditor({ bookmark }: { bookmark: ZBookmark }) {
       note: noteValue,
     });
   };
+
+  if (!bookmark) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-2">
