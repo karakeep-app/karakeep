@@ -228,6 +228,7 @@ export const enum AssetTypes {
   LINK_VIDEO = "linkVideo",
   LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
+  USER_UPLOADED = "userUploaded",
   UNKNOWN = "unknown",
 }
 
@@ -246,6 +247,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_VIDEO,
         AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
+        AssetTypes.USER_UPLOADED,
         AssetTypes.UNKNOWN,
       ],
     }).notNull(),

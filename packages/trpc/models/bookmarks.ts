@@ -295,6 +295,7 @@ export class Bookmark implements PrivacyAware {
           acc[bookmarkId].assets.push({
             id: row.assets.id,
             assetType: mapDBAssetTypeToUserType(row.assets.assetType),
+            fileName: row.assets.fileName,
           });
         }
 
