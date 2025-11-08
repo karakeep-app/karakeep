@@ -14,6 +14,9 @@ export const ClientConfigCtx = createContext<ClientConfig>({
     isConfigured: false,
     inferredTagLang: "english",
   },
+  crawler: {
+    storeScreenshot: true,
+  },
   serverVersion: undefined,
   disableNewReleaseCheck: true,
 });

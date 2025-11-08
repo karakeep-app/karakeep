@@ -106,6 +106,12 @@ export async function extractAndSavePDFScreenshot(
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
 ): Promise<boolean> {
+  if (bookmark.user?.captureScreenshots === false) {
+    logger.info(
+      `[assetPreprocessing][${jobId}] Skipping PDF screenshot generation due to user settings.`,
+    );
+    return false;
+  }
   {
     const alreadyHasScreenshot =
       bookmark.assets.find(
@@ -277,6 +283,9 @@ async function getBookmark(bookmarkId: string) {
     with: {
       asset: true,
       assets: true,
+      user: {
+        columns: { captureScreenshots: true },
+      },
     },
   });
 }
@@ -291,6 +300,9 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
     with: {
       asset: true,
       assets: true,
+      user: {
+        columns: { captureScreenshots: true },
+      },
     },
   });
 

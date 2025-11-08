@@ -130,6 +130,10 @@
           "title": "Archived Bookmarks",
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
+        },
+        "capture_screenshots": {
+          "title": "Capture Screenshots",
+          "description": "Control whether new bookmarks should store screenshots."
         }
       }
     },
@@ -194,7 +198,11 @@
       "all_tagging": "All Tagging",
       "text_tagging": "Text Tagging",
       "image_tagging": "Image Tagging",
-      "summarization": "Summarization"
+      "summarization": "Summarization",
+      "inference_language": {
+        "label": "Inference Language",
+        "description": "Overrides the default inference language (currently {{defaultLang}}) used for tagging and summaries."
+      }
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",

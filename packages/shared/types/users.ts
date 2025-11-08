@@ -100,6 +100,8 @@ export const zUserSettingsSchema = z.object({
   ]),
   archiveDisplayBehaviour: z.enum(["show", "hide"]),
   timezone: z.string(),
+  inferenceLanguage: z.string().trim().min(1),
+  captureScreenshots: z.boolean(),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -108,4 +110,6 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   bookmarkClickAction: true,
   archiveDisplayBehaviour: true,
   timezone: true,
+  inferenceLanguage: true,
+  captureScreenshots: true,
 });

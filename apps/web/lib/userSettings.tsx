@@ -10,6 +10,8 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   bookmarkClickAction: "open_original_link",
   archiveDisplayBehaviour: "show",
   timezone: "UTC",
+  inferenceLanguage: "english",
+  captureScreenshots: true,
 });
 
 export function UserSettingsContextProvider({

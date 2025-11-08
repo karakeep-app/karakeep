@@ -440,6 +440,8 @@ export class User implements PrivacyAware {
         bookmarkClickAction: true,
         archiveDisplayBehaviour: true,
         timezone: true,
+        inferenceLanguage: true,
+        captureScreenshots: true,
       },
     });
 
@@ -454,6 +456,11 @@ export class User implements PrivacyAware {
       bookmarkClickAction: settings.bookmarkClickAction,
       archiveDisplayBehaviour: settings.archiveDisplayBehaviour,
       timezone: settings.timezone || "UTC",
+      inferenceLanguage:
+        settings.inferenceLanguage?.trim() ||
+        serverConfig.inference.inferredTagLang ||
+        "english",
+      captureScreenshots: settings.captureScreenshots ?? true,
     };
   }
 
@@ -473,6 +480,8 @@ export class User implements PrivacyAware {
         bookmarkClickAction: input.bookmarkClickAction,
         archiveDisplayBehaviour: input.archiveDisplayBehaviour,
         timezone: input.timezone,
+        inferenceLanguage: input.inferenceLanguage,
+        captureScreenshots: input.captureScreenshots,
       })
       .where(eq(users.id, this.user.id));
   }

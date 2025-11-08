@@ -7,7 +7,7 @@ import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
 import { updateInterfaceLang } from "@/lib/userLocalSettings/userLocalSettings";
 import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Archive, Bookmark, Clock, Globe } from "lucide-react";
+import { Archive, Bookmark, Camera, Clock, Globe } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Switch } from "../ui/switch";
 import { toast } from "../ui/use-toast";
 
 const LanguageSelect = () => {
@@ -273,6 +274,43 @@ export default function UserOptions() {
               )}
             />
           </div>
+
+          {clientConfig.crawler.storeScreenshot && (
+            <FormField
+              control={form.control}
+              name="captureScreenshots"
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm font-medium">
+                    <Camera className="h-4 w-4" />
+                    {t("settings.info.user_settings.capture_screenshots.title")}
+                  </Label>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="pr-4">
+                      <p className="text-sm text-muted-foreground">
+                        {t(
+                          "settings.info.user_settings.capture_screenshots.description",
+                        )}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(value) => {
+                        field.onChange(value);
+                        mutate({
+                          captureScreenshots: value,
+                        });
+                      }}
+                      disabled={!!clientConfig.demoMode}
+                      aria-label={t(
+                        "settings.info.user_settings.capture_screenshots.title",
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+          )}
         </CardContent>
       </Card>
     </Form>

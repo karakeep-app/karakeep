@@ -27,6 +27,9 @@ async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
           url: true,
         },
       },
+      user: {
+        columns: { inferenceLanguage: true },
+      },
       // If assets (like PDFs with extracted text) should be summarized, extend here
     },
   });
@@ -105,8 +108,12 @@ URL: ${link.url ?? ""}
     },
   });
 
+  const inferenceLanguage =
+    bookmarkData.user?.inferenceLanguage?.trim() ||
+    serverConfig.inference.inferredTagLang;
+
   const summaryPrompt = buildSummaryPrompt(
-    serverConfig.inference.inferredTagLang,
+    inferenceLanguage,
     prompts.map((p) => p.text),
     textToSummarize,
     serverConfig.inference.contextLength,

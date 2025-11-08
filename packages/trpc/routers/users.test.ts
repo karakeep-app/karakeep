@@ -155,11 +155,15 @@ describe("User Routes", () => {
       bookmarkClickAction: "open_original_link",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
+      inferenceLanguage: "english",
+      captureScreenshots: true,
     });
 
     // Update settings
     await caller.users.updateSettings({
       bookmarkClickAction: "expand_bookmark_preview",
+      inferenceLanguage: "spanish",
+      captureScreenshots: false,
     });
 
     // Verify updated settings
@@ -168,6 +172,8 @@ describe("User Routes", () => {
       bookmarkClickAction: "expand_bookmark_preview",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
+      inferenceLanguage: "spanish",
+      captureScreenshots: false,
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)

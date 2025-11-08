@@ -79,6 +79,9 @@ function tagNormalizer(col: Column) {
 async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
 ): Promise<string | null> {
+  const inferenceLanguage =
+    bookmark.user?.inferenceLanguage?.trim() ||
+    serverConfig.inference.inferredTagLang;
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
     let content =
@@ -95,7 +98,7 @@ async function buildPrompt(
       return null;
     }
     return buildTextPrompt(
-      serverConfig.inference.inferredTagLang,
+      inferenceLanguage,
       prompts,
       `URL: ${bookmark.link.url}
 Title: ${bookmark.link.title ?? ""}
@@ -107,7 +110,7 @@ Content: ${content ?? ""}`,
 
   if (bookmark.text) {
     return buildTextPrompt(
-      serverConfig.inference.inferredTagLang,
+      inferenceLanguage,
       prompts,
       bookmark.text.text ?? "",
       serverConfig.inference.contextLength,
@@ -123,6 +126,9 @@ async function inferTagsFromImage(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ): Promise<InferenceResponse | null> {
+  const inferenceLanguage =
+    bookmark.user?.inferenceLanguage?.trim() ||
+    serverConfig.inference.inferredTagLang;
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
     assetId: bookmark.asset.assetId,
@@ -143,7 +149,7 @@ async function inferTagsFromImage(
   const base64 = asset.toString("base64");
   return inferenceClient.inferFromImage(
     buildImagePrompt(
-      serverConfig.inference.inferredTagLang,
+      inferenceLanguage,
       await fetchCustomPrompts(bookmark.userId, "images"),
     ),
     metadata.contentType,
@@ -215,8 +221,11 @@ async function inferTagsFromPDF(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
+  const inferenceLanguage =
+    bookmark.user?.inferenceLanguage?.trim() ||
+    serverConfig.inference.inferredTagLang;
   const prompt = buildTextPrompt(
-    serverConfig.inference.inferredTagLang,
+    inferenceLanguage,
     await fetchCustomPrompts(bookmark.userId, "text"),
     `Content: ${bookmark.asset.content}`,
     serverConfig.inference.contextLength,
@@ -414,6 +423,9 @@ async function fetchBookmark(linkId: string) {
       link: true,
       text: true,
       asset: true,
+      user: {
+        columns: { inferenceLanguage: true },
+      },
     },
   });
 }

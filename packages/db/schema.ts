@@ -58,6 +58,10 @@ export const users = sqliteTable("user", {
     .notNull()
     .default("show"),
   timezone: text("timezone").default("UTC"),
+  inferenceLanguage: text("inferenceLanguage").notNull().default("english"),
+  captureScreenshots: integer("captureScreenshots", { mode: "boolean" })
+    .notNull()
+    .default(true),
 });
 
 export const accounts = sqliteTable(

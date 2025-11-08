@@ -408,6 +408,9 @@ export const clientConfig = {
     isConfigured: serverConfig.inference.isConfigured,
     inferredTagLang: serverConfig.inference.inferredTagLang,
   },
+  crawler: {
+    storeScreenshot: serverConfig.crawler.storeScreenshot,
+  },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,
 };

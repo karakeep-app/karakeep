@@ -387,25 +387,23 @@ async function crawlPage(
   url: string,
   userId: string,
   abortSignal: AbortSignal,
+  options: {
+    browserCrawlingEnabled: boolean | null | undefined;
+    captureScreenshots: boolean;
+  },
 ): Promise<{
   htmlContent: string;
   screenshot: Buffer | undefined;
   statusCode: number;
   url: string;
 }> {
-  // Check user's browser crawling setting
-  const userData = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-    columns: { browserCrawlingEnabled: true },
-  });
-  if (!userData) {
-    logger.error(`[Crawler][${jobId}] User ${userId} not found`);
-    throw new Error(`User ${userId} not found`);
-  }
+  const { browserCrawlingEnabled, captureScreenshots } = options;
 
-  const browserCrawlingEnabled = userData.browserCrawlingEnabled;
-
-  if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
+  if (
+    browserCrawlingEnabled !== null &&
+    browserCrawlingEnabled !== undefined &&
+    !browserCrawlingEnabled
+  ) {
     return browserlessCrawlPage(jobId, url, abortSignal);
   }
 
@@ -534,7 +532,7 @@ async function crawlPage(
 
     // Take a screenshot if configured
     let screenshot: Buffer | undefined = undefined;
-    if (serverConfig.crawler.storeScreenshot) {
+    if (serverConfig.crawler.storeScreenshot && captureScreenshots) {
       const { data: screenshotData, error: screenshotError } = await tryCatch(
         Promise.race<Buffer>([
           page.screenshot({
@@ -642,7 +640,14 @@ async function storeScreenshot(
   screenshot: Buffer | undefined,
   userId: string,
   jobId: string,
+  captureScreenshots: boolean,
 ) {
+  if (!captureScreenshots) {
+    logger.info(
+      `[Crawler][${jobId}] Skipping storing the screenshot due to user settings.`,
+    );
+    return null;
+  }
   if (!serverConfig.crawler.storeScreenshot) {
     logger.info(
       `[Crawler][${jobId}] Skipping storing the screenshot as per the config.`,
@@ -1040,6 +1045,10 @@ async function crawlAndParseUrl(
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
   abortSignal: AbortSignal,
+  options: {
+    browserCrawlingEnabled: boolean | null | undefined;
+    captureScreenshots: boolean;
+  },
 ) {
   let result: {
     htmlContent: string;
@@ -1063,7 +1072,7 @@ async function crawlAndParseUrl(
       url,
     };
   } else {
-    result = await crawlPage(jobId, url, userId, abortSignal);
+    result = await crawlPage(jobId, url, userId, abortSignal, options);
   }
   abortSignal.throwIfAborted();
 
@@ -1082,7 +1091,7 @@ async function crawlAndParseUrl(
   abortSignal.throwIfAborted();
 
   const screenshotAssetInfo = await Promise.race([
-    storeScreenshot(screenshot, userId, jobId),
+    storeScreenshot(screenshot, userId, jobId, options.captureScreenshots),
     abortPromise(abortSignal),
   ]);
   abortSignal.throwIfAborted();
@@ -1265,6 +1274,20 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
+  const userPreferences = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: {
+      browserCrawlingEnabled: true,
+      captureScreenshots: true,
+    },
+  });
+
+  if (!userPreferences) {
+    throw new Error(`[Crawler][${jobId}] User ${userId} not found`);
+  }
+
+  const captureScreenshots = userPreferences.captureScreenshots ?? true;
+
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
@@ -1310,6 +1333,10 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
       precrawledArchiveAssetId,
       archiveFullPage,
       job.abortSignal,
+      {
+        browserCrawlingEnabled: userPreferences.browserCrawlingEnabled,
+        captureScreenshots,
+      },
     );
 
     // Propagate priority to child jobs
