@@ -1,5 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
+import { workerLastFailureGauge, workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
 import cron from "node-cron";
 import Parser from "rss-parser";
@@ -67,6 +67,7 @@ export class FeedWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("feed", "failed").inc();
+          workerLastFailureGauge.labels("feed").setToCurrentTime();
           const jobId = job.id;
           logger.error(
             `[feed][${jobId}] Feed fetch job failed: ${job.error}\n${job.error.stack}`,

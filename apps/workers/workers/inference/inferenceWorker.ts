@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
+import { workerLastFailureGauge, workerStatsCounter } from "metrics";
 
 import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -51,6 +51,7 @@ export class OpenAiWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("inference", "failed").inc();
+          workerLastFailureGauge.labels("inference").setToCurrentTime();
           const jobId = job.id;
           logger.error(
             `[inference][${jobId}] inference job failed: ${job.error}\n${job.error.stack}`,

@@ -1,4 +1,4 @@
-import { workerStatsCounter } from "metrics";
+import { workerLastFailureGauge, workerStatsCounter } from "metrics";
 
 import {
   AdminMaintenanceQueue,
@@ -34,6 +34,9 @@ export class AdminMaintenanceWorker {
             workerStatsCounter
               .labels(`adminMaintenance:${job.data?.type}`, "failed")
               .inc();
+            workerLastFailureGauge
+              .labels(`adminMaintenance:${job.data?.type}`)
+              .setToCurrentTime();
             logger.error(
               `[adminMaintenance:${job.data?.type}][${job.id}] Job failed: ${job.error}\n${job.error.stack}`,
             );

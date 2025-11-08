@@ -1,6 +1,6 @@
 import os from "os";
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
+import { workerLastFailureGauge, workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
 import { createWorker } from "tesseract.js";
@@ -47,6 +47,7 @@ export class AssetPreprocessingWorker {
           },
           onError: async (job) => {
             workerStatsCounter.labels("assetPreProcessing", "failed").inc();
+            workerLastFailureGauge.labels("assetPreProcessing").setToCurrentTime();
             const jobId = job.id;
             logger.error(
               `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,
