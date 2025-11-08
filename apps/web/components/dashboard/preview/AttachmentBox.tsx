@@ -122,34 +122,31 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               >
                 <Download className="size-4" />
               </Link>
-              {isAllowedToAttachAsset(asset.assetType) && (
-                <FilePickerButton
-                  title="Replace"
-                  loading={isReplacing}
-                  accept={
-                    asset.assetType === "userUploaded"
-                      ? undefined
-                      : ".jgp,.JPG,.jpeg,.png,.webp"
-                  }
-                  multiple={false}
-                  variant="none"
-                  size="none"
-                  className="flex items-center gap-2"
-                  onFileSelect={(file) =>
-                    uploadAsset(file, {
-                      onSuccess: (resp) => {
-                        replaceAsset({
-                          bookmarkId: bookmark.id,
-                          oldAssetId: asset.id,
-                          newAssetId: resp.assetId,
-                        });
-                      },
-                    })
-                  }
-                >
-                  <Pencil className="size-4" />
-                </FilePickerButton>
-              )}
+              {isAllowedToAttachAsset(asset.assetType) &&
+                asset.assetType !== "userUploaded" && (
+                  <FilePickerButton
+                    title="Replace"
+                    loading={isReplacing}
+                    accept=".jgp,.JPG,.jpeg,.png,.webp"
+                    multiple={false}
+                    variant="none"
+                    size="none"
+                    className="flex items-center gap-2"
+                    onFileSelect={(file) =>
+                      uploadAsset(file, {
+                        onSuccess: (resp) => {
+                          replaceAsset({
+                            bookmarkId: bookmark.id,
+                            oldAssetId: asset.id,
+                            newAssetId: resp.assetId,
+                          });
+                        },
+                      })
+                    }
+                  >
+                    <Pencil className="size-4" />
+                  </FilePickerButton>
+                )}
               {isAllowedToDetachAsset(asset.assetType) && (
                 <ActionConfirmingDialog
                   title="Delete Attachment?"

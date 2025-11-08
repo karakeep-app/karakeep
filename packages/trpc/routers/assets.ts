@@ -121,7 +121,21 @@ export const assetsAppRouter = router({
         .where(
           and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
         );
-      return input.asset;
+
+      // Fetch and return the complete asset with fileName
+      const [updatedAsset] = await ctx.db
+        .select()
+        .from(assets)
+        .where(
+          and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
+        )
+        .limit(1);
+
+      return {
+        id: updatedAsset.id,
+        assetType: mapDBAssetTypeToUserType(updatedAsset.assetType),
+        fileName: updatedAsset.fileName,
+      };
     }),
   replaceAsset: authedProcedure
     .input(
