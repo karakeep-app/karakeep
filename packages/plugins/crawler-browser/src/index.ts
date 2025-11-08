@@ -4,7 +4,6 @@ import * as path from "node:path";
 import * as os from "os";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Mutex } from "async-mutex";
-import { eq } from "drizzle-orm";
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -12,8 +11,6 @@ import { z } from "zod";
 
 import type { PluginProvider } from "@karakeep/shared/plugins";
 import type { CrawlerClient, CrawlOptions, CrawlResult } from "@karakeep/shared/crawler";
-import { db } from "@karakeep/db";
-import { users } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
@@ -198,23 +195,7 @@ async function loadCookiesFromFile(): Promise<void> {
 
 export class BrowserCrawlerClient implements CrawlerClient {
   async crawl(url: string, options: CrawlOptions): Promise<CrawlResult> {
-    const { userId, jobId, abortSignal, forceBrowserless } = options;
-
-    // Check user's browser crawling setting
-    const userData = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: { browserCrawlingEnabled: true },
-    });
-    if (!userData) {
-      logger.error(`[Crawler][Browser][${jobId}] User ${userId} not found`);
-      throw new Error(`User ${userId} not found`);
-    }
-
-    const browserCrawlingEnabled = userData.browserCrawlingEnabled;
-
-    if (forceBrowserless || (browserCrawlingEnabled !== null && !browserCrawlingEnabled)) {
-      throw new Error("Browser crawling is disabled for this user. Use fetch-based crawler instead.");
-    }
+    const { jobId, abortSignal } = options;
 
     let browser: Browser | undefined;
     if (serverConfig.crawler.browserConnectOnDemand) {

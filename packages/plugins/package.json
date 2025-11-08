@@ -9,7 +9,8 @@
     "./queue-restate": "./queue-restate/index.ts",
     "./search-meilisearch": "./search-meilisearch/index.ts",
     "./crawler-browser": "./crawler-browser/index.ts",
-    "./crawler-fetch": "./crawler-fetch/index.ts"
+    "./crawler-fetch": "./crawler-fetch/index.ts",
+    "./crawler-smart": "./crawler-smart/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

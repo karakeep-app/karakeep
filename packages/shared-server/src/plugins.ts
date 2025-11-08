@@ -11,9 +11,8 @@ export async function loadAllPlugins() {
   await import("@karakeep/plugins/queue-restate");
   // Search provider(s)
   await import("@karakeep/plugins/search-meilisearch");
-  // Crawler provider(s) - Order matters: fetch as fallback, then browser
-  await import("@karakeep/plugins/crawler-fetch");
-  await import("@karakeep/plugins/crawler-browser");
+  // Crawler provider - Smart crawler that decides between browser and fetch
+  await import("@karakeep/plugins/crawler-smart");
   PluginManager.logAllPlugins();
   pluginsLoaded = true;
 }
