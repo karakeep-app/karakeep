@@ -87,7 +87,10 @@
     "apply_all": "Använd alla",
     "open_editor": "Öppna redigeraren",
     "toggle_show_archived": "Visa arkiverade",
-    "confirm": "Bekräfta"
+    "confirm": "Bekräfta",
+    "regenerate": "Återskapa",
+    "load_more": "Ladda mer",
+    "edit_notes": "Redigera anteckningar"
   },
   "settings": {
     "back_to_app": "Tillbaka till app",
@@ -150,7 +153,12 @@
       "new_api_key": "Ny API-nyckel",
       "new_api_key_desc": "Ge din API-nyckel ett unikt namn",
       "key_success_please_copy": "Kopiera nyckeln och lagra den på en saker plats. Efter att du stängt denna dialogruta kommer su inte att kunna nå den igen.",
-      "key_success": "Nyckeln skapades utan problem"
+      "key_success": "Nyckeln skapades utan problem",
+      "regenerate_api_key": "Återskapa API-nyckel",
+      "key_regenerated": "Nyckeln har återskapats",
+      "key_regenerated_please_copy": "Kopiera den nya nyckeln och spara den på ett säkert ställe. Den gamla nyckeln har återkallats och kommer inte längre att funka.",
+      "regenerate_warning": "Är du säker på att du vill återskapa API-nyckeln \"{{name}}\"?",
+      "regenerate_confirmation": "Detta kommer att återkalla den nuvarande nyckeln och skapa en ny. Alla applikationer som använder den nuvarande nyckeln kommer sluta funka."
     },
     "user_settings": "Användarinställningar",
     "webhooks": {
@@ -304,6 +312,33 @@
       "loading_usage": "Läser in användningsinformation...",
       "free": "Gratis",
       "paid": "Betald"
+    },
+    "import_sessions": {
+      "title": "Importera sessioner",
+      "description": "Visa och hantera dina massimportsessioner. Sessioner skapas automatiskt när du importerar bokmärken.",
+      "load_error": "Det gick inte att läsa in importsessioner",
+      "no_sessions": "Inga importsessioner ännu",
+      "no_sessions_detail": "Importsessioner kommer att visas här automatiskt när du importerar bokmärken.",
+      "created_at": "Skapad {{time}}",
+      "progress": "Förlopp",
+      "status": {
+        "pending": "Väntar",
+        "in_progress": "Pågår",
+        "completed": "Slutförd",
+        "failed": "Misslyckades",
+        "processing": "Bearbetar"
+      },
+      "badges": {
+        "pending": "{{count}} väntar",
+        "processing": "{{count}} bearbetar",
+        "completed": "{{count}} slutförda",
+        "failed": "{{count}} misslyckades"
+      },
+      "imported_to": "Importerat till:",
+      "view_list": "Visa lista",
+      "delete_dialog_title": "Ta bort importsession",
+      "delete_dialog_description": "Är du säker på att du vill ta bort \"{{name}}\"? Åtgärden kan inte ångras. Själva bokmärkena kommer inte att tas bort.",
+      "delete_session": "Ta bort session"
     }
   },
   "admin": {
@@ -360,6 +395,10 @@
         "feed": {
           "title": "RSS-flödesjobb",
           "description": "RSS-flödesbearbetning och innehållsuppdateringar"
+        },
+        "admin_maintenance": {
+          "title": "Admin Underhållsjobb",
+          "description": "Administrativ rensning och underhåll av tillgångar"
         }
       },
       "monitor_and_manage": "Övervaka och hantera bakgrundsjobbköer och systembearbetningsuppgifter",
@@ -390,7 +429,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Generera om AI-sammanfattningar för alla bokmärken",
         "reindex_all_bookmarks": "Indexera om alla bokmärken",
         "clean_assets": "Rensa hängande tillgångar och synkronisera om metadata",
-        "reprocess_assets_fix_mode": "Behandla om obehandlade tillgångar"
+        "reprocess_assets_fix_mode": "Behandla om obehandlade tillgångar",
+        "migrate_large_link_html_content": "Flytta stort HTML-innehåll i text till resurser"
       }
     },
     "actions": {
@@ -417,6 +457,18 @@
       "asset_sizes": "Tillgångsstorlekar",
       "delete_user_confirm_description": "Är du säker på att du vill ta bort användaren \"{{name}}\"?",
       "unlimited": "Obegränsat"
+    },
+    "service_connections": {
+      "title": "Serviceanslutningar",
+      "description": "Övervaka hälsan och anslutningen för externa systemberoenden",
+      "search_engine": "Sökmotor",
+      "browser": "Webbläsare",
+      "queue_system": "Kösystem",
+      "status": {
+        "not_configured": "Inte konfigurerad",
+        "connected": "Ansluten",
+        "disconnected": "Frånkopplad"
+      }
     }
   },
   "options": {
@@ -451,6 +503,12 @@
       "title": "Offentlig lista",
       "description": "Tillåt andra att visa den här listan",
       "share_link": "Dela länk"
+    },
+    "delete_list": {
+      "title": "Ta bort lista",
+      "description": "Om du tar bort en lista tas inga bokmärken i den listan bort.",
+      "delete_children": "Ta bort underordnade listor (rekursivt)",
+      "delete_children_description": "Om den inte är markerad kommer alla direkt underordnade listor att bli rotlistor"
     }
   },
   "tags": {
@@ -464,7 +522,18 @@
     "drag_and_drop_merging": "Dra och släpp-sammanslagning",
     "your_tags_info": "Taggar som du har bifogat minst en gång",
     "ai_tags_info": "Taggar som bara lades till automatiskt (av AI)",
-    "unused_tags_info": "Taggar som inte är kopplade till några bokmärken"
+    "unused_tags_info": "Taggar som inte är kopplade till några bokmärken",
+    "create_tag": "Skapa tagg",
+    "create_tag_description": "Skapa en ny tagg utan att koppla den till ett bokmärke",
+    "tag_name": "Taggnamn",
+    "enter_tag_name": "Ange taggnamn",
+    "sort_by_usage": "Sortera efter användning",
+    "sort_by_relevance": "Sortera efter relevans",
+    "no_custom_tags": "Inga anpassade taggar ännu",
+    "no_ai_tags": "Inga AI-taggar ännu",
+    "no_unused_tags": "Du har inga oanvända taggar",
+    "no_unused_tags_match_your_search": "Inga oanvända taggar matchar din sökning",
+    "no_tags_match_your_search": "Inga taggar matchar din sökning"
   },
   "editor": {
     "import_as_separate_bookmarks": "Importera som separata bokmärken",
@@ -539,6 +608,10 @@
       "updated": "Listan har uppdaterats!",
       "merged": "Listan har slagits samman!",
       "deleted": "Listan har tagits bort!"
+    },
+    "tags": {
+      "created": "Taggen har skapats!",
+      "failed_to_create": "Kunde inte skapa tagg"
     }
   },
   "cleanups": {
@@ -599,7 +672,9 @@
     "week_s_ago": " Veckor sedan",
     "month_s_ago": " Månader sedan",
     "year_s_ago": " År sedan",
-    "history": "Senaste sökningar"
+    "history": "Senaste sökningar",
+    "title_contains": "Titeln innehåller",
+    "title_does_not_contain": "Titeln innehåller inte"
   },
   "highlights": {
     "no_highlights": "Du har inga markeringar ännu."
@@ -619,5 +694,27 @@
     "pick_a_date": "Välj ett datum",
     "save_changes": "Spara ändringar",
     "extracted_content": "Extraherat innehåll"
+  },
+  "view_options": {
+    "title": "Visa alternativ",
+    "layout": "Layout",
+    "columns": "Kolumner",
+    "display_options": "Visningsalternativ",
+    "show_note_previews": "Visa anteckningar",
+    "show_tags": "Visa taggar",
+    "show_title": "Visa titel",
+    "image_options": "Bildalternativ",
+    "image_fit_cover": "Täck (Fyll)",
+    "image_fit_contain": "Innehåll (Passa)"
+  },
+  "version": {
+    "new_release_available": "Nya versionsanmärkningar tillgängliga",
+    "whats_new_title": "Vad är nytt i v{{version}}",
+    "release_notes_description": "Här är de senaste uppdateringarna hämtade från GitHub versionsanmärkningar.",
+    "loading_release_notes": "Läser in versionsanmärkningar…",
+    "unable_to_load_release_notes": "Det gick inte att läsa in versionsanmärkningar just nu. Försök igen senare.",
+    "no_release_notes": "Inga versionsanmärkningar publicerades för den här versionen.",
+    "release_notes_synced": "Versionsanmärkningar synkroniseras från GitHub.",
+    "view_on_github": "Visa på GitHub"
   }
 }

@@ -87,7 +87,10 @@
       "relevant_first": "Tärkein ensin"
     },
     "toggle_show_archived": "Näytä arkistoidut",
-    "confirm": "Vahvista"
+    "confirm": "Vahvista",
+    "regenerate": "Uudista",
+    "load_more": "Lataa lisää",
+    "edit_notes": "Muokkaa muistiinpanoja"
   },
   "highlights": {
     "no_highlights": "Sulla ei oo vielä yhtään korostusta."
@@ -173,7 +176,12 @@
       "api_keys": "API-avaimet",
       "new_api_key": "Uusi API-avain",
       "new_api_key_desc": "Anna API-avaimellesi yksilöllinen nimi",
-      "key_success": "Avain luotiin onnistuneesti"
+      "key_success": "Avain luotiin onnistuneesti",
+      "regenerate_api_key": "Uudista API-avain",
+      "key_regenerated": "Avain onnistuneesti uusittu",
+      "key_regenerated_please_copy": "Ole hyvä ja kopioi uusi avain turvalliseen paikkaan. Vanha avain on kumottu eikä toimi enää.",
+      "regenerate_warning": "Oletko varma, että haluat luoda API-avaimen uudelleen \"{{name}}\"?",
+      "regenerate_confirmation": "Tämä peruuttaa nykyisen avaimen ja luo uuden. Kaikki nykyistä avainta käyttävät sovellukset lakkaavat toimimasta."
     },
     "broken_links": {
       "broken_links": "Rikkinäiset linkit",
@@ -308,6 +316,33 @@
       "loading_usage": "Käyttötietojen lataaminen...",
       "free": "Ilmainen",
       "paid": "Maksullinen"
+    },
+    "import_sessions": {
+      "title": "Sessioiden tuonti",
+      "description": "Näytä ja hallitse tuontisessioita joukkona. Sessiot luodaan automaattisesti, kun tuot kirjanmerkkejä.",
+      "load_error": "Tuontisessioiden lataaminen epäonnistui",
+      "no_sessions": "Ei vielä tuontisessioita",
+      "no_sessions_detail": "Tuontisessiot tulevat näkymään tänne automaattisesti, kun tuot kirjanmerkkejä",
+      "created_at": "Luotu {{time}}",
+      "progress": "Edistyminen",
+      "status": {
+        "pending": "Odottaa",
+        "in_progress": "Käynnissä",
+        "completed": "Valmis",
+        "failed": "Epäonnistui",
+        "processing": "Käsitellään"
+      },
+      "badges": {
+        "pending": "{{count}} odottaa",
+        "processing": "{{count}} käsitellään",
+        "completed": "{{count}} valmis",
+        "failed": "{{count}} epäonnistui"
+      },
+      "imported_to": "Tuotu kohteeseen:",
+      "view_list": "Näytä luettelo",
+      "delete_dialog_title": "Poista tuontisessio",
+      "delete_dialog_description": "Haluatko varmasti poistaa kohteen \"{{name}}\"? Tätä toimintoa ei voi perua. Kirjanmerkkejä ei poisteta.",
+      "delete_session": "Poista istunto"
     }
   },
   "admin": {
@@ -364,6 +399,10 @@
         "feed": {
           "title": "RSS-syötetyöt",
           "description": "RSS-syötteen käsittely ja sisällön päivitykset"
+        },
+        "admin_maintenance": {
+          "title": "Ylläpidon huoltotyöt",
+          "description": "Hallinnollinen siivous ja resurssien ylläpito"
         }
       },
       "monitor_and_manage": "Seuraa ja hallitse taustatyöjonoja ja järjestelmän käsittelytehtäviä",
@@ -394,7 +433,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Luo uudelleen tekoälyn tiivistelmät kaikille kirjanmerkeille",
         "reindex_all_bookmarks": "Indeksoi kaikki kirjanmerkit uudelleen",
         "clean_assets": "Siivoa roikkuvat resurssit ja synkronoi metatiedot uudelleen",
-        "reprocess_assets_fix_mode": "Käsittele käsittelemättömät resurssit uudelleen"
+        "reprocess_assets_fix_mode": "Käsittele käsittelemättömät resurssit uudelleen",
+        "migrate_large_link_html_content": "Siirrä suurikokoinen sisäinen HTML-sisältö resurssitiedostoihin"
       }
     },
     "actions": {
@@ -421,6 +461,18 @@
       "confirm_password": "Vahvista salasana",
       "delete_user_confirm_description": "Oletko varma, että haluat poistaa käyttäjän \"{{name}}\"?",
       "unlimited": "Rajoittamaton"
+    },
+    "service_connections": {
+      "title": "Palveluyhteydet",
+      "description": "Valvo ulkoisten järjestelmäriippuvuuksien kuntoa ja yhteyksiä",
+      "search_engine": "Hakukone",
+      "browser": "Selain",
+      "queue_system": "Jonotusjärjestelmä",
+      "status": {
+        "not_configured": "Ei määritetty",
+        "connected": "Yhdistetty",
+        "disconnected": "Katkaistu yhteys"
+      }
     }
   },
   "options": {
@@ -455,7 +507,13 @@
       "description": "Salli muiden tarkastella tätä listaa",
       "share_link": "Jaa linkki"
     },
-    "share_list": "Jaa lista"
+    "share_list": "Jaa lista",
+    "delete_list": {
+      "title": "Poista lista",
+      "description": "Listan poistaminen ei poista yhtään kirjanmerkkiä kyseisestä listasta.",
+      "delete_children": "Poista alilistat (rekursiivisesti)",
+      "delete_children_description": "Jos tätä ei valita, kaikki suorat alilistat muuttuvat juurilistoiksi"
+    }
   },
   "tags": {
     "all_tags": "Kaikki tunnisteet",
@@ -468,7 +526,18 @@
     "delete_all_unused_tags": "Poista kaikki käyttämättömät tunnisteet",
     "drag_and_drop_merging": "Vedä ja pudota yhdistäminen",
     "drag_and_drop_merging_info": "Yhdistä tunnisteita vetämällä ja pudottamalla ne toistensa päälle",
-    "sort_by_name": "Järjestä nimen mukaan"
+    "sort_by_name": "Järjestä nimen mukaan",
+    "create_tag": "Luo tunnus",
+    "create_tag_description": "Luo uusi tunnus liittämättä sitä mihinkään kirjanmerkkiin",
+    "tag_name": "Tunnuksen nimi",
+    "enter_tag_name": "Kirjoita tunnuksen nimi",
+    "sort_by_usage": "Järjestä käytön mukaan",
+    "sort_by_relevance": "Järjestä osuvuuden mukaan",
+    "no_custom_tags": "Ei vielä omia tunnisteita",
+    "no_ai_tags": "Ei vielä yhtään tekoälytunnistetta",
+    "no_unused_tags": "Sinulla ei ole yhtään käyttämätöntä tunnistetta",
+    "no_unused_tags_match_your_search": "Hakusi ei täsmää yhtään käyttämätöntä tunnistetta",
+    "no_tags_match_your_search": "Hakusi ei täsmää yhtään tunnistetta"
   },
   "search": {
     "is_favorited": "On suosikki",
@@ -506,7 +575,9 @@
     "week_s_ago": " Viikko(a) sitten",
     "month_s_ago": " Kuukausi(a) sitten",
     "year_s_ago": " Vuosi(a) sitten",
-    "history": "Viimeaikaiset haut"
+    "history": "Viimeaikaiset haut",
+    "title_contains": "Otsikko sisältää",
+    "title_does_not_contain": "Otsikko ei sisällä"
   },
   "preview": {
     "view_original": "Näytä alkuperäinen",
@@ -596,6 +667,10 @@
       "updated": "Lista on päivitetty!",
       "merged": "Lista on yhdistetty!",
       "deleted": "Lista on poistettu!"
+    },
+    "tags": {
+      "created": "Tunnus on nyt luotu!",
+      "failed_to_create": "Tunnuksen luominen epäonnistui"
     }
   },
   "banners": {
@@ -620,5 +695,27 @@
     "pick_a_date": "Valitse päivämäärä",
     "save_changes": "Tallenna muutokset",
     "extracted_content": "Purettu sisältö"
+  },
+  "view_options": {
+    "title": "Näytä asetukset",
+    "layout": "Ulkoasu",
+    "columns": "Sarakkeet",
+    "display_options": "Näyttöasetukset",
+    "show_note_previews": "Näytä muistiinpanot",
+    "show_tags": "Näytä tunnisteet",
+    "show_title": "Näytä otsikko",
+    "image_options": "Kuvan valinnat",
+    "image_fit_cover": "Peitä (täytä)",
+    "image_fit_contain": "Sisällä (sovita)"
+  },
+  "version": {
+    "new_release_available": "Uudet julkaisutiedot saatavilla",
+    "whats_new_title": "Mitä uutta versiossa v{{version}}",
+    "release_notes_description": "Tässäpä uusimmat päivitykset, jotka on haettu GitHubin julkaisutiedoista.",
+    "loading_release_notes": "Julkaisutietoja ladataan…",
+    "unable_to_load_release_notes": "Julkaisutietojen lataaminen ei onnistu juuri nyt. Yritä myöhemmin uudelleen.",
+    "no_release_notes": "Tälle versiolle ei ole julkaistu julkaisutietoja.",
+    "release_notes_synced": "Julkaisutiedot synkronoidaan GitHubista.",
+    "view_on_github": "Näytä GitHubissa"
   }
 }

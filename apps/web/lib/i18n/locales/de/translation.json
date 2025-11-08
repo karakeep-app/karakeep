@@ -78,16 +78,19 @@
     "cancel": "Abbrechen",
     "apply_all": "Alle anwenden",
     "ignore": "Ignorieren",
-    "recrawl": "Erneutes abrufen",
+    "recrawl": "Erneut abrufen",
     "sort": {
       "title": "Sortieren",
       "newest_first": "Neueste zuerst",
       "oldest_first": "Älteste zuerst",
-      "relevant_first": "Zuerst das Relevanteste"
+      "relevant_first": "Relevanteste zuerst"
     },
     "open_editor": "Editor öffnen",
     "toggle_show_archived": "Archivierte anzeigen",
-    "confirm": "Bestätigen"
+    "confirm": "Bestätigen",
+    "regenerate": "Regenerieren",
+    "load_more": "Mehr laden",
+    "edit_notes": "Notizen bearbeiten"
   },
   "settings": {
     "back_to_app": "Zurück zur App",
@@ -151,7 +154,12 @@
       "new_api_key": "Neuer API-Schlüssel",
       "new_api_key_desc": "Geben Sie Ihrem API-Schlüssel einen eindeutigen Namen",
       "key_success": "Schlüssel wurde erfolgreich erstellt",
-      "key_success_please_copy": "Bitte kopieren Sie den Schlüssel und speichern Sie ihn an einem sicheren Ort. Sobald Sie das Dialogfeld schließen, können Sie nicht mehr darauf zugreifen."
+      "key_success_please_copy": "Bitte kopieren Sie den Schlüssel und speichern Sie ihn an einem sicheren Ort. Sobald Sie das Dialogfeld schließen, können Sie nicht mehr darauf zugreifen.",
+      "regenerate_api_key": "API-Schlüssel neu generieren",
+      "key_regenerated": "Schlüssel wurde erfolgreich neu generiert",
+      "key_regenerated_please_copy": "Bitte kopiere den neuen Schlüssel und bewahre ihn an einem sicheren Ort auf. Der alte Schlüssel wurde widerrufen und funktioniert nicht mehr.",
+      "regenerate_warning": "Bist du sicher, dass du den API-Schlüssel „{{name}}“ neu generieren möchtest?",
+      "regenerate_confirmation": "Dies widerruft den aktuellen Schlüssel und generiert einen neuen. Alle Anwendungen, die den aktuellen Schlüssel verwenden, funktionieren dann nicht mehr."
     },
     "broken_links": {
       "broken_links": "Defekte Links",
@@ -304,6 +312,33 @@
       "loading_usage": "Lade Nutzungsinformationen...",
       "free": "Kostenlos",
       "paid": "Bezahlt"
+    },
+    "import_sessions": {
+      "title": "Import-Sitzungen",
+      "description": "Hier kannst du deine Massenimport-Sitzungen ansehen und verwalten. Sitzungen werden automatisch erstellt, wenn du Lesezeichen importierst.",
+      "load_error": "Import-Sitzungen konnten nicht geladen werden",
+      "no_sessions": "Noch keine Import-Sitzungen",
+      "no_sessions_detail": "Import-Sitzungen erscheinen hier automatisch, wenn du Lesezeichen importierst",
+      "created_at": "Erstellt {{time}}",
+      "progress": "Fortschritt",
+      "status": {
+        "pending": "Ausstehend",
+        "in_progress": "In Bearbeitung",
+        "completed": "Abgeschlossen",
+        "failed": "Fehlgeschlagen",
+        "processing": "Wird verarbeitet"
+      },
+      "badges": {
+        "pending": "{{count}} ausstehend",
+        "processing": "{{count}} in Bearbeitung",
+        "completed": "{{count}} abgeschlossen",
+        "failed": "{{count}} fehlgeschlagen"
+      },
+      "imported_to": "Importiert nach:",
+      "view_list": "Liste ansehen",
+      "delete_dialog_title": "Import-Sitzung löschen",
+      "delete_dialog_description": "Bist du sicher, dass du »{{name}}« löschen willst? Diese Aktion kann nicht rückgängig gemacht werden. Die Lesezeichen selbst werden nicht gelöscht.",
+      "delete_session": "Sitzung löschen"
     }
   },
   "admin": {
@@ -360,6 +395,10 @@
         "feed": {
           "title": "RSS-Feed-Jobs",
           "description": "RSS-Feed-Verarbeitung und Inhaltsaktualisierungen"
+        },
+        "admin_maintenance": {
+          "title": "Wartungsaufgaben für Admins",
+          "description": "Administrative Bereinigung und Anlagenwartung"
         }
       },
       "monitor_and_manage": "Überwachung und Verwaltung von Hintergrund-Job-Warteschlangen und Systemverarbeitungsaufgaben",
@@ -390,7 +429,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "KI-Zusammenfassungen für alle Lesezeichen neu generieren",
         "reindex_all_bookmarks": "Alle Lesezeichen neu indizieren",
         "clean_assets": "Verwaiste Assets bereinigen & Metadaten erneut synchronisieren",
-        "reprocess_assets_fix_mode": "Unverarbeitete Assets neu verarbeiten"
+        "reprocess_assets_fix_mode": "Unverarbeitete Assets neu verarbeiten",
+        "migrate_large_link_html_content": "Große Inline-HTML-Inhalte in Assets verschieben"
       }
     },
     "actions": {
@@ -417,6 +457,18 @@
       "confirm_password": "Passwort bestätigen",
       "delete_user_confirm_description": "Bist du sicher, dass du den Benutzer \"{{name}}\" löschen möchtest?",
       "unlimited": "Unbegrenzt"
+    },
+    "service_connections": {
+      "title": "Dienstverbindungen",
+      "description": "Überwache den Zustand und die Konnektivität von externen Systemabhängigkeiten",
+      "search_engine": "Suchmaschine",
+      "browser": "Browser",
+      "queue_system": "Warteschlangensystem",
+      "status": {
+        "not_configured": "Nicht konfiguriert",
+        "connected": "Verbunden",
+        "disconnected": "Getrennt"
+      }
     }
   },
   "options": {
@@ -451,6 +503,12 @@
       "title": "Öffentliche Liste",
       "description": "Anderen erlauben, diese Liste anzusehen",
       "share_link": "Link teilen"
+    },
+    "delete_list": {
+      "title": "Liste löschen",
+      "description": "Wenn du eine Liste löschst, werden keine Lesezeichen in dieser Liste gelöscht.",
+      "delete_children": "Unterlisten löschen (rekursiv)",
+      "delete_children_description": "Wenn diese Option nicht aktiviert ist, werden alle direkten Unterlisten zu Stamm-Listen"
     }
   },
   "tags": {
@@ -464,7 +522,18 @@
     "delete_all_unused_tags": "Alle ungenutzen Tags löschen",
     "drag_and_drop_merging": "Ziehen & Ablegen zum Zusammenführen",
     "drag_and_drop_merging_info": "Ziehen und ablegen, um Tags zusammenzuführen",
-    "sort_by_name": "Nach Name sortieren"
+    "sort_by_name": "Nach Name sortieren",
+    "create_tag": "Tag erstellen",
+    "create_tag_description": "Erstelle einen neuen Tag, ohne ihn an ein Lesezeichen zu binden",
+    "tag_name": "Tag-Name",
+    "enter_tag_name": "Tag-Namen eingeben",
+    "sort_by_usage": "Sortieren nach Nutzung",
+    "sort_by_relevance": "Sortieren nach Relevanz",
+    "no_custom_tags": "Noch keine benutzerdefinierten Tags",
+    "no_ai_tags": "Noch keine KI-Tags",
+    "no_unused_tags": "Du hast keine unbenutzten Tags",
+    "no_unused_tags_match_your_search": "Keine unbenutzten Tags entsprechen deiner Suche",
+    "no_tags_match_your_search": "Keine Tags entsprechen deiner Suche"
   },
   "preview": {
     "view_original": "Original anzeigen",
@@ -548,6 +617,10 @@
       "updated": "Liste wurde aktualisiert!",
       "deleted": "Liste wurde gelöscht!",
       "merged": "Liste wurde zusammengeführt!"
+    },
+    "tags": {
+      "created": "Tag wurde erstellt!",
+      "failed_to_create": "Tag konnte nicht erstellt werden"
     }
   },
   "cleanups": {
@@ -558,7 +631,7 @@
     }
   },
   "highlights": {
-    "no_highlights": "Sie haben noch keine Highlights."
+    "no_highlights": "Du hast noch keine Highlights."
   },
   "dialogs": {
     "bookmarks": {
@@ -569,7 +642,7 @@
   "search": {
     "is_favorited": "ist favorisiert",
     "is_not_favorited": "ist nicht favorisiert",
-    "is_archived": "ist archiviert",
+    "is_archived": "Ist archiviert",
     "has_no_tags": "hat kein Tag",
     "created_on_or_after": "wurde am oder danach erstellt",
     "is_in_list": "ist in der Liste",
@@ -579,7 +652,7 @@
     "full_text_search": "Volltextsuche",
     "and": "und",
     "or": "oder",
-    "is_not_archived": "ist nicht archiviert",
+    "is_not_archived": "Ist nicht archiviert",
     "not_created_on_or_after": "wurde nicht am oder danach erstellt",
     "url_contains": "URL beinhaltet",
     "url_does_not_contain": "URL beinhaltet nicht",
@@ -588,7 +661,7 @@
     "type_is": "vom Typ",
     "type_is_not": "nicht vom Typ",
     "has_any_tag": "hat irgendein Tag",
-    "created_on_or_before": "erstellt am oder vor",
+    "created_on_or_before": "Erstellt am oder vor",
     "not_created_on_or_before": "erstellt vor",
     "is_from_feed": "Stammt aus RSS-Feed",
     "is_not_from_feed": "Stammt nicht aus RSS-Feed",
@@ -602,7 +675,9 @@
     "week_s_ago": " Vor Woche(n)",
     "month_s_ago": " Vor Monat(en)",
     "year_s_ago": " Vor Jahr(en)",
-    "history": "Letzte Suchanfragen"
+    "history": "Letzte Suchanfragen",
+    "title_contains": "Titel enthält",
+    "title_does_not_contain": "Titel enthält nicht"
   },
   "bookmark_editor": {
     "subtitle": "Ändere die Details des Lesezeichens. Klicke auf Speichern, wenn du fertig bist.",
@@ -619,5 +694,27 @@
       "title": "Noch keine Lesezeichen",
       "description": "Speichere interessante Artikel, Links und Seiten, um später schnell darauf zugreifen zu können."
     }
+  },
+  "view_options": {
+    "title": "Ansichtsoptionen",
+    "layout": "Layout",
+    "columns": "Spalten",
+    "display_options": "Anzeigeoptionen",
+    "show_note_previews": "Notizen anzeigen",
+    "show_tags": "Tags anzeigen",
+    "show_title": "Titel anzeigen",
+    "image_options": "Bildoptionen",
+    "image_fit_cover": "Deckung (Füllen)",
+    "image_fit_contain": "Enthalten (Anpassen)"
+  },
+  "version": {
+    "new_release_available": "Neue Versionshinweise verfügbar",
+    "whats_new_title": "Was ist neu in v{{version}}",
+    "release_notes_description": "Hier sind die neuesten Updates, die aus den GitHub-Versionshinweisen stammen.",
+    "loading_release_notes": "Lade Versionshinweise…",
+    "unable_to_load_release_notes": "Versionshinweise konnten zurzeit nicht geladen werden. Bitte versuche es später noch einmal.",
+    "no_release_notes": "Für diese Version wurden keine Versionshinweise veröffentlicht.",
+    "release_notes_synced": "Versionshinweise werden von GitHub synchronisiert.",
+    "view_on_github": "Auf GitHub ansehen"
   }
 }

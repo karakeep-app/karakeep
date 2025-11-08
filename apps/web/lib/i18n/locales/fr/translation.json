@@ -27,7 +27,7 @@
     "bookmark_types": {
       "link": "Lien",
       "text": "Texte",
-      "title": "Type de signets",
+      "title": "Type de marque-page",
       "media": "Médias"
     },
     "highlights": "Surlignages",
@@ -51,7 +51,7 @@
     "change_layout": "Changer la disposition",
     "archive": "Archiver",
     "unarchive": "Désarchiver",
-    "favorite": "Favori",
+    "favorite": "Mettre en favori",
     "unfavorite": "Retirer des favoris",
     "delete": "Supprimer",
     "refresh": "Rafraîchir",
@@ -87,7 +87,10 @@
     "recrawl": "Réexplorer",
     "open_editor": "Ouvrir l'éditeur",
     "toggle_show_archived": "Afficher les éléments archivés",
-    "confirm": "Confirmer"
+    "confirm": "Confirmer",
+    "regenerate": "Régénérer",
+    "load_more": "En charger plus",
+    "edit_notes": "Modifier les notes"
   },
   "settings": {
     "back_to_app": "Retour à l'application",
@@ -103,13 +106,13 @@
       "interface_lang": "Langue de l'interface",
       "user_settings": {
         "archive_display_behaviour": {
-          "hide": "Masquer les marque-pages archivés dans les balises et les listes",
+          "hide": "Masquer les marque-pages archivés dans les tags et les listes",
           "title": "Marque-pages archivés",
-          "show": "Afficher les marque-pages archivés dans les balises et les listes"
+          "show": "Afficher les marque-pages archivés dans les tags et les listes"
         },
         "user_settings_updated": "Les paramètres utilisateur ont été mis à jour !",
         "bookmark_click_action": {
-          "title": "Action au clic sur un marque-page",
+          "title": "Action du clic sur un marque-page",
           "open_external_url": "Ouvrir l’URL d’origine",
           "open_bookmark_details": "Ouvrir les détails du marque-page"
         }
@@ -117,13 +120,13 @@
     },
     "ai": {
       "ai_settings": "Paramètres de l'IA",
-      "tagging_rules": "Règles de marquage",
-      "tagging_rule_description": "Les invites que vous ajoutez ici seront incluses comme règles pour le modèle lors de la génération des tags. Vous pouvez voir les invites finales dans la section de prévisualisation des invites.",
-      "prompt_preview": "Aperçu de l'invite",
-      "text_prompt": "Invite de texte",
-      "images_prompt": "Invite d'image",
-      "summarization_prompt": "Invite de résumé",
-      "all_tagging": "Tout l’étiquetage",
+      "tagging_rules": "Règles de tagging",
+      "tagging_rule_description": "Les prompts que vous ajoutez ici seront incluses comme règles pour le modèle lors de la génération des tags. Vous pouvez voir les prompts finaux dans la section de prévisualisation des prompts.",
+      "prompt_preview": "Aperçu du prompt",
+      "text_prompt": "Prompt texte",
+      "images_prompt": "Prompt image",
+      "summarization_prompt": "Prompt de résumé",
+      "all_tagging": "Tout le tagging",
       "text_tagging": "Balises de texte",
       "image_tagging": "Marquage d'image",
       "summarization": "Résumer"
@@ -151,7 +154,12 @@
       "new_api_key": "Nouvelle clé API",
       "new_api_key_desc": "Donnez un nom unique à votre clé API",
       "key_success": "La clé a été créée avec succès",
-      "key_success_please_copy": "Veuillez copier la clé et la stocker dans un endroit sûr. Une fois que vous fermerez la fenêtre de dialogue, vous ne pourrez plus y accéder."
+      "key_success_please_copy": "Veuillez copier la clé et la stocker dans un endroit sûr. Une fois que vous fermerez la fenêtre de dialogue, vous ne pourrez plus y accéder.",
+      "regenerate_api_key": "Régénérer la clé API",
+      "key_regenerated": "La clé a été régénérée avec succès",
+      "key_regenerated_please_copy": "Veuillez copier la nouvelle clé et la conserver dans un endroit sûr. L'ancienne clé a été révoquée et ne fonctionnera plus.",
+      "regenerate_warning": "Êtes-vous sûr de vouloir régénérer la clé API \"{{name}}\" ?",
+      "regenerate_confirmation": "Cela révoquera la clé actuelle et en générera une nouvelle. Toutes les applications utilisant la clé actuelle cesseront de fonctionner."
     },
     "webhooks": {
       "auth_token": "Jeton d'authentification",
@@ -236,30 +244,30 @@
     },
     "stats": {
       "usage_statistics": "Statistiques d'utilisation",
-      "insights_description": "Aperçu de tes habitudes de signets et de ta collection",
+      "insights_description": "Aperçu de vos habitudes de marque-page et collection",
       "failed_to_load": "Impossible de charger les statistiques",
       "overview": {
-        "total_bookmarks": "Nombre total de signets",
+        "total_bookmarks": "Nombre total de marque-pages",
         "all_saved_items": "Tous les éléments enregistrés",
         "favorites": "Favoris",
-        "starred_bookmarks": "Favoris marqués d'une étoile",
+        "starred_bookmarks": "Marque-pages étoilés",
         "archived": "Archivé",
         "archived_items": "Éléments archivés",
-        "tags": "Balises",
-        "unique_tags_created": "Balises uniques créées",
+        "tags": "Tags",
+        "unique_tags_created": "Tags uniques créées",
         "lists": "Listes",
-        "bookmark_collections": "Collections de signets",
+        "bookmark_collections": "Collections de marque-page",
         "highlights": "Surlignages",
         "text_highlights": "Surlignages de texte",
         "storage_used": "Stockage utilisé",
         "total_asset_storage": "Stockage total des actifs",
         "this_month": "Ce mois-ci",
-        "bookmarks_added": "Signets ajoutés"
+        "bookmarks_added": "Marque-pages ajoutés"
       },
       "bookmark_types": {
-        "title": "Types de signets",
+        "title": "Types de marque-page",
         "links": "Liens",
-        "text_notes": "Notes textuelles",
+        "text_notes": "Notes texte",
         "assets": "Actifs"
       },
       "recent_activity": {
@@ -273,8 +281,8 @@
         "no_domains_found": "Aucun domaine trouvé"
       },
       "most_used_tags": {
-        "title": "Balises les plus utilisées",
-        "no_tags_found": "Aucune balise trouvée"
+        "title": "Tags les plus utilisées",
+        "no_tags_found": "Aucun tags trouvés"
       },
       "activity_patterns": {
         "activity_by_hour": "Activité par heure",
@@ -304,6 +312,33 @@
       "loading_usage": "Chargement des informations d’utilisation…",
       "free": "Gratuit",
       "paid": "Payant"
+    },
+    "import_sessions": {
+      "title": "Importer des sessions",
+      "description": "Consultez et gérez vos sessions d’importation en bloc. Les sessions sont créées automatiquement lorsque vous importez des signets.",
+      "load_error": "Échec du chargement des sessions d’importation",
+      "no_sessions": "Aucune session d’importation pour le moment",
+      "no_sessions_detail": "Les sessions d’importation apparaîtront ici automatiquement lorsque vous importerez des signets",
+      "created_at": "Créé {{time}}",
+      "progress": "Progression",
+      "status": {
+        "pending": "En attente",
+        "in_progress": "En cours",
+        "completed": "Terminé",
+        "failed": "Échoué",
+        "processing": "Traitement"
+      },
+      "badges": {
+        "pending": "{{count}} en attente",
+        "processing": "{{count}} en cours de traitement",
+        "completed": "{{count}} terminé",
+        "failed": "{{count}} échec"
+      },
+      "imported_to": "Importé vers :",
+      "view_list": "Voir la liste",
+      "delete_dialog_title": "Supprimer la session d’importation",
+      "delete_dialog_description": "Êtes-vous sûr de vouloir supprimer « {{name}} » ? Cette action est irréversible. Les signets eux-mêmes ne seront pas supprimés.",
+      "delete_session": "Supprimer la session"
     }
   },
   "admin": {
@@ -360,6 +395,10 @@
         "feed": {
           "title": "Tâches de flux RSS",
           "description": "Traitement des flux RSS et mises à jour du contenu"
+        },
+        "admin_maintenance": {
+          "title": "Tâches de maintenance de l’administrateur",
+          "description": "Nettoyage administratif et maintenance des actifs"
         }
       },
       "monitor_and_manage": "Surveiller et gérer les files d'attente des tâches en arrière-plan et les tâches de traitement du système",
@@ -390,7 +429,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Régénérer les résumés d'IA pour tous les marque-pages",
         "reindex_all_bookmarks": "Réindexer tous les marque-pages",
         "clean_assets": "Nettoyer les assets orphelins et resynchroniser les métadonnées",
-        "reprocess_assets_fix_mode": "Retraiter les assets non traités"
+        "reprocess_assets_fix_mode": "Retraiter les assets non traités",
+        "migrate_large_link_html_content": "Bouger du Grand Contenu HTML En Ligne vers les Ressources"
       }
     },
     "actions": {
@@ -417,6 +457,18 @@
       "confirm_password": "Confirmer le mot de passe",
       "delete_user_confirm_description": "Êtes-vous sûr de vouloir supprimer l'utilisateur \"{{name}}\" ?",
       "unlimited": "Illimité"
+    },
+    "service_connections": {
+      "title": "Connexions de service",
+      "description": "Surveiller l’état et la connectivité des dépendances du système externe",
+      "search_engine": "Moteur de recherche",
+      "browser": "Navigateur",
+      "queue_system": "Système de file d’attente",
+      "status": {
+        "not_configured": "Non configuré",
+        "connected": "Connecté",
+        "disconnected": "Déconnecté"
+      }
     }
   },
   "options": {
@@ -451,6 +503,12 @@
       "title": "Liste publique",
       "description": "Autoriser les autres à consulter cette liste",
       "share_link": "Partager le lien"
+    },
+    "delete_list": {
+      "title": "Supprimer la liste",
+      "description": "Supprimer une liste ne supprime aucun marque-page dans cette liste.",
+      "delete_children": "Supprimer les listes enfants (récursivement)",
+      "delete_children_description": "Si cette case n'est pas cochée, toutes les listes enfants directes deviendront des listes racines"
     }
   },
   "tags": {
@@ -464,7 +522,18 @@
     "delete_all_unused_tags": "Supprimer tous les tags inutilisés",
     "drag_and_drop_merging": "Fusion par glisser-déposer",
     "drag_and_drop_merging_info": "Glisser-déposer les tags les uns sur les autres pour les fusionner",
-    "sort_by_name": "Trier par nom"
+    "sort_by_name": "Trier par nom",
+    "create_tag": "Créer un tag",
+    "create_tag_description": "Créer un nouveau tag sans l’attacher à un marque-page",
+    "tag_name": "Nom du tag",
+    "enter_tag_name": "Entrer le nom du tag",
+    "sort_by_usage": "Trier par utilisation",
+    "sort_by_relevance": "Trier par pertinence",
+    "no_custom_tags": "Pas encore de balises personnalisées",
+    "no_ai_tags": "Pas encore de balises d'IA",
+    "no_unused_tags": "Vous n'avez pas de balises inutilisées",
+    "no_unused_tags_match_your_search": "Aucune balise inutilisée ne correspond à votre recherche",
+    "no_tags_match_your_search": "Aucune balise ne correspond à votre recherche"
   },
   "preview": {
     "view_original": "Voir l'original",
@@ -548,6 +617,10 @@
       "updated": "La liste a été mise à jour !",
       "merged": "La liste a été fusionnée !",
       "deleted": "La liste a été supprimée !"
+    },
+    "tags": {
+      "created": "Le tag a été créé !",
+      "failed_to_create": "Impossible de créer le tag"
     }
   },
   "cleanups": {
@@ -593,7 +666,9 @@
     "week_s_ago": " Il y a {weeks} semaine(s)",
     "month_s_ago": " Il y a {months} mois",
     "year_s_ago": " Il y a {years} an(s)",
-    "history": "Recherches récentes"
+    "history": "Recherches récentes",
+    "title_contains": "Le titre contient",
+    "title_does_not_contain": "Le titre ne contient pas"
   },
   "dialogs": {
     "bookmarks": {
@@ -602,7 +677,7 @@
     }
   },
   "highlights": {
-    "no_highlights": "Tu n'as pas encore de surlignages."
+    "no_highlights": "Vous n'avez pas encore de surlignages."
   },
   "banners": {
     "no_bookmarks": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Choisir une date",
     "save_changes": "Enregistrer les modifications",
     "extracted_content": "Contenu extrait"
+  },
+  "view_options": {
+    "title": "Options d'affichage",
+    "layout": "Disposition",
+    "columns": "Colonnes",
+    "display_options": "Options d'affichage",
+    "show_note_previews": "Voir les notes",
+    "show_tags": "Afficher les étiquettes",
+    "show_title": "Afficher le titre",
+    "image_options": "Options d’image",
+    "image_fit_cover": "Couverture (remplir)",
+    "image_fit_contain": "Contenir (adapter)"
+  },
+  "version": {
+    "new_release_available": "Nouvelles notes de version disponibles",
+    "whats_new_title": "Quoi de neuf dans la v{{version}}",
+    "release_notes_description": "Voici les dernières mises à jour récupérées des notes de version GitHub.",
+    "loading_release_notes": "Chargement des notes de version…",
+    "unable_to_load_release_notes": "Impossible de charger les notes de version pour le moment. Veuillez réessayer plus tard.",
+    "no_release_notes": "Aucune note de version n’a été publiée pour cette version.",
+    "release_notes_synced": "Les notes de version sont synchronisées depuis GitHub.",
+    "view_on_github": "Voir sur GitHub"
   }
 }
