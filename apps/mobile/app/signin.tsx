@@ -30,7 +30,7 @@ export default function Signin() {
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
   const [isEditingServerAddress, setIsEditingServerAddress] = useState(false);
   const [tempServerAddress, setTempServerAddress] = useState(
-    "https://cloud.karakeep.app",
+    settings.address ?? "https://cloud.karakeep.app",
   );
   const [isCustomHeadersModalVisible, setIsCustomHeadersModalVisible] =
     useState(false);
