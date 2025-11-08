@@ -183,6 +183,7 @@ describe("Assets API", () => {
     expect(firstAsset).toEqual({
       id: uploadResponse1.assetId,
       assetType: "bannerImage",
+      fileName: "test.pdf",
     });
 
     // Attach second asset
@@ -205,6 +206,7 @@ describe("Assets API", () => {
     expect(secondAsset).toEqual({
       id: uploadResponse2.assetId,
       assetType: "bannerImage",
+      fileName: "test.pdf",
     });
 
     // Get bookmark and verify assets
@@ -221,8 +223,16 @@ describe("Assets API", () => {
 
     expect(bookmarkWithAssets?.assets).toEqual(
       expect.arrayContaining([
-        { id: uploadResponse1.assetId, assetType: "bannerImage" },
-        { id: uploadResponse2.assetId, assetType: "bannerImage" },
+        {
+          id: uploadResponse1.assetId,
+          assetType: "bannerImage",
+          fileName: "test.pdf",
+        },
+        {
+          id: uploadResponse2.assetId,
+          assetType: "bannerImage",
+          fileName: "test.pdf",
+        },
       ]),
     );
 
@@ -258,8 +268,16 @@ describe("Assets API", () => {
 
     expect(bookmarkAfterReplace?.assets).toEqual(
       expect.arrayContaining([
-        { id: uploadResponse3.assetId, assetType: "bannerImage" },
-        { id: uploadResponse2.assetId, assetType: "bannerImage" },
+        {
+          id: uploadResponse3.assetId,
+          assetType: "bannerImage",
+          fileName: "test.pdf",
+        },
+        {
+          id: uploadResponse2.assetId,
+          assetType: "bannerImage",
+          fileName: "test.pdf",
+        },
       ]),
     );
 
@@ -291,7 +309,11 @@ describe("Assets API", () => {
     );
 
     expect(bookmarkAfterDetach?.assets).toEqual([
-      { id: uploadResponse3.assetId, assetType: "bannerImage" },
+      {
+        id: uploadResponse3.assetId,
+        assetType: "bannerImage",
+        fileName: "test.pdf",
+      },
     ]);
   });
 });
