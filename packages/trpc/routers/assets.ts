@@ -112,7 +112,7 @@ export const assetsAppRouter = router({
           message: "You can't attach this type of asset",
         });
       }
-      await ctx.db
+      const [updatedAsset] = await ctx.db
         .update(assets)
         .set({
           assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
@@ -120,16 +120,8 @@ export const assetsAppRouter = router({
         })
         .where(
           and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
-        );
-
-      // Fetch and return the complete asset with fileName
-      const [updatedAsset] = await ctx.db
-        .select()
-        .from(assets)
-        .where(
-          and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
         )
-        .limit(1);
+        .returning();
 
       return {
         id: updatedAsset.id,

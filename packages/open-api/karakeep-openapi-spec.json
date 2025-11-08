@@ -317,8 +317,13 @@
                     "video",
                     "bookmarkAsset",
                     "precrawledArchive",
+                    "userUploaded",
                     "unknown"
                   ]
+                },
+                "fileName": {
+                  "type": "string",
+                  "nullable": true
                 }
               },
               "required": [
@@ -1703,8 +1708,13 @@
                       "video",
                       "bookmarkAsset",
                       "precrawledArchive",
+                      "userUploaded",
                       "unknown"
                     ]
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "nullable": true
                   }
                 },
                 "required": [
@@ -1737,8 +1747,13 @@
                         "video",
                         "bookmarkAsset",
                         "precrawledArchive",
+                        "userUploaded",
                         "unknown"
                       ]
+                    },
+                    "fileName": {
+                      "type": "string",
+                      "nullable": true
                     }
                   },
                   "required": [

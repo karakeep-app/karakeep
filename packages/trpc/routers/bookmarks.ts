@@ -253,6 +253,7 @@ async function toZodSchema(
     assets: assets.map((a) => ({
       id: a.id,
       assetType: mapDBAssetTypeToUserType(a.assetType),
+      fileName: a.fileName,
     })),
     ...rest,
   };
