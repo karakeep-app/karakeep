@@ -15,6 +15,7 @@ services:
       MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       CRAWLER_NUM_WORKERS: 6
+      CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
   meilisearch:
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped
