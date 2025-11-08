@@ -56,6 +56,29 @@ export default async function ({ provide }: GlobalSetupContext) {
   process.env.KARAKEEP_PORT = port.toString();
 
   return async () => {
+    console.log("Capturing docker logs...");
+    try {
+      const logsDir = path.join(__dirname, "docker-logs");
+      execSync(`mkdir -p "${logsDir}"`, { cwd: __dirname });
+
+      const services = ["web", "meilisearch", "chrome", "nginx", "minio"];
+      for (const service of services) {
+        try {
+          execSync(
+            `/bin/sh -c 'docker compose logs ${service} > "${logsDir}/${service}.log" 2>&1'`,
+            {
+              cwd: __dirname,
+            },
+          );
+          console.log(`Captured logs for ${service}`);
+        } catch (error) {
+          console.error(`Failed to capture logs for ${service}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to capture docker logs:", error);
+    }
+
     console.log("Stopping docker compose...");
     execSync("docker compose down", {
       cwd: __dirname,

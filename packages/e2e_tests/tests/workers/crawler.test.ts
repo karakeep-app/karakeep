@@ -49,16 +49,12 @@ describe("Crawler Tests", () => {
     });
     assert(bookmark);
 
-    await waitUntil(
-      async () => {
-        const data = await getBookmark(bookmark!.id);
-        assert(data);
-        assert(data.content.type === "link");
-        return data.content.crawledAt !== null;
-      },
-      "Bookmark is crawled",
-      20000,
-    );
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      assert(data.content.type === "link");
+      return data.content.crawledAt !== null;
+    }, "Bookmark is crawled");
 
     bookmark = await getBookmark(bookmark.id);
     assert(bookmark && bookmark.content.type === "link");
@@ -80,15 +76,11 @@ describe("Crawler Tests", () => {
     });
     assert(bookmark);
 
-    await waitUntil(
-      async () => {
-        const data = await getBookmark(bookmark!.id);
-        assert(data);
-        return data.content.type === "asset";
-      },
-      "Bookmark is crawled and converted to an image",
-      20000,
-    );
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      return data.content.type === "asset";
+    }, "Bookmark is crawled and converted to an image");
 
     bookmark = await getBookmark(bookmark.id);
     assert(bookmark && bookmark.content.type === "asset");

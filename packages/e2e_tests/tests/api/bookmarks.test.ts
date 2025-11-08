@@ -3,6 +3,7 @@ import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 import { createKarakeepClient } from "@karakeep/sdk";
 
 import { createTestUser } from "../../utils/api";
+import { waitUntil } from "../../utils/general";
 
 describe("Bookmarks API", () => {
   const port = inject("karakeepPort");
@@ -353,9 +354,22 @@ describe("Bookmarks API", () => {
       },
     });
 
-    // Wait 3 seconds for the search index to be updated
-    // TODO: Replace with a check that all queues are empty
-    await new Promise((f) => setTimeout(f, 3000));
+    await waitUntil(async () => {
+      const { data, response, error } = await client.GET("/bookmarks/search", {
+        params: {
+          query: {
+            q: "test bookmark",
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      if (response.status !== 200) {
+        throw new Error(`Search request failed with status ${response.status}`);
+      }
+      return (data?.bookmarks.length ?? 0) >= 2;
+    }, 'Search index contains the new bookmarks for query "test bookmark"');
 
     // Search for bookmarks
     const { data: searchResults, response: searchResponse } = await client.GET(
@@ -387,9 +401,23 @@ describe("Bookmarks API", () => {
 
     await Promise.all(bookmarkPromises);
 
-    // Wait 3 seconds for the search index to be updated
-    // TODO: Replace with a check that all queues are empty
-    await new Promise((f) => setTimeout(f, 3000));
+    await waitUntil(async () => {
+      const { data, response, error } = await client.GET("/bookmarks/search", {
+        params: {
+          query: {
+            q: "pagination",
+            limit: 5,
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      if (response.status !== 200) {
+        throw new Error(`Search request failed with status ${response.status}`);
+      }
+      return (data?.bookmarks.length ?? 0) >= 5;
+    }, "Search index contains the pagination test bookmarks");
 
     // Get first page
     const { data: firstPage, response: firstResponse } = await client.GET(
