@@ -3,15 +3,18 @@
 import type { QueueClient } from "./queueing";
 import logger from "./logger";
 import { SearchIndexClient } from "./search";
+import { CrawlerClient } from "./crawler";
 
 export enum PluginType {
   Search = "search",
   Queue = "queue",
+  Crawler = "crawler",
 }
 
 interface PluginTypeMap {
   [PluginType.Search]: SearchIndexClient;
   [PluginType.Queue]: QueueClient;
+  [PluginType.Crawler]: CrawlerClient;
 }
 
 export interface TPlugin<T extends PluginType> {
@@ -31,6 +34,7 @@ export class PluginManager {
   private static providers: ProviderMap = {
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
+    [PluginType.Crawler]: [],
   };
 
   static register<T extends PluginType>(plugin: TPlugin<T>): void {

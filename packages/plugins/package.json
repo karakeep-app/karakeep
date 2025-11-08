@@ -7,7 +7,9 @@
   "exports": {
     "./queue-liteque": "./queue-liteque/index.ts",
     "./queue-restate": "./queue-restate/index.ts",
-    "./search-meilisearch": "./search-meilisearch/index.ts"
+    "./search-meilisearch": "./search-meilisearch/index.ts",
+    "./crawler-browser": "./crawler-browser/index.ts",
+    "./crawler-fetch": "./crawler-fetch/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -18,11 +20,20 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@ghostery/adblocker-playwright": "*",
+    "@karakeep/db": "workspace:*",
     "@karakeep/shared": "workspace:*",
     "@restatedev/restate-sdk": "^1.9.0",
     "@restatedev/restate-sdk-clients": "^1.9.0",
+    "async-mutex": "*",
+    "exit": "*",
     "liteque": "^0.6.2",
-    "meilisearch": "^0.45.0"
+    "meilisearch": "^0.45.0",
+    "network": "*",
+    "playwright": "*",
+    "playwright-extra": "*",
+    "puppeteer-extra-plugin-stealth": "*",
+    "zod": "*"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",

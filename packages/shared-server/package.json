@@ -7,11 +7,17 @@
   "dependencies": {
     "@karakeep/db": "workspace:^0.1.0",
     "@karakeep/plugins": "workspace:^0.1.0",
-    "@karakeep/shared": "workspace:^0.1.0"
+    "@karakeep/shared": "workspace:^0.1.0",
+    "http-proxy-agent": "*",
+    "https-proxy-agent": "*",
+    "ipaddr.js": "*",
+    "lru-cache": "*",
+    "node-fetch": "*"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
-    "@karakeep/tsconfig": "workspace:^0.1.0"
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@types/node-fetch": "*"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -23,7 +29,9 @@
   },
   "main": "index.ts",
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./src/network": "./src/network.ts",
+    "./src/exit": "./src/exit.ts"
   },
   "prettier": "@karakeep/prettier-config"
 }

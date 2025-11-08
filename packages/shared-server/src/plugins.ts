@@ -9,7 +9,11 @@ export async function loadAllPlugins() {
   // Queue provider(s)
   await import("@karakeep/plugins/queue-liteque");
   await import("@karakeep/plugins/queue-restate");
+  // Search provider(s)
   await import("@karakeep/plugins/search-meilisearch");
+  // Crawler provider(s) - Order matters: fetch as fallback, then browser
+  await import("@karakeep/plugins/crawler-fetch");
+  await import("@karakeep/plugins/crawler-browser");
   PluginManager.logAllPlugins();
   pluginsLoaded = true;
 }

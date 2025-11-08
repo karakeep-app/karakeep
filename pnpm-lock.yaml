@@ -1150,6 +1150,12 @@ importers:
 
   packages/plugins:
     dependencies:
+      '@ghostery/adblocker-playwright':
+        specifier: '*'
+        version: 2.7.0(playwright@1.53.1)
+      '@karakeep/db':
+        specifier: workspace:*
+        version: link:../db
       '@karakeep/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1159,12 +1165,33 @@ importers:
       '@restatedev/restate-sdk-clients':
         specifier: ^1.9.0
         version: 1.9.0
+      async-mutex:
+        specifier: '*'
+        version: 0.4.1
+      exit:
+        specifier: '*'
+        version: 0.1.2
       liteque:
         specifier: ^0.6.2
         version: 0.6.2(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.2.2)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.1.0)
       meilisearch:
         specifier: ^0.45.0
         version: 0.45.0
+      network:
+        specifier: '*'
+        version: 0.7.0
+      playwright:
+        specifier: '*'
+        version: 1.53.1
+      playwright-extra:
+        specifier: '*'
+        version: 4.3.6(playwright-core@1.53.1)(playwright@1.53.1)
+      puppeteer-extra-plugin-stealth:
+        specifier: '*'
+        version: 2.11.2(playwright-extra@4.3.6(playwright-core@1.53.1)(playwright@1.53.1))
+      zod:
+        specifier: '*'
+        version: 3.24.2
     devDependencies:
       '@karakeep/prettier-config':
         specifier: workspace:^0.1.0
@@ -6422,6 +6449,9 @@ packages:
   async-mutex@0.4.1:
     resolution: {integrity: sha512-WfoBo4E/TbCX1G95XTjbWTE3X2XLG0m1Xbv2cwOtuPdyH9CZvnaA5nCt1ucjaKEgW2A5IF71hxrRhr83Je5xjA==}
 
+  async@1.5.2:
+    resolution: {integrity: sha512-nSVgobk4rv61R9PUSDtYt7mPVB2olxNR5RWJcAsH676/ef11bUZwvu7+RGYrYauVdDPcO519v68wRhXQtxsV9w==}
+
   async@3.2.2:
     resolution: {integrity: sha512-H0E+qZaDEfx/FY4t7iLRv1W2fFI6+pyCeTw1uN20AQPiwqwM6ojPxHxdLv4z8hi2DtnW9BOckSspLucW7pIE5g==}
 
@@ -7002,6 +7032,10 @@ packages:
 
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
+
+  commander@2.9.0:
+    resolution: {integrity: sha512-bmkUukX8wAOjHdN26xj5c4ctEV22TQ7dQYhSmuckKhToXrkUn0iIaolHdIxYYqD55nhpSPA9zPQ1yP57GdXP2A==}
+    engines: {node: '>= 0.6.x'}
 
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
@@ -8158,6 +8192,10 @@ packages:
   exenv@1.2.2:
     resolution: {integrity: sha512-Z+ktTxTwv9ILfgKCk32OX3n/doe+OcLTRtqK9pcL+JsP3J1/VW8Uvl4ZjLlKqeW4rzK4oesDOGMEMRIZqtP4Iw==}
 
+  exit@0.1.2:
+    resolution: {integrity: sha512-Zk/eNKV2zbjpKzrsQ+n1G6poVbErQxJ0LBOJXaKZ1EViLzH+hrLu9cdXI4zw9dBQJslwBEpbQ2P1oS7nDxs6jQ==}
+    engines: {node: '>= 0.8.0'}
+
   expand-template@2.0.3:
     resolution: {integrity: sha512-XYfuKMvj4O35f/pOXLObndIRvyQ+/+6AhODh+OKWj9S9498pHHn/IMszH+gt0fBCRWMNfk1ZSp5x3AifmnI2vg==}
     engines: {node: '>=6'}
@@ -8813,6 +8851,9 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  graceful-readlink@1.0.1:
+    resolution: {integrity: sha512-8tLu60LgxF6XpdbK8OW3FA+IfTNBn1ZHGHKF4KQbEeSkajYw5PlYJcKluntgegDPTg8UkHjpet1T82vk6TQ68w==}
+
   graphlib@2.1.8:
     resolution: {integrity: sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==}
 
@@ -9104,6 +9145,10 @@ packages:
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
+    engines: {node: '>=0.10.0'}
+
+  iconv-lite@0.5.2:
+    resolution: {integrity: sha512-kERHXvpSaB4aU3eANwidg79K8FlrN77m8G9V+0vOR3HYaRifrlwMEpT7ZBJqLSEIHnEgJTHcWK82wwLwwKwtag==}
     engines: {node: '>=0.10.0'}
 
   iconv-lite@0.6.3:
@@ -10786,6 +10831,11 @@ packages:
     peerDependencies:
       tailwindcss: '>3.3.0'
 
+  needle@3.3.1:
+    resolution: {integrity: sha512-6k0YULvhpw+RoLNiQCRKOl09Rv1dPLr8hHnVjHqdolKwDrdNyk+Hmrthi4lIGPPz3r39dLx0hsF5s40sZ3Us4Q==}
+    engines: {node: '>= 4.4.x'}
+    hasBin: true
+
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
@@ -10807,6 +10857,10 @@ packages:
 
   nested-error-stacks@2.0.1:
     resolution: {integrity: sha512-SrQrok4CATudVzBS7coSz26QRSmlK9TzzoFbeKfcPBUFPjcQM9Rqvr/DlJkOrwI/0KcgvMub1n1g5Jt9EgRn4A==}
+
+  network@0.7.0:
+    resolution: {integrity: sha512-AquYHEZFrPi1WPaMg+21iTKN7aMERP70frgK41lbTt/9tTQcwgaOtlqHRmVbxJjWYWJy033jUbA8xXhFArXodw==}
+    hasBin: true
 
   next-auth@4.24.11:
     resolution: {integrity: sha512-pCFXzIDQX7xmHFs4KVH4luCjaCbuPRtZ9oBUjUhOk84mZ9WVPf94n87TxYI4rSRf9HmfHEF8Yep3JrYDVOo3Cw==}
@@ -14599,6 +14653,9 @@ packages:
     resolution: {integrity: sha512-DLiFIXYC5fMPxaRg832S6F5mJYvePtmO5G9v9IgUFPhXm9/GkXarH/TUrBAVzhTCzAj9anE/+GjrgXp/54nOgw==}
     engines: {node: '>= 12.0.0'}
 
+  wmic@1.1.1:
+    resolution: {integrity: sha512-6lbonssALks49dX9bJTE8i54OTjbbLfd3IraFfG1ZR1ZrEbEynCt471IX5SfslZaFwISJKdUFHjOWHk0Brs5eg==}
+
   wonka@6.3.5:
     resolution: {integrity: sha512-SSil+ecw6B4/Dm7Pf2sAshKQ5hWFvfyGlfPbEd6A14dOH6VDjrmbY86u6nZvy9omGwwIPFR8V41+of1EezgoUw==}
 
@@ -17820,7 +17877,7 @@ snapshots:
   '@emotion/babel-plugin@11.13.5':
     dependencies:
       '@babel/helper-module-imports': 7.27.1
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.4
       '@emotion/hash': 0.9.2
       '@emotion/memoize': 0.9.0
       '@emotion/serialize': 1.3.3
@@ -21673,6 +21730,8 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  async@1.5.2: {}
+
   async@3.2.2: {}
 
   async@3.2.4: {}
@@ -22433,6 +22492,10 @@ snapshots:
 
   commander@2.20.3: {}
 
+  commander@2.9.0:
+    dependencies:
+      graceful-readlink: 1.0.1
+
   commander@4.1.1: {}
 
   commander@5.1.0: {}
@@ -23119,7 +23182,7 @@ snapshots:
 
   dom-helpers@5.2.1:
     dependencies:
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.4
       csstype: 3.1.3
 
   dom-serializer@1.4.1:
@@ -23631,6 +23694,8 @@ snapshots:
       yoctocolors: 2.1.1
 
   exenv@1.2.2: {}
+
+  exit@0.1.2: {}
 
   expand-template@2.0.3: {}
 
@@ -24430,6 +24495,8 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+  graceful-readlink@1.0.1: {}
+
   graphlib@2.1.8:
     dependencies:
       lodash: 4.17.21
@@ -24856,6 +24923,10 @@ snapshots:
       '@babel/runtime': 7.27.6
 
   iconv-lite@0.4.24:
+    dependencies:
+      safer-buffer: 2.1.2
+
+  iconv-lite@0.5.2:
     dependencies:
       safer-buffer: 2.1.2
 
@@ -27199,6 +27270,11 @@ snapshots:
       - react-native-svg
       - supports-color
 
+  needle@3.3.1:
+    dependencies:
+      iconv-lite: 0.6.3
+      sax: 1.4.1
+
   negotiator@0.6.3: {}
 
   negotiator@0.6.4: {}
@@ -27210,6 +27286,13 @@ snapshots:
   neotraverse@0.6.15: {}
 
   nested-error-stacks@2.0.1: {}
+
+  network@0.7.0:
+    dependencies:
+      async: 1.5.2
+      commander: 2.9.0
+      needle: 3.3.1
+      wmic: 1.1.1
 
   next-auth@4.24.11(next@15.3.3(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.1))(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
@@ -31717,6 +31800,11 @@ snapshots:
       stack-trace: 0.0.10
       triple-beam: 1.4.1
       winston-transport: 4.9.0
+
+  wmic@1.1.1:
+    dependencies:
+      async: 3.2.6
+      iconv-lite: 0.5.2
 
   wonka@6.3.5: {}
 
