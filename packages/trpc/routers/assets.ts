@@ -99,7 +99,10 @@ export const assetsAppRouter = router({
     .input(
       z.object({
         bookmarkId: z.string(),
-        asset: zAssetSchema,
+        asset: z.object({
+          id: z.string(),
+          assetType: zAssetTypesSchema,
+        }),
       }),
     )
     .output(zAssetSchema)

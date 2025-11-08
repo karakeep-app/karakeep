@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import {
   zAssetSchema,
+  zAssetTypesSchema,
   zBareBookmarkSchema,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
@@ -418,7 +419,10 @@ registry.registerPath({
       description: "The asset to attach",
       content: {
         "application/json": {
-          schema: zAssetSchema,
+          schema: z.object({
+            id: z.string(),
+            assetType: zAssetTypesSchema,
+          }),
         },
       },
     },
