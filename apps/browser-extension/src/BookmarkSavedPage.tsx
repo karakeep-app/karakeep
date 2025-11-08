@@ -6,6 +6,7 @@ import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 import BookmarkLists from "./components/BookmarkLists";
 import { ListsSelector } from "./components/ListsSelector";
+import { NoteEditor } from "./components/NoteEditor";
 import TagList from "./components/TagList";
 import { TagsSelector } from "./components/TagsSelector";
 import { Button, buttonVariants } from "./components/ui/button";
@@ -78,6 +79,9 @@ export default function BookmarkSavedPage() {
           </Button>
         </div>
       </div>
+      <hr />
+      <p className="text-lg">Notes</p>
+      <NoteEditor bookmarkId={bookmarkId} />
       <hr />
       <p className="text-lg">Tags</p>
       <TagList bookmarkId={bookmarkId} />
