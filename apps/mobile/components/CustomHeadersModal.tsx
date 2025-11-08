@@ -1,12 +1,6 @@
 import { useState } from "react";
-import {
-  Keyboard,
-  Modal,
-  Pressable,
-  ScrollView,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { Modal, Pressable, ScrollView, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Plus, Trash2, X } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
@@ -31,7 +25,7 @@ export function CustomHeadersModal({
   const iconColor = colorScheme === "dark" ? "#d1d5db" : "#374151";
 
   // Convert headers object to array of entries for easier manipulation
-  const [headers, setHeaders] = useState<Array<{ key: string; value: string }>>(
+  const [headers, setHeaders] = useState<{ key: string; value: string }[]>(
     Object.entries(customHeaders).map(([key, value]) => ({ key, value })),
   );
   const [newHeaderKey, setNewHeaderKey] = useState("");
@@ -95,9 +89,17 @@ export function CustomHeadersModal({
       animationType="slide"
       onRequestClose={handleCancel}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className="flex-1 justify-end bg-black/50">
-          <View className="max-h-[85%] rounded-t-3xl bg-card p-6">
+      <View className="flex-1 justify-end">
+        <Pressable
+          className="absolute inset-0 bg-black/50"
+          onPress={handleCancel}
+        />
+        <View className="max-h-[85%] rounded-t-3xl bg-card">
+          <KeyboardAwareScrollView
+            contentContainerClassName="p-6"
+            bottomOffset={20}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Header */}
             <View className="mb-4 flex flex-row items-center justify-between">
               <Text className="text-lg font-semibold">Custom Headers</Text>
@@ -111,17 +113,17 @@ export function CustomHeadersModal({
             </Text>
 
             {/* Existing Headers List */}
-            <ScrollView className="mb-4 max-h-64">
+            <View className="mb-4 max-h-64">
               {headers.length === 0 ? (
                 <Text className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                   No custom headers configured
                 </Text>
               ) : (
-                <View className="gap-2">
+                <ScrollView>
                   {headers.map((header, index) => (
                     <View
                       key={index}
-                      className="flex-row items-center gap-2 rounded-lg border border-border bg-background p-3"
+                      className="mb-2 flex-row items-center gap-2 rounded-lg border border-border bg-background p-3"
                     >
                       <View className="flex-1">
                         <Text className="text-sm font-semibold">
@@ -142,9 +144,9 @@ export function CustomHeadersModal({
                       </Pressable>
                     </View>
                   ))}
-                </View>
+                </ScrollView>
               )}
-            </ScrollView>
+            </View>
 
             {/* Add New Header */}
             <View className="gap-2 border-t border-border pt-4">
@@ -190,9 +192,9 @@ export function CustomHeadersModal({
                 <Text>Save</Text>
               </Button>
             </View>
-          </View>
+          </KeyboardAwareScrollView>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
   );
 }
