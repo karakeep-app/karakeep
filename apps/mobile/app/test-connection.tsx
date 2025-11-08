@@ -6,7 +6,7 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { cn } from "@/lib/utils";
+import { buildApiHeaders, cn } from "@/lib/utils";
 import { z } from "zod";
 
 export default function TestConnection() {
@@ -70,6 +70,10 @@ export default function TestConnection() {
 
       appendText("Using address: " + settings.address);
       request.open("GET", `${settings.address}/api/health`);
+      const headers = buildApiHeaders(settings.apiKey, settings.customHeaders);
+      Object.entries(headers).forEach(([key, value]) => {
+        request.setRequestHeader(key, value);
+      });
       request.send();
     }
     runTest();

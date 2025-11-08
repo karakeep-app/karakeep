@@ -42,3 +42,18 @@ export function condProps(
     return condition ? { ...acc, ...props } : acc;
   }, {});
 }
+
+/**
+ * Build HTTP headers for API requests, merging Authorization and custom headers.
+ * This ensures all direct HTTP calls (uploads, downloads, health checks) respect
+ * the user's custom header configuration.
+ */
+export function buildApiHeaders(
+  apiKey: string | undefined,
+  customHeaders: Record<string, string> = {},
+): Record<string, string> {
+  return {
+    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+    ...customHeaders,
+  };
+}
