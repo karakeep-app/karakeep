@@ -91,6 +91,12 @@ export const zUserStatsResponseSchema = z.object({
       }),
     )
     .max(10),
+  bookmarksBySource: z.array(
+    z.object({
+      source: z.string().nullable(),
+      count: z.number(),
+    }),
+  ),
 });
 
 export const zUserSettingsSchema = z.object({

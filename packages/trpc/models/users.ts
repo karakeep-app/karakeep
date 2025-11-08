@@ -506,6 +506,7 @@ export class User implements PrivacyAware {
       [{ thisYear }],
       bookmarkTimestamps,
       tagUsage,
+      bookmarksBySource,
     ] = await Promise.all([
       // Basic counts
       this.ctx.db
@@ -677,6 +678,17 @@ export class User implements PrivacyAware {
         .groupBy(bookmarkTags.name)
         .orderBy(desc(count()))
         .limit(10),
+
+      // Bookmarks by source
+      this.ctx.db
+        .select({
+          source: bookmarks.source,
+          count: count(),
+        })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, this.user.id))
+        .groupBy(bookmarks.source)
+        .orderBy(desc(count())),
     ]);
 
     // Process bookmarks by type
@@ -735,6 +747,7 @@ export class User implements PrivacyAware {
         byDayOfWeek: dailyActivity,
       },
       tagUsage,
+      bookmarksBySource,
     };
   }
 

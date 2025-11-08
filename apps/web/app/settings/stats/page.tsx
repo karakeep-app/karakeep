@@ -21,6 +21,7 @@ import {
   Image,
   Link,
   List,
+  Smartphone,
   TrendingUp,
 } from "lucide-react";
 
@@ -46,6 +47,21 @@ const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const hourLabels = Array.from({ length: 24 }, (_, i) =>
   i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`,
 );
+
+function formatSourceName(source: string | null): string {
+  if (!source) return "Unknown";
+  const sourceMap: Record<string, string> = {
+    api: "API",
+    web: "Web",
+    extension: "Browser Extension",
+    cli: "CLI",
+    mobile: "Mobile App",
+    singlefile: "SingleFile",
+    rss: "RSS Feed",
+    import: "Import",
+  };
+  return sourceMap[source] || source;
+}
 
 function SimpleBarChart({
   data,
@@ -435,6 +451,47 @@ export default function StatsPage() {
             ) : (
               <p className="text-sm text-muted-foreground">
                 {t("settings.stats.most_used_tags.no_tags_found")}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Bookmark Sources */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5" />
+              Bookmark Sources
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.bookmarksBySource.length > 0 ? (
+              <div className="space-y-3">
+                {stats.bookmarksBySource.map(
+                  (
+                    source: { source: string | null; count: number },
+                    index: number,
+                  ) => (
+                    <div
+                      key={source.source || "unknown"}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                          {index + 1}
+                        </div>
+                        <span className="max-w-[200px] truncate text-sm">
+                          {formatSourceName(source.source)}
+                        </span>
+                      </div>
+                      <Badge variant="secondary">{source.count}</Badge>
+                    </div>
+                  ),
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No source data available
               </p>
             )}
           </CardContent>
