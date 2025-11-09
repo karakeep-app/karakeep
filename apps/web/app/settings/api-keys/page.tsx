@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import ApiKeySettings from "@/components/settings/ApiKeySettings";
+import { useTranslation } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "API Keys | Karakeep",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
+  return {
+    title: `${t("settings.api_keys.api_keys")} | Karakeep`,
+  };
+}
 
 export default async function ApiKeysPage() {
   return (
