@@ -404,7 +404,7 @@ async function fetchFromWayback(
     abortSignal.throwIfAborted();
   }
   const base = "https://web.archive.org";
-  const searchUrl = `${base}/web/*/${encodeURIComponent(url)}`;
+  const searchUrl = `${base}/web/*/${url}`;
   try {
     logger.info(`[Crawler][${jobId}] Searching Wayback snapshot for ${url}`);
     const searchRes = await fetch(searchUrl, {
