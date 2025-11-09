@@ -311,7 +311,7 @@ export class CrawlerWorker {
       {
         run: runCrawler,
         onComplete: async (job, result) => {
-          if (result?.status === "rescheduled") {
+          if (result.status === "rescheduled") {
             logger.info(
               `[Crawler][${job.id}] Rescheduled due to domain rate limiting`,
             );
