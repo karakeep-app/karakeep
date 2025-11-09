@@ -28,32 +28,26 @@ export class RateLimiter implements RateLimitClient {
     }
   }
 
-  checkRateLimit(
-    config: RateLimitConfig,
-    identifier: string,
-    path?: string,
-  ): RateLimitResult {
+  checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult {
     if (!serverConfig.rateLimiting.enabled) {
       return { allowed: true };
     }
 
-    if (!identifier) {
+    if (!key) {
       return { allowed: true };
     }
 
-    const key = path
-      ? `${config.name}:${identifier}:${path}`
-      : `${config.name}:${identifier}`;
+    const rateLimitKey = `${config.name}:${key}`;
     const now = Date.now();
 
-    let entry = this.store.get(key);
+    let entry = this.store.get(rateLimitKey);
 
     if (!entry || now > entry.resetTime) {
       entry = {
         count: 1,
         resetTime: now + config.windowMs,
       };
-      this.store.set(key, entry);
+      this.store.set(rateLimitKey, entry);
       return { allowed: true };
     }
 
@@ -69,11 +63,9 @@ export class RateLimiter implements RateLimitClient {
     return { allowed: true };
   }
 
-  reset(config: RateLimitConfig, identifier: string, path?: string) {
-    const key = path
-      ? `${config.name}:${identifier}:${path}`
-      : `${config.name}:${identifier}`;
-    this.store.delete(key);
+  reset(config: RateLimitConfig, key: string) {
+    const rateLimitKey = `${config.name}:${key}`;
+    this.store.delete(rateLimitKey);
   }
 
   clear() {

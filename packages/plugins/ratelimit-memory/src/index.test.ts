@@ -98,15 +98,15 @@ describe("RateLimiter", () => {
       expect(result2.allowed).toBe(true);
     });
 
-    it("should isolate rate limits by path", () => {
+    it("should isolate rate limits by key", () => {
       const config = {
         name: "test",
         windowMs: 60000,
         maxRequests: 1,
       };
 
-      const result1 = rateLimiter.checkRateLimit(config, "user1", "/api/v1");
-      const result2 = rateLimiter.checkRateLimit(config, "user1", "/api/v2");
+      const result1 = rateLimiter.checkRateLimit(config, "user1:/api/v1");
+      const result2 = rateLimiter.checkRateLimit(config, "user1:/api/v2");
 
       expect(result1.allowed).toBe(true);
       expect(result2.allowed).toBe(true);
@@ -174,23 +174,23 @@ describe("RateLimiter", () => {
       expect(result2.allowed).toBe(true);
     });
 
-    it("should reset rate limit for specific path", () => {
+    it("should reset rate limit for specific key", () => {
       const config = {
         name: "test",
         windowMs: 60000,
         maxRequests: 1,
       };
 
-      // Use up the limit for path1
-      rateLimiter.checkRateLimit(config, "user1", "/path1");
-      const result1 = rateLimiter.checkRateLimit(config, "user1", "/path1");
+      // Use up the limit for key1
+      rateLimiter.checkRateLimit(config, "user1:/path1");
+      const result1 = rateLimiter.checkRateLimit(config, "user1:/path1");
       expect(result1.allowed).toBe(false);
 
-      // Reset only path1
-      rateLimiter.reset(config, "user1", "/path1");
+      // Reset only key1
+      rateLimiter.reset(config, "user1:/path1");
 
-      // path1 should be allowed
-      const result2 = rateLimiter.checkRateLimit(config, "user1", "/path1");
+      // key1 should be allowed
+      const result2 = rateLimiter.checkRateLimit(config, "user1:/path1");
       expect(result2.allowed).toBe(true);
     });
 

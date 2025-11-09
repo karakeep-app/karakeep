@@ -15,23 +15,17 @@ export interface RateLimitClient {
   /**
    * Check if a request should be allowed based on rate limiting rules
    * @param config Rate limit configuration
-   * @param identifier Unique identifier for the rate limit (e.g., IP address, user ID)
-   * @param path Optional path to include in the rate limit key
+   * @param key Unique rate limiting key (e.g., "ip:127.0.0.1:path:/api/v1")
    * @returns Result indicating if the request is allowed and reset time if not
    */
-  checkRateLimit(
-    config: RateLimitConfig,
-    identifier: string,
-    path?: string,
-  ): RateLimitResult;
+  checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult;
 
   /**
-   * Reset rate limit for a specific identifier
+   * Reset rate limit for a specific key
    * @param config Rate limit configuration
-   * @param identifier Unique identifier for the rate limit
-   * @param path Optional path
+   * @param key Unique rate limiting key
    */
-  reset(config: RateLimitConfig, identifier: string, path?: string): void;
+  reset(config: RateLimitConfig, key: string): void;
 
   /**
    * Clear all rate limit entries

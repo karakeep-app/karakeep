@@ -1,8 +1,8 @@
 // Implementation inspired from Outline
 
 import type { QueueClient } from "./queueing";
-import logger from "./logger";
 import type { RateLimitClient } from "./ratelimiting";
+import logger from "./logger";
 import { SearchIndexClient } from "./search";
 
 export enum PluginType {
