@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
+import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 import {
   Archive,
   BarChart3,
@@ -24,6 +26,8 @@ import {
   Smartphone,
   TrendingUp,
 } from "lucide-react";
+
+type BookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 Bytes";
@@ -47,16 +51,6 @@ const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const hourLabels = Array.from({ length: 24 }, (_, i) =>
   i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`,
 );
-
-type BookmarkSource =
-  | "api"
-  | "web"
-  | "extension"
-  | "cli"
-  | "mobile"
-  | "singlefile"
-  | "rss"
-  | "import";
 
 function formatSourceName(source: BookmarkSource | null): string {
   if (!source) return "Unknown";
@@ -471,7 +465,7 @@ export default function StatsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Smartphone className="h-5 w-5" />
-              Bookmark Sources
+              {t("settings.stats.bookmark_sources.title")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -501,7 +495,7 @@ export default function StatsPage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No source data available
+                {t("settings.stats.bookmark_sources.empty")}
               </p>
             )}
           </CardContent>

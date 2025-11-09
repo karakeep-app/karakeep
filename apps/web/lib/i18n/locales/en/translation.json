@@ -181,6 +181,10 @@
       },
       "storage_breakdown": {
         "title": "Storage Breakdown"
+      },
+      "bookmark_sources": {
+        "title": "Bookmark Sources",
+        "empty": "No source data available"
       }
     },
     "ai": {
