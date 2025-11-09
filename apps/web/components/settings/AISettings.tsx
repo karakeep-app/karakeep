@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import {
   Form,
@@ -22,11 +23,13 @@ import { toast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
+import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
   buildImagePrompt,
   buildSummaryPrompt,
@@ -37,6 +40,85 @@ import {
   ZPrompt,
   zUpdatePromptSchema,
 } from "@karakeep/shared/types/prompts";
+import { zUserSettingsSchema } from "@karakeep/shared/types/users";
+
+const inferenceLanguageFormSchema = z.object({
+  inferenceLanguage: zUserSettingsSchema.shape.inferenceLanguage,
+});
+
+function InferenceLanguageForm() {
+  const { t } = useTranslation();
+  const clientConfig = useClientConfig();
+  const userSettings = useUserSettings();
+  const { mutate, isPending } = useUpdateUserSettings({
+    onSuccess: () => {
+      toast({
+        description: t("settings.info.user_settings.user_settings_updated"),
+      });
+    },
+    onError: () => {
+      toast({
+        description: t("common.something_went_wrong"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const form = useForm<z.infer<typeof inferenceLanguageFormSchema>>({
+    resolver: zodResolver(inferenceLanguageFormSchema),
+    defaultValues: {
+      inferenceLanguage: userSettings.inferenceLanguage,
+    },
+  });
+
+  useEffect(() => {
+    form.reset({ inferenceLanguage: userSettings.inferenceLanguage });
+  }, [form, userSettings.inferenceLanguage]);
+
+  return (
+    <Form {...form}>
+      <form
+        className="flex flex-col gap-4 sm:flex-row sm:items-end"
+        onSubmit={form.handleSubmit(({ inferenceLanguage }) => {
+          if (inferenceLanguage === userSettings.inferenceLanguage) {
+            return;
+          }
+          mutate({ inferenceLanguage });
+        })}
+      >
+        <div className="flex-1 space-y-2">
+          <p className="text-sm font-medium">
+            {t("settings.ai.inference_language.label")}
+          </p>
+          <FormField
+            control={form.control}
+            name="inferenceLanguage"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder={clientConfig.inference.inferredTagLang}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <p className="text-xs text-muted-foreground">
+            {t("settings.ai.inference_language.description", {
+              defaultLang: clientConfig.inference.inferredTagLang,
+            })}
+          </p>
+        </div>
+        <ActionButton type="submit" loading={isPending} className="sm:w-auto">
+          <Save className="mr-2 size-4" />
+          {t("actions.save")}
+        </ActionButton>
+      </form>
+    </Form>
+  );
+}
 
 export function PromptEditor() {
   const { t } = useTranslation();
@@ -301,6 +383,10 @@ export function PromptDemo() {
   const { t } = useTranslation();
   const { data: prompts } = api.prompts.list.useQuery();
   const clientConfig = useClientConfig();
+  const userSettings = useUserSettings();
+  const inferenceLanguage =
+    userSettings.inferenceLanguage?.trim() ||
+    clientConfig.inference.inferredTagLang;
   return (
     <div className="flex flex-col gap-2">
       <div className="mb-4 w-full text-xl font-medium sm:w-1/3">
@@ -309,7 +395,7 @@ export function PromptDemo() {
       <p>{t("settings.ai.text_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
         {buildTextPrompt(
-          clientConfig.inference.inferredTagLang,
+          inferenceLanguage,
           (prompts ?? [])
             .filter(
               (p) => p.appliesTo == "text" || p.appliesTo == "all_tagging",
@@ -322,7 +408,7 @@ export function PromptDemo() {
       <p>{t("settings.ai.images_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
         {buildImagePrompt(
-          clientConfig.inference.inferredTagLang,
+          inferenceLanguage,
           (prompts ?? [])
             .filter(
               (p) => p.appliesTo == "images" || p.appliesTo == "all_tagging",
@@ -333,7 +419,7 @@ export function PromptDemo() {
       <p>{t("settings.ai.summarization_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
         {buildSummaryPrompt(
-          clientConfig.inference.inferredTagLang,
+          inferenceLanguage,
           (prompts ?? [])
             .filter((p) => p.appliesTo == "summary")
             .map((p) => p.text),
@@ -350,10 +436,11 @@ export default function AISettings() {
   return (
     <>
       <div className="rounded-md border bg-background p-4">
-        <div className="mb-2 flex flex-col gap-3">
+        <div className="space-y-6">
           <div className="w-full text-2xl font-medium sm:w-1/3">
             {t("settings.ai.ai_settings")}
           </div>
+          <InferenceLanguageForm />
           <TaggingRules />
         </div>
       </div>
