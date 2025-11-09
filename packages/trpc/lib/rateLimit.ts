@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
 import type { RateLimitConfig } from "@karakeep/shared/ratelimiting";
+import serverConfig from "@karakeep/shared/config";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 
 /**
@@ -14,6 +15,10 @@ export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
     ctx: { req: { ip: string | null } };
     next: () => Promise<T>;
   }) {
+    if (!serverConfig.rateLimiting.enabled) {
+      return opts.next();
+    }
+
     const ip = opts.ctx.req.ip;
 
     if (!ip) {

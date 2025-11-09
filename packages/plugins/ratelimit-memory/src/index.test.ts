@@ -2,15 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RateLimiter } from "./index";
 
-// Mock serverConfig to enable rate limiting
-vi.mock("@karakeep/shared/config", () => ({
-  default: {
-    rateLimiting: {
-      enabled: true,
-    },
-  },
-}));
-
 describe("RateLimiter", () => {
   let rateLimiter: RateLimiter;
 

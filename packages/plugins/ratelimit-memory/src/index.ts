@@ -3,7 +3,6 @@ import type {
   RateLimitConfig,
   RateLimitResult,
 } from "@karakeep/shared/ratelimiting";
-import serverConfig from "@karakeep/shared/config";
 import { PluginProvider } from "@karakeep/shared/plugins";
 
 interface RateLimitEntry {
@@ -29,10 +28,6 @@ export class RateLimiter implements RateLimitClient {
   }
 
   checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult {
-    if (!serverConfig.rateLimiting.enabled) {
-      return { allowed: true };
-    }
-
     if (!key) {
       return { allowed: true };
     }
