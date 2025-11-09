@@ -15,7 +15,7 @@ const enum LoginState {
 
 export default function SignInPage() {
   const navigate = useNavigate();
-  const { setSettings } = usePluginSettings();
+  const { settings, setSettings } = usePluginSettings();
 
   const {
     mutate: login,
@@ -156,6 +156,19 @@ export default function SignInPage() {
           Login with API key
         </Button>
       </form>
+
+      <div className="flex justify-center pt-2">
+        <button
+          type="button"
+          onClick={() => navigate("/customheaders")}
+          className="text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Configure Custom Headers
+          {settings.customHeaders &&
+            Object.keys(settings.customHeaders).length > 0 &&
+            ` (${Object.keys(settings.customHeaders).length})`}
+        </button>
+      </div>
     </div>
   );
 }

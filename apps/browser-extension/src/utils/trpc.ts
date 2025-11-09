@@ -18,10 +18,11 @@ let currentSettings: {
   apiKey: string;
   badgeCacheExpireMs: number;
   useBadgeCache: boolean;
+  customHeaders: Record<string, string>;
 } | null = null;
 
 export async function initializeClients() {
-  const { address, apiKey, badgeCacheExpireMs, useBadgeCache } =
+  const { address, apiKey, badgeCacheExpireMs, useBadgeCache, customHeaders } =
     await getPluginSettings();
 
   if (currentSettings) {
@@ -31,6 +32,9 @@ export async function initializeClients() {
       currentSettings.badgeCacheExpireMs !== badgeCacheExpireMs;
     const useBadgeCacheChanged =
       currentSettings.useBadgeCache !== useBadgeCache;
+    const customHeadersChanged =
+      JSON.stringify(currentSettings.customHeaders) !==
+      JSON.stringify(customHeaders);
 
     if (!address || !apiKey) {
       // Invalid configuration, clean
@@ -40,7 +44,7 @@ export async function initializeClients() {
       return;
     }
 
-    if (addressChanged || apiKeyChanged) {
+    if (addressChanged || apiKeyChanged || customHeadersChanged) {
       // Switch context completely → discard the old instance and wipe persisted cache
       const persisterForCleanup = createChromeStorage();
       await persisterForCleanup.removeClient();
@@ -58,7 +62,8 @@ export async function initializeClients() {
       !addressChanged &&
       !apiKeyChanged &&
       !cacheTimeChanged &&
-      !useBadgeCacheChanged
+      !useBadgeCacheChanged &&
+      !customHeadersChanged
     ) {
       return;
     }
@@ -66,7 +71,13 @@ export async function initializeClients() {
 
   if (address && apiKey) {
     // Store current settings
-    currentSettings = { address, apiKey, badgeCacheExpireMs, useBadgeCache };
+    currentSettings = {
+      address,
+      apiKey,
+      badgeCacheExpireMs,
+      useBadgeCache,
+      customHeaders,
+    };
 
     // Create new QueryClient with updated settings
     queryClient = new QueryClient();
@@ -92,6 +103,7 @@ export async function initializeClients() {
           headers() {
             return {
               Authorization: `Bearer ${apiKey}`,
+              ...customHeaders,
             };
           },
           transformer: superjson,
