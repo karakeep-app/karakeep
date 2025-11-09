@@ -106,8 +106,8 @@ const allEnv = z.object({
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
-  CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().optional(),
-  CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().optional(),
+  CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
+  CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
@@ -206,47 +206,6 @@ const allEnv = z.object({
 });
 
 const serverConfigSchema = allEnv.transform((val, ctx) => {
-  const hasCrawlerDomainRateLimitWindow =
-    val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS !== undefined;
-  const hasCrawlerDomainRateLimitMaxRequests =
-    val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS !== undefined;
-
-  if (
-    hasCrawlerDomainRateLimitWindow !== hasCrawlerDomainRateLimitMaxRequests
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message:
-        "CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS and CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS must both be set to enable crawler domain rate limiting.",
-      fatal: true,
-    });
-    return z.NEVER;
-  }
-
-  if (
-    hasCrawlerDomainRateLimitWindow &&
-    val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS! <= 0
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS must be greater than 0.",
-      fatal: true,
-    });
-    return z.NEVER;
-  }
-
-  if (
-    hasCrawlerDomainRateLimitMaxRequests &&
-    val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS! <= 0
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS must be greater than 0.",
-      fatal: true,
-    });
-    return z.NEVER;
-  }
-
   const obj = {
     port: val.PORT,
     workers: {
@@ -342,6 +301,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         dnsResolverTimeoutSec:
           val.CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC,
       },
+      domainRatelimiting:
+        val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS !== undefined &&
+        val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS !== undefined
+          ? {
+              windowMs: val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS,
+              maxRequests: val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS,
+            }
+          : null,
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -402,17 +369,6 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     rateLimiting: {
       enabled: val.RATE_LIMITING_ENABLED,
-      crawler: {
-        domain:
-          hasCrawlerDomainRateLimitWindow &&
-          hasCrawlerDomainRateLimitMaxRequests
-            ? {
-                name: "crawler-domain",
-                windowMs: val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS!,
-                maxRequests: val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS!,
-              }
-            : null,
-      },
     },
     stripe: {
       secretKey: val.STRIPE_SECRET_KEY,

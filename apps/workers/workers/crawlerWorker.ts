@@ -1297,13 +1297,17 @@ async function runCrawler(
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  const crawlerDomainRateLimitConfig = serverConfig.rateLimiting.crawler.domain;
-  if (serverConfig.rateLimiting.enabled && crawlerDomainRateLimitConfig) {
+  const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
+  if (crawlerDomainRateLimitConfig) {
     const rateLimitClient = await getRateLimitClient();
     if (rateLimitClient) {
       const hostname = new URL(url).hostname;
       const rateLimitResult = rateLimitClient.checkRateLimit(
-        crawlerDomainRateLimitConfig,
+        {
+          name: "domain-ratelimit",
+          maxRequests: crawlerDomainRateLimitConfig.maxRequests,
+          windowMs: crawlerDomainRateLimitConfig.windowMs,
+        },
         hostname,
       );
 
@@ -1323,10 +1327,6 @@ async function runCrawler(
         });
         return { status: "rescheduled" };
       }
-    } else {
-      logger.warn(
-        `[Crawler][${jobId}] Rate limiting is enabled but no rate limit client is configured.`,
-      );
     }
   }
 
