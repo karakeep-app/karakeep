@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
 import InfoTooltip from "@/components/ui/info-tooltip";
+
+export const metadata: Metadata = {
+  title: "Archive | Karakeep",
+};
 
 function header() {
   return (

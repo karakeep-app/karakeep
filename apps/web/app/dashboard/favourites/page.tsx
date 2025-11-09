@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
+
+export const metadata: Metadata = {
+  title: "Favourites | Karakeep",
+};
 
 export default async function FavouritesBookmarkPage() {
   return (
