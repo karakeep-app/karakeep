@@ -25,7 +25,7 @@
     "https-proxy-agent": "^7.0.6",
     "ipaddr.js": "^2.2.0",
     "jsdom": "^24.0.0",
-    "liteque": "^0.6.2",
+    "liteque": "^0.7.0",
     "lru-cache": "^11.2.2",
     "metascraper": "^5.49.5",
     "metascraper-amazon": "^5.49.5",

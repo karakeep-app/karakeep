@@ -90,8 +90,7 @@ describe("Restate Queue Provider", () => {
           const jobData = job.data;
           switch (jobData.type) {
             case "val":
-              testState.results.push(jobData.val);
-              break;
+              return jobData.val;
             case "err":
               throw new Error(jobData.err);
             case "stall":
@@ -108,8 +107,11 @@ describe("Restate Queue Provider", () => {
             testState.errors.push(jobData.err);
           }
         },
-        onComplete: async () => {
+        onComplete: async (_j, res) => {
           testState.inFlight--;
+          if (res) {
+            testState.results.push(res);
+          }
         },
       },
       {
