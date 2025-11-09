@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
-import AISettings from "@/components/settings/AISettings";
 import { useTranslation } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
   return {
-    title: `${t("settings.ai.ai_settings")} | Karakeep`,
+    title: `${t("settings.broken_links.broken_links")} | Karakeep`,
   };
 }
 
-export default function AISettingsPage() {
-  return <AISettings />;
+export default function BrokenLinksLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
 }
