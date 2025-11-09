@@ -2,7 +2,7 @@ import fs from "fs";
 import * as os from "os";
 import path from "path";
 import { execa } from "execa";
-import { workerLastFailureGauge, workerStatsCounter } from "metrics";
+import { workerStatsCounter } from "metrics";
 import { getProxyAgent, validateUrl } from "network";
 
 import { db } from "@karakeep/db";
@@ -46,7 +46,9 @@ export class VideoWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("video", "failed").inc();
-          workerLastFailureGauge.labels("video").setToCurrentTime();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("video", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[VideoCrawler][${jobId}] Video Download job failed: ${job.error}`,

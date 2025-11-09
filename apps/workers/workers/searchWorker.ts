@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { workerLastFailureGauge, workerStatsCounter } from "metrics";
+import { workerStatsCounter } from "metrics";
 
 import type { ZSearchIndexingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -34,7 +34,9 @@ export class SearchIndexingWorker {
           },
           onError: (job) => {
             workerStatsCounter.labels("search", "failed").inc();
-            workerLastFailureGauge.labels("search").setToCurrentTime();
+            if (job.numRetriesLeft == 0) {
+              workerStatsCounter.labels("search", "failed_permanent").inc();
+            }
             const jobId = job.id;
             logger.error(
               `[search][${jobId}] search job failed: ${job.error}\n${job.error.stack}`,

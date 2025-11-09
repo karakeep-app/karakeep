@@ -26,7 +26,7 @@ import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
-import { workerLastFailureGauge, workerStatsCounter } from "metrics";
+import { workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
   getRandomProxy,
@@ -313,7 +313,9 @@ export class CrawlerWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("crawler", "failed").inc();
-          workerLastFailureGauge.labels("crawler").setToCurrentTime();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("crawler", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,

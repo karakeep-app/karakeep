@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { workerLastFailureGauge, workerStatsCounter } from "metrics";
+import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
 
 import { db } from "@karakeep/db";
@@ -28,7 +28,9 @@ export class WebhookWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("webhook", "failed").inc();
-          workerLastFailureGauge.labels("webhook").setToCurrentTime();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("webhook", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[webhook][${jobId}] webhook job failed: ${job.error}\n${job.error.stack}`,

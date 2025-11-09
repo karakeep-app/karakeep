@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { workerLastFailureGauge, workerStatsCounter } from "metrics";
+import { workerStatsCounter } from "metrics";
 import { buildImpersonatingAuthedContext } from "trpc";
 
 import type { ZRuleEngineRequest } from "@karakeep/shared-server";
@@ -29,7 +29,9 @@ export class RuleEngineWorker {
         },
         onError: (job) => {
           workerStatsCounter.labels("ruleEngine", "failed").inc();
-          workerLastFailureGauge.labels("ruleEngine").setToCurrentTime();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("ruleEngine", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[ruleEngine][${jobId}] rule engine job failed: ${job.error}\n${job.error.stack}`,
