@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { zBookmarkSourceSchema } from "./bookmarks";
 
 export const PASSWORD_MIN_LENGTH = 8;

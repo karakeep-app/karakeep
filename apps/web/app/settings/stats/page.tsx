@@ -1,31 +1,38 @@
 "use client";
 
 import { useMemo } from "react";
-import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 import {
   Archive,
   BarChart3,
   BookOpen,
+  Chrome,
   Clock,
+  Code,
   Database,
   FileText,
   Globe,
   Hash,
   Heart,
+  HelpCircle,
   Highlighter,
   Image,
   Link,
   List,
+  Rss,
   Smartphone,
   TrendingUp,
+  Upload,
+  Zap,
 } from "lucide-react";
+import { z } from "zod";
+
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 
 type BookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 
@@ -65,6 +72,30 @@ function formatSourceName(source: BookmarkSource | null): string {
     import: "Import",
   };
   return sourceMap[source];
+}
+
+function getSourceIcon(source: BookmarkSource | null): React.ReactNode {
+  const iconProps = { className: "h-4 w-4 text-muted-foreground" };
+  switch (source) {
+    case "api":
+      return <Zap {...iconProps} />;
+    case "web":
+      return <Globe {...iconProps} />;
+    case "extension":
+      return <Chrome {...iconProps} />;
+    case "cli":
+      return <Code {...iconProps} />;
+    case "mobile":
+      return <Smartphone {...iconProps} />;
+    case "singlefile":
+      return <FileText {...iconProps} />;
+    case "rss":
+      return <Rss {...iconProps} />;
+    case "import":
+      return <Upload {...iconProps} />;
+    default:
+      return <HelpCircle {...iconProps} />;
+  }
 }
 
 function SimpleBarChart({
@@ -464,7 +495,7 @@ export default function StatsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
+              <Zap className="h-5 w-5" />
               {t("settings.stats.bookmark_sources.title")}
             </CardTitle>
           </CardHeader>
@@ -472,18 +503,16 @@ export default function StatsPage() {
             {stats.bookmarksBySource.length > 0 ? (
               <div className="space-y-3">
                 {stats.bookmarksBySource.map(
-                  (
-                    source: { source: BookmarkSource | null; count: number },
-                    index: number,
-                  ) => (
+                  (source: {
+                    source: BookmarkSource | null;
+                    count: number;
+                  }) => (
                     <div
                       key={source.source || "unknown"}
                       className="flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                          {index + 1}
-                        </div>
+                        {getSourceIcon(source.source)}
                         <span className="max-w-[200px] truncate text-sm">
                           {formatSourceName(source.source)}
                         </span>
