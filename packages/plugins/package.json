@@ -7,7 +7,8 @@
   "exports": {
     "./queue-liteque": "./queue-liteque/index.ts",
     "./queue-restate": "./queue-restate/index.ts",
-    "./search-meilisearch": "./search-meilisearch/index.ts"
+    "./search-meilisearch": "./search-meilisearch/index.ts",
+    "./trpc-ratelimit": "./trpc-ratelimit/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -21,6 +22,7 @@
     "@karakeep/shared": "workspace:*",
     "@restatedev/restate-sdk": "^1.9.0",
     "@restatedev/restate-sdk-clients": "^1.9.0",
+    "@trpc/server": "^11.4.3",
     "liteque": "^0.6.2",
     "meilisearch": "^0.45.0"
   },

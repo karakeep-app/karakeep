@@ -2,8 +2,6 @@ import { TRPCError } from "@trpc/server";
 
 import serverConfig from "@karakeep/shared/config";
 
-import { Context } from ".";
-
 interface RateLimitConfig {
   name: string;
   windowMs: number;
@@ -31,7 +29,7 @@ setInterval(cleanupExpiredEntries, 60000);
 export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
   return function rateLimitMiddleware(opts: {
     path: string;
-    ctx: Context;
+    ctx: { req: { ip: string | null } };
     next: () => Promise<T>;
   }) {
     if (!serverConfig.rateLimiting.enabled) {
