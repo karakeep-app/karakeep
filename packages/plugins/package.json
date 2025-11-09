@@ -7,8 +7,8 @@
   "exports": {
     "./queue-liteque": "./queue-liteque/index.ts",
     "./queue-restate": "./queue-restate/index.ts",
-    "./search-meilisearch": "./search-meilisearch/index.ts",
-    "./trpc-ratelimit": "./trpc-ratelimit/index.ts"
+    "./ratelimit": "./ratelimit/index.ts",
+    "./search-meilisearch": "./search-meilisearch/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
