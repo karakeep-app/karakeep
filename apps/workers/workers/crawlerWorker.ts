@@ -77,6 +77,7 @@ import {
   EnqueueOptions,
   getQueueClient,
 } from "@karakeep/shared/queueing";
+import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -169,6 +170,8 @@ const cookieSchema = z.object({
 });
 
 const cookiesSchema = z.array(cookieSchema);
+
+type RateLimitAwareJob<T> = DequeuedJob<T> & { skipCompletion?: boolean };
 
 function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
   const { proxy } = serverConfig;
@@ -303,6 +306,13 @@ export class CrawlerWorker {
       {
         run: runCrawler,
         onComplete: async (job) => {
+          const rateLimitAwareJob = job as RateLimitAwareJob<ZCrawlLinkRequest>;
+          if (rateLimitAwareJob.skipCompletion) {
+            logger.info(
+              `[Crawler][${job.id}] Rescheduled due to domain rate limiting`,
+            );
+            return;
+          }
           workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
@@ -1260,6 +1270,9 @@ async function crawlAndParseUrl(
 }
 
 async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
+  const rateLimitAwareJob = job as RateLimitAwareJob<ZCrawlLinkRequest>;
+  delete rateLimitAwareJob.skipCompletion;
+
   const jobId = `${job.id}:${job.runNumber}`;
 
   const request = zCrawlLinkRequestSchema.safeParse(job.data);
@@ -1280,6 +1293,40 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
+
+  const crawlerDomainRateLimitConfig = serverConfig.rateLimiting.crawler.domain;
+  if (serverConfig.rateLimiting.enabled && crawlerDomainRateLimitConfig) {
+    const rateLimitClient = await getRateLimitClient();
+    if (rateLimitClient) {
+      const hostname = new URL(url).hostname;
+      const rateLimitResult = rateLimitClient.checkRateLimit(
+        crawlerDomainRateLimitConfig,
+        hostname,
+      );
+
+      if (!rateLimitResult.allowed) {
+        const resetInSeconds = Math.max(
+          rateLimitResult.resetInSeconds ??
+            Math.ceil(crawlerDomainRateLimitConfig.windowMs / 1000),
+          1,
+        );
+        const delayMs = resetInSeconds * 1000;
+        rateLimitAwareJob.skipCompletion = true;
+        logger.info(
+          `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Rescheduling in ${resetInSeconds} seconds.`,
+        );
+        await LinkCrawlerQueue.enqueue(job.data, {
+          priority: job.priority,
+          delayMs,
+        });
+        return;
+      }
+    } else {
+      logger.warn(
+        `[Crawler][${jobId}] Rate limiting is enabled but no rate limit client is configured.`,
+      );
+    }
+  }
 
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
