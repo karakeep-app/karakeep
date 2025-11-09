@@ -36,7 +36,10 @@ export class AdminMaintenanceWorker {
               .inc();
             if (job.numRetriesLeft == 0) {
               workerStatsCounter
-                .labels(`adminMaintenance:${job.data?.type}`, "failed_permanent")
+                .labels(
+                  `adminMaintenance:${job.data?.type}`,
+                  "failed_permanent",
+                )
                 .inc();
             }
             logger.error(
