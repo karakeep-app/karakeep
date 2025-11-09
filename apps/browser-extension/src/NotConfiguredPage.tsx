@@ -14,6 +14,7 @@ export default function NotConfiguredPage() {
 
   const [error, setError] = useState("");
   const [serverAddress, setServerAddress] = useState(settings.address);
+
   useEffect(() => {
     setServerAddress(settings.address);
   }, [settings.address]);
@@ -50,6 +51,18 @@ export default function NotConfiguredPage() {
           className="h-8 flex-1 rounded-lg border border-gray-300 p-2"
           onChange={(e) => setServerAddress(e.target.value)}
         />
+      </div>
+      <div className="flex justify-start">
+        <button
+          type="button"
+          onClick={() => navigate("/customheaders")}
+          className="text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Configure Custom Headers
+          {settings.customHeaders &&
+            Object.keys(settings.customHeaders).length > 0 &&
+            ` (${Object.keys(settings.customHeaders).length})`}
+        </button>
       </div>
       <Button onClick={onSave}>Configure</Button>
     </div>
