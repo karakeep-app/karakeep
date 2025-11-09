@@ -1317,6 +1317,9 @@ importers:
       '@karakeep/db':
         specifier: workspace:*
         version: link:../db
+      '@karakeep/plugins':
+        specifier: workspace:*
+        version: link:../plugins
       '@karakeep/shared':
         specifier: workspace:*
         version: link:../shared

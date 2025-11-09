@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@karakeep/db": "workspace:*",
+    "@karakeep/plugins": "workspace:*",
     "@karakeep/shared": "workspace:*",
     "@karakeep/shared-server": "workspace:*",
     "@trpc/server": "^11.4.3",

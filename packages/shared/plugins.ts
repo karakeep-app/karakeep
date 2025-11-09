@@ -1,17 +1,20 @@
 // Implementation inspired from Outline
 
 import type { QueueClient } from "./queueing";
+import type { RateLimitClient } from "./ratelimiting";
 import logger from "./logger";
 import { SearchIndexClient } from "./search";
 
 export enum PluginType {
   Search = "search",
   Queue = "queue",
+  RateLimit = "ratelimit",
 }
 
 interface PluginTypeMap {
   [PluginType.Search]: SearchIndexClient;
   [PluginType.Queue]: QueueClient;
+  [PluginType.RateLimit]: RateLimitClient;
 }
 
 export interface TPlugin<T extends PluginType> {
@@ -31,6 +34,7 @@ export class PluginManager {
   private static providers: ProviderMap = {
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
+    [PluginType.RateLimit]: [],
   };
 
   static register<T extends PluginType>(plugin: TPlugin<T>): void {
