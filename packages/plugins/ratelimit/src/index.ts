@@ -1,22 +1,17 @@
+import type {
+  RateLimitClient,
+  RateLimitConfig,
+  RateLimitResult,
+} from "@karakeep/shared/ratelimiting";
 import serverConfig from "@karakeep/shared/config";
+import { PluginProvider } from "@karakeep/shared/plugins";
 
-export interface RateLimitConfig {
-  name: string;
-  windowMs: number;
-  maxRequests: number;
-}
-
-export interface RateLimitEntry {
+interface RateLimitEntry {
   count: number;
   resetTime: number;
 }
 
-export interface RateLimitResult {
-  allowed: boolean;
-  resetInSeconds?: number;
-}
-
-export class RateLimiter {
+export class RateLimiter implements RateLimitClient {
   private store = new Map<string, RateLimitEntry>();
 
   constructor() {
@@ -33,13 +28,6 @@ export class RateLimiter {
     }
   }
 
-  /**
-   * Check if a request should be allowed based on rate limiting rules
-   * @param config Rate limit configuration
-   * @param identifier Unique identifier for the rate limit (e.g., IP address, user ID)
-   * @param path Optional path to include in the rate limit key
-   * @returns Result indicating if the request is allowed and reset time if not
-   */
   checkRateLimit(
     config: RateLimitConfig,
     identifier: string,
@@ -81,12 +69,6 @@ export class RateLimiter {
     return { allowed: true };
   }
 
-  /**
-   * Reset rate limit for a specific identifier
-   * @param config Rate limit configuration
-   * @param identifier Unique identifier for the rate limit
-   * @param path Optional path
-   */
   reset(config: RateLimitConfig, identifier: string, path?: string) {
     const key = path
       ? `${config.name}:${identifier}:${path}`
@@ -94,13 +76,18 @@ export class RateLimiter {
     this.store.delete(key);
   }
 
-  /**
-   * Clear all rate limit entries
-   */
   clear() {
     this.store.clear();
   }
 }
 
-// Global rate limiter instance
-export const globalRateLimiter = new RateLimiter();
+export class RateLimitProvider implements PluginProvider<RateLimitClient> {
+  private client: RateLimiter | null = null;
+
+  async getClient(): Promise<RateLimitClient | null> {
+    if (!this.client) {
+      this.client = new RateLimiter();
+    }
+    return this.client;
+  }
+}

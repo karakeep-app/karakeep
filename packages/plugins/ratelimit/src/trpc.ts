@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 
-import type { RateLimitConfig } from "./index";
-import { globalRateLimiter } from "./index";
+import type { RateLimitConfig } from "@karakeep/shared/ratelimiting";
+import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 
 /**
  * Create a tRPC middleware for rate limiting
@@ -9,7 +9,7 @@ import { globalRateLimiter } from "./index";
  * @returns tRPC middleware function
  */
 export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
-  return function rateLimitMiddleware(opts: {
+  return async function rateLimitMiddleware(opts: {
     path: string;
     ctx: { req: { ip: string | null } };
     next: () => Promise<T>;
@@ -20,7 +20,14 @@ export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
       return opts.next();
     }
 
-    const result = globalRateLimiter.checkRateLimit(config, ip, opts.path);
+    const client = await getRateLimitClient();
+
+    if (!client) {
+      // If no rate limit client is registered, allow the request
+      return opts.next();
+    }
+
+    const result = client.checkRateLimit(config, ip, opts.path);
 
     if (!result.allowed) {
       throw new TRPCError({
