@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 import type { db } from "@karakeep/db";
 import serverConfig from "@karakeep/shared/config";
 
-import { createRateLimitMiddleware } from "@karakeep/plugins/ratelimit";
+import { createRateLimitMiddleware } from "./lib/rateLimit";
 import {
   apiErrorsTotalCounter,
   apiRequestDurationSummary,
@@ -128,5 +128,5 @@ export const adminProcedure = authedProcedure.use(function isAdmin(opts) {
   return opts.next(opts);
 });
 
-// Export the rate limiting plugin for use in routers
-export { createRateLimitMiddleware } from "@karakeep/plugins/ratelimit";
+// Export the rate limiting middleware for use in routers
+export { createRateLimitMiddleware } from "./lib/rateLimit";

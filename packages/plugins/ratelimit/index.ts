@@ -11,6 +11,3 @@ PluginManager.register({
 
 // Export the provider and rate limiter class for advanced usage
 export { RateLimiter, RateLimitProvider } from "./src";
-
-// tRPC-specific adapter
-export { createRateLimitMiddleware } from "./src/trpc";
