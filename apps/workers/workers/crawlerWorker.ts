@@ -171,7 +171,9 @@ const cookieSchema = z.object({
 
 const cookiesSchema = z.array(cookieSchema);
 
-type RateLimitAwareJob<T> = DequeuedJob<T> & { skipCompletion?: boolean };
+interface CrawlerRunResult {
+  status: "completed" | "rescheduled";
+}
 
 function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
   const { proxy } = serverConfig;
@@ -301,13 +303,15 @@ export class CrawlerWorker {
     }
 
     logger.info("Starting crawler worker ...");
-    const worker = (await getQueueClient())!.createRunner<ZCrawlLinkRequest>(
+    const worker = (await getQueueClient())!.createRunner<
+      ZCrawlLinkRequest,
+      CrawlerRunResult
+    >(
       LinkCrawlerQueue,
       {
         run: runCrawler,
-        onComplete: async (job) => {
-          const rateLimitAwareJob = job as RateLimitAwareJob<ZCrawlLinkRequest>;
-          if (rateLimitAwareJob.skipCompletion) {
+        onComplete: async (job, result) => {
+          if (result?.status === "rescheduled") {
             logger.info(
               `[Crawler][${job.id}] Rescheduled due to domain rate limiting`,
             );
@@ -1269,10 +1273,9 @@ async function crawlAndParseUrl(
   };
 }
 
-async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
-  const rateLimitAwareJob = job as RateLimitAwareJob<ZCrawlLinkRequest>;
-  delete rateLimitAwareJob.skipCompletion;
-
+async function runCrawler(
+  job: DequeuedJob<ZCrawlLinkRequest>,
+): Promise<CrawlerRunResult> {
   const jobId = `${job.id}:${job.runNumber}`;
 
   const request = zCrawlLinkRequestSchema.safeParse(job.data);
@@ -1280,7 +1283,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     logger.error(
       `[Crawler][${jobId}] Got malformed job request: ${request.error.toString()}`,
     );
-    return;
+    return { status: "completed" };
   }
 
   const { bookmarkId, archiveFullPage } = request.data;
@@ -1311,7 +1314,6 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
           1,
         );
         const delayMs = resetInSeconds * 1000;
-        rateLimitAwareJob.skipCompletion = true;
         logger.info(
           `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Rescheduling in ${resetInSeconds} seconds.`,
         );
@@ -1319,7 +1321,7 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
           priority: job.priority,
           delayMs,
         });
-        return;
+        return { status: "rescheduled" };
       }
     } else {
       logger.warn(
@@ -1418,4 +1420,5 @@ async function runCrawler(job: DequeuedJob<ZCrawlLinkRequest>) {
     // Do the archival as a separate last step as it has the potential for failure
     await archivalLogic();
   }
+  return { status: "completed" };
 }

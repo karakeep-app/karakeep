@@ -11,9 +11,9 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 import { genId } from "./idProvider";
 import { RestateSemaphore } from "./semaphore";
 
-export function buildRestateService<T>(
+export function buildRestateService<T, TResult = void>(
   queue: Queue<T>,
-  funcs: RunnerFuncs<T>,
+  funcs: RunnerFuncs<T, TResult>,
   opts: RunnerOptions<T>,
   queueOpts: QueueOptions,
 ) {
@@ -84,9 +84,9 @@ export function buildRestateService<T>(
   });
 }
 
-async function runWorkerLogic<T>(
+async function runWorkerLogic<T, TResult>(
   ctx: restate.Context,
-  { run, onError, onComplete }: RunnerFuncs<T>,
+  { run, onError, onComplete }: RunnerFuncs<T, TResult>,
   data: {
     id: string;
     data: T;
@@ -97,15 +97,9 @@ async function runWorkerLogic<T>(
   },
 ) {
   const res = await tryCatch(
-    ctx.run(
-      `main logic`,
-      async () => {
-        await run(data);
-      },
-      {
-        maxRetryAttempts: 1,
-      },
-    ),
+    ctx.run(`main logic`, async () => await run(data), {
+      maxRetryAttempts: 1,
+    }),
   );
   if (res.error) {
     await tryCatch(
@@ -124,8 +118,9 @@ async function runWorkerLogic<T>(
     return res;
   }
 
+  const runResult = res.data!;
   await tryCatch(
-    ctx.run("onComplete", async () => await onComplete?.(data), {
+    ctx.run("onComplete", async () => await onComplete?.(data, runResult), {
       maxRetryAttempts: 1,
     }),
   );

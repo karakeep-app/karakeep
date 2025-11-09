@@ -8,7 +8,6 @@ import {
 
 import type { PluginProvider } from "@karakeep/shared/plugins";
 import type {
-  DequeuedJob,
   DequeuedJobError,
   EnqueueOptions,
   Queue,
@@ -82,9 +81,9 @@ class LitequeQueueClient implements QueueClient {
     return wrapper;
   }
 
-  createRunner<T>(
+  createRunner<T, TResult = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T>,
+    funcs: RunnerFuncs<T, TResult>,
     opts: RunnerOptions<T>,
   ): Runner<T> {
     const name = queue.name();
@@ -93,13 +92,27 @@ class LitequeQueueClient implements QueueClient {
       throw new Error(`Queue ${name} not found`);
     }
 
+    const shouldTrackResult = typeof funcs.onComplete === "function";
+    const jobResults = shouldTrackResult ? new Map<string, TResult>() : null;
+
     const runner = new LQRunner<T>(
       wrapper._impl,
       {
-        run: funcs.run,
-        onComplete: funcs.onComplete as
-          | ((job: DequeuedJob<T>) => Promise<void>)
-          | undefined,
+        run: async (job) => {
+          const result = await funcs.run(job);
+          if (jobResults) {
+            jobResults.set(job.id, result as TResult);
+          }
+        },
+        onComplete: shouldTrackResult
+          ? async (job) => {
+              const result = jobResults?.get(job.id) as TResult;
+              if (jobResults) {
+                jobResults.delete(job.id);
+              }
+              await funcs.onComplete?.(job, result);
+            }
+          : undefined,
         onError: funcs.onError as
           | ((job: DequeuedJobError<T>) => Promise<void>)
           | undefined,

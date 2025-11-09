@@ -32,9 +32,9 @@ export interface DequeuedJobError<T> {
   numRetriesLeft: number;
 }
 
-export interface RunnerFuncs<T> {
-  run: (job: DequeuedJob<T>) => Promise<void>;
-  onComplete?: (job: DequeuedJob<T>) => Promise<void>;
+export interface RunnerFuncs<T, TResult = void> {
+  run: (job: DequeuedJob<T>) => Promise<TResult>;
+  onComplete?: (job: DequeuedJob<T>, result: TResult) => Promise<void>;
   onError?: (job: DequeuedJobError<T>) => Promise<void>;
 }
 
@@ -68,9 +68,9 @@ export interface QueueClient {
   prepare(): Promise<void>;
   start(): Promise<void>;
   createQueue<T>(name: string, options: QueueOptions): Queue<T>;
-  createRunner<T>(
+  createRunner<T, TResult = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T>,
+    funcs: RunnerFuncs<T, TResult>,
     opts: RunnerOptions<T>,
   ): Runner<T>;
   shutdown?(): Promise<void>;
