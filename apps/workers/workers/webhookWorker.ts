@@ -28,6 +28,9 @@ export class WebhookWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("webhook", "failed").inc();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("webhook", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[webhook][${jobId}] webhook job failed: ${job.error}\n${job.error.stack}`,

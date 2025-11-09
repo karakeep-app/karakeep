@@ -313,6 +313,9 @@ export class CrawlerWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("crawler", "failed").inc();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("crawler", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,

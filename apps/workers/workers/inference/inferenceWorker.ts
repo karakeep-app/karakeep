@@ -56,6 +56,7 @@ export class OpenAiWorker {
             `[inference][${jobId}] inference job failed: ${job.error}\n${job.error.stack}`,
           );
           if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("inference", "failed_permanent").inc();
             await attemptMarkStatus(job?.data, "failure");
           }
         },

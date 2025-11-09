@@ -46,6 +46,9 @@ export class VideoWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("video", "failed").inc();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("video", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[VideoCrawler][${jobId}] Video Download job failed: ${job.error}`,

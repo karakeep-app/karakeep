@@ -34,6 +34,14 @@ export class AdminMaintenanceWorker {
             workerStatsCounter
               .labels(`adminMaintenance:${job.data?.type}`, "failed")
               .inc();
+            if (job.numRetriesLeft == 0) {
+              workerStatsCounter
+                .labels(
+                  `adminMaintenance:${job.data?.type}`,
+                  "failed_permanent",
+                )
+                .inc();
+            }
             logger.error(
               `[adminMaintenance:${job.data?.type}][${job.id}] Job failed: ${job.error}\n${job.error.stack}`,
             );

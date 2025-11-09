@@ -34,6 +34,9 @@ export class SearchIndexingWorker {
           },
           onError: (job) => {
             workerStatsCounter.labels("search", "failed").inc();
+            if (job.numRetriesLeft == 0) {
+              workerStatsCounter.labels("search", "failed_permanent").inc();
+            }
             const jobId = job.id;
             logger.error(
               `[search][${jobId}] search job failed: ${job.error}\n${job.error.stack}`,
