@@ -1,3 +1,4 @@
+import assert from "assert";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RateLimiter } from "./index";
@@ -46,7 +47,7 @@ describe("RateLimiter", () => {
       expect(result1.allowed).toBe(true);
       expect(result2.allowed).toBe(true);
       expect(result3.allowed).toBe(false);
-      expect(result3.resetInSeconds).toBeDefined();
+      assert(!result3.allowed);
       expect(result3.resetInSeconds).toBeGreaterThan(0);
     });
 
@@ -139,6 +140,7 @@ describe("RateLimiter", () => {
       const result = rateLimiter.checkRateLimit(config, "user1");
       expect(result.allowed).toBe(false);
       // Should have ~30 seconds remaining
+      assert(!result.allowed);
       expect(result.resetInSeconds).toBeGreaterThan(29);
       expect(result.resetInSeconds).toBeLessThanOrEqual(30);
     });

@@ -106,6 +106,8 @@ const allEnv = z.object({
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
+  CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
+  CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
@@ -299,6 +301,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         dnsResolverTimeoutSec:
           val.CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC,
       },
+      domainRatelimiting:
+        val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS !== undefined &&
+        val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS !== undefined
+          ? {
+              windowMs: val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS,
+              maxRequests: val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS,
+            }
+          : null,
     },
     ocr: {
       langs: val.OCR_LANGS,
