@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zBookmarkSourceSchema } from "./bookmarks";
 
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 100;
@@ -93,7 +94,7 @@ export const zUserStatsResponseSchema = z.object({
     .max(10),
   bookmarksBySource: z.array(
     z.object({
-      source: z.string().nullable(),
+      source: zBookmarkSourceSchema.nullable(),
       count: z.number(),
     }),
   ),

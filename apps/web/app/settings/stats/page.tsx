@@ -48,9 +48,19 @@ const hourLabels = Array.from({ length: 24 }, (_, i) =>
   i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`,
 );
 
-function formatSourceName(source: string | null): string {
+type BookmarkSource =
+  | "api"
+  | "web"
+  | "extension"
+  | "cli"
+  | "mobile"
+  | "singlefile"
+  | "rss"
+  | "import";
+
+function formatSourceName(source: BookmarkSource | null): string {
   if (!source) return "Unknown";
-  const sourceMap: Record<string, string> = {
+  const sourceMap: Record<BookmarkSource, string> = {
     api: "API",
     web: "Web",
     extension: "Browser Extension",
@@ -60,7 +70,7 @@ function formatSourceName(source: string | null): string {
     rss: "RSS Feed",
     import: "Import",
   };
-  return sourceMap[source] || source;
+  return sourceMap[source];
 }
 
 function SimpleBarChart({
@@ -469,7 +479,7 @@ export default function StatsPage() {
               <div className="space-y-3">
                 {stats.bookmarksBySource.map(
                   (
-                    source: { source: string | null; count: number },
+                    source: { source: BookmarkSource | null; count: number },
                     index: number,
                   ) => (
                     <div
