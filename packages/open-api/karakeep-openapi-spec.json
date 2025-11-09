@@ -3397,6 +3397,35 @@
                         ]
                       },
                       "maxItems": 10
+                    },
+                    "bookmarksBySource": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "api",
+                              "web",
+                              "cli",
+                              "mobile",
+                              "extension",
+                              "singlefile",
+                              "rss",
+                              "import"
+                            ]
+                          },
+                          "count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "count"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3411,7 +3440,8 @@
                     "totalAssetSize",
                     "assetsByType",
                     "bookmarkingActivity",
-                    "tagUsage"
+                    "tagUsage",
+                    "bookmarksBySource"
                   ]
                 }
               }
