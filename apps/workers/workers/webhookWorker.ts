@@ -1,22 +1,22 @@
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
-import fetch from "node-fetch";
+import { fetchWithProxy } from "network";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
-import serverConfig from "@karakeep/shared/config";
-import logger from "@karakeep/shared/logger";
 import {
   WebhookQueue,
   ZWebhookRequest,
   zWebhookRequestSchema,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 export class WebhookWorker {
-  static build() {
+  static async build() {
     logger.info("Starting webhook worker ...");
-    const worker = new Runner<ZWebhookRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZWebhookRequest>(
       WebhookQueue,
       {
         run: runWebhook,
@@ -28,6 +28,9 @@ export class WebhookWorker {
         },
         onError: async (job) => {
           workerStatsCounter.labels("webhook", "failed").inc();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("webhook", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[webhook][${jobId}] webhook job failed: ${job.error}\n${job.error.stack}`,
@@ -102,7 +105,7 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
 
         while (attempt < maxRetries && !success) {
           try {
-            const response = await fetch(url, {
+            const response = await fetchWithProxy(url, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

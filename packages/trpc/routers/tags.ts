@@ -5,6 +5,8 @@ import {
   zCreateTagRequestSchema,
   zGetTagResponseSchema,
   zTagBasicSchema,
+  zTagListResponseSchema,
+  zTagListValidatedRequestSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
@@ -90,13 +92,24 @@ export const tagsAppRouter = router({
       return await Tag.merge(ctx, input);
     }),
   list: authedProcedure
-    .output(
-      z.object({
-        tags: z.array(zGetTagResponseSchema),
-      }),
+    .input(
+      // TODO: Remove the optional and default once the next release is out.
+      zTagListValidatedRequestSchema
+        .optional()
+        .default(zTagListValidatedRequestSchema.parse({})),
     )
-    .query(async ({ ctx }) => {
-      const tags = await Tag.getAllWithStats(ctx);
-      return { tags };
+    .output(zTagListResponseSchema)
+    .query(async ({ ctx, input }) => {
+      return await Tag.getAll(ctx, {
+        nameContains: input.nameContains,
+        attachedBy: input.attachedBy,
+        sortBy: input.sortBy,
+        pagination: input.limit
+          ? {
+              page: input.cursor?.page ?? 0,
+              limit: input.limit,
+            }
+          : undefined,
+      });
     }),
 });

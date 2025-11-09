@@ -90,18 +90,14 @@ describe("Public API", () => {
 
     const trpcClient = getTrpcClient(apiKey);
     // Wait for link bookmark to be crawled and have a banner image (screenshot)
-    await waitUntil(
-      async () => {
-        const res = await trpcClient.bookmarks.getBookmark.query({
-          bookmarkId: createBookmark1.id,
-        });
-        assert(res.content.type === BookmarkTypes.LINK);
-        // Check for screenshotAssetId as bannerImageUrl might be derived from it or original imageUrl
-        return !!res.content.screenshotAssetId || !!res.content.imageUrl;
-      },
-      "Bookmark is crawled and has banner info",
-      20000, // Increased timeout as crawling can take time
-    );
+    await waitUntil(async () => {
+      const res = await trpcClient.bookmarks.getBookmark.query({
+        bookmarkId: createBookmark1.id,
+      });
+      assert(res.content.type === BookmarkTypes.LINK);
+      // Check for screenshotAssetId as bannerImageUrl might be derived from it or original imageUrl
+      return !!res.content.screenshotAssetId || !!res.content.imageUrl;
+    }, "Bookmark is crawled and has banner info");
 
     const res = await trpcClient.publicBookmarks.getPublicBookmarksInList.query(
       {

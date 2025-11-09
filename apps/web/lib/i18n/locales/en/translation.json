@@ -47,6 +47,18 @@
     "list": "List",
     "compact": "Compact"
   },
+  "view_options": {
+    "title": "View Options",
+    "layout": "Layout",
+    "columns": "Columns",
+    "display_options": "Display Options",
+    "show_note_previews": "Show Notes",
+    "show_tags": "Show Tags",
+    "show_title": "Show Title",
+    "image_options": "Image Options",
+    "image_fit_cover": "Cover (Fill)",
+    "image_fit_contain": "Contain (Fit)"
+  },
   "actions": {
     "change_layout": "Change Layout",
     "archive": "Archive",
@@ -59,6 +71,7 @@
     "recrawl": "Recrawl",
     "download_full_page_archive": "Download Full Page Archive",
     "edit_tags": "Edit Tags",
+    "edit_notes": "Edit Notes",
     "add_to_list": "Add to List",
     "select_all": "Select All",
     "unselect_all": "Unselect All",
@@ -80,6 +93,7 @@
     "close": "Close",
     "merge": "Merge",
     "cancel": "Cancel",
+    "regenerate": "Regenerate",
     "apply_all": "Apply All",
     "ignore": "Ignore",
     "sort": {
@@ -87,7 +101,8 @@
       "relevant_first": "Most Relevant First",
       "newest_first": "Newest First",
       "oldest_first": "Oldest First"
-    }
+    },
+    "load_more": "Load More"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
@@ -166,6 +181,10 @@
       },
       "storage_breakdown": {
         "title": "Storage Breakdown"
+      },
+      "bookmark_sources": {
+        "title": "Bookmark Sources",
+        "empty": "No source data available"
       }
     },
     "ai": {
@@ -222,7 +241,12 @@
       "new_api_key": "New API Key",
       "new_api_key_desc": "Give your API key a unique name",
       "key_success": "Key was successfully created",
-      "key_success_please_copy": "Please copy the key and store it somewhere safe. Once you close the dialog, you won't be able to access it again."
+      "key_success_please_copy": "Please copy the key and store it somewhere safe. Once you close the dialog, you won't be able to access it again.",
+      "regenerate_api_key": "Regenerate API Key",
+      "key_regenerated": "Key was successfully regenerated",
+      "key_regenerated_please_copy": "Please copy the new key and store it somewhere safe. The old key has been revoked and will no longer work.",
+      "regenerate_warning": "Are you sure you want to regenerate the API key \"{{name}}\"?",
+      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working."
     },
     "broken_links": {
       "broken_links": "Broken Links",
@@ -307,6 +331,33 @@
       "loading_usage": "Loading usage information...",
       "free": "Free",
       "paid": "Paid"
+    },
+    "import_sessions": {
+      "title": "Import Sessions",
+      "description": "View and manage your bulk import sessions. Sessions are automatically created when you import bookmarks.",
+      "load_error": "Failed to load import sessions",
+      "no_sessions": "No import sessions yet",
+      "no_sessions_detail": "Import sessions will appear here automatically when you import bookmarks",
+      "created_at": "Created {{time}}",
+      "progress": "Progress",
+      "status": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "completed": "Completed",
+        "failed": "Failed",
+        "processing": "Processing"
+      },
+      "badges": {
+        "pending": "{{count}} pending",
+        "processing": "{{count}} processing",
+        "completed": "{{count}} completed",
+        "failed": "{{count}} failed"
+      },
+      "imported_to": "Imported to:",
+      "view_list": "View List",
+      "delete_dialog_title": "Delete Import Session",
+      "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
+      "delete_session": "Delete Session"
     }
   },
   "admin": {
@@ -316,6 +367,18 @@
       "total_users": "Total Users",
       "total_bookmarks": "Total Bookmarks",
       "server_version": "Server Version"
+    },
+    "service_connections": {
+      "title": "Service Connections",
+      "description": "Monitor the health and connectivity of external system dependencies",
+      "search_engine": "Search Engine",
+      "browser": "Browser",
+      "queue_system": "Queue System",
+      "status": {
+        "not_configured": "Not Configured",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
+      }
     },
     "background_jobs": {
       "jobs": {
@@ -335,9 +398,9 @@
           "title": "Asset Preprocessing Jobs",
           "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
         },
-        "tidy_assets": {
-          "title": "Tidy Assets Jobs",
-          "description": "Asset cleanup and storage optimization"
+        "admin_maintenance": {
+          "title": "Admin Maintenance Jobs",
+          "description": "Administrative cleanup and asset maintenance"
         },
         "video": {
           "title": "Video Download Jobs",
@@ -381,6 +444,7 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",
         "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
+        "migrate_large_link_html_content": "Move Large Inline HTML Content to Assets",
         "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
       }
     },
@@ -421,6 +485,12 @@
     "search_query": "Search Query",
     "search_query_help": "Learn more about the search query language.",
     "description": "Description (Optional)",
+    "delete_list": {
+      "title": "Delete List",
+      "description": "Deleting a list doesn't delete any bookmarks in that list.",
+      "delete_children": "Delete children lists (recursively)",
+      "delete_children_description": "If not checked, all direct children lists will become root lists"
+    },
     "rss": {
       "title": "RSS Feed",
       "description": "Enable an RSS feed for this list",
@@ -443,7 +513,18 @@
     "delete_all_unused_tags": "Delete All Unused Tags",
     "drag_and_drop_merging": "Drag & Drop Merging",
     "drag_and_drop_merging_info": "Drag and drop tags on each other to merge them",
-    "sort_by_name": "Sort by Name"
+    "sort_by_name": "Sort by Name",
+    "sort_by_usage": "Sort by Usage",
+    "sort_by_relevance": "Sort by Relevance",
+    "create_tag": "Create Tag",
+    "create_tag_description": "Create a new tag without attaching it to any bookmark",
+    "tag_name": "Tag Name",
+    "enter_tag_name": "Enter tag name",
+    "no_custom_tags": "No custom tags yet",
+    "no_ai_tags": "No AI tags yet",
+    "no_unused_tags": "You don't have any unused tags",
+    "no_unused_tags_match_your_search": "No unused tags match your search",
+    "no_tags_match_your_search": "No tags match your search"
   },
   "search": {
     "is_favorited": "Is Favorited",
@@ -470,6 +551,8 @@
     "year_s_ago": " Year(s) Ago",
     "url_contains": "URL Contains",
     "url_does_not_contain": "URL Does Not Contain",
+    "title_contains": "Title Contains",
+    "title_does_not_contain": "Title Does Not Contain",
     "is_in_list": "Is In List",
     "is_not_in_list": "Is not In List",
     "has_tag": "Has Tag",
@@ -571,6 +654,10 @@
       "updated": "List has been updated!",
       "merged": "List has been merged!",
       "deleted": "List has been deleted!"
+    },
+    "tags": {
+      "created": "Tag has been created!",
+      "failed_to_create": "Failed to create tag"
     }
   },
   "banners": {
@@ -595,5 +682,15 @@
     "pick_a_date": "Pick a date",
     "save_changes": "Save changes",
     "extracted_content": "Extracted Content"
+  },
+  "version": {
+    "new_release_available": "New release notes available",
+    "whats_new_title": "What's new in v{{version}}",
+    "release_notes_description": "Here are the latest updates fetched from the GitHub release notes.",
+    "loading_release_notes": "Loading release notes…",
+    "unable_to_load_release_notes": "Unable to load release notes right now. Please try again later.",
+    "no_release_notes": "No release notes were published for this version.",
+    "release_notes_synced": "Release notes are synced from GitHub.",
+    "view_on_github": "View on GitHub"
   }
 }

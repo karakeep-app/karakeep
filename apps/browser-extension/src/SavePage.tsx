@@ -10,6 +10,8 @@ import {
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
 import { api } from "./utils/trpc";
+import { MessageType } from "./utils/type";
+import { isHttpUrl } from "./utils/url";
 
 export default function SavePage() {
   const [error, setError] = useState<string | undefined>(undefined);
@@ -22,8 +24,18 @@ export default function SavePage() {
     onError: (e) => {
       setError("Something went wrong: " + e.message);
     },
+    onSuccess: async () => {
+      // After successful creation, update badge cache and notify background
+      const [currentTab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      });
+      await chrome.runtime.sendMessage({
+        type: MessageType.BOOKMARK_REFRESH_BADGE,
+        currentTab: currentTab,
+      });
+    },
   });
-
   useEffect(() => {
     async function getNewBookmarkRequestFromBackgroundScriptIfAny(): Promise<ZNewBookmarkRequest | null> {
       const { [NEW_BOOKMARK_REQUEST_KEY_NAME]: req } =
@@ -44,22 +56,38 @@ export default function SavePage() {
           active: true,
           lastFocusedWindow: true,
         });
-        if (currentTab?.url) {
-          newBookmarkRequest = {
-            type: BookmarkTypes.LINK,
-            url: currentTab.url,
-            title: currentTab.title,
-          };
-        } else {
-          setError("Couldn't find the URL of the current tab");
+        if (!currentTab.url) {
+          setError("Current tab has no URL to bookmark.");
           return;
         }
+
+        if (!isHttpUrl(currentTab.url)) {
+          setError(
+            "Cannot bookmark this type of URL. Only HTTP/HTTPS URLs are supported.",
+          );
+          return;
+        }
+
+        newBookmarkRequest = {
+          type: BookmarkTypes.LINK,
+          title: currentTab.title,
+          url: currentTab.url,
+          source: "extension",
+        };
       }
 
-      createBookmark(newBookmarkRequest);
+      createBookmark({
+        ...newBookmarkRequest,
+        source: newBookmarkRequest.source || "extension",
+      });
     }
+
     runSave();
   }, [createBookmark]);
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
 
   switch (status) {
     case "error": {

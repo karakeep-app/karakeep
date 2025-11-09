@@ -1,23 +1,23 @@
 import { eq } from "drizzle-orm";
-import { DequeuedJob, Runner } from "liteque";
 import { workerStatsCounter } from "metrics";
 import { buildImpersonatingAuthedContext } from "trpc";
 
-import type { ZRuleEngineRequest } from "@karakeep/shared/queues";
+import type { ZRuleEngineRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
-import serverConfig from "@karakeep/shared/config";
-import logger from "@karakeep/shared/logger";
 import {
   RuleEngineQueue,
   zRuleEngineRequestSchema,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 
 export class RuleEngineWorker {
-  static build() {
+  static async build() {
     logger.info("Starting rule engine worker ...");
-    const worker = new Runner<ZRuleEngineRequest>(
+    const worker = (await getQueueClient())!.createRunner<ZRuleEngineRequest>(
       RuleEngineQueue,
       {
         run: runRuleEngine,
@@ -29,6 +29,9 @@ export class RuleEngineWorker {
         },
         onError: (job) => {
           workerStatsCounter.labels("ruleEngine", "failed").inc();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("ruleEngine", "failed_permanent").inc();
+          }
           const jobId = job.id;
           logger.error(
             `[ruleEngine][${jobId}] rule engine job failed: ${job.error}\n${job.error.stack}`,

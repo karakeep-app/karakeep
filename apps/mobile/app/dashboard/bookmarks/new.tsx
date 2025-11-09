@@ -48,9 +48,13 @@ const NoteEditorPage = () => {
       if (url.protocol != "http:" && url.protocol != "https:") {
         throw new Error(`Unsupported URL protocol: ${url.protocol}`);
       }
-      createBookmark({ type: BookmarkTypes.LINK, url: data });
+      createBookmark({ type: BookmarkTypes.LINK, url: data, source: "mobile" });
     } catch {
-      createBookmark({ type: BookmarkTypes.TEXT, text: data });
+      createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: data,
+        source: "mobile",
+      });
     }
   };
 

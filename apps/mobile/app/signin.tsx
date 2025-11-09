@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { Redirect, useRouter } from "expo-router";
+import { CustomHeadersModal } from "@/components/CustomHeadersModal";
 import Logo from "@/components/Logo";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
@@ -29,8 +30,10 @@ export default function Signin() {
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
   const [isEditingServerAddress, setIsEditingServerAddress] = useState(false);
   const [tempServerAddress, setTempServerAddress] = useState(
-    "https://cloud.karakeep.app",
+    settings.address ?? "https://cloud.karakeep.app",
   );
+  const [isCustomHeadersModalVisible, setIsCustomHeadersModalVisible] =
+    useState(false);
 
   const emailRef = useRef<string>("");
   const passwordRef = useRef<string>("");
@@ -78,6 +81,10 @@ export default function Signin() {
   if (settings.apiKey) {
     return <Redirect href="dashboard" />;
   }
+
+  const handleSaveCustomHeaders = (headers: Record<string, string>) => {
+    setSettings({ ...settings, customHeaders: headers });
+  };
 
   const onSignin = () => {
     if (!tempServerAddress) {
@@ -184,6 +191,17 @@ export default function Signin() {
                 </Button>
               </View>
             )}
+            <Pressable
+              onPress={() => setIsCustomHeadersModalVisible(true)}
+              className="mt-1"
+            >
+              <Text className="text-xs text-gray-500 underline">
+                Configure Custom Headers{" "}
+                {settings.customHeaders &&
+                  Object.keys(settings.customHeaders).length > 0 &&
+                  `(${Object.keys(settings.customHeaders).length})`}
+              </Text>
+            </Pressable>
           </View>
           {loginType === LoginType.Password && (
             <>
@@ -264,6 +282,12 @@ export default function Signin() {
           </Pressable>
         </View>
       </TouchableWithoutFeedback>
+      <CustomHeadersModal
+        visible={isCustomHeadersModalVisible}
+        customHeaders={settings.customHeaders || {}}
+        onClose={() => setIsCustomHeadersModalVisible(false)}
+        onSave={handleSaveCustomHeaders}
+      />
     </KeyboardAvoidingView>
   );
 }

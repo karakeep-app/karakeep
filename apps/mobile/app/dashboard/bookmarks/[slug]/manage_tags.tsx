@@ -35,7 +35,7 @@ const ListPickerPage = () => {
   };
 
   const { data: allTags, isPending: isAllTagsPending } = api.tags.list.useQuery(
-    undefined,
+    {},
     {
       select: React.useCallback(
         (data: { tags: { id: string; name: string }[] }) => {

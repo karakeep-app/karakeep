@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
-import CopyBtn from "@/components/ui/copy-button";
 import {
   Dialog,
   DialogClose,
@@ -33,24 +32,7 @@ import { PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-function ApiKeySuccess({ apiKey }: { apiKey: string }) {
-  const { t } = useTranslation();
-  return (
-    <div>
-      <div className="py-4 text-sm text-muted-foreground">
-        {t("settings.api_keys.key_success_please_copy")}
-      </div>
-      <div className="flex space-x-2 pt-2">
-        <Input value={apiKey} readOnly />
-        <CopyBtn
-          getStringToCopy={() => {
-            return apiKey;
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+import ApiKeySuccess from "./ApiKeySuccess";
 
 function AddApiKeyForm({ onSuccess }: { onSuccess: (key: string) => void }) {
   const { t } = useTranslation();
@@ -145,7 +127,10 @@ export default function AddApiKey() {
           </DialogTitle>
         </DialogHeader>
         {key ? (
-          <ApiKeySuccess apiKey={key} />
+          <ApiKeySuccess
+            apiKey={key}
+            message={t("settings.api_keys.key_success")}
+          />
         ) : (
           <AddApiKeyForm onSuccess={setKey} />
         )}

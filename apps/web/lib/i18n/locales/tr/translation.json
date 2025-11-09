@@ -87,7 +87,10 @@
     },
     "open_editor": "Düzenleyiciyi Aç",
     "toggle_show_archived": "Arşivlenmiş Olanları Göster",
-    "confirm": "Onayla"
+    "confirm": "Onayla",
+    "regenerate": "Yeniden oluştur",
+    "load_more": "Daha Fazla Yükle",
+    "edit_notes": "Notları Düzenle"
   },
   "highlights": {
     "no_highlights": "Henüz hiçbir öne çıkarılmış içeriğiniz yok."
@@ -154,7 +157,12 @@
       "new_api_key": "Yeni API Anahtarı",
       "new_api_key_desc": "API anahtarınıza benzersiz bir ad verin",
       "key_success": "Anahtar başarıyla oluşturuldu",
-      "key_success_please_copy": "Lütfen anahtarı kopyalayın ve güvenli bir yerde saklayın. Diyaloğu kapattıktan sonra tekrar erişemezsiniz."
+      "key_success_please_copy": "Lütfen anahtarı kopyalayın ve güvenli bir yerde saklayın. Diyaloğu kapattıktan sonra tekrar erişemezsiniz.",
+      "regenerate_api_key": "API Anahtarını Yeniden Oluştur",
+      "key_regenerated": "Anahtar başarıyla yeniden oluşturuldu",
+      "key_regenerated_please_copy": "Lütfen yeni anahtarı kopyalayın ve güvenli bir yerde saklayın. Eski anahtar iptal edildi ve artık çalışmayacak.",
+      "regenerate_warning": "\"{{name}}\" API anahtarını yeniden oluşturmak istediğinizden emin misiniz?",
+      "regenerate_confirmation": "Bu, mevcut anahtarı iptal edecek ve yeni bir tane oluşturacaktır. Mevcut anahtarı kullanan uygulamaların hiçbiri çalışmayacak."
     },
     "broken_links": {
       "broken_links": "Bozuk Bağlantılar",
@@ -307,6 +315,33 @@
       "loading_usage": "Kullanım bilgileri yükleniyor...",
       "free": "Ücretsiz",
       "paid": "Ücretli"
+    },
+    "import_sessions": {
+      "title": "İçe Aktarma Oturumları",
+      "description": "Toplu içe aktarma oturumlarını görüntüle ve yönet. Oturumlar, yer imlerini içe aktardığında otomatik olarak oluşturulur.",
+      "load_error": "İçe aktarma oturumları yüklenemedi",
+      "no_sessions": "Henüz içe aktarma oturumu yok",
+      "no_sessions_detail": "Yer imlerini içe aktardığında, içe aktarma oturumları burada otomatik olarak görünecektir.",
+      "created_at": "Oluşturulma zamanı: {{time}}",
+      "progress": "İlerleme durumu",
+      "status": {
+        "pending": "Bekliyor",
+        "in_progress": "Devam ediyor",
+        "completed": "Tamamlandı",
+        "failed": "Başarısız",
+        "processing": "İşleniyor"
+      },
+      "badges": {
+        "pending": "{{count}} beklemede",
+        "processing": "{{count}} işleniyor",
+        "completed": "{{count}} tamamlandı",
+        "failed": "{{count}} başarısız"
+      },
+      "imported_to": "İçe aktarıldığı yer:",
+      "view_list": "Listeyi Görüntüle",
+      "delete_dialog_title": "İçe Aktarma Oturumunu Sil",
+      "delete_dialog_description": "\"{{name}}\" öğesini silmek istediğinden emin misin? Bu işlem geri alınamaz. Yer imlerinin kendileri silinmeyecektir.",
+      "delete_session": "Oturumu Sil"
     }
   },
   "admin": {
@@ -363,6 +398,10 @@
         "feed": {
           "title": "RSS Besleme İşleri",
           "description": "RSS besleme işleme ve içerik güncellemeleri"
+        },
+        "admin_maintenance": {
+          "title": "Yönetici Bakım İşleri",
+          "description": "Yönetimsel temizlik ve varlık bakımı"
         }
       },
       "monitor_and_manage": "Arka plan iş kuyruklarını ve sistem işleme görevlerini izleyin ve yönetin",
@@ -393,7 +432,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Tüm Yer İmleri için Yapay Zeka Özetlerini Yeniden Oluştur",
         "reindex_all_bookmarks": "Tüm Yer İmlerini Yeniden İndeksle",
         "clean_assets": "Sallanan Varlıkları Temizle ve Meta Verileri Yeniden Eşitle",
-        "reprocess_assets_fix_mode": "İşlenmemiş Varlıkları Yeniden İşle"
+        "reprocess_assets_fix_mode": "İşlenmemiş Varlıkları Yeniden İşle",
+        "migrate_large_link_html_content": "Büyük Satır İçi HTML İçeriğini Varlıklara Taşı"
       }
     },
     "actions": {
@@ -420,6 +460,18 @@
       "confirm_password": "Şifreyi Onayla",
       "delete_user_confirm_description": "{{name}} kullanıcısını silmek istediğine emin misin?",
       "unlimited": "Sınırsız"
+    },
+    "service_connections": {
+      "title": "Hizmet Bağlantıları",
+      "description": "Harici sistem bağımlılıklarının sağlığını ve bağlantısını izle",
+      "search_engine": "Arama Motoru",
+      "browser": "Tarayıcı",
+      "queue_system": "Sıra Sistemi",
+      "status": {
+        "not_configured": "Yapılandırılmamış",
+        "connected": "Bağlı",
+        "disconnected": "Bağlantı Kesildi"
+      }
     }
   },
   "options": {
@@ -454,6 +506,12 @@
       "title": "Herkese Açık Liste",
       "description": "Başkalarının bu listeyi görüntülemesine izin ver",
       "share_link": "Bağlantıyı Paylaş"
+    },
+    "delete_list": {
+      "title": "Listeyi Sil",
+      "description": "Bir listeyi silmek, o listedeki hiçbir yer işaretini silmez.",
+      "delete_children": "Alt listeleri sil (özyinelemeli olarak)",
+      "delete_children_description": "İşaretli değilse, tüm doğrudan alt listeler kök listelere dönüşür"
     }
   },
   "tags": {
@@ -467,7 +525,18 @@
     "delete_all_unused_tags": "Kullanılmayan Tüm Etiketleri Sil",
     "drag_and_drop_merging": "Sürükle ve Bırak Birleştirme",
     "drag_and_drop_merging_info": "Etiketleri birbirlerinin üzerine sürükleyerek birleştirin",
-    "sort_by_name": "İsme Göre Sırala"
+    "sort_by_name": "İsme Göre Sırala",
+    "create_tag": "Etiket Oluştur",
+    "create_tag_description": "Herhangi bir yer işaretine iliştirmeden yeni bir etiket oluştur",
+    "tag_name": "Etiket Adı",
+    "enter_tag_name": "Etiket adını girin",
+    "sort_by_usage": "Kullanıma Göre Sırala",
+    "sort_by_relevance": "Alaka Düzeyine Göre Sırala",
+    "no_custom_tags": "Henüz özel etiket yok",
+    "no_ai_tags": "Henüz yapay zeka etiketi yok",
+    "no_unused_tags": "Kullanılmayan etiketiniz yok",
+    "no_unused_tags_match_your_search": "Aramanızla eşleşen kullanılmayan etiket yok",
+    "no_tags_match_your_search": "Aramanızla eşleşen etiket yok"
   },
   "preview": {
     "view_original": "Orijinali Görüntüle",
@@ -551,6 +620,10 @@
       "updated": "Liste güncellendi!",
       "merged": "Liste birleştirildi!",
       "deleted": "Liste silindi!"
+    },
+    "tags": {
+      "created": "Etiket oluşturuldu!",
+      "failed_to_create": "Etiket oluşturulamadı"
     }
   },
   "cleanups": {
@@ -596,7 +669,9 @@
     "day_s_ago": " Gün Önce",
     "week_s_ago": " Hafta Önce",
     "month_s_ago": " Ay Önce",
-    "history": "Son Aramalar"
+    "history": "Son Aramalar",
+    "title_contains": "Başlık İçeriyor",
+    "title_does_not_contain": "Başlık İçermiyor"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Bir tarih seç",
     "save_changes": "Değişiklikleri kaydet",
     "extracted_content": "Çıkarılan İçerik"
+  },
+  "view_options": {
+    "title": "Görünüm Seçenekleri",
+    "layout": "Yerleşim",
+    "columns": "Sütunlar",
+    "display_options": "Görüntüleme Seçenekleri",
+    "show_note_previews": "Notları Göster",
+    "show_tags": "Etiketleri Göster",
+    "show_title": "Başlığı Göster",
+    "image_options": "Görüntü Seçenekleri",
+    "image_fit_cover": "Kapak (Doldur)",
+    "image_fit_contain": "İçer (Sığdır)"
+  },
+  "version": {
+    "new_release_available": "Yeni sürüm notları mevcut",
+    "whats_new_title": "v{{version}} sürümünde ne var?",
+    "release_notes_description": "GitHub sürüm notlarından alınan en son güncellemeler burada.",
+    "loading_release_notes": "Sürüm notları yükleniyor…",
+    "unable_to_load_release_notes": "Şu anda sürüm notları yüklenemiyor. Lütfen daha sonra tekrar deneyin.",
+    "no_release_notes": "Bu sürüm için yayınlanmış sürüm notu yok.",
+    "release_notes_synced": "Sürüm notları GitHub'dan senkronize edilir.",
+    "view_on_github": "GitHub'da görüntüle"
   }
 }

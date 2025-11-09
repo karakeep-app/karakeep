@@ -46,6 +46,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
             {bookmark.bannerImageUrl && (
               <div className="aspect-video w-full overflow-hidden rounded bg-gray-100">
                 <Link href={bookmark.content.url} target="_blank">
+                  {/* oxlint-disable-next-line no-img-element */}
                   <img
                     src={bookmark.bannerImageUrl}
                     alt={bookmark.title ?? "Link preview"}
@@ -108,6 +109,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
             {bookmark.bannerImageUrl ? (
               <div className="aspect-video w-full overflow-hidden rounded bg-gray-100">
                 <Link href={bookmark.content.assetUrl} target="_blank">
+                  {/* oxlint-disable-next-line no-img-element */}
                   <img
                     src={bookmark.bannerImageUrl}
                     alt={bookmark.title ?? "Asset preview"}

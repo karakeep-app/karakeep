@@ -57,10 +57,15 @@ export const listsAppRouter = router({
     .input(
       z.object({
         listId: z.string(),
+        deleteChildren: z.boolean().optional().default(false),
       }),
     )
     .use(ensureListOwnership)
-    .mutation(async ({ ctx }) => {
+    .mutation(async ({ ctx, input }) => {
+      if (input.deleteChildren) {
+        const children = await ctx.list.getChildren();
+        await Promise.all(children.map((l) => l.delete()));
+      }
       await ctx.list.delete();
     }),
   addToList: authedProcedure

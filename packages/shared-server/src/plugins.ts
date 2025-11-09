@@ -6,7 +6,10 @@ export async function loadAllPlugins() {
     return;
   }
   // Load plugins here. Order of plugin loading matter.
-  await import("@karakeep/plugins-search-meilisearch");
+  // Queue provider(s)
+  await import("@karakeep/plugins/queue-liteque");
+  await import("@karakeep/plugins/queue-restate");
+  await import("@karakeep/plugins/search-meilisearch");
   PluginManager.logAllPlugins();
   pluginsLoaded = true;
 }

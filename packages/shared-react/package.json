@@ -7,7 +7,7 @@
   "dependencies": {
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
-    "@tanstack/react-query": "^5.80.3",
+    "@tanstack/react-query": "5.90.2",
     "@trpc/client": "^11.4.3",
     "superjson": "^2.2.1"
   },

@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/server";
 import { TFunction } from "i18next";
 
 import serverConfig from "@karakeep/shared/config";
 
 import SidebarItem from "./SidebarItem";
+import SidebarVersion from "./SidebarVersion";
 import { TSidebarItem } from "./TSidebarItem";
 
 export default async function Sidebar({
@@ -32,18 +32,7 @@ export default async function Sidebar({
         </ul>
       </div>
       {extraSections}
-      <Link
-        href={
-          serverConfig.serverVersion === "nightly"
-            ? `https://github.com/karakeep-app/karakeep`
-            : `https://github.com/karakeep-app/karakeep/releases/tag/v${serverConfig.serverVersion}`
-        }
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-auto flex items-center border-t pt-2 text-sm text-gray-400 hover:underline"
-      >
-        Karakeep v{serverConfig.serverVersion}
-      </Link>
+      <SidebarVersion serverVersion={serverConfig.serverVersion} />
     </aside>
   );
 }

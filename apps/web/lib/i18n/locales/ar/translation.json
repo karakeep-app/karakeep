@@ -87,7 +87,10 @@
     },
     "open_editor": "فتح المحرر",
     "toggle_show_archived": "اعرض المؤرشفة",
-    "confirm": "تأكيد"
+    "confirm": "تأكيد",
+    "regenerate": "تجديد",
+    "load_more": "المزيد",
+    "edit_notes": "تحرير الملاحظات"
   },
   "highlights": {
     "no_highlights": "ليس لديك أي تمييزات بعد."
@@ -172,7 +175,12 @@
       "new_api_key": "مفتاح API جديد",
       "new_api_key_desc": "أعط مفتاح API اسماً فريداً",
       "key_success": "تم إنشاء المفتاح بنجاح",
-      "key_success_please_copy": "يرجى نسخ المفتاح وتخزينه في مكان آمن. لن تتمكن من الوصول إليه مرة أخرى بعد إغلاق هذا الحوار."
+      "key_success_please_copy": "يرجى نسخ المفتاح وتخزينه في مكان آمن. لن تتمكن من الوصول إليه مرة أخرى بعد إغلاق هذا الحوار.",
+      "regenerate_api_key": "تجديد مفتاح API",
+      "key_regenerated": "تم تجديد المفتاح بنجاح",
+      "key_regenerated_please_copy": "يرجى نسخ المفتاح الجديد وتخزينه في مكان آمن. تم إلغاء المفتاح القديم ولن يعمل بعد الآن.",
+      "regenerate_warning": "هل أنت متأكد أنك تريد تجديد مفتاح API لـ \"{{name}}\"?",
+      "regenerate_confirmation": "سيؤدي ذلك إلى إلغاء المفتاح الحالي وإنشاء مفتاح جديد. ستتوقف أي تطبيقات تستخدم المفتاح الحالي عن العمل."
     },
     "broken_links": {
       "broken_links": "روابط معطلة",
@@ -307,6 +315,33 @@
       "loading_usage": "جارٍ تحميل معلومات الاستخدام...",
       "free": "مجاني",
       "paid": "مدفوعة"
+    },
+    "import_sessions": {
+      "title": "استيراد الجلسات",
+      "description": "اعرض وجّه جلسات الاستيراد المجمّع الخاصة بك وإدارتها. يتم إنشاء الجلسات تلقائيًا عند استيراد الإشارات المرجعية.",
+      "load_error": "فشل تحميل جلسات الاستيراد",
+      "no_sessions": "لا توجد جلسات استيراد حتى الآن",
+      "no_sessions_detail": "ستظهر جلسات الاستيراد هنا تلقائيًا عند استيراد الإشارات المرجعية",
+      "created_at": "أنشئ {{time}}",
+      "progress": "التقدّم",
+      "status": {
+        "pending": "معلّق",
+        "in_progress": "قيد التقدّم",
+        "completed": "اكتمل",
+        "failed": "فشل",
+        "processing": "جارٍ المعالجة"
+      },
+      "badges": {
+        "pending": "{{count}} معلّق",
+        "processing": "{{count}} قيد المعالجة",
+        "completed": "{{count}} اكتمل",
+        "failed": "{{count}} فشل"
+      },
+      "imported_to": "تم الاستيراد إلى:",
+      "view_list": "عرض اللائحة",
+      "delete_dialog_title": "حذف جلسة الاستيراد",
+      "delete_dialog_description": "هل أنت متأكد أنك تريد حذف \" {{name}} \"؟ لا يمكن التراجع عن هذا الإجراء. لن يتم حذف الإشارات المرجعية نفسها.",
+      "delete_session": "حذف الجلسة"
     }
   },
   "admin": {
@@ -363,6 +398,10 @@
         "feed": {
           "title": "وظائف تغذية RSS",
           "description": "معالجة موجز RSS وتحديثات المحتوى"
+        },
+        "admin_maintenance": {
+          "title": "مهام صيانة المسؤول",
+          "description": "تنظيف إداري وصيانة للأصول"
         }
       },
       "monitor_and_manage": "مراقبة وإدارة قوائم انتظار الوظائف الخلفية ومهام معالجة النظام",
@@ -393,7 +432,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "إعادة إنشاء ملخصات الذكاء الاصطناعي لجميع الإشارات المرجعية",
         "reindex_all_bookmarks": "إعادة فهرسة جميع الإشارات المرجعية",
         "clean_assets": "تنظيف الأصول المتدلية وإعادة مزامنة البيانات الوصفية",
-        "reprocess_assets_fix_mode": "إعادة معالجة الأصول غير المعالجة"
+        "reprocess_assets_fix_mode": "إعادة معالجة الأصول غير المعالجة",
+        "migrate_large_link_html_content": "نقل محتوى HTML كبير مضمّن إلى الأصول"
       }
     },
     "actions": {
@@ -420,6 +460,18 @@
       "confirm_password": "تأكيد كلمة المرور",
       "delete_user_confirm_description": "هل أنت متأكد أنك تريد حذف المستخدم \"{{name}}؟\"",
       "unlimited": "غير محدود"
+    },
+    "service_connections": {
+      "title": "اتصالات الخدمة",
+      "description": "راقب حالة التبعيات الخاصة بالنظام الخارجي واتصاله",
+      "search_engine": "محرك البحث",
+      "browser": "المتصفح",
+      "queue_system": "نظام الانتظار",
+      "status": {
+        "not_configured": "غير مهيأ",
+        "connected": "متصل",
+        "disconnected": "قطع الاتصال"
+      }
     }
   },
   "options": {
@@ -454,6 +506,12 @@
       "title": "قائمة عامة",
       "description": "السماح للآخرين بعرض هذه القائمة",
       "share_link": "شارك الرابط"
+    },
+    "delete_list": {
+      "title": "حذف القائمة",
+      "description": "لا يؤدي حذف قائمة ما إلى حذف أي إشارات مرجعية في هذه القائمة.",
+      "delete_children": "حذف القوائم الفرعية (بشكل متكرر)",
+      "delete_children_description": "إذا لم يتم تحديده، فستصبح جميع القوائم الفرعية المباشرة قوائم جذر"
     }
   },
   "tags": {
@@ -467,7 +525,18 @@
     "delete_all_unused_tags": "حذف جميع الوسوم غير المستخدمة",
     "drag_and_drop_merging": "دمج بالسحب والإفلات",
     "drag_and_drop_merging_info": "اسحب وأفلت الوسوم على بعضها البعض لدمجها",
-    "sort_by_name": "ترتيب حسب الاسم"
+    "sort_by_name": "ترتيب حسب الاسم",
+    "create_tag": "إنشاء علامة",
+    "create_tag_description": "إنشاء علامة جديدة بدون إرفاقها بأي إشارة مرجعية",
+    "tag_name": "اسم العلامة",
+    "enter_tag_name": "أدخل اسم العلامة",
+    "sort_by_usage": "الترتيب حسب الاستخدام",
+    "sort_by_relevance": "الترتيب حسب الصلة",
+    "no_custom_tags": "لا توجد علامات مخصصة حتى الآن",
+    "no_ai_tags": "لا توجد علامات ذكاء اصطناعي حتى الآن",
+    "no_unused_tags": "ليس لديك أية علامات غير مستخدمة",
+    "no_unused_tags_match_your_search": "لا توجد علامات غير مستخدمة تطابق بحثك",
+    "no_tags_match_your_search": "لا توجد علامات تطابق بحثك"
   },
   "search": {
     "is_favorited": "في المفضلة",
@@ -505,7 +574,9 @@
     "year_s": " سنة (سنوات)",
     "day_s_ago": " منذ يوم (أيام)",
     "week_s_ago": " منذ أسبوع (أسابيع)",
-    "history": "عمليات البحث الأخيرة"
+    "history": "عمليات البحث الأخيرة",
+    "title_contains": "العنوان يحتوي على",
+    "title_does_not_contain": "العنوان لا يحتوي على"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",
@@ -595,6 +666,10 @@
       "updated": "تم تحديث القائمة!",
       "merged": "تم دمج القائمة!",
       "deleted": "تم حذف القائمة!"
+    },
+    "tags": {
+      "created": "تم إنشاء العلامة!",
+      "failed_to_create": "فشل إنشاء العلامة"
     }
   },
   "cleanups": {
@@ -619,5 +694,27 @@
     "pick_a_date": "اختر تاريخًا",
     "save_changes": "حفظ التغييرات",
     "extracted_content": "المحتوى المستخرج"
+  },
+  "view_options": {
+    "title": "عرض الخيارات",
+    "layout": "تخطيط",
+    "columns": "أعمدة",
+    "display_options": "خيارات العرض",
+    "show_note_previews": "إظهار الملاحظات",
+    "show_tags": "عرض العلامات",
+    "show_title": "عرض العنوان",
+    "image_options": "خيارات الصورة",
+    "image_fit_cover": "غطاء (تعبئة)",
+    "image_fit_contain": "احتواء (ملاءمة)"
+  },
+  "version": {
+    "new_release_available": "ملاحظات الإصدار الجديدة متوفرة",
+    "whats_new_title": "ما الجديد في v{{version}}",
+    "release_notes_description": "إليك آخر التحديثات التي تم جلبها من ملاحظات إصدار GitHub.",
+    "loading_release_notes": "جارٍ تحميل ملاحظات الإصدار…",
+    "unable_to_load_release_notes": "تعذر تحميل ملاحظات الإصدار الآن. يرجى المحاولة مرة أخرى لاحقًا.",
+    "no_release_notes": "لم يتم نشر ملاحظات إصدار لهذا الإصدار.",
+    "release_notes_synced": "تتم مزامنة ملاحظات الإصدار من GitHub.",
+    "view_on_github": "عرض على GitHub"
   }
 }

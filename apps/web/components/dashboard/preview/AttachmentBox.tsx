@@ -101,7 +101,11 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               prefetch={false}
             >
               {ASSET_TYPE_TO_ICON[asset.assetType]}
-              <p>{humanFriendlyNameForAssertType(asset.assetType)}</p>
+              <p>
+                {asset.assetType === "userUploaded" && asset.fileName
+                  ? asset.fileName
+                  : humanFriendlyNameForAssertType(asset.assetType)}
+              </p>
             </Link>
             <div className="flex gap-2">
               <Link
@@ -109,35 +113,40 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
                 target="_blank"
                 href={getAssetUrl(asset.id)}
                 className="flex items-center gap-1"
-                download={humanFriendlyNameForAssertType(asset.assetType)}
+                download={
+                  asset.assetType === "userUploaded" && asset.fileName
+                    ? asset.fileName
+                    : humanFriendlyNameForAssertType(asset.assetType)
+                }
                 prefetch={false}
               >
                 <Download className="size-4" />
               </Link>
-              {isAllowedToAttachAsset(asset.assetType) && (
-                <FilePickerButton
-                  title="Replace"
-                  loading={isReplacing}
-                  accept=".jgp,.JPG,.jpeg,.png,.webp"
-                  multiple={false}
-                  variant="none"
-                  size="none"
-                  className="flex items-center gap-2"
-                  onFileSelect={(file) =>
-                    uploadAsset(file, {
-                      onSuccess: (resp) => {
-                        replaceAsset({
-                          bookmarkId: bookmark.id,
-                          oldAssetId: asset.id,
-                          newAssetId: resp.assetId,
-                        });
-                      },
-                    })
-                  }
-                >
-                  <Pencil className="size-4" />
-                </FilePickerButton>
-              )}
+              {isAllowedToAttachAsset(asset.assetType) &&
+                asset.assetType !== "userUploaded" && (
+                  <FilePickerButton
+                    title="Replace"
+                    loading={isReplacing}
+                    accept=".jgp,.JPG,.jpeg,.png,.webp"
+                    multiple={false}
+                    variant="none"
+                    size="none"
+                    className="flex items-center gap-2"
+                    onFileSelect={(file) =>
+                      uploadAsset(file, {
+                        onSuccess: (resp) => {
+                          replaceAsset({
+                            bookmarkId: bookmark.id,
+                            oldAssetId: asset.id,
+                            newAssetId: resp.assetId,
+                          });
+                        },
+                      })
+                    }
+                  >
+                    <Pencil className="size-4" />
+                  </FilePickerButton>
+                )}
               {isAllowedToDetachAsset(asset.assetType) && (
                 <ActionConfirmingDialog
                   title="Delete Attachment?"
@@ -194,6 +203,30 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               Attach a Banner
             </FilePickerButton>
           )}
+        <FilePickerButton
+          title="Upload File"
+          loading={isAttaching}
+          multiple={false}
+          variant="ghost"
+          size="none"
+          className="flex w-full items-center justify-center gap-2"
+          onFileSelect={(file) =>
+            uploadAsset(file, {
+              onSuccess: (resp) => {
+                attachAsset({
+                  bookmarkId: bookmark.id,
+                  asset: {
+                    id: resp.assetId,
+                    assetType: "userUploaded",
+                  },
+                });
+              },
+            })
+          }
+        >
+          <Plus className="size-4" />
+          Upload File
+        </FilePickerButton>
       </CollapsibleContent>
     </Collapsible>
   );

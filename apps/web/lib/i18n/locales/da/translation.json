@@ -39,7 +39,10 @@
     },
     "open_editor": "Åbn editor",
     "toggle_show_archived": "Vis arkiverede",
-    "confirm": "Bekræft"
+    "confirm": "Bekræft",
+    "regenerate": "Regenerér",
+    "load_more": "Indlæs mere",
+    "edit_notes": "Rediger noter"
   },
   "settings": {
     "import": {
@@ -108,7 +111,12 @@
       "api_keys": "API-nøgler",
       "new_api_key": "Ny API-nøgle",
       "key_success": "Nøglen blev succesfuldt oprettet",
-      "key_success_please_copy": "Kopiér venligst nøglen og gem den et sikkert sted. Vær opmærksom på, at du ikke vil kunne få adgang til den igen, efter dialogboksen lukkes."
+      "key_success_please_copy": "Kopiér venligst nøglen og gem den et sikkert sted. Vær opmærksom på, at du ikke vil kunne få adgang til den igen, efter dialogboksen lukkes.",
+      "regenerate_api_key": "Regenerér API-nøgle",
+      "key_regenerated": "Nøglen blev regenereret",
+      "key_regenerated_please_copy": "Kopiér den nye nøgle, og gem den et sikkert sted. Den gamle nøgle er blevet trukket tilbage og virker ikke længere.",
+      "regenerate_warning": "Er du sikker på, at du vil regenerere API-nøglen \"{{name}}\"?",
+      "regenerate_confirmation": "Dette vil tilbagekalde den aktuelle nøgle og generere en ny. Alle programmer, der bruger den aktuelle nøgle, stopper med at virke."
     },
     "user_settings": "Brugerindstillinger",
     "webhooks": {
@@ -256,6 +264,33 @@
       "loading_usage": "Indlæser forbrugsinformation...",
       "free": "Gratis",
       "paid": "Betalt"
+    },
+    "import_sessions": {
+      "title": "Importer sessioner",
+      "description": "Se og administrer dine masseimportsessioner. Sessioner oprettes automatisk, når du importerer bogmærker.",
+      "load_error": "Kunne ikke indlæse importsessioner",
+      "no_sessions": "Ingen importsessioner endnu",
+      "no_sessions_detail": "Importsessioner vises her automatisk, når du importerer bogmærker",
+      "created_at": "Oprettet {{time}}",
+      "progress": "Fremdrift",
+      "status": {
+        "pending": "Afventer",
+        "in_progress": "I gang",
+        "completed": "Fuldført",
+        "failed": "Mislykkedes",
+        "processing": "Behandler"
+      },
+      "badges": {
+        "pending": "{{count}} afventer",
+        "processing": "{{count}} behandler",
+        "completed": "{{count}} fuldført",
+        "failed": "{{count}} mislykkedes"
+      },
+      "imported_to": "Importeret til:",
+      "view_list": "Vis liste",
+      "delete_dialog_title": "Slet importsession",
+      "delete_dialog_description": "Er du sikker på, at du vil slette \"{{name}}\"? Denne handling kan ikke fortrydes. Selve bogmærkerne vil ikke blive slettet.",
+      "delete_session": "Slet session"
     }
   },
   "admin": {
@@ -317,6 +352,10 @@
         "feed": {
           "title": "RSS Feed Jobs",
           "description": "RSS-feed behandling og indholdsopdateringer"
+        },
+        "admin_maintenance": {
+          "title": "Admin vedligeholdelsesjob",
+          "description": "Administrativ oprydning og aktivvedligeholdelse"
         }
       },
       "monitor_and_manage": "Overvåg og administrer baggrundsjobkøer og systembehandlingsopgaver",
@@ -347,7 +386,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Opret AI-oversigter for alle bogmærker igen",
         "reindex_all_bookmarks": "Genindekser alle bogmærker",
         "clean_assets": "Ryd op i efterladte aktiver og synkroniser metadata igen",
-        "reprocess_assets_fix_mode": "Genbehandl ubehandlede aktiver"
+        "reprocess_assets_fix_mode": "Genbehandl ubehandlede aktiver",
+        "migrate_large_link_html_content": "Flyt stort inline HTML-indhold til aktiver"
       }
     },
     "server_stats": {
@@ -369,6 +409,18 @@
       "confirm_password": "Bekræft adgangskode",
       "delete_user_confirm_description": "Er du sikker på, at du vil slette brugeren \"{{name}}\"?",
       "unlimited": "Ubegrænset"
+    },
+    "service_connections": {
+      "title": "Serviceforbindelser",
+      "description": "Overvåg tilstanden og forbindelsen af eksterne systemers afhængigheder",
+      "search_engine": "Søgemaskine",
+      "browser": "Browser",
+      "queue_system": "Køsystem",
+      "status": {
+        "not_configured": "Ikke konfigureret",
+        "connected": "Forbundet",
+        "disconnected": "Afbrudt"
+      }
     }
   },
   "tags": {
@@ -382,7 +434,18 @@
     "ai_tags_info": "Tags, der er tilføjet automatisk (af AI)",
     "unused_tags_info": "Tags, der ikke er knyttet til nogen bogmærker",
     "drag_and_drop_merging_info": "Træk og slip tags oven på hinanden for at sammenflette dem",
-    "sort_by_name": "Sorter efter navn"
+    "sort_by_name": "Sorter efter navn",
+    "create_tag": "Opret tag",
+    "create_tag_description": "Opret et nyt tag uden at knytte det til noget bogmærke",
+    "tag_name": "Tag-navn",
+    "enter_tag_name": "Indtast tag-navn",
+    "sort_by_usage": "Sortér efter brug",
+    "sort_by_relevance": "Sortér efter relevans",
+    "no_custom_tags": "Ingen brugerdefinerede mærker endnu",
+    "no_ai_tags": "Ingen AI-mærker endnu",
+    "no_unused_tags": "Du har ikke nogen ubrugte mærker",
+    "no_unused_tags_match_your_search": "Ingen ubrugte mærker matcher din søgning",
+    "no_tags_match_your_search": "Ingen mærker matcher din søgning"
   },
   "options": {
     "light_mode": "Lys tilstand",
@@ -523,6 +586,12 @@
       "title": "Offentlig liste",
       "description": "Tillad andre at se denne liste",
       "share_link": "Del link"
+    },
+    "delete_list": {
+      "title": "Slet liste",
+      "description": "Sletning af en liste sletter ikke nogen bogmærker på den pågældende liste.",
+      "delete_children": "Slet underordnede lister (rekursivt)",
+      "delete_children_description": "Hvis dette ikke er markeret, vil alle direkte underordnede lister blive rodlister"
     }
   },
   "preview": {
@@ -548,6 +617,10 @@
       "updated": "Listen er blevet opdateret!",
       "merged": "Listen er blevet flettet!",
       "deleted": "Listen er blevet slettet!"
+    },
+    "tags": {
+      "created": "Tag er blevet oprettet!",
+      "failed_to_create": "Kunne ikke oprette tag"
     }
   },
   "cleanups": {
@@ -596,7 +669,9 @@
     "week_s_ago": " Uge(r) siden",
     "month_s_ago": " Måned(er) siden",
     "year_s_ago": " År siden",
-    "history": "Seneste søgninger"
+    "history": "Seneste søgninger",
+    "title_contains": "Titel indeholder",
+    "title_does_not_contain": "Titel indeholder ikke"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Vælg en dato",
     "save_changes": "Gem ændringer",
     "extracted_content": "Udtrukket indhold"
+  },
+  "view_options": {
+    "title": "Visningsindstillinger",
+    "layout": "Layout",
+    "columns": "Kolonner",
+    "display_options": "Visningsindstillinger",
+    "show_note_previews": "Vis noter",
+    "show_tags": "Vis tags",
+    "show_title": "Vis titel",
+    "image_options": "Billedindstillinger",
+    "image_fit_cover": "Dække (fyld)",
+    "image_fit_contain": "Indeholder (tilpas)"
+  },
+  "version": {
+    "new_release_available": "Nye udgivelsesnoter tilgængelige",
+    "whats_new_title": "Hvad er nyt i v{{version}}",
+    "release_notes_description": "Her er de seneste opdateringer hentet fra GitHub's udgivelsesnoter.",
+    "loading_release_notes": "Indlæser udgivelsesnoter…",
+    "unable_to_load_release_notes": "Kunne ikke indlæse udgivelsesnoter lige nu. Prøv igen senere.",
+    "no_release_notes": "Der blev ikke offentliggjort nogen udgivelsesnoter for denne version.",
+    "release_notes_synced": "Udgivelsesnoter er synkroniseret fra GitHub.",
+    "view_on_github": "Se på GitHub"
   }
 }

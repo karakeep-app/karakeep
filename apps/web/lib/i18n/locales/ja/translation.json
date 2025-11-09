@@ -39,7 +39,10 @@
     },
     "open_editor": "エディタを開く",
     "toggle_show_archived": "アーカイブを表示",
-    "confirm": "確認"
+    "confirm": "確認",
+    "regenerate": "再生成",
+    "load_more": "もっと読み込む",
+    "edit_notes": "注釈を編集"
   },
   "admin": {
     "actions": {
@@ -106,6 +109,10 @@
         "feed": {
           "title": "RSSフィードジョブ",
           "description": "RSSフィードの処理とコンテンツの更新"
+        },
+        "admin_maintenance": {
+          "title": "管理メンテナンスジョブ",
+          "description": "管理クリーンアップとアセットメンテナンス"
         }
       },
       "monitor_and_manage": "バックグラウンドジョブキューとシステム処理タスクの監視および管理",
@@ -136,7 +143,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "すべてのブックマークのAI要約を再生成",
         "reindex_all_bookmarks": "すべてのブックマークを再インデックス",
         "clean_assets": "宙ぶらりんのアセットをクリーンアップしてメタデータを再同期",
-        "reprocess_assets_fix_mode": "未処理のアセットを再処理"
+        "reprocess_assets_fix_mode": "未処理のアセットを再処理",
+        "migrate_large_link_html_content": "大規模なインラインHTMLコンテンツをアセットに移動"
       }
     },
     "admin_settings": "管理者設定",
@@ -152,6 +160,18 @@
       "delete_user": "ユーザーを削除",
       "delete_user_confirm_description": "ほんまにユーザー「{{name}}」を削除してええん？",
       "unlimited": "無制限"
+    },
+    "service_connections": {
+      "title": "サービス接続",
+      "description": "外部システム依存関係のヘルスと接続性を監視する",
+      "search_engine": "検索エンジン",
+      "browser": "ブラウザ",
+      "queue_system": "キューシステム",
+      "status": {
+        "not_configured": "未構成",
+        "connected": "接続済み",
+        "disconnected": "切断されました"
+      }
     }
   },
   "settings": {
@@ -208,7 +228,12 @@
       "new_api_key_desc": "APIキーに一意の名前を付ける",
       "key_success": "キーが正常に作成されました",
       "api_keys": "APIキー",
-      "new_api_key": "新しいAPIキー"
+      "new_api_key": "新しいAPIキー",
+      "regenerate_api_key": "APIキーを再生成する",
+      "key_regenerated": "キーの再生成に成功しました",
+      "key_regenerated_please_copy": "新しいキーをコピーして安全な場所に保管してください。古いキーは無効になり、機能しなくなります。",
+      "regenerate_warning": "APIキー \"{{name}}\" を再生成してもよろしいですか？",
+      "regenerate_confirmation": "実行すると、現在のキーが無効になり、新しいキーが生成されます。現在のキーを使用しているアプリケーションは動作を停止します。"
     },
     "broken_links": {
       "broken_links": "リンク切れ",
@@ -369,6 +394,33 @@
       "loading_usage": "使用状況情報を読み込み中...",
       "free": "無料",
       "paid": "有料"
+    },
+    "import_sessions": {
+      "title": "インポートセッション",
+      "description": "ブックマークの一括インポートセッションを表示・管理しましょっ。セッションはブックマークをインポートするときに自動的に作られるよ。",
+      "load_error": "インポートセッションのロードに失敗しちゃった",
+      "no_sessions": "インポートセッションはまだないみたい",
+      "no_sessions_detail": "ブックマークをインポートすると、ここに自動的にインポートセッションが表示されるよ",
+      "created_at": "作成日時: {{time}}",
+      "progress": "進捗状況",
+      "status": {
+        "pending": "保留中",
+        "in_progress": "進行中",
+        "completed": "完了",
+        "failed": "失敗",
+        "processing": "処理中"
+      },
+      "badges": {
+        "pending": "{{count}} 件が保留中です",
+        "processing": "{{count}} 件が処理中です",
+        "completed": "{{count}} 件が完了しました",
+        "failed": "{{count}} 件が失敗しました"
+      },
+      "imported_to": "インポート先:",
+      "view_list": "リスト表示",
+      "delete_dialog_title": "インポートセッションを削除する",
+      "delete_dialog_description": "「{{name}}」を削除してもいい？　これは取り消せない操作だよ。ブックマーク自体は削除されないから安心して。",
+      "delete_session": "セッションを削除"
     }
   },
   "common": {
@@ -447,6 +499,12 @@
       "title": "公開リスト",
       "description": "他のユーザーにこのリストの表示を許可する",
       "share_link": "リンクを共有"
+    },
+    "delete_list": {
+      "title": "リストを削除",
+      "description": "リストを削除しても、そのリスト内のブックマークは削除されません。",
+      "delete_children": "子リストを（再帰的に）削除",
+      "delete_children_description": "チェックしない場合、すべての子リストがルートリストになります"
     }
   },
   "options": {
@@ -464,7 +522,18 @@
     "ai_tags": "AIタグ",
     "ai_tags_info": "自動的に（AIによって）付与されただけのタグ",
     "unused_tags": "未使用のタグ",
-    "sort_by_name": "名前でソート"
+    "sort_by_name": "名前でソート",
+    "create_tag": "タグを作成",
+    "create_tag_description": "どのブックマークにも関連付けずに、新しいタグを作成する",
+    "tag_name": "タグ名",
+    "enter_tag_name": "タグ名を入力",
+    "sort_by_usage": "使用頻度順で並び替え",
+    "sort_by_relevance": "関連度順で並び替え",
+    "no_custom_tags": "カスタムタグはまだありません",
+    "no_ai_tags": "AIタグはまだありません",
+    "no_unused_tags": "未使用のタグはありません",
+    "no_unused_tags_match_your_search": "検索に一致する未使用のタグはありません",
+    "no_tags_match_your_search": "検索に一致するタグはありません"
   },
   "search": {
     "created_on_or_after": "作成日以降",
@@ -502,7 +571,9 @@
     "week_s_ago": " ～週間前",
     "month_s_ago": " ～か月前",
     "year_s_ago": " ～年前",
-    "history": "最近の検索"
+    "history": "最近の検索",
+    "title_contains": "タイトルに含む",
+    "title_does_not_contain": "タイトルに含まない"
   },
   "preview": {
     "cached_content": "キャッシュされたコンテンツ",
@@ -592,6 +663,10 @@
       "updated": "リストが更新されました！",
       "merged": "リストがマージされたぞ！",
       "deleted": "リストが削除されたぞ！"
+    },
+    "tags": {
+      "created": "タグが作成されました！",
+      "failed_to_create": "タグの作成に失敗しました"
     }
   },
   "cleanups": {
@@ -619,5 +694,27 @@
     "pick_a_date": "日付を選択",
     "save_changes": "変更を保存",
     "extracted_content": "抽出されたコンテンツ"
+  },
+  "view_options": {
+    "title": "表示オプション",
+    "layout": "レイアウト",
+    "columns": "列",
+    "display_options": "表示オプション",
+    "show_note_previews": "注釈を表示",
+    "show_tags": "タグを表示",
+    "show_title": "タイトルを表示",
+    "image_options": "画像オプション",
+    "image_fit_cover": "カバー（塗りつぶし）",
+    "image_fit_contain": "コンテイン（フィット）"
+  },
+  "version": {
+    "new_release_available": "新しいリリースノートが利用可能です",
+    "whats_new_title": "v{{version}} の新機能",
+    "release_notes_description": "GitHub のリリースノートから取得した最新のアップデートです。",
+    "loading_release_notes": "リリースノートを読み込み中…",
+    "unable_to_load_release_notes": "ただ今、リリースノートを読み込めません。後でもう一度お試しください。",
+    "no_release_notes": "このバージョンに関するリリースノートは公開されていません。",
+    "release_notes_synced": "リリースノートは GitHub から同期されています。",
+    "view_on_github": "GitHub で表示"
   }
 }

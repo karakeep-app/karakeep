@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Function to check if a command exists
 command_exists() {
@@ -33,7 +33,7 @@ fi
 # Start Chrome if not already running
 if ! port_in_use 9222; then
     echo "Starting headless Chrome..."
-    docker run -d -p 9222:9222 --name karakeep-chrome gcr.io/zenika-hub/alpine-chrome:123 \
+    docker run -d -p 9222:9222 --name karakeep-chrome gcr.io/zenika-hub/alpine-chrome:124 \
         --no-sandbox \
         --disable-gpu \
         --disable-dev-shm-usage \
@@ -61,22 +61,11 @@ if [ -n "$DATA_DIR" ] && [ ! -d "$DATA_DIR" ]; then
     mkdir -p "$DATA_DIR"
 fi
 
-# Start the web app
-echo "Starting web app..."
-pnpm web & WEB_PID=$!
-
-# Wait for web app to be ready
-echo "Waiting for web app to start..."
-until curl -s http://localhost:3000 > /dev/null 2>&1; do
-    sleep 1
-done
-
-# Run database migrations
 echo "Running database migrations..."
 pnpm run db:migrate
 
-# Start workers
-echo "Starting workers..."
+echo "Starting web app and workers..."
+pnpm web & WEB_PID=$!
 pnpm workers & WORKERS_PID=$!
 
 # Function to handle script termination
@@ -87,6 +76,20 @@ cleanup() {
     docker rm karakeep-meilisearch karakeep-chrome 2>/dev/null
     exit 0
 }
+
+# Wait for web app to be ready (max 30 seconds)
+echo "Waiting for web app to start..."
+ATTEMPT=0
+while [ $ATTEMPT -lt 30 ]; do
+    if nc -z localhost 3000 2>/dev/null; then
+        break
+    fi
+    sleep 1
+    ATTEMPT=$((ATTEMPT + 1))
+    if [ $ATTEMPT -eq 30 ]; then
+        echo "Warning: Web app may not have started properly after 30 seconds"
+    fi
+done
 
 # Set up trap to catch termination signals
 trap cleanup SIGINT SIGTERM

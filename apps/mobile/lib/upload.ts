@@ -9,6 +9,7 @@ import {
 
 import type { Settings } from "./settings";
 import { api } from "./trpc";
+import { buildApiHeaders } from "./utils";
 
 export function useUploadAsset(
   settings: Settings,
@@ -43,7 +44,7 @@ export function useUploadAsset(
         "POST",
         `${settings.address}/api/assets`,
         {
-          Authorization: `Bearer ${settings.apiKey}`,
+          ...buildApiHeaders(settings.apiKey, settings.customHeaders),
           "Content-Type": "multipart/form-data",
         },
         [
@@ -61,7 +62,12 @@ export function useUploadAsset(
       const assetId = resp.assetId;
       const assetType =
         resp.contentType === "application/pdf" ? "pdf" : "image";
-      createBookmark({ type: BookmarkTypes.ASSET, assetId, assetType });
+      createBookmark({
+        type: BookmarkTypes.ASSET,
+        assetId,
+        assetType,
+        source: "mobile",
+      });
     },
     onError: (e) => {
       if (options.onError) {

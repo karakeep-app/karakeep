@@ -5,6 +5,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
 import usePluginSettings from "./utils/settings";
+import { isHttpUrl } from "./utils/url";
 
 export default function NotConfiguredPage() {
   const navigate = useNavigate();
@@ -13,26 +14,25 @@ export default function NotConfiguredPage() {
 
   const [error, setError] = useState("");
   const [serverAddress, setServerAddress] = useState(settings.address);
+
   useEffect(() => {
     setServerAddress(settings.address);
   }, [settings.address]);
 
   const onSave = () => {
-    if (serverAddress == "") {
+    const input = serverAddress.trim();
+    if (input == "") {
       setError("Server address is required");
       return;
     }
 
     // Add URL protocol validation
-    if (
-      !serverAddress.startsWith("http://") &&
-      !serverAddress.startsWith("https://")
-    ) {
+    if (!isHttpUrl(input)) {
       setError("Server address must start with http:// or https://");
       return;
     }
 
-    setSettings((s) => ({ ...s, address: serverAddress.replace(/\/$/, "") }));
+    setSettings((s) => ({ ...s, address: input.replace(/\/$/, "") }));
     navigate("/signin");
   };
 
@@ -51,6 +51,18 @@ export default function NotConfiguredPage() {
           className="h-8 flex-1 rounded-lg border border-gray-300 p-2"
           onChange={(e) => setServerAddress(e.target.value)}
         />
+      </div>
+      <div className="flex justify-start">
+        <button
+          type="button"
+          onClick={() => navigate("/customheaders")}
+          className="text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Configure Custom Headers
+          {settings.customHeaders &&
+            Object.keys(settings.customHeaders).length > 0 &&
+            ` (${Object.keys(settings.customHeaders).length})`}
+        </button>
       </div>
       <Button onClick={onSave}>Configure</Button>
     </div>

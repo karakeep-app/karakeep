@@ -6,9 +6,9 @@ export function useUpdateUserSettings(
   const apiUtils = api.useUtils();
   return api.users.updateSettings.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.users.settings.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }

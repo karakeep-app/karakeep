@@ -85,6 +85,8 @@ describe("importBookmarksFromFile", () => {
       },
     );
 
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
     const progress: number[] = [];
     const res = await importBookmarksFromFile(
       {
@@ -96,6 +98,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark,
           addBookmarkToLists,
           updateBookmarkTags,
+          createImportSession,
         },
         onProgress: (d, t) => progress.push(d / t),
       },
@@ -167,6 +170,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark: vi.fn(),
           addBookmarkToLists: vi.fn(),
           updateBookmarkTags: vi.fn(),
+          createImportSession: vi.fn(async () => ({ id: "session-1" })),
         },
       },
       { parsers },
@@ -174,6 +178,7 @@ describe("importBookmarksFromFile", () => {
     expect(res).toEqual({
       counts: { successes: 0, failures: 0, alreadyExisted: 0, total: 0 },
       rootListId: null,
+      importSessionId: null,
     });
   });
 
@@ -244,6 +249,8 @@ describe("importBookmarksFromFile", () => {
       },
     );
 
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
     const progress: number[] = [];
     const res = await importBookmarksFromFile(
       {
@@ -255,6 +262,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark,
           addBookmarkToLists,
           updateBookmarkTags,
+          createImportSession,
         },
         onProgress: (d, t) => progress.push(d / t),
       },
@@ -353,6 +361,8 @@ describe("importBookmarksFromFile", () => {
       },
     );
 
+    const createImportSession = vi.fn(async () => ({ id: "session-1" }));
+
     const progress: number[] = [];
     const res = await importBookmarksFromFile(
       {
@@ -364,6 +374,7 @@ describe("importBookmarksFromFile", () => {
           createBookmark,
           addBookmarkToLists,
           updateBookmarkTags,
+          createImportSession,
         },
         onProgress: (d, t) => progress.push(d / t),
       },
@@ -371,6 +382,7 @@ describe("importBookmarksFromFile", () => {
     );
 
     expect(res.rootListId).toBe("Imported");
+    expect(res.importSessionId).toBe("session-1");
 
     // All bookmarks are created successfully, but 2 fail in post-processing
     expect(res.counts).toEqual({

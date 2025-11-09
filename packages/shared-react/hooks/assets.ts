@@ -6,12 +6,12 @@ export function useAttachBookmarkAsset(
   const apiUtils = api.useUtils();
   return api.assets.attachAsset.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
       apiUtils.assets.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -22,12 +22,12 @@ export function useReplaceBookmarkAsset(
   const apiUtils = api.useUtils();
   return api.assets.replaceAsset.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
       apiUtils.assets.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }
@@ -38,12 +38,12 @@ export function useDetachBookmarkAsset(
   const apiUtils = api.useUtils();
   return api.assets.detachAsset.useMutation({
     ...opts[0],
-    onSuccess: (res, req, meta) => {
+    onSuccess: (res, req, meta, context) => {
       apiUtils.bookmarks.getBookmarks.invalidate();
       apiUtils.bookmarks.searchBookmarks.invalidate();
       apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
       apiUtils.assets.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta);
+      return opts[0]?.onSuccess?.(res, req, meta, context);
     },
   });
 }

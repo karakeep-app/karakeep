@@ -5,7 +5,12 @@ import { z } from "zod";
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 
-import { authenticateApiKey, generateApiKey, validatePassword } from "../auth";
+import {
+  authenticateApiKey,
+  generateApiKey,
+  regenerateApiKey,
+  validatePassword,
+} from "../auth";
 import {
   authedProcedure,
   createRateLimitMiddleware,
@@ -30,6 +35,33 @@ export const apiKeysAppRouter = router({
     .output(zApiKeySchema)
     .mutation(async ({ input, ctx }) => {
       return await generateApiKey(input.name, ctx.user.id, ctx.db);
+    }),
+  regenerate: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .output(zApiKeySchema)
+    .mutation(async ({ input, ctx }) => {
+      // Find the existing API key to get its name
+      const existingKey = await ctx.db.query.apiKeys.findFirst({
+        where: and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.id)),
+      });
+
+      if (!existingKey) {
+        throw new TRPCError({
+          message: "API key not found",
+          code: "NOT_FOUND",
+        });
+      }
+
+      return {
+        id: existingKey.id,
+        name: existingKey.name,
+        createdAt: existingKey.createdAt,
+        key: await regenerateApiKey(existingKey.id, ctx.user.id, ctx.db),
+      };
     }),
   revoke: authedProcedure
     .input(

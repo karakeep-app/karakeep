@@ -30,7 +30,7 @@
     "action": "액션",
     "actions": "액션",
     "created_at": "생성됨",
-    "role": "역활",
+    "role": "역할",
     "type": "타입",
     "size": "크기",
     "summary": "요약",
@@ -87,7 +87,10 @@
     },
     "open_editor": "편집기 열기",
     "toggle_show_archived": "보관된 항목 표시",
-    "confirm": "확인"
+    "confirm": "확인",
+    "regenerate": "다시 생성",
+    "load_more": "더 불러오기",
+    "edit_notes": "노트 편집"
   },
   "tags": {
     "unused_tags": "사용되지 않은 태그",
@@ -100,7 +103,18 @@
     "your_tags": "내 태그",
     "your_tags_info": "한번이라도 사용된 태그",
     "ai_tags": "모든 태그",
-    "ai_tags_info": "한번이라도 사용된 태그(AI에 의해)"
+    "ai_tags_info": "한번이라도 사용된 태그(AI에 의해)",
+    "create_tag": "태그 만들기",
+    "create_tag_description": "새로운 태그를 어떤 북마크에도 연결하지 않고 생성합니다.",
+    "tag_name": "태그 이름",
+    "enter_tag_name": "태그 이름을 입력하세요",
+    "sort_by_usage": "사용 빈도순으로 정렬",
+    "sort_by_relevance": "관련성순으로 정렬",
+    "no_custom_tags": "아직 지정 태그가 없어",
+    "no_ai_tags": "아직 AI 태그가 없어",
+    "no_unused_tags": "사용하지 않는 태그가 없습니다",
+    "no_unused_tags_match_your_search": "검색어와 일치하는 사용하지 않는 태그가 없습니다",
+    "no_tags_match_your_search": "검색어와 일치하는 태그가 없습니다"
   },
   "search": {
     "is_favorited": "즐겨찾기 추가됨",
@@ -138,7 +152,9 @@
     "week_s_ago": " 주 전",
     "month_s_ago": " 개월 전",
     "year_s_ago": " 년 전",
-    "history": "최근 검색어"
+    "history": "최근 검색어",
+    "title_contains": "제목에 다음 내용이 포함됨",
+    "title_does_not_contain": "제목에 다음 내용이 포함되지 않음"
   },
   "preview": {
     "view_original": "원본 보기",
@@ -228,6 +244,10 @@
       "updated": "목록이 갱신 되었습니다!",
       "merged": "목록이 병합되었습니다!",
       "deleted": "목록이 삭제되었습니다!"
+    },
+    "tags": {
+      "created": "태그가 생성되었어요!",
+      "failed_to_create": "태그를 만드는 데 실패했습니다"
     }
   },
   "cleanups": {
@@ -243,7 +263,12 @@
       "key_success_please_copy": "키를 복사해서 안전한 곳에 보관해 주세요. 대화 상자를 닫으면 다시 볼 수 없습니다.",
       "api_keys": "API 키",
       "new_api_key": "새로운 API 키",
-      "new_api_key_desc": "API 키에 고유한 이름을 주세요"
+      "new_api_key_desc": "API 키에 고유한 이름을 주세요",
+      "regenerate_api_key": "API 키 다시 생성",
+      "key_regenerated": "키가 성공적으로 다시 생성되었습니다",
+      "key_regenerated_please_copy": "새로운 키를 복사해서 안전한 곳에 보관해 주세요. 예전 키는 폐기되었으므로 더 이상 작동하지 않습니다.",
+      "regenerate_warning": "API 키 \"{{name}}\"을(를) 다시 생성하시겠습니까?",
+      "regenerate_confirmation": "현재 키를 폐기하고 새로운 키를 생성합니다. 현재 키를 사용하는 모든 애플리케이션은 작동을 멈추게 됩니다."
     },
     "webhooks": {
       "events": {
@@ -320,7 +345,7 @@
     "back_to_app": "앱으로 돌아가기",
     "user_settings": "사용자 설정",
     "broken_links": {
-      "broken_links": "깨진 링크",
+      "broken_links": "손상된 링크",
       "last_crawled_at": "마지막 가져온 시간",
       "crawling_status": "가져오기 상태",
       "crawling_failed": "가져오기 실패함"
@@ -350,25 +375,25 @@
         "download_full_page_archive": "전체 페이지 아카이브 다운로드"
       },
       "events_types": {
-        "bookmark_added": "북마크가 추가됨",
-        "tag_added": "이 태그가 북마크에 추가됨",
-        "favourited": "북마크가 즐겨찾기됨",
-        "tag_removed": "이 태그가 북마크에서 제거됐어",
-        "added_to_list": "북마크가 이 목록에 추가됐어",
-        "archived": "북마크가 보관 처리됐어",
-        "removed_from_list": "북마크가 이 목록에서 제거됐어"
+        "bookmark_added": "북마크가 추가됐습니다",
+        "tag_added": "이 태그가 북마크에 추가됐습니다",
+        "favourited": "북마크가 즐겨찾기 됐습니다",
+        "tag_removed": "이 태그가 북마크에서 제거됐습니다",
+        "added_to_list": "북마크가 이 목록에 추가됐습니다",
+        "archived": "북마크가 보관 처리됐습니다",
+        "removed_from_list": "북마크가 이 목록에서 제거됐습니다"
       },
       "save_rule": "규칙 저장",
       "delete_rule": "규칙 삭제",
       "delete_rule_confirmation": "이 규칙을 삭제하시겠어요?",
-      "enter_rule_name": "규칙 이름을 입력해 줘",
+      "enter_rule_name": "규칙 이름을 입력하세요",
       "whenever": "언제든지...",
       "if": "만약에...",
       "describe_what_this_rule_does": "이 규칙이 하는 일을 설명해 주세요",
-      "rule_has_been_created": "규칙이 생성됐어!",
-      "rule_has_been_updated": "규칙이 업데이트됐어!",
-      "rule_has_been_deleted": "규칙이 삭제됐어!",
-      "no_rules_created_yet": "아직 규칙이 없어",
+      "rule_has_been_created": "규칙이 생성됐습니다!",
+      "rule_has_been_updated": "규칙이 업데이트됐습니다!",
+      "rule_has_been_deleted": "규칙이 삭제됐습니다!",
+      "no_rules_created_yet": "아직 규칙이 없습니다",
       "create_your_first_rule": "첫 번째 규칙을 만들어 워크플로를 자동화해 보세요",
       "conditions_types": {
         "always": "항상",
@@ -452,13 +477,40 @@
       "loading_usage": "사용량 정보 로딩 중...",
       "free": "무료",
       "paid": "유료"
+    },
+    "import_sessions": {
+      "title": "세션 가져오기",
+      "description": "대량 가져오기 세션을 보고 관리하세요. 세션은 책갈피를 가져올 때 자동으로 생성됩니다.",
+      "load_error": "가져오기 세션을 불러오지 못했습니다",
+      "no_sessions": "아직 가져오기 세션이 없습니다",
+      "no_sessions_detail": "책갈피를 가져오면 가져오기 세션이 자동으로 여기에 표시됩니다",
+      "created_at": "{{time}}에 생성됨",
+      "progress": "진행률",
+      "status": {
+        "pending": "대기 중",
+        "in_progress": "진행 중",
+        "completed": "완료됨",
+        "failed": "실패함",
+        "processing": "처리 중"
+      },
+      "badges": {
+        "pending": "{{count}} 대기 중",
+        "processing": "{{count}} 처리 중",
+        "completed": "{{count}} 완료됨",
+        "failed": "{{count}} 실패함"
+      },
+      "imported_to": "가져온 위치:",
+      "view_list": "목록 보기",
+      "delete_dialog_title": "가져오기 세션 삭제",
+      "delete_dialog_description": "정말 \"{{name}}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다. 책갈피 자체는 삭제되지 않습니다.",
+      "delete_session": "세션 삭제"
     }
   },
   "admin": {
     "users_list": {
       "users_list": "사용자 목록",
       "create_user": "사용자 생성",
-      "change_role": "역활 변경",
+      "change_role": "역할 변경",
       "reset_password": "암호 초기화",
       "delete_user": "사용자 삭제",
       "num_bookmarks": "북마크 갯수",
@@ -522,6 +574,10 @@
         "feed": {
           "title": "RSS 피드 작업",
           "description": "RSS 피드 처리 및 콘텐츠 업데이트"
+        },
+        "admin_maintenance": {
+          "title": "관리자 유지 관리 작업",
+          "description": "관리 정리 및 자산 유지 관리"
         }
       },
       "active": "활성",
@@ -530,15 +586,15 @@
         "title": "작업 상태 이해",
         "queued": {
           "title": "대기 중",
-          "description": "처리되기를 기다리는 작업들. 리소스가 확보되면 자동으로 시작될 거야."
+          "description": "처리 대기 중인 작업들입니다. 리소스가 사용 가능해지면 자동으로 시작됩니다."
         },
         "unprocessed": {
           "title": "미처리됨",
-          "description": "아직 처리되지 않은 북마크들. 대부분 이미 처리 대기 중일 거고, 아니면 수동으로 다시 대기열에 넣어야 할 수도 있어."
+          "description": "처리되지 않은 북마크입니다. 대부분 이미 처리 대기열에 추가되었을 가능성이 높지만, 그렇지 않은 경우 수동으로 다시 대기열에 추가해야 할 수도 있습니다."
         },
         "failed": {
           "title": "실패함",
-          "description": "처리 중에 오류가 발생한 북마크들. 수동으로 확인해야 할 수도 있어."
+          "description": "처리 중 오류가 발생한 북마크입니다. 수동으로 확인해야 할 수 있습니다."
         }
       },
       "actions": {
@@ -551,7 +607,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "모든 북마크 AI 요약 다시 생성",
         "reindex_all_bookmarks": "모든 북마크 다시 색인하기",
         "clean_assets": "연결되지 않은 에셋 정리 및 메타데이터 재동기화",
-        "reprocess_assets_fix_mode": "미처리된 에셋 다시 처리"
+        "reprocess_assets_fix_mode": "미처리된 에셋 다시 처리",
+        "migrate_large_link_html_content": "큰 인라인 HTML 콘텐츠를 에셋으로 옮기기"
       }
     },
     "actions": {
@@ -565,6 +622,18 @@
       "reprocess_assets_fix_mode": "재작업된 자산(수정 모드)",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "실패한 북마크에 대해서만 AI 요약 다시 생성",
       "regenerate_ai_summaries_for_all_bookmarks": "모든 북마크에 대해 AI 요약 다시 생성"
+    },
+    "service_connections": {
+      "title": "서비스 연결",
+      "description": "외부 시스템 종속성의 상태 및 연결 상태를 모니터링합니다.",
+      "search_engine": "검색 엔진",
+      "browser": "브라우저",
+      "queue_system": "대기열 시스템",
+      "status": {
+        "not_configured": "구성되지 않음",
+        "connected": "연결됨",
+        "disconnected": "연결 끊김"
+      }
     }
   },
   "lists": {
@@ -595,7 +664,13 @@
       "share_link": "링크 공유",
       "title": "공개 목록"
     },
-    "share_list": "목록 공유"
+    "share_list": "목록 공유",
+    "delete_list": {
+      "title": "목록 삭제",
+      "description": "목록을 삭제해도 해당 목록에 있는 북마크는 삭제되지 않아.",
+      "delete_children": "자식 목록 삭제 (재귀적으로)",
+      "delete_children_description": "선택하지 않으면 모든 직계 자식 목록이 루트 목록이 됨"
+    }
   },
   "options": {
     "light_mode": "라이트 모드",
@@ -619,5 +694,27 @@
     "pick_a_date": "날짜 선택",
     "save_changes": "변경 사항 저장",
     "extracted_content": "추출된 콘텐츠"
+  },
+  "view_options": {
+    "title": "옵션 보기",
+    "layout": "레이아웃",
+    "columns": "열",
+    "display_options": "표시 옵션",
+    "show_note_previews": "노트 표시",
+    "show_tags": "태그 표시",
+    "show_title": "제목 표시",
+    "image_options": "이미지 옵션",
+    "image_fit_cover": "채우기 (맞춤)",
+    "image_fit_contain": "맞춤 (맞춤)"
+  },
+  "version": {
+    "new_release_available": "새로운 릴리스 정보를 사용할 수 있습니다.",
+    "whats_new_title": "v{{version}}의 새로운 기능",
+    "release_notes_description": "GitHub 릴리스 정보에서 가져온 최신 업데이트입니다.",
+    "loading_release_notes": "릴리스 정보 로딩 중…",
+    "unable_to_load_release_notes": "지금은 릴리스 정보를 로드할 수 없습니다. 나중에 다시 시도해 주세요.",
+    "no_release_notes": "이 버전에 대한 릴리스 정보가 게시되지 않았습니다.",
+    "release_notes_synced": "릴리스 정보는 GitHub에서 동기화됩니다.",
+    "view_on_github": "GitHub에서 보기"
   }
 }

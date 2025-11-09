@@ -11,18 +11,30 @@ import {
   Archive,
   BarChart3,
   BookOpen,
+  Chrome,
   Clock,
+  Code,
   Database,
   FileText,
   Globe,
   Hash,
   Heart,
+  HelpCircle,
   Highlighter,
   Image,
   Link,
   List,
+  Rss,
+  Smartphone,
   TrendingUp,
+  Upload,
+  Zap,
 } from "lucide-react";
+import { z } from "zod";
+
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
+
+type BookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 Bytes";
@@ -46,6 +58,45 @@ const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const hourLabels = Array.from({ length: 24 }, (_, i) =>
   i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`,
 );
+
+function formatSourceName(source: BookmarkSource | null): string {
+  if (!source) return "Unknown";
+  const sourceMap: Record<BookmarkSource, string> = {
+    api: "API",
+    web: "Web",
+    extension: "Browser Extension",
+    cli: "CLI",
+    mobile: "Mobile App",
+    singlefile: "SingleFile",
+    rss: "RSS Feed",
+    import: "Import",
+  };
+  return sourceMap[source];
+}
+
+function getSourceIcon(source: BookmarkSource | null): React.ReactNode {
+  const iconProps = { className: "h-4 w-4 text-muted-foreground" };
+  switch (source) {
+    case "api":
+      return <Zap {...iconProps} />;
+    case "web":
+      return <Globe {...iconProps} />;
+    case "extension":
+      return <Chrome {...iconProps} />;
+    case "cli":
+      return <Code {...iconProps} />;
+    case "mobile":
+      return <Smartphone {...iconProps} />;
+    case "singlefile":
+      return <FileText {...iconProps} />;
+    case "rss":
+      return <Rss {...iconProps} />;
+    case "import":
+      return <Upload {...iconProps} />;
+    default:
+      return <HelpCircle {...iconProps} />;
+  }
+}
 
 function SimpleBarChart({
   data,
@@ -435,6 +486,45 @@ export default function StatsPage() {
             ) : (
               <p className="text-sm text-muted-foreground">
                 {t("settings.stats.most_used_tags.no_tags_found")}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Bookmark Sources */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              {t("settings.stats.bookmark_sources.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.bookmarksBySource.length > 0 ? (
+              <div className="space-y-3">
+                {stats.bookmarksBySource.map(
+                  (source: {
+                    source: BookmarkSource | null;
+                    count: number;
+                  }) => (
+                    <div
+                      key={source.source || "unknown"}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        {getSourceIcon(source.source)}
+                        <span className="max-w-[200px] truncate text-sm">
+                          {formatSourceName(source.source)}
+                        </span>
+                      </div>
+                      <Badge variant="secondary">{source.count}</Badge>
+                    </div>
+                  ),
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t("settings.stats.bookmark_sources.empty")}
               </p>
             )}
           </CardContent>

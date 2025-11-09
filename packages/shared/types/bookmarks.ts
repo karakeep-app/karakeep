@@ -24,6 +24,7 @@ export const zAssetTypesSchema = z.enum([
   "video",
   "bookmarkAsset",
   "precrawledArchive",
+  "userUploaded",
   "unknown",
 ]);
 export type ZAssetType = z.infer<typeof zAssetTypesSchema>;
@@ -31,6 +32,7 @@ export type ZAssetType = z.infer<typeof zAssetTypesSchema>;
 export const zAssetSchema = z.object({
   id: z.string(),
   assetType: zAssetTypesSchema,
+  fileName: z.string().nullish(),
 });
 
 export const zBookmarkedLinkSchema = z.object({
@@ -81,6 +83,18 @@ export const zBookmarkContentSchema = z.discriminatedUnion("type", [
 ]);
 export type ZBookmarkContent = z.infer<typeof zBookmarkContentSchema>;
 
+export const zBookmarkSourceSchema = z.enum([
+  "api",
+  "web",
+  "cli",
+  "mobile",
+  "extension",
+  "singlefile",
+  "rss",
+  "import",
+]);
+export type ZBookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
+
 export const zBareBookmarkSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
@@ -92,6 +106,7 @@ export const zBareBookmarkSchema = z.object({
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
   note: z.string().nullish(),
   summary: z.string().nullish(),
+  source: zBookmarkSourceSchema.nullish(),
 });
 
 export const zBookmarkSchema = zBareBookmarkSchema.merge(
@@ -142,6 +157,8 @@ export const zNewBookmarkRequestSchema = z
     // A mechanism to prioritize crawling of bookmarks depending on whether
     // they were created by a user interaction or by a bulk import.
     crawlPriority: z.enum(["low", "normal"]).optional(),
+    importSessionId: z.string().optional(),
+    source: zBookmarkSourceSchema.optional(),
   })
   .and(
     z.discriminatedUnion("type", [
