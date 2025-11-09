@@ -15,8 +15,9 @@ import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
-import { zSignUpSchema } from "@karakeep/shared/types/users";
 import { z } from "zod";
+
+import { zSignUpSchema } from "@karakeep/shared/types/users";
 
 export default function Signup() {
   const { settings, setSettings } = useAppSettings();
@@ -36,7 +37,7 @@ export default function Signup() {
     api.users.create.useMutation({
       onSuccess: async () => {
         // After successful signup, automatically login
-        loginMutation.mutate({
+        await loginMutation({
           email: emailRef.current.trim(),
           password: passwordRef.current,
           keyName: `Mobile App: (${(Math.random() + 1).toString(36).substring(5)})`,
@@ -47,7 +48,7 @@ export default function Signup() {
       },
     });
 
-  const { mutate: loginMutation, isPending: isLoggingIn } =
+  const { mutateAsync: loginMutation, isPending: isLoggingIn } =
     api.apiKeys.exchange.useMutation({
       onSuccess: (resp) => {
         setSettings({ ...settings, apiKey: resp.key, apiKeyId: resp.id });
