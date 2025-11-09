@@ -1273,6 +1273,54 @@ async function crawlAndParseUrl(
   };
 }
 
+/**
+ * Checks if the domain should be rate limited and reschedules the job if needed.
+ * @returns true if the job should continue, false if it was rescheduled
+ */
+async function checkDomainRateLimit(
+  url: string,
+  jobId: string,
+  jobData: ZCrawlLinkRequest,
+  jobPriority?: number,
+): Promise<boolean> {
+  const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
+  if (!crawlerDomainRateLimitConfig) {
+    return true;
+  }
+
+  const rateLimitClient = await getRateLimitClient();
+  if (!rateLimitClient) {
+    return true;
+  }
+
+  const hostname = new URL(url).hostname;
+  const rateLimitResult = rateLimitClient.checkRateLimit(
+    {
+      name: "domain-ratelimit",
+      maxRequests: crawlerDomainRateLimitConfig.maxRequests,
+      windowMs: crawlerDomainRateLimitConfig.windowMs,
+    },
+    hostname,
+  );
+
+  if (!rateLimitResult.allowed) {
+    const resetInSeconds = rateLimitResult.resetInSeconds;
+    // Add jitter to prevent thundering herd: +40% random variation
+    const jitterFactor = 1.0 + Math.random() * 0.4; // Random value between 1.0 and 1.4
+    const delayMs = Math.floor(resetInSeconds * 1000 * jitterFactor);
+    logger.info(
+      `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Rescheduling in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
+    );
+    await LinkCrawlerQueue.enqueue(jobData, {
+      priority: jobPriority,
+      delayMs,
+    });
+    return false;
+  }
+
+  return true;
+}
+
 async function runCrawler(
   job: DequeuedJob<ZCrawlLinkRequest>,
 ): Promise<CrawlerRunResult> {
@@ -1297,37 +1345,15 @@ async function runCrawler(
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
-  if (crawlerDomainRateLimitConfig) {
-    const rateLimitClient = await getRateLimitClient();
-    if (rateLimitClient) {
-      const hostname = new URL(url).hostname;
-      const rateLimitResult = rateLimitClient.checkRateLimit(
-        {
-          name: "domain-ratelimit",
-          maxRequests: crawlerDomainRateLimitConfig.maxRequests,
-          windowMs: crawlerDomainRateLimitConfig.windowMs,
-        },
-        hostname,
-      );
+  const shouldContinue = await checkDomainRateLimit(
+    url,
+    jobId,
+    job.data,
+    job.priority,
+  );
 
-      if (!rateLimitResult.allowed) {
-        const resetInSeconds = Math.max(
-          rateLimitResult.resetInSeconds ??
-            Math.ceil(crawlerDomainRateLimitConfig.windowMs / 1000),
-          1,
-        );
-        const delayMs = resetInSeconds * 1000;
-        logger.info(
-          `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Rescheduling in ${resetInSeconds} seconds.`,
-        );
-        await LinkCrawlerQueue.enqueue(job.data, {
-          priority: job.priority,
-          delayMs,
-        });
-        return { status: "rescheduled" };
-      }
-    }
+  if (!shouldContinue) {
+    return { status: "rescheduled" };
   }
 
   logger.info(

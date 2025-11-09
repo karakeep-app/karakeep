@@ -6,10 +6,9 @@ export interface RateLimitConfig {
   maxRequests: number;
 }
 
-export interface RateLimitResult {
-  allowed: boolean;
-  resetInSeconds?: number;
-}
+export type RateLimitResult =
+  | { allowed: true }
+  | { allowed: false; resetInSeconds: number };
 
 export interface RateLimitClient {
   /**
