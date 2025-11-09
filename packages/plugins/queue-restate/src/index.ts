@@ -162,9 +162,9 @@ class RestateQueueClient implements QueueClient {
     return wrapper;
   }
 
-  createRunner<T, TResult = void>(
+  createRunner<T, R = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T, TResult>,
+    funcs: RunnerFuncs<T, R>,
     opts: RunnerOptions<T>,
   ): Runner<T> {
     const name = queue.name();

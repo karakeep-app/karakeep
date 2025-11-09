@@ -8,7 +8,6 @@ import {
 
 import type { PluginProvider } from "@karakeep/shared/plugins";
 import type {
-  DequeuedJobError,
   EnqueueOptions,
   Queue,
   QueueClient,
@@ -81,9 +80,9 @@ class LitequeQueueClient implements QueueClient {
     return wrapper;
   }
 
-  createRunner<T, TResult = void>(
+  createRunner<T, R = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T, TResult>,
+    funcs: RunnerFuncs<T, R>,
     opts: RunnerOptions<T>,
   ): Runner<T> {
     const name = queue.name();
@@ -92,30 +91,12 @@ class LitequeQueueClient implements QueueClient {
       throw new Error(`Queue ${name} not found`);
     }
 
-    const shouldTrackResult = typeof funcs.onComplete === "function";
-    const jobResults = shouldTrackResult ? new Map<string, TResult>() : null;
-
-    const runner = new LQRunner<T>(
+    const runner = new LQRunner<T, R>(
       wrapper._impl,
       {
-        run: async (job) => {
-          const result = await funcs.run(job);
-          if (jobResults) {
-            jobResults.set(job.id, result as TResult);
-          }
-        },
-        onComplete: shouldTrackResult
-          ? async (job) => {
-              const result = jobResults?.get(job.id) as TResult;
-              if (jobResults) {
-                jobResults.delete(job.id);
-              }
-              await funcs.onComplete?.(job, result);
-            }
-          : undefined,
-        onError: funcs.onError as
-          | ((job: DequeuedJobError<T>) => Promise<void>)
-          | undefined,
+        run: funcs.run,
+        onComplete: funcs.onComplete,
+        onError: funcs.onError,
       },
       {
         pollIntervalMs: opts.pollIntervalMs ?? 1000,
