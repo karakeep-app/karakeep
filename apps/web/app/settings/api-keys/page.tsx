@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import ApiKeySettings from "@/components/settings/ApiKeySettings";
+
+export const metadata: Metadata = {
+  title: "API Keys | Karakeep",
+};
 
 export default async function ApiKeysPage() {
   return (
