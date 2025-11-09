@@ -12,10 +12,11 @@ interface RateLimitEntry {
 
 export class RateLimiter implements RateLimitClient {
   private store = new Map<string, RateLimitEntry>();
+  private cleanupProbability: number;
 
-  constructor() {
-    // Cleanup expired entries every minute
-    setInterval(() => this.cleanupExpiredEntries(), 60000);
+  constructor(cleanupProbability = 0.01) {
+    // Probability of cleanup on each check (default 1%)
+    this.cleanupProbability = cleanupProbability;
   }
 
   private cleanupExpiredEntries() {
@@ -30,6 +31,11 @@ export class RateLimiter implements RateLimitClient {
   checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult {
     if (!key) {
       return { allowed: true };
+    }
+
+    // Probabilistic cleanup
+    if (Math.random() < this.cleanupProbability) {
+      this.cleanupExpiredEntries();
     }
 
     const rateLimitKey = `${config.name}:${key}`;
