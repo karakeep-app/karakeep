@@ -14,4 +14,11 @@ export const workerStatsCounter = new Counter({
   labelNames: ["worker_name", "status"],
 });
 
+export const crawlerStatusCodeCounter = new Counter({
+  name: "karakeep_crawler_status_codes",
+  help: "HTTP status codes encountered during crawling",
+  labelNames: ["status_code"],
+});
+
 registry.registerMetric(workerStatsCounter);
+registry.registerMetric(crawlerStatusCodeCounter);
