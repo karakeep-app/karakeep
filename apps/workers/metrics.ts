@@ -6,6 +6,7 @@ const registry = new Registry();
 export const { printMetrics } = prometheus({
   registry: registry,
   prefix: "karakeep_",
+  collectDefaultMetrics: true,
 });
 
 export const workerStatsCounter = new Counter({

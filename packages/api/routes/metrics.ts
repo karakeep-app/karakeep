@@ -11,6 +11,7 @@ import serverConfig from "@karakeep/shared/config";
 export const { printMetrics, registerMetrics } = prometheus({
   registry: register,
   prefix: "karakeep_",
+  collectDefaultMetrics: true,
 });
 
 const app = new Hono().get(
