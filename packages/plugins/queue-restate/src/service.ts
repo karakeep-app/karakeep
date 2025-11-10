@@ -24,6 +24,15 @@ export function buildRestateService<T, R>(
       inactivityTimeout: {
         seconds: opts.timeoutSecs,
       },
+      retryPolicy: {
+        maxAttempts: NUM_RETRIES,
+        initialInterval: {
+          seconds: 5,
+        },
+        maxInterval: {
+          minutes: 1,
+        },
+      },
     },
     handlers: {
       run: async (
