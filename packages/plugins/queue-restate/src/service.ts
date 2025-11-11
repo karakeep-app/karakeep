@@ -40,6 +40,7 @@ export function buildRestateService<T, R>(
         data: {
           payload: T;
           priority: number;
+          groupID?: string;
         },
       ) => {
         const id = `${await genId(ctx)}`;
@@ -55,6 +56,7 @@ export function buildRestateService<T, R>(
         }
 
         const priority = data.priority ?? 0;
+        const groupID = data.groupID;
 
         const semaphore = new RestateSemaphore(
           ctx,
@@ -64,7 +66,7 @@ export function buildRestateService<T, R>(
 
         let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
-          await semaphore.acquire(priority);
+          await semaphore.acquire(priority, groupID);
           const res = await runWorkerLogic(ctx, funcs, {
             id,
             data: payload,
@@ -72,6 +74,7 @@ export function buildRestateService<T, R>(
             runNumber,
             numRetriesLeft: NUM_RETRIES - runNumber,
             abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
+            groupID,
           });
           await semaphore.release();
           if (res.error) {
@@ -103,6 +106,7 @@ async function runWorkerLogic<T, R>(
     runNumber: number;
     numRetriesLeft: number;
     abortSignal: AbortSignal;
+    groupID?: string;
   },
 ) {
   const res = await tryCatch(

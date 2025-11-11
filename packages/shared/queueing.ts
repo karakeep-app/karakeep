@@ -6,6 +6,7 @@ export interface EnqueueOptions {
   idempotencyKey?: string;
   priority?: number;
   delayMs?: number;
+  groupID?: string;
 }
 
 export interface QueueOptions {
@@ -21,6 +22,7 @@ export interface DequeuedJob<T> {
   priority: number;
   runNumber: number;
   abortSignal: AbortSignal;
+  groupID?: string;
 }
 
 export interface DequeuedJobError<T> {
@@ -30,6 +32,7 @@ export interface DequeuedJobError<T> {
   error: Error;
   runNumber: number;
   numRetriesLeft: number;
+  groupID?: string;
 }
 
 export interface RunnerFuncs<T, R = void> {
