@@ -280,6 +280,9 @@ export class Bookmark implements PrivacyAware {
             if (row.assets.assetType == AssetTypes.LINK_VIDEO) {
               content.videoAssetId = row.assets.id;
             }
+            if (row.assets.assetType == AssetTypes.LINK_GIT_REPO) {
+              content.gitRepoId = row.assets.id;
+            }
             if (row.assets.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE) {
               content.precrawledArchiveAssetId = row.assets.id;
             }

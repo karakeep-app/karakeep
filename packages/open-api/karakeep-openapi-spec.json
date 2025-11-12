@@ -180,6 +180,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "gitRepoAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "favicon": {
                     "type": "string",
                     "nullable": true

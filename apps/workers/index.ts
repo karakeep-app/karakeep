@@ -19,6 +19,7 @@ import { OpenAiWorker } from "./workers/inference/inferenceWorker";
 import { RuleEngineWorker } from "./workers/ruleEngineWorker";
 import { SearchIndexingWorker } from "./workers/searchWorker";
 import { VideoWorker } from "./workers/videoWorker";
+import { GitWorker } from "./workers/gitWorker";
 import { WebhookWorker } from "./workers/webhookWorker";
 
 const workerBuilders = {
@@ -27,6 +28,7 @@ const workerBuilders = {
   search: () => SearchIndexingWorker.build(),
   adminMaintenance: () => AdminMaintenanceWorker.build(),
   video: () => VideoWorker.build(),
+  git: () => GitWorker.build(),
   feed: () => FeedWorker.build(),
   assetPreprocessing: () => AssetPreprocessingWorker.build(),
   webhook: () => WebhookWorker.build(),
