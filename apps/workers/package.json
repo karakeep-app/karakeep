@@ -19,6 +19,7 @@
     "dompurify": "^3.2.4",
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.44.2",
+    "effect": "^3.12.0",
     "execa": "9.3.1",
     "hono": "^4.7.10",
     "http-proxy-agent": "^7.0.2",
