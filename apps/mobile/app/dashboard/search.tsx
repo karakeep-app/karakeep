@@ -19,7 +19,7 @@ const MAX_DISPLAY_SUGGESTIONS = 5;
 export default function Search() {
   const [search, setSearch] = useState("");
 
-  const [query] = useDebounce(search, 10);
+  const query = useDebounce(search, 10);
   const inputRef = useRef<TextInput>(null);
 
   const [isInputFocused, setIsInputFocused] = useState(true);
