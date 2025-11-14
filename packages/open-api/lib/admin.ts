@@ -4,7 +4,6 @@ import {
 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 
-import { zAdminMaintenanceTaskSchema } from "@karakeep/shared-server";
 import {
   resetPasswordSchema,
   updateUserSchema,
@@ -67,94 +66,6 @@ registry.registerPath({
             numBookmarks: z.number().openapi({
               description: "Total number of bookmarks in the system",
               example: 1337,
-            }),
-          }),
-        },
-      },
-    },
-    ...commonErrorResponses,
-  },
-});
-
-// GET /admin/background-jobs/stats
-registry.registerPath({
-  method: "get",
-  path: "/admin/background-jobs/stats",
-  description:
-    "Get statistics for all background job queues including crawl, inference, indexing, maintenance, video, webhook, asset preprocessing, and feed queues. Admin access required.",
-  summary: "Get background job stats",
-  tags: ["Admin"],
-  security: [{ [BearerAuth.name]: [] }],
-  request: {},
-  responses: {
-    200: {
-      description: "Background job statistics retrieved successfully",
-      content: {
-        "application/json": {
-          schema: z.object({
-            crawlStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued crawl jobs",
-                example: 10,
-              }),
-              pending: z.number().openapi({
-                description: "Number of pending crawl jobs",
-                example: 5,
-              }),
-              failed: z.number().openapi({
-                description: "Number of failed crawl jobs",
-                example: 2,
-              }),
-            }),
-            inferenceStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued inference jobs",
-                example: 15,
-              }),
-              pending: z.number().openapi({
-                description: "Number of pending inference jobs",
-                example: 3,
-              }),
-              failed: z.number().openapi({
-                description: "Number of failed inference jobs",
-                example: 1,
-              }),
-            }),
-            indexingStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued indexing jobs",
-                example: 8,
-              }),
-            }),
-            adminMaintenanceStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued admin maintenance tasks",
-                example: 0,
-              }),
-            }),
-            videoStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued video processing jobs",
-                example: 2,
-              }),
-            }),
-            webhookStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued webhook jobs",
-                example: 4,
-              }),
-            }),
-            assetPreprocessingStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued asset preprocessing jobs",
-                example: 6,
-              }),
-            }),
-            feedStats: z.object({
-              queued: z.number().openapi({
-                description: "Number of queued feed processing jobs",
-                example: 1,
-              }),
             }),
           }),
         },
@@ -307,214 +218,6 @@ registry.registerPath({
               }),
             }),
           }),
-        },
-      },
-    },
-    ...commonErrorResponses,
-  },
-});
-
-// POST /admin/links/recrawl
-registry.registerPath({
-  method: "post",
-  path: "/admin/links/recrawl",
-  description:
-    "Recrawl links based on their current crawl status (success, failure, or all). Optionally run inference after recrawling. Admin access required.",
-  summary: "Recrawl links",
-  tags: ["Admin"],
-  security: [{ [BearerAuth.name]: [] }],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: z
-            .object({
-              crawlStatus: z.enum(["success", "failure", "all"]).openapi({
-                description:
-                  "Filter links by crawl status: 'success' (previously successful), 'failure' (previously failed), or 'all' (all links)",
-                example: "failure",
-              }),
-              runInference: z.boolean().openapi({
-                description:
-                  "Whether to run inference (tagging/summarization) after recrawling",
-                example: true,
-              }),
-            })
-            .openapi({
-              example: {
-                crawlStatus: "failure",
-                runInference: true,
-              },
-            }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Links queued for recrawling successfully",
-      content: {
-        "application/json": {
-          schema: successResponseSchema,
-        },
-      },
-    },
-    400: {
-      description: "Bad request - Invalid input data",
-      content: {
-        "application/json": {
-          schema: errorResponseSchema,
-        },
-      },
-    },
-    ...commonErrorResponses,
-  },
-});
-
-// POST /admin/bookmarks/reindex
-registry.registerPath({
-  method: "post",
-  path: "/admin/bookmarks/reindex",
-  description:
-    "Clear the search index and reindex all bookmarks. This operation may take some time depending on the number of bookmarks. Admin access required.",
-  summary: "Reindex all bookmarks",
-  tags: ["Admin"],
-  security: [{ [BearerAuth.name]: [] }],
-  request: {},
-  responses: {
-    200: {
-      description: "Bookmarks queued for reindexing successfully",
-      content: {
-        "application/json": {
-          schema: successResponseSchema,
-        },
-      },
-    },
-    ...commonErrorResponses,
-  },
-});
-
-// POST /admin/assets/reprocess
-registry.registerPath({
-  method: "post",
-  path: "/admin/assets/reprocess",
-  description:
-    "Reprocess all bookmark assets in fix mode. This can be used to repair or regenerate asset processing. Admin access required.",
-  summary: "Reprocess assets",
-  tags: ["Admin"],
-  security: [{ [BearerAuth.name]: [] }],
-  request: {},
-  responses: {
-    200: {
-      description: "Assets queued for reprocessing successfully",
-      content: {
-        "application/json": {
-          schema: successResponseSchema,
-        },
-      },
-    },
-    ...commonErrorResponses,
-  },
-});
-
-// POST /admin/bookmarks/inference
-registry.registerPath({
-  method: "post",
-  path: "/admin/bookmarks/inference",
-  description:
-    "Re-run inference (tagging or summarization) on bookmarks based on their current status. Admin access required.",
-  summary: "Re-run inference on bookmarks",
-  tags: ["Admin"],
-  security: [{ [BearerAuth.name]: [] }],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: z
-            .object({
-              type: z.enum(["tag", "summarize"]).openapi({
-                description:
-                  "Type of inference to run: 'tag' for tagging or 'summarize' for summarization",
-                example: "tag",
-              }),
-              status: z.enum(["success", "failure", "all"]).openapi({
-                description:
-                  "Filter bookmarks by inference status: 'success' (previously successful), 'failure' (previously failed), or 'all' (all bookmarks)",
-                example: "failure",
-              }),
-            })
-            .openapi({
-              example: {
-                type: "tag",
-                status: "failure",
-              },
-            }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Bookmarks queued for inference successfully",
-      content: {
-        "application/json": {
-          schema: successResponseSchema,
-        },
-      },
-    },
-    400: {
-      description: "Bad request - Invalid input data",
-      content: {
-        "application/json": {
-          schema: errorResponseSchema,
-        },
-      },
-    },
-    ...commonErrorResponses,
-  },
-});
-
-// POST /admin/maintenance/tasks
-registry.registerPath({
-  method: "post",
-  path: "/admin/maintenance/tasks",
-  description:
-    "Run an admin maintenance task. Currently supports 'tidy_assets' and 'migrate_large_link_html' tasks. Admin access required.",
-  summary: "Run maintenance task",
-  tags: ["Admin"],
-  security: [{ [BearerAuth.name]: [] }],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: zAdminMaintenanceTaskSchema.openapi({
-            description:
-              "Maintenance task configuration. Type can be 'tidy_assets' or 'migrate_large_link_html'.",
-            example: {
-              type: "tidy_assets",
-              args: {
-                dryRun: false,
-              },
-            },
-          }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Maintenance task queued successfully",
-      content: {
-        "application/json": {
-          schema: successResponseSchema,
-        },
-      },
-    },
-    400: {
-      description: "Bad request - Invalid task type or arguments",
-      content: {
-        "application/json": {
-          schema: errorResponseSchema,
         },
       },
     },
@@ -704,6 +407,205 @@ registry.registerPath({
     },
     404: {
       description: "User not found",
+      content: {
+        "application/json": {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    ...commonErrorResponses,
+  },
+});
+
+// POST /admin/invites
+registry.registerPath({
+  method: "post",
+  path: "/admin/invites",
+  description:
+    "Create a new invitation for a user by email. An invite email will be sent to the specified address. Admin access required.",
+  summary: "Create invite",
+  tags: ["Admin"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              email: z.string().email().openapi({
+                description: "Email address to send the invitation to",
+                example: "newuser@example.com",
+              }),
+            })
+            .openapi({
+              example: {
+                email: "newuser@example.com",
+              },
+            }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Invite created successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.string().openapi({
+              description: "Unique invite ID",
+              example: "invite_abc123",
+            }),
+            email: z.string().openapi({
+              description: "Email address the invite was sent to",
+              example: "newuser@example.com",
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      description:
+        "Bad request - User with this email already exists or an active invite already exists for this email",
+      content: {
+        "application/json": {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    ...commonErrorResponses,
+  },
+});
+
+// GET /admin/invites
+registry.registerPath({
+  method: "get",
+  path: "/admin/invites",
+  description:
+    "List all pending invitations with details about who created them. Admin access required.",
+  summary: "List invites",
+  tags: ["Admin"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {},
+  responses: {
+    200: {
+      description: "Invites retrieved successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            invites: z.array(
+              z.object({
+                id: z.string().openapi({
+                  description: "Unique invite ID",
+                  example: "invite_abc123",
+                }),
+                email: z.string().openapi({
+                  description: "Email address the invite was sent to",
+                  example: "newuser@example.com",
+                }),
+                createdAt: z.date().openapi({
+                  description: "When the invite was created",
+                  example: "2025-01-15T10:30:00Z",
+                }),
+                invitedBy: z.object({
+                  id: z.string().openapi({
+                    description: "ID of the admin who created the invite",
+                    example: "user_admin123",
+                  }),
+                  name: z.string().openapi({
+                    description: "Name of the admin who created the invite",
+                    example: "Admin User",
+                  }),
+                  email: z.string().openapi({
+                    description: "Email of the admin who created the invite",
+                    example: "admin@example.com",
+                  }),
+                }),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+    ...commonErrorResponses,
+  },
+});
+
+// DELETE /admin/invites/:inviteId
+registry.registerPath({
+  method: "delete",
+  path: "/admin/invites/{inviteId}",
+  description:
+    "Revoke a pending invitation. The invite will be deleted and can no longer be used. Admin access required.",
+  summary: "Revoke invite",
+  tags: ["Admin"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({
+      inviteId: z.string().openapi({
+        description: "The ID of the invite to revoke",
+        example: "invite_abc123",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Invite revoked successfully",
+      content: {
+        "application/json": {
+          schema: successResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Invite not found",
+      content: {
+        "application/json": {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    ...commonErrorResponses,
+  },
+});
+
+// POST /admin/invites/:inviteId/resend
+registry.registerPath({
+  method: "post",
+  path: "/admin/invites/{inviteId}/resend",
+  description:
+    "Resend an invitation email with a new token. The previous token will be invalidated. Admin access required.",
+  summary: "Resend invite",
+  tags: ["Admin"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({
+      inviteId: z.string().openapi({
+        description: "The ID of the invite to resend",
+        example: "invite_abc123",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Invite resent successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.string().openapi({
+              description: "Unique invite ID",
+              example: "invite_abc123",
+            }),
+            email: z.string().openapi({
+              description: "Email address the invite was resent to",
+              example: "newuser@example.com",
+            }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: "Invite not found",
       content: {
         "application/json": {
           schema: errorResponseSchema,

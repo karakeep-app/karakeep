@@ -2,7 +2,6 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { zAdminMaintenanceTaskSchema } from "@karakeep/shared-server";
 import {
   resetPasswordSchema,
   updateUserSchema,
@@ -17,12 +16,6 @@ const app = new Hono()
   // GET /admin/stats
   .get("/stats", async (c) => {
     const result = await c.var.api.admin.stats();
-    return c.json(result, 200);
-  })
-
-  // GET /admin/background-jobs/stats
-  .get("/background-jobs/stats", async (c) => {
-    const result = await c.var.api.admin.backgroundJobsStats();
     return c.json(result, 200);
   })
 
@@ -43,63 +36,6 @@ const app = new Hono()
     const result = await c.var.api.admin.checkConnections();
     return c.json(result, 200);
   })
-
-  // POST /admin/links/recrawl
-  .post(
-    "/links/recrawl",
-    zValidator(
-      "json",
-      z.object({
-        crawlStatus: z.enum(["success", "failure", "all"]),
-        runInference: z.boolean(),
-      }),
-    ),
-    async (c) => {
-      const body = c.req.valid("json");
-      await c.var.api.admin.recrawlLinks(body);
-      return c.json({ success: true }, 200);
-    },
-  )
-
-  // POST /admin/bookmarks/reindex
-  .post("/bookmarks/reindex", async (c) => {
-    await c.var.api.admin.reindexAllBookmarks();
-    return c.json({ success: true }, 200);
-  })
-
-  // POST /admin/assets/reprocess
-  .post("/assets/reprocess", async (c) => {
-    await c.var.api.admin.reprocessAssetsFixMode();
-    return c.json({ success: true }, 200);
-  })
-
-  // POST /admin/bookmarks/inference
-  .post(
-    "/bookmarks/inference",
-    zValidator(
-      "json",
-      z.object({
-        type: z.enum(["tag", "summarize"]),
-        status: z.enum(["success", "failure", "all"]),
-      }),
-    ),
-    async (c) => {
-      const body = c.req.valid("json");
-      await c.var.api.admin.reRunInferenceOnAllBookmarks(body);
-      return c.json({ success: true }, 200);
-    },
-  )
-
-  // POST /admin/maintenance/tasks
-  .post(
-    "/maintenance/tasks",
-    zValidator("json", zAdminMaintenanceTaskSchema),
-    async (c) => {
-      const body = c.req.valid("json");
-      await c.var.api.admin.runAdminMaintenanceTask(body);
-      return c.json({ success: true }, 200);
-    },
-  )
 
   // POST /admin/users
   .post("/users", zValidator("json", zAdminCreateUserSchema), async (c) => {
@@ -139,6 +75,42 @@ const app = new Hono()
 
       return c.json({ success: true }, 200);
     },
-  );
+  )
+
+  // POST /admin/invites
+  .post(
+    "/invites",
+    zValidator(
+      "json",
+      z.object({
+        email: z.string().email(),
+      }),
+    ),
+    async (c) => {
+      const body = c.req.valid("json");
+      const result = await c.var.api.invites.create(body);
+      return c.json(result, 201);
+    },
+  )
+
+  // GET /admin/invites
+  .get("/invites", async (c) => {
+    const result = await c.var.api.invites.list();
+    return c.json(result, 200);
+  })
+
+  // DELETE /admin/invites/:inviteId
+  .delete("/invites/:inviteId", async (c) => {
+    const inviteId = c.req.param("inviteId");
+    await c.var.api.invites.revoke({ inviteId });
+    return c.json({ success: true }, 200);
+  })
+
+  // POST /admin/invites/:inviteId/resend
+  .post("/invites/:inviteId/resend", async (c) => {
+    const inviteId = c.req.param("inviteId");
+    const result = await c.var.api.invites.resend({ inviteId });
+    return c.json(result, 200);
+  });
 
 export default app;
