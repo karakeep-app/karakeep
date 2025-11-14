@@ -3,7 +3,7 @@ export default {
     name: "Karakeep",
     slug: "hoarder",
     scheme: "karakeep",
-    version: "1.8.1",
+    version: "1.8.2",
     orientation: "portrait",
     icon: {
       light: "./assets/icon.png",
@@ -35,7 +35,7 @@ export default {
           NSAllowsArbitraryLoads: true,
         },
       },
-      buildNumber: "26",
+      buildNumber: "27",
     },
     android: {
       adaptiveIcon: {
@@ -54,7 +54,7 @@ export default {
         },
       },
       package: "app.hoarder.hoardermobile",
-      versionCode: 26,
+      versionCode: 27,
     },
     plugins: [
       "./plugins/trust-local-certs.js",
