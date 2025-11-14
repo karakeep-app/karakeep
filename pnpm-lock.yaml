@@ -325,19 +325,19 @@ importers:
         version: link:../../packages/trpc
       '@react-native-async-storage/async-storage':
         specifier: 1.23.1
-        version: 1.23.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+        version: 1.23.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       '@react-native-menu/menu':
         specifier: ^1.2.4
-        version: 1.2.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 1.2.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       '@rn-primitives/hooks':
         specifier: ^1.3.0
-        version: 1.3.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 1.3.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       '@rn-primitives/slot':
         specifier: ^1.2.0
-        version: 1.2.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 1.2.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       '@shopify/flash-list':
         specifier: ^2.0.3
-        version: 2.0.3(@babel/runtime@7.28.4)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 2.0.3(@babel/runtime@7.28.4)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       '@tanstack/react-query':
         specifier: 5.90.2
         version: 5.90.2(react@19.1.0)
@@ -348,110 +348,110 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       expo:
-        specifier: ~53.0.11
-        version: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        specifier: ~53.0.19
+        version: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-build-properties:
         specifier: ^0.14.6
-        version: 0.14.8(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+        version: 0.14.8(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       expo-checkbox:
         specifier: ^4.1.4
-        version: 4.1.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 4.1.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-clipboard:
         specifier: ^7.1.4
-        version: 7.1.5(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 7.1.5(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-constants:
         specifier: ~17.1.6
-        version: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+        version: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       expo-dev-client:
         specifier: ^5.2.0
-        version: 5.2.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+        version: 5.2.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       expo-file-system:
         specifier: ~18.1.11
-        version: 18.1.11(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+        version: 18.1.11(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       expo-haptics:
         specifier: ^14.1.4
-        version: 14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+        version: 14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       expo-image:
-        specifier: ^2.2.0
-        version: 2.4.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        specifier: ^2.4.0
+        version: 2.4.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-image-picker:
         specifier: ^16.1.4
-        version: 16.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+        version: 16.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       expo-linking:
         specifier: ~7.1.5
-        version: 7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-navigation-bar:
         specifier: ^4.2.5
-        version: 4.2.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 4.2.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-router:
         specifier: ~5.0.7
-        version: 5.0.7(m4trxr5vijlpecs3cxkciojd2q)
+        version: 5.0.7(d4bn6465juazto3hnffa4nmcvm)
       expo-secure-store:
         specifier: ^14.2.3
-        version: 14.2.3(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+        version: 14.2.3(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       expo-share-intent:
         specifier: ^4.0.0
-        version: 4.1.1(ue4mi6ejbrukbzusxjuhbkdwaa)
+        version: 4.1.1(nknkfklzmf4l4do54tin4wyzlm)
       expo-sharing:
         specifier: ~13.0.1
-        version: 13.0.1(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+        version: 13.0.1(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       expo-status-bar:
         specifier: ~2.2.3
-        version: 2.2.3(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 2.2.3(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-system-ui:
         specifier: ^5.0.8
-        version: 5.0.10(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+        version: 5.0.10(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       expo-web-browser:
         specifier: ^14.1.6
-        version: 14.2.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+        version: 14.2.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       lucide-react-native:
         specifier: ^0.513.0
-        version: 0.513.0(react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 0.513.0(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       nativewind:
         specifier: ^4.1.23
-        version: 4.1.23(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
+        version: 4.1.23(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
       react:
         specifier: ^19.1.0
         version: 19.1.0
       react-native:
-        specifier: 0.79.3
-        version: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+        specifier: 0.79.5
+        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       react-native-awesome-slider:
         specifier: ^2.5.3
-        version: 2.5.3(react-native-gesture-handler@2.24.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 2.5.3(react-native-gesture-handler@2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-blob-util:
         specifier: ^0.21.2
-        version: 0.21.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-gesture-handler:
         specifier: ~2.24.0
-        version: 2.24.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-image-viewing:
         specifier: ^0.2.2
-        version: 0.2.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 0.2.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-keyboard-controller:
         specifier: ^1.18.5
-        version: 1.18.5(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 1.18.5(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-markdown-display:
         specifier: ^7.0.2
-        version: 7.0.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 7.0.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-pdf:
         specifier: ^6.7.7
-        version: 6.7.7(react-native-blob-util@0.21.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 6.7.7(react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-reanimated:
         specifier: ^3.17.5
-        version: 3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-safe-area-context:
         specifier: 5.4.0
-        version: 5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-screens:
         specifier: ~4.11.1
-        version: 4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-svg:
         specifier: ^15.11.2
-        version: 15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-webview:
         specifier: ^13.13.5
-        version: 13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        version: 13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       tailwind-merge:
         specifier: ^2.2.1
         version: 2.2.1
@@ -1409,7 +1409,7 @@ importers:
         version: 0.5.16(tailwindcss@3.4.1)
       nativewind:
         specifier: ^4.1.23
-        version: 4.1.23(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
+        version: 4.1.23(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
       postcss:
         specifier: ^8.4.35
         version: 8.5.4
@@ -4762,6 +4762,10 @@ packages:
     resolution: {integrity: sha512-Vy8DQXCJ21YSAiHxrNBz35VqVlZPpRYm50xRTWRf660JwHuJkFQG8cUkrLzm7AUriqUXxwpkQHcY+b0ibw9ejQ==}
     engines: {node: '>=18'}
 
+  '@react-native/assets-registry@0.79.5':
+    resolution: {integrity: sha512-N4Kt1cKxO5zgM/BLiyzuuDNquZPiIgfktEQ6TqJ/4nKA8zr4e8KJgU6Tb2eleihDO4E24HmkvGc73naybKRz/w==}
+    engines: {node: '>=18'}
+
   '@react-native/babel-plugin-codegen@0.79.5':
     resolution: {integrity: sha512-Rt/imdfqXihD/sn0xnV4flxxb1aLLjPtMF1QleQjEhJsTUPpH4TFlfOpoCvsrXoDl4OIcB1k4FVM24Ez92zf5w==}
     engines: {node: '>=18'}
@@ -4793,6 +4797,15 @@ packages:
       '@react-native-community/cli':
         optional: true
 
+  '@react-native/community-cli-plugin@0.79.5':
+    resolution: {integrity: sha512-ApLO1ARS8JnQglqS3JAHk0jrvB+zNW3dvNJyXPZPoygBpZVbf8sjvqeBiaEYpn8ETbFWddebC4HoQelDndnrrA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@react-native-community/cli': '*'
+    peerDependenciesMeta:
+      '@react-native-community/cli':
+        optional: true
+
   '@react-native/debugger-frontend@0.79.3':
     resolution: {integrity: sha512-ImNDuEeKH6lEsLXms3ZsgIrNF94jymfuhPcVY5L0trzaYNo9ZFE9Ni2/18E1IbfXxdeIHrCSBJlWD6CTm7wu5A==}
     engines: {node: '>=18'}
@@ -4813,8 +4826,16 @@ packages:
     resolution: {integrity: sha512-imfpZLhNBc9UFSzb/MOy2tNcIBHqVmexh/qdzw83F75BmUtLb/Gs1L2V5gw+WI1r7RqDILbWk7gXB8zUllwd+g==}
     engines: {node: '>=18'}
 
+  '@react-native/gradle-plugin@0.79.5':
+    resolution: {integrity: sha512-K3QhfFNKiWKF3HsCZCEoWwJPSMcPJQaeqOmzFP4RL8L3nkpgUwn74PfSCcKHxooVpS6bMvJFQOz7ggUZtNVT+A==}
+    engines: {node: '>=18'}
+
   '@react-native/js-polyfills@0.79.3':
     resolution: {integrity: sha512-PEBtg6Kox6KahjCAch0UrqCAmHiNLEbp2SblUEoFAQnov4DSxBN9safh+QSVaCiMAwLjvNfXrJyygZz60Dqz3Q==}
+    engines: {node: '>=18'}
+
+  '@react-native/js-polyfills@0.79.5':
+    resolution: {integrity: sha512-a2wsFlIhvd9ZqCD5KPRsbCQmbZi6KxhRN++jrqG0FUTEV5vY7MvjjUqDILwJd2ZBZsf7uiDuClCcKqA+EEdbvw==}
     engines: {node: '>=18'}
 
   '@react-native/normalize-color@2.1.0':
@@ -4828,6 +4849,17 @@ packages:
 
   '@react-native/virtualized-lists@0.79.3':
     resolution: {integrity: sha512-/0rRozkn+iIHya2vnnvprDgT7QkfI54FLrACAN3BLP7MRlfOIGOrZsXpRLndnLBVnjNzkcre84i1RecjoXnwIA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/react': ^19.0.0
+      react: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@react-native/virtualized-lists@0.79.5':
+    resolution: {integrity: sha512-EUPM2rfGNO4cbI3olAbhPkIt3q7MapwCwAJBzUfWlZ/pu0PRNOnMQ1IvaXTf3TpeozXV52K1OdprLEI/kI5eUA==}
     engines: {node: '>=18'}
     peerDependencies:
       '@types/react': ^19.0.0
@@ -12513,6 +12545,17 @@ packages:
       '@types/react':
         optional: true
 
+  react-native@0.79.5:
+    resolution: {integrity: sha512-jVihwsE4mWEHZ9HkO1J2eUZSwHyDByZOqthwnGrVZCh6kTQBCm4v8dicsyDa6p0fpWNE5KicTcpX/XXl0ASJFg==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      '@types/react': ^19.0.0
+      react: ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   react-redux@7.2.9:
     resolution: {integrity: sha512-Gx4L3uM182jEEayZfRbI/G11ZpYdNAnBs70lFVMNdHJI76XYtR+7m0MN+eAs7UHBPhWXcnFPaS+9owSCJQHNpQ==}
     peerDependencies:
@@ -15592,7 +15635,7 @@ snapshots:
 
   '@babel/helper-annotate-as-pure@7.27.3':
     dependencies:
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.5
 
   '@babel/helper-compilation-targets@7.27.2':
     dependencies:
@@ -15647,7 +15690,7 @@ snapshots:
       '@babel/core': 7.26.0
       '@babel/helper-compilation-targets': 7.27.2
       '@babel/helper-plugin-utils': 7.27.1
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       lodash.debounce: 4.0.8
       resolve: 1.22.10
     transitivePeerDependencies:
@@ -15723,7 +15766,7 @@ snapshots:
   '@babel/helper-skip-transparent-expression-wrappers@7.27.1':
     dependencies:
       '@babel/traverse': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -15750,7 +15793,7 @@ snapshots:
 
   '@babel/highlight@7.25.9':
     dependencies:
-      '@babel/helper-validator-identifier': 7.27.1
+      '@babel/helper-validator-identifier': 7.28.5
       chalk: 2.4.2
       js-tokens: 4.0.0
       picocolors: 1.1.1
@@ -17823,7 +17866,7 @@ snapshots:
   '@emotion/babel-plugin@11.13.5':
     dependencies:
       '@babel/helper-module-imports': 7.27.1
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.4
       '@emotion/hash': 0.9.2
       '@emotion/memoize': 0.9.0
       '@emotion/serialize': 1.3.3
@@ -18043,7 +18086,7 @@ snapshots:
   '@expo/cli@0.24.20':
     dependencies:
       '@0no-co/graphql.web': 1.1.2
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.4
       '@expo/code-signing-certificates': 0.0.5
       '@expo/config': 11.0.13
       '@expo/config-plugins': 10.1.2
@@ -18071,7 +18114,7 @@ snapshots:
       ci-info: 3.9.0
       compression: 1.8.0
       connect: 3.7.0
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       env-editor: 0.4.2
       freeport-async: 2.0.0
       getenv: 2.0.0
@@ -18092,7 +18135,7 @@ snapshots:
       resolve: 1.22.10
       resolve-from: 5.0.0
       resolve.exports: 2.0.3
-      semver: 7.7.2
+      semver: 7.7.3
       send: 0.19.1
       slugify: 1.6.6
       source-map-support: 0.5.21
@@ -18102,7 +18145,7 @@ snapshots:
       terminal-link: 2.1.1
       undici: 6.21.3
       wrap-ansi: 7.0.0
-      ws: 8.18.2
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - graphql
@@ -18121,11 +18164,11 @@ snapshots:
       '@expo/plist': 0.3.5
       '@expo/sdk-runtime-versions': 1.0.0
       chalk: 4.1.2
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       getenv: 2.0.0
       glob: 10.4.5
       resolve-from: 5.0.0
-      semver: 7.7.2
+      semver: 7.7.3
       slash: 3.0.0
       slugify: 1.6.6
       xcode: 3.0.1(patch_hash=kvggi4abfe6iel7wt6iiemonyq)
@@ -18147,7 +18190,7 @@ snapshots:
       require-from-string: 2.0.2
       resolve-from: 5.0.0
       resolve-workspace-root: 2.0.0
-      semver: 7.7.2
+      semver: 7.7.3
       slugify: 1.6.6
       sucrase: 3.35.0
     transitivePeerDependencies:
@@ -18176,7 +18219,7 @@ snapshots:
       '@expo/spawn-async': 1.7.2
       arg: 5.0.2
       chalk: 4.1.2
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       find-up: 5.0.0
       getenv: 2.0.0
       glob: 10.4.5
@@ -18184,7 +18227,7 @@ snapshots:
       minimatch: 9.0.5
       p-limit: 3.1.0
       resolve-from: 5.0.0
-      semver: 7.7.2
+      semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
 
@@ -18196,7 +18239,7 @@ snapshots:
       jimp-compact: 0.16.1
       parse-png: 2.1.0
       resolve-from: 5.0.0
-      semver: 7.7.2
+      semver: 7.7.3
       temp-dir: 2.0.0
       unique-string: 2.0.0
 
@@ -18208,15 +18251,15 @@ snapshots:
   '@expo/metro-config@0.20.17':
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/generator': 7.28.0
-      '@babel/parser': 7.28.0
-      '@babel/types': 7.28.1
+      '@babel/generator': 7.28.5
+      '@babel/parser': 7.28.5
+      '@babel/types': 7.28.5
       '@expo/config': 11.0.13
       '@expo/env': 1.0.7
       '@expo/json-file': 9.1.5
       '@expo/spawn-async': 1.7.2
       chalk: 4.1.2
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       dotenv: 16.4.5
       dotenv-expand: 11.0.7
       getenv: 2.0.0
@@ -18229,9 +18272,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))':
+  '@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))':
     dependencies:
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   '@expo/osascript@2.2.5':
     dependencies:
@@ -18261,9 +18304,9 @@ snapshots:
       '@expo/image-utils': 0.7.6
       '@expo/json-file': 9.1.5
       '@react-native/normalize-colors': 0.79.5
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       resolve-from: 5.0.0
-      semver: 7.7.2
+      semver: 7.7.3
       xml2js: 0.6.0
     transitivePeerDependencies:
       - supports-color
@@ -18285,11 +18328,11 @@ snapshots:
 
   '@expo/sudo-prompt@9.3.2': {}
 
-  '@expo/vector-icons@14.1.0(expo-font@13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@expo/vector-icons@14.1.0(expo-font@13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
-      expo-font: 13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0)
+      expo-font: 13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   '@expo/ws-tunnel@1.0.6': {}
 
@@ -19101,7 +19144,7 @@ snapshots:
 
   '@npmcli/fs@4.0.0':
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   '@opentelemetry/api@1.9.0': {}
 
@@ -19724,21 +19767,23 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
-  '@react-native-async-storage/async-storage@1.23.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))':
+  '@react-native-async-storage/async-storage@1.23.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))':
     dependencies:
       merge-options: 3.0.4
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  '@react-native-menu/menu@1.2.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@react-native-menu/menu@1.2.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   '@react-native/assets-registry@0.79.3': {}
 
+  '@react-native/assets-registry@0.79.5': {}
+
   '@react-native/babel-plugin-codegen@0.79.5(@babel/core@7.26.0)':
     dependencies:
-      '@babel/traverse': 7.28.0
+      '@babel/traverse': 7.28.5
       '@react-native/codegen': 0.79.5(@babel/core@7.26.0)
     transitivePeerDependencies:
       - '@babel/core'
@@ -19803,18 +19848,18 @@ snapshots:
       nullthrows: 1.1.1
       yargs: 17.7.2
 
-  '@react-native/codegen@0.79.3(@babel/core@7.28.0)':
+  '@react-native/codegen@0.79.5(@babel/core@7.26.0)':
     dependencies:
-      '@babel/core': 7.28.0
+      '@babel/core': 7.26.0
       glob: 7.2.3
       hermes-parser: 0.25.1
       invariant: 2.2.4
       nullthrows: 1.1.1
       yargs: 17.7.2
 
-  '@react-native/codegen@0.79.5(@babel/core@7.26.0)':
+  '@react-native/codegen@0.79.5(@babel/core@7.28.0)':
     dependencies:
-      '@babel/core': 7.26.0
+      '@babel/core': 7.28.0
       glob: 7.2.3
       hermes-parser: 0.25.1
       invariant: 2.2.4
@@ -19831,6 +19876,21 @@ snapshots:
       metro-config: 0.82.5
       metro-core: 0.82.5
       semver: 7.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  '@react-native/community-cli-plugin@0.79.5':
+    dependencies:
+      '@react-native/dev-middleware': 0.79.5
+      chalk: 4.1.2
+      debug: 2.6.9
+      invariant: 2.2.4
+      metro: 0.82.5
+      metro-config: 0.82.5
+      metro-core: 0.82.5
+      semver: 7.7.3
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -19878,22 +19938,17 @@ snapshots:
 
   '@react-native/gradle-plugin@0.79.3': {}
 
+  '@react-native/gradle-plugin@0.79.5': {}
+
   '@react-native/js-polyfills@0.79.3': {}
+
+  '@react-native/js-polyfills@0.79.5': {}
 
   '@react-native/normalize-color@2.1.0': {}
 
   '@react-native/normalize-colors@0.79.3': {}
 
   '@react-native/normalize-colors@0.79.5': {}
-
-  '@react-native/virtualized-lists@0.79.3(@types/react@19.1.8)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      invariant: 2.2.4
-      nullthrows: 1.1.1
-      react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-    optionalDependencies:
-      '@types/react': 19.1.8
 
   '@react-native/virtualized-lists@0.79.3(@types/react@19.2.2)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -19904,24 +19959,33 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.2
 
-  '@react-native/virtualized-lists@0.79.3(@types/react@19.2.2)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
+  '@react-native/virtualized-lists@0.79.5(@types/react@19.1.8)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+    optionalDependencies:
+      '@types/react': 19.1.8
+
+  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      invariant: 2.2.4
+      nullthrows: 1.1.1
+      react: 19.1.0
+      react-native: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
     optionalDependencies:
       '@types/react': 19.2.2
 
-  '@react-navigation/bottom-tabs@7.3.14(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@react-navigation/bottom-tabs@7.3.14(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@react-navigation/elements': 2.4.3(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      '@react-navigation/native': 7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/elements': 2.4.3(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/native': 7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       color: 4.2.3
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-safe-area-context: 5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-screens: 4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-screens: 4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@react-native-masked-view/masked-view'
 
@@ -19936,34 +20000,34 @@ snapshots:
       use-latest-callback: 0.2.3(react@19.1.0)
       use-sync-external-store: 1.5.0(react@19.1.0)
 
-  '@react-navigation/elements@2.4.3(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@react-navigation/elements@2.4.3(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@react-navigation/native': 7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/native': 7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       color: 4.2.3
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-safe-area-context: 5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  '@react-navigation/native-stack@7.3.14(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@react-navigation/native-stack@7.3.14(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@react-navigation/elements': 2.4.3(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      '@react-navigation/native': 7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/elements': 2.4.3(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/native': 7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-safe-area-context: 5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-screens: 4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-screens: 4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       warn-once: 0.1.1
     transitivePeerDependencies:
       - '@react-native-masked-view/masked-view'
 
-  '@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@react-navigation/core': 7.10.0(react@19.1.0)
       escape-string-regexp: 4.0.0
       fast-deep-equal: 3.1.3
       nanoid: 3.3.11
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       use-latest-callback: 0.2.3(react@19.1.0)
 
   '@react-navigation/routers@7.4.0':
@@ -20032,24 +20096,24 @@ snapshots:
     dependencies:
       '@restatedev/restate-sdk-core': 1.9.0
 
-  '@rn-primitives/hooks@1.3.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@rn-primitives/hooks@1.3.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@rn-primitives/types': 1.2.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@rn-primitives/types': 1.2.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
     optionalDependencies:
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  '@rn-primitives/slot@1.2.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@rn-primitives/slot@1.2.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
       react: 19.1.0
     optionalDependencies:
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  '@rn-primitives/types@1.2.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@rn-primitives/types@1.2.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
       react: 19.1.0
     optionalDependencies:
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   '@rolldown/binding-android-arm64@1.0.0-beta.28':
     optional: true
@@ -20249,11 +20313,11 @@ snapshots:
       domhandler: 5.0.3
       selderee: 0.11.0
 
-  '@shopify/flash-list@2.0.3(@babel/runtime@7.28.4)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
+  '@shopify/flash-list@2.0.3(@babel/runtime@7.28.4)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@babel/runtime': 7.28.4
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       tslib: 2.8.1
 
   '@sideway/address@4.1.5':
@@ -21877,7 +21941,7 @@ snapshots:
       babel-plugin-react-native-web: 0.19.13
       babel-plugin-syntax-hermes-parser: 0.25.1
       babel-plugin-transform-flow-enums: 0.0.2(@babel/core@7.26.0)
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       react-refresh: 0.14.2
       resolve-from: 5.0.0
     transitivePeerDependencies:
@@ -22655,7 +22719,7 @@ snapshots:
       postcss-modules-scope: 3.2.1(postcss@8.5.6)
       postcss-modules-values: 4.0.0(postcss@8.5.6)
       postcss-value-parser: 4.2.0
-      semver: 7.7.2
+      semver: 7.7.3
     optionalDependencies:
       webpack: 5.99.9
 
@@ -22867,7 +22931,7 @@ snapshots:
 
   debug-fabulous@2.0.2:
     dependencies:
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       memoizee: 0.4.17
     transitivePeerDependencies:
       - supports-color
@@ -23122,7 +23186,7 @@ snapshots:
 
   dom-helpers@5.2.1:
     dependencies:
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.4
       csstype: 3.1.3
 
   dom-serializer@1.4.1:
@@ -23639,123 +23703,123 @@ snapshots:
 
   expect-type@1.2.2: {}
 
-  expo-asset@11.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-asset@11.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       '@expo/image-utils': 0.7.6
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  expo-build-properties@0.14.8(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-build-properties@0.14.8(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
       ajv: 8.17.1
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       semver: 7.7.2
 
-  expo-checkbox@4.1.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-checkbox@4.1.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  expo-clipboard@7.1.5(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-clipboard@7.1.5(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  expo-constants@17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
+  expo-constants@17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
     dependencies:
       '@expo/config': 11.0.13
       '@expo/env': 1.0.7
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  expo-dev-client@5.2.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-dev-client@5.2.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-dev-launcher: 5.1.16(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
-      expo-dev-menu: 6.1.14(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
-      expo-dev-menu-interface: 1.10.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
-      expo-manifests: 0.16.6(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
-      expo-updates-interface: 1.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-dev-launcher: 5.1.16(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo-dev-menu: 6.1.14(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo-dev-menu-interface: 1.10.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo-manifests: 0.16.6(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo-updates-interface: 1.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
     transitivePeerDependencies:
       - supports-color
 
-  expo-dev-launcher@5.1.16(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-dev-launcher@5.1.16(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
       ajv: 8.11.0
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-dev-menu: 6.1.14(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
-      expo-manifests: 0.16.6(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-dev-menu: 6.1.14(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo-manifests: 0.16.6(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
       resolve-from: 5.0.0
     transitivePeerDependencies:
       - supports-color
 
-  expo-dev-menu-interface@1.10.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-dev-menu-interface@1.10.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-dev-menu@6.1.14(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-dev-menu@6.1.14(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-dev-menu-interface: 1.10.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-dev-menu-interface: 1.10.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
 
-  expo-file-system@18.1.11(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
+  expo-file-system@18.1.11(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  expo-font@13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0):
+  expo-font@13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       fontfaceobserver: 2.3.0
       react: 19.1.0
 
-  expo-haptics@14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-haptics@14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-image-loader@5.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-image-loader@5.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-image-picker@16.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-image-picker@16.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-image-loader: 5.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-image-loader: 5.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))
 
-  expo-image@2.4.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-image@2.4.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   expo-json-utils@0.15.0: {}
 
-  expo-keep-awake@14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0):
+  expo-keep-awake@14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
 
-  expo-linking@7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-linking@7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
-      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       invariant: 2.2.4
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
     transitivePeerDependencies:
       - expo
       - supports-color
 
-  expo-manifests@0.16.6(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-manifests@0.16.6(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
       '@expo/config': 11.0.13
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       expo-json-utils: 0.15.0
     transitivePeerDependencies:
       - supports-color
@@ -23774,41 +23838,41 @@ snapshots:
     dependencies:
       invariant: 2.2.4
 
-  expo-navigation-bar@4.2.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-navigation-bar@4.2.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       '@react-native/normalize-colors': 0.79.5
       debug: 4.4.1(supports-color@10.0.0)
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-edge-to-edge: 1.6.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-edge-to-edge: 1.6.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  expo-router@5.0.7(m4trxr5vijlpecs3cxkciojd2q):
+  expo-router@5.0.7(d4bn6465juazto3hnffa4nmcvm):
     dependencies:
-      '@expo/metro-runtime': 5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      '@expo/metro-runtime': 5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
       '@expo/server': 0.6.3
       '@radix-ui/react-slot': 1.2.0(@types/react@19.1.8)(react@19.1.0)
-      '@react-navigation/bottom-tabs': 7.3.14(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      '@react-navigation/native': 7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      '@react-navigation/native-stack': 7.3.14(@react-navigation/native@7.1.10(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/bottom-tabs': 7.3.14(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/native': 7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@react-navigation/native-stack': 7.3.14(@react-navigation/native@7.1.10(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       client-only: 0.0.1
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
-      expo-linking: 7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      expo-linking: 7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       invariant: 2.2.4
       react-fast-compare: 3.2.2
-      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-safe-area-context: 5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-screens: 4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-screens: 4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       schema-utils: 4.3.2
       semver: 7.6.3
       server-only: 0.0.1
       shallowequal: 1.1.0
     optionalDependencies:
-      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@react-native-masked-view/masked-view'
       - '@types/react'
@@ -23816,74 +23880,74 @@ snapshots:
       - react-native
       - supports-color
 
-  expo-secure-store@14.2.3(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-secure-store@14.2.3(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-share-intent@4.1.1(ue4mi6ejbrukbzusxjuhbkdwaa):
+  expo-share-intent@4.1.1(nknkfklzmf4l4do54tin4wyzlm):
     dependencies:
       '@expo/config-plugins': 10.1.2
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
-      expo-linking: 7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      expo-linking: 7.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  expo-sharing@13.0.1(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-sharing@13.0.1(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-status-bar@2.2.3(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo-status-bar@2.2.3(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-edge-to-edge: 1.6.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-edge-to-edge: 1.6.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-system-ui@5.0.10(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
+  expo-system-ui@5.0.10(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
     dependencies:
       '@react-native/normalize-colors': 0.79.5
       debug: 4.4.1(supports-color@10.0.0)
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  expo-updates-interface@1.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
+  expo-updates-interface@1.1.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  expo-web-browser@14.2.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
+  expo-web-browser@14.2.0(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)):
     dependencies:
-      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      expo: 53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.28.4
       '@expo/cli': 0.24.20
       '@expo/config': 11.0.13
       '@expo/config-plugins': 10.1.2
       '@expo/fingerprint': 0.13.4
       '@expo/metro-config': 0.20.17
-      '@expo/vector-icons': 14.1.0(expo-font@13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@expo/vector-icons': 14.1.0(expo-font@13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       babel-preset-expo: 13.2.3(@babel/core@7.26.0)
-      expo-asset: 11.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
-      expo-file-system: 18.1.11(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
-      expo-font: 13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0)
-      expo-keep-awake: 14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0)
+      expo-asset: 11.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      expo-constants: 17.1.7(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      expo-file-system: 18.1.11(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      expo-font: 13.3.2(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0)
+      expo-keep-awake: 14.1.4(expo@53.0.20(@babel/core@7.26.0)(@expo/metro-runtime@5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)))(react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react@19.1.0)
       expo-modules-autolinking: 2.1.14
       expo-modules-core: 2.5.0
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-edge-to-edge: 1.6.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-edge-to-edge: 1.6.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       whatwg-url-without-unicode: 8.0.0-3
     optionalDependencies:
-      '@expo/metro-runtime': 5.0.4(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
-      react-native-webview: 13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      '@expo/metro-runtime': 5.0.4(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))
+      react-native-webview: 13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-react-compiler
@@ -25413,7 +25477,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.18.2
+      ws: 8.18.3
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -25809,11 +25873,11 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
 
-  lucide-react-native@0.513.0(react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  lucide-react-native@0.513.0(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-svg: 15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-svg: 15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
   lucide-react@0.501.0(react@19.1.0):
     dependencies:
@@ -26991,7 +27055,7 @@ snapshots:
   micromark@4.0.2:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       decode-named-character-reference: 1.1.0
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.3
@@ -27174,11 +27238,11 @@ snapshots:
 
   napi-build-utils@2.0.0: {}
 
-  nativewind@4.1.23(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
+  nativewind@4.1.23(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
     dependencies:
       comment-json: 4.2.5
       debug: 4.4.1(supports-color@10.0.0)
-      react-native-css-interop: 0.1.22(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
+      react-native-css-interop: 0.1.22(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
       tailwindcss: 3.4.1
     transitivePeerDependencies:
       - react
@@ -27188,11 +27252,11 @@ snapshots:
       - react-native-svg
       - supports-color
 
-  nativewind@4.1.23(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
+  nativewind@4.1.23(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
     dependencies:
       comment-json: 4.2.5
       debug: 4.4.1(supports-color@10.0.0)
-      react-native-css-interop: 0.1.22(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
+      react-native-css-interop: 0.1.22(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1)
       tailwindcss: 3.4.1
     transitivePeerDependencies:
       - react
@@ -27302,7 +27366,7 @@ snapshots:
 
   node-abi@3.75.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   node-addon-api@7.1.1:
     optional: true
@@ -27346,7 +27410,7 @@ snapshots:
       make-fetch-happen: 14.0.3
       nopt: 8.1.0
       proc-log: 5.0.0
-      semver: 7.7.2
+      semver: 7.7.3
       tar: 7.4.3
       tinyglobby: 0.2.14
       which: 5.0.0
@@ -27379,7 +27443,7 @@ snapshots:
     dependencies:
       hosted-git-info: 7.0.2
       proc-log: 4.2.0
-      semver: 7.7.2
+      semver: 7.7.3
       validate-npm-package-name: 5.0.1
 
   npm-run-path@2.0.2:
@@ -27697,7 +27761,7 @@ snapshots:
       got: 12.6.1
       registry-auth-token: 5.1.0
       registry-url: 6.0.1
-      semver: 7.7.2
+      semver: 7.7.3
 
   pako@2.1.0: {}
 
@@ -28094,7 +28158,7 @@ snapshots:
       cosmiconfig: 8.3.6(typescript@5.8.3)
       jiti: 1.21.7
       postcss: 8.5.6
-      semver: 7.7.2
+      semver: 7.7.3
       webpack: 5.99.9
     transitivePeerDependencies:
       - typescript
@@ -28834,21 +28898,21 @@ snapshots:
       react-lifecycles-compat: 3.0.4
       warning: 4.0.3
 
-  react-native-awesome-slider@2.5.3(react-native-gesture-handler@2.24.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-awesome-slider@2.5.3(react-native-gesture-handler@2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-gesture-handler: 2.24.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-gesture-handler: 2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  react-native-blob-util@0.21.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       base-64: 0.1.0
       glob: 10.4.5
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  react-native-css-interop@0.1.22(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
+  react-native-css-interop@0.1.22(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
     dependencies:
       '@babel/helper-module-imports': 7.27.1
       '@babel/traverse': 7.27.4
@@ -28856,17 +28920,17 @@ snapshots:
       debug: 4.4.1(supports-color@10.0.0)
       lightningcss: 1.30.1
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       semver: 7.7.2
       tailwindcss: 3.4.1
     optionalDependencies:
-      react-native-safe-area-context: 5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-svg: 15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-svg: 15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  react-native-css-interop@0.1.22(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
+  react-native-css-interop@0.1.22(react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)(tailwindcss@3.4.1):
     dependencies:
       '@babel/helper-module-imports': 7.27.1
       '@babel/traverse': 7.27.4
@@ -28874,75 +28938,75 @@ snapshots:
       debug: 4.4.1(supports-color@10.0.0)
       lightningcss: 1.30.1
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
-      react-native-reanimated: 3.18.0(@babel/core@7.28.0)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
+      react-native-reanimated: 3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
       semver: 7.7.2
       tailwindcss: 3.4.1
     transitivePeerDependencies:
       - supports-color
 
-  react-native-edge-to-edge@1.6.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-edge-to-edge@1.6.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   react-native-fit-image@1.5.5:
     dependencies:
       prop-types: 15.8.1
 
-  react-native-gesture-handler@2.24.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-gesture-handler@2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       '@egjs/hammerjs': 2.0.17
       hoist-non-react-statics: 3.3.2
       invariant: 2.2.4
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  react-native-image-viewing@0.2.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-image-viewing@0.2.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  react-native-is-edge-to-edge@1.1.7(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-is-edge-to-edge@1.1.7(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  react-native-is-edge-to-edge@1.1.7(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0):
+  react-native-is-edge-to-edge@1.1.7(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
 
-  react-native-is-edge-to-edge@1.2.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-is-edge-to-edge@1.2.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  react-native-keyboard-controller@1.18.5(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-keyboard-controller@1.18.5(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-is-edge-to-edge: 1.2.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-is-edge-to-edge: 1.2.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  react-native-markdown-display@7.0.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-markdown-display@7.0.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       css-to-react-native: 3.2.0
       markdown-it: 10.0.0
       prop-types: 15.8.1
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       react-native-fit-image: 1.5.5
 
-  react-native-pdf@6.7.7(react-native-blob-util@0.21.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-pdf@6.7.7(react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       crypto-js: 4.2.0
       deprecated-react-native-prop-types: 2.3.0
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-blob-util: 0.21.2(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-blob-util: 0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
 
-  react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       '@babel/core': 7.26.0
       '@babel/plugin-transform-arrow-functions': 7.27.1(@babel/core@7.26.0)
@@ -28957,12 +29021,12 @@ snapshots:
       convert-source-map: 2.0.0
       invariant: 2.2.4
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0):
+  react-native-reanimated@3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0):
     dependencies:
       '@babel/core': 7.28.0
       '@babel/plugin-transform-arrow-functions': 7.27.1(@babel/core@7.28.0)
@@ -28977,86 +29041,38 @@ snapshots:
       convert-source-map: 2.0.0
       invariant: 2.2.4
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
-      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
 
-  react-native-safe-area-context@5.4.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
-  react-native-screens@4.11.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
       react-freeze: 1.0.4(react@19.1.0)
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-is-edge-to-edge: 1.1.7(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       warn-once: 0.1.1
 
-  react-native-svg@15.12.0(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       css-select: 5.1.0
       css-tree: 1.1.3
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       warn-once: 0.1.1
 
-  react-native-webview@13.14.1(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-webview@13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       escape-string-regexp: 4.0.0
       invariant: 2.2.4
       react: 19.1.0
-      react-native: 0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
-
-  react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0):
-    dependencies:
-      '@jest/create-cache-key-function': 29.7.0
-      '@react-native/assets-registry': 0.79.3
-      '@react-native/codegen': 0.79.3(@babel/core@7.26.0)
-      '@react-native/community-cli-plugin': 0.79.3
-      '@react-native/gradle-plugin': 0.79.3
-      '@react-native/js-polyfills': 0.79.3
-      '@react-native/normalize-colors': 0.79.3
-      '@react-native/virtualized-lists': 0.79.3(@types/react@19.1.8)(react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      abort-controller: 3.0.0
-      anser: 1.4.10
-      ansi-regex: 5.0.1
-      babel-jest: 29.7.0(@babel/core@7.26.0)
-      babel-plugin-syntax-hermes-parser: 0.25.1
-      base64-js: 1.5.1
-      chalk: 4.1.2
-      commander: 12.1.0
-      event-target-shim: 5.0.1
-      flow-enums-runtime: 0.0.6
-      glob: 7.2.3
-      invariant: 2.2.4
-      jest-environment-node: 29.7.0
-      memoize-one: 5.2.1
-      metro-runtime: 0.82.5
-      metro-source-map: 0.82.5
-      nullthrows: 1.1.1
-      pretty-format: 29.7.0
-      promise: 8.3.0
-      react: 19.1.0
-      react-devtools-core: 6.1.5
-      react-refresh: 0.14.2
-      regenerator-runtime: 0.13.11
-      scheduler: 0.25.0
-      semver: 7.7.2
-      stacktrace-parser: 0.1.11
-      whatwg-fetch: 3.6.20
-      ws: 6.2.3
-      yargs: 17.7.2
-    optionalDependencies:
-      '@types/react': 19.1.8
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@react-native-community/cli'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
 
   react-native@0.79.3(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0):
     dependencies:
@@ -29106,16 +29122,64 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0):
+  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
-      '@react-native/assets-registry': 0.79.3
-      '@react-native/codegen': 0.79.3(@babel/core@7.28.0)
-      '@react-native/community-cli-plugin': 0.79.3
-      '@react-native/gradle-plugin': 0.79.3
-      '@react-native/js-polyfills': 0.79.3
-      '@react-native/normalize-colors': 0.79.3
-      '@react-native/virtualized-lists': 0.79.3(@types/react@19.2.2)(react-native@0.79.3(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+      '@react-native/assets-registry': 0.79.5
+      '@react-native/codegen': 0.79.5(@babel/core@7.26.0)
+      '@react-native/community-cli-plugin': 0.79.5
+      '@react-native/gradle-plugin': 0.79.5
+      '@react-native/js-polyfills': 0.79.5
+      '@react-native/normalize-colors': 0.79.5
+      '@react-native/virtualized-lists': 0.79.5(@types/react@19.1.8)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      abort-controller: 3.0.0
+      anser: 1.4.10
+      ansi-regex: 5.0.1
+      babel-jest: 29.7.0(@babel/core@7.26.0)
+      babel-plugin-syntax-hermes-parser: 0.25.1
+      base64-js: 1.5.1
+      chalk: 4.1.2
+      commander: 12.1.0
+      event-target-shim: 5.0.1
+      flow-enums-runtime: 0.0.6
+      glob: 7.2.3
+      invariant: 2.2.4
+      jest-environment-node: 29.7.0
+      memoize-one: 5.2.1
+      metro-runtime: 0.82.5
+      metro-source-map: 0.82.5
+      nullthrows: 1.1.1
+      pretty-format: 29.7.0
+      promise: 8.3.0
+      react: 19.1.0
+      react-devtools-core: 6.1.5
+      react-refresh: 0.14.2
+      regenerator-runtime: 0.13.11
+      scheduler: 0.25.0
+      semver: 7.7.3
+      stacktrace-parser: 0.1.11
+      whatwg-fetch: 3.6.20
+      ws: 6.2.3
+      yargs: 17.7.2
+    optionalDependencies:
+      '@types/react': 19.1.8
+    transitivePeerDependencies:
+      - '@babel/core'
+      - '@react-native-community/cli'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0):
+    dependencies:
+      '@jest/create-cache-key-function': 29.7.0
+      '@react-native/assets-registry': 0.79.5
+      '@react-native/codegen': 0.79.5(@babel/core@7.28.0)
+      '@react-native/community-cli-plugin': 0.79.5
+      '@react-native/gradle-plugin': 0.79.5
+      '@react-native/js-polyfills': 0.79.5
+      '@react-native/normalize-colors': 0.79.5
+      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
@@ -29140,7 +29204,7 @@ snapshots:
       react-refresh: 0.14.2
       regenerator-runtime: 0.13.11
       scheduler: 0.25.0
-      semver: 7.7.2
+      semver: 7.7.3
       stacktrace-parser: 0.1.11
       whatwg-fetch: 3.6.20
       ws: 6.2.3
@@ -29841,7 +29905,7 @@ snapshots:
 
   semver-diff@4.0.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   semver@5.7.2: {}
 
@@ -29855,8 +29919,7 @@ snapshots:
 
   semver@7.7.2: {}
 
-  semver@7.7.3:
-    optional: true
+  semver@7.7.3: {}
 
   send@0.19.0:
     dependencies:
@@ -30284,7 +30347,7 @@ snapshots:
 
   spdy-transport@3.0.0:
     dependencies:
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       detect-node: 2.1.0
       hpack.js: 2.1.6
       obuf: 1.1.2

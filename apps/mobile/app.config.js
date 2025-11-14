@@ -89,6 +89,11 @@ export default {
         {
           android: {
             usesCleartextTraffic: true,
+            minSdkVersion: 24,
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+            buildToolsVersion: "34.0.0",
+            ndkVersion: "27.1.12297006",
           },
         },
       ],
