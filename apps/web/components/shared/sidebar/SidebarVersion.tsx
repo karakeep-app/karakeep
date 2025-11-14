@@ -53,27 +53,30 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
   const { disableNewReleaseCheck } = useClientConfig();
   const { t } = useTranslation();
 
-  const stableRelease = isStableRelease(serverVersion);
-  const displayVersion = serverVersion ?? "unknown";
+  // Normalize version by removing "v" prefix if present
+  const normalizedVersion = serverVersion?.replace(/^v/, "");
+
+  const stableRelease = isStableRelease(normalizedVersion);
+  const displayVersion = normalizedVersion ?? "unknown";
   const versionLabel = `Karakeep v${displayVersion}`;
   const releasePageUrl = useMemo(() => {
-    if (!serverVersion || !isStableRelease(serverVersion)) {
+    if (!normalizedVersion || !isStableRelease(normalizedVersion)) {
       return GITHUB_REPO_URL;
     }
-    return `${GITHUB_RELEASE_URL}v${serverVersion}`;
-  }, [serverVersion]);
+    return `${GITHUB_RELEASE_URL}v${normalizedVersion}`;
+  }, [normalizedVersion]);
 
   const [open, setOpen] = useState(false);
   const [shouldNotify, setShouldNotify] = useState(false);
 
   const releaseNotesQuery = useQuery<string>({
-    queryKey: ["sidebar-release-notes", serverVersion],
+    queryKey: ["sidebar-release-notes", normalizedVersion],
     queryFn: async ({ signal }) => {
-      if (!serverVersion) {
+      if (!normalizedVersion) {
         return "";
       }
 
-      const response = await fetch(`${RELEASE_API_URL}v${serverVersion}`, {
+      const response = await fetch(`${RELEASE_API_URL}v${normalizedVersion}`, {
         signal,
       });
 
@@ -89,7 +92,7 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
       open &&
       stableRelease &&
       !disableNewReleaseCheck &&
-      Boolean(serverVersion),
+      Boolean(normalizedVersion),
     staleTime: RELEASE_NOTES_STALE_TIME,
     retry: 1,
     refetchOnWindowFocus: false,
@@ -123,30 +126,30 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
   }, [releaseNotesQuery.error, t]);
 
   useEffect(() => {
-    if (!stableRelease || !serverVersion || disableNewReleaseCheck) {
+    if (!stableRelease || !normalizedVersion || disableNewReleaseCheck) {
       setShouldNotify(false);
       return;
     }
 
     try {
       const seenVersion = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-      setShouldNotify(seenVersion !== serverVersion);
+      setShouldNotify(seenVersion !== normalizedVersion);
     } catch (error) {
       console.warn("Failed to read localStorage:", error);
       setShouldNotify(true);
     }
-  }, [serverVersion, stableRelease, disableNewReleaseCheck]);
+  }, [normalizedVersion, stableRelease, disableNewReleaseCheck]);
 
   const markReleaseAsSeen = useCallback(() => {
-    if (!serverVersion) return;
+    if (!normalizedVersion) return;
     try {
-      window.localStorage.setItem(LOCAL_STORAGE_KEY, serverVersion);
+      window.localStorage.setItem(LOCAL_STORAGE_KEY, normalizedVersion);
     } catch (error) {
       console.warn("Failed to write to localStorage:", error);
       // Ignore failures, we still clear the notification for the session
     }
     setShouldNotify(false);
-  }, [serverVersion]);
+  }, [normalizedVersion]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
