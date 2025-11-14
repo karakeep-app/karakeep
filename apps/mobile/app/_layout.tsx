@@ -62,6 +62,15 @@ export default function RootLayout() {
                 title: "",
               }}
             />
+            <Stack.Screen
+              name="signup"
+              options={{
+                headerShown: true,
+                headerBackVisible: true,
+                headerBackTitle: "Back",
+                title: "",
+              }}
+            />
             <Stack.Screen name="sharing" />
             <Stack.Screen
               name="test-connection"
