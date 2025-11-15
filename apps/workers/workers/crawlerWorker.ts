@@ -26,7 +26,7 @@ import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
-import { workerStatsCounter } from "metrics";
+import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
   getRandomProxy,
@@ -1098,6 +1098,11 @@ async function crawlAndParseUrl(
   abortSignal.throwIfAborted();
 
   const { htmlContent, screenshot, statusCode, url: browserUrl } = result;
+
+  // Track status code in Prometheus
+  if (statusCode !== null) {
+    crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+  }
 
   const meta = await Promise.race([
     extractMetadata(htmlContent, browserUrl, jobId),
