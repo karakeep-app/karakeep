@@ -435,8 +435,8 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-pdf:
-        specifier: ^6.7.7
-        version: 6.7.7(react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+        specifier: 7.0.3
+        version: 7.0.3(react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       react-native-reanimated:
         specifier: ^3.17.5
         version: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
@@ -1281,7 +1281,7 @@ importers:
         version: 19.1.0
       react-native:
         specifier: 0.79.5
-        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
+        version: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -12447,8 +12447,8 @@ packages:
       react: '>=16.2.0'
       react-native: '>=0.50.4'
 
-  react-native-pdf@6.7.7:
-    resolution: {integrity: sha512-D0ga/eyPsVWSPEBm622sGVZLl3gibxPmfm2cxsLcUrZ4WDSGR5HyGmvvWaR/m9wXEyIbD4J6q9qzuG6yObcSXw==}
+  react-native-pdf@7.0.3:
+    resolution: {integrity: sha512-zDtF6CGXPAfGptQZqX7LQK3CVQrIGsD+rYuBnMK0sVmd8mrq7ciwmWXINT+d92emMtZ7+PLnx1IQZIdsh0fphA==}
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -19846,15 +19846,6 @@ snapshots:
       react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
     optionalDependencies:
       '@types/react': 19.1.8
-
-  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      invariant: 2.2.4
-      nullthrows: 1.1.1
-      react: 19.1.0
-      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
-    optionalDependencies:
-      '@types/react': 19.2.2
 
   '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -28886,7 +28877,7 @@ snapshots:
       react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       react-native-fit-image: 1.5.5
 
-  react-native-pdf@6.7.7(react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+  react-native-pdf@7.0.3(react-native-blob-util@0.21.2(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
     dependencies:
       crypto-js: 4.2.0
       deprecated-react-native-prop-types: 2.3.0
@@ -29003,54 +28994,6 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       '@types/react': 19.1.8
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@react-native-community/cli'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0):
-    dependencies:
-      '@jest/create-cache-key-function': 29.7.0
-      '@react-native/assets-registry': 0.79.5
-      '@react-native/codegen': 0.79.5(@babel/core@7.26.0)
-      '@react-native/community-cli-plugin': 0.79.5
-      '@react-native/gradle-plugin': 0.79.5
-      '@react-native/js-polyfills': 0.79.5
-      '@react-native/normalize-colors': 0.79.5
-      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
-      abort-controller: 3.0.0
-      anser: 1.4.10
-      ansi-regex: 5.0.1
-      babel-jest: 29.7.0(@babel/core@7.26.0)
-      babel-plugin-syntax-hermes-parser: 0.25.1
-      base64-js: 1.5.1
-      chalk: 4.1.2
-      commander: 12.1.0
-      event-target-shim: 5.0.1
-      flow-enums-runtime: 0.0.6
-      glob: 7.2.3
-      invariant: 2.2.4
-      jest-environment-node: 29.7.0
-      memoize-one: 5.2.1
-      metro-runtime: 0.82.5
-      metro-source-map: 0.82.5
-      nullthrows: 1.1.1
-      pretty-format: 29.7.0
-      promise: 8.3.0
-      react: 19.1.0
-      react-devtools-core: 6.1.5
-      react-refresh: 0.14.2
-      regenerator-runtime: 0.13.11
-      scheduler: 0.25.0
-      semver: 7.7.3
-      stacktrace-parser: 0.1.11
-      whatwg-fetch: 3.6.20
-      ws: 6.2.3
-      yargs: 17.7.2
-    optionalDependencies:
-      '@types/react': 19.2.2
     transitivePeerDependencies:
       - '@babel/core'
       - '@react-native-community/cli'

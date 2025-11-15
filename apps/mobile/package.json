@@ -55,7 +55,7 @@
     "react-native-image-viewing": "^0.2.2",
     "react-native-keyboard-controller": "^1.18.5",
     "react-native-markdown-display": "^7.0.2",
-    "react-native-pdf": "^6.7.7",
+    "react-native-pdf": "7.0.3",
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
