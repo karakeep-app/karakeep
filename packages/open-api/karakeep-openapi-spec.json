@@ -3518,9 +3518,274 @@
         }
       }
     },
+    "/admin/users/stats": {
+      "get": {
+        "description": "Get per-user statistics including number of bookmarks and total asset sizes for each user. Admin access required.",
+        "summary": "Get user stats",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "numBookmarks": {
+                        "type": "number",
+                        "description": "Number of bookmarks for this user",
+                        "example": 50
+                      },
+                      "assetSizes": {
+                        "type": "number",
+                        "description": "Total size of assets for this user in bytes",
+                        "example": 1024000
+                      }
+                    },
+                    "required": [
+                      "numBookmarks",
+                      "assetSizes"
+                    ]
+                  },
+                  "description": "User statistics keyed by user ID",
+                  "example": {
+                    "user_123": {
+                      "numBookmarks": 50,
+                      "assetSizes": 1024000
+                    },
+                    "user_456": {
+                      "numBookmarks": 30,
+                      "assetSizes": 512000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "post": {
+        "description": "Create a new user with optional admin role. Admin access required.",
+        "summary": "Create user",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      "password": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 100
+                      },
+                      "confirmPassword": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "email",
+                      "password",
+                      "confirmPassword"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "role": {
+                        "type": "string",
+                        "enum": [
+                          "user",
+                          "admin"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "role"
+                    ]
+                  }
+                ],
+                "description": "User creation data including credentials and role",
+                "example": {
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "password": "SecurePassword123!",
+                  "confirmPassword": "SecurePassword123!",
+                  "role": "user"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique user ID",
+                      "example": "user_abc123"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "User's full name",
+                      "example": "John Doe"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "User's email address",
+                      "example": "john@example.com"
+                    },
+                    "role": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "user",
+                        "admin"
+                      ],
+                      "description": "User's role",
+                      "example": "user"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input data, passwords don't match, or email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/users/{userId}": {
       "put": {
-        "description": "Update a user's role, bookmark quota, or storage quota. Admin access required.",
+        "description": "Update a user's role, bookmark quota, storage quota, or browser crawling settings. Cannot update own user. Admin access required.",
         "summary": "Update user",
         "tags": [
           "Admin"
@@ -3570,11 +3835,12 @@
                     "nullable": true
                   }
                 },
-                "description": "User update data",
+                "description": "User update data. All fields are optional - only provided fields will be updated.",
                 "example": {
                   "role": "admin",
                   "bookmarkQuota": 1000,
-                  "storageQuota": 5000000000
+                  "storageQuota": 5000000000,
+                  "browserCrawlingEnabled": true
                 }
               }
             }
@@ -3600,7 +3866,7 @@
             }
           },
           "400": {
-            "description": "Bad request - Invalid input data or cannot update own user",
+            "description": "Bad request - Invalid input data, cannot update own user, or no fields to update",
             "content": {
               "application/json": {
                 "schema": {
@@ -3655,6 +3921,600 @@
           },
           "404": {
             "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{userId}/password": {
+      "put": {
+        "description": "Reset a user's password. Cannot reset own password. Admin access required.",
+        "summary": "Reset user password",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the user whose password to reset",
+              "example": "user_123"
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newPassword": {
+                    "type": "string",
+                    "description": "New password",
+                    "example": "NewSecurePassword123!"
+                  },
+                  "newPasswordConfirm": {
+                    "type": "string",
+                    "description": "Confirm new password",
+                    "example": "NewSecurePassword123!"
+                  }
+                },
+                "required": [
+                  "newPassword",
+                  "newPasswordConfirm"
+                ],
+                "description": "New password data",
+                "example": {
+                  "newPassword": "NewSecurePassword123!",
+                  "newPasswordConfirm": "NewSecurePassword123!"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input data, passwords don't match, or cannot reset own password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invites": {
+      "post": {
+        "description": "Create a new invitation for a user by email. An invite email will be sent to the specified address. Admin access required.",
+        "summary": "Create invite",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address to send the invitation to",
+                    "example": "newuser@example.com"
+                  }
+                },
+                "required": [
+                  "email"
+                ],
+                "example": {
+                  "email": "newuser@example.com"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invite created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique invite ID",
+                      "example": "invite_abc123"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "Email address the invite was sent to",
+                      "example": "newuser@example.com"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - User with this email already exists or an active invite already exists for this email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "description": "List all pending invitations with details about who created them. Admin access required.",
+        "summary": "List invites",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invites retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "invites": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique invite ID",
+                            "example": "invite_abc123"
+                          },
+                          "email": {
+                            "type": "string",
+                            "description": "Email address the invite was sent to",
+                            "example": "newuser@example.com"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "When the invite was created",
+                            "example": "2025-01-15T10:30:00Z"
+                          },
+                          "invitedBy": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "ID of the admin who created the invite",
+                                "example": "user_admin123"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Name of the admin who created the invite",
+                                "example": "Admin User"
+                              },
+                              "email": {
+                                "type": "string",
+                                "description": "Email of the admin who created the invite",
+                                "example": "admin@example.com"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "email"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "email",
+                          "createdAt",
+                          "invitedBy"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "invites"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invites/{inviteId}": {
+      "delete": {
+        "description": "Revoke a pending invitation. The invite will be deleted and can no longer be used. Admin access required.",
+        "summary": "Revoke invite",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the invite to revoke",
+              "example": "invite_abc123"
+            },
+            "required": true,
+            "name": "inviteId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invite revoked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invite not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/invites/{inviteId}/resend": {
+      "post": {
+        "description": "Resend an invitation email with a new token. The previous token will be invalidated. Admin access required.",
+        "summary": "Resend invite",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the invite to resend",
+              "example": "invite_abc123"
+            },
+            "required": true,
+            "name": "inviteId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invite resent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique invite ID",
+                      "example": "invite_abc123"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "Email address the invite was resent to",
+                      "example": "newuser@example.com"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "email"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invite not found",
             "content": {
               "application/json": {
                 "schema": {
