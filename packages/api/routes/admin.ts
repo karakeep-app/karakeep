@@ -13,27 +13,9 @@ import { adminAuthMiddleware } from "../middlewares/auth";
 const app = new Hono()
   .use(adminAuthMiddleware)
 
-  // GET /admin/stats
-  .get("/stats", async (c) => {
-    const result = await c.var.api.admin.stats();
-    return c.json(result, 200);
-  })
-
   // GET /admin/users/stats
   .get("/users/stats", async (c) => {
     const result = await c.var.api.admin.userStats();
-    return c.json(result, 200);
-  })
-
-  // GET /admin/notices
-  .get("/notices", async (c) => {
-    const result = await c.var.api.admin.getAdminNoticies();
-    return c.json(result, 200);
-  })
-
-  // GET /admin/connections/check
-  .get("/connections/check", async (c) => {
-    const result = await c.var.api.admin.checkConnections();
     return c.json(result, 200);
   })
 
