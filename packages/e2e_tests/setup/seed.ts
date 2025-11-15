@@ -1,22 +1,35 @@
+import { eq } from "drizzle-orm";
 import { GlobalSetupContext } from "vitest/node";
+
+import { db } from "@karakeep/db/drizzle";
+import { users } from "@karakeep/db/schema";
 
 import { getTrpcClient } from "../utils/trpc";
 
 export async function setup({ provide }: GlobalSetupContext) {
   const trpc = getTrpcClient();
+
+  // Create an admin user for testing admin endpoints
   await trpc.users.create.mutate({
-    name: "Test User",
+    name: "Admin User",
     email: "admin@example.com",
-    password: "test1234",
-    confirmPassword: "test1234",
+    password: "admin1234",
+    confirmPassword: "admin1234",
   });
 
-  const { key } = await trpc.apiKeys.exchange.mutate({
+  // Promote the user to admin role directly in the database
+  await db
+    .update(users)
+    .set({ role: "admin" })
+    .where(eq(users.email, "admin@example.com"));
+
+  const { key: adminKey } = await trpc.apiKeys.exchange.mutate({
     email: "admin@example.com",
-    password: "test1234",
-    keyName: "test-key",
+    password: "admin1234",
+    keyName: "admin-test-key",
   });
-  provide("adminApiKey", key);
+
+  provide("adminApiKey", adminKey);
   return () => ({});
 }
 
