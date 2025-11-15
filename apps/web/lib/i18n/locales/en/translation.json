@@ -233,6 +233,7 @@
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
