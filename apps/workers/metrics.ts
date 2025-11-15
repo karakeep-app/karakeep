@@ -15,7 +15,7 @@ export const workerStatsCounter = new Counter({
 });
 
 export const crawlerStatusCodeCounter = new Counter({
-  name: "karakeep_crawler_status_codes",
+  name: "karakeep_crawler_status_codes_total",
   help: "HTTP status codes encountered during crawling",
   labelNames: ["status_code"],
 });
