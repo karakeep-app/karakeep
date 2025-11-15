@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import {
-  resetPasswordSchema,
   updateUserSchema,
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
@@ -46,7 +45,13 @@ const app = new Hono()
   // PUT /admin/users/:userId/password
   .put(
     "/users/:userId/password",
-    zValidator("json", resetPasswordSchema.omit({ userId: true })),
+    zValidator(
+      "json",
+      z.object({
+        newPassword: z.string(),
+        newPasswordConfirm: z.string(),
+      }),
+    ),
     async (c) => {
       const userId = c.req.param("userId");
       const body = c.req.valid("json");

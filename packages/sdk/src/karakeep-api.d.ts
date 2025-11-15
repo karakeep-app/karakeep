@@ -68,6 +68,16 @@ export interface paths {
             /** @enum {string} */
             crawlPriority?: "low" | "normal";
             importSessionId?: string;
+            /** @enum {string} */
+            source?:
+              | "api"
+              | "web"
+              | "cli"
+              | "mobile"
+              | "extension"
+              | "singlefile"
+              | "rss"
+              | "import";
           } & (
             | {
                 /** @enum {string} */
@@ -322,6 +332,17 @@ export interface paths {
               summarizationStatus: "success" | "failure" | "pending" | null;
               note?: string | null;
               summary?: string | null;
+              /** @enum {string|null} */
+              source?:
+                | "api"
+                | "web"
+                | "cli"
+                | "mobile"
+                | "extension"
+                | "singlefile"
+                | "rss"
+                | "import"
+                | null;
             };
           };
         };
@@ -384,6 +405,17 @@ export interface paths {
               summarizationStatus: "success" | "failure" | "pending" | null;
               note?: string | null;
               summary?: string | null;
+              /** @enum {string|null} */
+              source?:
+                | "api"
+                | "web"
+                | "cli"
+                | "mobile"
+                | "extension"
+                | "singlefile"
+                | "rss"
+                | "import"
+                | null;
             };
           };
         };
@@ -668,6 +700,7 @@ export interface paths {
               | "video"
               | "bookmarkAsset"
               | "precrawledArchive"
+              | "userUploaded"
               | "unknown";
           };
         };
@@ -691,7 +724,9 @@ export interface paths {
                 | "video"
                 | "bookmarkAsset"
                 | "precrawledArchive"
+                | "userUploaded"
                 | "unknown";
+              fileName?: string | null;
             };
           };
         };
@@ -1822,6 +1857,20 @@ export interface paths {
                 name: string;
                 count: number;
               }[];
+              bookmarksBySource: {
+                /** @enum {string|null} */
+                source:
+                  | "api"
+                  | "web"
+                  | "cli"
+                  | "mobile"
+                  | "extension"
+                  | "singlefile"
+                  | "rss"
+                  | "import"
+                  | null;
+                count: number;
+              }[];
             };
           };
         };
@@ -1920,6 +1969,187 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/admin/users/stats": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get user stats
+     * @description Get per-user statistics including number of bookmarks and total asset sizes for each user. Admin access required.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description User statistics retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              [key: string]: {
+                /**
+                 * @description Number of bookmarks for this user
+                 * @example 50
+                 */
+                numBookmarks: number;
+                /**
+                 * @description Total size of assets for this user in bytes
+                 * @example 1024000
+                 */
+                assetSizes: number;
+              };
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/users": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create user
+     * @description Create a new user with optional admin role. Admin access required.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            name: string;
+            /** Format: email */
+            email: string;
+            password: string;
+            confirmPassword: string;
+          } & {
+            /** @enum {string} */
+            role: "user" | "admin";
+          };
+        };
+      };
+      responses: {
+        /** @description User created successfully */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              /**
+               * @description Unique user ID
+               * @example user_abc123
+               */
+              id: string;
+              /**
+               * @description User's full name
+               * @example John Doe
+               */
+              name: string;
+              /**
+               * @description User's email address
+               * @example john@example.com
+               */
+              email: string;
+              /**
+               * @description User's role
+               * @example user
+               * @enum {string|null}
+               */
+              role: "user" | "admin" | null;
+            };
+          };
+        };
+        /** @description Bad request - Invalid input data, passwords don't match, or email already exists */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/admin/users/{userId}": {
     parameters: {
       query?: never;
@@ -1930,7 +2160,7 @@ export interface paths {
     get?: never;
     /**
      * Update user
-     * @description Update a user's role, bookmark quota, or storage quota. Admin access required.
+     * @description Update a user's role, bookmark quota, storage quota, or browser crawling settings. Cannot update own user. Admin access required.
      */
     put: {
       parameters: {
@@ -1964,7 +2194,7 @@ export interface paths {
             };
           };
         };
-        /** @description Bad request - Invalid input data or cannot update own user */
+        /** @description Bad request - Invalid input data, cannot update own user, or no fields to update */
         400: {
           headers: {
             [name: string]: unknown;
@@ -2017,6 +2247,443 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/admin/users/{userId}/password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Reset user password
+     * @description Reset a user's password. Cannot reset own password. Admin access required.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          userId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            /**
+             * @description New password
+             * @example NewSecurePassword123!
+             */
+            newPassword: string;
+            /**
+             * @description Confirm new password
+             * @example NewSecurePassword123!
+             */
+            newPasswordConfirm: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Password reset successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              success: boolean;
+            };
+          };
+        };
+        /** @description Bad request - Invalid input data, passwords don't match, or cannot reset own password */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description User not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/invites": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List invites
+     * @description List all pending invitations with details about who created them. Admin access required.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Invites retrieved successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              invites: {
+                /**
+                 * @description Unique invite ID
+                 * @example invite_abc123
+                 */
+                id: string;
+                /**
+                 * @description Email address the invite was sent to
+                 * @example newuser@example.com
+                 */
+                email: string;
+                /**
+                 * @description When the invite was created
+                 * @example 2025-01-15T10:30:00Z
+                 */
+                createdAt: string;
+                invitedBy: {
+                  /**
+                   * @description ID of the admin who created the invite
+                   * @example user_admin123
+                   */
+                  id: string;
+                  /**
+                   * @description Name of the admin who created the invite
+                   * @example Admin User
+                   */
+                  name: string;
+                  /**
+                   * @description Email of the admin who created the invite
+                   * @example admin@example.com
+                   */
+                  email: string;
+                };
+              }[];
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Create invite
+     * @description Create a new invitation for a user by email. An invite email will be sent to the specified address. Admin access required.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": {
+            /**
+             * Format: email
+             * @description Email address to send the invitation to
+             * @example newuser@example.com
+             */
+            email: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Invite created successfully */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              /**
+               * @description Unique invite ID
+               * @example invite_abc123
+               */
+              id: string;
+              /**
+               * @description Email address the invite was sent to
+               * @example newuser@example.com
+               */
+              email: string;
+            };
+          };
+        };
+        /** @description Bad request - User with this email already exists or an active invite already exists for this email */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/invites/{inviteId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Revoke invite
+     * @description Revoke a pending invitation. The invite will be deleted and can no longer be used. Admin access required.
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          inviteId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Invite revoked successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              success: boolean;
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Invite not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/invites/{inviteId}/resend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Resend invite
+     * @description Resend an invitation email with a new token. The previous token will be invalidated. Admin access required.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          inviteId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Invite resent successfully */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              /**
+               * @description Unique invite ID
+               * @example invite_abc123
+               */
+              id: string;
+              /**
+               * @description Email address the invite was resent to
+               * @example newuser@example.com
+               */
+              email: string;
+            };
+          };
+        };
+        /** @description Unauthorized - Authentication required */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Forbidden - Admin access required */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+        /** @description Invite not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              error: string;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2044,6 +2711,17 @@ export interface components {
       summarizationStatus: "success" | "failure" | "pending" | null;
       note?: string | null;
       summary?: string | null;
+      /** @enum {string|null} */
+      source?:
+        | "api"
+        | "web"
+        | "cli"
+        | "mobile"
+        | "extension"
+        | "singlefile"
+        | "rss"
+        | "import"
+        | null;
       tags: {
         id: string;
         name: string;
@@ -2105,7 +2783,9 @@ export interface components {
           | "video"
           | "bookmarkAsset"
           | "precrawledArchive"
+          | "userUploaded"
           | "unknown";
+        fileName?: string | null;
       }[];
     };
     PaginatedBookmarks: {

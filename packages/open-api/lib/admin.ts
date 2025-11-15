@@ -5,7 +5,6 @@ import {
 import { z } from "zod";
 
 import {
-  resetPasswordSchema,
   updateUserSchema,
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
@@ -111,7 +110,7 @@ registry.registerPath({
               name: "John Doe",
               email: "john@example.com",
               password: "SecurePassword123!",
-              passwordConfirm: "SecurePassword123!",
+              confirmPassword: "SecurePassword123!",
               role: "user",
             },
           }),
@@ -137,13 +136,10 @@ registry.registerPath({
               description: "User's email address",
               example: "john@example.com",
             }),
-            role: z
-              .enum(["user", "admin"])
-              .nullable()
-              .openapi({
-                description: "User's role",
-                example: "user",
-              }),
+            role: z.enum(["user", "admin"]).nullable().openapi({
+              description: "User's role",
+              example: "user",
+            }),
           }),
         },
       },
@@ -243,13 +239,24 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: resetPasswordSchema.omit({ userId: true }).openapi({
-            description: "New password data",
-            example: {
-              newPassword: "NewSecurePassword123!",
-              newPasswordConfirm: "NewSecurePassword123!",
-            },
-          }),
+          schema: z
+            .object({
+              newPassword: z.string().openapi({
+                description: "New password",
+                example: "NewSecurePassword123!",
+              }),
+              newPasswordConfirm: z.string().openapi({
+                description: "Confirm new password",
+                example: "NewSecurePassword123!",
+              }),
+            })
+            .openapi({
+              description: "New password data",
+              example: {
+                newPassword: "NewSecurePassword123!",
+                newPasswordConfirm: "NewSecurePassword123!",
+              },
+            }),
         },
       },
     },

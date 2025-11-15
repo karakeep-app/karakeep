@@ -47,9 +47,7 @@ describe("Admin API", () => {
     });
 
     it("should not allow regular users to get user stats", async () => {
-      const { error, response } = await regularClient.GET(
-        "/admin/users/stats",
-      );
+      const { error, response } = await regularClient.GET("/admin/users/stats");
 
       expect(error).toBeDefined();
       expect(response.status).toBe(403);
@@ -62,7 +60,7 @@ describe("Admin API", () => {
           name: "New Test User",
           email: `newuser+${random}@example.com`,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "user",
         },
       });
@@ -81,7 +79,7 @@ describe("Admin API", () => {
           name: "New Admin User",
           email: `newadmin+${random}@example.com`,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "admin",
         },
       });
@@ -99,7 +97,7 @@ describe("Admin API", () => {
           name: "Unauthorized User",
           email: `unauthorized+${random}@example.com`,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "user",
         },
       });
@@ -116,7 +114,7 @@ describe("Admin API", () => {
           name: "User to Update",
           email: `updateme+${random}@example.com`,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "user",
         },
       });
@@ -124,19 +122,16 @@ describe("Admin API", () => {
       expect(newUser).toBeDefined();
 
       // Update the user's role
-      const { data, error } = await adminClient.PUT(
-        "/admin/users/{userId}",
-        {
-          params: {
-            path: {
-              userId: newUser!.id,
-            },
-          },
-          body: {
-            role: "admin",
+      const { data, error } = await adminClient.PUT("/admin/users/{userId}", {
+        params: {
+          path: {
+            userId: newUser!.id,
           },
         },
-      );
+        body: {
+          role: "admin",
+        },
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeDefined();
@@ -151,7 +146,7 @@ describe("Admin API", () => {
           name: "User for Quota Update",
           email: `quotauser+${random}@example.com`,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "user",
         },
       });
@@ -159,19 +154,16 @@ describe("Admin API", () => {
       expect(newUser).toBeDefined();
 
       // Update the user's bookmark quota
-      const { data, error } = await adminClient.PUT(
-        "/admin/users/{userId}",
-        {
-          params: {
-            path: {
-              userId: newUser!.id,
-            },
-          },
-          body: {
-            bookmarkQuota: 5000,
+      const { data, error } = await adminClient.PUT("/admin/users/{userId}", {
+        params: {
+          path: {
+            userId: newUser!.id,
           },
         },
-      );
+        body: {
+          bookmarkQuota: 5000,
+        },
+      });
 
       expect(error).toBeUndefined();
       expect(data).toBeDefined();
@@ -186,7 +178,7 @@ describe("Admin API", () => {
           name: "User for Password Reset",
           email: `passreset+${random}@example.com`,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "user",
         },
       });
@@ -361,7 +353,7 @@ describe("Admin API", () => {
           name: "Existing User",
           email,
           password: "password123",
-          passwordConfirm: "password123",
+          confirmPassword: "password123",
           role: "user",
         },
       });
