@@ -229,9 +229,7 @@ export function ImportExportRow() {
         </ImportCard>
         <ImportCard
           text="mymind"
-          description={t(
-            "settings.import.import_bookmarks_from_mymind_export",
-          )}
+          description={t("settings.import.import_bookmarks_from_mymind_export")}
         >
           <FilePickerButton
             size={"sm"}

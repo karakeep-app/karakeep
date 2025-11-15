@@ -274,7 +274,8 @@ function parseMymindBookmarkFile(textContent: string): ParsedBookmark[] {
       content,
       tags,
       addDate,
-      notes: record.note && record.note.trim().length > 0 ? record.note : undefined,
+      notes:
+        record.note && record.note.trim().length > 0 ? record.note : undefined,
       paths: [], // mymind doesn't have folder structure
     };
   });
