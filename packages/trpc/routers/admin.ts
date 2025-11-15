@@ -370,7 +370,7 @@ export const adminAppRouter = router({
       }
 
       if (input.emailVerified !== undefined) {
-        updateData.emailVerified = input.emailVerified ? Date.now() : null;
+        updateData.emailVerified = input.emailVerified ? new Date() : null;
       }
 
       if (Object.keys(updateData).length === 0) {

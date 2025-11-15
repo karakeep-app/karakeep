@@ -43,7 +43,7 @@ interface UpdateUserDialogProps {
   currentRole: "user" | "admin";
   currentQuota: number | null;
   currentStorageQuota: number | null;
-  currentEmailVerified: number | null;
+  currentEmailVerified: Date | null;
   children?: React.ReactNode;
 }
 export default function UpdateUserDialog({

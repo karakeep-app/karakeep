@@ -71,7 +71,7 @@ export const usersAppRouter = router({
             localUser: z.boolean(),
             bookmarkQuota: z.number().nullable(),
             storageQuota: z.number().nullable(),
-            emailVerified: z.number().nullable(),
+            emailVerified: z.date().nullable(),
           }),
         ),
       }),
