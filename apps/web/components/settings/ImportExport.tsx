@@ -228,6 +228,23 @@ export function ImportExportRow() {
           </FilePickerButton>
         </ImportCard>
         <ImportCard
+          text="mymind"
+          description={t("settings.import.import_bookmarks_from_mymind_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".csv"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "mymind" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
           text="Karakeep"
           description={t(
             "settings.import.import_bookmarks_from_karakeep_export",
