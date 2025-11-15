@@ -16,6 +16,7 @@ export default defineConfig({
     testTimeout: 60000,
     env: {
       NEXTAUTH_SECRET: "secret",
+      CRAWLER_WAYBACK_FALLBACK: "true",
     },
   },
 });
