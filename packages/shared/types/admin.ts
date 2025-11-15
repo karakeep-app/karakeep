@@ -14,6 +14,7 @@ export const updateUserSchema = z.object({
   bookmarkQuota: z.number().int().min(0).nullable().optional(),
   storageQuota: z.number().int().min(0).nullable().optional(),
   browserCrawlingEnabled: z.boolean().nullable().optional(),
+  emailVerified: z.boolean().optional(),
 });
 
 export const resetPasswordSchema = z

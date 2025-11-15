@@ -369,6 +369,10 @@ export const adminAppRouter = router({
         updateData.browserCrawlingEnabled = input.browserCrawlingEnabled;
       }
 
+      if (input.emailVerified !== undefined) {
+        updateData.emailVerified = input.emailVerified ? new Date() : null;
+      }
+
       if (Object.keys(updateData).length === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",

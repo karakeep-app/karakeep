@@ -147,6 +147,7 @@ export default function UsersSection() {
                       currentRole={u.role!}
                       currentQuota={u.bookmarkQuota}
                       currentStorageQuota={u.storageQuota}
+                      currentEmailVerified={u.emailVerified}
                     >
                       <ButtonWithTooltip
                         tooltip="Edit User"

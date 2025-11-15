@@ -3568,6 +3568,9 @@
                   "browserCrawlingEnabled": {
                     "type": "boolean",
                     "nullable": true
+                  },
+                  "emailVerified": {
+                    "type": "boolean"
                   }
                 },
                 "description": "User update data",
