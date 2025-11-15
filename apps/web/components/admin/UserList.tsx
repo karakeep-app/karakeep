@@ -72,13 +72,15 @@ export default function UsersSection() {
 
           <Table>
             <TableHeader className="bg-gray-200">
-              <TableHead>{t("common.name")}</TableHead>
-              <TableHead>{t("common.email")}</TableHead>
-              <TableHead>{t("admin.users_list.num_bookmarks")}</TableHead>
-              <TableHead>{t("admin.users_list.asset_sizes")}</TableHead>
-              <TableHead>{t("common.role")}</TableHead>
-              <TableHead>{t("admin.users_list.local_user")}</TableHead>
-              <TableHead>{t("common.actions")}</TableHead>
+              <TableRow>
+                <TableHead>{t("common.name")}</TableHead>
+                <TableHead>{t("common.email")}</TableHead>
+                <TableHead>{t("admin.users_list.num_bookmarks")}</TableHead>
+                <TableHead>{t("admin.users_list.asset_sizes")}</TableHead>
+                <TableHead>{t("common.role")}</TableHead>
+                <TableHead>{t("admin.users_list.local_user")}</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {users.users.map((u) => (
