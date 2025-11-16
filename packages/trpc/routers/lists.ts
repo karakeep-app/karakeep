@@ -185,13 +185,13 @@ export const listsAppRouter = router({
     .input(
       z.object({
         listId: z.string(),
-        userId: z.string(),
+        email: z.string().email(),
         role: z.enum(["viewer", "editor"]),
       }),
     )
     .use(ensureListOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.list.addCollaborator(input.userId, input.role);
+      await ctx.list.addCollaboratorByEmail(input.email, input.role);
     }),
   removeCollaborator: authedProcedure
     .input(

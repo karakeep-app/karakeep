@@ -425,6 +425,66 @@ export abstract class List implements PrivacyAware {
   }
 
   /**
+   * Add a collaborator to this list by email.
+   */
+  async addCollaboratorByEmail(
+    email: string,
+    role: "viewer" | "editor",
+  ): Promise<void> {
+    await this.ensureCanManage(this.ctx.user.id);
+
+    // Look up the user by email
+    const user = await this.ctx.db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.email, email),
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No user found with that email address",
+      });
+    }
+
+    // Check that the user is not adding themselves
+    if (user.id === this.list.userId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cannot add the list owner as a collaborator",
+      });
+    }
+
+    // Check that the collaborator is not already added
+    const existing = await this.ctx.db.query.listCollaborators.findFirst({
+      where: and(
+        eq(listCollaborators.listId, this.list.id),
+        eq(listCollaborators.userId, user.id),
+      ),
+    });
+
+    if (existing) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User is already a collaborator on this list",
+      });
+    }
+
+    // Only manual lists can be collaborative
+    if (this.list.type !== "manual") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only manual lists can have collaborators",
+      });
+    }
+
+    await this.ctx.db.insert(listCollaborators).values({
+      listId: this.list.id,
+      userId: user.id,
+      role,
+      addedBy: this.ctx.user.id,
+    });
+  }
+
+  /**
    * Add a collaborator to this list.
    */
   async addCollaborator(

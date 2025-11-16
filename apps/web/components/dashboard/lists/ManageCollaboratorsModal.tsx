@@ -117,11 +117,9 @@ export function ManageCollaboratorsModal({
       return;
     }
 
-    // In a real implementation, you'd look up the user by email first
-    // For now, we'll assume the email is a userId
     addCollaborator.mutate({
       listId: list.id,
-      userId: newCollaboratorEmail, // This should be the actual userId
+      email: newCollaboratorEmail,
       role: newCollaboratorRole,
     });
   };
@@ -152,7 +150,8 @@ export function ManageCollaboratorsModal({
             <div className="flex gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="Enter user ID or email"
+                  type="email"
+                  placeholder="Enter email address"
                   value={newCollaboratorEmail}
                   onChange={(e) => setNewCollaboratorEmail(e.target.value)}
                   onKeyDown={(e) => {
