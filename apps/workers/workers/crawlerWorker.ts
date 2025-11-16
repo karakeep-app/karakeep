@@ -382,12 +382,25 @@ async function changeBookmarkStatus(
   bookmarkId: string,
   crawlStatus: "success" | "failure",
 ) {
-  await db
-    .update(bookmarkLinks)
-    .set({
-      crawlStatus,
-    })
-    .where(eq(bookmarkLinks.id, bookmarkId));
+  await db.transaction(async (txn) => {
+    await txn
+      .update(bookmarkLinks)
+      .set({
+        crawlStatus,
+      })
+      .where(eq(bookmarkLinks.id, bookmarkId));
+
+    // If crawling failed, skip tagging and summarization
+    if (crawlStatus === "failure") {
+      await txn
+        .update(bookmarks)
+        .set({
+          taggingStatus: "skipped",
+          summarizationStatus: "skipped",
+        })
+        .where(eq(bookmarks.id, bookmarkId));
+    }
+  });
 }
 
 async function browserlessCrawlPage(

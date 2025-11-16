@@ -51,6 +51,17 @@ export class AssetPreprocessingWorker {
               workerStatsCounter
                 .labels("assetPreProcessing", "failed_permanent")
                 .inc();
+              // Skip tagging and summarization on permanent failure
+              const bookmarkId = job.data?.bookmarkId;
+              if (bookmarkId) {
+                await db
+                  .update(bookmarks)
+                  .set({
+                    taggingStatus: "skipped",
+                    summarizationStatus: "skipped",
+                  })
+                  .where(eq(bookmarks.id, bookmarkId));
+              }
             }
             const jobId = job.id;
             logger.error(
