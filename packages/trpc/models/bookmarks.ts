@@ -539,7 +539,7 @@ export class Bookmark extends BareBookmark {
           ) {
             try {
               const asset = await readAsset({
-                userId: ctx.user.id,
+                userId: bookmark.userId,
                 assetId: bookmark.content.contentAssetId,
               });
               bookmark.content.htmlContent = asset.asset.toString("utf8");

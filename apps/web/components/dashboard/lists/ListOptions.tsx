@@ -76,9 +76,9 @@ export function ListOptions({
     },
     {
       id: "manage-collaborators",
-      title: "Manage Collaborators",
+      title: isOwner ? "Manage Collaborators" : "View Collaborators",
       icon: <Users className="size-4" />,
-      visible: isOwner,
+      visible: true, // Always visible for all roles
       disabled: false,
       onClick: () => setCollaboratorsModalOpen(true),
     },
@@ -149,6 +149,7 @@ export function ListOptions({
         open={collaboratorsModalOpen}
         setOpen={setCollaboratorsModalOpen}
         list={list}
+        readOnly={!isOwner}
       />
       <EditListModal
         open={newNestedListModalOpen}

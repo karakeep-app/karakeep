@@ -269,12 +269,18 @@ export const listsAppRouter = router({
             }),
           }),
         ),
+        owner: z
+          .object({
+            id: z.string(),
+            name: z.string(),
+            email: z.string(),
+          })
+          .nullable(),
       }),
     )
     .use(ensureListAtLeastViewer)
     .query(async ({ ctx }) => {
-      const collaborators = await ctx.list.getCollaborators();
-      return { collaborators };
+      return await ctx.list.getCollaborators();
     }),
 
   leaveList: authedProcedure

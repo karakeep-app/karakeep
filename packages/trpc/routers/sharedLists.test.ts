@@ -34,13 +34,18 @@ describe("Shared Lists", () => {
       });
 
       // Verify collaborator was added
-      const { collaborators } = await ownerApi.lists.getCollaborators({
+      const { collaborators, owner } = await ownerApi.lists.getCollaborators({
         listId: list.id,
       });
 
       expect(collaborators).toHaveLength(1);
       expect(collaborators[0].user.email).toBe(collaboratorEmail);
       expect(collaborators[0].role).toBe("viewer");
+
+      // Verify owner is included
+      const ownerUser = await ownerApi.users.whoami();
+      expect(owner).toBeDefined();
+      expect(owner?.email).toBe(ownerUser.email);
     });
 
     test<CustomTestContext>("should not allow adding owner as collaborator", async ({
@@ -123,11 +128,12 @@ describe("Shared Lists", () => {
       });
 
       // Verify role was updated
-      const { collaborators } = await ownerApi.lists.getCollaborators({
+      const { collaborators, owner } = await ownerApi.lists.getCollaborators({
         listId: list.id,
       });
 
       expect(collaborators[0].role).toBe("editor");
+      expect(owner).toBeDefined();
     });
 
     test<CustomTestContext>("should allow owner to remove collaborator", async ({
@@ -157,10 +163,38 @@ describe("Shared Lists", () => {
       });
 
       // Verify collaborator was removed
-      const { collaborators } = await ownerApi.lists.getCollaborators({
+      const { collaborators, owner } = await ownerApi.lists.getCollaborators({
         listId: list.id,
       });
 
+      expect(collaborators).toHaveLength(0);
+      expect(owner).toBeDefined();
+    });
+
+    test<CustomTestContext>("should include owner information in getCollaborators response", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const ownerUser = await ownerApi.users.whoami();
+
+      const { collaborators, owner } = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      // Verify owner information is present
+      expect(owner).toBeDefined();
+      expect(owner?.id).toBe(ownerUser.id);
+      expect(owner?.name).toBe(ownerUser.name);
+      expect(owner?.email).toBe(ownerUser.email);
+
+      // List with no collaborators should still have owner
       expect(collaborators).toHaveLength(0);
     });
 
@@ -259,11 +293,12 @@ describe("Shared Lists", () => {
       });
 
       // Verify collaborator was removed
-      const { collaborators } = await ownerApi.lists.getCollaborators({
+      const { collaborators, owner } = await ownerApi.lists.getCollaborators({
         listId: list.id,
       });
 
       expect(collaborators).toHaveLength(0);
+      expect(owner).toBeDefined();
 
       // Verify list no longer appears in shared lists
       const { lists: allLists } = await collaboratorApi.lists.list();
@@ -1121,11 +1156,13 @@ describe("Shared Lists", () => {
       });
 
       // Collaborator can view collaborators
-      const { collaborators } = await collaboratorApi.lists.getCollaborators({
-        listId: list.id,
-      });
+      const { collaborators, owner } =
+        await collaboratorApi.lists.getCollaborators({
+          listId: list.id,
+        });
 
       expect(collaborators).toHaveLength(1);
+      expect(owner).toBeDefined();
 
       // Create another list for testing non-collaborator access
       const list2 = await ownerApi.lists.create({

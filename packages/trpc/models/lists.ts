@@ -9,6 +9,7 @@ import {
   bookmarkLists,
   bookmarksInLists,
   listCollaborators,
+  users,
 } from "@karakeep/db/schema";
 import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -786,13 +787,32 @@ export abstract class List implements PrivacyAware {
       },
     });
 
-    return collaborators.map((c) => ({
-      id: c.id,
-      userId: c.userId,
-      role: c.role,
-      addedAt: c.addedAt,
-      user: c.user,
-    }));
+    // Get the owner information
+    const owner = await this.ctx.db.query.users.findFirst({
+      where: eq(users.id, this.list.userId),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    return {
+      collaborators: collaborators.map((c) => ({
+        id: c.id,
+        userId: c.userId,
+        role: c.role,
+        addedAt: c.addedAt,
+        user: c.user,
+      })),
+      owner: owner
+        ? {
+            id: owner.id,
+            name: owner.name,
+            email: owner.email,
+          }
+        : null,
+    };
   }
 
   /**

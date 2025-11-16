@@ -32,11 +32,13 @@ export function ManageCollaboratorsModal({
   setOpen: userSetOpen,
   list,
   children,
+  readOnly = false,
 }: {
   open?: boolean;
   setOpen?: (v: boolean) => void;
   list: ZBookmarkList;
   children?: React.ReactNode;
+  readOnly?: boolean;
 }) {
   if (
     (userOpen !== undefined && !userSetOpen) ||
@@ -136,125 +138,166 @@ export function ManageCollaboratorsModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Manage Collaborators
+            {readOnly ? "Collaborators" : "Manage Collaborators"}
           </DialogTitle>
           <DialogDescription>
-            Add or remove people who can access this list
+            {readOnly
+              ? "People who have access to this list"
+              : "Add or remove people who can access this list"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Add Collaborator Section */}
-          <div className="space-y-3">
-            <Label>Add Collaborator</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  type="email"
-                  placeholder="Enter email address"
-                  value={newCollaboratorEmail}
-                  onChange={(e) => setNewCollaboratorEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleAddCollaborator();
-                    }
-                  }}
-                />
+          {!readOnly && (
+            <div className="space-y-3">
+              <Label>Add Collaborator</Label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    type="email"
+                    placeholder="Enter email address"
+                    value={newCollaboratorEmail}
+                    onChange={(e) => setNewCollaboratorEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddCollaborator();
+                      }
+                    }}
+                  />
+                </div>
+                <Select
+                  value={newCollaboratorRole}
+                  onValueChange={(value) =>
+                    setNewCollaboratorRole(value as "viewer" | "editor")
+                  }
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleAddCollaborator}
+                  disabled={addCollaborator.isPending}
+                >
+                  {addCollaborator.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-              <Select
-                value={newCollaboratorRole}
-                onValueChange={(value) =>
-                  setNewCollaboratorRole(value as "viewer" | "editor")
-                }
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={handleAddCollaborator}
-                disabled={addCollaborator.isPending}
-              >
-                {addCollaborator.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <UserPlus className="h-4 w-4" />
-                )}
-              </Button>
+              <p className="text-xs text-muted-foreground">
+                <strong>Viewer:</strong> Can view bookmarks in the list
+                <br />
+                <strong>Editor:</strong> Can add and remove bookmarks
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              <strong>Viewer:</strong> Can view bookmarks in the list
-              <br />
-              <strong>Editor:</strong> Can add and remove bookmarks
-            </p>
-          </div>
+          )}
 
           {/* Current Collaborators */}
           <div className="space-y-3">
-            <Label>Current Collaborators</Label>
+            <Label>
+              {readOnly ? "Collaborators" : "Current Collaborators"}
+            </Label>
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : collaboratorsData &&
-              collaboratorsData.collaborators.length > 0 ? (
+            ) : collaboratorsData ? (
               <div className="space-y-2">
-                {collaboratorsData.collaborators.map((collaborator) => (
+                {/* Show owner first */}
+                {collaboratorsData.owner && (
                   <div
-                    key={collaborator.id}
+                    key={`owner-${collaboratorsData.owner.id}`}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex-1">
                       <div className="font-medium">
-                        {collaborator.user.name}
+                        {collaboratorsData.owner.name}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {collaborator.user.email}
+                        {collaboratorsData.owner.email}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={collaborator.role}
-                        onValueChange={(value) =>
-                          updateCollaboratorRole.mutate({
-                            listId: list.id,
-                            userId: collaborator.userId,
-                            role: value as "viewer" | "editor",
-                          })
-                        }
-                      >
-                        <SelectTrigger className="w-28">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                          <SelectItem value="editor">Editor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          removeCollaborator.mutate({
-                            listId: list.id,
-                            userId: collaborator.userId,
-                          })
-                        }
-                        disabled={removeCollaborator.isPending}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <div className="text-sm capitalize text-muted-foreground">
+                      Owner
                     </div>
                   </div>
-                ))}
+                )}
+                {/* Show collaborators */}
+                {collaboratorsData.collaborators.length > 0 ? (
+                  collaboratorsData.collaborators.map((collaborator) => (
+                    <div
+                      key={collaborator.id}
+                      className="flex items-center justify-between rounded-lg border p-3"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium">
+                          {collaborator.user.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {collaborator.user.email}
+                        </div>
+                      </div>
+                      {readOnly ? (
+                        <div className="text-sm capitalize text-muted-foreground">
+                          {collaborator.role}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={collaborator.role}
+                            onValueChange={(value) =>
+                              updateCollaboratorRole.mutate({
+                                listId: list.id,
+                                userId: collaborator.userId,
+                                role: value as "viewer" | "editor",
+                              })
+                            }
+                          >
+                            <SelectTrigger className="w-28">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="viewer">Viewer</SelectItem>
+                              <SelectItem value="editor">Editor</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              removeCollaborator.mutate({
+                                listId: list.id,
+                                userId: collaborator.userId,
+                              })
+                            }
+                            disabled={removeCollaborator.isPending}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : !collaboratorsData.owner ? (
+                  <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+                    {readOnly
+                      ? "No collaborators for this list."
+                      : "No collaborators yet. Add someone to start collaborating!"}
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-                No collaborators yet. Add someone to start collaborating!
+                {readOnly
+                  ? "No collaborators for this list."
+                  : "No collaborators yet. Add someone to start collaborating!"}
               </div>
             )}
           </div>
