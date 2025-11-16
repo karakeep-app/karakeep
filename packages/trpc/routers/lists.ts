@@ -26,6 +26,22 @@ export const ensureListOwnership = experimental_trpcMiddleware<{
   });
 });
 
+export const ensureListEditorOrOwner = experimental_trpcMiddleware<{
+  ctx: AuthedContext & { list: List };
+  input: { listId: string };
+}>().create(async (opts) => {
+  const canEdit = await opts.ctx.list.canUserEdit(opts.ctx.user.id);
+  if (!canEdit) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "User does not have edit permissions for this list",
+    });
+  }
+  return opts.next({
+    ctx: opts.ctx,
+  });
+});
+
 export const listsAppRouter = router({
   create: authedProcedure
     .input(zNewBookmarkListSchema)
@@ -76,6 +92,7 @@ export const listsAppRouter = router({
       }),
     )
     .use(ensureListOwnership)
+    .use(ensureListEditorOrOwner)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.addBookmark(input.bookmarkId);
@@ -88,7 +105,7 @@ export const listsAppRouter = router({
       }),
     )
     .use(ensureListOwnership)
-    .use(ensureBookmarkOwnership)
+    .use(ensureListEditorOrOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.removeBookmark(input.bookmarkId);
     }),
