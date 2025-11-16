@@ -407,6 +407,9 @@
           "public": {
             "type": "boolean"
           },
+          "hasCollaborators": {
+            "type": "boolean"
+          },
           "userRole": {
             "type": "string",
             "enum": [
@@ -423,6 +426,7 @@
           "icon",
           "parentId",
           "public",
+          "hasCollaborators",
           "userRole"
         ]
       },

@@ -1125,4 +1125,177 @@ describe("Shared Lists", () => {
       ).rejects.toThrow();
     });
   });
+
+  describe("hasCollaborators Field", () => {
+    test<CustomTestContext>("should be false for newly created list", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+
+      const list = await ownerApi.lists.create({
+        name: "New List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      expect(list.hasCollaborators).toBe(false);
+    });
+
+    test<CustomTestContext>("should be true for owner after adding a collaborator", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Fetch the list again to get updated hasCollaborators
+      const updatedList = await ownerApi.lists.get({
+        listId: list.id,
+      });
+
+      expect(updatedList.hasCollaborators).toBe(true);
+    });
+
+    test<CustomTestContext>("should be true for collaborator viewing shared list", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Collaborator fetches the list
+      const sharedList = await collaboratorApi.lists.get({
+        listId: list.id,
+      });
+
+      expect(sharedList.hasCollaborators).toBe(true);
+    });
+
+    test<CustomTestContext>("should be false for owner after removing all collaborators", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorUser.email!,
+        role: "viewer",
+      });
+
+      // Remove the collaborator
+      await ownerApi.lists.removeCollaborator({
+        listId: list.id,
+        userId: collaboratorUser.id,
+      });
+
+      // Fetch the list again
+      const updatedList = await ownerApi.lists.get({
+        listId: list.id,
+      });
+
+      expect(updatedList.hasCollaborators).toBe(false);
+    });
+
+    test<CustomTestContext>("should show correct value in lists.list() endpoint", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      // Create list without collaborators
+      const list1 = await ownerApi.lists.create({
+        name: "Private List",
+        icon: "🔒",
+        type: "manual",
+      });
+
+      // Create list with collaborators
+      const list2 = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list2.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Get all lists
+      const { lists } = await ownerApi.lists.list();
+
+      const privateList = lists.find((l) => l.id === list1.id);
+      const sharedList = lists.find((l) => l.id === list2.id);
+
+      expect(privateList?.hasCollaborators).toBe(false);
+      expect(sharedList?.hasCollaborators).toBe(true);
+    });
+
+    test<CustomTestContext>("should show true for collaborator in lists.list() endpoint", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+
+      // Collaborator gets all lists
+      const { lists } = await collaboratorApi.lists.list();
+
+      const sharedList = lists.find((l) => l.id === list.id);
+
+      expect(sharedList?.hasCollaborators).toBe(true);
+      expect(sharedList?.userRole).toBe("editor");
+    });
+  });
 });

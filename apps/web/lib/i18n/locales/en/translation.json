@@ -470,6 +470,7 @@
   "lists": {
     "all_lists": "All Lists",
     "favourites": "Favourites",
+    "shared": "Shared",
     "new_list": "New List",
     "edit_list": "Edit List",
     "share_list": "Share List",

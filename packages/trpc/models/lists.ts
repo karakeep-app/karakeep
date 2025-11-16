@@ -53,6 +53,7 @@ export abstract class List implements PrivacyAware {
       type: this.list.type,
       query: this.list.query,
       userRole: this.list.userRole,
+      hasCollaborators: this.list.hasCollaborators,
 
       // Hide parentId as it is not relevant to the user
       parentId: null,
@@ -88,8 +89,22 @@ export abstract class List implements PrivacyAware {
           eq(bookmarkLists.id, id),
           eq(bookmarkLists.userId, ctx.user.id),
         ),
+        with: {
+          collaborators: {
+            columns: {
+              id: true,
+            },
+            limit: 1,
+          },
+        },
       });
-      return l ? { ...l, userRole: "owner" } : l;
+      return l
+        ? {
+            ...l,
+            userRole: "owner",
+            hasCollaborators: l.collaborators.length > 0,
+          }
+        : l;
     })();
 
     // If not found, check if the user is a collaborator
@@ -112,6 +127,7 @@ export abstract class List implements PrivacyAware {
         list = {
           ...collaborator.list,
           userRole: collaborator.role,
+          hasCollaborators: true, // If you're a collaborator, the list has collaborators
         };
       }
     }
@@ -193,6 +209,7 @@ export abstract class List implements PrivacyAware {
     const listObj = List.fromData(authedCtx, {
       ...listdb,
       userRole: "public",
+      hasCollaborators: false, // Public lists don't expose collaborators
     });
     const bookmarkIds = await listObj.getBookmarkIds();
     const list = listObj.asZBookmarkList();
@@ -237,6 +254,7 @@ export abstract class List implements PrivacyAware {
     return this.fromData(ctx, {
       ...result,
       userRole: "owner",
+      hasCollaborators: false, // Newly created lists have no collaborators
     });
   }
 
@@ -256,11 +274,20 @@ export abstract class List implements PrivacyAware {
         rssToken: false,
       },
       where: and(eq(bookmarkLists.userId, ctx.user.id)),
+      with: {
+        collaborators: {
+          columns: {
+            id: true,
+          },
+          limit: 1,
+        },
+      },
     });
     return lists.map((l) =>
       this.fromData(ctx, {
         ...l,
         userRole: "owner",
+        hasCollaborators: l.collaborators.length > 0,
       }),
     );
   }
@@ -299,6 +326,8 @@ export abstract class List implements PrivacyAware {
             this.fromData(ctx, {
               ...l.list,
               userRole,
+              hasCollaborators:
+                userRole !== "owner" ? true : l.list.collaborators.length > 0,
             }),
           ]
         : [];
@@ -488,9 +517,19 @@ export abstract class List implements PrivacyAware {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
     invariant(result[0].userId === this.ctx.user.id);
+    // Fetch current collaborators count to update hasCollaborators
+    const collaboratorsCount =
+      await this.ctx.db.query.listCollaborators.findMany({
+        where: eq(listCollaborators.listId, this.list.id),
+        columns: {
+          id: true,
+        },
+        limit: 1,
+      });
     this.list = {
       ...result[0],
       userRole: "owner",
+      hasCollaborators: collaboratorsCount.length > 0,
     };
   }
 
@@ -782,6 +821,7 @@ export abstract class List implements PrivacyAware {
       this.fromData(ctx, {
         ...c.list,
         userRole: c.role,
+        hasCollaborators: true, // If you're a collaborator, the list has collaborators
       }),
     );
   }

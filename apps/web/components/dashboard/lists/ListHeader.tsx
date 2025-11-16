@@ -3,8 +3,14 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
-import { MoreHorizontal, SearchIcon } from "lucide-react";
+import { MoreHorizontal, SearchIcon, Users } from "lucide-react";
 
 import { api } from "@karakeep/shared-react/trpc";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -48,12 +54,24 @@ export default function ListHeader({
       <div className="flex items-center gap-2">
         <span className="text-2xl">
           {list.icon} {list.name}
-          {list.description && (
-            <span className="mx-2 text-lg text-gray-400">
-              {`(${list.description})`}
-            </span>
-          )}
         </span>
+        {list.hasCollaborators && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Users className="size-5 text-primary" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("lists.shared")}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {list.description && (
+          <span className="text-lg text-gray-400">
+            {`(${list.description})`}
+          </span>
+        )}
       </div>
       <div className="flex items-center">
         {parsedQuery && (
