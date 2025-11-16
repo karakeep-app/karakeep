@@ -15,9 +15,11 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  bookmarksInLists,
   bookmarkTags,
   bookmarkTexts,
   customPrompts,
+  listCollaborators,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
 import {
@@ -92,6 +94,62 @@ export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   }
 
   return opts.next();
+});
+
+export const ensureBookmarkAccess = experimental_trpcMiddleware<{
+  ctx: Context;
+  input: { bookmarkId: string };
+}>().create(async (opts) => {
+  if (!opts.ctx.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User is not authorized",
+    });
+  }
+
+  const bookmark = await opts.ctx.db.query.bookmarks.findFirst({
+    where: eq(bookmarks.id, opts.input.bookmarkId),
+    columns: {
+      id: true,
+      userId: true,
+    },
+  });
+
+  if (!bookmark) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Bookmark not found",
+    });
+  }
+
+  // User owns the bookmark - allow access
+  if (bookmark.userId === opts.ctx.user.id) {
+    return opts.next();
+  }
+
+  // Check if bookmark is in a list where user is a collaborator
+  const collaboration = await opts.ctx.db.query.bookmarksInLists.findFirst({
+    where: eq(bookmarksInLists.bookmarkId, bookmark.id),
+    with: {
+      list: {
+        with: {
+          collaborators: {
+            where: eq(listCollaborators.userId, opts.ctx.user.id),
+          },
+        },
+      },
+    },
+  });
+
+  if (collaboration && collaboration.list.collaborators.length > 0) {
+    return opts.next();
+  }
+
+  // User doesn't own bookmark and isn't a collaborator on any list containing it
+  throw new TRPCError({
+    code: "FORBIDDEN",
+    message: "User is not allowed to access resource",
+  });
 });
 
 async function getBookmark(
@@ -754,7 +812,7 @@ export const bookmarksAppRouter = router({
       }),
     )
     .output(zBookmarkSchema)
-    .use(ensureBookmarkOwnership)
+    .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
       return await getBookmark(ctx, input.bookmarkId, input.includeContent);
     }),
