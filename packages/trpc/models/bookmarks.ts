@@ -20,6 +20,7 @@ import {
   AssetTypes,
   bookmarkAssets,
   bookmarkLinks,
+  bookmarkLists,
   bookmarks,
   bookmarksInLists,
   bookmarkTags,
@@ -288,25 +289,58 @@ export class Bookmark implements PrivacyAware {
         .from(bookmarks)
         .where(
           and(
-            // User can access bookmarks they own OR bookmarks in collaborative lists
-            or(
-              eq(bookmarks.userId, ctx.user.id),
-              exists(
-                ctx.db
-                  .select()
-                  .from(bookmarksInLists)
-                  .innerJoin(
-                    listCollaborators,
-                    eq(listCollaborators.listId, bookmarksInLists.listId),
-                  )
-                  .where(
-                    and(
-                      eq(bookmarksInLists.bookmarkId, bookmarks.id),
-                      eq(listCollaborators.userId, ctx.user.id),
-                    ),
+            // Access control: User can access bookmarks if they either:
+            // 1. Own the bookmark
+            // 2. The bookmark is in a list where they are a collaborator
+            // When listId is specified, we need special handling to show all bookmarks in that list
+            input.listId !== undefined
+              ? // If querying a specific list, check if user has access to that list
+                or(
+                  eq(bookmarks.userId, ctx.user.id),
+                  // User is the owner of the list being queried
+                  exists(
+                    ctx.db
+                      .select()
+                      .from(bookmarkLists)
+                      .where(
+                        and(
+                          eq(bookmarkLists.id, input.listId),
+                          eq(bookmarkLists.userId, ctx.user.id),
+                        ),
+                      ),
                   ),
-              ),
-            ),
+                  // User is a collaborator on the list being queried
+                  exists(
+                    ctx.db
+                      .select()
+                      .from(listCollaborators)
+                      .where(
+                        and(
+                          eq(listCollaborators.listId, input.listId),
+                          eq(listCollaborators.userId, ctx.user.id),
+                        ),
+                      ),
+                  ),
+                )
+              : // If not querying a specific list, only show bookmarks the user owns or are in collaborative lists
+                or(
+                  eq(bookmarks.userId, ctx.user.id),
+                  exists(
+                    ctx.db
+                      .select()
+                      .from(bookmarksInLists)
+                      .innerJoin(
+                        listCollaborators,
+                        eq(listCollaborators.listId, bookmarksInLists.listId),
+                      )
+                      .where(
+                        and(
+                          eq(bookmarksInLists.bookmarkId, bookmarks.id),
+                          eq(listCollaborators.userId, ctx.user.id),
+                        ),
+                      ),
+                  ),
+                ),
             input.archived !== undefined
               ? eq(bookmarks.archived, input.archived)
               : undefined,
