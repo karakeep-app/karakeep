@@ -52,7 +52,7 @@
     "rss-parser": "^3.13.0",
     "tesseract.js": "^5.1.1",
     "tsx": "^4.8.1",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9",
     "zod": "^3.24.2"
   },
   "devDependencies": {
