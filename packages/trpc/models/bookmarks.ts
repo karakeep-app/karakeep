@@ -118,26 +118,8 @@ export class BareBookmark implements PrivacyAware {
     if (userId == ctx.user.id) {
       return true;
     }
-    const collaborations = await ctx.db.query.bookmarksInLists.findMany({
-      where: eq(bookmarksInLists.bookmarkId, bookmarkId),
-      with: {
-        list: {
-          columns: {
-            id: true,
-          },
-          with: {
-            collaborators: {
-              where: eq(listCollaborators.userId, ctx.user.id),
-              columns: {
-                userId: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    return collaborations.some((c) => c.list.collaborators.length > 0);
+    const bookmarkLists = await List.forBookmark(ctx, bookmarkId);
+    return bookmarkLists.some((l) => l.canUserView());
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
@@ -743,6 +725,7 @@ export class Bookmark extends BareBookmark {
       ...this.bookmark,
       archived: false,
       favourited: false,
+      note: null,
     };
   }
 

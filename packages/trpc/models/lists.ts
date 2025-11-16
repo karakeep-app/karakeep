@@ -19,6 +19,7 @@ import {
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
 import { ZCursor } from "@karakeep/shared/types/pagination";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
@@ -284,15 +285,24 @@ export abstract class List implements PrivacyAware {
       },
     });
 
-    return lists.map((l) =>
-      this.fromData(ctx, {
-        ...l.list,
-        userRole:
-          l.list.collaborators.length > 0
-            ? l.list.collaborators[0].role
-            : "owner",
-      }),
-    );
+    return lists.flatMap((l) => {
+      let userRole: "owner" | "editor" | "viewer" | null;
+      if (l.list.collaborators.length > 0) {
+        userRole = l.list.collaborators[0].role;
+      } else if (l.list.userId === ctx.user.id) {
+        userRole = "owner";
+      } else {
+        userRole = null;
+      }
+      return userRole
+        ? [
+            this.fromData(ctx, {
+              ...l.list,
+              userRole,
+            }),
+          ]
+        : [];
+    });
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
@@ -334,32 +344,45 @@ export abstract class List implements PrivacyAware {
   /**
    * Check if the user can view this list and its bookmarks.
    */
-  async canUserView(userId: string): Promise<boolean> {
-    const role = await this.getUserRole(userId);
-    return role !== null;
+  canUserView(): boolean {
+    return switchCase(this.list.userRole, {
+      owner: true,
+      editor: true,
+      viewer: true,
+      public: true,
+    });
   }
 
   /**
    * Check if the user can edit this list (add/remove bookmarks).
    */
-  async canUserEdit(userId: string): Promise<boolean> {
-    const role = await this.getUserRole(userId);
-    return role === "owner" || role === "editor";
+  canUserEdit(): boolean {
+    return switchCase(this.list.userRole, {
+      owner: true,
+      editor: true,
+      viewer: false,
+      public: false,
+    });
   }
 
   /**
    * Check if the user can manage this list (edit metadata, delete, manage collaborators).
    * Only the owner can manage the list.
    */
-  async canUserManage(userId: string): Promise<boolean> {
-    return this.list.userId === userId;
+  canUserManage(): boolean {
+    return switchCase(this.list.userRole, {
+      owner: true,
+      editor: false,
+      viewer: false,
+      public: false,
+    });
   }
 
   /**
    * Ensure the user can view this list. Throws if they cannot.
    */
-  async ensureCanView(userId: string): Promise<void> {
-    if (!(await this.canUserView(userId))) {
+  ensureCanView(): void {
+    if (!this.canUserView()) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to view this list",
@@ -370,8 +393,8 @@ export abstract class List implements PrivacyAware {
   /**
    * Ensure the user can edit this list. Throws if they cannot.
    */
-  async ensureCanEdit(userId: string): Promise<void> {
-    if (!(await this.canUserEdit(userId))) {
+  ensureCanEdit(): void {
+    if (!this.canUserEdit()) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to edit this list",
@@ -382,8 +405,8 @@ export abstract class List implements PrivacyAware {
   /**
    * Ensure the user can manage this list. Throws if they cannot.
    */
-  async ensureCanManage(userId: string): Promise<void> {
-    if (!(await this.canUserManage(userId))) {
+  ensureCanManage(): void {
+    if (!this.canUserManage()) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to manage this list",
@@ -517,7 +540,7 @@ export abstract class List implements PrivacyAware {
     email: string,
     role: "viewer" | "editor",
   ): Promise<void> {
-    await this.ensureCanManage(this.ctx.user.id);
+    this.ensureCanManage();
 
     // Look up the user by email
     const user = await this.ctx.db.query.users.findFirst({
@@ -577,7 +600,7 @@ export abstract class List implements PrivacyAware {
     userId: string,
     role: "viewer" | "editor",
   ): Promise<void> {
-    await this.ensureCanManage(this.ctx.user.id);
+    this.ensureCanManage();
 
     // Check that the user is not adding themselves
     if (userId === this.list.userId) {
@@ -623,7 +646,7 @@ export abstract class List implements PrivacyAware {
    * Only the list owner can remove collaborators.
    */
   async removeCollaborator(userId: string): Promise<void> {
-    await this.ensureCanManage(this.ctx.user.id);
+    this.ensureCanManage();
 
     const result = await this.ctx.db
       .delete(listCollaborators)
@@ -690,7 +713,7 @@ export abstract class List implements PrivacyAware {
     userId: string,
     role: "viewer" | "editor",
   ): Promise<void> {
-    await this.ensureCanManage(this.ctx.user.id);
+    this.ensureCanManage();
 
     const result = await this.ctx.db
       .update(listCollaborators)
@@ -714,7 +737,7 @@ export abstract class List implements PrivacyAware {
    * Get all collaborators for this list.
    */
   async getCollaborators() {
-    await this.ensureCanView(this.ctx.user.id);
+    this.ensureCanView();
 
     const collaborators = await this.ctx.db.query.listCollaborators.findMany({
       where: eq(listCollaborators.listId, this.list.id),
@@ -866,8 +889,7 @@ export class ManualList extends List {
   }
 
   async addBookmark(bookmarkId: string): Promise<void> {
-    // Check that the user can edit this list
-    await this.ensureCanEdit(this.ctx.user.id);
+    this.ensureCanEdit();
 
     try {
       await this.ctx.db.insert(bookmarksInLists).values({
@@ -897,7 +919,7 @@ export class ManualList extends List {
 
   async removeBookmark(bookmarkId: string): Promise<void> {
     // Check that the user can edit this list
-    await this.ensureCanEdit(this.ctx.user.id);
+    this.ensureCanEdit();
 
     const deleted = await this.ctx.db
       .delete(bookmarksInLists)

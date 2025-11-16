@@ -30,7 +30,7 @@ export const ensureListEditorOrOwner = experimental_trpcMiddleware<{
   ctx: AuthedContext & { list: List };
   input: { listId: string };
 }>().create(async (opts) => {
-  const canEdit = await opts.ctx.list.canUserEdit(opts.ctx.user.id);
+  const canEdit = opts.ctx.list.canUserEdit();
   if (!canEdit) {
     throw new TRPCError({
       code: "FORBIDDEN",
