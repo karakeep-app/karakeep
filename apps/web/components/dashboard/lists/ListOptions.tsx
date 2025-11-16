@@ -116,7 +116,7 @@ export function ListOptions({
       icon: <DoorOpen className="size-4" />,
       visible: isCollaborator,
       disabled: false,
-      className: "text-destructive",
+      className: "flex gap-2 text-destructive",
       onClick: () => setLeaveListDialogOpen(true),
     },
     {
@@ -125,7 +125,7 @@ export function ListOptions({
       icon: <Trash2 className="size-4" />,
       visible: isOwner,
       disabled: false,
-      className: "text-destructive",
+      className: "flex gap-2 text-destructive",
       onClick: () => setDeleteListDialogOpen(true),
     },
   ];
