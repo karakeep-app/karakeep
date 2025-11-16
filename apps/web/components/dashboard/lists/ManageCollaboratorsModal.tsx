@@ -21,10 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
-import { ZBookmarkList } from "@karakeep/shared/types/lists";
 import { Loader2, Trash2, UserPlus, Users } from "lucide-react";
-import { toast } from "sonner";
+
+import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 export function ManageCollaboratorsModal({
   open: userOpen,
@@ -58,46 +59,61 @@ export function ManageCollaboratorsModal({
 
   // Fetch collaborators
   const { data: collaboratorsData, isLoading } =
-    api.lists.getCollaborators.useQuery(
-      { listId: list.id },
-      { enabled: open },
-    );
+    api.lists.getCollaborators.useQuery({ listId: list.id }, { enabled: open });
 
   // Mutations
   const addCollaborator = api.lists.addCollaborator.useMutation({
     onSuccess: () => {
-      toast.success("Collaborator added successfully");
+      toast({
+        description: "Collaborator added successfully",
+      });
       setNewCollaboratorEmail("");
       utils.lists.getCollaborators.invalidate({ listId: list.id });
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to add collaborator");
+      toast({
+        variant: "destructive",
+        description: error.message || "Failed to add collaborator",
+      });
     },
   });
 
   const removeCollaborator = api.lists.removeCollaborator.useMutation({
     onSuccess: () => {
-      toast.success("Collaborator removed");
+      toast({
+        description: "Collaborator removed",
+      });
       utils.lists.getCollaborators.invalidate({ listId: list.id });
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to remove collaborator");
+      toast({
+        variant: "destructive",
+        description: error.message || "Failed to remove collaborator",
+      });
     },
   });
 
   const updateCollaboratorRole = api.lists.updateCollaboratorRole.useMutation({
     onSuccess: () => {
-      toast.success("Role updated");
+      toast({
+        description: "Role updated",
+      });
       utils.lists.getCollaborators.invalidate({ listId: list.id });
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to update role");
+      toast({
+        variant: "destructive",
+        description: error.message || "Failed to update role",
+      });
     },
   });
 
   const handleAddCollaborator = () => {
     if (!newCollaboratorEmail.trim()) {
-      toast.error("Please enter an email address");
+      toast({
+        variant: "destructive",
+        description: "Please enter an email address",
+      });
       return;
     }
 
@@ -185,7 +201,8 @@ export function ManageCollaboratorsModal({
               <div className="flex justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : collaboratorsData && collaboratorsData.collaborators.length > 0 ? (
+            ) : collaboratorsData &&
+              collaboratorsData.collaborators.length > 0 ? (
               <div className="space-y-2">
                 {collaboratorsData.collaborators.map((collaborator) => (
                   <div
@@ -193,7 +210,9 @@ export function ManageCollaboratorsModal({
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex-1">
-                      <div className="font-medium">{collaborator.user.name}</div>
+                      <div className="font-medium">
+                        {collaborator.user.name}
+                      </div>
                       <div className="text-sm text-muted-foreground">
                         {collaborator.user.email}
                       </div>

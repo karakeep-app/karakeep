@@ -227,7 +227,9 @@ export abstract class List implements PrivacyAware {
    * Get the user's role for this list.
    * Returns "owner", "editor", "viewer", or null if the user has no access.
    */
-  async getUserRole(userId: string): Promise<"owner" | "editor" | "viewer" | null> {
+  async getUserRole(
+    userId: string,
+  ): Promise<"owner" | "editor" | "viewer" | null> {
     // Check if user is the owner
     if (this.list.userId === userId) {
       return "owner";
@@ -425,7 +427,10 @@ export abstract class List implements PrivacyAware {
   /**
    * Add a collaborator to this list.
    */
-  async addCollaborator(userId: string, role: "viewer" | "editor"): Promise<void> {
+  async addCollaborator(
+    userId: string,
+    role: "viewer" | "editor",
+  ): Promise<void> {
     await this.ensureCanManage(this.ctx.user.id);
 
     // Check that the user is not adding themselves
@@ -493,7 +498,10 @@ export abstract class List implements PrivacyAware {
   /**
    * Update a collaborator's role.
    */
-  async updateCollaboratorRole(userId: string, role: "viewer" | "editor"): Promise<void> {
+  async updateCollaboratorRole(
+    userId: string,
+    role: "viewer" | "editor",
+  ): Promise<void> {
     await this.ensureCanManage(this.ctx.user.id);
 
     const result = await this.ctx.db
@@ -545,7 +553,9 @@ export abstract class List implements PrivacyAware {
   /**
    * Get all lists shared with the user (as a collaborator).
    */
-  static async getSharedWithUser(ctx: AuthedContext): Promise<(ManualList | SmartList)[]> {
+  static async getSharedWithUser(
+    ctx: AuthedContext,
+  ): Promise<(ManualList | SmartList)[]> {
     const collaborations = await ctx.db.query.listCollaborators.findMany({
       where: eq(listCollaborators.userId, ctx.user.id),
       with: {

@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api } from "@/server/api/client";
 import { getServerAuthSession } from "@/server/auth";
-import UpdatableBookmarksGrid from "./UpdatableBookmarksGrid";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Users } from "lucide-react";
+
+import UpdatableBookmarksGrid from "./UpdatableBookmarksGrid";
 
 export default async function SharedBookmarks() {
   const session = await getServerAuthSession();

@@ -1171,15 +1171,21 @@ Author: ${bookmark.author ?? ""}
     )
     .output(zBookmarkSchema)
     .mutation(async ({ input, ctx }) => {
-      // Load the bookmark to clone
-      const bookmarkToClone = await getBookmark(ctx, input.bookmarkId, true);
+      // Load the bookmark to clone using Bookmark.loadMulti
+      const result = await Bookmark.loadMulti(ctx, {
+        ids: [input.bookmarkId],
+        includeContent: true,
+        sortOrder: "desc",
+      });
 
-      if (!bookmarkToClone) {
+      if (result.bookmarks.length === 0) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Bookmark not found",
         });
       }
+
+      const bookmarkToClone = result.bookmarks[0];
 
       // Clone the bookmark
       const cloned = await bookmarkToClone.clone(ctx.user.id);

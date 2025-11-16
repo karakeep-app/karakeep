@@ -146,13 +146,25 @@ export class Bookmark implements PrivacyAware {
 
     // Clone the bookmark in a transaction
     const clonedBookmarkData = await this.ctx.db.transaction(async (tx) => {
+      // Validate bookmark type before cloning
+      if (
+        this.bookmark.content.type !== BookmarkTypes.LINK &&
+        this.bookmark.content.type !== BookmarkTypes.TEXT &&
+        this.bookmark.content.type !== BookmarkTypes.ASSET
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot clone bookmark with unknown type",
+        });
+      }
+
       // Create the new bookmark
       const [newBookmark] = await tx
         .insert(bookmarks)
         .values({
           userId: targetUserId,
           title: this.bookmark.title,
-          type: this.bookmark.type,
+          type: this.bookmark.content.type,
           archived: false, // Don't copy archived status
           favourited: false, // Don't copy favourited status
           note: null, // Don't copy notes
@@ -176,8 +188,6 @@ export class Bookmark implements PrivacyAware {
             imageUrl: this.bookmark.content.imageUrl,
             favicon: this.bookmark.content.favicon,
             htmlContent: this.bookmark.content.htmlContent,
-            crawlStatus: this.bookmark.content.crawlStatus,
-            crawlStatusCode: this.bookmark.content.crawlStatusCode,
           });
           break;
         }
@@ -208,7 +218,9 @@ export class Bookmark implements PrivacyAware {
         const tagMap = new Map(targetUserTags.map((t) => [t.name, t.id]));
 
         // Create missing tags for the target user
-        const tagsToCreate = this.bookmark.tags.filter((t) => !tagMap.has(t.name));
+        const tagsToCreate = this.bookmark.tags.filter(
+          (t) => !tagMap.has(t.name),
+        );
         if (tagsToCreate.length > 0) {
           const createdTags = await tx
             .insert(bookmarkTags)
@@ -239,6 +251,7 @@ export class Bookmark implements PrivacyAware {
     const cloned = await Bookmark.loadMulti(this.ctx, {
       ids: [clonedBookmarkData.id],
       includeContent: true,
+      sortOrder: "desc",
     });
 
     return cloned.bookmarks[0];
