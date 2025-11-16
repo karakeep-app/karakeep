@@ -1,7 +1,16 @@
 import { useState } from "react";
-import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  Keyboard,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import { Button } from "@/components/ui/Button";
+import ScrollIndicator from "@/components/ui/ScrollIndicator";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "nativewind";
@@ -23,6 +32,15 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const initialText = bookmark.content.text;
   const [content, setContent] = useState(initialText);
+
+  // Scroll indicator state
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setScrollY(event.nativeEvent.contentOffset.y);
+  };
 
   const { mutate, isPending } = useUpdateBookmark({
     onError: () => {
@@ -96,17 +114,36 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   }
 
   return (
-    <ScrollView className="m-4 flex-1 rounded-lg border border-border bg-card p-2">
-      <Pressable onPress={() => setIsEditing(true)}>
-        <View className="min-h-[200px] rounded-xl p-4">
-          <BookmarkTextMarkdown text={content} />
-          {content.trim() === "" && (
-            <Text className="italic text-muted-foreground">
-              Tap to add text...
-            </Text>
-          )}
-        </View>
-      </Pressable>
-    </ScrollView>
+    <View
+      className="m-4 flex-1 rounded-lg border border-border bg-card p-2"
+      onLayout={(event) => {
+        setContainerHeight(event.nativeEvent.layout.height);
+      }}
+    >
+      <ScrollView
+        className="flex-1"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onContentSizeChange={(width, height) => {
+          setContentHeight(height);
+        }}
+      >
+        <Pressable onPress={() => setIsEditing(true)}>
+          <View className="min-h-[200px] rounded-xl p-4">
+            <BookmarkTextMarkdown text={content} />
+            {content.trim() === "" && (
+              <Text className="italic text-muted-foreground">
+                Tap to add text...
+              </Text>
+            )}
+          </View>
+        </Pressable>
+      </ScrollView>
+      <ScrollIndicator
+        scrollY={scrollY}
+        contentHeight={contentHeight}
+        containerHeight={containerHeight}
+      />
+    </View>
   );
 }

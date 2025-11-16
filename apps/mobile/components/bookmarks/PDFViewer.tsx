@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import Pdf from "react-native-pdf";
+import ScrollIndicator from "@/components/ui/ScrollIndicator";
 import { Text } from "@/components/ui/Text";
 import { useQuery } from "@tanstack/react-query";
 import { useColorScheme } from "nativewind";
@@ -13,6 +14,10 @@ interface PDFViewerProps {
 
 export function PDFViewer({ source, headers }: PDFViewerProps) {
   const [pdfRenderError, setPdfRenderError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = {
@@ -20,6 +25,11 @@ export function PDFViewer({ source, headers }: PDFViewerProps) {
     foreground: isDark ? "#fff" : "#000",
     mutedForeground: isDark ? "#888" : "#666",
   };
+
+  // Calculate scroll position based on page numbers
+  // Each page represents a portion of the total content
+  const scrollY = totalPages > 0 ? ((currentPage - 1) / totalPages) * (containerHeight * totalPages) : 0;
+  const contentHeight = containerHeight * totalPages;
 
   const {
     data: localPath,
@@ -97,18 +107,33 @@ export function PDFViewer({ source, headers }: PDFViewerProps) {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.background }]}
+      onLayout={(event) => {
+        setContainerHeight(event.nativeEvent.layout.height);
+      }}
+    >
       <Pdf
         style={StyleSheet.absoluteFillObject}
         source={{ uri: `file://${localPath}`, cache: true }}
         spacing={16}
         maxScale={3}
-        onLoadComplete={() => ({})}
+        onLoadComplete={(numberOfPages) => {
+          setTotalPages(numberOfPages);
+        }}
+        onPageChanged={(page) => {
+          setCurrentPage(page);
+        }}
         onError={() => setPdfRenderError("Failed to render PDF")}
         trustAllCerts={false}
         renderActivityIndicator={() => (
           <ActivityIndicator size="large" color={colors.foreground} />
         )}
+      />
+      <ScrollIndicator
+        scrollY={scrollY}
+        contentHeight={contentHeight}
+        containerHeight={containerHeight}
       />
     </View>
   );

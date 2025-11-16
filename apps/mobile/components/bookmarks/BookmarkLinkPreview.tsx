@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
-import WebView from "react-native-webview";
+import WebView, { WebViewMessageEvent } from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
@@ -11,6 +11,7 @@ import { useColorScheme } from "@/lib/useColorScheme";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import FullPageError from "../FullPageError";
+import ScrollIndicator from "../ui/ScrollIndicator";
 import FullPageSpinner from "../ui/FullPageSpinner";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 
@@ -19,16 +20,77 @@ export function BookmarkLinkBrowserPreview({
 }: {
   bookmark: ZBookmark;
 }) {
+  const webViewRef = useRef<WebView>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
   }
 
+  const handleMessage = (event: WebViewMessageEvent) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.scrollY !== undefined) setScrollY(data.scrollY);
+      if (data.contentHeight !== undefined)
+        setContentHeight(data.contentHeight);
+      if (data.containerHeight !== undefined)
+        setContainerHeight(data.containerHeight);
+    } catch (error) {
+      // Ignore parsing errors
+    }
+  };
+
+  const injectedJavaScript = `
+    (function() {
+      function sendScrollData() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          scrollY: window.scrollY || window.pageYOffset || 0,
+          contentHeight: document.documentElement.scrollHeight,
+          containerHeight: window.innerHeight
+        }));
+      }
+
+      // Send initial data
+      sendScrollData();
+
+      // Send data on scroll
+      let scrollTimeout;
+      window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(sendScrollData, 16);
+      }, { passive: true });
+
+      // Send data on resize
+      window.addEventListener('resize', sendScrollData, { passive: true });
+
+      // Send data when content loads
+      window.addEventListener('load', sendScrollData);
+
+      // Check for dynamic content changes
+      const observer = new MutationObserver(sendScrollData);
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+    true;
+  `;
+
   return (
-    <WebView
-      startInLoadingState={true}
-      mediaPlaybackRequiresUserAction={true}
-      source={{ uri: bookmark.content.url }}
-    />
+    <View className="flex-1">
+      <WebView
+        ref={webViewRef}
+        startInLoadingState={true}
+        mediaPlaybackRequiresUserAction={true}
+        source={{ uri: bookmark.content.url }}
+        onMessage={handleMessage}
+        injectedJavaScript={injectedJavaScript}
+      />
+      <ScrollIndicator
+        scrollY={scrollY}
+        contentHeight={contentHeight}
+        containerHeight={containerHeight}
+      />
+    </View>
   );
 }
 
@@ -38,6 +100,10 @@ export function BookmarkLinkReaderPreview({
   bookmark: ZBookmark;
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
+  const webViewRef = useRef<WebView>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
 
   const {
     data: bookmarkWithContent,
@@ -61,9 +127,56 @@ export function BookmarkLinkReaderPreview({
     throw new Error("Wrong content type rendered");
   }
 
+  const handleMessage = (event: WebViewMessageEvent) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.scrollY !== undefined) setScrollY(data.scrollY);
+      if (data.contentHeight !== undefined)
+        setContentHeight(data.contentHeight);
+      if (data.containerHeight !== undefined)
+        setContainerHeight(data.containerHeight);
+    } catch (error) {
+      // Ignore parsing errors
+    }
+  };
+
+  const injectedJavaScript = `
+    (function() {
+      function sendScrollData() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          scrollY: window.scrollY || window.pageYOffset || 0,
+          contentHeight: document.documentElement.scrollHeight,
+          containerHeight: window.innerHeight
+        }));
+      }
+
+      // Send initial data
+      setTimeout(sendScrollData, 100);
+
+      // Send data on scroll
+      let scrollTimeout;
+      window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(sendScrollData, 16);
+      }, { passive: true });
+
+      // Send data on resize
+      window.addEventListener('resize', sendScrollData, { passive: true });
+
+      // Send data when content loads
+      window.addEventListener('load', sendScrollData);
+
+      // Check for dynamic content changes
+      const observer = new MutationObserver(sendScrollData);
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+    true;
+  `;
+
   return (
     <View className="flex-1 bg-background">
       <WebView
+        ref={webViewRef}
         originWhitelist={["*"]}
         source={{
           html: `
@@ -85,17 +198,17 @@ export function BookmarkLinkReaderPreview({
                     img { max-width: 100%; height: auto; border-radius: 8px; }
                     a { color: #3b82f6; text-decoration: none; }
                     a:hover { text-decoration: underline; }
-                    blockquote { 
-                      border-left: 4px solid ${isDark ? "#374151" : "#e5e7eb"}; 
-                      margin: 1em 0; 
-                      padding-left: 1em; 
-                      color: ${isDark ? "#9ca3af" : "#6b7280"}; 
+                    blockquote {
+                      border-left: 4px solid ${isDark ? "#374151" : "#e5e7eb"};
+                      margin: 1em 0;
+                      padding-left: 1em;
+                      color: ${isDark ? "#9ca3af" : "#6b7280"};
                     }
-                    pre { 
-                      background: ${isDark ? "#1f2937" : "#f3f4f6"}; 
-                      padding: 1em; 
-                      border-radius: 6px; 
-                      overflow-x: auto; 
+                    pre {
+                      background: ${isDark ? "#1f2937" : "#f3f4f6"};
+                      padding: 1em;
+                      border-radius: 6px;
+                      overflow-x: auto;
                     }
                   </style>
                 </head>
@@ -112,6 +225,13 @@ export function BookmarkLinkReaderPreview({
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         decelerationRate={0.998}
+        onMessage={handleMessage}
+        injectedJavaScript={injectedJavaScript}
+      />
+      <ScrollIndicator
+        scrollY={scrollY}
+        contentHeight={contentHeight}
+        containerHeight={containerHeight}
       />
     </View>
   );
@@ -122,6 +242,11 @@ export function BookmarkLinkArchivePreview({
 }: {
   bookmark: ZBookmark;
 }) {
+  const webViewRef = useRef<WebView>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+
   const asset =
     bookmark.assets.find((r) => r.assetType == "precrawledArchive") ??
     bookmark.assets.find((r) => r.assetType == "fullPageArchive");
@@ -136,17 +261,74 @@ export function BookmarkLinkArchivePreview({
     );
   }
 
+  const handleMessage = (event: WebViewMessageEvent) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.scrollY !== undefined) setScrollY(data.scrollY);
+      if (data.contentHeight !== undefined)
+        setContentHeight(data.contentHeight);
+      if (data.containerHeight !== undefined)
+        setContainerHeight(data.containerHeight);
+    } catch (error) {
+      // Ignore parsing errors
+    }
+  };
+
+  const injectedJavaScript = `
+    (function() {
+      function sendScrollData() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          scrollY: window.scrollY || window.pageYOffset || 0,
+          contentHeight: document.documentElement.scrollHeight,
+          containerHeight: window.innerHeight
+        }));
+      }
+
+      // Send initial data
+      setTimeout(sendScrollData, 100);
+
+      // Send data on scroll
+      let scrollTimeout;
+      window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(sendScrollData, 16);
+      }, { passive: true });
+
+      // Send data on resize
+      window.addEventListener('resize', sendScrollData, { passive: true });
+
+      // Send data when content loads
+      window.addEventListener('load', sendScrollData);
+
+      // Check for dynamic content changes
+      const observer = new MutationObserver(sendScrollData);
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+    true;
+  `;
+
   const webViewUri: WebViewSourceUri = {
     uri: assetSource.uri!,
     headers: assetSource.headers,
   };
+
   return (
-    <WebView
-      startInLoadingState={true}
-      mediaPlaybackRequiresUserAction={true}
-      source={webViewUri}
-      decelerationRate={0.998}
-    />
+    <View className="flex-1">
+      <WebView
+        ref={webViewRef}
+        startInLoadingState={true}
+        mediaPlaybackRequiresUserAction={true}
+        source={webViewUri}
+        decelerationRate={0.998}
+        onMessage={handleMessage}
+        injectedJavaScript={injectedJavaScript}
+      />
+      <ScrollIndicator
+        scrollY={scrollY}
+        contentHeight={contentHeight}
+        containerHeight={containerHeight}
+      />
+    </View>
   );
 }
 
