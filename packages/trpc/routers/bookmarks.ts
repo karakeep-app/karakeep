@@ -57,24 +57,11 @@ export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: { bookmarkId: string };
 }>().create(async (opts) => {
-  const bookmark = await opts.ctx.db.query.bookmarks.findFirst({
-    where: eq(bookmarks.id, opts.input.bookmarkId),
-    columns: {
-      userId: true,
-    },
-  });
-  if (!bookmark) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Bookmark not found",
-    });
-  }
-  if (bookmark.userId != opts.ctx.user.id) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not allowed to access resource",
-    });
-  }
+  const bookmark = await BareBookmark.bareFromId(
+    opts.ctx,
+    opts.input.bookmarkId,
+  );
+  bookmark.ensureOwnership();
 
   return opts.next();
 });

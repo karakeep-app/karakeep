@@ -757,7 +757,7 @@ describe("Shared Lists", () => {
         thirdUserApi.bookmarks.getBookmark({
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow("User is not allowed to access resource");
+      ).rejects.toThrow("Bookmark not found");
     });
 
     test<CustomTestContext>("should show all bookmarks in shared list regardless of owner", async ({
@@ -1240,7 +1240,7 @@ describe("Shared Lists", () => {
         collaboratorApi.bookmarks.getBookmark({
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow("User is not allowed to access resource");
+      ).rejects.toThrow("Bookmark not found");
     });
 
     test<CustomTestContext>("should revoke access after leaving list", async ({

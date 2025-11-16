@@ -103,8 +103,8 @@ export class BareBookmark implements PrivacyAware {
 
     if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
       });
     }
 
@@ -120,6 +120,15 @@ export class BareBookmark implements PrivacyAware {
     }
     const bookmarkLists = await List.forBookmark(ctx, bookmarkId);
     return bookmarkLists.some((l) => l.canUserView());
+  }
+
+  ensureOwnership() {
+    if (this.bookmark.userId != this.ctx.user.id) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to access resource",
+      });
+    }
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
@@ -249,8 +258,8 @@ export class Bookmark extends BareBookmark {
 
     if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
       });
     }
     return Bookmark.fromData(
