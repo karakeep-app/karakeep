@@ -1465,6 +1465,85 @@ describe("Shared Lists", () => {
       expect(lists).toHaveLength(1);
       expect(lists[0].id).toBe(list.id);
       expect(lists[0].userRole).toBe("editor");
+      expect(lists[0].hasCollaborators).toBe(true);
+    });
+
+    test<CustomTestContext>("should show hasCollaborators=true for owner when their bookmark is in a list with collaborators", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      // Owner creates a list
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner creates and adds a bookmark
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Add a collaborator
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Owner queries which lists contain their bookmark
+      const { lists } = await ownerApi.lists.getListsOfBookmark({
+        bookmarkId: bookmark.id,
+      });
+
+      expect(lists).toHaveLength(1);
+      expect(lists[0].id).toBe(list.id);
+      expect(lists[0].userRole).toBe("owner");
+      // This would have failed before the fix - owner would see false
+      expect(lists[0].hasCollaborators).toBe(true);
+    });
+
+    test<CustomTestContext>("should show hasCollaborators=false for owner when their bookmark is in a list without collaborators", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+
+      // Owner creates a list
+      const list = await ownerApi.lists.create({
+        name: "Private List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner creates and adds a bookmark
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Owner queries which lists contain their bookmark
+      const { lists } = await ownerApi.lists.getListsOfBookmark({
+        bookmarkId: bookmark.id,
+      });
+
+      expect(lists).toHaveLength(1);
+      expect(lists[0].id).toBe(list.id);
+      expect(lists[0].userRole).toBe("owner");
+      expect(lists[0].hasCollaborators).toBe(false);
     });
 
     test<CustomTestContext>("should include shared lists in stats", async ({

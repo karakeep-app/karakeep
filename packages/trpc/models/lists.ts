@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, or } from "drizzle-orm";
+import { and, count, eq, inArray, or } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -313,6 +313,26 @@ export abstract class List implements PrivacyAware {
       },
     });
 
+    // For owner lists, we need to check if they actually have collaborators
+    // by querying the collaborators table separately (without user filter)
+    const ownerListIds = lists
+      .filter((l) => l.list.userId === ctx.user.id)
+      .map((l) => l.list.id);
+
+    const listsWithCollaborators = new Set<string>();
+    if (ownerListIds.length > 0) {
+      // Use a single query with inArray instead of N queries
+      const collaborators = await ctx.db.query.listCollaborators.findMany({
+        where: inArray(listCollaborators.listId, ownerListIds),
+        columns: {
+          listId: true,
+        },
+      });
+      collaborators.forEach((c) => {
+        listsWithCollaborators.add(c.listId);
+      });
+    }
+
     return lists.flatMap((l) => {
       let userRole: "owner" | "editor" | "viewer" | null;
       if (l.list.collaborators.length > 0) {
@@ -328,7 +348,9 @@ export abstract class List implements PrivacyAware {
               ...l.list,
               userRole,
               hasCollaborators:
-                userRole !== "owner" ? true : l.list.collaborators.length > 0,
+                userRole !== "owner"
+                  ? true
+                  : listsWithCollaborators.has(l.list.id),
             }),
           ]
         : [];
