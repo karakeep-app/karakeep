@@ -290,8 +290,8 @@ export class Bookmark implements PrivacyAware {
         .where(
           and(
             // Access control: User can access bookmarks if they either:
-            // 1. Own the bookmark
-            // 2. The bookmark is in a list where they are a collaborator
+            // 1. Own the bookmark (always)
+            // 2. The bookmark is in a specific shared list being viewed
             // When listId is specified, we need special handling to show all bookmarks in that list
             input.listId !== undefined
               ? // If querying a specific list, check if user has access to that list
@@ -322,25 +322,9 @@ export class Bookmark implements PrivacyAware {
                       ),
                   ),
                 )
-              : // If not querying a specific list, only show bookmarks the user owns or are in collaborative lists
-                or(
-                  eq(bookmarks.userId, ctx.user.id),
-                  exists(
-                    ctx.db
-                      .select()
-                      .from(bookmarksInLists)
-                      .innerJoin(
-                        listCollaborators,
-                        eq(listCollaborators.listId, bookmarksInLists.listId),
-                      )
-                      .where(
-                        and(
-                          eq(bookmarksInLists.bookmarkId, bookmarks.id),
-                          eq(listCollaborators.userId, ctx.user.id),
-                        ),
-                      ),
-                  ),
-                ),
+              : // If not querying a specific list, only show bookmarks the user owns
+                // Shared bookmarks should only appear when viewing the specific shared list
+                eq(bookmarks.userId, ctx.user.id),
             input.archived !== undefined
               ? eq(bookmarks.archived, input.archived)
               : undefined,
