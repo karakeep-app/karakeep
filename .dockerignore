@@ -17,7 +17,7 @@ charts
 apps/mobile
 apps/landing
 apps/browser-extension
-pacakges/e2e_tests
+packages/e2e_tests
 
 # Aider
 .aider*
