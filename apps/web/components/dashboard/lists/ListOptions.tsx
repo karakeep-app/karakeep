@@ -56,6 +56,88 @@ export function ListOptions({
   const isCollaborator =
     list.userRole === "editor" || list.userRole === "viewer";
 
+  // Define action items array
+  const actionItems = [
+    {
+      id: "edit",
+      title: t("actions.edit"),
+      icon: <Pencil className="size-4" />,
+      visible: isOwner,
+      disabled: false,
+      onClick: () => setEditModalOpen(true),
+    },
+    {
+      id: "share",
+      title: t("lists.share_list"),
+      icon: <Share className="size-4" />,
+      visible: isOwner,
+      disabled: false,
+      onClick: () => setShareModalOpen(true),
+    },
+    {
+      id: "manage-collaborators",
+      title: "Manage Collaborators",
+      icon: <Users className="size-4" />,
+      visible: isOwner,
+      disabled: false,
+      onClick: () => setCollaboratorsModalOpen(true),
+    },
+    {
+      id: "new-nested-list",
+      title: t("lists.new_nested_list"),
+      icon: <Plus className="size-4" />,
+      visible: isOwner,
+      disabled: false,
+      onClick: () => setNewNestedListModalOpen(true),
+    },
+    {
+      id: "merge-list",
+      title: t("lists.merge_list"),
+      icon: <FolderInput className="size-4" />,
+      visible: isOwner,
+      disabled: false,
+      onClick: () => setMergeListModalOpen(true),
+    },
+    {
+      id: "toggle-archived",
+      title: t("actions.toggle_show_archived"),
+      icon: showArchived ? (
+        <SquareCheck className="size-4" />
+      ) : (
+        <Square className="size-4" />
+      ),
+      visible: true,
+      disabled: false,
+      onClick: onClickShowArchived,
+    },
+    {
+      id: "leave-list",
+      title: "Leave List",
+      icon: <DoorOpen className="size-4" />,
+      visible: isCollaborator,
+      disabled: false,
+      className: "text-destructive",
+      onClick: () => setLeaveListDialogOpen(true),
+    },
+    {
+      id: "delete",
+      title: t("actions.delete"),
+      icon: <Trash2 className="size-4" />,
+      visible: isOwner,
+      disabled: false,
+      className: "text-destructive",
+      onClick: () => setDeleteListDialogOpen(true),
+    },
+  ];
+
+  // Filter visible items
+  const visibleItems = actionItems.filter((item) => item.visible);
+
+  // If no items are visible, don't render the dropdown
+  if (visibleItems.length === 0) {
+    return null;
+  }
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <ShareListModal
@@ -97,77 +179,17 @@ export function ListOptions({
       />
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent>
-        {isOwner && (
+        {visibleItems.map((item) => (
           <DropdownMenuItem
-            className="flex gap-2"
-            onClick={() => setEditModalOpen(true)}
+            key={item.id}
+            className={item.className ?? "flex gap-2"}
+            disabled={item.disabled}
+            onClick={item.onClick}
           >
-            <Pencil className="size-4" />
-            <span>{t("actions.edit")}</span>
+            {item.icon}
+            <span>{item.title}</span>
           </DropdownMenuItem>
-        )}
-        {isOwner && (
-          <DropdownMenuItem
-            className="flex gap-2"
-            onClick={() => setShareModalOpen(true)}
-          >
-            <Share className="size-4" />
-            <span>{t("lists.share_list")}</span>
-          </DropdownMenuItem>
-        )}
-        {isOwner && (
-          <DropdownMenuItem
-            className="flex gap-2"
-            onClick={() => setCollaboratorsModalOpen(true)}
-          >
-            <Users className="size-4" />
-            <span>Manage Collaborators</span>
-          </DropdownMenuItem>
-        )}
-        {isOwner && (
-          <DropdownMenuItem
-            className="flex gap-2"
-            onClick={() => setNewNestedListModalOpen(true)}
-          >
-            <Plus className="size-4" />
-            <span>{t("lists.new_nested_list")}</span>
-          </DropdownMenuItem>
-        )}
-        {isOwner && (
-          <DropdownMenuItem
-            className="flex gap-2"
-            onClick={() => setMergeListModalOpen(true)}
-          >
-            <FolderInput className="size-4" />
-            <span>{t("lists.merge_list")}</span>
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem className="flex gap-2" onClick={onClickShowArchived}>
-          {showArchived ? (
-            <SquareCheck className="size-4" />
-          ) : (
-            <Square className="size-4" />
-          )}
-          <span>{t("actions.toggle_show_archived")}</span>
-        </DropdownMenuItem>
-        {isCollaborator && (
-          <DropdownMenuItem
-            className="flex gap-2 text-destructive"
-            onClick={() => setLeaveListDialogOpen(true)}
-          >
-            <DoorOpen className="size-4" />
-            <span>Leave List</span>
-          </DropdownMenuItem>
-        )}
-        {isOwner && (
-          <DropdownMenuItem
-            className="flex gap-2 text-destructive"
-            onClick={() => setDeleteListDialogOpen(true)}
-          >
-            <Trash2 className="size-4" />
-            <span>{t("actions.delete")}</span>
-          </DropdownMenuItem>
-        )}
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
