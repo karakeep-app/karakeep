@@ -16,7 +16,6 @@ import {
   Home,
   Search,
   Tag,
-  Users,
 } from "lucide-react";
 
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
@@ -61,11 +60,6 @@ export default async function Dashboard({
         name: t("common.home"),
         icon: <Home size={18} />,
         path: "/dashboard/bookmarks",
-      },
-      {
-        name: "Shared with you",
-        icon: <Users size={18} />,
-        path: "/dashboard/shared",
       },
       PluginManager.isRegistered(PluginType.Search)
         ? [
