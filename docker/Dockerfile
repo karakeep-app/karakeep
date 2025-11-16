@@ -11,14 +11,37 @@ RUN npm install -g corepack@0.31.0 && corepack enable
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat make g++ py3-pip linux-headers
 
-COPY . .
+# Copy package files for dependency installation
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/cli/package.json ./apps/cli/
+COPY apps/mcp/package.json ./apps/mcp/
+COPY apps/web/package.json ./apps/web/
+COPY apps/workers/package.json ./apps/workers/
+COPY packages/api/package.json ./packages/api/
+COPY packages/db/package.json ./packages/db/
+COPY packages/open-api/package.json ./packages/open-api/
+COPY packages/plugins/package.json ./packages/plugins/
+COPY packages/sdk/package.json ./packages/sdk/
+COPY packages/shared-react/package.json ./packages/shared-react/
+COPY packages/shared-server/package.json ./packages/shared-server/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/trpc/package.json ./packages/trpc/
+COPY tooling/github/package.json ./tooling/github/
+COPY tooling/oxlint/package.json ./tooling/oxlint/
+COPY tooling/prettier/package.json ./tooling/prettier/
+COPY tooling/tailwind/package.json ./tooling/tailwind/
+COPY tooling/typescript/package.json ./tooling/typescript/
+COPY ./patches ./patches
+
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
+COPY . .
+
 # Build the db migration script
 RUN cd packages/db && \
-    pnpm dlx @vercel/ncc build migrate.ts -o /db_migrations && \
+    pnpm exec ncc build migrate.ts -o /db_migrations && \
     cp -R drizzle /db_migrations
 
 
