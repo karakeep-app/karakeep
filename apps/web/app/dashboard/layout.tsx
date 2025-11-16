@@ -33,7 +33,7 @@ export default async function Dashboard({
     redirect("/");
   }
 
-  const [listsResult, userSettings] = await Promise.all([
+  const [lists, userSettings] = await Promise.all([
     tryCatch(api.lists.list()),
     tryCatch(api.users.settings()),
   ]);
@@ -50,8 +50,8 @@ export default async function Dashboard({
     throw userSettings.error;
   }
 
-  if (listsResult.error) {
-    throw listsResult.error;
+  if (lists.error) {
+    throw lists.error;
   }
 
   const items = (t: TFunction) =>
@@ -105,7 +105,7 @@ export default async function Dashboard({
             extraSections={
               <>
                 <Separator />
-                <AllLists initialData={{ lists: listsResult.data.lists }} />
+                <AllLists initialData={lists.data} />
               </>
             }
           />

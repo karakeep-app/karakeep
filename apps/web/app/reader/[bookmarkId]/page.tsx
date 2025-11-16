@@ -38,12 +38,9 @@ import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 export default function ReaderViewPage() {
   const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
-  const { data: highlights } = api.highlights.getForBookmark.useQuery(
-    {
-      bookmarkId,
-    },
-    {},
-  );
+  const { data: highlights } = api.highlights.getForBookmark.useQuery({
+    bookmarkId,
+  });
   const { data: bookmark } = api.bookmarks.getBookmark.useQuery({
     bookmarkId,
   });
