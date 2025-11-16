@@ -34,8 +34,9 @@ export default async function Dashboard({
     redirect("/");
   }
 
-  const [lists, userSettings] = await Promise.all([
+  const [lists, sharedLists, userSettings] = await Promise.all([
     tryCatch(api.lists.list()),
+    tryCatch(api.lists.getSharedWithMe()),
     tryCatch(api.users.settings()),
   ]);
 
@@ -53,6 +54,10 @@ export default async function Dashboard({
 
   if (lists.error) {
     throw lists.error;
+  }
+
+  if (sharedLists.error) {
+    throw sharedLists.error;
   }
 
   const items = (t: TFunction) =>
@@ -111,7 +116,10 @@ export default async function Dashboard({
             extraSections={
               <>
                 <Separator />
-                <AllLists initialData={lists.data} />
+                <AllLists
+                  initialData={lists.data}
+                  sharedListsData={sharedLists.data}
+                />
               </>
             }
           />

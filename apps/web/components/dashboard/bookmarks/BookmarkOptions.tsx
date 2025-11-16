@@ -22,6 +22,7 @@ import {
   SquarePen,
   Trash2,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import type {
   ZBookmark,
@@ -46,8 +47,12 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const linkId = bookmark.id;
+  const { data: session } = useSession();
 
   const demoMode = !!useClientConfig().demoMode;
+
+  // Check if the current user owns this bookmark
+  const isOwner = session?.user?.id === bookmark.userId;
 
   const [isClipboardAvailable, setIsClipboardAvailable] = useState(false);
 
@@ -142,56 +147,62 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-fit">
-          <DropdownMenuItem onClick={() => setEditBookmarkDialogOpen(true)}>
-            <Pencil className="mr-2 size-4" />
-            <span>{t("actions.edit")}</span>
-          </DropdownMenuItem>
-          {bookmark.content.type === BookmarkTypes.TEXT && (
+          {isOwner && (
+            <DropdownMenuItem onClick={() => setEditBookmarkDialogOpen(true)}>
+              <Pencil className="mr-2 size-4" />
+              <span>{t("actions.edit")}</span>
+            </DropdownMenuItem>
+          )}
+          {isOwner && bookmark.content.type === BookmarkTypes.TEXT && (
             <DropdownMenuItem onClick={() => setTextEditorOpen(true)}>
               <SquarePen className="mr-2 size-4" />
               <span>{t("actions.open_editor")}</span>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            disabled={demoMode}
-            onClick={() =>
-              updateBookmarkMutator.mutate({
-                bookmarkId: linkId,
-                favourited: !bookmark.favourited,
-              })
-            }
-          >
-            <FavouritedActionIcon
-              className="mr-2 size-4"
-              favourited={bookmark.favourited}
-            />
-            <span>
-              {bookmark.favourited
-                ? t("actions.unfavorite")
-                : t("actions.favorite")}
-            </span>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={demoMode}
-            onClick={() =>
-              updateBookmarkMutator.mutate({
-                bookmarkId: linkId,
-                archived: !bookmark.archived,
-              })
-            }
-          >
-            <ArchivedActionIcon
-              className="mr-2 size-4"
-              archived={bookmark.archived}
-            />
-            <span>
-              {bookmark.archived
-                ? t("actions.unarchive")
-                : t("actions.archive")}
-            </span>
-          </DropdownMenuItem>
+          {isOwner && (
+            <DropdownMenuItem
+              disabled={demoMode}
+              onClick={() =>
+                updateBookmarkMutator.mutate({
+                  bookmarkId: linkId,
+                  favourited: !bookmark.favourited,
+                })
+              }
+            >
+              <FavouritedActionIcon
+                className="mr-2 size-4"
+                favourited={bookmark.favourited}
+              />
+              <span>
+                {bookmark.favourited
+                  ? t("actions.unfavorite")
+                  : t("actions.favorite")}
+              </span>
+            </DropdownMenuItem>
+          )}
+          {isOwner && (
+            <DropdownMenuItem
+              disabled={demoMode}
+              onClick={() =>
+                updateBookmarkMutator.mutate({
+                  bookmarkId: linkId,
+                  archived: !bookmark.archived,
+                })
+              }
+            >
+              <ArchivedActionIcon
+                className="mr-2 size-4"
+                archived={bookmark.archived}
+              />
+              <span>
+                {bookmark.archived
+                  ? t("actions.unarchive")
+                  : t("actions.archive")}
+              </span>
+            </DropdownMenuItem>
+          )}
 
-          {bookmark.content.type === BookmarkTypes.LINK && (
+          {isOwner && bookmark.content.type === BookmarkTypes.LINK && (
             <DropdownMenuItem
               onClick={() => {
                 fullPageArchiveBookmarkMutator.mutate({
@@ -222,12 +233,15 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem onClick={() => setManageListsModalOpen(true)}>
-            <List className="mr-2 size-4" />
-            <span>{t("actions.manage_lists")}</span>
-          </DropdownMenuItem>
+          {isOwner && (
+            <DropdownMenuItem onClick={() => setManageListsModalOpen(true)}>
+              <List className="mr-2 size-4" />
+              <span>{t("actions.manage_lists")}</span>
+            </DropdownMenuItem>
+          )}
 
-          {listId &&
+          {isOwner &&
+            listId &&
             withinListContext &&
             withinListContext.type === "manual" && (
               <DropdownMenuItem
@@ -244,7 +258,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
               </DropdownMenuItem>
             )}
 
-          {bookmark.content.type === BookmarkTypes.LINK && (
+          {isOwner && bookmark.content.type === BookmarkTypes.LINK && (
             <DropdownMenuItem
               disabled={demoMode}
               onClick={() =>
@@ -255,14 +269,16 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
               <span>{t("actions.refresh")}</span>
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem
-            disabled={demoMode}
-            className="text-destructive"
-            onClick={() => setDeleteBookmarkDialogOpen(true)}
-          >
-            <Trash2 className="mr-2 size-4" />
-            <span>{t("actions.delete")}</span>
-          </DropdownMenuItem>
+          {isOwner && (
+            <DropdownMenuItem
+              disabled={demoMode}
+              className="text-destructive"
+              onClick={() => setDeleteBookmarkDialogOpen(true)}
+            >
+              <Trash2 className="mr-2 size-4" />
+              <span>{t("actions.delete")}</span>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

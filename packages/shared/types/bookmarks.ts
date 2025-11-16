@@ -114,6 +114,7 @@ export const zBookmarkSchema = zBareBookmarkSchema.merge(
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkContentSchema,
     assets: z.array(zAssetSchema),
+    userId: z.string(),
   }),
 );
 export type ZBookmark = z.infer<typeof zBookmarkSchema>;
@@ -123,6 +124,7 @@ const zBookmarkTypeLinkSchema = zBareBookmarkSchema.merge(
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedLinkSchema,
     assets: z.array(zAssetSchema),
+    userId: z.string(),
   }),
 );
 export type ZBookmarkTypeLink = z.infer<typeof zBookmarkTypeLinkSchema>;
@@ -132,6 +134,7 @@ const zBookmarkTypeTextSchema = zBareBookmarkSchema.merge(
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedTextSchema,
     assets: z.array(zAssetSchema),
+    userId: z.string(),
   }),
 );
 export type ZBookmarkTypeText = z.infer<typeof zBookmarkTypeTextSchema>;
@@ -141,6 +144,7 @@ const zBookmarkTypeAssetSchema = zBareBookmarkSchema.merge(
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedAssetSchema,
     assets: z.array(zAssetSchema),
+    userId: z.string(),
   }),
 );
 export type ZBookmarkTypeAsset = z.infer<typeof zBookmarkTypeAssetSchema>;

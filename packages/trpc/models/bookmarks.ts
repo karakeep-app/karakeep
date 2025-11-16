@@ -258,10 +258,7 @@ export class Bookmark implements PrivacyAware {
   }
 
   static fromData(ctx: AuthedContext, data: ZBookmark) {
-    return new Bookmark(ctx, {
-      ...data,
-      userId: ctx.user.id,
-    });
+    return new Bookmark(ctx, data);
   }
 
   static async loadMulti(
