@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -144,6 +145,9 @@ export function ManageCollaboratorsModal({
             {readOnly
               ? t("lists.collaborators.collaborators")
               : t("lists.collaborators.manage")}
+            <Badge className="bg-green-600 text-white hover:bg-green-600/80">
+              Beta
+            </Badge>
           </DialogTitle>
           <DialogDescription>
             {readOnly
