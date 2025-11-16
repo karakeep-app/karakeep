@@ -1088,6 +1088,9 @@ importers:
       '@types/better-sqlite3':
         specifier: ^7.6.11
         version: 7.6.13
+      '@vercel/ncc':
+        specifier: ^0.38.4
+        version: 0.38.4
 
   packages/e2e_tests:
     dependencies:
@@ -1281,7 +1284,7 @@ importers:
         version: 19.1.0
       react-native:
         specifier: 0.79.5
-        version: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0)
+        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -6024,6 +6027,10 @@ packages:
     resolution: {integrity: sha512-EEmtFu8JTuwsInqMakhLq+U3qN8ZMd5V3pX44q0EqD2imqTDsa8ikZqJ1schVrN8HljOdN+C08cwZ1/r5uIgLw==}
     peerDependencies:
       '@urql/core': ^5.0.0
+
+  '@vercel/ncc@0.38.4':
+    resolution: {integrity: sha512-8LwjnlP39s08C08J5NstzriPvW1SP8Zfpp1BvC2sI35kPeZnHfxVkCwu4/+Wodgnd60UtT1n8K8zw+Mp7J9JmQ==}
+    hasBin: true
 
   '@vitejs/plugin-react-swc@4.0.1':
     resolution: {integrity: sha512-NQhPjysi5duItyrMd5JWZFf2vNOuSMyw+EoZyTBDzk+DkfYD8WNrsUs09sELV2cr1P15nufsN25hsUBt4CKF9Q==}
@@ -19847,6 +19854,15 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
+  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      invariant: 2.2.4
+      nullthrows: 1.1.1
+      react: 19.1.0
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
+    optionalDependencies:
+      '@types/react': 19.2.2
+
   '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
     dependencies:
       invariant: 2.2.4
@@ -21184,6 +21200,8 @@ snapshots:
     dependencies:
       '@urql/core': 5.1.1
       wonka: 6.3.5
+
+  '@vercel/ncc@0.38.4': {}
 
   '@vitejs/plugin-react-swc@4.0.1(vite@7.0.6(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
@@ -28994,6 +29012,54 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       '@types/react': 19.1.8
+    transitivePeerDependencies:
+      - '@babel/core'
+      - '@react-native-community/cli'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0):
+    dependencies:
+      '@jest/create-cache-key-function': 29.7.0
+      '@react-native/assets-registry': 0.79.5
+      '@react-native/codegen': 0.79.5(@babel/core@7.26.0)
+      '@react-native/community-cli-plugin': 0.79.5
+      '@react-native/gradle-plugin': 0.79.5
+      '@react-native/js-polyfills': 0.79.5
+      '@react-native/normalize-colors': 0.79.5
+      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+      abort-controller: 3.0.0
+      anser: 1.4.10
+      ansi-regex: 5.0.1
+      babel-jest: 29.7.0(@babel/core@7.26.0)
+      babel-plugin-syntax-hermes-parser: 0.25.1
+      base64-js: 1.5.1
+      chalk: 4.1.2
+      commander: 12.1.0
+      event-target-shim: 5.0.1
+      flow-enums-runtime: 0.0.6
+      glob: 7.2.3
+      invariant: 2.2.4
+      jest-environment-node: 29.7.0
+      memoize-one: 5.2.1
+      metro-runtime: 0.82.5
+      metro-source-map: 0.82.5
+      nullthrows: 1.1.1
+      pretty-format: 29.7.0
+      promise: 8.3.0
+      react: 19.1.0
+      react-devtools-core: 6.1.5
+      react-refresh: 0.14.2
+      regenerator-runtime: 0.13.11
+      scheduler: 0.25.0
+      semver: 7.7.3
+      stacktrace-parser: 0.1.11
+      whatwg-fetch: 3.6.20
+      ws: 6.2.3
+      yargs: 17.7.2
+    optionalDependencies:
+      '@types/react': 19.2.2
     transitivePeerDependencies:
       - '@babel/core'
       - '@react-native-community/cli'
