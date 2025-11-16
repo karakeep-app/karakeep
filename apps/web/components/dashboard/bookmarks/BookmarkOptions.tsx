@@ -214,7 +214,10 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
       title: t("actions.remove_from_list"),
       icon: <ListX className="mr-2 size-4" />,
       visible:
-        isOwner &&
+        (isOwner ||
+          (withinListContext &&
+            (withinListContext.userRole === "editor" ||
+              withinListContext.userRole === "owner"))) &&
         !!listId &&
         !!withinListContext &&
         withinListContext.type === "manual",
