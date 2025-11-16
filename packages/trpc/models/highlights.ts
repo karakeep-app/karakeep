@@ -67,10 +67,7 @@ export class Highlight implements PrivacyAware {
     bookmarkId: string,
   ): Promise<Highlight[]> {
     const results = await ctx.db.query.highlights.findMany({
-      where: and(
-        eq(highlights.bookmarkId, bookmarkId),
-        eq(highlights.userId, ctx.user.id),
-      ),
+      where: eq(highlights.bookmarkId, bookmarkId),
       orderBy: [desc(highlights.createdAt), desc(highlights.id)],
     });
 

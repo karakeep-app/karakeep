@@ -201,7 +201,7 @@ export default function BookmarkPreview({
         <NoteEditor bookmark={bookmark} disabled={!isOwner} />
       </div>
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
-      <HighlightsBox bookmarkId={bookmark.id} />
+      <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
       {isOwner && <ActionBar bookmark={bookmark} />}
     </div>
   );

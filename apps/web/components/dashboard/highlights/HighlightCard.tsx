@@ -12,10 +12,12 @@ export default function HighlightCard({
   highlight,
   clickable,
   className,
+  readOnly,
 }: {
   highlight: ZHighlight;
   clickable: boolean;
   className?: string;
+  readOnly: boolean;
 }) {
   const { mutate: deleteHighlight, isPending: isDeleting } = useDeleteHighlight(
     {
@@ -62,15 +64,17 @@ export default function HighlightCard({
           <p>{highlight.text}</p>
         </blockquote>
       </Wrapper>
-      <div className="flex gap-2">
-        <ActionButton
-          loading={isDeleting}
-          variant="ghost"
-          onClick={() => deleteHighlight({ highlightId: highlight.id })}
-        >
-          <Trash2 className="size-4 text-destructive" />
-        </ActionButton>
-      </div>
+      {!readOnly && (
+        <div className="flex gap-2">
+          <ActionButton
+            loading={isDeleting}
+            variant="ghost"
+            onClick={() => deleteHighlight({ highlightId: highlight.id })}
+          >
+            <Trash2 className="size-4 text-destructive" />
+          </ActionButton>
+        </div>
+      )}
     </div>
   );
 }

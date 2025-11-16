@@ -743,7 +743,6 @@ export class Bookmark extends BareBookmark {
       ...this.bookmark,
       archived: false,
       favourited: false,
-      note: null,
     };
   }
 

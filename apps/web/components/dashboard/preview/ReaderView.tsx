@@ -15,10 +15,12 @@ export default function ReaderView({
   bookmarkId,
   className,
   style,
+  readOnly,
 }: {
   bookmarkId: string;
   className?: string;
   style?: React.CSSProperties;
+  readOnly: boolean;
 }) {
   const { data: highlights } = api.highlights.getForBookmark.useQuery({
     bookmarkId,
@@ -93,6 +95,7 @@ export default function ReaderView({
         style={style}
         htmlContent={cachedContent || ""}
         highlights={highlights?.highlights ?? []}
+        readOnly={readOnly}
         onDeleteHighlight={(h) =>
           deleteHighlight({
             highlightId: h.id,

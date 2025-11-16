@@ -26,7 +26,7 @@ function Highlight({ highlight }: { highlight: ZHighlight }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-2">
-      <HighlightCard highlight={highlight} clickable={false} />
+      <HighlightCard highlight={highlight} clickable={false} readOnly={false} />
       <span className="flex items-center gap-0.5 text-xs italic text-gray-400">
         <span title={localCreatedAt}>{fromNow}</span>
         <Dot />
