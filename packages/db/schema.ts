@@ -411,11 +411,40 @@ export const bookmarksInLists = sqliteTable(
     addedAt: integer("addedAt", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ),
+    addedBy: text("addedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
   },
   (tb) => [
     primaryKey({ columns: [tb.bookmarkId, tb.listId] }),
     index("bookmarksInLists_bookmarkId_idx").on(tb.bookmarkId),
     index("bookmarksInLists_listId_idx").on(tb.listId),
+  ],
+);
+
+export const listCollaborators = sqliteTable(
+  "listCollaborators",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    listId: text("listId")
+      .notNull()
+      .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["viewer", "editor"] }).notNull(),
+    addedAt: createdAtField(),
+    addedBy: text("addedBy")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (lc) => [
+    unique().on(lc.listId, lc.userId),
+    index("listCollaborators_listId_idx").on(lc.listId),
+    index("listCollaborators_userId_idx").on(lc.userId),
   ],
 );
 
@@ -698,6 +727,7 @@ export const userRelations = relations(users, ({ many, one }) => ({
   invites: many(invites),
   subscription: one(subscriptions),
   importSessions: many(importSessions),
+  listCollaborations: many(listCollaborators),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -767,6 +797,7 @@ export const bookmarkListsRelations = relations(
   bookmarkLists,
   ({ one, many }) => ({
     bookmarksInLists: many(bookmarksInLists),
+    collaborators: many(listCollaborators),
     user: one(users, {
       fields: [bookmarkLists.userId],
       references: [users.id],
@@ -788,6 +819,24 @@ export const bookmarksInListsRelations = relations(
     list: one(bookmarkLists, {
       fields: [bookmarksInLists.listId],
       references: [bookmarkLists.id],
+    }),
+  }),
+);
+
+export const listCollaboratorsRelations = relations(
+  listCollaborators,
+  ({ one }) => ({
+    list: one(bookmarkLists, {
+      fields: [listCollaborators.listId],
+      references: [bookmarkLists.id],
+    }),
+    user: one(users, {
+      fields: [listCollaborators.userId],
+      references: [users.id],
+    }),
+    addedByUser: one(users, {
+      fields: [listCollaborators.addedBy],
+      references: [users.id],
     }),
   }),
 );

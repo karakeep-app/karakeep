@@ -5,7 +5,11 @@ import invariant from "tiny-invariant";
 import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
-import { bookmarkLists, bookmarksInLists } from "@karakeep/db/schema";
+import {
+  bookmarkLists,
+  bookmarksInLists,
+  listCollaborators,
+} from "@karakeep/db/schema";
 import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
@@ -43,12 +47,30 @@ export abstract class List implements PrivacyAware {
     ctx: AuthedContext,
     id: string,
   ): Promise<ManualList | SmartList> {
-    const list = await ctx.db.query.bookmarkLists.findFirst({
+    // First try to find the list owned by the user
+    let list = await ctx.db.query.bookmarkLists.findFirst({
       where: and(
         eq(bookmarkLists.id, id),
         eq(bookmarkLists.userId, ctx.user.id),
       ),
     });
+
+    // If not found, check if the user is a collaborator
+    if (!list) {
+      const collaborator = await ctx.db.query.listCollaborators.findFirst({
+        where: and(
+          eq(listCollaborators.listId, id),
+          eq(listCollaborators.userId, ctx.user.id),
+        ),
+        with: {
+          list: true,
+        },
+      });
+
+      if (collaborator) {
+        list = collaborator.list;
+      }
+    }
 
     if (!list) {
       throw new TRPCError({
@@ -201,6 +223,91 @@ export abstract class List implements PrivacyAware {
     }
   }
 
+  /**
+   * Get the user's role for this list.
+   * Returns "owner", "editor", "viewer", or null if the user has no access.
+   */
+  async getUserRole(userId: string): Promise<"owner" | "editor" | "viewer" | null> {
+    // Check if user is the owner
+    if (this.list.userId === userId) {
+      return "owner";
+    }
+
+    // Check if user is a collaborator
+    const collaborator = await this.ctx.db.query.listCollaborators.findFirst({
+      where: and(
+        eq(listCollaborators.listId, this.list.id),
+        eq(listCollaborators.userId, userId),
+      ),
+    });
+
+    if (collaborator) {
+      return collaborator.role as "editor" | "viewer";
+    }
+
+    return null;
+  }
+
+  /**
+   * Check if the user can view this list and its bookmarks.
+   */
+  async canUserView(userId: string): Promise<boolean> {
+    const role = await this.getUserRole(userId);
+    return role !== null;
+  }
+
+  /**
+   * Check if the user can edit this list (add/remove bookmarks).
+   */
+  async canUserEdit(userId: string): Promise<boolean> {
+    const role = await this.getUserRole(userId);
+    return role === "owner" || role === "editor";
+  }
+
+  /**
+   * Check if the user can manage this list (edit metadata, delete, manage collaborators).
+   * Only the owner can manage the list.
+   */
+  async canUserManage(userId: string): Promise<boolean> {
+    return this.list.userId === userId;
+  }
+
+  /**
+   * Ensure the user can view this list. Throws if they cannot.
+   */
+  async ensureCanView(userId: string): Promise<void> {
+    if (!(await this.canUserView(userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to view this list",
+      });
+    }
+  }
+
+  /**
+   * Ensure the user can edit this list. Throws if they cannot.
+   */
+  async ensureCanEdit(userId: string): Promise<void> {
+    if (!(await this.canUserEdit(userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to edit this list",
+      });
+    }
+  }
+
+  /**
+   * Ensure the user can manage this list. Throws if they cannot.
+   */
+  async ensureCanManage(userId: string): Promise<void> {
+    if (!(await this.canUserManage(userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to manage this list",
+      });
+    }
+  }
+
   async delete() {
     const res = await this.ctx.db
       .delete(bookmarkLists)
@@ -315,6 +422,140 @@ export abstract class List implements PrivacyAware {
     await this.setRssToken(null);
   }
 
+  /**
+   * Add a collaborator to this list.
+   */
+  async addCollaborator(userId: string, role: "viewer" | "editor"): Promise<void> {
+    await this.ensureCanManage(this.ctx.user.id);
+
+    // Check that the user is not adding themselves
+    if (userId === this.list.userId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cannot add the list owner as a collaborator",
+      });
+    }
+
+    // Check that the collaborator is not already added
+    const existing = await this.ctx.db.query.listCollaborators.findFirst({
+      where: and(
+        eq(listCollaborators.listId, this.list.id),
+        eq(listCollaborators.userId, userId),
+      ),
+    });
+
+    if (existing) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User is already a collaborator on this list",
+      });
+    }
+
+    // Only manual lists can be collaborative
+    if (this.list.type !== "manual") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only manual lists can have collaborators",
+      });
+    }
+
+    await this.ctx.db.insert(listCollaborators).values({
+      listId: this.list.id,
+      userId,
+      role,
+      addedBy: this.ctx.user.id,
+    });
+  }
+
+  /**
+   * Remove a collaborator from this list.
+   */
+  async removeCollaborator(userId: string): Promise<void> {
+    await this.ensureCanManage(this.ctx.user.id);
+
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
+  }
+
+  /**
+   * Update a collaborator's role.
+   */
+  async updateCollaboratorRole(userId: string, role: "viewer" | "editor"): Promise<void> {
+    await this.ensureCanManage(this.ctx.user.id);
+
+    const result = await this.ctx.db
+      .update(listCollaborators)
+      .set({ role })
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
+  }
+
+  /**
+   * Get all collaborators for this list.
+   */
+  async getCollaborators() {
+    await this.ensureCanView(this.ctx.user.id);
+
+    const collaborators = await this.ctx.db.query.listCollaborators.findMany({
+      where: eq(listCollaborators.listId, this.list.id),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return collaborators.map((c) => ({
+      id: c.id,
+      userId: c.userId,
+      role: c.role,
+      addedAt: c.addedAt,
+      user: c.user,
+    }));
+  }
+
+  /**
+   * Get all lists shared with the user (as a collaborator).
+   */
+  static async getSharedWithUser(ctx: AuthedContext): Promise<(ManualList | SmartList)[]> {
+    const collaborations = await ctx.db.query.listCollaborators.findMany({
+      where: eq(listCollaborators.userId, ctx.user.id),
+      with: {
+        list: true,
+      },
+    });
+
+    return collaborations.map((c) => this.fromData(ctx, c.list));
+  }
+
   abstract get type(): "manual" | "smart";
   abstract getBookmarkIds(ctx: AuthedContext): Promise<string[]>;
   abstract getSize(ctx: AuthedContext): Promise<number>;
@@ -418,10 +659,14 @@ export class ManualList extends List {
   }
 
   async addBookmark(bookmarkId: string): Promise<void> {
+    // Check that the user can edit this list
+    await this.ensureCanEdit(this.ctx.user.id);
+
     try {
       await this.ctx.db.insert(bookmarksInLists).values({
         listId: this.list.id,
         bookmarkId,
+        addedBy: this.ctx.user.id,
       });
       await triggerRuleEngineOnEvent(bookmarkId, [
         {
@@ -444,6 +689,9 @@ export class ManualList extends List {
   }
 
   async removeBookmark(bookmarkId: string): Promise<void> {
+    // Check that the user can edit this list
+    await this.ensureCanEdit(this.ctx.user.id);
+
     const deleted = await this.ctx.db
       .delete(bookmarksInLists)
       .where(

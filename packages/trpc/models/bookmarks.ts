@@ -24,6 +24,7 @@ import {
   bookmarksInLists,
   bookmarkTags,
   bookmarkTexts,
+  listCollaborators,
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
@@ -69,6 +70,180 @@ export class Bookmark implements PrivacyAware {
     }
   }
 
+  /**
+   * Check if a user can access this bookmark (either owns it or has access via a collaborative list).
+   */
+  async canUserAccess(userId: string): Promise<boolean> {
+    // If the user owns the bookmark, they can access it
+    if (this.bookmark.userId === userId) {
+      return true;
+    }
+
+    // Check if the bookmark is in a list where the user is a collaborator
+    const collaboration = await this.ctx.db.query.bookmarksInLists.findFirst({
+      where: eq(bookmarksInLists.bookmarkId, this.bookmark.id),
+      with: {
+        list: {
+          with: {
+            collaborators: {
+              where: eq(listCollaborators.userId, userId),
+            },
+          },
+        },
+      },
+    });
+
+    return !!collaboration?.list.collaborators.length;
+  }
+
+  /**
+   * Ensure the user can access this bookmark. Throws if they cannot.
+   */
+  async ensureCanAccessAsync(userId: string): Promise<void> {
+    if (!(await this.canUserAccess(userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to access this bookmark",
+      });
+    }
+  }
+
+  /**
+   * Check if the user can edit this bookmark (only owners can edit).
+   */
+  canUserEdit(userId: string): boolean {
+    return this.bookmark.userId === userId;
+  }
+
+  /**
+   * Ensure the user can edit this bookmark. Throws if they cannot.
+   */
+  ensureCanEdit(userId: string): void {
+    if (!this.canUserEdit(userId)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the bookmark owner can edit this bookmark",
+      });
+    }
+  }
+
+  /**
+   * Clone this bookmark for a different user.
+   * This creates a copy of the bookmark owned by the target user.
+   * Used when collaborators want to save a shared bookmark to their own collection.
+   */
+  async clone(targetUserId: string): Promise<Bookmark> {
+    // Ensure the target user can access this bookmark
+    await this.ensureCanAccessAsync(targetUserId);
+
+    // Cannot clone your own bookmark
+    if (this.bookmark.userId === targetUserId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "You already own this bookmark",
+      });
+    }
+
+    // Clone the bookmark in a transaction
+    const clonedBookmarkData = await this.ctx.db.transaction(async (tx) => {
+      // Create the new bookmark
+      const [newBookmark] = await tx
+        .insert(bookmarks)
+        .values({
+          userId: targetUserId,
+          title: this.bookmark.title,
+          type: this.bookmark.type,
+          archived: false, // Don't copy archived status
+          favourited: false, // Don't copy favourited status
+          note: null, // Don't copy notes
+          summary: this.bookmark.summary,
+          source: "web" as const,
+        })
+        .returning();
+
+      // Clone the content based on type
+      switch (this.bookmark.content.type) {
+        case BookmarkTypes.LINK: {
+          await tx.insert(bookmarkLinks).values({
+            id: newBookmark.id,
+            url: this.bookmark.content.url,
+            title: this.bookmark.content.title,
+            description: this.bookmark.content.description,
+            author: this.bookmark.content.author,
+            publisher: this.bookmark.content.publisher,
+            datePublished: this.bookmark.content.datePublished,
+            dateModified: this.bookmark.content.dateModified,
+            imageUrl: this.bookmark.content.imageUrl,
+            favicon: this.bookmark.content.favicon,
+            htmlContent: this.bookmark.content.htmlContent,
+            crawlStatus: this.bookmark.content.crawlStatus,
+            crawlStatusCode: this.bookmark.content.crawlStatusCode,
+          });
+          break;
+        }
+        case BookmarkTypes.TEXT: {
+          await tx.insert(bookmarkTexts).values({
+            id: newBookmark.id,
+            text: this.bookmark.content.text,
+            sourceUrl: this.bookmark.content.sourceUrl,
+          });
+          break;
+        }
+        case BookmarkTypes.ASSET: {
+          // For assets, we don't clone the actual file, just create a link-type bookmark to the original
+          // This is because assets are user-uploaded and can be large
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Cannot clone asset bookmarks",
+          });
+        }
+      }
+
+      // Clone tags (as human-attached tags)
+      if (this.bookmark.tags && this.bookmark.tags.length > 0) {
+        const targetUserTags = await tx.query.bookmarkTags.findMany({
+          where: eq(bookmarkTags.userId, targetUserId),
+        });
+
+        const tagMap = new Map(targetUserTags.map((t) => [t.name, t.id]));
+
+        // Create missing tags for the target user
+        const tagsToCreate = this.bookmark.tags.filter((t) => !tagMap.has(t.name));
+        if (tagsToCreate.length > 0) {
+          const createdTags = await tx
+            .insert(bookmarkTags)
+            .values(
+              tagsToCreate.map((t) => ({
+                userId: targetUserId,
+                name: t.name,
+              })),
+            )
+            .returning();
+          createdTags.forEach((t) => tagMap.set(t.name, t.id));
+        }
+
+        // Attach tags to the cloned bookmark
+        await tx.insert(tagsOnBookmarks).values(
+          this.bookmark.tags.map((t) => ({
+            bookmarkId: newBookmark.id,
+            tagId: tagMap.get(t.name)!,
+            attachedBy: "human" as const,
+          })),
+        );
+      }
+
+      return newBookmark;
+    });
+
+    // Load and return the cloned bookmark
+    const cloned = await Bookmark.loadMulti(this.ctx, {
+      ids: [clonedBookmarkData.id],
+      includeContent: true,
+    });
+
+    return cloned.bookmarks[0];
+  }
+
   static fromData(ctx: AuthedContext, data: ZBookmark) {
     return new Bookmark(ctx, {
       ...data,
@@ -103,7 +278,25 @@ export class Bookmark implements PrivacyAware {
         .from(bookmarks)
         .where(
           and(
-            eq(bookmarks.userId, ctx.user.id),
+            // User can access bookmarks they own OR bookmarks in collaborative lists
+            or(
+              eq(bookmarks.userId, ctx.user.id),
+              exists(
+                ctx.db
+                  .select()
+                  .from(bookmarksInLists)
+                  .innerJoin(
+                    listCollaborators,
+                    eq(listCollaborators.listId, bookmarksInLists.listId),
+                  )
+                  .where(
+                    and(
+                      eq(bookmarksInLists.bookmarkId, bookmarks.id),
+                      eq(listCollaborators.userId, ctx.user.id),
+                    ),
+                  ),
+              ),
+            ),
             input.archived !== undefined
               ? eq(bookmarks.archived, input.archived)
               : undefined,

@@ -1161,4 +1161,29 @@ Author: ${bookmark.author ?? ""}
         summary: summary.response,
       };
     }),
+
+  // Clone a bookmark to the current user's collection
+  cloneBookmark: authedProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .output(zBookmarkSchema)
+    .mutation(async ({ input, ctx }) => {
+      // Load the bookmark to clone
+      const bookmarkToClone = await getBookmark(ctx, input.bookmarkId, true);
+
+      if (!bookmarkToClone) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      // Clone the bookmark
+      const cloned = await bookmarkToClone.clone(ctx.user.id);
+
+      return cloned.asZBookmark();
+    }),
 });

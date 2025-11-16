@@ -179,4 +179,79 @@ export const listsAppRouter = router({
     .query(async ({ ctx }) => {
       return { token: await ctx.list.getRssToken() };
     }),
+
+  // Collaboration endpoints
+  addCollaborator: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        userId: z.string(),
+        role: z.enum(["viewer", "editor"]),
+      }),
+    )
+    .use(ensureListOwnership)
+    .mutation(async ({ input, ctx }) => {
+      await ctx.list.addCollaborator(input.userId, input.role);
+    }),
+  removeCollaborator: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .use(ensureListOwnership)
+    .mutation(async ({ input, ctx }) => {
+      await ctx.list.removeCollaborator(input.userId);
+    }),
+  updateCollaboratorRole: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        userId: z.string(),
+        role: z.enum(["viewer", "editor"]),
+      }),
+    )
+    .use(ensureListOwnership)
+    .mutation(async ({ input, ctx }) => {
+      await ctx.list.updateCollaboratorRole(input.userId, input.role);
+    }),
+  getCollaborators: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        collaborators: z.array(
+          z.object({
+            id: z.string(),
+            userId: z.string(),
+            role: z.enum(["viewer", "editor"]),
+            addedAt: z.date(),
+            user: z.object({
+              id: z.string(),
+              name: z.string(),
+              email: z.string(),
+            }),
+          }),
+        ),
+      }),
+    )
+    .use(ensureListOwnership)
+    .query(async ({ ctx }) => {
+      const collaborators = await ctx.list.getCollaborators();
+      return { collaborators };
+    }),
+  getSharedWithMe: authedProcedure
+    .output(
+      z.object({
+        lists: z.array(zBookmarkListSchema),
+      }),
+    )
+    .query(async ({ ctx }) => {
+      const lists = await List.getSharedWithUser(ctx);
+      return { lists: lists.map((l) => l.list) };
+    }),
 });
