@@ -9,7 +9,7 @@ import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -392,34 +392,29 @@ async function changeBookmarkStatus(
 
     // If crawling failed, skip tagging and summarization (only if they're still pending)
     if (crawlStatus === "failure") {
-      const bookmark = await txn.query.bookmarks.findFirst({
-        where: eq(bookmarks.id, bookmarkId),
-        columns: {
-          taggingStatus: true,
-          summarizationStatus: true,
-        },
-      });
+      await txn
+        .update(bookmarks)
+        .set({
+          taggingStatus: "skipped",
+        })
+        .where(
+          and(
+            eq(bookmarks.id, bookmarkId),
+            eq(bookmarks.taggingStatus, "pending"),
+          ),
+        );
 
-      if (bookmark) {
-        const updates: {
-          taggingStatus?: "skipped";
-          summarizationStatus?: "skipped";
-        } = {};
-
-        if (bookmark.taggingStatus === "pending") {
-          updates.taggingStatus = "skipped";
-        }
-        if (bookmark.summarizationStatus === "pending") {
-          updates.summarizationStatus = "skipped";
-        }
-
-        if (Object.keys(updates).length > 0) {
-          await txn
-            .update(bookmarks)
-            .set(updates)
-            .where(eq(bookmarks.id, bookmarkId));
-        }
-      }
+      await txn
+        .update(bookmarks)
+        .set({
+          summarizationStatus: "skipped",
+        })
+        .where(
+          and(
+            eq(bookmarks.id, bookmarkId),
+            eq(bookmarks.summarizationStatus, "pending"),
+          ),
+        );
     }
   });
 }

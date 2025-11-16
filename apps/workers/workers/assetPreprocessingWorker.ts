@@ -1,5 +1,5 @@
 import os from "os";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
@@ -54,34 +54,29 @@ export class AssetPreprocessingWorker {
               // Skip tagging and summarization on permanent failure (only if they're still pending)
               const bookmarkId = job.data?.bookmarkId;
               if (bookmarkId) {
-                const bookmark = await db.query.bookmarks.findFirst({
-                  where: eq(bookmarks.id, bookmarkId),
-                  columns: {
-                    taggingStatus: true,
-                    summarizationStatus: true,
-                  },
-                });
+                await db
+                  .update(bookmarks)
+                  .set({
+                    taggingStatus: "skipped",
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.taggingStatus, "pending"),
+                    ),
+                  );
 
-                if (bookmark) {
-                  const updates: {
-                    taggingStatus?: "skipped";
-                    summarizationStatus?: "skipped";
-                  } = {};
-
-                  if (bookmark.taggingStatus === "pending") {
-                    updates.taggingStatus = "skipped";
-                  }
-                  if (bookmark.summarizationStatus === "pending") {
-                    updates.summarizationStatus = "skipped";
-                  }
-
-                  if (Object.keys(updates).length > 0) {
-                    await db
-                      .update(bookmarks)
-                      .set(updates)
-                      .where(eq(bookmarks.id, bookmarkId));
-                  }
-                }
+                await db
+                  .update(bookmarks)
+                  .set({
+                    summarizationStatus: "skipped",
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.summarizationStatus, "pending"),
+                    ),
+                  );
               }
             }
             const jobId = job.id;
