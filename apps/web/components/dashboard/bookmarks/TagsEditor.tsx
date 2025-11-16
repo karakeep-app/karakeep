@@ -25,13 +25,15 @@ export function TagsEditor({
   tags: _tags,
   onAttach,
   onDetach,
+  disabled,
 }: {
   tags: ZBookmarkTags[];
   onAttach: (tag: { tagName: string; tagId?: string }) => void;
   onDetach: (tag: { tagName: string; tagId: string }) => void;
+  disabled?: boolean;
 }) {
   const demoMode = !!useClientConfig().demoMode;
-  const isDisabled = demoMode;
+  const isDisabled = demoMode || disabled;
   const inputRef = React.useRef<HTMLInputElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [open, setOpen] = React.useState(false);

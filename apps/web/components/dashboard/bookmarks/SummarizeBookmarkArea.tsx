@@ -17,9 +17,11 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 function AISummary({
   bookmarkId,
   summary,
+  readOnly = false,
 }: {
   bookmarkId: string;
   summary: string;
+  readOnly?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { mutate: resummarize, isPending: isResummarizing } =
@@ -60,28 +62,34 @@ function AISummary({
           </MarkdownReadonly>
           {isExpanded && (
             <span className="flex justify-end gap-2 pt-2">
-              <ActionButton
-                variant="none"
-                size="none"
-                spinner={<LoadingSpinner className="size-4" />}
-                className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                aria-label={isExpanded ? "Collapse" : "Expand"}
-                loading={isResummarizing}
-                onClick={() => resummarize({ bookmarkId })}
-              >
-                <RefreshCw size={16} />
-              </ActionButton>
-              <ActionButton
-                size="none"
-                variant="none"
-                spinner={<LoadingSpinner className="size-4" />}
-                className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                aria-label={isExpanded ? "Collapse" : "Expand"}
-                loading={isUpdatingBookmark}
-                onClick={() => updateBookmark({ bookmarkId, summary: null })}
-              >
-                <Trash2 size={16} />
-              </ActionButton>
+              {!readOnly && (
+                <>
+                  <ActionButton
+                    variant="none"
+                    size="none"
+                    spinner={<LoadingSpinner className="size-4" />}
+                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                    aria-label={isExpanded ? "Collapse" : "Expand"}
+                    loading={isResummarizing}
+                    onClick={() => resummarize({ bookmarkId })}
+                  >
+                    <RefreshCw size={16} />
+                  </ActionButton>
+                  <ActionButton
+                    size="none"
+                    variant="none"
+                    spinner={<LoadingSpinner className="size-4" />}
+                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                    aria-label={isExpanded ? "Collapse" : "Expand"}
+                    loading={isUpdatingBookmark}
+                    onClick={() =>
+                      updateBookmark({ bookmarkId, summary: null })
+                    }
+                  >
+                    <Trash2 size={16} />
+                  </ActionButton>
+                </>
+              )}
               <button
                 className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
                 aria-label="Collapse"
@@ -99,8 +107,10 @@ function AISummary({
 
 export default function SummarizeBookmarkArea({
   bookmark,
+  readOnly = false,
 }: {
   bookmark: ZBookmark;
+  readOnly?: boolean;
 }) {
   const { t } = useTranslation();
   const { mutate, isPending } = useSummarizeBookmark({
@@ -118,8 +128,14 @@ export default function SummarizeBookmarkArea({
   }
 
   if (bookmark.summary) {
-    return <AISummary bookmarkId={bookmark.id} summary={bookmark.summary} />;
-  } else if (!clientConfig.inference.isConfigured) {
+    return (
+      <AISummary
+        bookmarkId={bookmark.id}
+        summary={bookmark.summary}
+        readOnly={readOnly}
+      />
+    );
+  } else if (!clientConfig.inference.isConfigured || readOnly) {
     return null;
   } else {
     return (
