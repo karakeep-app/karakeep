@@ -9,7 +9,7 @@ import {
 } from "@karakeep/shared/types/lists";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, router } from "../index";
+import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { List } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
 
@@ -216,6 +216,13 @@ export const listsAppRouter = router({
         listId: z.string(),
         email: z.string().email(),
         role: z.enum(["viewer", "editor"]),
+      }),
+    )
+    .use(
+      createRateLimitMiddleware({
+        name: "lists.addCollaborator",
+        windowMs: 15 * 60 * 1000,
+        maxRequests: 20,
       }),
     )
     .use(ensureListAtLeastViewer)
