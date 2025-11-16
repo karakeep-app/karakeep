@@ -51,16 +51,37 @@ export class AssetPreprocessingWorker {
               workerStatsCounter
                 .labels("assetPreProcessing", "failed_permanent")
                 .inc();
-              // Skip tagging and summarization on permanent failure
+              // Skip tagging and summarization on permanent failure (only if they're still pending)
               const bookmarkId = job.data?.bookmarkId;
               if (bookmarkId) {
-                await db
-                  .update(bookmarks)
-                  .set({
-                    taggingStatus: "skipped",
-                    summarizationStatus: "skipped",
-                  })
-                  .where(eq(bookmarks.id, bookmarkId));
+                const bookmark = await db.query.bookmarks.findFirst({
+                  where: eq(bookmarks.id, bookmarkId),
+                  columns: {
+                    taggingStatus: true,
+                    summarizationStatus: true,
+                  },
+                });
+
+                if (bookmark) {
+                  const updates: {
+                    taggingStatus?: "skipped";
+                    summarizationStatus?: "skipped";
+                  } = {};
+
+                  if (bookmark.taggingStatus === "pending") {
+                    updates.taggingStatus = "skipped";
+                  }
+                  if (bookmark.summarizationStatus === "pending") {
+                    updates.summarizationStatus = "skipped";
+                  }
+
+                  if (Object.keys(updates).length > 0) {
+                    await db
+                      .update(bookmarks)
+                      .set(updates)
+                      .where(eq(bookmarks.id, bookmarkId));
+                  }
+                }
               }
             }
             const jobId = job.id;
