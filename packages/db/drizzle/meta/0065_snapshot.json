@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2ceb95b4-806d-4977-b786-aa6f31afa535",
+  "id": "f14d2087-e465-4cb5-81bc-accff017ee02",
   "prevId": "faf078cf-fa55-46e3-8404-bf74628a25e0",
   "tables": {
     "account": {
@@ -947,8 +947,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "addedBy": {
-          "name": "addedBy",
+        "listMembershipId": {
+          "name": "listMembershipId",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -998,17 +998,17 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "bookmarksInLists_addedBy_user_id_fk": {
-          "name": "bookmarksInLists_addedBy_user_id_fk",
+        "bookmarksInLists_listMembershipId_listCollaborators_id_fk": {
+          "name": "bookmarksInLists_listMembershipId_listCollaborators_id_fk",
           "tableFrom": "bookmarksInLists",
-          "tableTo": "user",
+          "tableTo": "listCollaborators",
           "columnsFrom": [
-            "addedBy"
+            "listMembershipId"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -1536,7 +1536,7 @@
           "name": "addedBy",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         }
       },
@@ -1601,7 +1601,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },

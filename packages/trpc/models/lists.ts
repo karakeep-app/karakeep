@@ -28,6 +28,10 @@ import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { PrivacyAware } from "./privacy";
 
+interface ListCollaboratorEntry {
+  membershipId: string;
+}
+
 export abstract class List implements PrivacyAware {
   protected constructor(
     protected ctx: AuthedContext,
@@ -66,11 +70,12 @@ export abstract class List implements PrivacyAware {
   private static fromData(
     ctx: AuthedContext,
     data: ZBookmarkList & { userId: string },
+    collaboratorEntry: ListCollaboratorEntry | null,
   ) {
     if (data.type === "smart") {
       return new SmartList(ctx, data);
     } else {
-      return new ManualList(ctx, data);
+      return new ManualList(ctx, data, collaboratorEntry);
     }
   }
 
@@ -109,6 +114,7 @@ export abstract class List implements PrivacyAware {
     })();
 
     // If not found, check if the user is a collaborator
+    let collaboratorEntry: ListCollaboratorEntry | null = null;
     if (!list) {
       const collaborator = await ctx.db.query.listCollaborators.findFirst({
         where: and(
@@ -130,6 +136,9 @@ export abstract class List implements PrivacyAware {
           userRole: collaborator.role,
           hasCollaborators: true, // If you're a collaborator, the list has collaborators
         };
+        collaboratorEntry = {
+          membershipId: collaborator.id,
+        };
       }
     }
 
@@ -142,7 +151,7 @@ export abstract class List implements PrivacyAware {
     if (list.type === "smart") {
       return new SmartList(ctx, list);
     } else {
-      return new ManualList(ctx, list);
+      return new ManualList(ctx, list, collaboratorEntry);
     }
   }
 
@@ -207,11 +216,15 @@ export abstract class List implements PrivacyAware {
     // an impersonating context for the list owner as long as
     // we don't leak the context.
     const authedCtx = await buildImpersonatingAuthedContext(listdb.userId);
-    const listObj = List.fromData(authedCtx, {
-      ...listdb,
-      userRole: "public",
-      hasCollaborators: false, // Public lists don't expose collaborators
-    });
+    const listObj = List.fromData(
+      authedCtx,
+      {
+        ...listdb,
+        userRole: "public",
+        hasCollaborators: false, // Public lists don't expose collaborators
+      },
+      null,
+    );
     const bookmarkIds = await listObj.getBookmarkIds();
     const list = listObj.asZBookmarkList();
 
@@ -252,11 +265,15 @@ export abstract class List implements PrivacyAware {
         query: input.query,
       })
       .returning();
-    return this.fromData(ctx, {
-      ...result,
-      userRole: "owner",
-      hasCollaborators: false, // Newly created lists have no collaborators
-    });
+    return this.fromData(
+      ctx,
+      {
+        ...result,
+        userRole: "owner",
+        hasCollaborators: false, // Newly created lists have no collaborators
+      },
+      null,
+    );
   }
 
   static async getAll(ctx: AuthedContext) {
@@ -285,11 +302,15 @@ export abstract class List implements PrivacyAware {
       },
     });
     return lists.map((l) =>
-      this.fromData(ctx, {
-        ...l,
-        userRole: "owner",
-        hasCollaborators: l.collaborators.length > 0,
-      }),
+      this.fromData(
+        ctx,
+        {
+          ...l,
+          userRole: "owner",
+          hasCollaborators: l.collaborators.length > 0,
+        },
+        null /* this is an owned list */,
+      ),
     );
   }
 
@@ -305,6 +326,7 @@ export abstract class List implements PrivacyAware {
             collaborators: {
               where: eq(listCollaborators.userId, ctx.user.id),
               columns: {
+                id: true,
                 role: true,
               },
             },
@@ -335,8 +357,13 @@ export abstract class List implements PrivacyAware {
 
     return lists.flatMap((l) => {
       let userRole: "owner" | "editor" | "viewer" | null;
+      let collaboratorEntry: ListCollaboratorEntry | null = null;
       if (l.list.collaborators.length > 0) {
+        invariant(l.list.collaborators.length == 1);
         userRole = l.list.collaborators[0].role;
+        collaboratorEntry = {
+          membershipId: l.list.collaborators[0].id,
+        };
       } else if (l.list.userId === ctx.user.id) {
         userRole = "owner";
       } else {
@@ -344,14 +371,18 @@ export abstract class List implements PrivacyAware {
       }
       return userRole
         ? [
-            this.fromData(ctx, {
-              ...l.list,
-              userRole,
-              hasCollaborators:
-                userRole !== "owner"
-                  ? true
-                  : listsWithCollaborators.has(l.list.id),
-            }),
+            this.fromData(
+              ctx,
+              {
+                ...l.list,
+                userRole,
+                hasCollaborators:
+                  userRole !== "owner"
+                    ? true
+                    : listsWithCollaborators.has(l.list.id),
+              },
+              collaboratorEntry,
+            ),
           ]
         : [];
     });
@@ -689,34 +720,21 @@ export abstract class List implements PrivacyAware {
   async removeCollaborator(userId: string): Promise<void> {
     this.ensureCanManage();
 
-    await this.ctx.db.transaction(async (tx) => {
-      // First, remove all bookmarks that were added by this collaborator
-      await tx
-        .delete(bookmarksInLists)
-        .where(
-          and(
-            eq(bookmarksInLists.listId, this.list.id),
-            eq(bookmarksInLists.addedBy, userId),
-          ),
-        );
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+        ),
+      );
 
-      // Then, remove the collaborator
-      const result = await tx
-        .delete(listCollaborators)
-        .where(
-          and(
-            eq(listCollaborators.listId, this.list.id),
-            eq(listCollaborators.userId, userId),
-          ),
-        );
-
-      if (result.changes === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Collaborator not found",
-        });
-      }
-    });
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
   }
 
   /**
@@ -733,34 +751,21 @@ export abstract class List implements PrivacyAware {
       });
     }
 
-    await this.ctx.db.transaction(async (tx) => {
-      // First, remove all bookmarks that were added by this user
-      await tx
-        .delete(bookmarksInLists)
-        .where(
-          and(
-            eq(bookmarksInLists.listId, this.list.id),
-            eq(bookmarksInLists.addedBy, this.ctx.user.id),
-          ),
-        );
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, this.ctx.user.id),
+        ),
+      );
 
-      // Then, remove the user as a collaborator
-      const result = await tx
-        .delete(listCollaborators)
-        .where(
-          and(
-            eq(listCollaborators.listId, this.list.id),
-            eq(listCollaborators.userId, this.ctx.user.id),
-          ),
-        );
-
-      if (result.changes === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Collaborator not found",
-        });
-      }
-    });
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
   }
 
   /**
@@ -855,11 +860,17 @@ export abstract class List implements PrivacyAware {
     });
 
     return collaborations.map((c) =>
-      this.fromData(ctx, {
-        ...c.list,
-        userRole: c.role,
-        hasCollaborators: true, // If you're a collaborator, the list has collaborators
-      }),
+      this.fromData(
+        ctx,
+        {
+          ...c.list,
+          userRole: c.role,
+          hasCollaborators: true, // If you're a collaborator, the list has collaborators
+        },
+        {
+          membershipId: c.id,
+        },
+      ),
     );
   }
 
@@ -940,7 +951,11 @@ export class SmartList extends List {
 }
 
 export class ManualList extends List {
-  constructor(ctx: AuthedContext, list: ZBookmarkList & { userId: string }) {
+  constructor(
+    ctx: AuthedContext,
+    list: ZBookmarkList & { userId: string },
+    private collaboratorEntry: ListCollaboratorEntry | null,
+  ) {
     super(ctx, list);
   }
 
@@ -972,7 +987,7 @@ export class ManualList extends List {
       await this.ctx.db.insert(bookmarksInLists).values({
         listId: this.list.id,
         bookmarkId,
-        addedBy: this.ctx.user.id,
+        listMembershipId: this.collaboratorEntry?.membershipId,
       });
       await triggerRuleEngineOnEvent(bookmarkId, [
         {

@@ -411,9 +411,14 @@ export const bookmarksInLists = sqliteTable(
     addedAt: integer("addedAt", { mode: "timestamp" }).$defaultFn(
       () => new Date(),
     ),
-    addedBy: text("addedBy").references(() => users.id, {
-      onDelete: "set null",
-    }),
+    // Tie the list's existence to the user's membership
+    // of this list.
+    listMembershipId: text("listMembershipId").references(
+      () => listCollaborators.id,
+      {
+        onDelete: "cascade",
+      },
+    ),
   },
   (tb) => [
     primaryKey({ columns: [tb.bookmarkId, tb.listId] }),
@@ -437,9 +442,9 @@ export const listCollaborators = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role", { enum: ["viewer", "editor"] }).notNull(),
     addedAt: createdAtField(),
-    addedBy: text("addedBy")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    addedBy: text("addedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
   },
   (lc) => [
     unique().on(lc.listId, lc.userId),
