@@ -54,29 +54,31 @@ export class AssetPreprocessingWorker {
               // Skip tagging and summarization on permanent failure (only if they're still pending)
               const bookmarkId = job.data?.bookmarkId;
               if (bookmarkId) {
-                await db
-                  .update(bookmarks)
-                  .set({
-                    taggingStatus: "skipped",
-                  })
-                  .where(
-                    and(
-                      eq(bookmarks.id, bookmarkId),
-                      eq(bookmarks.taggingStatus, "pending"),
-                    ),
-                  );
+                await db.transaction(async (txn) => {
+                  await txn
+                    .update(bookmarks)
+                    .set({
+                      taggingStatus: "skipped",
+                    })
+                    .where(
+                      and(
+                        eq(bookmarks.id, bookmarkId),
+                        eq(bookmarks.taggingStatus, "pending"),
+                      ),
+                    );
 
-                await db
-                  .update(bookmarks)
-                  .set({
-                    summarizationStatus: "skipped",
-                  })
-                  .where(
-                    and(
-                      eq(bookmarks.id, bookmarkId),
-                      eq(bookmarks.summarizationStatus, "pending"),
-                    ),
-                  );
+                  await txn
+                    .update(bookmarks)
+                    .set({
+                      summarizationStatus: "skipped",
+                    })
+                    .where(
+                      and(
+                        eq(bookmarks.id, bookmarkId),
+                        eq(bookmarks.summarizationStatus, "pending"),
+                      ),
+                    );
+                });
               }
             }
             const jobId = job.id;
