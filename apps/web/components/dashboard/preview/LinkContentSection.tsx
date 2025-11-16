@@ -99,6 +99,18 @@ function VideoSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
+function GitRepoSection({ link }: { link: ZBookmarkedLink }) {
+  const gitRepoAssetId = link.gitRepoAssetId;
+  return (
+    <iframe
+      sandbox=""
+      title={link.url}
+      src={`/api/assets/${gitRepoAssetId}`}
+      className="relative h-full min-w-full"
+    />
+  );
+}
+
 export default function LinkContentSection({
   bookmark,
 }: {
@@ -140,6 +152,8 @@ export default function LinkContentSection({
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
+  } else if (section === "gitRepo") {
+    content = <GitRepoSection link={bookmark.content} />;
   } else {
     content = <ScreenshotSection link={bookmark.content} />;
   }

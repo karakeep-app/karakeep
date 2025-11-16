@@ -57,6 +57,7 @@ import {
   triggerSearchReindex,
   triggerWebhook,
   VideoWorkerQueue,
+  GitWorkerQueue,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared-server";
 import {
@@ -1437,6 +1438,17 @@ async function runCrawler(
     if (serverConfig.crawler.downloadVideo) {
       // Trigger a potential download of a video from the URL
       await VideoWorkerQueue.enqueue(
+        {
+          bookmarkId,
+          url,
+        },
+        enqueueOpts,
+      );
+    }
+
+    if (serverConfig.crawler.downloadGitRepo) {
+      // Trigger a potential download of a git repo from the URL
+      await GitWorkerQueue.enqueue(
         {
           bookmarkId,
           url,

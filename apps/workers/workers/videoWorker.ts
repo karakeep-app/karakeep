@@ -12,7 +12,7 @@ import {
   StorageQuotaError,
   VideoWorkerQueue,
   ZVideoRequest,
-  zvideoRequestSchema,
+  zdownloadRequestSchema,
 } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
@@ -60,7 +60,7 @@ export class VideoWorker {
         pollIntervalMs: 1000,
         timeoutSecs: serverConfig.crawler.downloadVideoTimeout,
         concurrency: 1,
-        validator: zvideoRequestSchema,
+        validator: zdownloadRequestSchema,
       },
     );
   }
