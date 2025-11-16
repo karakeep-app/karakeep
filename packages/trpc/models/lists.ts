@@ -29,8 +29,36 @@ import { PrivacyAware } from "./privacy";
 export abstract class List implements PrivacyAware {
   protected constructor(
     protected ctx: AuthedContext,
-    public list: ZBookmarkList & { userId: string },
+    protected list: ZBookmarkList & { userId: string },
   ) {}
+
+  get id() {
+    return this.list.id;
+  }
+
+  asZBookmarkList() {
+    if (this.list.userId === this.ctx.user.id) {
+      return this.list;
+    }
+
+    // There's some privacy implications here, so we need to think twice
+    // about the values that we return.
+    return {
+      id: this.list.id,
+      name: this.list.name,
+      description: this.list.description,
+      userId: this.list.userId,
+      icon: this.list.icon,
+      type: this.list.type,
+      query: this.list.query,
+      userRole: this.list.userRole,
+
+      // Hide parentId as it is not relevant to the user
+      parentId: null,
+      // Hide whether the list is public or not.
+      public: false,
+    };
+  }
 
   private static fromData(
     ctx: AuthedContext,
@@ -48,12 +76,20 @@ export abstract class List implements PrivacyAware {
     id: string,
   ): Promise<ManualList | SmartList> {
     // First try to find the list owned by the user
-    let list = await ctx.db.query.bookmarkLists.findFirst({
-      where: and(
-        eq(bookmarkLists.id, id),
-        eq(bookmarkLists.userId, ctx.user.id),
-      ),
-    });
+    let list = await (async (): Promise<
+      (ZBookmarkList & { userId: string }) | undefined
+    > => {
+      const l = await ctx.db.query.bookmarkLists.findFirst({
+        columns: {
+          rssToken: false,
+        },
+        where: and(
+          eq(bookmarkLists.id, id),
+          eq(bookmarkLists.userId, ctx.user.id),
+        ),
+      });
+      return l ? { ...l, userRole: "owner" } : l;
+    })();
 
     // If not found, check if the user is a collaborator
     if (!list) {
@@ -63,12 +99,19 @@ export abstract class List implements PrivacyAware {
           eq(listCollaborators.userId, ctx.user.id),
         ),
         with: {
-          list: true,
+          list: {
+            columns: {
+              rssToken: false,
+            },
+          },
         },
       });
 
       if (collaborator) {
-        list = collaborator.list;
+        list = {
+          ...collaborator.list,
+          userRole: collaborator.role,
+        };
       }
     }
 
@@ -146,8 +189,12 @@ export abstract class List implements PrivacyAware {
     // an impersonating context for the list owner as long as
     // we don't leak the context.
     const authedCtx = await buildImpersonatingAuthedContext(listdb.userId);
-    const list = List.fromData(authedCtx, listdb);
-    const bookmarkIds = await list.getBookmarkIds();
+    const listObj = List.fromData(authedCtx, {
+      ...listdb,
+      userRole: "public",
+    });
+    const bookmarkIds = await listObj.getBookmarkIds();
+    const list = listObj.asZBookmarkList();
 
     const bookmarks = await Bookmark.loadMulti(authedCtx, {
       ids: bookmarkIds,
@@ -159,9 +206,9 @@ export abstract class List implements PrivacyAware {
 
     return {
       list: {
-        icon: list.list.icon,
-        name: list.list.name,
-        description: list.list.description,
+        icon: list.icon,
+        name: list.name,
+        description: list.description,
         ownerName: listdb.user.name,
         numItems: bookmarkIds.length,
       },
@@ -186,32 +233,66 @@ export abstract class List implements PrivacyAware {
         query: input.query,
       })
       .returning();
-    return this.fromData(ctx, result);
+    return this.fromData(ctx, {
+      ...result,
+      userRole: "owner",
+    });
   }
 
-  static async getAll(ctx: AuthedContext): Promise<(ManualList | SmartList)[]> {
+  static async getAll(ctx: AuthedContext) {
+    const [ownedLists, sharedLists] = await Promise.all([
+      this.getAllOwned(ctx),
+      this.getSharedWithUser(ctx),
+    ]);
+    return [...ownedLists, ...sharedLists];
+  }
+
+  static async getAllOwned(
+    ctx: AuthedContext,
+  ): Promise<(ManualList | SmartList)[]> {
     const lists = await ctx.db.query.bookmarkLists.findMany({
       columns: {
         rssToken: false,
       },
       where: and(eq(bookmarkLists.userId, ctx.user.id)),
     });
-    return lists.map((l) => this.fromData(ctx, l));
+    return lists.map((l) =>
+      this.fromData(ctx, {
+        ...l,
+        userRole: "owner",
+      }),
+    );
   }
 
   static async forBookmark(ctx: AuthedContext, bookmarkId: string) {
     const lists = await ctx.db.query.bookmarksInLists.findMany({
-      where: and(eq(bookmarksInLists.bookmarkId, bookmarkId)),
+      where: eq(bookmarksInLists.bookmarkId, bookmarkId),
       with: {
         list: {
           columns: {
             rssToken: false,
           },
+          with: {
+            collaborators: {
+              where: eq(listCollaborators.userId, ctx.user.id),
+              columns: {
+                role: true,
+              },
+            },
+          },
         },
       },
     });
-    invariant(lists.map((l) => l.list.userId).every((id) => id == ctx.user.id));
-    return lists.map((l) => this.fromData(ctx, l.list));
+
+    return lists.map((l) =>
+      this.fromData(ctx, {
+        ...l.list,
+        userRole:
+          l.list.collaborators.length > 0
+            ? l.list.collaborators[0].role
+            : "owner",
+      }),
+    );
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
@@ -325,22 +406,23 @@ export abstract class List implements PrivacyAware {
   }
 
   async getChildren(): Promise<(ManualList | SmartList)[]> {
-    const lists = await List.getAll(this.ctx);
-    const listById = new Map(lists.map((l) => [l.list.id, l]));
+    const lists = await List.getAllOwned(this.ctx);
+    const listById = new Map(lists.map((l) => [l.id, l]));
 
     const adjecencyList = new Map<string, string[]>();
 
     // Initialize all lists with empty arrays first
     lists.forEach((l) => {
-      adjecencyList.set(l.list.id, []);
+      adjecencyList.set(l.id, []);
     });
 
     // Then populate the parent-child relationships
     lists.forEach((l) => {
-      if (l.list.parentId) {
-        const currentChildren = adjecencyList.get(l.list.parentId) ?? [];
-        currentChildren.push(l.list.id);
-        adjecencyList.set(l.list.parentId, currentChildren);
+      const parentId = l.asZBookmarkList().parentId;
+      if (parentId) {
+        const currentChildren = adjecencyList.get(parentId) ?? [];
+        currentChildren.push(l.id);
+        adjecencyList.set(parentId, currentChildren);
       }
     });
 
@@ -382,7 +464,11 @@ export abstract class List implements PrivacyAware {
     if (result.length == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
-    this.list = result[0];
+    invariant(result[0].userId === this.ctx.user.id);
+    this.list = {
+      ...result[0],
+      userRole: "owner",
+    };
   }
 
   private async setRssToken(token: string | null) {
@@ -661,11 +747,20 @@ export abstract class List implements PrivacyAware {
     const collaborations = await ctx.db.query.listCollaborators.findMany({
       where: eq(listCollaborators.userId, ctx.user.id),
       with: {
-        list: true,
+        list: {
+          columns: {
+            rssToken: false,
+          },
+        },
       },
     });
 
-    return collaborations.map((c) => this.fromData(ctx, c.list));
+    return collaborations.map((c) =>
+      this.fromData(ctx, {
+        ...c.list,
+        userRole: c.role,
+      }),
+    );
   }
 
   abstract get type(): "manual" | "smart";
@@ -855,7 +950,7 @@ export class ManualList extends List {
         .values(
           bookmarkIds.map((id) => ({
             bookmarkId: id,
-            listId: targetList.list.id,
+            listId: targetList.id,
           })),
         )
         .onConflictDoNothing();

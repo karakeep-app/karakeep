@@ -57,7 +57,7 @@ export const zBookmarkListSchema = z.object({
   type: z.enum(["manual", "smart"]).default("manual"),
   query: z.string().nullish(),
   public: z.boolean(),
-  userRole: z.enum(["owner", "editor", "viewer"]).optional(),
+  userRole: z.enum(["owner", "editor", "viewer", "public"]),
 });
 
 export type ZBookmarkList = z.infer<typeof zBookmarkListSchema>;

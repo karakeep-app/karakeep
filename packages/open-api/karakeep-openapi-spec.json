@@ -412,7 +412,8 @@
             "enum": [
               "owner",
               "editor",
-              "viewer"
+              "viewer",
+              "public"
             ]
           }
         },
@@ -421,7 +422,8 @@
           "name",
           "icon",
           "parentId",
-          "public"
+          "public",
+          "userRole"
         ]
       },
       "Highlight": {

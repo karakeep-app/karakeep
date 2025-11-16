@@ -4,10 +4,7 @@ import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { api } from "@/lib/trpc";
 import { keepPreviousData } from "@tanstack/react-query";
 
-import {
-  augmentBookmarkListsWithInitialData,
-  useBookmarkLists,
-} from "@karakeep/shared-react/hooks/lists";
+import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 
@@ -83,19 +80,14 @@ export function CollapsibleBookmarkLists({
   className,
   isOpenFunc,
 }: {
-  initialData?: ZBookmarkList[];
+  initialData: ZBookmarkList[];
   render: RenderFunc;
   isOpenFunc?: IsOpenFunc;
   className?: string;
 }) {
   let { data } = useBookmarkLists(undefined, {
-    initialData: initialData ? { lists: initialData } : undefined,
+    initialData: { lists: initialData },
   });
-
-  // TODO: This seems to be a bug in react query
-  if (initialData) {
-    data = augmentBookmarkListsWithInitialData(data, initialData);
-  }
 
   if (!data) {
     return <FullPageSpinner />;

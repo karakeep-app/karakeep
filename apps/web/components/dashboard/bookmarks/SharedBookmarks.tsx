@@ -12,8 +12,11 @@ export default async function SharedBookmarks() {
     redirect("/");
   }
 
-  // Get all lists shared with the current user
-  const { lists: sharedLists } = await api.lists.getSharedWithMe();
+  // Get all lists and filter for shared lists
+  const { lists: allLists } = await api.lists.list();
+  const sharedLists = allLists.filter(
+    (l) => l.userRole === "viewer" || l.userRole === "editor",
+  );
 
   if (sharedLists.length === 0) {
     return (

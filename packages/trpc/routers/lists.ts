@@ -47,7 +47,7 @@ export const listsAppRouter = router({
     .input(zNewBookmarkListSchema)
     .output(zBookmarkListSchema)
     .mutation(async ({ input, ctx }) => {
-      return await List.create(ctx, input).then((l) => l.list);
+      return await List.create(ctx, input).then((l) => l.asZBookmarkList());
     }),
   edit: authedProcedure
     .input(zEditBookmarkListSchemaWithValidation)
@@ -55,7 +55,7 @@ export const listsAppRouter = router({
     .use(ensureListOwnership)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.update(input);
-      return ctx.list.list;
+      return ctx.list.asZBookmarkList();
     }),
   merge: authedProcedure
     .input(zMergeListSchema)
@@ -118,11 +118,7 @@ export const listsAppRouter = router({
     .output(zBookmarkListSchema)
     .use(ensureListOwnership)
     .query(async ({ ctx }) => {
-      const userRole = await ctx.list.getUserRole(ctx.user.id);
-      return {
-        ...ctx.list.list,
-        userRole: userRole || undefined,
-      };
+      return ctx.list.asZBookmarkList();
     }),
   list: authedProcedure
     .output(
@@ -132,7 +128,7 @@ export const listsAppRouter = router({
     )
     .query(async ({ ctx }) => {
       const results = await List.getAll(ctx);
-      return { lists: results.map((l) => l.list) };
+      return { lists: results.map((l) => l.asZBookmarkList()) };
     }),
   getListsOfBookmark: authedProcedure
     .input(z.object({ bookmarkId: z.string() }))
@@ -144,7 +140,7 @@ export const listsAppRouter = router({
     .use(ensureBookmarkOwnership)
     .query(async ({ input, ctx }) => {
       const lists = await List.forBookmark(ctx, input.bookmarkId);
-      return { lists: lists.map((l) => l.list) };
+      return { lists: lists.map((l) => l.asZBookmarkList()) };
     }),
   stats: authedProcedure
     .output(
@@ -155,7 +151,7 @@ export const listsAppRouter = router({
     .query(async ({ ctx }) => {
       const lists = await List.getAll(ctx);
       const sizes = await Promise.all(lists.map((l) => l.getSize()));
-      return { stats: new Map(lists.map((l, i) => [l.list.id, sizes[i]])) };
+      return { stats: new Map(lists.map((l, i) => [l.id, sizes[i]])) };
     }),
 
   // Rss endpoints
@@ -265,16 +261,7 @@ export const listsAppRouter = router({
       const collaborators = await ctx.list.getCollaborators();
       return { collaborators };
     }),
-  getSharedWithMe: authedProcedure
-    .output(
-      z.object({
-        lists: z.array(zBookmarkListSchema),
-      }),
-    )
-    .query(async ({ ctx }) => {
-      const lists = await List.getSharedWithUser(ctx);
-      return { lists: lists.map((l) => l.list) };
-    }),
+
   leaveList: authedProcedure
     .input(
       z.object({

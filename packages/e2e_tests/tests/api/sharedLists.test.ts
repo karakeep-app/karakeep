@@ -216,8 +216,10 @@ describe("Shared Lists API", () => {
       expect(collaborators).toHaveLength(0);
 
       // Verify list no longer appears in shared lists
-      const { lists: sharedLists } =
-        await collaboratorTrpc.lists.getSharedWithMe.query();
+      const { lists: allLists } = await collaboratorTrpc.lists.list.query();
+      const sharedLists = allLists.filter(
+        (l) => l.userRole === "viewer" || l.userRole === "editor",
+      );
       expect(sharedLists.find((l) => l.id === list.id)).toBeUndefined();
     });
 
@@ -256,7 +258,7 @@ describe("Shared Lists API", () => {
   });
 
   describe("List Access and Visibility", () => {
-    it("should show shared list in getSharedWithMe", async () => {
+    it("should show shared list in list endpoint", async () => {
       const list = await ownerTrpc.lists.create.mutate({
         name: "Shared List",
         icon: "📚",
@@ -269,8 +271,10 @@ describe("Shared Lists API", () => {
         role: "viewer",
       });
 
-      const { lists: sharedLists } =
-        await collaboratorTrpc.lists.getSharedWithMe.query();
+      const { lists: allLists } = await collaboratorTrpc.lists.list.query();
+      const sharedLists = allLists.filter(
+        (l) => l.userRole === "viewer" || l.userRole === "editor",
+      );
 
       expect(sharedLists).toHaveLength(1);
       expect(sharedLists[0].id).toBe(list.id);

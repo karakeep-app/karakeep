@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SharedListsSection from "@/components/dashboard/sidebar/SharedListsSection";
 import SidebarItem from "@/components/shared/sidebar/SidebarItem";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,10 +20,8 @@ import { ListOptions } from "../lists/ListOptions";
 
 export default function AllLists({
   initialData,
-  sharedListsData,
 }: {
   initialData: { lists: ZBookmarkList[] };
-  sharedListsData?: { lists: ZBookmarkList[] };
 }) {
   const { t } = useTranslation();
   const pathName = usePathname();
@@ -121,9 +118,6 @@ export default function AllLists({
           />
         )}
       />
-      {sharedListsData && (
-        <SharedListsSection sharedLists={sharedListsData.lists} />
-      )}
     </ul>
   );
 }

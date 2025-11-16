@@ -30,7 +30,6 @@ export default function LeaveListConfirmationDialog({
       setOpen(false);
       // Invalidate the lists cache
       utils.lists.list.invalidate();
-      utils.lists.getSharedWithMe.invalidate();
       // If currently viewing this list, redirect to lists page
       if (currentPath.includes(list.id)) {
         router.push("/dashboard/lists");
