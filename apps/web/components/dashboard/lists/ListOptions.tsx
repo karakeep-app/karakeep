@@ -15,12 +15,14 @@ import {
   Square,
   SquareCheck,
   Trash2,
+  Users,
 } from "lucide-react";
 
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 import { EditListModal } from "../lists/EditListModal";
 import DeleteListConfirmationDialog from "./DeleteListConfirmationDialog";
+import { ManageCollaboratorsModal } from "./ManageCollaboratorsModal";
 import { MergeListModal } from "./MergeListModal";
 import { ShareListModal } from "./ShareListModal";
 
@@ -43,12 +45,18 @@ export function ListOptions({
   const [mergeListModalOpen, setMergeListModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [collaboratorsModalOpen, setCollaboratorsModalOpen] = useState(false);
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <ShareListModal
         open={shareModalOpen}
         setOpen={setShareModalOpen}
+        list={list}
+      />
+      <ManageCollaboratorsModal
+        open={collaboratorsModalOpen}
+        setOpen={setCollaboratorsModalOpen}
         list={list}
       />
       <EditListModal
@@ -88,6 +96,13 @@ export function ListOptions({
         >
           <Share className="size-4" />
           <span>{t("lists.share_list")}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="flex gap-2"
+          onClick={() => setCollaboratorsModalOpen(true)}
+        >
+          <Users className="size-4" />
+          <span>Manage Collaborators</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           className="flex gap-2"
