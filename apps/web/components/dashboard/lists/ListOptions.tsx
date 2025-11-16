@@ -47,6 +47,9 @@ export function ListOptions({
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [collaboratorsModalOpen, setCollaboratorsModalOpen] = useState(false);
 
+  // Only owners can manage the list (edit, delete, manage collaborators, etc.)
+  const isOwner = list.userRole === "owner";
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <ShareListModal
@@ -83,41 +86,51 @@ export function ListOptions({
       />
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setEditModalOpen(true)}
-        >
-          <Pencil className="size-4" />
-          <span>{t("actions.edit")}</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setShareModalOpen(true)}
-        >
-          <Share className="size-4" />
-          <span>{t("lists.share_list")}</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setCollaboratorsModalOpen(true)}
-        >
-          <Users className="size-4" />
-          <span>Manage Collaborators</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setNewNestedListModalOpen(true)}
-        >
-          <Plus className="size-4" />
-          <span>{t("lists.new_nested_list")}</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setMergeListModalOpen(true)}
-        >
-          <FolderInput className="size-4" />
-          <span>{t("lists.merge_list")}</span>
-        </DropdownMenuItem>
+        {isOwner && (
+          <DropdownMenuItem
+            className="flex gap-2"
+            onClick={() => setEditModalOpen(true)}
+          >
+            <Pencil className="size-4" />
+            <span>{t("actions.edit")}</span>
+          </DropdownMenuItem>
+        )}
+        {isOwner && (
+          <DropdownMenuItem
+            className="flex gap-2"
+            onClick={() => setShareModalOpen(true)}
+          >
+            <Share className="size-4" />
+            <span>{t("lists.share_list")}</span>
+          </DropdownMenuItem>
+        )}
+        {isOwner && (
+          <DropdownMenuItem
+            className="flex gap-2"
+            onClick={() => setCollaboratorsModalOpen(true)}
+          >
+            <Users className="size-4" />
+            <span>Manage Collaborators</span>
+          </DropdownMenuItem>
+        )}
+        {isOwner && (
+          <DropdownMenuItem
+            className="flex gap-2"
+            onClick={() => setNewNestedListModalOpen(true)}
+          >
+            <Plus className="size-4" />
+            <span>{t("lists.new_nested_list")}</span>
+          </DropdownMenuItem>
+        )}
+        {isOwner && (
+          <DropdownMenuItem
+            className="flex gap-2"
+            onClick={() => setMergeListModalOpen(true)}
+          >
+            <FolderInput className="size-4" />
+            <span>{t("lists.merge_list")}</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem className="flex gap-2" onClick={onClickShowArchived}>
           {showArchived ? (
             <SquareCheck className="size-4" />
@@ -126,13 +139,15 @@ export function ListOptions({
           )}
           <span>{t("actions.toggle_show_archived")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setDeleteListDialogOpen(true)}
-        >
-          <Trash2 className="size-4" />
-          <span>{t("actions.delete")}</span>
-        </DropdownMenuItem>
+        {isOwner && (
+          <DropdownMenuItem
+            className="flex gap-2"
+            onClick={() => setDeleteListDialogOpen(true)}
+          >
+            <Trash2 className="size-4" />
+            <span>{t("actions.delete")}</span>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

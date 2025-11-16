@@ -50,6 +50,9 @@ export default async function ListPage(props: {
       ? searchParams.includeArchived === "true"
       : userSettings.archiveDisplayBehaviour === "show";
 
+  // Only show editor card if user is owner or editor (not viewer)
+  const canEdit = list.userRole === "owner" || list.userRole === "editor";
+
   return (
     <BookmarkListContextProvider list={list}>
       <Bookmarks
@@ -58,7 +61,7 @@ export default async function ListPage(props: {
           archived: !includeArchived ? false : undefined,
         }}
         showDivider={true}
-        showEditorCard={list.type === "manual"}
+        showEditorCard={list.type === "manual" && canEdit}
         header={<ListHeader initialData={list} />}
       />
     </BookmarkListContextProvider>

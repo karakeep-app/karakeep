@@ -100,8 +100,12 @@ export const listsAppRouter = router({
     )
     .output(zBookmarkListSchema)
     .use(ensureListOwnership)
-    .query(({ ctx }) => {
-      return ctx.list.list;
+    .query(async ({ ctx }) => {
+      const userRole = await ctx.list.getUserRole(ctx.user.id);
+      return {
+        ...ctx.list.list,
+        userRole: userRole || undefined,
+      };
     }),
   list: authedProcedure
     .output(
