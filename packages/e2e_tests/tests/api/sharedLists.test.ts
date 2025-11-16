@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, inject, it } from "vitest";
 
 import { createKarakeepClient } from "@karakeep/sdk";
 
-import { createTestUser } from "../../utils/api";
+import { createTestUser, uploadTestAsset } from "../../utils/api";
 import { getTrpcClient } from "../../utils/trpc";
 
 describe("Shared Lists API", () => {
@@ -455,6 +455,59 @@ describe("Shared Lists API", () => {
       expect(collaboratorBookmark?.favourited).toBe(false);
       expect(collaboratorBookmark?.archived).toBe(false);
       expect(collaboratorBookmark?.note).toBeNull();
+    });
+
+    it("should allow collaborators to fetch assets from shared bookmarks", async () => {
+      const list = await ownerTrpc.lists.create.mutate({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const file = new File(["shared asset"], "shared.pdf", {
+        type: "application/pdf",
+      });
+      const uploadResponse = await uploadTestAsset(ownerApiKey, port, file);
+
+      const { data: bookmark } = await ownerClient.POST("/bookmarks", {
+        body: {
+          type: "asset",
+          title: "Shared asset",
+          assetType: "pdf",
+          assetId: uploadResponse.assetId,
+        },
+      });
+
+      await ownerTrpc.lists.addToList.mutate({
+        listId: list.id,
+        bookmarkId: bookmark!.id,
+      });
+
+      await ownerTrpc.lists.addCollaborator.mutate({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      const collaboratorResp = await fetch(
+        `http://localhost:${port}/api/v1/assets/${uploadResponse.assetId}`,
+        {
+          headers: {
+            authorization: `Bearer ${collaboratorApiKey}`,
+          },
+        },
+      );
+      expect(collaboratorResp.status).toBe(200);
+
+      const thirdResp = await fetch(
+        `http://localhost:${port}/api/v1/assets/${uploadResponse.assetId}`,
+        {
+          headers: {
+            authorization: `Bearer ${thirdUserApiKey}`,
+          },
+        },
+      );
+      expect(thirdResp.status).toBe(404);
     });
 
     it("should allow collaborator to view individual shared bookmark", async () => {

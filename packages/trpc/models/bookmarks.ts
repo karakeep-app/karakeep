@@ -15,6 +15,7 @@ import {
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
+import { db as DONT_USE_db } from "@karakeep/db";
 import {
   assets,
   AssetTypes,
@@ -29,7 +30,8 @@ import {
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { readAsset } from "@karakeep/shared/assetdb";
+import { SearchIndexingQueue, triggerWebhook } from "@karakeep/shared-server";
+import { deleteAsset, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
   createSignedToken,
@@ -39,6 +41,7 @@ import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
+  ZBareBookmark,
   ZBookmark,
   ZBookmarkContent,
   zGetBookmarksRequestSchema,
@@ -56,11 +59,86 @@ import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { List } from "./lists";
 import { PrivacyAware } from "./privacy";
 
-export class Bookmark implements PrivacyAware {
+async function dummyDrizzleReturnType() {
+  const x = await DONT_USE_db.query.bookmarks.findFirst({
+    with: {
+      tagsOnBookmarks: {
+        with: {
+          tag: true,
+        },
+      },
+      link: true,
+      text: true,
+      asset: true,
+      assets: true,
+    },
+  });
+  if (!x) {
+    throw new Error();
+  }
+  return x;
+}
+
+type BookmarkQueryReturnType = Awaited<
+  ReturnType<typeof dummyDrizzleReturnType>
+>;
+
+export class BareBookmark implements PrivacyAware {
   protected constructor(
     protected ctx: AuthedContext,
-    public bookmark: ZBookmark & { userId: string },
+    public bookmark: ZBareBookmark,
   ) {}
+
+  static async bareFromId(ctx: AuthedContext, bookmarkId: string) {
+    const bookmark = await ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+    });
+
+    if (!bookmark) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
+      });
+    }
+
+    if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to access resource",
+      });
+    }
+
+    return new BareBookmark(ctx, bookmark);
+  }
+
+  protected static async isAllowedToAccessBookmark(
+    ctx: AuthedContext,
+    { id: bookmarkId, userId }: { id: string; userId: string },
+  ): Promise<boolean> {
+    if (userId == ctx.user.id) {
+      return true;
+    }
+    const collaborations = await ctx.db.query.bookmarksInLists.findMany({
+      where: eq(bookmarksInLists.bookmarkId, bookmarkId),
+      with: {
+        list: {
+          columns: {
+            id: true,
+          },
+          with: {
+            collaborators: {
+              where: eq(listCollaborators.userId, ctx.user.id),
+              columns: {
+                userId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return collaborations.some((c) => c.list.collaborators.length > 0);
+  }
 
   ensureCanAccess(ctx: AuthedContext): void {
     if (this.bookmark.userId != ctx.user.id) {
@@ -70,62 +148,133 @@ export class Bookmark implements PrivacyAware {
       });
     }
   }
+}
 
-  /**
-   * Check if a user can access this bookmark (either owns it or has access via a collaborative list).
-   */
-  async canUserAccess(userId: string): Promise<boolean> {
-    // If the user owns the bookmark, they can access it
-    if (this.bookmark.userId === userId) {
-      return true;
+export class Bookmark extends BareBookmark {
+  protected constructor(
+    ctx: AuthedContext,
+    public bookmark: ZBookmark,
+  ) {
+    super(ctx, bookmark);
+  }
+
+  private static async toZodSchema(
+    bookmark: BookmarkQueryReturnType,
+    includeContent: boolean,
+  ): Promise<ZBookmark> {
+    const { tagsOnBookmarks, link, text, asset, assets, ...rest } = bookmark;
+
+    let content: ZBookmarkContent = {
+      type: BookmarkTypes.UNKNOWN,
+    };
+    if (bookmark.link) {
+      content = {
+        type: BookmarkTypes.LINK,
+        screenshotAssetId: assets.find(
+          (a) => a.assetType == AssetTypes.LINK_SCREENSHOT,
+        )?.id,
+        fullPageArchiveAssetId: assets.find(
+          (a) => a.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+        )?.id,
+        precrawledArchiveAssetId: assets.find(
+          (a) => a.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+        )?.id,
+        imageAssetId: assets.find(
+          (a) => a.assetType == AssetTypes.LINK_BANNER_IMAGE,
+        )?.id,
+        videoAssetId: assets.find((a) => a.assetType == AssetTypes.LINK_VIDEO)
+          ?.id,
+        url: link.url,
+        title: link.title,
+        description: link.description,
+        imageUrl: link.imageUrl,
+        favicon: link.favicon,
+        htmlContent: includeContent
+          ? await Bookmark.getBookmarkHtmlContent(link, bookmark.userId)
+          : null,
+        crawledAt: link.crawledAt,
+        author: link.author,
+        publisher: link.publisher,
+        datePublished: link.datePublished,
+        dateModified: link.dateModified,
+      };
+    }
+    if (bookmark.text) {
+      content = {
+        type: BookmarkTypes.TEXT,
+        // It's ok to include the text content as it's usually not big and is used to render the text bookmark card.
+        text: text.text ?? "",
+        sourceUrl: text.sourceUrl,
+      };
+    }
+    if (bookmark.asset) {
+      content = {
+        type: BookmarkTypes.ASSET,
+        assetType: asset.assetType,
+        assetId: asset.assetId,
+        fileName: asset.fileName,
+        sourceUrl: asset.sourceUrl,
+        size: assets.find((a) => a.id == asset.assetId)?.size,
+        content: includeContent ? asset.content : null,
+      };
     }
 
-    // Check if the bookmark is in a list where the user is a collaborator
-    const collaboration = await this.ctx.db.query.bookmarksInLists.findFirst({
-      where: eq(bookmarksInLists.bookmarkId, this.bookmark.id),
+    return {
+      tags: tagsOnBookmarks
+        .map((t) => ({
+          attachedBy: t.attachedBy,
+          ...t.tag,
+        }))
+        .sort((a, b) =>
+          a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
+        ),
+      content,
+      assets: assets.map((a) => ({
+        id: a.id,
+        assetType: mapDBAssetTypeToUserType(a.assetType),
+        fileName: a.fileName,
+      })),
+      ...rest,
+    };
+  }
+
+  static async fromId(
+    ctx: AuthedContext,
+    bookmarkId: string,
+    includeContent: boolean,
+  ) {
+    const bookmark = await ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
       with: {
-        list: {
+        tagsOnBookmarks: {
           with: {
-            collaborators: {
-              where: eq(listCollaborators.userId, userId),
-            },
+            tag: true,
           },
         },
+        link: true,
+        text: true,
+        asset: true,
+        assets: true,
       },
     });
 
-    return !!collaboration?.list.collaborators.length;
-  }
-
-  /**
-   * Ensure the user can access this bookmark. Throws if they cannot.
-   */
-  async ensureCanAccessAsync(userId: string): Promise<void> {
-    if (!(await this.canUserAccess(userId))) {
+    if (!bookmark) {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access this bookmark",
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
       });
     }
-  }
 
-  /**
-   * Check if the user can edit this bookmark (only owners can edit).
-   */
-  canUserEdit(userId: string): boolean {
-    return this.bookmark.userId === userId;
-  }
-
-  /**
-   * Ensure the user can edit this bookmark. Throws if they cannot.
-   */
-  ensureCanEdit(userId: string): void {
-    if (!this.canUserEdit(userId)) {
+    if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Only the bookmark owner can edit this bookmark",
+        message: "User is not allowed to access resource",
       });
     }
+    return Bookmark.fromData(
+      ctx,
+      await Bookmark.toZodSchema(bookmark, includeContent),
+    );
   }
 
   /**
@@ -133,10 +282,8 @@ export class Bookmark implements PrivacyAware {
    * This creates a copy of the bookmark owned by the target user.
    * Used when collaborators want to save a shared bookmark to their own collection.
    */
-  async clone(targetUserId: string): Promise<Bookmark> {
-    // Ensure the target user can access this bookmark
-    await this.ensureCanAccessAsync(targetUserId);
-
+  async clone(): Promise<Bookmark> {
+    const targetUserId = this.ctx.user.id;
     // Cannot clone your own bookmark
     if (this.bookmark.userId === targetUserId) {
       throw new TRPCError({
@@ -743,5 +890,41 @@ export class Bookmark implements PrivacyAware {
       return null;
     }
     return htmlToPlainText(content);
+  }
+
+  private async cleanupAssets() {
+    const assetIds: Set<string> = new Set<string>(
+      this.bookmark.assets.map((a) => a.id),
+    );
+    // Todo: Remove when the bookmark asset is also in the assets table
+    if (this.bookmark.content.type == BookmarkTypes.ASSET) {
+      assetIds.add(this.bookmark.content.assetId);
+    }
+    await Promise.all(
+      Array.from(assetIds).map((assetId) =>
+        deleteAsset({ userId: this.bookmark.userId, assetId }),
+      ),
+    );
+  }
+
+  async delete() {
+    const deleted = await this.ctx.db
+      .delete(bookmarks)
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          eq(bookmarks.id, this.bookmark.id),
+        ),
+      );
+
+    await SearchIndexingQueue.enqueue({
+      bookmarkId: this.bookmark.id,
+      type: "delete",
+    });
+
+    await triggerWebhook(this.bookmark.id, "deleted", this.ctx.user.id);
+    if (deleted.changes > 0) {
+      await this.cleanupAssets();
+    }
   }
 }

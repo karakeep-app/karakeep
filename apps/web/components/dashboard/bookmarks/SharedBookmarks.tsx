@@ -30,7 +30,6 @@ export default async function SharedBookmarks() {
   }
 
   // Get all bookmark IDs from shared lists
-  const allBookmarkIds: string[] = [];
   for (const list of sharedLists) {
     if (list.type === "manual") {
       // For manual lists, we can get bookmarks directly

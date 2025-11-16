@@ -108,6 +108,9 @@
               "import"
             ]
           },
+          "userId": {
+            "type": "string"
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -341,6 +344,7 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "userId",
           "tags",
           "content",
           "assets"
@@ -402,6 +406,14 @@
           },
           "public": {
             "type": "boolean"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer"
+            ]
           }
         },
         "required": [
@@ -1194,6 +1206,9 @@
                         "rss",
                         "import"
                       ]
+                    },
+                    "userId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1203,7 +1218,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "userId"
                   ]
                 }
               }
@@ -1318,6 +1334,9 @@
                         "rss",
                         "import"
                       ]
+                    },
+                    "userId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1327,7 +1346,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "userId"
                   ]
                 }
               }
