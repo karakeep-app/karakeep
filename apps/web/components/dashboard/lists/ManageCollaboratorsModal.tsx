@@ -62,18 +62,26 @@ export function ManageCollaboratorsModal({
   const { t } = useTranslation();
   const utils = api.useUtils();
 
+  const invalidateListCaches = () =>
+    Promise.all([
+      utils.lists.getCollaborators.invalidate({ listId: list.id }),
+      utils.lists.get.invalidate({ listId: list.id }),
+      utils.lists.list.invalidate(),
+      utils.bookmarks.getBookmarks.invalidate({ listId: list.id }),
+    ]);
+
   // Fetch collaborators
   const { data: collaboratorsData, isLoading } =
     api.lists.getCollaborators.useQuery({ listId: list.id }, { enabled: open });
 
   // Mutations
   const addCollaborator = api.lists.addCollaborator.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         description: t("lists.collaborators.added_successfully"),
       });
       setNewCollaboratorEmail("");
-      utils.lists.getCollaborators.invalidate({ listId: list.id });
+      await invalidateListCaches();
     },
     onError: (error) => {
       toast({
@@ -84,11 +92,11 @@ export function ManageCollaboratorsModal({
   });
 
   const removeCollaborator = api.lists.removeCollaborator.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         description: t("lists.collaborators.removed"),
       });
-      utils.lists.getCollaborators.invalidate({ listId: list.id });
+      await invalidateListCaches();
     },
     onError: (error) => {
       toast({
@@ -99,11 +107,11 @@ export function ManageCollaboratorsModal({
   });
 
   const updateCollaboratorRole = api.lists.updateCollaboratorRole.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         description: t("lists.collaborators.role_updated"),
       });
-      utils.lists.getCollaborators.invalidate({ listId: list.id });
+      await invalidateListCaches();
     },
     onError: (error) => {
       toast({
