@@ -8,6 +8,7 @@ import {
 import { useShowArchived } from "@/components/utils/useShowArchived";
 import { useTranslation } from "@/lib/i18n/client";
 import {
+  DoorOpen,
   FolderInput,
   Pencil,
   Plus,
@@ -22,6 +23,7 @@ import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 import { EditListModal } from "../lists/EditListModal";
 import DeleteListConfirmationDialog from "./DeleteListConfirmationDialog";
+import LeaveListConfirmationDialog from "./LeaveListConfirmationDialog";
 import { ManageCollaboratorsModal } from "./ManageCollaboratorsModal";
 import { MergeListModal } from "./MergeListModal";
 import { ShareListModal } from "./ShareListModal";
@@ -41,6 +43,7 @@ export function ListOptions({
   const { showArchived, onClickShowArchived } = useShowArchived();
 
   const [deleteListDialogOpen, setDeleteListDialogOpen] = useState(false);
+  const [leaveListDialogOpen, setLeaveListDialogOpen] = useState(false);
   const [newNestedListModalOpen, setNewNestedListModalOpen] = useState(false);
   const [mergeListModalOpen, setMergeListModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -49,6 +52,9 @@ export function ListOptions({
 
   // Only owners can manage the list (edit, delete, manage collaborators, etc.)
   const isOwner = list.userRole === "owner";
+  // Collaborators (non-owners) can leave the list
+  const isCollaborator =
+    list.userRole === "editor" || list.userRole === "viewer";
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
@@ -83,6 +89,11 @@ export function ListOptions({
         list={list}
         open={deleteListDialogOpen}
         setOpen={setDeleteListDialogOpen}
+      />
+      <LeaveListConfirmationDialog
+        list={list}
+        open={leaveListDialogOpen}
+        setOpen={setLeaveListDialogOpen}
       />
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -139,9 +150,18 @@ export function ListOptions({
           )}
           <span>{t("actions.toggle_show_archived")}</span>
         </DropdownMenuItem>
+        {isCollaborator && (
+          <DropdownMenuItem
+            className="flex gap-2 text-destructive"
+            onClick={() => setLeaveListDialogOpen(true)}
+          >
+            <DoorOpen className="size-4" />
+            <span>Leave List</span>
+          </DropdownMenuItem>
+        )}
         {isOwner && (
           <DropdownMenuItem
-            className="flex gap-2"
+            className="flex gap-2 text-destructive"
             onClick={() => setDeleteListDialogOpen(true)}
           >
             <Trash2 className="size-4" />

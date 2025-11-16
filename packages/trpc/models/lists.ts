@@ -534,10 +534,52 @@ export abstract class List implements PrivacyAware {
 
   /**
    * Remove a collaborator from this list.
+   * Only the list owner can remove collaborators.
    */
   async removeCollaborator(userId: string): Promise<void> {
     await this.ensureCanManage(this.ctx.user.id);
 
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
+  }
+
+  /**
+   * Allow a user to leave a list (remove themselves as a collaborator).
+   * This bypasses the owner check since users should be able to leave lists they're collaborating on.
+   */
+  async leaveList(userId: string): Promise<void> {
+    // Verify the user is actually a collaborator (not the owner)
+    const role = await this.getUserRole(userId);
+
+    if (role === "owner") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "List owners cannot leave their own list. Delete the list instead.",
+      });
+    }
+
+    if (!role || role === null) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "You are not a collaborator on this list",
+      });
+    }
+
+    // Remove the user as a collaborator
     const result = await this.ctx.db
       .delete(listCollaborators)
       .where(

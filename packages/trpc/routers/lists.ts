@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware } from "@trpc/server";
+import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -257,5 +257,15 @@ export const listsAppRouter = router({
     .query(async ({ ctx }) => {
       const lists = await List.getSharedWithUser(ctx);
       return { lists: lists.map((l) => l.list) };
+    }),
+  leaveList: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const list = await List.fromId(ctx, input.listId);
+      await list.leaveList(ctx.user.id);
     }),
 });
