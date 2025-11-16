@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { toast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
@@ -18,6 +19,7 @@ export default function LeaveListConfirmationDialog({
   open: boolean;
   setOpen: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const currentPath = usePathname();
   const router = useRouter();
   const utils = api.useUtils();
@@ -25,7 +27,10 @@ export default function LeaveListConfirmationDialog({
   const { mutate: leaveList, isPending } = api.lists.leaveList.useMutation({
     onSuccess: () => {
       toast({
-        description: `You have left "${list.icon} ${list.name}"`,
+        description: t("lists.leave_list.success", {
+          icon: list.icon,
+          name: list.name,
+        }),
       });
       setOpen(false);
       // Invalidate the lists cache
@@ -38,7 +43,7 @@ export default function LeaveListConfirmationDialog({
     onError: (error) => {
       toast({
         variant: "destructive",
-        description: error.message || "Something went wrong",
+        description: error.message || t("common.something_went_wrong"),
       });
     },
   });
@@ -47,15 +52,17 @@ export default function LeaveListConfirmationDialog({
     <ActionConfirmingDialog
       open={open}
       setOpen={setOpen}
-      title="Leave List"
+      title={t("lists.leave_list.title")}
       description={
         <div className="space-y-3">
           <p className="text-balance">
-            Are you sure you want to leave {list.icon} {list.name}?
+            {t("lists.leave_list.confirm_message", {
+              icon: list.icon,
+              name: list.name,
+            })}
           </p>
           <p className="text-balance text-sm text-muted-foreground">
-            You will no longer be able to view or access bookmarks in this list.
-            The list owner can add you back if needed.
+            {t("lists.leave_list.warning")}
           </p>
         </div>
       }
@@ -66,7 +73,7 @@ export default function LeaveListConfirmationDialog({
           loading={isPending}
           onClick={() => leaveList({ listId: list.id })}
         >
-          Leave List
+          {t("lists.leave_list.action")}
         </ActionButton>
       )}
     >

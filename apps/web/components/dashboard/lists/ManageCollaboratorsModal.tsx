@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { Loader2, Trash2, UserPlus, Users } from "lucide-react";
 
@@ -57,6 +58,7 @@ export function ManageCollaboratorsModal({
     "viewer" | "editor"
   >("viewer");
 
+  const { t } = useTranslation();
   const utils = api.useUtils();
 
   // Fetch collaborators
@@ -67,7 +69,7 @@ export function ManageCollaboratorsModal({
   const addCollaborator = api.lists.addCollaborator.useMutation({
     onSuccess: () => {
       toast({
-        description: "Collaborator added successfully",
+        description: t("lists.collaborators.added_successfully"),
       });
       setNewCollaboratorEmail("");
       utils.lists.getCollaborators.invalidate({ listId: list.id });
@@ -75,7 +77,7 @@ export function ManageCollaboratorsModal({
     onError: (error) => {
       toast({
         variant: "destructive",
-        description: error.message || "Failed to add collaborator",
+        description: error.message || t("lists.collaborators.failed_to_add"),
       });
     },
   });
@@ -83,14 +85,14 @@ export function ManageCollaboratorsModal({
   const removeCollaborator = api.lists.removeCollaborator.useMutation({
     onSuccess: () => {
       toast({
-        description: "Collaborator removed",
+        description: t("lists.collaborators.removed"),
       });
       utils.lists.getCollaborators.invalidate({ listId: list.id });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        description: error.message || "Failed to remove collaborator",
+        description: error.message || t("lists.collaborators.failed_to_remove"),
       });
     },
   });
@@ -98,14 +100,15 @@ export function ManageCollaboratorsModal({
   const updateCollaboratorRole = api.lists.updateCollaboratorRole.useMutation({
     onSuccess: () => {
       toast({
-        description: "Role updated",
+        description: t("lists.collaborators.role_updated"),
       });
       utils.lists.getCollaborators.invalidate({ listId: list.id });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        description: error.message || "Failed to update role",
+        description:
+          error.message || t("lists.collaborators.failed_to_update_role"),
       });
     },
   });
@@ -114,7 +117,7 @@ export function ManageCollaboratorsModal({
     if (!newCollaboratorEmail.trim()) {
       toast({
         variant: "destructive",
-        description: "Please enter an email address",
+        description: t("lists.collaborators.please_enter_email"),
       });
       return;
     }
@@ -138,12 +141,14 @@ export function ManageCollaboratorsModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            {readOnly ? "Collaborators" : "Manage Collaborators"}
+            {readOnly
+              ? t("lists.collaborators.collaborators")
+              : t("lists.collaborators.manage")}
           </DialogTitle>
           <DialogDescription>
             {readOnly
-              ? "People who have access to this list"
-              : "Add or remove people who can access this list"}
+              ? t("lists.collaborators.people_with_access")
+              : t("lists.collaborators.add_or_remove")}
           </DialogDescription>
         </DialogHeader>
 
@@ -151,12 +156,12 @@ export function ManageCollaboratorsModal({
           {/* Add Collaborator Section */}
           {!readOnly && (
             <div className="space-y-3">
-              <Label>Add Collaborator</Label>
+              <Label>{t("lists.collaborators.add")}</Label>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Input
                     type="email"
-                    placeholder="Enter email address"
+                    placeholder={t("lists.collaborators.enter_email")}
                     value={newCollaboratorEmail}
                     onChange={(e) => setNewCollaboratorEmail(e.target.value)}
                     onKeyDown={(e) => {
@@ -176,8 +181,12 @@ export function ManageCollaboratorsModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">
+                      {t("lists.collaborators.viewer")}
+                    </SelectItem>
+                    <SelectItem value="editor">
+                      {t("lists.collaborators.editor")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
@@ -192,9 +201,11 @@ export function ManageCollaboratorsModal({
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                <strong>Viewer:</strong> Can view bookmarks in the list
+                <strong>{t("lists.collaborators.viewer")}:</strong>{" "}
+                {t("lists.collaborators.viewer_description")}
                 <br />
-                <strong>Editor:</strong> Can add and remove bookmarks
+                <strong>{t("lists.collaborators.editor")}:</strong>{" "}
+                {t("lists.collaborators.editor_description")}
               </p>
             </div>
           )}
@@ -202,7 +213,9 @@ export function ManageCollaboratorsModal({
           {/* Current Collaborators */}
           <div className="space-y-3">
             <Label>
-              {readOnly ? "Collaborators" : "Current Collaborators"}
+              {readOnly
+                ? t("lists.collaborators.collaborators")
+                : t("lists.collaborators.current")}
             </Label>
             {isLoading ? (
               <div className="flex justify-center py-8">
@@ -225,7 +238,7 @@ export function ManageCollaboratorsModal({
                       </div>
                     </div>
                     <div className="text-sm capitalize text-muted-foreground">
-                      Owner
+                      {t("lists.collaborators.owner")}
                     </div>
                   </div>
                 )}
@@ -264,8 +277,12 @@ export function ManageCollaboratorsModal({
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="viewer">Viewer</SelectItem>
-                              <SelectItem value="editor">Editor</SelectItem>
+                              <SelectItem value="viewer">
+                                {t("lists.collaborators.viewer")}
+                              </SelectItem>
+                              <SelectItem value="editor">
+                                {t("lists.collaborators.editor")}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <Button
@@ -288,16 +305,16 @@ export function ManageCollaboratorsModal({
                 ) : !collaboratorsData.owner ? (
                   <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
                     {readOnly
-                      ? "No collaborators for this list."
-                      : "No collaborators yet. Add someone to start collaborating!"}
+                      ? t("lists.collaborators.no_collaborators_readonly")
+                      : t("lists.collaborators.no_collaborators")}
                   </div>
                 ) : null}
               </div>
             ) : (
               <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
                 {readOnly
-                  ? "No collaborators for this list."
-                  : "No collaborators yet. Add someone to start collaborating!"}
+                  ? t("lists.collaborators.no_collaborators_readonly")
+                  : t("lists.collaborators.no_collaborators")}
               </div>
             )}
           </div>
@@ -306,7 +323,7 @@ export function ManageCollaboratorsModal({
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
             <Button type="button" variant="secondary">
-              Close
+              {t("actions.close")}
             </Button>
           </DialogClose>
         </DialogFooter>

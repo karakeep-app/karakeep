@@ -76,7 +76,9 @@ export function ListOptions({
     },
     {
       id: "manage-collaborators",
-      title: isOwner ? "Manage Collaborators" : "View Collaborators",
+      title: isOwner
+        ? t("lists.collaborators.manage")
+        : t("lists.collaborators.view"),
       icon: <Users className="size-4" />,
       visible: true, // Always visible for all roles
       disabled: false,
@@ -112,7 +114,7 @@ export function ListOptions({
     },
     {
       id: "leave-list",
-      title: "Leave List",
+      title: t("lists.leave_list.action"),
       icon: <DoorOpen className="size-4" />,
       visible: isCollaborator,
       disabled: false,
