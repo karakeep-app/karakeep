@@ -62,7 +62,7 @@ describe("Shared Lists", () => {
           email: ownerUser.email!,
           role: "viewer",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("Cannot add the list owner as a collaborator");
     });
 
     test<CustomTestContext>("should not allow adding duplicate collaborator", async ({
@@ -92,7 +92,7 @@ describe("Shared Lists", () => {
           email: collaboratorEmail,
           role: "editor",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is already a collaborator on this list");
     });
 
     test<CustomTestContext>("should allow owner to update collaborator role", async ({
@@ -356,7 +356,9 @@ describe("Shared Lists", () => {
         ownerApi.lists.leaveList({
           listId: list.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(
+        "List owners cannot leave their own list. Delete the list instead.",
+      );
     });
 
     test<CustomTestContext>("should not allow non-collaborator to manage collaborators", async ({
@@ -380,7 +382,7 @@ describe("Shared Lists", () => {
           email: thirdUser.email!,
           role: "viewer",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("List not found");
     });
   });
 
@@ -460,7 +462,7 @@ describe("Shared Lists", () => {
         thirdUserApi.lists.get({
           listId: list.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("List not found");
     });
 
     test<CustomTestContext>("should show correct userRole for owner", async ({
@@ -720,7 +722,7 @@ describe("Shared Lists", () => {
         thirdUserApi.bookmarks.getBookmark({
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to access resource");
     });
 
     test<CustomTestContext>("should show all bookmarks in shared list regardless of owner", async ({
@@ -811,7 +813,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to edit this list");
     });
 
     test<CustomTestContext>("should allow editor to add bookmarks to list", async ({
@@ -889,7 +891,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to edit this list");
     });
 
     test<CustomTestContext>("should allow editor to remove bookmarks from list", async ({
@@ -970,7 +972,7 @@ describe("Shared Lists", () => {
           bookmarkId: bookmark.id,
           title: "Modified title",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to access resource");
     });
 
     test<CustomTestContext>("should not allow collaborator to delete bookmark they don't own", async ({
@@ -1007,7 +1009,7 @@ describe("Shared Lists", () => {
         collaboratorApi.bookmarks.deleteBookmark({
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to access resource");
     });
   });
 
@@ -1037,7 +1039,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           name: "Modified Name",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to manage this list");
     });
 
     test<CustomTestContext>("should not allow collaborator to delete list", async ({
@@ -1064,7 +1066,7 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.delete({
           listId: list.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to manage this list");
     });
 
     test<CustomTestContext>("should not allow collaborator to manage other collaborators", async ({
@@ -1096,7 +1098,7 @@ describe("Shared Lists", () => {
           email: ownerEmail,
           role: "viewer",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to manage this list");
     });
 
     test<CustomTestContext>("should only allow collaborators to view collaborator list", async ({
@@ -1137,7 +1139,7 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.getCollaborators({
           listId: list2.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("List not found");
     });
   });
 
@@ -1194,14 +1196,14 @@ describe("Shared Lists", () => {
         collaboratorApi.bookmarks.getBookmarks({
           listId: list.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("List not found");
 
       // Verify bookmark access is revoked
       await expect(
         collaboratorApi.bookmarks.getBookmark({
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to access resource");
     });
 
     test<CustomTestContext>("should revoke access after leaving list", async ({
@@ -1233,7 +1235,7 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.get({
           listId: list.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("List not found");
     });
   });
 
@@ -1258,6 +1260,378 @@ describe("Shared Lists", () => {
           listId: list.id,
           email: collaboratorEmail,
           role: "viewer",
+        }),
+      ).rejects.toThrow("Only manual lists can have collaborators");
+    });
+  });
+
+  describe("List Operations Privacy", () => {
+    test<CustomTestContext>("should not allow collaborator to merge lists", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list1 = await ownerApi.lists.create({
+        name: "List 1",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const list2 = await ownerApi.lists.create({
+        name: "List 2",
+        icon: "📖",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list1.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+      await ownerApi.lists.addCollaborator({
+        listId: list2.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+
+      // Collaborator tries to merge the shared list into another list
+      await expect(
+        collaboratorApi.lists.merge({
+          sourceId: list1.id,
+          targetId: list2.id,
+          deleteSourceAfterMerge: false,
+        }),
+      ).rejects.toThrow("User is not allowed to manage this list");
+    });
+
+    test<CustomTestContext>("should not allow collaborator to access RSS token operations", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+
+      // Collaborator tries to generate RSS token
+      await expect(
+        collaboratorApi.lists.regenRssToken({
+          listId: list.id,
+        }),
+      ).rejects.toThrow("User is not allowed to manage this list");
+
+      // Collaborator tries to get RSS token
+      await expect(
+        collaboratorApi.lists.getRssToken({
+          listId: list.id,
+        }),
+      ).rejects.toThrow("User is not allowed to manage this list");
+
+      // Owner generates token first
+      await ownerApi.lists.regenRssToken({
+        listId: list.id,
+      });
+
+      // Collaborator tries to clear RSS token
+      await expect(
+        collaboratorApi.lists.clearRssToken({
+          listId: list.id,
+        }),
+      ).rejects.toThrow("User is not allowed to manage this list");
+    });
+
+    test<CustomTestContext>("should not allow collaborator to access getListsOfBookmark for bookmark they don't own", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Collaborator cannot use getListsOfBookmark for owner's bookmark
+      // This is expected - only bookmark owners can query which lists contain their bookmarks
+      await expect(
+        collaboratorApi.lists.getListsOfBookmark({
+          bookmarkId: bookmark.id,
+        }),
+      ).rejects.toThrow();
+    });
+
+    test<CustomTestContext>("should allow collaborator to use getListsOfBookmark for their own bookmarks in shared lists", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+
+      // Collaborator creates their own bookmark and adds it to the shared list
+      const bookmark = await collaboratorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Collaborator's bookmark",
+      });
+
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Collaborator can see the shared list in getListsOfBookmark for their own bookmark
+      const { lists } = await collaboratorApi.lists.getListsOfBookmark({
+        bookmarkId: bookmark.id,
+      });
+
+      expect(lists).toHaveLength(1);
+      expect(lists[0].id).toBe(list.id);
+      expect(lists[0].userRole).toBe("editor");
+    });
+
+    test<CustomTestContext>("should include shared lists in stats", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Add bookmarks to the list
+      const bookmark1 = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Bookmark 1",
+      });
+      const bookmark2 = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Bookmark 2",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark1.id,
+      });
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark2.id,
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Collaborator gets stats
+      const { stats } = await collaboratorApi.lists.stats();
+
+      // Shared list should appear in stats with correct count
+      expect(stats.get(list.id)).toBe(2);
+    });
+
+    test<CustomTestContext>("should allow editor to add their own bookmark to shared list via addToList", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const editorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const editorEmail = (await editorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: editorEmail,
+        role: "editor",
+      });
+
+      // Editor creates their own bookmark
+      const bookmark = await editorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Editor's bookmark",
+      });
+
+      // Editor should be able to add their bookmark to the shared list
+      await editorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Verify bookmark was added
+      const bookmarks = await ownerApi.bookmarks.getBookmarks({
+        listId: list.id,
+      });
+
+      expect(bookmarks.bookmarks).toHaveLength(1);
+      expect(bookmarks.bookmarks[0].id).toBe(bookmark.id);
+    });
+
+    test<CustomTestContext>("should not allow viewer to add their own bookmark to shared list via addToList", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const viewerApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const viewerEmail = (await viewerApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: viewerEmail,
+        role: "viewer",
+      });
+
+      // Viewer creates their own bookmark
+      const bookmark = await viewerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Viewer's bookmark",
+      });
+
+      // Viewer should not be able to add their bookmark to the shared list
+      await expect(
+        viewerApi.lists.addToList({
+          listId: list.id,
+          bookmarkId: bookmark.id,
+        }),
+      ).rejects.toThrow();
+    });
+
+    test<CustomTestContext>("should not allow editor to add someone else's bookmark to shared list", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const editorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2] ?? apiCallers[0]; // Fallback if only 2 users
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const editorEmail = (await editorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: editorEmail,
+        role: "editor",
+      });
+
+      // Third user creates a bookmark (or owner if only 2 users)
+      const bookmark = await thirdUserApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Someone else's bookmark",
+      });
+
+      // Editor should not be able to add someone else's bookmark
+      await expect(
+        editorApi.lists.addToList({
+          listId: list.id,
+          bookmarkId: bookmark.id,
+        }),
+      ).rejects.toThrow();
+    });
+
+    test<CustomTestContext>("should not allow collaborator to update list metadata fields", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const editorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const editorEmail = (await editorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: editorEmail,
+        role: "editor",
+      });
+
+      // Editor tries to change list name
+      await expect(
+        editorApi.lists.edit({
+          listId: list.id,
+          name: "Modified Name",
+        }),
+      ).rejects.toThrow();
+
+      // Editor tries to change list icon
+      await expect(
+        editorApi.lists.edit({
+          listId: list.id,
+          icon: "🔥",
+        }),
+      ).rejects.toThrow();
+
+      // Editor tries to change list description
+      await expect(
+        editorApi.lists.edit({
+          listId: list.id,
+          description: "Modified description",
+        }),
+      ).rejects.toThrow();
+
+      // Editor tries to make list public
+      await expect(
+        editorApi.lists.edit({
+          listId: list.id,
+          public: true,
         }),
       ).rejects.toThrow();
     });

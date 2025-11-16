@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -13,10 +13,11 @@ import { authedProcedure, router } from "../index";
 import { List } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
 
-export const ensureListOwnership = experimental_trpcMiddleware<{
+export const ensureListAtLeastViewer = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: { listId: string };
 }>().create(async (opts) => {
+  // This would throw if the user can't view the list
   const list = await List.fromId(opts.ctx, opts.input.listId);
   return opts.next({
     ctx: {
@@ -26,17 +27,21 @@ export const ensureListOwnership = experimental_trpcMiddleware<{
   });
 });
 
-export const ensureListEditorOrOwner = experimental_trpcMiddleware<{
+export const ensureListAtLeastEditor = experimental_trpcMiddleware<{
   ctx: AuthedContext & { list: List };
   input: { listId: string };
 }>().create(async (opts) => {
-  const canEdit = opts.ctx.list.canUserEdit();
-  if (!canEdit) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User does not have edit permissions for this list",
-    });
-  }
+  opts.ctx.list.ensureCanEdit();
+  return opts.next({
+    ctx: opts.ctx,
+  });
+});
+
+export const ensureListAtLeastOwner = experimental_trpcMiddleware<{
+  ctx: AuthedContext & { list: List };
+  input: { listId: string };
+}>().create(async (opts) => {
+  opts.ctx.list.ensureCanManage();
   return opts.next({
     ctx: opts.ctx,
   });
@@ -52,7 +57,8 @@ export const listsAppRouter = router({
   edit: authedProcedure
     .input(zEditBookmarkListSchemaWithValidation)
     .output(zBookmarkListSchema)
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.update(input);
       return ctx.list.asZBookmarkList();
@@ -64,6 +70,8 @@ export const listsAppRouter = router({
         List.fromId(ctx, input.sourceId),
         List.fromId(ctx, input.targetId),
       ]);
+      sourceList.ensureCanManage();
+      targetList.ensureCanManage();
       return await sourceList.mergeInto(
         targetList,
         input.deleteSourceAfterMerge,
@@ -76,7 +84,8 @@ export const listsAppRouter = router({
         deleteChildren: z.boolean().optional().default(false),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ ctx, input }) => {
       if (input.deleteChildren) {
         const children = await ctx.list.getChildren();
@@ -91,8 +100,8 @@ export const listsAppRouter = router({
         bookmarkId: z.string(),
       }),
     )
-    .use(ensureListOwnership)
-    .use(ensureListEditorOrOwner)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastEditor)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.addBookmark(input.bookmarkId);
@@ -104,8 +113,8 @@ export const listsAppRouter = router({
         bookmarkId: z.string(),
       }),
     )
-    .use(ensureListOwnership)
-    .use(ensureListEditorOrOwner)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastEditor)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.removeBookmark(input.bookmarkId);
     }),
@@ -116,7 +125,7 @@ export const listsAppRouter = router({
       }),
     )
     .output(zBookmarkListSchema)
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
     .query(async ({ ctx }) => {
       return ctx.list.asZBookmarkList();
     }),
@@ -166,7 +175,8 @@ export const listsAppRouter = router({
         token: z.string(),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ ctx }) => {
       const token = await ctx.list.regenRssToken();
       return { token: token! };
@@ -177,7 +187,8 @@ export const listsAppRouter = router({
         listId: z.string(),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ ctx }) => {
       await ctx.list.clearRssToken();
     }),
@@ -192,7 +203,8 @@ export const listsAppRouter = router({
         token: z.string().nullable(),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .query(async ({ ctx }) => {
       return { token: await ctx.list.getRssToken() };
     }),
@@ -206,7 +218,8 @@ export const listsAppRouter = router({
         role: z.enum(["viewer", "editor"]),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.addCollaboratorByEmail(input.email, input.role);
     }),
@@ -217,7 +230,8 @@ export const listsAppRouter = router({
         userId: z.string(),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.removeCollaborator(input.userId);
     }),
@@ -229,7 +243,8 @@ export const listsAppRouter = router({
         role: z.enum(["viewer", "editor"]),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.updateCollaboratorRole(input.userId, input.role);
     }),
@@ -256,7 +271,7 @@ export const listsAppRouter = router({
         ),
       }),
     )
-    .use(ensureListOwnership)
+    .use(ensureListAtLeastViewer)
     .query(async ({ ctx }) => {
       const collaborators = await ctx.list.getCollaborators();
       return { collaborators };
@@ -268,8 +283,8 @@ export const listsAppRouter = router({
         listId: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      await list.leaveList(ctx.user.id);
+    .use(ensureListAtLeastViewer)
+    .mutation(async ({ ctx }) => {
+      await ctx.list.leaveList();
     }),
 });

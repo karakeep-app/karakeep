@@ -975,35 +975,4 @@ Author: ${bookmark.author ?? ""}
         summary: summary.response,
       };
     }),
-
-  // Clone a bookmark to the current user's collection
-  cloneBookmark: authedProcedure
-    .input(
-      z.object({
-        bookmarkId: z.string(),
-      }),
-    )
-    .output(zBookmarkSchema)
-    .mutation(async ({ input, ctx }) => {
-      // Load the bookmark to clone using Bookmark.loadMulti
-      const result = await Bookmark.loadMulti(ctx, {
-        ids: [input.bookmarkId],
-        includeContent: true,
-        sortOrder: "desc",
-      });
-
-      if (result.bookmarks.length === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bookmark not found",
-        });
-      }
-
-      const bookmarkToClone = result.bookmarks[0];
-
-      // Clone the bookmark
-      const cloned = await bookmarkToClone.clone();
-
-      return cloned.asZBookmark();
-    }),
 });

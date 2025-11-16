@@ -344,33 +344,6 @@ export abstract class List implements PrivacyAware {
   }
 
   /**
-   * Get the user's role for this list.
-   * Returns "owner", "editor", "viewer", or null if the user has no access.
-   */
-  async getUserRole(
-    userId: string,
-  ): Promise<"owner" | "editor" | "viewer" | null> {
-    // Check if user is the owner
-    if (this.list.userId === userId) {
-      return "owner";
-    }
-
-    // Check if user is a collaborator
-    const collaborator = await this.ctx.db.query.listCollaborators.findFirst({
-      where: and(
-        eq(listCollaborators.listId, this.list.id),
-        eq(listCollaborators.userId, userId),
-      ),
-    });
-
-    if (collaborator) {
-      return collaborator.role as "editor" | "viewer";
-    }
-
-    return null;
-  }
-
-  /**
    * Check if the user can view this list and its bookmarks.
    */
   canUserView(): boolean {
@@ -444,6 +417,7 @@ export abstract class List implements PrivacyAware {
   }
 
   async delete() {
+    this.ensureCanManage();
     const res = await this.ctx.db
       .delete(bookmarkLists)
       .where(
@@ -496,6 +470,7 @@ export abstract class List implements PrivacyAware {
   async update(
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
+    this.ensureCanManage();
     const result = await this.ctx.db
       .update(bookmarkLists)
       .set({
@@ -551,6 +526,7 @@ export abstract class List implements PrivacyAware {
   }
 
   async getRssToken(): Promise<string | null> {
+    this.ensureCanManage();
     const [result] = await this.ctx.db
       .select({ rssToken: bookmarkLists.rssToken })
       .from(bookmarkLists)
@@ -565,10 +541,12 @@ export abstract class List implements PrivacyAware {
   }
 
   async regenRssToken() {
+    this.ensureCanManage();
     return await this.setRssToken(crypto.randomBytes(32).toString("hex"));
   }
 
   async clearRssToken() {
+    this.ensureCanManage();
     await this.setRssToken(null);
   }
 
@@ -723,22 +701,12 @@ export abstract class List implements PrivacyAware {
    * This bypasses the owner check since users should be able to leave lists they're collaborating on.
    * This also removes all bookmarks that the user added to the list.
    */
-  async leaveList(userId: string): Promise<void> {
-    // Verify the user is actually a collaborator (not the owner)
-    const role = await this.getUserRole(userId);
-
-    if (role === "owner") {
+  async leaveList(): Promise<void> {
+    if (this.list.userRole === "owner") {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "List owners cannot leave their own list. Delete the list instead.",
-      });
-    }
-
-    if (!role || role === null) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "You are not a collaborator on this list",
       });
     }
 
@@ -749,7 +717,7 @@ export abstract class List implements PrivacyAware {
         .where(
           and(
             eq(bookmarksInLists.listId, this.list.id),
-            eq(bookmarksInLists.addedBy, userId),
+            eq(bookmarksInLists.addedBy, this.ctx.user.id),
           ),
         );
 
@@ -759,7 +727,7 @@ export abstract class List implements PrivacyAware {
         .where(
           and(
             eq(listCollaborators.listId, this.list.id),
-            eq(listCollaborators.userId, userId),
+            eq(listCollaborators.userId, this.ctx.user.id),
           ),
         );
 
@@ -1024,6 +992,8 @@ export class ManualList extends List {
     targetList: List,
     deleteSourceAfterMerge: boolean,
   ): Promise<void> {
+    this.ensureCanManage();
+    targetList.ensureCanManage();
     if (targetList.type !== "manual") {
       throw new TRPCError({
         code: "BAD_REQUEST",
