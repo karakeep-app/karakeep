@@ -164,6 +164,75 @@ describe("Shared Lists", () => {
       expect(collaborators).toHaveLength(0);
     });
 
+    test<CustomTestContext>("should remove collaborator's bookmarks when they are removed", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds a bookmark
+      const ownerBookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: ownerBookmark.id,
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorUser.email!,
+        role: "editor",
+      });
+
+      // Collaborator adds their own bookmark
+      const collabBookmark = await collaboratorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Collaborator's bookmark",
+      });
+
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: collabBookmark.id,
+      });
+
+      // Verify both bookmarks are in the list
+      const bookmarksBefore = await ownerApi.bookmarks.getBookmarks({
+        listId: list.id,
+      });
+      expect(bookmarksBefore.bookmarks).toHaveLength(2);
+
+      // Remove collaborator
+      await ownerApi.lists.removeCollaborator({
+        listId: list.id,
+        userId: collaboratorUser.id,
+      });
+
+      // Verify only owner's bookmark remains in the list
+      const bookmarksAfter = await ownerApi.bookmarks.getBookmarks({
+        listId: list.id,
+      });
+      expect(bookmarksAfter.bookmarks).toHaveLength(1);
+      expect(bookmarksAfter.bookmarks[0].id).toBe(ownerBookmark.id);
+
+      // Verify collaborator's bookmark still exists (just not in the list)
+      const collabBookmarkStillExists =
+        await collaboratorApi.bookmarks.getBookmark({
+          bookmarkId: collabBookmark.id,
+        });
+      expect(collabBookmarkStillExists.id).toBe(collabBookmark.id);
+    });
+
     test<CustomTestContext>("should allow collaborator to leave list", async ({
       apiCallers,
     }) => {
@@ -202,6 +271,74 @@ describe("Shared Lists", () => {
         (l) => l.userRole === "viewer" || l.userRole === "editor",
       );
       expect(sharedLists.find((l) => l.id === list.id)).toBeUndefined();
+    });
+
+    test<CustomTestContext>("should remove collaborator's bookmarks when they leave list", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds a bookmark
+      const ownerBookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: ownerBookmark.id,
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+
+      // Collaborator adds their own bookmark
+      const collabBookmark = await collaboratorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Collaborator's bookmark",
+      });
+
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: collabBookmark.id,
+      });
+
+      // Verify both bookmarks are in the list
+      const bookmarksBefore = await ownerApi.bookmarks.getBookmarks({
+        listId: list.id,
+      });
+      expect(bookmarksBefore.bookmarks).toHaveLength(2);
+
+      // Collaborator leaves the list
+      await collaboratorApi.lists.leaveList({
+        listId: list.id,
+      });
+
+      // Verify only owner's bookmark remains in the list
+      const bookmarksAfter = await ownerApi.bookmarks.getBookmarks({
+        listId: list.id,
+      });
+      expect(bookmarksAfter.bookmarks).toHaveLength(1);
+      expect(bookmarksAfter.bookmarks[0].id).toBe(ownerBookmark.id);
+
+      // Verify collaborator's bookmark still exists (just not in the list)
+      const collabBookmarkStillExists =
+        await collaboratorApi.bookmarks.getBookmark({
+          bookmarkId: collabBookmark.id,
+        });
+      expect(collabBookmarkStillExists.id).toBe(collabBookmark.id);
     });
 
     test<CustomTestContext>("should not allow owner to leave their own list", async ({

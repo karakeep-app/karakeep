@@ -683,30 +683,45 @@ export abstract class List implements PrivacyAware {
   /**
    * Remove a collaborator from this list.
    * Only the list owner can remove collaborators.
+   * This also removes all bookmarks that the collaborator added to the list.
    */
   async removeCollaborator(userId: string): Promise<void> {
     this.ensureCanManage();
 
-    const result = await this.ctx.db
-      .delete(listCollaborators)
-      .where(
-        and(
-          eq(listCollaborators.listId, this.list.id),
-          eq(listCollaborators.userId, userId),
-        ),
-      );
+    await this.ctx.db.transaction(async (tx) => {
+      // First, remove all bookmarks that were added by this collaborator
+      await tx
+        .delete(bookmarksInLists)
+        .where(
+          and(
+            eq(bookmarksInLists.listId, this.list.id),
+            eq(bookmarksInLists.addedBy, userId),
+          ),
+        );
 
-    if (result.changes === 0) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Collaborator not found",
-      });
-    }
+      // Then, remove the collaborator
+      const result = await tx
+        .delete(listCollaborators)
+        .where(
+          and(
+            eq(listCollaborators.listId, this.list.id),
+            eq(listCollaborators.userId, userId),
+          ),
+        );
+
+      if (result.changes === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Collaborator not found",
+        });
+      }
+    });
   }
 
   /**
    * Allow a user to leave a list (remove themselves as a collaborator).
    * This bypasses the owner check since users should be able to leave lists they're collaborating on.
+   * This also removes all bookmarks that the user added to the list.
    */
   async leaveList(userId: string): Promise<void> {
     // Verify the user is actually a collaborator (not the owner)
@@ -727,22 +742,34 @@ export abstract class List implements PrivacyAware {
       });
     }
 
-    // Remove the user as a collaborator
-    const result = await this.ctx.db
-      .delete(listCollaborators)
-      .where(
-        and(
-          eq(listCollaborators.listId, this.list.id),
-          eq(listCollaborators.userId, userId),
-        ),
-      );
+    await this.ctx.db.transaction(async (tx) => {
+      // First, remove all bookmarks that were added by this user
+      await tx
+        .delete(bookmarksInLists)
+        .where(
+          and(
+            eq(bookmarksInLists.listId, this.list.id),
+            eq(bookmarksInLists.addedBy, userId),
+          ),
+        );
 
-    if (result.changes === 0) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Collaborator not found",
-      });
-    }
+      // Then, remove the user as a collaborator
+      const result = await tx
+        .delete(listCollaborators)
+        .where(
+          and(
+            eq(listCollaborators.listId, this.list.id),
+            eq(listCollaborators.userId, userId),
+          ),
+        );
+
+      if (result.changes === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Collaborator not found",
+        });
+      }
+    });
   }
 
   /**
