@@ -392,6 +392,71 @@ describe("Shared Lists API", () => {
       expect(bookmarks?.bookmarks[0].id).toBe(bookmark!.id);
     });
 
+    it("should hide owner-specific bookmark state from collaborators", async () => {
+      const list = await ownerTrpc.lists.create.mutate({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const { data: bookmark } = await ownerClient.POST("/bookmarks", {
+        body: {
+          type: "text",
+          text: "Shared bookmark",
+          archived: true,
+          favourited: true,
+          note: "Private note",
+        },
+      });
+
+      await ownerTrpc.lists.addToList.mutate({
+        listId: list.id,
+        bookmarkId: bookmark!.id,
+      });
+
+      await ownerTrpc.lists.addCollaborator.mutate({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      const { data: ownerView } = await ownerClient.GET(
+        "/lists/{listId}/bookmarks",
+        {
+          params: {
+            path: {
+              listId: list.id,
+            },
+          },
+        },
+      );
+
+      const { data: collaboratorView } = await collaboratorClient.GET(
+        "/lists/{listId}/bookmarks",
+        {
+          params: {
+            path: {
+              listId: list.id,
+            },
+          },
+        },
+      );
+
+      const ownerBookmark = ownerView?.bookmarks.find(
+        (b) => b.id === bookmark!.id,
+      );
+      expect(ownerBookmark?.favourited).toBe(true);
+      expect(ownerBookmark?.archived).toBe(true);
+      expect(ownerBookmark?.note).toBe("Private note");
+
+      const collaboratorBookmark = collaboratorView?.bookmarks.find(
+        (b) => b.id === bookmark!.id,
+      );
+      expect(collaboratorBookmark?.favourited).toBe(false);
+      expect(collaboratorBookmark?.archived).toBe(false);
+      expect(collaboratorBookmark?.note).toBeNull();
+    });
+
     it("should allow collaborator to view individual shared bookmark", async () => {
       const list = await ownerTrpc.lists.create.mutate({
         name: "Shared List",

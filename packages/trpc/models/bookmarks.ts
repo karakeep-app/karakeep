@@ -586,7 +586,18 @@ export class Bookmark implements PrivacyAware {
   }
 
   asZBookmark(): ZBookmark {
-    return this.bookmark;
+    if (this.bookmark.userId === this.ctx.user.id) {
+      return this.bookmark;
+    }
+
+    // Collaborators shouldn't see owner-specific state such as favourites,
+    // archived flag, or personal notes.
+    return {
+      ...this.bookmark,
+      archived: false,
+      favourited: false,
+      note: null,
+    };
   }
 
   asPublicBookmark(): ZPublicBookmark {
