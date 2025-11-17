@@ -606,6 +606,7 @@ export abstract class List implements PrivacyAware {
 
   /**
    * Add a collaborator to this list by email.
+   * Creates a pending invitation that must be accepted by the user.
    */
   async addCollaboratorByEmail(
     email: string,
@@ -633,7 +634,7 @@ export abstract class List implements PrivacyAware {
       });
     }
 
-    // Check that the collaborator is not already added
+    // Check that the collaborator is not already added or has a pending invitation
     const existing = await this.ctx.db.query.listCollaborators.findFirst({
       where: and(
         eq(listCollaborators.listId, this.list.id),
@@ -642,10 +643,28 @@ export abstract class List implements PrivacyAware {
     });
 
     if (existing) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "User is already a collaborator on this list",
-      });
+      if (existing.status === "pending") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User already has a pending invitation for this list",
+        });
+      } else if (existing.status === "accepted") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User is already a collaborator on this list",
+        });
+      } else if (existing.status === "declined") {
+        // If they previously declined, update the invitation to pending again
+        await this.ctx.db
+          .update(listCollaborators)
+          .set({
+            status: "pending",
+            role,
+            invitedAt: new Date(),
+          })
+          .where(eq(listCollaborators.id, existing.id));
+        return;
+      }
     }
 
     // Only manual lists can be collaborative
@@ -660,8 +679,142 @@ export abstract class List implements PrivacyAware {
       listId: this.list.id,
       userId: user.id,
       role,
+      status: "pending",
+      invitedEmail: email,
       addedBy: this.ctx.user.id,
     });
+  }
+
+  /**
+   * Accept a pending invitation to collaborate on this list.
+   */
+  async acceptInvitation(): Promise<void> {
+    const invitation = await this.ctx.db.query.listCollaborators.findFirst({
+      where: and(
+        eq(listCollaborators.listId, this.list.id),
+        eq(listCollaborators.userId, this.ctx.user.id),
+        eq(listCollaborators.status, "pending"),
+      ),
+    });
+
+    if (!invitation) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No pending invitation found for this list",
+      });
+    }
+
+    await this.ctx.db
+      .update(listCollaborators)
+      .set({
+        status: "accepted",
+        addedAt: new Date(),
+      })
+      .where(eq(listCollaborators.id, invitation.id));
+  }
+
+  /**
+   * Decline a pending invitation to collaborate on this list.
+   */
+  async declineInvitation(): Promise<void> {
+    const invitation = await this.ctx.db.query.listCollaborators.findFirst({
+      where: and(
+        eq(listCollaborators.listId, this.list.id),
+        eq(listCollaborators.userId, this.ctx.user.id),
+        eq(listCollaborators.status, "pending"),
+      ),
+    });
+
+    if (!invitation) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No pending invitation found for this list",
+      });
+    }
+
+    await this.ctx.db
+      .update(listCollaborators)
+      .set({
+        status: "declined",
+      })
+      .where(eq(listCollaborators.id, invitation.id));
+  }
+
+  /**
+   * Revoke a pending invitation.
+   * Only the list owner can revoke invitations.
+   */
+  async revokeInvitation(userId: string): Promise<void> {
+    this.ensureCanManage();
+
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+          eq(listCollaborators.status, "pending"),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No pending invitation found for this user",
+      });
+    }
+  }
+
+  /**
+   * Get all pending invitations for the current user across all lists.
+   */
+  static async getPendingInvitations(ctx: AuthedContext) {
+    const invitations = await ctx.db.query.listCollaborators.findMany({
+      where: and(
+        eq(listCollaborators.userId, ctx.user.id),
+        eq(listCollaborators.status, "pending"),
+      ),
+      with: {
+        list: {
+          columns: {
+            id: true,
+            name: true,
+            icon: true,
+            description: true,
+            rssToken: false,
+          },
+          with: {
+            user: {
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return invitations.map((inv) => ({
+      id: inv.id,
+      listId: inv.listId,
+      role: inv.role,
+      invitedAt: inv.invitedAt,
+      list: {
+        id: inv.list.id,
+        name: inv.list.name,
+        icon: inv.list.icon,
+        description: inv.list.description,
+        owner: inv.list.user
+          ? {
+              id: inv.list.user.id,
+              name: inv.list.user.name,
+              email: inv.list.user.email,
+            }
+          : null,
+      },
+    }));
   }
 
   /**
@@ -748,7 +901,8 @@ export abstract class List implements PrivacyAware {
   }
 
   /**
-   * Get all collaborators for this list.
+   * Get all collaborators for this list, including pending invitations.
+   * For privacy, pending invitations show masked user info unless the invitation has been accepted.
    */
   async getCollaborators() {
     this.ensureCanView();
@@ -777,13 +931,26 @@ export abstract class List implements PrivacyAware {
     });
 
     return {
-      collaborators: collaborators.map((c) => ({
-        id: c.id,
-        userId: c.userId,
-        role: c.role,
-        addedAt: c.addedAt,
-        user: c.user,
-      })),
+      collaborators: collaborators.map((c) => {
+        // For pending invitations, mask the user's name for privacy
+        // Show email only if the current user is the owner
+        const isOwner = this.list.userId === this.ctx.user.id;
+        const isPending = c.status === "pending";
+
+        return {
+          id: c.id,
+          userId: c.userId,
+          role: c.role,
+          status: c.status,
+          addedAt: c.addedAt,
+          invitedAt: c.invitedAt,
+          user: {
+            id: c.user.id,
+            name: isPending && !isOwner ? "Pending User" : c.user.name,
+            email: isOwner ? c.user.email : (isPending ? c.invitedEmail || "" : c.user.email),
+          },
+        };
+      }),
       owner: owner
         ? {
             id: owner.id,
@@ -796,12 +963,16 @@ export abstract class List implements PrivacyAware {
 
   /**
    * Get all lists shared with the user (as a collaborator).
+   * Only includes lists where the invitation has been accepted.
    */
   static async getSharedWithUser(
     ctx: AuthedContext,
   ): Promise<(ManualList | SmartList)[]> {
     const collaborations = await ctx.db.query.listCollaborators.findMany({
-      where: eq(listCollaborators.userId, ctx.user.id),
+      where: and(
+        eq(listCollaborators.userId, ctx.user.id),
+        eq(listCollaborators.status, "accepted"),
+      ),
       with: {
         list: {
           columns: {

@@ -441,7 +441,14 @@ export const listCollaborators = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role", { enum: ["viewer", "editor"] }).notNull(),
+    status: text("status", { enum: ["pending", "accepted", "declined"] })
+      .notNull()
+      .default("pending"),
     addedAt: createdAtField(),
+    invitedAt: integer("invitedAt", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    invitedEmail: text("invitedEmail"),
     addedBy: text("addedBy").references(() => users.id, {
       onDelete: "set null",
     }),
@@ -450,6 +457,7 @@ export const listCollaborators = sqliteTable(
     unique().on(lc.listId, lc.userId),
     index("listCollaborators_listId_idx").on(lc.listId),
     index("listCollaborators_userId_idx").on(lc.userId),
+    index("listCollaborators_status_idx").on(lc.status),
   ],
 );
 
