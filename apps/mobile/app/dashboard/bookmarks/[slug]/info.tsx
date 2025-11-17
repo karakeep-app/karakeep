@@ -23,6 +23,7 @@ import {
   useDeleteBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -95,15 +96,17 @@ function TitleEditor({
   title,
   setTitle,
   isPending,
+  disabled,
 }: {
   title: string | null | undefined;
   setTitle: (title: string | null) => void;
   isPending: boolean;
+  disabled?: boolean;
 }) {
   return (
     <InfoSection>
       <Input
-        editable={!isPending}
+        editable={!isPending && !disabled}
         multiline={false}
         numberOfLines={1}
         placeholder="Title"
@@ -118,15 +121,17 @@ function NotesEditor({
   notes,
   setNotes,
   isPending,
+  disabled,
 }: {
   notes: string | null | undefined;
   setNotes: (title: string | null) => void;
   isPending: boolean;
+  disabled?: boolean;
 }) {
   return (
     <InfoSection>
       <Input
-        editable={!isPending}
+        editable={!isPending && !disabled}
         multiline={true}
         placeholder="Notes"
         inputClasses="h-24"
@@ -142,6 +147,7 @@ const ViewBookmarkPage = () => {
   const insets = useSafeAreaInsets();
   const { slug } = useLocalSearchParams();
   const { toast } = useToast();
+  const { data: currentUser } = useWhoAmI();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
   }
@@ -174,6 +180,9 @@ const ViewBookmarkPage = () => {
   } = useAutoRefreshingBookmarkQuery({
     bookmarkId: slug,
   });
+
+  // Check if the current user owns this bookmark
+  const isOwner = currentUser?.id === bookmark?.userId;
 
   const [editedBookmark, setEditedBookmark] = React.useState<{
     title?: string | null;
@@ -265,36 +274,40 @@ const ViewBookmarkPage = () => {
               setEditedBookmark((prev) => ({ ...prev, title }))
             }
             isPending={isEditPending}
+            disabled={!isOwner}
           />
-          <TagList bookmark={bookmark} />
-          <ManageLists bookmark={bookmark} />
+          {isOwner && <TagList bookmark={bookmark} />}
+          {isOwner && <ManageLists bookmark={bookmark} />}
           <NotesEditor
             notes={bookmark.note}
             setNotes={(note) =>
               setEditedBookmark((prev) => ({ ...prev, note: note ?? "" }))
             }
             isPending={isEditPending}
+            disabled={!isOwner}
           />
-          <View className="flex justify-between gap-3">
-            <Button
-              onPress={() =>
-                editBookmark({
-                  bookmarkId: bookmark.id,
-                  ...editedBookmark,
-                })
-              }
-              disabled={isEditPending}
-            >
-              <Text>Save</Text>
-            </Button>
-            <Button
-              variant="destructive"
-              onPress={handleDeleteBookmark}
-              disabled={isDeletionPending}
-            >
-              <Text>Delete</Text>
-            </Button>
-          </View>
+          {isOwner && (
+            <View className="flex justify-between gap-3">
+              <Button
+                onPress={() =>
+                  editBookmark({
+                    bookmarkId: bookmark.id,
+                    ...editedBookmark,
+                  })
+                }
+                disabled={isEditPending}
+              >
+                <Text>Save</Text>
+              </Button>
+              <Button
+                variant="destructive"
+                onPress={handleDeleteBookmark}
+                disabled={isDeletionPending}
+              >
+                <Text>Delete</Text>
+              </Button>
+            </View>
+          )}
           <View className="gap-2">
             <Text className="items-center text-center">
               Created {bookmark.createdAt.toLocaleString()}
