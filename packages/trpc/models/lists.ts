@@ -663,6 +663,19 @@ export abstract class List implements PrivacyAware {
             invitedAt: new Date(),
           })
           .where(eq(listCollaborators.id, existing.id));
+
+        // Send email notification for the renewed invitation
+        try {
+          const { sendListInvitationEmail } = await import("../email");
+          await sendListInvitationEmail(
+            email,
+            this.ctx.user.name,
+            this.list.name,
+            this.list.id,
+          );
+        } catch (error) {
+          console.error("Failed to send list invitation email:", error);
+        }
         return;
       }
     }
@@ -683,6 +696,20 @@ export abstract class List implements PrivacyAware {
       invitedEmail: email,
       addedBy: this.ctx.user.id,
     });
+
+    // Send email notification (silently fail if email is not configured)
+    try {
+      const { sendListInvitationEmail } = await import("../email");
+      await sendListInvitationEmail(
+        email,
+        this.ctx.user.name,
+        this.list.name,
+        this.list.id,
+      );
+    } catch (error) {
+      // Log the error but don't fail the invitation
+      console.error("Failed to send list invitation email:", error);
+    }
   }
 
   /**

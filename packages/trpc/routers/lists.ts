@@ -268,7 +268,9 @@ export const listsAppRouter = router({
             id: z.string(),
             userId: z.string(),
             role: z.enum(["viewer", "editor"]),
+            status: z.enum(["pending", "accepted", "declined"]),
             addedAt: z.date(),
+            invitedAt: z.date(),
             user: z.object({
               id: z.string(),
               name: z.string(),
@@ -288,6 +290,69 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastViewer)
     .query(async ({ ctx }) => {
       return await ctx.list.getCollaborators();
+    }),
+
+  acceptInvitation: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const list = await List.fromId(ctx, input.listId);
+      await list.acceptInvitation();
+    }),
+
+  declineInvitation: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const list = await List.fromId(ctx, input.listId);
+      await list.declineInvitation();
+    }),
+
+  revokeInvitation: authedProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .use(ensureListAtLeastViewer)
+    .use(ensureListAtLeastOwner)
+    .mutation(async ({ input, ctx }) => {
+      await ctx.list.revokeInvitation(input.userId);
+    }),
+
+  getPendingInvitations: authedProcedure
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          listId: z.string(),
+          role: z.enum(["viewer", "editor"]),
+          invitedAt: z.date(),
+          list: z.object({
+            id: z.string(),
+            name: z.string(),
+            icon: z.string(),
+            description: z.string().nullable(),
+            owner: z
+              .object({
+                id: z.string(),
+                name: z.string(),
+                email: z.string(),
+              })
+              .nullable(),
+          }),
+        }),
+      ),
+    )
+    .query(async ({ ctx }) => {
+      return await List.getPendingInvitations(ctx);
     }),
 
   leaveList: authedProcedure
