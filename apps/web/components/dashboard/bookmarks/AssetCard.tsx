@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
@@ -67,9 +68,11 @@ function AssetImage({
 
 export default function AssetCard({
   bookmark: bookmarkedAsset,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmarkTypeAsset;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   return (
@@ -80,6 +83,7 @@ export default function AssetCard({
           <FooterLinkURL url={getSourceUrl(bookmarkedAsset)} />
         )
       }
+      fixedLayout={fixedLayout}
       bookmark={bookmarkedAsset}
       className={className}
       wrapTags={true}

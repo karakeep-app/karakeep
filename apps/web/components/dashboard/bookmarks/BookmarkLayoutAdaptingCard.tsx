@@ -19,12 +19,26 @@ import { useTheme } from "next-themes";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
+import {
+  getReminderTheme,
+  getReminderType,
+} from "@karakeep/shared/utils/reminderThemeUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
+import ReminderBanner from "../../shared/ReminderBanner";
 import BookmarkActionBar from "./BookmarkActionBar";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
 import { NotePreview } from "./NotePreview";
 import TagList from "./TagList";
+
+function getBookmarkReminderTheme(bookmark: ZBookmark) {
+  if (!bookmark.reminder || bookmark.reminder.status === "dismissed") {
+    return null;
+  }
+
+  const reminderType = getReminderType(bookmark.reminder);
+  return getReminderTheme(reminderType);
+}
 
 interface Props {
   bookmark: ZBookmark;
@@ -35,6 +49,7 @@ interface Props {
   className?: string;
   fitHeight?: boolean;
   wrapTags: boolean;
+  fixedLayout?: BookmarksLayoutTypes;
 }
 
 function BottomRow({
@@ -129,37 +144,45 @@ function ListView({
     contain: "object-contain",
   });
   const note = showNotes ? bookmark.note?.trim() : undefined;
+  const reminderTheme = getBookmarkReminderTheme(bookmark);
 
   return (
     <div
       className={cn(
-        "relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
+        "relative flex max-h-96 flex-col overflow-hidden rounded-lg",
+        reminderTheme?.cardBg,
+        reminderTheme?.cardBorder,
         className,
       )}
     >
-      <MultiBookmarkSelector bookmark={bookmark} />
-      <div className="flex size-32 items-center justify-center overflow-hidden">
-        {image("list", cn("size-32 rounded-lg", imgFitClass))}
-      </div>
-      <div className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden">
-        <div className="flex flex-col gap-2 overflow-hidden">
-          {showTitle && title && (
-            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
-              {title}
-            </div>
-          )}
-          {content && <div className="shrink-1 overflow-hidden">{content}</div>}
-          {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
-          {showTags && (
-            <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
-              <TagList
-                bookmark={bookmark}
-                loading={isBookmarkStillTagging(bookmark)}
-              />
-            </div>
-          )}
+      <ReminderBanner bookmark={bookmark} clientTimestamp={Date.now()} />
+      <div className="flex gap-4 p-2">
+        <MultiBookmarkSelector bookmark={bookmark} />
+        <div className="flex size-32 items-center justify-center overflow-hidden">
+          {image("list", cn("size-32 rounded-lg", imgFitClass))}
         </div>
-        <BottomRow footer={footer} bookmark={bookmark} />
+        <div className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden">
+          <div className="flex flex-col gap-2 overflow-hidden">
+            {showTitle && title && (
+              <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
+                {title}
+              </div>
+            )}
+            {content && (
+              <div className="shrink-1 overflow-hidden">{content}</div>
+            )}
+            {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
+            {showTags && (
+              <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
+                <TagList
+                  bookmark={bookmark}
+                  loading={isBookmarkStillTagging(bookmark)}
+                />
+              </div>
+            )}
+          </div>
+          <BottomRow footer={footer} bookmark={bookmark} />
+        </div>
       </div>
     </div>
   );
@@ -178,6 +201,7 @@ function GridView({
 }: Props & { layout: BookmarksLayoutTypes }) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
+  const reminderTheme = getBookmarkReminderTheme(bookmark);
   const imgFitClass = switchCase(imageFit, {
     cover: "object-cover",
     contain: "object-contain",
@@ -192,10 +216,13 @@ function GridView({
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-lg",
+        reminderTheme?.cardBg,
+        reminderTheme?.cardBorder,
         className,
         fitHeight && layout != "grid" ? "max-h-96" : "h-96",
       )}
     >
+      <ReminderBanner bookmark={bookmark} clientTimestamp={Date.now()} />
       <MultiBookmarkSelector bookmark={bookmark} />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
@@ -225,14 +252,19 @@ function GridView({
 
 function CompactView({ bookmark, title, footer, className }: Props) {
   const { showTitle } = useBookmarkDisplaySettings();
+  const reminderTheme = getBookmarkReminderTheme(bookmark);
+
   return (
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-lg",
+        reminderTheme?.cardBg,
+        reminderTheme?.cardBorder,
         className,
         "max-h-96",
       )}
     >
+      <ReminderBanner bookmark={bookmark} clientTimestamp={Date.now()} />
       <MultiBookmarkSelector bookmark={bookmark} />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
@@ -277,7 +309,9 @@ function CompactView({ bookmark, title, footer, className }: Props) {
 }
 
 export function BookmarkLayoutAdaptingCard(props: Props) {
-  const layout = useBookmarkLayout();
+  const userSettingLayout = useBookmarkLayout();
+
+  const layout = props.fixedLayout ?? userSettingLayout;
 
   return bookmarkLayoutSwitch(layout, {
     masonry: <GridView layout={layout} {...props} />,

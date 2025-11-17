@@ -1,4 +1,5 @@
 import { api } from "@/lib/trpc";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
@@ -10,14 +11,19 @@ import UnknownCard from "./UnknownCard";
 
 export default function BookmarkCard({
   bookmark: initialData,
+  fixedLayout,
   className,
+  includeContent = false,
 }: {
   bookmark: ZBookmark;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
+  includeContent?: boolean;
 }) {
   const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
     {
       bookmarkId: initialData.id,
+      includeContent,
     },
     {
       initialData,
@@ -36,6 +42,7 @@ export default function BookmarkCard({
       return (
         <LinkCard
           className={className}
+          fixedLayout={fixedLayout}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -43,6 +50,7 @@ export default function BookmarkCard({
       return (
         <TextCard
           className={className}
+          fixedLayout={fixedLayout}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -50,10 +58,17 @@ export default function BookmarkCard({
       return (
         <AssetCard
           className={className}
+          fixedLayout={fixedLayout}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
     case BookmarkTypes.UNKNOWN:
-      return <UnknownCard className={className} bookmark={bookmark} />;
+      return (
+        <UnknownCard
+          className={className}
+          fixedLayout={fixedLayout}
+          bookmark={bookmark}
+        />
+      );
   }
 }

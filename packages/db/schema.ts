@@ -752,6 +752,10 @@ export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
     fields: [bookmarks.id],
     references: [bookmarkAssets.id],
   }),
+  reminder: one(bookmarkReminders, {
+    fields: [bookmarks.id],
+    references: [bookmarkReminders.bookmarkId],
+  }),
   tagsOnBookmarks: many(tagsOnBookmarks),
   bookmarksInLists: many(bookmarksInLists),
   assets: many(assets),
@@ -932,6 +936,40 @@ export const importSessionBookmarksRelations = relations(
     }),
     bookmark: one(bookmarks, {
       fields: [importSessionBookmarks.bookmarkId],
+      references: [bookmarks.id],
+    }),
+  }),
+);
+
+export const bookmarkReminders = sqliteTable(
+  "bookmarkReminders",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .unique() // Each bookmark can only have one reminder
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    remindAt: integer("remindAt", { mode: "timestamp" }).notNull(),
+    status: text("status", { enum: ["active", "dismissed"] })
+      .notNull()
+      .default("active"),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (br) => [
+    index("bookmarkReminders_remindAt_idx").on(br.remindAt),
+    index("bookmarkReminders_status_idx").on(br.status),
+  ],
+);
+
+export const bookmarkRemindersRelations = relations(
+  bookmarkReminders,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [bookmarkReminders.bookmarkId],
       references: [bookmarks.id],
     }),
   }),

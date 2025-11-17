@@ -2,6 +2,7 @@ import * as React from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import {
   Dialog,
   DialogContent,
@@ -29,24 +30,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { useDialogFormReset } from "@/lib/hooks/useDialogFormReset";
 import { useTranslation } from "@/lib/i18n/client";
+import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Clock, X } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import {
   BookmarkTypes,
   ZBookmark,
-  ZUpdateBookmarksRequest,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
 
-const formSchema = zUpdateBookmarksRequestSchema;
+const formSchema = zUpdateBookmarksRequestSchema.extend({
+  remindAt: z.date().nullable().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export function EditBookmarkDialog({
   open,
@@ -60,6 +66,29 @@ export function EditBookmarkDialog({
   setOpen: (v: boolean) => void;
 }) {
   const { t } = useTranslation();
+  const utils = api.useUtils();
+
+  // Fetch existing reminder for this bookmark
+  const { data: existingReminder } = api.reminders.getBookmarkReminder.useQuery(
+    { bookmarkId: bookmark.id },
+    { enabled: open },
+  );
+
+  // Reminder mutations
+  const setReminderMutation = api.reminders.setReminder.useMutation({
+    onSuccess: () => {
+      utils.bookmarks.invalidate();
+      utils.reminders.invalidate();
+    },
+  });
+
+  const deleteReminderMutation = api.reminders.deleteReminder.useMutation({
+    onSuccess: () => {
+      utils.bookmarks.invalidate();
+      utils.reminders.invalidate();
+    },
+  });
+
   const bookmarkToDefault = (bookmark: ZBookmark) => ({
     bookmarkId: bookmark.id,
     summary: bookmark.summary,
@@ -91,12 +120,20 @@ export function EditBookmarkDialog({
       bookmark.content.type === BookmarkTypes.ASSET
         ? bookmark.content.content
         : undefined,
+    remindAt: null,
   });
 
-  const form = useForm<ZUpdateBookmarksRequest>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: bookmarkToDefault(bookmark),
   });
+
+  // Update form when existing reminder is fetched
+  React.useEffect(() => {
+    if (existingReminder && open) {
+      form.setValue("remindAt", new Date(existingReminder.remindAt));
+    }
+  }, [existingReminder, open, form]);
 
   const { mutate: updateBookmarkMutate, isPending: isUpdatingBookmark } =
     useUpdateBookmark({
@@ -116,13 +153,45 @@ export function EditBookmarkDialog({
       },
     });
 
-  function onSubmit(values: ZUpdateBookmarksRequest) {
+  async function onSubmit(values: FormData) {
+    // Extract reminder from form values
+    const { remindAt, ...bookmarkData } = values;
+
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
-      ...values,
-      title: values.title ?? null,
+      ...bookmarkData,
+      title: bookmarkData.title ?? null,
     };
-    updateBookmarkMutate(payload);
+
+    // Update bookmark first
+    updateBookmarkMutate(payload, {
+      onSuccess: async (updatedBookmark) => {
+        // Handle reminder updates after bookmark is saved
+        try {
+          if (remindAt) {
+            // Set or update reminder
+            await setReminderMutation.mutateAsync({
+              bookmarkId: updatedBookmark.id,
+              remindAt: remindAt,
+            });
+            toast({ description: "Reminder set successfully!" });
+          } else if (existingReminder && !remindAt) {
+            // Delete reminder if it was cleared
+            await deleteReminderMutation.mutateAsync({
+              reminderId: existingReminder.id,
+            });
+            toast({ description: "Reminder removed!" });
+          }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Failed to update reminder",
+            description:
+              error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      },
+    });
   }
 
   // Reset form only when dialog is initially opened to preserve unsaved changes
@@ -373,6 +442,41 @@ export function EditBookmarkDialog({
               </FormControl>
               <FormMessage />
             </FormItem>
+
+            <FormField
+              control={form.control}
+              name="remindAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Reminder
+                  </FormLabel>
+                  <div className="flex items-center gap-2">
+                    <FormControl>
+                      <DateTimePicker
+                        date={field.value}
+                        onDateChange={field.onChange}
+                        placeholder="Set a reminder"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    {field.value && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => field.onChange(null)}
+                        title="Clear reminder"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button

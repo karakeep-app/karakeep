@@ -334,6 +334,42 @@
                 "assetType"
               ]
             }
+          },
+          "reminder": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "bookmarkId": {
+                "type": "string"
+              },
+              "remindAt": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "dismissed"
+                ]
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "modifiedAt": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "bookmarkId",
+              "remindAt",
+              "status",
+              "createdAt",
+              "modifiedAt"
+            ]
           }
         },
         "required": [

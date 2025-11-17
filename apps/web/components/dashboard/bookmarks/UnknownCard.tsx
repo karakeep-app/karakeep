@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n/client";
+import { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import { AlertCircle } from "lucide-react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -9,15 +10,18 @@ import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 
 export default function UnknownCard({
   bookmark,
+  fixedLayout,
   className,
 }: {
   bookmark: ZBookmark;
+  fixedLayout?: BookmarksLayoutTypes;
   className?: string;
 }) {
   const { t } = useTranslation();
   return (
     <BookmarkLayoutAdaptingCard
       title={bookmark.title}
+      fixedLayout={fixedLayout}
       bookmark={bookmark}
       className={className}
       wrapTags={false}

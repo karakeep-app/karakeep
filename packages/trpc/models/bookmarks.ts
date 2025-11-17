@@ -22,6 +22,7 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarkLists,
+  bookmarkReminders,
   bookmarks,
   bookmarksInLists,
   bookmarkTags,
@@ -70,6 +71,7 @@ async function dummyDrizzleReturnType() {
       text: true,
       asset: true,
       assets: true,
+      reminder: true,
     },
   });
   if (!x) {
@@ -151,7 +153,8 @@ export class Bookmark extends BareBookmark {
     bookmark: BookmarkQueryReturnType,
     includeContent: boolean,
   ): Promise<ZBookmark> {
-    const { tagsOnBookmarks, link, text, asset, assets, ...rest } = bookmark;
+    const { tagsOnBookmarks, link, text, asset, assets, reminder, ...rest } =
+      bookmark;
 
     let content: ZBookmarkContent = {
       type: BookmarkTypes.UNKNOWN,
@@ -223,6 +226,7 @@ export class Bookmark extends BareBookmark {
         assetType: mapDBAssetTypeToUserType(a.assetType),
         fileName: a.fileName,
       })),
+      reminder: reminder || undefined,
       ...rest,
     };
   }
@@ -244,6 +248,7 @@ export class Bookmark extends BareBookmark {
         text: true,
         asset: true,
         assets: true,
+        reminder: true,
       },
     });
 
@@ -417,6 +422,7 @@ export class Bookmark extends BareBookmark {
       .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, sq.id))
       .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, sq.id))
       .leftJoin(assets, eq(assets.bookmarkId, sq.id))
+      .leftJoin(bookmarkReminders, eq(bookmarkReminders.bookmarkId, sq.id))
       .orderBy(desc(sq.createdAt), desc(sq.id));
 
     const bookmarksRes = results.reduce<Record<string, ZBookmark>>(
@@ -472,6 +478,7 @@ export class Bookmark extends BareBookmark {
             content,
             tags: [],
             assets: [],
+            reminder: row.bookmarkReminders || undefined,
           };
         }
 
