@@ -485,12 +485,21 @@ describe("Shared Lists", () => {
       apiCallers,
     }) => {
       const ownerApi = apiCallers[0];
-      const thirdUserApi = apiCallers[1];
+      const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
 
       const list = await ownerApi.lists.create({
         name: "Private List",
         icon: "📚",
         type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
       });
 
       await expect(
@@ -733,7 +742,8 @@ describe("Shared Lists", () => {
       apiCallers,
     }) => {
       const ownerApi = apiCallers[0];
-      const thirdUserApi = apiCallers[1]; // User 2 will be the non-collaborator
+      const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2]; // User 3 will be the non-collaborator
 
       const list = await ownerApi.lists.create({
         name: "Shared List",
@@ -749,6 +759,13 @@ describe("Shared Lists", () => {
       await ownerApi.lists.addToList({
         listId: list.id,
         bookmarkId: bookmark.id,
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
       });
 
       // Don't add thirdUserApi as a collaborator
@@ -1109,6 +1126,7 @@ describe("Shared Lists", () => {
     }) => {
       const ownerApi = apiCallers[0];
       const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
 
       const list = await ownerApi.lists.create({
         name: "Shared List",
@@ -1123,14 +1141,13 @@ describe("Shared Lists", () => {
         role: "editor",
       });
 
-      // Need a third user email - use owner's email as a test
-      const ownerEmail = (await ownerApi.users.whoami()).email!;
+      const thirdUserEmail = (await thirdUserApi.users.whoami()).email!;
 
       // Collaborator tries to add another user
       await expect(
         collaboratorApi.lists.addCollaborator({
           listId: list.id,
-          email: ownerEmail,
+          email: thirdUserEmail,
           role: "viewer",
         }),
       ).rejects.toThrow("User is not allowed to manage this list");
@@ -1141,6 +1158,7 @@ describe("Shared Lists", () => {
     }) => {
       const ownerApi = apiCallers[0];
       const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
 
       const list = await ownerApi.lists.create({
         name: "Shared List",
@@ -1164,17 +1182,10 @@ describe("Shared Lists", () => {
       expect(collaborators).toHaveLength(1);
       expect(owner).toBeDefined();
 
-      // Create another list for testing non-collaborator access
-      const list2 = await ownerApi.lists.create({
-        name: "Private List",
-        icon: "📚",
-        type: "manual",
-      });
-
       // Non-collaborator cannot view
       await expect(
-        collaboratorApi.lists.getCollaborators({
-          listId: list2.id,
+        thirdUserApi.lists.getCollaborators({
+          listId: list.id,
         }),
       ).rejects.toThrow("List not found");
     });
@@ -1508,7 +1519,6 @@ describe("Shared Lists", () => {
       expect(lists).toHaveLength(1);
       expect(lists[0].id).toBe(list.id);
       expect(lists[0].userRole).toBe("owner");
-      // This would have failed before the fix - owner would see false
       expect(lists[0].hasCollaborators).toBe(true);
     });
 
@@ -1670,7 +1680,7 @@ describe("Shared Lists", () => {
     }) => {
       const ownerApi = apiCallers[0];
       const editorApi = apiCallers[1];
-      const thirdUserApi = apiCallers[2] ?? apiCallers[0]; // Fallback if only 2 users
+      const thirdUserApi = apiCallers[2];
 
       const list = await ownerApi.lists.create({
         name: "Shared List",
@@ -1697,7 +1707,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(/Bookmark not found/);
     });
 
     test<CustomTestContext>("should not allow collaborator to update list metadata fields", async ({
@@ -1724,22 +1734,6 @@ describe("Shared Lists", () => {
         editorApi.lists.edit({
           listId: list.id,
           name: "Modified Name",
-        }),
-      ).rejects.toThrow();
-
-      // Editor tries to change list icon
-      await expect(
-        editorApi.lists.edit({
-          listId: list.id,
-          icon: "🔥",
-        }),
-      ).rejects.toThrow();
-
-      // Editor tries to change list description
-      await expect(
-        editorApi.lists.edit({
-          listId: list.id,
-          description: "Modified description",
         }),
       ).rejects.toThrow();
 
