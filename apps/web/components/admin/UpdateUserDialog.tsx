@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,6 +43,7 @@ interface UpdateUserDialogProps {
   currentRole: "user" | "admin";
   currentQuota: number | null;
   currentStorageQuota: number | null;
+  currentEmailVerified: Date | null;
   children?: React.ReactNode;
 }
 export default function UpdateUserDialog({
@@ -49,6 +51,7 @@ export default function UpdateUserDialog({
   currentRole,
   currentQuota,
   currentStorageQuota,
+  currentEmailVerified,
   children,
 }: UpdateUserDialogProps) {
   const apiUtils = api.useUtils();
@@ -58,6 +61,7 @@ export default function UpdateUserDialog({
     role: currentRole,
     bookmarkQuota: currentQuota,
     storageQuota: currentStorageQuota,
+    emailVerified: currentEmailVerified !== null,
   };
   const form = useForm<UpdateUserSchema>({
     resolver: zodResolver(updateUserSchema),
@@ -170,6 +174,23 @@ export default function UpdateUserDialog({
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="emailVerified"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Email Verified</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />
