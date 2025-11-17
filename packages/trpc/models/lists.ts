@@ -665,54 +665,6 @@ export abstract class List implements PrivacyAware {
   }
 
   /**
-   * Add a collaborator to this list.
-   */
-  async addCollaborator(
-    userId: string,
-    role: "viewer" | "editor",
-  ): Promise<void> {
-    this.ensureCanManage();
-
-    // Check that the user is not adding themselves
-    if (userId === this.list.userId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cannot add the list owner as a collaborator",
-      });
-    }
-
-    // Check that the collaborator is not already added
-    const existing = await this.ctx.db.query.listCollaborators.findFirst({
-      where: and(
-        eq(listCollaborators.listId, this.list.id),
-        eq(listCollaborators.userId, userId),
-      ),
-    });
-
-    if (existing) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "User is already a collaborator on this list",
-      });
-    }
-
-    // Only manual lists can be collaborative
-    if (this.list.type !== "manual") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Only manual lists can have collaborators",
-      });
-    }
-
-    await this.ctx.db.insert(listCollaborators).values({
-      listId: this.list.id,
-      userId,
-      role,
-      addedBy: this.ctx.user.id,
-    });
-  }
-
-  /**
    * Remove a collaborator from this list.
    * Only the list owner can remove collaborators.
    * This also removes all bookmarks that the collaborator added to the list.
