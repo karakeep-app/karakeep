@@ -12,9 +12,8 @@ import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import { AuthedContext } from "..";
 import { BareBookmark } from "./bookmarks";
-import { PrivacyAware } from "./privacy";
 
-export class Highlight implements PrivacyAware {
+export class Highlight {
   constructor(
     protected ctx: AuthedContext,
     private highlight: typeof highlights.$inferSelect,
@@ -113,15 +112,6 @@ export class Highlight implements PrivacyAware {
       highlights: results.map((h) => new Highlight(ctx, h)),
       nextCursor,
     };
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.highlight.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   async delete(): Promise<z.infer<typeof zHighlightSchema>> {

@@ -26,13 +26,12 @@ import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
-import { PrivacyAware } from "./privacy";
 
 interface ListCollaboratorEntry {
   membershipId: string;
 }
 
-export abstract class List implements PrivacyAware {
+export abstract class List {
   protected constructor(
     protected ctx: AuthedContext,
     protected list: ZBookmarkList & { userId: string },
@@ -386,15 +385,6 @@ export abstract class List implements PrivacyAware {
           ]
         : [];
     });
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.list.userId != ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   /**

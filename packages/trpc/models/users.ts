@@ -31,9 +31,8 @@ import {
 import { AuthedContext, Context } from "..";
 import { generatePasswordSalt, hashPassword, validatePassword } from "../auth";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
-import { PrivacyAware } from "./privacy";
 
-export class User implements PrivacyAware {
+export class User {
   constructor(
     protected ctx: AuthedContext,
     public user: typeof users.$inferSelect,
@@ -353,15 +352,6 @@ export class User implements PrivacyAware {
     await ctx.db
       .delete(passwordResetTokens)
       .where(eq(passwordResetTokens.token, input.token));
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.user.id !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   private static async deleteInternal(db: Context["db"], userId: string) {

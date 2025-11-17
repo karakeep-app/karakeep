@@ -10,9 +10,8 @@ import {
 } from "@karakeep/shared/types/feeds";
 
 import { AuthedContext } from "..";
-import { PrivacyAware } from "./privacy";
 
-export class Feed implements PrivacyAware {
+export class Feed {
   constructor(
     protected ctx: AuthedContext,
     private feed: typeof rssFeedsTable.$inferSelect,
@@ -65,15 +64,6 @@ export class Feed implements PrivacyAware {
     });
 
     return feeds.map((f) => new Feed(ctx, f));
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.feed.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   async delete(): Promise<void> {
