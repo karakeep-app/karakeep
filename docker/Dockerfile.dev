@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22.21-alpine
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -10,5 +10,5 @@ RUN apk add --no-cache libc6-compat make g++ py3-pip linux-headers git
 RUN corepack enable
 
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
