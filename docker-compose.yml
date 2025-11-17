@@ -1,0 +1,112 @@
+services:
+  web:
+    build:
+      dockerfile: docker/Dockerfile.dev
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - pnpm-store:/pnpm
+      # By default, the data is stored in a docker volume called "data".
+      # If you want to mount a custom directory, change the volume mapping to:
+      # - /path/to/your/directory:/data
+      - data:${DATA_DIR:-/data}
+    ports:
+      - 3000:3000
+    environment:
+      # Override any of these via .env if you need custom paths or secrets
+
+      MEILI_ADDR: ${MEILI_ADDR:-http://meilisearch:7700}
+      BROWSER_WEB_URL: ${BROWSER_WEB_URL:-http://chrome:9222}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-super-secure-nextauth-secret}
+      # You almost never want to change the value of the DATA_DIR variable.
+      # If you want to mount a custom directory, change the volume mapping above instead.
+      DATA_DIR: ${DATA_DIR:-/data}
+      # OPENAI_API_KEY: ...
+
+      HOSTNAME: 0.0.0.0
+      # https://github.com/vercel/next.js/issues/71622
+      # https://github.com/vercel/next.js/issues/36774
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    command:
+      - pnpm
+      - web
+    working_dir: /app
+    depends_on:
+      prep:
+        condition: service_completed_successfully
+      meilisearch:
+        condition: service_started
+      chrome:
+        condition: service_started
+  chrome:
+    image: gcr.io/zenika-hub/alpine-chrome:124
+    restart: unless-stopped
+    command:
+      - --no-sandbox
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --remote-debugging-address=0.0.0.0
+      - --remote-debugging-port=9222
+      - --hide-scrollbars
+  meilisearch:
+    image: getmeili/meilisearch:v1.13.3
+    restart: unless-stopped
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-}
+    volumes:
+      - meilisearch:/meili_data
+  workers:
+    build:
+      dockerfile: docker/Dockerfile.dev
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - pnpm-store:/pnpm
+      - data:${DATA_DIR:-/data}
+    working_dir: /app
+    environment:
+      DATA_DIR: ${DATA_DIR:-/data}
+      MEILI_ADDR: ${MEILI_ADDR:-http://meilisearch:7700}
+      BROWSER_WEB_URL: ${BROWSER_WEB_URL:-http://chrome:9222}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-super-secure-nextauth-secret}
+    command:
+      - pnpm
+      - workers
+    depends_on:
+      prep:
+        condition: service_completed_successfully
+      meilisearch:
+        condition: service_started
+      chrome:
+        condition: service_started
+  prep:
+    build:
+      dockerfile: docker/Dockerfile.dev
+    restart: "no"
+    working_dir: /app
+    environment:
+      DATA_DIR: ${DATA_DIR:-/data}
+      MEILI_ADDR: ${MEILI_ADDR:-http://meilisearch:7700}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-super-secure-nextauth-secret}
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - pnpm-store:/pnpm
+      - data:${DATA_DIR:-/data}
+    command:
+      - /bin/sh
+      - -c
+      - mkdir -p "${DATA_DIR:-/data}" && echo ${DATA_DIR} && pnpm install --frozen-lockfile && pnpm run db:migrate
+
+volumes:
+  meilisearch:
+  data:
+  node_modules:
+  pnpm-store:

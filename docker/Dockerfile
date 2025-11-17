@@ -33,7 +33,7 @@ COPY tooling/tailwind/package.json ./tooling/tailwind/
 COPY tooling/typescript/package.json ./tooling/typescript/
 COPY ./patches ./patches
 
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
@@ -101,7 +101,7 @@ RUN apk add --no-cache monolith yt-dlp graphicsmagick ghostscript
 ######################
 
 ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
 
 COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
