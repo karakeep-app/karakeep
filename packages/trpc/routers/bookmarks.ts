@@ -63,7 +63,12 @@ export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   );
   bookmark.ensureOwnership();
 
-  return opts.next();
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      bookmark,
+    },
+  });
 });
 
 export const ensureBookmarkAccess = experimental_trpcMiddleware<{
@@ -71,9 +76,17 @@ export const ensureBookmarkAccess = experimental_trpcMiddleware<{
   input: { bookmarkId: string };
 }>().create(async (opts) => {
   // Throws if bookmark doesn't exist or user doesn't have access
-  await BareBookmark.bareFromId(opts.ctx, opts.input.bookmarkId);
+  const bookmark = await BareBookmark.bareFromId(
+    opts.ctx,
+    opts.input.bookmarkId,
+  );
 
-  return opts.next();
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      bookmark,
+    },
+  });
 });
 
 async function attemptToDedupLink(ctx: AuthedContext, url: string) {
@@ -636,21 +649,13 @@ export const bookmarksAppRouter = router({
 
       switch (true) {
         case sortOrder === "relevance":
-          results.sort(
-            (a, b) => idToRank[b.bookmark.id] - idToRank[a.bookmark.id],
-          );
+          results.sort((a, b) => idToRank[b.id] - idToRank[a.id]);
           break;
         case sortOrder === "desc":
-          results.sort(
-            (a, b) =>
-              b.bookmark.createdAt.getTime() - a.bookmark.createdAt.getTime(),
-          );
+          results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
           break;
         case sortOrder === "asc":
-          results.sort(
-            (a, b) =>
-              a.bookmark.createdAt.getTime() - b.bookmark.createdAt.getTime(),
-          );
+          results.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
           break;
       }
 

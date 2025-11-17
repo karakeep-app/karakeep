@@ -86,8 +86,16 @@ type BookmarkQueryReturnType = Awaited<
 export class BareBookmark implements PrivacyAware {
   protected constructor(
     protected ctx: AuthedContext,
-    public bookmark: ZBareBookmark,
+    private bareBookmark: ZBareBookmark,
   ) {}
+
+  get id() {
+    return this.bareBookmark.id;
+  }
+
+  get createdAt() {
+    return this.bareBookmark.createdAt;
+  }
 
   static async bareFromId(ctx: AuthedContext, bookmarkId: string) {
     const bookmark = await ctx.db.query.bookmarks.findFirst({
@@ -113,9 +121,9 @@ export class BareBookmark implements PrivacyAware {
 
   protected static async isAllowedToAccessBookmark(
     ctx: AuthedContext,
-    { id: bookmarkId, userId }: { id: string; userId: string },
+    { id: bookmarkId, userId: bookmarkOwnerId }: { id: string; userId: string },
   ): Promise<boolean> {
-    if (userId == ctx.user.id) {
+    if (bookmarkOwnerId == ctx.user.id) {
       return true;
     }
     const bookmarkLists = await List.forBookmark(ctx, bookmarkId);
@@ -123,7 +131,7 @@ export class BareBookmark implements PrivacyAware {
   }
 
   ensureOwnership() {
-    if (this.bookmark.userId != this.ctx.user.id) {
+    if (this.bareBookmark.userId != this.ctx.user.id) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to access resource",
@@ -132,7 +140,7 @@ export class BareBookmark implements PrivacyAware {
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
-    if (this.bookmark.userId != ctx.user.id) {
+    if (this.bareBookmark.userId != ctx.user.id) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to access resource",
@@ -144,7 +152,7 @@ export class BareBookmark implements PrivacyAware {
 export class Bookmark extends BareBookmark {
   protected constructor(
     ctx: AuthedContext,
-    public bookmark: ZBookmark,
+    private bookmark: ZBookmark,
   ) {
     super(ctx, bookmark);
   }
@@ -771,6 +779,7 @@ export class Bookmark extends BareBookmark {
   }
 
   async delete() {
+    this.ensureOwnership();
     const deleted = await this.ctx.db
       .delete(bookmarks)
       .where(

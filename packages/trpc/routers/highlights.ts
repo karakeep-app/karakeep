@@ -25,8 +25,8 @@ export const highlightsAppRouter = router({
     .input(z.object({ bookmarkId: z.string() }))
     .output(z.object({ highlights: z.array(zHighlightSchema) }))
     .use(ensureBookmarkAccess)
-    .query(async ({ input, ctx }) => {
-      const highlights = await Highlight.getForBookmark(ctx, input.bookmarkId);
+    .query(async ({ ctx }) => {
+      const highlights = await Highlight.getForBookmark(ctx, ctx.bookmark);
       return { highlights: highlights.map((h) => h.asPublicHighlight()) };
     }),
   get: authedProcedure
