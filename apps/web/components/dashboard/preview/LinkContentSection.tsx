@@ -25,6 +25,7 @@ import {
   ExpandIcon,
   Video,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -111,6 +112,8 @@ export default function LinkContentSection({
   const [section, setSection] = useQueryState("section", {
     defaultValue: defaultSection,
   });
+  const { data: session } = useSession();
+  const isOwner = session?.user?.id === bookmark.userId;
 
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");
@@ -133,6 +136,7 @@ export default function LinkContentSection({
         <ReaderView
           className="prose mx-auto dark:prose-invert"
           bookmarkId={bookmark.id}
+          readOnly={!isOwner}
         />
       </ScrollArea>
     );

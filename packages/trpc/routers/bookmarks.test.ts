@@ -361,20 +361,20 @@ describe("Bookmark Routes", () => {
     // All interactions with the wrong user should fail
     await expect(() =>
       apiCallers[0].bookmarks.deleteBookmark({ bookmarkId: user2Bookmark.id }),
-    ).rejects.toThrow(/User is not allowed to access resource/);
+    ).rejects.toThrow(/Bookmark not found/);
     await expect(() =>
       apiCallers[0].bookmarks.getBookmark({ bookmarkId: user2Bookmark.id }),
-    ).rejects.toThrow(/User is not allowed to access resource/);
+    ).rejects.toThrow(/Bookmark not found/);
     await expect(() =>
       apiCallers[0].bookmarks.updateBookmark({ bookmarkId: user2Bookmark.id }),
-    ).rejects.toThrow(/User is not allowed to access resource/);
+    ).rejects.toThrow(/Bookmark not found/);
     await expect(() =>
       apiCallers[0].bookmarks.updateTags({
         bookmarkId: user2Bookmark.id,
         attach: [],
         detach: [],
       }),
-    ).rejects.toThrow(/User is not allowed to access resource/);
+    ).rejects.toThrow(/Bookmark not found/);
 
     // Get bookmarks should only show the correct one
     expect(

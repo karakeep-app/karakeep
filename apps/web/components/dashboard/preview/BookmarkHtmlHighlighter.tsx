@@ -95,6 +95,7 @@ interface HTMLHighlighterProps {
   style?: React.CSSProperties;
   className?: string;
   highlights?: Highlight[];
+  readOnly?: boolean;
   onHighlight?: (highlight: Highlight) => void;
   onUpdateHighlight?: (highlight: Highlight) => void;
   onDeleteHighlight?: (highlight: Highlight) => void;
@@ -105,6 +106,7 @@ function BookmarkHTMLHighlighter({
   className,
   style,
   highlights = [],
+  readOnly = false,
   onHighlight,
   onUpdateHighlight,
   onDeleteHighlight,
@@ -173,6 +175,10 @@ function BookmarkHTMLHighlighter({
   }, [pendingHighlight, contentRef]);
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (readOnly) {
+      return;
+    }
+
     const selection = window.getSelection();
 
     // Check if we clicked on an existing highlight

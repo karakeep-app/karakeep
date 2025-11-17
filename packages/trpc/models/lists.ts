@@ -1,11 +1,16 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, or } from "drizzle-orm";
+import { and, count, eq, inArray, or } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
 import { SqliteError } from "@karakeep/db";
-import { bookmarkLists, bookmarksInLists } from "@karakeep/db/schema";
+import {
+  bookmarkLists,
+  bookmarksInLists,
+  listCollaborators,
+  users,
+} from "@karakeep/db/schema";
 import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
@@ -15,6 +20,7 @@ import {
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
 import { ZCursor } from "@karakeep/shared/types/pagination";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
@@ -22,20 +28,54 @@ import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { PrivacyAware } from "./privacy";
 
+interface ListCollaboratorEntry {
+  membershipId: string;
+}
+
 export abstract class List implements PrivacyAware {
   protected constructor(
     protected ctx: AuthedContext,
-    public list: ZBookmarkList & { userId: string },
+    protected list: ZBookmarkList & { userId: string },
   ) {}
+
+  get id() {
+    return this.list.id;
+  }
+
+  asZBookmarkList() {
+    if (this.list.userId === this.ctx.user.id) {
+      return this.list;
+    }
+
+    // There's some privacy implications here, so we need to think twice
+    // about the values that we return.
+    return {
+      id: this.list.id,
+      name: this.list.name,
+      description: this.list.description,
+      userId: this.list.userId,
+      icon: this.list.icon,
+      type: this.list.type,
+      query: this.list.query,
+      userRole: this.list.userRole,
+      hasCollaborators: this.list.hasCollaborators,
+
+      // Hide parentId as it is not relevant to the user
+      parentId: null,
+      // Hide whether the list is public or not.
+      public: false,
+    };
+  }
 
   private static fromData(
     ctx: AuthedContext,
     data: ZBookmarkList & { userId: string },
+    collaboratorEntry: ListCollaboratorEntry | null,
   ) {
     if (data.type === "smart") {
       return new SmartList(ctx, data);
     } else {
-      return new ManualList(ctx, data);
+      return new ManualList(ctx, data, collaboratorEntry);
     }
   }
 
@@ -43,12 +83,64 @@ export abstract class List implements PrivacyAware {
     ctx: AuthedContext,
     id: string,
   ): Promise<ManualList | SmartList> {
-    const list = await ctx.db.query.bookmarkLists.findFirst({
-      where: and(
-        eq(bookmarkLists.id, id),
-        eq(bookmarkLists.userId, ctx.user.id),
-      ),
-    });
+    // First try to find the list owned by the user
+    let list = await (async (): Promise<
+      (ZBookmarkList & { userId: string }) | undefined
+    > => {
+      const l = await ctx.db.query.bookmarkLists.findFirst({
+        columns: {
+          rssToken: false,
+        },
+        where: and(
+          eq(bookmarkLists.id, id),
+          eq(bookmarkLists.userId, ctx.user.id),
+        ),
+        with: {
+          collaborators: {
+            columns: {
+              id: true,
+            },
+            limit: 1,
+          },
+        },
+      });
+      return l
+        ? {
+            ...l,
+            userRole: "owner",
+            hasCollaborators: l.collaborators.length > 0,
+          }
+        : l;
+    })();
+
+    // If not found, check if the user is a collaborator
+    let collaboratorEntry: ListCollaboratorEntry | null = null;
+    if (!list) {
+      const collaborator = await ctx.db.query.listCollaborators.findFirst({
+        where: and(
+          eq(listCollaborators.listId, id),
+          eq(listCollaborators.userId, ctx.user.id),
+        ),
+        with: {
+          list: {
+            columns: {
+              rssToken: false,
+            },
+          },
+        },
+      });
+
+      if (collaborator) {
+        list = {
+          ...collaborator.list,
+          userRole: collaborator.role,
+          hasCollaborators: true, // If you're a collaborator, the list has collaborators
+        };
+        collaboratorEntry = {
+          membershipId: collaborator.id,
+        };
+      }
+    }
 
     if (!list) {
       throw new TRPCError({
@@ -59,7 +151,7 @@ export abstract class List implements PrivacyAware {
     if (list.type === "smart") {
       return new SmartList(ctx, list);
     } else {
-      return new ManualList(ctx, list);
+      return new ManualList(ctx, list, collaboratorEntry);
     }
   }
 
@@ -124,8 +216,17 @@ export abstract class List implements PrivacyAware {
     // an impersonating context for the list owner as long as
     // we don't leak the context.
     const authedCtx = await buildImpersonatingAuthedContext(listdb.userId);
-    const list = List.fromData(authedCtx, listdb);
-    const bookmarkIds = await list.getBookmarkIds();
+    const listObj = List.fromData(
+      authedCtx,
+      {
+        ...listdb,
+        userRole: "public",
+        hasCollaborators: false, // Public lists don't expose collaborators
+      },
+      null,
+    );
+    const bookmarkIds = await listObj.getBookmarkIds();
+    const list = listObj.asZBookmarkList();
 
     const bookmarks = await Bookmark.loadMulti(authedCtx, {
       ids: bookmarkIds,
@@ -137,9 +238,9 @@ export abstract class List implements PrivacyAware {
 
     return {
       list: {
-        icon: list.list.icon,
-        name: list.list.name,
-        description: list.list.description,
+        icon: list.icon,
+        name: list.name,
+        description: list.description,
         ownerName: listdb.user.name,
         numItems: bookmarkIds.length,
       },
@@ -164,32 +265,127 @@ export abstract class List implements PrivacyAware {
         query: input.query,
       })
       .returning();
-    return this.fromData(ctx, result);
+    return this.fromData(
+      ctx,
+      {
+        ...result,
+        userRole: "owner",
+        hasCollaborators: false, // Newly created lists have no collaborators
+      },
+      null,
+    );
   }
 
-  static async getAll(ctx: AuthedContext): Promise<(ManualList | SmartList)[]> {
+  static async getAll(ctx: AuthedContext) {
+    const [ownedLists, sharedLists] = await Promise.all([
+      this.getAllOwned(ctx),
+      this.getSharedWithUser(ctx),
+    ]);
+    return [...ownedLists, ...sharedLists];
+  }
+
+  static async getAllOwned(
+    ctx: AuthedContext,
+  ): Promise<(ManualList | SmartList)[]> {
     const lists = await ctx.db.query.bookmarkLists.findMany({
       columns: {
         rssToken: false,
       },
       where: and(eq(bookmarkLists.userId, ctx.user.id)),
+      with: {
+        collaborators: {
+          columns: {
+            id: true,
+          },
+          limit: 1,
+        },
+      },
     });
-    return lists.map((l) => this.fromData(ctx, l));
+    return lists.map((l) =>
+      this.fromData(
+        ctx,
+        {
+          ...l,
+          userRole: "owner",
+          hasCollaborators: l.collaborators.length > 0,
+        },
+        null /* this is an owned list */,
+      ),
+    );
   }
 
   static async forBookmark(ctx: AuthedContext, bookmarkId: string) {
     const lists = await ctx.db.query.bookmarksInLists.findMany({
-      where: and(eq(bookmarksInLists.bookmarkId, bookmarkId)),
+      where: eq(bookmarksInLists.bookmarkId, bookmarkId),
       with: {
         list: {
           columns: {
             rssToken: false,
           },
+          with: {
+            collaborators: {
+              where: eq(listCollaborators.userId, ctx.user.id),
+              columns: {
+                id: true,
+                role: true,
+              },
+            },
+          },
         },
       },
     });
-    invariant(lists.map((l) => l.list.userId).every((id) => id == ctx.user.id));
-    return lists.map((l) => this.fromData(ctx, l.list));
+
+    // For owner lists, we need to check if they actually have collaborators
+    // by querying the collaborators table separately (without user filter)
+    const ownerListIds = lists
+      .filter((l) => l.list.userId === ctx.user.id)
+      .map((l) => l.list.id);
+
+    const listsWithCollaborators = new Set<string>();
+    if (ownerListIds.length > 0) {
+      // Use a single query with inArray instead of N queries
+      const collaborators = await ctx.db.query.listCollaborators.findMany({
+        where: inArray(listCollaborators.listId, ownerListIds),
+        columns: {
+          listId: true,
+        },
+      });
+      collaborators.forEach((c) => {
+        listsWithCollaborators.add(c.listId);
+      });
+    }
+
+    return lists.flatMap((l) => {
+      let userRole: "owner" | "editor" | "viewer" | null;
+      let collaboratorEntry: ListCollaboratorEntry | null = null;
+      if (l.list.collaborators.length > 0) {
+        invariant(l.list.collaborators.length == 1);
+        userRole = l.list.collaborators[0].role;
+        collaboratorEntry = {
+          membershipId: l.list.collaborators[0].id,
+        };
+      } else if (l.list.userId === ctx.user.id) {
+        userRole = "owner";
+      } else {
+        userRole = null;
+      }
+      return userRole
+        ? [
+            this.fromData(
+              ctx,
+              {
+                ...l.list,
+                userRole,
+                hasCollaborators:
+                  userRole !== "owner"
+                    ? true
+                    : listsWithCollaborators.has(l.list.id),
+              },
+              collaboratorEntry,
+            ),
+          ]
+        : [];
+    });
   }
 
   ensureCanAccess(ctx: AuthedContext): void {
@@ -201,7 +397,81 @@ export abstract class List implements PrivacyAware {
     }
   }
 
+  /**
+   * Check if the user can view this list and its bookmarks.
+   */
+  canUserView(): boolean {
+    return switchCase(this.list.userRole, {
+      owner: true,
+      editor: true,
+      viewer: true,
+      public: true,
+    });
+  }
+
+  /**
+   * Check if the user can edit this list (add/remove bookmarks).
+   */
+  canUserEdit(): boolean {
+    return switchCase(this.list.userRole, {
+      owner: true,
+      editor: true,
+      viewer: false,
+      public: false,
+    });
+  }
+
+  /**
+   * Check if the user can manage this list (edit metadata, delete, manage collaborators).
+   * Only the owner can manage the list.
+   */
+  canUserManage(): boolean {
+    return switchCase(this.list.userRole, {
+      owner: true,
+      editor: false,
+      viewer: false,
+      public: false,
+    });
+  }
+
+  /**
+   * Ensure the user can view this list. Throws if they cannot.
+   */
+  ensureCanView(): void {
+    if (!this.canUserView()) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to view this list",
+      });
+    }
+  }
+
+  /**
+   * Ensure the user can edit this list. Throws if they cannot.
+   */
+  ensureCanEdit(): void {
+    if (!this.canUserEdit()) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to edit this list",
+      });
+    }
+  }
+
+  /**
+   * Ensure the user can manage this list. Throws if they cannot.
+   */
+  ensureCanManage(): void {
+    if (!this.canUserManage()) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to manage this list",
+      });
+    }
+  }
+
   async delete() {
+    this.ensureCanManage();
     const res = await this.ctx.db
       .delete(bookmarkLists)
       .where(
@@ -216,22 +486,23 @@ export abstract class List implements PrivacyAware {
   }
 
   async getChildren(): Promise<(ManualList | SmartList)[]> {
-    const lists = await List.getAll(this.ctx);
-    const listById = new Map(lists.map((l) => [l.list.id, l]));
+    const lists = await List.getAllOwned(this.ctx);
+    const listById = new Map(lists.map((l) => [l.id, l]));
 
     const adjecencyList = new Map<string, string[]>();
 
     // Initialize all lists with empty arrays first
     lists.forEach((l) => {
-      adjecencyList.set(l.list.id, []);
+      adjecencyList.set(l.id, []);
     });
 
     // Then populate the parent-child relationships
     lists.forEach((l) => {
-      if (l.list.parentId) {
-        const currentChildren = adjecencyList.get(l.list.parentId) ?? [];
-        currentChildren.push(l.list.id);
-        adjecencyList.set(l.list.parentId, currentChildren);
+      const parentId = l.asZBookmarkList().parentId;
+      if (parentId) {
+        const currentChildren = adjecencyList.get(parentId) ?? [];
+        currentChildren.push(l.id);
+        adjecencyList.set(parentId, currentChildren);
       }
     });
 
@@ -253,6 +524,7 @@ export abstract class List implements PrivacyAware {
   async update(
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
+    this.ensureCanManage();
     const result = await this.ctx.db
       .update(bookmarkLists)
       .set({
@@ -273,7 +545,21 @@ export abstract class List implements PrivacyAware {
     if (result.length == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
-    this.list = result[0];
+    invariant(result[0].userId === this.ctx.user.id);
+    // Fetch current collaborators count to update hasCollaborators
+    const collaboratorsCount =
+      await this.ctx.db.query.listCollaborators.findMany({
+        where: eq(listCollaborators.listId, this.list.id),
+        columns: {
+          id: true,
+        },
+        limit: 1,
+      });
+    this.list = {
+      ...result[0],
+      userRole: "owner",
+      hasCollaborators: collaboratorsCount.length > 0,
+    };
   }
 
   private async setRssToken(token: string | null) {
@@ -294,6 +580,7 @@ export abstract class List implements PrivacyAware {
   }
 
   async getRssToken(): Promise<string | null> {
+    this.ensureCanManage();
     const [result] = await this.ctx.db
       .select({ rssToken: bookmarkLists.rssToken })
       .from(bookmarkLists)
@@ -308,11 +595,235 @@ export abstract class List implements PrivacyAware {
   }
 
   async regenRssToken() {
+    this.ensureCanManage();
     return await this.setRssToken(crypto.randomBytes(32).toString("hex"));
   }
 
   async clearRssToken() {
+    this.ensureCanManage();
     await this.setRssToken(null);
+  }
+
+  /**
+   * Add a collaborator to this list by email.
+   */
+  async addCollaboratorByEmail(
+    email: string,
+    role: "viewer" | "editor",
+  ): Promise<void> {
+    this.ensureCanManage();
+
+    // Look up the user by email
+    const user = await this.ctx.db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.email, email),
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No user found with that email address",
+      });
+    }
+
+    // Check that the user is not adding themselves
+    if (user.id === this.list.userId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cannot add the list owner as a collaborator",
+      });
+    }
+
+    // Check that the collaborator is not already added
+    const existing = await this.ctx.db.query.listCollaborators.findFirst({
+      where: and(
+        eq(listCollaborators.listId, this.list.id),
+        eq(listCollaborators.userId, user.id),
+      ),
+    });
+
+    if (existing) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User is already a collaborator on this list",
+      });
+    }
+
+    // Only manual lists can be collaborative
+    if (this.list.type !== "manual") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only manual lists can have collaborators",
+      });
+    }
+
+    await this.ctx.db.insert(listCollaborators).values({
+      listId: this.list.id,
+      userId: user.id,
+      role,
+      addedBy: this.ctx.user.id,
+    });
+  }
+
+  /**
+   * Remove a collaborator from this list.
+   * Only the list owner can remove collaborators.
+   * This also removes all bookmarks that the collaborator added to the list.
+   */
+  async removeCollaborator(userId: string): Promise<void> {
+    this.ensureCanManage();
+
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
+  }
+
+  /**
+   * Allow a user to leave a list (remove themselves as a collaborator).
+   * This bypasses the owner check since users should be able to leave lists they're collaborating on.
+   * This also removes all bookmarks that the user added to the list.
+   */
+  async leaveList(): Promise<void> {
+    if (this.list.userRole === "owner") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "List owners cannot leave their own list. Delete the list instead.",
+      });
+    }
+
+    const result = await this.ctx.db
+      .delete(listCollaborators)
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, this.ctx.user.id),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
+  }
+
+  /**
+   * Update a collaborator's role.
+   */
+  async updateCollaboratorRole(
+    userId: string,
+    role: "viewer" | "editor",
+  ): Promise<void> {
+    this.ensureCanManage();
+
+    const result = await this.ctx.db
+      .update(listCollaborators)
+      .set({ role })
+      .where(
+        and(
+          eq(listCollaborators.listId, this.list.id),
+          eq(listCollaborators.userId, userId),
+        ),
+      );
+
+    if (result.changes === 0) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Collaborator not found",
+      });
+    }
+  }
+
+  /**
+   * Get all collaborators for this list.
+   */
+  async getCollaborators() {
+    this.ensureCanView();
+
+    const collaborators = await this.ctx.db.query.listCollaborators.findMany({
+      where: eq(listCollaborators.listId, this.list.id),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // Get the owner information
+    const owner = await this.ctx.db.query.users.findFirst({
+      where: eq(users.id, this.list.userId),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    return {
+      collaborators: collaborators.map((c) => ({
+        id: c.id,
+        userId: c.userId,
+        role: c.role,
+        addedAt: c.addedAt,
+        user: c.user,
+      })),
+      owner: owner
+        ? {
+            id: owner.id,
+            name: owner.name,
+            email: owner.email,
+          }
+        : null,
+    };
+  }
+
+  /**
+   * Get all lists shared with the user (as a collaborator).
+   */
+  static async getSharedWithUser(
+    ctx: AuthedContext,
+  ): Promise<(ManualList | SmartList)[]> {
+    const collaborations = await ctx.db.query.listCollaborators.findMany({
+      where: eq(listCollaborators.userId, ctx.user.id),
+      with: {
+        list: {
+          columns: {
+            rssToken: false,
+          },
+        },
+      },
+    });
+
+    return collaborations.map((c) =>
+      this.fromData(
+        ctx,
+        {
+          ...c.list,
+          userRole: c.role,
+          hasCollaborators: true, // If you're a collaborator, the list has collaborators
+        },
+        {
+          membershipId: c.id,
+        },
+      ),
+    );
   }
 
   abstract get type(): "manual" | "smart";
@@ -392,7 +903,11 @@ export class SmartList extends List {
 }
 
 export class ManualList extends List {
-  constructor(ctx: AuthedContext, list: ZBookmarkList & { userId: string }) {
+  constructor(
+    ctx: AuthedContext,
+    list: ZBookmarkList & { userId: string },
+    private collaboratorEntry: ListCollaboratorEntry | null,
+  ) {
     super(ctx, list);
   }
 
@@ -418,10 +933,13 @@ export class ManualList extends List {
   }
 
   async addBookmark(bookmarkId: string): Promise<void> {
+    this.ensureCanEdit();
+
     try {
       await this.ctx.db.insert(bookmarksInLists).values({
         listId: this.list.id,
         bookmarkId,
+        listMembershipId: this.collaboratorEntry?.membershipId,
       });
       await triggerRuleEngineOnEvent(bookmarkId, [
         {
@@ -444,6 +962,9 @@ export class ManualList extends List {
   }
 
   async removeBookmark(bookmarkId: string): Promise<void> {
+    // Check that the user can edit this list
+    this.ensureCanEdit();
+
     const deleted = await this.ctx.db
       .delete(bookmarksInLists)
       .where(
@@ -480,6 +1001,8 @@ export class ManualList extends List {
     targetList: List,
     deleteSourceAfterMerge: boolean,
   ): Promise<void> {
+    this.ensureCanManage();
+    targetList.ensureCanManage();
     if (targetList.type !== "manual") {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -495,7 +1018,7 @@ export class ManualList extends List {
         .values(
           bookmarkIds.map((id) => ({
             bookmarkId: id,
-            listId: targetList.list.id,
+            listId: targetList.id,
           })),
         )
         .onConflictDoNothing();

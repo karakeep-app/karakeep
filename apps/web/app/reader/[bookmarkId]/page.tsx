@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
 import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { Button } from "@/components/ui/button";
@@ -29,16 +29,14 @@ import {
   Type,
   X,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import { api } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
-export default function ReaderViewPage({
-  params,
-}: {
-  params: { bookmarkId: string };
-}) {
+export default function ReaderViewPage() {
+  const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
   const { data: highlights } = api.highlights.getForBookmark.useQuery({
     bookmarkId,
@@ -47,12 +45,14 @@ export default function ReaderViewPage({
     bookmarkId,
   });
 
+  const { data: session } = useSession();
   const router = useRouter();
   const [fontSize, setFontSize] = useState([18]);
   const [lineHeight, setLineHeight] = useState([1.6]);
   const [fontFamily, setFontFamily] = useState("serif");
   const [showHighlights, setShowHighlights] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const isOwner = session?.user?.id === bookmark?.userId;
 
   const fontFamilies = {
     serif: "ui-serif, Georgia, Cambria, serif",
@@ -245,6 +245,7 @@ export default function ReaderViewPage({
                         lineHeight: lineHeight[0],
                       }}
                       bookmarkId={bookmarkId}
+                      readOnly={!isOwner}
                     />
                   </div>
                 </Suspense>
@@ -299,6 +300,7 @@ export default function ReaderViewPage({
                       key={highlight.id}
                       highlight={highlight}
                       clickable={true}
+                      readOnly={!isOwner}
                     />
                   ))}
                 </div>

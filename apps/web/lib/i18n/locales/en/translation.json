@@ -470,6 +470,7 @@
   "lists": {
     "all_lists": "All Lists",
     "favourites": "Favourites",
+    "shared": "Shared",
     "new_list": "New List",
     "edit_list": "Edit List",
     "share_list": "Share List",
@@ -501,6 +502,37 @@
       "title": "Public List",
       "description": "Allow others to view this list",
       "share_link": "Share Link"
+    },
+    "collaborators": {
+      "manage": "Manage Collaborators",
+      "view": "View Collaborators",
+      "collaborators": "Collaborators",
+      "add": "Add Collaborator",
+      "current": "Current Collaborators",
+      "enter_email": "Enter email address",
+      "please_enter_email": "Please enter an email address",
+      "added_successfully": "Collaborator added successfully",
+      "failed_to_add": "Failed to add collaborator",
+      "removed": "Collaborator removed",
+      "failed_to_remove": "Failed to remove collaborator",
+      "role_updated": "Role updated",
+      "failed_to_update_role": "Failed to update role",
+      "viewer": "Viewer",
+      "editor": "Editor",
+      "owner": "Owner",
+      "viewer_description": "Can view bookmarks in the list",
+      "editor_description": "Can add and remove bookmarks",
+      "no_collaborators": "No collaborators yet. Add someone to start collaborating!",
+      "no_collaborators_readonly": "No collaborators for this list.",
+      "people_with_access": "People who have access to this list",
+      "add_or_remove": "Add or remove people who can access this list"
+    },
+    "leave_list": {
+      "title": "Leave List",
+      "confirm_message": "Are you sure you want to leave {{icon}} {{name}}?",
+      "warning": "You will no longer be able to view or access bookmarks in this list. The list owner can add you back if needed.",
+      "action": "Leave List",
+      "success": "You have left \"{{icon}} {{name}}\""
     }
   },
   "tags": {

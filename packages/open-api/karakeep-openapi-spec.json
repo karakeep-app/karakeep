@@ -108,6 +108,9 @@
               "import"
             ]
           },
+          "userId": {
+            "type": "string"
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -341,6 +344,7 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "userId",
           "tags",
           "content",
           "assets"
@@ -402,6 +406,18 @@
           },
           "public": {
             "type": "boolean"
+          },
+          "hasCollaborators": {
+            "type": "boolean"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "viewer",
+              "public"
+            ]
           }
         },
         "required": [
@@ -409,7 +425,9 @@
           "name",
           "icon",
           "parentId",
-          "public"
+          "public",
+          "hasCollaborators",
+          "userRole"
         ]
       },
       "Highlight": {
@@ -1194,6 +1212,9 @@
                         "rss",
                         "import"
                       ]
+                    },
+                    "userId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1203,7 +1224,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "userId"
                   ]
                 }
               }
@@ -1318,6 +1340,9 @@
                         "rss",
                         "import"
                       ]
+                    },
+                    "userId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -1327,7 +1352,8 @@
                     "archived",
                     "favourited",
                     "taggingStatus",
-                    "summarizationStatus"
+                    "summarizationStatus",
+                    "userId"
                   ]
                 }
               }

@@ -10,7 +10,7 @@ import {
 
 import { authedProcedure, router } from "../index";
 import { Highlight } from "../models/highlights";
-import { ensureBookmarkOwnership } from "./bookmarks";
+import { ensureBookmarkAccess, ensureBookmarkOwnership } from "./bookmarks";
 
 export const highlightsAppRouter = router({
   create: authedProcedure
@@ -24,9 +24,9 @@ export const highlightsAppRouter = router({
   getForBookmark: authedProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .output(z.object({ highlights: z.array(zHighlightSchema) }))
-    .use(ensureBookmarkOwnership)
-    .query(async ({ input, ctx }) => {
-      const highlights = await Highlight.getForBookmark(ctx, input.bookmarkId);
+    .use(ensureBookmarkAccess)
+    .query(async ({ ctx }) => {
+      const highlights = await Highlight.getForBookmark(ctx, ctx.bookmark);
       return { highlights: highlights.map((h) => h.asPublicHighlight()) };
     }),
   get: authedProcedure

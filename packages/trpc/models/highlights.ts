@@ -11,6 +11,7 @@ import {
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import { AuthedContext } from "..";
+import { BareBookmark } from "./bookmarks";
 import { PrivacyAware } from "./privacy";
 
 export class Highlight implements PrivacyAware {
@@ -64,13 +65,10 @@ export class Highlight implements PrivacyAware {
 
   static async getForBookmark(
     ctx: AuthedContext,
-    bookmarkId: string,
+    bookmark: BareBookmark,
   ): Promise<Highlight[]> {
     const results = await ctx.db.query.highlights.findMany({
-      where: and(
-        eq(highlights.bookmarkId, bookmarkId),
-        eq(highlights.userId, ctx.user.id),
-      ),
+      where: eq(highlights.bookmarkId, bookmark.id),
       orderBy: [desc(highlights.createdAt), desc(highlights.id)],
     });
 
