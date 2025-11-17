@@ -11,17 +11,19 @@ interface LegacyQueueState {
   items: QueueItem[];
   itemsv2: Record<string, GroupState>;
   inFlight: number;
+  sequence: number;
 }
 
 interface QueueState {
   groups: Record<string, GroupState>;
   inFlight: number;
+  sequence: number;
 }
 
 interface GroupState {
   id: string;
   items: QueueItem[];
-  lastServedTimestamp: number;
+  lastServedOrder: number;
 }
 
 export const semaphore = object({
@@ -43,7 +45,7 @@ export const semaphore = object({
         state.groups[req.groupId] = {
           id: req.groupId,
           items: [],
-          lastServedTimestamp: Date.now(),
+          lastServedOrder: state.sequence++,
         };
       }
 
@@ -74,43 +76,46 @@ export const semaphore = object({
 });
 
 // Lower numbers represent higher priority, mirroring Liteque’s semantics.
-function selectAndPopItem(groups: Record<string, GroupState>): QueueItem {
+function selectAndPopItem(state: QueueState): {
+  item: QueueItem;
+  groupId: string;
+} {
   let selected: {
     priority: number;
     groupId: string;
     index: number;
-    groupLastServedTimestamp: number;
+    groupLastServedOrder: number;
   } = {
     priority: Number.MAX_SAFE_INTEGER,
     groupId: "",
     index: 0,
-    groupLastServedTimestamp: 0,
+    groupLastServedOrder: 0,
   };
 
-  for (const [groupId, group] of Object.entries(groups)) {
+  for (const [groupId, group] of Object.entries(state.groups)) {
     for (const [i, item] of group.items.entries()) {
       if (item.priority < selected.priority) {
         selected.priority = item.priority;
         selected.groupId = groupId;
         selected.index = i;
-        selected.groupLastServedTimestamp = group.lastServedTimestamp;
+        selected.groupLastServedOrder = group.lastServedOrder;
       } else if (item.priority === selected.priority) {
-        if (group.lastServedTimestamp < selected.groupLastServedTimestamp) {
+        if (group.lastServedOrder < selected.groupLastServedOrder) {
           selected.priority = item.priority;
           selected.groupId = groupId;
           selected.index = i;
-          selected.groupLastServedTimestamp = group.lastServedTimestamp;
+          selected.groupLastServedOrder = group.lastServedOrder;
         }
       }
     }
   }
 
-  const [item] = groups[selected.groupId].items.splice(selected.index, 1);
-  groups[selected.groupId].lastServedTimestamp = Date.now();
-  if (groups[selected.groupId].items.length === 0) {
-    delete groups[selected.groupId];
+  const [item] = state.groups[selected.groupId].items.splice(selected.index, 1);
+  state.groups[selected.groupId].lastServedOrder = state.sequence++;
+  if (state.groups[selected.groupId].items.length === 0) {
+    delete state.groups[selected.groupId];
   }
-  return item;
+  return { item, groupId: selected.groupId };
 }
 
 function tick(
@@ -119,7 +124,7 @@ function tick(
   capacity: number,
 ) {
   while (state.inFlight < capacity && Object.keys(state.groups).length > 0) {
-    const item = selectAndPopItem(state.groups);
+    const { item } = selectAndPopItem(state);
     state.inFlight++;
     ctx.resolveAwakeable(item.awakeable);
   }
@@ -135,19 +140,21 @@ async function getState(
     groups["__legacy__"] = {
       id: "__legacy__",
       items,
-      lastServedTimestamp: 0,
+      lastServedOrder: 0,
     };
   }
 
   return {
     groups,
     inFlight: (await ctx.get("inFlight")) ?? 0,
+    sequence: (await ctx.get("sequence")) ?? 0,
   };
 }
 
 function setState(ctx: ObjectContext<LegacyQueueState>, state: QueueState) {
   ctx.set("itemsv2", state.groups);
   ctx.set("inFlight", state.inFlight);
+  ctx.set("sequence", state.sequence);
   ctx.clear("items");
 }
 
@@ -158,7 +165,7 @@ export class RestateSemaphore {
     private readonly capacity: number,
   ) {}
 
-  async acquire(priority: number) {
+  async acquire(priority: number, groupId?: string) {
     const awk = this.ctx.awakeable();
     await this.ctx
       .objectClient<typeof semaphore>({ name: "Semaphore" }, this.id)
@@ -166,6 +173,7 @@ export class RestateSemaphore {
         awakeableId: awk.id,
         priority,
         capacity: this.capacity,
+        groupId,
       });
     await awk.promise;
   }

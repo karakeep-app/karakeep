@@ -41,6 +41,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
         data: {
           payload: T;
           priority: number;
+          groupId?: string;
         },
       ) => Promise<void>;
     }
@@ -49,6 +50,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
       {
         payload,
         priority: options?.priority ?? 0,
+        groupId: options?.groupId,
       },
       restateClient.rpc.sendOpts({
         delay: options?.delayMs

@@ -40,6 +40,7 @@ export function buildRestateService<T, R>(
         data: {
           payload: T;
           priority: number;
+          groupId?: string;
         },
       ) => {
         const id = `${await genId(ctx)}`;
@@ -64,7 +65,7 @@ export function buildRestateService<T, R>(
 
         let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
-          await semaphore.acquire(priority);
+          await semaphore.acquire(priority, data.groupId);
           const res = await runWorkerLogic(ctx, funcs, {
             id,
             data: payload,
