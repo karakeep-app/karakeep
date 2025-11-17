@@ -669,7 +669,7 @@ export abstract class List implements PrivacyAware {
           const { sendListInvitationEmail } = await import("../email");
           await sendListInvitationEmail(
             email,
-            this.ctx.user.name,
+            this.ctx.user.name || "A user",
             this.list.name,
             this.list.id,
           );
@@ -702,7 +702,7 @@ export abstract class List implements PrivacyAware {
       const { sendListInvitationEmail } = await import("../email");
       await sendListInvitationEmail(
         email,
-        this.ctx.user.name,
+        this.ctx.user.name || "A user",
         this.list.name,
         this.list.id,
       );
