@@ -158,10 +158,10 @@ export const bookmarks = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     taggingStatus: text("taggingStatus", {
-      enum: ["pending", "failure", "success"],
+      enum: ["pending", "failure", "success", "skipped"],
     }).default("pending"),
     summarizationStatus: text("summarizationStatus", {
-      enum: ["pending", "failure", "success"],
+      enum: ["pending", "failure", "success", "skipped"],
     }).default("pending"),
     summary: text("summary"),
     note: text("note"),
