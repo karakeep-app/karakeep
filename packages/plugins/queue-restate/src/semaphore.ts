@@ -9,9 +9,15 @@ interface QueueItem {
 }
 
 interface QueueState {
-  items: QueueItem[];
+  // Old schema (deprecated, for backward compatibility)
+  items?: QueueItem[];
+  lastServedGroups?: string[];
+
+  // New schema
+  groupQueues?: Record<string, QueueItem[]>;
+  ungroupedQueue?: QueueItem[];
   inFlight: number;
-  lastServedGroups: string[];
+  lastServedGroup?: string;
 }
 
 export const semaphore = object({
@@ -28,11 +34,21 @@ export const semaphore = object({
     ): Promise<void> => {
       const state = await getState(ctx);
 
-      state.items.push({
+      const item: QueueItem = {
         awakeable: req.awakeableId,
         priority: req.priority,
         groupID: req.groupID,
-      });
+      };
+
+      // Add to appropriate queue
+      if (req.groupID) {
+        if (!state.groupQueues![req.groupID]) {
+          state.groupQueues![req.groupID] = [];
+        }
+        state.groupQueues![req.groupID].push(item);
+      } else {
+        state.ungroupedQueue!.push(item);
+      }
 
       tick(ctx, state, req.capacity);
 
@@ -55,71 +71,70 @@ export const semaphore = object({
 });
 
 // Lower numbers represent higher priority, mirroring Liteque's semantics.
-// Within the same priority, we implement fairness across groups.
-function selectAndPopItem(
-  items: QueueItem[],
-  lastServedGroups: string[],
-): QueueItem {
+// Within the same priority, we implement round-robin fairness across groups.
+function selectAndPopItem(state: QueueState): QueueItem {
+  interface QueueHead {
+    groupID: string | null;
+    priority: number;
+    queue: QueueItem[];
+  }
+
+  // Collect all non-empty queue heads
+  const queueHeads: QueueHead[] = [];
+
+  // Add ungrouped queue
+  if (state.ungroupedQueue!.length > 0) {
+    queueHeads.push({
+      groupID: null,
+      priority: state.ungroupedQueue![0].priority,
+      queue: state.ungroupedQueue!,
+    });
+  }
+
+  // Add all group queues
+  for (const [groupID, queue] of Object.entries(state.groupQueues!)) {
+    if (queue.length > 0) {
+      queueHeads.push({
+        groupID,
+        priority: queue[0].priority,
+        queue,
+      });
+    }
+  }
+
+  if (queueHeads.length === 0) {
+    throw new Error("No items in queue");
+  }
+
   // Find the highest priority (lowest number)
-  let highestPriority = Number.MAX_SAFE_INTEGER;
-  for (const item of items) {
-    if (item.priority < highestPriority) {
-      highestPriority = item.priority;
-    }
+  const highestPriority = Math.min(...queueHeads.map((h) => h.priority));
+
+  // Filter to only queues with the highest priority
+  const highPriorityQueues = queueHeads.filter(
+    (h) => h.priority === highestPriority,
+  );
+
+  // Among high priority queues, prefer one that wasn't just served
+  let selectedQueue: QueueHead | undefined;
+
+  // First, try to find a queue whose group wasn't just served
+  selectedQueue = highPriorityQueues.find(
+    (h) => h.groupID !== state.lastServedGroup,
+  );
+
+  // If all were just served, pick the first one (round-robin will happen naturally)
+  if (!selectedQueue) {
+    selectedQueue = highPriorityQueues[0];
   }
 
-  // Filter to only items with the highest priority
-  const highPriorityItems: Array<{ item: QueueItem; index: number }> = [];
-  for (const [i, item] of items.entries()) {
-    if (item.priority === highestPriority) {
-      highPriorityItems.push({ item, index: i });
-    }
+  // Pop and return the first item from the selected queue
+  const item = selectedQueue.queue.shift()!;
+
+  // Clean up empty group queues to avoid memory leaks
+  if (selectedQueue.groupID && selectedQueue.queue.length === 0) {
+    delete state.groupQueues![selectedQueue.groupID];
   }
 
-  // If there's only one high priority item, select it
-  if (highPriorityItems.length === 1) {
-    const [item] = items.splice(highPriorityItems[0].index, 1);
-    return item;
-  }
-
-  // Among high priority items, implement fairness across groups
-  // Find items whose group was not recently served
-  let selectedIndex = -1;
-
-  // First, try to find an item from a group that hasn't been served recently
-  for (const { item, index } of highPriorityItems) {
-    const groupID = item.groupID;
-    // Items without groupID are always considered fair to select
-    if (!groupID || !lastServedGroups.includes(groupID)) {
-      selectedIndex = index;
-      break;
-    }
-  }
-
-  // If all groups were recently served, pick the one served longest ago
-  if (selectedIndex === -1) {
-    let oldestServedIndex = Infinity;
-    for (const { item, index } of highPriorityItems) {
-      const groupID = item.groupID;
-      if (!groupID) {
-        // Items without groupID can be selected
-        selectedIndex = index;
-        break;
-      }
-      const lastServedIndex = lastServedGroups.indexOf(groupID);
-      if (lastServedIndex !== -1 && lastServedIndex < oldestServedIndex) {
-        oldestServedIndex = lastServedIndex;
-        selectedIndex = index;
-      }
-    }
-  }
-
-  // Fallback: if we still haven't selected an item, pick the first one
-  if (selectedIndex === -1) {
-    selectedIndex = highPriorityItems[0].index;
-  }
-
-  const [item] = items.splice(selectedIndex, 1);
   return item;
 }
 
@@ -128,36 +143,78 @@ function tick(
   state: QueueState,
   capacity: number,
 ) {
-  while (state.inFlight < capacity && state.items.length > 0) {
-    const item = selectAndPopItem(state.items, state.lastServedGroups);
+  while (state.inFlight < capacity && hasItems(state)) {
+    const item = selectAndPopItem(state);
     state.inFlight++;
 
-    // Track the served group for fairness (only if groupID is present)
-    if (item.groupID) {
-      // Add to the front of the history
-      state.lastServedGroups.unshift(item.groupID);
-      // Keep only the last 100 served groups to avoid unbounded growth
-      if (state.lastServedGroups.length > 100) {
-        state.lastServedGroups = state.lastServedGroups.slice(0, 100);
-      }
-    }
+    // Track the served group for fairness
+    state.lastServedGroup = item.groupID;
 
     ctx.resolveAwakeable(item.awakeable);
   }
 }
 
+function hasItems(state: QueueState): boolean {
+  if (state.ungroupedQueue!.length > 0) {
+    return true;
+  }
+  for (const queue of Object.values(state.groupQueues!)) {
+    if (queue.length > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function getState(ctx: ObjectContext<QueueState>): Promise<QueueState> {
+  const inFlight = (await ctx.get("inFlight")) ?? 0;
+
+  // Check if we have old schema data
+  const oldItems = await ctx.get("items");
+
+  if (oldItems && oldItems.length > 0) {
+    // Migrate old schema to new schema
+    const groupQueues: Record<string, QueueItem[]> = {};
+    const ungroupedQueue: QueueItem[] = [];
+
+    for (const item of oldItems) {
+      if (item.groupID) {
+        if (!groupQueues[item.groupID]) {
+          groupQueues[item.groupID] = [];
+        }
+        groupQueues[item.groupID].push(item);
+      } else {
+        ungroupedQueue.push(item);
+      }
+    }
+
+    return {
+      groupQueues,
+      ungroupedQueue,
+      inFlight,
+      lastServedGroup: undefined,
+    };
+  }
+
+  // Use new schema
   return {
-    items: (await ctx.get("items")) ?? [],
-    inFlight: (await ctx.get("inFlight")) ?? 0,
-    lastServedGroups: (await ctx.get("lastServedGroups")) ?? [],
+    groupQueues: (await ctx.get("groupQueues")) ?? {},
+    ungroupedQueue: (await ctx.get("ungroupedQueue")) ?? [],
+    inFlight,
+    lastServedGroup: await ctx.get("lastServedGroup"),
   };
 }
 
 function setState(ctx: ObjectContext<QueueState>, state: QueueState) {
-  ctx.set("items", state.items);
+  // Only write new schema
+  ctx.set("groupQueues", state.groupQueues);
+  ctx.set("ungroupedQueue", state.ungroupedQueue);
   ctx.set("inFlight", state.inFlight);
-  ctx.set("lastServedGroups", state.lastServedGroups);
+  ctx.set("lastServedGroup", state.lastServedGroup);
+
+  // Clear old schema if it exists (for migration)
+  ctx.clear("items");
+  ctx.clear("lastServedGroups");
 }
 
 export class RestateSemaphore {
