@@ -16,7 +16,9 @@ export default function PublicListLink({ list }: { list: ZBookmarkList }) {
 
   const { mutate: editList, isPending: isLoading } = useEditBookmarkList();
 
-  const publicListUrl = `${clientConfig.publicUrl}/public/lists/${list.id}`;
+  // Use slug if available, otherwise fall back to ID
+  const listIdentifier = list.slug || list.id;
+  const publicListUrl = `${clientConfig.publicUrl}/public/lists/${listIdentifier}`;
   const isPublic = list.public;
 
   return (

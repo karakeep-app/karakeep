@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 import { parseSearchQuery } from "../searchQueryParser";
+import {
+  MAX_SLUG_LENGTH,
+  MIN_SLUG_LENGTH,
+  validateSlug,
+} from "../utils/listUtils";
 
 export const MAX_LIST_NAME_LENGTH = 100;
 export const MAX_LIST_DESCRIPTION_LENGTH = 500;
@@ -26,6 +31,21 @@ export const zNewBookmarkListSchema = z
     type: z.enum(["manual", "smart"]).optional().default("manual"),
     query: z.string().min(1).optional(),
     parentId: z.string().nullish(),
+    slug: z
+      .string()
+      .min(MIN_SLUG_LENGTH)
+      .max(MAX_SLUG_LENGTH)
+      .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
+      .refine((slug) => !slug.startsWith("-") && !slug.endsWith("-"), {
+        message: "Slug cannot start or end with a hyphen",
+      })
+      .refine((slug) => !slug.includes("--"), {
+        message: "Slug cannot contain consecutive hyphens",
+      })
+      .refine((slug) => validateSlug(slug).valid, {
+        message: (slug) => validateSlug(slug).error ?? "Invalid slug",
+      })
+      .optional(),
   })
   .refine((val) => val.type === "smart" || !val.query, {
     message: "Manual lists cannot have a query",
@@ -57,6 +77,7 @@ export const zBookmarkListSchema = z.object({
   type: z.enum(["manual", "smart"]).default("manual"),
   query: z.string().nullish(),
   public: z.boolean(),
+  slug: z.string().nullish(),
   hasCollaborators: z.boolean(),
   userRole: z.enum(["owner", "editor", "viewer", "public"]),
 });
@@ -85,6 +106,21 @@ export const zEditBookmarkListSchema = z.object({
   parentId: z.string().nullish(),
   query: z.string().min(1).optional(),
   public: z.boolean().optional(),
+  slug: z
+    .string()
+    .min(MIN_SLUG_LENGTH)
+    .max(MAX_SLUG_LENGTH)
+    .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
+    .refine((slug) => !slug.startsWith("-") && !slug.endsWith("-"), {
+      message: "Slug cannot start or end with a hyphen",
+    })
+    .refine((slug) => !slug.includes("--"), {
+      message: "Slug cannot contain consecutive hyphens",
+    })
+    .refine((slug) => validateSlug(slug).valid, {
+      message: (slug) => validateSlug(slug).error ?? "Invalid slug",
+    })
+    .nullish(),
 });
 
 export const zEditBookmarkListSchemaWithValidation = zEditBookmarkListSchema

@@ -15,7 +15,7 @@ export const publicBookmarks = router({
   getPublicListMetadata: publicProcedure
     .input(
       z.object({
-        listId: z.string(),
+        listId: z.string(), // Can be either a list ID or slug
       }),
     )
     .output(
@@ -24,6 +24,7 @@ export const publicBookmarks = router({
           name: true,
           description: true,
           icon: true,
+          slug: true,
         })
         .merge(z.object({ ownerName: z.string() })),
     )
@@ -37,7 +38,7 @@ export const publicBookmarks = router({
   getPublicBookmarksInList: publicProcedure
     .input(
       z.object({
-        listId: z.string(),
+        listId: z.string(), // Can be either a list ID or slug
         cursor: zCursorV2.nullish(),
         limit: z.number().max(MAX_NUM_BOOKMARKS_PER_PAGE).default(20),
         sortOrder: zSortOrder.exclude(["relevance"]).optional().default("desc"),

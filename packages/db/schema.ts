@@ -392,10 +392,13 @@ export const bookmarkLists = sqliteTable(
     // Whoever have access to this token can read the content of this list
     rssToken: text("rssToken"),
     public: integer("public", { mode: "boolean" }).notNull().default(false),
+    // Custom URL slug for public lists (e.g., "my-reading-list")
+    slug: text("slug"),
   },
   (bl) => [
     index("bookmarkLists_userId_idx").on(bl.userId),
     unique("bookmarkLists_userId_id_idx").on(bl.userId, bl.id),
+    unique("bookmarkLists_slug_idx").on(bl.slug),
   ],
 );
 

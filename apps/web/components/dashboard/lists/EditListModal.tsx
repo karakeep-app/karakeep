@@ -49,6 +49,10 @@ import {
 } from "@karakeep/shared-react/hooks/lists";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
+  generateSlugFromName,
+  validateSlug,
+} from "@karakeep/shared/utils/listUtils";
+import {
   ZBookmarkList,
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
@@ -87,6 +91,7 @@ export function EditListModal({
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
+      slug: list?.slug ?? prefill?.slug ?? undefined,
     },
   });
   const [open, setOpen] = [
@@ -102,6 +107,7 @@ export function EditListModal({
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
+      slug: list?.slug ?? prefill?.slug ?? undefined,
     });
   }, [open]);
 
@@ -280,6 +286,35 @@ export function EditListModal({
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => {
+                return (
+                  <FormItem className="grow pb-4">
+                    <FormLabel>Custom URL Slug (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        className="w-full"
+                        placeholder={
+                          form.watch("name")
+                            ? generateSlugFromName(form.watch("name"))
+                            : "my-list-slug"
+                        }
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Custom URL for your public list (3-100 characters,
+                      lowercase letters, numbers, and hyphens only)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 );

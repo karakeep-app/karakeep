@@ -63,6 +63,8 @@ export abstract class List {
       parentId: null,
       // Hide whether the list is public or not.
       public: false,
+      // Hide slug for non-owners
+      slug: null,
     };
   }
 
@@ -156,12 +158,40 @@ export abstract class List {
 
   private static async getPublicList(
     ctx: Context,
-    listId: string,
+    listIdOrSlug: string,
     token: string | null,
   ) {
+    // Try to find by slug first if it looks like a slug (not a CUID)
+    // CUIDs start with 'c' and are typically 25+ characters
+    const looksLikeCuid = listIdOrSlug.startsWith("c") && listIdOrSlug.length >= 20;
+
+    // Try slug lookup first if it doesn't look like a CUID
+    if (!looksLikeCuid) {
+      const listBySlug = await ctx.db.query.bookmarkLists.findFirst({
+        where: and(
+          eq(bookmarkLists.slug, listIdOrSlug),
+          or(
+            eq(bookmarkLists.public, true),
+            token !== null ? eq(bookmarkLists.rssToken, token) : undefined,
+          ),
+        ),
+        with: {
+          user: {
+            columns: {
+              name: true,
+            },
+          },
+        },
+      });
+      if (listBySlug) {
+        return listBySlug;
+      }
+    }
+
+    // Fallback to ID lookup
     const listdb = await ctx.db.query.bookmarkLists.findFirst({
       where: and(
-        eq(bookmarkLists.id, listId),
+        eq(bookmarkLists.id, listIdOrSlug),
         or(
           eq(bookmarkLists.public, true),
           token !== null ? eq(bookmarkLists.rssToken, token) : undefined,
@@ -186,22 +216,23 @@ export abstract class List {
 
   static async getPublicListMetadata(
     ctx: Context,
-    listId: string,
+    listIdOrSlug: string,
     token: string | null,
   ) {
-    const listdb = await this.getPublicList(ctx, listId, token);
+    const listdb = await this.getPublicList(ctx, listIdOrSlug, token);
     return {
       userId: listdb.userId,
       name: listdb.name,
       description: listdb.description,
       icon: listdb.icon,
       ownerName: listdb.user.name,
+      slug: listdb.slug,
     };
   }
 
   static async getPublicListContents(
     ctx: Context,
-    listId: string,
+    listIdOrSlug: string,
     token: string | null,
     pagination: {
       limit: number;
@@ -209,7 +240,7 @@ export abstract class List {
       cursor: ZCursor | null | undefined;
     },
   ) {
-    const listdb = await this.getPublicList(ctx, listId, token);
+    const listdb = await this.getPublicList(ctx, listIdOrSlug, token);
 
     // The token here acts as an authed context, so we can create
     // an impersonating context for the list owner as long as
@@ -252,27 +283,38 @@ export abstract class List {
     ctx: AuthedContext,
     input: z.infer<typeof zNewBookmarkListSchema>,
   ): Promise<ManualList | SmartList> {
-    const [result] = await ctx.db
-      .insert(bookmarkLists)
-      .values({
-        name: input.name,
-        description: input.description,
-        icon: input.icon,
-        userId: ctx.user.id,
-        parentId: input.parentId,
-        type: input.type,
-        query: input.query,
-      })
-      .returning();
-    return this.fromData(
-      ctx,
-      {
-        ...result,
-        userRole: "owner",
-        hasCollaborators: false, // Newly created lists have no collaborators
-      },
-      null,
-    );
+    try {
+      const [result] = await ctx.db
+        .insert(bookmarkLists)
+        .values({
+          name: input.name,
+          description: input.description,
+          icon: input.icon,
+          userId: ctx.user.id,
+          parentId: input.parentId,
+          type: input.type,
+          query: input.query,
+          slug: input.slug,
+        })
+        .returning();
+      return this.fromData(
+        ctx,
+        {
+          ...result,
+          userRole: "owner",
+          hasCollaborators: false, // Newly created lists have no collaborators
+        },
+        null,
+      );
+    } catch (e) {
+      if (e instanceof SqliteError && e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "A list with this slug already exists",
+        });
+      }
+      throw e;
+    }
   }
 
   static async getAll(ctx: AuthedContext) {
@@ -515,41 +557,52 @@ export abstract class List {
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
     this.ensureCanManage();
-    const result = await this.ctx.db
-      .update(bookmarkLists)
-      .set({
-        name: input.name,
-        description: input.description,
-        icon: input.icon,
-        parentId: input.parentId,
-        query: input.query,
-        public: input.public,
-      })
-      .where(
-        and(
-          eq(bookmarkLists.id, this.list.id),
-          eq(bookmarkLists.userId, this.ctx.user.id),
-        ),
-      )
-      .returning();
-    if (result.length == 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
+    try {
+      const result = await this.ctx.db
+        .update(bookmarkLists)
+        .set({
+          name: input.name,
+          description: input.description,
+          icon: input.icon,
+          parentId: input.parentId,
+          query: input.query,
+          public: input.public,
+          slug: input.slug,
+        })
+        .where(
+          and(
+            eq(bookmarkLists.id, this.list.id),
+            eq(bookmarkLists.userId, this.ctx.user.id),
+          ),
+        )
+        .returning();
+      if (result.length == 0) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      invariant(result[0].userId === this.ctx.user.id);
+      // Fetch current collaborators count to update hasCollaborators
+      const collaboratorsCount =
+        await this.ctx.db.query.listCollaborators.findMany({
+          where: eq(listCollaborators.listId, this.list.id),
+          columns: {
+            id: true,
+          },
+          limit: 1,
+        });
+      this.list = {
+        ...result[0],
+        userRole: "owner",
+        hasCollaborators: collaboratorsCount.length > 0,
+      };
+    } catch (e) {
+      if (e instanceof SqliteError && e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "A list with this slug already exists",
+        });
+      }
+      throw e;
     }
-    invariant(result[0].userId === this.ctx.user.id);
-    // Fetch current collaborators count to update hasCollaborators
-    const collaboratorsCount =
-      await this.ctx.db.query.listCollaborators.findMany({
-        where: eq(listCollaborators.listId, this.list.id),
-        columns: {
-          id: true,
-        },
-        limit: 1,
-      });
-    this.list = {
-      ...result[0],
-      userRole: "owner",
-      hasCollaborators: collaboratorsCount.length > 0,
-    };
   }
 
   private async setRssToken(token: string | null) {
