@@ -477,6 +477,52 @@ describe("getBookmarkIdsFromMatcher", () => {
     expect(result).toEqual(["b3"]);
   });
 
+  it("should handle inlist matcher with smart lists", async () => {
+    // b3 is currently not in any manual list.
+    // Let's confirm that first
+    let matcher: Matcher = { type: "inlist", inList: true };
+    let result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b1", "b2", "b4", "b5", "b6"]);
+
+    // Create a smart list that matches b3
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "sl1",
+      userId: testUserId,
+      name: "smart list 1",
+      icon: "🧠",
+      type: "smart",
+      query: "title:third", // Matches b3
+    });
+
+    // Now b3 should be considered "in a list"
+    result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b1", "b2", "b3", "b4", "b5", "b6"]);
+
+    // And -is:inlist should return nothing
+    matcher = { type: "inlist", inList: false };
+    result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result).toEqual([]);
+  });
+
+  it("should handle recursion in is:inlist smart lists", async () => {
+    // Create a smart list that queries is:inlist
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "sl_recursive",
+      userId: testUserId,
+      name: "recursive list",
+      icon: "🔄",
+      type: "smart",
+      query: "is:inlist",
+    });
+
+    // b3 is NOT in any manual list.
+    // The recursive smart list should eventually resolve to "manual lists only" to break the cycle.
+    // So b3 should NOT be included.
+    const matcher: Matcher = { type: "inlist", inList: true };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b1", "b2", "b4", "b5", "b6"]);
+  });
+
   it("should handle rssFeedName matcher", async () => {
     const matcher: Matcher = {
       type: "rssFeedName",

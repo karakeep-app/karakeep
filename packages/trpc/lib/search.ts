@@ -254,19 +254,104 @@ async function getIds(
         );
     }
     case "inlist": {
-      const comp = matcher.inList ? exists : notExists;
+      // Support checking if a bookmark is in any list (manual or smart)
+      // 1) Check if we're in a recursion cycle for is:inlist
+      const INLIST_RECURSION_MARKER = "___INTERNAL_IN_LIST_RECURSION_MARKER___";
+      if (visitedListNames.has(INLIST_RECURSION_MARKER)) {
+        // Fallback to manual lists only to break cycle
+        const comp = matcher.inList ? exists : notExists;
+        return db
+          .select({ id: bookmarks.id })
+          .from(bookmarks)
+          .where(
+            and(
+              eq(bookmarks.userId, userId),
+              comp(
+                db
+                  .select()
+                  .from(bookmarksInLists)
+                  .where(and(eq(bookmarksInLists.bookmarkId, bookmarks.id))),
+              ),
+            ),
+          );
+      }
+
+      const newVisitedListNames = new Set(visitedListNames);
+      newVisitedListNames.add(INLIST_RECURSION_MARKER);
+
+      // 2) Get IDs from manual lists
+      const manualIdsPromise = db
+        .selectDistinct({ id: bookmarksInLists.bookmarkId })
+        .from(bookmarksInLists)
+        .innerJoin(bookmarkLists, eq(bookmarksInLists.listId, bookmarkLists.id))
+        .where(
+          and(
+            eq(bookmarkLists.userId, userId),
+            eq(bookmarkLists.type, "manual"),
+          ),
+        )
+        .then((rows) => rows.map((r) => ({ id: r.id })));
+
+      // 3) Get IDs from smart lists
+      const smartLists = await db
+        .select({
+          id: bookmarkLists.id,
+          query: bookmarkLists.query,
+        })
+        .from(bookmarkLists)
+        .where(
+          and(
+            eq(bookmarkLists.userId, userId),
+            eq(bookmarkLists.type, "smart"),
+          ),
+        );
+
+      const smartIdsPromise = (async () => {
+        if (smartLists.length === 0) return [] as BookmarkQueryReturnType[];
+        const results: BookmarkQueryReturnType[][] = [];
+        for (const sl of smartLists) {
+          if (!sl.query) continue;
+          const parsed = parseSearchQuery(sl.query);
+          if (!parsed.matcher) continue;
+          const ids = await getIds(
+            db,
+            userId,
+            parsed.matcher,
+            new Set(newVisitedListNames),
+          );
+          results.push(ids);
+        }
+        return union(results);
+      })();
+
+      const [manualIds, smartIds] = await Promise.all([
+        manualIdsPromise,
+        smartIdsPromise,
+      ]);
+
+      const includedSet = new Set<string>([
+        ...manualIds.map((r) => r.id),
+        ...smartIds.map((r) => r.id),
+      ]);
+
+      if (matcher.inList) {
+        return Array.from(includedSet).map((id) => ({ id }));
+      }
+
+      // Inverse: return all user's bookmarks excluding includedSet
+      if (includedSet.size === 0) {
+        return db
+          .select({ id: bookmarks.id })
+          .from(bookmarks)
+          .where(eq(bookmarks.userId, userId));
+      }
       return db
         .select({ id: bookmarks.id })
         .from(bookmarks)
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(bookmarksInLists)
-                .where(and(eq(bookmarksInLists.bookmarkId, bookmarks.id))),
-            ),
+            not(inArray(bookmarks.id, Array.from(includedSet))),
           ),
         );
     }

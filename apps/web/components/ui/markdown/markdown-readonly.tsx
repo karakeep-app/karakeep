@@ -85,11 +85,13 @@ export function MarkdownReadonly({
         },
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className ?? "");
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+          const { ref, ...rest } = props as any;
           return match ? (
             <SyntaxHighlighter
               PreTag="div"
               language={match[1]}
-              {...props}
+              {...rest}
               style={dracula}
             >
               {String(children).replace(/\n$/, "")}
