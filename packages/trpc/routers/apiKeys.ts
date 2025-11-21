@@ -153,4 +153,16 @@ export const apiKeysAppRouter = router({
         success: true,
       };
     }),
+  // Exchange an authenticated web session for a mobile API key.
+  // This is used by the mobile app's in-app browser auth flow.
+  exchangeWebSession: authedProcedure
+    .input(
+      z.object({
+        keyName: z.string(),
+      }),
+    )
+    .output(zApiKeySchema)
+    .mutation(async ({ input, ctx }) => {
+      return await generateApiKey(input.keyName, ctx.user.id, ctx.db);
+    }),
 });

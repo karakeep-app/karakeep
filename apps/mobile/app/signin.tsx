@@ -15,11 +15,13 @@ import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
-import { Bug, Check, Edit3 } from "lucide-react-native";
+import { authenticateWithBrowser } from "@/lib/browser-auth";
+import { Bug, Check, Edit3, Globe } from "lucide-react-native";
 
 enum LoginType {
   Password,
   ApiKey,
+  Browser,
 }
 
 export default function Signin() {
@@ -34,6 +36,7 @@ export default function Signin() {
   );
   const [isCustomHeadersModalVisible, setIsCustomHeadersModalVisible] =
     useState(false);
+  const [isBrowserAuthPending, setIsBrowserAuthPending] = useState(false);
 
   const emailRef = useRef<string>("");
   const passwordRef = useRef<string>("");
@@ -43,6 +46,8 @@ export default function Signin() {
     setLoginType((prev) => {
       if (prev === LoginType.Password) {
         return LoginType.ApiKey;
+      } else if (prev === LoginType.ApiKey) {
+        return LoginType.Browser;
       } else {
         return LoginType.Password;
       }
@@ -86,6 +91,44 @@ export default function Signin() {
     setSettings({ ...settings, customHeaders: headers });
   };
 
+  const handleBrowserAuth = async () => {
+    if (!tempServerAddress) {
+      setError("Server address is required");
+      return;
+    }
+
+    if (
+      !tempServerAddress.startsWith("http://") &&
+      !tempServerAddress.startsWith("https://")
+    ) {
+      setError("Server address must start with http:// or https://");
+      return;
+    }
+
+    setError(undefined);
+    setIsBrowserAuthPending(true);
+
+    try {
+      const result = await authenticateWithBrowser(tempServerAddress);
+
+      if (result.success && result.apiKey && result.apiKeyId) {
+        setSettings({
+          ...settings,
+          apiKey: result.apiKey,
+          apiKeyId: result.apiKeyId,
+        });
+      } else {
+        setError(result.error || "Authentication failed");
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred",
+      );
+    } finally {
+      setIsBrowserAuthPending(false);
+    }
+  };
+
   const onSignin = () => {
     if (!tempServerAddress) {
       setError("Server address is required");
@@ -113,6 +156,8 @@ export default function Signin() {
     } else if (loginType === LoginType.ApiKey) {
       const apiKey = apiKeyRef.current;
       validateApiKey({ apiKey: apiKey });
+    } else if (loginType === LoginType.Browser) {
+      handleBrowserAuth();
     }
   };
 
@@ -249,16 +294,39 @@ export default function Signin() {
             </View>
           )}
 
+          {loginType === LoginType.Browser && (
+            <View className="gap-3 rounded-lg border border-border bg-card p-4">
+              <View className="flex-row items-center gap-3">
+                <TailwindResolver
+                  comp={(styles) => (
+                    <Globe size={24} color={styles?.color?.toString()} />
+                  )}
+                  className="color-primary"
+                />
+                <Text className="flex-1 text-sm text-muted-foreground">
+                  Sign in using your web browser. This supports all authentication
+                  methods including OAuth.
+                </Text>
+              </View>
+            </View>
+          )}
+
           <View className="flex flex-row items-center justify-between gap-2">
             <Button
               size="lg"
               androidRootClassName="flex-1"
               onPress={onSignin}
               disabled={
-                userNamePasswordRequestIsPending || apiKeyValueRequestIsPending
+                userNamePasswordRequestIsPending ||
+                apiKeyValueRequestIsPending ||
+                isBrowserAuthPending
               }
             >
-              <Text>Sign In</Text>
+              <Text>
+                {loginType === LoginType.Browser
+                  ? "Sign In with Browser"
+                  : "Sign In"}
+              </Text>
             </Button>
             <Button
               size="icon"
@@ -276,8 +344,10 @@ export default function Signin() {
           <Pressable onPress={toggleLoginType}>
             <Text className="mt-2 text-center text-gray-500">
               {loginType === LoginType.Password
-                ? "Use API key instead?"
-                : "Use password instead?"}
+                ? "Use API key or browser sign-in instead?"
+                : loginType === LoginType.ApiKey
+                  ? "Use browser sign-in or password instead?"
+                  : "Use password or API key instead?"}
             </Text>
           </Pressable>
         </View>
