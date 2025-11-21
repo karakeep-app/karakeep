@@ -51,6 +51,27 @@ export const highlightsAppRouter = router({
         nextCursor: result.nextCursor,
       };
     }),
+  search: authedProcedure
+    .input(
+      z.object({
+        text: z.string(),
+        cursor: z.any().nullish(),
+        limit: z.number().optional().default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
+      }),
+    )
+    .output(zGetAllHighlightsResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const result = await Highlight.search(
+        ctx,
+        input.text,
+        input.cursor,
+        input.limit,
+      );
+      return {
+        highlights: result.highlights.map((h) => h.asPublicHighlight()),
+        nextCursor: result.nextCursor,
+      };
+    }),
   delete: authedProcedure
     .input(z.object({ highlightId: z.string() }))
     .output(zHighlightSchema)
