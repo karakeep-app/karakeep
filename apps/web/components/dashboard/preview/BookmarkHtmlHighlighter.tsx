@@ -1,10 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PopoverAnchor } from "@radix-ui/react-popover";
-import { Check, Trash2 } from "lucide-react";
+import { Check, MessageSquare, Trash2 } from "lucide-react";
 
 import {
   SUPPORTED_HIGHLIGHT_COLORS,
@@ -17,6 +26,7 @@ interface ColorPickerMenuProps {
   position: { x: number; y: number } | null;
   onColorSelect: (color: ZHighlightColor) => void;
   onDelete?: () => void;
+  onAddNote?: () => void;
   selectedHighlight: Highlight | null;
   onClose: () => void;
   isMobile: boolean;
@@ -26,6 +36,7 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
   position,
   onColorSelect,
   onDelete,
+  onAddNote,
   selectedHighlight,
   onClose,
   isMobile,
@@ -66,6 +77,16 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
             )}
           </Button>
         ))}
+        <ActionButton
+          loading={false}
+          size="none"
+          className="size-8 rounded-full"
+          onClick={onAddNote}
+          variant="ghost"
+          title="Add note"
+        >
+          <MessageSquare className="size-5" />
+        </ActionButton>
         {selectedHighlight && (
           <ActionButton
             loading={false}
@@ -73,6 +94,7 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
             className="size-8 rounded-full"
             onClick={onDelete}
             variant="ghost"
+            title="Delete highlight"
           >
             <Trash2 className="size-5 text-destructive" />
           </ActionButton>
@@ -88,6 +110,7 @@ export interface Highlight {
   endOffset: number;
   color: ZHighlightColor;
   text: string | null;
+  note?: string | null;
 }
 
 interface HTMLHighlighterProps {
@@ -120,6 +143,11 @@ function BookmarkHTMLHighlighter({
     null,
   );
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(
+    null,
+  );
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [editingHighlight, setEditingHighlight] = useState<Highlight | null>(
     null,
   );
   const isMobile = useState(
@@ -246,6 +274,35 @@ function BookmarkHTMLHighlighter({
     }
   };
 
+  const handleAddNote = () => {
+    const highlight = selectedHighlight || pendingHighlight;
+    if (highlight) {
+      setEditingHighlight(highlight);
+      setNoteText(highlight.note || "");
+      setNoteDialogOpen(true);
+    }
+  };
+
+  const handleSaveNote = () => {
+    if (!editingHighlight) return;
+
+    if (pendingHighlight && editingHighlight.id === "NOT_SET") {
+      // Creating a new highlight with a note
+      pendingHighlight.note = noteText || null;
+      onHighlight?.(pendingHighlight);
+      closeColorPicker();
+    } else if (selectedHighlight) {
+      // Updating an existing highlight's note
+      selectedHighlight.note = noteText || null;
+      onUpdateHighlight?.(selectedHighlight);
+      closeColorPicker();
+    }
+
+    setNoteDialogOpen(false);
+    setEditingHighlight(null);
+    setNoteText("");
+  };
+
   const getTextNodeOffset = (node: Node): number => {
     let offset = 0;
     const walker = document.createTreeWalker(
@@ -359,10 +416,40 @@ function BookmarkHTMLHighlighter({
         position={menuPosition}
         onColorSelect={handleColorSelect}
         onDelete={handleDelete}
+        onAddNote={handleAddNote}
         selectedHighlight={selectedHighlight}
         onClose={closeColorPicker}
         isMobile={isMobile}
       />
+      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Note</DialogTitle>
+            <DialogDescription>
+              Add a note to this highlight to remember your thoughts.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Type your note here..."
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            className="min-h-[100px]"
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setNoteDialogOpen(false);
+                setEditingHighlight(null);
+                setNoteText("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveNote}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
