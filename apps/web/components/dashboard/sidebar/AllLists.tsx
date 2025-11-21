@@ -76,7 +76,7 @@ export default function AllLists({
             }
             name={node.item.name}
             path={`/dashboard/lists/${node.item.id}`}
-            className="group px-0.5"
+            className="group px-0.5 transition-all duration-150"
             right={
               <ListOptions
                 onOpenChange={(open) => {
@@ -115,6 +115,7 @@ export default function AllLists({
             }
             linkClassName="py-0.5"
             style={{ marginLeft: `${level * 1}rem` }}
+            dataAttributes={{ "data-list-id": node.item.id }}
           />
         )}
       />

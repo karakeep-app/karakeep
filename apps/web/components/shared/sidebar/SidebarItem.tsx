@@ -14,6 +14,7 @@ export default function SidebarItem({
   style,
   collapseButton,
   right = null,
+  dataAttributes,
 }: {
   name: string;
   logo: React.ReactNode;
@@ -23,6 +24,7 @@ export default function SidebarItem({
   linkClassName?: string;
   right?: React.ReactNode;
   collapseButton?: React.ReactNode;
+  dataAttributes?: Record<string, string>;
 }) {
   const currentPath = usePathname();
   return (
@@ -33,6 +35,7 @@ export default function SidebarItem({
         className,
       )}
       style={style}
+      {...dataAttributes}
     >
       <div className="flex-1">
         {collapseButton}
