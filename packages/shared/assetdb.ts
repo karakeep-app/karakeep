@@ -600,6 +600,33 @@ const defaultAssetStore = createDefaultAssetStore();
 export { LocalFileSystemAssetStore, S3AssetStore };
 
 /**
+ * Internal asset operations that bypass quota checks.
+ * These should only be used for system operations like backups.
+ */
+export const AssetAPI = {
+  /**
+   * Save an asset without quota approval (for system use only)
+   */
+  async saveAsset(assetId: string, userId: string, asset: Buffer) {
+    return defaultAssetStore.saveAsset({
+      userId,
+      assetId,
+      asset,
+      metadata: {
+        contentType: "application/gzip",
+        fileName: `backup-${assetId}.json.gz`,
+      },
+    });
+  },
+  /**
+   * Delete an asset (for system use only)
+   */
+  async deleteAsset(assetId: string, userId: string) {
+    return defaultAssetStore.deleteAsset({ userId, assetId });
+  },
+};
+
+/**
  * Example usage of S3AssetStore:
  *
  * import { S3Client } from "@aws-sdk/client-s3";

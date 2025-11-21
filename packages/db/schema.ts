@@ -229,6 +229,7 @@ export const enum AssetTypes {
   LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
   USER_UPLOADED = "userUploaded",
+  BACKUP = "backup",
   UNKNOWN = "unknown",
 }
 
@@ -248,6 +249,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.USER_UPLOADED,
+        AssetTypes.BACKUP,
         AssetTypes.UNKNOWN,
       ],
     }).notNull(),
@@ -541,6 +543,59 @@ export const rssFeedImportsTable = sqliteTable(
   ],
 );
 
+export const backupSettingsTable = sqliteTable(
+  "backupSettings",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
+    frequency: text("frequency", {
+      enum: ["daily", "weekly"],
+    })
+      .notNull()
+      .default("weekly"),
+    retentionDays: integer("retentionDays").notNull().default(30),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (bs) => [index("backupSettings_userId_idx").on(bs.userId)],
+);
+
+export const backupsTable = sqliteTable(
+  "backups",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    assetId: text("assetId")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    createdAt: createdAtField(),
+    size: integer("size").notNull(),
+    bookmarkCount: integer("bookmarkCount").notNull(),
+    status: text("status", {
+      enum: ["pending", "success", "failure"],
+    })
+      .notNull()
+      .default("pending"),
+    errorMessage: text("errorMessage"),
+  },
+  (b) => [
+    index("backups_userId_idx").on(b.userId),
+    index("backups_createdAt_idx").on(b.createdAt),
+  ],
+);
+
 export const config = sqliteTable("config", {
   key: text("key").notNull().primaryKey(),
   value: text("value").notNull(),
@@ -733,6 +788,8 @@ export const userRelations = relations(users, ({ many, one }) => ({
   subscription: one(subscriptions),
   importSessions: many(importSessions),
   listCollaborations: many(listCollaborators),
+  backupSettings: one(backupSettingsTable),
+  backups: many(backupsTable),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -936,3 +993,24 @@ export const importSessionBookmarksRelations = relations(
     }),
   }),
 );
+
+export const backupSettingsRelations = relations(
+  backupSettingsTable,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [backupSettingsTable.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const backupsRelations = relations(backupsTable, ({ one }) => ({
+  user: one(users, {
+    fields: [backupsTable.userId],
+    references: [users.id],
+  }),
+  asset: one(assets, {
+    fields: [backupsTable.assetId],
+    references: [assets.id],
+  }),
+}));
