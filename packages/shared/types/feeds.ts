@@ -31,3 +31,9 @@ export const zUpdateFeedSchema = z.object({
   enabled: z.boolean().optional(),
   importTags: z.boolean().optional(),
 });
+
+export const zImportOpmlSchema = z.object({
+  opmlContent: z.string(),
+  importTags: z.boolean().optional().default(false),
+  enabled: z.boolean().optional().default(true),
+});

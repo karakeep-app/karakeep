@@ -25,6 +25,7 @@ import {
   CircleDashed,
   CirclePlus,
   Edit,
+  FileUp,
   Plus,
   Save,
   Trash2,
@@ -338,6 +339,135 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
   );
 }
 
+export function ImportOpmlDialog() {
+  const [open, setOpen] = React.useState(false);
+  const [opmlContent, setOpmlContent] = React.useState("");
+  const [fileName, setFileName] = React.useState("");
+  const [importTags, setImportTags] = React.useState(false);
+  const apiUtils = api.useUtils();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const { mutateAsync: importOpml, isPending: isImporting } =
+    api.feeds.importOpml.useMutation({
+      onSuccess: (result) => {
+        toast({
+          description: `Successfully imported ${result.imported} feeds. ${result.skipped} already exist, ${result.failed} failed.`,
+        });
+        apiUtils.feeds.list.invalidate();
+        setOpen(false);
+        setOpmlContent("");
+        setFileName("");
+      },
+      onError: (error) => {
+        toast({
+          description: `Import failed: ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setOpmlContent(content);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleImport = async () => {
+    if (!opmlContent) {
+      toast({
+        description: "Please select an OPML file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await importOpml({
+      opmlContent,
+      importTags,
+      enabled: true,
+    });
+  };
+
+  React.useEffect(() => {
+    if (!open) {
+      setOpmlContent("");
+      setFileName("");
+      setImportTags(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }, [open]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <FileUp className="mr-2 size-4" />
+          Import OPML
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Import RSS Feeds from OPML</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3">
+          <div className="space-y-2">
+            <label htmlFor="opml-file" className="text-sm font-medium">
+              OPML File
+            </label>
+            <Input
+              id="opml-file"
+              type="file"
+              accept=".opml,.xml"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+            />
+            {fileName && (
+              <p className="text-sm text-muted-foreground">
+                Selected: {fileName}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-row items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <label className="text-sm font-medium">Import Tags</label>
+              <div className="text-sm text-muted-foreground">
+                Automatically import categories from RSS feeds as tags
+              </div>
+            </div>
+            <Switch checked={importTags} onCheckedChange={setImportTags} />
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Cancel
+            </Button>
+          </DialogClose>
+          <ActionButton
+            onClick={handleImport}
+            loading={isImporting}
+            variant="default"
+            className="items-center"
+            disabled={!opmlContent}
+          >
+            <FileUp className="mr-2 size-4" />
+            Import
+          </ActionButton>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function FeedRow({ feed }: { feed: ZFeed }) {
   const { t } = useTranslation();
   const apiUtils = api.useUtils();
@@ -466,7 +596,10 @@ export default function FeedSettings() {
             <span className="flex items-center gap-2 text-lg font-medium">
               {t("settings.feeds.rss_subscriptions")}
             </span>
-            <FeedsEditorDialog />
+            <div className="flex gap-2">
+              <ImportOpmlDialog />
+              <FeedsEditorDialog />
+            </div>
           </div>
           {isLoading && <FullPageSpinner />}
           {feeds && feeds.feeds.length == 0 && (

@@ -3,12 +3,14 @@ import { z } from "zod";
 import { FeedQueue } from "@karakeep/shared-server";
 import {
   zFeedSchema,
+  zImportOpmlSchema,
   zNewFeedSchema,
   zUpdateFeedSchema,
 } from "@karakeep/shared/types/feeds";
 
 import { authedProcedure, router } from "../index";
 import { Feed } from "../models/feeds";
+import { parseOpml } from "../utils/opmlParser";
 
 export const feedsAppRouter = router({
   create: authedProcedure
@@ -60,5 +62,68 @@ export const feedsAppRouter = router({
       await FeedQueue.enqueue({
         feedId: input.feedId,
       });
+    }),
+  importOpml: authedProcedure
+    .input(zImportOpmlSchema)
+    .output(
+      z.object({
+        imported: z.number(),
+        skipped: z.number(),
+        failed: z.number(),
+        feeds: z.array(zFeedSchema),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { opmlContent, importTags, enabled } = input;
+
+      // Parse OPML file
+      const parsedFeeds = parseOpml(opmlContent);
+
+      let imported = 0;
+      let skipped = 0;
+      let failed = 0;
+      const createdFeeds: Feed[] = [];
+
+      // Get existing feeds to check for duplicates
+      const existingFeeds = await Feed.getAll(ctx);
+      const existingUrls = new Set(
+        existingFeeds.map((feed) => feed.asPublicFeed().url.toLowerCase()),
+      );
+
+      // Import each feed
+      for (const parsedFeed of parsedFeeds) {
+        try {
+          // Check if feed already exists
+          if (existingUrls.has(parsedFeed.xmlUrl.toLowerCase())) {
+            skipped++;
+            continue;
+          }
+
+          // Create new feed
+          const feed = await Feed.create(ctx, {
+            name: parsedFeed.title,
+            url: parsedFeed.xmlUrl,
+            enabled: enabled ?? true,
+            importTags: importTags ?? false,
+          });
+
+          createdFeeds.push(feed);
+          existingUrls.add(parsedFeed.xmlUrl.toLowerCase());
+          imported++;
+        } catch (error) {
+          failed++;
+          console.error(
+            `Failed to import feed ${parsedFeed.title}:`,
+            error,
+          );
+        }
+      }
+
+      return {
+        imported,
+        skipped,
+        failed,
+        feeds: createdFeeds.map((f) => f.asPublicFeed()),
+      };
     }),
 });
