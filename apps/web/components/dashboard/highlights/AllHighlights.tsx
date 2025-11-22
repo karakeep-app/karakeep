@@ -126,32 +126,32 @@ export default function AllHighlights({
 
       {/* Results */}
       <div className="flex flex-col gap-2">
-      {allHighlights &&
-        allHighlights.length > 0 &&
-        allHighlights.map((h) => (
-          <React.Fragment key={h.id}>
-            <Highlight highlight={h} />
-            <Separator className="m-2 h-0.5 bg-gray-100 last:hidden" />
-          </React.Fragment>
-        ))}
-      {allHighlights && allHighlights.length == 0 && (
-        <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-          {t("highlights.no_highlights")}
-        </p>
-      )}
-      {hasNextPage && (
-        <div className="flex justify-center">
-          <ActionButton
-            ref={loadMoreRef}
-            ignoreDemoMode={true}
-            loading={isFetchingNextPage}
-            onClick={() => fetchNextPage()}
-            variant="ghost"
-          >
-            Load More
-          </ActionButton>
-        </div>
-      )}
+        {allHighlights &&
+          allHighlights.length > 0 &&
+          allHighlights.map((h) => (
+            <React.Fragment key={h.id}>
+              <Highlight highlight={h} />
+              <Separator className="m-2 h-0.5 bg-gray-100 last:hidden" />
+            </React.Fragment>
+          ))}
+        {allHighlights && allHighlights.length == 0 && (
+          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+            {t("highlights.no_highlights")}
+          </p>
+        )}
+        {hasNextPage && (
+          <div className="flex justify-center">
+            <ActionButton
+              ref={loadMoreRef}
+              ignoreDemoMode={true}
+              loading={isFetchingNextPage}
+              onClick={() => fetchNextPage()}
+              variant="ghost"
+            >
+              Load More
+            </ActionButton>
+          </div>
+        )}
       </div>
     </div>
   );

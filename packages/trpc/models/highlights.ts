@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ilike, lt, lte, or } from "drizzle-orm";
+import { and, desc, eq, like, lt, lte, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { highlights } from "@karakeep/db/schema";
@@ -128,8 +128,8 @@ export class Highlight {
       where: and(
         eq(highlights.userId, ctx.user.id),
         or(
-          ilike(highlights.text, searchPattern),
-          ilike(highlights.note, searchPattern),
+          like(highlights.text, searchPattern),
+          like(highlights.note, searchPattern),
         ),
         cursor
           ? or(
