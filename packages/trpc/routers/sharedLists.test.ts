@@ -2270,7 +2270,7 @@ describe("Shared Lists", () => {
         role: "viewer",
       });
 
-      // hasCollaborators should be false after adding invitation (pending counts)
+      // hasCollaborators should be false after adding invitation (pending does not counts)
       const listAfterInvite = await ownerApi.lists.get({
         listId: list.id,
       });
