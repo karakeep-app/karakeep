@@ -58,6 +58,14 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="highlights"
+        options={{
+          headerTitle: "",
+          headerBackTitle: "Back",
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
         name="bookmarks/[slug]/index"
         options={{
           headerTitle: "",
