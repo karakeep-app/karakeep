@@ -15,7 +15,4 @@ CREATE TABLE `listInvitations` (
 CREATE INDEX `listInvitations_listId_idx` ON `listInvitations` (`listId`);--> statement-breakpoint
 CREATE INDEX `listInvitations_userId_idx` ON `listInvitations` (`userId`);--> statement-breakpoint
 CREATE INDEX `listInvitations_status_idx` ON `listInvitations` (`status`);--> statement-breakpoint
-CREATE UNIQUE INDEX `listInvitations_listId_userId_unique` ON `listInvitations` (`listId`,`userId`);--> statement-breakpoint
-DROP INDEX `listCollaborators_status_idx`;--> statement-breakpoint
-ALTER TABLE `listCollaborators` DROP COLUMN `status`;--> statement-breakpoint
-ALTER TABLE `listCollaborators` DROP COLUMN `invitedEmail`;
+CREATE UNIQUE INDEX `listInvitations_listId_userId_unique` ON `listInvitations` (`listId`,`userId`);
