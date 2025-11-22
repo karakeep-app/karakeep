@@ -204,7 +204,7 @@ export async function sendListInvitationEmail(
         : undefined,
   });
 
-  const inviteUrl = `${serverConfig.publicUrl}/lists?pendingInvitation=${encodeURIComponent(listId)}`;
+  const inviteUrl = `${serverConfig.publicUrl}/dashboard/lists?pendingInvitation=${encodeURIComponent(listId)}`;
 
   const mailOptions = {
     from: serverConfig.email.smtp.from,
