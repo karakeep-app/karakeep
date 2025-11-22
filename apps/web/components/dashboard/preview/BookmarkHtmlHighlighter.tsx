@@ -1,19 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PopoverAnchor } from "@radix-ui/react-popover";
-import { Check, MessageSquare, Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 
 import {
   SUPPORTED_HIGHLIGHT_COLORS,
@@ -22,25 +14,38 @@ import {
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
 
-interface ColorPickerMenuProps {
+interface HighlightFormProps {
   position: { x: number; y: number } | null;
-  onColorSelect: (color: ZHighlightColor) => void;
-  onDelete?: () => void;
-  onAddNote?: () => void;
   selectedHighlight: Highlight | null;
   onClose: () => void;
+  onSave: (color: ZHighlightColor, note: string | null) => void;
+  onDelete?: () => void;
   isMobile: boolean;
 }
 
-const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
+const HighlightForm: React.FC<HighlightFormProps> = ({
   position,
-  onColorSelect,
-  onDelete,
-  onAddNote,
   selectedHighlight,
   onClose,
+  onSave,
+  onDelete,
   isMobile,
 }) => {
+  const [selectedColor, setSelectedColor] = useState<ZHighlightColor>(
+    selectedHighlight?.color || "yellow",
+  );
+  const [noteText, setNoteText] = useState(selectedHighlight?.note || "");
+
+  // Update state when selectedHighlight changes
+  useEffect(() => {
+    setSelectedColor(selectedHighlight?.color || "yellow");
+    setNoteText(selectedHighlight?.note || "");
+  }, [selectedHighlight]);
+
+  const handleSave = () => {
+    onSave(selectedColor, noteText || null);
+  };
+
   return (
     <Popover
       open={position !== null}
@@ -59,46 +64,59 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
       />
       <PopoverContent
         side={isMobile ? "bottom" : "top"}
-        className="flex w-fit items-center gap-1 p-2"
+        className="w-80 space-y-3 p-3"
       >
-        {SUPPORTED_HIGHLIGHT_COLORS.map((color) => (
-          <Button
-            size="none"
-            key={color}
-            onClick={() => onColorSelect(color)}
-            variant="none"
-            className={cn(
-              `size-8 rounded-full hover:border focus-visible:ring-0`,
-              HIGHLIGHT_COLOR_MAP.bg[color],
-            )}
-          >
-            {selectedHighlight?.color === color && (
-              <Check className="size-5 text-gray-600" />
-            )}
-          </Button>
-        ))}
-        <ActionButton
-          loading={false}
-          size="none"
-          className="size-8 rounded-full"
-          onClick={onAddNote}
-          variant="ghost"
-          title="Add note"
-        >
-          <MessageSquare className="size-5" />
-        </ActionButton>
-        {selectedHighlight && (
-          <ActionButton
-            loading={false}
-            size="none"
-            className="size-8 rounded-full"
-            onClick={onDelete}
-            variant="ghost"
-            title="Delete highlight"
-          >
-            <Trash2 className="size-5 text-destructive" />
-          </ActionButton>
-        )}
+        <div>
+          <label className="mb-2 block text-sm font-medium">Color</label>
+          <div className="flex items-center gap-1">
+            {SUPPORTED_HIGHLIGHT_COLORS.map((color) => (
+              <Button
+                size="none"
+                key={color}
+                onClick={() => setSelectedColor(color)}
+                variant="none"
+                className={cn(
+                  `size-8 rounded-full hover:border focus-visible:ring-0`,
+                  HIGHLIGHT_COLOR_MAP.bg[color],
+                )}
+              >
+                {selectedColor === color && (
+                  <Check className="size-5 text-gray-600" />
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium">Note</label>
+          <Textarea
+            placeholder="Add a note (optional)..."
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            className="min-h-[80px] text-sm"
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-2">
+            <Button onClick={handleSave} size="sm">
+              Save
+            </Button>
+            <Button onClick={onClose} variant="outline" size="sm">
+              Cancel
+            </Button>
+          </div>
+          {selectedHighlight && onDelete && (
+            <ActionButton
+              loading={false}
+              size="sm"
+              onClick={onDelete}
+              variant="ghost"
+              title="Delete highlight"
+            >
+              <Trash2 className="size-4 text-destructive" />
+            </ActionButton>
+          )}
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -143,11 +161,6 @@ function BookmarkHTMLHighlighter({
     null,
   );
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(
-    null,
-  );
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [noteText, setNoteText] = useState("");
-  const [editingHighlight, setEditingHighlight] = useState<Highlight | null>(
     null,
   );
   const isMobile = useState(
@@ -249,18 +262,20 @@ function BookmarkHTMLHighlighter({
     setPendingHighlight(createHighlightFromRange(range, "yellow"));
   };
 
-  const handleColorSelect = (color: ZHighlightColor) => {
+  const handleSave = (color: ZHighlightColor, note: string | null) => {
     if (pendingHighlight) {
       pendingHighlight.color = color;
+      pendingHighlight.note = note;
       onHighlight?.(pendingHighlight);
     } else if (selectedHighlight) {
       selectedHighlight.color = color;
+      selectedHighlight.note = note;
       onUpdateHighlight?.(selectedHighlight);
     }
-    closeColorPicker();
+    closeForm();
   };
 
-  const closeColorPicker = () => {
+  const closeForm = () => {
     setMenuPosition(null);
     setPendingHighlight(null);
     setSelectedHighlight(null);
@@ -270,37 +285,8 @@ function BookmarkHTMLHighlighter({
   const handleDelete = () => {
     if (selectedHighlight && onDeleteHighlight) {
       onDeleteHighlight(selectedHighlight);
-      closeColorPicker();
+      closeForm();
     }
-  };
-
-  const handleAddNote = () => {
-    const highlight = selectedHighlight || pendingHighlight;
-    if (highlight) {
-      setEditingHighlight(highlight);
-      setNoteText(highlight.note || "");
-      setNoteDialogOpen(true);
-    }
-  };
-
-  const handleSaveNote = () => {
-    if (!editingHighlight) return;
-
-    if (pendingHighlight && editingHighlight.id === "NOT_SET") {
-      // Creating a new highlight with a note
-      pendingHighlight.note = noteText || null;
-      onHighlight?.(pendingHighlight);
-      closeColorPicker();
-    } else if (selectedHighlight) {
-      // Updating an existing highlight's note
-      selectedHighlight.note = noteText || null;
-      onUpdateHighlight?.(selectedHighlight);
-      closeColorPicker();
-    }
-
-    setNoteDialogOpen(false);
-    setEditingHighlight(null);
-    setNoteText("");
   };
 
   const getTextNodeOffset = (node: Node): number => {
@@ -412,44 +398,14 @@ function BookmarkHTMLHighlighter({
         className={className}
         style={style}
       />
-      <ColorPickerMenu
+      <HighlightForm
         position={menuPosition}
-        onColorSelect={handleColorSelect}
-        onDelete={handleDelete}
-        onAddNote={handleAddNote}
-        selectedHighlight={selectedHighlight}
-        onClose={closeColorPicker}
+        selectedHighlight={selectedHighlight || pendingHighlight}
+        onClose={closeForm}
+        onSave={handleSave}
+        onDelete={selectedHighlight ? handleDelete : undefined}
         isMobile={isMobile}
       />
-      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Note</DialogTitle>
-            <DialogDescription>
-              Add a note to this highlight to remember your thoughts.
-            </DialogDescription>
-          </DialogHeader>
-          <Textarea
-            placeholder="Type your note here..."
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            className="min-h-[100px]"
-          />
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setNoteDialogOpen(false);
-                setEditingHighlight(null);
-                setNoteText("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSaveNote}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
