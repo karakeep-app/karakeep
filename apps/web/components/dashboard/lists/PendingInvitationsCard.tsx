@@ -13,12 +13,22 @@ import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { Check, Loader2, Mail, X } from "lucide-react";
 
-export function PendingInvitationsCard() {
+interface Invitation {
+  id: string;
+  role: string;
+  list: {
+    name: string;
+    icon?: string;
+    description?: string | null;
+    owner?: {
+      name?: string;
+    } | null;
+  };
+}
+
+function InvitationRow({ invitation }: { invitation: Invitation }) {
   const { t } = useTranslation();
   const utils = api.useUtils();
-
-  const { data: invitations, isLoading } =
-    api.lists.getPendingInvitations.useQuery();
 
   const acceptInvitation = api.lists.acceptInvitation.useMutation({
     onSuccess: async () => {
@@ -53,6 +63,74 @@ export function PendingInvitationsCard() {
     },
   });
 
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-4">
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{invitation.list.name}</span>
+          <span className="text-xs text-muted-foreground">
+            {invitation.list.icon}
+          </span>
+        </div>
+        {invitation.list.description && (
+          <div className="mt-1 text-sm text-muted-foreground">
+            {invitation.list.description}
+          </div>
+        )}
+        <div className="mt-2 text-sm text-muted-foreground">
+          {t("lists.invitations.invited_by")}{" "}
+          <span className="font-medium">
+            {invitation.list.owner?.name || "Unknown"}
+          </span>
+          {" • "}
+          <span className="capitalize">{invitation.role}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            declineInvitation.mutate({ invitationId: invitation.id })
+          }
+          disabled={declineInvitation.isPending || acceptInvitation.isPending}
+        >
+          {declineInvitation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <X className="mr-1 h-4 w-4" />
+              {t("lists.invitations.decline")}
+            </>
+          )}
+        </Button>
+        <Button
+          size="sm"
+          onClick={() =>
+            acceptInvitation.mutate({ invitationId: invitation.id })
+          }
+          disabled={acceptInvitation.isPending || declineInvitation.isPending}
+        >
+          {acceptInvitation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Check className="mr-1 h-4 w-4" />
+              {t("lists.invitations.accept")}
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function PendingInvitationsCard() {
+  const { t } = useTranslation();
+
+  const { data: invitations, isLoading } =
+    api.lists.getPendingInvitations.useQuery();
+
   if (isLoading) {
     return null;
   }
@@ -72,71 +150,7 @@ export function PendingInvitationsCard() {
       </CardHeader>
       <CardContent className="space-y-3">
         {invitations.map((invitation) => (
-          <div
-            key={invitation.id}
-            className="flex items-center justify-between rounded-lg border p-4"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{invitation.list.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {invitation.list.icon}
-                </span>
-              </div>
-              {invitation.list.description && (
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {invitation.list.description}
-                </div>
-              )}
-              <div className="mt-2 text-sm text-muted-foreground">
-                {t("lists.invitations.invited_by")}{" "}
-                <span className="font-medium">
-                  {invitation.list.owner?.name || "Unknown"}
-                </span>
-                {" • "}
-                <span className="capitalize">{invitation.role}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  declineInvitation.mutate({ invitationId: invitation.id })
-                }
-                disabled={
-                  declineInvitation.isPending || acceptInvitation.isPending
-                }
-              >
-                {declineInvitation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <X className="mr-1 h-4 w-4" />
-                    {t("lists.invitations.decline")}
-                  </>
-                )}
-              </Button>
-              <Button
-                size="sm"
-                onClick={() =>
-                  acceptInvitation.mutate({ invitationId: invitation.id })
-                }
-                disabled={
-                  acceptInvitation.isPending || declineInvitation.isPending
-                }
-              >
-                {acceptInvitation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Check className="mr-1 h-4 w-4" />
-                    {t("lists.invitations.accept")}
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+          <InvitationRow key={invitation.id} invitation={invitation} />
         ))}
       </CardContent>
     </Card>
