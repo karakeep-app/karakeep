@@ -109,7 +109,7 @@ export default function BookmarkCard({
         axis="both"
         onStart={dragAndDropFunction.handleDragStart}
         onStop={dragAndDropFunction.handleDragEnd}
-        defaultClassNameDragging="z-50 cursor-grabbing opacity-90"
+        defaultClassNameDragging="z-[999] cursor-grabbing opacity-90"
         position={{ x: 0, y: 0 }}
         nodeRef={draggableRef}
         handle=".drag-handle"
