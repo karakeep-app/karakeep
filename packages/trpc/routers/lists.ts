@@ -10,6 +10,7 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import { ListInvitation } from "../models/listInvitations";
 import { List } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
 
@@ -299,8 +300,9 @@ export const listsAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      await list.acceptInvitation();
+      await ListInvitation.accept(ctx, {
+        listId: input.listId,
+      });
     }),
 
   declineInvitation: authedProcedure
@@ -310,8 +312,9 @@ export const listsAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const list = await List.fromId(ctx, input.listId);
-      await list.declineInvitation();
+      await ListInvitation.decline(ctx, {
+        listId: input.listId,
+      });
     }),
 
   revokeInvitation: authedProcedure
@@ -324,7 +327,10 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastViewer)
     .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
-      await ctx.list.revokeInvitation(input.userId);
+      await ListInvitation.revoke(ctx, {
+        listId: input.listId,
+        userId: input.userId,
+      });
     }),
 
   getPendingInvitations: authedProcedure
@@ -352,7 +358,7 @@ export const listsAppRouter = router({
       ),
     )
     .query(async ({ ctx }) => {
-      return await List.getPendingInvitations(ctx);
+      return ListInvitation.pendingForUser(ctx);
     }),
 
   leaveList: authedProcedure
