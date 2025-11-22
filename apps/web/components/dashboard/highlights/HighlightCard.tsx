@@ -62,6 +62,11 @@ export default function HighlightCard({
           )}
         >
           <p>{highlight.text}</p>
+          {highlight.note && (
+            <p className="mt-2 text-xs not-italic text-muted-foreground">
+              Note: {highlight.note}
+            </p>
+          )}
         </blockquote>
       </Wrapper>
       {!readOnly && (

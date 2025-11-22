@@ -32,6 +32,7 @@ export const zNewHighlightSchema = zHighlightBaseSchema;
 export const zUpdateHighlightSchema = z.object({
   highlightId: z.string(),
   color: zHighlightColorSchema.optional(),
+  note: z.string().nullable().optional(),
 });
 
 export const zGetAllHighlightsResponseSchema = z.object({

@@ -137,6 +137,7 @@ export class Highlight {
       .update(highlights)
       .set({
         color: input.color,
+        note: input.note,
       })
       .where(
         and(
