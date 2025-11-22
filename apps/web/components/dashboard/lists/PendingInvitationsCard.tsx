@@ -54,24 +54,7 @@ export function PendingInvitationsCard() {
   });
 
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            {t("lists.invitations.pending")}
-          </CardTitle>
-          <CardDescription>
-            {t("lists.invitations.description")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   if (!invitations || invitations.length === 0) {
@@ -85,9 +68,7 @@ export function PendingInvitationsCard() {
           <Mail className="h-5 w-5" />
           {t("lists.invitations.pending")} ({invitations.length})
         </CardTitle>
-        <CardDescription>
-          {t("lists.invitations.description")}
-        </CardDescription>
+        <CardDescription>{t("lists.invitations.description")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {invitations.map((invitation) => (

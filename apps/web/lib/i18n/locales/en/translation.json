@@ -525,6 +525,7 @@
       "owner": "Owner",
       "pending": "Pending",
       "revoke": "Revoke",
+      "declined": "Declined",
       "viewer_description": "Can view bookmarks in the list",
       "editor_description": "Can add and remove bookmarks",
       "no_collaborators": "No collaborators yet. Add someone to start collaborating!",

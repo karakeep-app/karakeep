@@ -780,7 +780,10 @@ export abstract class List implements PrivacyAware {
         and(
           eq(listCollaborators.listId, this.list.id),
           eq(listCollaborators.userId, userId),
-          eq(listCollaborators.status, "pending"),
+          or(
+            eq(listCollaborators.status, "pending"),
+            eq(listCollaborators.status, "declined"),
+          ),
         ),
       );
 
@@ -974,7 +977,11 @@ export abstract class List implements PrivacyAware {
           user: {
             id: c.user.id,
             name: isPending && !isOwner ? "Pending User" : c.user.name,
-            email: isOwner ? c.user.email : (isPending ? c.invitedEmail || "" : c.user.email),
+            email: isOwner
+              ? c.user.email
+              : isPending
+                ? c.invitedEmail || ""
+                : c.user.email,
           },
         };
       }),

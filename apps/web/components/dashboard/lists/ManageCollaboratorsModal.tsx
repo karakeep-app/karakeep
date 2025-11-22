@@ -132,8 +132,7 @@ export function ManageCollaboratorsModal({
     onError: (error) => {
       toast({
         variant: "destructive",
-        description:
-          error.message || t("lists.collaborators.failed_to_revoke"),
+        description: error.message || t("lists.collaborators.failed_to_revoke"),
       });
     },
   });
@@ -287,6 +286,11 @@ export function ManageCollaboratorsModal({
                               {t("lists.collaborators.pending")}
                             </Badge>
                           )}
+                          {collaborator.status === "declined" && (
+                            <Badge variant="destructive" className="text-xs">
+                              {t("lists.collaborators.declined")}
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {collaborator.user.email}
@@ -296,7 +300,7 @@ export function ManageCollaboratorsModal({
                         <div className="text-sm capitalize text-muted-foreground">
                           {collaborator.role}
                         </div>
-                      ) : collaborator.status === "pending" ? (
+                      ) : collaborator.status !== "accepted" ? (
                         <div className="flex items-center gap-2">
                           <div className="text-sm capitalize text-muted-foreground">
                             {collaborator.role}
