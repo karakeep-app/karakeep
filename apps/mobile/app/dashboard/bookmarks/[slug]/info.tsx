@@ -205,53 +205,52 @@ function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
   // If there's a summary, show it
   if (bookmark.summary) {
     return (
-      <InfoSection className="border-2 border-purple-400 dark:border-purple-600">
-        <Pressable
-          onPress={() => !isExpanded && setIsExpanded(true)}
-          disabled={isExpanded}
-        >
-          <View className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
-            <View className={isExpanded ? "" : "max-h-20 overflow-hidden"}>
-              <BookmarkTextMarkdown text={bookmark.summary} />
-            </View>
-            {isExpanded && (
-              <View className="mt-2 flex flex-row justify-end gap-2">
-                <Pressable
-                  onPress={() =>
-                    resummarize({ bookmarkId: bookmark.id })
-                  }
-                  disabled={isResummarizing}
-                  className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
-                >
-                  {isResummarizing ? (
-                    <ActivityIndicator size="small" />
-                  ) : (
-                    <RefreshCw size={16} className="text-gray-600 dark:text-gray-400" />
-                  )}
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    updateBookmark({ bookmarkId: bookmark.id, summary: null })
-                  }
-                  disabled={isDeletingSummary}
-                  className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
-                >
-                  {isDeletingSummary ? (
-                    <ActivityIndicator size="small" />
-                  ) : (
-                    <Trash2 size={16} className="text-gray-600 dark:text-gray-400" />
-                  )}
-                </Pressable>
-                <Pressable
-                  onPress={() => setIsExpanded(false)}
-                  className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
-                >
-                  <ChevronUp size={16} className="text-gray-600 dark:text-gray-400" />
-                </Pressable>
-              </View>
-            )}
+      <InfoSection>
+        <View className={isExpanded ? "" : "max-h-20 overflow-hidden"}>
+          <Pressable
+            onPress={() => !isExpanded && setIsExpanded(true)}
+            disabled={isExpanded}
+          >
+            <BookmarkTextMarkdown text={bookmark.summary} />
+          </Pressable>
+        </View>
+        {isExpanded && (
+          <View className="mt-2 flex flex-row justify-end gap-2">
+            <Pressable
+              onPress={() => resummarize({ bookmarkId: bookmark.id })}
+              disabled={isResummarizing}
+              className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
+            >
+              {isResummarizing ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <RefreshCw
+                  size={16}
+                  className="text-gray-600 dark:text-gray-400"
+                />
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() =>
+                updateBookmark({ bookmarkId: bookmark.id, summary: null })
+              }
+              disabled={isDeletingSummary}
+              className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
+            >
+              {isDeletingSummary ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <Trash2 size={16} className="text-gray-600 dark:text-gray-400" />
+              )}
+            </Pressable>
+            <Pressable
+              onPress={() => setIsExpanded(false)}
+              className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
+            >
+              <ChevronUp size={16} className="text-gray-600 dark:text-gray-400" />
+            </Pressable>
           </View>
-        </Pressable>
+        )}
       </InfoSection>
     );
   }
