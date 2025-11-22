@@ -48,6 +48,22 @@ export const ensureListAtLeastOwner = experimental_trpcMiddleware<{
   });
 });
 
+export const ensureInvitationAccess = experimental_trpcMiddleware<{
+  ctx: AuthedContext;
+  input: { invitationId: string };
+}>().create(async (opts) => {
+  const invitation = await ListInvitation.fromId(
+    opts.ctx,
+    opts.input.invitationId,
+  );
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      invitation,
+    },
+  });
+});
+
 export const listsAppRouter = router({
   create: authedProcedure
     .input(zNewBookmarkListSchema)
@@ -296,41 +312,34 @@ export const listsAppRouter = router({
   acceptInvitation: authedProcedure
     .input(
       z.object({
-        listId: z.string(),
+        invitationId: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      await ListInvitation.accept(ctx, {
-        listId: input.listId,
-      });
+    .use(ensureInvitationAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.invitation.accept();
     }),
 
   declineInvitation: authedProcedure
     .input(
       z.object({
-        listId: z.string(),
+        invitationId: z.string(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      await ListInvitation.decline(ctx, {
-        listId: input.listId,
-      });
+    .use(ensureInvitationAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.invitation.decline();
     }),
 
   revokeInvitation: authedProcedure
     .input(
       z.object({
-        listId: z.string(),
-        userId: z.string(),
+        invitationId: z.string(),
       }),
     )
-    .use(ensureListAtLeastViewer)
-    .use(ensureListAtLeastOwner)
-    .mutation(async ({ input, ctx }) => {
-      await ListInvitation.revoke(ctx, {
-        listId: input.listId,
-        userId: input.userId,
-      });
+    .use(ensureInvitationAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.invitation.revoke();
     }),
 
   getPendingInvitations: authedProcedure

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { listCollaborators, listInvitations } from "@karakeep/db/schema";
 
@@ -7,6 +7,17 @@ import type { AuthedContext } from "..";
 
 type Role = "viewer" | "editor";
 type InvitationStatus = "pending" | "declined";
+
+interface InvitationData {
+  id: string;
+  listId: string;
+  userId: string;
+  role: Role;
+  status: InvitationStatus;
+  invitedAt: Date;
+  invitedEmail: string | null;
+  invitedBy: string | null;
+}
 
 function sanitizeInvitation(
   invitation: {
@@ -51,6 +62,170 @@ function sanitizeInvitation(
 }
 
 export class ListInvitation {
+  protected constructor(
+    protected ctx: AuthedContext,
+    protected invitation: InvitationData,
+  ) {}
+
+  get id() {
+    return this.invitation.id;
+  }
+
+  get listId() {
+    return this.invitation.listId;
+  }
+
+  get userId() {
+    return this.invitation.userId;
+  }
+
+  get role() {
+    return this.invitation.role;
+  }
+
+  get status() {
+    return this.invitation.status;
+  }
+
+  /**
+   * Load an invitation by ID
+   * Can be accessed by:
+   * - The invited user (userId matches)
+   * - The list owner (via list ownership check)
+   */
+  static async fromId(
+    ctx: AuthedContext,
+    invitationId: string,
+  ): Promise<ListInvitation> {
+    const invitation = await ctx.db.query.listInvitations.findFirst({
+      where: eq(listInvitations.id, invitationId),
+      with: {
+        list: {
+          columns: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!invitation) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Invitation not found",
+      });
+    }
+
+    // Check if user has access to this invitation
+    const isInvitedUser = invitation.userId === ctx.user.id;
+    const isListOwner = invitation.list.userId === ctx.user.id;
+
+    if (!isInvitedUser && !isListOwner) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You don't have access to this invitation",
+      });
+    }
+
+    return new ListInvitation(ctx, {
+      id: invitation.id,
+      listId: invitation.listId,
+      userId: invitation.userId,
+      role: invitation.role,
+      status: invitation.status,
+      invitedAt: invitation.invitedAt,
+      invitedEmail: invitation.invitedEmail,
+      invitedBy: invitation.invitedBy,
+    });
+  }
+
+  /**
+   * Ensure the current user is the invited user
+   */
+  ensureIsInvitedUser() {
+    if (this.invitation.userId !== this.ctx.user.id) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the invited user can perform this action",
+      });
+    }
+  }
+
+  /**
+   * Accept the invitation
+   */
+  async accept(): Promise<void> {
+    this.ensureIsInvitedUser();
+
+    if (this.invitation.status !== "pending") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only pending invitations can be accepted",
+      });
+    }
+
+    await this.ctx.db.transaction(async (tx) => {
+      await tx
+        .delete(listInvitations)
+        .where(eq(listInvitations.id, this.invitation.id));
+
+      await tx
+        .insert(listCollaborators)
+        .values({
+          listId: this.invitation.listId,
+          userId: this.invitation.userId,
+          role: this.invitation.role,
+          addedBy: this.invitation.invitedBy,
+        })
+        .onConflictDoNothing();
+    });
+  }
+
+  /**
+   * Decline the invitation
+   */
+  async decline(): Promise<void> {
+    this.ensureIsInvitedUser();
+
+    if (this.invitation.status !== "pending") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only pending invitations can be declined",
+      });
+    }
+
+    await this.ctx.db
+      .update(listInvitations)
+      .set({
+        status: "declined",
+      })
+      .where(eq(listInvitations.id, this.invitation.id));
+  }
+
+  /**
+   * Revoke the invitation (owner only)
+   */
+  async revoke(): Promise<void> {
+    // The fromId already ensures the user is either the invited user or the list owner
+    // For revoke, we need to ensure they're the list owner
+    const list = await this.ctx.db.query.bookmarkLists.findFirst({
+      where: (lists, { eq }) => eq(lists.id, this.invitation.listId),
+      columns: {
+        userId: true,
+      },
+    });
+
+    if (!list || list.userId !== this.ctx.user.id) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the list owner can revoke invitations",
+      });
+    }
+
+    await this.ctx.db
+      .delete(listInvitations)
+      .where(eq(listInvitations.id, this.invitation.id));
+  }
+
   static async inviteByEmail(
     ctx: AuthedContext,
     params: {
@@ -166,95 +341,6 @@ export class ListInvitation {
       listName,
       listId,
     });
-  }
-
-  static async accept(
-    ctx: AuthedContext,
-    params: { listId: string },
-  ): Promise<void> {
-    const invitation = await ctx.db.query.listInvitations.findFirst({
-      where: and(
-        eq(listInvitations.listId, params.listId),
-        eq(listInvitations.userId, ctx.user.id),
-        eq(listInvitations.status, "pending"),
-      ),
-    });
-
-    if (!invitation) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "No pending invitation found for this list",
-      });
-    }
-
-    await ctx.db.transaction(async (tx) => {
-      await tx
-        .delete(listInvitations)
-        .where(eq(listInvitations.id, invitation.id));
-
-      await tx
-        .insert(listCollaborators)
-        .values({
-          listId: invitation.listId,
-          userId: invitation.userId,
-          role: invitation.role,
-          addedBy: invitation.invitedBy,
-        })
-        .onConflictDoNothing();
-    });
-  }
-
-  static async decline(
-    ctx: AuthedContext,
-    params: { listId: string },
-  ): Promise<void> {
-    const result = await ctx.db
-      .update(listInvitations)
-      .set({
-        status: "declined",
-      })
-      .where(
-        and(
-          eq(listInvitations.listId, params.listId),
-          eq(listInvitations.userId, ctx.user.id),
-          or(
-            eq(listInvitations.status, "pending"),
-            eq(listInvitations.status, "declined"),
-          ),
-        ),
-      );
-
-    if (result.changes === 0) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "No pending invitation found for this list",
-      });
-    }
-  }
-
-  static async revoke(
-    ctx: AuthedContext,
-    params: { listId: string; userId: string },
-  ): Promise<void> {
-    const result = await ctx.db
-      .delete(listInvitations)
-      .where(
-        and(
-          eq(listInvitations.listId, params.listId),
-          eq(listInvitations.userId, params.userId),
-          or(
-            eq(listInvitations.status, "pending"),
-            eq(listInvitations.status, "declined"),
-          ),
-        ),
-      );
-
-    if (result.changes === 0) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "No pending invitation found for this user",
-      });
-    }
   }
 
   static async pendingForUser(ctx: AuthedContext) {

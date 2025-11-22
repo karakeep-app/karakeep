@@ -102,7 +102,7 @@ export function PendingInvitationsCard() {
                 size="sm"
                 variant="outline"
                 onClick={() =>
-                  declineInvitation.mutate({ listId: invitation.listId })
+                  declineInvitation.mutate({ invitationId: invitation.id })
                 }
                 disabled={
                   declineInvitation.isPending || acceptInvitation.isPending
@@ -120,7 +120,7 @@ export function PendingInvitationsCard() {
               <Button
                 size="sm"
                 onClick={() =>
-                  acceptInvitation.mutate({ listId: invitation.listId })
+                  acceptInvitation.mutate({ invitationId: invitation.id })
                 }
                 disabled={
                   acceptInvitation.isPending || declineInvitation.isPending

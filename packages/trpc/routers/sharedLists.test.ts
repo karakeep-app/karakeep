@@ -26,8 +26,14 @@ async function addAndAcceptCollaborator(
   });
 
   // Collaborator accepts the invitation
+  const pendingInvitations =
+    await collaboratorApi.lists.getPendingInvitations();
+  const invitation = pendingInvitations.find((inv) => inv.listId === listId);
+  if (!invitation) {
+    throw new Error("No pending invitation found for list");
+  }
   await collaboratorApi.lists.acceptInvitation({
-    listId,
+    invitationId: invitation.id,
   });
 }
 
@@ -125,8 +131,13 @@ describe("Shared Lists", () => {
       ).rejects.toThrow("User already has a pending invitation for this list");
 
       // Accept the invitation
+      const pendingInvitations_3663 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_3663 = pendingInvitations_3663.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list.id,
+        invitationId: invitation_3663!.id,
       });
 
       // Try to add them again after they're a collaborator
@@ -586,8 +597,13 @@ describe("Shared Lists", () => {
       });
 
       // Accept the invitation
+      const pendingInvitations_16682 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_16682 = pendingInvitations_16682.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list.id,
+        invitationId: invitation_16682!.id,
       });
 
       const retrievedList = await collaboratorApi.lists.get({
@@ -2004,8 +2020,13 @@ describe("Shared Lists", () => {
       });
 
       // Accept the invitation
+      const pendingInvitations_55529 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_55529 = pendingInvitations_55529.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list.id,
+        invitationId: invitation_55529!.id,
       });
 
       // Verify collaborator was added
@@ -2045,8 +2066,13 @@ describe("Shared Lists", () => {
       });
 
       // Decline the invitation
+      const pendingInvitations_56715 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_56715 = pendingInvitations_56715.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.declineInvitation({
-        listId: list.id,
+        invitationId: invitation_56715!.id,
       });
 
       // Verify collaborator was not added
@@ -2085,9 +2111,14 @@ describe("Shared Lists", () => {
       });
 
       // Owner revokes the invitation
-      await ownerApi.lists.revokeInvitation({
+      const collaborators_58246 = await ownerApi.lists.getCollaborators({
         listId: list.id,
-        userId: collaboratorUser.id,
+      });
+      const collaborator_58246 = collaborators_58246.collaborators.find(
+        (c) => c.userId === collaboratorUser.id,
+      );
+      await ownerApi.lists.revokeInvitation({
+        invitationId: collaborator_58246!.id,
       });
 
       // Verify invitation was revoked
@@ -2246,8 +2277,13 @@ describe("Shared Lists", () => {
       expect(listAfterInvite.hasCollaborators).toBe(false);
 
       // Accept the invitation
+      const pendingInvitations_63319 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_63319 = pendingInvitations_63319.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list.id,
+        invitationId: invitation_63319!.id,
       });
 
       // hasCollaborators should still be true
@@ -2284,8 +2320,13 @@ describe("Shared Lists", () => {
       expect(listAfterInvite.hasCollaborators).toBe(false);
 
       // Decline the invitation
+      const pendingInvitations_64033 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_64033 = pendingInvitations_64033.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.declineInvitation({
-        listId: list.id,
+        invitationId: invitation_64033!.id,
       });
 
       // hasCollaborators should be false after declining
@@ -2316,8 +2357,13 @@ describe("Shared Lists", () => {
       });
 
       // Decline the invitation
+      const pendingInvitations_65137 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_65137 = pendingInvitations_65137.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.declineInvitation({
-        listId: list.id,
+        invitationId: invitation_65137!.id,
       });
 
       // Should not appear in pending invitations
@@ -2349,8 +2395,13 @@ describe("Shared Lists", () => {
       });
 
       // Decline it
+      const pendingInvitations_66620 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_66620 = pendingInvitations_66620.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.declineInvitation({
-        listId: list.id,
+        invitationId: invitation_66620!.id,
       });
 
       // Re-invite with different role
@@ -2373,13 +2424,13 @@ describe("Shared Lists", () => {
     }) => {
       const collaboratorApi = apiCallers[1];
 
-      const fakeListId = "non-existent-list-id";
+      const fakeInvitationId = "non-existent-invitation-id";
 
       await expect(
         collaboratorApi.lists.acceptInvitation({
-          listId: fakeListId,
+          invitationId: fakeInvitationId,
         }),
-      ).rejects.toThrow("No pending invitation found for this list");
+      ).rejects.toThrow("Invitation not found");
     });
 
     test<CustomTestContext>("should not allow accepting already accepted invitation", async ({
@@ -2403,16 +2454,22 @@ describe("Shared Lists", () => {
       });
 
       // Accept once
+      const pendingInvitations_68541 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_68541 = pendingInvitations_68541.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list.id,
+        invitationId: invitation_68541!.id,
       });
 
-      // Try to accept again
+      // Try to accept again (should fail since invitation is already accepted and deleted)
+      const fakeInvitationId2 = "fake-invitation-id";
       await expect(
         collaboratorApi.lists.acceptInvitation({
-          listId: list.id,
+          invitationId: fakeInvitationId2,
         }),
-      ).rejects.toThrow("No pending invitation found for this list");
+      ).rejects.toThrow("Invitation not found");
     });
 
     test<CustomTestContext>("should show list in shared lists only after accepting invitation", async ({
@@ -2440,8 +2497,13 @@ describe("Shared Lists", () => {
       expect(listsBefore.lists.find((l) => l.id === list.id)).toBeUndefined();
 
       // Accept invitation
+      const pendingInvitations_69848 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_69848 = pendingInvitations_69848.find(
+        (inv) => inv.listId === list.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list.id,
+        invitationId: invitation_69848!.id,
       });
 
       // Now list should appear
@@ -2491,8 +2553,13 @@ describe("Shared Lists", () => {
       expect(pendingInvitations).toHaveLength(2);
 
       // Accept one
+      const pendingInvitations_69243 =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation_69243 = pendingInvitations_69243.find(
+        (inv) => inv.listId === list1.id,
+      );
       await collaboratorApi.lists.acceptInvitation({
-        listId: list1.id,
+        invitationId: invitation_69243!.id,
       });
 
       // Should have 1 pending invitation left

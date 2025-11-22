@@ -310,8 +310,7 @@ export function ManageCollaboratorsModal({
                             size="sm"
                             onClick={() =>
                               revokeInvitation.mutate({
-                                listId: list.id,
-                                userId: collaborator.userId,
+                                invitationId: collaborator.id,
                               })
                             }
                             disabled={revokeInvitation.isPending}
