@@ -9,13 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "@/lib/i18n/client";
+import { useInArchivePageStore } from "@/lib/store/useInArchivePageStore";
 import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
-import { Check, ListFilter, SortAsc, SortDesc } from "lucide-react";
+import { Archive, Check, ListFilter, SortAsc, SortDesc } from "lucide-react";
 
 export default function SortOrderToggle() {
   const { t } = useTranslation();
   const isInSearchPage = useInSearchPageStore();
+  const isInArchivePage = useInArchivePageStore(
+    (state) => state.inArchivePage,
+  );
 
   const { sortOrder: currentSort, setSortOrder } = useSortOrderStore();
 
@@ -26,7 +30,11 @@ export default function SortOrderToggle() {
       // reset to default sort order
       setSortOrder("desc");
     }
-  }, [isInSearchPage, currentSort]);
+    if (!isInArchivePage && currentSort === "archivedAt") {
+      // reset to default sort order
+      setSortOrder("desc");
+    }
+  }, [isInSearchPage, isInArchivePage, currentSort, setSortOrder]);
 
   return (
     <DropdownMenu>
@@ -39,6 +47,7 @@ export default function SortOrderToggle() {
           {currentSort === "relevance" && <ListFilter size={18} />}
           {currentSort === "asc" && <SortAsc size={18} />}
           {currentSort === "desc" && <SortDesc size={18} />}
+          {currentSort === "archivedAt" && <Archive size={18} />}
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
@@ -74,6 +83,18 @@ export default function SortOrderToggle() {
           </div>
           {currentSort === "asc" && <Check className="ml-2 h-4 w-4" />}
         </DropdownMenuItem>
+        {isInArchivePage && (
+          <DropdownMenuItem
+            className="cursor-pointer justify-between"
+            onClick={() => setSortOrder("archivedAt")}
+          >
+            <div className="flex items-center">
+              <Archive size={16} className="mr-2" />
+              <span>{t("actions.sort.archived_date")}</span>
+            </div>
+            {currentSort === "archivedAt" && <Check className="ml-2 h-4 w-4" />}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

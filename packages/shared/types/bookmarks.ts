@@ -12,7 +12,7 @@ export const enum BookmarkTypes {
   UNKNOWN = "unknown",
 }
 
-export const zSortOrder = z.enum(["asc", "desc", "relevance"]);
+export const zSortOrder = z.enum(["asc", "desc", "relevance", "archivedAt"]);
 export type ZSortOrder = z.infer<typeof zSortOrder>;
 
 export const zAssetTypesSchema = z.enum([
@@ -101,6 +101,7 @@ export const zBareBookmarkSchema = z.object({
   modifiedAt: z.date().nullable(),
   title: z.string().nullish(),
   archived: z.boolean(),
+  archivedAt: z.date().nullable(),
   favourited: z.boolean(),
   taggingStatus: z.enum(["success", "failure", "pending"]).nullable(),
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),

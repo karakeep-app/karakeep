@@ -100,7 +100,8 @@
       "title": "Sort",
       "relevant_first": "Most Relevant First",
       "newest_first": "Newest First",
-      "oldest_first": "Oldest First"
+      "oldest_first": "Oldest First",
+      "archived_date": "Recently Archived"
     },
     "load_more": "Load More"
   },

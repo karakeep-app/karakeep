@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import UploadDropzone from "@/components/dashboard/UploadDropzone";
+import { useInArchivePageStore } from "@/lib/store/useInArchivePageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { api } from "@/lib/trpc";
 
@@ -23,9 +24,23 @@ export default function UpdatableBookmarksGrid({
   showEditorCard?: boolean;
   itemsPerPage?: number;
 }) {
+  const { setInArchivePage } = useInArchivePageStore();
+
+  useEffect(() => {
+    // Set archive page state based on query
+    setInArchivePage(query.archived === true);
+    return () => {
+      setInArchivePage(false);
+    };
+  }, [query.archived, setInArchivePage]);
+
   let sortOrder = useSortOrderStore((state) => state.sortOrder);
   if (sortOrder === "relevance") {
     // Relevance is not supported in the `getBookmarks` endpoint.
+    sortOrder = "desc";
+  }
+  if (!query.archived && sortOrder === "archivedAt") {
+    // archivedAt sort is only supported on the archive page.
     sortOrder = "desc";
   }
 

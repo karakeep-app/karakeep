@@ -388,13 +388,25 @@ export class Bookmark extends BareBookmark {
                       gte(bookmarks.id, input.cursor.id),
                     ),
                   )
-                : or(
-                    lt(bookmarks.createdAt, input.cursor.createdAt),
-                    and(
-                      eq(bookmarks.createdAt, input.cursor.createdAt),
-                      lte(bookmarks.id, input.cursor.id),
-                    ),
-                  )
+                : input.sortOrder === "archivedAt"
+                  ? or(
+                      input.cursor.archivedAt
+                        ? lt(bookmarks.archivedAt, input.cursor.archivedAt)
+                        : undefined,
+                      input.cursor.archivedAt
+                        ? and(
+                            eq(bookmarks.archivedAt, input.cursor.archivedAt),
+                            lte(bookmarks.id, input.cursor.id),
+                          )
+                        : undefined,
+                    )
+                  : or(
+                      lt(bookmarks.createdAt, input.cursor.createdAt),
+                      and(
+                        eq(bookmarks.createdAt, input.cursor.createdAt),
+                        lte(bookmarks.id, input.cursor.id),
+                      ),
+                    )
               : undefined,
           ),
         )
@@ -402,7 +414,9 @@ export class Bookmark extends BareBookmark {
         .orderBy(
           input.sortOrder === "asc"
             ? asc(bookmarks.createdAt)
-            : desc(bookmarks.createdAt),
+            : input.sortOrder === "archivedAt"
+              ? desc(bookmarks.archivedAt)
+              : desc(bookmarks.createdAt),
           desc(bookmarks.id),
         ),
     );
@@ -563,12 +577,23 @@ export class Bookmark extends BareBookmark {
     }
 
     bookmarksArr.sort((a, b) => {
-      if (a.createdAt != b.createdAt) {
-        return input.sortOrder === "asc"
-          ? a.createdAt.getTime() - b.createdAt.getTime()
-          : b.createdAt.getTime() - a.createdAt.getTime();
-      } else {
+      if (input.sortOrder === "archivedAt") {
+        // Sort by archivedAt (nulls last), then by id
+        const aTime = a.archivedAt?.getTime() ?? 0;
+        const bTime = b.archivedAt?.getTime() ?? 0;
+        if (aTime !== bTime) {
+          return bTime - aTime; // descending (most recent first)
+        }
         return b.id.localeCompare(a.id);
+      } else {
+        // Sort by createdAt, then by id
+        if (a.createdAt != b.createdAt) {
+          return input.sortOrder === "asc"
+            ? a.createdAt.getTime() - b.createdAt.getTime()
+            : b.createdAt.getTime() - a.createdAt.getTime();
+        } else {
+          return b.id.localeCompare(a.id);
+        }
       }
     });
 
@@ -584,6 +609,7 @@ export class Bookmark extends BareBookmark {
       nextCursor = {
         id: nextItem.id,
         createdAt: nextItem.createdAt,
+        archivedAt: nextItem.archivedAt,
       };
     }
 

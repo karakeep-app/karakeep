@@ -153,6 +153,7 @@ export const bookmarksAppRouter = router({
               title: input.title,
               type: input.type,
               archived: input.archived,
+              archivedAt: input.archived ? new Date() : null,
               favourited: input.favourited,
               note: input.note,
               summary: input.summary,
@@ -426,6 +427,7 @@ export const bookmarksAppRouter = router({
         const commonUpdateData: Partial<{
           title: string | null;
           archived: boolean;
+          archivedAt: Date | null;
           favourited: boolean;
           note: string | null;
           summary: string | null;
@@ -439,6 +441,8 @@ export const bookmarksAppRouter = router({
         }
         if (input.archived !== undefined) {
           commonUpdateData.archived = input.archived;
+          // Set archivedAt when archiving, clear it when unarchiving
+          commonUpdateData.archivedAt = input.archived ? new Date() : null;
         }
         if (input.favourited !== undefined) {
           commonUpdateData.favourited = input.favourited;
