@@ -11,7 +11,7 @@ import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
-import { Plus, Sparkles } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
@@ -39,7 +39,6 @@ interface ListLink {
   parent?: string;
   numChildren: number;
   collapsed: boolean;
-  isSmart?: boolean;
 }
 
 function traverseTree(
@@ -58,7 +57,6 @@ function traverseTree(
     parent,
     numChildren: node.children?.length ?? 0,
     collapsed: !showChildrenOf[node.item.id],
-    isSmart: node.item.type === "smart",
   });
 
   if (node.children && showChildrenOf[node.item.id]) {
@@ -163,15 +161,10 @@ export default function Lists() {
             )}
 
             <Link asChild key={l.item.id} href={l.item.href} className="flex-1">
-              <Pressable className="flex flex-row justify-between items-center">
-                <View className="flex flex-row items-center gap-2">
-                  <Text>
-                    {l.item.logo} {l.item.name}
-                  </Text>
-                  {l.item.isSmart && (
-                    <Sparkles size={14} color="#6b7280" />
-                  )}
-                </View>
+              <Pressable className="flex flex-row items-center justify-between">
+                <Text>
+                  {l.item.logo} {l.item.name}
+                </Text>
                 <ChevronRight />
               </Pressable>
             </Link>

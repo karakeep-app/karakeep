@@ -62,17 +62,6 @@ const NewListPage = () => {
   return (
     <CustomSafeAreaView>
       <View className="gap-3 px-4">
-        <View className="flex flex-row items-center gap-1">
-          <Text className="shrink p-2">🚀</Text>
-          <Input
-            className="flex-1 bg-card"
-            onChangeText={setText}
-            placeholder="List Name"
-            autoFocus
-            autoCapitalize={"none"}
-          />
-        </View>
-
         {/* List Type Selector */}
         <View className="gap-2">
           <Text className="text-sm text-muted-foreground">List Type</Text>
@@ -94,6 +83,18 @@ const NewListPage = () => {
           </View>
         </View>
 
+        {/* List Name */}
+        <View className="flex flex-row items-center gap-1">
+          <Text className="shrink p-2">🚀</Text>
+          <Input
+            className="flex-1 bg-card"
+            onChangeText={setText}
+            placeholder="List Name"
+            autoFocus
+            autoCapitalize={"none"}
+          />
+        </View>
+
         {/* Smart List Query Input */}
         {listType === "smart" && (
           <View className="gap-2">
@@ -102,10 +103,10 @@ const NewListPage = () => {
               className="bg-card"
               onChangeText={setQuery}
               value={query}
-              placeholder="e.g., tag:important OR list:work"
+              placeholder="e.g., #important OR list:work"
               autoCapitalize={"none"}
             />
-            <Text className="text-xs text-muted-foreground italic">
+            <Text className="text-xs italic text-muted-foreground">
               Smart lists automatically show bookmarks matching your search
               query
             </Text>

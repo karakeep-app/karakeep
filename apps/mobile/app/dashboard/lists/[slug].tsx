@@ -5,10 +5,9 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
-import { Ellipsis, Sparkles } from "lucide-react-native";
+import { Ellipsis } from "lucide-react-native";
 
 export default function ListView() {
   const { slug } = useLocalSearchParams();
@@ -35,19 +34,6 @@ export default function ListView() {
         <FullPageError error={error.message} onRetry={() => refetch()} />
       ) : list ? (
         <View>
-          {list.type === "smart" && list.query && (
-            <View className="bg-muted/50 border-b border-border px-4 py-3">
-              <View className="flex flex-row items-center gap-2 mb-1">
-                <Sparkles size={14} color="#6b7280" />
-                <Text className="text-xs font-semibold text-muted-foreground uppercase">
-                  Smart List
-                </Text>
-              </View>
-              <Text className="text-sm text-foreground/80">
-                Query: {list.query}
-              </Text>
-            </View>
-          )}
           <UpdatingBookmarkList
             query={{
               listId: list.id,
