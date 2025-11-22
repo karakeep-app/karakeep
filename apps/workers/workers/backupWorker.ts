@@ -11,13 +11,13 @@ import {
   AssetTypes,
   assets,
   backupsTable,
-  backupSettingsTable,
+  users,
 } from "@karakeep/db/schema";
-import { BackupQueue } from "@karakeep/shared-server";
-import { toExportFormat, zExportSchema } from "@karakeep/shared/import-export";
+import { BackupQueue, QuotaService } from "@karakeep/shared-server";
+import { toExportFormat } from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
-import { AssetAPI } from "@karakeep/shared/assetdb";
+import { saveAsset, deleteAsset } from "@karakeep/shared/assetdb";
 
 import { fetchAllBookmarksForUser } from "./utils/fetchBookmarks";
 
@@ -27,12 +27,12 @@ export const BackupSchedulingWorker = cron.schedule(
   async () => {
     logger.info("[backup] Scheduling daily backup jobs ...");
     try {
-      const usersWithBackups = await db.query.backupSettingsTable.findMany({
+      const usersWithBackups = await db.query.users.findMany({
         columns: {
-          userId: true,
-          frequency: true,
+          id: true,
+          backupsFrequency: true,
         },
-        where: eq(backupSettingsTable.enabled, true),
+        where: eq(users.backupsEnabled, true),
       });
 
       logger.info(
@@ -42,11 +42,11 @@ export const BackupSchedulingWorker = cron.schedule(
       const now = new Date();
       const currentDay = now.toISOString().split("T")[0]; // YYYY-MM-DD
 
-      for (const setting of usersWithBackups) {
+      for (const user of usersWithBackups) {
         // Deterministically schedule backups throughout the day based on user ID
         // This spreads the load across 24 hours
         const hash = createHash("sha256")
-          .update(setting.userId)
+          .update(user.id)
           .digest("hex");
         const hashNum = parseInt(hash.substring(0, 8), 16);
 
@@ -55,11 +55,11 @@ export const BackupSchedulingWorker = cron.schedule(
         let shouldSchedule = false;
         let delayMs = 0;
 
-        if (setting.frequency === "daily") {
+        if (user.backupsFrequency === "daily") {
           shouldSchedule = true;
           // Spread across 24 hours (86400000 ms)
           delayMs = hashNum % 86400000;
-        } else if (setting.frequency === "weekly") {
+        } else if (user.backupsFrequency === "weekly") {
           // Use hash to determine day of week (0-6)
           const userDayOfWeek = hashNum % 7;
           const currentDayOfWeek = now.getDay();
@@ -72,10 +72,10 @@ export const BackupSchedulingWorker = cron.schedule(
         }
 
         if (shouldSchedule) {
-          const idempotencyKey = `${setting.userId}-${currentDay}`;
+          const idempotencyKey = `${user.id}-${currentDay}`;
           await BackupQueue.enqueue(
             {
-              userId: setting.userId,
+              userId: user.id,
             },
             {
               idempotencyKey,
@@ -83,7 +83,7 @@ export const BackupSchedulingWorker = cron.schedule(
             },
           );
           logger.info(
-            `[backup] Scheduled backup for user ${setting.userId} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
+            `[backup] Scheduled backup for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
           );
         }
       }
@@ -153,14 +153,19 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
 
   logger.info(`[backup][${jobId}] Starting backup for user ${userId} ...`);
 
-  // Fetch backup settings to check retention
-  const settings = await db.query.backupSettingsTable.findFirst({
-    where: eq(backupSettingsTable.userId, userId),
+  // Fetch user settings to check if backups are enabled and get retention
+  const user = await db.query.users.findFirst({
+    columns: {
+      id: true,
+      backupsEnabled: true,
+      backupsRetentionDays: true,
+    },
+    where: eq(users.id, userId),
   });
 
-  if (!settings || !settings.enabled) {
+  if (!user || !user.backupsEnabled) {
     logger.info(
-      `[backup][${jobId}] Backup settings not found or disabled for user ${userId}. Skipping.`,
+      `[backup][${jobId}] Backups not enabled for user ${userId}. Skipping.`,
     );
     return;
   }
@@ -197,13 +202,29 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     `[backup][${jobId}] Compressed ${exportBuffer.length} bytes to ${compressedSize} bytes`,
   );
 
-  // Step 4: Store as asset
+  // Step 4: Check quota and store as asset
+  logger.info(`[backup][${jobId}] Checking storage quota ...`);
+  const quotaApproval = await QuotaService.checkStorageQuota(
+    db,
+    userId,
+    compressedSize,
+  );
+
   logger.info(`[backup][${jobId}] Storing compressed backup as asset ...`);
   const assetId = createId();
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const fileName = `karakeep-backup-${timestamp}.json.gz`;
 
-  await AssetAPI.saveAsset(assetId, userId, compressedBuffer);
+  await saveAsset({
+    userId,
+    assetId,
+    asset: compressedBuffer,
+    metadata: {
+      contentType: "application/gzip",
+      fileName,
+    },
+    quotaApproved: quotaApproval,
+  });
 
   // Step 5: Create asset record
   await db.insert(assets).values({
@@ -231,7 +252,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
   );
 
   // Step 7: Clean up old backups based on retention
-  await cleanupOldBackups(userId, settings.retentionDays, jobId);
+  await cleanupOldBackups(userId, user.backupsRetentionDays, jobId);
 
   logger.info(`[backup][${jobId}] Backup job completed for user ${userId}`);
 }
@@ -273,7 +294,10 @@ async function cleanupOldBackups(
     // Delete assets first
     for (const backup of oldBackups) {
       try {
-        await AssetAPI.deleteAsset(backup.assetId, userId);
+        await deleteAsset({
+          userId,
+          assetId: backup.assetId,
+        });
         logger.info(
           `[backup][${jobId}] Deleted asset ${backup.assetId} for backup ${backup.id}`,
         );

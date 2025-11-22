@@ -3,28 +3,20 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db as DONT_USE_db } from "@karakeep/db";
-import {
-  backupsTable,
-  backupSettingsTable,
-  assets,
-} from "@karakeep/db/schema";
+import { backupsTable, users } from "@karakeep/db/schema";
 
 import { AuthedContext } from "..";
 
 export const zBackupSettingsSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  enabled: z.boolean(),
-  frequency: z.enum(["daily", "weekly"]),
-  retentionDays: z.number(),
-  createdAt: z.date(),
-  modifiedAt: z.date().nullable(),
+  backupsEnabled: z.boolean(),
+  backupsFrequency: z.enum(["daily", "weekly"]),
+  backupsRetentionDays: z.number(),
 });
 
 export const zUpdateBackupSettingsSchema = z.object({
-  enabled: z.boolean().optional(),
-  frequency: z.enum(["daily", "weekly"]).optional(),
-  retentionDays: z.number().min(1).max(365).optional(),
+  backupsEnabled: z.boolean().optional(),
+  backupsFrequency: z.enum(["daily", "weekly"]).optional(),
+  backupsRetentionDays: z.number().min(1).max(365).optional(),
 });
 
 export const zBackupSchema = z.object({
@@ -39,52 +31,43 @@ export const zBackupSchema = z.object({
 });
 
 export class BackupSettings {
-  private constructor(
-    private ctx: AuthedContext,
-    private settings: z.infer<typeof zBackupSettingsSchema>,
-  ) {}
-
-  static async get(ctx: AuthedContext): Promise<BackupSettings | null> {
-    const settings = await ctx.db.query.backupSettingsTable.findFirst({
-      where: eq(backupSettingsTable.userId, ctx.user.id),
+  static async get(ctx: AuthedContext): Promise<z.infer<typeof zBackupSettingsSchema>> {
+    const user = await ctx.db.query.users.findFirst({
+      columns: {
+        backupsEnabled: true,
+        backupsFrequency: true,
+        backupsRetentionDays: true,
+      },
+      where: eq(users.id, ctx.user.id),
     });
 
-    if (!settings) {
-      return null;
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
     }
 
-    return new BackupSettings(ctx, settings as any);
+    return {
+      backupsEnabled: user.backupsEnabled,
+      backupsFrequency: user.backupsFrequency,
+      backupsRetentionDays: user.backupsRetentionDays,
+    };
   }
 
-  static async getOrCreate(ctx: AuthedContext): Promise<BackupSettings> {
-    let settings = await this.get(ctx);
-
-    if (!settings) {
-      // Create default settings
-      const [newSettings] = await ctx.db
-        .insert(backupSettingsTable)
-        .values({
-          userId: ctx.user.id,
-          enabled: false,
-          frequency: "weekly",
-          retentionDays: 30,
-        })
-        .returning();
-
-      settings = new BackupSettings(ctx, newSettings as any);
-    }
-
-    return settings;
-  }
-
-  async update(
+  static async update(
+    ctx: AuthedContext,
     updates: z.infer<typeof zUpdateBackupSettingsSchema>,
-  ): Promise<void> {
-    const [updated] = await this.ctx.db
-      .update(backupSettingsTable)
+  ): Promise<z.infer<typeof zBackupSettingsSchema>> {
+    const [updated] = await ctx.db
+      .update(users)
       .set(updates)
-      .where(eq(backupSettingsTable.userId, this.ctx.user.id))
-      .returning();
+      .where(eq(users.id, ctx.user.id))
+      .returning({
+        backupsEnabled: users.backupsEnabled,
+        backupsFrequency: users.backupsFrequency,
+        backupsRetentionDays: users.backupsRetentionDays,
+      });
 
     if (!updated) {
       throw new TRPCError({
@@ -93,11 +76,7 @@ export class BackupSettings {
       });
     }
 
-    this.settings = updated as any;
-  }
-
-  asPublic(): z.infer<typeof zBackupSettingsSchema> {
-    return this.settings;
+    return updated;
   }
 }
 

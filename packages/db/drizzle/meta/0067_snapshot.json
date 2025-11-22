@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4cb60c0d-1369-4bdc-ba42-e43c8cde456d",
+  "id": "192e864a-d447-4d5f-a7cd-034d085b800a",
   "prevId": "f14d2087-e465-4cb5-81bc-accff017ee02",
   "tables": {
     "account": {
@@ -289,97 +289,6 @@
         "assets_userId_user_id_fk": {
           "name": "assets_userId_user_id_fk",
           "tableFrom": "assets",
-          "tableTo": "user",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "backupSettings": {
-      "name": "backupSettings",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
-        },
-        "frequency": {
-          "name": "frequency",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'weekly'"
-        },
-        "retentionDays": {
-          "name": "retentionDays",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 30
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "modifiedAt": {
-          "name": "modifiedAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "backupSettings_userId_unique": {
-          "name": "backupSettings_userId_unique",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": true
-        },
-        "backupSettings_userId_idx": {
-          "name": "backupSettings_userId_idx",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "backupSettings_userId_user_id_fk": {
-          "name": "backupSettings_userId_user_id_fk",
-          "tableFrom": "backupSettings",
           "tableTo": "user",
           "columnsFrom": [
             "userId"
@@ -2696,6 +2605,30 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'UTC'"
+        },
+        "backupsEnabled": {
+          "name": "backupsEnabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "backupsFrequency": {
+          "name": "backupsFrequency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'weekly'"
+        },
+        "backupsRetentionDays": {
+          "name": "backupsRetentionDays",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 30
         }
       },
       "indexes": {

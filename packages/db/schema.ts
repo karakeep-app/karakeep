@@ -58,6 +58,19 @@ export const users = sqliteTable("user", {
     .notNull()
     .default("show"),
   timezone: text("timezone").default("UTC"),
+
+  // Backup Settings
+  backupsEnabled: integer("backupsEnabled", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  backupsFrequency: text("backupsFrequency", {
+    enum: ["daily", "weekly"],
+  })
+    .notNull()
+    .default("weekly"),
+  backupsRetentionDays: integer("backupsRetentionDays")
+    .notNull()
+    .default(30),
 });
 
 export const accounts = sqliteTable(
@@ -543,30 +556,6 @@ export const rssFeedImportsTable = sqliteTable(
   ],
 );
 
-export const backupSettingsTable = sqliteTable(
-  "backupSettings",
-  {
-    id: text("id")
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" })
-      .unique(),
-    enabled: integer("enabled", { mode: "boolean" }).notNull().default(false),
-    frequency: text("frequency", {
-      enum: ["daily", "weekly"],
-    })
-      .notNull()
-      .default("weekly"),
-    retentionDays: integer("retentionDays").notNull().default(30),
-    createdAt: createdAtField(),
-    modifiedAt: modifiedAtField(),
-  },
-  (bs) => [index("backupSettings_userId_idx").on(bs.userId)],
-);
-
 export const backupsTable = sqliteTable(
   "backups",
   {
@@ -788,7 +777,6 @@ export const userRelations = relations(users, ({ many, one }) => ({
   subscription: one(subscriptions),
   importSessions: many(importSessions),
   listCollaborations: many(listCollaborators),
-  backupSettings: one(backupSettingsTable),
   backups: many(backupsTable),
 }));
 
@@ -990,16 +978,6 @@ export const importSessionBookmarksRelations = relations(
     bookmark: one(bookmarks, {
       fields: [importSessionBookmarks.bookmarkId],
       references: [bookmarks.id],
-    }),
-  }),
-);
-
-export const backupSettingsRelations = relations(
-  backupSettingsTable,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [backupSettingsTable.userId],
-      references: [users.id],
     }),
   }),
 );

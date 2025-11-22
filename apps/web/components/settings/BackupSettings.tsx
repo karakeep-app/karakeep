@@ -36,6 +36,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { zUpdateBackupSettingsSchema } from "@karakeep/shared/types/backups";
+import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
 import { Button } from "../ui/button";
@@ -73,9 +74,9 @@ function BackupConfigurationForm() {
     resolver: zodResolver(zUpdateBackupSettingsSchema),
     values: settings
       ? {
-          enabled: settings.enabled,
-          frequency: settings.frequency,
-          retentionDays: settings.retentionDays,
+          backupsEnabled: settings.backupsEnabled,
+          backupsFrequency: settings.backupsFrequency,
+          backupsRetentionDays: settings.backupsRetentionDays,
         }
       : undefined,
   });
@@ -96,7 +97,7 @@ function BackupConfigurationForm() {
         >
           <FormField
             control={form.control}
-            name="enabled"
+            name="backupsEnabled"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
@@ -117,7 +118,7 @@ function BackupConfigurationForm() {
 
           <FormField
             control={form.control}
-            name="frequency"
+            name="backupsFrequency"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Backup Frequency</FormLabel>
@@ -146,7 +147,7 @@ function BackupConfigurationForm() {
 
           <FormField
             control={form.control}
-            name="retentionDays"
+            name="backupsRetentionDays"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Retention Period (days)</FormLabel>
@@ -211,36 +212,6 @@ function BackupRow({ backup }: { backup: Backup }) {
       },
     });
 
-  const { mutateAsync: downloadBackup, isPending: isDownloading } =
-    api.backups.download.useMutation({
-      onSuccess: (data) => {
-        // Convert base64 to blob and download
-        const binaryString = atob(data.data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const blob = new Blob([bytes], { type: data.contentType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast({
-          description: "Backup downloaded successfully!",
-        });
-      },
-      onError: (error) => {
-        toast({
-          description: `Error: ${error.message}`,
-          variant: "destructive",
-        });
-      },
-    });
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -282,15 +253,24 @@ function BackupRow({ backup }: { backup: Backup }) {
       <TableCell className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <ActionButton
-              loading={isDownloading}
+            <Button
+              asChild
               variant="ghost"
               className="items-center"
-              onClick={() => downloadBackup({ backupId: backup.id })}
               disabled={backup.status !== "success"}
             >
-              <Download className="size-4" />
-            </ActionButton>
+              <a
+                href={getAssetUrl(backup.assetId)}
+                download
+                className={
+                  backup.status !== "success"
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              >
+                <Download className="size-4" />
+              </a>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>Download Backup</TooltipContent>
         </Tooltip>
