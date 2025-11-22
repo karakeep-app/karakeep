@@ -276,9 +276,11 @@ function TagList({ bookmark }: { bookmark: ZBookmark }) {
 function LinkCard({
   bookmark,
   onOpenBookmark,
+  layout = "grid",
 }: {
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
+  layout?: "grid" | "list";
 }) {
   const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.LINK) {
@@ -307,7 +309,7 @@ function LinkCard({
                 uri: imageUrl.url,
               }
         }
-        className="h-56 min-h-56 w-full object-cover"
+        className={layout === "list" ? "h-32 w-32 rounded-lg object-cover" : "h-56 min-h-56 w-full object-cover"}
       />
     );
   } else {
@@ -315,8 +317,43 @@ function LinkCard({
       <Image
         // oxlint-disable-next-line no-require-imports
         source={require("@/assets/blur.jpeg")}
-        className="h-56 w-full rounded-t-lg"
+        className={layout === "list" ? "h-32 w-32 rounded-lg" : "h-56 w-full rounded-t-lg"}
       />
+    );
+  }
+
+  if (layout === "list") {
+    return (
+      <View className="flex max-h-40 flex-row gap-3 p-2">
+        <Pressable onPress={onOpenBookmark} className="shrink-0">
+          {imageComp}
+        </Pressable>
+        <View className="flex flex-1 gap-1.5">
+          <Text
+            className="line-clamp-2 text-base font-semibold text-foreground"
+            onPress={onOpenBookmark}
+          >
+            {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
+          </Text>
+          <Text className="line-clamp-1 text-xs text-muted-foreground">
+            {parsedUrl.host}
+          </Text>
+          {note && (
+            <Text className="line-clamp-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {note}
+            </Text>
+          )}
+          {bookmark.tags.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex flex-row gap-1">
+                {bookmark.tags.slice(0, 2).map((t) => (
+                  <TagPill key={t.id} tag={t} />
+                ))}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </View>
     );
   }
 
@@ -345,9 +382,11 @@ function LinkCard({
 function TextCard({
   bookmark,
   onOpenBookmark,
+  layout = "grid",
 }: {
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
+  layout?: "grid" | "list";
 }) {
   const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
@@ -355,6 +394,44 @@ function TextCard({
   }
   const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const content = bookmark.content.text;
+
+  if (layout === "list") {
+    return (
+      <View className="flex max-h-40 flex-row gap-3 p-2">
+        <View className="flex h-32 w-32 shrink-0 items-center justify-center rounded-lg bg-muted">
+          <Text className="text-4xl">📝</Text>
+        </View>
+        <View className="flex flex-1 gap-1.5">
+          {bookmark.title && (
+            <Text
+              className="line-clamp-2 text-base font-semibold text-foreground"
+              onPress={onOpenBookmark}
+            >
+              {bookmark.title}
+            </Text>
+          )}
+          <Text className="line-clamp-2 text-xs text-muted-foreground" numberOfLines={2}>
+            {content}
+          </Text>
+          {note && (
+            <Text className="line-clamp-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {note}
+            </Text>
+          )}
+          {bookmark.tags.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex flex-row gap-1">
+                {bookmark.tags.slice(0, 2).map((t) => (
+                  <TagPill key={t.id} tag={t} />
+                ))}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex max-h-96 gap-2 p-2">
       <Pressable onPress={onOpenBookmark}>
@@ -383,9 +460,11 @@ function TextCard({
 function AssetCard({
   bookmark,
   onOpenBookmark,
+  layout = "grid",
 }: {
   bookmark: ZBookmark;
   onOpenBookmark: () => void;
+  layout?: "grid" | "list";
 }) {
   const { settings } = useAppSettings();
   if (bookmark.content.type !== BookmarkTypes.ASSET) {
@@ -397,6 +476,46 @@ function AssetCard({
   const assetImage =
     bookmark.assets.find((r) => r.assetType == "assetScreenshot")?.id ??
     bookmark.content.assetId;
+
+  if (layout === "list") {
+    return (
+      <View className="flex max-h-40 flex-row gap-3 p-2">
+        <Pressable onPress={onOpenBookmark} className="shrink-0">
+          <BookmarkAssetImage
+            assetId={assetImage}
+            className="h-32 w-32 rounded-lg object-cover"
+          />
+        </Pressable>
+        <View className="flex flex-1 gap-1.5">
+          {title && (
+            <Text
+              className="line-clamp-2 text-base font-semibold text-foreground"
+              onPress={onOpenBookmark}
+            >
+              {title}
+            </Text>
+          )}
+          <Text className="line-clamp-1 text-xs text-muted-foreground">
+            {bookmark.content.assetType === "image" ? "Image" : "PDF Document"}
+          </Text>
+          {note && (
+            <Text className="line-clamp-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {note}
+            </Text>
+          )}
+          {bookmark.tags.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex flex-row gap-1">
+                {bookmark.tags.slice(0, 2).map((t) => (
+                  <TagPill key={t.id} tag={t} />
+                ))}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="flex gap-2">
@@ -426,8 +545,10 @@ function AssetCard({
 
 export default function BookmarkCard({
   bookmark: initialData,
+  layout = "grid",
 }: {
   bookmark: ZBookmark;
+  layout?: "grid" | "list";
 }) {
   const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
     {
@@ -456,6 +577,7 @@ export default function BookmarkCard({
           onOpenBookmark={() =>
             router.push(`/dashboard/bookmarks/${bookmark.id}`)
           }
+          layout={layout}
         />
       );
       break;
@@ -466,6 +588,7 @@ export default function BookmarkCard({
           onOpenBookmark={() =>
             router.push(`/dashboard/bookmarks/${bookmark.id}`)
           }
+          layout={layout}
         />
       );
       break;
@@ -476,6 +599,7 @@ export default function BookmarkCard({
           onOpenBookmark={() =>
             router.push(`/dashboard/bookmarks/${bookmark.id}`)
           }
+          layout={layout}
         />
       );
       break;

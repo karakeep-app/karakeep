@@ -1,3 +1,4 @@
+import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
 
 import type { ZGetBookmarksRequest } from "@karakeep/shared/types/bookmarks";
@@ -14,6 +15,7 @@ export default function UpdatingBookmarkList({
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is not supported in mobile yet
   header?: React.ReactElement;
 }) {
+  const { settings } = useAppSettings();
   const apiUtils = api.useUtils();
   const {
     data,
@@ -54,6 +56,7 @@ export default function UpdatingBookmarkList({
       fetchNextPage={fetchNextPage}
       isFetchingNextPage={isFetchingNextPage}
       isRefreshing={isPending || isPlaceholderData}
+      layout={settings.bookmarkGridLayout}
     />
   );
 }

@@ -15,6 +15,7 @@ export default function BookmarkList({
   fetchNextPage,
   isFetchingNextPage,
   isRefreshing,
+  layout = "grid",
 }: {
   bookmarks: ZBookmark[];
   onRefresh: () => void;
@@ -22,6 +23,7 @@ export default function BookmarkList({
   fetchNextPage?: () => void;
   header?: React.ReactElement;
   isFetchingNextPage?: boolean;
+  layout?: "grid" | "list";
 }) {
   const flatListRef = useRef(null);
   useScrollToTop(flatListRef);
@@ -32,11 +34,14 @@ export default function BookmarkList({
       itemLayoutAnimation={LinearTransition}
       ListHeaderComponent={header}
       contentContainerStyle={{
-        gap: 15,
+        gap: layout === "list" ? 8 : 15,
         marginHorizontal: 15,
         marginBottom: 15,
       }}
-      renderItem={(b) => <BookmarkCard bookmark={b.item} />}
+      numColumns={layout === "grid" ? 2 : 1}
+      key={layout}
+      columnWrapperStyle={layout === "grid" ? { gap: 15 } : undefined}
+      renderItem={(b) => <BookmarkCard bookmark={b.item} layout={layout} />}
       ListEmptyComponent={
         <View className="items-center justify-center pt-4">
           <Text variant="title3">No Bookmarks</Text>
