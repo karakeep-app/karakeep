@@ -687,6 +687,9 @@ importers:
       react-hook-form:
         specifier: ^7.57.0
         version: 7.62.0(react@19.1.0)
+      react-hotkeys-hook:
+        specifier: ^5.2.1
+        version: 5.2.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react-i18next:
         specifier: ^15.1.1
         version: 15.1.1(i18next@23.16.5)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -1284,7 +1287,7 @@ importers:
         version: 19.1.0
       react-native:
         specifier: 0.79.5
-        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
+        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0)
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -12297,6 +12300,12 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
 
+  react-hotkeys-hook@5.2.1:
+    resolution: {integrity: sha512-xbKh6zJxd/vJHT4Bw4+0pBD662Fk20V+VFhLqciCg+manTVO4qlqRqiwFOYelfHN9dBvWj9vxaPkSS26ZSIJGg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
   react-i18next@15.1.1:
     resolution: {integrity: sha512-R/Vg9wIli2P3FfeI8o1eNJUJue5LWpFsQePCHdQDmX0Co3zkr6kdT8gAseb/yGeWbNz1Txc4bKDQuZYsC0kQfw==}
     peerDependencies:
@@ -17565,7 +17574,7 @@ snapshots:
 
   '@docusaurus/react-loadable@6.0.0(react@19.1.0)':
     dependencies:
-      '@types/react': 19.1.8
+      '@types/react': 19.2.5
       react: 19.1.0
 
   '@docusaurus/theme-classic@3.8.1(@types/react@19.2.5)(acorn@8.15.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)':
@@ -19857,14 +19866,14 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
-  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
+  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
       react: 19.1.0
-      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0)
     optionalDependencies:
-      '@types/react': 19.2.2
+      '@types/react': 19.2.5
 
   '@react-native/virtualized-lists@0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -28705,6 +28714,11 @@ snapshots:
     dependencies:
       react: 19.1.0
 
+  react-hotkeys-hook@5.2.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
   react-i18next@15.1.1(i18next@23.16.5)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       '@babel/runtime': 7.27.6
@@ -29026,7 +29040,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0):
+  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.79.5
@@ -29035,7 +29049,7 @@ snapshots:
       '@react-native/gradle-plugin': 0.79.5
       '@react-native/js-polyfills': 0.79.5
       '@react-native/normalize-colors': 0.79.5
-      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
@@ -29066,7 +29080,7 @@ snapshots:
       ws: 6.2.3
       yargs: 17.7.2
     optionalDependencies:
-      '@types/react': 19.2.2
+      '@types/react': 19.2.5
     transitivePeerDependencies:
       - '@babel/core'
       - '@react-native-community/cli'
