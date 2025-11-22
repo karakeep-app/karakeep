@@ -467,7 +467,7 @@ export const listInvitations = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role", { enum: ["viewer", "editor"] }).notNull(),
-    status: text("status", { enum: ["pending", "accepted", "declined"] })
+    status: text("status", { enum: ["pending", "declined"] })
       .notNull()
       .default("pending"),
     invitedAt: integer("invitedAt", { mode: "timestamp" })

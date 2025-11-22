@@ -9,7 +9,6 @@ import {
   bookmarkLists,
   bookmarksInLists,
   listCollaborators,
-  listInvitations,
   users,
 } from "@karakeep/db/schema";
 import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
@@ -346,31 +345,14 @@ export abstract class List implements PrivacyAware {
     const listsWithCollaborators = new Set<string>();
     if (ownerListIds.length > 0) {
       // Use a single query with inArray instead of N queries
-      const [collaborators, invitations] = await Promise.all([
-        ctx.db.query.listCollaborators.findMany({
-          where: inArray(listCollaborators.listId, ownerListIds),
-          columns: {
-            listId: true,
-          },
-        }),
-        ctx.db.query.listInvitations.findMany({
-          where: and(
-            inArray(listInvitations.listId, ownerListIds),
-            or(
-              eq(listInvitations.status, "pending"),
-              eq(listInvitations.status, "accepted"),
-            ),
-          ),
-          columns: {
-            listId: true,
-          },
-        }),
-      ]);
+      const collaborators = await ctx.db.query.listCollaborators.findMany({
+        where: inArray(listCollaborators.listId, ownerListIds),
+        columns: {
+          listId: true,
+        },
+      });
       collaborators.forEach((c) => {
         listsWithCollaborators.add(c.listId);
-      });
-      invitations.forEach((inv) => {
-        listsWithCollaborators.add(inv.listId);
       });
     }
 
@@ -751,7 +733,6 @@ export abstract class List implements PrivacyAware {
       ListInvitation.invitationsForList(this.ctx, {
         listId: this.list.id,
         isOwner: this.list.userId === this.ctx.user.id,
-        includeAccepted: true,
       }),
     ]);
 
@@ -765,20 +746,14 @@ export abstract class List implements PrivacyAware {
       },
     });
 
-    const invitationByUserId = new Map(
-      invitations.map((inv) => [inv.userId, inv]),
-    );
-    const collaboratorsByUserId = new Set(collaborators.map((c) => c.userId));
-
     const collaboratorEntries = collaborators.map((c) => {
-      const invitation = invitationByUserId.get(c.userId);
       return {
         id: c.id,
         userId: c.userId,
         role: c.role,
         status: "accepted" as const,
         addedAt: c.addedAt,
-        invitedAt: invitation?.invitedAt ?? c.addedAt,
+        invitedAt: c.addedAt,
         user: {
           id: c.user.id,
           name: c.user.name,
@@ -787,13 +762,8 @@ export abstract class List implements PrivacyAware {
       };
     });
 
-    const invitationEntries = invitations.filter(
-      (inv) =>
-        inv.status !== "accepted" && !collaboratorsByUserId.has(inv.userId),
-    );
-
     return {
-      collaborators: [...collaboratorEntries, ...invitationEntries],
+      collaborators: [...collaboratorEntries, ...invitations],
       owner: owner
         ? {
             id: owner.id,

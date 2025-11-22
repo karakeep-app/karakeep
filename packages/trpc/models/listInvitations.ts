@@ -6,7 +6,7 @@ import { listCollaborators, listInvitations } from "@karakeep/db/schema";
 import type { AuthedContext } from "..";
 
 type Role = "viewer" | "editor";
-type InvitationStatus = "pending" | "accepted" | "declined";
+type InvitationStatus = "pending" | "declined";
 
 function sanitizeInvitation(
   invitation: {
@@ -129,11 +129,6 @@ export class ListInvitation {
           code: "BAD_REQUEST",
           message: "User already has a pending invitation for this list",
         });
-      } else if (existingInvitation.status === "accepted") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "User is already a collaborator on this list",
-        });
       } else if (existingInvitation.status === "declined") {
         await ctx.db
           .update(listInvitations)
@@ -194,10 +189,7 @@ export class ListInvitation {
 
     await ctx.db.transaction(async (tx) => {
       await tx
-        .update(listInvitations)
-        .set({
-          status: "accepted",
-        })
+        .delete(listInvitations)
         .where(eq(listInvitations.id, invitation.id));
 
       await tx
@@ -313,7 +305,7 @@ export class ListInvitation {
 
   static async invitationsForList(
     ctx: AuthedContext,
-    params: { listId: string; isOwner: boolean; includeAccepted?: boolean },
+    params: { listId: string; isOwner: boolean },
   ) {
     const invitations = await ctx.db.query.listInvitations.findMany({
       where: eq(listInvitations.listId, params.listId),
@@ -328,25 +320,21 @@ export class ListInvitation {
       },
     });
 
-    return invitations
-      .filter(
-        (inv) => params.includeAccepted === true || inv.status !== "accepted",
-      )
-      .map((inv) =>
-        sanitizeInvitation(
-          {
-            id: inv.id,
-            listId: inv.listId,
-            userId: inv.userId,
-            role: inv.role,
-            status: inv.status as InvitationStatus,
-            invitedAt: inv.invitedAt,
-            invitedEmail: inv.invitedEmail,
-            user: inv.user,
-          },
-          params.isOwner,
-        ),
-      );
+    return invitations.map((inv) =>
+      sanitizeInvitation(
+        {
+          id: inv.id,
+          listId: inv.listId,
+          userId: inv.userId,
+          role: inv.role,
+          status: inv.status,
+          invitedAt: inv.invitedAt,
+          invitedEmail: inv.invitedEmail,
+          user: inv.user,
+        },
+        params.isOwner,
+      ),
+    );
   }
 
   static async sendInvitationEmail(params: {
