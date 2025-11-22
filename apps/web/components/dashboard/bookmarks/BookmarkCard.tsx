@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { api } from "@/lib/trpc";
 import { useDragAndDrop } from "@/lib/drag-and-drop";
 import { toast } from "@/components/ui/use-toast";
+import { GripVertical } from "lucide-react";
 import Draggable from "react-draggable";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -103,17 +104,24 @@ export default function BookmarkCard({
   }
 
   return (
-    <Draggable
-      axis="both"
-      onStart={dragAndDropFunction.handleDragStart}
-      onStop={dragAndDropFunction.handleDragEnd}
-      defaultClassNameDragging="z-50 cursor-grabbing opacity-70"
-      position={{ x: 0, y: 0 }}
-      nodeRef={draggableRef}
-    >
-      <div ref={draggableRef} className="cursor-grab">
-        {cardContent}
-      </div>
-    </Draggable>
+    <div className="group relative">
+      <Draggable
+        axis="both"
+        onStart={dragAndDropFunction.handleDragStart}
+        onStop={dragAndDropFunction.handleDragEnd}
+        defaultClassNameDragging="z-50 cursor-grabbing opacity-90"
+        position={{ x: 0, y: 0 }}
+        nodeRef={draggableRef}
+        handle=".drag-handle"
+      >
+        <div
+          ref={draggableRef}
+          className="drag-handle absolute left-2 top-2 z-10 cursor-grab rounded bg-background/90 p-1 opacity-0 shadow-md transition-opacity hover:bg-accent group-hover:opacity-100"
+        >
+          <GripVertical className="size-4" />
+        </div>
+      </Draggable>
+      {cardContent}
+    </div>
   );
 }
