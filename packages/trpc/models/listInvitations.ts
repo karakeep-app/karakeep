@@ -242,7 +242,10 @@ export class ListInvitation {
         and(
           eq(listInvitations.listId, params.listId),
           eq(listInvitations.userId, params.userId),
-          eq(listInvitations.status, "pending"),
+          or(
+            eq(listInvitations.status, "pending"),
+            eq(listInvitations.status, "declined"),
+          ),
         ),
       );
 
