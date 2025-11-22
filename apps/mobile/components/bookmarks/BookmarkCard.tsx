@@ -344,13 +344,9 @@ function LinkCard({
             </Text>
           )}
           {bookmark.tags.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex flex-row gap-1">
-                {bookmark.tags.slice(0, 2).map((t) => (
-                  <TagPill key={t.id} tag={t} />
-                ))}
-              </View>
-            </ScrollView>
+            <Text className="line-clamp-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {bookmark.tags.slice(0, 3).map((t) => t.name).join(" • ")}
+            </Text>
           )}
         </View>
       </View>
@@ -419,13 +415,9 @@ function TextCard({
             </Text>
           )}
           {bookmark.tags.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex flex-row gap-1">
-                {bookmark.tags.slice(0, 2).map((t) => (
-                  <TagPill key={t.id} tag={t} />
-                ))}
-              </View>
-            </ScrollView>
+            <Text className="line-clamp-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {bookmark.tags.slice(0, 3).map((t) => t.name).join(" • ")}
+            </Text>
           )}
         </View>
       </View>
@@ -504,13 +496,9 @@ function AssetCard({
             </Text>
           )}
           {bookmark.tags.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex flex-row gap-1">
-                {bookmark.tags.slice(0, 2).map((t) => (
-                  <TagPill key={t.id} tag={t} />
-                ))}
-              </View>
-            </ScrollView>
+            <Text className="line-clamp-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {bookmark.tags.slice(0, 3).map((t) => t.name).join(" • ")}
+            </Text>
           )}
         </View>
       </View>

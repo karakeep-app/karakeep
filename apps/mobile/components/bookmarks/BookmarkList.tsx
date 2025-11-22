@@ -38,9 +38,6 @@ export default function BookmarkList({
         marginHorizontal: 15,
         marginBottom: 15,
       }}
-      numColumns={layout === "grid" ? 2 : 1}
-      key={layout}
-      columnWrapperStyle={layout === "grid" ? { gap: 15 } : undefined}
       renderItem={(b) => <BookmarkCard bookmark={b.item} layout={layout} />}
       ListEmptyComponent={
         <View className="items-center justify-center pt-4">
