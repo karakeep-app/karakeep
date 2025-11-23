@@ -7,6 +7,7 @@ import {
   zNewHighlightSchema,
   zUpdateHighlightSchema,
 } from "@karakeep/shared/types/highlights";
+import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import { authedProcedure, router } from "../index";
 import { Highlight } from "../models/highlights";
@@ -55,7 +56,7 @@ export const highlightsAppRouter = router({
     .input(
       z.object({
         text: z.string(),
-        cursor: z.any().nullish(),
+        cursor: zCursorV2.nullish(),
         limit: z.number().optional().default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
       }),
     )

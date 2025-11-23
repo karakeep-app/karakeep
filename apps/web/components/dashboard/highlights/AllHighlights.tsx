@@ -13,6 +13,7 @@ import { Dot, LinkIcon, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useInView } from "react-intersection-observer";
 
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 import {
   ZGetAllHighlightsResponse,
   ZHighlight,
@@ -50,16 +51,7 @@ export default function AllHighlights({
 }) {
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const debouncedSearch = useDebounce(searchInput, 300);
 
   // Use search endpoint if searchQuery is provided, otherwise use getAll
   const useSearchQuery = debouncedSearch.trim().length > 0;
