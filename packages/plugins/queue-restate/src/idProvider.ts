@@ -11,6 +11,7 @@ export const idProvider = object({
   },
   options: {
     ingressPrivate: true,
+    journalRetention: 0,
   },
 });
 

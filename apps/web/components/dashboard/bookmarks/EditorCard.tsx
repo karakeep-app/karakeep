@@ -1,8 +1,8 @@
 import type { SubmitErrorHandler, SubmitHandler } from "react-hook-form";
-import React, { useEffect, useImperativeHandle, useRef } from "react";
+import React, { useImperativeHandle, useRef } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Form, FormControl, FormItem } from "@/components/ui/form";
-import InfoTooltip from "@/components/ui/info-tooltip";
+import { Kbd } from "@/components/ui/kbd";
 import MultipleChoiceDialog from "@/components/ui/multiple-choice-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,33 +17,13 @@ import {
 import { cn, getOS } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useHotkeys } from "react-hotkeys-hook";
 import { z } from "zod";
 
 import { useCreateBookmarkWithPostHook } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { useUploadAsset } from "../UploadDropzone";
-
-function useFocusOnKeyPress(
-  inputRef: React.RefObject<HTMLTextAreaElement | null>,
-) {
-  useEffect(() => {
-    function handleKeyPress(e: KeyboardEvent) {
-      if (!inputRef.current) {
-        return;
-      }
-      if ((e.metaKey || e.ctrlKey) && e.code === "KeyE") {
-        inputRef.current.focus();
-        e.preventDefault();
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [inputRef]);
-}
 
 interface MultiUrlImportState {
   urls: URL[];
@@ -70,7 +50,9 @@ export default function EditorCard({ className }: { className?: string }) {
   });
   const { ref, ...textFieldProps } = form.register("text");
   useImperativeHandle(ref, () => inputRef.current);
-  useFocusOnKeyPress(inputRef);
+  useHotkeys("mod+e", () => {
+    inputRef.current?.focus();
+  });
 
   const { mutate, isPending } = useCreateBookmarkWithPostHook({
     onSuccess: (resp) => {
@@ -215,9 +197,7 @@ export default function EditorCard({ className }: { className?: string }) {
       >
         <div className="flex justify-between">
           <p className="text-sm">{t("editor.new_item")}</p>
-          <InfoTooltip size={15}>
-            <p className="text-center">{t("editor.quickly_focus")}</p>
-          </InfoTooltip>
+          <Kbd>⌘ + E</Kbd>
         </div>
         <Separator />
         <FormItem className="flex-1">

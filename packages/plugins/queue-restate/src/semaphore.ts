@@ -43,6 +43,7 @@ export const semaphore = object({
   },
   options: {
     ingressPrivate: true,
+    journalRetention: 0,
   },
 });
 

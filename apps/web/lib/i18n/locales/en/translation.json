@@ -626,7 +626,6 @@
     }
   },
   "editor": {
-    "quickly_focus": "You can quickly focus on this field by pressing ⌘ + E",
     "multiple_urls_dialog_title": "Importing URLs as separate Bookmarks?",
     "multiple_urls_dialog_desc": "The input contains multiple URLs on separate lines. Do you want to import them as separate bookmarks?",
     "import_as_text": "Import as Text Bookmark",

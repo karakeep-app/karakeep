@@ -10,9 +10,8 @@ import {
 } from "@karakeep/shared/types/webhooks";
 
 import { AuthedContext } from "..";
-import { PrivacyAware } from "./privacy";
 
-export class Webhook implements PrivacyAware {
+export class Webhook {
   constructor(
     protected ctx: AuthedContext,
     public webhook: typeof webhooksTable.$inferSelect,
@@ -64,15 +63,6 @@ export class Webhook implements PrivacyAware {
     });
 
     return webhooks.map((w) => new Webhook(ctx, w));
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.webhook.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   async delete(): Promise<void> {

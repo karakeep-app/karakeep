@@ -26,9 +26,8 @@ import {
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
-import { PrivacyAware } from "./privacy";
 
-export class Tag implements PrivacyAware {
+export class Tag {
   constructor(
     protected ctx: AuthedContext,
     public tag: typeof bookmarkTags.$inferSelect,
@@ -291,15 +290,6 @@ export class Tag implements PrivacyAware {
       deletedTags: deletedTags.map((t) => t.id),
       mergedIntoTagId: input.intoTagId,
     };
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.tag.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   async delete(): Promise<void> {

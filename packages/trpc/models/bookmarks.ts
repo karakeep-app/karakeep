@@ -57,7 +57,6 @@ import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { List } from "./lists";
-import { PrivacyAware } from "./privacy";
 
 async function dummyDrizzleReturnType() {
   const x = await DONT_USE_db.query.bookmarks.findFirst({
@@ -83,7 +82,7 @@ type BookmarkQueryReturnType = Awaited<
   ReturnType<typeof dummyDrizzleReturnType>
 >;
 
-export class BareBookmark implements PrivacyAware {
+export class BareBookmark {
   protected constructor(
     protected ctx: AuthedContext,
     private bareBookmark: ZBareBookmark,
@@ -132,15 +131,6 @@ export class BareBookmark implements PrivacyAware {
 
   ensureOwnership() {
     if (this.bareBookmark.userId != this.ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.bareBookmark.userId != ctx.user.id) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to access resource",
