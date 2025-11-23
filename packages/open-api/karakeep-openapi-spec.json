@@ -3159,6 +3159,10 @@
                       "green",
                       "blue"
                     ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
