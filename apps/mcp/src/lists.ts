@@ -110,11 +110,12 @@ mcpServer.tool(
       .optional()
       .describe(`The parent list id of this list.`),
   },
-  async ({ name, icon }): Promise<CallToolResult> => {
+  async ({ name, icon, parentId }): Promise<CallToolResult> => {
     const res = await karakeepClient.POST("/lists", {
       body: {
         name,
         icon,
+        parentId,
       },
     });
     if (res.error) {
