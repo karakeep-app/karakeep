@@ -6,10 +6,12 @@ import ChevronRight from "@/components/ui/ChevronRight";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import PageTitle from "@/components/ui/PageTitle";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
 
 import { usePaginatedSearchTags } from "@karakeep/shared-react/hooks/tags";
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
 interface TagItem {
   id: string;
@@ -20,7 +22,11 @@ interface TagItem {
 
 export default function Tags() {
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const apiUtils = api.useUtils();
+
+  // Debounce search query to avoid too many API calls
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Fetch tags sorted by usage (most used first)
   const {
@@ -33,7 +39,8 @@ export default function Tags() {
     isFetchingNextPage,
   } = usePaginatedSearchTags({
     limit: 50,
-    sortBy: "usage",
+    sortBy: debouncedSearch ? "relevance" : "usage",
+    nameContains: debouncedSearch,
   });
 
   useEffect(() => {
@@ -69,7 +76,17 @@ export default function Tags() {
     <CustomSafeAreaView>
       <FlatList
         className="h-full"
-        ListHeaderComponent={<PageTitle title="Tags" />}
+        ListHeaderComponent={
+          <View>
+            <PageTitle title="Tags" />
+            <SearchInput
+              containerClassName="mx-2 mb-2"
+              placeholder="Search tags..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        }
         contentContainerStyle={{
           gap: 5,
         }}
