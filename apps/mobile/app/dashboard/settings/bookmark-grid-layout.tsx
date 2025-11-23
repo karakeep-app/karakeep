@@ -12,7 +12,7 @@ export default function BookmarkGridLayoutSettings() {
   const { toast } = useToast();
   const { settings, setSettings } = useAppSettings();
 
-  const handleUpdate = async (layout: "grid" | "list") => {
+  const handleUpdate = async (layout: "card" | "list") => {
     try {
       await setSettings({
         ...settings,
@@ -32,7 +32,7 @@ export default function BookmarkGridLayoutSettings() {
     }
   };
 
-  const options = (["grid", "list"] as const)
+  const options = (["card", "list"] as const)
     .map((layout) => {
       const currentLayout = settings.bookmarkGridLayout;
       const isChecked = currentLayout === layout;
@@ -43,11 +43,11 @@ export default function BookmarkGridLayoutSettings() {
           key={layout}
         >
           <View className="flex gap-1">
-            <Text>{{ grid: "Grid", list: "List" }[layout]}</Text>
+            <Text>{{ card: "Card", list: "List" }[layout]}</Text>
             <Text className="text-xs text-muted-foreground">
               {{
-                grid: "2-column card grid layout",
-                list: "Single column list layout",
+                card: "Full-width vertical cards",
+                list: "Compact horizontal list",
               }[layout]}
             </Text>
           </View>

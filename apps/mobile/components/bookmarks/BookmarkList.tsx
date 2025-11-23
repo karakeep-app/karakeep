@@ -15,7 +15,7 @@ export default function BookmarkList({
   fetchNextPage,
   isFetchingNextPage,
   isRefreshing,
-  layout = "grid",
+  layout = "card",
 }: {
   bookmarks: ZBookmark[];
   onRefresh: () => void;
@@ -23,7 +23,7 @@ export default function BookmarkList({
   fetchNextPage?: () => void;
   header?: React.ReactElement;
   isFetchingNextPage?: boolean;
-  layout?: "grid" | "list";
+  layout?: "card" | "list";
 }) {
   const flatListRef = useRef(null);
   useScrollToTop(flatListRef);

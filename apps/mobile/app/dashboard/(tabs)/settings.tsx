@@ -94,13 +94,13 @@ export default function Dashboard() {
             className="flex-1"
           >
             <Pressable className="flex flex-row justify-between">
-              <Text>Bookmark Grid Layout</Text>
+              <Text>Bookmark Layout</Text>
               <View className="flex flex-row items-center gap-2">
                 {isSettingsLoading ? (
                   <ActivityIndicator size="small" />
                 ) : (
                   <Text className="text-muted-foreground">
-                    {settings.bookmarkGridLayout === "grid" ? "Grid" : "List"}
+                    {settings.bookmarkGridLayout === "card" ? "Card" : "List"}
                   </Text>
                 )}
                 <ChevronRight />

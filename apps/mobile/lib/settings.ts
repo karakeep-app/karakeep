@@ -16,9 +16,9 @@ const zSettingsSchema = z.object({
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
   bookmarkGridLayout: z
-    .enum(["grid", "list"])
+    .enum(["card", "list"])
     .optional()
-    .default("grid"),
+    .default("card"),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
 });
 
@@ -39,7 +39,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       theme: "system",
       defaultBookmarkView: "reader",
       showNotes: false,
-      bookmarkGridLayout: "grid",
+      bookmarkGridLayout: "card",
       customHeaders: {},
     },
   },
