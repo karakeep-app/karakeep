@@ -348,7 +348,13 @@ function LinkCard({
         >
           {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
         </Text>
-        {note && <NotePreview note={note} bookmarkId={bookmark.id} readOnly={!isOwner} />}
+        {note && (
+          <NotePreview
+            note={note}
+            bookmarkId={bookmark.id}
+            readOnly={!isOwner}
+          />
+        )}
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
@@ -390,7 +396,9 @@ function TextCard({
           <BookmarkTextMarkdown text={content} />
         </Pressable>
       </View>
-      {note && <NotePreview note={note} bookmarkId={bookmark.id} readOnly={!isOwner} />}
+      {note && (
+        <NotePreview note={note} bookmarkId={bookmark.id} readOnly={!isOwner} />
+      )}
       <TagList bookmark={bookmark} />
       <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
       <View className="flex flex-row justify-between p-2">
@@ -436,7 +444,13 @@ function AssetCard({
             <Text className="line-clamp-2 text-xl font-bold">{title}</Text>
           )}
         </Pressable>
-        {note && <NotePreview note={note} bookmarkId={bookmark.id} readOnly={!isOwner} />}
+        {note && (
+          <NotePreview
+            note={note}
+            bookmarkId={bookmark.id}
+            readOnly={!isOwner}
+          />
+        )}
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">

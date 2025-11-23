@@ -39,7 +39,13 @@ function InfoSection({
   );
 }
 
-function TagList({ bookmark }: { bookmark: ZBookmark }) {
+function TagList({
+  bookmark,
+  readOnly,
+}: {
+  bookmark: ZBookmark;
+  readOnly: boolean;
+}) {
   return (
     <InfoSection>
       {isBookmarkStillTagging(bookmark) ? (
@@ -59,17 +65,19 @@ function TagList({ bookmark }: { bookmark: ZBookmark }) {
           </>
         )
       )}
-      <View>
-        <Pressable
-          onPress={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
-          }
-          className="flex w-full flex-row justify-between gap-3"
-        >
-          <Text>Manage Tags</Text>
-          <ChevronRight />
-        </Pressable>
-      </View>
+      {!readOnly && (
+        <View>
+          <Pressable
+            onPress={() =>
+              router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
+            }
+            className="flex w-full flex-row justify-between gap-3"
+          >
+            <Text>Manage Tags</Text>
+            <ChevronRight />
+          </Pressable>
+        </View>
+      )}
     </InfoSection>
   );
 }
@@ -276,7 +284,7 @@ const ViewBookmarkPage = () => {
             isPending={isEditPending}
             disabled={!isOwner}
           />
-          {isOwner && <TagList bookmark={bookmark} />}
+          <TagList bookmark={bookmark} readOnly={!isOwner} />
           {isOwner && <ManageLists bookmark={bookmark} />}
           <NotesEditor
             notes={bookmark.note}

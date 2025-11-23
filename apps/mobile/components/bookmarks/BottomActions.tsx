@@ -87,7 +87,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           comp={(styles) => <Info color={styles?.color?.toString()} />}
         />
       ),
-      shouldRender: isOwner,
+      shouldRender: true,
       onClick: () => router.push(`/dashboard/bookmarks/${bookmark.id}/info`),
       disabled: false,
     },

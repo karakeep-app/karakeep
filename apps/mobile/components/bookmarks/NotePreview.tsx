@@ -13,7 +13,11 @@ interface NotePreviewProps {
   readOnly?: boolean;
 }
 
-export function NotePreview({ note, bookmarkId, readOnly = false }: NotePreviewProps) {
+export function NotePreview({
+  note,
+  bookmarkId,
+  readOnly = false,
+}: NotePreviewProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { colorScheme } = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#9ca3af" : "#6b7280";
