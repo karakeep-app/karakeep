@@ -15,9 +15,8 @@ import {
 } from "@karakeep/shared/types/importSessions";
 
 import type { AuthedContext } from "../index";
-import { PrivacyAware } from "./privacy";
 
-export class ImportSession implements PrivacyAware {
+export class ImportSession {
   protected constructor(
     protected ctx: AuthedContext,
     public session: ZImportSession,
@@ -80,15 +79,6 @@ export class ImportSession implements PrivacyAware {
         return await session.getWithStats();
       }),
     );
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.session.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access this import session",
-      });
-    }
   }
 
   async attachBookmark(bookmarkId: string): Promise<void> {

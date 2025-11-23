@@ -17,7 +17,6 @@ import {
 } from "@karakeep/shared/types/rules";
 
 import { AuthedContext } from "..";
-import { PrivacyAware } from "./privacy";
 
 function dummy_fetchRule(ctx: AuthedContext, id: string) {
   return DONT_USE_DB.query.ruleEngineRulesTable.findFirst({
@@ -33,7 +32,7 @@ function dummy_fetchRule(ctx: AuthedContext, id: string) {
 
 type FetchedRuleType = NonNullable<Awaited<ReturnType<typeof dummy_fetchRule>>>;
 
-export class RuleEngineRuleModel implements PrivacyAware {
+export class RuleEngineRuleModel {
   protected constructor(
     protected ctx: AuthedContext,
     public rule: RuleEngineRule & { userId: string },
@@ -81,15 +80,6 @@ export class RuleEngineRuleModel implements PrivacyAware {
     }
 
     return this.fromData(ctx, ruleData);
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.rule.userId != ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   static async create(
