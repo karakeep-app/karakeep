@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/Toast";
 import { ClipboardList, Globe, Info, Tag, Trash2 } from "lucide-react-native";
 
 import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 interface BottomActionsProps {
@@ -14,6 +15,10 @@ interface BottomActionsProps {
 export default function BottomActions({ bookmark }: BottomActionsProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const { data: currentUser } = useWhoAmI();
+
+  // Check if the current user owns this bookmark
+  const isOwner = currentUser?.id === bookmark.userId;
 
   const { mutate: deleteBookmark, isPending: isDeletionPending } =
     useDeleteBookmark({
@@ -56,7 +61,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           comp={(styles) => <ClipboardList color={styles?.color?.toString()} />}
         />
       ),
-      shouldRender: true,
+      shouldRender: isOwner,
       onClick: () =>
         router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`),
       disabled: false,
@@ -69,7 +74,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           comp={(styles) => <Tag color={styles?.color?.toString()} />}
         />
       ),
-      shouldRender: true,
+      shouldRender: isOwner,
       onClick: () =>
         router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`),
       disabled: false,
@@ -94,7 +99,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           comp={(styles) => <Trash2 color={styles?.color?.toString()} />}
         />
       ),
-      shouldRender: true,
+      shouldRender: isOwner,
       onClick: deleteBookmarkAlert,
       disabled: isDeletionPending,
     },

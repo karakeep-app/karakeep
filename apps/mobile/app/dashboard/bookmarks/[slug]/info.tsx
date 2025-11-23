@@ -26,6 +26,7 @@ import {
   useSummarizeBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -41,7 +42,13 @@ function InfoSection({
   );
 }
 
-function TagList({ bookmark }: { bookmark: ZBookmark }) {
+function TagList({
+  bookmark,
+  readOnly,
+}: {
+  bookmark: ZBookmark;
+  readOnly: boolean;
+}) {
   return (
     <InfoSection>
       {isBookmarkStillTagging(bookmark) ? (
@@ -54,24 +61,26 @@ function TagList({ bookmark }: { bookmark: ZBookmark }) {
           <>
             <View className="flex flex-row flex-wrap gap-2 rounded-lg p-2">
               {bookmark.tags.map((t) => (
-                <TagPill key={t.id} tag={t} />
+                <TagPill key={t.id} tag={t} clickable={!readOnly} />
               ))}
             </View>
             <Divider orientation="horizontal" />
           </>
         )
       )}
-      <View>
-        <Pressable
-          onPress={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
-          }
-          className="flex w-full flex-row justify-between gap-3"
-        >
-          <Text>Manage Tags</Text>
-          <ChevronRight />
-        </Pressable>
-      </View>
+      {!readOnly && (
+        <View>
+          <Pressable
+            onPress={() =>
+              router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
+            }
+            className="flex w-full flex-row justify-between gap-3"
+          >
+            <Text>Manage Tags</Text>
+            <ChevronRight />
+          </Pressable>
+        </View>
+      )}
     </InfoSection>
   );
 }
@@ -98,15 +107,17 @@ function TitleEditor({
   title,
   setTitle,
   isPending,
+  disabled,
 }: {
   title: string | null | undefined;
   setTitle: (title: string | null) => void;
   isPending: boolean;
+  disabled?: boolean;
 }) {
   return (
     <InfoSection>
       <Input
-        editable={!isPending}
+        editable={!isPending && !disabled}
         multiline={false}
         numberOfLines={1}
         placeholder="Title"
@@ -121,15 +132,17 @@ function NotesEditor({
   notes,
   setNotes,
   isPending,
+  disabled,
 }: {
   notes: string | null | undefined;
   setNotes: (title: string | null) => void;
   isPending: boolean;
+  disabled?: boolean;
 }) {
   return (
     <InfoSection>
       <Input
-        editable={!isPending}
+        editable={!isPending && !disabled}
         multiline={true}
         placeholder="Notes"
         inputClasses="h-24"
@@ -141,7 +154,13 @@ function NotesEditor({
   );
 }
 
-function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
+function AISummarySection({
+  bookmark,
+  readOnly,
+}: {
+  bookmark: ZBookmark;
+  readOnly: boolean;
+}) {
   const { toast } = useToast();
   const [isExpanded, setIsExpanded] = React.useState(false);
 
@@ -214,7 +233,7 @@ function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
             </Text>
           </Pressable>
         )}
-        {isExpanded && (
+        {isExpanded && !readOnly && (
           <View className="mt-2 flex flex-row justify-end gap-2">
             <Pressable
               onPress={() => resummarize({ bookmarkId: bookmark.id })}
@@ -262,6 +281,9 @@ function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
   }
 
   // If no summary, show button to generate one
+  if (readOnly) {
+    return null;
+  }
   return (
     <InfoSection>
       <Pressable
@@ -293,6 +315,7 @@ const ViewBookmarkPage = () => {
   const insets = useSafeAreaInsets();
   const { slug } = useLocalSearchParams();
   const { toast } = useToast();
+  const { data: currentUser } = useWhoAmI();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
   }
@@ -325,6 +348,9 @@ const ViewBookmarkPage = () => {
   } = useAutoRefreshingBookmarkQuery({
     bookmarkId: slug,
   });
+
+  // Check if the current user owns this bookmark
+  const isOwner = currentUser?.id === bookmark?.userId;
 
   const [editedBookmark, setEditedBookmark] = React.useState<{
     title?: string | null;
@@ -416,37 +442,41 @@ const ViewBookmarkPage = () => {
               setEditedBookmark((prev) => ({ ...prev, title }))
             }
             isPending={isEditPending}
+            disabled={!isOwner}
           />
-          <AISummarySection bookmark={bookmark} />
-          <TagList bookmark={bookmark} />
-          <ManageLists bookmark={bookmark} />
+          <AISummarySection bookmark={bookmark} readOnly={!isOwner} />
+          <TagList bookmark={bookmark} readOnly={!isOwner} />
+          {isOwner && <ManageLists bookmark={bookmark} />}
           <NotesEditor
             notes={bookmark.note}
             setNotes={(note) =>
               setEditedBookmark((prev) => ({ ...prev, note: note ?? "" }))
             }
             isPending={isEditPending}
+            disabled={!isOwner}
           />
-          <View className="flex justify-between gap-3">
-            <Button
-              onPress={() =>
-                editBookmark({
-                  bookmarkId: bookmark.id,
-                  ...editedBookmark,
-                })
-              }
-              disabled={isEditPending}
-            >
-              <Text>Save</Text>
-            </Button>
-            <Button
-              variant="destructive"
-              onPress={handleDeleteBookmark}
-              disabled={isDeletionPending}
-            >
-              <Text>Delete</Text>
-            </Button>
-          </View>
+          {isOwner && (
+            <View className="flex justify-between gap-3">
+              <Button
+                onPress={() =>
+                  editBookmark({
+                    bookmarkId: bookmark.id,
+                    ...editedBookmark,
+                  })
+                }
+                disabled={isEditPending}
+              >
+                <Text>Save</Text>
+              </Button>
+              <Button
+                variant="destructive"
+                onPress={handleDeleteBookmark}
+                disabled={isDeletionPending}
+              >
+                <Text>Delete</Text>
+              </Button>
+            </View>
+          )}
           <View className="gap-2">
             <Text className="items-center text-center">
               Created {bookmark.createdAt.toLocaleString()}
