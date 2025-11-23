@@ -10,6 +10,7 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import { ListInvitation } from "../models/listInvitations";
 import { List } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
 
@@ -44,6 +45,22 @@ export const ensureListAtLeastOwner = experimental_trpcMiddleware<{
   opts.ctx.list.ensureCanManage();
   return opts.next({
     ctx: opts.ctx,
+  });
+});
+
+export const ensureInvitationAccess = experimental_trpcMiddleware<{
+  ctx: AuthedContext;
+  input: { invitationId: string };
+}>().create(async (opts) => {
+  const invitation = await ListInvitation.fromId(
+    opts.ctx,
+    opts.input.invitationId,
+  );
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      invitation,
+    },
   });
 });
 
@@ -218,6 +235,11 @@ export const listsAppRouter = router({
         role: z.enum(["viewer", "editor"]),
       }),
     )
+    .output(
+      z.object({
+        invitationId: z.string(),
+      }),
+    )
     .use(
       createRateLimitMiddleware({
         name: "lists.addCollaborator",
@@ -228,7 +250,12 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastViewer)
     .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
-      await ctx.list.addCollaboratorByEmail(input.email, input.role);
+      return {
+        invitationId: await ctx.list.addCollaboratorByEmail(
+          input.email,
+          input.role,
+        ),
+      };
     }),
   removeCollaborator: authedProcedure
     .input(
@@ -268,7 +295,9 @@ export const listsAppRouter = router({
             id: z.string(),
             userId: z.string(),
             role: z.enum(["viewer", "editor"]),
+            status: z.enum(["pending", "accepted", "declined"]),
             addedAt: z.date(),
+            invitedAt: z.date(),
             user: z.object({
               id: z.string(),
               name: z.string(),
@@ -288,6 +317,67 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastViewer)
     .query(async ({ ctx }) => {
       return await ctx.list.getCollaborators();
+    }),
+
+  acceptInvitation: authedProcedure
+    .input(
+      z.object({
+        invitationId: z.string(),
+      }),
+    )
+    .use(ensureInvitationAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.invitation.accept();
+    }),
+
+  declineInvitation: authedProcedure
+    .input(
+      z.object({
+        invitationId: z.string(),
+      }),
+    )
+    .use(ensureInvitationAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.invitation.decline();
+    }),
+
+  revokeInvitation: authedProcedure
+    .input(
+      z.object({
+        invitationId: z.string(),
+      }),
+    )
+    .use(ensureInvitationAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.invitation.revoke();
+    }),
+
+  getPendingInvitations: authedProcedure
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          listId: z.string(),
+          role: z.enum(["viewer", "editor"]),
+          invitedAt: z.date(),
+          list: z.object({
+            id: z.string(),
+            name: z.string(),
+            icon: z.string(),
+            description: z.string().nullable(),
+            owner: z
+              .object({
+                id: z.string(),
+                name: z.string(),
+                email: z.string(),
+              })
+              .nullable(),
+          }),
+        }),
+      ),
+    )
+    .query(async ({ ctx }) => {
+      return ListInvitation.pendingForUser(ctx);
     }),
 
   leaveList: authedProcedure
