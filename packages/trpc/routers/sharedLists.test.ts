@@ -2855,28 +2855,18 @@ describe("Shared Lists", () => {
       const collaborator2Email = collaborator2User.email!;
 
       // Add both collaborators
-      const { invitationId: invitation1Id } =
-        await ownerApi.lists.addCollaborator({
-          listId: list.id,
-          email: collaborator1Email,
-          role: "editor",
-        });
-
-      const { invitationId: invitation2Id } =
-        await ownerApi.lists.addCollaborator({
-          listId: list.id,
-          email: collaborator2Email,
-          role: "viewer",
-        });
-
-      // Accept invitations
-      await collaborator1Api.lists.acceptInvitation({
-        invitationId: invitation1Id,
-      });
-
-      await collaborator2Api.lists.acceptInvitation({
-        invitationId: invitation2Id,
-      });
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaborator1Api,
+        list.id,
+        "editor",
+      );
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaborator2Api,
+        list.id,
+        "viewer",
+      );
 
       // Owner should see all emails
       const ownerView = await ownerApi.lists.getCollaborators({
@@ -2906,7 +2896,7 @@ describe("Shared Lists", () => {
       });
 
       // Should not see owner email
-      expect(collaborator1View.owner?.email).toBe("");
+      expect(collaborator1View.owner?.email).toBe(null);
 
       // Should not see other collaborators' emails
       const collab1ViewCollaborators = collaborator1View.collaborators.filter(
@@ -2915,7 +2905,7 @@ describe("Shared Lists", () => {
       expect(collab1ViewCollaborators).toHaveLength(2);
 
       collab1ViewCollaborators.forEach((c) => {
-        expect(c.user.email).toBe("");
+        expect(c.user.email).toBe(null);
       });
 
       // Verify collaborator2 also can't see emails
@@ -2923,7 +2913,7 @@ describe("Shared Lists", () => {
         listId: list.id,
       });
 
-      expect(collaborator2View.owner?.email).toBe("");
+      expect(collaborator2View.owner?.email).toBe(null);
 
       const collab2ViewCollaborators = collaborator2View.collaborators.filter(
         (c) => c.status === "accepted",
@@ -2931,7 +2921,7 @@ describe("Shared Lists", () => {
       expect(collab2ViewCollaborators).toHaveLength(2);
 
       collab2ViewCollaborators.forEach((c) => {
-        expect(c.user.email).toBe("");
+        expect(c.user.email).toBe(null);
       });
     });
   });
