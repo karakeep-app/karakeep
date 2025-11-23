@@ -1,6 +1,7 @@
 import { Alert, Platform, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import BookmarkLayoutSelector from "@/components/bookmarks/BookmarkLayoutSelector";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
@@ -68,27 +69,32 @@ function ListActionsMenu({ listId }: { listId: string }) {
   };
 
   return (
-    <MenuView
-      actions={[
-        {
-          id: "delete",
-          title: "Delete List",
-          attributes: {
-            destructive: true,
+    <View className="flex flex-row items-center">
+      <BookmarkLayoutSelector />
+      <MenuView
+        actions={[
+          {
+            id: "delete",
+            title: "Delete List",
+            attributes: {
+              destructive: true,
+            },
+            image: Platform.select({
+              ios: "trash",
+            }),
           },
-          image: Platform.select({
-            ios: "trash",
-          }),
-        },
-      ]}
-      onPressAction={({ nativeEvent }) => {
-        if (nativeEvent.event === "delete") {
-          handleDelete();
-        }
-      }}
-      shouldOpenOnLongPress={false}
-    >
-      <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
-    </MenuView>
+        ]}
+        onPressAction={({ nativeEvent }) => {
+          if (nativeEvent.event === "delete") {
+            handleDelete();
+          }
+        }}
+        shouldOpenOnLongPress={false}
+      >
+        <View className="px-4">
+          <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+        </View>
+      </MenuView>
+    </View>
   );
 }

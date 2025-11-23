@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
+import BookmarkLayoutSelector from "@/components/bookmarks/BookmarkLayoutSelector";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
@@ -22,6 +23,7 @@ export default function TagView() {
           headerBackTitle: "Back",
           headerTransparent: true,
           headerLargeTitle: true,
+          headerRight: () => <BookmarkLayoutSelector />,
         }}
       />
       {error ? (

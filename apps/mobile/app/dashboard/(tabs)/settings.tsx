@@ -88,27 +88,6 @@ export default function Dashboard() {
           </Link>
         </View>
         <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
-          <Link
-            asChild
-            href="/dashboard/settings/bookmark-grid-layout"
-            className="flex-1"
-          >
-            <Pressable className="flex flex-row justify-between">
-              <Text>Bookmark Layout</Text>
-              <View className="flex flex-row items-center gap-2">
-                {isSettingsLoading ? (
-                  <ActivityIndicator size="small" />
-                ) : (
-                  <Text className="text-muted-foreground">
-                    {settings.bookmarkGridLayout === "card" ? "Card" : "List"}
-                  </Text>
-                )}
-                <ChevronRight />
-              </View>
-            </Pressable>
-          </Link>
-        </View>
-        <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
           <Text>Show note preview in bookmark</Text>
           <Switch
             value={settings.showNotes}

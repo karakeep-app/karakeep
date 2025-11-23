@@ -1,12 +1,14 @@
 import { useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Pressable, TextInput, View } from "react-native";
 import { router, Stack } from "expo-router";
+import BookmarkLayoutSelector from "@/components/bookmarks/BookmarkLayoutSelector";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
+import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -18,6 +20,7 @@ const MAX_DISPLAY_SUGGESTIONS = 5;
 
 export default function Search() {
   const [search, setSearch] = useState("");
+  const { settings } = useAppSettings();
 
   const query = useDebounce(search, 10);
   const inputRef = useRef<TextInput>(null);
@@ -99,6 +102,7 @@ export default function Search() {
       <Stack.Screen
         options={{
           headerShown: true,
+          headerRight: () => <BookmarkLayoutSelector />,
         }}
       />
       <SearchInput
@@ -150,6 +154,7 @@ export default function Search() {
           isFetchingNextPage={isFetchingNextPage}
           onRefresh={onRefresh}
           isRefreshing={isPending}
+          layout={settings.bookmarkGridLayout}
         />
       ) : (
         <View />

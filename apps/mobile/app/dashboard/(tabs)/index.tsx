@@ -2,6 +2,7 @@ import { Platform, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import BookmarkLayoutSelector from "@/components/bookmarks/BookmarkLayoutSelector";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
@@ -26,51 +27,54 @@ function HeaderRight({
     },
   });
   return (
-    <MenuView
-      onPressAction={async ({ nativeEvent }) => {
-        Haptics.selectionAsync();
-        if (nativeEvent.event === "new") {
-          openNewBookmarkModal();
-        } else if (nativeEvent.event === "library") {
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: settings.imageQuality,
-            allowsMultipleSelection: false,
-          });
-          if (!result.canceled) {
-            uploadAsset({
-              type: result.assets[0].mimeType ?? "",
-              name: result.assets[0].fileName ?? "",
-              uri: result.assets[0].uri,
+    <View className="flex flex-row items-center">
+      <BookmarkLayoutSelector />
+      <MenuView
+        onPressAction={async ({ nativeEvent }) => {
+          Haptics.selectionAsync();
+          if (nativeEvent.event === "new") {
+            openNewBookmarkModal();
+          } else if (nativeEvent.event === "library") {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: settings.imageQuality,
+              allowsMultipleSelection: false,
             });
+            if (!result.canceled) {
+              uploadAsset({
+                type: result.assets[0].mimeType ?? "",
+                name: result.assets[0].fileName ?? "",
+                uri: result.assets[0].uri,
+              });
+            }
           }
-        }
-      }}
-      actions={[
-        {
-          id: "new",
-          title: "New Bookmark",
-          image: Platform.select({
-            ios: "note.text",
-          }),
-        },
-        {
-          id: "library",
-          title: "Photo Library",
-          image: Platform.select({
-            ios: "photo",
-          }),
-        },
-      ]}
-      shouldOpenOnLongPress={false}
-    >
-      <View className="my-auto px-4">
-        <Plus
-          color="rgb(0, 122, 255)"
-          onPress={() => Haptics.selectionAsync()}
-        />
-      </View>
-    </MenuView>
+        }}
+        actions={[
+          {
+            id: "new",
+            title: "New Bookmark",
+            image: Platform.select({
+              ios: "note.text",
+            }),
+          },
+          {
+            id: "library",
+            title: "Photo Library",
+            image: Platform.select({
+              ios: "photo",
+            }),
+          },
+        ]}
+        shouldOpenOnLongPress={false}
+      >
+        <View className="my-auto px-4">
+          <Plus
+            color="rgb(0, 122, 255)"
+            onPress={() => Haptics.selectionAsync()}
+          />
+        </View>
+      </MenuView>
+    </View>
   );
 }
 
