@@ -48,16 +48,6 @@ export default function Dashboard() {
           App Settings
         </Text>
         <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
-          <Link asChild href="/dashboard/highlights" className="flex-1">
-            <Pressable className="flex flex-row justify-between">
-              <Text>💡 Highlights</Text>
-              <View className="flex flex-row items-center gap-2">
-                <ChevronRight />
-              </View>
-            </Pressable>
-          </Link>
-        </View>
-        <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
           <Link asChild href="/dashboard/settings/theme" className="flex-1">
             <Pressable className="flex flex-row justify-between">
               <Text>Theme</Text>
