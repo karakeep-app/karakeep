@@ -752,7 +752,8 @@ export abstract class List {
         user: {
           id: c.user.id,
           name: c.user.name,
-          email: c.user.email,
+          // Only show email to the owner for privacy
+          email: isOwner ? c.user.email : "",
         },
       };
     });
@@ -763,7 +764,8 @@ export abstract class List {
         ? {
             id: owner.id,
             name: owner.name,
-            email: owner.email,
+            // Only show owner email to the owner for privacy
+            email: isOwner ? owner.email : "",
           }
         : null,
     };

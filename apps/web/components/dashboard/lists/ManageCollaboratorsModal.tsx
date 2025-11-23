@@ -260,9 +260,11 @@ export function ManageCollaboratorsModal({
                       <div className="font-medium">
                         {collaboratorsData.owner.name}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {collaboratorsData.owner.email}
-                      </div>
+                      {collaboratorsData.owner.email && (
+                        <div className="text-sm text-muted-foreground">
+                          {collaboratorsData.owner.email}
+                        </div>
+                      )}
                     </div>
                     <div className="text-sm capitalize text-muted-foreground">
                       {t("lists.collaborators.owner")}
@@ -292,9 +294,11 @@ export function ManageCollaboratorsModal({
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {collaborator.user.email}
-                        </div>
+                        {collaborator.user.email && (
+                          <div className="text-sm text-muted-foreground">
+                            {collaborator.user.email}
+                          </div>
+                        )}
                       </div>
                       {readOnly ? (
                         <div className="text-sm capitalize text-muted-foreground">
