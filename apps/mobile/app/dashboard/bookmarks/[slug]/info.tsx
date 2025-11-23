@@ -6,14 +6,8 @@ import {
 } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import {
-  ChevronUp,
-  RefreshCw,
-  Sparkles,
-  Trash2,
-} from "lucide-react-native";
-import TagPill from "@/components/bookmarks/TagPill";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
+import TagPill from "@/components/bookmarks/TagPill";
 import FullPageError from "@/components/FullPageError";
 import { Button } from "@/components/ui/Button";
 import ChevronRight from "@/components/ui/ChevronRight";
@@ -24,6 +18,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
+import { ChevronUp, RefreshCw, Sparkles, Trash2 } from "lucide-react-native";
 
 import {
   useAutoRefreshingBookmarkQuery,
@@ -207,13 +202,18 @@ function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
     return (
       <InfoSection>
         <View className={isExpanded ? "" : "max-h-20 overflow-hidden"}>
-          <Pressable
-            onPress={() => !isExpanded && setIsExpanded(true)}
-            disabled={isExpanded}
-          >
-            <BookmarkTextMarkdown text={bookmark.summary} />
-          </Pressable>
+          <BookmarkTextMarkdown text={bookmark.summary} />
         </View>
+        {!isExpanded && (
+          <Pressable
+            onPress={() => setIsExpanded(true)}
+            className="rounded-md bg-gray-100 py-2 dark:bg-gray-800"
+          >
+            <Text className="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+              Show more
+            </Text>
+          </Pressable>
+        )}
         {isExpanded && (
           <View className="mt-2 flex flex-row justify-end gap-2">
             <Pressable
@@ -240,14 +240,20 @@ function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
               {isDeletingSummary ? (
                 <ActivityIndicator size="small" />
               ) : (
-                <Trash2 size={16} className="text-gray-600 dark:text-gray-400" />
+                <Trash2
+                  size={16}
+                  className="text-gray-600 dark:text-gray-400"
+                />
               )}
             </Pressable>
             <Pressable
               onPress={() => setIsExpanded(false)}
               className="rounded-full bg-gray-200 p-2 dark:bg-gray-700"
             >
-              <ChevronUp size={16} className="text-gray-600 dark:text-gray-400" />
+              <ChevronUp
+                size={16}
+                className="text-gray-600 dark:text-gray-400"
+              />
             </Pressable>
           </View>
         )}
@@ -267,7 +273,9 @@ function AISummarySection({ bookmark }: { bookmark: ZBookmark }) {
           {isSummarizing ? (
             <>
               <ActivityIndicator size="small" color="#fff" />
-              <Text className="font-medium text-white">Generating summary...</Text>
+              <Text className="font-medium text-white">
+                Generating summary...
+              </Text>
             </>
           ) : (
             <>
