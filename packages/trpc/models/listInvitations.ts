@@ -17,48 +17,7 @@ interface InvitationData {
   invitedAt: Date;
   invitedEmail: string | null;
   invitedBy: string | null;
-}
-
-function sanitizeInvitation(
-  invitation: {
-    id: string;
-    listId: string;
-    userId: string;
-    role: Role;
-    status: InvitationStatus;
-    invitedAt: Date;
-    invitedEmail: string | null;
-    user: {
-      id: string;
-      name: string | null;
-      email: string | null;
-    };
-  },
-  isOwner: boolean,
-) {
-  const isPending = invitation.status === "pending";
-
-  return {
-    id: invitation.id,
-    listId: invitation.listId,
-    userId: invitation.userId,
-    role: invitation.role,
-    status: invitation.status,
-    invitedAt: invitation.invitedAt,
-    addedAt: invitation.invitedAt,
-    user: {
-      id: invitation.user.id,
-      name:
-        isPending && !isOwner
-          ? "Pending User"
-          : invitation.user.name || "Pending User",
-      email: isOwner
-        ? invitation.user.email || ""
-        : isPending
-          ? invitation.invitedEmail || ""
-          : invitation.user.email || "",
-    },
-  };
+  listOwnerUserId: string;
 }
 
 export class ListInvitation {
@@ -69,22 +28,6 @@ export class ListInvitation {
 
   get id() {
     return this.invitation.id;
-  }
-
-  get listId() {
-    return this.invitation.listId;
-  }
-
-  get userId() {
-    return this.invitation.userId;
-  }
-
-  get role() {
-    return this.invitation.role;
-  }
-
-  get status() {
-    return this.invitation.status;
   }
 
   /**
@@ -121,8 +64,8 @@ export class ListInvitation {
 
     if (!isInvitedUser && !isListOwner) {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You don't have access to this invitation",
+        code: "NOT_FOUND",
+        message: "Invitation not found",
       });
     }
 
@@ -135,6 +78,7 @@ export class ListInvitation {
       invitedAt: invitation.invitedAt,
       invitedEmail: invitation.invitedEmail,
       invitedBy: invitation.invitedBy,
+      listOwnerUserId: invitation.list.userId,
     });
   }
 
@@ -146,6 +90,18 @@ export class ListInvitation {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Only the invited user can perform this action",
+      });
+    }
+  }
+
+  /**
+   * Ensure the current user is the list owner
+   */
+  ensureIsListOwner() {
+    if (this.invitation.listOwnerUserId !== this.ctx.user.id) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the list owner can perform this action",
       });
     }
   }
@@ -205,21 +161,7 @@ export class ListInvitation {
    * Revoke the invitation (owner only)
    */
   async revoke(): Promise<void> {
-    // The fromId already ensures the user is either the invited user or the list owner
-    // For revoke, we need to ensure they're the list owner
-    const list = await this.ctx.db.query.bookmarkLists.findFirst({
-      where: (lists, { eq }) => eq(lists.id, this.invitation.listId),
-      columns: {
-        userId: true,
-      },
-    });
-
-    if (!list || list.userId !== this.ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Only the list owner can revoke invitations",
-      });
-    }
+    this.ensureIsListOwner();
 
     await this.ctx.db
       .delete(listInvitations)
@@ -394,7 +336,7 @@ export class ListInvitation {
 
   static async invitationsForList(
     ctx: AuthedContext,
-    params: { listId: string; isOwner: boolean },
+    params: { listId: string },
   ) {
     const invitations = await ctx.db.query.listInvitations.findMany({
       where: eq(listInvitations.listId, params.listId),
@@ -409,21 +351,22 @@ export class ListInvitation {
       },
     });
 
-    return invitations.map((inv) =>
-      sanitizeInvitation(
-        {
-          id: inv.id,
-          listId: inv.listId,
-          userId: inv.userId,
-          role: inv.role,
-          status: inv.status,
-          invitedAt: inv.invitedAt,
-          invitedEmail: inv.invitedEmail,
-          user: inv.user,
-        },
-        params.isOwner,
-      ),
-    );
+    return invitations.map((invitation) => ({
+      id: invitation.id,
+      listId: invitation.listId,
+      userId: invitation.userId,
+      role: invitation.role,
+      status: invitation.status,
+      invitedAt: invitation.invitedAt,
+      addedAt: invitation.invitedAt,
+      user: {
+        id: invitation.user.id,
+        // Don't show the actual user's name for any invitation (pending or declined)
+        // This protects user privacy until they accept
+        name: "Pending User",
+        email: invitation.user.email || "",
+      },
+    }));
   }
 
   static async sendInvitationEmail(params: {

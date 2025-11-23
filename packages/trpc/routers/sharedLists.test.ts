@@ -2569,5 +2569,378 @@ describe("Shared Lists", () => {
       expect(remainingInvitations).toHaveLength(1);
       expect(remainingInvitations[0].listId).toBe(list2.id);
     });
+
+    test<CustomTestContext>("should not allow collaborator to revoke invitation", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds collaborator 1 and they accept
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
+      );
+
+      // Owner invites third user
+      const thirdUserEmail = (await thirdUserApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: thirdUserEmail,
+        role: "viewer",
+      });
+
+      // Collaborator tries to revoke the third user's invitation
+      const { collaborators } = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+      const thirdUserInvitation = collaborators.find(
+        (c) => c.status === "pending",
+      );
+
+      // Collaborator cannot access the invitation at all (not the invitee, not the owner)
+      await expect(
+        collaboratorApi.lists.revokeInvitation({
+          invitationId: thirdUserInvitation!.id,
+        }),
+      ).rejects.toThrow("Invitation not found");
+    });
+
+    test<CustomTestContext>("should not allow invited user to revoke their own invitation", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Invited user tries to revoke (should only be able to decline)
+      const pendingInvitations =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation = pendingInvitations.find(
+        (inv) => inv.listId === list.id,
+      );
+
+      await expect(
+        collaboratorApi.lists.revokeInvitation({
+          invitationId: invitation!.id,
+        }),
+      ).rejects.toThrow("Only the list owner can perform this action");
+    });
+
+    test<CustomTestContext>("should not allow non-owner/non-invitee to access invitation", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Get invitation ID from owner's perspective
+      const { collaborators } = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+      const invitationId = collaborators[0].id;
+
+      // Third user (not owner, not invitee) tries to revoke invitation
+      await expect(
+        thirdUserApi.lists.revokeInvitation({
+          invitationId: invitationId,
+        }),
+      ).rejects.toThrow("Invitation not found");
+
+      // Third user tries to accept invitation
+      await expect(
+        thirdUserApi.lists.acceptInvitation({
+          invitationId: invitationId,
+        }),
+      ).rejects.toThrow("Invitation not found");
+
+      // Third user tries to decline invitation
+      await expect(
+        thirdUserApi.lists.declineInvitation({
+          invitationId: invitationId,
+        }),
+      ).rejects.toThrow("Invitation not found");
+    });
+
+    test<CustomTestContext>("should not show invitations to collaborators in getCollaborators", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds collaborator 1 and they accept
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "viewer",
+      );
+
+      // Owner invites third user (pending invitation)
+      const thirdUserEmail = (await thirdUserApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: thirdUserEmail,
+        role: "viewer",
+      });
+
+      // Owner should see 2 collaborators (1 accepted + 1 pending)
+      const ownerView = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+      expect(ownerView.collaborators).toHaveLength(2);
+
+      // Collaborator should only see 1 (themselves, no pending invitations)
+      const collaboratorView = await collaboratorApi.lists.getCollaborators({
+        listId: list.id,
+      });
+      expect(collaboratorView.collaborators).toHaveLength(1);
+      expect(collaboratorView.collaborators[0].status).toBe("accepted");
+    });
+
+    test<CustomTestContext>("should allow owner to see both accepted collaborators and pending invitations", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+      const thirdUserApi = apiCallers[2];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Add and accept one collaborator
+      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "editor",
+      });
+
+      const pendingInvitations =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation = pendingInvitations.find(
+        (inv) => inv.listId === list.id,
+      );
+      await collaboratorApi.lists.acceptInvitation({
+        invitationId: invitation!.id,
+      });
+
+      // Add pending invitation for third user
+      const thirdUserEmail = (await thirdUserApi.users.whoami()).email!;
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: thirdUserEmail,
+        role: "viewer",
+      });
+
+      // Owner should see both
+      const { collaborators } = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      expect(collaborators).toHaveLength(2);
+
+      const acceptedCollaborator = collaborators.find(
+        (c) => c.status === "accepted",
+      );
+      const pendingCollaborator = collaborators.find(
+        (c) => c.status === "pending",
+      );
+
+      expect(acceptedCollaborator).toBeDefined();
+      expect(acceptedCollaborator?.role).toBe("editor");
+      expect(acceptedCollaborator?.user.email).toBe(collaboratorEmail);
+
+      expect(pendingCollaborator).toBeDefined();
+      expect(pendingCollaborator?.role).toBe("viewer");
+      expect(pendingCollaborator?.user.email).toBe(thirdUserEmail);
+    });
+
+    test<CustomTestContext>("should not show invitee name for pending invitations", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const collaboratorEmail = collaboratorUser.email!;
+      const collaboratorName = collaboratorUser.name;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Owner checks pending invitations
+      const { collaborators } = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      const pendingInvitation = collaborators.find(
+        (c) => c.status === "pending",
+      );
+
+      expect(pendingInvitation).toBeDefined();
+      // Name should be masked as "Pending User"
+      expect(pendingInvitation?.user.name).toBe("Pending User");
+      // Name should NOT be the actual user's name
+      expect(pendingInvitation?.user.name).not.toBe(collaboratorName);
+      // Email should still be visible to owner
+      expect(pendingInvitation?.user.email).toBe(collaboratorEmail);
+    });
+
+    test<CustomTestContext>("should show invitee name after invitation is accepted", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const collaboratorEmail = collaboratorUser.email!;
+      const collaboratorName = collaboratorUser.name;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Before acceptance - name should be masked
+      const beforeAccept = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+      const pendingInvitation = beforeAccept.collaborators.find(
+        (c) => c.status === "pending",
+      );
+      expect(pendingInvitation?.user.name).toBe("Pending User");
+
+      // Accept invitation
+      const pendingInvitations =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation = pendingInvitations.find(
+        (inv) => inv.listId === list.id,
+      );
+      await collaboratorApi.lists.acceptInvitation({
+        invitationId: invitation!.id,
+      });
+
+      // After acceptance - name should be visible
+      const afterAccept = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+      const acceptedCollaborator = afterAccept.collaborators.find(
+        (c) => c.status === "accepted",
+      );
+      expect(acceptedCollaborator?.user.name).toBe(collaboratorName);
+      expect(acceptedCollaborator?.user.email).toBe(collaboratorEmail);
+    });
+
+    test<CustomTestContext>("should not show invitee name for declined invitations", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const collaboratorEmail = collaboratorUser.email!;
+      const collaboratorName = collaboratorUser.name;
+
+      await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorEmail,
+        role: "viewer",
+      });
+
+      // Decline the invitation
+      const pendingInvitations =
+        await collaboratorApi.lists.getPendingInvitations();
+      const invitation = pendingInvitations.find(
+        (inv) => inv.listId === list.id,
+      );
+      await collaboratorApi.lists.declineInvitation({
+        invitationId: invitation!.id,
+      });
+
+      // Owner checks declined invitations
+      const { collaborators } = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      const declinedInvitation = collaborators.find(
+        (c) => c.status === "declined",
+      );
+
+      expect(declinedInvitation).toBeDefined();
+      // Name should still be masked as "Pending User" even after decline
+      expect(declinedInvitation?.user.name).toBe("Pending User");
+      expect(declinedInvitation?.user.name).not.toBe(collaboratorName);
+      // Email should still be visible to owner
+      expect(declinedInvitation?.user.email).toBe(collaboratorEmail);
+    });
   });
 });

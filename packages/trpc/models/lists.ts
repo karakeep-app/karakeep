@@ -707,6 +707,8 @@ export abstract class List {
   async getCollaborators() {
     this.ensureCanView();
 
+    const isOwner = this.list.userId === this.ctx.user.id;
+
     const [collaborators, invitations] = await Promise.all([
       this.ctx.db.query.listCollaborators.findMany({
         where: eq(listCollaborators.listId, this.list.id),
@@ -720,10 +722,12 @@ export abstract class List {
           },
         },
       }),
-      ListInvitation.invitationsForList(this.ctx, {
-        listId: this.list.id,
-        isOwner: this.list.userId === this.ctx.user.id,
-      }),
+      // Only show invitations for the owner
+      isOwner
+        ? ListInvitation.invitationsForList(this.ctx, {
+            listId: this.list.id,
+          })
+        : [],
     ]);
 
     // Get the owner information
