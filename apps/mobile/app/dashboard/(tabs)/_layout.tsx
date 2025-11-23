@@ -2,7 +2,7 @@ import React, { useLayoutEffect } from "react";
 import { Tabs, useNavigation } from "expo-router";
 import { StyledTabs } from "@/components/navigation/tabs";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { ClipboardList, Home, Settings } from "lucide-react-native";
+import { ClipboardList, Home, Settings, Tag } from "lucide-react-native";
 
 export default function TabLayout() {
   const { colors } = useColorScheme();
@@ -35,6 +35,13 @@ export default function TabLayout() {
         options={{
           title: "Lists",
           tabBarIcon: ({ color }) => <ClipboardList color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="tags"
+        options={{
+          title: "Tags",
+          tabBarIcon: ({ color }) => <Tag color={color} />,
         }}
       />
       <Tabs.Screen
