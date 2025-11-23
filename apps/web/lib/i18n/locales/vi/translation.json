@@ -39,7 +39,10 @@
     "fetch_now": "Lấy dữ liệu ngay",
     "open_editor": "Mở trình chỉnh sửa",
     "toggle_show_archived": "Hiển thị đã lưu trữ",
-    "confirm": "Xác nhận"
+    "confirm": "Xác nhận",
+    "regenerate": "Tạo lại",
+    "load_more": "Tải thêm",
+    "edit_notes": "Sửa ghi chú"
   },
   "layouts": {
     "list": "Danh sách",
@@ -89,7 +92,12 @@
       "api_keys": "Khóa API",
       "key_success": "Khóa đã được tạo thành công",
       "new_api_key": "Khóa API mới",
-      "new_api_key_desc": "Đặt 1 tên độc nhất cho khóa API"
+      "new_api_key_desc": "Đặt 1 tên độc nhất cho khóa API",
+      "regenerate_api_key": "Tạo lại API Key",
+      "key_regenerated": "Đã tạo lại key thành công",
+      "key_regenerated_please_copy": "Vui lòng copy key mới và lưu trữ nó ở nơi an toàn. Key cũ đã bị thu hồi và sẽ không còn hoạt động nữa.",
+      "regenerate_warning": "Bạn có chắc chắn muốn tạo lại API key \"{{name}}\" không?",
+      "regenerate_confirmation": "Hành động này sẽ thu hồi key hiện tại và tạo một key mới. Bất kỳ ứng dụng nào đang sử dụng key hiện tại sẽ ngừng hoạt động."
     },
     "ai": {
       "tagging_rule_description": "Các gợi ý mà bạn thêm vào đây sẽ được đưa vào làm quy tắc cho mô hình trong quá trình tạo nhãn. Bạn có thể xem các gợi ý cuối cùng trong phần xem trước gợi ý.",
@@ -262,6 +270,33 @@
       "loading_usage": "Đang tải thông tin sử dụng...",
       "free": "Miễn phí",
       "paid": "Trả phí"
+    },
+    "import_sessions": {
+      "title": "Nhập Phiên",
+      "description": "Xem và quản lý các phiên nhập hàng loạt của bạn. Các phiên được tạo tự động khi bạn nhập dấu trang.",
+      "load_error": "Không tải được phiên nhập",
+      "no_sessions": "Chưa có phiên nhập nào",
+      "no_sessions_detail": "Các phiên nhập sẽ tự động xuất hiện ở đây khi bạn nhập dấu trang",
+      "created_at": "Đã tạo {{time}}",
+      "progress": "Tiến trình",
+      "status": {
+        "pending": "Đang chờ xử lý",
+        "in_progress": "Đang thực hiện",
+        "completed": "Đã hoàn thành",
+        "failed": "Thất bại",
+        "processing": "Đang xử lý"
+      },
+      "badges": {
+        "pending": "{{count}} đang chờ xử lý",
+        "processing": "{{count}} đang xử lý",
+        "completed": "{{count}} đã hoàn thành",
+        "failed": "{{count}} thất bại"
+      },
+      "imported_to": "Đã nhập vào:",
+      "view_list": "Xem Danh sách",
+      "delete_dialog_title": "Xóa Phiên Nhập",
+      "delete_dialog_description": "Bạn có chắc chắn muốn xóa \"{{name}}\" không? Thao tác này không thể hoàn tác. Bản thân các dấu trang sẽ không bị xóa.",
+      "delete_session": "Xóa Phiên"
     }
   },
   "admin": {
@@ -317,6 +352,10 @@
         "feed": {
           "title": "Các Công Việc Nguồn Cấp RSS",
           "description": "Xử lý nguồn cấp RSS và cập nhật nội dung"
+        },
+        "admin_maintenance": {
+          "title": "Công việc bảo trì quản trị",
+          "description": "Dọn dẹp hành chính và bảo trì tài sản"
         }
       },
       "monitor_and_manage": "Theo dõi và quản lý hàng đợi công việc nền và các tác vụ xử lý hệ thống",
@@ -347,7 +386,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Tạo lại tóm tắt AI cho tất cả các dấu trang",
         "reindex_all_bookmarks": "Lập chỉ mục lại tất cả các dấu trang",
         "clean_assets": "Xóa các tài sản treo lơ lửng & Đồng bộ lại siêu dữ liệu",
-        "reprocess_assets_fix_mode": "Xử lý lại các tài sản chưa được xử lý"
+        "reprocess_assets_fix_mode": "Xử lý lại các tài sản chưa được xử lý",
+        "migrate_large_link_html_content": "Chuyển Nội Dung HTML Lớn Nội Tuyến sang Tài Sản"
       }
     },
     "admin_settings": "Cài đặt quản trị viên",
@@ -375,6 +415,18 @@
       "without_inference": "Không có suy luận",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Tạo lại tóm tắt AI chỉ cho các bookmark bị lỗi",
       "regenerate_ai_summaries_for_all_bookmarks": "Tạo lại tóm tắt AI cho tất cả các bookmark"
+    },
+    "service_connections": {
+      "title": "Kết nối Dịch vụ",
+      "description": "Theo dõi tình trạng và khả năng kết nối của các phụ thuộc hệ thống bên ngoài",
+      "search_engine": "Công cụ Tìm kiếm",
+      "browser": "Trình duyệt",
+      "queue_system": "Hệ thống Hàng đợi",
+      "status": {
+        "not_configured": "Chưa Cấu hình",
+        "connected": "Đã kết nối",
+        "disconnected": "Đã ngắt kết nối"
+      }
     }
   },
   "common": {
@@ -450,6 +502,12 @@
       "title": "Danh sách công khai",
       "description": "Cho phép người khác xem danh sách này",
       "share_link": "Chia sẻ liên kết"
+    },
+    "delete_list": {
+      "title": "Xóa Danh Sách",
+      "description": "Xóa một danh sách không xóa bất kỳ dấu trang nào trong danh sách đó.",
+      "delete_children": "Xóa danh sách con (đệ quy)",
+      "delete_children_description": "Nếu không được chọn, tất cả các danh sách con trực tiếp sẽ trở thành danh sách gốc"
     }
   },
   "search": {
@@ -488,7 +546,9 @@
     "week_s_ago": " Tuần trước",
     "month_s_ago": " Tháng trước",
     "year_s_ago": " Năm trước",
-    "history": "Tìm kiếm gần đây"
+    "history": "Tìm kiếm gần đây",
+    "title_contains": "Chứa trong tiêu đề",
+    "title_does_not_contain": "Không chứa trong tiêu đề"
   },
   "tags": {
     "all_tags": "Tất cả nhãn",
@@ -501,7 +561,18 @@
     "drag_and_drop_merging_info": "Kéo và thả các thẻ lên nhau để hợp nhất chúng",
     "your_tags_info": "Các thẻ đã được bạn đính kèm ít nhất một lần",
     "ai_tags": "Thẻ AI",
-    "ai_tags_info": "Các thẻ chỉ được đính kèm tự động (bởi AI)"
+    "ai_tags_info": "Các thẻ chỉ được đính kèm tự động (bởi AI)",
+    "create_tag": "Tạo Thẻ",
+    "create_tag_description": "Tạo một thẻ mới mà không cần đính kèm nó vào bất kỳ dấu trang nào",
+    "tag_name": "Tên Thẻ",
+    "enter_tag_name": "Nhập tên thẻ",
+    "sort_by_usage": "Sắp xếp theo mức độ sử dụng",
+    "sort_by_relevance": "Sắp xếp theo mức độ liên quan",
+    "no_custom_tags": "Chưa có thẻ tùy chỉnh nào",
+    "no_ai_tags": "Chưa có thẻ AI nào",
+    "no_unused_tags": "Bạn không có thẻ chưa sử dụng nào",
+    "no_unused_tags_match_your_search": "Không có thẻ chưa sử dụng nào phù hợp với tìm kiếm của bạn",
+    "no_tags_match_your_search": "Không có thẻ nào phù hợp với tìm kiếm của bạn"
   },
   "options": {
     "dark_mode": "Chế độ tối",
@@ -593,6 +664,10 @@
       "updated": "Danh sách đã được cập nhật!",
       "merged": "Đã hợp nhất danh sách!",
       "deleted": "Đã xóa danh sách!"
+    },
+    "tags": {
+      "created": "Đã tạo thẻ thành công!",
+      "failed_to_create": "Không tạo được thẻ"
     }
   },
   "preview": {
@@ -619,5 +694,27 @@
       "title": "Chưa có dấu trang nào",
       "description": "Lưu các bài viết, liên kết và trang thú vị để truy cập nhanh sau này."
     }
+  },
+  "view_options": {
+    "title": "Tùy chọn xem",
+    "layout": "Bố cục",
+    "columns": "Cột",
+    "display_options": "Tùy chọn hiển thị",
+    "show_note_previews": "Hiện ghi chú",
+    "show_tags": "Hiển thị thẻ",
+    "show_title": "Hiển thị tiêu đề",
+    "image_options": "Tùy chọn hình ảnh",
+    "image_fit_cover": "Bìa (Lấp đầy)",
+    "image_fit_contain": "Chứa (Vừa vặn)"
+  },
+  "version": {
+    "new_release_available": "Có ghi chú phát hành mới đó",
+    "whats_new_title": "Có gì mới trong v{{version}}?",
+    "release_notes_description": "Đây là những cập nhật mới nhất lấy từ ghi chú phát hành trên GitHub.",
+    "loading_release_notes": "Đang tải ghi chú phát hành…",
+    "unable_to_load_release_notes": "Không thể tải ghi chú phát hành ngay bây giờ. Lát nữa thử lại nha.",
+    "no_release_notes": "Không có ghi chú phát hành nào cho phiên bản này cả.",
+    "release_notes_synced": "Ghi chú phát hành được đồng bộ hóa từ GitHub đó.",
+    "view_on_github": "Xem trên GitHub nè"
   }
 }

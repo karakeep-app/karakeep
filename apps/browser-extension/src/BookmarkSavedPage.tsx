@@ -6,12 +6,14 @@ import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 import BookmarkLists from "./components/BookmarkLists";
 import { ListsSelector } from "./components/ListsSelector";
+import { NoteEditor } from "./components/NoteEditor";
 import TagList from "./components/TagList";
 import { TagsSelector } from "./components/TagsSelector";
 import { Button, buttonVariants } from "./components/ui/button";
 import Spinner from "./Spinner";
 import { cn } from "./utils/css";
 import usePluginSettings from "./utils/settings";
+import { MessageType } from "./utils/type";
 
 export default function BookmarkSavedPage() {
   const { bookmarkId } = useParams();
@@ -19,7 +21,15 @@ export default function BookmarkSavedPage() {
   const [error, setError] = useState("");
 
   const { mutate: deleteBookmark, isPending } = useDeleteBookmark({
-    onSuccess: () => {
+    onSuccess: async () => {
+      const [currentTab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      });
+      await chrome.runtime.sendMessage({
+        type: MessageType.BOOKMARK_REFRESH_BADGE,
+        currentTab: currentTab,
+      });
       navigate("/bookmarkdeleted");
     },
     onError: (e) => {
@@ -69,6 +79,9 @@ export default function BookmarkSavedPage() {
           </Button>
         </div>
       </div>
+      <hr />
+      <p className="text-lg">Notes</p>
+      <NoteEditor bookmarkId={bookmarkId} />
       <hr />
       <p className="text-lg">Tags</p>
       <TagList bookmarkId={bookmarkId} />

@@ -27,7 +27,13 @@ import {
   isAllowedToDetachAsset,
 } from "@karakeep/trpc/lib/attachments";
 
-export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
+export default function AttachmentBox({
+  bookmark,
+  readOnly = false,
+}: {
+  bookmark: ZBookmark;
+  readOnly?: boolean;
+}) {
   const { t } = useTranslation();
   const { mutate: attachAsset, isPending: isAttaching } =
     useAttachBookmarkAsset({
@@ -101,7 +107,11 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               prefetch={false}
             >
               {ASSET_TYPE_TO_ICON[asset.assetType]}
-              <p>{humanFriendlyNameForAssertType(asset.assetType)}</p>
+              <p>
+                {asset.assetType === "userUploaded" && asset.fileName
+                  ? asset.fileName
+                  : humanFriendlyNameForAssertType(asset.assetType)}
+              </p>
             </Link>
             <div className="flex gap-2">
               <Link
@@ -109,36 +119,42 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
                 target="_blank"
                 href={getAssetUrl(asset.id)}
                 className="flex items-center gap-1"
-                download={humanFriendlyNameForAssertType(asset.assetType)}
+                download={
+                  asset.assetType === "userUploaded" && asset.fileName
+                    ? asset.fileName
+                    : humanFriendlyNameForAssertType(asset.assetType)
+                }
                 prefetch={false}
               >
                 <Download className="size-4" />
               </Link>
-              {isAllowedToAttachAsset(asset.assetType) && (
-                <FilePickerButton
-                  title="Replace"
-                  loading={isReplacing}
-                  accept=".jgp,.JPG,.jpeg,.png,.webp"
-                  multiple={false}
-                  variant="none"
-                  size="none"
-                  className="flex items-center gap-2"
-                  onFileSelect={(file) =>
-                    uploadAsset(file, {
-                      onSuccess: (resp) => {
-                        replaceAsset({
-                          bookmarkId: bookmark.id,
-                          oldAssetId: asset.id,
-                          newAssetId: resp.assetId,
-                        });
-                      },
-                    })
-                  }
-                >
-                  <Pencil className="size-4" />
-                </FilePickerButton>
-              )}
-              {isAllowedToDetachAsset(asset.assetType) && (
+              {!readOnly &&
+                isAllowedToAttachAsset(asset.assetType) &&
+                asset.assetType !== "userUploaded" && (
+                  <FilePickerButton
+                    title="Replace"
+                    loading={isReplacing}
+                    accept=".jgp,.JPG,.jpeg,.png,.webp"
+                    multiple={false}
+                    variant="none"
+                    size="none"
+                    className="flex items-center gap-2"
+                    onFileSelect={(file) =>
+                      uploadAsset(file, {
+                        onSuccess: (resp) => {
+                          replaceAsset({
+                            bookmarkId: bookmark.id,
+                            oldAssetId: asset.id,
+                            newAssetId: resp.assetId,
+                          });
+                        },
+                      })
+                    }
+                  >
+                    <Pencil className="size-4" />
+                  </FilePickerButton>
+                )}
+              {!readOnly && isAllowedToDetachAsset(asset.assetType) && (
                 <ActionConfirmingDialog
                   title="Delete Attachment?"
                   description={`Are you sure you want to delete the attachment of the bookmark?`}
@@ -166,7 +182,8 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
             </div>
           </div>
         ))}
-        {!bookmark.assets.some((asset) => asset.assetType == "bannerImage") &&
+        {!readOnly &&
+          !bookmark.assets.some((asset) => asset.assetType == "bannerImage") &&
           bookmark.content.type != BookmarkTypes.ASSET && (
             <FilePickerButton
               title="Attach a Banner"
@@ -194,6 +211,32 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               Attach a Banner
             </FilePickerButton>
           )}
+        {!readOnly && (
+          <FilePickerButton
+            title="Upload File"
+            loading={isAttaching}
+            multiple={false}
+            variant="ghost"
+            size="none"
+            className="flex w-full items-center justify-center gap-2"
+            onFileSelect={(file) =>
+              uploadAsset(file, {
+                onSuccess: (resp) => {
+                  attachAsset({
+                    bookmarkId: bookmark.id,
+                    asset: {
+                      id: resp.assetId,
+                      assetType: "userUploaded",
+                    },
+                  });
+                },
+              })
+            }
+          >
+            <Plus className="size-4" />
+            Upload File
+          </FilePickerButton>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );

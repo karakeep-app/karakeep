@@ -1,13 +1,12 @@
 import { and, Column, eq, inArray, sql } from "drizzle-orm";
-import { DequeuedJob, EnqueueOptions } from "liteque";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
+import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import type {
   InferenceClient,
   InferenceResponse,
 } from "@karakeep/shared/inference";
-import type { ZOpenAIRequest } from "@karakeep/shared/queues";
 import { db } from "@karakeep/db";
 import {
   bookmarks,
@@ -15,15 +14,16 @@ import {
   customPrompts,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
-import serverConfig from "@karakeep/shared/config";
-import logger from "@karakeep/shared/logger";
-import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
 import {
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
   triggerWebhook,
-} from "@karakeep/shared/queues";
+} from "@karakeep/shared-server";
+import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
+import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 const openAIResponseSchema = z.object({
@@ -179,7 +179,7 @@ async function replaceTagsPlaceholders(
   userId: string,
 ): Promise<string[]> {
   const api = await buildImpersonatingTRPCClient(userId);
-  const tags = (await api.tags.list()).tags;
+  const tags = (await api.tags.list({})).tags;
   const tagsString = `[${tags.map((tag) => tag.name).join(", ")}]`;
   const aiTagsString = `[${tags
     .filter((tag) => tag.numBookmarksByAttachedType.human ?? true)

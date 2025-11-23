@@ -39,7 +39,10 @@
     "save": "Mentés",
     "open_editor": "Szerkesztő megnyitása",
     "toggle_show_archived": "Archiváltak megjelenítése",
-    "confirm": "Megerősít"
+    "confirm": "Megerősít",
+    "regenerate": "Újragenerálás",
+    "load_more": "Továbbiak betöltése",
+    "edit_notes": "Jegyzetek szerkesztése"
   },
   "settings": {
     "user_settings": "Felhasználói beállítások",
@@ -108,7 +111,12 @@
       "key_success_please_copy": "Másold le a kulcsot és tartsd biztonságos helyen! Az ablak becsukását követően már nem fogsz tudni visszatérni hozzá.",
       "api_keys": "API kulcsok",
       "new_api_key_desc": "Adj egyedi nevet az API kulcsodnak",
-      "key_success": "A kulcs létrehozás sikeres"
+      "key_success": "A kulcs létrehozás sikeres",
+      "regenerate_api_key": "API-kulcs újragenerálása",
+      "key_regenerated": "A kulcs sikeresen újragenerálva",
+      "key_regenerated_please_copy": "Kérlek, másold ki az új kulcsot, és tárold biztonságos helyen. A régi kulcs visszavonásra került, és nem fog többé működni.",
+      "regenerate_warning": "Biztosan újra akarod generálni a(z) „{{name}}” API-kulcsot?",
+      "regenerate_confirmation": "Ez visszavonja a jelenlegi kulcsot, és generál egy újat. A jelenlegi kulcsot használó alkalmazások nem fognak működni."
     },
     "import": {
       "import_bookmarks_from_karakeep_export": "Könyvjelző importálása Karakeep-ből",
@@ -256,6 +264,33 @@
       "loading_usage": "A használati adatok betöltése...",
       "free": "Ingyenes",
       "paid": "Fizetős"
+    },
+    "import_sessions": {
+      "title": "Importálási munkamenetek",
+      "description": "Itt nézheted meg és kezelheted a tömeges importálási munkameneteidet. A munkamenetek automatikusan létrejönnek, amikor könyvjelzőket importálsz.",
+      "load_error": "Nem sikerült betölteni az importálási munkameneteket",
+      "no_sessions": "Még nincsenek importálási munkamenetek",
+      "no_sessions_detail": "Az importálási munkamenetek automatikusan itt fognak megjelenni, amikor könyvjelzőket importálsz",
+      "created_at": "Létrehozva: {{time}}",
+      "progress": "Folyamat",
+      "status": {
+        "pending": "Függőben",
+        "in_progress": "Folyamatban",
+        "completed": "Befejezve",
+        "failed": "Sikertelen",
+        "processing": "Feldolgozás"
+      },
+      "badges": {
+        "pending": "{{count}} függőben",
+        "processing": "{{count}} feldolgozás alatt",
+        "completed": "{{count}} befejezve",
+        "failed": "{{count}} sikertelen"
+      },
+      "imported_to": "Importálva ide:",
+      "view_list": "Lista megtekintése",
+      "delete_dialog_title": "Importálási munkamenet törlése",
+      "delete_dialog_description": "Biztosan törölni akarod a következőt: „{{name}}”? Ez a művelet nem vonható vissza. Maguk a könyvjelzők nem lesznek törölve.",
+      "delete_session": "Munkamenet törlése"
     }
   },
   "common": {
@@ -395,7 +430,9 @@
     "week_s_ago": " Hét(ek)kel ezelőtt",
     "month_s_ago": " Hónap(ok)kal ezelőtt",
     "year_s_ago": " Év(ek)kel ezelőtt",
-    "history": "Legutóbbi keresések"
+    "history": "Legutóbbi keresések",
+    "title_contains": "A cím tartalmazza",
+    "title_does_not_contain": "A cím nem tartalmazza"
   },
   "lists": {
     "manual_list": "Manuális lista",
@@ -425,6 +462,12 @@
       "title": "Nyilvános lista",
       "description": "Mások megtekinthetik ezt a listát",
       "share_link": "Link megosztása"
+    },
+    "delete_list": {
+      "title": "Lista törlése",
+      "description": "A lista törlése nem törli a listában lévő könyvjelzőket.",
+      "delete_children": "Gyermeklisták törlése (rekurzív módon)",
+      "delete_children_description": "Ha nincs bejelölve, az összes közvetlen gyermeklista gyökérlista lesz"
     }
   },
   "admin": {
@@ -474,6 +517,10 @@
         "feed": {
           "title": "RSS feed munkák",
           "description": "RSS feed feldolgozása és tartalomfrissítések"
+        },
+        "admin_maintenance": {
+          "title": "Admin karbantartási feladatok",
+          "description": "Adminisztratív takarítás és eszközkarbantartás"
         }
       },
       "monitor_and_manage": "Háttérfeladat-sorok és rendszerfeldolgozási feladatok figyelése és kezelése",
@@ -504,7 +551,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "AI-összefoglalók újragenerálása az összes könyvjelzőhöz",
         "reindex_all_bookmarks": "Összes könyvjelző újraindexelése",
         "clean_assets": "Lógó elemek tisztítása és metaadatok újraszinkronizálása",
-        "reprocess_assets_fix_mode": "Feldolgozatlan elemek újrafeldolgozása"
+        "reprocess_assets_fix_mode": "Feldolgozatlan elemek újrafeldolgozása",
+        "migrate_large_link_html_content": "Nagy méretű beágyazott HTML-tartalom áthelyezése az eszközökbe"
       }
     },
     "actions": {
@@ -538,6 +586,18 @@
       "total_users": "Összes felhasználó",
       "total_bookmarks": "Összes könyvjelző",
       "server_version": "Szerver verzió"
+    },
+    "service_connections": {
+      "title": "Szolgáltatási kapcsolatok",
+      "description": "Külső rendszerfüggőségek állapotának és kapcsolatának figyelése",
+      "search_engine": "Keresőmotor",
+      "browser": "Böngésző",
+      "queue_system": "Üzenetsor kezelő rendszer",
+      "status": {
+        "not_configured": "Nincs konfigurálva",
+        "connected": "Csatlakoztatva",
+        "disconnected": "Szétkapcsolva"
+      }
     }
   },
   "options": {
@@ -555,7 +615,18 @@
     "drag_and_drop_merging_info": "Húzza egymásra a címkéket az egyesítéshez",
     "sort_by_name": "Rendezés név szerint",
     "ai_tags": "MI címkék",
-    "unused_tags": "Nem használt címkék"
+    "unused_tags": "Nem használt címkék",
+    "create_tag": "Címke létrehozása",
+    "create_tag_description": "Új címke létrehozása anélkül, hogy bármilyen könyvjelzőhöz lenne csatolva",
+    "tag_name": "Címke neve",
+    "enter_tag_name": "Írd be a címke nevét",
+    "sort_by_usage": "Rendezés használat szerint",
+    "sort_by_relevance": "Rendezés relevancia szerint",
+    "no_custom_tags": "Még nincsenek egyéni címkék",
+    "no_ai_tags": "Még nincsenek mesterséges intelligencia címkék",
+    "no_unused_tags": "Nincsenek fel nem használt címkéid",
+    "no_unused_tags_match_your_search": "Nincsenek a keresésednek megfelelő fel nem használt címkék",
+    "no_tags_match_your_search": "Nincsenek a keresésednek megfelelő címkék"
   },
   "layouts": {
     "masonry": "Falazat",
@@ -592,6 +663,10 @@
       "updated": "A hivatkozás frissült!",
       "merged": "A lista összevonásra került!",
       "deleted": "A lista törölve lett!"
+    },
+    "tags": {
+      "created": "A címke létrejött!",
+      "failed_to_create": "Nem sikerült létrehozni a címkét"
     }
   },
   "cleanups": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Válassz egy dátumot",
     "save_changes": "Változások mentése",
     "extracted_content": "Kinyert tartalom"
+  },
+  "view_options": {
+    "title": "Nézet beállításai",
+    "layout": "Elrendezés",
+    "columns": "Oszlopok",
+    "display_options": "Megjelenítési beállítások",
+    "show_note_previews": "Jegyzetek megjelenítése",
+    "show_tags": "Címkék mutatása",
+    "show_title": "Cím mutatása",
+    "image_options": "Kép beállításai",
+    "image_fit_cover": "Borító (kitöltés)",
+    "image_fit_contain": "Tartalmaz (illesztés)"
+  },
+  "version": {
+    "new_release_available": "Új kiadási megjegyzések érhetők el",
+    "whats_new_title": "Újdonságok a {{version}} verzióban",
+    "release_notes_description": "Itt vannak a GitHub kiadási megjegyzéseiből begyűjtött legújabb frissítések.",
+    "loading_release_notes": "Kiadási megjegyzések betöltése…",
+    "unable_to_load_release_notes": "Jelenleg nem sikerült betölteni a kiadási megjegyzéseket. Kérlek, próbáld meg később.",
+    "no_release_notes": "Ehhez a verzióhoz nem lettek kiadási megjegyzések közzétéve.",
+    "release_notes_synced": "A kiadási megjegyzések a GitHubról vannak szinkronizálva.",
+    "view_on_github": "Megtekintés a GitHubon"
   }
 }

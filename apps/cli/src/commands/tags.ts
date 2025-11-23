@@ -20,7 +20,7 @@ tagsCmd
     const api = getAPIClient();
 
     try {
-      const tags = (await api.tags.list.query()).tags;
+      const tags = (await api.tags.list.query({})).tags;
       tags.sort((a, b) => b.numBookmarks - a.numBookmarks);
       if (getGlobalOptions().json) {
         printObject(tags);

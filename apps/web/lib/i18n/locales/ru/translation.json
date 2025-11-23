@@ -69,6 +69,12 @@
       "title": "Публичный список",
       "description": "Разрешить другим просматривать этот список",
       "share_link": "Поделиться ссылкой"
+    },
+    "delete_list": {
+      "title": "Удалить список",
+      "description": "Удаление списка не удаляет ни одну из закладок в этом списке.",
+      "delete_children": "Удалить дочерние списки (рекурсивно)",
+      "delete_children_description": "Если не отмечено, все прямые дочерние списки станут корневыми списками"
     }
   },
   "settings": {
@@ -113,7 +119,12 @@
       "key_success_please_copy": "Пожалуйста, скопируйте ключ и сохраните в безопасном месте. После закрытия окна, вы больше не сможете его посмотреть.",
       "new_api_key": "Новый API ключ",
       "new_api_key_desc": "Дайте вашему API ключу уникальное имя",
-      "api_keys": "API ключи"
+      "api_keys": "API ключи",
+      "regenerate_api_key": "Обновить ключ API",
+      "key_regenerated": "Ключ успешно обновлен",
+      "key_regenerated_please_copy": "Пожалуйста, скопируй новый ключ и сохрани его в надежном месте. Старый ключ был отозван и больше не будет работать.",
+      "regenerate_warning": "Ты уверен, что хочешь обновить ключ API\"{{name}}\"?",
+      "regenerate_confirmation": "Это отзовет текущий ключ и создаст новый. Любые приложения, использующие текущий ключ, перестанут работать."
     },
     "ai": {
       "ai_settings": "Настройки ИИ",
@@ -286,6 +297,33 @@
       "loading_usage": "Загружаю информацию об использовании…",
       "free": "Бесплатно",
       "paid": "Платный"
+    },
+    "import_sessions": {
+      "title": "Импорт сессий",
+      "description": "Просматривай и управляй своими сессиями массового импорта. Сессии создаются автоматически, когда ты импортируешь закладки.",
+      "load_error": "Не удалось загрузить сессии импорта",
+      "no_sessions": "Пока нет сессий импорта",
+      "no_sessions_detail": "Сессии импорта появятся здесь автоматически при импорте закладок",
+      "created_at": "Создано {{time}}",
+      "progress": "Выполнение",
+      "status": {
+        "pending": "В ожидании",
+        "in_progress": "В процессе",
+        "completed": "Завершено",
+        "failed": "Ошибка",
+        "processing": "Обработка"
+      },
+      "badges": {
+        "pending": "{{count}} в ожидании",
+        "processing": "{{count}} в обработке",
+        "completed": "{{count}} завершено",
+        "failed": "{{count}} не удалось"
+      },
+      "imported_to": "Импортировано в:",
+      "view_list": "Смотреть список",
+      "delete_dialog_title": "Удалить сессию импорта",
+      "delete_dialog_description": "Ты уверен, что хочешь удалить \"{{name}}\"? Это действие нельзя отменить. Сами закладки не будут удалены.",
+      "delete_session": "Удалить сессию"
     }
   },
   "actions": {
@@ -328,7 +366,10 @@
     },
     "open_editor": "Открыть редактор",
     "toggle_show_archived": "Показать архивированные",
-    "confirm": "Подтвердить"
+    "confirm": "Подтвердить",
+    "regenerate": "Обновить",
+    "load_more": "Загрузить еще",
+    "edit_notes": "Редактировать заметки"
   },
   "editor": {
     "text_toolbar": {
@@ -433,7 +474,8 @@
         "regenerate_ai_tags_for_failed_bookmarks_only": "Заново создать AI-теги только для закладок с ошибками",
         "regenerate_ai_tags_for_all_bookmarks": "Заново создать AI-теги для всех закладок",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Заново сгенерировать AI-сводки только для закладок с ошибками",
-        "regenerate_ai_summaries_for_all_bookmarks": "Заново сгенерировать AI-сводки для всех закладок"
+        "regenerate_ai_summaries_for_all_bookmarks": "Заново сгенерировать AI-сводки для всех закладок",
+        "migrate_large_link_html_content": "Переместите Большой Встроенный HTML-контент в Ресурсы"
       },
       "jobs": {
         "crawler": {
@@ -467,6 +509,10 @@
         "feed": {
           "title": "Задачи RSS-ленты",
           "description": "Обработка RSS-ленты и обновление контента"
+        },
+        "admin_maintenance": {
+          "title": "Админские работы по техобслуживанию",
+          "description": "Административная очистка и обслуживание ресурсов"
         }
       },
       "monitor_and_manage": "Мониторинг и управление очередями фоновых задач и задачами системной обработки",
@@ -500,7 +546,19 @@
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Перегенерировать AI-резюме только для неудачных закладок",
       "regenerate_ai_summaries_for_all_bookmarks": "Перегенерировать AI-резюме для всех закладок"
     },
-    "admin_settings": "Настройки администратора"
+    "admin_settings": "Настройки администратора",
+    "service_connections": {
+      "title": "Подключения служб",
+      "description": "Мониторь работоспособность и связность зависимостей внешней системы",
+      "search_engine": "Поисковая система",
+      "browser": "Браузер",
+      "queue_system": "Система очередей",
+      "status": {
+        "not_configured": "Не настроено",
+        "connected": "Подключено",
+        "disconnected": "Отключено"
+      }
+    }
   },
   "layouts": {
     "grid": "Сетка",
@@ -523,7 +581,18 @@
     "drag_and_drop_merging_info": "Перетащите метки друг на друга, чтобы их слить",
     "sort_by_name": "Сортировать по имени",
     "drag_and_drop_merging": "Слияние перетаскиванием",
-    "your_tags": "Ваши метки"
+    "your_tags": "Ваши метки",
+    "create_tag": "Создать тег",
+    "create_tag_description": "Создать новый тег, не прикрепляя его ни к одной закладке",
+    "tag_name": "Имя тега",
+    "enter_tag_name": "Введите имя тега",
+    "sort_by_usage": "Сортировать по использованию",
+    "sort_by_relevance": "Сортировать по релевантности",
+    "no_custom_tags": "Пока нет пользовательских тегов",
+    "no_ai_tags": "Пока нет тегов ИИ",
+    "no_unused_tags": "У вас нет неиспользуемых тегов",
+    "no_unused_tags_match_your_search": "Нет неиспользуемых тегов, соответствующих вашему поиску",
+    "no_tags_match_your_search": "Нет тегов, соответствующих вашему поиску"
   },
   "preview": {
     "view_original": "Посмотреть оригинал",
@@ -548,6 +617,10 @@
       "updated": "Список был обновлён!",
       "merged": "Список объединен!",
       "deleted": "Список удален!"
+    },
+    "tags": {
+      "created": "Тег создан!",
+      "failed_to_create": "Не удалось создать тег"
     }
   },
   "cleanups": {
@@ -593,7 +666,9 @@
     "week_s_ago": " Недель назад",
     "month_s_ago": " Месяцев назад",
     "year_s_ago": " Год(а) назад",
-    "history": "Недавние поиски"
+    "history": "Недавние поиски",
+    "title_contains": "Содержит в заголовке",
+    "title_does_not_contain": "Не содержит в заголовке"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Выбери дату",
     "save_changes": "Сохранить изменения",
     "extracted_content": "Извлеченное содержимое"
+  },
+  "view_options": {
+    "title": "Параметры просмотра",
+    "layout": "Расположение",
+    "columns": "Столбцы",
+    "display_options": "Параметры отображения",
+    "show_note_previews": "Показывать заметки",
+    "show_tags": "Показать теги",
+    "show_title": "Показать заголовок",
+    "image_options": "Параметры изображения",
+    "image_fit_cover": "Обложка (Заполнить)",
+    "image_fit_contain": "Содержать (По размеру)"
+  },
+  "version": {
+    "new_release_available": "Доступны примечания к новому выпуску",
+    "whats_new_title": "Что нового в v{{version}}",
+    "release_notes_description": "Вот последние обновления, полученные из примечаний к выпуску GitHub.",
+    "loading_release_notes": "Загрузка примечаний к выпуску…",
+    "unable_to_load_release_notes": "Не удалось загрузить примечания к выпуску прямо сейчас. Пожалуйста, повторите попытку позже.",
+    "no_release_notes": "Примечания к выпуску для этой версии не публиковались.",
+    "release_notes_synced": "Примечания к выпуску синхронизируются с GitHub.",
+    "view_on_github": "Посмотреть на GitHub"
   }
 }

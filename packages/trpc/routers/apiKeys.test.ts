@@ -141,6 +141,37 @@ describe("API Keys Routes", () => {
       );
     });
   });
+  describe("regenerate", () => {
+    test<CustomTestContext>("revokes API key successfully", async ({
+      unauthedAPICaller,
+      db,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "test@test.com",
+        password: "password123",
+        confirmPassword: "password123",
+      });
+
+      const api = getApiCaller(db, user.id, user.email).apiKeys;
+
+      const firstKey = await api.create({ name: "Test Key" });
+      const regeneratedKey = await api.regenerate({ id: firstKey.id });
+
+      // Validate the new key
+      const validationResult = await unauthedAPICaller.apiKeys.validate({
+        apiKey: regeneratedKey.key,
+      });
+      expect(validationResult.success).toBe(true);
+
+      // Validate the old key is revoked
+      await expect(() =>
+        unauthedAPICaller.apiKeys.validate({
+          apiKey: firstKey.key,
+        }),
+      ).rejects.toThrow();
+    });
+  });
 
   describe("revoke", () => {
     test<CustomTestContext>("revokes API key successfully", async ({

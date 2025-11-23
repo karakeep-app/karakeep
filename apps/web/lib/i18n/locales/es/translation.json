@@ -103,7 +103,12 @@
       "new_api_key": "Crear clave API",
       "new_api_key_desc": "Dale a la clave API un nombre único",
       "key_success": "Clave creada correctamente",
-      "key_success_please_copy": "Copia la clave y guárdala en un lugar seguro. Una vez cierres este mensaje, no podrás volver a verla."
+      "key_success_please_copy": "Copia la clave y guárdala en un lugar seguro. Una vez cierres este mensaje, no podrás volver a verla.",
+      "regenerate_api_key": "Regenerar clave API",
+      "key_regenerated": "La clave se ha regenerado correctamente",
+      "key_regenerated_please_copy": "Copia la nueva clave y guárdala en un lugar seguro. La clave antigua ha sido revocada y ya no funcionará.",
+      "regenerate_warning": "¿Estás seguro de que quieres regenerar la clave API \"{{name}}\"?",
+      "regenerate_confirmation": "Esto revocará la clave actual y generará una nueva. Cualquier aplicación que utilice la clave actual dejará de funcionar."
     },
     "broken_links": {
       "broken_links": "Enlaces rotos",
@@ -256,6 +261,33 @@
       "loading_usage": "Cargando información de uso...",
       "free": "Gratis",
       "paid": "De pago"
+    },
+    "import_sessions": {
+      "title": "Importar sesiones",
+      "description": "Consulta y gestiona tus sesiones de importación masiva. Las sesiones se crean automáticamente al importar marcadores.",
+      "load_error": "No se pudieron cargar las sesiones de importación",
+      "no_sessions": "Aún no hay sesiones de importación",
+      "no_sessions_detail": "Las sesiones de importación aparecerán aquí automáticamente cuando importes marcadores",
+      "created_at": "Creado {{time}}",
+      "progress": "Progreso",
+      "status": {
+        "pending": "Pendiente",
+        "in_progress": "En curso",
+        "completed": "Completado",
+        "failed": "Falló",
+        "processing": "Procesando"
+      },
+      "badges": {
+        "pending": "{{count}} pendientes",
+        "processing": "{{count}} procesando",
+        "completed": "{{count}} completados",
+        "failed": "{{count}} fallaron"
+      },
+      "imported_to": "Importado a:",
+      "view_list": "Ver lista",
+      "delete_dialog_title": "Borrar sesión de importación",
+      "delete_dialog_description": "¿Seguro que quieres borrar \"{{name}}\"? Esta acción no se puede deshacer. Los marcadores en sí no se borrarán.",
+      "delete_session": "Eliminar sesión"
     }
   },
   "actions": {
@@ -298,7 +330,10 @@
     },
     "open_editor": "Abrir editor",
     "toggle_show_archived": "Mostrar archivados",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "regenerate": "Regenerar",
+    "load_more": "Cargar más",
+    "edit_notes": "Editar notas"
   },
   "layouts": {
     "compact": "Compacto",
@@ -360,6 +395,10 @@
         "feed": {
           "title": "Trabajos de fuentes RSS",
           "description": "Procesamiento de feeds RSS y actualizaciones de contenido"
+        },
+        "admin_maintenance": {
+          "title": "Tareas de mantenimiento del administrador",
+          "description": "Limpieza administrativa y mantenimiento de activos"
         }
       },
       "monitor_and_manage": "Monitoriza y gestiona las colas de trabajos en segundo plano y las tareas de procesamiento del sistema",
@@ -390,7 +429,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resúmenes de IA para todos los marcadores",
         "reindex_all_bookmarks": "Volver a indexar todos los marcadores",
         "clean_assets": "Limpiar los activos colgantes y volver a sincronizar los metadatos",
-        "reprocess_assets_fix_mode": "Volver a procesar los activos no procesados"
+        "reprocess_assets_fix_mode": "Volver a procesar los activos no procesados",
+        "migrate_large_link_html_content": "Mueve contenido HTML grande en línea a los recursos"
       }
     },
     "actions": {
@@ -417,6 +457,18 @@
       "confirm_password": "Confirmar contraseña",
       "delete_user_confirm_description": "¿Seguro que quieres eliminar al usuario \"{{name}}\"?",
       "unlimited": "Ilimitado"
+    },
+    "service_connections": {
+      "title": "Conexiones de servicio",
+      "description": "Supervisar el estado y la conectividad de las dependencias del sistema externo",
+      "search_engine": "Motor de búsqueda",
+      "browser": "Navegador",
+      "queue_system": "Sistema de colas",
+      "status": {
+        "not_configured": "No configurado",
+        "connected": "Conectado",
+        "disconnected": "Desconectado"
+      }
     }
   },
   "options": {
@@ -451,6 +503,12 @@
       "title": "Fuente RSS",
       "description": "Activar una fuente RSS para esta lista",
       "feed_url": "URL de la fuente RSS"
+    },
+    "delete_list": {
+      "title": "Eliminar lista",
+      "description": "Eliminar una lista no elimina ningún marcador de esa lista.",
+      "delete_children": "Eliminar listas secundarias (de forma recursiva)",
+      "delete_children_description": "Si no está marcado, todas las listas secundarias directas se convertirán en listas raíz"
     }
   },
   "tags": {
@@ -464,7 +522,18 @@
     "delete_all_unused_tags": "Eliminar etiquetas no usadas",
     "unused_tags": "Etiquetas sin usar",
     "unused_tags_info": "Etiquetas sin marcadores",
-    "drag_and_drop_merging_info": "Arrastra y suelta etiquetas sobre otras para unirlas"
+    "drag_and_drop_merging_info": "Arrastra y suelta etiquetas sobre otras para unirlas",
+    "create_tag": "Crear etiqueta",
+    "create_tag_description": "Crea una nueva etiqueta sin adjuntarla a ningún marcador",
+    "tag_name": "Nombre de la etiqueta",
+    "enter_tag_name": "Introduce el nombre de la etiqueta",
+    "sort_by_usage": "Ordenar por uso",
+    "sort_by_relevance": "Ordenar por relevancia",
+    "no_custom_tags": "Aún no hay etiquetas personalizadas",
+    "no_ai_tags": "Aún no hay etiquetas de IA",
+    "no_unused_tags": "No tienes ninguna etiqueta sin usar",
+    "no_unused_tags_match_your_search": "Ninguna etiqueta sin usar coincide con tu búsqueda",
+    "no_tags_match_your_search": "Ninguna etiqueta coincide con tu búsqueda"
   },
   "preview": {
     "view_original": "Ver original",
@@ -548,6 +617,10 @@
       "updated": "¡La lista ha sido actualizada!",
       "merged": "¡La lista se ha fusionado!",
       "deleted": "¡La lista ha sido eliminada!"
+    },
+    "tags": {
+      "created": "¡Se ha creado la etiqueta!",
+      "failed_to_create": "No se ha podido crear la etiqueta"
     }
   },
   "cleanups": {
@@ -596,7 +669,9 @@
     "week_s_ago": " Hace semana(s)",
     "month_s_ago": " Hace mes(es)",
     "year_s_ago": " Hace año(s)",
-    "history": "Búsquedas recientes"
+    "history": "Búsquedas recientes",
+    "title_contains": "El título contiene",
+    "title_does_not_contain": "El título no contiene"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
       "title": "Aún no hay marcadores",
       "description": "Guarda artículos, enlaces y páginas interesantes para acceder a ellos rápidamente más tarde."
     }
+  },
+  "view_options": {
+    "title": "Ver opciones",
+    "layout": "Disposición",
+    "columns": "Columnas",
+    "display_options": "Opciones de visualización",
+    "show_note_previews": "Mostrar notas",
+    "show_tags": "Mostrar etiquetas",
+    "show_title": "Mostrar título",
+    "image_options": "Opciones de imagen",
+    "image_fit_cover": "Portada (rellenar)",
+    "image_fit_contain": "Contener (ajustar)"
+  },
+  "version": {
+    "new_release_available": "Nuevas notas de la versión disponibles",
+    "whats_new_title": "¿Qué hay de nuevo en la v{{version}}?",
+    "release_notes_description": "Aquí están las últimas actualizaciones obtenidas de las notas de la versión de GitHub.",
+    "loading_release_notes": "Cargando las notas de la versión…",
+    "unable_to_load_release_notes": "No se pueden cargar las notas de la versión ahora mismo. Por favor, inténtelo de nuevo más tarde.",
+    "no_release_notes": "No se publicaron notas de la versión para esta versión.",
+    "release_notes_synced": "Las notas de la versión están sincronizadas desde GitHub.",
+    "view_on_github": "Ver en GitHub"
   }
 }

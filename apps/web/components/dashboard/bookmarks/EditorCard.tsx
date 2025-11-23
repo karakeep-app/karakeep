@@ -1,8 +1,8 @@
 import type { SubmitErrorHandler, SubmitHandler } from "react-hook-form";
-import React, { useEffect, useImperativeHandle, useRef } from "react";
+import React, { useImperativeHandle, useRef } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Form, FormControl, FormItem } from "@/components/ui/form";
-import InfoTooltip from "@/components/ui/info-tooltip";
+import { Kbd } from "@/components/ui/kbd";
 import MultipleChoiceDialog from "@/components/ui/multiple-choice-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,33 +17,13 @@ import {
 import { cn, getOS } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useHotkeys } from "react-hotkeys-hook";
 import { z } from "zod";
 
 import { useCreateBookmarkWithPostHook } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { useUploadAsset } from "../UploadDropzone";
-
-function useFocusOnKeyPress(
-  inputRef: React.RefObject<HTMLTextAreaElement | null>,
-) {
-  useEffect(() => {
-    function handleKeyPress(e: KeyboardEvent) {
-      if (!inputRef.current) {
-        return;
-      }
-      if ((e.metaKey || e.ctrlKey) && e.code === "KeyE") {
-        inputRef.current.focus();
-        e.preventDefault();
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [inputRef]);
-}
 
 interface MultiUrlImportState {
   urls: URL[];
@@ -70,7 +50,9 @@ export default function EditorCard({ className }: { className?: string }) {
   });
   const { ref, ...textFieldProps } = form.register("text");
   useImperativeHandle(ref, () => inputRef.current);
-  useFocusOnKeyPress(inputRef);
+  useHotkeys("mod+e", () => {
+    inputRef.current?.focus();
+  });
 
   const { mutate, isPending } = useCreateBookmarkWithPostHook({
     onSuccess: (resp) => {
@@ -172,6 +154,35 @@ export default function EditorCard({ className }: { className?: string }) {
     }
   };
 
+  /**
+   * Methods that triggers when "enter" is pressed (without ctrl)
+   * It checks if the current line is a todo
+   * if it is it automatically appends a todo a the start of the new line
+   */
+  const handleNewTodo = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const todoMarkup = "- [ ] ";
+    const textarea = inputRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const textBefore = textarea.value.slice(0, start);
+    const lines = textBefore.split("\n");
+    const currentLine = lines[lines.length - 1];
+    const currentLineIsTodo = currentLine.startsWith(todoMarkup);
+    if (!currentLineIsTodo) return;
+    e.preventDefault();
+    const newValue =
+      textarea.value.slice(0, start) +
+      "\n" +
+      todoMarkup +
+      textarea.value.slice(end);
+    form.setValue("text", newValue, { shouldDirty: true, shouldTouch: true });
+    textarea.value = newValue;
+    textarea.selectionStart = start + todoMarkup.length + 1;
+    textarea.selectionEnd = start + todoMarkup.length + 1;
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+
   const OS = getOS();
 
   return (
@@ -186,9 +197,7 @@ export default function EditorCard({ className }: { className?: string }) {
       >
         <div className="flex justify-between">
           <p className="text-sm">{t("editor.new_item")}</p>
-          <InfoTooltip size={15}>
-            <p className="text-center">{t("editor.quickly_focus")}</p>
-          </InfoTooltip>
+          <Kbd>⌘ + E</Kbd>
         </div>
         <Separator />
         <FormItem className="flex-1">
@@ -204,6 +213,12 @@ export default function EditorCard({ className }: { className?: string }) {
               onKeyDown={(e) => {
                 if (demoMode) {
                   return;
+                }
+                if (
+                  e.key === "Enter" &&
+                  !(e.metaKey || e.ctrlKey || e.shiftKey)
+                ) {
+                  handleNewTodo(e);
                 }
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   form.handleSubmit(onSubmit, onError)();

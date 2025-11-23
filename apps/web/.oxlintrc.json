@@ -27,6 +27,8 @@
     ".next",
     "dist",
     "build",
+    "public/sw.js",
+    "public/workbox-*.js",
     "pnpm-lock.yaml"
   ]
 }

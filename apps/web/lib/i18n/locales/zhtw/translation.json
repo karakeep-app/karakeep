@@ -87,7 +87,10 @@
     "recrawl": "重新抓取",
     "open_editor": "開啟編輯器",
     "toggle_show_archived": "顯示已封存",
-    "confirm": "確認"
+    "confirm": "確認",
+    "regenerate": "重新產生",
+    "load_more": "載入更多",
+    "edit_notes": "編輯註解"
   },
   "settings": {
     "back_to_app": "返回應用程式",
@@ -151,7 +154,12 @@
       "new_api_key": "新增 API 金鑰",
       "new_api_key_desc": "為您的 API 金鑰指定一個獨一無二的名稱",
       "key_success": "金鑰建立成功",
-      "key_success_please_copy": "請複製金鑰並儲存至安全的位置。關閉對話框後，您將無法再次存取此金鑰。"
+      "key_success_please_copy": "請複製金鑰並儲存至安全的位置。關閉對話框後，您將無法再次存取此金鑰。",
+      "regenerate_api_key": "重新產生 API 金鑰",
+      "key_regenerated": "金鑰已成功重新產生",
+      "key_regenerated_please_copy": "請複製新的金鑰並妥善存放。舊的金鑰已被撤銷，將無法再使用。",
+      "regenerate_warning": "確定要重新產生 API 金鑰「{{name}}」嗎？",
+      "regenerate_confirmation": "這會撤銷目前的金鑰並產生新的金鑰。使用目前金鑰的任何應用程式都將停止運作。"
     },
     "webhooks": {
       "webhooks": "Webhook",
@@ -304,6 +312,33 @@
       "loading_usage": "正在載入使用量資訊...",
       "free": "免費",
       "paid": "已付費"
+    },
+    "import_sessions": {
+      "title": "匯入工作階段",
+      "description": "檢視和管理你的大量匯入工作階段。當你匯入書籤時，會自動建立工作階段。",
+      "load_error": "載入匯入工作階段失敗",
+      "no_sessions": "還沒有匯入工作階段",
+      "no_sessions_detail": "當您匯入書籤時，匯入工作階段會自動出現在這裡",
+      "created_at": "已於 {{time}} 建立",
+      "progress": "進度",
+      "status": {
+        "pending": "等待中",
+        "in_progress": "進行中",
+        "completed": "已完成",
+        "failed": "失敗",
+        "processing": "處理中"
+      },
+      "badges": {
+        "pending": "{{count}} 等待中",
+        "processing": "{{count}} 處理中",
+        "completed": "{{count}} 已完成",
+        "failed": "{{count}} 失敗"
+      },
+      "imported_to": "匯入至：",
+      "view_list": "檢視清單",
+      "delete_dialog_title": "刪除匯入工作階段",
+      "delete_dialog_description": "確定要刪除「{{name}}」嗎？此動作無法復原。書籤本身不會被刪除。",
+      "delete_session": "刪除工作階段"
     }
   },
   "admin": {
@@ -360,6 +395,10 @@
         "feed": {
           "title": "RSS Feed 任務",
           "description": "RSS feed 處理和內容更新"
+        },
+        "admin_maintenance": {
+          "title": "管理員維護工作",
+          "description": "管理清理與資產維護"
         }
       },
       "monitor_and_manage": "監控和管理背景任務佇列和系統處理任務",
@@ -390,7 +429,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "為所有書籤重新產生 AI 摘要",
         "reindex_all_bookmarks": "重新索引所有書籤",
         "clean_assets": "清除懸置資產並重新同步中繼資料",
-        "reprocess_assets_fix_mode": "重新處理未處理的資產"
+        "reprocess_assets_fix_mode": "重新處理未處理的資產",
+        "migrate_large_link_html_content": "將大型內嵌 HTML 內容移至資產"
       }
     },
     "actions": {
@@ -417,6 +457,18 @@
       "confirm_password": "確認密碼",
       "delete_user_confirm_description": "你確定要刪除使用者「{{name}}」嗎？",
       "unlimited": "無限制"
+    },
+    "service_connections": {
+      "title": "服務連線",
+      "description": "監控外部系統依賴的健康狀態和連線能力",
+      "search_engine": "搜尋引擎",
+      "browser": "瀏覽器",
+      "queue_system": "佇列系統",
+      "status": {
+        "not_configured": "未配置",
+        "connected": "已連線",
+        "disconnected": "已中斷連線"
+      }
     }
   },
   "options": {
@@ -451,6 +503,12 @@
       "title": "公開清單",
       "description": "允許其他人檢視此清單",
       "share_link": "分享連結"
+    },
+    "delete_list": {
+      "title": "刪除清單",
+      "description": "刪除清單唔會刪除個清單入面嘅任何書籤。",
+      "delete_children": "刪除子清單（遞迴）",
+      "delete_children_description": "如果唔剔選，所有直接嘅子清單會變成根清單"
     }
   },
   "tags": {
@@ -464,7 +522,18 @@
     "delete_all_unused_tags": "刪除所有未使用的標籤",
     "drag_and_drop_merging": "拖曳合併",
     "drag_and_drop_merging_info": "將標籤拖曳到其他標籤上即可合併",
-    "sort_by_name": "依名稱排序"
+    "sort_by_name": "依名稱排序",
+    "create_tag": "建立標籤",
+    "create_tag_description": "建立新標籤，但不要連接到任何書籤",
+    "tag_name": "標籤名稱",
+    "enter_tag_name": "輸入標籤名稱",
+    "sort_by_usage": "依照使用次數排序",
+    "sort_by_relevance": "依照關聯性排序",
+    "no_custom_tags": "還沒有自訂標籤",
+    "no_ai_tags": "還沒有 AI 標籤",
+    "no_unused_tags": "您沒有任何未使用的標籤",
+    "no_unused_tags_match_your_search": "沒有符合您搜尋的未使用標籤",
+    "no_tags_match_your_search": "沒有符合您搜尋的標籤"
   },
   "preview": {
     "view_original": "檢視原始內容",
@@ -548,6 +617,10 @@
       "updated": "清單已更新！",
       "merged": "清單已合併！",
       "deleted": "清單已刪除！"
+    },
+    "tags": {
+      "created": "已建立標籤！",
+      "failed_to_create": "建立標籤失敗"
     }
   },
   "cleanups": {
@@ -593,7 +666,9 @@
     "week_s_ago": " 幾週前",
     "month_s_ago": " 幾個月前",
     "year_s_ago": " 幾年前",
-    "history": "近期搜尋"
+    "history": "近期搜尋",
+    "title_contains": "標題包含",
+    "title_does_not_contain": "標題不包含"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
       "title": "還沒有書籤",
       "description": "儲存有趣的的文章、連結和頁面，以便日後快速存取。"
     }
+  },
+  "view_options": {
+    "title": "檢視選項",
+    "layout": "版面配置",
+    "columns": "欄位",
+    "display_options": "顯示選項",
+    "show_note_previews": "顯示註解",
+    "show_tags": "顯示標籤",
+    "show_title": "顯示標題",
+    "image_options": "圖片選項",
+    "image_fit_cover": "封面（填滿）",
+    "image_fit_contain": "包含（符合）"
+  },
+  "version": {
+    "new_release_available": "有新的版本更新說明啦",
+    "whats_new_title": "v{{version}} 有啥新東西？",
+    "release_notes_description": "以下是從 GitHub 版本更新說明抓取的最新更新。",
+    "loading_release_notes": "載入版本更新說明中…",
+    "unable_to_load_release_notes": "現在沒辦法載入版本更新說明啦。晚點再試試看。",
+    "no_release_notes": "這個版本沒有發佈版本更新說明。",
+    "release_notes_synced": "版本更新說明是從 GitHub 同步更新的。",
+    "view_on_github": "在 GitHub 上檢視"
   }
 }

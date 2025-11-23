@@ -7,10 +7,11 @@ import {
   zNewHighlightSchema,
   zUpdateHighlightSchema,
 } from "@karakeep/shared/types/highlights";
+import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import { authedProcedure, router } from "../index";
 import { Highlight } from "../models/highlights";
-import { ensureBookmarkOwnership } from "./bookmarks";
+import { ensureBookmarkAccess, ensureBookmarkOwnership } from "./bookmarks";
 
 export const highlightsAppRouter = router({
   create: authedProcedure
@@ -24,9 +25,9 @@ export const highlightsAppRouter = router({
   getForBookmark: authedProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .output(z.object({ highlights: z.array(zHighlightSchema) }))
-    .use(ensureBookmarkOwnership)
-    .query(async ({ input, ctx }) => {
-      const highlights = await Highlight.getForBookmark(ctx, input.bookmarkId);
+    .use(ensureBookmarkAccess)
+    .query(async ({ ctx }) => {
+      const highlights = await Highlight.getForBookmark(ctx, ctx.bookmark);
       return { highlights: highlights.map((h) => h.asPublicHighlight()) };
     }),
   get: authedProcedure
@@ -46,6 +47,27 @@ export const highlightsAppRouter = router({
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
       const result = await Highlight.getAll(ctx, input.cursor, input.limit);
+      return {
+        highlights: result.highlights.map((h) => h.asPublicHighlight()),
+        nextCursor: result.nextCursor,
+      };
+    }),
+  search: authedProcedure
+    .input(
+      z.object({
+        text: z.string(),
+        cursor: zCursorV2.nullish(),
+        limit: z.number().optional().default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
+      }),
+    )
+    .output(zGetAllHighlightsResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const result = await Highlight.search(
+        ctx,
+        input.text,
+        input.cursor,
+        input.limit,
+      );
       return {
         highlights: result.highlights.map((h) => h.asPublicHighlight()),
         nextCursor: result.nextCursor,

@@ -60,8 +60,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ matrix.tags_latest }}
-          cache-from: type=registry,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
-          cache-to: type=registry,mode=max,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
+          cache-from: type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
+          cache-to: type=registry,mode=max,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
 
       - name: Build ${{ matrix.name }} (release)
         uses: docker/build-push-action@v5
@@ -74,5 +74,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ matrix.tags_release }}
-          cache-from: type=registry,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
-          cache-to: type=registry,mode=max,ref=ghcr.io/hoarder-app/hoarder-build-cache:${{ matrix.target }}
+          cache-from: type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
+          cache-to: type=registry,mode=max,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}

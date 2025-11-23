@@ -24,6 +24,10 @@ export async function seedUsers(db: TestDB) {
         name: "Test User 2",
         email: "test2@test.com",
       },
+      {
+        name: "Test User 3",
+        email: "test3@test.com",
+      },
     ])
     .returning();
 }
@@ -77,20 +81,25 @@ export async function buildTestContext(
 
 export function defaultBeforeEach(seedDB = true) {
   return async (context: object) => {
-    vi.mock("@karakeep/shared/queues", () => ({
-      LinkCrawlerQueue: {
-        enqueue: vi.fn(),
-      },
-      OpenAIQueue: {
-        enqueue: vi.fn(),
-      },
-      SearchIndexingQueue: {
-        enqueue: vi.fn(),
-      },
-      triggerRuleEngineOnEvent: vi.fn(),
-      triggerSearchReindex: vi.fn(),
-      triggerWebhook: vi.fn(),
-    }));
+    vi.mock("@karakeep/shared-server", async (original) => {
+      const mod =
+        (await original()) as typeof import("@karakeep/shared-server");
+      return {
+        ...mod,
+        LinkCrawlerQueue: {
+          enqueue: vi.fn(),
+        },
+        OpenAIQueue: {
+          enqueue: vi.fn(),
+        },
+        SearchIndexingQueue: {
+          enqueue: vi.fn(),
+        },
+        triggerRuleEngineOnEvent: vi.fn(),
+        triggerSearchReindex: vi.fn(),
+        triggerWebhook: vi.fn(),
+      };
+    });
     Object.assign(context, await buildTestContext(seedDB));
   };
 }

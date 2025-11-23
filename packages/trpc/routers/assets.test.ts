@@ -57,7 +57,11 @@ describe("Asset Routes", () => {
     ]);
 
     const validateAssets = async (
-      expected: { id: string; assetType: ZAssetType }[],
+      expected: {
+        id: string;
+        assetType: ZAssetType;
+        fileName: string | null;
+      }[],
     ) => {
       const b = await apiCallers[0].bookmarks.getBookmark({
         bookmarkId: bookmark.id,
@@ -75,10 +79,10 @@ describe("Asset Routes", () => {
     });
 
     await validateAssets([
-      { id: "asset1", assetType: "screenshot" },
-      { id: "asset2", assetType: "bannerImage" },
-      { id: "asset3", assetType: "fullPageArchive" },
-      { id: "asset4", assetType: "screenshot" },
+      { id: "asset1", assetType: "screenshot", fileName: null },
+      { id: "asset2", assetType: "bannerImage", fileName: null },
+      { id: "asset3", assetType: "fullPageArchive", fileName: null },
+      { id: "asset4", assetType: "screenshot", fileName: null },
     ]);
 
     await api.replaceAsset({
@@ -88,10 +92,10 @@ describe("Asset Routes", () => {
     });
 
     await validateAssets([
-      { id: "asset2", assetType: "bannerImage" },
-      { id: "asset3", assetType: "fullPageArchive" },
-      { id: "asset4", assetType: "screenshot" },
-      { id: "asset5", assetType: "screenshot" },
+      { id: "asset2", assetType: "bannerImage", fileName: null },
+      { id: "asset3", assetType: "fullPageArchive", fileName: null },
+      { id: "asset4", assetType: "screenshot", fileName: null },
+      { id: "asset5", assetType: "screenshot", fileName: null },
     ]);
 
     await api.detachAsset({
@@ -100,9 +104,9 @@ describe("Asset Routes", () => {
     });
 
     await validateAssets([
-      { id: "asset2", assetType: "bannerImage" },
-      { id: "asset3", assetType: "fullPageArchive" },
-      { id: "asset5", assetType: "screenshot" },
+      { id: "asset2", assetType: "bannerImage", fileName: null },
+      { id: "asset3", assetType: "fullPageArchive", fileName: null },
+      { id: "asset5", assetType: "screenshot", fileName: null },
     ]);
 
     // You're not allowed to attach/replace a fullPageArchive

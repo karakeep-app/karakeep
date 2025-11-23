@@ -10,16 +10,16 @@ import { Text } from "@/components/ui/Text";
 import { api } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { keepPreviousData } from "@tanstack/react-query";
-import { useDebounce } from "use-debounce";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 
 export default function Search() {
   const [search, setSearch] = useState("");
 
-  const [query] = useDebounce(search, 10);
+  const query = useDebounce(search, 10);
   const inputRef = useRef<TextInput>(null);
 
   const [isInputFocused, setIsInputFocused] = useState(true);

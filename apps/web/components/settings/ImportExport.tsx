@@ -19,6 +19,7 @@ import { Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
 import { toast } from "../ui/use-toast";
+import { ImportSessionsSection } from "./ImportSessionsSection";
 
 function ImportCard({
   text,
@@ -227,6 +228,23 @@ export function ImportExportRow() {
           </FilePickerButton>
         </ImportCard>
         <ImportCard
+          text="mymind"
+          description={t("settings.import.import_bookmarks_from_mymind_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".csv"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "mymind" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
           text="Karakeep"
           description={t(
             "settings.import.import_bookmarks_from_karakeep_export",
@@ -266,11 +284,21 @@ export function ImportExportRow() {
 export default function ImportExport() {
   const { t } = useTranslation();
   return (
-    <div className="flex w-full flex-col gap-2">
-      <p className="mb-4 text-lg font-medium">
-        {t("settings.import.import_export_bookmarks")}
-      </p>
-      <ImportExportRow />
+    <div className="space-y-3">
+      <div className="rounded-md border bg-background p-4">
+        <div className="flex w-full flex-col gap-6">
+          <div>
+            <p className="mb-4 text-lg font-medium">
+              {t("settings.import.import_export_bookmarks")}
+            </p>
+            <ImportExportRow />
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-md border bg-background p-4">
+        <ImportSessionsSection />
+      </div>
     </div>
   );
 }

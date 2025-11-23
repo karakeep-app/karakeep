@@ -8,6 +8,7 @@ import { api } from "../trpc";
 interface Settings {
   apiKey?: string;
   address: string;
+  customHeaders?: Record<string, string>;
 }
 
 function getTRPCClient(settings: Settings) {
@@ -21,6 +22,7 @@ function getTRPCClient(settings: Settings) {
             Authorization: settings.apiKey
               ? `Bearer ${settings.apiKey}`
               : undefined,
+            ...settings.customHeaders,
           };
         },
         transformer: superjson,

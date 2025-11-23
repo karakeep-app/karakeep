@@ -3,6 +3,7 @@ import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 import { createKarakeepClient } from "@karakeep/sdk";
 
 import { createTestUser } from "../../utils/api";
+import { waitUntil } from "../../utils/general";
 
 describe("Bookmarks API", () => {
   const port = inject("karakeepPort");
@@ -288,6 +289,54 @@ describe("Bookmarks API", () => {
     expect(removeTagsRes.status).toBe(200);
   });
 
+  it("should get lists for a bookmark", async () => {
+    const { data: createdBookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Test Bookmark",
+        text: "This is a test bookmark",
+      },
+    });
+
+    const { data: createdList } = await client.POST("/lists", {
+      body: {
+        name: "Test List",
+        icon: "📚",
+      },
+    });
+
+    const { response: addBookmarkResponse } = await client.PUT(
+      "/lists/{listId}/bookmarks/{bookmarkId}",
+      {
+        params: {
+          path: {
+            listId: createdList!.id,
+            bookmarkId: createdBookmark!.id,
+          },
+        },
+      },
+    );
+
+    expect(addBookmarkResponse.status).toBe(204);
+
+    const { data: lists, response: getListsResponse } = await client.GET(
+      "/bookmarks/{bookmarkId}/lists",
+      {
+        params: {
+          path: {
+            bookmarkId: createdBookmark!.id,
+          },
+        },
+      },
+    );
+
+    expect(getListsResponse.status).toBe(200);
+    expect(lists!.lists.length).toBe(1);
+    expect(lists!.lists[0].id).toBe(createdList!.id);
+    expect(lists!.lists[0].name).toBe("Test List");
+    expect(lists!.lists[0].icon).toBe("📚");
+  });
+
   it("should search bookmarks", async () => {
     // Create test bookmarks
     await client.POST("/bookmarks", {
@@ -305,9 +354,22 @@ describe("Bookmarks API", () => {
       },
     });
 
-    // Wait 3 seconds for the search index to be updated
-    // TODO: Replace with a check that all queues are empty
-    await new Promise((f) => setTimeout(f, 3000));
+    await waitUntil(async () => {
+      const { data, response, error } = await client.GET("/bookmarks/search", {
+        params: {
+          query: {
+            q: "test bookmark",
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      if (response.status !== 200) {
+        throw new Error(`Search request failed with status ${response.status}`);
+      }
+      return (data?.bookmarks.length ?? 0) >= 2;
+    }, 'Search index contains the new bookmarks for query "test bookmark"');
 
     // Search for bookmarks
     const { data: searchResults, response: searchResponse } = await client.GET(
@@ -339,9 +401,23 @@ describe("Bookmarks API", () => {
 
     await Promise.all(bookmarkPromises);
 
-    // Wait 3 seconds for the search index to be updated
-    // TODO: Replace with a check that all queues are empty
-    await new Promise((f) => setTimeout(f, 3000));
+    await waitUntil(async () => {
+      const { data, response, error } = await client.GET("/bookmarks/search", {
+        params: {
+          query: {
+            q: "pagination",
+            limit: 5,
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      if (response.status !== 200) {
+        throw new Error(`Search request failed with status ${response.status}`);
+      }
+      return (data?.bookmarks.length ?? 0) >= 5;
+    }, "Search index contains the pagination test bookmarks");
 
     // Get first page
     const { data: firstPage, response: firstResponse } = await client.GET(

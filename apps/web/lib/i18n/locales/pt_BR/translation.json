@@ -81,7 +81,10 @@
     },
     "open_editor": "Abrir editor",
     "toggle_show_archived": "Mostrar arquivados",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "regenerate": "Regenerar",
+    "load_more": "Carregar mais",
+    "edit_notes": "Editar notas"
   },
   "settings": {
     "info": {
@@ -163,7 +166,12 @@
       "new_api_key": "Nova Chave API",
       "new_api_key_desc": "Dê um nome único para sua chave de API",
       "key_success": "A Chave foi criada com sucesso",
-      "key_success_please_copy": "Por favor, copie a chave e armazene em um local seguro. Após fechar, você não poderá acessá-la novamente."
+      "key_success_please_copy": "Por favor, copie a chave e armazene em um local seguro. Após fechar, você não poderá acessá-la novamente.",
+      "regenerate_api_key": "Regenerar chave da API",
+      "key_regenerated": "Chave regenerada com sucesso",
+      "key_regenerated_please_copy": "Copie a nova chave e guarde-a em um lugar seguro. A chave antiga foi revogada e não vai mais funcionar.",
+      "regenerate_warning": "Tem certeza de que deseja regenerar a chave da API \"{{name}}\"?",
+      "regenerate_confirmation": "Isso revogará a chave atual e gerará uma nova. Qualquer aplicativo que esteja usando a chave atual deixará de funcionar."
     },
     "broken_links": {
       "broken_links": "Links Quebrados",
@@ -298,6 +306,33 @@
       "loading_usage": "Carregando informações de uso...",
       "free": "Grátis",
       "paid": "Pago"
+    },
+    "import_sessions": {
+      "title": "Importar Sessões",
+      "description": "Visualize e gerencie suas sessões de importação em massa. As sessões são criadas automaticamente quando você importa marcadores.",
+      "load_error": "Falha ao carregar as sessões de importação",
+      "no_sessions": "Ainda não há sessões de importação",
+      "no_sessions_detail": "As sessões de importação aparecerão aqui automaticamente quando você importar marcadores",
+      "created_at": "Criado em {{time}}",
+      "progress": "Progresso",
+      "status": {
+        "pending": "Pendente",
+        "in_progress": "Em progresso",
+        "completed": "Concluído",
+        "failed": "Falhou",
+        "processing": "Processando"
+      },
+      "badges": {
+        "pending": "{{count}} pendentes",
+        "processing": "{{count}} processando",
+        "completed": "{{count}} concluído",
+        "failed": "{{count}} falhou"
+      },
+      "imported_to": "Importado para:",
+      "view_list": "Ver lista",
+      "delete_dialog_title": "Excluir sessão de importação",
+      "delete_dialog_description": "Tem certeza de que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita. Os favoritos em si não serão excluídos.",
+      "delete_session": "Excluir sessão"
     }
   },
   "layouts": {
@@ -363,6 +398,10 @@
         "feed": {
           "title": "Tarefas de feed RSS",
           "description": "Processamento de feed RSS e atualizações de conteúdo"
+        },
+        "admin_maintenance": {
+          "title": "Tarefas de Manutenção do Administrador",
+          "description": "Limpeza administrativa e manutenção de ativos"
         }
       },
       "monitor_and_manage": "Monitore e gerencie filas de tarefas em segundo plano e tarefas de processamento do sistema",
@@ -393,7 +432,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resumos de IA para todos os favoritos",
         "reindex_all_bookmarks": "Reindexar todos os favoritos",
         "clean_assets": "Limpar ativos pendentes e resincronizar metadados",
-        "reprocess_assets_fix_mode": "Reprocessar ativos não processados"
+        "reprocess_assets_fix_mode": "Reprocessar ativos não processados",
+        "migrate_large_link_html_content": "Mover Conteúdo HTML Grande Inline para Ativos"
       }
     },
     "actions": {
@@ -420,6 +460,18 @@
       "confirm_password": "Confirmar Senha",
       "delete_user_confirm_description": "Tem certeza de que deseja excluir o usuário \"{{name}}\"?",
       "unlimited": "Ilimitado"
+    },
+    "service_connections": {
+      "title": "Conexões de serviço",
+      "description": "Monitore a saúde e a conectividade das dependências do sistema externo",
+      "search_engine": "Mecanismo de busca",
+      "browser": "Navegador",
+      "queue_system": "Sistema de fila",
+      "status": {
+        "not_configured": "Não configurado",
+        "connected": "Conectado",
+        "disconnected": "Desconectado"
+      }
     }
   },
   "options": {
@@ -454,6 +506,12 @@
       "title": "Lista pública",
       "description": "Permitir que outros vejam esta lista",
       "share_link": "Compartilhar link"
+    },
+    "delete_list": {
+      "title": "Excluir lista",
+      "description": "Excluir uma lista não exclui nenhum marcador nessa lista.",
+      "delete_children": "Excluir listas filhas (recursivamente)",
+      "delete_children_description": "Se não estiver marcado, todas as listas filhas diretas se tornarão listas raiz"
     }
   },
   "tags": {
@@ -467,7 +525,18 @@
     "delete_all_unused_tags": "Excluir Todas as Tags Não Utilizadas",
     "drag_and_drop_merging": "Arrastar e Soltar para Mesclagem",
     "drag_and_drop_merging_info": "Arraste e solte tags uma sobre a outra para mesclá-las",
-    "sort_by_name": "Ordenar por Nome"
+    "sort_by_name": "Ordenar por Nome",
+    "create_tag": "Criar etiqueta",
+    "create_tag_description": "Criar uma nova etiqueta sem anexá-la a nenhum marcador",
+    "tag_name": "Nome da etiqueta",
+    "enter_tag_name": "Insira o nome da etiqueta",
+    "sort_by_usage": "Ordenar por uso",
+    "sort_by_relevance": "Ordenar por relevância",
+    "no_custom_tags": "Ainda não há tags personalizadas",
+    "no_ai_tags": "Ainda não há tags de IA",
+    "no_unused_tags": "Você não tem nenhuma tag não utilizada",
+    "no_unused_tags_match_your_search": "Nenhuma tag não utilizada corresponde à sua pesquisa",
+    "no_tags_match_your_search": "Nenhuma tag corresponde à sua pesquisa"
   },
   "search": {
     "is_not_archived": "Não Está Arquivado",
@@ -505,7 +574,9 @@
     "week_s_ago": " Semana(s) atrás",
     "month_s_ago": " Mês(es) atrás",
     "year_s_ago": " Ano(s) atrás",
-    "history": "Pesquisas recentes"
+    "history": "Pesquisas recentes",
+    "title_contains": "Título Contém",
+    "title_does_not_contain": "Título Não Contém"
   },
   "preview": {
     "view_original": "Ver Original",
@@ -595,6 +666,10 @@
       "updated": "A lista foi atualizada!",
       "merged": "Lista foi mesclada!",
       "deleted": "Lista foi excluída!"
+    },
+    "tags": {
+      "created": "Etiqueta foi criada!",
+      "failed_to_create": "Falha ao criar etiqueta"
     }
   },
   "cleanups": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Escolha uma data",
     "save_changes": "Salvar alterações",
     "extracted_content": "Conteúdo extraído"
+  },
+  "view_options": {
+    "title": "Opções de visualização",
+    "layout": "Layout",
+    "columns": "Colunas",
+    "display_options": "Opções de exibição",
+    "show_note_previews": "Mostrar notas",
+    "show_tags": "Mostrar tags",
+    "show_title": "Mostrar título",
+    "image_options": "Opções de imagem",
+    "image_fit_cover": "Cobrir (Preencher)",
+    "image_fit_contain": "Conter (Ajustar)"
+  },
+  "version": {
+    "new_release_available": "Notas de lançamento adicionadas",
+    "whats_new_title": "O que há de novo na v{{version}}",
+    "release_notes_description": "Aqui estão as últimas atualizações buscadas nas notas de lançamento do GitHub.",
+    "loading_release_notes": "Carregando notas de lançamento…",
+    "unable_to_load_release_notes": "Não foi possível carregar as notas de lançamento agora. Tente novamente mais tarde.",
+    "no_release_notes": "Nenhuma nota de lançamento foi publicada para esta versão.",
+    "release_notes_synced": "As notas de lançamento são sincronizadas do GitHub.",
+    "view_on_github": "Ver no GitHub"
   }
 }

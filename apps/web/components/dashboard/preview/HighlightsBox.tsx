@@ -11,7 +11,13 @@ import { ChevronsDownUp } from "lucide-react";
 
 import HighlightCard from "../highlights/HighlightCard";
 
-export default function HighlightsBox({ bookmarkId }: { bookmarkId: string }) {
+export default function HighlightsBox({
+  bookmarkId,
+  readOnly,
+}: {
+  bookmarkId: string;
+  readOnly: boolean;
+}) {
   const { t } = useTranslation();
 
   const { data: highlights, isPending: isLoading } =
@@ -30,7 +36,11 @@ export default function HighlightsBox({ bookmarkId }: { bookmarkId: string }) {
       <CollapsibleContent className="group flex flex-col py-3 text-sm">
         {highlights.highlights.map((highlight) => (
           <Fragment key={highlight.id}>
-            <HighlightCard highlight={highlight} clickable />
+            <HighlightCard
+              highlight={highlight}
+              clickable
+              readOnly={readOnly}
+            />
             <Separator className="m-2 h-0.5 bg-gray-200 last:hidden" />
           </Fragment>
         ))}

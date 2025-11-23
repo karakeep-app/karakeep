@@ -13,7 +13,8 @@ export type ImportSource =
   | "omnivore"
   | "karakeep"
   | "linkwarden"
-  | "tab-session-manager";
+  | "tab-session-manager"
+  | "mymind";
 
 export interface ParsedBookmark {
   title: string;
@@ -230,6 +231,67 @@ function parseTabSessionManagerStateFile(
   );
 }
 
+function parseMymindBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zMymindRecordSchema = z.object({
+    id: z.string(),
+    type: z.string(),
+    title: z.string(),
+    url: z.string(),
+    content: z.string(),
+    note: z.string(),
+    tags: z.string(),
+    created: z.string(),
+  });
+
+  const zMymindExportSchema = z.array(zMymindRecordSchema);
+
+  const records = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zMymindExportSchema.safeParse(records);
+  if (!parsed.success) {
+    throw new Error(
+      `The uploaded CSV file contains an invalid mymind bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
+    // Determine content type based on presence of URL and content fields
+    let content: ParsedBookmark["content"];
+    if (record.url && record.url.trim().length > 0) {
+      content = { type: BookmarkTypes.LINK as const, url: record.url.trim() };
+    } else if (record.content && record.content.trim().length > 0) {
+      content = {
+        type: BookmarkTypes.TEXT as const,
+        text: record.content.trim(),
+      };
+    }
+
+    // Parse tags from comma-separated string
+    const tags =
+      record.tags && record.tags.trim().length > 0
+        ? record.tags.split(",").map((tag) => tag.trim())
+        : [];
+
+    // Parse created date to timestamp (in seconds)
+    const addDate = record.created
+      ? new Date(record.created).getTime() / 1000
+      : undefined;
+
+    return {
+      title: record.title || "",
+      content,
+      tags,
+      addDate,
+      notes:
+        record.note && record.note.trim().length > 0 ? record.note : undefined,
+      paths: [], // mymind doesn't have folder structure
+    };
+  });
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -294,6 +356,9 @@ export function parseImportFile(
       break;
     case "tab-session-manager":
       result = parseTabSessionManagerStateFile(textContent);
+      break;
+    case "mymind":
+      result = parseMymindBookmarkFile(textContent);
       break;
   }
   return deduplicateBookmarks(result);

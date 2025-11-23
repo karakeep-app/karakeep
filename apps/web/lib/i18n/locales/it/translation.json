@@ -39,7 +39,10 @@
     },
     "open_editor": "Apri editor",
     "toggle_show_archived": "Mostra archiviati",
-    "confirm": "Conferma"
+    "confirm": "Conferma",
+    "regenerate": "Rigenera",
+    "load_more": "Carica altro",
+    "edit_notes": "Modifica note"
   },
   "common": {
     "attachments": "Allegati",
@@ -151,7 +154,12 @@
       "new_api_key_desc": "Dai un nome univoco alla chiave API",
       "key_success": "Chiave creata con successo",
       "key_success_please_copy": "Copia la chiave e salvala in modo sicuro. Una volta chiuso questo messaggio, non potrai accederci di nuovo.",
-      "new_api_key": "Nuova chiave API"
+      "new_api_key": "Nuova chiave API",
+      "regenerate_api_key": "Rigenera chiave API",
+      "key_regenerated": "Chiave rigenerata con successo",
+      "key_regenerated_please_copy": "Copia la nuova chiave e conservala in un luogo sicuro. La vecchia chiave non è più valida e non funzionerà più.",
+      "regenerate_warning": "Sei sicuro di voler rigenerare la chiave API \"{{name}}\"?",
+      "regenerate_confirmation": "Questa operazione revocherà la chiave attuale e ne genererà una nuova. Tutte le applicazioni che utilizzano la chiave attuale smetteranno di funzionare."
     },
     "manage_assets": {
       "no_assets": "Non hai ancora nessun asset.",
@@ -298,6 +306,33 @@
       "loading_usage": "Caricamento delle informazioni sull'utilizzo...",
       "free": "Gratuito",
       "paid": "A pagamento"
+    },
+    "import_sessions": {
+      "title": "Importa sessioni",
+      "description": "Visualizza e gestisci le tue sessioni di importazione in blocco. Le sessioni vengono create automaticamente quando importi i segnalibri.",
+      "load_error": "Impossibile caricare le sessioni di importazione",
+      "no_sessions": "Ancora nessuna sessione di importazione",
+      "no_sessions_detail": "Le sessioni di importazione appariranno qui automaticamente quando importi i segnalibri",
+      "created_at": "Creato {{time}}",
+      "progress": "Avanzamento",
+      "status": {
+        "pending": "In sospeso",
+        "in_progress": "In corso",
+        "completed": "Completato",
+        "failed": "Fallito",
+        "processing": "Elaborazione"
+      },
+      "badges": {
+        "pending": "{{count}} in sospeso",
+        "processing": "{{count}} in elaborazione",
+        "completed": "{{count}} completati",
+        "failed": "{{count}} falliti"
+      },
+      "imported_to": "Importato in:",
+      "view_list": "Visualizza elenco",
+      "delete_dialog_title": "Elimina sessione di importazione",
+      "delete_dialog_description": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata. I segnalibri stessi non verranno eliminati.",
+      "delete_session": "Elimina sessione"
     }
   },
   "editor": {
@@ -419,6 +454,10 @@
         "feed": {
           "title": "Processi di Feed RSS",
           "description": "Elaborazione dei feed RSS e aggiornamenti dei contenuti"
+        },
+        "admin_maintenance": {
+          "title": "Lavori di manutenzione dell'amministratore",
+          "description": "Pulizia amministrativa e manutenzione degli asset"
         }
       },
       "monitor_and_manage": "Monitora e gestisci le code dei processi in background e le attività di elaborazione del sistema",
@@ -449,7 +488,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Rigenera i riepiloghi AI per tutti i segnalibri",
         "reindex_all_bookmarks": "Reindicizza tutti i segnalibri",
         "clean_assets": "Pulisci le risorse orfane e risincronizza i metadati",
-        "reprocess_assets_fix_mode": "Rielabora le risorse non elaborate"
+        "reprocess_assets_fix_mode": "Rielabora le risorse non elaborate",
+        "migrate_large_link_html_content": "Sposta grandi contenuti HTML incorporati negli asset"
       }
     },
     "actions": {
@@ -476,6 +516,18 @@
       "reset_password": "Ripristina password",
       "delete_user_confirm_description": "Sei sicuro di voler eliminare l'utente \"{{name}}\"?",
       "unlimited": "Illimitato"
+    },
+    "service_connections": {
+      "title": "Connessioni di servizio",
+      "description": "Monitora lo stato e la connettività delle dipendenze del sistema esterno",
+      "search_engine": "Motore di ricerca",
+      "browser": "Browser",
+      "queue_system": "Sistema di code",
+      "status": {
+        "not_configured": "Non configurato",
+        "connected": "Connesso",
+        "disconnected": "Disconnesso"
+      }
     }
   },
   "options": {
@@ -510,7 +562,13 @@
       "title": "Lista pubblica",
       "share_link": "Condividi link"
     },
-    "share_list": "Condividi lista"
+    "share_list": "Condividi lista",
+    "delete_list": {
+      "title": "Elimina lista",
+      "description": "Eliminare una lista non elimina i segnalibri al suo interno.",
+      "delete_children": "Elimina le liste figlie (ricorsivamente)",
+      "delete_children_description": "Se non selezionato, tutte le liste figlie dirette diventeranno liste radice"
+    }
   },
   "tags": {
     "your_tags": "I tuoi tag",
@@ -523,7 +581,18 @@
     "drag_and_drop_merging_info": "Trascina e rilascia i tag per unirli",
     "sort_by_name": "Ordina per nome",
     "all_tags": "Tutti i tag",
-    "delete_all_unused_tags": "Elimina tutti i tag inutilizzati"
+    "delete_all_unused_tags": "Elimina tutti i tag inutilizzati",
+    "create_tag": "Crea tag",
+    "create_tag_description": "Crea un nuovo tag senza collegarlo ad alcun segnalibro",
+    "tag_name": "Nome tag",
+    "enter_tag_name": "Inserisci il nome del tag",
+    "sort_by_usage": "Ordina per utilizzo",
+    "sort_by_relevance": "Ordina per rilevanza",
+    "no_custom_tags": "Ancora nessun tag personalizzato",
+    "no_ai_tags": "Ancora nessun tag IA",
+    "no_unused_tags": "Non hai tag inutilizzati",
+    "no_unused_tags_match_your_search": "Nessun tag inutilizzato corrisponde alla tua ricerca",
+    "no_tags_match_your_search": "Nessun tag corrisponde alla tua ricerca"
   },
   "preview": {
     "view_original": "Vedi originale",
@@ -548,6 +617,10 @@
       "updated": "Lista aggiornata!",
       "merged": "L'elenco è stato unito!",
       "deleted": "L'elenco è stato eliminato!"
+    },
+    "tags": {
+      "created": "Tag creato!",
+      "failed_to_create": "Impossibile creare il tag"
     }
   },
   "cleanups": {
@@ -593,7 +666,9 @@
     "week_s_ago": " Settimane fa",
     "month_s_ago": " Mesi fa",
     "year_s_ago": " Anni fa",
-    "history": "Ricerche recenti"
+    "history": "Ricerche recenti",
+    "title_contains": "Il titolo contiene",
+    "title_does_not_contain": "Il titolo non contiene"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
     "save_changes": "Salva le modifiche",
     "title": "Modifica segnalibro",
     "extracted_content": "Contenuto estratto"
+  },
+  "view_options": {
+    "title": "Visualizza opzioni",
+    "layout": "Disposizione",
+    "columns": "Colonne",
+    "display_options": "Opzioni di visualizzazione",
+    "show_note_previews": "Mostra note",
+    "show_tags": "Mostra tag",
+    "show_title": "Mostra titolo",
+    "image_options": "Opzioni immagine",
+    "image_fit_cover": "Copri (riempi)",
+    "image_fit_contain": "Contieni (adatta)"
+  },
+  "version": {
+    "new_release_available": "Nuove note di rilascio disponibili",
+    "whats_new_title": "Cosa c'è di nuovo nella v{{version}}",
+    "release_notes_description": "Ecco gli ultimi aggiornamenti presi dalle note di rilascio di GitHub.",
+    "loading_release_notes": "Caricamento delle note di rilascio…",
+    "unable_to_load_release_notes": "Impossibile caricare le note di rilascio al momento. Riprova più tardi.",
+    "no_release_notes": "Nessuna nota di rilascio è stata pubblicata per questa versione.",
+    "release_notes_synced": "Le note di rilascio sono sincronizzate da GitHub.",
+    "view_on_github": "Visualizza su GitHub"
   }
 }

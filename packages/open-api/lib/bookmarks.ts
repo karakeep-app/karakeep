@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import {
   zAssetSchema,
+  zAssetTypesSchema,
   zBareBookmarkSchema,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
@@ -16,7 +17,6 @@ import {
 import { AssetIdSchema } from "./assets";
 import { BearerAuth } from "./common";
 import { ErrorSchema } from "./errors";
-import { HighlightSchema } from "./highlights";
 import {
   BookmarkSchema,
   IncludeContentSearchParamSchema,
@@ -24,6 +24,7 @@ import {
   PaginationSchema,
 } from "./pagination";
 import { TagIdSchema } from "./tags";
+import { HighlightSchema, ListSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
 extendZodWithOpenApi(z);
@@ -117,8 +118,16 @@ registry.registerPath({
     },
   },
   responses: {
+    200: {
+      description: "The bookmark already exists",
+      content: {
+        "application/json": {
+          schema: BookmarkSchema,
+        },
+      },
+    },
     201: {
-      description: "The created bookmark",
+      description: "The bookmark got created",
       content: {
         "application/json": {
           schema: BookmarkSchema,
@@ -339,6 +348,36 @@ registry.registerPath({
 
 registry.registerPath({
   method: "get",
+  path: "/bookmarks/{bookmarkId}/lists",
+  description: "Get lists of a bookmark",
+  summary: "Get lists of a bookmark",
+  tags: ["Bookmarks"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({ bookmarkId: BookmarkIdSchema }),
+  },
+  responses: {
+    200: {
+      description: "The list of highlights",
+      content: {
+        "application/json": {
+          schema: z.object({ lists: z.array(ListSchema) }),
+        },
+      },
+    },
+    404: {
+      description: "Bookmark not found",
+      content: {
+        "application/json": {
+          schema: ErrorSchema,
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
   path: "/bookmarks/{bookmarkId}/highlights",
   description: "Get highlights of a bookmark",
   summary: "Get highlights of a bookmark",
@@ -380,7 +419,10 @@ registry.registerPath({
       description: "The asset to attach",
       content: {
         "application/json": {
-          schema: zAssetSchema,
+          schema: z.object({
+            id: z.string(),
+            assetType: zAssetTypesSchema,
+          }),
         },
       },
     },

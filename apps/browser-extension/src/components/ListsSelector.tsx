@@ -74,31 +74,33 @@ export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
           <CommandList>
             <CommandEmpty>You don&apos;t have any lists.</CommandEmpty>
             <CommandGroup>
-              {allLists?.allPaths.map((path) => {
-                const lastItem = path[path.length - 1];
+              {allLists?.allPaths
+                .filter((path) => path[path.length - 1].userRole !== "viewer")
+                .map((path) => {
+                  const lastItem = path[path.length - 1];
 
-                return (
-                  <CommandItem
-                    key={lastItem.id}
-                    value={lastItem.id}
-                    keywords={[lastItem.name, lastItem.icon]}
-                    onSelect={toggleList}
-                    disabled={currentlyUpdating.has(lastItem.id)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 size-4",
-                        existingListIds.has(lastItem.id)
-                          ? "opacity-100"
-                          : "opacity-0",
-                      )}
-                    />
-                    {path
-                      .map((item) => `${item.icon} ${item.name}`)
-                      .join(" / ")}
-                  </CommandItem>
-                );
-              })}
+                  return (
+                    <CommandItem
+                      key={lastItem.id}
+                      value={lastItem.id}
+                      keywords={[lastItem.name, lastItem.icon]}
+                      onSelect={toggleList}
+                      disabled={currentlyUpdating.has(lastItem.id)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 size-4",
+                          existingListIds.has(lastItem.id)
+                            ? "opacity-100"
+                            : "opacity-0",
+                        )}
+                      />
+                      {path
+                        .map((item) => `${item.icon} ${item.name}`)
+                        .join(" / ")}
+                    </CommandItem>
+                  );
+                })}
             </CommandGroup>
           </CommandList>
         </Command>

@@ -67,6 +67,14 @@ jobs:
       - name: E2E Tests
         working-directory: packages/e2e_tests
         run: pnpm test
+
+      - name: Upload Docker Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-docker-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: packages/e2e_tests/setup/docker-logs/
+          retention-days: 7
   open-api-spec:
     runs-on: ubuntu-latest
     steps:

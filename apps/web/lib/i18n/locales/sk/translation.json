@@ -81,7 +81,10 @@
     "summarize_with_ai": "Zhrnúť pomocou AI",
     "open_editor": "Otvoriť editor",
     "toggle_show_archived": "Zobraziť archivované",
-    "confirm": "Potvrdiť"
+    "confirm": "Potvrdiť",
+    "regenerate": "Obnoviť",
+    "load_more": "Načítať viac",
+    "edit_notes": "Upraviť poznámky"
   },
   "lists": {
     "favourites": "Obľúbené",
@@ -111,7 +114,13 @@
       "description": "Povoliť ostatným zobraziť tento zoznam",
       "share_link": "Zdieľať odkaz"
     },
-    "share_list": "Zdieľať zoznam"
+    "share_list": "Zdieľať zoznam",
+    "delete_list": {
+      "title": "Odstrániť zoznam",
+      "description": "Odstránením zoznamu sa neodstránia žiadne záložky v tomto zozname.",
+      "delete_children": "Odstrániť podriadené zoznamy (rekurzívne)",
+      "delete_children_description": "Ak nie je zaškrtnuté, všetky priame podriadené zoznamy sa stanú koreňovými zoznamami"
+    }
   },
   "settings": {
     "import": {
@@ -187,7 +196,12 @@
       "new_api_key": "Nový API kľúč",
       "key_success_please_copy": "Prosím, skopírujte si kľúč a uložte ho na bezpečné miesto. Keď zatvoríte dialógové okno, už k nemu nebudete mať prístup.",
       "new_api_key_desc": "Daj svojmu API kľúču jedinečný názov",
-      "key_success": "Kľúč bol úspešne vytvorený"
+      "key_success": "Kľúč bol úspešne vytvorený",
+      "regenerate_api_key": "Obnoviť API kľúč",
+      "key_regenerated": "Kľúč bol úspešne obnovený",
+      "key_regenerated_please_copy": "Prosím, skopírujte si nový kľúč a uložte ho na bezpečné miesto. Starý kľúč bol zrušený a už nebude fungovať.",
+      "regenerate_warning": "Ste si istý, že chcete obnoviť API kľúč „{{name}}“?",
+      "regenerate_confirmation": "Toto zruší aktuálny kľúč a vygeneruje nový. Všetky aplikácie, ktoré používajú aktuálny kľúč, prestanú fungovať."
     },
     "manage_assets": {
       "asset_link": "Odkaz na majetok",
@@ -328,6 +342,33 @@
       "loading_usage": "Načítavajú sa informácie o využití...",
       "free": "Zadarmo",
       "paid": "Platené"
+    },
+    "import_sessions": {
+      "title": "Importovať relácie",
+      "description": "Zobraz a spravuj svoje dávkové importy relácií. Relácie sa automaticky vytvárajú pri importovaní záložiek.",
+      "load_error": "Nepodarilo sa načítať importované relácie",
+      "no_sessions": "Zatiaľ žiadne importované relácie",
+      "no_sessions_detail": "Importované relácie sa tu automaticky zobrazia pri importovaní záložiek",
+      "created_at": "Vytvorené {{time}}",
+      "progress": "Priebeh",
+      "status": {
+        "pending": "Čaká sa",
+        "in_progress": "Prebieha",
+        "completed": "Dokončené",
+        "failed": "Neúspešné",
+        "processing": "Spracováva sa"
+      },
+      "badges": {
+        "pending": "{{count}} čaká",
+        "processing": "{{count}} spracováva sa",
+        "completed": "{{count}} dokončených",
+        "failed": "{{count}} neúspešných"
+      },
+      "imported_to": "Importované do:",
+      "view_list": "Zobraziť zoznam",
+      "delete_dialog_title": "Odstrániť reláciu importu",
+      "delete_dialog_description": "Naozaj chceš vymazať \"{{name}}\"? Táto akcia sa nedá vrátiť späť. Samotné záložky nebudú vymazané.",
+      "delete_session": "Zmazať reláciu"
     }
   },
   "search": {
@@ -366,7 +407,9 @@
     "week_s_ago": " Týždeň(ne) dozadu",
     "month_s_ago": " Mesiac(e) dozadu",
     "year_s_ago": " Rok(y) dozadu",
-    "history": "Nedávne vyhľadávania"
+    "history": "Nedávne vyhľadávania",
+    "title_contains": "Názov obsahuje",
+    "title_does_not_contain": "Názov neobsahuje"
   },
   "layouts": {
     "masonry": "Dlaždice",
@@ -447,6 +490,10 @@
         "feed": {
           "title": "Úlohy RSS Feed",
           "description": "Spracovanie RSS kanálov a aktualizácie obsahu"
+        },
+        "admin_maintenance": {
+          "title": "Úlohy údržby správcu",
+          "description": "Administratívne čistenie a údržba aktív"
         }
       },
       "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a systémové úlohy spracovania",
@@ -477,7 +524,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Znovu vygenerovať súhrny AI pre všetky záložky",
         "reindex_all_bookmarks": "Preindexovať všetky záložky",
         "clean_assets": "Vyčistiť nepotrebné prostriedky a znova synchronizovať metadáta",
-        "reprocess_assets_fix_mode": "Znova spracovať nespracované prostriedky"
+        "reprocess_assets_fix_mode": "Znova spracovať nespracované prostriedky",
+        "migrate_large_link_html_content": "Presuň rozsiahly vložený HTML obsah do assetov."
       }
     },
     "server_stats": {
@@ -485,6 +533,18 @@
       "server_stats": "Štatistiky servera",
       "total_users": "Celkový počet používateľov",
       "total_bookmarks": "Celkový počet záložiek"
+    },
+    "service_connections": {
+      "title": "Pripojenia služieb",
+      "description": "Monitoruj zdravie a pripojiteľnosť externých systémových závislostí",
+      "search_engine": "Vyhľadávač",
+      "browser": "Prehliadač",
+      "queue_system": "Systém front",
+      "status": {
+        "not_configured": "Nenakonfigurované",
+        "connected": "Pripojené",
+        "disconnected": "Odpojené"
+      }
     }
   },
   "options": {
@@ -502,7 +562,18 @@
     "sort_by_name": "Zoradiť podľa názvu",
     "delete_all_unused_tags": "Odstrániť všetky nepoužité značky",
     "unused_tags_info": "Značky nepriradené k žiadnym záložkám",
-    "ai_tags_info": "Značky priradené iba automaticky (pomocou AI)"
+    "ai_tags_info": "Značky priradené iba automaticky (pomocou AI)",
+    "create_tag": "Vytvoriť značku",
+    "create_tag_description": "Vytvoriť novú značku bez pripojenia k žiadnej záložke",
+    "tag_name": "Názov značky",
+    "enter_tag_name": "Zadajte názov značky",
+    "sort_by_usage": "Zoradiť podľa používania",
+    "sort_by_relevance": "Zoradiť podľa relevantnosti",
+    "no_custom_tags": "Zatiaľ žiadne vlastné štítky",
+    "no_ai_tags": "Zatiaľ žiadne štítky AI",
+    "no_unused_tags": "Nemáte žiadne nepoužité štítky",
+    "no_unused_tags_match_your_search": "Žiadne nepoužité štítky nezodpovedajú vášmu vyhľadávaniu",
+    "no_tags_match_your_search": "Žiadne štítky nezodpovedajú vášmu vyhľadávaniu"
   },
   "editor": {
     "quickly_focus": "Na rýchle presunutie na toto pole môžete použiť skratku CTRL + E",
@@ -586,6 +657,10 @@
       "created": "Zoznam bol vytvorený!",
       "merged": "Zoznam bol zlúčený!",
       "deleted": "Zoznam bol odstránený!"
+    },
+    "tags": {
+      "created": "Značka bola vytvorená!",
+      "failed_to_create": "Nepodarilo sa vytvoriť značku"
     }
   },
   "cleanups": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Vyber dátum",
     "save_changes": "Ulož zmeny",
     "extracted_content": "Extrahovaný obsah"
+  },
+  "view_options": {
+    "title": "Možnosti zobrazenia",
+    "layout": "Rozloženie",
+    "columns": "Stĺpce",
+    "display_options": "Možnosti zobrazenia",
+    "show_note_previews": "Zobraziť poznámky",
+    "show_tags": "Zobraziť značky",
+    "show_title": "Zobraziť nadpis",
+    "image_options": "Možnosti obrázka",
+    "image_fit_cover": "Obálka (vyplnenie)",
+    "image_fit_contain": "Obsiahnuť (prispôsobiť)"
+  },
+  "version": {
+    "new_release_available": "Sú k dispozícii nové poznámky k verzii",
+    "whats_new_title": "Čo je nové vo verzii {{version}}",
+    "release_notes_description": "Tu sú najnovšie aktualizácie prevzaté z poznámok k verzii na GitHub.",
+    "loading_release_notes": "Načítavajú sa poznámky k verzii…",
+    "unable_to_load_release_notes": "Momentálne sa nedarí načítať poznámky k verzii. Skúste to neskôr.",
+    "no_release_notes": "Pre túto verziu neboli publikované žiadne poznámky k vydaniu.",
+    "release_notes_synced": "Poznámky k verzii sú synchronizované zo služby GitHub.",
+    "view_on_github": "Zobraziť na GitHub"
   }
 }

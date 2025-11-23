@@ -81,7 +81,10 @@
     },
     "open_editor": "Otwórz edytor",
     "toggle_show_archived": "Pokaż zarchiwizowane",
-    "confirm": "Potwierdź"
+    "confirm": "Potwierdź",
+    "regenerate": "Wygeneruj ponownie",
+    "load_more": "Załaduj więcej",
+    "edit_notes": "Edytuj notatki"
   },
   "settings": {
     "info": {
@@ -145,7 +148,12 @@
       "new_api_key": "Nowy klucz API",
       "new_api_key_desc": "Nadaj swojemu kluczowi API unikalną nazwę",
       "key_success": "Klucz został pomyślnie utworzony",
-      "key_success_please_copy": "Skopiuj klucz i przechowaj go w bezpiecznym miejscu. Po zamknięciu tego okna dialogowego nie będzie można go ponownie zobaczyć."
+      "key_success_please_copy": "Skopiuj klucz i przechowaj go w bezpiecznym miejscu. Po zamknięciu tego okna dialogowego nie będzie można go ponownie zobaczyć.",
+      "regenerate_api_key": "Wygeneruj ponownie klucz API",
+      "key_regenerated": "Klucz został pomyślnie wygenerowany ponownie",
+      "key_regenerated_please_copy": "Skopiuj nowy klucz i przechowuj go w bezpiecznym miejscu. Stary klucz został unieważniony i nie będzie już działać.",
+      "regenerate_warning": "Czy na pewno chcesz wygenerować ponownie klucz API \"{{name}}\"?",
+      "regenerate_confirmation": "Spowoduje to odwołanie bieżącego klucza i wygenerowanie nowego. Wszystkie aplikacje korzystające z bieżącego klucza przestaną działać."
     },
     "broken_links": {
       "broken_links": "Uszkodzone linki",
@@ -298,6 +306,33 @@
       "loading_usage": "Ładowanie informacji o zużyciu...",
       "free": "Darmowy",
       "paid": "Płatny"
+    },
+    "import_sessions": {
+      "title": "Importuj sesje",
+      "description": "Przeglądaj i zarządzaj swoimi sesjami importu zbiorczego. Sesje są tworzone automatycznie podczas importowania zakładek.",
+      "load_error": "Nie udało się załadować sesji importu",
+      "no_sessions": "Jeszcze brak sesji importu",
+      "no_sessions_detail": "Sesje importu pojawią się tutaj automatycznie po zaimportowaniu zakładek",
+      "created_at": "Utworzono {{time}}",
+      "progress": "Postęp",
+      "status": {
+        "pending": "Oczekujące",
+        "in_progress": "W toku",
+        "completed": "Ukończone",
+        "failed": "Niepowodzenie",
+        "processing": "Przetwarzanie"
+      },
+      "badges": {
+        "pending": "{{count}} oczekujących",
+        "processing": "{{count}} w toku",
+        "completed": "{{count}} ukończonych",
+        "failed": "{{count}} nieudanych"
+      },
+      "imported_to": "Zaimportowano do:",
+      "view_list": "Wyświetl listę",
+      "delete_dialog_title": "Usuń sesję importu",
+      "delete_dialog_description": "Czy na pewno chcesz usunąć \"{{name}}\"? Tej czynności nie można cofnąć. Same zakładki nie zostaną usunięte.",
+      "delete_session": "Usuń sesję"
     }
   },
   "admin": {
@@ -367,6 +402,10 @@
         "feed": {
           "title": "Zadania kanału RSS",
           "description": "Przetwarzanie kanałów RSS i aktualizacje treści"
+        },
+        "admin_maintenance": {
+          "title": "Zadania konserwacyjne administratora",
+          "description": "Administracyjne czyszczenie i konserwacja zasobów"
         }
       },
       "monitor_and_manage": "Monitoruj i zarządzaj kolejkami zadań w tle i zadaniami przetwarzania systemu",
@@ -397,7 +436,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Wygeneruj ponownie streszczenia AI dla wszystkich zakładek",
         "reindex_all_bookmarks": "Zreindeksuj wszystkie zakładki",
         "clean_assets": "Wyczyść wiszące zasoby i ponownie zsynchronizuj metadane",
-        "reprocess_assets_fix_mode": "Ponownie przetwarzaj nieprzetworzone zasoby"
+        "reprocess_assets_fix_mode": "Ponownie przetwarzaj nieprzetworzone zasoby",
+        "migrate_large_link_html_content": "Przenieś dużą zawartość HTML inline do zasobów."
       }
     },
     "actions": {
@@ -411,6 +451,18 @@
       "reprocess_assets_fix_mode": "Ponowne przetwarzanie zasobów (tryb fiksny)",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Wygeneruj ponownie podsumowania AI tylko dla nieudanych zakładek",
       "regenerate_ai_summaries_for_all_bookmarks": "Wygeneruj ponownie podsumowania AI dla wszystkich zakładek"
+    },
+    "service_connections": {
+      "title": "Połączenia z usługami",
+      "description": "Monitoruj stan i łączność zewnętrznych zależności systemowych",
+      "search_engine": "Wyszukiwarka",
+      "browser": "Przeglądarka",
+      "queue_system": "System kolejek",
+      "status": {
+        "not_configured": "Nieskonfigurowane",
+        "connected": "Połączono",
+        "disconnected": "Odłączono"
+      }
     }
   },
   "tags": {
@@ -424,7 +476,18 @@
     "unused_tags": "Nieużywane tagi",
     "unused_tags_info": "Tagi, które nie są przypisane do żadnych zakładek",
     "drag_and_drop_merging_info": "Przeciągnij i upuść tagi na siebie, aby je scalić",
-    "sort_by_name": "Sortuj według nazwy"
+    "sort_by_name": "Sortuj według nazwy",
+    "create_tag": "Stwórz etykietę",
+    "create_tag_description": "Stwórz nową etykietę bez dołączania jej do żadnej zakładki",
+    "tag_name": "Nazwa etykiety",
+    "enter_tag_name": "Wprowadź nazwę etykiety",
+    "sort_by_usage": "Sortuj wg użycia",
+    "sort_by_relevance": "Sortuj wg trafności",
+    "no_custom_tags": "Jeszcze brak własnych tagów",
+    "no_ai_tags": "Jeszcze brak tagów AI",
+    "no_unused_tags": "Nie masz nieużywanych tagów",
+    "no_unused_tags_match_your_search": "Żadne nieużywane tagi nie pasują do wyszukiwania",
+    "no_tags_match_your_search": "Żadne tagi nie pasują do wyszukiwania"
   },
   "editor": {
     "text_toolbar": {
@@ -506,6 +569,10 @@
       "full_page_archive": "Tworzenie pełnego archiwum strony zostało rozpoczęte",
       "delete_from_list": "Zakładka została usunięta z listy",
       "clipboard_copied": "Link został skopiowany do schowka!"
+    },
+    "tags": {
+      "created": "Etykieta została utworzona!",
+      "failed_to_create": "Nie udało się utworzyć etykiety"
     }
   },
   "layouts": {
@@ -546,6 +613,12 @@
       "title": "Kanał RSS",
       "description": "Włącz kanał RSS dla tej listy",
       "feed_url": "Adres URL kanału RSS"
+    },
+    "delete_list": {
+      "title": "Usuń listę",
+      "description": "Usunięcie listy nie powoduje usunięcia żadnych zakładek z tej listy.",
+      "delete_children": "Usuń listy potomne (rekurencyjnie)",
+      "delete_children_description": "Jeśli nie zaznaczone, wszystkie bezpośrednie listy potomne staną się listami głównymi"
     }
   },
   "preview": {
@@ -596,7 +669,9 @@
     "week_s_ago": " Tygodni temu",
     "month_s_ago": " Miesięcy temu",
     "year_s_ago": " Lat(a) temu",
-    "history": "Ostatnie wyszukiwania"
+    "history": "Ostatnie wyszukiwania",
+    "title_contains": "Tytuł zawiera",
+    "title_does_not_contain": "Tytuł nie zawiera"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Wybierz datę",
     "save_changes": "Zapisz zmiany",
     "extracted_content": "Wyodrębniona zawartość"
+  },
+  "view_options": {
+    "title": "Opcje widoku",
+    "layout": "Układ",
+    "columns": "Kolumny",
+    "display_options": "Opcje wyświetlania",
+    "show_note_previews": "Pokaż notatki",
+    "show_tags": "Pokaż tagi",
+    "show_title": "Pokaż tytuł",
+    "image_options": "Opcje obrazu",
+    "image_fit_cover": "Okładka (Wypełnienie)",
+    "image_fit_contain": "Zawieraj (Dopasuj)"
+  },
+  "version": {
+    "new_release_available": "Dostępne nowe informacje o wydaniu",
+    "whats_new_title": "Co nowego w wersji {{version}}",
+    "release_notes_description": "Oto najnowsze aktualizacje pobrane z informacji o wydaniu GitHub.",
+    "loading_release_notes": "Ładowanie informacji o wydaniu…",
+    "unable_to_load_release_notes": "Nie można teraz załadować informacji o wydaniu. Spróbuj ponownie później.",
+    "no_release_notes": "Dla tej wersji nie opublikowano żadnych informacji o wydaniu.",
+    "release_notes_synced": "Informacje o wydaniu są synchronizowane z GitHub.",
+    "view_on_github": "Wyświetl na GitHub"
   }
 }

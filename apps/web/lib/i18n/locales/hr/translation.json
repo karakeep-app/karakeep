@@ -66,6 +66,10 @@
         "webhook": {
           "title": "Webhook poslovi",
           "description": "Vanjske webhook obavijesti"
+        },
+        "admin_maintenance": {
+          "title": "Poslovi održavanja administratora",
+          "description": "Administrativno čišćenje i održavanje imovine"
         }
       },
       "monitor_and_manage": "Pratite i upravljajte redovima pozadinskih poslova i zadacima obrade sustava",
@@ -96,7 +100,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Ponovno generiraj AI sažetke za sve oznake",
         "reindex_all_bookmarks": "Ponovno indeksiraj sve oznake",
         "clean_assets": "Očisti viseću imovinu i ponovno sinkroniziraj metapodatke",
-        "reprocess_assets_fix_mode": "Ponovno obradi neobrađenu imovinu"
+        "reprocess_assets_fix_mode": "Ponovno obradi neobrađenu imovinu",
+        "migrate_large_link_html_content": "Premjesti veliki Inline HTML sadržaj u resurse"
       }
     },
     "actions": {
@@ -110,6 +115,18 @@
       "reprocess_assets_fix_mode": "Ponovno postupanje s resursima (fiksni mod)",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Ponovno generiraj AI sažetke samo za neuspjele oznake",
       "regenerate_ai_summaries_for_all_bookmarks": "Ponovno generiraj AI sažetke za sve oznake"
+    },
+    "service_connections": {
+      "title": "Servisne veze",
+      "description": "Prati zdravlje i povezanost vanjskih sistemskih ovisnosti",
+      "search_engine": "Tražilica",
+      "browser": "Preglednik",
+      "queue_system": "Sustav čekanja u redu",
+      "status": {
+        "not_configured": "Nije konfigurirano",
+        "connected": "Spojeno",
+        "disconnected": "Odspojeno"
+      }
     }
   },
   "layouts": {
@@ -216,7 +233,12 @@
       "new_api_key": "Novi API ključ",
       "new_api_key_desc": "Dajte svom API ključu jedinstveno ime",
       "key_success": "Ključ je uspješno kreiran",
-      "key_success_please_copy": "Molimo kopirajte ključ i saćuvajte ga na sigurnom mjestu. Nakon što zatvorite dijalog, više ga nećete moći ponovo pristupiti."
+      "key_success_please_copy": "Molimo kopirajte ključ i saćuvajte ga na sigurnom mjestu. Nakon što zatvorite dijalog, više ga nećete moći ponovo pristupiti.",
+      "regenerate_api_key": "Ponovo stvori API ključ",
+      "key_regenerated": "Ključ je uspješno ponovo stvoren",
+      "key_regenerated_please_copy": "Kopiraj novi ključ i spremi ga na sigurno mjesto. Stari ključ je povučen i više neće raditi.",
+      "regenerate_warning": "Jesi li siguran da želiš ponovo stvoriti API ključ \"{{name}}\"?",
+      "regenerate_confirmation": "Ovo će povući trenutni ključ i stvoriti novi. Sve aplikacije koje koriste trenutni ključ prestat će raditi."
     },
     "broken_links": {
       "broken_links": "Pokidane veze",
@@ -375,6 +397,33 @@
       "loading_usage": "Učitavam informacije o korištenju...",
       "free": "Besplatno",
       "paid": "Plaćeno"
+    },
+    "import_sessions": {
+      "title": "Uvoz sesija",
+      "description": "Pregledaj i upravljaj svojim sesijama grupnog uvoza. Sesije se automatski stvaraju kada uvoziš oznake.",
+      "load_error": "Nisam uspio učitati sesije uvoza",
+      "no_sessions": "Još nema sesija uvoza",
+      "no_sessions_detail": "Sesije uvoza će se ovdje automatski pojaviti kad uvoziš oznake",
+      "created_at": "Napravljeno {{time}}",
+      "progress": "Napredak",
+      "status": {
+        "pending": "U tijeku",
+        "in_progress": "U tijeku",
+        "completed": "Završeno",
+        "failed": "Neuspjelo",
+        "processing": "Obrada"
+      },
+      "badges": {
+        "pending": "{{count}} na čekanju",
+        "processing": "{{count}} se obrađuje",
+        "completed": "{{count}} završeno",
+        "failed": "{{count}} neuspjelo"
+      },
+      "imported_to": "Uvezeno u:",
+      "view_list": "Vidite popis",
+      "delete_dialog_title": "Izbriši sesiju uvoza",
+      "delete_dialog_description": "Jesi li ziher da želiš izbrisati \"{{name}}\"? Ne možeš to poništiti. Same oznake neće biti izbrisane.",
+      "delete_session": "Izbriši sesiju"
     }
   },
   "actions": {
@@ -417,7 +466,10 @@
     },
     "open_editor": "Otvori uređivač",
     "toggle_show_archived": "Prikaži arhivirano",
-    "confirm": "Potvrdi"
+    "confirm": "Potvrdi",
+    "regenerate": "Ponovo stvori",
+    "load_more": "Učitaj više",
+    "edit_notes": "Uredi bilješke"
   },
   "highlights": {
     "no_highlights": "Još nemate nijednu istaknutu stavku."
@@ -454,6 +506,12 @@
       "title": "RSS feed",
       "description": "Omogući RSS feed za ovaj popis",
       "feed_url": "URL RSS feeda"
+    },
+    "delete_list": {
+      "title": "Izbriši popis",
+      "description": "Brisanjem popisa ne brišu se oznake unutar tog popisa.",
+      "delete_children": "Izbriši podređene popise (rekurzivno)",
+      "delete_children_description": "Ako nije označeno, svi izravno podređeni popisi postat će korijenski popisi"
     }
   },
   "tags": {
@@ -467,7 +525,18 @@
     "drag_and_drop_merging_info": "Drag and drop oznake jedna na drugu kako biste ih spojili",
     "sort_by_name": "Sortiraj po imenu",
     "delete_all_unused_tags": "Izbriši sve neiskorištene oznake",
-    "unused_tags_info": "Oznake koje nisu priložene nijednoj oznaci"
+    "unused_tags_info": "Oznake koje nisu priložene nijednoj oznaci",
+    "create_tag": "Kreiraj oznaku",
+    "create_tag_description": "Napravi novu oznaku bez da ju spojiš s nekom knjižnom oznakom",
+    "tag_name": "Ime oznake",
+    "enter_tag_name": "Upiši ime oznake",
+    "sort_by_usage": "Sortiraj po upotrebi",
+    "sort_by_relevance": "Sortiraj po važnosti",
+    "no_custom_tags": "Još nema prilagođenih oznaka",
+    "no_ai_tags": "Još nema AI oznaka",
+    "no_unused_tags": "Nemaš neiskorištenih oznaka",
+    "no_unused_tags_match_your_search": "Nijedna neiskorištena oznaka ne odgovara pretrazi",
+    "no_tags_match_your_search": "Nijedna oznaka ne odgovara pretrazi"
   },
   "preview": {
     "view_original": "Pogledaj orginal",
@@ -551,6 +620,10 @@
       "updated": "Popis je ažuriran!",
       "merged": "Lista je spojena!",
       "deleted": "Lista je izbrisana!"
+    },
+    "tags": {
+      "created": "Oznaka je kreirana!",
+      "failed_to_create": "Nije uspjelo kreiranje oznake"
     }
   },
   "cleanups": {
@@ -596,7 +669,9 @@
     "week_s_ago": " Tjedna(i) prije",
     "month_s_ago": " Mjeseca(i) prije",
     "year_s_ago": " Godina(e) prije",
-    "history": "Nedavne pretrage"
+    "history": "Nedavne pretrage",
+    "title_contains": "Naslov sadrži",
+    "title_does_not_contain": "Naslov ne sadrži"
   },
   "dialogs": {
     "bookmarks": {
@@ -619,5 +694,27 @@
     "pick_a_date": "Odaberi datum",
     "save_changes": "Spremi promjene",
     "extracted_content": "Izdvojeni sadržaj"
+  },
+  "view_options": {
+    "title": "Opcije prikaza",
+    "layout": "Izgled",
+    "columns": "Stupci",
+    "display_options": "Opcije prikaza",
+    "show_note_previews": "Prikaži bilješke",
+    "show_tags": "Pokaži oznake",
+    "show_title": "Pokaži naslov",
+    "image_options": "Opcije slike",
+    "image_fit_cover": "Naslovnica (ispuni)",
+    "image_fit_contain": "Sadrži (stane)"
+  },
+  "version": {
+    "new_release_available": "Nove bilješke o izdanju su dostupne",
+    "whats_new_title": "Što je novo u verziji {{version}}",
+    "release_notes_description": "Evo najnovijih ažuriranja preuzetih iz bilješki o izdanju na GitHubu.",
+    "loading_release_notes": "Učitavanje bilješki o izdanju…",
+    "unable_to_load_release_notes": "Trenutno nije moguće učitati bilješke o izdanju. Pokušaj ponovno kasnije.",
+    "no_release_notes": "Za ovu verziju nisu objavljene bilješke o izdanju.",
+    "release_notes_synced": "Bilješke o izdanju sinkronizirane su s GitHuba.",
+    "view_on_github": "Pogledaj na GitHubu"
   }
 }

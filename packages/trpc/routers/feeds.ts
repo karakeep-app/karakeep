@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { FeedQueue } from "@karakeep/shared/queues";
+import { FeedQueue } from "@karakeep/shared-server";
 import {
   zFeedSchema,
   zNewFeedSchema,

@@ -5,7 +5,12 @@
       "new_api_key": "Nov API ključ",
       "new_api_key_desc": "Izberite edinstveno ime za svoj API ključ",
       "api_keys": "API Ključi",
-      "key_success": "Ključ je bil uspešno ustvarjen"
+      "key_success": "Ključ je bil uspešno ustvarjen",
+      "regenerate_api_key": "Osveži API ključ",
+      "key_regenerated": "Ključ je bil uspešno osvežen",
+      "key_regenerated_please_copy": "Prosimo, da kopirate nov ključ in ga shranite na varnem mestu. Stari ključ je bil preklican in ne bo več deloval.",
+      "regenerate_warning": "Ali ste prepričani, da želite ponovno ustvariti API ključ \"{{name}}\"?",
+      "regenerate_confirmation": "S tem boste preklicali trenutni ključ in ustvarili novega. Vse aplikacije, ki uporabljajo trenutni ključ, bodo prenehale delovati."
     },
     "import": {
       "import_bookmarks_from_karakeep_export": "Uvozi zaznamke iz Karakeep izvoza",
@@ -214,6 +219,33 @@
       "loading_usage": "Nalaganje informacij o uporabi ...",
       "free": "Brezplačno",
       "paid": "Plačano"
+    },
+    "import_sessions": {
+      "title": "Uvozi seje",
+      "description": "Ogled in upravljanje vaših sej za množični uvoz. Seje se samodejno ustvarijo, ko uvozite zaznamke.",
+      "load_error": "Uvoz sej se ni naložil",
+      "no_sessions": "Še ni uvoznih sej",
+      "no_sessions_detail": "Uvozne seje bodo tukaj samodejno prikazane, ko uvozite zaznamke",
+      "created_at": "Ustvarjeno {{time}}",
+      "progress": "Napredek",
+      "status": {
+        "pending": "Čakam",
+        "in_progress": "V teku",
+        "completed": "Končano",
+        "failed": "Neuspešno",
+        "processing": "Obdelava"
+      },
+      "badges": {
+        "pending": "{{count}} čaka",
+        "processing": "{{count}} se obdeluje",
+        "completed": "{{count}} končanih",
+        "failed": "{{count}} neuspelih"
+      },
+      "imported_to": "Uvoženo v:",
+      "view_list": "Pokaži seznam",
+      "delete_dialog_title": "Izbriši sejo uvoza",
+      "delete_dialog_description": "Ste prepričani, da želite izbrisati »{{name}}«? Tega dejanja ni mogoče razveljaviti. Zaznamki sami ne bodo izbrisani.",
+      "delete_session": "Izbriši sejo"
     }
   },
   "admin": {
@@ -282,6 +314,10 @@
         "feed": {
           "title": "Posli RSS-vira",
           "description": "Obdelava RSS-vira in posodobitve vsebine"
+        },
+        "admin_maintenance": {
+          "title": "Administrativna vzdrževalna dela",
+          "description": "Administrativno čiščenje in vzdrževanje sredstev"
         }
       },
       "monitor_and_manage": "Spremljajte in upravljajte čakalne vrste opravil v ozadju ter sistemske naloge obdelave",
@@ -312,7 +348,8 @@
         "regenerate_ai_summaries_for_all_bookmarks": "Ustvari znova izvlečke AI za vse zaznamke",
         "reindex_all_bookmarks": "Ponovno indeksiraj vse zaznamke",
         "clean_assets": "Očisti viseča sredstva in ponovno sinhroniziraj metapodatke",
-        "reprocess_assets_fix_mode": "Ponovno obdelaj nepredelana sredstva"
+        "reprocess_assets_fix_mode": "Ponovno obdelaj nepredelana sredstva",
+        "migrate_large_link_html_content": "Premakni veliko vdelano HTML-ovo kodo v sredstva."
       }
     },
     "admin_settings": "Administratorske nastavitve",
@@ -327,6 +364,18 @@
       "reprocess_assets_fix_mode": "Ponovno obdelaj sredstva (način popravljanja)",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Ponovno ustvari povzetke umetne inteligence samo za neuspele zaznamke",
       "regenerate_ai_summaries_for_all_bookmarks": "Ponovno ustvari povzetke umetne inteligence za vse zaznamke"
+    },
+    "service_connections": {
+      "title": "Povezave storitev",
+      "description": "Spremljaj stanje in povezljivost zunanjih sistemskih odvisnosti",
+      "search_engine": "Iskalnik",
+      "browser": "Brskalnik",
+      "queue_system": "Sistem čakalnih vrst",
+      "status": {
+        "not_configured": "Ni konfigurirano",
+        "connected": "Povezano",
+        "disconnected": "Odklopljeno"
+      }
     }
   },
   "search": {
@@ -365,7 +414,9 @@
     "week_s_ago": " Tedni nazaj",
     "month_s_ago": " Meseci nazaj",
     "year_s_ago": " Let(a) nazaj",
-    "history": "Nedavna iskanja"
+    "history": "Nedavna iskanja",
+    "title_contains": "Naslov vsebuje",
+    "title_does_not_contain": "Naslov ne vsebuje"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",
@@ -378,7 +429,18 @@
     "your_tags": "Tvoje oznake",
     "unused_tags": "Nsuporabljene oznake",
     "delete_all_unused_tags": "Izbriši vse neuporabljene oznake",
-    "drag_and_drop_merging_info": "Povlecite in spustite oznake drug na drugo, da jih združite"
+    "drag_and_drop_merging_info": "Povlecite in spustite oznake drug na drugo, da jih združite",
+    "create_tag": "Ustvari oznako",
+    "create_tag_description": "Ustvari novo oznako brez pripenjanja na zaznamek",
+    "tag_name": "Ime oznake",
+    "enter_tag_name": "Vnesi ime oznake",
+    "sort_by_usage": "Razvrsti po uporabi",
+    "sort_by_relevance": "Razvrsti po ustreznosti",
+    "no_custom_tags": "Še ni oznak po meri",
+    "no_ai_tags": "Še ni oznak AI",
+    "no_unused_tags": "Nimaš neuporabljenih oznak",
+    "no_unused_tags_match_your_search": "Nobena neuporabljena oznaka ne ustreza tvojemu iskanju",
+    "no_tags_match_your_search": "Nobena oznaka ne ustreza tvojemu iskanju"
   },
   "common": {
     "archive": "Arhiv",
@@ -462,7 +524,10 @@
     "apply_all": "Uporabi vse",
     "open_editor": "Odpri urejevalnik",
     "toggle_show_archived": "Prikaži arhivirano",
-    "confirm": "Potrdi"
+    "confirm": "Potrdi",
+    "regenerate": "Osveži",
+    "load_more": "Naloži več",
+    "edit_notes": "Uredi opombe"
   },
   "layouts": {
     "compact": "Kompaktno",
@@ -498,6 +563,12 @@
       "title": "Javni seznam",
       "description": "Dovoli drugim ogled tega seznama",
       "share_link": "Povezava za deljenje"
+    },
+    "delete_list": {
+      "title": "Izbriši seznam",
+      "description": "Če izbrišeš seznam, ne izbrišeš zaznamkov na tem seznamu.",
+      "delete_children": "Izbriši podrejene sezname (rekurzivno)",
+      "delete_children_description": "Če ni označeno, bodo vsi neposredni podrejeni seznami postali glavni seznami"
     }
   },
   "options": {
@@ -577,6 +648,10 @@
       "updated": "Seznam je bil posodobljen!",
       "merged": "Seznam je bil združen!",
       "deleted": "Seznam je bil izbrisan!"
+    },
+    "tags": {
+      "created": "Oznaka je bila ustvarjena!",
+      "failed_to_create": "Oznake ni bilo mogoče ustvariti"
     }
   },
   "dialogs": {
@@ -619,5 +694,27 @@
     "date_published": "Datum objave",
     "pick_a_date": "Izberi datum",
     "extracted_content": "Izluščena vsebina"
+  },
+  "view_options": {
+    "title": "Možnosti prikaza",
+    "layout": "Postavitev",
+    "columns": "Stolpci",
+    "display_options": "Možnosti prikaza",
+    "show_note_previews": "Pokaži opombe",
+    "show_tags": "Pokaži oznake",
+    "show_title": "Pokaži naslov",
+    "image_options": "Možnosti slike",
+    "image_fit_cover": "Pokrov (Izpolni)",
+    "image_fit_contain": "Vsebuje (Prilagodi)"
+  },
+  "version": {
+    "new_release_available": "Na voljo so nove opombe ob izidu",
+    "whats_new_title": "Kaj je novega v različici v{{version}}",
+    "release_notes_description": "Tukaj so najnovejše posodobitve, pridobljene iz opomb ob izdaji GitHub.",
+    "loading_release_notes": "Nalaganje opomb ob izdaji …",
+    "unable_to_load_release_notes": "Opomb ob izdaji trenutno ni mogoče naložiti. Poskusite znova pozneje.",
+    "no_release_notes": "Za to različico niso bile objavljene nobene opombe ob izdaji.",
+    "release_notes_synced": "Opombe ob izdaji so sinhronizirane iz GitHub.",
+    "view_on_github": "Poglej si na GitHubu"
   }
 }
