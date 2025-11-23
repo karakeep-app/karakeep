@@ -2831,5 +2831,98 @@ describe("Shared Lists", () => {
       // Email should still be visible to owner
       expect(declinedInvitation?.user.email).toBe(collaboratorEmail);
     });
+
+    test<CustomTestContext>("should hide emails from non-owners", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaborator1Api = apiCallers[1];
+      const collaborator2Api = apiCallers[2];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const ownerUser = await ownerApi.users.whoami();
+      const ownerEmail = ownerUser.email!;
+
+      const collaborator1User = await collaborator1Api.users.whoami();
+      const collaborator1Email = collaborator1User.email!;
+
+      const collaborator2User = await collaborator2Api.users.whoami();
+      const collaborator2Email = collaborator2User.email!;
+
+      // Add both collaborators
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaborator1Api,
+        list.id,
+        "editor",
+      );
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaborator2Api,
+        list.id,
+        "viewer",
+      );
+
+      // Owner should see all emails
+      const ownerView = await ownerApi.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      expect(ownerView.owner?.email).toBe(ownerEmail);
+
+      const ownerViewCollaborators = ownerView.collaborators.filter(
+        (c) => c.status === "accepted",
+      );
+      expect(ownerViewCollaborators).toHaveLength(2);
+
+      const ownerViewCollab1 = ownerViewCollaborators.find(
+        (c) => c.user.email === collaborator1Email,
+      );
+      const ownerViewCollab2 = ownerViewCollaborators.find(
+        (c) => c.user.email === collaborator2Email,
+      );
+
+      expect(ownerViewCollab1?.user.email).toBe(collaborator1Email);
+      expect(ownerViewCollab2?.user.email).toBe(collaborator2Email);
+
+      // Non-owners should NOT see any emails
+      const collaborator1View = await collaborator1Api.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      // Should not see owner email
+      expect(collaborator1View.owner?.email).toBe(null);
+
+      // Should not see other collaborators' emails
+      const collab1ViewCollaborators = collaborator1View.collaborators.filter(
+        (c) => c.status === "accepted",
+      );
+      expect(collab1ViewCollaborators).toHaveLength(2);
+
+      collab1ViewCollaborators.forEach((c) => {
+        expect(c.user.email).toBe(null);
+      });
+
+      // Verify collaborator2 also can't see emails
+      const collaborator2View = await collaborator2Api.lists.getCollaborators({
+        listId: list.id,
+      });
+
+      expect(collaborator2View.owner?.email).toBe(null);
+
+      const collab2ViewCollaborators = collaborator2View.collaborators.filter(
+        (c) => c.status === "accepted",
+      );
+      expect(collab2ViewCollaborators).toHaveLength(2);
+
+      collab2ViewCollaborators.forEach((c) => {
+        expect(c.user.email).toBe(null);
+      });
+    });
   });
 });
