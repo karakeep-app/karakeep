@@ -58,7 +58,7 @@ function TagList({
           <>
             <View className="flex flex-row flex-wrap gap-2 rounded-lg p-2">
               {bookmark.tags.map((t) => (
-                <TagPill key={t.id} tag={t} />
+                <TagPill key={t.id} tag={t} clickable={!readOnly} />
               ))}
             </View>
             <Divider orientation="horizontal" />

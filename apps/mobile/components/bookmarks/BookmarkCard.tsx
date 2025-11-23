@@ -267,6 +267,8 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
 
 function TagList({ bookmark }: { bookmark: ZBookmark }) {
   const tags = bookmark.tags;
+  const { data: currentUser } = useWhoAmI();
+  const isOwner = currentUser?.id === bookmark.userId;
 
   if (isBookmarkStillTagging(bookmark)) {
     return (
@@ -281,7 +283,7 @@ function TagList({ bookmark }: { bookmark: ZBookmark }) {
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <View className="flex flex-row gap-2">
         {tags.map((t) => (
-          <TagPill key={t.id} tag={t} />
+          <TagPill key={t.id} tag={t} clickable={isOwner} />
         ))}
       </View>
     </ScrollView>
