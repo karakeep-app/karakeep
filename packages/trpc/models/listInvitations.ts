@@ -168,6 +168,9 @@ export class ListInvitation {
       .where(eq(listInvitations.id, this.invitation.id));
   }
 
+  /**
+   * @returns the invitation ID
+   */
   static async inviteByEmail(
     ctx: AuthedContext,
     params: {
@@ -180,7 +183,7 @@ export class ListInvitation {
       inviterUserId: string;
       inviterName: string | null;
     },
-  ): Promise<void> {
+  ): Promise<string> {
     const {
       email,
       role,
@@ -264,18 +267,21 @@ export class ListInvitation {
           listName,
           listId,
         });
-        return;
+        return existingInvitation.id;
       }
     }
 
-    await ctx.db.insert(listInvitations).values({
-      listId,
-      userId: user.id,
-      role,
-      status: "pending",
-      invitedEmail: email,
-      invitedBy: inviterUserId,
-    });
+    const res = await ctx.db
+      .insert(listInvitations)
+      .values({
+        listId,
+        userId: user.id,
+        role,
+        status: "pending",
+        invitedEmail: email,
+        invitedBy: inviterUserId,
+      })
+      .returning();
 
     await this.sendInvitationEmail({
       email,
@@ -283,6 +289,7 @@ export class ListInvitation {
       listName,
       listId,
     });
+    return res[0].id;
   }
 
   static async pendingForUser(ctx: AuthedContext) {

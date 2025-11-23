@@ -19,21 +19,15 @@ async function addAndAcceptCollaborator(
   const collaboratorUser = await collaboratorApi.users.whoami();
 
   // Owner invites the collaborator
-  await ownerApi.lists.addCollaborator({
+  const { invitationId } = await ownerApi.lists.addCollaborator({
     listId,
     email: collaboratorUser.email!,
     role,
   });
 
   // Collaborator accepts the invitation
-  const pendingInvitations =
-    await collaboratorApi.lists.getPendingInvitations();
-  const invitation = pendingInvitations.find((inv) => inv.listId === listId);
-  if (!invitation) {
-    throw new Error("No pending invitation found for list");
-  }
   await collaboratorApi.lists.acceptInvitation({
-    invitationId: invitation.id,
+    invitationId,
   });
 }
 
@@ -115,7 +109,7 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
@@ -131,13 +125,8 @@ describe("Shared Lists", () => {
       ).rejects.toThrow("User already has a pending invitation for this list");
 
       // Accept the invitation
-      const pendingInvitations_3663 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_3663 = pendingInvitations_3663.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_3663!.id,
+        invitationId,
       });
 
       // Try to add them again after they're a collaborator
@@ -543,13 +532,12 @@ describe("Shared Lists", () => {
         type: "manual",
       });
 
-      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
-
-      await ownerApi.lists.addCollaborator({
-        listId: list.id,
-        email: collaboratorEmail,
-        role: "viewer",
-      });
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "viewer",
+      );
 
       await expect(
         thirdUserApi.lists.get({
@@ -588,23 +576,12 @@ describe("Shared Lists", () => {
         type: "manual",
       });
 
-      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
-
-      await ownerApi.lists.addCollaborator({
-        listId: list.id,
-        email: collaboratorEmail,
-        role: "editor",
-      });
-
-      // Accept the invitation
-      const pendingInvitations_16682 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_16682 = pendingInvitations_16682.find(
-        (inv) => inv.listId === list.id,
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
       );
-      await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_16682!.id,
-      });
 
       const retrievedList = await collaboratorApi.lists.get({
         listId: list.id,
@@ -1069,12 +1046,12 @@ describe("Shared Lists", () => {
         bookmarkId: bookmark.id,
       });
 
-      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
-      await ownerApi.lists.addCollaborator({
-        listId: list.id,
-        email: collaboratorEmail,
-        role: "editor",
-      });
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
+      );
 
       // Collaborator tries to edit owner's bookmark
       await expect(
@@ -1082,7 +1059,7 @@ describe("Shared Lists", () => {
           bookmarkId: bookmark.id,
           title: "Modified title",
         }),
-      ).rejects.toThrow("Bookmark not found");
+      ).rejects.toThrow("User is not allowed to access resource");
     });
 
     test<CustomTestContext>("should not allow collaborator to delete bookmark they don't own", async ({
@@ -1483,12 +1460,12 @@ describe("Shared Lists", () => {
         bookmarkId: bookmark.id,
       });
 
-      const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
-      await ownerApi.lists.addCollaborator({
-        listId: list.id,
-        email: collaboratorEmail,
-        role: "viewer",
-      });
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "viewer",
+      );
 
       // Collaborator cannot use getListsOfBookmark for owner's bookmark
       // This is expected - only bookmark owners can query which lists contain their bookmarks
@@ -1496,7 +1473,7 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.getListsOfBookmark({
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow("User is not allowed to access resource");
     });
 
     test<CustomTestContext>("should allow collaborator to use getListsOfBookmark for their own bookmarks in shared lists", async ({
@@ -1773,12 +1750,7 @@ describe("Shared Lists", () => {
         type: "manual",
       });
 
-      const editorEmail = (await editorApi.users.whoami()).email!;
-      await ownerApi.lists.addCollaborator({
-        listId: list.id,
-        email: editorEmail,
-        role: "editor",
-      });
+      await addAndAcceptCollaborator(ownerApi, editorApi, list.id, "editor");
 
       // Editor tries to change list name
       await expect(
@@ -2013,20 +1985,15 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Accept the invitation
-      const pendingInvitations_55529 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_55529 = pendingInvitations_55529.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_55529!.id,
+        invitationId,
       });
 
       // Verify collaborator was added
@@ -2059,20 +2026,15 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Decline the invitation
-      const pendingInvitations_56715 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_56715 = pendingInvitations_56715.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.declineInvitation({
-        invitationId: invitation_56715!.id,
+        invitationId,
       });
 
       // Verify collaborator was not added
@@ -2104,21 +2066,15 @@ describe("Shared Lists", () => {
 
       const collaboratorUser = await collaboratorApi.users.whoami();
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorUser.email!,
         role: "viewer",
       });
 
       // Owner revokes the invitation
-      const collaborators_58246 = await ownerApi.lists.getCollaborators({
-        listId: list.id,
-      });
-      const collaborator_58246 = collaborators_58246.collaborators.find(
-        (c) => c.userId === collaboratorUser.id,
-      );
       await ownerApi.lists.revokeInvitation({
-        invitationId: collaborator_58246!.id,
+        invitationId,
       });
 
       // Verify invitation was revoked
@@ -2264,7 +2220,7 @@ describe("Shared Lists", () => {
       // hasCollaborators should be false initially
       expect(list.hasCollaborators).toBe(false);
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
@@ -2277,13 +2233,8 @@ describe("Shared Lists", () => {
       expect(listAfterInvite.hasCollaborators).toBe(false);
 
       // Accept the invitation
-      const pendingInvitations_63319 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_63319 = pendingInvitations_63319.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_63319!.id,
+        invitationId,
       });
 
       // hasCollaborators should still be true
@@ -2307,7 +2258,7 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
@@ -2320,13 +2271,8 @@ describe("Shared Lists", () => {
       expect(listAfterInvite.hasCollaborators).toBe(false);
 
       // Decline the invitation
-      const pendingInvitations_64033 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_64033 = pendingInvitations_64033.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.declineInvitation({
-        invitationId: invitation_64033!.id,
+        invitationId,
       });
 
       // hasCollaborators should be false after declining
@@ -2350,20 +2296,15 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Decline the invitation
-      const pendingInvitations_65137 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_65137 = pendingInvitations_65137.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.declineInvitation({
-        invitationId: invitation_65137!.id,
+        invitationId,
       });
 
       // Should not appear in pending invitations
@@ -2388,20 +2329,15 @@ describe("Shared Lists", () => {
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
       // First invitation
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Decline it
-      const pendingInvitations_66620 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_66620 = pendingInvitations_66620.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.declineInvitation({
-        invitationId: invitation_66620!.id,
+        invitationId,
       });
 
       // Re-invite with different role
@@ -2447,27 +2383,21 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Accept once
-      const pendingInvitations_68541 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_68541 = pendingInvitations_68541.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_68541!.id,
+        invitationId,
       });
 
       // Try to accept again (should fail since invitation is already accepted and deleted)
-      const fakeInvitationId2 = "fake-invitation-id";
       await expect(
         collaboratorApi.lists.acceptInvitation({
-          invitationId: fakeInvitationId2,
+          invitationId,
         }),
       ).rejects.toThrow("Invitation not found");
     });
@@ -2486,7 +2416,7 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
@@ -2497,13 +2427,8 @@ describe("Shared Lists", () => {
       expect(listsBefore.lists.find((l) => l.id === list.id)).toBeUndefined();
 
       // Accept invitation
-      const pendingInvitations_69848 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_69848 = pendingInvitations_69848.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_69848!.id,
+        invitationId,
       });
 
       // Now list should appear
@@ -2534,17 +2459,19 @@ describe("Shared Lists", () => {
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
       // Invite to both lists
-      await ownerApi.lists.addCollaborator({
-        listId: list1.id,
-        email: collaboratorEmail,
-        role: "viewer",
-      });
+      const { invitationId: invitationId1 } =
+        await ownerApi.lists.addCollaborator({
+          listId: list1.id,
+          email: collaboratorEmail,
+          role: "viewer",
+        });
 
-      await ownerApi.lists.addCollaborator({
-        listId: list2.id,
-        email: collaboratorEmail,
-        role: "editor",
-      });
+      const { invitationId: invitationId2 } =
+        await ownerApi.lists.addCollaborator({
+          listId: list2.id,
+          email: collaboratorEmail,
+          role: "editor",
+        });
 
       // Should have 2 pending invitations
       const pendingInvitations =
@@ -2553,13 +2480,8 @@ describe("Shared Lists", () => {
       expect(pendingInvitations).toHaveLength(2);
 
       // Accept one
-      const pendingInvitations_69243 =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation_69243 = pendingInvitations_69243.find(
-        (inv) => inv.listId === list1.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation_69243!.id,
+        invitationId: invitationId1,
       });
 
       // Should have 1 pending invitation left
@@ -2567,6 +2489,7 @@ describe("Shared Lists", () => {
         await collaboratorApi.lists.getPendingInvitations();
 
       expect(remainingInvitations).toHaveLength(1);
+      expect(remainingInvitations[0].id).toBe(invitationId2);
       expect(remainingInvitations[0].listId).toBe(list2.id);
     });
 
@@ -2593,24 +2516,17 @@ describe("Shared Lists", () => {
 
       // Owner invites third user
       const thirdUserEmail = (await thirdUserApi.users.whoami()).email!;
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: thirdUserEmail,
         role: "viewer",
       });
 
       // Collaborator tries to revoke the third user's invitation
-      const { collaborators } = await ownerApi.lists.getCollaborators({
-        listId: list.id,
-      });
-      const thirdUserInvitation = collaborators.find(
-        (c) => c.status === "pending",
-      );
-
       // Collaborator cannot access the invitation at all (not the invitee, not the owner)
       await expect(
         collaboratorApi.lists.revokeInvitation({
-          invitationId: thirdUserInvitation!.id,
+          invitationId,
         }),
       ).rejects.toThrow("Invitation not found");
     });
@@ -2629,22 +2545,16 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Invited user tries to revoke (should only be able to decline)
-      const pendingInvitations =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation = pendingInvitations.find(
-        (inv) => inv.listId === list.id,
-      );
-
       await expect(
         collaboratorApi.lists.revokeInvitation({
-          invitationId: invitation!.id,
+          invitationId,
         }),
       ).rejects.toThrow("Only the list owner can perform this action");
     });
@@ -2664,36 +2574,30 @@ describe("Shared Lists", () => {
 
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
-      // Get invitation ID from owner's perspective
-      const { collaborators } = await ownerApi.lists.getCollaborators({
-        listId: list.id,
-      });
-      const invitationId = collaborators[0].id;
-
       // Third user (not owner, not invitee) tries to revoke invitation
       await expect(
         thirdUserApi.lists.revokeInvitation({
-          invitationId: invitationId,
+          invitationId,
         }),
       ).rejects.toThrow("Invitation not found");
 
       // Third user tries to accept invitation
       await expect(
         thirdUserApi.lists.acceptInvitation({
-          invitationId: invitationId,
+          invitationId,
         }),
       ).rejects.toThrow("Invitation not found");
 
       // Third user tries to decline invitation
       await expect(
         thirdUserApi.lists.declineInvitation({
-          invitationId: invitationId,
+          invitationId,
         }),
       ).rejects.toThrow("Invitation not found");
     });
@@ -2756,19 +2660,14 @@ describe("Shared Lists", () => {
 
       // Add and accept one collaborator
       const collaboratorEmail = (await collaboratorApi.users.whoami()).email!;
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "editor",
       });
 
-      const pendingInvitations =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation = pendingInvitations.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation!.id,
+        invitationId,
       });
 
       // Add pending invitation for third user
@@ -2858,7 +2757,7 @@ describe("Shared Lists", () => {
       const collaboratorEmail = collaboratorUser.email!;
       const collaboratorName = collaboratorUser.name;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
@@ -2874,13 +2773,8 @@ describe("Shared Lists", () => {
       expect(pendingInvitation?.user.name).toBe("Pending User");
 
       // Accept invitation
-      const pendingInvitations =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation = pendingInvitations.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.acceptInvitation({
-        invitationId: invitation!.id,
+        invitationId,
       });
 
       // After acceptance - name should be visible
@@ -2910,20 +2804,15 @@ describe("Shared Lists", () => {
       const collaboratorEmail = collaboratorUser.email!;
       const collaboratorName = collaboratorUser.name;
 
-      await ownerApi.lists.addCollaborator({
+      const { invitationId } = await ownerApi.lists.addCollaborator({
         listId: list.id,
         email: collaboratorEmail,
         role: "viewer",
       });
 
       // Decline the invitation
-      const pendingInvitations =
-        await collaboratorApi.lists.getPendingInvitations();
-      const invitation = pendingInvitations.find(
-        (inv) => inv.listId === list.id,
-      );
       await collaboratorApi.lists.declineInvitation({
-        invitationId: invitation!.id,
+        invitationId,
       });
 
       // Owner checks declined invitations

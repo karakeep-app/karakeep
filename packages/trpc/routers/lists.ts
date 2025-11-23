@@ -235,6 +235,11 @@ export const listsAppRouter = router({
         role: z.enum(["viewer", "editor"]),
       }),
     )
+    .output(
+      z.object({
+        invitationId: z.string(),
+      }),
+    )
     .use(
       createRateLimitMiddleware({
         name: "lists.addCollaborator",
@@ -245,7 +250,12 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastViewer)
     .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
-      await ctx.list.addCollaboratorByEmail(input.email, input.role);
+      return {
+        invitationId: await ctx.list.addCollaboratorByEmail(
+          input.email,
+          input.role,
+        ),
+      };
     }),
   removeCollaborator: authedProcedure
     .input(

@@ -598,14 +598,15 @@ export abstract class List {
   /**
    * Add a collaborator to this list by email.
    * Creates a pending invitation that must be accepted by the user.
+   * Returns the invitation ID.
    */
   async addCollaboratorByEmail(
     email: string,
     role: "viewer" | "editor",
-  ): Promise<void> {
+  ): Promise<string> {
     this.ensureCanManage();
 
-    await ListInvitation.inviteByEmail(this.ctx, {
+    return await ListInvitation.inviteByEmail(this.ctx, {
       email,
       role,
       listId: this.list.id,
