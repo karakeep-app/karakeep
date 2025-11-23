@@ -68,6 +68,10 @@ const ListPickerPage = () => {
   };
 
   const { allPaths } = data ?? {};
+  // Filter out lists where user is a viewer (can't add/remove bookmarks)
+  const filteredPaths = allPaths?.filter(
+    (path) => path[path.length - 1].userRole !== "viewer",
+  );
   return (
     <CustomSafeAreaView>
       <FlatList
@@ -97,7 +101,7 @@ const ListPickerPage = () => {
             </Pressable>
           </View>
         )}
-        data={allPaths}
+        data={filteredPaths}
       />
     </CustomSafeAreaView>
   );

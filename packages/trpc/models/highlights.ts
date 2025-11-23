@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, lt, lte, or } from "drizzle-orm";
+import { and, desc, eq, like, lt, lte, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { highlights } from "@karakeep/db/schema";
@@ -114,6 +114,52 @@ export class Highlight {
     };
   }
 
+  static async search(
+    ctx: AuthedContext,
+    searchText: string,
+    cursor?: z.infer<typeof zCursorV2> | null,
+    limit = 50,
+  ): Promise<{
+    highlights: Highlight[];
+    nextCursor: z.infer<typeof zCursorV2> | null;
+  }> {
+    const searchPattern = `%${searchText}%`;
+    const results = await ctx.db.query.highlights.findMany({
+      where: and(
+        eq(highlights.userId, ctx.user.id),
+        or(
+          like(highlights.text, searchPattern),
+          like(highlights.note, searchPattern),
+        ),
+        cursor
+          ? or(
+              lt(highlights.createdAt, cursor.createdAt),
+              and(
+                eq(highlights.createdAt, cursor.createdAt),
+                lte(highlights.id, cursor.id),
+              ),
+            )
+          : undefined,
+      ),
+      limit: limit + 1,
+      orderBy: [desc(highlights.createdAt), desc(highlights.id)],
+    });
+
+    let nextCursor: z.infer<typeof zCursorV2> | null = null;
+    if (results.length > limit) {
+      const nextItem = results.pop()!;
+      nextCursor = {
+        id: nextItem.id,
+        createdAt: nextItem.createdAt,
+      };
+    }
+
+    return {
+      highlights: results.map((h) => new Highlight(ctx, h)),
+      nextCursor,
+    };
+  }
+
   async delete(): Promise<z.infer<typeof zHighlightSchema>> {
     const result = await this.ctx.db
       .delete(highlights)
@@ -137,6 +183,7 @@ export class Highlight {
       .update(highlights)
       .set({
         color: input.color,
+        note: input.note,
       })
       .where(
         and(

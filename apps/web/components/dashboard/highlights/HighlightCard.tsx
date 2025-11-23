@@ -44,16 +44,24 @@ export default function HighlightCard({
       });
   };
 
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+  const Wrapper = ({
+    className,
+    children,
+  }: {
+    className?: string;
+    children: React.ReactNode;
+  }) =>
     clickable ? (
-      <button onClick={onBookmarkClick}>{children}</button>
+      <button className={className} onClick={onBookmarkClick}>
+        {children}
+      </button>
     ) : (
-      <div>{children}</div>
+      <div className={className}>{children}</div>
     );
 
   return (
     <div className={cn("flex items-center justify-between", className)}>
-      <Wrapper>
+      <Wrapper className="flex flex-col gap-2 text-left">
         <blockquote
           cite={highlight.bookmarkId}
           className={cn(
@@ -63,6 +71,11 @@ export default function HighlightCard({
         >
           <p>{highlight.text}</p>
         </blockquote>
+        {highlight.note && (
+          <span className="text-sm text-muted-foreground">
+            {highlight.note}
+          </span>
+        )}
       </Wrapper>
       {!readOnly && (
         <div className="flex gap-2">
