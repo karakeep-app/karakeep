@@ -46,10 +46,15 @@ export function BookmarkListSelector({
   }
 
   allPaths = allPaths?.filter((path) => {
-    if (hideBookmarkIds.includes(path[path.length - 1].id)) {
+    const lastItem = path[path.length - 1];
+    if (hideBookmarkIds.includes(lastItem.id)) {
       return false;
     }
-    if (!listTypes.includes(path[path.length - 1].type)) {
+    if (!listTypes.includes(lastItem.type)) {
+      return false;
+    }
+    // Hide lists where user is a viewer (can't add/remove bookmarks)
+    if (lastItem.userRole === "viewer") {
       return false;
     }
     if (!hideSubtreeOf) {
