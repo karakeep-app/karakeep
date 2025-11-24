@@ -20,6 +20,7 @@ import rss from "./routes/rss";
 import tags from "./routes/tags";
 import trpc from "./routes/trpc";
 import users from "./routes/users";
+import version from "./routes/version";
 import webhooks from "./routes/webhooks";
 
 await loadAllPlugins();
@@ -67,6 +68,7 @@ const app = new Hono<{
   })
   .use(trpcAdapter)
   .route("/health", health)
+  .route("/version", version)
   .route("/trpc", trpc)
   .route("/v1", v1)
   .route("/assets", assets)

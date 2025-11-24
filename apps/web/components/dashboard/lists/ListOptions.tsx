@@ -80,7 +80,7 @@ export function ListOptions({
         ? t("lists.collaborators.manage")
         : t("lists.collaborators.view"),
       icon: <Users className="size-4" />,
-      visible: true, // Always visible for all roles
+      visible: list.type === "manual",
       disabled: false,
       onClick: () => setCollaboratorsModalOpen(true),
     },
