@@ -456,7 +456,7 @@ async function crawlPage(
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Karakeep, The Bookmark Everything App, https://karakeep.app",
     proxy: proxyConfig,
   });
 
