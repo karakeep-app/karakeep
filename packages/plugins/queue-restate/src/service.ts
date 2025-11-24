@@ -75,6 +75,9 @@ export function buildRestateService<T, R>(
           });
           await semaphore.release();
           if (res.error) {
+            if (res.error instanceof restate.CancelledError) {
+              throw res.error;
+            }
             lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000);

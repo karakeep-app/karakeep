@@ -1,5 +1,6 @@
 // Inspired from https://github.com/restatedev/examples/blob/main/typescript/patterns-use-cases/src/priorityqueue/queue.ts
 
+import * as restate from "@restatedev/restate-sdk";
 import { Context, object, ObjectContext } from "@restatedev/restate-sdk";
 
 interface QueueItem {
@@ -100,7 +101,15 @@ export class RestateSemaphore {
         priority,
         capacity: this.capacity,
       });
-    await awk.promise;
+
+    try {
+      await awk.promise;
+    } catch (e) {
+      if (e instanceof restate.CancelledError) {
+        await this.release();
+        throw e;
+      }
+    }
   }
   async release() {
     await this.ctx
