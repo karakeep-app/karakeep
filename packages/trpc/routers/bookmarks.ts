@@ -768,32 +768,43 @@ export const bookmarksAppRouter = router({
         // If there is nothing to add, the "or" statement will become useless and
         // the query below will simply select all the existing tags for this user and assign them to the bookmark
         invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
-        const allIds = (
-          await tx.query.bookmarkTags.findMany({
-            where: and(
-              eq(bookmarkTags.userId, ctx.user.id),
-              or(
-                toAddTagIds.length > 0
-                  ? inArray(bookmarkTags.id, toAddTagIds)
-                  : undefined,
-                toAddTagNames.length > 0
-                  ? inArray(bookmarkTags.name, toAddTagNames)
-                  : undefined,
-              ),
+        const resolvedTags = await tx.query.bookmarkTags.findMany({
+          where: and(
+            eq(bookmarkTags.userId, ctx.user.id),
+            or(
+              toAddTagIds.length > 0
+                ? inArray(bookmarkTags.id, toAddTagIds)
+                : undefined,
+              toAddTagNames.length > 0
+                ? inArray(bookmarkTags.name, toAddTagNames)
+                : undefined,
             ),
-            columns: {
-              id: true,
-            },
-          })
-        ).map((t) => t.id);
+          ),
+          columns: {
+            id: true,
+            name: true,
+          },
+        });
+
+        // Create a map from tag ID to attachedBy value
+        const tagIdToAttachedBy = new Map<string, "ai" | "human">();
+        for (const tag of resolvedTags) {
+          // Find the corresponding input by matching tagId or tagName
+          const inputTag = input.attach.find(
+            (a) => a.tagId === tag.id || (a.tagName && normalizeTagName(a.tagName) === tag.name)
+          );
+          tagIdToAttachedBy.set(tag.id, inputTag?.attachedBy ?? "human");
+        }
+
+        const allIds = resolvedTags.map((t) => t.id);
 
         await tx
           .insert(tagsOnBookmarks)
           .values(
-            allIds.map((i) => ({
-              tagId: i,
+            allIds.map((tagId) => ({
+              tagId,
               bookmarkId: input.bookmarkId,
-              attachedBy: "human" as const,
+              attachedBy: tagIdToAttachedBy.get(tagId) ?? "human",
               userId: ctx.user.id,
             })),
           )
