@@ -12,19 +12,17 @@ interface LegacyQueueState {
   items: QueueItem[];
   itemsv2: Record<string, GroupState>;
   inFlight: number;
-  sequence: number;
 }
 
 interface QueueState {
   groups: Record<string, GroupState>;
   inFlight: number;
-  sequence: number;
 }
 
 interface GroupState {
   id: string;
   items: QueueItem[];
-  lastServedOrder: number;
+  lastServedTimestamp: number;
 }
 
 export const semaphore = object({
@@ -46,7 +44,7 @@ export const semaphore = object({
         state.groups[req.groupId] = {
           id: req.groupId,
           items: [],
-          lastServedOrder: state.sequence++,
+          lastServedTimestamp: Date.now(),
         };
       }
 
@@ -85,12 +83,12 @@ function selectAndPopItem(state: QueueState): {
     priority: number;
     groupId: string;
     index: number;
-    groupLastServedOrder: number;
+    groupLastServedTimestamp: number;
   } = {
     priority: Number.MAX_SAFE_INTEGER,
     groupId: "",
     index: 0,
-    groupLastServedOrder: 0,
+    groupLastServedTimestamp: 0,
   };
 
   for (const [groupId, group] of Object.entries(state.groups)) {
@@ -99,20 +97,20 @@ function selectAndPopItem(state: QueueState): {
         selected.priority = item.priority;
         selected.groupId = groupId;
         selected.index = i;
-        selected.groupLastServedOrder = group.lastServedOrder;
+        selected.groupLastServedTimestamp = group.lastServedTimestamp;
       } else if (item.priority === selected.priority) {
-        if (group.lastServedOrder < selected.groupLastServedOrder) {
+        if (group.lastServedTimestamp < selected.groupLastServedTimestamp) {
           selected.priority = item.priority;
           selected.groupId = groupId;
           selected.index = i;
-          selected.groupLastServedOrder = group.lastServedOrder;
+          selected.groupLastServedTimestamp = group.lastServedTimestamp;
         }
       }
     }
   }
 
   const [item] = state.groups[selected.groupId].items.splice(selected.index, 1);
-  state.groups[selected.groupId].lastServedOrder = state.sequence++;
+  state.groups[selected.groupId].lastServedTimestamp = Date.now();
   if (state.groups[selected.groupId].items.length === 0) {
     delete state.groups[selected.groupId];
   }
@@ -141,21 +139,19 @@ async function getState(
     groups["__legacy__"] = {
       id: "__legacy__",
       items,
-      lastServedOrder: 0,
+      lastServedTimestamp: 0,
     };
   }
 
   return {
     groups,
     inFlight: (await ctx.get("inFlight")) ?? 0,
-    sequence: (await ctx.get("sequence")) ?? 0,
   };
 }
 
 function setState(ctx: ObjectContext<LegacyQueueState>, state: QueueState) {
   ctx.set("itemsv2", state.groups);
   ctx.set("inFlight", state.inFlight);
-  ctx.set("sequence", state.sequence);
   ctx.clear("items");
 }
 
