@@ -82,6 +82,24 @@ type BookmarkQueryReturnType = Awaited<
   ReturnType<typeof dummyDrizzleReturnType>
 >;
 
+/**
+ * Generates a signed URL for accessing an asset via /api/assets/:assetId?token=...
+ * The token expires in 1 hour with a 15-minute grace period for caching.
+ */
+function getSignedAssetUrl(assetId: string, userId: string): string {
+  const payload: z.infer<typeof zAssetSignedTokenSchema> = {
+    assetId,
+    userId,
+  };
+  const signedToken = createSignedToken(
+    payload,
+    serverConfig.signingSecret(),
+    // Tokens expire in 1 hour with 15min grace period for caching
+    getAlignedExpiry(/* interval */ 3600, /* grace */ 900),
+  );
+  return `/api/assets/${assetId}?token=${signedToken}`;
+}
+
 export class BareBookmark {
   protected constructor(
     protected ctx: AuthedContext,
@@ -201,6 +219,7 @@ export class Bookmark extends BareBookmark {
         type: BookmarkTypes.ASSET,
         assetType: asset.assetType,
         assetId: asset.assetId,
+        url: getSignedAssetUrl(asset.assetId, bookmark.userId),
         fileName: asset.fileName,
         sourceUrl: asset.sourceUrl,
         size: assets.find((a) => a.id == asset.assetId)?.size,
@@ -455,6 +474,10 @@ export class Bookmark extends BareBookmark {
               type: BookmarkTypes.ASSET,
               assetId: row.bookmarkAssets.assetId,
               assetType: row.bookmarkAssets.assetType,
+              url: getSignedAssetUrl(
+                row.bookmarkAssets.assetId,
+                row.bookmarksSq.userId,
+              ),
               fileName: row.bookmarkAssets.fileName,
               sourceUrl: row.bookmarkAssets.sourceUrl ?? null,
               size: null, // This will get filled in the asset loop

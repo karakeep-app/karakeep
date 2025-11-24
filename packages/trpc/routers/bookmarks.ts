@@ -33,6 +33,11 @@ import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
+  createSignedToken,
+  getAlignedExpiry,
+} from "@karakeep/shared/signedTokens";
+import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";
+import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   zBookmarkSchema,
@@ -52,6 +57,24 @@ import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
 import { ImportSession } from "../models/importSessions";
 import { ensureAssetOwnership } from "./assets";
+
+/**
+ * Generates a signed URL for accessing an asset via /api/assets/:assetId?token=...
+ * The token expires in 1 hour with a 15-minute grace period for caching.
+ */
+function getSignedAssetUrl(assetId: string, userId: string): string {
+  const payload: z.infer<typeof zAssetSignedTokenSchema> = {
+    assetId,
+    userId,
+  };
+  const signedToken = createSignedToken(
+    payload,
+    serverConfig.signingSecret(),
+    // Tokens expire in 1 hour with 15min grace period for caching
+    getAlignedExpiry(/* interval */ 3600, /* grace */ 900),
+  );
+  return `/api/assets/${assetId}?token=${signedToken}`;
+}
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -259,6 +282,11 @@ export const bookmarksAppRouter = router({
               type: BookmarkTypes.ASSET,
               assetType: asset.assetType,
               assetId: asset.assetId,
+              url: getSignedAssetUrl(asset.assetId, ctx.user.id),
+              fileName: asset.fileName,
+              sourceUrl: asset.sourceUrl,
+              size: uploadedAsset.size,
+              content: null,
             };
             break;
           }

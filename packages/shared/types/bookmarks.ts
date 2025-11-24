@@ -68,6 +68,7 @@ export const zBookmarkedAssetSchema = z.object({
   type: z.literal(BookmarkTypes.ASSET),
   assetType: z.enum(["image", "pdf"]),
   assetId: z.string(),
+  url: z.string(),
   fileName: z.string().nullish(),
   sourceUrl: z.string().nullish(),
   size: z.number().nullish(),
