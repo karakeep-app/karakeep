@@ -1,6 +1,19 @@
-import { getEncoding } from "js-tiktoken";
+import type { Tiktoken } from "js-tiktoken";
 
-const encoding = getEncoding("o200k_base");
+let encoding: Tiktoken | null = null;
+
+/**
+ * Lazy load the encoding to avoid loading the tiktoken data into memory
+ * until it's actually needed
+ */
+function getEncodingInstance(): Tiktoken {
+  if (!encoding) {
+    // Dynamic import to lazy load the tiktoken module
+    const { getEncoding } = require("js-tiktoken");
+    encoding = getEncoding("o200k_base");
+  }
+  return encoding!;
+}
 
 /**
  * Remove duplicate whitespaces to avoid tokenization issues
@@ -10,16 +23,17 @@ function preprocessContent(content: string) {
 }
 
 function calculateNumTokens(text: string) {
-  return encoding.encode(text).length;
+  return getEncodingInstance().encode(text).length;
 }
 
 function truncateContent(content: string, length: number) {
-  const tokens = encoding.encode(content);
+  const enc = getEncodingInstance();
+  const tokens = enc.encode(content);
   if (tokens.length <= length) {
     return content;
   }
   const truncatedTokens = tokens.slice(0, length);
-  return encoding.decode(truncatedTokens);
+  return enc.decode(truncatedTokens);
 }
 
 export function buildImagePrompt(lang: string, customPrompts: string[]) {
