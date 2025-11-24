@@ -39,6 +39,7 @@ export function buildRestateService<T, R>(
         ctx: restate.Context,
         data: {
           payload: T;
+          queuedIdempotencyKey?: string;
           priority: number;
           groupId?: string;
         },
@@ -65,7 +66,14 @@ export function buildRestateService<T, R>(
 
         let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
-          await semaphore.acquire(priority, data.groupId);
+          const acquired = await semaphore.acquire(
+            priority,
+            data.groupId,
+            data.queuedIdempotencyKey,
+          );
+          if (!acquired) {
+            break;
+          }
           const res = await runWorkerLogic(ctx, funcs, {
             id,
             data: payload,
