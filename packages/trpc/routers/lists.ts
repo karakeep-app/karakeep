@@ -243,7 +243,7 @@ export const listsAppRouter = router({
     .use(
       createRateLimitMiddleware({
         name: "lists.addCollaborator",
-        windowMs: 15 * 60 * 1000,
+        windowMs: 5 * 60 * 1000,
         maxRequests: 20,
       }),
     )
