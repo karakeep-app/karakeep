@@ -58,7 +58,7 @@ export default function TextCard({
             ) : (
               <div
                 className={cn(
-                  "flex size-full items-center justify-center bg-accent text-center",
+                  "flex size-full items-center justify-center bg-muted text-center",
                   className,
                 )}
               >

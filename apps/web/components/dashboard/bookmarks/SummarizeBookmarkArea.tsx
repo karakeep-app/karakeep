@@ -54,7 +54,7 @@ function AISummary({
         `}
         onClick={() => !isExpanded && setIsExpanded(true)}
       >
-        <div className="h-full rounded-lg bg-accent p-2">
+        <div className="h-full rounded-lg bg-card p-2">
           <MarkdownReadonly
             className={`text-sm ${!isExpanded && "line-clamp-3"}`}
           >

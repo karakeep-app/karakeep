@@ -276,7 +276,7 @@ export function TagsEditor({
                         "flex min-h-8 space-x-1 rounded px-2",
                         tag.attachedBy == "ai"
                           ? "bg-gradient-to-tr from-purple-500 to-purple-400 text-white"
-                          : "bg-accent",
+                          : "bg-secondary",
                       )}
                     >
                       <div className="m-auto flex gap-2">

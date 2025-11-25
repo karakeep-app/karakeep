@@ -213,7 +213,7 @@ export default function BookmarkPreview({
         <div className="col-span-2 h-full w-full overflow-auto p-2">
           {contentSection}
         </div>
-        <div className="flex flex-col gap-4 overflow-auto bg-accent p-4">
+        <div className="flex flex-col gap-4 overflow-auto bg-card p-4">
           {detailsSection}
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function BookmarkPreview({
         </TabsContent>
         <TabsContent
           value="details"
-          className="h-full overflow-y-auto bg-accent p-4 data-[state=inactive]:hidden"
+          className="h-full overflow-y-auto bg-card p-4 data-[state=inactive]:hidden"
         >
           {detailsSection}
         </TabsContent>
