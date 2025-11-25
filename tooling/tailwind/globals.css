@@ -36,33 +36,42 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Modern deep black with subtle blue tint */
+    --background: 220 20% 6%;
+    --foreground: 210 30% 96%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Elevated card surface - clearly distinct from background */
+    --card: 220 15% 10%;
+    --card-foreground: 210 30% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Popovers slightly elevated from cards */
+    --popover: 220 15% 12%;
+    --popover-foreground: 210 30% 96%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Modern blue-purple accent for interactive elements */
+    --primary: 250 70% 65%;
+    --primary-foreground: 220 20% 6%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary elements with subtle elevation */
+    --secondary: 220 12% 14%;
+    --secondary-foreground: 210 30% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Muted elements - less prominent but visible */
+    --muted: 220 12% 14%;
+    --muted-foreground: 215 15% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent color with modern blue-purple tone */
+    --accent: 250 70% 65%;
+    --accent-foreground: 220 20% 6%;
 
-    --destructive: 0 80% 45%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive actions */
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 210 30% 96%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Borders with better contrast and subtle blue tint */
+    --border: 220 15% 20%;
+    --input: 220 15% 18%;
+    --ring: 250 60% 60%;
   }
 }
 
