@@ -48,8 +48,8 @@
     --popover: 220 15% 12%;
     --popover-foreground: 210 30% 96%;
 
-    /* Modern blue-purple accent for interactive elements */
-    --primary: 250 70% 65%;
+    /* Modern blue for interactive elements - subtle but visible */
+    --primary: 220 70% 55%;
     --primary-foreground: 220 20% 6%;
 
     /* Secondary elements with subtle elevation */
@@ -60,9 +60,9 @@
     --muted: 220 12% 14%;
     --muted-foreground: 215 15% 60%;
 
-    /* Accent color with modern blue-purple tone */
-    --accent: 250 70% 65%;
-    --accent-foreground: 220 20% 6%;
+    /* Accent for background areas - subtle elevated surface */
+    --accent: 220 12% 16%;
+    --accent-foreground: 210 30% 96%;
 
     /* Destructive actions */
     --destructive: 0 75% 55%;
@@ -71,7 +71,7 @@
     /* Borders with better contrast and subtle blue tint */
     --border: 220 15% 20%;
     --input: 220 15% 18%;
-    --ring: 250 60% 60%;
+    --ring: 220 70% 60%;
   }
 }
 
