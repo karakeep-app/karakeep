@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import AllLists from "@/components/dashboard/sidebar/AllLists";
+import { AppSidebar } from "@/components/shared/sidebar/AppSidebar";
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
-import Sidebar from "@/components/shared/sidebar/Sidebar";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
-import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "@/lib/i18n/server";
 import { UserSettingsContextProvider } from "@/lib/userSettings";
 import { api } from "@/server/api/client";
 import { getServerAuthSession } from "@/server/auth";
@@ -18,6 +18,7 @@ import {
   Tag,
 } from "lucide-react";
 
+import serverConfig from "@karakeep/shared/config";
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
@@ -54,41 +55,42 @@ export default async function Dashboard({
     throw lists.error;
   }
 
-  const items = (t: TFunction) =>
-    [
-      {
-        name: t("common.home"),
-        icon: <Home size={18} />,
-        path: "/dashboard/bookmarks",
-      },
-      PluginManager.isRegistered(PluginType.Search)
-        ? [
-            {
-              name: t("common.search"),
-              icon: <Search size={18} />,
-              path: "/dashboard/search",
-            },
-          ]
-        : [],
-      {
-        name: t("common.tags"),
-        icon: <Tag size={18} />,
-        path: "/dashboard/tags",
-      },
-      {
-        name: t("common.highlights"),
-        icon: <Highlighter size={18} />,
-        path: "/dashboard/highlights",
-      },
-      {
-        name: t("common.archive"),
-        icon: <Archive size={18} />,
-        path: "/dashboard/archive",
-      },
-    ].flat();
+  const { t } = await useTranslation();
+
+  const items = [
+    {
+      name: t("common.home"),
+      icon: <Home size={18} />,
+      path: "/dashboard/bookmarks",
+    },
+    ...(PluginManager.isRegistered(PluginType.Search)
+      ? [
+          {
+            name: t("common.search"),
+            icon: <Search size={18} />,
+            path: "/dashboard/search",
+          },
+        ]
+      : []),
+    {
+      name: t("common.tags"),
+      icon: <Tag size={18} />,
+      path: "/dashboard/tags",
+    },
+    {
+      name: t("common.highlights"),
+      icon: <Highlighter size={18} />,
+      path: "/dashboard/highlights",
+    },
+    {
+      name: t("common.archive"),
+      icon: <Archive size={18} />,
+      path: "/dashboard/archive",
+    },
+  ];
 
   const mobileSidebar = (t: TFunction) => [
-    ...items(t),
+    ...items,
     {
       name: t("lists.all_lists"),
       icon: <ClipboardList size={18} />,
@@ -100,14 +102,10 @@ export default async function Dashboard({
     <UserSettingsContextProvider userSettings={userSettings.data}>
       <SidebarLayout
         sidebar={
-          <Sidebar
+          <AppSidebar
             items={items}
-            extraSections={
-              <>
-                <Separator />
-                <AllLists initialData={lists.data} />
-              </>
-            }
+            extraSections={<AllLists initialData={lists.data} />}
+            serverVersion={serverConfig.serverVersion}
           />
         }
         mobileSidebar={<MobileSidebar items={mobileSidebar} />}
