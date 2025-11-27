@@ -8,13 +8,14 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
-import { Pencil, Trash2 } from "lucide-react";
+import { ListPlus, Pencil, Trash2 } from "lucide-react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 import DeleteBookmarkConfirmationDialog from "../bookmarks/DeleteBookmarkConfirmationDialog";
 import { EditBookmarkDialog } from "../bookmarks/EditBookmarkDialog";
+import ManageListsModal from "../bookmarks/ManageListsModal";
 import { ArchivedActionIcon, FavouritedActionIcon } from "../bookmarks/icons";
 
 export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
@@ -23,6 +24,7 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
     useState(false);
 
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
+  const [isManageListsModalOpen, setManageListsModalOpen] = useState(false);
 
   const onError = () => {
     toast({
@@ -111,6 +113,27 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         </TooltipTrigger>
         <TooltipContent side="bottom">
           {bookmark.archived ? t("actions.unarchive") : t("actions.archive")}
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip delayDuration={0}>
+        <ManageListsModal
+          bookmarkId={bookmark.id}
+          open={isManageListsModalOpen}
+          setOpen={setManageListsModalOpen}
+        />
+        <TooltipTrigger asChild>
+          <Button
+            variant="none"
+            className="size-14 rounded-full bg-background"
+            onClick={() => {
+              setManageListsModalOpen(true);
+            }}
+          >
+            <ListPlus />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          {t("actions.manage_lists")}
         </TooltipContent>
       </Tooltip>
       <Tooltip delayDuration={0}>
