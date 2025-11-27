@@ -4,12 +4,11 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SidebarItem from "@/components/shared/sidebar/SidebarItem";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CollapsibleTriggerTriangle } from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { CirclePlus, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
@@ -34,11 +33,16 @@ export default function AllLists({
 
   return (
     <ul className="max-h-full gap-y-2 overflow-auto text-sm">
-      <li className="flex justify-between pb-3 font-bold">
-        <p>Lists</p>
+      <li className="flex justify-between pb-3">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+          Lists
+        </p>
         <EditListModal>
           <Link href="#">
-            <CirclePlus className="mr-2 size-5" strokeWidth={1.5} />
+            <Plus
+              className="mr-2 size-4 text-muted-foreground"
+              strokeWidth={1.5}
+            />
           </Link>
         </EditListModal>
       </li>
@@ -98,10 +102,9 @@ export default function AllLists({
                     )}
                   />
 
-                  <Badge
-                    variant="outline"
+                  <span
                     className={cn(
-                      "font-normal opacity-100 transition-opacity duration-100 group-hover:opacity-0",
+                      "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
                       selectedListId == node.item.id ||
                         numBookmarks === undefined
                         ? "opacity-0"
@@ -109,7 +112,7 @@ export default function AllLists({
                     )}
                   >
                     {numBookmarks}
-                  </Badge>
+                  </span>
                 </Button>
               </ListOptions>
             }
