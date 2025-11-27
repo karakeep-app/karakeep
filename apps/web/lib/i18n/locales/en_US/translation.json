@@ -646,7 +646,11 @@
     "is_not_from_feed": "Is not from RSS feed",
     "and": "And",
     "or": "Or",
-    "history": "Recent Searches"
+    "history": "Recent Searches",
+    "filters": "Filters",
+    "tags": "Tags",
+    "lists": "Lists",
+    "no_suggestions": "No suggestions"
   },
   "preview": {
     "view_original": "View Original",
