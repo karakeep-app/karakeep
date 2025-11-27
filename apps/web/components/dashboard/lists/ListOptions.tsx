@@ -108,7 +108,7 @@ export function ListOptions({
       ) : (
         <Square className="size-4" />
       ),
-      visible: true,
+      visible: isOwner,
       disabled: false,
       onClick: onClickShowArchived,
     },
