@@ -1,7 +1,4 @@
-import { createRequire } from "module";
 import type { Tiktoken } from "js-tiktoken";
-
-const require = createRequire(import.meta.url);
 
 let encoding: Tiktoken | null = null;
 
@@ -9,13 +6,13 @@ let encoding: Tiktoken | null = null;
  * Lazy load the encoding to avoid loading the tiktoken data into memory
  * until it's actually needed
  */
-function getEncodingInstance(): Tiktoken {
+async function getEncodingInstance(): Promise<Tiktoken> {
   if (!encoding) {
     // Dynamic import to lazy load the tiktoken module
-    const { getEncoding } = require("js-tiktoken");
+    const { getEncoding } = await import("js-tiktoken");
     encoding = getEncoding("o200k_base");
   }
-  return encoding!;
+  return encoding;
 }
 
 /**
@@ -25,12 +22,16 @@ function preprocessContent(content: string) {
   return content.replace(/(\s){10,}/g, "$1");
 }
 
-function calculateNumTokens(text: string) {
-  return getEncodingInstance().encode(text).length;
+async function calculateNumTokens(text: string): Promise<number> {
+  const enc = await getEncodingInstance();
+  return enc.encode(text).length;
 }
 
-function truncateContent(content: string, length: number) {
-  const enc = getEncodingInstance();
+async function truncateContent(
+  content: string,
+  length: number,
+): Promise<string> {
+  const enc = await getEncodingInstance();
   const tokens = enc.encode(content);
   if (tokens.length <= length) {
     return content;
@@ -52,12 +53,12 @@ ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
 You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
 }
 
-export function buildTextPrompt(
+export async function buildTextPrompt(
   lang: string,
   customPrompts: string[],
   content: string,
   contextLength: number,
-) {
+): Promise<string> {
   content = preprocessContent(content);
   const constructPrompt = (c: string) => `
 You are an expert whose responsibility is to help with automatic tagging for a read-it-later app.
@@ -75,17 +76,20 @@ ${c}
 </TEXT_CONTENT>
 You must respond in JSON with the key "tags" and the value is an array of string tags.`;
 
-  const promptSize = calculateNumTokens(constructPrompt(""));
-  const truncatedContent = truncateContent(content, contextLength - promptSize);
+  const promptSize = await calculateNumTokens(constructPrompt(""));
+  const truncatedContent = await truncateContent(
+    content,
+    contextLength - promptSize,
+  );
   return constructPrompt(truncatedContent);
 }
 
-export function buildSummaryPrompt(
+export async function buildSummaryPrompt(
   lang: string,
   customPrompts: string[],
   content: string,
   contextLength: number,
-) {
+): Promise<string> {
   content = preprocessContent(content);
   const constructPrompt = (c: string) => `
 Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
@@ -94,7 +98,10 @@ Summarize the following content responding ONLY with the summary. You MUST follo
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
     ${c}`;
 
-  const promptSize = calculateNumTokens(constructPrompt(""));
-  const truncatedContent = truncateContent(content, contextLength - promptSize);
+  const promptSize = await calculateNumTokens(constructPrompt(""));
+  const truncatedContent = await truncateContent(
+    content,
+    contextLength - promptSize,
+  );
   return constructPrompt(truncatedContent);
 }
