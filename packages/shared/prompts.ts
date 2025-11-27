@@ -53,6 +53,33 @@ ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
 You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
 }
 
+/**
+ * Build text tagging prompt without truncation (for previews/UI)
+ */
+export function buildTextPromptUntruncated(
+  lang: string,
+  customPrompts: string[],
+  content: string,
+): string {
+  const constructPrompt = (c: string) => `
+You are an expert whose responsibility is to help with automatic tagging for a read-it-later app.
+Please analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
+- Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
+- The tags must be in ${lang}.
+- If the tag is not generic enough, don't include it.
+- The content can include text for cookie consent and privacy policy, ignore those while tagging.
+- Aim for 3-5 tags.
+- If there are no good tags, leave the array empty.
+${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+
+<TEXT_CONTENT>
+${c}
+</TEXT_CONTENT>
+You must respond in JSON with the key "tags" and the value is an array of string tags.`;
+
+  return constructPrompt(preprocessContent(content));
+}
+
 export async function buildTextPrompt(
   lang: string,
   customPrompts: string[],
@@ -104,4 +131,23 @@ ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
     contextLength - promptSize,
   );
   return constructPrompt(truncatedContent);
+}
+
+/**
+ * Build summary prompt without truncation (for previews/UI)
+ */
+export function buildSummaryPromptUntruncated(
+  lang: string,
+  customPrompts: string[],
+  content: string,
+): string {
+  const processedContent = preprocessContent(content);
+  const constructPrompt = (c: string) => `
+Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
+- Summary must be in 3-4 sentences.
+- The summary must be in ${lang}.
+${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+    ${c}`;
+
+  return constructPrompt(processedContent);
 }

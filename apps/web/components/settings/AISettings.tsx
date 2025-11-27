@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import {
   Form,
@@ -30,8 +29,8 @@ import { z } from "zod";
 
 import {
   buildImagePrompt,
-  buildSummaryPrompt,
-  buildTextPrompt,
+  buildSummaryPromptUntruncated,
+  buildTextPromptUntruncated,
 } from "@karakeep/shared/prompts";
 import {
   zNewPromptSchema,
@@ -302,33 +301,6 @@ export function PromptDemo() {
   const { t } = useTranslation();
   const { data: prompts } = api.prompts.list.useQuery();
   const clientConfig = useClientConfig();
-  const [textPrompt, setTextPrompt] = React.useState<string>("");
-  const [summaryPrompt, setSummaryPrompt] = React.useState<string>("");
-
-  React.useEffect(() => {
-    async function loadPrompts() {
-      const textP = await buildTextPrompt(
-        clientConfig.inference.inferredTagLang,
-        (prompts ?? [])
-          .filter((p) => p.appliesTo == "text" || p.appliesTo == "all_tagging")
-          .map((p) => p.text),
-        "\n<CONTENT_HERE>\n",
-        /* context length */ 1024 /* The value here doesn't matter */,
-      );
-      setTextPrompt(textP.trim());
-
-      const summaryP = await buildSummaryPrompt(
-        clientConfig.inference.inferredTagLang,
-        (prompts ?? [])
-          .filter((p) => p.appliesTo == "summary")
-          .map((p) => p.text),
-        "\n<CONTENT_HERE>\n",
-        /* context length */ 1024 /* The value here doesn't matter */,
-      );
-      setSummaryPrompt(summaryP.trim());
-    }
-    loadPrompts();
-  }, [prompts, clientConfig.inference.inferredTagLang]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -337,7 +309,15 @@ export function PromptDemo() {
       </div>
       <p>{t("settings.ai.text_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-        {textPrompt}
+        {buildTextPromptUntruncated(
+          clientConfig.inference.inferredTagLang,
+          (prompts ?? [])
+            .filter(
+              (p) => p.appliesTo == "text" || p.appliesTo == "all_tagging",
+            )
+            .map((p) => p.text),
+          "\n<CONTENT_HERE>\n",
+        ).trim()}
       </code>
       <p>{t("settings.ai.images_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
@@ -352,7 +332,13 @@ export function PromptDemo() {
       </code>
       <p>{t("settings.ai.summarization_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-        {summaryPrompt}
+        {buildSummaryPromptUntruncated(
+          clientConfig.inference.inferredTagLang,
+          (prompts ?? [])
+            .filter((p) => p.appliesTo == "summary")
+            .map((p) => p.text),
+          "\n<CONTENT_HERE>\n",
+        ).trim()}
       </code>
     </div>
   );
