@@ -17,6 +17,7 @@
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/shared-react": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
+    "@karakeep/ui": "workspace:^0.1.0",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-select": "^2.2.5",
