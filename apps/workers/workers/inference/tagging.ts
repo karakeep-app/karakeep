@@ -460,6 +460,7 @@ export async function runTagging(
   // Propagate priority to child jobs
   const enqueueOpts: EnqueueOptions = {
     priority: job.priority,
+    groupId: bookmark.userId,
   };
 
   // Trigger a webhook
