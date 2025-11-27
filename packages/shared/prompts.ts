@@ -1,4 +1,7 @@
+import { createRequire } from "module";
 import type { Tiktoken } from "js-tiktoken";
+
+const require = createRequire(import.meta.url);
 
 let encoding: Tiktoken | null = null;
 
