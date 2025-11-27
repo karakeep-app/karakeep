@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SidebarItem from "@/components/shared/sidebar/SidebarItem";
 import { Button } from "@/components/ui/button";
-import { CollapsibleTriggerTriangle } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTriggerTriangle,
+} from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { MoreHorizontal, Plus } from "lucide-react";
@@ -30,6 +34,27 @@ export default function AllLists({
   );
 
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
+
+  // Check if any shared list is currently being viewed
+  const isViewingSharedList = useMemo(() => {
+    return initialData.lists.some(
+      (list) => list.userRole !== "owner" && pathName.includes(list.id),
+    );
+  }, [initialData.lists, pathName]);
+
+  // Check if there are any shared lists
+  const hasSharedLists = useMemo(() => {
+    return initialData.lists.some((list) => list.userRole !== "owner");
+  }, [initialData.lists]);
+
+  const [sharedListsOpen, setSharedListsOpen] = useState(isViewingSharedList);
+
+  // Auto-open shared lists if viewing one
+  useEffect(() => {
+    if (isViewingSharedList && !sharedListsOpen) {
+      setSharedListsOpen(true);
+    }
+  }, [isViewingSharedList, sharedListsOpen]);
 
   return (
     <ul className="max-h-full gap-y-2 overflow-auto text-sm">
@@ -60,10 +85,13 @@ export default function AllLists({
         linkClassName="py-0.5"
         className="px-0.5"
       />
+
+      {/* Owned Lists */}
       <CollapsibleBookmarkLists
         initialData={initialData.lists}
+        filter={(node) => node.item.userRole === "owner"}
         isOpenFunc={isNodeOpen}
-        render={({ item: node, level, open, numBookmarks }) => (
+        render={({ node, level, open, numBookmarks }) => (
           <SidebarItem
             collapseButton={
               node.children.length > 0 && (
@@ -83,8 +111,8 @@ export default function AllLists({
             className="group px-0.5"
             right={
               <ListOptions
-                onOpenChange={(open) => {
-                  if (open) {
+                onOpenChange={(isOpen) => {
+                  if (isOpen) {
                     setSelectedListId(node.item.id);
                   } else {
                     setSelectedListId(null);
@@ -101,7 +129,6 @@ export default function AllLists({
                         : "opacity-0",
                     )}
                   />
-
                   <span
                     className={cn(
                       "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
@@ -121,6 +148,89 @@ export default function AllLists({
           />
         )}
       />
+
+      {/* Shared Lists */}
+      {hasSharedLists && (
+        <Collapsible open={sharedListsOpen} onOpenChange={setSharedListsOpen}>
+          <SidebarItem
+            collapseButton={
+              <CollapsibleTriggerTriangle
+                className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
+                open={sharedListsOpen}
+              />
+            }
+            logo={<span className="text-lg">👥</span>}
+            name="Shared Lists"
+            path="#"
+            linkClassName="py-0.5"
+            className="px-0.5"
+          />
+          <CollapsibleContent>
+            <CollapsibleBookmarkLists
+              initialData={initialData.lists}
+              filter={(node) => node.item.userRole !== "owner"}
+              isOpenFunc={isNodeOpen}
+              indentOffset={1}
+              render={({ node, level, open, numBookmarks }) => (
+                <SidebarItem
+                  collapseButton={
+                    node.children.length > 0 && (
+                      <CollapsibleTriggerTriangle
+                        className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
+                        open={open}
+                      />
+                    )
+                  }
+                  logo={
+                    <span className="flex">
+                      <span className="text-lg"> {node.item.icon}</span>
+                    </span>
+                  }
+                  name={node.item.name}
+                  path={`/dashboard/lists/${node.item.id}`}
+                  className="group px-0.5"
+                  right={
+                    <ListOptions
+                      onOpenChange={(isOpen) => {
+                        if (isOpen) {
+                          setSelectedListId(node.item.id);
+                        } else {
+                          setSelectedListId(null);
+                        }
+                      }}
+                      list={node.item}
+                    >
+                      <Button size="none" variant="ghost" className="relative">
+                        <MoreHorizontal
+                          className={cn(
+                            "absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100",
+                            selectedListId == node.item.id
+                              ? "opacity-100"
+                              : "opacity-0",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
+                            selectedListId == node.item.id ||
+                              numBookmarks === undefined
+                              ? "opacity-0"
+                              : "opacity-100",
+                          )}
+                        >
+                          {numBookmarks}
+                        </span>
+                      </Button>
+                    </ListOptions>
+                  }
+                  linkClassName="py-0.5"
+                  style={{ marginLeft: `${level * 1}rem` }}
+                />
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </ul>
   );
 }
