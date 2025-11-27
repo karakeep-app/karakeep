@@ -137,5 +137,6 @@ URL: ${link.url ?? ""}
 
   await triggerSearchReindex(bookmarkId, {
     priority: job.priority,
+    groupId: bookmarkData.userId,
   });
 }
