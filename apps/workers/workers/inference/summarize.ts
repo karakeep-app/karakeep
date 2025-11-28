@@ -105,7 +105,7 @@ URL: ${link.url ?? ""}
     },
   });
 
-  const summaryPrompt = buildSummaryPrompt(
+  const summaryPrompt = await buildSummaryPrompt(
     serverConfig.inference.inferredTagLang,
     prompts.map((p) => p.text),
     textToSummarize,
