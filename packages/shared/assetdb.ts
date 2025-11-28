@@ -26,6 +26,7 @@ export const enum ASSET_TYPES {
   IMAGE_PNG = "image/png",
   IMAGE_WEBP = "image/webp",
   APPLICATION_PDF = "application/pdf",
+  APPLICATION_ZIP = "application/zip",
   TEXT_HTML = "text/html",
 
   VIDEO_MP4 = "video/mp4",
@@ -65,6 +66,7 @@ export const SUPPORTED_ASSET_TYPES: Set<string> = new Set<string>([
   ...SUPPORTED_UPLOAD_ASSET_TYPES,
   ASSET_TYPES.TEXT_HTML,
   ASSET_TYPES.VIDEO_MP4,
+  ASSET_TYPES.APPLICATION_ZIP,
 ]);
 
 export const zAssetMetadataSchema = z.object({

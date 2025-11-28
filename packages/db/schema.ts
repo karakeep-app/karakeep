@@ -68,9 +68,7 @@ export const users = sqliteTable("user", {
   })
     .notNull()
     .default("weekly"),
-  backupsRetentionDays: integer("backupsRetentionDays")
-    .notNull()
-    .default(30),
+  backupsRetentionDays: integer("backupsRetentionDays").notNull().default(30),
 });
 
 export const accounts = sqliteTable(

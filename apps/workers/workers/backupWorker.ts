@@ -1,23 +1,22 @@
-import { eq, sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+import { createWriteStream } from "node:fs";
+import { stat, unlink } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
+import archiver from "archiver";
+import { eq, sql } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
-import { createHash } from "node:crypto";
-import { gzipSync } from "node:zlib";
 
 import type { ZBackupRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
-import {
-  AssetTypes,
-  assets,
-  backupsTable,
-  users,
-} from "@karakeep/db/schema";
+import { assets, AssetTypes, backupsTable, users } from "@karakeep/db/schema";
 import { BackupQueue, QuotaService } from "@karakeep/shared-server";
+import { deleteAsset, saveAssetFromFile } from "@karakeep/shared/assetdb";
 import { toExportFormat } from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
-import { saveAsset, deleteAsset } from "@karakeep/shared/assetdb";
 
 import { fetchAllBookmarksForUser } from "./utils/fetchBookmarks";
 
@@ -45,9 +44,7 @@ export const BackupSchedulingWorker = cron.schedule(
       for (const user of usersWithBackups) {
         // Deterministically schedule backups throughout the day based on user ID
         // This spreads the load across 24 hours
-        const hash = createHash("sha256")
-          .update(user.id)
-          .digest("hex");
+        const hash = createHash("sha256").update(user.id).digest("hex");
         const hashNum = parseInt(hash.substring(0, 8), 16);
 
         // For daily: schedule within 24 hours
@@ -187,74 +184,119 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
   // Step 2: Convert to export format
   logger.info(`[backup][${jobId}] Building export data ...`);
   const exportData = {
-    bookmarks: bookmarks
-      .map(toExportFormat)
-      .filter((b) => b.content !== null),
+    bookmarks: bookmarks.map(toExportFormat).filter((b) => b.content !== null),
   };
   const exportJson = JSON.stringify(exportData, null, 2);
   const exportBuffer = Buffer.from(exportJson, "utf-8");
 
-  // Step 3: Compress the export
-  logger.info(`[backup][${jobId}] Compressing export data ...`);
-  const compressedBuffer = gzipSync(exportBuffer, { level: 9 });
-  const compressedSize = compressedBuffer.length;
-  logger.info(
-    `[backup][${jobId}] Compressed ${exportBuffer.length} bytes to ${compressedSize} bytes`,
-  );
-
-  // Step 4: Check quota and store as asset
-  logger.info(`[backup][${jobId}] Checking storage quota ...`);
-  const quotaApproval = await QuotaService.checkStorageQuota(
-    db,
-    userId,
-    compressedSize,
-  );
-
-  logger.info(`[backup][${jobId}] Storing compressed backup as asset ...`);
-  const assetId = createId();
+  // Step 3: Compress the export as zip and stream to temporary file
+  logger.info(`[backup][${jobId}] Compressing export data as zip ...`);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const fileName = `karakeep-backup-${timestamp}.json.gz`;
-
-  await saveAsset({
-    userId,
-    assetId,
-    asset: compressedBuffer,
-    metadata: {
-      contentType: "application/gzip",
-      fileName,
-    },
-    quotaApproved: quotaApproval,
-  });
-
-  // Step 5: Create asset record
-  await db.insert(assets).values({
-    id: assetId,
-    assetType: AssetTypes.BACKUP,
-    size: compressedSize,
-    contentType: "application/gzip",
-    fileName: fileName,
-    bookmarkId: null,
-    userId: userId,
-  });
-
-  // Step 6: Create backup record
-  logger.info(`[backup][${jobId}] Creating backup record ...`);
-  await db.insert(backupsTable).values({
-    userId: userId,
-    assetId: assetId,
-    size: compressedSize,
-    bookmarkCount: bookmarks.length,
-    status: "success",
-  });
-
-  logger.info(
-    `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarks.length} bookmarks (${compressedSize} bytes)`,
+  const tempFilePath = join(
+    tmpdir(),
+    `karakeep-backup-${userId}-${timestamp}.zip`,
   );
 
-  // Step 7: Clean up old backups based on retention
-  await cleanupOldBackups(userId, user.backupsRetentionDays, jobId);
+  try {
+    await createZipArchive(exportBuffer, timestamp, tempFilePath);
+    const fileStats = await stat(tempFilePath);
+    const compressedSize = fileStats.size;
 
-  logger.info(`[backup][${jobId}] Backup job completed for user ${userId}`);
+    logger.info(
+      `[backup][${jobId}] Compressed ${exportBuffer.length} bytes to ${compressedSize} bytes`,
+    );
+
+    // Step 4: Check quota and store as asset
+    logger.info(`[backup][${jobId}] Checking storage quota ...`);
+    const quotaApproval = await QuotaService.checkStorageQuota(
+      db,
+      userId,
+      compressedSize,
+    );
+
+    logger.info(`[backup][${jobId}] Storing compressed backup as asset ...`);
+    const assetId = createId();
+    const fileName = `karakeep-backup-${timestamp}.zip`;
+
+    await saveAssetFromFile({
+      userId,
+      assetId,
+      assetPath: tempFilePath,
+      metadata: {
+        contentType: "application/zip",
+        fileName,
+      },
+      quotaApproved: quotaApproval,
+    });
+
+    // Step 5: Create asset record
+    await db.insert(assets).values({
+      id: assetId,
+      assetType: AssetTypes.BACKUP,
+      size: compressedSize,
+      contentType: "application/zip",
+      fileName: fileName,
+      bookmarkId: null,
+      userId: userId,
+    });
+
+    // Step 6: Create backup record
+    logger.info(`[backup][${jobId}] Creating backup record ...`);
+    await db.insert(backupsTable).values({
+      userId: userId,
+      assetId: assetId,
+      size: compressedSize,
+      bookmarkCount: bookmarks.length,
+      status: "success",
+    });
+
+    logger.info(
+      `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarks.length} bookmarks (${compressedSize} bytes)`,
+    );
+
+    // Step 7: Clean up old backups based on retention
+    await cleanupOldBackups(userId, user.backupsRetentionDays, jobId);
+
+    logger.info(`[backup][${jobId}] Backup job completed for user ${userId}`);
+  } catch (error) {
+    // Clean up temporary file if it exists
+    try {
+      await unlink(tempFilePath);
+    } catch {
+      // Ignore errors during cleanup
+    }
+    throw error;
+  }
+}
+
+async function createZipArchive(
+  jsonBuffer: Buffer,
+  timestamp: string,
+  outputPath: string,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const archive = archiver("zip", {
+      zlib: { level: 9 }, // Maximum compression
+    });
+
+    const output = createWriteStream(outputPath);
+
+    output.on("close", () => {
+      resolve();
+    });
+
+    output.on("error", reject);
+    archive.on("error", reject);
+
+    // Pipe archive data to the file
+    archive.pipe(output);
+
+    // Add the JSON file to the zip
+    const jsonFileName = `karakeep-backup-${timestamp}.json`;
+    archive.append(jsonBuffer, { name: jsonFileName });
+
+    archive.finalize();
+  });
 }
 
 async function cleanupOldBackups(

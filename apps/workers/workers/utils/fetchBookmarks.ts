@@ -1,11 +1,9 @@
 import { asc, eq } from "drizzle-orm";
 
+import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
-import {
-  BookmarkTypes,
-  type ZBookmark,
-} from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 /**
  * Fetches all bookmarks for a user with all necessary relations for export

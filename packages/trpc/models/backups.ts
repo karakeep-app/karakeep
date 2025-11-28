@@ -31,7 +31,9 @@ export const zBackupSchema = z.object({
 });
 
 export class BackupSettings {
-  static async get(ctx: AuthedContext): Promise<z.infer<typeof zBackupSettingsSchema>> {
+  static async get(
+    ctx: AuthedContext,
+  ): Promise<z.infer<typeof zBackupSettingsSchema>> {
     const user = await ctx.db.query.users.findFirst({
       columns: {
         backupsEnabled: true,
