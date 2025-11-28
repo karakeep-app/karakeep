@@ -1,12 +1,16 @@
 import { asc, eq } from "drizzle-orm";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import type { ZCursor } from "@karakeep/shared/types/pagination";
+import type { AuthedContext } from "@karakeep/trpc";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 /**
  * Fetches all bookmarks for a user with all necessary relations for export
+ * @deprecated Use fetchBookmarksInBatches for memory-efficient iteration
  */
 export async function fetchAllBookmarksForUser(
   dbInstance: typeof db,
@@ -85,4 +89,43 @@ export async function fetchAllBookmarksForUser(
       })),
     } as ZBookmark;
   });
+}
+
+/**
+ * Fetches bookmarks in batches using cursor-based pagination from the Bookmark model
+ * This is memory-efficient for large datasets as it only loads one batch at a time
+ */
+export async function* fetchBookmarksInBatches(
+  ctx: AuthedContext,
+  batchSize = 1000,
+): AsyncGenerator<ZBookmark[], number, undefined> {
+  let cursor: ZCursor | null = null;
+  let totalFetched = 0;
+
+  while (true) {
+    const result = await Bookmark.loadMulti(ctx, {
+      limit: batchSize,
+      cursor: cursor,
+      sortOrder: "asc",
+      includeContent: false, // We don't need full content for export
+    });
+
+    if (result.bookmarks.length === 0) {
+      break;
+    }
+
+    // Convert Bookmark instances to ZBookmark
+    const batch = result.bookmarks.map((b) => b.asZBookmark());
+    yield batch;
+
+    totalFetched += batch.length;
+    cursor = result.nextCursor;
+
+    // If there's no next cursor, we've reached the end
+    if (!cursor) {
+      break;
+    }
+  }
+
+  return totalFetched;
 }

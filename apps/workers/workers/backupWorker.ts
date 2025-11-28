@@ -18,7 +18,8 @@ import { toExportFormat } from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
-import { fetchAllBookmarksForUser } from "./utils/fetchBookmarks";
+import { buildImpersonatingAuthedContext } from "../trpc";
+import { fetchBookmarksInBatches } from "./utils/fetchBookmarks";
 
 // Run daily at midnight UTC
 export const BackupSchedulingWorker = cron.schedule(
@@ -172,46 +173,56 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     return;
   }
 
-  // Step 1: Fetch all bookmarks for the user
-  logger.info(`[backup][${jobId}] Fetching bookmarks for user ${userId} ...`);
-  const bookmarks = await fetchAllBookmarksForUser(db, userId);
-  logger.info(
-    `[backup][${jobId}] Found ${bookmarks.length} bookmarks for user ${userId}`,
-  );
-
-  if (bookmarks.length === 0) {
-    logger.info(
-      `[backup][${jobId}] No bookmarks found for user ${userId}. Skipping backup.`,
-    );
-    return;
-  }
-
-  // Step 2: Convert to export format
-  logger.info(`[backup][${jobId}] Building export data ...`);
-  const exportData = {
-    bookmarks: bookmarks.map(toExportFormat).filter((b) => b.content !== null),
-  };
-  const exportJson = JSON.stringify(exportData, null, 2);
-  const exportBuffer = Buffer.from(exportJson, "utf-8");
-
-  // Step 3: Compress the export as zip and stream to temporary file
-  logger.info(`[backup][${jobId}] Compressing export data as zip ...`);
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const tempFilePath = join(
+  const tempJsonPath = join(
+    tmpdir(),
+    `karakeep-backup-${userId}-${timestamp}.json`,
+  );
+  const tempZipPath = join(
     tmpdir(),
     `karakeep-backup-${userId}-${timestamp}.zip`,
   );
 
   try {
-    await createZipArchive(exportBuffer, timestamp, tempFilePath);
-    const fileStats = await stat(tempFilePath);
-    const compressedSize = fileStats.size;
-
+    // Step 1: Stream bookmarks to JSON file
     logger.info(
-      `[backup][${jobId}] Compressed ${exportBuffer.length} bytes to ${compressedSize} bytes`,
+      `[backup][${jobId}] Streaming bookmarks to JSON file for user ${userId} ...`,
+    );
+    const ctx = await buildImpersonatingAuthedContext(userId);
+    const bookmarkCount = await streamBookmarksToJsonFile(
+      ctx,
+      tempJsonPath,
+      jobId,
     );
 
-    // Step 4: Check quota and store as asset
+    if (bookmarkCount === 0) {
+      logger.info(
+        `[backup][${jobId}] No bookmarks found for user ${userId}. Skipping backup.`,
+      );
+      // Clean up temp file
+      await unlink(tempJsonPath).catch(() => {
+        // Ignore errors during cleanup
+      });
+      return;
+    }
+
+    logger.info(
+      `[backup][${jobId}] Streamed ${bookmarkCount} bookmarks to JSON file`,
+    );
+
+    // Step 2: Compress the JSON file as zip
+    logger.info(`[backup][${jobId}] Compressing JSON file as zip ...`);
+    await createZipArchiveFromFile(tempJsonPath, timestamp, tempZipPath);
+
+    const fileStats = await stat(tempZipPath);
+    const compressedSize = fileStats.size;
+    const jsonStats = await stat(tempJsonPath);
+
+    logger.info(
+      `[backup][${jobId}] Compressed ${jsonStats.size} bytes to ${compressedSize} bytes`,
+    );
+
+    // Step 3: Check quota and store as asset
     logger.info(`[backup][${jobId}] Checking storage quota ...`);
     const quotaApproval = await QuotaService.checkStorageQuota(
       db,
@@ -226,7 +237,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     await saveAssetFromFile({
       userId,
       assetId,
-      assetPath: tempFilePath,
+      assetPath: tempZipPath,
       metadata: {
         contentType: "application/zip",
         fileName,
@@ -234,7 +245,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
       quotaApproved: quotaApproval,
     });
 
-    // Step 5: Create asset record
+    // Step 4: Create asset record
     await db.insert(assets).values({
       id: assetId,
       assetType: AssetTypes.BACKUP,
@@ -245,37 +256,115 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
       userId: userId,
     });
 
-    // Step 6: Create backup record
+    // Step 5: Create backup record
     logger.info(`[backup][${jobId}] Creating backup record ...`);
     await db.insert(backupsTable).values({
       userId: userId,
       assetId: assetId,
       size: compressedSize,
-      bookmarkCount: bookmarks.length,
+      bookmarkCount: bookmarkCount,
       status: "success",
     });
 
     logger.info(
-      `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarks.length} bookmarks (${compressedSize} bytes)`,
+      `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarkCount} bookmarks (${compressedSize} bytes)`,
     );
 
-    // Step 7: Clean up old backups based on retention
+    // Step 6: Clean up old backups based on retention
     await cleanupOldBackups(userId, user.backupsRetentionDays, jobId);
 
     logger.info(`[backup][${jobId}] Backup job completed for user ${userId}`);
   } catch (error) {
-    // Clean up temporary file if it exists
+    // Clean up temporary files if they exist
     try {
-      await unlink(tempFilePath);
+      await unlink(tempJsonPath);
+    } catch {
+      // Ignore errors during cleanup
+    }
+    try {
+      await unlink(tempZipPath);
     } catch {
       // Ignore errors during cleanup
     }
     throw error;
+  } finally {
+    // Final cleanup of temporary files
+    try {
+      await unlink(tempJsonPath);
+    } catch {
+      // Ignore errors during cleanup
+    }
+    try {
+      await unlink(tempZipPath);
+    } catch {
+      // Ignore errors during cleanup
+    }
   }
 }
 
-async function createZipArchive(
-  jsonBuffer: Buffer,
+/**
+ * Streams bookmarks to a JSON file in batches to avoid loading everything into memory
+ * @returns The total number of bookmarks written
+ */
+async function streamBookmarksToJsonFile(
+  ctx: Awaited<ReturnType<typeof buildImpersonatingAuthedContext>>,
+  outputPath: string,
+  jobId: string,
+): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const writeStream = createWriteStream(outputPath, { encoding: "utf-8" });
+    let bookmarkCount = 0;
+    let isFirst = true;
+
+    writeStream.on("error", reject);
+
+    // Start JSON structure
+    writeStream.write('{"bookmarks":[');
+
+    (async () => {
+      try {
+        for await (const batch of fetchBookmarksInBatches(ctx, 1000)) {
+          for (const bookmark of batch) {
+            const exported = toExportFormat(bookmark);
+            if (exported.content !== null) {
+              // Add comma separator for all items except the first
+              if (!isFirst) {
+                writeStream.write(",");
+              }
+              writeStream.write(JSON.stringify(exported));
+              isFirst = false;
+              bookmarkCount++;
+            }
+          }
+
+          // Log progress every batch
+          if (bookmarkCount % 1000 === 0) {
+            logger.info(
+              `[backup][${jobId}] Streamed ${bookmarkCount} bookmarks so far...`,
+            );
+          }
+        }
+
+        // Close JSON structure
+        writeStream.write("]}");
+        writeStream.end();
+
+        writeStream.on("finish", () => {
+          resolve(bookmarkCount);
+        });
+      } catch (error) {
+        writeStream.destroy();
+        reject(error);
+      }
+    })();
+  });
+}
+
+/**
+ * Creates a zip archive from a JSON file (streaming from disk instead of memory)
+ */
+async function createZipArchiveFromFile(
+  jsonFilePath: string,
   timestamp: string,
   outputPath: string,
 ): Promise<void> {
@@ -296,9 +385,9 @@ async function createZipArchive(
     // Pipe archive data to the file
     archive.pipe(output);
 
-    // Add the JSON file to the zip
+    // Add the JSON file to the zip (streaming from disk)
     const jsonFileName = `karakeep-backup-${timestamp}.json`;
-    archive.append(jsonBuffer, { name: jsonFileName });
+    archive.file(jsonFilePath, { name: jsonFileName });
 
     archive.finalize();
   });
