@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 import { MoreHorizontal, Plus } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
+import {
+  augmentBookmarkListsWithInitialData,
+  useBookmarkLists,
+} from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 
 import { CollapsibleBookmarkLists } from "../lists/CollapsibleBookmarkLists";
@@ -35,17 +39,26 @@ export default function AllLists({
 
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
 
+  // Fetch live lists data
+  const { data: listsData } = useBookmarkLists(undefined, {
+    initialData: { lists: initialData.lists },
+  });
+  const lists = augmentBookmarkListsWithInitialData(
+    listsData,
+    initialData.lists,
+  );
+
   // Check if any shared list is currently being viewed
   const isViewingSharedList = useMemo(() => {
-    return initialData.lists.some(
+    return lists.data.some(
       (list) => list.userRole !== "owner" && pathName.includes(list.id),
     );
-  }, [initialData.lists, pathName]);
+  }, [lists.data, pathName]);
 
   // Check if there are any shared lists
   const hasSharedLists = useMemo(() => {
-    return initialData.lists.some((list) => list.userRole !== "owner");
-  }, [initialData.lists]);
+    return lists.data.some((list) => list.userRole !== "owner");
+  }, [lists.data]);
 
   const [sharedListsOpen, setSharedListsOpen] = useState(isViewingSharedList);
 
@@ -88,7 +101,7 @@ export default function AllLists({
 
       {/* Owned Lists */}
       <CollapsibleBookmarkLists
-        initialData={initialData.lists}
+        listsData={lists}
         filter={(node) => node.item.userRole === "owner"}
         isOpenFunc={isNodeOpen}
         render={({ node, level, open, numBookmarks }) => (
@@ -167,7 +180,7 @@ export default function AllLists({
           />
           <CollapsibleContent>
             <CollapsibleBookmarkLists
-              initialData={initialData.lists}
+              listsData={lists}
               filter={(node) => node.item.userRole !== "owner"}
               isOpenFunc={isNodeOpen}
               indentOffset={1}

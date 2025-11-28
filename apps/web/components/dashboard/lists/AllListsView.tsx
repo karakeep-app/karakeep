@@ -13,6 +13,10 @@ import { useTranslation } from "@/lib/i18n/client";
 import { MoreHorizontal, Plus } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
+import {
+  augmentBookmarkListsWithInitialData,
+  useBookmarkLists,
+} from "@karakeep/shared-react/hooks/lists";
 
 import { CollapsibleBookmarkLists } from "./CollapsibleBookmarkLists";
 import { ListOptions } from "./ListOptions";
@@ -70,10 +74,16 @@ export default function AllListsView({
 }) {
   const { t } = useTranslation();
 
+  // Fetch live lists data
+  const { data: listsData } = useBookmarkLists(undefined, {
+    initialData: { lists: initialData },
+  });
+  const lists = augmentBookmarkListsWithInitialData(listsData, initialData);
+
   // Check if there are any shared lists
   const hasSharedLists = useMemo(() => {
-    return initialData.some((list) => list.userRole !== "owner");
-  }, [initialData]);
+    return lists.data.some((list) => list.userRole !== "owner");
+  }, [lists.data]);
 
   const [sharedListsOpen, setSharedListsOpen] = useState(true);
 
@@ -100,7 +110,7 @@ export default function AllListsView({
 
       {/* Owned Lists */}
       <CollapsibleBookmarkLists
-        initialData={initialData}
+        listsData={lists}
         filter={(node) => node.item.userRole === "owner"}
         render={({ node, level, open }) => (
           <ListItem
@@ -127,7 +137,7 @@ export default function AllListsView({
           />
           <CollapsibleContent>
             <CollapsibleBookmarkLists
-              initialData={initialData}
+              listsData={lists}
               filter={(node) => node.item.userRole !== "owner"}
               indentOffset={1}
               render={({ node, level, open }) => (

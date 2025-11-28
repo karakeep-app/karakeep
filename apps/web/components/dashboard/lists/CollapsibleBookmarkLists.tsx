@@ -82,21 +82,32 @@ function ListItem({
 export function CollapsibleBookmarkLists({
   render,
   initialData,
+  listsData,
   className,
   isOpenFunc,
   filter,
   indentOffset = 0,
 }: {
-  initialData: ZBookmarkList[];
+  initialData?: ZBookmarkList[];
+  listsData?: {
+    data: ZBookmarkList[];
+    root: Record<string, ZBookmarkListTreeNode>;
+    allPaths: ZBookmarkList[][];
+    getPathById: (id: string) => ZBookmarkList[] | undefined;
+  };
   render: RenderFunc;
   isOpenFunc?: IsOpenFunc;
   className?: string;
   filter?: (node: ZBookmarkListTreeNode) => boolean;
   indentOffset?: number;
 }) {
-  let { data } = useBookmarkLists(undefined, {
-    initialData: { lists: initialData },
+  // If listsData is provided, use it directly. Otherwise, fetch it.
+  let { data: fetchedData } = useBookmarkLists(undefined, {
+    initialData: initialData ? { lists: initialData } : undefined,
+    enabled: !listsData, // Only fetch if listsData is not provided
   });
+  const data = listsData || fetchedData;
+
   const { data: listStats } = api.lists.stats.useQuery(undefined, {
     placeholderData: keepPreviousData,
   });
