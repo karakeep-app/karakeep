@@ -40,6 +40,47 @@ async function truncateContent(
   return enc.decode(truncatedTokens);
 }
 
+/**
+ * Construct tagging prompt for text content
+ */
+function constructTextTaggingPrompt(
+  lang: string,
+  customPrompts: string[],
+  content: string,
+): string {
+  return `
+You are an expert whose responsibility is to help with automatic tagging for a read-it-later app.
+Please analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
+- Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
+- The tags must be in ${lang}.
+- If the tag is not generic enough, don't include it.
+- The content can include text for cookie consent and privacy policy, ignore those while tagging.
+- Aim for 3-5 tags.
+- If there are no good tags, leave the array empty.
+${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+
+<TEXT_CONTENT>
+${content}
+</TEXT_CONTENT>
+You must respond in JSON with the key "tags" and the value is an array of string tags.`;
+}
+
+/**
+ * Construct summary prompt
+ */
+function constructSummaryPrompt(
+  lang: string,
+  customPrompts: string[],
+  content: string,
+): string {
+  return `
+Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
+- Summary must be in 3-4 sentences.
+- The summary must be in ${lang}.
+${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+    ${content}`;
+}
+
 export function buildImagePrompt(lang: string, customPrompts: string[]) {
   return `
 You are an expert whose responsibility is to help with automatic text tagging for a read-it-later app.
@@ -61,23 +102,11 @@ export function buildTextPromptUntruncated(
   customPrompts: string[],
   content: string,
 ): string {
-  const constructPrompt = (c: string) => `
-You are an expert whose responsibility is to help with automatic tagging for a read-it-later app.
-Please analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
-- Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
-- The tags must be in ${lang}.
-- If the tag is not generic enough, don't include it.
-- The content can include text for cookie consent and privacy policy, ignore those while tagging.
-- Aim for 3-5 tags.
-- If there are no good tags, leave the array empty.
-${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
-
-<TEXT_CONTENT>
-${c}
-</TEXT_CONTENT>
-You must respond in JSON with the key "tags" and the value is an array of string tags.`;
-
-  return constructPrompt(preprocessContent(content));
+  return constructTextTaggingPrompt(
+    lang,
+    customPrompts,
+    preprocessContent(content),
+  );
 }
 
 export async function buildTextPrompt(
@@ -87,28 +116,13 @@ export async function buildTextPrompt(
   contextLength: number,
 ): Promise<string> {
   content = preprocessContent(content);
-  const constructPrompt = (c: string) => `
-You are an expert whose responsibility is to help with automatic tagging for a read-it-later app.
-Please analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
-- Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
-- The tags must be in ${lang}.
-- If the tag is not generic enough, don't include it.
-- The content can include text for cookie consent and privacy policy, ignore those while tagging.
-- Aim for 3-5 tags.
-- If there are no good tags, leave the array empty.
-${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
-
-<TEXT_CONTENT>
-${c}
-</TEXT_CONTENT>
-You must respond in JSON with the key "tags" and the value is an array of string tags.`;
-
-  const promptSize = await calculateNumTokens(constructPrompt(""));
+  const promptTemplate = constructTextTaggingPrompt(lang, customPrompts, "");
+  const promptSize = await calculateNumTokens(promptTemplate);
   const truncatedContent = await truncateContent(
     content,
     contextLength - promptSize,
   );
-  return constructPrompt(truncatedContent);
+  return constructTextTaggingPrompt(lang, customPrompts, truncatedContent);
 }
 
 export async function buildSummaryPrompt(
@@ -118,19 +132,13 @@ export async function buildSummaryPrompt(
   contextLength: number,
 ): Promise<string> {
   content = preprocessContent(content);
-  const constructPrompt = (c: string) => `
-Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
-- Summary must be in 3-4 sentences.
-- The summary must be in ${lang}.
-${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
-    ${c}`;
-
-  const promptSize = await calculateNumTokens(constructPrompt(""));
+  const promptTemplate = constructSummaryPrompt(lang, customPrompts, "");
+  const promptSize = await calculateNumTokens(promptTemplate);
   const truncatedContent = await truncateContent(
     content,
     contextLength - promptSize,
   );
-  return constructPrompt(truncatedContent);
+  return constructSummaryPrompt(lang, customPrompts, truncatedContent);
 }
 
 /**
@@ -141,13 +149,9 @@ export function buildSummaryPromptUntruncated(
   customPrompts: string[],
   content: string,
 ): string {
-  const processedContent = preprocessContent(content);
-  const constructPrompt = (c: string) => `
-Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
-- Summary must be in 3-4 sentences.
-- The summary must be in ${lang}.
-${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
-    ${c}`;
-
-  return constructPrompt(processedContent);
+  return constructSummaryPrompt(
+    lang,
+    customPrompts,
+    preprocessContent(content),
+  );
 }
