@@ -40,6 +40,19 @@ async function truncateContent(
   return enc.decode(truncatedTokens);
 }
 
+export function buildImagePrompt(lang: string, customPrompts: string[]) {
+  return `
+You are an expert whose responsibility is to help with automatic text tagging for a read-it-later app.
+Please analyze the attached image and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
+- Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
+- The tags must be in ${lang}.
+- If the tag is not generic enough, don't include it.
+- Aim for 10-15 tags.
+- If there are no good tags, don't emit any.
+${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
+}
+
 /**
  * Construct tagging prompt for text content
  */
@@ -79,19 +92,6 @@ Summarize the following content responding ONLY with the summary. You MUST follo
 - The summary must be in ${lang}.
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
     ${content}`;
-}
-
-export function buildImagePrompt(lang: string, customPrompts: string[]) {
-  return `
-You are an expert whose responsibility is to help with automatic text tagging for a read-it-later app.
-Please analyze the attached image and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
-- Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
-- The tags must be in ${lang}.
-- If the tag is not generic enough, don't include it.
-- Aim for 10-15 tags.
-- If there are no good tags, don't emit any.
-${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
-You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
 }
 
 /**
