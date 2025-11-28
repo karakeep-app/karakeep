@@ -30,7 +30,7 @@ export async function fetchAllBookmarksForUser(
 
   // Transform to ZBookmark format
   return allBookmarks.map((bookmark) => {
-    let content: ZBookmark["content"] = null as any;
+    let content: ZBookmark["content"] | null = null;
 
     switch (bookmark.type) {
       case BookmarkTypes.LINK:

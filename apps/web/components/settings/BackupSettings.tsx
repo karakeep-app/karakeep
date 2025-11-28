@@ -22,7 +22,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
+import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
+import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CheckCircle,
@@ -35,6 +37,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import { zUpdateBackupSettingsSchema } from "@karakeep/shared/types/backups";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
@@ -51,20 +54,19 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 function BackupConfigurationForm() {
-  const apiUtils = api.useUtils();
-  const { data: settings, isLoading } = api.backups.getSettings.useQuery();
+  const { t } = useTranslation();
 
-  const { mutateAsync: updateSettings, isPending: isUpdating } =
-    api.backups.updateSettings.useMutation({
+  const settings = useUserSettings();
+  const { mutate: updateSettings, isPending: isUpdating } =
+    useUpdateUserSettings({
       onSuccess: () => {
         toast({
-          description: "Backup settings have been updated!",
+          description: t("settings.info.user_settings.user_settings_updated"),
         });
-        apiUtils.backups.getSettings.invalidate();
       },
-      onError: (error) => {
+      onError: () => {
         toast({
-          description: `Error: ${error.message}`,
+          description: t("common.something_went_wrong"),
           variant: "destructive",
         });
       },
@@ -81,18 +83,14 @@ function BackupConfigurationForm() {
       : undefined,
   });
 
-  if (isLoading) {
-    return <FullPageSpinner />;
-  }
-
   return (
     <div className="rounded-md border bg-background p-4">
       <h3 className="mb-4 text-lg font-medium">Backup Configuration</h3>
       <Form {...form}>
         <form
           className="space-y-4"
-          onSubmit={form.handleSubmit(async (value) => {
-            await updateSettings(value);
+          onSubmit={form.handleSubmit((value) => {
+            updateSettings(value);
           })}
         >
           <FormField
@@ -122,21 +120,17 @@ function BackupConfigurationForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Backup Frequency</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
-                >
-                  <FormControl>
+                <FormControl>
+                  <Select {...field}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
                 <FormDescription>
                   How often backups should be created
                 </FormDescription>

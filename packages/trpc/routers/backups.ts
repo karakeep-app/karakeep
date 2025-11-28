@@ -3,28 +3,9 @@ import { z } from "zod";
 import { BackupQueue } from "@karakeep/shared-server";
 
 import { authedProcedure, router } from "../index";
-import {
-  Backup,
-  BackupSettings,
-  zBackupSchema,
-  zBackupSettingsSchema,
-  zUpdateBackupSettingsSchema,
-} from "../models/backups";
+import { Backup, zBackupSchema } from "../models/backups";
 
 export const backupsAppRouter = router({
-  getSettings: authedProcedure
-    .output(zBackupSettingsSchema)
-    .query(async ({ ctx }) => {
-      return await BackupSettings.get(ctx);
-    }),
-
-  updateSettings: authedProcedure
-    .input(zUpdateBackupSettingsSchema)
-    .output(zBackupSettingsSchema)
-    .mutation(async ({ input, ctx }) => {
-      return await BackupSettings.update(ctx, input);
-    }),
-
   list: authedProcedure
     .output(z.object({ backups: z.array(zBackupSchema) }))
     .query(async ({ ctx }) => {

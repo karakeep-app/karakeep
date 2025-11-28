@@ -430,6 +430,9 @@ export class User {
         bookmarkClickAction: true,
         archiveDisplayBehaviour: true,
         timezone: true,
+        backupsEnabled: true,
+        backupsFrequency: true,
+        backupsRetentionDays: true,
       },
     });
 
@@ -444,6 +447,9 @@ export class User {
       bookmarkClickAction: settings.bookmarkClickAction,
       archiveDisplayBehaviour: settings.archiveDisplayBehaviour,
       timezone: settings.timezone || "UTC",
+      backupsEnabled: settings.backupsEnabled,
+      backupsFrequency: settings.backupsFrequency,
+      backupsRetentionDays: settings.backupsRetentionDays,
     };
   }
 

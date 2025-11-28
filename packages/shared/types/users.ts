@@ -108,6 +108,9 @@ export const zUserSettingsSchema = z.object({
   ]),
   archiveDisplayBehaviour: z.enum(["show", "hide"]),
   timezone: z.string(),
+  backupsEnabled: z.boolean(),
+  backupsFrequency: z.enum(["daily", "weekly"]),
+  backupsRetentionDays: z.number().int().min(1).max(365),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -116,4 +119,7 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   bookmarkClickAction: true,
   archiveDisplayBehaviour: true,
   timezone: true,
+  backupsEnabled: true,
+  backupsFrequency: true,
+  backupsRetentionDays: true,
 });

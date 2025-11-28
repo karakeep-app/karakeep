@@ -2,22 +2,9 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { db as DONT_USE_db } from "@karakeep/db";
-import { backupsTable, users } from "@karakeep/db/schema";
+import { backupsTable } from "@karakeep/db/schema";
 
 import { AuthedContext } from "..";
-
-export const zBackupSettingsSchema = z.object({
-  backupsEnabled: z.boolean(),
-  backupsFrequency: z.enum(["daily", "weekly"]),
-  backupsRetentionDays: z.number(),
-});
-
-export const zUpdateBackupSettingsSchema = z.object({
-  backupsEnabled: z.boolean().optional(),
-  backupsFrequency: z.enum(["daily", "weekly"]).optional(),
-  backupsRetentionDays: z.number().min(1).max(365).optional(),
-});
 
 export const zBackupSchema = z.object({
   id: z.string(),
@@ -30,62 +17,10 @@ export const zBackupSchema = z.object({
   errorMessage: z.string().nullable().optional(),
 });
 
-export class BackupSettings {
-  static async get(
-    ctx: AuthedContext,
-  ): Promise<z.infer<typeof zBackupSettingsSchema>> {
-    const user = await ctx.db.query.users.findFirst({
-      columns: {
-        backupsEnabled: true,
-        backupsFrequency: true,
-        backupsRetentionDays: true,
-      },
-      where: eq(users.id, ctx.user.id),
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
-      });
-    }
-
-    return {
-      backupsEnabled: user.backupsEnabled,
-      backupsFrequency: user.backupsFrequency,
-      backupsRetentionDays: user.backupsRetentionDays,
-    };
-  }
-
-  static async update(
-    ctx: AuthedContext,
-    updates: z.infer<typeof zUpdateBackupSettingsSchema>,
-  ): Promise<z.infer<typeof zBackupSettingsSchema>> {
-    const [updated] = await ctx.db
-      .update(users)
-      .set(updates)
-      .where(eq(users.id, ctx.user.id))
-      .returning({
-        backupsEnabled: users.backupsEnabled,
-        backupsFrequency: users.backupsFrequency,
-        backupsRetentionDays: users.backupsRetentionDays,
-      });
-
-    if (!updated) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to update backup settings",
-      });
-    }
-
-    return updated;
-  }
-}
-
 export class Backup {
   private constructor(
     private ctx: AuthedContext,
-    private backup: z.infer<typeof zBackupSchema> & { asset?: any },
+    private backup: z.infer<typeof zBackupSchema>,
   ) {}
 
   static async fromId(ctx: AuthedContext, backupId: string): Promise<Backup> {
@@ -94,9 +29,6 @@ export class Backup {
         eq(backupsTable.id, backupId),
         eq(backupsTable.userId, ctx.user.id),
       ),
-      with: {
-        asset: true,
-      },
     });
 
     if (!backup) {
@@ -106,19 +38,16 @@ export class Backup {
       });
     }
 
-    return new Backup(ctx, backup as any);
+    return new Backup(ctx, backup);
   }
 
   static async getAll(ctx: AuthedContext): Promise<Backup[]> {
     const backups = await ctx.db.query.backupsTable.findMany({
       where: eq(backupsTable.userId, ctx.user.id),
-      with: {
-        asset: true,
-      },
       orderBy: [desc(backupsTable.createdAt)],
     });
 
-    return backups.map((b) => new Backup(ctx, b as any));
+    return backups.map((b) => new Backup(ctx, b));
   }
 
   async delete(): Promise<void> {
@@ -134,8 +63,7 @@ export class Backup {
   }
 
   asPublic(): z.infer<typeof zBackupSchema> {
-    const { asset, ...backup } = this.backup;
-    return backup;
+    return this.backup;
   }
 
   get id() {
@@ -144,9 +72,5 @@ export class Backup {
 
   get assetId() {
     return this.backup.assetId;
-  }
-
-  get asset() {
-    return this.backup.asset;
   }
 }

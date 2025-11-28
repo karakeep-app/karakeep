@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
 import archiver from "archiver";
-import { and, eq, gt, lt, sql } from "drizzle-orm";
+import { and, eq, gt, lt } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 
