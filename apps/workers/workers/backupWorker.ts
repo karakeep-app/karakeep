@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
 import archiver from "archiver";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 
@@ -121,6 +121,7 @@ export class BackupWorker {
           // Mark backup as failed if we have a backup ID
           if (job.data?.userId) {
             // Try to mark any pending backup as failed
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
             await db
               .update(backupsTable)
               .set({
@@ -128,7 +129,11 @@ export class BackupWorker {
                 errorMessage: job.error?.message || "Unknown error",
               })
               .where(
-                sql`${backupsTable.userId} = ${job.data.userId} AND ${backupsTable.status} = 'pending' AND ${backupsTable.createdAt} > datetime('now', '-1 hour')`,
+                and(
+                  eq(backupsTable.userId, job.data.userId),
+                  eq(backupsTable.status, "pending"),
+                  gt(backupsTable.createdAt, oneHourAgo),
+                ),
               );
           }
         },
@@ -319,7 +324,10 @@ async function cleanupOldBackups(
         assetId: true,
         createdAt: true,
       },
-      where: sql`${backupsTable.userId} = ${userId} AND ${backupsTable.createdAt} < ${cutoffDate}`,
+      where: and(
+        eq(backupsTable.userId, userId),
+        lt(backupsTable.createdAt, cutoffDate),
+      ),
     });
 
     if (oldBackups.length === 0) {
@@ -354,7 +362,10 @@ async function cleanupOldBackups(
     await db
       .delete(backupsTable)
       .where(
-        sql`${backupsTable.userId} = ${userId} AND ${backupsTable.createdAt} < ${cutoffDate}`,
+        and(
+          eq(backupsTable.userId, userId),
+          lt(backupsTable.createdAt, cutoffDate),
+        ),
       );
 
     logger.info(
