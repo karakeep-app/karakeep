@@ -130,7 +130,7 @@ export default function AllListsView({
         <Collapsible open={sharedListsOpen} onOpenChange={setSharedListsOpen}>
           <ListItem
             collapsible={true}
-            name="Shared Lists"
+            name={t("lists.shared_lists")}
             icon="👥"
             path="#"
             open={sharedListsOpen}

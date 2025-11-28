@@ -173,7 +173,7 @@ export default function AllLists({
               />
             }
             logo={<span className="text-lg">👥</span>}
-            name="Shared Lists"
+            name={t("lists.shared_lists")}
             path="#"
             linkClassName="py-0.5"
             className="px-0.5"
