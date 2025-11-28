@@ -3,19 +3,9 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { backupsTable } from "@karakeep/db/schema";
+import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { AuthedContext } from "..";
-
-export const zBackupSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
-  assetId: z.string(),
-  createdAt: z.date(),
-  size: z.number(),
-  bookmarkCount: z.number(),
-  status: z.enum(["pending", "success", "failure"]),
-  errorMessage: z.string().nullable().optional(),
-});
 
 export class Backup {
   private constructor(

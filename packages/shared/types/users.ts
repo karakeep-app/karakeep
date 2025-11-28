@@ -123,3 +123,9 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   backupsFrequency: true,
   backupsRetentionDays: true,
 });
+
+export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({
+  backupsEnabled: true,
+  backupsFrequency: true,
+  backupsRetentionDays: true,
+});

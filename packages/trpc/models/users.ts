@@ -469,6 +469,9 @@ export class User {
         bookmarkClickAction: input.bookmarkClickAction,
         archiveDisplayBehaviour: input.archiveDisplayBehaviour,
         timezone: input.timezone,
+        backupsEnabled: input.backupsEnabled,
+        backupsFrequency: input.backupsFrequency,
+        backupsRetentionDays: input.backupsRetentionDays,
       })
       .where(eq(users.id, this.user.id));
   }

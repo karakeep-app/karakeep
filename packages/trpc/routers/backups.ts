@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import { BackupQueue } from "@karakeep/shared-server";
+import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { authedProcedure, router } from "../index";
-import { Backup, zBackupSchema } from "../models/backups";
+import { Backup } from "../models/backups";
 
 export const backupsAppRouter = router({
   list: authedProcedure
