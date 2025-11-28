@@ -2,9 +2,29 @@
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@karakeep/trpc",
   "version": "0.1.0",
-  "private": true,
+  "description": "TypeScript tRPC router and type definitions for Karakeep",
+  "license": "AGPL-3.0",
+  "keywords": [
+    "hoarder",
+    "karakeep",
+    "trpc",
+    "types"
+  ],
+  "main": "./index.ts",
   "type": "module",
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "exports": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karakeep-app/karakeep.git",
+    "directory": "packages/trpc"
+  },
   "scripts": {
+    "build": "vite build",
     "typecheck": "tsc --noEmit",
     "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
     "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
@@ -34,6 +54,8 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/deep-equal": "^1.0.4",
     "@types/nodemailer": "^6.4.17",
+    "vite": "^7.0.6",
+    "vite-plugin-dts": "^4.4.0",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^3.2.4"
   },

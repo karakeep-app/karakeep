@@ -1,0 +1,21 @@
+# Source files (we only publish the built dist folder)
+routers/**
+models/**
+lib/**
+*.ts
+!*.d.ts
+
+# Build and config files
+vite.config.mts
+tsconfig.json
+vitest.config.ts
+.oxlintrc.json
+
+# Test files
+**/*.test.ts
+
+# Turbo cache
+.turbo/**
+
+# Node modules
+node_modules/**
