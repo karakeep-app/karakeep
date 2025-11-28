@@ -779,12 +779,19 @@ export class Bookmark extends BareBookmark {
         ),
       );
 
-    await SearchIndexingQueue.enqueue({
-      bookmarkId: this.bookmark.id,
-      type: "delete",
-    });
+    await SearchIndexingQueue.enqueue(
+      {
+        bookmarkId: this.bookmark.id,
+        type: "delete",
+      },
+      {
+        groupId: this.ctx.user.id,
+      },
+    );
 
-    await triggerWebhook(this.bookmark.id, "deleted", this.ctx.user.id);
+    await triggerWebhook(this.bookmark.id, "deleted", this.ctx.user.id, {
+      groupId: this.ctx.user.id,
+    });
     if (deleted.changes > 0) {
       await this.cleanupAssets();
     }

@@ -40,6 +40,7 @@ export function buildRestateService<T, R>(
         data: {
           payload: T;
           priority: number;
+          groupId?: string;
         },
       ) => {
         const id = `${await genId(ctx)}`;
@@ -64,7 +65,7 @@ export function buildRestateService<T, R>(
 
         let lastError: Error | undefined;
         for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
-          await semaphore.acquire(priority);
+          await semaphore.acquire(priority, data.groupId);
           const res = await runWorkerLogic(ctx, funcs, {
             id,
             data: payload,
@@ -75,6 +76,9 @@ export function buildRestateService<T, R>(
           });
           await semaphore.release();
           if (res.error) {
+            if (res.error instanceof restate.CancelledError) {
+              throw res.error;
+            }
             lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000);

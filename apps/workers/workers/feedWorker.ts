@@ -22,6 +22,7 @@ export const FeedRefreshingWorker = cron.schedule(
       .findMany({
         columns: {
           id: true,
+          userId: true,
         },
         where: eq(rssFeedsTable.enabled, true),
       })
@@ -38,6 +39,7 @@ export const FeedRefreshingWorker = cron.schedule(
             },
             {
               idempotencyKey,
+              groupId: feed.userId,
             },
           );
         }

@@ -95,6 +95,10 @@ function hostnameMatchesAnyPattern(
   patterns: string[],
 ): boolean {
   function hostnameMatchesPattern(hostname: string, pattern: string): boolean {
+    if (pattern === ".") {
+      return true;
+    }
+
     return (
       pattern === hostname ||
       (pattern.startsWith(".") && hostname.endsWith(pattern)) ||

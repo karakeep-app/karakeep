@@ -468,6 +468,39 @@ export const listCollaborators = sqliteTable(
   ],
 );
 
+export const listInvitations = sqliteTable(
+  "listInvitations",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    listId: text("listId")
+      .notNull()
+      .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["viewer", "editor"] }).notNull(),
+    status: text("status", { enum: ["pending", "declined"] })
+      .notNull()
+      .default("pending"),
+    invitedAt: integer("invitedAt", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    invitedEmail: text("invitedEmail"),
+    invitedBy: text("invitedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (li) => [
+    unique().on(li.listId, li.userId),
+    index("listInvitations_listId_idx").on(li.listId),
+    index("listInvitations_userId_idx").on(li.userId),
+    index("listInvitations_status_idx").on(li.status),
+  ],
+);
+
 export const customPrompts = sqliteTable(
   "customPrompts",
   {
@@ -778,6 +811,7 @@ export const userRelations = relations(users, ({ many, one }) => ({
   importSessions: many(importSessions),
   listCollaborations: many(listCollaborators),
   backups: many(backupsTable),
+  listInvitations: many(listInvitations),
 }));
 
 export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
@@ -848,6 +882,7 @@ export const bookmarkListsRelations = relations(
   ({ one, many }) => ({
     bookmarksInLists: many(bookmarksInLists),
     collaborators: many(listCollaborators),
+    invitations: many(listInvitations),
     user: one(users, {
       fields: [bookmarkLists.userId],
       references: [users.id],
@@ -886,6 +921,24 @@ export const listCollaboratorsRelations = relations(
     }),
     addedByUser: one(users, {
       fields: [listCollaborators.addedBy],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const listInvitationsRelations = relations(
+  listInvitations,
+  ({ one }) => ({
+    list: one(bookmarkLists, {
+      fields: [listInvitations.listId],
+      references: [bookmarkLists.id],
+    }),
+    user: one(users, {
+      fields: [listInvitations.userId],
+      references: [users.id],
+    }),
+    invitedByUser: one(users, {
+      fields: [listInvitations.invitedBy],
       references: [users.id],
     }),
   }),

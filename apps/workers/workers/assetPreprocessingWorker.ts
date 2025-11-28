@@ -361,6 +361,7 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
   // Propagate priority to child jobs
   const enqueueOpts: EnqueueOptions = {
     priority: req.priority,
+    groupId: bookmark.userId,
   };
   if (!isFixMode || anythingChanged) {
     await OpenAIQueue.enqueue(

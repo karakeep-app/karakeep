@@ -6,6 +6,7 @@ export interface EnqueueOptions {
   idempotencyKey?: string;
   priority?: number;
   delayMs?: number;
+  groupId?: string;
 }
 
 export interface QueueOptions {

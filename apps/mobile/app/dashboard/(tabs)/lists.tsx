@@ -161,7 +161,7 @@ export default function Lists() {
             )}
 
             <Link asChild key={l.item.id} href={l.item.href} className="flex-1">
-              <Pressable className="flex flex-row justify-between">
+              <Pressable className="flex flex-row items-center justify-between">
                 <Text>
                   {l.item.logo} {l.item.name}
                 </Text>

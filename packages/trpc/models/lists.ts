@@ -26,6 +26,7 @@ import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
+import { ListInvitation } from "./listInvitations";
 
 interface ListCollaboratorEntry {
   membershipId: string;
@@ -536,7 +537,7 @@ export abstract class List {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
     invariant(result[0].userId === this.ctx.user.id);
-    // Fetch current collaborators count to update hasCollaborators
+    // Fetch current collaborators to update hasCollaborators
     const collaboratorsCount =
       await this.ctx.db.query.listCollaborators.findMany({
         where: eq(listCollaborators.listId, this.list.id),
@@ -596,61 +597,24 @@ export abstract class List {
 
   /**
    * Add a collaborator to this list by email.
+   * Creates a pending invitation that must be accepted by the user.
+   * Returns the invitation ID.
    */
   async addCollaboratorByEmail(
     email: string,
     role: "viewer" | "editor",
-  ): Promise<void> {
+  ): Promise<string> {
     this.ensureCanManage();
 
-    // Look up the user by email
-    const user = await this.ctx.db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.email, email),
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "No user found with that email address",
-      });
-    }
-
-    // Check that the user is not adding themselves
-    if (user.id === this.list.userId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cannot add the list owner as a collaborator",
-      });
-    }
-
-    // Check that the collaborator is not already added
-    const existing = await this.ctx.db.query.listCollaborators.findFirst({
-      where: and(
-        eq(listCollaborators.listId, this.list.id),
-        eq(listCollaborators.userId, user.id),
-      ),
-    });
-
-    if (existing) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "User is already a collaborator on this list",
-      });
-    }
-
-    // Only manual lists can be collaborative
-    if (this.list.type !== "manual") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Only manual lists can have collaborators",
-      });
-    }
-
-    await this.ctx.db.insert(listCollaborators).values({
-      listId: this.list.id,
-      userId: user.id,
+    return await ListInvitation.inviteByEmail(this.ctx, {
+      email,
       role,
-      addedBy: this.ctx.user.id,
+      listId: this.list.id,
+      listName: this.list.name,
+      listType: this.list.type,
+      listOwnerId: this.list.userId,
+      inviterUserId: this.ctx.user.id,
+      inviterName: this.ctx.user.name ?? null,
     });
   }
 
@@ -738,23 +702,34 @@ export abstract class List {
   }
 
   /**
-   * Get all collaborators for this list.
+   * Get all collaborators for this list, including pending invitations.
+   * For privacy, pending invitations show masked user info unless the invitation has been accepted.
    */
   async getCollaborators() {
     this.ensureCanView();
 
-    const collaborators = await this.ctx.db.query.listCollaborators.findMany({
-      where: eq(listCollaborators.listId, this.list.id),
-      with: {
-        user: {
-          columns: {
-            id: true,
-            name: true,
-            email: true,
+    const isOwner = this.list.userId === this.ctx.user.id;
+
+    const [collaborators, invitations] = await Promise.all([
+      this.ctx.db.query.listCollaborators.findMany({
+        where: eq(listCollaborators.listId, this.list.id),
+        with: {
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      }),
+      // Only show invitations for the owner
+      isOwner
+        ? ListInvitation.invitationsForList(this.ctx, {
+            listId: this.list.id,
+          })
+        : [],
+    ]);
 
     // Get the owner information
     const owner = await this.ctx.db.query.users.findFirst({
@@ -766,19 +741,31 @@ export abstract class List {
       },
     });
 
-    return {
-      collaborators: collaborators.map((c) => ({
+    const collaboratorEntries = collaborators.map((c) => {
+      return {
         id: c.id,
         userId: c.userId,
         role: c.role,
+        status: "accepted" as const,
         addedAt: c.addedAt,
-        user: c.user,
-      })),
+        invitedAt: c.addedAt,
+        user: {
+          id: c.user.id,
+          name: c.user.name,
+          // Only show email to the owner for privacy
+          email: isOwner ? c.user.email : null,
+        },
+      };
+    });
+
+    return {
+      collaborators: [...collaboratorEntries, ...invitations],
       owner: owner
         ? {
             id: owner.id,
             name: owner.name,
-            email: owner.email,
+            // Only show owner email to the owner for privacy
+            email: isOwner ? owner.email : null,
           }
         : null,
     };
@@ -786,6 +773,7 @@ export abstract class List {
 
   /**
    * Get all lists shared with the user (as a collaborator).
+   * Only includes lists where the invitation has been accepted.
    */
   static async getSharedWithUser(
     ctx: AuthedContext,

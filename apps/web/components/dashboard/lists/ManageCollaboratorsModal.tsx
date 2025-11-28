@@ -78,7 +78,7 @@ export function ManageCollaboratorsModal({
   const addCollaborator = api.lists.addCollaborator.useMutation({
     onSuccess: async () => {
       toast({
-        description: t("lists.collaborators.added_successfully"),
+        description: t("lists.collaborators.invitation_sent"),
       });
       setNewCollaboratorEmail("");
       await invalidateListCaches();
@@ -118,6 +118,21 @@ export function ManageCollaboratorsModal({
         variant: "destructive",
         description:
           error.message || t("lists.collaborators.failed_to_update_role"),
+      });
+    },
+  });
+
+  const revokeInvitation = api.lists.revokeInvitation.useMutation({
+    onSuccess: async () => {
+      toast({
+        description: t("lists.collaborators.invitation_revoked"),
+      });
+      await invalidateListCaches();
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        description: error.message || t("lists.collaborators.failed_to_revoke"),
       });
     },
   });
@@ -245,9 +260,11 @@ export function ManageCollaboratorsModal({
                       <div className="font-medium">
                         {collaboratorsData.owner.name}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {collaboratorsData.owner.email}
-                      </div>
+                      {collaboratorsData.owner.email && (
+                        <div className="text-sm text-muted-foreground">
+                          {collaboratorsData.owner.email}
+                        </div>
+                      )}
                     </div>
                     <div className="text-sm capitalize text-muted-foreground">
                       {t("lists.collaborators.owner")}
@@ -262,16 +279,48 @@ export function ManageCollaboratorsModal({
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
                       <div className="flex-1">
-                        <div className="font-medium">
-                          {collaborator.user.name}
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium">
+                            {collaborator.user.name}
+                          </div>
+                          {collaborator.status === "pending" && (
+                            <Badge variant="outline" className="text-xs">
+                              {t("lists.collaborators.pending")}
+                            </Badge>
+                          )}
+                          {collaborator.status === "declined" && (
+                            <Badge variant="destructive" className="text-xs">
+                              {t("lists.collaborators.declined")}
+                            </Badge>
+                          )}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {collaborator.user.email}
-                        </div>
+                        {collaborator.user.email && (
+                          <div className="text-sm text-muted-foreground">
+                            {collaborator.user.email}
+                          </div>
+                        )}
                       </div>
                       {readOnly ? (
                         <div className="text-sm capitalize text-muted-foreground">
                           {collaborator.role}
+                        </div>
+                      ) : collaborator.status !== "accepted" ? (
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm capitalize text-muted-foreground">
+                            {collaborator.role}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              revokeInvitation.mutate({
+                                invitationId: collaborator.id,
+                              })
+                            }
+                            disabled={revokeInvitation.isPending}
+                          >
+                            {t("lists.collaborators.revoke")}
+                          </Button>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">

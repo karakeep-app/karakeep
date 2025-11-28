@@ -10,9 +10,14 @@ import { Text } from "../ui/Text";
 interface NotePreviewProps {
   note: string;
   bookmarkId: string;
+  readOnly?: boolean;
 }
 
-export function NotePreview({ note, bookmarkId }: NotePreviewProps) {
+export function NotePreview({
+  note,
+  bookmarkId,
+  readOnly = false,
+}: NotePreviewProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { colorScheme } = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#9ca3af" : "#6b7280";
@@ -63,18 +68,20 @@ export function NotePreview({ note, bookmarkId }: NotePreviewProps) {
             </ScrollView>
 
             {/* Action Button */}
-            <View className="flex flex-row justify-end border-t border-border pt-4">
-              <Button
-                variant="secondary"
-                onPress={() => {
-                  setIsModalVisible(false);
-                  router.push(`/dashboard/bookmarks/${bookmarkId}/info`);
-                }}
-              >
-                <Text className="text-sm">Edit Notes</Text>
-                <ExternalLink size={14} color={modalIconColor} />
-              </Button>
-            </View>
+            {!readOnly && (
+              <View className="flex flex-row justify-end border-t border-border pt-4">
+                <Button
+                  variant="secondary"
+                  onPress={() => {
+                    setIsModalVisible(false);
+                    router.push(`/dashboard/bookmarks/${bookmarkId}/info`);
+                  }}
+                >
+                  <Text className="text-sm">Edit Notes</Text>
+                  <ExternalLink size={14} color={modalIconColor} />
+                </Button>
+              </View>
+            )}
           </View>
         </View>
       </Modal>

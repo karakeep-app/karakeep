@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "192e864a-d447-4d5f-a7cd-034d085b800a",
+  "id": "f5049a1f-7de4-4107-9b8c-c13118699381",
   "prevId": "f14d2087-e465-4cb5-81bc-accff017ee02",
   "tables": {
     "account": {
@@ -292,115 +292,6 @@
           "tableTo": "user",
           "columnsFrom": [
             "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "backups": {
-      "name": "backups",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "assetId": {
-          "name": "assetId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "size": {
-          "name": "size",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "bookmarkCount": {
-          "name": "bookmarkCount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'pending'"
-        },
-        "errorMessage": {
-          "name": "errorMessage",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "backups_userId_idx": {
-          "name": "backups_userId_idx",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": false
-        },
-        "backups_createdAt_idx": {
-          "name": "backups_createdAt_idx",
-          "columns": [
-            "createdAt"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "backups_userId_user_id_fk": {
-          "name": "backups_userId_user_id_fk",
-          "tableFrom": "backups",
-          "tableTo": "user",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "backups_assetId_assets_id_fk": {
-          "name": "backups_assetId_assets_id_fk",
-          "tableFrom": "backups",
-          "tableTo": "assets",
-          "columnsFrom": [
-            "assetId"
           ],
           "columnsTo": [
             "id"
@@ -1718,6 +1609,143 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "listInvitations": {
+      "name": "listInvitations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "listId": {
+          "name": "listId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "invitedAt": {
+          "name": "invitedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "invitedEmail": {
+          "name": "invitedEmail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "invitedBy": {
+          "name": "invitedBy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "listInvitations_listId_idx": {
+          "name": "listInvitations_listId_idx",
+          "columns": [
+            "listId"
+          ],
+          "isUnique": false
+        },
+        "listInvitations_userId_idx": {
+          "name": "listInvitations_userId_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "listInvitations_status_idx": {
+          "name": "listInvitations_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        },
+        "listInvitations_listId_userId_unique": {
+          "name": "listInvitations_listId_userId_unique",
+          "columns": [
+            "listId",
+            "userId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "listInvitations_listId_bookmarkLists_id_fk": {
+          "name": "listInvitations_listId_bookmarkLists_id_fk",
+          "tableFrom": "listInvitations",
+          "tableTo": "bookmarkLists",
+          "columnsFrom": [
+            "listId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "listInvitations_userId_user_id_fk": {
+          "name": "listInvitations_userId_user_id_fk",
+          "tableFrom": "listInvitations",
+          "tableTo": "user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "listInvitations_invitedBy_user_id_fk": {
+          "name": "listInvitations_invitedBy_user_id_fk",
+          "tableFrom": "listInvitations",
+          "tableTo": "user",
+          "columnsFrom": [
+            "invitedBy"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "passwordResetToken": {
       "name": "passwordResetToken",
       "columns": {
@@ -2605,30 +2633,6 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'UTC'"
-        },
-        "backupsEnabled": {
-          "name": "backupsEnabled",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
-        },
-        "backupsFrequency": {
-          "name": "backupsFrequency",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'weekly'"
-        },
-        "backupsRetentionDays": {
-          "name": "backupsRetentionDays",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 30
         }
       },
       "indexes": {

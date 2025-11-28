@@ -528,11 +528,16 @@ describe("RuleEngine", () => {
       const action: RuleEngineAction = { type: "downloadFullPageArchive" };
       const result = await engine.executeAction(action);
       expect(result).toBe(`Enqueued full page archive`);
-      expect(LinkCrawlerQueue.enqueue).toHaveBeenCalledWith({
-        bookmarkId: bookmarkId,
-        archiveFullPage: true,
-        runInference: false,
-      });
+      expect(LinkCrawlerQueue.enqueue).toHaveBeenCalledWith(
+        {
+          bookmarkId: bookmarkId,
+          archiveFullPage: true,
+          runInference: false,
+        },
+        {
+          groupId: userId,
+        },
+      );
     });
 
     it("should execute favouriteBookmark action", async () => {

@@ -467,15 +467,8 @@
     {
       "idx": 66,
       "version": "6",
-      "when": 1763737765699,
-      "tag": "0066_add_backup_tables",
-      "breakpoints": true
-    },
-    {
-      "idx": 67,
-      "version": "6",
-      "when": 1763808582650,
-      "tag": "0067_add_backup_feature",
+      "when": 1763854050669,
+      "tag": "0066_collaborative_lists_invites",
       "breakpoints": true
     }
   ]

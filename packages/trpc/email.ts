@@ -179,3 +179,66 @@ If you didn't request a password reset, please ignore this email. Your password 
 
   await transporter.sendMail(mailOptions);
 }
+
+export async function sendListInvitationEmail(
+  email: string,
+  inviterName: string,
+  listName: string,
+  listId: string,
+) {
+  if (!serverConfig.email.smtp) {
+    // Silently fail if email is not configured
+    return;
+  }
+
+  const transporter = createTransport({
+    host: serverConfig.email.smtp.host,
+    port: serverConfig.email.smtp.port,
+    secure: serverConfig.email.smtp.secure,
+    auth:
+      serverConfig.email.smtp.user && serverConfig.email.smtp.password
+        ? {
+            user: serverConfig.email.smtp.user,
+            pass: serverConfig.email.smtp.password,
+          }
+        : undefined,
+  });
+
+  const inviteUrl = `${serverConfig.publicUrl}/dashboard/lists?pendingInvitation=${encodeURIComponent(listId)}`;
+
+  const mailOptions = {
+    from: serverConfig.email.smtp.from,
+    to: email,
+    subject: `${inviterName} invited you to collaborate on "${listName}"`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>You've been invited to collaborate on a list!</h2>
+        <p>${inviterName} has invited you to collaborate on the list <strong>"${listName}"</strong> in Karakeep.</p>
+        <p>Click the link below to view and accept or decline the invitation:</p>
+        <p>
+          <a href="${inviteUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+            View Invitation
+          </a>
+        </p>
+        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+        <p><a href="${inviteUrl}">${inviteUrl}</a></p>
+        <p>You can accept or decline this invitation from your Karakeep dashboard.</p>
+        <p>If you weren't expecting this invitation, you can safely ignore this email or decline it in your dashboard.</p>
+      </div>
+    `,
+    text: `
+You've been invited to collaborate on a list!
+
+${inviterName} has invited you to collaborate on the list "${listName}" in Karakeep.
+
+View your invitation by visiting this link:
+${inviteUrl}
+
+You can accept or decline this invitation from your Karakeep dashboard.
+
+If you weren't expecting this invitation, you can safely ignore this email or decline it in your dashboard.
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+}
