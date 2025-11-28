@@ -404,7 +404,9 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
   return obj;
 });
 
-const serverConfig = serverConfigSchema.parse(process.env);
+const serverConfig: Readonly<z.infer<typeof serverConfigSchema>> =
+  serverConfigSchema.parse(process.env);
+
 // Always explicitly pick up stuff from server config to avoid accidentally leaking stuff
 export const clientConfig = {
   publicUrl: serverConfig.publicUrl,
