@@ -470,6 +470,13 @@
       "when": 1763854050669,
       "tag": "0066_collaborative_lists_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "6",
+      "when": 1764418020312,
+      "tag": "0067_add_backups_table",
+      "breakpoints": true
     }
   ]
 }

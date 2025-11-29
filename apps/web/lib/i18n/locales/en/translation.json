@@ -359,6 +359,55 @@
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
       "delete_session": "Delete Session"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Automatically create and manage backups of your bookmarks. Backups are compressed and stored securely.",
+      "configuration": {
+        "title": "Backup Configuration",
+        "enable_automatic_backups": "Enable Automatic Backups",
+        "enable_automatic_backups_description": "Automatically create backups of your bookmarks",
+        "backup_frequency": "Backup Frequency",
+        "backup_frequency_description": "How often backups should be created",
+        "retention_period": "Retention Period (days)",
+        "retention_period_description": "How many days to keep backups before deleting them",
+        "frequency": {
+          "daily": "Daily",
+          "weekly": "Weekly"
+        },
+        "select_frequency": "Select frequency",
+        "save_settings": "Save Settings"
+      },
+      "list": {
+        "title": "Your Backups",
+        "create_backup_now": "Create Backup Now",
+        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually.",
+        "table": {
+          "created_at": "Created At",
+          "bookmarks": "Bookmarks",
+          "size": "Size",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "pending": "Pending"
+        },
+        "actions": {
+          "download_backup": "Download Backup",
+          "delete_backup": "Delete Backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Delete Backup?",
+        "delete_backup_description": "Are you sure you want to delete this backup? This action cannot be undone."
+      },
+      "toasts": {
+        "backup_queued": "Backup job has been queued! It will be processed shortly.",
+        "backup_deleted": "Backup has been deleted!"
+      }
     }
   },
   "admin": {

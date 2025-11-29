@@ -15,6 +15,7 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@mozilla/readability": "^0.6.0",
     "@tsconfig/node22": "^22.0.0",
+    "archiver": "^7.0.1",
     "async-mutex": "^0.4.1",
     "dompurify": "^3.2.4",
     "dotenv": "^16.4.1",
@@ -57,6 +58,7 @@
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@types/archiver": "^7.0.0",
     "@types/jsdom": "^21.1.6",
     "@types/node-cron": "^3.0.11",
     "tsdown": "^0.12.9"

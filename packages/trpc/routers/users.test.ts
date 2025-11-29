@@ -155,11 +155,17 @@ describe("User Routes", () => {
       bookmarkClickAction: "open_original_link",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
+      backupsEnabled: false,
+      backupsFrequency: "weekly",
+      backupsRetentionDays: 30,
     });
 
     // Update settings
     await caller.users.updateSettings({
       bookmarkClickAction: "expand_bookmark_preview",
+      backupsEnabled: true,
+      backupsFrequency: "daily",
+      backupsRetentionDays: 7,
     });
 
     // Verify updated settings
@@ -168,6 +174,9 @@ describe("User Routes", () => {
       bookmarkClickAction: "expand_bookmark_preview",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
+      backupsEnabled: true,
+      backupsFrequency: "daily",
+      backupsRetentionDays: 7,
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)

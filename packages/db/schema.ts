@@ -58,6 +58,17 @@ export const users = sqliteTable("user", {
     .notNull()
     .default("show"),
   timezone: text("timezone").default("UTC"),
+
+  // Backup Settings
+  backupsEnabled: integer("backupsEnabled", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  backupsFrequency: text("backupsFrequency", {
+    enum: ["daily", "weekly"],
+  })
+    .notNull()
+    .default("weekly"),
+  backupsRetentionDays: integer("backupsRetentionDays").notNull().default(30),
 });
 
 export const accounts = sqliteTable(
@@ -229,6 +240,7 @@ export const enum AssetTypes {
   LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
   USER_UPLOADED = "userUploaded",
+  BACKUP = "backup",
   UNKNOWN = "unknown",
 }
 
@@ -248,6 +260,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.USER_UPLOADED,
+        AssetTypes.BACKUP,
         AssetTypes.UNKNOWN,
       ],
     }).notNull(),
@@ -574,6 +587,35 @@ export const rssFeedImportsTable = sqliteTable(
   ],
 );
 
+export const backupsTable = sqliteTable(
+  "backups",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    assetId: text("assetId").references(() => assets.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: createdAtField(),
+    size: integer("size").notNull(),
+    bookmarkCount: integer("bookmarkCount").notNull(),
+    status: text("status", {
+      enum: ["pending", "success", "failure"],
+    })
+      .notNull()
+      .default("pending"),
+    errorMessage: text("errorMessage"),
+  },
+  (b) => [
+    index("backups_userId_idx").on(b.userId),
+    index("backups_createdAt_idx").on(b.createdAt),
+  ],
+);
+
 export const config = sqliteTable("config", {
   key: text("key").notNull().primaryKey(),
   value: text("value").notNull(),
@@ -766,6 +808,7 @@ export const userRelations = relations(users, ({ many, one }) => ({
   subscription: one(subscriptions),
   importSessions: many(importSessions),
   listCollaborations: many(listCollaborators),
+  backups: many(backupsTable),
   listInvitations: many(listInvitations),
 }));
 
@@ -989,3 +1032,14 @@ export const importSessionBookmarksRelations = relations(
     }),
   }),
 );
+
+export const backupsRelations = relations(backupsTable, ({ one }) => ({
+  user: one(users, {
+    fields: [backupsTable.userId],
+    references: [users.id],
+  }),
+  asset: one(assets, {
+    fields: [backupsTable.assetId],
+    references: [assets.id],
+  }),
+}));
