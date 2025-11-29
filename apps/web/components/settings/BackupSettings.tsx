@@ -206,8 +206,14 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
   return (
     <TableRow>
       <TableCell>{backup.createdAt.toLocaleString()}</TableCell>
-      <TableCell>{backup.bookmarkCount.toLocaleString()}</TableCell>
-      <TableCell>{formatSize(backup.size)}</TableCell>
+      <TableCell>
+        {backup.status === "pending"
+          ? "-"
+          : backup.bookmarkCount.toLocaleString()}
+      </TableCell>
+      <TableCell>
+        {backup.status === "pending" ? "-" : formatSize(backup.size)}
+      </TableCell>
       <TableCell>
         {backup.status === "success" ? (
           <span title="Successful" className="flex items-center gap-1">
