@@ -10,6 +10,7 @@ import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
+import { Either } from "effect";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -507,9 +508,9 @@ async function crawlPage(
           requestUrl,
           requestIsRunningInProxyContext,
         );
-        if (!validation.ok) {
+        if (!Either.isRight(validation)) {
           logger.warn(
-            `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
+            `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.left.message}`,
           );
           await route.abort("blockedbyclient");
           return;
@@ -525,12 +526,12 @@ async function crawlPage(
       url,
       isRunningInProxyContext,
     );
-    if (!navigationValidation.ok) {
+    if (!Either.isRight(navigationValidation)) {
       throw new Error(
-        `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
+        `Disallowed navigation target "${url}": ${navigationValidation.left.message}`,
       );
     }
-    const targetUrl = navigationValidation.url.toString();
+    const targetUrl = navigationValidation.right.toString();
     logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
     const response = await Promise.race([
       page.goto(targetUrl, {
