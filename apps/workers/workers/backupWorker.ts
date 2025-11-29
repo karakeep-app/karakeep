@@ -120,8 +120,17 @@ export class BackupWorker {
           );
 
           // Mark backup as failed if we have a backup ID
-          if (job.data?.userId) {
-            // Try to mark any pending backup as failed
+          if (job.data?.backupId) {
+            // Mark the specific backup as failed
+            await db
+              .update(backupsTable)
+              .set({
+                status: "failure",
+                errorMessage: job.error?.message || "Unknown error",
+              })
+              .where(eq(backupsTable.id, job.data.backupId));
+          } else if (job.data?.userId) {
+            // Try to mark any pending backup as failed (for backward compatibility)
             const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
             await db
               .update(backupsTable)
@@ -153,6 +162,7 @@ export class BackupWorker {
 async function run(req: DequeuedJob<ZBackupRequest>) {
   const jobId = req.id;
   const userId = req.data.userId;
+  const backupId = req.data.backupId;
 
   logger.info(`[backup][${jobId}] Starting backup for user ${userId} ...`);
 
@@ -256,15 +266,28 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
       userId: userId,
     });
 
-    // Step 5: Create backup record
-    logger.info(`[backup][${jobId}] Creating backup record ...`);
-    await db.insert(backupsTable).values({
-      userId: userId,
-      assetId: assetId,
-      size: compressedSize,
-      bookmarkCount: bookmarkCount,
-      status: "success",
-    });
+    // Step 5: Update or create backup record
+    logger.info(`[backup][${jobId}] Updating backup record ...`);
+    if (backupId) {
+      // Update the existing backup record
+      await db
+        .update(backupsTable)
+        .set({
+          size: compressedSize,
+          bookmarkCount: bookmarkCount,
+          status: "success",
+        })
+        .where(eq(backupsTable.id, backupId));
+    } else {
+      // Create a new backup record (for backward compatibility with scheduled backups)
+      await db.insert(backupsTable).values({
+        userId: userId,
+        assetId: assetId,
+        size: compressedSize,
+        bookmarkCount: bookmarkCount,
+        status: "success",
+      });
+    }
 
     logger.info(
       `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarkCount} bookmarks (${compressedSize} bytes)`,

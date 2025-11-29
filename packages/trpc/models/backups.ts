@@ -1,3 +1,4 @@
+import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -38,6 +39,25 @@ export class Backup {
     });
 
     return backups.map((b) => new Backup(ctx, b));
+  }
+
+  static async create(ctx: AuthedContext): Promise<Backup> {
+    const backupId = createId();
+    const assetId = createId();
+
+    const [backup] = await ctx.db
+      .insert(backupsTable)
+      .values({
+        id: backupId,
+        userId: ctx.user.id,
+        assetId: assetId,
+        size: 0,
+        bookmarkCount: 0,
+        status: "pending",
+      })
+      .returning();
+
+    return new Backup(ctx, backup!);
   }
 
   async delete(): Promise<void> {

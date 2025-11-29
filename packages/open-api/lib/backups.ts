@@ -52,8 +52,13 @@ registry.registerPath({
   tags: ["Backups"],
   security: [{ [BearerAuth.name]: [] }],
   responses: {
-    204: {
-      description: "Backup triggered successfully",
+    201: {
+      description: "Backup created successfully",
+      content: {
+        "application/json": {
+          schema: zBackupSchema,
+        },
+      },
     },
   },
 });
@@ -74,6 +79,36 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: zBackupSchema,
+        },
+      },
+    },
+    404: {
+      description: "Backup not found",
+      content: {
+        "application/json": {
+          schema: ErrorSchema,
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/backups/{backupId}/download",
+  description: "Download backup file",
+  summary: "Download a backup",
+  tags: ["Backups"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({ backupId: BackupIdSchema }),
+  },
+  responses: {
+    200: {
+      description: "Backup file (zip archive)",
+      content: {
+        "application/zip": {
+          schema: z.instanceof(Blob),
         },
       },
     },

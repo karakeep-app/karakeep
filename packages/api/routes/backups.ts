@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { authMiddleware } from "../middlewares/auth";
+import { serveAsset } from "../utils/assets";
 
 const app = new Hono()
   .use(authMiddleware)
@@ -13,8 +14,8 @@ const app = new Hono()
 
   // POST /backups
   .post("/", async (c) => {
-    await c.var.api.backups.triggerBackup();
-    return c.body(null, 204);
+    const backup = await c.var.api.backups.triggerBackup();
+    return c.json(backup, 201);
   })
 
   // GET /backups/[backupId]
@@ -22,6 +23,13 @@ const app = new Hono()
     const backupId = c.req.param("backupId");
     const backup = await c.var.api.backups.get({ backupId });
     return c.json(backup, 200);
+  })
+
+  // GET /backups/[backupId]/download
+  .get("/:backupId/download", async (c) => {
+    const backupId = c.req.param("backupId");
+    const backup = await c.var.api.backups.get({ backupId });
+    return await serveAsset(c, backup.assetId, c.var.ctx.user.id);
   })
 
   // DELETE /backups/[backupId]

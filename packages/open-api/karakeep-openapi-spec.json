@@ -3805,8 +3805,56 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "Backup triggered successfully"
+          "201": {
+            "description": "Backup created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "assetId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "bookmarkCount": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "success",
+                        "failure"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "userId",
+                    "assetId",
+                    "createdAt",
+                    "size",
+                    "bookmarkCount",
+                    "status"
+                  ]
+                }
+              }
+            }
           }
         }
       }
@@ -3923,6 +3971,57 @@
         "responses": {
           "204": {
             "description": "No content - the backup was deleted"
+          },
+          "404": {
+            "description": "Backup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/{backupId}/download": {
+      "get": {
+        "description": "Download backup file",
+        "summary": "Download a backup",
+        "tags": [
+          "Backups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BackupId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backup file (zip archive)",
+            "content": {
+              "application/zip": {
+                "schema": {}
+              }
+            }
           },
           "404": {
             "description": "Backup not found",

@@ -2126,12 +2126,24 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description Backup triggered successfully */
-        204: {
+        /** @description Backup created successfully */
+        201: {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              id: string;
+              userId: string;
+              assetId: string;
+              createdAt: string;
+              size: number;
+              bookmarkCount: number;
+              /** @enum {string} */
+              status: "pending" | "success" | "failure";
+              errorMessage?: string | null;
+            };
+          };
         };
       };
     };
@@ -2234,6 +2246,59 @@ export interface paths {
         };
       };
     };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/backups/{backupId}/download": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download a backup
+     * @description Download backup file
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          backupId: components["parameters"]["BackupId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Backup file (zip archive) */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/zip": unknown;
+          };
+        };
+        /** @description Backup not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
     options?: never;
     head?: never;
     patch?: never;

@@ -37,10 +37,18 @@ export const backupsAppRouter = router({
       await backup.delete();
     }),
 
-  triggerBackup: authedProcedure.mutation(async ({ ctx }) => {
-    // Trigger a backup job for the current user
-    await BackupQueue.enqueue({
-      userId: ctx.user.id,
-    });
-  }),
+  triggerBackup: authedProcedure
+    .output(zBackupSchema)
+    .mutation(async ({ ctx }) => {
+      // Create the backup record first
+      const backup = await Backup.create(ctx);
+
+      // Trigger a backup job for the current user
+      await BackupQueue.enqueue({
+        userId: ctx.user.id,
+        backupId: backup.id,
+      });
+
+      return backup.asPublic();
+    }),
 });
