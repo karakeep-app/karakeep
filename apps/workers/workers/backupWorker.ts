@@ -184,12 +184,17 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     `karakeep-backup-${userId}-${timestamp}.zip`,
   );
 
+  let backup: Backup | null = null;
+
   try {
     // Step 1: Stream bookmarks to JSON file
     const ctx = await buildImpersonatingAuthedContext(userId);
-    const backup = await (backupId
+    const backupInstance = await (backupId
       ? Backup.fromId(ctx, backupId)
       : Backup.create(ctx));
+    backup = backupInstance;
+    // Ensure backupId is attached to job data so error handler can mark failure.
+    req.data.backupId = backupInstance.id;
 
     const bookmarkCount = await streamBookmarksToJsonFile(
       ctx,
@@ -244,7 +249,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     });
 
     // Step 5: Update backup record
-    await backup.update({
+    await backupInstance.update({
       size: compressedSize,
       bookmarkCount: bookmarkCount,
       status: "success",
@@ -257,6 +262,21 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
 
     // Step 6: Clean up old backups based on retention
     await cleanupOldBackups(ctx, user.backupsRetentionDays, jobId);
+  } catch (error) {
+    if (backup) {
+      try {
+        await backup.update({
+          status: "failure",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
+        });
+      } catch (updateError) {
+        logger.error(
+          `[backup][${jobId}] Failed to mark backup ${backup.id} as failed: ${updateError}`,
+        );
+      }
+    }
+    throw error;
   } finally {
     // Final cleanup of temporary files
     try {
