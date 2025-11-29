@@ -3748,7 +3748,8 @@
                             "type": "string"
                           },
                           "assetId": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "createdAt": {
                             "type": "string"
@@ -3819,7 +3820,8 @@
                       "type": "string"
                     },
                     "assetId": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     },
                     "createdAt": {
                       "type": "string"
@@ -3891,7 +3893,8 @@
                       "type": "string"
                     },
                     "assetId": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     },
                     "createdAt": {
                       "type": "string"

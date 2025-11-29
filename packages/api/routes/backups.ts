@@ -29,6 +29,9 @@ const app = new Hono()
   .get("/:backupId/download", async (c) => {
     const backupId = c.req.param("backupId");
     const backup = await c.var.api.backups.get({ backupId });
+    if (!backup.assetId) {
+      return c.json({ error: "Backup not found" }, 404);
+    }
     return await serveAsset(c, backup.assetId, c.var.ctx.user.id);
   })
 

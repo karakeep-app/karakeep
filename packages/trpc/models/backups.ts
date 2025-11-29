@@ -43,14 +43,12 @@ export class Backup {
 
   static async create(ctx: AuthedContext): Promise<Backup> {
     const backupId = createId();
-    const assetId = createId();
 
     const [backup] = await ctx.db
       .insert(backupsTable)
       .values({
         id: backupId,
         userId: ctx.user.id,
-        assetId: assetId,
         size: 0,
         bookmarkCount: 0,
         status: "pending",

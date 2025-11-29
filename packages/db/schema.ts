@@ -597,9 +597,9 @@ export const backupsTable = sqliteTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    assetId: text("assetId")
-      .notNull()
-      .references(() => assets.id, { onDelete: "cascade" }),
+    assetId: text("assetId").references(() => assets.id, {
+      onDelete: "cascade",
+    }),
     createdAt: createdAtField(),
     size: integer("size").notNull(),
     bookmarkCount: integer("bookmarkCount").notNull(),

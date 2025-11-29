@@ -170,16 +170,13 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
   const user = await db.query.users.findFirst({
     columns: {
       id: true,
-      backupsEnabled: true,
       backupsRetentionDays: true,
     },
     where: eq(users.id, userId),
   });
 
-  if (!user || !user.backupsEnabled) {
-    logger.info(
-      `[backup][${jobId}] Backups not enabled for user ${userId}. Skipping.`,
-    );
+  if (!user) {
+    logger.info(`[backup][${jobId}] User not found: ${userId}. Skipping.`);
     return;
   }
 
@@ -276,6 +273,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
           size: compressedSize,
           bookmarkCount: bookmarkCount,
           status: "success",
+          assetId,
         })
         .where(eq(backupsTable.id, backupId));
     } else {
@@ -455,6 +453,9 @@ async function cleanupOldBackups(
 
     // Delete assets first
     for (const backup of oldBackups) {
+      if (!backup.assetId) {
+        continue;
+      }
       try {
         await deleteAsset({
           userId,

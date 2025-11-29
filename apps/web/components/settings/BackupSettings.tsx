@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
 import {
   Form,
@@ -38,6 +39,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
+import { zBackupSchema } from "@karakeep/shared/types/backups";
 import { zUpdateBackupSettingsSchema } from "@karakeep/shared/types/users";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
@@ -176,18 +178,7 @@ function BackupConfigurationForm() {
   );
 }
 
-interface Backup {
-  id: string;
-  userId: string;
-  assetId: string;
-  createdAt: Date;
-  size: number;
-  bookmarkCount: number;
-  status: "pending" | "success" | "failure";
-  errorMessage?: string | null;
-}
-
-function BackupRow({ backup }: { backup: Backup }) {
+function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
   const apiUtils = api.useUtils();
 
   const { mutate: deleteBackup, isPending: isDeleting } =
@@ -244,29 +235,32 @@ function BackupRow({ backup }: { backup: Backup }) {
         )}
       </TableCell>
       <TableCell className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              asChild
-              variant="ghost"
-              className="items-center"
-              disabled={backup.status !== "success"}
-            >
-              <a
-                href={getAssetUrl(backup.assetId)}
-                download
-                className={
-                  backup.status !== "success"
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
+        {backup.assetId && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                variant="ghost"
+                className="items-center"
+                disabled={backup.status !== "success"}
               >
-                <Download className="size-4" />
-              </a>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Download Backup</TooltipContent>
-        </Tooltip>
+                <Link
+                  href={getAssetUrl(backup.assetId)}
+                  download
+                  prefetch={false}
+                  className={
+                    backup.status !== "success"
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                >
+                  <Download className="size-4" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Download Backup</TooltipContent>
+          </Tooltip>
+        )}
         <ActionConfirmingDialog
           title="Delete Backup?"
           description="Are you sure you want to delete this backup? This action cannot be undone."

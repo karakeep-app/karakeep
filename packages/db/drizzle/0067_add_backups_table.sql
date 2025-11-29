@@ -1,7 +1,7 @@
 CREATE TABLE `backups` (
 	`id` text PRIMARY KEY NOT NULL,
 	`userId` text NOT NULL,
-	`assetId` text NOT NULL,
+	`assetId` text,
 	`createdAt` integer NOT NULL,
 	`size` integer NOT NULL,
 	`bookmarkCount` integer NOT NULL,
