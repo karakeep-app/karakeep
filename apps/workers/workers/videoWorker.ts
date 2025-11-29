@@ -1,7 +1,6 @@
 import fs from "fs";
 import * as os from "os";
 import path from "path";
-import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
 import { getProxyAgent, validateUrl } from "network";
 
@@ -9,6 +8,7 @@ import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
 import {
   QuotaService,
+  sandboxExeca,
   StorageQuotaError,
   VideoWorkerQueue,
   ZVideoRequest,
@@ -130,9 +130,17 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       `[VideoCrawler][${jobId}] Attempting to download a file from "${normalizedUrl}" to "${assetPath}" using the following arguments: "${ytDlpArguments}"`,
     );
 
-    await execa("yt-dlp", ytDlpArguments, {
-      cancelSignal: job.abortSignal,
-    });
+    await sandboxExeca(
+      "yt-dlp",
+      ytDlpArguments,
+      {
+        cancelSignal: job.abortSignal,
+      },
+      {
+        readWritePaths: [TMP_FOLDER],
+        allowNetwork: true,
+      },
+    );
     const downloadPath = await findAssetFile(videoAssetId);
     if (!downloadPath) {
       logger.info(

@@ -10,7 +10,6 @@ import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
-import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -54,6 +53,7 @@ import {
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
+  sandboxExeca,
   triggerSearchReindex,
   triggerWebhook,
   VideoWorkerQueue,
@@ -834,19 +834,27 @@ async function archiveWebpage(
   const assetId = newAssetId();
   const assetPath = path.join(os.tmpdir(), assetId);
 
-  let res = await execa({
-    input: html,
-    cancelSignal: abortSignal,
-    env: {
-      https_proxy: serverConfig.proxy.httpsProxy
-        ? getRandomProxy(serverConfig.proxy.httpsProxy)
-        : undefined,
-      http_proxy: serverConfig.proxy.httpProxy
-        ? getRandomProxy(serverConfig.proxy.httpProxy)
-        : undefined,
-      no_proxy: serverConfig.proxy.noProxy?.join(","),
+  let res = await sandboxExeca(
+    "monolith",
+    ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath],
+    {
+      input: html,
+      cancelSignal: abortSignal,
+      env: {
+        https_proxy: serverConfig.proxy.httpsProxy
+          ? getRandomProxy(serverConfig.proxy.httpsProxy)
+          : undefined,
+        http_proxy: serverConfig.proxy.httpProxy
+          ? getRandomProxy(serverConfig.proxy.httpProxy)
+          : undefined,
+        no_proxy: serverConfig.proxy.noProxy?.join(","),
+      },
     },
-  })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
+    {
+      readWritePaths: [os.tmpdir()],
+      allowNetwork: true,
+    },
+  );
 
   if (res.isCanceled) {
     logger.error(
