@@ -4,19 +4,23 @@ import { getTrpcClient } from "../utils/trpc";
 
 export async function setup({ provide }: GlobalSetupContext) {
   const trpc = getTrpcClient();
+
+  // Create an admin user for testing admin endpoints
+  // The first user is automatically an admin
   await trpc.users.create.mutate({
-    name: "Test User",
+    name: "Admin User",
     email: "admin@example.com",
-    password: "test1234",
-    confirmPassword: "test1234",
+    password: "admin1234",
+    confirmPassword: "admin1234",
   });
 
-  const { key } = await trpc.apiKeys.exchange.mutate({
+  const { key: adminKey } = await trpc.apiKeys.exchange.mutate({
     email: "admin@example.com",
-    password: "test1234",
-    keyName: "test-key",
+    password: "admin1234",
+    keyName: "admin-test-key",
   });
-  provide("adminApiKey", key);
+
+  provide("adminApiKey", adminKey);
   return () => ({});
 }
 
