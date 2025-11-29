@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { backupsTable } from "@karakeep/db/schema";
+import { BackupQueue } from "@karakeep/shared-server";
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { AuthedContext } from "..";
@@ -41,7 +42,13 @@ export class Backup {
     return backups.map((b) => new Backup(ctx, b));
   }
 
-  static async create(ctx: AuthedContext): Promise<Backup> {
+  static async create(
+    ctx: AuthedContext,
+    {
+      delayMs,
+      idempotencyKey,
+    }: { delayMs?: number; idempotencyKey?: string } = {},
+  ): Promise<Backup> {
     const backupId = createId();
 
     const [backup] = await ctx.db
@@ -54,6 +61,18 @@ export class Backup {
         status: "pending",
       })
       .returning();
+
+    // Trigger a backup job for the current user
+    await BackupQueue.enqueue(
+      {
+        userId: ctx.user.id,
+        backupId: backup.id,
+      },
+      {
+        delayMs,
+        idempotencyKey,
+      },
+    );
 
     return new Backup(ctx, backup!);
   }

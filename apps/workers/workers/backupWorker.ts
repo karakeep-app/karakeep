@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
 import archiver from "archiver";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 
@@ -17,6 +17,8 @@ import { deleteAsset, saveAssetFromFile } from "@karakeep/shared/assetdb";
 import { toExportFormat } from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
+import { AuthedContext } from "@karakeep/trpc";
+import { Backup } from "@karakeep/trpc/models/backups";
 
 import { buildImpersonatingAuthedContext } from "../trpc";
 import { fetchBookmarksInBatches } from "./utils/fetchBookmarks";
@@ -71,17 +73,16 @@ export const BackupSchedulingWorker = cron.schedule(
 
         if (shouldSchedule) {
           const idempotencyKey = `${user.id}-${currentDay}`;
-          await BackupQueue.enqueue(
-            {
-              userId: user.id,
-            },
-            {
-              idempotencyKey,
-              delayMs,
-            },
-          );
+
+          // Create the backup record first
+          const authCtx = await buildImpersonatingAuthedContext(user.id);
+          const backupId = await Backup.create(authCtx, {
+            delayMs,
+            idempotencyKey,
+          });
+
           logger.info(
-            `[backup] Scheduled backup for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
+            `[backup] Scheduled backup (${backupId}) for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
           );
         }
       }
@@ -119,9 +120,8 @@ export class BackupWorker {
             `[backup][${jobId}] Backup job failed: ${job.error}\n${job.error?.stack}`,
           );
 
-          // Mark backup as failed if we have a backup ID
+          // Mark backup as failed
           if (job.data?.backupId) {
-            // Mark the specific backup as failed
             await db
               .update(backupsTable)
               .set({
@@ -129,22 +129,6 @@ export class BackupWorker {
                 errorMessage: job.error?.message || "Unknown error",
               })
               .where(eq(backupsTable.id, job.data.backupId));
-          } else if (job.data?.userId) {
-            // Try to mark any pending backup as failed (for backward compatibility)
-            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-            await db
-              .update(backupsTable)
-              .set({
-                status: "failure",
-                errorMessage: job.error?.message || "Unknown error",
-              })
-              .where(
-                and(
-                  eq(backupsTable.userId, job.data.userId),
-                  eq(backupsTable.status, "pending"),
-                  gt(backupsTable.createdAt, oneHourAgo),
-                ),
-              );
           }
         },
       },
@@ -263,29 +247,17 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
       userId: userId,
     });
 
-    // Step 5: Update or create backup record
+    // Step 5: Update backup record
     logger.info(`[backup][${jobId}] Updating backup record ...`);
-    if (backupId) {
-      // Update the existing backup record
-      await db
-        .update(backupsTable)
-        .set({
-          size: compressedSize,
-          bookmarkCount: bookmarkCount,
-          status: "success",
-          assetId,
-        })
-        .where(eq(backupsTable.id, backupId));
-    } else {
-      // Create a new backup record (for backward compatibility with scheduled backups)
-      await db.insert(backupsTable).values({
-        userId: userId,
-        assetId: assetId,
+    await db
+      .update(backupsTable)
+      .set({
         size: compressedSize,
         bookmarkCount: bookmarkCount,
         status: "success",
-      });
-    }
+        assetId,
+      })
+      .where(eq(backupsTable.id, backupId));
 
     logger.info(
       `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarkCount} bookmarks (${compressedSize} bytes)`,
@@ -328,7 +300,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
  * @returns The total number of bookmarks written
  */
 async function streamBookmarksToJsonFile(
-  ctx: Awaited<ReturnType<typeof buildImpersonatingAuthedContext>>,
+  ctx: AuthedContext,
   outputPath: string,
   jobId: string,
 ): Promise<number> {

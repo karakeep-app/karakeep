@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { BackupQueue } from "@karakeep/shared-server";
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { authedProcedure, router } from "../index";
@@ -42,12 +41,6 @@ export const backupsAppRouter = router({
     .mutation(async ({ ctx }) => {
       // Create the backup record first
       const backup = await Backup.create(ctx);
-
-      // Trigger a backup job for the current user
-      await BackupQueue.enqueue({
-        userId: ctx.user.id,
-        backupId: backup.id,
-      });
 
       return backup.asPublic();
     }),
