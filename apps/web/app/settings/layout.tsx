@@ -69,7 +69,7 @@ const settingsSidebarItems = (
       path: "/settings/feeds",
     },
     {
-      name: "Backups",
+      name: t("settings.backups.backups"),
       icon: <CloudDownload size={18} />,
       path: "/settings/backups",
     },

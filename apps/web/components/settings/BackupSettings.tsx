@@ -87,7 +87,9 @@ function BackupConfigurationForm() {
 
   return (
     <div className="rounded-md border bg-background p-4">
-      <h3 className="mb-4 text-lg font-medium">Backup Configuration</h3>
+      <h3 className="mb-4 text-lg font-medium">
+        {t("settings.backups.configuration.title")}
+      </h3>
       <Form {...form}>
         <form
           className="space-y-4"
@@ -101,9 +103,15 @@ function BackupConfigurationForm() {
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
-                  <FormLabel>Enable Automatic Backups</FormLabel>
+                  <FormLabel>
+                    {t(
+                      "settings.backups.configuration.enable_automatic_backups",
+                    )}
+                  </FormLabel>
                   <FormDescription>
-                    Automatically create backups of your bookmarks
+                    {t(
+                      "settings.backups.configuration.enable_automatic_backups_description",
+                    )}
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -121,7 +129,9 @@ function BackupConfigurationForm() {
             name="backupsFrequency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Backup Frequency</FormLabel>
+                <FormLabel>
+                  {t("settings.backups.configuration.backup_frequency")}
+                </FormLabel>
                 <FormControl>
                   <Select
                     onValueChange={field.onChange}
@@ -129,16 +139,26 @@ function BackupConfigurationForm() {
                     {...field}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue
+                        placeholder={t(
+                          "settings.backups.configuration.select_frequency",
+                        )}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="daily">
+                        {t("settings.backups.configuration.frequency.daily")}
+                      </SelectItem>
+                      <SelectItem value="weekly">
+                        {t("settings.backups.configuration.frequency.weekly")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
                 <FormDescription>
-                  How often backups should be created
+                  {t(
+                    "settings.backups.configuration.backup_frequency_description",
+                  )}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -150,7 +170,9 @@ function BackupConfigurationForm() {
             name="backupsRetentionDays"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Retention Period (days)</FormLabel>
+                <FormLabel>
+                  {t("settings.backups.configuration.retention_period")}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -161,7 +183,9 @@ function BackupConfigurationForm() {
                   />
                 </FormControl>
                 <FormDescription>
-                  How many days to keep backups before deleting them
+                  {t(
+                    "settings.backups.configuration.retention_period_description",
+                  )}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -174,7 +198,7 @@ function BackupConfigurationForm() {
             className="items-center"
           >
             <Save className="mr-2 size-4" />
-            Save Settings
+            {t("settings.backups.configuration.save_settings")}
           </ActionButton>
         </form>
       </Form>
@@ -183,13 +207,14 @@ function BackupConfigurationForm() {
 }
 
 function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
+  const { t } = useTranslation();
   const apiUtils = api.useUtils();
 
   const { mutate: deleteBackup, isPending: isDeleting } =
     api.backups.delete.useMutation({
       onSuccess: () => {
         toast({
-          description: "Backup has been deleted!",
+          description: t("settings.backups.toasts.backup_deleted"),
         });
         apiUtils.backups.list.invalidate();
       },
@@ -220,19 +245,25 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
       </TableCell>
       <TableCell>
         {backup.status === "success" ? (
-          <span title="Successful" className="flex items-center gap-1">
+          <span
+            title={t("settings.backups.list.status.success")}
+            className="flex items-center gap-1"
+          >
             <CheckCircle className="size-4 text-green-600" />
-            Success
+            {t("settings.backups.list.status.success")}
           </span>
         ) : backup.status === "failure" ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <span
-                title={backup.errorMessage || "Failed"}
+                title={
+                  backup.errorMessage ||
+                  t("settings.backups.list.status.failed")
+                }
                 className="flex items-center gap-1"
               >
                 <XCircle className="size-4 text-red-600" />
-                Failed
+                {t("settings.backups.list.status.failed")}
               </span>
             </TooltipTrigger>
             <TooltipContent>{backup.errorMessage}</TooltipContent>
@@ -240,7 +271,7 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
         ) : (
           <span className="flex items-center gap-1">
             <div className="size-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-            Pending
+            {t("settings.backups.list.status.pending")}
           </span>
         )}
       </TableCell>
@@ -268,12 +299,14 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Download Backup</TooltipContent>
+            <TooltipContent>
+              {t("settings.backups.list.actions.download_backup")}
+            </TooltipContent>
           </Tooltip>
         )}
         <ActionConfirmingDialog
-          title="Delete Backup?"
-          description="Are you sure you want to delete this backup? This action cannot be undone."
+          title={t("settings.backups.dialogs.delete_backup_title")}
+          description={t("settings.backups.dialogs.delete_backup_description")}
           actionButton={() => (
             <ActionButton
               loading={isDeleting}
@@ -283,7 +316,7 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
               type="button"
             >
               <Trash2 className="mr-2 size-4" />
-              Delete
+              {t("settings.backups.list.actions.delete_backup")}
             </ActionButton>
           )}
         >
@@ -297,6 +330,7 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
 }
 
 function BackupsList() {
+  const { t } = useTranslation();
   const apiUtils = api.useUtils();
   const { data: backups, isLoading } = api.backups.list.useQuery(undefined, {
     refetchInterval: (query) => {
@@ -312,8 +346,7 @@ function BackupsList() {
     api.backups.triggerBackup.useMutation({
       onSuccess: () => {
         toast({
-          description:
-            "Backup job has been queued! It will be processed shortly.",
+          description: t("settings.backups.toasts.backup_queued"),
         });
         apiUtils.backups.list.invalidate();
       },
@@ -329,7 +362,9 @@ function BackupsList() {
     <div className="rounded-md border bg-background p-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-medium">Your Backups</span>
+          <span className="text-lg font-medium">
+            {t("settings.backups.list.title")}
+          </span>
           <ActionButton
             onClick={() => triggerBackup()}
             loading={isTriggering}
@@ -337,7 +372,7 @@ function BackupsList() {
             className="items-center"
           >
             <Play className="mr-2 size-4" />
-            Create Backup Now
+            {t("settings.backups.list.create_backup_now")}
           </ActionButton>
         </div>
 
@@ -345,8 +380,7 @@ function BackupsList() {
 
         {backups && backups.backups.length === 0 && (
           <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-            You don&apos;t have any backups yet. Enable automatic backups or
-            create one manually.
+            {t("settings.backups.list.no_backups")}
           </p>
         )}
 
@@ -354,11 +388,17 @@ function BackupsList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Created At</TableHead>
-                <TableHead>Bookmarks</TableHead>
-                <TableHead>Size</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>
+                  {t("settings.backups.list.table.created_at")}
+                </TableHead>
+                <TableHead>
+                  {t("settings.backups.list.table.bookmarks")}
+                </TableHead>
+                <TableHead>{t("settings.backups.list.table.size")}</TableHead>
+                <TableHead>{t("settings.backups.list.table.status")}</TableHead>
+                <TableHead>
+                  {t("settings.backups.list.table.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
