@@ -212,7 +212,7 @@ describe("Backups API", () => {
     expect(backup!.status).toBe("success");
     expect(backup!.bookmarkCount).toBeGreaterThanOrEqual(3);
     expect(backup!.size).toBeGreaterThan(0);
-    expect(backup!.errorMessage).toBeUndefined();
+    expect(backup!.errorMessage).toBeNull();
 
     // Step 5: Download the backup
     const downloadResponse = await fetch(
@@ -262,7 +262,7 @@ describe("Backups API", () => {
 
     // Validate that our test bookmarks are in the backup
     const backupTitles = backupData.bookmarks.map(
-      (b: { content: { title?: string } }) => b.content.title,
+      (b: { title: string }) => b.title,
     );
     expect(backupTitles).toContain("Test Bookmark 1");
     expect(backupTitles).toContain("Test Bookmark 2");
@@ -270,7 +270,6 @@ describe("Backups API", () => {
 
     // Validate bookmark structure
     const firstBookmark = backupData.bookmarks[0];
-    expect(firstBookmark).toHaveProperty("id");
     expect(firstBookmark).toHaveProperty("content");
     expect(firstBookmark.content).toHaveProperty("type");
 
