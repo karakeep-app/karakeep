@@ -38,6 +38,12 @@ const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 export default function SignUpForm() {
   const form = useForm<z.infer<typeof zSignUpSchema>>({
     resolver: zodResolver(zSignUpSchema),
+    defaultValues: {
+      email: "",
+      name: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
