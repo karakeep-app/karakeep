@@ -1,4 +1,3 @@
-import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
@@ -34,7 +33,7 @@ export class Backup {
     return new Backup(ctx, backup);
   }
 
-  static fromData(
+  private static fromData(
     ctx: AuthedContext,
     backup: z.infer<typeof zBackupSchema>,
   ): Backup {
@@ -51,12 +50,9 @@ export class Backup {
   }
 
   static async create(ctx: AuthedContext): Promise<Backup> {
-    const backupId = createId();
-
     const [backup] = await ctx.db
       .insert(backupsTable)
       .values({
-        id: backupId,
         userId: ctx.user.id,
         size: 0,
         bookmarkCount: 0,
