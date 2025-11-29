@@ -473,7 +473,14 @@ export const useSearchAutocomplete = ({
     }
 
     return groups;
-  }, [qualifierSuggestions, tagSuggestions, listSuggestions, historyItems, t]);
+  }, [
+    qualifierSuggestions,
+    tagSuggestions,
+    listSuggestions,
+    feedSuggestions,
+    historyItems,
+    t,
+  ]);
 
   const hasSuggestions = suggestionGroups.length > 0;
   const showEmptyState =
