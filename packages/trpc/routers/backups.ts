@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
-import { authedProcedure, router } from "../index";
+import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { Backup } from "../models/backups";
 
 export const backupsAppRouter = router({
@@ -37,6 +37,13 @@ export const backupsAppRouter = router({
     }),
 
   triggerBackup: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "backups.triggerBackup",
+        windowMs: 60 * 60 * 1000, // 1 hour window
+        maxRequests: 5, // Max 5 backup triggers per hour
+      }),
+    )
     .output(zBackupSchema)
     .mutation(async ({ ctx }) => {
       const backup = await Backup.create(ctx);
