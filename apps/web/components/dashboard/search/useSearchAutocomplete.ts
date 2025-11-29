@@ -1,3 +1,4 @@
+import type translation from "@/lib/i18n/locales/en/translation.json";
 import type { TFunction } from "i18next";
 import type { LucideIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
@@ -8,6 +9,15 @@ import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
+
+type SearchTranslationKey = `search.${keyof typeof translation.search}`;
+
+interface QualifierDefinition {
+  value: string;
+  descriptionKey?: SearchTranslationKey;
+  negatedDescriptionKey?: SearchTranslationKey;
+  appendSpace?: boolean;
+}
 
 const QUALIFIER_DEFINITIONS = [
   {
@@ -36,17 +46,14 @@ const QUALIFIER_DEFINITIONS = [
   },
   {
     value: "is:link",
-    descriptionKey: undefined,
     appendSpace: true,
   },
   {
     value: "is:text",
-    descriptionKey: undefined,
     appendSpace: true,
   },
   {
     value: "is:media",
-    descriptionKey: undefined,
     appendSpace: true,
   },
   {
@@ -87,12 +94,7 @@ const QUALIFIER_DEFINITIONS = [
     descriptionKey: "search.or",
     appendSpace: true,
   },
-] satisfies ReadonlyArray<{
-  value: string;
-  descriptionKey?: string;
-  negatedDescriptionKey?: string;
-  appendSpace?: boolean;
-}>;
+] satisfies ReadonlyArray<QualifierDefinition>;
 
 export interface AutocompleteSuggestionItem {
   type: "token" | "tag" | "list";
@@ -236,9 +238,7 @@ const useQualifierSuggestions = (
         const descriptionKey = parsed.isTokenNegative
           ? (definition.negatedDescriptionKey ?? definition.descriptionKey)
           : definition.descriptionKey;
-        const description = descriptionKey
-          ? String(t(descriptionKey as never))
-          : undefined;
+        const description = descriptionKey ? t(descriptionKey) : undefined;
 
         return {
           type: "token" as const,
