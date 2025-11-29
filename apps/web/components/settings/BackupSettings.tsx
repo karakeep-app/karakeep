@@ -294,7 +294,15 @@ function BackupRow({ backup }: { backup: Backup }) {
 
 function BackupsList() {
   const apiUtils = api.useUtils();
-  const { data: backups, isLoading } = api.backups.list.useQuery();
+  const { data: backups, isLoading } = api.backups.list.useQuery(undefined, {
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      // Poll every 3 seconds if there's a pending backup, otherwise don't poll
+      return data?.backups.some((backup) => backup.status === "pending")
+        ? 3000
+        : false;
+    },
+  });
 
   const { mutate: triggerBackup, isPending: isTriggering } =
     api.backups.triggerBackup.useMutation({
