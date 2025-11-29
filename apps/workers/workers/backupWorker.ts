@@ -74,15 +74,18 @@ export const BackupSchedulingWorker = cron.schedule(
         if (shouldSchedule) {
           const idempotencyKey = `${user.id}-${currentDay}`;
 
-          // Create the backup record first
-          const authCtx = await buildImpersonatingAuthedContext(user.id);
-          const backup = await Backup.create(authCtx, {
-            delayMs,
-            idempotencyKey,
-          });
+          await BackupQueue.enqueue(
+            {
+              userId: user.id,
+            },
+            {
+              delayMs,
+              idempotencyKey,
+            },
+          );
 
           logger.info(
-            `[backup] Scheduled backup (${backup.id}) for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
+            `[backup] Scheduled backup for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
           );
         }
       }
@@ -184,7 +187,10 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
   try {
     // Step 1: Stream bookmarks to JSON file
     const ctx = await buildImpersonatingAuthedContext(userId);
-    const backup = await Backup.fromId(ctx, backupId);
+    const backup = await (backupId
+      ? Backup.fromId(ctx, backupId)
+      : Backup.create(ctx));
+
     const bookmarkCount = await streamBookmarksToJsonFile(
       ctx,
       tempJsonPath,

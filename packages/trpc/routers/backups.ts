@@ -40,6 +40,7 @@ export const backupsAppRouter = router({
     .output(zBackupSchema)
     .mutation(async ({ ctx }) => {
       const backup = await Backup.create(ctx);
+      await backup.triggerBackgroundJob();
 
       return backup.asPublic();
     }),

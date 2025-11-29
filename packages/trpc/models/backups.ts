@@ -50,13 +50,7 @@ export class Backup {
     return backups.map((b) => new Backup(ctx, b));
   }
 
-  static async create(
-    ctx: AuthedContext,
-    {
-      delayMs,
-      idempotencyKey,
-    }: { delayMs?: number; idempotencyKey?: string } = {},
-  ): Promise<Backup> {
+  static async create(ctx: AuthedContext): Promise<Backup> {
     const backupId = createId();
 
     const [backup] = await ctx.db
@@ -69,20 +63,23 @@ export class Backup {
         status: "pending",
       })
       .returning();
+    return new Backup(ctx, backup!);
+  }
 
-    // Trigger a backup job for the current user
+  async triggerBackgroundJob({
+    delayMs,
+    idempotencyKey,
+  }: { delayMs?: number; idempotencyKey?: string } = {}): Promise<void> {
     await BackupQueue.enqueue(
       {
-        userId: ctx.user.id,
-        backupId: backup.id,
+        userId: this.ctx.user.id,
+        backupId: this.backup.id,
       },
       {
         delayMs,
         idempotencyKey,
       },
     );
-
-    return new Backup(ctx, backup!);
   }
 
   /**
