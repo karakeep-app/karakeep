@@ -22,5 +22,8 @@ jobs:
         run: pnpm build
         working-directory: apps/mcp
 
+      # npm 11.5.1 or later is required for trusted publishing
+      - run: npm install -g npm@latest
+
       - run: pnpm publish --access public --no-git-checks
         working-directory: apps/mcp

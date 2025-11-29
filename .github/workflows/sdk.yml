@@ -3,10 +3,10 @@ on:
   push:
     tags:
       # This is a glob pattern not a regex
-      - 'sdk/v[0-9]+.[0-9]+.[0-9]+'
+      - "sdk/v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
-  id-token: write  # Required for OIDC
+  id-token: write # Required for OIDC
   contents: read
 
 jobs:
@@ -21,6 +21,9 @@ jobs:
       - name: Build SDK
         run: pnpm build
         working-directory: packages/sdk
+
+      # npm 11.5.1 or later is required for trusted publishing
+      - run: npm install -g npm@latest
 
       - run: pnpm publish --access public --no-git-checks
         working-directory: packages/sdk

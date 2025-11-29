@@ -3,7 +3,7 @@ on:
   push:
     tags:
       # This is a glob pattern not a regex
-      - 'cli/v[0-9]+.[0-9]+.[0-9]+'
+      - "cli/v[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
   id-token: write # Required for OIDC
@@ -21,6 +21,9 @@ jobs:
       - name: Build CLI
         run: pnpm build
         working-directory: apps/cli
+
+      # npm 11.5.1 or later is required for trusted publishing
+      - run: npm install -g npm@latest
 
       - run: pnpm publish --access public --no-git-checks
         working-directory: apps/cli
