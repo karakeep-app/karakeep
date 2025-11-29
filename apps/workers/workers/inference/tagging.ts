@@ -346,7 +346,7 @@ async function connectTags(
               (mt) => normalizeTag(mt.name) === t.normalizedTag,
             ),
         )
-        .map((t) => t.normalizedTag);
+        .map((t) => t.originalTag.toLowerCase());
 
       return { matchedTagIds, notFoundTagNames };
     })();
