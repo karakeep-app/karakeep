@@ -3,8 +3,9 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { backupsTable } from "@karakeep/db/schema";
+import { assets, backupsTable } from "@karakeep/db/schema";
 import { BackupQueue } from "@karakeep/shared-server";
+import { deleteAsset } from "@karakeep/shared/assetdb";
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { AuthedContext } from "..";
@@ -78,15 +79,37 @@ export class Backup {
   }
 
   async delete(): Promise<void> {
-    // Asset will be deleted automatically via cascade
-    await this.ctx.db
-      .delete(backupsTable)
-      .where(
-        and(
-          eq(backupsTable.id, this.backup.id),
-          eq(backupsTable.userId, this.ctx.user.id),
-        ),
-      );
+    if (this.backup.assetId) {
+      // Delete asset
+      await deleteAsset({
+        userId: this.ctx.user.id,
+        assetId: this.backup.assetId,
+      });
+    }
+
+    await this.ctx.db.transaction(async (db) => {
+      // Delete asset first
+      if (this.backup.assetId) {
+        await db
+          .delete(assets)
+          .where(
+            and(
+              eq(assets.id, this.backup.assetId),
+              eq(assets.userId, this.ctx.user.id),
+            ),
+          );
+      }
+
+      // Delete backup record
+      await db
+        .delete(backupsTable)
+        .where(
+          and(
+            eq(backupsTable.id, this.backup.id),
+            eq(backupsTable.userId, this.ctx.user.id),
+          ),
+        );
+    });
   }
 
   asPublic(): z.infer<typeof zBackupSchema> {

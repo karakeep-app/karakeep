@@ -39,7 +39,6 @@ export const backupsAppRouter = router({
   triggerBackup: authedProcedure
     .output(zBackupSchema)
     .mutation(async ({ ctx }) => {
-      // Create the backup record first
       const backup = await Backup.create(ctx);
 
       return backup.asPublic();
