@@ -5,15 +5,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
 import archiver from "archiver";
-import { and, eq, lt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 
 import type { ZBackupRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
-import { assets, AssetTypes, backupsTable, users } from "@karakeep/db/schema";
+import { assets, AssetTypes, users } from "@karakeep/db/schema";
 import { BackupQueue, QuotaService } from "@karakeep/shared-server";
-import { deleteAsset, saveAssetFromFile } from "@karakeep/shared/assetdb";
+import { saveAssetFromFile } from "@karakeep/shared/assetdb";
 import { toExportFormat } from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
@@ -76,13 +76,13 @@ export const BackupSchedulingWorker = cron.schedule(
 
           // Create the backup record first
           const authCtx = await buildImpersonatingAuthedContext(user.id);
-          const backupId = await Backup.create(authCtx, {
+          const backup = await Backup.create(authCtx, {
             delayMs,
             idempotencyKey,
           });
 
           logger.info(
-            `[backup] Scheduled backup (${backupId}) for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
+            `[backup] Scheduled backup (${backup.id}) for user ${user.id} with delay ${Math.round(delayMs / 1000 / 60)} minutes`,
           );
         }
       }
@@ -121,14 +121,21 @@ export class BackupWorker {
           );
 
           // Mark backup as failed
-          if (job.data?.backupId) {
-            await db
-              .update(backupsTable)
-              .set({
+          if (job.data?.backupId && job.data?.userId) {
+            try {
+              const authCtx = await buildImpersonatingAuthedContext(
+                job.data.userId,
+              );
+              const backup = await Backup.fromId(authCtx, job.data.backupId);
+              await backup.update({
                 status: "failure",
                 errorMessage: job.error?.message || "Unknown error",
-              })
-              .where(eq(backupsTable.id, job.data.backupId));
+              });
+            } catch (err) {
+              logger.error(
+                `[backup][${jobId}] Failed to mark backup as failed: ${err}`,
+              );
+            }
           }
         },
       },
@@ -176,26 +183,13 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
 
   try {
     // Step 1: Stream bookmarks to JSON file
-    logger.info(
-      `[backup][${jobId}] Streaming bookmarks to JSON file for user ${userId} ...`,
-    );
     const ctx = await buildImpersonatingAuthedContext(userId);
+    const backup = await Backup.fromId(ctx, backupId);
     const bookmarkCount = await streamBookmarksToJsonFile(
       ctx,
       tempJsonPath,
       jobId,
     );
-
-    if (bookmarkCount === 0) {
-      logger.info(
-        `[backup][${jobId}] No bookmarks found for user ${userId}. Skipping backup.`,
-      );
-      // Clean up temp file
-      await unlink(tempJsonPath).catch(() => {
-        // Ignore errors during cleanup
-      });
-      return;
-    }
 
     logger.info(
       `[backup][${jobId}] Streamed ${bookmarkCount} bookmarks to JSON file`,
@@ -214,27 +208,13 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     );
 
     // Step 3: Check quota and store as asset
-    logger.info(`[backup][${jobId}] Checking storage quota ...`);
     const quotaApproval = await QuotaService.checkStorageQuota(
       db,
       userId,
       compressedSize,
     );
-
-    logger.info(`[backup][${jobId}] Storing compressed backup as asset ...`);
     const assetId = createId();
     const fileName = `karakeep-backup-${timestamp}.zip`;
-
-    await saveAssetFromFile({
-      userId,
-      assetId,
-      assetPath: tempZipPath,
-      metadata: {
-        contentType: "application/zip",
-        fileName,
-      },
-      quotaApproved: quotaApproval,
-    });
 
     // Step 4: Create asset record
     await db.insert(assets).values({
@@ -246,40 +226,31 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
       bookmarkId: null,
       userId: userId,
     });
+    await saveAssetFromFile({
+      userId,
+      assetId,
+      assetPath: tempZipPath,
+      metadata: {
+        contentType: "application/zip",
+        fileName,
+      },
+      quotaApproved: quotaApproval,
+    });
 
     // Step 5: Update backup record
-    logger.info(`[backup][${jobId}] Updating backup record ...`);
-    await db
-      .update(backupsTable)
-      .set({
-        size: compressedSize,
-        bookmarkCount: bookmarkCount,
-        status: "success",
-        assetId,
-      })
-      .where(eq(backupsTable.id, backupId));
+    await backup.update({
+      size: compressedSize,
+      bookmarkCount: bookmarkCount,
+      status: "success",
+      assetId,
+    });
 
     logger.info(
       `[backup][${jobId}] Successfully created backup for user ${userId} with ${bookmarkCount} bookmarks (${compressedSize} bytes)`,
     );
 
     // Step 6: Clean up old backups based on retention
-    await cleanupOldBackups(userId, user.backupsRetentionDays, jobId);
-
-    logger.info(`[backup][${jobId}] Backup job completed for user ${userId}`);
-  } catch (error) {
-    // Clean up temporary files if they exist
-    try {
-      await unlink(tempJsonPath);
-    } catch {
-      // Ignore errors during cleanup
-    }
-    try {
-      await unlink(tempZipPath);
-    } catch {
-      // Ignore errors during cleanup
-    }
-    throw error;
+    await cleanupOldBackups(ctx, user.backupsRetentionDays, jobId);
   } finally {
     // Final cleanup of temporary files
     try {
@@ -386,79 +357,49 @@ async function createZipArchiveFromFile(
   });
 }
 
+/**
+ * Cleans up old backups based on retention policy
+ */
 async function cleanupOldBackups(
-  userId: string,
+  ctx: AuthedContext,
   retentionDays: number,
   jobId: string,
 ) {
   try {
     logger.info(
-      `[backup][${jobId}] Cleaning up backups older than ${retentionDays} days for user ${userId} ...`,
+      `[backup][${jobId}] Cleaning up backups older than ${retentionDays} days for user ${ctx.user.id} ...`,
     );
 
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-
-    // Find old backups
-    const oldBackups = await db.query.backupsTable.findMany({
-      columns: {
-        id: true,
-        assetId: true,
-        createdAt: true,
-      },
-      where: and(
-        eq(backupsTable.userId, userId),
-        lt(backupsTable.createdAt, cutoffDate),
-      ),
-    });
+    const oldBackups = await Backup.findOldBackups(ctx, retentionDays);
 
     if (oldBackups.length === 0) {
-      logger.info(
-        `[backup][${jobId}] No old backups to clean up for user ${userId}`,
-      );
       return;
     }
 
     logger.info(
-      `[backup][${jobId}] Found ${oldBackups.length} old backups to delete for user ${userId}`,
+      `[backup][${jobId}] Found ${oldBackups.length} old backups to delete for user ${ctx.user.id}`,
     );
 
-    // Delete assets first
+    // Delete each backup using the model's delete method
     for (const backup of oldBackups) {
-      if (!backup.assetId) {
-        continue;
-      }
       try {
-        await deleteAsset({
-          userId,
-          assetId: backup.assetId,
-        });
+        await backup.delete();
         logger.info(
-          `[backup][${jobId}] Deleted asset ${backup.assetId} for backup ${backup.id}`,
+          `[backup][${jobId}] Deleted backup ${backup.id} for user ${ctx.user.id}`,
         );
       } catch (error) {
         logger.warn(
-          `[backup][${jobId}] Failed to delete asset ${backup.assetId}: ${error}`,
+          `[backup][${jobId}] Failed to delete backup ${backup.id}: ${error}`,
         );
       }
     }
 
-    // Delete backup records
-    await db
-      .delete(backupsTable)
-      .where(
-        and(
-          eq(backupsTable.userId, userId),
-          lt(backupsTable.createdAt, cutoffDate),
-        ),
-      );
-
     logger.info(
-      `[backup][${jobId}] Successfully cleaned up ${oldBackups.length} old backups for user ${userId}`,
+      `[backup][${jobId}] Successfully cleaned up ${oldBackups.length} old backups for user ${ctx.user.id}`,
     );
   } catch (error) {
     logger.error(
-      `[backup][${jobId}] Error cleaning up old backups for user ${userId}: ${error}`,
+      `[backup][${jobId}] Error cleaning up old backups for user ${ctx.user.id}: ${error}`,
     );
   }
 }

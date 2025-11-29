@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets, backupsTable } from "@karakeep/db/schema";
@@ -31,6 +31,13 @@ export class Backup {
       });
     }
 
+    return new Backup(ctx, backup);
+  }
+
+  static fromData(
+    ctx: AuthedContext,
+    backup: z.infer<typeof zBackupSchema>,
+  ): Backup {
     return new Backup(ctx, backup);
   }
 
@@ -78,6 +85,32 @@ export class Backup {
     return new Backup(ctx, backup!);
   }
 
+  /**
+   * Generic update method for backup records
+   */
+  async update(
+    data: Partial<{
+      size: number;
+      bookmarkCount: number;
+      status: "pending" | "success" | "failure";
+      assetId: string | null;
+      errorMessage: string | null;
+    }>,
+  ): Promise<void> {
+    await this.ctx.db
+      .update(backupsTable)
+      .set(data)
+      .where(
+        and(
+          eq(backupsTable.id, this.backup.id),
+          eq(backupsTable.userId, this.ctx.user.id),
+        ),
+      );
+
+    // Update local state
+    this.backup = { ...this.backup, ...data };
+  }
+
   async delete(): Promise<void> {
     if (this.backup.assetId) {
       // Delete asset
@@ -110,6 +143,26 @@ export class Backup {
           ),
         );
     });
+  }
+
+  /**
+   * Finds backups older than the retention period
+   */
+  static async findOldBackups(
+    ctx: AuthedContext,
+    retentionDays: number,
+  ): Promise<Backup[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+    const oldBackups = await ctx.db.query.backupsTable.findMany({
+      where: and(
+        eq(backupsTable.userId, ctx.user.id),
+        lt(backupsTable.createdAt, cutoffDate),
+      ),
+    });
+
+    return oldBackups.map((backup) => Backup.fromData(ctx, backup));
   }
 
   asPublic(): z.infer<typeof zBackupSchema> {
