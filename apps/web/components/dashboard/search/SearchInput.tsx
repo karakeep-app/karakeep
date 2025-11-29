@@ -25,6 +25,7 @@ import {
 import { useDoBookmarkSearch } from "@/lib/hooks/bookmark-search";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
+
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 
 import { EditListModal } from "../lists/EditListModal";
@@ -223,7 +224,7 @@ const SearchInput = React.forwardRef<
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
           >
-            <CommandList className="max-h-60 overflow-y-auto">
+            <CommandList className="max-h-96 overflow-y-auto">
               <CommandEmpty>{t("search.no_suggestions")}</CommandEmpty>
               {hasSuggestions && <CommandItem value="-" className="hidden" />}
               {suggestionGroups.map((group) => (

@@ -1,7 +1,7 @@
-import { useCallback, useMemo } from "react";
-import type { LucideIcon } from "lucide-react";
-import { History, ListTree, Sparkles, Tag as TagIcon } from "lucide-react";
 import type { TFunction } from "i18next";
+import type { LucideIcon } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import { History, ListTree, Sparkles, Tag as TagIcon } from "lucide-react";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
@@ -112,9 +112,7 @@ export interface HistorySuggestionItem {
   Icon: LucideIcon;
 }
 
-export type SuggestionItem =
-  | AutocompleteSuggestionItem
-  | HistorySuggestionItem;
+export type SuggestionItem = AutocompleteSuggestionItem | HistorySuggestionItem;
 
 export interface SuggestionGroup {
   id: string;
@@ -223,10 +221,12 @@ export const useSearchAutocomplete = ({
       return [];
     }
 
+    // Don't suggest qualifiers if the user hasn't started typing
+    if (normalizedTokenWithoutMinus.length === 0) {
+      return [];
+    }
+
     return QUALIFIER_DEFINITIONS.filter((definition) => {
-      if (normalizedTokenWithoutMinus.length === 0) {
-        return true;
-      }
       return definition.value
         .toLowerCase()
         .startsWith(normalizedTokenWithoutMinus);
@@ -235,7 +235,7 @@ export const useSearchAutocomplete = ({
       .map((definition) => {
         const insertText = `${isTokenNegative ? "-" : ""}${definition.value}`;
         const descriptionKey = isTokenNegative
-          ? definition.negatedDescriptionKey ?? definition.descriptionKey
+          ? (definition.negatedDescriptionKey ?? definition.descriptionKey)
           : definition.descriptionKey;
         const description = descriptionKey
           ? String(t(descriptionKey as never))
@@ -267,7 +267,6 @@ export const useSearchAutocomplete = ({
     return (tagResults ?? []).slice(0, MAX_DISPLAY_SUGGESTIONS).map((tag) => {
       const formattedName = formatSearchValue(tag.name);
       const insertText = `${isTokenNegative ? "-" : ""}#${formattedName}`;
-      const description = `#${tag.name}`;
 
       return {
         type: "tag" as const,
@@ -275,7 +274,7 @@ export const useSearchAutocomplete = ({
         label: insertText,
         insertText,
         appendSpace: true,
-        description: description !== insertText ? description : undefined,
+        description: undefined,
         Icon: TagIcon,
       } satisfies AutocompleteSuggestionItem;
     });
@@ -305,7 +304,7 @@ export const useSearchAutocomplete = ({
           label: insertText,
           insertText,
           appendSpace: true,
-          description: list.name,
+          description: undefined,
           Icon: ListTree,
         } satisfies AutocompleteSuggestionItem;
       });
@@ -325,13 +324,16 @@ export const useSearchAutocomplete = ({
             item.toLowerCase().includes(trimmedValue.toLowerCase()),
           );
 
-    return results.slice(0, MAX_DISPLAY_SUGGESTIONS).map((term) => ({
-      type: "history" as const,
-      id: `history-${term}`,
-      term,
-      label: term,
-      Icon: History,
-    } satisfies HistorySuggestionItem));
+    return results.slice(0, MAX_DISPLAY_SUGGESTIONS).map(
+      (term) =>
+        ({
+          type: "history" as const,
+          id: `history-${term}`,
+          term,
+          label: term,
+          Icon: History,
+        }) satisfies HistorySuggestionItem,
+    );
   }, [history, value]);
 
   const suggestionGroups = useMemo<SuggestionGroup[]>(() => {
@@ -373,9 +375,9 @@ export const useSearchAutocomplete = ({
   }, [qualifierSuggestions, tagSuggestions, listSuggestions, historyItems, t]);
 
   const hasSuggestions = suggestionGroups.length > 0;
-  const showEmptyState = isPopoverOpen && !hasSuggestions && activeToken.length > 0;
-  const isPopoverVisible =
-    isPopoverOpen && (hasSuggestions || showEmptyState);
+  const showEmptyState =
+    isPopoverOpen && !hasSuggestions && activeToken.length > 0;
+  const isPopoverVisible = isPopoverOpen && (hasSuggestions || showEmptyState);
 
   const handleSuggestionSelect = useCallback(
     (item: AutocompleteSuggestionItem) => {
