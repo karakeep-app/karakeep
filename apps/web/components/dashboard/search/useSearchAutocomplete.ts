@@ -136,6 +136,14 @@ const shouldQuoteValue = (value: string) => /[\s:]/.test(value);
 const formatSearchValue = (value: string) =>
   shouldQuoteValue(value) ? `"${value}"` : value;
 
+interface ParsedSearchState {
+  activeToken: string;
+  isTokenNegative: boolean;
+  tokenWithoutMinus: string;
+  normalizedTokenWithoutMinus: string;
+  getActiveToken: (cursorPosition: number) => { token: string; start: number };
+}
+
 interface UseSearchAutocompleteParams {
   value: string;
   onValueChange: (value: string) => void;
@@ -146,15 +154,7 @@ interface UseSearchAutocompleteParams {
   history: string[];
 }
 
-export const useSearchAutocomplete = ({
-  value,
-  onValueChange,
-  inputRef,
-  isPopoverOpen,
-  setIsPopoverOpen,
-  t,
-  history,
-}: UseSearchAutocompleteParams) => {
+const useParsedSearchState = (value: string): ParsedSearchState => {
   const getActiveToken = useCallback(
     (cursorPosition: number) => {
       let start = 0;
@@ -198,23 +198,22 @@ export const useSearchAutocomplete = ({
     : activeToken;
   const normalizedTokenWithoutMinus = tokenWithoutMinus.toLowerCase();
 
-  const shouldSuggestTags = tokenWithoutMinus.startsWith("#");
-  const shouldSuggestLists = normalizedTokenWithoutMinus.startsWith("list:");
+  return {
+    activeToken,
+    isTokenNegative,
+    tokenWithoutMinus,
+    normalizedTokenWithoutMinus,
+    getActiveToken,
+  };
+};
 
-  const tagSearchTermRaw = shouldSuggestTags ? tokenWithoutMinus.slice(1) : "";
-  const tagSearchTerm = stripSurroundingQuotes(tagSearchTermRaw);
-  const debouncedTagSearchTerm = useDebounce(tagSearchTerm, 200);
-  const { data: tagResults } = useTagAutocomplete({
-    nameContains: debouncedTagSearchTerm,
-    select: (data) => data.tags,
-  });
-
-  const listSearchTermRaw = shouldSuggestLists
-    ? tokenWithoutMinus.slice("list:".length)
-    : "";
-  const listSearchTerm = stripSurroundingQuotes(listSearchTermRaw);
-  const normalizedListSearchTerm = listSearchTerm.toLowerCase();
-  const { data: listResults } = useBookmarkLists();
+const useQualifierSuggestions = (
+  parsed: ParsedSearchState,
+  t: TFunction,
+): AutocompleteSuggestionItem[] => {
+  const shouldSuggestTags = parsed.tokenWithoutMinus.startsWith("#");
+  const shouldSuggestLists =
+    parsed.normalizedTokenWithoutMinus.startsWith("list:");
 
   const qualifierSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (shouldSuggestTags || shouldSuggestLists) {
@@ -222,19 +221,19 @@ export const useSearchAutocomplete = ({
     }
 
     // Don't suggest qualifiers if the user hasn't started typing
-    if (normalizedTokenWithoutMinus.length === 0) {
+    if (parsed.normalizedTokenWithoutMinus.length === 0) {
       return [];
     }
 
     return QUALIFIER_DEFINITIONS.filter((definition) => {
       return definition.value
         .toLowerCase()
-        .startsWith(normalizedTokenWithoutMinus);
+        .startsWith(parsed.normalizedTokenWithoutMinus);
     })
       .slice(0, MAX_DISPLAY_SUGGESTIONS)
       .map((definition) => {
-        const insertText = `${isTokenNegative ? "-" : ""}${definition.value}`;
-        const descriptionKey = isTokenNegative
+        const insertText = `${parsed.isTokenNegative ? "-" : ""}${definition.value}`;
+        const descriptionKey = parsed.isTokenNegative
           ? (definition.negatedDescriptionKey ?? definition.descriptionKey)
           : definition.descriptionKey;
         const description = descriptionKey
@@ -254,10 +253,28 @@ export const useSearchAutocomplete = ({
   }, [
     shouldSuggestTags,
     shouldSuggestLists,
-    normalizedTokenWithoutMinus,
-    isTokenNegative,
+    parsed.normalizedTokenWithoutMinus,
+    parsed.isTokenNegative,
     t,
   ]);
+
+  return qualifierSuggestions;
+};
+
+const useTagSuggestions = (
+  parsed: ParsedSearchState,
+): AutocompleteSuggestionItem[] => {
+  const shouldSuggestTags = parsed.tokenWithoutMinus.startsWith("#");
+  const tagSearchTermRaw = shouldSuggestTags
+    ? parsed.tokenWithoutMinus.slice(1)
+    : "";
+  const tagSearchTerm = stripSurroundingQuotes(tagSearchTermRaw);
+  const debouncedTagSearchTerm = useDebounce(tagSearchTerm, 200);
+
+  const { data: tagResults } = useTagAutocomplete({
+    nameContains: debouncedTagSearchTerm,
+    select: (data) => data.tags,
+  });
 
   const tagSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestTags) {
@@ -266,7 +283,7 @@ export const useSearchAutocomplete = ({
 
     return (tagResults ?? []).slice(0, MAX_DISPLAY_SUGGESTIONS).map((tag) => {
       const formattedName = formatSearchValue(tag.name);
-      const insertText = `${isTokenNegative ? "-" : ""}#${formattedName}`;
+      const insertText = `${parsed.isTokenNegative ? "-" : ""}#${formattedName}`;
 
       return {
         type: "tag" as const,
@@ -278,7 +295,22 @@ export const useSearchAutocomplete = ({
         Icon: TagIcon,
       } satisfies AutocompleteSuggestionItem;
     });
-  }, [shouldSuggestTags, tagResults, isTokenNegative]);
+  }, [shouldSuggestTags, tagResults, parsed.isTokenNegative]);
+
+  return tagSuggestions;
+};
+
+const useListSuggestions = (
+  parsed: ParsedSearchState,
+): AutocompleteSuggestionItem[] => {
+  const shouldSuggestLists =
+    parsed.normalizedTokenWithoutMinus.startsWith("list:");
+  const listSearchTermRaw = shouldSuggestLists
+    ? parsed.tokenWithoutMinus.slice("list:".length)
+    : "";
+  const listSearchTerm = stripSurroundingQuotes(listSearchTermRaw);
+  const normalizedListSearchTerm = listSearchTerm.toLowerCase();
+  const { data: listResults } = useBookmarkLists();
 
   const listSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestLists) {
@@ -297,7 +329,7 @@ export const useSearchAutocomplete = ({
       .slice(0, MAX_DISPLAY_SUGGESTIONS)
       .map((list) => {
         const formattedName = formatSearchValue(list.name);
-        const insertText = `${isTokenNegative ? "-" : ""}list:${formattedName}`;
+        const insertText = `${parsed.isTokenNegative ? "-" : ""}list:${formattedName}`;
         return {
           type: "list" as const,
           id: `list-${list.id}`,
@@ -312,9 +344,16 @@ export const useSearchAutocomplete = ({
     shouldSuggestLists,
     listResults,
     normalizedListSearchTerm,
-    isTokenNegative,
+    parsed.isTokenNegative,
   ]);
 
+  return listSuggestions;
+};
+
+const useHistorySuggestions = (
+  value: string,
+  history: string[],
+): HistorySuggestionItem[] => {
   const historyItems = useMemo<HistorySuggestionItem[]>(() => {
     const trimmedValue = value.trim();
     const results =
@@ -335,6 +374,25 @@ export const useSearchAutocomplete = ({
         }) satisfies HistorySuggestionItem,
     );
   }, [history, value]);
+
+  return historyItems;
+};
+
+export const useSearchAutocomplete = ({
+  value,
+  onValueChange,
+  inputRef,
+  isPopoverOpen,
+  setIsPopoverOpen,
+  t,
+  history,
+}: UseSearchAutocompleteParams) => {
+  const parsedState = useParsedSearchState(value);
+  const qualifierSuggestions = useQualifierSuggestions(parsedState, t);
+  const tagSuggestions = useTagSuggestions(parsedState);
+  const listSuggestions = useListSuggestions(parsedState);
+  const historyItems = useHistorySuggestions(value, history);
+  const { activeToken, getActiveToken } = parsedState;
 
   const suggestionGroups = useMemo<SuggestionGroup[]>(() => {
     const groups: SuggestionGroup[] = [];
