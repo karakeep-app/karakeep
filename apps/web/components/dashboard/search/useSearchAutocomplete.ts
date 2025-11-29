@@ -2,7 +2,14 @@ import type translation from "@/lib/i18n/locales/en/translation.json";
 import type { TFunction } from "i18next";
 import type { LucideIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { History, ListTree, Sparkles, Tag as TagIcon } from "lucide-react";
+import { api } from "@/lib/trpc";
+import {
+  History,
+  ListTree,
+  RssIcon,
+  Sparkles,
+  Tag as TagIcon,
+} from "lucide-react";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
@@ -84,20 +91,10 @@ const QUALIFIER_DEFINITIONS = [
     value: "age:",
     descriptionKey: "search.created_within",
   },
-  {
-    value: "and",
-    descriptionKey: "search.and",
-    appendSpace: true,
-  },
-  {
-    value: "or",
-    descriptionKey: "search.or",
-    appendSpace: true,
-  },
 ] satisfies ReadonlyArray<QualifierDefinition>;
 
 export interface AutocompleteSuggestionItem {
-  type: "token" | "tag" | "list";
+  type: "token" | "tag" | "list" | "feed";
   id: string;
   label: string;
   insertText: string;
@@ -213,15 +210,7 @@ const useQualifierSuggestions = (
   parsed: ParsedSearchState,
   t: TFunction,
 ): AutocompleteSuggestionItem[] => {
-  const shouldSuggestTags = parsed.tokenWithoutMinus.startsWith("#");
-  const shouldSuggestLists =
-    parsed.normalizedTokenWithoutMinus.startsWith("list:");
-
   const qualifierSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
-    if (shouldSuggestTags || shouldSuggestLists) {
-      return [];
-    }
-
     // Don't suggest qualifiers if the user hasn't started typing
     if (parsed.normalizedTokenWithoutMinus.length === 0) {
       return [];
@@ -250,13 +239,7 @@ const useQualifierSuggestions = (
           Icon: Sparkles,
         } satisfies AutocompleteSuggestionItem;
       });
-  }, [
-    shouldSuggestTags,
-    shouldSuggestLists,
-    parsed.normalizedTokenWithoutMinus,
-    parsed.isTokenNegative,
-    t,
-  ]);
+  }, [parsed.normalizedTokenWithoutMinus, parsed.isTokenNegative, t]);
 
   return qualifierSuggestions;
 };
@@ -298,6 +281,56 @@ const useTagSuggestions = (
   }, [shouldSuggestTags, tagResults, parsed.isTokenNegative]);
 
   return tagSuggestions;
+};
+
+const useFeedSuggestions = (
+  parsed: ParsedSearchState,
+): AutocompleteSuggestionItem[] => {
+  const shouldSuggestFeeds =
+    parsed.normalizedTokenWithoutMinus.startsWith("feed:");
+  const feedSearchTermRaw = shouldSuggestFeeds
+    ? parsed.tokenWithoutMinus.slice("feed:".length)
+    : "";
+  const feedSearchTerm = stripSurroundingQuotes(feedSearchTermRaw);
+  const normalizedFeedSearchTerm = feedSearchTerm.toLowerCase();
+  const { data: feedResults } = api.feeds.list.useQuery();
+
+  const feedSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
+    if (!shouldSuggestFeeds) {
+      return [];
+    }
+
+    const feeds = feedResults?.feeds ?? [];
+
+    return feeds
+      .filter((feed) => {
+        if (normalizedFeedSearchTerm.length === 0) {
+          return true;
+        }
+        return feed.name.toLowerCase().includes(normalizedFeedSearchTerm);
+      })
+      .slice(0, MAX_DISPLAY_SUGGESTIONS)
+      .map((feed) => {
+        const formattedName = formatSearchValue(feed.name);
+        const insertText = `${parsed.isTokenNegative ? "-" : ""}feed:${formattedName}`;
+        return {
+          type: "feed" as const,
+          id: `feed-${feed.id}`,
+          label: insertText,
+          insertText,
+          appendSpace: true,
+          description: undefined,
+          Icon: RssIcon,
+        } satisfies AutocompleteSuggestionItem;
+      });
+  }, [
+    shouldSuggestFeeds,
+    feedResults,
+    normalizedFeedSearchTerm,
+    parsed.isTokenNegative,
+  ]);
+
+  return feedSuggestions;
 };
 
 const useListSuggestions = (
@@ -391,19 +424,12 @@ export const useSearchAutocomplete = ({
   const qualifierSuggestions = useQualifierSuggestions(parsedState, t);
   const tagSuggestions = useTagSuggestions(parsedState);
   const listSuggestions = useListSuggestions(parsedState);
+  const feedSuggestions = useFeedSuggestions(parsedState);
   const historyItems = useHistorySuggestions(value, history);
   const { activeToken, getActiveToken } = parsedState;
 
   const suggestionGroups = useMemo<SuggestionGroup[]>(() => {
     const groups: SuggestionGroup[] = [];
-
-    if (qualifierSuggestions.length > 0) {
-      groups.push({
-        id: "qualifiers",
-        label: t("search.filters"),
-        items: qualifierSuggestions,
-      });
-    }
 
     if (tagSuggestions.length > 0) {
       groups.push({
@@ -418,6 +444,23 @@ export const useSearchAutocomplete = ({
         id: "lists",
         label: t("search.lists"),
         items: listSuggestions,
+      });
+    }
+
+    if (feedSuggestions.length > 0) {
+      groups.push({
+        id: "feeds",
+        label: t("search.feeds"),
+        items: feedSuggestions,
+      });
+    }
+
+    // Only suggest qualifiers if no other suggestions are available
+    if (groups.length === 0 && qualifierSuggestions.length > 0) {
+      groups.push({
+        id: "qualifiers",
+        label: t("search.filters"),
+        items: qualifierSuggestions,
       });
     }
 
