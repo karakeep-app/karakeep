@@ -123,7 +123,11 @@ function BackupConfigurationForm() {
               <FormItem>
                 <FormLabel>Backup Frequency</FormLabel>
                 <FormControl>
-                  <Select {...field}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    {...field}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
