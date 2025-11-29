@@ -262,7 +262,8 @@
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "export_links_and_notes": "Export Links and Notes",
-      "imported_bookmarks": "Imported Bookmarks"
+      "imported_bookmarks": "Imported Bookmarks",
+      "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export"
     },
     "api_keys": {
       "api_keys": "API Keys",
@@ -387,6 +388,10 @@
       },
       "storage_breakdown": {
         "title": "Storage Breakdown"
+      },
+      "bookmark_sources": {
+        "title": "Bookmark Sources",
+        "empty": "No source data available"
       }
     },
     "subscription": {
@@ -436,6 +441,55 @@
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
       "delete_session": "Delete Session"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Automatically create and manage backups of your bookmarks. Backups are compressed and stored securely, you know, just in case.",
+      "configuration": {
+        "title": "Backup Configuration",
+        "enable_automatic_backups": "Enable Automatic Backups",
+        "enable_automatic_backups_description": "Automatically create backups of your bookmarks, like clockwork!",
+        "backup_frequency": "Backup Frequency",
+        "backup_frequency_description": "How often backups should be created?",
+        "retention_period": "Retention Period (days)",
+        "retention_period_description": "How many days to keep backups before they're deleted?",
+        "frequency": {
+          "daily": "Daily",
+          "weekly": "Weekly"
+        },
+        "select_frequency": "Select frequency",
+        "save_settings": "Save Settings"
+      },
+      "list": {
+        "title": "Your Backups",
+        "create_backup_now": "Create Backup Now",
+        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually, chop chop!",
+        "table": {
+          "created_at": "Created At",
+          "bookmarks": "Bookmarks",
+          "size": "Size",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "success": "Success!",
+          "failed": "Failed!",
+          "pending": "Pending"
+        },
+        "actions": {
+          "download_backup": "Download Backup",
+          "delete_backup": "Delete Backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Delete Backup?",
+        "delete_backup_description": "Are you sure you wanna delete this backup? This can't be undone, ya know."
+      },
+      "toasts": {
+        "backup_queued": "Backup job has been queued! It'll be processed real quick.",
+        "backup_deleted": "Backup has been deleted!"
+      }
     }
   },
   "admin": {
@@ -606,7 +660,57 @@
       "description": "Deleting a list doesn't delete any bookmarks in that list.",
       "delete_children": "Delete children lists (recursively)",
       "delete_children_description": "If not checked, all direct children lists will become root lists"
-    }
+    },
+    "shared": "Shared",
+    "collaborators": {
+      "manage": "Manage Collaborators",
+      "view": "View Collaborators",
+      "collaborators": "Collaborators",
+      "add": "Add Collaborator",
+      "current": "Current Collaborators",
+      "enter_email": "Enter email address",
+      "please_enter_email": "Please enter an email address",
+      "added_successfully": "Collaborator added successfully",
+      "failed_to_add": "Failed to add collaborator",
+      "removed": "Collaborator removed",
+      "failed_to_remove": "Failed to remove collaborator",
+      "role_updated": "Role updated",
+      "failed_to_update_role": "Failed to update role",
+      "viewer": "Viewer",
+      "editor": "Editor",
+      "owner": "Owner",
+      "viewer_description": "Can view bookmarks in the list",
+      "editor_description": "Can add and remove bookmarks",
+      "no_collaborators": "No collaborators yet. Add someone to start collaboratin'!",
+      "no_collaborators_readonly": "Ain't nobody collaborating on this list.",
+      "people_with_access": "These are the peeps with access to this list",
+      "add_or_remove": "Add or kick out folks who can get to this list",
+      "invitation_sent": "Invitation sent successfully",
+      "invitation_revoked": "Invitation revoked",
+      "failed_to_revoke": "Failed to revoke invitation",
+      "pending": "Pending",
+      "revoke": "Revoke",
+      "declined": "Declined"
+    },
+    "leave_list": {
+      "title": "Ditch List",
+      "confirm_message": "You sure you wanna ditch {{icon}} {{name}}?",
+      "warning": "You won't be able to peep or get to bookmarks in this list no more. The list owner can add you back if they need to.",
+      "action": "Ditch List",
+      "success": "You've ditched \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Pending Invitations",
+      "description": "Review and respond to list collaboration invitations",
+      "invited_by": "Invited by",
+      "accept": "Accept",
+      "decline": "Decline",
+      "accepted": "Invitation accepted",
+      "declined": "Invitation declined",
+      "failed_to_accept": "Failed to accept invitation",
+      "failed_to_decline": "Failed to decline invitation"
+    },
+    "shared_lists": "Shared Lists"
   },
   "search": {
     "is_favorited": "Is Favorited",

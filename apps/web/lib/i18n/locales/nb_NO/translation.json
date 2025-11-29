@@ -263,7 +263,8 @@
       "import_bookmarks_from_karakeep_export": "Importer bokmerker fra Karakeepp-eksport",
       "export_links_and_notes": "Eksporter lenker og notater",
       "imported_bookmarks": "Importerte bokmerker",
-      "import_bookmarks_from_tab_session_manager_export": "Importer bokmerker fra Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importer bokmerker fra Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksporten min"
     },
     "api_keys": {
       "new_api_key": "Ny API-nøkkel",
@@ -414,6 +415,10 @@
       },
       "storage_breakdown": {
         "title": "Lagringsoversikt"
+      },
+      "bookmark_sources": {
+        "title": "Bokmerk kilder",
+        "empty": "Ingen kildedata tilgjengelig"
       }
     },
     "subscription": {
@@ -463,6 +468,55 @@
       "delete_dialog_title": "Slett importsesjon",
       "delete_dialog_description": "Er du sikker på at du vil slette «{{name}}»? Denne handlingen kan ikke angres. Selve bokmerkene blir ikke slettet.",
       "delete_session": "Slett økt"
+    },
+    "backups": {
+      "backups": "Sikkerhetskopieringer",
+      "page_title": "Sikkerhetskopieringer",
+      "page_description": "Lag og administrer sikkerhetskopieringer av bokmerkene dine automatisk. Sikkerhetskopieringene komprimeres og lagres sikkert.",
+      "configuration": {
+        "title": "Konfigurasjon av sikkerhetskopiering",
+        "enable_automatic_backups": "Aktiver automatiske sikkerhetskopieringer",
+        "enable_automatic_backups_description": "Lag sikkerhetskopieringer av bokmerkene dine automatisk",
+        "backup_frequency": "Frekvens for sikkerhetskopiering",
+        "backup_frequency_description": "Hvor ofte sikkerhetskopieringer skal opprettes",
+        "retention_period": "Oppbevaringsperiode (dager)",
+        "retention_period_description": "Hvor mange dager sikkerhetskopieringer skal beholdes før de slettes",
+        "frequency": {
+          "daily": "Daglig",
+          "weekly": "Ukentlig"
+        },
+        "select_frequency": "Velg frekvens",
+        "save_settings": "Lagre innstillinger"
+      },
+      "list": {
+        "title": "Dine sikkerhetskopieringer",
+        "create_backup_now": "Lag sikkerhetskopiering nå",
+        "no_backups": "Du har ingen sikkerhetskopieringer ennå. Aktiver automatiske sikkerhetskopieringer eller lag en manuelt.",
+        "table": {
+          "created_at": "Opprettet",
+          "bookmarks": "Bokmerker",
+          "size": "Størrelse",
+          "status": "Status",
+          "actions": "Handlinger"
+        },
+        "status": {
+          "success": "Vellykket",
+          "failed": "Mislyktes",
+          "pending": "Venter"
+        },
+        "actions": {
+          "download_backup": "Last ned sikkerhetskopi",
+          "delete_backup": "Slett sikkerhetskopi"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Slett sikkerhetskopi?",
+        "delete_backup_description": "Er du sikker på at du vil slette denne sikkerhetskopien? Dette kan ikke angres."
+      },
+      "toasts": {
+        "backup_queued": "Sikkerhetskopieringsjobben er satt i kø! Den behandles snart.",
+        "backup_deleted": "Sikkerhetskopien er slettet!"
+      }
     }
   },
   "options": {
@@ -503,7 +557,57 @@
       "description": "Hvis du sletter ei liste, slettes ikke bokmerkene i lista.",
       "delete_children": "Slett underlister (rekursivt)",
       "delete_children_description": "Hvis dette ikke er haket av, vil alle direkte underlister bli topplister"
-    }
+    },
+    "shared": "Delt",
+    "collaborators": {
+      "manage": "Administrer samarbeidspartnere",
+      "view": "Vis samarbeidspartnere",
+      "collaborators": "Samarbeidspartnere",
+      "add": "Legg til samarbeidspartner",
+      "current": "Nåværende samarbeidspartnere",
+      "enter_email": "Skriv inn e-postadresse",
+      "please_enter_email": "Vennligst skriv inn en e-postadresse",
+      "added_successfully": "Samarbeidspartner lagt til",
+      "failed_to_add": "Kunne ikke legge til samarbeidspartner",
+      "removed": "Samarbeidspartner fjernet",
+      "failed_to_remove": "Kunne ikke fjerne samarbeidspartner",
+      "role_updated": "Rolle oppdatert",
+      "failed_to_update_role": "Kunne ikke oppdatere rolle",
+      "viewer": "Visningsrettigheter",
+      "editor": "Redigeringsrettigheter",
+      "owner": "Eier",
+      "viewer_description": "Kan se bokmerker i listen",
+      "editor_description": "Kan legge til og fjerne bokmerker",
+      "no_collaborators": "Ingen samarbeidspartnere ennå. Legg til noen for å starte samarbeidet!",
+      "no_collaborators_readonly": "Ingen samarbeidspartnere for denne lista.",
+      "people_with_access": "Folk som har tilgang til denne lista",
+      "add_or_remove": "Legg til eller fjern folk som har tilgang til denne lista",
+      "invitation_sent": "Invitasjonen er sendt!",
+      "invitation_revoked": "Invitasjonen er tilbakekalt",
+      "failed_to_revoke": "Kunne ikke tilbakekalle inviasjonen",
+      "pending": "Venter",
+      "revoke": "Tilbakekall",
+      "declined": "Avslått"
+    },
+    "leave_list": {
+      "title": "Forlat liste",
+      "confirm_message": "Er du sikker på at du vil forlate {{icon}} {{name}}?",
+      "warning": "Du vil ikke lenger kunne se eller få tilgang til bokmerker i denne lista. Listeeieren kan legge deg tilbake hvis nødvendig.",
+      "action": "Forlat liste",
+      "success": "Du har forlatt \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Ventende invitasjoner",
+      "description": "Se gjennom og svar på invitasjoner for listesamarbeid",
+      "invited_by": "Invitert av",
+      "accept": "Aksepter",
+      "decline": "Avslå",
+      "accepted": "Invitasjonen er akseptert",
+      "declined": "Invitasjonen er avslått",
+      "failed_to_accept": "Kunne ikke akseptere invitasjonen",
+      "failed_to_decline": "Kunne ikke avslå invitasjonen"
+    },
+    "shared_lists": "Delte lister"
   },
   "tags": {
     "all_tags": "Alle tagger",

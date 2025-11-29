@@ -147,7 +147,8 @@
       "export_links_and_notes": "Exporter les liens et les notes",
       "imported_bookmarks": "Favoris importés",
       "import_bookmarks_from_linkwarden_export": "Importer des marque-pages depuis l'export Linkwarden",
-      "import_bookmarks_from_tab_session_manager_export": "Importer les marque-pages depuis Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importer les marque-pages depuis Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importer les signets depuis l'export mymind"
     },
     "api_keys": {
       "api_keys": "Clés API",
@@ -290,6 +291,10 @@
       },
       "storage_breakdown": {
         "title": "Répartition du stockage"
+      },
+      "bookmark_sources": {
+        "title": "Sources des signets",
+        "empty": "Aucune donnée source disponible"
       }
     },
     "subscription": {
@@ -339,6 +344,55 @@
       "delete_dialog_title": "Supprimer la session d’importation",
       "delete_dialog_description": "Êtes-vous sûr de vouloir supprimer « {{name}} » ? Cette action est irréversible. Les signets eux-mêmes ne seront pas supprimés.",
       "delete_session": "Supprimer la session"
+    },
+    "backups": {
+      "backups": "Sauvegardes",
+      "page_title": "Sauvegardes",
+      "page_description": "Crée et gère automatiquement les sauvegardes de tes marque-pages. Les sauvegardes sont compressées et stockées de manière sécurisée.",
+      "configuration": {
+        "title": "Configuration des sauvegardes",
+        "enable_automatic_backups": "Activer les sauvegardes automatiques",
+        "enable_automatic_backups_description": "Crée automatiquement des sauvegardes de tes marque-pages",
+        "backup_frequency": "Fréquence des sauvegardes",
+        "backup_frequency_description": "À quelle fréquence les sauvegardes doivent être créées",
+        "retention_period": "Période de rétention (jours)",
+        "retention_period_description": "Combien de jours conserver les sauvegardes avant de les supprimer",
+        "frequency": {
+          "daily": "Quotidien",
+          "weekly": "Hebdomadaire"
+        },
+        "select_frequency": "Sélectionner la fréquence",
+        "save_settings": "Enregistrer les paramètres"
+      },
+      "list": {
+        "title": "Tes sauvegardes",
+        "create_backup_now": "Créer une sauvegarde maintenant",
+        "no_backups": "Tu n'as pas encore de sauvegardes. Active les sauvegardes automatiques ou crées-en une manuellement.",
+        "table": {
+          "created_at": "Créé à",
+          "bookmarks": "Marque-pages",
+          "size": "Taille",
+          "status": "Statut",
+          "actions": "Actions"
+        },
+        "status": {
+          "success": "Succès",
+          "failed": "Échoué",
+          "pending": "En attente"
+        },
+        "actions": {
+          "download_backup": "Télécharger une sauvegarde",
+          "delete_backup": "Supprimer une sauvegarde"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Supprimer la sauvegarde ?",
+        "delete_backup_description": "Êtes-vous sûr de vouloir supprimer cette sauvegarde ? Cette action est irréversible."
+      },
+      "toasts": {
+        "backup_queued": "La tâche de sauvegarde a été mise en file d’attente ! Elle sera traitée sous peu.",
+        "backup_deleted": "La sauvegarde a été supprimée !"
+      }
     }
   },
   "admin": {
@@ -509,7 +563,57 @@
       "description": "Supprimer une liste ne supprime aucun marque-page dans cette liste.",
       "delete_children": "Supprimer les listes enfants (récursivement)",
       "delete_children_description": "Si cette case n'est pas cochée, toutes les listes enfants directes deviendront des listes racines"
-    }
+    },
+    "shared": "Partagé",
+    "collaborators": {
+      "manage": "Gérer les collaborateurs",
+      "view": "Afficher les collaborateurs",
+      "collaborators": "Collaborateurs",
+      "add": "Ajouter un collaborateur",
+      "current": "Collaborateurs actuels",
+      "enter_email": "Entrer l'adresse e-mail",
+      "please_enter_email": "Veuillez entrer une adresse e-mail",
+      "added_successfully": "Collaborateur ajouté avec succès",
+      "failed_to_add": "Échec de l'ajout du collaborateur",
+      "removed": "Collaborateur supprimé",
+      "failed_to_remove": "Échec de la suppression du collaborateur",
+      "role_updated": "Rôle mis à jour",
+      "failed_to_update_role": "Échec de la mise à jour du rôle",
+      "viewer": "Lecteur",
+      "editor": "Éditeur",
+      "owner": "Propriétaire",
+      "viewer_description": "Peut afficher les favoris dans la liste",
+      "editor_description": "Peut ajouter et supprimer des favoris",
+      "no_collaborators": "Pas encore de collaborateurs. Ajoutez quelqu'un pour commencer à collaborer !",
+      "no_collaborators_readonly": "Pas de collaborateurs pour cette liste.",
+      "people_with_access": "Les personnes qui ont accès à cette liste",
+      "add_or_remove": "Ajouter ou supprimer des personnes qui peuvent accéder à cette liste",
+      "invitation_sent": "Invitation envoyée",
+      "invitation_revoked": "Invitation révoquée",
+      "failed_to_revoke": "Échec de la révocation de l’invitation",
+      "pending": "En attente",
+      "revoke": "Révoquer",
+      "declined": "Refusée"
+    },
+    "leave_list": {
+      "title": "Quitter la liste",
+      "confirm_message": "Êtes-vous sûr de vouloir quitter {{icon}} {{name}} ?",
+      "warning": "Vous ne pourrez plus visualiser ni accéder aux signets dans cette liste. Le propriétaire de la liste peut vous rajouter si nécessaire.",
+      "action": "Quitter la liste",
+      "success": "Vous avez quitté « {{icon}} {{name}} »"
+    },
+    "invitations": {
+      "pending": "Invitations en attente",
+      "description": "Vérifier et répondre aux invitations de collaboration de listes",
+      "invited_by": "Invité par",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "accepted": "Invitation acceptée",
+      "declined": "Invitation refusée",
+      "failed_to_accept": "Impossible d’accepter l’invitation",
+      "failed_to_decline": "Impossible de refuser l’invitation"
+    },
+    "shared_lists": "Listes partagées"
   },
   "tags": {
     "all_tags": "Tous les tags",

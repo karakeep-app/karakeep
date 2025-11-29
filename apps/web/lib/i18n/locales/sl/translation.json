@@ -22,7 +22,8 @@
       "export_links_and_notes": "Izvozi povezave in zapiske",
       "import_export": "Uvoz / Izvoz",
       "import_bookmarks_from_html_file": "Uvozi zaznamke iz datoteke HTML",
-      "import_bookmarks_from_tab_session_manager_export": "Uvozi zaznamke iz upravitelja zavihkov"
+      "import_bookmarks_from_tab_session_manager_export": "Uvozi zaznamke iz upravitelja zavihkov",
+      "import_bookmarks_from_mymind_export": "Uvozi zaznamke iz izvoza mymind"
     },
     "info": {
       "options": "Možnosti",
@@ -197,6 +198,10 @@
       },
       "storage_breakdown": {
         "title": "Razčlenitev shrambe"
+      },
+      "bookmark_sources": {
+        "title": "Viri zaznamkov",
+        "empty": "Ni razpoložljivih izvornih podatkov"
       }
     },
     "subscription": {
@@ -246,6 +251,55 @@
       "delete_dialog_title": "Izbriši sejo uvoza",
       "delete_dialog_description": "Ste prepričani, da želite izbrisati »{{name}}«? Tega dejanja ni mogoče razveljaviti. Zaznamki sami ne bodo izbrisani.",
       "delete_session": "Izbriši sejo"
+    },
+    "backups": {
+      "backups": "Varnostne kopije",
+      "page_title": "Varnostne kopije",
+      "page_description": "Samodejno ustvarjaj in upravljaj varnostne kopije zaznamkov. Varnostne kopije so stisnjene in varno shranjene.",
+      "configuration": {
+        "title": "Nastavitve varnostnega kopiranja",
+        "enable_automatic_backups": "Omogoči samodejno varnostno kopiranje",
+        "enable_automatic_backups_description": "Samodejno ustvari varnostne kopije zaznamkov",
+        "backup_frequency": "Pogostost varnostnega kopiranja",
+        "backup_frequency_description": "Kako pogosto naj se ustvarjajo varnostne kopije",
+        "retention_period": "Obdobje ohranjanja (dni)",
+        "retention_period_description": "Koliko dni hraniti varnostne kopije, preden se izbrišejo",
+        "frequency": {
+          "daily": "Dnevno",
+          "weekly": "Tedensko"
+        },
+        "select_frequency": "Izberi pogostost",
+        "save_settings": "Shrani nastavitve"
+      },
+      "list": {
+        "title": "Tvoje varnostne kopije",
+        "create_backup_now": "Ustvari varnostno kopijo zdaj",
+        "no_backups": "Še nimaš varnostnih kopij. Omogoči samodejno varnostno kopiranje ali ustvari ročno.",
+        "table": {
+          "created_at": "Ustvarjeno ob",
+          "bookmarks": "Zaznamki",
+          "size": "Velikost",
+          "status": "Stanje",
+          "actions": "Dejanja"
+        },
+        "status": {
+          "success": "Uspešno",
+          "failed": "Neuspešno",
+          "pending": "Na čakanju"
+        },
+        "actions": {
+          "download_backup": "Prenesi varnostno kopijo",
+          "delete_backup": "Izbriši varnostno kopijo"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Izbrišem varnostno kopijo?",
+        "delete_backup_description": "Ali ste prepričani, da želite izbrisati to varnostno kopijo? Tega dejanja ni mogoče razveljaviti."
+      },
+      "toasts": {
+        "backup_queued": "Opravilo varnostne kopije je bilo dodano v čakalno vrsto! Kmalu bo obdelano.",
+        "backup_deleted": "Varnostna kopija je bila izbrisana!"
+      }
     }
   },
   "admin": {
@@ -569,7 +623,57 @@
       "description": "Če izbrišeš seznam, ne izbrišeš zaznamkov na tem seznamu.",
       "delete_children": "Izbriši podrejene sezname (rekurzivno)",
       "delete_children_description": "Če ni označeno, bodo vsi neposredni podrejeni seznami postali glavni seznami"
-    }
+    },
+    "shared": "Deljeno",
+    "collaborators": {
+      "manage": "Upravljaj s sodelavci",
+      "view": "Poglej si sodelavce",
+      "collaborators": "Sodelavci",
+      "add": "Dodaj sodelavca",
+      "current": "Trenutni sodelavci",
+      "enter_email": "Vnesi e-poštni naslov",
+      "please_enter_email": "Prosim, vnesi e-poštni naslov",
+      "added_successfully": "Sodelavec uspešno dodan",
+      "failed_to_add": "Dodajanje sodelavca ni uspelo",
+      "removed": "Sodelavec odstranjen",
+      "failed_to_remove": "Odstranjevanje sodelavca ni uspelo",
+      "role_updated": "Vloga posodobljena",
+      "failed_to_update_role": "Posodabljanje vloge ni uspelo",
+      "viewer": "Pregledovalnik",
+      "editor": "Urednik",
+      "owner": "Lastnik",
+      "viewer_description": "Lahko si ogleda zaznamke na seznamu",
+      "editor_description": "Lahko dodaja in odstranjuje zaznamke",
+      "no_collaborators": "Še ni sodelavcev. Dodaj nekoga, da začneš sodelovati!",
+      "no_collaborators_readonly": "Ni sodelavcev za ta seznam.",
+      "people_with_access": "Osebe, ki imajo dostop do tega seznama",
+      "add_or_remove": "Dodaj ali odstrani osebe, ki imajo dostop do tega seznama",
+      "invitation_sent": "Uspešno poslano povabilo",
+      "invitation_revoked": "Povabilo preklicano",
+      "failed_to_revoke": "Preklic povabila ni uspel",
+      "pending": "Na čakanju",
+      "revoke": "Prekliči",
+      "declined": "Zavrnjeno"
+    },
+    "leave_list": {
+      "title": "Zapusti seznam",
+      "confirm_message": "Ali si prepričan/-a, da želiš zapustiti {{icon}} {{name}}?",
+      "warning": "Ne boš si več mogel/-a ogledati ali dostopati do zaznamkov na tem seznamu. Lastnik seznama te lahko po potrebi doda nazaj.",
+      "action": "Zapusti seznam",
+      "success": "Zapustil/-a si »{{icon}} {{name}}«"
+    },
+    "invitations": {
+      "pending": "Povabila na čakanju",
+      "description": "Preglejte in se odzovite na povabila za sodelovanje na seznamu",
+      "invited_by": "Povabil:",
+      "accept": "Sprejmi",
+      "decline": "Zavrni",
+      "accepted": "Povabilo sprejeto",
+      "declined": "Povabilo zavrnjeno",
+      "failed_to_accept": "Sprejem povabila ni uspel",
+      "failed_to_decline": "Zavrnitev povabila ni uspela"
+    },
+    "shared_lists": "Deljeni seznami"
   },
   "options": {
     "dark_mode": "Temni način",
