@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 
 import { authMiddleware } from "../middlewares/auth";
-import { serveAsset } from "../utils/assets";
 
 const app = new Hono()
   .use(authMiddleware)
@@ -32,7 +31,7 @@ const app = new Hono()
     if (!backup.assetId) {
       return c.json({ error: "Backup not found" }, 404);
     }
-    return await serveAsset(c, backup.assetId, c.var.ctx.user.id);
+    return c.redirect(`/api/assets/${backup.assetId}`);
   })
 
   // DELETE /backups/[backupId]
