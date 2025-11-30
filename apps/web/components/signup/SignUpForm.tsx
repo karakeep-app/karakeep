@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import type { TurnstileInstance } from "@marsidev/react-turnstile";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
@@ -51,6 +52,7 @@ export default function SignUpForm() {
   const router = useRouter();
   const clientConfig = useClientConfig();
   const turnstileSiteKey = clientConfig.turnstile?.siteKey;
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const createUserMutation = api.users.create.useMutation();
 
@@ -114,6 +116,11 @@ export default function SignUpForm() {
                 if (e instanceof TRPCClientError) {
                   setErrorMessage(e.message);
                 }
+                // Reset turnstile widget on error to get a new token
+                if (turnstileSiteKey) {
+                  turnstileRef.current?.reset();
+                  form.setValue("turnstileToken", "");
+                }
                 return;
               }
               const resp = await signIn("credentials", {
@@ -130,6 +137,11 @@ export default function SignUpForm() {
                   setErrorMessage(
                     resp?.error ?? "Hit an unexpected error while signing in",
                   );
+                }
+                // Reset turnstile widget on error to get a new token
+                if (turnstileSiteKey) {
+                  turnstileRef.current?.reset();
+                  form.setValue("turnstileToken", "");
                 }
                 return;
               }
@@ -225,6 +237,7 @@ export default function SignUpForm() {
                     <FormLabel>Verification</FormLabel>
                     <FormControl>
                       <Turnstile
+                        ref={turnstileRef}
                         siteKey={turnstileSiteKey}
                         onSuccess={(token) => {
                           field.onChange(token);
