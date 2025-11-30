@@ -49,7 +49,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/singlefile/content-script.ts"],
+      "js": ["src/content-scripts/singlefile-content-script.ts"],
       "run_at": "document_idle",
       "all_frames": false
     }

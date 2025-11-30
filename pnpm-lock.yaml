@@ -101,6 +101,9 @@ importers:
       react-router-dom:
         specifier: ^6.22.0
         version: 6.22.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      single-file-core:
+        specifier: ^1.5.68
+        version: 1.5.68
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -1284,7 +1287,7 @@ importers:
         version: 19.1.0
       react-native:
         specifier: 0.79.5
-        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
+        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0)
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -13282,6 +13285,9 @@ packages:
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
+  single-file-core@1.5.68:
+    resolution: {integrity: sha512-SjAZ6hqcj9F1HnYs1Wu179wYfktFUw7GG2Tsyyw0OUWloDuRd30n+JxW39uMXW/ISfhwP4TmReCeo5Tkki0lgg==}
+
   sirv@2.0.4:
     resolution: {integrity: sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==}
     engines: {node: '>= 10'}
@@ -17565,7 +17571,7 @@ snapshots:
 
   '@docusaurus/react-loadable@6.0.0(react@19.1.0)':
     dependencies:
-      '@types/react': 19.1.8
+      '@types/react': 19.2.5
       react: 19.1.0
 
   '@docusaurus/theme-classic@3.8.1(@types/react@19.2.5)(acorn@8.15.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)':
@@ -19857,14 +19863,14 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
-  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)':
+  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)':
     dependencies:
       invariant: 2.2.4
       nullthrows: 1.1.1
       react: 19.1.0
-      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0)
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0)
     optionalDependencies:
-      '@types/react': 19.2.2
+      '@types/react': 19.2.5
 
   '@react-native/virtualized-lists@0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -29026,7 +29032,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0):
+  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
       '@react-native/assets-registry': 0.79.5
@@ -29035,7 +29041,7 @@ snapshots:
       '@react-native/gradle-plugin': 0.79.5
       '@react-native/js-polyfills': 0.79.5
       '@react-native/normalize-colors': 0.79.5
-      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.2)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.2)(react@19.1.0))(react@19.1.0)
+      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)
       abort-controller: 3.0.0
       anser: 1.4.10
       ansi-regex: 5.0.1
@@ -29066,7 +29072,7 @@ snapshots:
       ws: 6.2.3
       yargs: 17.7.2
     optionalDependencies:
-      '@types/react': 19.2.2
+      '@types/react': 19.2.5
     transitivePeerDependencies:
       - '@babel/core'
       - '@react-native-community/cli'
@@ -30162,6 +30168,8 @@ snapshots:
   simple-swizzle@0.2.2:
     dependencies:
       is-arrayish: 0.3.2
+
+  single-file-core@1.5.68: {}
 
   sirv@2.0.4:
     dependencies:

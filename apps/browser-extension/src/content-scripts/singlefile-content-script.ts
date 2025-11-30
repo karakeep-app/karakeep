@@ -2,7 +2,7 @@
  * Content script for capturing page content using SingleFile
  */
 
-import { getPageData, init } from "./single-file.js";
+import { getPageData, init } from "single-file-core/single-file.js";
 
 // Initialize SingleFile
 init({});
