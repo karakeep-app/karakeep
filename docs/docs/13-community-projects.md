@@ -77,3 +77,11 @@ _By [@sidoshi](https://github.com/sidoshi/)_
 Sync links from Hacker News upvotes, Reddit Saves to Karakeep for centralized bookmark management.
 
 Get it [here](https://github.com/sidoshi/karakeep-sync)
+
+### Home Assistant Integration
+
+_By [@sli-cka](https://github.com/sli-cka)_
+
+A custom integration that brings Karakeep data into Home Assistant. It exposes your Karakeep statistics data (like lists, bookmarks, tag, etc.) as Home Assistant entities, enabling dashboards, automations, and notifications based on your Karakeep data.
+
+Get it [here](https://github.com/sli-cka/karakeep-homeassistant)
