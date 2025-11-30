@@ -72,7 +72,7 @@ export function buildRestateService<T, R>(
             data.queuedIdempotencyKey,
           );
           if (!acquired) {
-            break;
+            return;
           }
           const res = await runWorkerLogic(ctx, funcs, {
             id,
