@@ -114,8 +114,7 @@ export async function triggerSearchReindex(
     },
     {
       ...opts,
-      // BUG: restate idempotency is also against completed jobs. Disabling it for now
-      //idempotencyKey: `index:${bookmarkId}`,
+      idempotencyKey: `index:${bookmarkId}`,
     },
   );
 }
