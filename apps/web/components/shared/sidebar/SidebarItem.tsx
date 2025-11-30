@@ -28,8 +28,10 @@ export default function SidebarItem({
   return (
     <li
       className={cn(
-        "relative flex justify-between rounded-lg hover:bg-accent",
-        path == currentPath ? "bg-accent/50" : "",
+        "relative flex justify-between rounded-lg text-sm transition-colors hover:bg-accent",
+        path == currentPath
+          ? "bg-accent/50 text-foreground"
+          : "text-muted-foreground",
         className,
       )}
       style={style}

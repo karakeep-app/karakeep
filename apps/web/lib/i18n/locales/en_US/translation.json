@@ -153,7 +153,7 @@
         },
         "block_code": {
           "label": "Block Code",
-          "example": "```"
+          "example": "``` + space"
         }
       },
       "undo": "Undo",
@@ -169,12 +169,12 @@
       "align_right": "Right Align"
     },
     "quickly_focus": "You can quickly focus on this field by pressing ⌘ + E",
-    "multiple_urls_dialog_title": "Importing URLs as separate bookmarks?",
+    "multiple_urls_dialog_title": "Importing URLs as separate Bookmarks?",
     "multiple_urls_dialog_desc": "The input contains multiple URLs on separate lines. Do you want to import them as separate bookmarks?",
-    "import_as_text": "Import as text bookmark",
-    "import_as_separate_bookmarks": "Import as separate bookmarks",
-    "placeholder": "Paste a link or an image, write a note, or drag and drop an image in here…",
-    "placeholder_v2": "Paste a link, write a note, or drop an image…",
+    "import_as_text": "Import as Text Bookmark",
+    "import_as_separate_bookmarks": "Import as separate Bookmarks",
+    "placeholder": "Paste a link or an image, write a note or drag and drop an image in here…",
+    "placeholder_v2": "Paste a link, write a note or drop an image…",
     "new_item": "NEW ITEM",
     "disabled_submissions": "Submissions are disabled"
   },
@@ -235,7 +235,7 @@
     },
     "webhooks": {
       "webhooks": "Webhooks",
-      "description": "You can use webhooks to trigger actions when bookmarks are created, changed, or crawled.",
+      "description": "You can use webhooks to trigger actions when bookmarks are created, changed or crawled.",
       "events": {
         "title": "Events",
         "crawled": "Crawled",
@@ -262,7 +262,8 @@
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "export_links_and_notes": "Export Links and Notes",
-      "imported_bookmarks": "Imported Bookmarks"
+      "imported_bookmarks": "Imported Bookmarks",
+      "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export"
     },
     "api_keys": {
       "api_keys": "API Keys",
@@ -300,14 +301,14 @@
       "save_rule": "Save Rule",
       "delete_rule": "Delete Rule",
       "delete_rule_confirmation": "Are you sure you want to delete this rule?",
-      "whenever": "Whenever...",
-      "if": "If...",
+      "whenever": "Whenever ...",
+      "if": "If ...",
       "enter_rule_name": "Enter rule name",
       "describe_what_this_rule_does": "Describe what this rule does",
       "rule_has_been_created": "Rule has been created!",
       "rule_has_been_updated": "Rule has been updated!",
       "rule_has_been_deleted": "Rule has been deleted!",
-      "no_rules_created_yet": "No rules have been created yet",
+      "no_rules_created_yet": "No rules created yet",
       "create_your_first_rule": "Create your first rule to automate your workflow",
       "conditions_types": {
         "always": "Always",
@@ -318,7 +319,7 @@
         "is_favourited": "Is Favorited",
         "is_archived": "Is Archived",
         "and": "All of the following are true",
-        "or": "Any of the following are true:"
+        "or": "Any of the following are true"
       },
       "actions_types": {
         "add_tag": "Add Tag",
@@ -332,11 +333,11 @@
       "events_types": {
         "bookmark_added": "A bookmark is added",
         "tag_added": "This tag is added to a bookmark",
-        "tag_removed": "This tag's removed from a bookmark",
-        "added_to_list": "A bookmark's added to this list",
-        "removed_from_list": "A bookmark's removed from this list",
+        "tag_removed": "This tag is removed from a bookmark",
+        "added_to_list": "A bookmark is added to this list",
+        "removed_from_list": "A bookmark is removed from this list",
         "favourited": "A bookmark is favorited",
-        "archived": "A bookmark's archived"
+        "archived": "A bookmark is archived"
       }
     },
     "stats": {
@@ -387,26 +388,30 @@
       },
       "storage_breakdown": {
         "title": "Storage Breakdown"
+      },
+      "bookmark_sources": {
+        "title": "Bookmark Sources",
+        "empty": "No source data available"
       }
     },
     "subscription": {
       "subscription": "Subscription",
-      "manage_subscription": "Manage your subscription and billing info",
+      "manage_subscription": "Manage your subscription and billing information",
       "current_plan": "Current Plan",
       "billing_period": "Billing Period",
       "paid_plan": "Paid Plan",
-      "unlock_bigger_quota": "Get a bigger quota and help keep the project going",
+      "unlock_bigger_quota": "Unlock bigger quota and support the project",
       "subscribe_now": "Subscribe Now",
       "manage_billing": "Manage Billing",
       "subscription_canceled": "Your subscription has been canceled and will end on {{date}}. You can resubscribe at any time.",
       "usage_quotas": "Usage & Quotas",
-      "track_usage": "Track how much you're using compared to your plan",
+      "track_usage": "Track your current usage against your plan limits",
       "total_bookmarks_saved": "Total bookmarks saved",
       "assets_file_storage": "Assets and file storage",
       "unlimited_usage": "Unlimited usage",
       "quota_limit_reached": "Quota limit reached",
-      "approaching_quota_limit": "You're getting close to your quota limit",
-      "loading_usage": "Hang tight, loading usage info...",
+      "approaching_quota_limit": "Approaching quota limit",
+      "loading_usage": "Loading usage information...",
       "free": "Free",
       "paid": "Paid"
     },
@@ -415,7 +420,7 @@
       "description": "View and manage your bulk import sessions. Sessions are automatically created when you import bookmarks.",
       "load_error": "Failed to load import sessions",
       "no_sessions": "No import sessions yet",
-      "no_sessions_detail": "Import sessions will show up here automatically when you import bookmarks",
+      "no_sessions_detail": "Import sessions will appear here automatically when you import bookmarks",
       "created_at": "Created {{time}}",
       "progress": "Progress",
       "status": {
@@ -436,6 +441,55 @@
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
       "delete_session": "Delete Session"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Automatically create and manage backups of your bookmarks. Backups are compressed and stored securely.",
+      "configuration": {
+        "title": "Backup Configuration",
+        "enable_automatic_backups": "Enable Automatic Backups",
+        "enable_automatic_backups_description": "Automatically create backups of your bookmarks",
+        "backup_frequency": "Backup Frequency",
+        "backup_frequency_description": "How often backups should be created",
+        "retention_period": "Retention Period (days)",
+        "retention_period_description": "How many days to keep backups before deleting them",
+        "frequency": {
+          "daily": "Daily",
+          "weekly": "Weekly"
+        },
+        "select_frequency": "Select frequency",
+        "save_settings": "Save Settings"
+      },
+      "list": {
+        "title": "Your Backups",
+        "create_backup_now": "Create Backup Now",
+        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually.",
+        "table": {
+          "created_at": "Created At",
+          "bookmarks": "Bookmarks",
+          "size": "Size",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "pending": "Pending"
+        },
+        "actions": {
+          "download_backup": "Download Backup",
+          "delete_backup": "Delete Backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Delete Backup?",
+        "delete_backup_description": "Are you sure you want to delete this backup? This action cannot be undone."
+      },
+      "toasts": {
+        "backup_queued": "Backup job has been queued! It will be processed shortly.",
+        "backup_deleted": "Backup has been deleted!"
+      }
     }
   },
   "admin": {
@@ -495,7 +549,7 @@
         },
         "admin_maintenance": {
           "title": "Admin Maintenance Jobs",
-          "description": "Administrative cleanup and maintenance of assets"
+          "description": "Administrative cleanup and asset maintenance"
         }
       },
       "monitor_and_manage": "Monitor and manage background job queues and system processing tasks",
@@ -606,7 +660,57 @@
       "description": "Deleting a list doesn't delete any bookmarks in that list.",
       "delete_children": "Delete children lists (recursively)",
       "delete_children_description": "If not checked, all direct children lists will become root lists"
-    }
+    },
+    "shared": "Shared",
+    "collaborators": {
+      "manage": "Manage Collaborators",
+      "view": "View Collaborators",
+      "collaborators": "Collaborators",
+      "add": "Add Collaborator",
+      "current": "Current Collaborators",
+      "enter_email": "Enter email address",
+      "please_enter_email": "Please enter an email address",
+      "added_successfully": "Collaborator added successfully",
+      "failed_to_add": "Failed to add collaborator",
+      "removed": "Collaborator removed",
+      "failed_to_remove": "Failed to remove collaborator",
+      "role_updated": "Role updated",
+      "failed_to_update_role": "Failed to update role",
+      "viewer": "Viewer",
+      "editor": "Editor",
+      "owner": "Owner",
+      "viewer_description": "Can view bookmarks in the list",
+      "editor_description": "Can add and remove bookmarks",
+      "no_collaborators": "No collaborators yet. Add someone to start collaborating!",
+      "no_collaborators_readonly": "No collaborators for this list.",
+      "people_with_access": "People who have access to this list",
+      "add_or_remove": "Add or remove people who can access this list",
+      "invitation_sent": "Invitation sent successfully",
+      "invitation_revoked": "Invitation revoked",
+      "failed_to_revoke": "Failed to revoke invitation",
+      "pending": "Pending",
+      "revoke": "Revoke",
+      "declined": "Declined"
+    },
+    "leave_list": {
+      "title": "Leave List",
+      "confirm_message": "Are you sure you want to leave {{icon}} {{name}}?",
+      "warning": "You will no longer be able to view or access bookmarks in this list. The list owner can add you back if needed.",
+      "action": "Leave List",
+      "success": "You have left \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Pending Invitations",
+      "description": "Review and respond to list collaboration invitations",
+      "invited_by": "Invited by",
+      "accept": "Accept",
+      "decline": "Decline",
+      "accepted": "Invitation accepted",
+      "declined": "Invitation declined",
+      "failed_to_accept": "Failed to accept invitation",
+      "failed_to_decline": "Failed to decline invitation"
+    },
+    "shared_lists": "Shared Lists"
   },
   "search": {
     "is_favorited": "Is Favorited",
@@ -622,7 +726,7 @@
     "created_on_or_before": "Created on or Before",
     "not_created_on_or_before": "Not Created on or Before",
     "created_within": "Created Within",
-    "created_earlier_than": "Created earlier than",
+    "created_earlier_than": "Created Earlier Than",
     "day_s": " Day(s)",
     "week_s": " Week(s)",
     "month_s": " Month(s)",
@@ -631,22 +735,26 @@
     "week_s_ago": " Week(s) Ago",
     "month_s_ago": " Month(s) Ago",
     "year_s_ago": " Year(s) Ago",
-    "url_contains": "URL contains",
+    "url_contains": "URL Contains",
     "is_in_list": "Is In List",
     "is_not_in_list": "Is not In List",
     "has_tag": "Has Tag",
-    "does_not_have_tag": "Does not have tag",
-    "full_text_search": "Full text search",
+    "does_not_have_tag": "Does Not Have Tag",
+    "full_text_search": "Full Text Search",
     "type_is": "Type is",
     "type_is_not": "Type is not",
-    "url_does_not_contain": "URL does not contain",
-    "title_contains": "Title contains",
-    "title_does_not_contain": "Title does not contain",
-    "is_from_feed": "Is from RSS feed",
-    "is_not_from_feed": "Is not from RSS feed",
+    "url_does_not_contain": "URL Does Not Contain",
+    "title_contains": "Title Contains",
+    "title_does_not_contain": "Title Does Not Contain",
+    "is_from_feed": "Is from RSS Feed",
+    "is_not_from_feed": "Is not from RSS Feed",
     "and": "And",
     "or": "Or",
-    "history": "Recent Searches"
+    "history": "Recent Searches",
+    "filters": "Filters",
+    "tags": "Tags",
+    "lists": "Lists",
+    "no_suggestions": "No suggestions"
   },
   "preview": {
     "view_original": "View Original",
@@ -659,18 +767,18 @@
   },
   "toasts": {
     "bookmarks": {
-      "deleted": "The bookmark has been deleted",
-      "refetch": "Re-fetch has been added to the queue",
+      "deleted": "The bookmark has been deleted!",
+      "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
-      "clipboard_copied": "Link has been added to your clipboard",
-      "updated": "The bookmark has been updated"
+      "clipboard_copied": "Link has been added to your clipboard!",
+      "updated": "The bookmark has been updated!"
     },
     "lists": {
-      "created": "List has been created",
-      "updated": "List has been updated",
-      "merged": "List has been merged",
-      "deleted": "List has been deleted"
+      "created": "List has been created!",
+      "updated": "List has been updated!",
+      "merged": "List has been merged!",
+      "deleted": "List has been deleted!"
     },
     "tags": {
       "created": "Tag has been created!",

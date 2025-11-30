@@ -120,7 +120,57 @@
       "description": "Odstránením zoznamu sa neodstránia žiadne záložky v tomto zozname.",
       "delete_children": "Odstrániť podriadené zoznamy (rekurzívne)",
       "delete_children_description": "Ak nie je zaškrtnuté, všetky priame podriadené zoznamy sa stanú koreňovými zoznamami"
-    }
+    },
+    "shared": "Zdieľané",
+    "collaborators": {
+      "manage": "Spravuj spolupracovníkov",
+      "view": "Zobraziť spolupracovníkov",
+      "collaborators": "Spolupracovníci",
+      "add": "Pridať spolupracovníka",
+      "current": "Súčasní spolupracovníci",
+      "enter_email": "Zadajte e-mailovú adresu",
+      "please_enter_email": "Zadajte e-mailovú adresu",
+      "added_successfully": "Spolupracovník úspešne pridaný",
+      "failed_to_add": "Nepodarilo sa pridať spolupracovníka",
+      "removed": "Spolupracovník odstránený",
+      "failed_to_remove": "Nepodarilo sa odstrániť spolupracovníka",
+      "role_updated": "Rola aktualizovaná",
+      "failed_to_update_role": "Nepodarilo sa aktualizovať rolu",
+      "viewer": "Divák",
+      "editor": "Editor",
+      "owner": "Vlastník",
+      "viewer_description": "Môže si prezerať záložky v zozname",
+      "editor_description": "Môže pridávať a odstraňovať záložky",
+      "no_collaborators": "Zatiaľ žiadni spolupracovníci. Ak chceš začať spolupracovať, niekoho pridaj!",
+      "no_collaborators_readonly": "Pre tento zoznam žiadni spolupracovníci.",
+      "people_with_access": "Ľudia, ktorí majú prístup k tomuto zoznamu",
+      "add_or_remove": "Pridajte alebo odstráňte ľudí, ktorí majú prístup k tomuto zoznamu",
+      "invitation_sent": "Pozvánka úspešne odoslaná",
+      "invitation_revoked": "Pozvánka zrušená",
+      "failed_to_revoke": "Nepodarilo sa zrušiť pozvánku",
+      "pending": "Čaká sa",
+      "revoke": "Zrušiť",
+      "declined": "Odmietnuté"
+    },
+    "leave_list": {
+      "title": "Opustiť zoznam",
+      "confirm_message": "Určite chceš odísť z {{icon}} {{name}}?",
+      "warning": "Už nebudeš môcť prezerať ani pristupovať k záložkám v tomto zozname. Vlastník zoznamu ťa môže znova pridať, ak to bude potrebné.",
+      "action": "Opustiť zoznam",
+      "success": "Opustil/a si \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Pozvánky čakajúce na vybavenie",
+      "description": "Skontroluj a reaguj na pozvánky na spoluprácu v zoznamoch",
+      "invited_by": "Pozval/a",
+      "accept": "Prijať",
+      "decline": "Odmietnuť",
+      "accepted": "Pozvánka prijatá",
+      "declined": "Pozvánka odmietnutá",
+      "failed_to_accept": "Nepodarilo sa prijať pozvánku",
+      "failed_to_decline": "Nepodarilo sa odmietnuť pozvánku"
+    },
+    "shared_lists": "Zdieľané zoznamy"
   },
   "settings": {
     "import": {
@@ -133,7 +183,8 @@
       "export_links_and_notes": "Exportovať odkazy a poznámky",
       "imported_bookmarks": "Importovať záložky",
       "import_export": "Importovať / exportovať",
-      "import_bookmarks_from_tab_session_manager_export": "Importovať záložky zo správcu relácií kariet"
+      "import_bookmarks_from_tab_session_manager_export": "Importovať záložky zo správcu relácií kariet",
+      "import_bookmarks_from_mymind_export": "Importovať záložky z mymind exportu"
     },
     "back_to_app": "Naspäť do aplikácie",
     "user_settings": "Používateľské nastavenia",
@@ -320,6 +371,10 @@
       },
       "storage_breakdown": {
         "title": "Rozdelenie úložiska"
+      },
+      "bookmark_sources": {
+        "title": "Zdroje záložiek",
+        "empty": "Nie sú dostupné žiadne zdrojové dáta"
       }
     },
     "subscription": {
@@ -369,6 +424,55 @@
       "delete_dialog_title": "Odstrániť reláciu importu",
       "delete_dialog_description": "Naozaj chceš vymazať \"{{name}}\"? Táto akcia sa nedá vrátiť späť. Samotné záložky nebudú vymazané.",
       "delete_session": "Zmazať reláciu"
+    },
+    "backups": {
+      "backups": "Zálohy",
+      "page_title": "Zálohy",
+      "page_description": "Automaticky vytváraj a spravuj zálohy svojich záložiek. Zálohy sú komprimované a bezpečne uložené.",
+      "configuration": {
+        "title": "Konfigurácia zálohovania",
+        "enable_automatic_backups": "Povoliť automatické zálohovanie",
+        "enable_automatic_backups_description": "Automaticky vytvárať zálohy tvojich záložiek",
+        "backup_frequency": "Frekvencia zálohovania",
+        "backup_frequency_description": "Ako často sa majú zálohy vytvárať",
+        "retention_period": "Doba uchovávania (dni)",
+        "retention_period_description": "Koľko dní uchovávať zálohy predtým, ako ich vymažeš",
+        "frequency": {
+          "daily": "Denne",
+          "weekly": "Týždenne"
+        },
+        "select_frequency": "Vyber frekvenciu",
+        "save_settings": "Uložiť nastavenia"
+      },
+      "list": {
+        "title": "Tvoje zálohy",
+        "create_backup_now": "Vytvoriť zálohu teraz",
+        "no_backups": "Zatiaľ nemáš žiadne zálohy. Povoľ automatické zálohovanie alebo vytvor manuálne.",
+        "table": {
+          "created_at": "Vytvorené dňa",
+          "bookmarks": "Záložky",
+          "size": "Veľkosť",
+          "status": "Stav",
+          "actions": "Akcie"
+        },
+        "status": {
+          "success": "Úspech",
+          "failed": "Neúspešné",
+          "pending": "Čaká sa"
+        },
+        "actions": {
+          "download_backup": "Stiahnuť zálohu",
+          "delete_backup": "Odstrániť zálohu"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Odstrániť zálohu?",
+        "delete_backup_description": "Určite chceš odstrániť túto zálohu? Túto akciu nie je možné vrátiť späť."
+      },
+      "toasts": {
+        "backup_queued": "Úloha zálohovania bola zaradená do frontu! Bude čoskoro spracovaná.",
+        "backup_deleted": "Záloha bola odstránená!"
+      }
     }
   },
   "search": {

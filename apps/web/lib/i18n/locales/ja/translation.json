@@ -221,7 +221,8 @@
       "export_links_and_notes": "リンクとメモをエクスポートする",
       "import_export": "インポート/エクスポート",
       "import_bookmarks_from_linkwarden_export": "Linkwardenのエクスポートからブックマークをインポート",
-      "import_bookmarks_from_tab_session_manager_export": "Tab Session Managerからブックマークをインポート"
+      "import_bookmarks_from_tab_session_manager_export": "Tab Session Managerからブックマークをインポート",
+      "import_bookmarks_from_mymind_export": "mymind エクスポートからブックマークをインポート"
     },
     "api_keys": {
       "key_success_please_copy": "キーをコピーして安全な場所に保管してください。ダイアログを閉じると、再度アクセスできなくなります。",
@@ -372,6 +373,10 @@
       },
       "storage_breakdown": {
         "title": "ストレージの内訳"
+      },
+      "bookmark_sources": {
+        "title": "ソースをお気に入りに追加する",
+        "empty": "ソースデータがありません"
       }
     },
     "subscription": {
@@ -421,6 +426,55 @@
       "delete_dialog_title": "インポートセッションを削除する",
       "delete_dialog_description": "「{{name}}」を削除してもいい？　これは取り消せない操作だよ。ブックマーク自体は削除されないから安心して。",
       "delete_session": "セッションを削除"
+    },
+    "backups": {
+      "backups": "バックアップ",
+      "page_title": "バックアップ",
+      "page_description": "あんたのブックマークのバックアップを自動で作成・管理するよ。バックアップは圧縮されて安全に保管されるから安心。",
+      "configuration": {
+        "title": "バックアップの設定",
+        "enable_automatic_backups": "自動バックアップを有効にする",
+        "enable_automatic_backups_description": "ブックマークのバックアップを自動で作成するよ",
+        "backup_frequency": "バックアップの頻度",
+        "backup_frequency_description": "バックアップをどのくらいの頻度で作成するか",
+        "retention_period": "保存期間（日数）",
+        "retention_period_description": "バックアップを削除するまで何日間保持するか",
+        "frequency": {
+          "daily": "毎日",
+          "weekly": "毎週"
+        },
+        "select_frequency": "頻度を選択",
+        "save_settings": "設定を保存"
+      },
+      "list": {
+        "title": "あんたのバックアップ",
+        "create_backup_now": "今すぐバックアップを作成",
+        "no_backups": "まだバックアップがないね。自動バックアップを有効にするか、手動で作成してくれ。",
+        "table": {
+          "created_at": "作成日時",
+          "bookmarks": "ブックマーク",
+          "size": "サイズ",
+          "status": "ステータス",
+          "actions": "アクション"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失敗",
+          "pending": "保留中"
+        },
+        "actions": {
+          "download_backup": "バックアップをダウンロード",
+          "delete_backup": "バックアップを削除"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "バックアップを削除してもよろしいですか？",
+        "delete_backup_description": "このバックアップを削除してもよろしいですか？　この操作は取り消せません。"
+      },
+      "toasts": {
+        "backup_queued": "バックアップジョブがキューに追加されました。まもなく処理されます。",
+        "backup_deleted": "バックアップは削除されました！"
+      }
     }
   },
   "common": {
@@ -505,7 +559,57 @@
       "description": "リストを削除しても、そのリスト内のブックマークは削除されません。",
       "delete_children": "子リストを（再帰的に）削除",
       "delete_children_description": "チェックしない場合、すべての子リストがルートリストになります"
-    }
+    },
+    "shared": "共有",
+    "collaborators": {
+      "manage": "コラボレーターの管理",
+      "view": "コラボレーターの表示",
+      "collaborators": "コラボレーター",
+      "add": "コラボレーターの追加",
+      "current": "現在のコラボレーター",
+      "enter_email": "メールアドレスを入力",
+      "please_enter_email": "メールアドレスを入力してください",
+      "added_successfully": "コラボレーターが追加されました",
+      "failed_to_add": "コラボレーターの追加に失敗しました",
+      "removed": "コラボレーターが削除されました",
+      "failed_to_remove": "コラボレーターの削除に失敗しました",
+      "role_updated": "ロールが更新されました",
+      "failed_to_update_role": "ロールの更新に失敗しました",
+      "viewer": "閲覧者",
+      "editor": "編集者",
+      "owner": "オーナー",
+      "viewer_description": "リスト内のブックマークを表示できます",
+      "editor_description": "ブックマークを追加および削除できます",
+      "no_collaborators": "コラボレーターはまだいません。誰かを追加してコラボレーションを始めましょう！",
+      "no_collaborators_readonly": "このリストにはコラボレーターはいません。",
+      "people_with_access": "このリストにアクセスできる人",
+      "add_or_remove": "このリストにアクセスできる人を追加または削除する",
+      "invitation_sent": "招待状、送信完了！",
+      "invitation_revoked": "招待取り消し",
+      "failed_to_revoke": "招待の取り消しに失敗しました",
+      "pending": "保留中",
+      "revoke": "取り消し",
+      "declined": "拒否"
+    },
+    "leave_list": {
+      "title": "リストから退会する",
+      "confirm_message": "{{icon}} {{name}} から退会してもよろしいですか？",
+      "warning": "このリストのブックマークを表示またはアクセスできなくなります。必要に応じて、リストのオーナーがあなたを追加し直すことができます。",
+      "action": "リストから退会する",
+      "success": "「{{icon}} {{name}}」から退会しました。"
+    },
+    "invitations": {
+      "pending": "招待待ち",
+      "description": "リストのコラボレーション招待の確認と対応",
+      "invited_by": "招待元",
+      "accept": "承諾",
+      "decline": "拒否",
+      "accepted": "招待を承諾しました",
+      "declined": "招待を辞退しました",
+      "failed_to_accept": "招待の承諾に失敗しました",
+      "failed_to_decline": "招待の辞退に失敗しました"
+    },
+    "shared_lists": "共有リスト"
   },
   "options": {
     "dark_mode": "ダークモード",

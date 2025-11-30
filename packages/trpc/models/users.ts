@@ -430,6 +430,9 @@ export class User {
         bookmarkClickAction: true,
         archiveDisplayBehaviour: true,
         timezone: true,
+        backupsEnabled: true,
+        backupsFrequency: true,
+        backupsRetentionDays: true,
       },
     });
 
@@ -444,6 +447,9 @@ export class User {
       bookmarkClickAction: settings.bookmarkClickAction,
       archiveDisplayBehaviour: settings.archiveDisplayBehaviour,
       timezone: settings.timezone || "UTC",
+      backupsEnabled: settings.backupsEnabled,
+      backupsFrequency: settings.backupsFrequency,
+      backupsRetentionDays: settings.backupsRetentionDays,
     };
   }
 
@@ -463,6 +469,9 @@ export class User {
         bookmarkClickAction: input.bookmarkClickAction,
         archiveDisplayBehaviour: input.archiveDisplayBehaviour,
         timezone: input.timezone,
+        backupsEnabled: input.backupsEnabled,
+        backupsFrequency: input.backupsFrequency,
+        backupsRetentionDays: input.backupsRetentionDays,
       })
       .where(eq(users.id, this.user.id));
   }

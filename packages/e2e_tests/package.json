@@ -26,6 +26,8 @@
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@types/adm-zip": "^0.5.7",
+    "adm-zip": "^0.5.16",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^3.2.4"
   },

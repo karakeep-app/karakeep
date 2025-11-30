@@ -29,8 +29,8 @@ import { z } from "zod";
 
 import {
   buildImagePrompt,
-  buildSummaryPrompt,
-  buildTextPrompt,
+  buildSummaryPromptUntruncated,
+  buildTextPromptUntruncated,
 } from "@karakeep/shared/prompts";
 import {
   zNewPromptSchema,
@@ -301,6 +301,7 @@ export function PromptDemo() {
   const { t } = useTranslation();
   const { data: prompts } = api.prompts.list.useQuery();
   const clientConfig = useClientConfig();
+
   return (
     <div className="flex flex-col gap-2">
       <div className="mb-4 w-full text-xl font-medium sm:w-1/3">
@@ -308,7 +309,7 @@ export function PromptDemo() {
       </div>
       <p>{t("settings.ai.text_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-        {buildTextPrompt(
+        {buildTextPromptUntruncated(
           clientConfig.inference.inferredTagLang,
           (prompts ?? [])
             .filter(
@@ -316,7 +317,6 @@ export function PromptDemo() {
             )
             .map((p) => p.text),
           "\n<CONTENT_HERE>\n",
-          /* context length */ 1024 /* The value here doesn't matter */,
         ).trim()}
       </code>
       <p>{t("settings.ai.images_prompt")}</p>
@@ -332,13 +332,12 @@ export function PromptDemo() {
       </code>
       <p>{t("settings.ai.summarization_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-        {buildSummaryPrompt(
+        {buildSummaryPromptUntruncated(
           clientConfig.inference.inferredTagLang,
           (prompts ?? [])
             .filter((p) => p.appliesTo == "summary")
             .map((p) => p.text),
           "\n<CONTENT_HERE>\n",
-          /* context length */ 1024 /* The value here doesn't matter */,
         ).trim()}
       </code>
     </div>

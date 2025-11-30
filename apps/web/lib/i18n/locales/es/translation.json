@@ -96,7 +96,8 @@
       "import_bookmarks_from_html_file": "Importar marcadores desde archivo HTML",
       "import_bookmarks_from_omnivore_export": "Importar marcadores desde exportación de Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importar marcadores desde Linkwarden",
-      "import_bookmarks_from_tab_session_manager_export": "Importar marcadores desde Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importar marcadores desde Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importar marcadores desde la exportación de mymind"
     },
     "api_keys": {
       "api_keys": "Claves APIs",
@@ -239,6 +240,10 @@
       },
       "storage_breakdown": {
         "title": "Desglose del almacenamiento"
+      },
+      "bookmark_sources": {
+        "title": "Fuentes de marcadores",
+        "empty": "Sin datos de origen disponibles"
       }
     },
     "subscription": {
@@ -288,6 +293,55 @@
       "delete_dialog_title": "Borrar sesión de importación",
       "delete_dialog_description": "¿Seguro que quieres borrar \"{{name}}\"? Esta acción no se puede deshacer. Los marcadores en sí no se borrarán.",
       "delete_session": "Eliminar sesión"
+    },
+    "backups": {
+      "backups": "Copias de seguridad",
+      "page_title": "Copias de seguridad",
+      "page_description": "Crea y gestiona automáticamente copias de seguridad de tus marcadores. Las copias de seguridad se comprimen y se almacenan de forma segura.",
+      "configuration": {
+        "title": "Configuración de la copia de seguridad",
+        "enable_automatic_backups": "Activar copias de seguridad automáticas",
+        "enable_automatic_backups_description": "Crear automáticamente copias de seguridad de tus marcadores",
+        "backup_frequency": "Frecuencia de copia de seguridad",
+        "backup_frequency_description": "Con qué frecuencia se deben crear copias de seguridad",
+        "retention_period": "Período de retención (días)",
+        "retention_period_description": "Cuántos días conservar las copias de seguridad antes de eliminarlas",
+        "frequency": {
+          "daily": "Diariamente",
+          "weekly": "Semanalmente"
+        },
+        "select_frequency": "Seleccionar frecuencia",
+        "save_settings": "Guardar ajustes"
+      },
+      "list": {
+        "title": "Tus copias de seguridad",
+        "create_backup_now": "Crear copia de seguridad ahora",
+        "no_backups": "Aún no tienes ninguna copia de seguridad. Activa las copias de seguridad automáticas o crea una manualmente.",
+        "table": {
+          "created_at": "Creado en",
+          "bookmarks": "Marcadores",
+          "size": "Tamaño",
+          "status": "Estado",
+          "actions": "Acciones"
+        },
+        "status": {
+          "success": "Éxito",
+          "failed": "Fallido",
+          "pending": "Pendiente"
+        },
+        "actions": {
+          "download_backup": "Descargar copia de seguridad",
+          "delete_backup": "Borrar copia de seguridad"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "¿Borrar copia de seguridad?",
+        "delete_backup_description": "¿Seguro que quieres borrar esta copia de seguridad? Esta acción no se puede deshacer."
+      },
+      "toasts": {
+        "backup_queued": "¡Se ha puesto en cola el trabajo de copia de seguridad! Se procesará en breve.",
+        "backup_deleted": "¡Se ha borrado la copia de seguridad!"
+      }
     }
   },
   "actions": {
@@ -509,7 +563,57 @@
       "description": "Eliminar una lista no elimina ningún marcador de esa lista.",
       "delete_children": "Eliminar listas secundarias (de forma recursiva)",
       "delete_children_description": "Si no está marcado, todas las listas secundarias directas se convertirán en listas raíz"
-    }
+    },
+    "shared": "Compartido",
+    "collaborators": {
+      "manage": "Gestionar colaboradores",
+      "view": "Ver colaboradores",
+      "collaborators": "Colaboradores",
+      "add": "Añadir colaborador",
+      "current": "Colaboradores actuales",
+      "enter_email": "Introduce la dirección de correo electrónico",
+      "please_enter_email": "Por favor, introduce una dirección de correo electrónico",
+      "added_successfully": "Colaborador añadido correctamente",
+      "failed_to_add": "No se pudo añadir el colaborador",
+      "removed": "Colaborador eliminado",
+      "failed_to_remove": "No se pudo eliminar el colaborador",
+      "role_updated": "Rol actualizado",
+      "failed_to_update_role": "No se pudo actualizar el rol",
+      "viewer": "Visor",
+      "editor": "Editor",
+      "owner": "Propietario",
+      "viewer_description": "Puede ver los marcadores en la lista",
+      "editor_description": "Puede añadir y eliminar marcadores",
+      "no_collaborators": "Aún no hay colaboradores. ¡Añade a alguien para empezar a colaborar!",
+      "no_collaborators_readonly": "No hay colaboradores en esta lista.",
+      "people_with_access": "Personas que tienen acceso a esta lista",
+      "add_or_remove": "Añade o elimina personas que puedan acceder a esta lista",
+      "invitation_sent": "Invitación enviada correctamente",
+      "invitation_revoked": "Invitación revocada",
+      "failed_to_revoke": "No se pudo revocar la invitación",
+      "pending": "Pendiente",
+      "revoke": "Revocar",
+      "declined": "Rechazada"
+    },
+    "leave_list": {
+      "title": "Salir de la lista",
+      "confirm_message": "¿Estás seguro de que quieres salir de {{icon}} {{name}}?",
+      "warning": "Ya no podrás ver ni acceder a los marcadores de esta lista. El propietario de la lista puede volverte a añadir si es necesario.",
+      "action": "Salir de la lista",
+      "success": "Has abandonado \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Invitaciones pendientes",
+      "description": "Revisa y responde a las invitaciones de colaboración en la lista",
+      "invited_by": "Invitado por",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "accepted": "Invitación aceptada",
+      "declined": "Invitación rechazada",
+      "failed_to_accept": "No se pudo aceptar la invitación",
+      "failed_to_decline": "No se pudo rechazar la invitación"
+    },
+    "shared_lists": "Listas compartidas"
   },
   "tags": {
     "all_tags": "Todas las etiquetas",

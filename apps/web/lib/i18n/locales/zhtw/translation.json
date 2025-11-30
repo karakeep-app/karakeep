@@ -147,7 +147,8 @@
       "export_links_and_notes": "匯出連結和筆記",
       "imported_bookmarks": "已匯入的書籤",
       "import_bookmarks_from_linkwarden_export": "從 Linkwarden 匯出檔案匯入書籤",
-      "import_bookmarks_from_tab_session_manager_export": "從 Tab Session Manager 匯入書籤"
+      "import_bookmarks_from_tab_session_manager_export": "從 Tab Session Manager 匯入書籤",
+      "import_bookmarks_from_mymind_export": "從 mymind 匯入書籤匯出檔案"
     },
     "api_keys": {
       "api_keys": "API 金鑰",
@@ -290,6 +291,10 @@
       },
       "storage_breakdown": {
         "title": "儲存空間明細"
+      },
+      "bookmark_sources": {
+        "title": "書籤來源",
+        "empty": "沒有可用的來源資料"
       }
     },
     "subscription": {
@@ -339,6 +344,55 @@
       "delete_dialog_title": "刪除匯入工作階段",
       "delete_dialog_description": "確定要刪除「{{name}}」嗎？此動作無法復原。書籤本身不會被刪除。",
       "delete_session": "刪除工作階段"
+    },
+    "backups": {
+      "backups": "備份",
+      "page_title": "備份",
+      "page_description": "自動建立和管理你的書籤備份。備份會經過壓縮並安全地儲存。",
+      "configuration": {
+        "title": "備份設定",
+        "enable_automatic_backups": "啟用自動備份",
+        "enable_automatic_backups_description": "自動建立你的書籤備份",
+        "backup_frequency": "備份頻率",
+        "backup_frequency_description": "應該多久建立一次備份",
+        "retention_period": "保留期限（天）",
+        "retention_period_description": "備份在刪除前應保留多少天",
+        "frequency": {
+          "daily": "每日",
+          "weekly": "每週"
+        },
+        "select_frequency": "選取頻率",
+        "save_settings": "儲存設定"
+      },
+      "list": {
+        "title": "你的備份",
+        "create_backup_now": "立即建立備份",
+        "no_backups": "你還沒有任何備份。啟用自動備份或手動建立一個。",
+        "table": {
+          "created_at": "建立於",
+          "bookmarks": "書籤",
+          "size": "大小",
+          "status": "狀態",
+          "actions": "動作"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失敗",
+          "pending": "等待中"
+        },
+        "actions": {
+          "download_backup": "下載備份",
+          "delete_backup": "刪除備份"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "刪除備份？",
+        "delete_backup_description": "你確定要刪除這個備份嗎？這個動作無法還原。"
+      },
+      "toasts": {
+        "backup_queued": "備份工作已排入佇列！它會很快處理。",
+        "backup_deleted": "備份已刪除！"
+      }
     }
   },
   "admin": {
@@ -509,7 +563,57 @@
       "description": "刪除清單唔會刪除個清單入面嘅任何書籤。",
       "delete_children": "刪除子清單（遞迴）",
       "delete_children_description": "如果唔剔選，所有直接嘅子清單會變成根清單"
-    }
+    },
+    "shared": "已共用",
+    "collaborators": {
+      "manage": "管理協作者",
+      "view": "檢視協作者",
+      "collaborators": "協作者",
+      "add": "新增協作者",
+      "current": "目前的協作者",
+      "enter_email": "輸入電子郵件地址",
+      "please_enter_email": "請輸入電子郵件地址",
+      "added_successfully": "已成功新增協作者",
+      "failed_to_add": "新增協作者失敗",
+      "removed": "已移除協作者",
+      "failed_to_remove": "移除協作者失敗",
+      "role_updated": "已更新角色",
+      "failed_to_update_role": "更新角色失敗",
+      "viewer": "檢視者",
+      "editor": "編輯者",
+      "owner": "擁有者",
+      "viewer_description": "可以在清單中檢視書籤",
+      "editor_description": "可以新增和移除書籤",
+      "no_collaborators": "目前還沒有協作者。新增一位來開始協作吧！",
+      "no_collaborators_readonly": "沒有此清單的協作者。",
+      "people_with_access": "可以存取此清單的人員",
+      "add_or_remove": "新增或移除可存取此清單的人員",
+      "invitation_sent": "邀請已成功送出",
+      "invitation_revoked": "邀請已撤銷",
+      "failed_to_revoke": "撤銷邀請失敗",
+      "pending": "等待中",
+      "revoke": "撤銷",
+      "declined": "已拒絕"
+    },
+    "leave_list": {
+      "title": "離開清單",
+      "confirm_message": "您確定要離開 {{icon}} {{name}} 嗎？",
+      "warning": "您將無法再檢視或存取此清單中的書籤。清單擁有者可以隨時將您重新加入。",
+      "action": "離開清單",
+      "success": "您已離開「{{icon}} {{name}}」"
+    },
+    "invitations": {
+      "pending": "等待中的邀請",
+      "description": "檢閱及回覆清單協作邀請",
+      "invited_by": "邀請人",
+      "accept": "接受",
+      "decline": "拒絕",
+      "accepted": "邀請已接受",
+      "declined": "邀請已拒絕",
+      "failed_to_accept": "接受邀請失敗",
+      "failed_to_decline": "拒絕邀請失敗"
+    },
+    "shared_lists": "共用清單"
   },
   "tags": {
     "all_tags": "所有標籤",

@@ -234,3 +234,19 @@ export async function triggerRuleEngineOnEvent(
     opts,
   );
 }
+
+// Backup worker
+export const zBackupRequestSchema = z.object({
+  userId: z.string(),
+  backupId: z.string().optional(),
+});
+export type ZBackupRequest = z.infer<typeof zBackupRequestSchema>;
+export const BackupQueue = QUEUE_CLIENT.createQueue<ZBackupRequest>(
+  "backup_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 2,
+    },
+    keepFailedJobs: false,
+  },
+);

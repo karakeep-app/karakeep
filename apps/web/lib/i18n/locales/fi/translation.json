@@ -169,7 +169,8 @@
       "export_links_and_notes": "Vie linkit ja muistiinpanot",
       "imported_bookmarks": "Tuodut kirjanmerkit",
       "import_bookmarks_from_karakeep_export": "Tuo kirjanmerkit Karakeep-viennistä",
-      "import_bookmarks_from_tab_session_manager_export": "Tuo kirjanmerkit Tab Session Managerista"
+      "import_bookmarks_from_tab_session_manager_export": "Tuo kirjanmerkit Tab Session Managerista",
+      "import_bookmarks_from_mymind_export": "Tuodaan kirjanmerkit mymind-viennistä"
     },
     "api_keys": {
       "key_success_please_copy": "Ole hyvä ja kopioi avain ja säilytä se turvallisessa paikassa. Kun suljet valintaikkunan, et voi enää käyttää sitä.",
@@ -294,6 +295,10 @@
       },
       "storage_breakdown": {
         "title": "Tallennustilan erittely"
+      },
+      "bookmark_sources": {
+        "title": "Kirjanmerkkilähteet",
+        "empty": "Lähdetietoja ei saatavilla"
       }
     },
     "subscription": {
@@ -343,6 +348,55 @@
       "delete_dialog_title": "Poista tuontisessio",
       "delete_dialog_description": "Haluatko varmasti poistaa kohteen \"{{name}}\"? Tätä toimintoa ei voi perua. Kirjanmerkkejä ei poisteta.",
       "delete_session": "Poista istunto"
+    },
+    "backups": {
+      "backups": "Varmuuskopiot",
+      "page_title": "Varmuuskopiot",
+      "page_description": "Luo ja hallitse kirjanmerkkiesi varmuuskopioita automaattisesti. Varmuuskopiot pakataan ja tallennetaan turvallisesti.",
+      "configuration": {
+        "title": "Varmuuskopioiden kokoonpano",
+        "enable_automatic_backups": "Ota automaattiset varmuuskopiot käyttöön",
+        "enable_automatic_backups_description": "Luo kirjanmerkeistäsi automaattisesti varmuuskopiot",
+        "backup_frequency": "Varmuuskopioiden tiheys",
+        "backup_frequency_description": "Kuinka usein varmuuskopiot tulisi luoda",
+        "retention_period": "Säilytysaika (päivää)",
+        "retention_period_description": "Kuinka monta päivää varmuuskopioita säilytetään ennen niiden poistamista",
+        "frequency": {
+          "daily": "Päivittäin",
+          "weekly": "Viikoittain"
+        },
+        "select_frequency": "Valitse tiheys",
+        "save_settings": "Tallenna asetukset"
+      },
+      "list": {
+        "title": "Sinun varmuuskopiosi",
+        "create_backup_now": "Luo varmuuskopio nyt",
+        "no_backups": "Sinulla ei ole vielä varmuuskopioita. Ota automaattiset varmuuskopiot käyttöön tai luo sellainen manuaalisesti.",
+        "table": {
+          "created_at": "Luotu",
+          "bookmarks": "Kirjanmerkit",
+          "size": "Koko",
+          "status": "Tila",
+          "actions": "Toiminnot"
+        },
+        "status": {
+          "success": "Onnistui",
+          "failed": "Epäonnistui",
+          "pending": "Odottaa"
+        },
+        "actions": {
+          "download_backup": "Lataa varmuuskopio",
+          "delete_backup": "Poista varmuuskopio"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Poistetaanko varmuuskopio?",
+        "delete_backup_description": "Oletko varma, että haluat poistaa tämän varmuuskopion? Tätä toimintoa ei voi peruuttaa."
+      },
+      "toasts": {
+        "backup_queued": "Varmuuskopiointityö on asetettu jonoon! Se käsitellään pian.",
+        "backup_deleted": "Varmuuskopio on poistettu!"
+      }
     }
   },
   "admin": {
@@ -513,7 +567,57 @@
       "description": "Listan poistaminen ei poista yhtään kirjanmerkkiä kyseisestä listasta.",
       "delete_children": "Poista alilistat (rekursiivisesti)",
       "delete_children_description": "Jos tätä ei valita, kaikki suorat alilistat muuttuvat juurilistoiksi"
-    }
+    },
+    "shared": "Jaettu",
+    "collaborators": {
+      "manage": "Hallitse avustajia",
+      "view": "Näytä avustajat",
+      "collaborators": "Avustajat",
+      "add": "Lisää avustaja",
+      "current": "Nykyiset avustajat",
+      "enter_email": "Syötä sähköpostiosoite",
+      "please_enter_email": "Syötä sähköpostiosoite",
+      "added_successfully": "Avustaja lisätty onnistuneesti",
+      "failed_to_add": "Avustajan lisääminen epäonnistui",
+      "removed": "Avustaja poistettu",
+      "failed_to_remove": "Avustajan poistaminen epäonnistui",
+      "role_updated": "Rooli päivitetty",
+      "failed_to_update_role": "Roolin päivittäminen epäonnistui",
+      "viewer": "Katsoja",
+      "editor": "Muokkaaja",
+      "owner": "Omistaja",
+      "viewer_description": "Voi tarkastella kirjanmerkkejä luettelossa",
+      "editor_description": "Voi lisätä ja poistaa kirjanmerkkejä",
+      "no_collaborators": "Ei vielä avustajia. Lisää joku, että pääsette hommiin!",
+      "no_collaborators_readonly": "Ei tällä listalla ole muita tekijöitä.",
+      "people_with_access": "Ihmisillä, joilla on pääsy tälle listalle",
+      "add_or_remove": "Lisää tai poista ihmisiä, keillä on pääsy tälle listalle.",
+      "invitation_sent": "Kutsu lähetetty onnistuneesti",
+      "invitation_revoked": "Kutsu peruttu",
+      "failed_to_revoke": "Kutsun peruminen epäonnistui",
+      "pending": "Odottaa",
+      "revoke": "Peruuta",
+      "declined": "Hylätty"
+    },
+    "leave_list": {
+      "title": "Poistu listasta",
+      "confirm_message": "Oletko varma, että haluat poistua listasta {{icon}} {{name}}?",
+      "warning": "Et voi enää nähdä tai käyttää tämän listan kirjanmerkkejä. Listan omistaja voi lisätä sinut takaisin tarvittaessa.",
+      "action": "Poistu listasta",
+      "success": "Olet poistunut listasta \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Odottavat kutsut",
+      "description": "Tarkista ja vastaa luettelon yhteistyökutsuihin",
+      "invited_by": "Kutsun lähettäjä",
+      "accept": "Hyväksy",
+      "decline": "Hylkää",
+      "accepted": "Kutsu hyväksytty",
+      "declined": "Kutsu hylätty",
+      "failed_to_accept": "Kutsun hyväksyminen epäonnistui",
+      "failed_to_decline": "Kutsun hylkääminen epäonnistui"
+    },
+    "shared_lists": "Jaetut listat"
   },
   "tags": {
     "all_tags": "Kaikki tunnisteet",

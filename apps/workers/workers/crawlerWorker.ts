@@ -986,10 +986,15 @@ async function handleAsAssetBookmark(
       .where(eq(bookmarks.id, bookmarkId));
     await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
   });
-  await AssetPreprocessingQueue.enqueue({
-    bookmarkId,
-    fixMode: false,
-  });
+  await AssetPreprocessingQueue.enqueue(
+    {
+      bookmarkId,
+      fixMode: false,
+    },
+    {
+      groupId: userId,
+    },
+  );
 }
 
 type StoreHtmlResult =
@@ -1286,6 +1291,7 @@ async function checkDomainRateLimit(
   url: string,
   jobId: string,
   jobData: ZCrawlLinkRequest,
+  userId: string,
   jobPriority?: number,
 ): Promise<boolean> {
   const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
@@ -1319,6 +1325,7 @@ async function checkDomainRateLimit(
     await LinkCrawlerQueue.enqueue(jobData, {
       priority: jobPriority,
       delayMs,
+      groupId: userId,
     });
     return false;
   }
@@ -1354,6 +1361,7 @@ async function runCrawler(
     url,
     jobId,
     job.data,
+    userId,
     job.priority,
   );
 
@@ -1411,6 +1419,7 @@ async function runCrawler(
     // Propagate priority to child jobs
     const enqueueOpts: EnqueueOptions = {
       priority: job.priority,
+      groupId: userId,
     };
 
     // Enqueue openai job (if not set, assume it's true for backward compatibility)

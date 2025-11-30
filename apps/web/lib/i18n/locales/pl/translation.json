@@ -120,7 +120,8 @@
       "export_links_and_notes": "Eksportuj linki i notatki",
       "imported_bookmarks": "Zaimportowane zakładki",
       "import_bookmarks_from_linkwarden_export": "Importuj zakładki z eksportu Linkwarden",
-      "import_bookmarks_from_tab_session_manager_export": "Importuj zakładki z Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importuj zakładki z Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importuj zakładki z eksportu mymind"
     },
     "back_to_app": "Powrót do aplikacji",
     "user_settings": "Ustawienia użytkownika",
@@ -284,6 +285,10 @@
       },
       "storage_breakdown": {
         "title": "Podział pamięci"
+      },
+      "bookmark_sources": {
+        "title": "Źródła zakładek",
+        "empty": "Brak dostępnych danych źródłowych"
       }
     },
     "subscription": {
@@ -333,6 +338,55 @@
       "delete_dialog_title": "Usuń sesję importu",
       "delete_dialog_description": "Czy na pewno chcesz usunąć \"{{name}}\"? Tej czynności nie można cofnąć. Same zakładki nie zostaną usunięte.",
       "delete_session": "Usuń sesję"
+    },
+    "backups": {
+      "backups": "Kopie zapasowe",
+      "page_title": "Kopie zapasowe",
+      "page_description": "Automatycznie twórz kopie zapasowe zakładek i zarządzaj nimi. Kopie zapasowe są kompresowane i bezpiecznie przechowywane.",
+      "configuration": {
+        "title": "Konfiguracja kopii zapasowej",
+        "enable_automatic_backups": "Włącz automatyczne kopie zapasowe",
+        "enable_automatic_backups_description": "Automatyczne tworzenie kopii zapasowych zakładek",
+        "backup_frequency": "Częstotliwość tworzenia kopii zapasowych",
+        "backup_frequency_description": "Jak często tworzyć kopie zapasowe",
+        "retention_period": "Okres przechowywania (dni)",
+        "retention_period_description": "Ile dni przechowywać kopie zapasowe przed ich usunięciem",
+        "frequency": {
+          "daily": "Codziennie",
+          "weekly": "Co tydzień"
+        },
+        "select_frequency": "Wybierz częstotliwość",
+        "save_settings": "Zapisz ustawienia"
+      },
+      "list": {
+        "title": "Twoje kopie zapasowe",
+        "create_backup_now": "Utwórz kopię zapasową teraz",
+        "no_backups": "Nie masz jeszcze żadnych kopii zapasowych. Włącz automatyczne tworzenie kopii zapasowych lub utwórz ją ręcznie.",
+        "table": {
+          "created_at": "Utworzono",
+          "bookmarks": "Zakładki",
+          "size": "Rozmiar",
+          "status": "Status",
+          "actions": "Akcje"
+        },
+        "status": {
+          "success": "Sukces",
+          "failed": "Niepowodzenie",
+          "pending": "Oczekuje"
+        },
+        "actions": {
+          "download_backup": "Pobierz kopię zapasową",
+          "delete_backup": "Usuń kopię zapasową"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Usunąć kopię zapasową?",
+        "delete_backup_description": "Czy na pewno chcesz usunąć tę kopię zapasową? Nie da się tego cofnąć."
+      },
+      "toasts": {
+        "backup_queued": "Zadanie utworzenia kopii zapasowej zostało dodane do kolejki! Przetwarzanie rozpocznie się wkrótce.",
+        "backup_deleted": "Kopia zapasowa została usunięta!"
+      }
     }
   },
   "admin": {
@@ -619,7 +673,57 @@
       "description": "Usunięcie listy nie powoduje usunięcia żadnych zakładek z tej listy.",
       "delete_children": "Usuń listy potomne (rekurencyjnie)",
       "delete_children_description": "Jeśli nie zaznaczone, wszystkie bezpośrednie listy potomne staną się listami głównymi"
-    }
+    },
+    "shared": "Udostępnione",
+    "collaborators": {
+      "manage": "Zarządzaj Współpracownikami",
+      "view": "Wyświetl Współpracowników",
+      "collaborators": "Współpracownicy",
+      "add": "Dodaj Współpracownika",
+      "current": "Aktualni Współpracownicy",
+      "enter_email": "Wprowadź adres e-mail",
+      "please_enter_email": "Wprowadź adres e-mail.",
+      "added_successfully": "Współpracownik został dodany pomyślnie",
+      "failed_to_add": "Nie udało się dodać współpracownika",
+      "removed": "Współpracownik usunięty",
+      "failed_to_remove": "Nie udało się usunąć współpracownika",
+      "role_updated": "Rola zaktualizowana",
+      "failed_to_update_role": "Nie udało się zaktualizować roli",
+      "viewer": "Przeglądający",
+      "editor": "Edytor",
+      "owner": "Właściciel",
+      "viewer_description": "Może wyświetlać zakładki na liście",
+      "editor_description": "Może dodawać i usuwać zakładki",
+      "no_collaborators": "Jeszcze nie ma żadnych współpracowników. Dodaj kogoś, aby rozpocząć współpracę!",
+      "no_collaborators_readonly": "Brak współpracowników dla tej listy.",
+      "people_with_access": "Osoby, które mają dostęp do tej listy",
+      "add_or_remove": "Dodaj lub usuń osoby, które mogą uzyskać dostęp do tej listy",
+      "invitation_sent": "Zaproszenie wysłane, ziom!",
+      "invitation_revoked": "Cofnięto zaproszenie",
+      "failed_to_revoke": "Nie udało się cofnąć zaproszenia",
+      "pending": "Oczekuje",
+      "revoke": "Cofnij",
+      "declined": "Odrzucone"
+    },
+    "leave_list": {
+      "title": "Opuść listę",
+      "confirm_message": "Na pewno chcesz opuścić {{icon}} {{name}}?",
+      "warning": "Nie będziesz już mógł przeglądać ani uzyskiwać dostępu do zakładek na tej liście. Właściciel listy może Cię ponownie dodać w razie potrzeby.",
+      "action": "Opuść listę",
+      "success": "Opuściłeś \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Zaproszenia oczekujące",
+      "description": "Sprawdź i odpowiedz na zaproszenia do współpracy na listach",
+      "invited_by": "Zaprosił(-a) przez",
+      "accept": "Akceptuj",
+      "decline": "Odrzuć",
+      "accepted": "Zaproszenie zaakceptowane",
+      "declined": "Zaproszenie odrzucone",
+      "failed_to_accept": "Nie udało się zaakceptować zaproszenia",
+      "failed_to_decline": "Nie udało się odrzucić zaproszenia"
+    },
+    "shared_lists": "Listy współdzielone"
   },
   "preview": {
     "view_original": "Zobacz oryginał",

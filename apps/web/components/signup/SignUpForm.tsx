@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useClientConfig } from "@/lib/clientConfig";
 import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, UserX } from "lucide-react";
 import { signIn } from "next-auth/react";
@@ -38,10 +39,18 @@ const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 export default function SignUpForm() {
   const form = useForm<z.infer<typeof zSignUpSchema>>({
     resolver: zodResolver(zSignUpSchema),
+    defaultValues: {
+      email: "",
+      name: "",
+      password: "",
+      confirmPassword: "",
+      turnstileToken: "",
+    },
   });
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const clientConfig = useClientConfig();
+  const turnstileSiteKey = clientConfig.turnstile?.siteKey;
 
   const createUserMutation = api.users.create.useMutation();
 
@@ -91,6 +100,14 @@ export default function SignUpForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (value) => {
+              if (turnstileSiteKey && !value.turnstileToken) {
+                form.setError("turnstileToken", {
+                  type: "manual",
+                  message: "Please complete the verification challenge",
+                });
+                return;
+              }
+              form.clearErrors("turnstileToken");
               try {
                 await createUserMutation.mutateAsync(value);
               } catch (e) {
@@ -198,6 +215,37 @@ export default function SignUpForm() {
                 </FormItem>
               )}
             />
+
+            {turnstileSiteKey && (
+              <FormField
+                control={form.control}
+                name="turnstileToken"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Verification</FormLabel>
+                    <FormControl>
+                      <Turnstile
+                        siteKey={turnstileSiteKey}
+                        onSuccess={(token) => {
+                          field.onChange(token);
+                          form.clearErrors("turnstileToken");
+                        }}
+                        onExpire={() => field.onChange("")}
+                        onError={() => {
+                          field.onChange("");
+                          form.setError("turnstileToken", {
+                            type: "manual",
+                            message:
+                              "Verification failed, please reload the challenge",
+                          });
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <ActionButton
               type="submit"

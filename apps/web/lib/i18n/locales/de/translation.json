@@ -147,7 +147,8 @@
       "export_links_and_notes": "Links und Notizen exportieren",
       "imported_bookmarks": "Importierte Lesezeichen",
       "import_bookmarks_from_linkwarden_export": "Importieren Sie Lesezeichen aus dem Linkwarden-Export",
-      "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren"
+      "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren",
+      "import_bookmarks_from_mymind_export": "Lesezeichen aus meinem mymind-Export importieren"
     },
     "api_keys": {
       "api_keys": "API-Schlüssel",
@@ -290,6 +291,10 @@
       },
       "storage_breakdown": {
         "title": "Speicheraufschlüsselung"
+      },
+      "bookmark_sources": {
+        "title": "Lesezeichenquellen",
+        "empty": "Keine Quelldaten verfügbar"
       }
     },
     "subscription": {
@@ -339,6 +344,55 @@
       "delete_dialog_title": "Import-Sitzung löschen",
       "delete_dialog_description": "Bist du sicher, dass du »{{name}}« löschen willst? Diese Aktion kann nicht rückgängig gemacht werden. Die Lesezeichen selbst werden nicht gelöscht.",
       "delete_session": "Sitzung löschen"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Erstelle und verwalte automatisch Backups deiner Lesezeichen. Backups werden komprimiert und sicher gespeichert.",
+      "configuration": {
+        "title": "Backup-Konfiguration",
+        "enable_automatic_backups": "Automatische Backups aktivieren",
+        "enable_automatic_backups_description": "Automatische Backups deiner Lesezeichen erstellen",
+        "backup_frequency": "Backup-Frequenz",
+        "backup_frequency_description": "Wie oft Backups erstellt werden sollen",
+        "retention_period": "Aufbewahrungsdauer (Tage)",
+        "retention_period_description": "Wie viele Tage Backups aufbewahrt werden sollen, bevor sie gelöscht werden",
+        "frequency": {
+          "daily": "Täglich",
+          "weekly": "Wöchentlich"
+        },
+        "select_frequency": "Frequenz auswählen",
+        "save_settings": "Einstellungen speichern"
+      },
+      "list": {
+        "title": "Deine Backups",
+        "create_backup_now": "Backup jetzt erstellen",
+        "no_backups": "Du hast noch keine Backups. Aktiviere automatische Backups oder erstelle manuell eins.",
+        "table": {
+          "created_at": "Erstellt am",
+          "bookmarks": "Lesezeichen",
+          "size": "Größe",
+          "status": "Status",
+          "actions": "Aktionen"
+        },
+        "status": {
+          "success": "Erfolgreich",
+          "failed": "Fehlgeschlagen",
+          "pending": "Ausstehend"
+        },
+        "actions": {
+          "download_backup": "Backup herunterladen",
+          "delete_backup": "Backup löschen"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Backup löschen?",
+        "delete_backup_description": "Bist du sicher, dass du dieses Backup löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden."
+      },
+      "toasts": {
+        "backup_queued": "Backup-Job wurde in die Warteschlange gestellt! Er wird in Kürze bearbeitet.",
+        "backup_deleted": "Backup wurde gelöscht!"
+      }
     }
   },
   "admin": {
@@ -509,7 +563,57 @@
       "description": "Wenn du eine Liste löschst, werden keine Lesezeichen in dieser Liste gelöscht.",
       "delete_children": "Unterlisten löschen (rekursiv)",
       "delete_children_description": "Wenn diese Option nicht aktiviert ist, werden alle direkten Unterlisten zu Stamm-Listen"
-    }
+    },
+    "shared": "Gemeinsam genutzt",
+    "collaborators": {
+      "manage": "Mitarbeiter verwalten",
+      "view": "Mitarbeiter anzeigen",
+      "collaborators": "Mitarbeiter",
+      "add": "Mitarbeiter hinzufügen",
+      "current": "Aktuelle Mitarbeiter",
+      "enter_email": "E-Mail-Adresse eingeben",
+      "please_enter_email": "Bitte gib eine E-Mail-Adresse ein",
+      "added_successfully": "Mitarbeiter erfolgreich hinzugefügt",
+      "failed_to_add": "Mitarbeiter konnte nicht hinzugefügt werden",
+      "removed": "Mitarbeiter entfernt",
+      "failed_to_remove": "Mitarbeiter konnte nicht entfernt werden",
+      "role_updated": "Rolle aktualisiert",
+      "failed_to_update_role": "Rolle konnte nicht aktualisiert werden",
+      "viewer": "Betrachter",
+      "editor": "Editor",
+      "owner": "Inhaber",
+      "viewer_description": "Kann Lesezeichen in der Liste anzeigen",
+      "editor_description": "Kann Lesezeichen hinzufügen und entfernen",
+      "no_collaborators": "Noch keine Mitarbeiter. Füge jemanden hinzu, um mit der Zusammenarbeit zu beginnen!",
+      "no_collaborators_readonly": "Keine Mitarbeiter für diese Liste.",
+      "people_with_access": "Personen, die Zugriff auf diese Liste haben",
+      "add_or_remove": "Personen hinzufügen oder entfernen, die auf diese Liste zugreifen können",
+      "invitation_sent": "Einladung erfolgreich gesendet",
+      "invitation_revoked": "Einladung zurückgezogen",
+      "failed_to_revoke": "Einladung konnte nicht zurückgezogen werden",
+      "pending": "Ausstehend",
+      "revoke": "Zurückziehen",
+      "declined": "Abgelehnt"
+    },
+    "leave_list": {
+      "title": "Liste verlassen",
+      "confirm_message": "Bist du sicher, dass du {{icon}} {{name}} verlassen möchtest?",
+      "warning": "Du kannst keine Lesezeichen in dieser Liste mehr sehen oder darauf zugreifen. Der Listeninhaber kann dich bei Bedarf wieder hinzufügen.",
+      "action": "Liste verlassen",
+      "success": "Du hast \"{{icon}} {{name}}\" verlassen"
+    },
+    "invitations": {
+      "pending": "Ausstehende Einladungen",
+      "description": "Listen-Kollaborationseinladungen überprüfen und beantworten",
+      "invited_by": "Eingeladen von",
+      "accept": "Annehmen",
+      "decline": "Ablehnen",
+      "accepted": "Einladung angenommen",
+      "declined": "Einladung abgelehnt",
+      "failed_to_accept": "Einladung konnte nicht angenommen werden",
+      "failed_to_decline": "Einladung konnte nicht abgelehnt werden"
+    },
+    "shared_lists": "Geteilte Listen"
   },
   "tags": {
     "all_tags": "Alle Tags",
