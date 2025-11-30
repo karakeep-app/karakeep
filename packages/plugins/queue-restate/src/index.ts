@@ -42,6 +42,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
           payload: T;
           priority: number;
           groupId?: string;
+          queuedIdempotencyKey?: string;
         },
       ) => Promise<void>;
     }
@@ -51,6 +52,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
         payload,
         priority: options?.priority ?? 0,
         groupId: options?.groupId,
+        queuedIdempotencyKey: options?.idempotencyKey,
       },
       restateClient.rpc.sendOpts({
         delay: options?.delayMs
@@ -58,7 +60,6 @@ class RestateQueueWrapper<T> implements Queue<T> {
               milliseconds: options.delayMs,
             }
           : undefined,
-        idempotencyKey: options?.idempotencyKey,
       }),
     );
     return res.invocationId;
