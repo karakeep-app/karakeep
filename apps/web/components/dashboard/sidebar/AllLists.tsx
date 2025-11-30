@@ -24,6 +24,7 @@ import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 import { CollapsibleBookmarkLists } from "../lists/CollapsibleBookmarkLists";
 import { EditListModal } from "../lists/EditListModal";
 import { ListOptions } from "../lists/ListOptions";
+import { InvitationNotificationBadge } from "./InvitationNotificationBadge";
 
 export default function AllLists({
   initialData,
@@ -90,6 +91,7 @@ export default function AllLists({
         path={`/dashboard/lists`}
         linkClassName="py-0.5"
         className="px-0.5"
+        right={<InvitationNotificationBadge />}
       />
       <SidebarItem
         logo={<span className="text-lg">⭐️</span>}
