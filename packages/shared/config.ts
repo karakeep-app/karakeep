@@ -54,6 +54,8 @@ const allEnv = z.object({
   OAUTH_TIMEOUT: z.coerce.number().optional().default(3500),
   OAUTH_SCOPE: z.string().default("openid email profile"),
   OAUTH_PROVIDER_NAME: z.string().default("Custom Provider"),
+  TURNSTILE_SITE_KEY: z.string().optional(),
+  TURNSTILE_SECRET_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
@@ -237,6 +239,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         name: val.OAUTH_PROVIDER_NAME,
         timeout: val.OAUTH_TIMEOUT,
       },
+      turnstile: {
+        enabled: val.TURNSTILE_SITE_KEY !== undefined,
+        siteKey: val.TURNSTILE_SITE_KEY,
+        secretKey: val.TURNSTILE_SECRET_KEY,
+      },
     },
     email: {
       smtp: val.SMTP_HOST
@@ -401,6 +408,15 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     });
     return z.NEVER;
   }
+  if (obj.auth.turnstile.enabled && !obj.auth.turnstile.secretKey) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "TURNSTILE_SECRET_KEY is required when TURNSTILE_SITE_KEY is set",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
   return obj;
 });
 
@@ -416,6 +432,12 @@ export const clientConfig = {
     disableSignups: serverConfig.auth.disableSignups,
     disablePasswordAuth: serverConfig.auth.disablePasswordAuth,
   },
+  turnstile:
+    serverConfig.auth.turnstile.enabled && serverConfig.auth.turnstile.siteKey
+      ? {
+          siteKey: serverConfig.auth.turnstile.siteKey,
+        }
+      : null,
   inference: {
     isConfigured: serverConfig.inference.isConfigured,
     inferredTagLang: serverConfig.inference.inferredTagLang,

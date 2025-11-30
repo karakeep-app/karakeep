@@ -11,6 +11,7 @@ export const zSignUpSchema = z
     email: z.string().email(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
+    turnstileToken: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
