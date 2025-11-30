@@ -9,6 +9,8 @@ import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
 import { Ellipsis } from "lucide-react-native";
 
+import { ZBookmarkList } from "@karakeep/shared/types/lists";
+
 export default function ListView() {
   const { slug } = useLocalSearchParams();
   if (typeof slug !== "string") {
@@ -27,7 +29,9 @@ export default function ListView() {
           headerTitle: list ? `${list.icon} ${list.name}` : "",
           headerBackTitle: "Back",
           headerLargeTitle: true,
-          headerRight: () => <ListActionsMenu listId={slug} />,
+          headerRight: () => (
+            <ListActionsMenu listId={slug} role={list?.userRole ?? "viewer"} />
+          ),
         }}
       />
       {error ? (
@@ -47,8 +51,20 @@ export default function ListView() {
   );
 }
 
-function ListActionsMenu({ listId }: { listId: string }) {
-  const { mutate } = api.lists.delete.useMutation({
+function ListActionsMenu({
+  listId,
+  role,
+}: {
+  listId: string;
+  role: ZBookmarkList["userRole"];
+}) {
+  const { mutate: deleteList } = api.lists.delete.useMutation({
+    onSuccess: () => {
+      router.replace("/dashboard/lists");
+    },
+  });
+
+  const { mutate: leaveList } = api.lists.leaveList.useMutation({
     onSuccess: () => {
       router.replace("/dashboard/lists");
     },
@@ -60,7 +76,20 @@ function ListActionsMenu({ listId }: { listId: string }) {
       {
         text: "Delete",
         onPress: () => {
-          mutate({ listId });
+          deleteList({ listId });
+        },
+        style: "destructive",
+      },
+    ]);
+  };
+
+  const handleLeave = () => {
+    Alert.alert("Leave List", "Are you sure you want to leave this list?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        onPress: () => {
+          leaveList({ listId });
         },
         style: "destructive",
       },
@@ -75,15 +104,27 @@ function ListActionsMenu({ listId }: { listId: string }) {
           title: "Delete List",
           attributes: {
             destructive: true,
+            hidden: role !== "owner",
           },
           image: Platform.select({
             ios: "trash",
           }),
         },
+        {
+          id: "leave",
+          title: "Leave List",
+          attributes: {
+            destructive: true,
+            hidden: role === "owner",
+          },
+        },
       ]}
       onPressAction={({ nativeEvent }) => {
         if (nativeEvent.event === "delete") {
           handleDelete();
+        }
+        if (nativeEvent.event === "leave") {
+          handleLeave();
         }
       }}
       shouldOpenOnLongPress={false}

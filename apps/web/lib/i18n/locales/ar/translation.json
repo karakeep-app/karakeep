@@ -168,7 +168,8 @@
       "import_bookmarks_from_karakeep_export": "استيراد إشارات مرجعية من تصدير Karakeep",
       "export_links_and_notes": "تصدير الروابط والملاحظات",
       "imported_bookmarks": "الإشارات المرجعية المستوردة",
-      "import_bookmarks_from_tab_session_manager_export": "استيراد الإشارات المرجعية من مدير جلسة علامات التبويب"
+      "import_bookmarks_from_tab_session_manager_export": "استيراد الإشارات المرجعية من مدير جلسة علامات التبويب",
+      "import_bookmarks_from_mymind_export": "استيراد الإشارات المرجعية من تصدير mymind"
     },
     "api_keys": {
       "api_keys": "مفاتيح API",
@@ -293,6 +294,10 @@
       },
       "storage_breakdown": {
         "title": "تفصيل التخزين"
+      },
+      "bookmark_sources": {
+        "title": "مصادر الإشارات المرجعية",
+        "empty": "لا توجد بيانات مصدر متاحة"
       }
     },
     "subscription": {
@@ -342,6 +347,55 @@
       "delete_dialog_title": "حذف جلسة الاستيراد",
       "delete_dialog_description": "هل أنت متأكد أنك تريد حذف \" {{name}} \"؟ لا يمكن التراجع عن هذا الإجراء. لن يتم حذف الإشارات المرجعية نفسها.",
       "delete_session": "حذف الجلسة"
+    },
+    "backups": {
+      "backups": "النُسخ الاحتياطية",
+      "page_title": "النُسخ الاحتياطية",
+      "page_description": "أنشئ وأدر نُسخًا احتياطية لعلاماتك المرجعية تلقائيًا. النُسخ الاحتياطية مُضغوطة ومخزنة بشكل آمن.",
+      "configuration": {
+        "title": "إعدادات النسخ الاحتياطي",
+        "enable_automatic_backups": "تمكين النسخ الاحتياطي التلقائي",
+        "enable_automatic_backups_description": "أنشئ نُسخًا احتياطية لعلاماتك المرجعية تلقائيًا",
+        "backup_frequency": "تكرار النسخ الاحتياطي",
+        "backup_frequency_description": "كم مرة يتم فيها إنشاء نسخ احتياطية",
+        "retention_period": "فترة الاستبقاء (بالأيام)",
+        "retention_period_description": "عدد الأيام التي يجب الاحتفاظ فيها بالنُسخ الاحتياطية قبل حذفها",
+        "frequency": {
+          "daily": "يوميًا",
+          "weekly": "أسبوعيًا"
+        },
+        "select_frequency": "اختر التكرار",
+        "save_settings": "حفظ الإعدادات"
+      },
+      "list": {
+        "title": "نُسخك الاحتياطية",
+        "create_backup_now": "إنشاء نسخة احتياطية الآن",
+        "no_backups": "ليس لديك أي نُسخ احتياطية حتى الآن. قم بتمكين النُسخ الاحتياطية التلقائية أو أنشئ واحدة يدويًا.",
+        "table": {
+          "created_at": "تاريخ الإنشاء",
+          "bookmarks": "العلامات المرجعية",
+          "size": "الحجم",
+          "status": "الحالة",
+          "actions": "الإجراءات"
+        },
+        "status": {
+          "success": "نجاح",
+          "failed": "فشل",
+          "pending": "معلقة"
+        },
+        "actions": {
+          "download_backup": "تنزيل نسخة احتياطية",
+          "delete_backup": "حذف النسخة الاحتياطية"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "حذف النسخة الاحتياطية؟",
+        "delete_backup_description": "هل أنت متأكد أنك تريد حذف هذه النسخة الاحتياطية؟ لا يمكن التراجع عن هذا الإجراء."
+      },
+      "toasts": {
+        "backup_queued": "تمت إضافة مهمة النسخ الاحتياطي إلى قائمة الانتظار! ستتم معالجتها قريبًا.",
+        "backup_deleted": "تم حذف النسخة الاحتياطية!"
+      }
     }
   },
   "admin": {
@@ -512,7 +566,57 @@
       "description": "لا يؤدي حذف قائمة ما إلى حذف أي إشارات مرجعية في هذه القائمة.",
       "delete_children": "حذف القوائم الفرعية (بشكل متكرر)",
       "delete_children_description": "إذا لم يتم تحديده، فستصبح جميع القوائم الفرعية المباشرة قوائم جذر"
-    }
+    },
+    "shared": "مشترك",
+    "collaborators": {
+      "manage": "إدارة المتعاونين",
+      "view": "عرض المتعاونين",
+      "collaborators": "المتعاونين",
+      "add": "إضافة متعاون",
+      "current": "المتعاونون الحاليون",
+      "enter_email": "أدخل عنوان البريد الإلكتروني",
+      "please_enter_email": "يرجى إدخال عنوان بريد إلكتروني",
+      "added_successfully": "تمت إضافة المتعاون بنجاح",
+      "failed_to_add": "فشل في إضافة متعاون",
+      "removed": "تمت إزالة المتعاون",
+      "failed_to_remove": "فشل في إزالة المتعاون",
+      "role_updated": "تم تحديث الدور",
+      "failed_to_update_role": "فشل في تحديث الدور",
+      "viewer": "عارض",
+      "editor": "محرر",
+      "owner": "مالك",
+      "viewer_description": "يمكنه عرض الإشارات المرجعية في القائمة",
+      "editor_description": "يمكنه إضافة وإزالة الإشارات المرجعية",
+      "no_collaborators": "لا يوجد متعاونون حتى الآن. أضف شخصًا لبدء التعاون!",
+      "no_collaborators_readonly": "لا يوجد متعاونين لهذه القائمة.",
+      "people_with_access": "الأشخاص الذين لديهم صلاحية الوصول إلى هذه القائمة",
+      "add_or_remove": "إضافة أو إزالة الأشخاص الذين يمكنهم الوصول إلى هذه القائمة",
+      "invitation_sent": "تم إرسال الدعوة بنجاح",
+      "invitation_revoked": "تم إلغاء الدعوة",
+      "failed_to_revoke": "فشل إلغاء الدعوة",
+      "pending": "معلقة",
+      "revoke": "إلغاء",
+      "declined": "مرفوضة"
+    },
+    "leave_list": {
+      "title": "مغادرة القائمة",
+      "confirm_message": "هل أنت متأكد أنك تريد مغادرة {{icon}} {{name}}؟",
+      "warning": "لن تتمكن بعد ذلك من عرض أو الوصول إلى الإشارات المرجعية في هذه القائمة. يمكن لمالك القائمة إضافتك مرة أخرى إذا لزم الأمر.",
+      "action": "مغادرة القائمة",
+      "success": "لقد غادرت \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "الدعوات المعلَّقة",
+      "description": "راجِع دعوات المشاركة في القائمة واستجب لها",
+      "invited_by": "بدعوة من",
+      "accept": "قبول",
+      "decline": "رفض",
+      "accepted": "تم قبول الدعوة",
+      "declined": "تم رفض الدعوة",
+      "failed_to_accept": "فشل قبول الدعوة",
+      "failed_to_decline": "فشل رفض الدعوة"
+    },
+    "shared_lists": "قوائم مشتركة"
   },
   "tags": {
     "all_tags": "جميع الوسوم",

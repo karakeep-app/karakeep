@@ -201,7 +201,8 @@
       "export_links_and_notes": "Export veza i bilješki",
       "imported_bookmarks": "Importirane oznake",
       "import_bookmarks_from_omnivore_export": "Import oznaka iz Omnivore exporta",
-      "import_bookmarks_from_tab_session_manager_export": "Uvezi oznake iz Tab Session Managera"
+      "import_bookmarks_from_tab_session_manager_export": "Uvezi oznake iz Tab Session Managera",
+      "import_bookmarks_from_mymind_export": "Uvezi oznake iz mymind izvoza"
     },
     "back_to_app": "Povratak u aplikaciju",
     "user_settings": "Postavke korisnika",
@@ -375,6 +376,10 @@
       },
       "storage_breakdown": {
         "title": "Raščlamba pohrane"
+      },
+      "bookmark_sources": {
+        "title": "Izvori oznaka",
+        "empty": "Nema dostupnih izvornih podataka"
       }
     },
     "subscription": {
@@ -424,6 +429,55 @@
       "delete_dialog_title": "Izbriši sesiju uvoza",
       "delete_dialog_description": "Jesi li ziher da želiš izbrisati \"{{name}}\"? Ne možeš to poništiti. Same oznake neće biti izbrisane.",
       "delete_session": "Izbriši sesiju"
+    },
+    "backups": {
+      "backups": "Sigurnosne kopije",
+      "page_title": "Sigurnosne kopije",
+      "page_description": "Automatski kreiraj i upravljaj sigurnosnim kopijama svojih oznaka. Sigurnosne kopije su komprimirane i sigurno pohranjene.",
+      "configuration": {
+        "title": "Konfiguracija sigurnosnih kopija",
+        "enable_automatic_backups": "Omogući automatske sigurnosne kopije",
+        "enable_automatic_backups_description": "Automatski kreiraj sigurnosne kopije tvojih oznaka",
+        "backup_frequency": "Učestalost sigurnosnih kopija",
+        "backup_frequency_description": "Koliko često bi se trebale kreirati sigurnosne kopije",
+        "retention_period": "Period zadržavanja (dana)",
+        "retention_period_description": "Koliko dana čuvati sigurnosne kopije prije nego što ih izbrišeš",
+        "frequency": {
+          "daily": "Dnevno",
+          "weekly": "Tjedno"
+        },
+        "select_frequency": "Odaberi učestalost",
+        "save_settings": "Spremi postavke"
+      },
+      "list": {
+        "title": "Tvoje sigurnosne kopije",
+        "create_backup_now": "Napravi sigurnosnu kopiju sada",
+        "no_backups": "Još nemaš nikakvih sigurnosnih kopija. Omogući automatske sigurnosne kopije ili napravi jednu ručno.",
+        "table": {
+          "created_at": "Napravljeno",
+          "bookmarks": "Oznake",
+          "size": "Veličina",
+          "status": "Status",
+          "actions": "Radnje"
+        },
+        "status": {
+          "success": "Uspjeh",
+          "failed": "Neuspješno",
+          "pending": "Na čekanju"
+        },
+        "actions": {
+          "download_backup": "Preuzmi sigurnosnu kopiju",
+          "delete_backup": "Izbriši sigurnosnu kopiju"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Izbrisati sigurnosnu kopiju?",
+        "delete_backup_description": "Jesi li siguran da želiš izbrisati ovu sigurnosnu kopiju? Ova radnja se ne može poništiti."
+      },
+      "toasts": {
+        "backup_queued": "Posao sigurnosne kopije je u redu čekanja! Bit će obrađen uskoro.",
+        "backup_deleted": "Sigurnosna kopija je izbrisana!"
+      }
     }
   },
   "actions": {
@@ -512,7 +566,57 @@
       "description": "Brisanjem popisa ne brišu se oznake unutar tog popisa.",
       "delete_children": "Izbriši podređene popise (rekurzivno)",
       "delete_children_description": "Ako nije označeno, svi izravno podređeni popisi postat će korijenski popisi"
-    }
+    },
+    "shared": "Zajedničko",
+    "collaborators": {
+      "manage": "Upravljaj suradnicima",
+      "view": "Prikaži suradnike",
+      "collaborators": "Suradnici",
+      "add": "Dodaj suradnika",
+      "current": "Trenutni suradnici",
+      "enter_email": "Unesi e-mail adresu",
+      "please_enter_email": "Molim te, unesi e-mail adresu",
+      "added_successfully": "Suradnik uspješno dodan",
+      "failed_to_add": "Nije uspjelo dodavanje suradnika",
+      "removed": "Suradnik uklonjen",
+      "failed_to_remove": "Nije uspjelo uklanjanje suradnika",
+      "role_updated": "Uloga ažurirana",
+      "failed_to_update_role": "Nije uspjelo ažuriranje uloge",
+      "viewer": "Preglednik",
+      "editor": "Urednik",
+      "owner": "Vlasnik",
+      "viewer_description": "Može vidjeti oznake u popisu",
+      "editor_description": "Može dodavati i uklanjati oznake",
+      "no_collaborators": "Još nema suradnika. Dodaj nekoga da bi započeo suradnju!",
+      "no_collaborators_readonly": "Nema suradnika za ovaj popis.",
+      "people_with_access": "Ljudi koji imaju pristup ovom popisu",
+      "add_or_remove": "Dodaj ili ukloni osobe koje imaju pristup ovom popisu",
+      "invitation_sent": "Uspješno poslana pozivnica",
+      "invitation_revoked": "Pozivnica povučena",
+      "failed_to_revoke": "Nije uspjelo povlačenje pozivnice",
+      "pending": "Na čekanju",
+      "revoke": "Opozovi",
+      "declined": "Odbijeno"
+    },
+    "leave_list": {
+      "title": "Napusti popis",
+      "confirm_message": "Jesi li siguran da želiš napustiti {{icon}} {{name}}?",
+      "warning": "Više nećeš moći vidjeti ni pristupati oznakama na ovom popisu. Vlasnik popisa te može ponovno dodati ako treba.",
+      "action": "Napusti popis",
+      "success": "Napustio si \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Pozivnice na čekanju",
+      "description": "Pregledaj i odgovori na pozivnice za suradnju na popisu",
+      "invited_by": "Poziv poslao",
+      "accept": "Prihvati",
+      "decline": "Odbij",
+      "accepted": "Poziv prihvaćen",
+      "declined": "Poziv odbijen",
+      "failed_to_accept": "Nije uspjelo prihvatiti pozivnicu",
+      "failed_to_decline": "Nije uspjelo odbiti pozivnicu"
+    },
+    "shared_lists": "Zajednički popisi"
   },
   "tags": {
     "all_tags": "Sve oznake",

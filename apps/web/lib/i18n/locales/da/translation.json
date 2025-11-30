@@ -55,7 +55,8 @@
       "import_bookmarks_from_pocket_export": "Importer bogmærker fra Pocket-eksport",
       "imported_bookmarks": "Importerede bogmærker",
       "import_bookmarks_from_linkwarden_export": "Importer bogmærker fra Linkwarden-eksport",
-      "import_bookmarks_from_tab_session_manager_export": "Importer bogmærker fra Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importer bogmærker fra Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importer bogmærker fra minmind-eksport"
     },
     "back_to_app": "Tilbage til app",
     "info": {
@@ -242,6 +243,10 @@
       },
       "storage_breakdown": {
         "title": "Opdeling af lagerplads"
+      },
+      "bookmark_sources": {
+        "title": "Bogmærke-kilder",
+        "empty": "Ingen kildedata tilgængelig"
       }
     },
     "subscription": {
@@ -291,6 +296,55 @@
       "delete_dialog_title": "Slet importsession",
       "delete_dialog_description": "Er du sikker på, at du vil slette \"{{name}}\"? Denne handling kan ikke fortrydes. Selve bogmærkerne vil ikke blive slettet.",
       "delete_session": "Slet session"
+    },
+    "backups": {
+      "backups": "Sikkerhedskopier",
+      "page_title": "Sikkerhedskopier",
+      "page_description": "Opret og administrer automatisk sikkerhedskopier af dine bogmærker. Sikkerhedskopier er komprimerede og sikkert opbevarede.",
+      "configuration": {
+        "title": "Konfiguration af sikkerhedskopier",
+        "enable_automatic_backups": "Aktivér automatiske sikkerhedskopier",
+        "enable_automatic_backups_description": "Opret sikkerhedskopier af dine bogmærker automatisk",
+        "backup_frequency": "Frekvens for sikkerhedskopiering",
+        "backup_frequency_description": "Hvor ofte sikkerhedskopier skal oprettes",
+        "retention_period": "Opbevaringsperiode (dage)",
+        "retention_period_description": "Hvor mange dage sikkerhedskopier skal opbevares, før de slettes",
+        "frequency": {
+          "daily": "Dagligt",
+          "weekly": "Ugentligt"
+        },
+        "select_frequency": "Vælg frekvens",
+        "save_settings": "Gem indstillinger"
+      },
+      "list": {
+        "title": "Dine sikkerhedskopier",
+        "create_backup_now": "Opret sikkerhedskopi nu",
+        "no_backups": "Du har endnu ingen sikkerhedskopier. Aktivér automatiske sikkerhedskopier, eller opret en manuelt.",
+        "table": {
+          "created_at": "Oprettet den",
+          "bookmarks": "Bogmærker",
+          "size": "Størrelse",
+          "status": "Status",
+          "actions": "Handlinger"
+        },
+        "status": {
+          "success": "Succes",
+          "failed": "Mislykket",
+          "pending": "Afventer"
+        },
+        "actions": {
+          "download_backup": "Hent sikkerhedskopi",
+          "delete_backup": "Slet sikkerhedskopi"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Slet sikkerhedskopi?",
+        "delete_backup_description": "Er du sikker på, at du vil slette denne sikkerhedskopi? Denne handling kan ikke fortrydes."
+      },
+      "toasts": {
+        "backup_queued": "Sikkerhedskopieringsjobbet er blevet sat i kø! Det vil blive behandlet snarest.",
+        "backup_deleted": "Sikkerhedskopien er blevet slettet!"
+      }
     }
   },
   "admin": {
@@ -592,7 +646,57 @@
       "description": "Sletning af en liste sletter ikke nogen bogmærker på den pågældende liste.",
       "delete_children": "Slet underordnede lister (rekursivt)",
       "delete_children_description": "Hvis dette ikke er markeret, vil alle direkte underordnede lister blive rodlister"
-    }
+    },
+    "shared": "Delt",
+    "collaborators": {
+      "manage": "Administrer samarbejdspartnere",
+      "view": "Vis samarbejdspartnere",
+      "collaborators": "Samarbejdspartnere",
+      "add": "Tilføj samarbejdspartner",
+      "current": "Nuværende samarbejdspartnere",
+      "enter_email": "Indtast e-mailadresse",
+      "please_enter_email": "Angiv en e-mailadresse",
+      "added_successfully": "Samarbejdspartner tilføjet",
+      "failed_to_add": "Kunne ikke tilføje samarbejdspartner",
+      "removed": "Samarbejdspartner fjernet",
+      "failed_to_remove": "Kunne ikke fjerne samarbejdspartner",
+      "role_updated": "Rolle opdateret",
+      "failed_to_update_role": "Kunne ikke opdatere rolle",
+      "viewer": "Seer",
+      "editor": "Editor",
+      "owner": "Ejer",
+      "viewer_description": "Kan se bogmærker på listen",
+      "editor_description": "Kan tilføje og fjerne bogmærker",
+      "no_collaborators": "Ingen samarbejdspartnere endnu. Tilføj nogen for at begynde at samarbejde!",
+      "no_collaborators_readonly": "Ingen samarbejdspartnere for denne liste.",
+      "people_with_access": "Folk der har adgang til denne liste",
+      "add_or_remove": "Tilføj eller fjern folk der kan få adgang til denne liste",
+      "invitation_sent": "Invitation er sendt!",
+      "invitation_revoked": "Invitation trukket tilbage",
+      "failed_to_revoke": "Kunne ikke trække invitationen tilbage",
+      "pending": "Afventer",
+      "revoke": "Tilbagekald",
+      "declined": "Afvist"
+    },
+    "leave_list": {
+      "title": "Forlad liste",
+      "confirm_message": "Er du sikker på, at du vil forlade {{icon}} {{name}}?",
+      "warning": "Du vil ikke længere kunne se eller tilgå bogmærker på denne liste. Listens ejer kan tilføje dig igen, hvis det skulle blive nødvendigt.",
+      "action": "Forlad liste",
+      "success": "Du har forladt \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Afventende invitationer",
+      "description": "Gennemgå og besvar invitationer til listesamarbejde",
+      "invited_by": "Inviteret af",
+      "accept": "Accepter",
+      "decline": "Afvis",
+      "accepted": "Invitation accepteret",
+      "declined": "Invitation afvist",
+      "failed_to_accept": "Kunne ikke acceptere invitationen",
+      "failed_to_decline": "Kunne ikke afvise invitationen"
+    },
+    "shared_lists": "Delte lister"
   },
   "preview": {
     "view_original": "Se original",

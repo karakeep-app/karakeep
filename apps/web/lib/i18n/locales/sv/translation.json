@@ -146,7 +146,8 @@
       "import_bookmarks_from_pocket_export": "Importera bokmärken från Pocket-export",
       "export_links_and_notes": "Exportera länkar och anteckningar",
       "import_bookmarks_from_linkwarden_export": "Importera bokmärken från Linkwarden-export",
-      "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importera bokmärken från min mymind-export"
     },
     "api_keys": {
       "api_keys": "API-nycklar",
@@ -290,6 +291,10 @@
       },
       "storage_breakdown": {
         "title": "Fördelning av lagring"
+      },
+      "bookmark_sources": {
+        "title": "Bokmärk källor",
+        "empty": "Ingen källdata tillgänglig"
       }
     },
     "subscription": {
@@ -339,6 +344,55 @@
       "delete_dialog_title": "Ta bort importsession",
       "delete_dialog_description": "Är du säker på att du vill ta bort \"{{name}}\"? Åtgärden kan inte ångras. Själva bokmärkena kommer inte att tas bort.",
       "delete_session": "Ta bort session"
+    },
+    "backups": {
+      "backups": "Säkerhetskopior",
+      "page_title": "Säkerhetskopior",
+      "page_description": "Skapa och hantera säkerhetskopior av dina bokmärken automatiskt. Säkerhetskopiorna komprimeras och lagras säkert.",
+      "configuration": {
+        "title": "Konfigurera säkerhetskopiering",
+        "enable_automatic_backups": "Aktivera automatiska säkerhetskopieringar",
+        "enable_automatic_backups_description": "Skapa säkerhetskopior av dina bokmärken automatiskt",
+        "backup_frequency": "Frekvens för säkerhetskopiering",
+        "backup_frequency_description": "Hur ofta säkerhetskopieringar ska skapas",
+        "retention_period": "Kvarhållningsperiod (dagar)",
+        "retention_period_description": "Hur många dagar säkerhetskopior ska sparas innan de raderas",
+        "frequency": {
+          "daily": "Dagligen",
+          "weekly": "Varje vecka"
+        },
+        "select_frequency": "Välj frekvens",
+        "save_settings": "Spara inställningar"
+      },
+      "list": {
+        "title": "Dina säkerhetskopior",
+        "create_backup_now": "Skapa säkerhetskopia nu",
+        "no_backups": "Du har inga säkerhetskopior än. Aktivera automatiska säkerhetskopieringar eller skapa en manuellt.",
+        "table": {
+          "created_at": "Skapad den",
+          "bookmarks": "Bokmärken",
+          "size": "Storlek",
+          "status": "Status",
+          "actions": "Åtgärder"
+        },
+        "status": {
+          "success": "Lyckades",
+          "failed": "Misslyckades",
+          "pending": "Väntar"
+        },
+        "actions": {
+          "download_backup": "Ladda ner säkerhetskopiering",
+          "delete_backup": "Ta bort säkerhetskopiering"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Ta bort säkerhetskopiering?",
+        "delete_backup_description": "Är du säker på att du vill ta bort den här säkerhetskopieringen? Den här åtgärden kan inte ångras."
+      },
+      "toasts": {
+        "backup_queued": "Säkerhetskopieringen har köats! Den kommer att behandlas inom kort.",
+        "backup_deleted": "Säkerhetskopieringen har tagits bort!"
+      }
     }
   },
   "admin": {
@@ -509,7 +563,57 @@
       "description": "Om du tar bort en lista tas inga bokmärken i den listan bort.",
       "delete_children": "Ta bort underordnade listor (rekursivt)",
       "delete_children_description": "Om den inte är markerad kommer alla direkt underordnade listor att bli rotlistor"
-    }
+    },
+    "shared": "Delad",
+    "collaborators": {
+      "manage": "Hantera medarbetare",
+      "view": "Visa medarbetare",
+      "collaborators": "Medarbetare",
+      "add": "Lägg till medarbetare",
+      "current": "Nuvarande medarbetare",
+      "enter_email": "Ange e-postadress",
+      "please_enter_email": "Vänligen ange en e-postadress",
+      "added_successfully": "Medarbetare tillagd",
+      "failed_to_add": "Det gick inte att lägga till medarbetare",
+      "removed": "Medarbetare borttagen",
+      "failed_to_remove": "Det gick inte att ta bort medarbetare",
+      "role_updated": "Roll uppdaterad",
+      "failed_to_update_role": "Det gick inte att uppdatera rollen",
+      "viewer": "Visare",
+      "editor": "Redigerare",
+      "owner": "Ägare",
+      "viewer_description": "Kan visa bokmärken i listan",
+      "editor_description": "Kan lägga till och ta bort bokmärken",
+      "no_collaborators": "Inga medarbetare ännu. Lägg till någon för att börja samarbeta!",
+      "no_collaborators_readonly": "Inga samarbetspartners för den här listan.",
+      "people_with_access": "Personer som har tillgång till den här listan",
+      "add_or_remove": "Lägg till eller ta bort personer som kan komma åt den här listan",
+      "invitation_sent": "Inbjudan skickad!",
+      "invitation_revoked": "Inbjudan återkallad",
+      "failed_to_revoke": "Kunde inte återkalla inbjudan",
+      "pending": "Väntar",
+      "revoke": "Återkalla",
+      "declined": "Nekad"
+    },
+    "leave_list": {
+      "title": "Lämna lista",
+      "confirm_message": "Är du säker på att du vill lämna {{icon}} {{name}}?",
+      "warning": "Du kommer inte längre att kunna visa eller komma åt bokmärken i den här listan. Listans ägare kan lägga till dig igen om det behövs.",
+      "action": "Lämna lista",
+      "success": "Du har lämnat \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Väntande inbjudningar",
+      "description": "Granska och svara på inbjudningar för listsamarbete",
+      "invited_by": "Inbjuden av",
+      "accept": "Acceptera",
+      "decline": "Neka",
+      "accepted": "Inbjudan är accepterad",
+      "declined": "Inbjudan är nekad",
+      "failed_to_accept": "Kunde inte acceptera inbjudan",
+      "failed_to_decline": "Kunde inte neka inbjudan"
+    },
+    "shared_lists": "Delade listor"
   },
   "tags": {
     "drag_and_drop_merging_info": "Dra och släpp taggar på varandra för att sammanfoga dem",

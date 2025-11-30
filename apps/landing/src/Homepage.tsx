@@ -6,10 +6,15 @@ import {
   BrainCircuit,
   CheckCheck,
   Github,
+  Highlighter,
+  Plug,
+  Rss,
   Server,
+  Star,
   SunMoon,
   TextSearch,
-  WalletCards,
+  Users,
+  Workflow,
 } from "lucide-react";
 
 import { DEMO_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
@@ -56,19 +61,37 @@ const featuresList = [
       "Automatically tags your bookmarks using AI for faster retrieval.",
   },
   {
-    icon: ArrowDownNarrowWide,
-    title: "Auto Fetch",
+    icon: Users,
+    title: "Collaborative Lists",
     description:
-      "Automatically fetches title, description and images for links.",
+      "Collaborate with others on shared lists for team bookmarking.",
   },
   {
-    icon: WalletCards,
-    title: "Lists",
-    description: "Sort your bookmarks into lists for better organization.",
+    icon: Rss,
+    title: "RSS Feeds",
+    description:
+      "Auto-hoard content from RSS feeds to stay updated effortlessly.",
+  },
+  {
+    icon: Workflow,
+    title: "Rule Engine",
+    description:
+      "Customize bookmark management with powerful automation rules.",
+  },
+  {
+    icon: Highlighter,
+    title: "Highlights",
+    description:
+      "Mark and store highlights from your hoarded content for quick reference.",
+  },
+  {
+    icon: Plug,
+    title: "API & Webhooks",
+    description: "Integrate with other services using REST API and webhooks.",
   },
   {
     icon: TextSearch,
-    title: "Search",
+    title: "Full Text Search",
     description: "Search through all your bookmarks using full text search.",
   },
   {
@@ -80,6 +103,12 @@ const featuresList = [
     icon: CheckCheck,
     title: "Bulk Actions",
     description: "Quickly manage your bookmarks with bulk actions.",
+  },
+  {
+    icon: ArrowDownNarrowWide,
+    title: "Auto Fetch",
+    description:
+      "Automatically fetches title, description and images for links.",
   },
   {
     icon: SunMoon,
@@ -108,6 +137,16 @@ function Hero() {
             for the data hoarders out there!
           </p>
         </div>
+        <a
+          href={GITHUB_LINK}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
+        >
+          <Star className="size-4 fill-yellow-400 text-yellow-400" />
+          <span className="font-semibold">21k</span>
+          <span className="text-gray-500">stars on GitHub</span>
+        </a>
       </div>
       <div className="flex h-10 gap-4">
         <a

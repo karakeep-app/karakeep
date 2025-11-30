@@ -1,13 +1,22 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { EditListModal } from "@/components/dashboard/lists/EditListModal";
 import { Button } from "@/components/ui/button";
-import { CollapsibleTriggerChevron } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTriggerChevron,
+} from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
 import { MoreHorizontal, Plus } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
+import {
+  augmentBookmarkListsWithInitialData,
+  useBookmarkLists,
+} from "@karakeep/shared-react/hooks/lists";
 
 import { CollapsibleBookmarkLists } from "./CollapsibleBookmarkLists";
 import { ListOptions } from "./ListOptions";
@@ -64,6 +73,20 @@ export default function AllListsView({
   initialData: ZBookmarkList[];
 }) {
   const { t } = useTranslation();
+
+  // Fetch live lists data
+  const { data: listsData } = useBookmarkLists(undefined, {
+    initialData: { lists: initialData },
+  });
+  const lists = augmentBookmarkListsWithInitialData(listsData, initialData);
+
+  // Check if there are any shared lists
+  const hasSharedLists = useMemo(() => {
+    return lists.data.some((list) => list.userRole !== "owner");
+  }, [lists.data]);
+
+  const [sharedListsOpen, setSharedListsOpen] = useState(true);
+
   return (
     <ul>
       <EditListModal>
@@ -84,21 +107,54 @@ export default function AllListsView({
         icon="🗄️"
         path={`/dashboard/archive`}
       />
+
+      {/* Owned Lists */}
       <CollapsibleBookmarkLists
-        initialData={initialData}
-        render={({ item, level, open }) => (
+        listsData={lists}
+        filter={(node) => node.item.userRole === "owner"}
+        render={({ node, level, open }) => (
           <ListItem
-            key={item.item.id}
-            name={item.item.name}
-            icon={item.item.icon}
-            list={item.item}
-            path={`/dashboard/lists/${item.item.id}`}
-            collapsible={item.children.length > 0}
+            name={node.item.name}
+            icon={node.item.icon}
+            list={node.item}
+            path={`/dashboard/lists/${node.item.id}`}
+            collapsible={node.children.length > 0}
             open={open}
             style={{ marginLeft: `${level * 1}rem` }}
           />
         )}
       />
+
+      {/* Shared Lists */}
+      {hasSharedLists && (
+        <Collapsible open={sharedListsOpen} onOpenChange={setSharedListsOpen}>
+          <ListItem
+            collapsible={true}
+            name={t("lists.shared_lists")}
+            icon="👥"
+            path="#"
+            open={sharedListsOpen}
+          />
+          <CollapsibleContent>
+            <CollapsibleBookmarkLists
+              listsData={lists}
+              filter={(node) => node.item.userRole !== "owner"}
+              indentOffset={1}
+              render={({ node, level, open }) => (
+                <ListItem
+                  name={node.item.name}
+                  icon={node.item.icon}
+                  list={node.item}
+                  path={`/dashboard/lists/${node.item.id}`}
+                  collapsible={node.children.length > 0}
+                  open={open}
+                  style={{ marginLeft: `${level * 1}rem` }}
+                />
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </ul>
   );
 }

@@ -45,6 +45,10 @@
         "type": "string",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
+      "BackupId": {
+        "type": "string",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
       "Bookmark": {
         "type": "object",
         "properties": {
@@ -595,6 +599,14 @@
         },
         "required": true,
         "name": "assetId",
+        "in": "path"
+      },
+      "BackupId": {
+        "schema": {
+          "$ref": "#/components/schemas/BackupId"
+        },
+        "required": true,
+        "name": "backupId",
         "in": "path"
       }
     }
@@ -3159,6 +3171,10 @@
                       "green",
                       "blue"
                     ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -3692,6 +3708,341 @@
                   },
                   "required": [
                     "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups": {
+      "get": {
+        "description": "Get all backups",
+        "summary": "Get all backups",
+        "tags": [
+          "Backups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with all backups data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "backups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "userId": {
+                            "type": "string"
+                          },
+                          "assetId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "bookmarkCount": {
+                            "type": "number"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "success",
+                              "failure"
+                            ]
+                          },
+                          "errorMessage": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "userId",
+                          "assetId",
+                          "createdAt",
+                          "size",
+                          "bookmarkCount",
+                          "status"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "backups"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Trigger a new backup",
+        "summary": "Trigger a new backup",
+        "tags": [
+          "Backups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backup created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "assetId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "bookmarkCount": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "success",
+                        "failure"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "userId",
+                    "assetId",
+                    "createdAt",
+                    "size",
+                    "bookmarkCount",
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/{backupId}": {
+      "get": {
+        "description": "Get backup by its id",
+        "summary": "Get a single backup",
+        "tags": [
+          "Backups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BackupId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object with backup data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "assetId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "bookmarkCount": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "success",
+                        "failure"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "userId",
+                    "assetId",
+                    "createdAt",
+                    "size",
+                    "bookmarkCount",
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Backup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete backup by its id",
+        "summary": "Delete a backup",
+        "tags": [
+          "Backups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BackupId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content - the backup was deleted"
+          },
+          "404": {
+            "description": "Backup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backups/{backupId}/download": {
+      "get": {
+        "description": "Download backup file",
+        "summary": "Download a backup",
+        "tags": [
+          "Backups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BackupId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backup file (zip archive)",
+            "content": {
+              "application/zip": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Backup not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
                   ]
                 }
               }

@@ -340,7 +340,8 @@
       "import_bookmarks_from_karakeep_export": "Karakeep 내보내기에서 북마크 가져오기",
       "export_links_and_notes": "링크와 주석 내보내기",
       "imported_bookmarks": "가져온 북마크",
-      "import_bookmarks_from_tab_session_manager_export": "탭 세션 관리자에서 북마크 가져오기"
+      "import_bookmarks_from_tab_session_manager_export": "탭 세션 관리자에서 북마크 가져오기",
+      "import_bookmarks_from_mymind_export": "마인드 내보내기에서 북마크 가져오기"
     },
     "back_to_app": "앱으로 돌아가기",
     "user_settings": "사용자 설정",
@@ -455,6 +456,10 @@
       },
       "storage_breakdown": {
         "title": "저장 공간 분석"
+      },
+      "bookmark_sources": {
+        "title": "소스 위치",
+        "empty": "사용 가능한 원본 데이터 없음"
       }
     },
     "subscription": {
@@ -504,6 +509,55 @@
       "delete_dialog_title": "가져오기 세션 삭제",
       "delete_dialog_description": "정말 \"{{name}}\"을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다. 책갈피 자체는 삭제되지 않습니다.",
       "delete_session": "세션 삭제"
+    },
+    "backups": {
+      "backups": "백업",
+      "page_title": "백업",
+      "page_description": "즐겨찾기를 자동으로 백업하고 관리하세요. 백업 파일은 압축되어 안전하게 보관됩니다.",
+      "configuration": {
+        "title": "백업 구성",
+        "enable_automatic_backups": "자동 백업 사용",
+        "enable_automatic_backups_description": "즐겨찾기를 자동으로 백업합니다",
+        "backup_frequency": "백업 빈도",
+        "backup_frequency_description": "얼마나 자주 백업을 생성할까요?",
+        "retention_period": "보존 기간(일)",
+        "retention_period_description": "백업을 삭제하기 전 며칠 동안 보관할까요?",
+        "frequency": {
+          "daily": "매일",
+          "weekly": "매주"
+        },
+        "select_frequency": "빈도 선택",
+        "save_settings": "설정 저장"
+      },
+      "list": {
+        "title": "내 백업",
+        "create_backup_now": "지금 백업 만들기",
+        "no_backups": "아직 백업이 없어요. 자동 백업을 활성화하거나 수동으로 만드세요.",
+        "table": {
+          "created_at": "생성 날짜",
+          "bookmarks": "즐겨찾기",
+          "size": "크기",
+          "status": "상태",
+          "actions": "작업"
+        },
+        "status": {
+          "success": "성공",
+          "failed": "실패",
+          "pending": "대기 중"
+        },
+        "actions": {
+          "download_backup": "백업 내려받기",
+          "delete_backup": "백업 삭제"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "백업 삭제할까요?",
+        "delete_backup_description": "이 백업을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
+      },
+      "toasts": {
+        "backup_queued": "백업 작업이 대기열에 추가되었습니다! 곧 처리될 겁니다.",
+        "backup_deleted": "백업이 삭제되었습니다!"
+      }
     }
   },
   "admin": {
@@ -670,7 +724,57 @@
       "description": "목록을 삭제해도 해당 목록에 있는 북마크는 삭제되지 않아.",
       "delete_children": "자식 목록 삭제 (재귀적으로)",
       "delete_children_description": "선택하지 않으면 모든 직계 자식 목록이 루트 목록이 됨"
-    }
+    },
+    "shared": "공유됨",
+    "collaborators": {
+      "manage": "협력자 관리",
+      "view": "협력자 보기",
+      "collaborators": "협력자",
+      "add": "협력자 추가",
+      "current": "현재 협력자",
+      "enter_email": "이메일 주소 입력",
+      "please_enter_email": "이메일 주소를 입력해 주세요",
+      "added_successfully": "협력자가 성공적으로 추가되었습니다",
+      "failed_to_add": "협력자 추가에 실패했습니다",
+      "removed": "협력자가 제거되었습니다",
+      "failed_to_remove": "협력자 제거에 실패했습니다",
+      "role_updated": "역할이 업데이트되었습니다",
+      "failed_to_update_role": "역할 업데이트에 실패했습니다",
+      "viewer": "뷰어",
+      "editor": "편집자",
+      "owner": "소유자",
+      "viewer_description": "목록에서 북마크를 볼 수 있음",
+      "editor_description": "북마크를 추가 및 제거할 수 있음",
+      "no_collaborators": "아직 협력자가 없습니다. 협업을 시작하려면 누군가를 추가하세요!",
+      "no_collaborators_readonly": "요 리스트에는 협업자가 없어.",
+      "people_with_access": "요 리스트에 접근할 수 있는 사람들",
+      "add_or_remove": "요 리스트에 접근할 수 있는 사람들을 추가/삭제해 줘",
+      "invitation_sent": "초대장 전송 완료",
+      "invitation_revoked": "초대 취소됨",
+      "failed_to_revoke": "초대 취소 실패",
+      "pending": "대기 중",
+      "revoke": "취소",
+      "declined": "거절됨"
+    },
+    "leave_list": {
+      "title": "리스트에서 나가기",
+      "confirm_message": "진짜 {{icon}} {{name}}에서 나가려고?",
+      "warning": "이제 이 리스트의 북마크를 보거나 접근할 수 없어. 리스트 주인이 필요하면 다시 추가해 줄 수 있어.",
+      "action": "리스트에서 나가기",
+      "success": "\"{icon}} {{name}}\"에서 나왔어."
+    },
+    "invitations": {
+      "pending": "초대 대기 중",
+      "description": "목록 협업 초대를 검토하고 응답하기",
+      "invited_by": "초대한 사람",
+      "accept": "수락",
+      "decline": "거절",
+      "accepted": "초대 수락됨",
+      "declined": "초대 거절됨",
+      "failed_to_accept": "초대 수락 실패",
+      "failed_to_decline": "초대 거절 실패"
+    },
+    "shared_lists": "공유 목록"
   },
   "options": {
     "light_mode": "라이트 모드",

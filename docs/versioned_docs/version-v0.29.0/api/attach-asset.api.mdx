@@ -1,0 +1,71 @@
+---
+id: attach-asset
+title: "Attach asset"
+description: "Attach a new asset to a bookmark"
+sidebar_label: "Attach asset"
+hide_title: true
+hide_table_of_contents: true
+api: eJztVcGO2zYQ/RVhTg3ArnaLFA10c4oW3RZoF1kHPRg+jMWxxTVFMiS1tivw34Oh5JUde4McesxFkEaP5Lw3b4Y9SAq1Vy4qa6CCWYxYNwUWhnYFhkCxiLbAYmXttkW/BQERNwGqBbwfQwGWAgLVnVfxANWihxWhJz/rYgPVYpmWAhx6bCmSDxkQ6oZahKqHeHAEFYToldmAANpj6zSHFCmp94dNu3t694vd//dzs4/R1u84AxUz5JjBvYQkwNOnTnmSUEXfkQCDLYNWE0iAYo4OYwOcFa+gEN9beeBczpWYN3QiQJYFBNTWRDKR4eicVjUyvHwKvOYKMbt6ojqCAOetIx8VBf6r5CX5JCCfN8/RK9KYrmXdtTLbP2Krfx1TERBqT2RCY/kj7/F4GlmhMeTvW9wQCFh3Wj/ghma+btQzR56VJMu4UakZ75BTptrjTpOcsF0g/9Fpi5JYz85sjd0ZWKazAiyY4CmdZUoDIjhrwqDBT7d3r6iexSY5yP9d9NdFF7BWmv7ORr/M3XRa44o7hRvi2yr09vbtZVGOfVYYG4u17Yz8/4pSW3kl+SSgpRBYvMt/XxDJO0z4TCSvj42V3O425GO56ysoj4KHsp9GQyqzEoHrSv75OKc6r6GCHqX0FEIq0any+Y6rh16xtJnC+HvQbY2djlBBE6MLVVlGf7jZosctkbtB50Bcc/ywQ2HXRWyo+GvEF0MukFI6GbGPrOxw8umgfZGJT87+ZBgPwAxiq+WX361vkTP889951pIr9mGahL8dJ/DQMJOdTvrkoh0Sj9a15UUs3sDs7ub25vZkXL/Qmj3cX5Vh9nBfrK0/14A1SyJXscVsrXGwH6+qsXHOtusne37TlTawirSPpdOoDJ+Yi9+Pvlm8NCp7pDq7VEbrLAU0bLVqAX2/wkAfvU6Jw5868nwzLifjZHtJFfhdQrVGHegrHH74MBr+TfFaumMQzSH7U3f8BQK2dDi/BRPPjYZQks9ZDICxkj/mAk8bXLR2EscVs7omF7+KXZ604cM/j/M874bLts19Dx53IPIzJ2sz9+ztHOtBo9l0eQ7AsCdbFs8d/4XDM6urcvT9gJjbLZmUXtSJ/M3CpPQZ2d8imQ==
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Attach asset"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bookmarks/{bookmarkId}/assets"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Attach a new asset to a bookmark
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The asset to attach","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"assetType":{"type":"string","enum":["linkHtmlContent","screenshot","assetScreenshot","bannerImage","fullPageArchive","video","bookmarkAsset","precrawledArchive","userUploaded","unknown"]}},"required":["id","assetType"]}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"The attached asset","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"assetType":{"type":"string","enum":["linkHtmlContent","screenshot","assetScreenshot","bannerImage","fullPageArchive","video","bookmarkAsset","precrawledArchive","userUploaded","unknown"]},"fileName":{"type":"string","nullable":true}},"required":["id","assetType"]}}}},"404":{"description":"Bookmark not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

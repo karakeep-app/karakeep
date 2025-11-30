@@ -281,6 +281,7 @@ export const bookmarksAppRouter = router({
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
         priority: input.crawlPriority === "low" ? 50 : 0,
+        groupId: ctx.user.id,
       };
 
       switch (bookmark.content.type) {
@@ -487,8 +488,12 @@ export const bookmarksAppRouter = router({
         );
       }
       // Trigger re-indexing and webhooks
-      await triggerSearchReindex(input.bookmarkId);
-      await triggerWebhook(input.bookmarkId, "edited");
+      await triggerSearchReindex(input.bookmarkId, {
+        groupId: ctx.user.id,
+      });
+      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+        groupId: ctx.user.id,
+      });
 
       return updatedBookmark;
     }),
@@ -527,8 +532,12 @@ export const bookmarksAppRouter = router({
             ),
           );
       });
-      await triggerSearchReindex(input.bookmarkId);
-      await triggerWebhook(input.bookmarkId, "edited");
+      await triggerSearchReindex(input.bookmarkId, {
+        groupId: ctx.user.id,
+      });
+      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+        groupId: ctx.user.id,
+      });
     }),
 
   deleteBookmark: authedProcedure
@@ -561,10 +570,15 @@ export const bookmarksAppRouter = router({
           crawlStatusCode: null,
         })
         .where(eq(bookmarkLinks.id, input.bookmarkId));
-      await LinkCrawlerQueue.enqueue({
-        bookmarkId: input.bookmarkId,
-        archiveFullPage: input.archiveFullPage,
-      });
+      await LinkCrawlerQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+          archiveFullPage: input.archiveFullPage,
+        },
+        {
+          groupId: ctx.user.id,
+        },
+      );
     }),
   getBookmark: authedProcedure
     .input(
@@ -818,8 +832,12 @@ export const bookmarksAppRouter = router({
             tagId: t,
           })),
         ]);
-        await triggerSearchReindex(input.bookmarkId);
-        await triggerWebhook(input.bookmarkId, "edited");
+        await triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        });
+        await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        });
         return {
           bookmarkId: input.bookmarkId,
           attached: allIds,
@@ -936,7 +954,7 @@ Author: ${bookmark.author ?? ""}
         },
       });
 
-      const summaryPrompt = buildSummaryPrompt(
+      const summaryPrompt = await buildSummaryPrompt(
         serverConfig.inference.inferredTagLang,
         prompts.map((p) => p.text),
         bookmarkDetails,
@@ -959,8 +977,12 @@ Author: ${bookmark.author ?? ""}
           summary: summary.response,
         })
         .where(eq(bookmarks.id, input.bookmarkId));
-      await triggerSearchReindex(input.bookmarkId);
-      await triggerWebhook(input.bookmarkId, "edited");
+      await triggerSearchReindex(input.bookmarkId, {
+        groupId: ctx.user.id,
+      });
+      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+        groupId: ctx.user.id,
+      });
 
       return {
         bookmarkId: input.bookmarkId,

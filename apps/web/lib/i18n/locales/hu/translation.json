@@ -128,7 +128,8 @@
       "import_bookmarks_from_linkwarden_export": "Könyvjelző importálása Linkwarden-ből",
       "export_links_and_notes": "Jegyzetek és hivatkozások exportálása",
       "imported_bookmarks": "Importált könyvjelzők",
-      "import_bookmarks_from_tab_session_manager_export": "Könyvjelzők importálása a Tab Session Managerből"
+      "import_bookmarks_from_tab_session_manager_export": "Könyvjelzők importálása a Tab Session Managerből",
+      "import_bookmarks_from_mymind_export": "Könyvjelzők importálása a mymind exportálásából"
     },
     "broken_links": {
       "crawling_status": "Feltérképezési állapot",
@@ -242,6 +243,10 @@
       },
       "storage_breakdown": {
         "title": "Tárhely lebontása"
+      },
+      "bookmark_sources": {
+        "title": "Könyvjelző források",
+        "empty": "Nincs elérhető forrásadat"
       }
     },
     "subscription": {
@@ -291,6 +296,55 @@
       "delete_dialog_title": "Importálási munkamenet törlése",
       "delete_dialog_description": "Biztosan törölni akarod a következőt: „{{name}}”? Ez a művelet nem vonható vissza. Maguk a könyvjelzők nem lesznek törölve.",
       "delete_session": "Munkamenet törlése"
+    },
+    "backups": {
+      "backups": "Biztonsági mentések",
+      "page_title": "Biztonsági mentések",
+      "page_description": "Automatikusan hozz létre és kezelj biztonsági mentéseket a könyvjelzőidről. A biztonsági mentések tömörítve és biztonságosan tárolva vannak.",
+      "configuration": {
+        "title": "Biztonsági mentés beállításai",
+        "enable_automatic_backups": "Automatikus biztonsági mentések engedélyezése",
+        "enable_automatic_backups_description": "Automatikusan készíts biztonsági másolatot a könyvjelzőidről",
+        "backup_frequency": "Biztonsági mentés gyakorisága",
+        "backup_frequency_description": "Milyen gyakran kell biztonsági mentéseket készíteni?",
+        "retention_period": "Megőrzési idő (nap)",
+        "retention_period_description": "Hány napig tartsa meg a biztonsági mentéseket a törlés előtt?",
+        "frequency": {
+          "daily": "Naponta",
+          "weekly": "Hetente"
+        },
+        "select_frequency": "Gyakoriság kiválasztása",
+        "save_settings": "Beállítások mentése"
+      },
+      "list": {
+        "title": "Biztonsági másolataid",
+        "create_backup_now": "Biztonsági mentés létrehozása most",
+        "no_backups": "Még nincsenek biztonsági másolataid. Engedélyezd az automatikus biztonsági mentéseket, vagy hozz létre egyet manuálisan.",
+        "table": {
+          "created_at": "Létrehozva:",
+          "bookmarks": "Könyvjelzők",
+          "size": "Méret",
+          "status": "Állapot",
+          "actions": "Műveletek"
+        },
+        "status": {
+          "success": "Siker",
+          "failed": "Sikertelen",
+          "pending": "Függőben"
+        },
+        "actions": {
+          "download_backup": "Biztonsági mentés letöltése",
+          "delete_backup": "Biztonsági mentés törlése"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Biztonsági mentés törlése?",
+        "delete_backup_description": "Biztos, hogy törölni akarja ezt a biztonsági mentést? Ez a művelet nem vonható vissza."
+      },
+      "toasts": {
+        "backup_queued": "A biztonsági mentési feladat várólistára került! Hamarosan feldolgozásra kerül.",
+        "backup_deleted": "A biztonsági mentés törölve lett!"
+      }
     }
   },
   "common": {
@@ -468,7 +522,57 @@
       "description": "A lista törlése nem törli a listában lévő könyvjelzőket.",
       "delete_children": "Gyermeklisták törlése (rekurzív módon)",
       "delete_children_description": "Ha nincs bejelölve, az összes közvetlen gyermeklista gyökérlista lesz"
-    }
+    },
+    "shared": "Megosztva",
+    "collaborators": {
+      "manage": "Közreműködők kezelése",
+      "view": "Közreműködők megtekintése",
+      "collaborators": "Közreműködők",
+      "add": "Közreműködő hozzáadása",
+      "current": "Jelenlegi közreműködők",
+      "enter_email": "Add meg az e-mail címet",
+      "please_enter_email": "Kérlek, add meg az e-mail címet",
+      "added_successfully": "A közreműködő sikeresen hozzáadva",
+      "failed_to_add": "A közreműködő hozzáadása sikertelen",
+      "removed": "A közreműködő eltávolítva",
+      "failed_to_remove": "A közreműködő eltávolítása sikertelen",
+      "role_updated": "A szerep frissítve",
+      "failed_to_update_role": "A szerep frissítése sikertelen",
+      "viewer": "Megtekintő",
+      "editor": "Szerkesztő",
+      "owner": "Tulajdonos",
+      "viewer_description": "Megtekintheti a könyvjelzőket a listában",
+      "editor_description": "Könyvjelzők hozzáadása és eltávolítása",
+      "no_collaborators": "Még nincsenek közreműködők. Adj hozzá valakit az együttműködéshez!",
+      "no_collaborators_readonly": "Ehhez a listához nincsenek közreműködők.",
+      "people_with_access": "Emberek, akik hozzáférhetnek ehhez a listához",
+      "add_or_remove": "Adj hozzá vagy távolíts el embereket, akik hozzáférhetnek ehhez a listához",
+      "invitation_sent": "Meghívó sikeresen elküldve",
+      "invitation_revoked": "Meghívó visszavonva",
+      "failed_to_revoke": "Nem sikerült visszavonni a meghívót",
+      "pending": "Függőben",
+      "revoke": "Visszavonás",
+      "declined": "Elutasítva"
+    },
+    "leave_list": {
+      "title": "Lista elhagyása",
+      "confirm_message": "Biztosan el akarod hagyni a(z) {{icon}} {{name}} listát?",
+      "warning": "Többé nem fogod tudni megtekinteni vagy elérni a könyvjelzőket ebben a listában. A lista tulajdonosa újra hozzáadhat, ha szükséges.",
+      "action": "Lista elhagyása",
+      "success": "Elhagytad a(z) \"{{icon}} {{name}}\" listát"
+    },
+    "invitations": {
+      "pending": "Függőben lévő meghívók",
+      "description": "Lista együttműködési meghívások áttekintése és fogadása",
+      "invited_by": "Meghívó küldője",
+      "accept": "Elfogadás",
+      "decline": "Elutasítás",
+      "accepted": "Meghívó elfogadva",
+      "declined": "Meghívó elutasítva",
+      "failed_to_accept": "Nem sikerült elfogadni a meghívást",
+      "failed_to_decline": "Nem sikerült elutasítani a meghívást"
+    },
+    "shared_lists": "Megosztott listák"
   },
   "admin": {
     "background_jobs": {
