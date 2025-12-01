@@ -15,7 +15,12 @@
     "moduleDetection": "force",
     "jsx": "preserve",
     "incremental": true,
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
   "exclude": ["node_modules", "build", "dist", ".next", ".expo"]
 }
