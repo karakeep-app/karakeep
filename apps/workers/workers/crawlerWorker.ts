@@ -9,7 +9,7 @@ import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -382,12 +382,41 @@ async function changeBookmarkStatus(
   bookmarkId: string,
   crawlStatus: "success" | "failure",
 ) {
-  await db
-    .update(bookmarkLinks)
-    .set({
-      crawlStatus,
-    })
-    .where(eq(bookmarkLinks.id, bookmarkId));
+  await db.transaction(async (txn) => {
+    await txn
+      .update(bookmarkLinks)
+      .set({
+        crawlStatus,
+      })
+      .where(eq(bookmarkLinks.id, bookmarkId));
+
+    // If crawling failed, skip tagging and summarization (only if they're still pending)
+    if (crawlStatus === "failure") {
+      await txn
+        .update(bookmarks)
+        .set({
+          taggingStatus: "skipped",
+        })
+        .where(
+          and(
+            eq(bookmarks.id, bookmarkId),
+            eq(bookmarks.taggingStatus, "pending"),
+          ),
+        );
+
+      await txn
+        .update(bookmarks)
+        .set({
+          summarizationStatus: "skipped",
+        })
+        .where(
+          and(
+            eq(bookmarks.id, bookmarkId),
+            eq(bookmarks.summarizationStatus, "pending"),
+          ),
+        );
+    }
+  });
 }
 
 async function browserlessCrawlPage(
