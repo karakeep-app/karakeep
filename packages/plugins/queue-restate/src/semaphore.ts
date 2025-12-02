@@ -5,6 +5,7 @@ import { Context, object, ObjectContext } from "@restatedev/restate-sdk";
 
 interface QueueItem {
   awakeable: string;
+  idempotencyKey?: string;
   priority: number;
 }
 
@@ -35,9 +36,18 @@ export const semaphore = object({
         priority: number;
         capacity: number;
         groupId?: string;
+        idempotencyKey?: string;
       },
-    ): Promise<void> => {
+    ): Promise<boolean> => {
       const state = await getState(ctx);
+
+      if (
+        req.idempotencyKey &&
+        idempotencyKeyAlreadyExists(state.groups, req.idempotencyKey)
+      ) {
+        return false;
+      }
+
       req.groupId = req.groupId ?? "__ungrouped__";
 
       if (state.groups[req.groupId] === undefined) {
@@ -51,11 +61,13 @@ export const semaphore = object({
       state.groups[req.groupId].items.push({
         awakeable: req.awakeableId,
         priority: req.priority,
+        idempotencyKey: req.idempotencyKey,
       });
 
       tick(ctx, state, req.capacity);
 
       setState(ctx, state);
+      return true;
     },
 
     release: async (
@@ -149,6 +161,18 @@ async function getState(
   };
 }
 
+function idempotencyKeyAlreadyExists(
+  items: Record<string, GroupState>,
+  key: string,
+) {
+  for (const group of Object.values(items)) {
+    if (group.items.some((item) => item.idempotencyKey === key)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function setState(ctx: ObjectContext<LegacyQueueState>, state: QueueState) {
   ctx.set("itemsv2", state.groups);
   ctx.set("inFlight", state.inFlight);
@@ -162,16 +186,21 @@ export class RestateSemaphore {
     private readonly capacity: number,
   ) {}
 
-  async acquire(priority: number, groupId?: string) {
+  async acquire(priority: number, groupId?: string, idempotencyKey?: string) {
     const awk = this.ctx.awakeable();
-    await this.ctx
+    const res = await this.ctx
       .objectClient<typeof semaphore>({ name: "Semaphore" }, this.id)
       .acquire({
         awakeableId: awk.id,
         priority,
         capacity: this.capacity,
         groupId,
+        idempotencyKey,
       });
+
+    if (!res) {
+      return false;
+    }
 
     try {
       await awk.promise;
@@ -181,6 +210,7 @@ export class RestateSemaphore {
         throw e;
       }
     }
+    return true;
   }
   async release() {
     await this.ctx

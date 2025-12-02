@@ -154,7 +154,8 @@
       "import_bookmarks_from_karakeep_export": "Importar marcadores desde Karakeep",
       "export_links_and_notes": "Exportar links e notas",
       "imported_bookmarks": "Marcadores importados",
-      "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do xestor de sesións de pestanas"
+      "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do xestor de sesións de pestanas",
+      "import_bookmarks_from_mymind_export": "Importar marcadores da exportación de mymind"
     },
     "back_to_app": "Volver á aplicación",
     "user_settings": "Axustes de usuario",
@@ -341,6 +342,10 @@
       },
       "storage_breakdown": {
         "title": "Distribución do almacenamento"
+      },
+      "bookmark_sources": {
+        "title": "Fonte de marcadores",
+        "empty": "Non hai datos fonte dispoñibles"
       }
     },
     "subscription": {
@@ -390,6 +395,55 @@
       "delete_dialog_title": "Eliminar sesión de importación",
       "delete_dialog_description": "Seguro que queres borrar «{{name}}»? Esta acción non se pode desfacer. Os marcadores en si non se borrarán.",
       "delete_session": "Eliminar sesión"
+    },
+    "backups": {
+      "backups": "Copias de seguridade",
+      "page_title": "Copias de seguridade",
+      "page_description": "Crea e xestiona copias de seguridade dos teus marcadores automaticamente. As copias de seguridade comprímense e gárdanse de forma segura.",
+      "configuration": {
+        "title": "Configuración das copias de seguridade",
+        "enable_automatic_backups": "Activar as copias de seguridade automáticas",
+        "enable_automatic_backups_description": "Crear automaticamente copias de seguridade dos teus marcadores",
+        "backup_frequency": "Frecuencia das copias de seguridade",
+        "backup_frequency_description": "Cada canto tempo se deberían crear as copias de seguridade",
+        "retention_period": "Período de retención (días)",
+        "retention_period_description": "Cantos días se deben gardar as copias de seguridade antes de seren eliminadas",
+        "frequency": {
+          "daily": "Diariamente",
+          "weekly": "Semanalmente"
+        },
+        "select_frequency": "Seleccione a frecuencia",
+        "save_settings": "Gardar a configuración"
+      },
+      "list": {
+        "title": "As túas copias de seguridade",
+        "create_backup_now": "Crear unha copia de seguridade agora",
+        "no_backups": "Aínda non tes ningunha copia de seguridade. Activa as copias de seguridade automáticas ou crea unha manualmente.",
+        "table": {
+          "created_at": "Creado en",
+          "bookmarks": "Marcadores",
+          "size": "Tamaño",
+          "status": "Estado",
+          "actions": "Accións"
+        },
+        "status": {
+          "success": "Éxito",
+          "failed": "Fallou",
+          "pending": "Pendente"
+        },
+        "actions": {
+          "download_backup": "Descargar copia de seguranza",
+          "delete_backup": "Borrar copia de seguranza"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Queres borrar a copia de seguranza?",
+        "delete_backup_description": "Estás seguro de que queres borrar esta copia de seguranza? Esta acción non se pode desfacer."
+      },
+      "toasts": {
+        "backup_queued": "O traballo de copia de seguranza foi posto en cola! Será procesado en breve.",
+        "backup_deleted": "Copia de seguranza borrada!"
+      }
     }
   },
   "highlights": {
@@ -563,7 +617,57 @@
       "description": "Eliminar unha lista non elimina ningún marcador desa lista.",
       "delete_children": "Eliminar as listas fillas (recursivamente)",
       "delete_children_description": "Se non está marcada, todas as listas fillas directas converteranse en listas raíz"
-    }
+    },
+    "shared": "Compartido",
+    "collaborators": {
+      "manage": "Xestionar colaboradores",
+      "view": "Ver os colaboradores",
+      "collaborators": "Colaboradores",
+      "add": "Engadir un colaborador",
+      "current": "Colaboradores actuais",
+      "enter_email": "Introduza o enderezo de correo electrónico",
+      "please_enter_email": "Introduza un enderezo de correo electrónico",
+      "added_successfully": "Colaborador engadido correctamente",
+      "failed_to_add": "Non se puido engadir o colaborador",
+      "removed": "Colaborador eliminado",
+      "failed_to_remove": "Non se puido eliminar o colaborador",
+      "role_updated": "Función actualizada",
+      "failed_to_update_role": "Non se puido actualizar o rol",
+      "viewer": "Visor",
+      "editor": "Editor",
+      "owner": "Propietario",
+      "viewer_description": "Pode ver os marcadores na lista",
+      "editor_description": "Pode engadir e eliminar marcadores",
+      "no_collaborators": "Aínda non hai colaboradores. Engade alguén para comezar a colaborar!",
+      "no_collaborators_readonly": "Non hai colaboradores nesta lista.",
+      "people_with_access": "Xente que ten acceso a esta lista",
+      "add_or_remove": "Engadir ou eliminar xente que pode acceder a esta lista",
+      "invitation_sent": "Invitación enviada correctamente",
+      "invitation_revoked": "Invitación revogada",
+      "failed_to_revoke": "Produciuse un erro ao revogar a invitación",
+      "pending": "Pendente",
+      "revoke": "Revogar",
+      "declined": "Rexeitada"
+    },
+    "leave_list": {
+      "title": "Deixar a lista",
+      "confirm_message": "Seguro que queres deixar {{icon}} {{name}}?",
+      "warning": "Xa non poderás nin ver nin acceder aos marcadores desta lista. O propietario da lista pode volver a engadirte se é necesario.",
+      "action": "Deixar a lista",
+      "success": "Deixaches «{{icon}} {{name}}»"
+    },
+    "invitations": {
+      "pending": "Invitacións pendentes",
+      "description": "Revisa e responde ás invitacións de colaboración na lista",
+      "invited_by": "Invitado por",
+      "accept": "Aceptar",
+      "decline": "Rexeitar",
+      "accepted": "Invitación aceptada",
+      "declined": "Invitación rexeitada",
+      "failed_to_accept": "Produciuse un erro ao aceptar a invitación",
+      "failed_to_decline": "Produciuse un erro ao rexeitar a invitación"
+    },
+    "shared_lists": "Listas compartidas"
   },
   "preview": {
     "view_original": "Ver orixinal",

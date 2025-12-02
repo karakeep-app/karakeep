@@ -17,6 +17,7 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
     [AssetTypes.LINK_HTML_CONTENT]: "linkHtmlContent",
     [AssetTypes.BOOKMARK_ASSET]: "bookmarkAsset",
     [AssetTypes.USER_UPLOADED]: "userUploaded",
+    [AssetTypes.BACKUP]: "unknown", // Backups are not displayed as regular assets
     [AssetTypes.UNKNOWN]: "bannerImage",
   };
   return map[assetType];

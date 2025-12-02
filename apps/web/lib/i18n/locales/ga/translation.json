@@ -228,7 +228,8 @@
       "import_bookmarks_from_karakeep_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Karakeep",
       "import_bookmarks_from_tab_session_manager_export": "Iompórtáil Leabhair Mharcála ó Bhainisteoir Seisiúin Cluaisíní",
       "export_links_and_notes": "Easpórtáil Naisc agus Nótaí",
-      "imported_bookmarks": "Leabharmharcanna Allmhairithe"
+      "imported_bookmarks": "Leabharmharcanna Allmhairithe",
+      "import_bookmarks_from_mymind_export": "Iompórtáil Leabharmharcanna ó onnmhairiú mymind"
     },
     "broken_links": {
       "broken_links": "Naisc Bhriste",
@@ -284,6 +285,10 @@
       },
       "storage_breakdown": {
         "title": "Miondealú Stórála"
+      },
+      "bookmark_sources": {
+        "title": "Foinseacha Leabhar Marcanna",
+        "empty": "Níl aon sonraí foinse ar fáil"
       }
     },
     "subscription": {
@@ -333,6 +338,55 @@
       "delete_dialog_description": "An bhfuil tú cinnte gur mian leat \"{{name}}\" a scriosadh? Ní féidir an gníomh seo a chealú. Ní scriosfar na leabharmharcanna féin.",
       "delete_session": "Scrios Seisiún",
       "description": "Féach ar do sheisiúin allmhairithe mórchóir agus bainistigh iad. Cruthaítear seisiúin go huathoibríoch nuair a allmhairíonn tú leabharmharcanna."
+    },
+    "backups": {
+      "backups": "Cúltaca",
+      "page_title": "Cúltaca",
+      "page_description": "Cruthaigh agus bainistigh cúltacaí de do leabharmharcanna go huathoibríoch. Déantar cúltacaí a chomhbhrú agus a stóráil go daingean.",
+      "configuration": {
+        "title": "Cumraíocht Cúltaca",
+        "enable_automatic_backups": "Cumasaigh Cúltacaí Uathoibríocha",
+        "enable_automatic_backups_description": "Cruthaigh cúltacaí de do leabharmharcanna go huathoibríoch",
+        "backup_frequency": "Minicíocht Cúltacaí",
+        "backup_frequency_description": "Cé chomh minic ba chóir cúltacaí a chruthú",
+        "retention_period": "Tréimhse Coinneála (laethanta)",
+        "retention_period_description": "Cé mhéad lá a choinnítear cúltacaí sula scriostar iad",
+        "frequency": {
+          "daily": "Go laethúil",
+          "weekly": "Go seachtainiúil"
+        },
+        "select_frequency": "Roghnaigh minicíocht",
+        "save_settings": "Sábháil Socruithe"
+      },
+      "list": {
+        "title": "Do Chúltacaí",
+        "create_backup_now": "Cruthaigh Cúltaca Anois",
+        "no_backups": "Níl aon chúltacaí agat fós. Cumasaigh cúltacaí uathoibríocha nó cruthaigh ceann de láimh.",
+        "table": {
+          "created_at": "Cruthaithe Ag",
+          "bookmarks": "Leabharmharcanna",
+          "size": "Méid",
+          "status": "Stádas",
+          "actions": "Gníomhartha"
+        },
+        "status": {
+          "success": "Rath",
+          "failed": "Theip",
+          "pending": "Ar feitheamh"
+        },
+        "actions": {
+          "download_backup": "Íoslódáil Cúltaca",
+          "delete_backup": "Scrios Cúltaca"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Scrios an Cúltaca?",
+        "delete_backup_description": "An bhfuil tú cinnte gur mhaith leat an cóip chúltaca seo a scriosadh? Ní féidir an gníomh seo a chealú."
+      },
+      "toasts": {
+        "backup_queued": "Cuireadh an post cúltaca sa phróca! Déanfar é a phróiseáil go luath.",
+        "backup_deleted": "Scriosadh an cúltaca!"
+      }
     }
   },
   "lists": {
@@ -369,7 +423,57 @@
       "description": "Ní scriosann liosta a scriosadh aon leabharmharcanna sa liosta sin.",
       "delete_children": "Scrios liostaí leanaí (go hathchúrsach)",
       "delete_children_description": "Mura bhfuil an bosca seo ticáilte, beidh gach liosta díreach leanaí ina liostaí fréimhe"
-    }
+    },
+    "shared": "Roinnte",
+    "collaborators": {
+      "manage": "Bainistigh Comhoibritheoirí",
+      "view": "Féach ar Chomhoibritheoirí",
+      "collaborators": "Comhoibritheoirí",
+      "add": "Cuir Comhoibritheoir leis",
+      "current": "Comhoibritheoirí Reatha",
+      "enter_email": "Cuir isteach seoladh ríomhphoist",
+      "please_enter_email": "Cuir isteach seoladh ríomhphoist, le do thoil",
+      "added_successfully": "Comhoibritheoir curtha leis go rathúil",
+      "failed_to_add": "Theip ar an gcomhoibritheoir a chur leis",
+      "removed": "Comhoibritheoir bainte",
+      "failed_to_remove": "Theip ar an gcomhoibritheoir a bhaint",
+      "role_updated": "Ról nuashonraithe",
+      "failed_to_update_role": "Theip ar an ról a nuashonrú",
+      "viewer": "Breathnóir",
+      "editor": "Eagarthóir",
+      "owner": "Úinéir",
+      "viewer_description": "Is féidir leabharmharcanna a fheiceáil sa liosta",
+      "editor_description": "Is féidir leabharmharcanna a chur leis agus a bhaint",
+      "no_collaborators": "Níl aon chomhoibritheoirí ann fós. Cuir duine leis chun comhoibriú a thosú!",
+      "no_collaborators_readonly": "Níl aon chomhoibritheoirí don liosta seo.",
+      "people_with_access": "Daoine a bhfuil rochtain acu ar an liosta seo",
+      "add_or_remove": "Cuir daoine leis nó bain daoine ar féidir leo rochtain a fháil ar an liosta seo",
+      "invitation_sent": "Cuireadh seolta go rathúil",
+      "invitation_revoked": "Cuireadh ar ceal",
+      "failed_to_revoke": "Theip ar an gcuireadh a chur ar ceal",
+      "pending": "Ar feitheamh",
+      "revoke": "Cuir ar ceal",
+      "declined": "Diúltaithe"
+    },
+    "leave_list": {
+      "title": "Fág Liosta",
+      "confirm_message": "An bhfuil tú cinnte gur mhaith leat {{icon}} {{name}} a fhágáil?",
+      "warning": "Ní bheidh tú in ann cluaisíní a fheiceáil nó rochtain a fháil orthu sa liosta seo a thuilleadh. Is féidir le húinéir an liosta tú a chur ar ais leis más gá.",
+      "action": "Fág Liosta",
+      "success": "D'fhág tú \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Cuirí ar Feitheamh",
+      "description": "Athbhreithnigh agus freagair cuireadh comhoibrithe liosta",
+      "invited_by": "Ar cuireadh ar aghaidh ag",
+      "accept": "Glac leis",
+      "decline": "Diúltaigh",
+      "accepted": "Glactha leis an gcuireadh",
+      "declined": "Diúltaíodh don chuireadh",
+      "failed_to_accept": "Theip ar ghlacadh leis an gcuireadh",
+      "failed_to_decline": "Theip ar dhiúltú don chuireadh"
+    },
+    "shared_lists": "Liostaí Comhroinnte"
   },
   "tags": {
     "unused_tags": "Clibeanna Neamhúsáidte",

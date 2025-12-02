@@ -7,6 +7,7 @@ import { TFunction } from "i18next";
 import {
   ArrowLeft,
   BarChart3,
+  CloudDownload,
   CreditCard,
   Download,
   GitBranch,
@@ -66,6 +67,11 @@ const settingsSidebarItems = (
       name: t("settings.feeds.rss_subscriptions"),
       icon: <Rss size={18} />,
       path: "/settings/feeds",
+    },
+    {
+      name: t("settings.backups.backups"),
+      icon: <CloudDownload size={18} />,
+      path: "/settings/backups",
     },
     {
       name: t("settings.import.import_export"),

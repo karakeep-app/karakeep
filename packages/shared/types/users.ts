@@ -11,6 +11,7 @@ export const zSignUpSchema = z
     email: z.string().email(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
+    turnstileToken: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -108,6 +109,9 @@ export const zUserSettingsSchema = z.object({
   ]),
   archiveDisplayBehaviour: z.enum(["show", "hide"]),
   timezone: z.string(),
+  backupsEnabled: z.boolean(),
+  backupsFrequency: z.enum(["daily", "weekly"]),
+  backupsRetentionDays: z.number().int().min(1).max(365),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -116,4 +120,13 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   bookmarkClickAction: true,
   archiveDisplayBehaviour: true,
   timezone: true,
+  backupsEnabled: true,
+  backupsFrequency: true,
+  backupsRetentionDays: true,
+});
+
+export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({
+  backupsEnabled: true,
+  backupsFrequency: true,
+  backupsRetentionDays: true,
 });

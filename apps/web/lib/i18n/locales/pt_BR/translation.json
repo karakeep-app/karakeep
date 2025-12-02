@@ -159,7 +159,8 @@
       "import_bookmarks_from_karakeep_export": "Importar Favoritos de exportação do Karakeep",
       "export_links_and_notes": "Exportar Links e Notas",
       "imported_bookmarks": "Favoritos Importados",
-      "import_bookmarks_from_tab_session_manager_export": "Importar favoritos do Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importar favoritos do Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importar favoritos da exportação do mymind"
     },
     "api_keys": {
       "api_keys": "Chaves API",
@@ -284,6 +285,10 @@
       },
       "storage_breakdown": {
         "title": "Detalhes do armazenamento"
+      },
+      "bookmark_sources": {
+        "title": "Fontes de marcadores",
+        "empty": "Nenhum dado de origem disponível"
       }
     },
     "subscription": {
@@ -333,6 +338,55 @@
       "delete_dialog_title": "Excluir sessão de importação",
       "delete_dialog_description": "Tem certeza de que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita. Os favoritos em si não serão excluídos.",
       "delete_session": "Excluir sessão"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Crie e gerencie automaticamente backups dos seus favoritos. Os backups são compactados e armazenados com segurança.",
+      "configuration": {
+        "title": "Configuração de Backup",
+        "enable_automatic_backups": "Ativar Backups Automáticos",
+        "enable_automatic_backups_description": "Criar backups automaticamente dos seus favoritos",
+        "backup_frequency": "Frequência de Backup",
+        "backup_frequency_description": "Com que frequência os backups devem ser criados",
+        "retention_period": "Período de Retenção (dias)",
+        "retention_period_description": "Quantos dias manter os backups antes de excluí-los",
+        "frequency": {
+          "daily": "Diariamente",
+          "weekly": "Semanalmente"
+        },
+        "select_frequency": "Selecione a frequência",
+        "save_settings": "Salvar configurações"
+      },
+      "list": {
+        "title": "Seus Backups",
+        "create_backup_now": "Criar Backup Agora",
+        "no_backups": "Você ainda não tem nenhum backup. Ative os backups automáticos ou crie um manualmente.",
+        "table": {
+          "created_at": "Criado em",
+          "bookmarks": "Favoritos",
+          "size": "Tamanho",
+          "status": "Status",
+          "actions": "Ações"
+        },
+        "status": {
+          "success": "Sucesso",
+          "failed": "Falhou",
+          "pending": "Pendente"
+        },
+        "actions": {
+          "download_backup": "Baixar backup",
+          "delete_backup": "Excluir backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Excluir backup?",
+        "delete_backup_description": "Tem certeza de que deseja excluir este backup? Esta ação não pode ser desfeita."
+      },
+      "toasts": {
+        "backup_queued": "O trabalho de backup foi enfileirado! Ele será processado em breve.",
+        "backup_deleted": "O backup foi excluído!"
+      }
     }
   },
   "layouts": {
@@ -512,7 +566,57 @@
       "description": "Excluir uma lista não exclui nenhum marcador nessa lista.",
       "delete_children": "Excluir listas filhas (recursivamente)",
       "delete_children_description": "Se não estiver marcado, todas as listas filhas diretas se tornarão listas raiz"
-    }
+    },
+    "shared": "Compartilhado",
+    "collaborators": {
+      "manage": "Gerenciar Colaboradores",
+      "view": "Ver Colaboradores",
+      "collaborators": "Colaboradores",
+      "add": "Adicionar Colaborador",
+      "current": "Colaboradores Atuais",
+      "enter_email": "Insira o endereço de e-mail",
+      "please_enter_email": "Por favor, insira um endereço de e-mail",
+      "added_successfully": "Colaborador adicionado com sucesso",
+      "failed_to_add": "Falha ao adicionar colaborador",
+      "removed": "Colaborador removido",
+      "failed_to_remove": "Falha ao remover colaborador",
+      "role_updated": "Função atualizada",
+      "failed_to_update_role": "Falha ao atualizar a função",
+      "viewer": "Visualizador",
+      "editor": "Editor",
+      "owner": "Proprietário",
+      "viewer_description": "Pode ver os favoritos na lista",
+      "editor_description": "Pode adicionar e remover favoritos",
+      "no_collaborators": "Ainda não há colaboradores. Adicione alguém para começar a colaborar!",
+      "no_collaborators_readonly": "Nenhum colaborador para esta lista.",
+      "people_with_access": "Pessoas que têm acesso a esta lista",
+      "add_or_remove": "Adicione ou remova pessoas que podem acessar esta lista",
+      "invitation_sent": "Convite enviado com sucesso",
+      "invitation_revoked": "Convite revogado",
+      "failed_to_revoke": "Falha ao revogar o convite",
+      "pending": "Pendente",
+      "revoke": "Revogar",
+      "declined": "Recusado"
+    },
+    "leave_list": {
+      "title": "Sair da lista",
+      "confirm_message": "Tem certeza de que deseja sair de {{icon}} {{name}}?",
+      "warning": "Você não poderá mais visualizar ou acessar os favoritos nesta lista. O proprietário da lista pode readicioná-lo, se necessário.",
+      "action": "Sair da lista",
+      "success": "Você saiu de \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Convites pendentes",
+      "description": "Revise e responda aos convites de colaboração de listas",
+      "invited_by": "Convidado por",
+      "accept": "Aceitar",
+      "decline": "Recusar",
+      "accepted": "Convite aceito",
+      "declined": "Convite recusado",
+      "failed_to_accept": "Falha ao aceitar o convite",
+      "failed_to_decline": "Falha ao recusar o convite"
+    },
+    "shared_lists": "Listas compartilhadas"
   },
   "tags": {
     "all_tags": "Todas Tags",

@@ -14,6 +14,7 @@ Karakeep (previously Hoarder) is an open source "Bookmark Everything" app that u
 - 🔗 Bookmark links, take simple notes and store images and pdfs.
 - ⬇️ Automatic fetching for link titles, descriptions and images.
 - 📋 Sort your bookmarks into lists.
+- 👥 Collaborate with others on the same list.
 - 🔎 Full text search of all the content stored.
 - ✨ AI-based (aka chatgpt) automatic tagging and summarization. With supports for local models using ollama!
 - 🤖 Rule-based engine for customized management.

@@ -280,7 +280,11 @@ export class Tag {
 
     try {
       await Promise.all(
-        affectedBookmarks.map((id) => triggerSearchReindex(id)),
+        affectedBookmarks.map((id) =>
+          triggerSearchReindex(id, {
+            groupId: ctx.user.id,
+          }),
+        ),
       );
     } catch (e) {
       console.error("Failed to reindex affected bookmarks", e);
@@ -315,7 +319,9 @@ export class Tag {
 
     await Promise.all(
       affectedBookmarks.map(({ bookmarkId }) =>
-        triggerSearchReindex(bookmarkId),
+        triggerSearchReindex(bookmarkId, {
+          groupId: this.ctx.user.id,
+        }),
       ),
     );
   }
@@ -352,7 +358,9 @@ export class Tag {
         await Promise.all(
           affectedBookmarks
             .map((b) => b.bookmarkId)
-            .map((id) => triggerSearchReindex(id)),
+            .map((id) =>
+              triggerSearchReindex(id, { groupId: this.ctx.user.id }),
+            ),
         );
       } catch (e) {
         console.error("Failed to reindex affected bookmarks", e);

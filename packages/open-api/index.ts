@@ -7,6 +7,7 @@ import {
 
 import { registry as adminRegistry } from "./lib/admin";
 import { registry as assetsRegistry } from "./lib/assets";
+import { registry as backupsRegistry } from "./lib/backups";
 import { registry as bookmarksRegistry } from "./lib/bookmarks";
 import { registry as commonRegistry } from "./lib/common";
 import { registry as highlightsRegistry } from "./lib/highlights";
@@ -24,6 +25,7 @@ function getOpenApiDocumentation() {
     userRegistry,
     assetsRegistry,
     adminRegistry,
+    backupsRegistry,
   ]);
 
   const generator = new OpenApiGeneratorV3(registry.definitions);

@@ -209,8 +209,29 @@ describe("Restate Queue Provider", () => {
   it("should use idempotency key", async () => {
     const idempotencyKey = `test-${Date.now()}`;
 
+    // hog the queue
+    await Promise.all([
+      queue.enqueue(
+        { type: "semaphore-acquire" },
+        { groupId: "init", priority: -10 },
+      ),
+      queue.enqueue(
+        { type: "semaphore-acquire" },
+        { groupId: "init", priority: -10 },
+      ),
+      queue.enqueue(
+        { type: "semaphore-acquire" },
+        { groupId: "init", priority: -10 },
+      ),
+    ]);
+    await testState.baton.waitUntilCountWaiting(3);
+
     await queue.enqueue({ type: "val", val: 200 }, { idempotencyKey });
     await queue.enqueue({ type: "val", val: 200 }, { idempotencyKey });
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    testState.baton.release();
 
     await waitUntilQueueEmpty();
 
