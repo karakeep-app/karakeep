@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { EnqueueOptions, getQueueClient } from "@karakeep/shared/queueing";
 import { zRuleEngineEventSchema } from "@karakeep/shared/types/rules";
+import { zFilterQuery } from "@karakeep/shared/search";
 
 import { loadAllPlugins } from ".";
 
@@ -52,10 +53,20 @@ export const OpenAIQueue = QUEUE_CLIENT.createQueue<ZOpenAIRequest>(
 );
 
 // Search Indexing Worker
-export const zSearchIndexingRequestSchema = z.object({
-  bookmarkId: z.string(),
-  type: z.enum(["index", "delete"]),
-});
+export const zSearchIndexingRequestSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("index"),
+    bookmarkId: z.string(),
+  }),
+  z.object({
+    type: z.literal("delete"),
+    bookmarkId: z.string(),
+  }),
+  z.object({
+    type: z.literal("deleteByFilter"),
+    filter: z.array(zFilterQuery),
+  }),
+]);
 export type ZSearchIndexingRequest = z.infer<
   typeof zSearchIndexingRequestSchema
 >;

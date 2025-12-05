@@ -41,6 +41,16 @@ class MeiliSearchIndexClient implements SearchIndexClient {
     await this.ensureTaskSuccess(task.taskUid);
   }
 
+  async deleteDocumentsByFilter(filter: FilterQuery[]): Promise<void> {
+    if (filter.length === 0) {
+      throw new Error("Filter cannot be empty for deleteDocumentsByFilter");
+    }
+    // Combine multiple filters with AND
+    const filterString = filter.map((f) => filterToMeiliSearchFilter(f)).join(" AND ");
+    const task = await this.index.deleteDocuments({ filter: filterString });
+    await this.ensureTaskSuccess(task.taskUid);
+  }
+
   async search(options: SearchOptions): Promise<SearchResponse> {
     const result = await this.index.search(options.query, {
       filter: options.filter?.map((f) => filterToMeiliSearchFilter(f)),

@@ -28,17 +28,21 @@ export type SortOrder = "asc" | "desc";
 export type SortableAttributes = "createdAt";
 
 export type FilterableAttributes = "userId" | "id";
-export type FilterQuery =
-  | {
-      type: "eq";
-      field: FilterableAttributes;
-      value: string;
-    }
-  | {
-      type: "in";
-      field: FilterableAttributes;
-      values: string[];
-    };
+
+export const zFilterQuery = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("eq"),
+    field: z.enum(["userId", "id"]),
+    value: z.string(),
+  }),
+  z.object({
+    type: z.literal("in"),
+    field: z.enum(["userId", "id"]),
+    values: z.array(z.string()),
+  }),
+]);
+
+export type FilterQuery = z.infer<typeof zFilterQuery>;
 
 export interface SearchResult {
   id: string;
@@ -63,6 +67,7 @@ export interface SearchResponse {
 export interface SearchIndexClient {
   addDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
   deleteDocuments(ids: string[]): Promise<void>;
+  deleteDocumentsByFilter(filter: FilterQuery[]): Promise<void>;
   search(options: SearchOptions): Promise<SearchResponse>;
   clearIndex(): Promise<void>;
 }

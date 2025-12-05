@@ -13,6 +13,7 @@ import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import {
   BookmarkSearchDocument,
+  FilterQuery,
   getSearchClient,
   SearchIndexClient,
 } from "@karakeep/shared/search";
@@ -113,6 +114,13 @@ async function runDelete(searchClient: SearchIndexClient, bookmarkId: string) {
   await searchClient.deleteDocuments([bookmarkId]);
 }
 
+async function runDeleteByFilter(
+  searchClient: SearchIndexClient,
+  filter: FilterQuery[],
+) {
+  await searchClient.deleteDocumentsByFilter(filter);
+}
+
 async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
   const jobId = job.id;
 
@@ -131,18 +139,28 @@ async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
     return;
   }
 
-  const bookmarkId = request.data.bookmarkId;
-  logger.info(
-    `[search][${jobId}] Attempting to index bookmark with id ${bookmarkId} ...`,
-  );
-
   switch (request.data.type) {
     case "index": {
+      const bookmarkId = request.data.bookmarkId;
+      logger.info(
+        `[search][${jobId}] Attempting to index bookmark with id ${bookmarkId} ...`,
+      );
       await runIndex(searchClient, bookmarkId);
       break;
     }
     case "delete": {
+      const bookmarkId = request.data.bookmarkId;
+      logger.info(
+        `[search][${jobId}] Attempting to delete bookmark with id ${bookmarkId} ...`,
+      );
       await runDelete(searchClient, bookmarkId);
+      break;
+    }
+    case "deleteByFilter": {
+      logger.info(
+        `[search][${jobId}] Attempting to delete bookmarks by filter: ${JSON.stringify(request.data.filter)} ...`,
+      );
+      await runDeleteByFilter(searchClient, request.data.filter);
       break;
     }
   }

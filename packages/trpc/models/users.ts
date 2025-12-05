@@ -27,6 +27,7 @@ import {
   zUserStatsResponseSchema,
   zWhoAmIResponseSchema,
 } from "@karakeep/shared/types/users";
+import { SearchIndexingQueue } from "@karakeep/shared-server";
 
 import { AuthedContext, Context } from "..";
 import { generatePasswordSalt, hashPassword, validatePassword } from "../auth";
@@ -362,6 +363,12 @@ export class User {
     }
 
     await deleteUserAssets({ userId: userId });
+
+    // Clean up search index entries for this user
+    await SearchIndexingQueue.enqueue({
+      type: "deleteByFilter",
+      filter: [{ type: "eq", field: "userId", value: userId }],
+    });
   }
 
   static async deleteAsAdmin(
