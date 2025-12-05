@@ -13,9 +13,11 @@ import {
   useAddBookmarkToList,
   useCreateBookmarkList,
 } from "@karakeep/shared-react/hooks/lists";
+import { api } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
+  parseImportFile,
   ParsedBookmark,
 } from "@karakeep/shared/import-export";
 import {
@@ -36,7 +38,9 @@ export function useBookmarkImport() {
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
   );
+  const [quotaError, setQuotaError] = useState<string | null>(null);
 
+  const apiUtils = api.useUtils();
   const { mutateAsync: createImportSession } = useCreateImportSession();
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook();
   const { mutateAsync: createList } = useCreateBookmarkList();
@@ -51,6 +55,31 @@ export function useBookmarkImport() {
       file: File;
       source: ImportSource;
     }) => {
+      // Clear any previous quota error
+      setQuotaError(null);
+
+      // First, parse the file to count bookmarks
+      const textContent = await file.text();
+      const parsedBookmarks = parseImportFile(source, textContent);
+      const bookmarkCount = parsedBookmarks.length;
+
+      // Check quota before proceeding
+      if (bookmarkCount > 0) {
+        const quotaCheck = await apiUtils.client.bookmarks.checkImportQuota.query({
+          count: bookmarkCount,
+        });
+
+        if (!quotaCheck.canImport) {
+          const errorMsg =
+            quotaCheck.error ||
+            `Cannot import ${bookmarkCount} bookmarks. Quota exceeded.`;
+          setQuotaError(errorMsg);
+          throw new Error(errorMsg);
+        }
+      }
+
+      // Proceed with import if quota check passes
+      // Use a custom parser to avoid re-parsing the file
       const result = await importBookmarksFromFile(
         {
           file,
@@ -122,7 +151,12 @@ export function useBookmarkImport() {
           },
           onProgress: (done, total) => setImportProgress({ done, total }),
         },
-        {},
+        {
+          // Use a custom parser to avoid re-parsing the file
+          parsers: {
+            [source]: () => parsedBookmarks,
+          },
+        },
       );
       return result;
     },
@@ -158,6 +192,8 @@ export function useBookmarkImport() {
 
   return {
     importProgress,
+    quotaError,
+    clearQuotaError: () => setQuotaError(null),
     runUploadBookmarkFile: uploadBookmarkFileMutation.mutateAsync,
     isImporting: uploadBookmarkFileMutation.isPending,
   };

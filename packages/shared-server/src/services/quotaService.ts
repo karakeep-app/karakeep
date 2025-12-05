@@ -48,6 +48,36 @@ export class QuotaService {
     } as const;
   }
 
+  static async canImportBookmarks(db: DB, userId: string, count: number) {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: {
+        bookmarkQuota: true,
+      },
+    });
+
+    if (user?.bookmarkQuota !== null && user?.bookmarkQuota !== undefined) {
+      const currentBookmarkCount = await db
+        .select({ count: count() })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, userId));
+
+      const remaining = user.bookmarkQuota - currentBookmarkCount[0].count;
+      if (remaining < count) {
+        return {
+          result: false,
+          error: `Cannot import ${count} bookmarks. You have ${remaining} bookmark${remaining === 1 ? '' : 's'} remaining in your quota of ${user.bookmarkQuota}.`,
+          currentCount: currentBookmarkCount[0].count,
+          quota: user.bookmarkQuota,
+          remaining,
+        } as const;
+      }
+    }
+    return {
+      result: true,
+    } as const;
+  }
+
   static async checkStorageQuota(
     db: DB | KarakeepDBTransaction,
     userId: string,
