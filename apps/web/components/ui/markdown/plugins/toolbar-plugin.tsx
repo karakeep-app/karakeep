@@ -278,8 +278,8 @@ export default function ToolbarPlugin({
             onClick={() => {
               onSave?.();
             }}
+            icon={<Save className="size-4" />}
           >
-            <Save className="size-4" />
             Save
           </ActionButton>
         )}

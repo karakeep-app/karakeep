@@ -15,11 +15,20 @@ interface ActionButtonProps extends ButtonProps {
   loading: boolean;
   spinner?: React.ReactNode;
   ignoreDemoMode?: boolean;
+  icon?: React.ReactNode;
 }
 
 const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
   (
-    { children, loading, spinner, disabled, ignoreDemoMode = false, ...props },
+    {
+      children,
+      loading,
+      spinner,
+      disabled,
+      ignoreDemoMode = false,
+      icon,
+      ...props
+    },
     ref,
   ) => {
     const clientConfig = useClientConfig();
@@ -31,9 +40,25 @@ const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
     } else if (loading) {
       disabled = true;
     }
+
+    // Determine button content based on loading state and icon prop
+    let content;
+    if (icon) {
+      // If icon is provided, show spinner instead of icon when loading, keep text
+      content = (
+        <>
+          {loading ? spinner : icon}
+          {children}
+        </>
+      );
+    } else {
+      // Fallback to old behavior: replace entire content with spinner when loading
+      content = loading ? spinner : children;
+    }
+
     return (
       <Button ref={ref} {...props} disabled={disabled}>
-        {loading ? spinner : children}
+        {content}
       </Button>
     );
   },

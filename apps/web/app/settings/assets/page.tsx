@@ -145,8 +145,8 @@ export default function AssetsSettingsPage() {
                                   { onSettled: () => setDialogOpen(false) },
                                 )
                               }
+                              icon={<Trash2 className="mr-2 size-4" />}
                             >
-                              <Trash2 className="mr-2 size-4" />
                               {t("actions.delete")}
                             </ActionButton>
                           )}

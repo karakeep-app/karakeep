@@ -72,9 +72,8 @@ function AISummary({
                     aria-label={isExpanded ? "Collapse" : "Expand"}
                     loading={isResummarizing}
                     onClick={() => resummarize({ bookmarkId })}
-                  >
-                    <RefreshCw size={16} />
-                  </ActionButton>
+                    icon={<RefreshCw size={16} />}
+                  />
                   <ActionButton
                     size="none"
                     variant="none"
@@ -85,9 +84,8 @@ function AISummary({
                     onClick={() =>
                       updateBookmark({ bookmarkId, summary: null })
                     }
-                  >
-                    <Trash2 size={16} />
-                  </ActionButton>
+                    icon={<Trash2 size={16} />}
+                  />
                 </>
               )}
               <button

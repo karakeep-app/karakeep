@@ -168,8 +168,8 @@ export function WebhooksEditorDialog() {
             loading={isCreating}
             variant="default"
             className="items-center"
+            icon={<Plus className="mr-2 size-4" />}
           >
-            <Plus className="mr-2 size-4" />
             Add
           </ActionButton>
         </DialogFooter>
@@ -291,8 +291,8 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
             })}
             type="submit"
             className="items-center"
+            icon={<Save className="mr-2 size-4" />}
           >
-            <Save className="mr-2 size-4" />
             {t("actions.save")}
           </ActionButton>
         </DialogFooter>
@@ -410,8 +410,8 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
               });
             })}
             className="items-center"
+            icon={<Trash2 className="mr-2 size-4" />}
           >
-            <Trash2 className="mr-2 size-4" />
             {t("actions.delete")}
           </ActionButton>
           <ActionButton
@@ -421,8 +421,8 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
             })}
             type="submit"
             className="items-center"
+            icon={<Save className="mr-2 size-4" />}
           >
-            <Save className="mr-2 size-4" />
             {t("actions.save")}
           </ActionButton>
         </DialogFooter>
@@ -462,8 +462,8 @@ export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
               onClick={() => deleteWebhook({ webhookId: webhook.id })}
               className="items-center"
               type="button"
+              icon={<Trash2 className="mr-2 size-4" />}
             >
-              <Trash2 className="mr-2 size-4" />
               {t("actions.delete")}
             </ActionButton>
           )}

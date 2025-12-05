@@ -321,9 +321,8 @@ export default function BulkBookmarksAction() {
               variant="ghost"
               key={name}
               onClick={action}
-            >
-              {Icon}
-            </ActionButtonWithTooltip>
+              icon={Icon}
+            />
           ),
         )}
       </div>

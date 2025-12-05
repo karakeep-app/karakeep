@@ -156,9 +156,8 @@ export default function ManageListsModal({
                         onClick={() =>
                           deleteFromList({ bookmarkId, listId: list.id })
                         }
-                      >
-                        <X className="size-4" />
-                      </ActionButton>
+                        icon={<X className="size-4" />}
+                      />
                     </li>
                   ))}
                 </ul>
