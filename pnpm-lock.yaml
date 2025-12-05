@@ -1171,6 +1171,9 @@ importers:
 
   packages/plugins:
     dependencies:
+      '@karakeep/db':
+        specifier: workspace:*
+        version: link:../db
       '@karakeep/shared':
         specifier: workspace:*
         version: link:../shared
