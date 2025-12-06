@@ -214,7 +214,7 @@ export class User {
       .set({ emailVerified: new Date() })
       .where(eq(users.email, email));
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "User not found",
@@ -357,7 +357,7 @@ export class User {
   private static async deleteInternal(db: Context["db"], userId: string) {
     const res = await db.delete(users).where(eq(users.id, userId));
 
-    if (res.changes === 0) {
+    if (res.rowsAffected === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 

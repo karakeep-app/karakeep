@@ -1,35 +1,32 @@
 import "dotenv/config";
 
 import path from "path";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 
 import serverConfig from "@karakeep/shared/config";
 
 import dbConfig from "./drizzle.config";
 import * as schema from "./schema";
 
-const sqlite = new Database(dbConfig.dbCredentials.url);
+const client = createClient({
+  url: `file:${dbConfig.dbCredentials.url}`,
+});
 
-if (serverConfig.database.walMode) {
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("synchronous = NORMAL");
-} else {
-  sqlite.pragma("journal_mode = DELETE");
-}
-sqlite.pragma("cache_size = -65536");
-sqlite.pragma("foreign_keys = ON");
-sqlite.pragma("temp_store = MEMORY");
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });
 export type DB = typeof db;
 
-export function getInMemoryDB(runMigrations: boolean) {
-  const mem = new Database(":memory:");
-  const db = drizzle(mem, { schema, logger: false });
+export async function getInMemoryDB(runMigrations: boolean) {
+  const memClient = createClient({
+    url: ":memory:",
+  });
+  const db = drizzle(memClient, { schema });
   if (runMigrations) {
-    migrate(db, { migrationsFolder: path.resolve(__dirname, "./drizzle") });
+    // Run migrations using drizzle-orm/libsql migrate function
+    const { migrate } = await import("drizzle-orm/libsql/migrator");
+    await migrate(db, {
+      migrationsFolder: path.resolve(__dirname, "./drizzle"),
+    });
   }
   return db;
 }

@@ -191,7 +191,7 @@ export class Tag {
           ),
         ),
       );
-    return res.changes;
+    return res.rowsAffected;
   }
 
   static async merge(
@@ -313,7 +313,7 @@ export class Tag {
         ),
       );
 
-    if (res.changes === 0) {
+    if (res.rowsAffected === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 

@@ -212,7 +212,7 @@ export const assetsAppRouter = router({
             eq(assets.bookmarkId, input.bookmarkId),
           ),
         );
-      if (result.changes == 0) {
+      if (result.rowsAffected == 0) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
       await deleteAsset({ userId: ctx.user.id, assetId: input.assetId }).catch(

@@ -471,7 +471,7 @@ export abstract class List {
           eq(bookmarkLists.userId, this.ctx.user.id),
         ),
       );
-    if (res.changes == 0) {
+    if (res.rowsAffected == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
   }
@@ -635,7 +635,7 @@ export abstract class List {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Collaborator not found",
@@ -666,7 +666,7 @@ export abstract class List {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Collaborator not found",
@@ -693,7 +693,7 @@ export abstract class List {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Collaborator not found",
@@ -951,7 +951,7 @@ export class ManualList extends List {
           eq(bookmarksInLists.bookmarkId, bookmarkId),
         ),
       );
-    if (deleted.changes == 0) {
+    if (deleted.rowsAffected == 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
