@@ -1,17 +1,16 @@
-import type { TaskResult } from "tinybench";
 import { Bench } from "tinybench";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { SeedResult } from "./seed";
 import { logInfo, logStep, logSuccess } from "./log";
-import { formatMs, formatNumber, percentile } from "./utils";
+import { formatMs, formatNumber } from "./utils";
 
 export interface BenchmarkRow {
   name: string;
   ops: number;
   mean: number;
-  p95: number;
+  p75: number;
   p99: number;
   samples: number;
 }
@@ -91,14 +90,29 @@ export async function runBenchmarks(
   });
 
   logStep("Running benchmarks");
-  await bench.warmup();
   await bench.run();
   logSuccess("Benchmarks complete");
 
   const rows = bench.tasks
     .map((task) => {
-      if (!task.result) return null;
-      return toRow(task.name, task.result);
+      const result: any = task.result;
+
+      // Check for errored state
+      if ("error" in result) {
+        console.error(`\n⚠️  Benchmark "${task.name}" failed with error:`);
+        console.error(result.error);
+        return null;
+      }
+
+      // Check if task completed successfully
+      if (result.state !== "completed" || !result.latency) {
+        console.warn(
+          `\n⚠️  Benchmark "${task.name}" did not complete. State: ${result.state}`,
+        );
+        return null;
+      }
+
+      return toRow(task.name, result);
     })
     .filter(Boolean) as BenchmarkRow[];
 
@@ -110,25 +124,29 @@ export async function runBenchmarks(
   return rows;
 }
 
-function toRow(name: string, result: TaskResult): BenchmarkRow {
+function toRow(name: string, result: any): BenchmarkRow {
+  // The statistics are now in result.latency and result.throughput
+  const latency = result.latency;
+  const throughput = result.throughput;
+
   return {
     name,
-    ops: result.hz,
-    mean: result.mean,
-    p95: percentile(result.samples, 95),
-    p99: result.p99 ?? percentile(result.samples, 99),
-    samples: result.samples.length,
+    ops: throughput.mean, // ops/s is the mean throughput
+    mean: latency.mean,
+    p75: latency.p75,
+    p99: latency.p99,
+    samples: latency.samplesCount,
   };
 }
 
 function renderTable(rows: BenchmarkRow[]): void {
-  const headers = ["Benchmark", "ops/s", "avg", "p95", "p99", "samples"];
+  const headers = ["Benchmark", "ops/s", "avg", "p75", "p99", "samples"];
 
   const data = rows.map((row) => [
     row.name,
     formatNumber(row.ops, 1),
     formatMs(row.mean),
-    formatMs(row.p95),
+    formatMs(row.p75),
     formatMs(row.p99),
     String(row.samples),
   ]);
