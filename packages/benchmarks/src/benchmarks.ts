@@ -1,3 +1,4 @@
+import type { TaskResult } from "tinybench";
 import { Bench } from "tinybench";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -5,6 +6,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { SeedResult } from "./seed";
 import { logInfo, logStep, logSuccess } from "./log";
 import { formatMs, formatNumber } from "./utils";
+
+// Type guard for completed task results
+type CompletedTaskResult = Extract<TaskResult, { state: "completed" }>;
 
 export interface BenchmarkRow {
   name: string;
@@ -48,6 +52,15 @@ export async function runBenchmarks(
     });
   }
 
+  if (sampleList) {
+    bench.add("bookmarks.getBookmarks (list filter)", async () => {
+      await seed.trpc.bookmarks.getBookmarks.query({
+        limit: 50,
+        listId: sampleList.id,
+      });
+    });
+  }
+
   if (sampleList && sampleIds.length > 0) {
     bench.add("lists.getListsOfBookmark", async () => {
       await seed.trpc.lists.getListsOfBookmark.query({
@@ -70,32 +83,13 @@ export async function runBenchmarks(
     });
   });
 
-  bench.add("bookmarks.createBookmark", async () => {
-    const suffix = Math.random().toString(36).slice(2);
-    const bookmark = await seed.trpc.bookmarks.createBookmark.mutate({
-      type: BookmarkTypes.LINK,
-      url: `https://bench.example.com/${suffix}`,
-      title: `Live benchmark ${suffix}`,
-      source: "api",
-      summary: "On-demand bookmark creation during benchmark run.",
-    });
-
-    if (sampleTag) {
-      await seed.trpc.bookmarks.updateTags.mutate({
-        bookmarkId: bookmark.id,
-        attach: [{ tagId: sampleTag.id, tagName: sampleTag.name }],
-        detach: [],
-      });
-    }
-  });
-
   logStep("Running benchmarks");
   await bench.run();
   logSuccess("Benchmarks complete");
 
   const rows = bench.tasks
     .map((task) => {
-      const result: any = task.result;
+      const result = task.result;
 
       // Check for errored state
       if ("error" in result) {
@@ -105,7 +99,7 @@ export async function runBenchmarks(
       }
 
       // Check if task completed successfully
-      if (result.state !== "completed" || !result.latency) {
+      if (result.state !== "completed") {
         console.warn(
           `\n⚠️  Benchmark "${task.name}" did not complete. State: ${result.state}`,
         );
@@ -124,7 +118,7 @@ export async function runBenchmarks(
   return rows;
 }
 
-function toRow(name: string, result: any): BenchmarkRow {
+function toRow(name: string, result: CompletedTaskResult): BenchmarkRow {
   // The statistics are now in result.latency and result.throughput
   const latency = result.latency;
   const throughput = result.throughput;
