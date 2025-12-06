@@ -123,6 +123,22 @@ describe("Search Query Parser", () => {
         inverse: true,
       },
     });
+    expect(parseSearchQuery("is:broken")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "brokenLinks",
+        brokenLinks: true,
+      },
+    });
+    expect(parseSearchQuery("-is:broken")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "brokenLinks",
+        brokenLinks: false,
+      },
+    });
   });
 
   test("simple string queries", () => {

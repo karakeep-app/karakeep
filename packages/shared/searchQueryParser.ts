@@ -166,6 +166,11 @@ MATCHER.setPattern(
                 inverse: !!minus,
               },
             };
+          case "broken":
+            return {
+              text: "",
+              matcher: { type: "brokenLinks", brokenLinks: !minus },
+            };
           default:
             // If the token is not known, emit it as pure text
             return {

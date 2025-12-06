@@ -350,6 +350,29 @@ async function getIds(
           ),
         );
     }
+    case "brokenLinks": {
+      // Only applies to bookmarks of type LINK
+      return db
+        .select({ id: bookmarkLinks.id })
+        .from(bookmarkLinks)
+        .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            matcher.brokenLinks
+              ? or(
+                  eq(bookmarkLinks.crawlStatus, "failure"),
+                  lt(bookmarkLinks.crawlStatusCode, 200),
+                  gt(bookmarkLinks.crawlStatusCode, 299),
+                )
+              : and(
+                  eq(bookmarkLinks.crawlStatus, "success"),
+                  gte(bookmarkLinks.crawlStatusCode, 200),
+                  lte(bookmarkLinks.crawlStatusCode, 299),
+                ),
+          ),
+        );
+    }
     case "and": {
       const vals = await Promise.all(
         matcher.matchers.map((m) => getIds(db, userId, m)),

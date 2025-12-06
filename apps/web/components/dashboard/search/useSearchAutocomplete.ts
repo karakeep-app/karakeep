@@ -64,6 +64,12 @@ const QUALIFIER_DEFINITIONS = [
     appendSpace: true,
   },
   {
+    value: "is:broken",
+    descriptionKey: "search.is_broken_link",
+    negatedDescriptionKey: "search.is_not_broken_link",
+    appendSpace: true,
+  },
+  {
     value: "url:",
     descriptionKey: "search.url_contains",
   },
