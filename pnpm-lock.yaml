@@ -1061,6 +1061,46 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@22.15.30)(happy-dom@20.0.8)(jiti@2.4.2)(jsdom@27.0.1(postcss@8.5.6))(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)
 
+  packages/benchmarks:
+    dependencies:
+      '@karakeep/shared':
+        specifier: workspace:^0.1.0
+        version: link:../shared
+      '@karakeep/trpc':
+        specifier: workspace:^0.1.0
+        version: link:../trpc
+      '@trpc/client':
+        specifier: ^11.4.3
+        version: 11.4.3(@trpc/server@11.4.3(typescript@5.9.3))(typescript@5.9.3)
+      p-limit:
+        specifier: ^7.2.0
+        version: 7.2.0
+      superjson:
+        specifier: ^2.2.1
+        version: 2.2.1
+      tinybench:
+        specifier: ^6.0.0
+        version: 6.0.0
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
+    devDependencies:
+      '@karakeep/prettier-config':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/prettier
+      '@karakeep/tsconfig':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/typescript
+      oxlint:
+        specifier: ^1.29.0
+        version: 1.29.0
+      prettier:
+        specifier: ^3.4.2
+        version: 3.4.2
+      tsx:
+        specifier: ^4.8.1
+        version: 4.20.3
+
   packages/db:
     dependencies:
       '@auth/core':
@@ -11280,6 +11320,10 @@ packages:
     resolution: {integrity: sha512-5b0R4txpzjPWVw/cXXUResoD4hb6U/x9BH08L7nw+GN1sezDzPdxeRvpc9c433fZhBan/wusjbCsqwqm4EIBIQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
+  p-limit@7.2.0:
+    resolution: {integrity: sha512-ATHLtwoTNDloHRFFxFJdHnG6n2WUeFjaR8XQMFdKIv0xkXjrER8/iG9iu265jOM95zXHAfv9oTkqhrfbIzosrQ==}
+    engines: {node: '>=20'}
+
   p-locate@4.1.0:
     resolution: {integrity: sha512-R79ZZ/0wAxKGu3oYMlz8jy/kbhsNrS7SKZ7PxEHBgJ5+F2mtFW2fK2cOtBh1cHYkQsbzFV7I+EoRKe6Yt0oK7A==}
     engines: {node: '>=8'}
@@ -13842,6 +13886,10 @@ packages:
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
+
+  tinybench@6.0.0:
+    resolution: {integrity: sha512-BWlWpVbbZXaYjRV0twGLNQO00Zj4HA/sjLOQP2IvzQqGwRGp+2kh7UU3ijyJ3ywFRogYDRbiHDMrUOfaMnN56g==}
+    engines: {node: '>=20.0.0'}
 
   tinyexec@0.3.2:
     resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
@@ -27802,6 +27850,10 @@ snapshots:
     dependencies:
       yocto-queue: 1.2.1
 
+  p-limit@7.2.0:
+    dependencies:
+      yocto-queue: 1.2.1
+
   p-locate@4.1.0:
     dependencies:
       p-limit: 2.3.0
@@ -30896,6 +30948,8 @@ snapshots:
   tiny-warning@1.0.3: {}
 
   tinybench@2.9.0: {}
+
+  tinybench@6.0.0: {}
 
   tinyexec@0.3.2: {}
 
