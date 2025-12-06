@@ -15,12 +15,14 @@ export const TagPill = React.memo(function TagPill({
   count,
   isDraggable,
   onOpenDialog,
+  showCount = true,
 }: {
   id: string;
   name: string;
   count: number;
   isDraggable: boolean;
   onOpenDialog: (tag: { id: string; name: string }) => void;
+  showCount?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const draggableRef = useRef<HTMLDivElement>(null);
@@ -86,7 +88,12 @@ export const TagPill = React.memo(function TagPill({
         draggable={false}
         prefetch={false}
       >
-        {name} <Separator orientation="vertical" /> {count}
+        {name}
+        {showCount && (
+          <>
+            <Separator orientation="vertical" /> {count}
+          </>
+        )}
       </Link>
 
       {isHovered && !isDraggable && (
