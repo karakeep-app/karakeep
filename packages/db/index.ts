@@ -1,4 +1,5 @@
 import type { ResultSet } from "@libsql/client";
+import { LibsqlError } from "@libsql/client";
 import { ExtractTablesWithRelations } from "drizzle-orm";
 import { SQLiteTransaction } from "drizzle-orm/sqlite-core";
 
@@ -8,15 +9,7 @@ export { db } from "./drizzle";
 export type { DB } from "./drizzle";
 export * as schema from "./schema";
 
-// Export a generic error type for SQLite errors
-export class SqliteError extends Error {
-  code: string;
-  constructor(message: string, code: string) {
-    super(message);
-    this.code = code;
-    this.name = "SqliteError";
-  }
-}
+export { LibsqlError as SqliteError } from "@libsql/client";
 
 // This is exported here to avoid leaking libsql types outside of this package.
 export type KarakeepDBTransaction = SQLiteTransaction<
@@ -25,3 +18,16 @@ export type KarakeepDBTransaction = SQLiteTransaction<
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >;
+
+export function getLibsqlError(e: unknown): LibsqlError | null {
+  if (e instanceof LibsqlError) {
+    return e;
+  }
+  if (typeof e === "object" && e !== null && "cause" in e) {
+    const cause = (e as { cause?: unknown }).cause;
+    if (cause instanceof LibsqlError) {
+      return cause;
+    }
+  }
+  return null;
+}

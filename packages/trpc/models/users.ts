@@ -4,7 +4,7 @@ import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
+import { getLibsqlError } from "@karakeep/db";
 import {
   assets,
   bookmarkLinks,
@@ -120,8 +120,9 @@ export class User {
 
         return result;
       } catch (e) {
-        if (e instanceof SqliteError) {
-          if (e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+        const libsqlError = getLibsqlError(e);
+        if (libsqlError) {
+          if (libsqlError.code === "SQLITE_CONSTRAINT_UNIQUE") {
             throw new TRPCError({
               code: "BAD_REQUEST",
               message: "Email is already taken",

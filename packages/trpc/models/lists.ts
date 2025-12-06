@@ -4,7 +4,7 @@ import { and, count, eq, inArray, or } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
+import { getLibsqlError } from "@karakeep/db";
 import {
   bookmarkLists,
   bookmarksInLists,
@@ -926,8 +926,9 @@ export class ManualList extends List {
         },
       ]);
     } catch (e) {
-      if (e instanceof SqliteError) {
-        if (e.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
+      const libsqlError = getLibsqlError(e);
+      if (libsqlError) {
+        if (libsqlError.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
           // this is fine, it just means the bookmark is already in the list
           return;
         }
