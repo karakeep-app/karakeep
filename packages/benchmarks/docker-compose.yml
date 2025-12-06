@@ -1,0 +1,54 @@
+services:
+  web:
+    build:
+      dockerfile: docker/Dockerfile
+      context: ../../
+      target: aio
+    restart: unless-stopped
+    ports:
+      - "${KARAKEEP_PORT:-3000}:3000"
+    environment:
+      DATA_DIR: /tmp
+      NEXTAUTH_SECRET: secret
+      NEXTAUTH_URL: http://localhost:${KARAKEEP_PORT:-3000}
+      MEILI_MASTER_KEY: dummy
+      MEILI_ADDR: http://meilisearch:7700
+      BROWSER_WEB_URL: http://chrome:9222
+      CRAWLER_NUM_WORKERS: 6
+      CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+  meilisearch:
+    image: getmeili/meilisearch:v1.13.3
+    restart: unless-stopped
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: dummy
+  chrome:
+    image: gcr.io/zenika-hub/alpine-chrome:124
+    restart: unless-stopped
+    command:
+      - --no-sandbox
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --remote-debugging-address=0.0.0.0
+      - --remote-debugging-port=9222
+      - --hide-scrollbars
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./setup/html:/usr/share/nginx/html
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  minio_data:
