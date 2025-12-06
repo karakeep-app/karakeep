@@ -1,8 +1,6 @@
 import type { TaskResult } from "tinybench";
 import { Bench } from "tinybench";
 
-import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
 import type { SeedResult } from "./seed";
 import { logInfo, logStep, logSuccess } from "./log";
 import { formatMs, formatNumber } from "./utils";
