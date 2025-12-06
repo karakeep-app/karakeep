@@ -23,7 +23,6 @@
     "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix"
   },
   "dependencies": {
-    "@libsql/client": "^0.15.15",
     "husky": "^9.0.11"
   },
   "devDependencies": {

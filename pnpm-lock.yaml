@@ -13,9 +13,6 @@ importers:
 
   .:
     dependencies:
-      '@libsql/client':
-        specifier: ^0.15.15
-        version: 0.15.15
       husky:
         specifier: ^9.0.11
         version: 9.1.7
