@@ -12,7 +12,7 @@ export default defineConfig({
   shims: true,
   external: [
     // Keep native binaries external (transitive deps of bundled workspace packages)
-    "better-sqlite3",
+    "@libsql/client",
     "liteque",
   ],
   noExternal: [

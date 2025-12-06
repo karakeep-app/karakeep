@@ -107,7 +107,7 @@ export const promptsAppRouter = router({
             eq(customPrompts.id, input.promptId),
           ),
         );
-      if (res.changes == 0) {
+      if (res.rowsAffected == 0) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
     }),

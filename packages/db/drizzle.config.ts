@@ -9,7 +9,7 @@ const databaseURL = serverConfig.dataDir
   : "./db.db";
 
 export default {
-  dialect: "sqlite",
+  dialect: "turso",
   schema: "./schema.ts",
   out: "./drizzle",
   dbCredentials: {

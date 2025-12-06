@@ -41,7 +41,7 @@ export async function regenerateApiKey(
     })
     .where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)));
 
-  if (res.changes == 0) {
+  if (res.rowsAffected == 0) {
     throw new Error("Failed to regenerate API key");
   }
   return plain;

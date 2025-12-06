@@ -114,7 +114,7 @@ async function migrateBookmarkHtml(
           ),
         );
 
-      if (res.changes === 0) {
+      if (res.rowsAffected === 0) {
         throw new Error("Failed to update bookmark");
       }
 
