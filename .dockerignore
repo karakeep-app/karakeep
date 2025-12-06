@@ -18,6 +18,7 @@ apps/mobile
 apps/landing
 apps/browser-extension
 packages/e2e_tests
+packages/benchmarks
 
 # Aider
 .aider*
