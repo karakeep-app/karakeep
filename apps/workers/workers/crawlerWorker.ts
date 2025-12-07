@@ -26,6 +26,7 @@ import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
+import metascraperYoutube from "metascraper-youtube";
 import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
@@ -125,6 +126,18 @@ const metascraperParser = metascraper([
     datePublished: true,
   }),
   metascraperAmazon(),
+  metascraperYoutube({
+    gotOpts: {
+      agent: {
+        http: serverConfig.proxy.httpProxy
+          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+          : undefined,
+        https: serverConfig.proxy.httpsProxy
+          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+          : undefined,
+      },
+    },
+  }),
   metascraperReddit(),
   metascraperAuthor(),
   metascraperPublisher(),
