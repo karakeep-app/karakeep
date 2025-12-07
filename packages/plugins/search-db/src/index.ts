@@ -6,6 +6,7 @@ import {
   inArray,
   like,
   or,
+  sql,
   type SQL,
 } from "drizzle-orm";
 import { db } from "@karakeep/db";
@@ -52,171 +53,189 @@ export class DBSearchIndexClient implements SearchIndexClient {
     const startTime = Date.now();
     const { query, filter, sort, limit = 50, offset = 0 } = options;
 
-    // Build the WHERE clause from filters
-    const filterConditions: SQL[] = [];
+    // Build filter conditions for WHERE clauses
+    const buildFilterConditions = (): SQL | undefined => {
+      if (!filter || filter.length === 0) return undefined;
 
-    if (filter) {
+      const conditions: SQL[] = [];
       for (const f of filter) {
         switch (f.type) {
           case "eq":
             if (f.field === "userId") {
-              filterConditions.push(eq(bookmarks.userId, f.value));
+              conditions.push(eq(bookmarks.userId, f.value));
             } else if (f.field === "id") {
-              filterConditions.push(eq(bookmarks.id, f.value));
+              conditions.push(eq(bookmarks.id, f.value));
             }
             break;
           case "in":
             if (f.field === "userId") {
-              filterConditions.push(inArray(bookmarks.userId, f.values));
+              conditions.push(inArray(bookmarks.userId, f.values));
             } else if (f.field === "id") {
-              filterConditions.push(inArray(bookmarks.id, f.values));
+              conditions.push(inArray(bookmarks.id, f.values));
             }
             break;
         }
       }
-    }
+      return conditions.length > 0 ? and(...conditions) : undefined;
+    };
 
-    // Build search conditions for text query
+    const filterConditions = buildFilterConditions();
+
+    // Determine sort order
+    const sortOrder =
+      sort && sort.length > 0 && sort[0].order === "asc" ? "ASC" : "DESC";
+
     if (query && query.trim()) {
       const searchPattern = `%${query.trim()}%`;
 
-      // First, search in the bookmarks table itself
-      const bookmarkSearchConditions: SQL[] = [
-        like(bookmarks.title, searchPattern),
-        like(bookmarks.note, searchPattern),
-        like(bookmarks.summary, searchPattern),
-      ];
+      // Build filter clauses for each UNION part
+      const buildFilterSql = (tableAlias: string): SQL | undefined => {
+        if (!filter || filter.length === 0) return undefined;
 
-      const whereClause =
-        filterConditions.length > 0
-          ? and(...filterConditions, or(...bookmarkSearchConditions))
-          : or(...bookmarkSearchConditions);
-
-      // Build the ORDER BY clause
-      let orderByClause;
-      if (sort && sort.length > 0) {
-        const sortField = sort[0];
-        if (sortField.field === "createdAt") {
-          orderByClause =
-            sortField.order === "asc"
-              ? asc(bookmarks.createdAt)
-              : desc(bookmarks.createdAt);
+        const conditions: SQL[] = [];
+        for (const f of filter) {
+          if (f.type === "eq") {
+            if (f.field === "userId") {
+              conditions.push(sql`${sql.raw(`${tableAlias}.userId`)} = ${f.value}`);
+            } else if (f.field === "id") {
+              conditions.push(sql`${sql.raw(`${tableAlias}.id`)} = ${f.value}`);
+            }
+          } else if (f.type === "in") {
+            if (f.field === "userId") {
+              conditions.push(sql`${sql.raw(`${tableAlias}.userId`)} IN ${f.values}`);
+            } else if (f.field === "id") {
+              conditions.push(sql`${sql.raw(`${tableAlias}.id`)} IN ${f.values}`);
+            }
+          }
         }
-      }
-      if (!orderByClause) {
-        orderByClause = desc(bookmarks.createdAt);
-      }
+        return conditions.length > 0 ? sql.join(conditions, sql` AND `) : undefined;
+      };
 
-      // Get bookmark IDs from main search
-      const mainResults = await db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(whereClause)
-        .orderBy(orderByClause)
-        .limit(limit)
-        .offset(offset);
+      const filterSql = buildFilterSql("b");
+      const filterClause = filterSql ? sql` AND ${filterSql}` : sql``;
 
-      let allBookmarkIds = mainResults.map((r: { id: string }) => r.id);
+      // Execute a single UNION query to search across all tables
+      const unionQuery = sql`
+        SELECT DISTINCT b.id, b.createdAt
+        FROM bookmarks b
+        WHERE (
+          b.title LIKE ${searchPattern} OR
+          b.note LIKE ${searchPattern} OR
+          b.summary LIKE ${searchPattern}
+        )${filterClause}
 
-      // Also search in related tables if we have a query
-      // Search in bookmarkLinks
-      const linkResults = await db
-        .select({ id: bookmarkLinks.id })
-        .from(bookmarkLinks)
-        .innerJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
-        .where(
-          and(
-            filterConditions.length > 0
-              ? and(...filterConditions)
-              : undefined,
-            or(
-              like(bookmarkLinks.url, searchPattern),
-              like(bookmarkLinks.title, searchPattern),
-              like(bookmarkLinks.description, searchPattern),
-              like(bookmarkLinks.author, searchPattern),
-              like(bookmarkLinks.publisher, searchPattern),
-            ),
-          ),
+        UNION
+
+        SELECT DISTINCT b.id, b.createdAt
+        FROM bookmarks b
+        INNER JOIN bookmarkLinks bl ON b.id = bl.id
+        WHERE (
+          bl.url LIKE ${searchPattern} OR
+          bl.title LIKE ${searchPattern} OR
+          bl.description LIKE ${searchPattern} OR
+          bl.author LIKE ${searchPattern} OR
+          bl.publisher LIKE ${searchPattern}
+        )${filterClause}
+
+        UNION
+
+        SELECT DISTINCT b.id, b.createdAt
+        FROM bookmarks b
+        INNER JOIN bookmarkTexts bt ON b.id = bt.id
+        WHERE bt.text LIKE ${searchPattern}${filterClause}
+
+        UNION
+
+        SELECT DISTINCT b.id, b.createdAt
+        FROM bookmarks b
+        INNER JOIN bookmarkAssets ba ON b.id = ba.id
+        WHERE (
+          ba.content LIKE ${searchPattern} OR
+          ba.metadata LIKE ${searchPattern} OR
+          ba.fileName LIKE ${searchPattern}
+        )${filterClause}
+
+        UNION
+
+        SELECT DISTINCT b.id, b.createdAt
+        FROM bookmarks b
+        INNER JOIN tagsOnBookmarks tob ON b.id = tob.bookmarkId
+        INNER JOIN bookmarkTags bt ON tob.tagId = bt.id
+        WHERE bt.name LIKE ${searchPattern}${filterClause}
+
+        ORDER BY createdAt ${sql.raw(sortOrder)}
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+
+      const results = (await db.all(unionQuery)) as { id: string; createdAt: number }[];
+
+      // Get total count
+      const countQuery = sql`
+        SELECT COUNT(*) as total FROM (
+          SELECT DISTINCT b.id
+          FROM bookmarks b
+          WHERE (
+            b.title LIKE ${searchPattern} OR
+            b.note LIKE ${searchPattern} OR
+            b.summary LIKE ${searchPattern}
+          )${filterClause}
+
+          UNION
+
+          SELECT DISTINCT b.id
+          FROM bookmarks b
+          INNER JOIN bookmarkLinks bl ON b.id = bl.id
+          WHERE (
+            bl.url LIKE ${searchPattern} OR
+            bl.title LIKE ${searchPattern} OR
+            bl.description LIKE ${searchPattern} OR
+            bl.author LIKE ${searchPattern} OR
+            bl.publisher LIKE ${searchPattern}
+          )${filterClause}
+
+          UNION
+
+          SELECT DISTINCT b.id
+          FROM bookmarks b
+          INNER JOIN bookmarkTexts bt ON b.id = bt.id
+          WHERE bt.text LIKE ${searchPattern}${filterClause}
+
+          UNION
+
+          SELECT DISTINCT b.id
+          FROM bookmarks b
+          INNER JOIN bookmarkAssets ba ON b.id = ba.id
+          WHERE (
+            ba.content LIKE ${searchPattern} OR
+            ba.metadata LIKE ${searchPattern} OR
+            ba.fileName LIKE ${searchPattern}
+          )${filterClause}
+
+          UNION
+
+          SELECT DISTINCT b.id
+          FROM bookmarks b
+          INNER JOIN tagsOnBookmarks tob ON b.id = tob.bookmarkId
+          INNER JOIN bookmarkTags bt ON tob.tagId = bt.id
+          WHERE bt.name LIKE ${searchPattern}${filterClause}
         )
-        .limit(limit);
+      `;
 
-      // Search in bookmarkTexts
-      const textResults = await db
-        .select({ id: bookmarkTexts.id })
-        .from(bookmarkTexts)
-        .innerJoin(bookmarks, eq(bookmarks.id, bookmarkTexts.id))
-        .where(
-          and(
-            filterConditions.length > 0
-              ? and(...filterConditions)
-              : undefined,
-            like(bookmarkTexts.text, searchPattern),
-          ),
-        )
-        .limit(limit);
-
-      // Search in bookmarkAssets
-      const assetResults = await db
-        .select({ id: bookmarkAssets.id })
-        .from(bookmarkAssets)
-        .innerJoin(bookmarks, eq(bookmarks.id, bookmarkAssets.id))
-        .where(
-          and(
-            filterConditions.length > 0
-              ? and(...filterConditions)
-              : undefined,
-            or(
-              like(bookmarkAssets.content, searchPattern),
-              like(bookmarkAssets.metadata, searchPattern),
-              like(bookmarkAssets.fileName, searchPattern),
-            ),
-          ),
-        )
-        .limit(limit);
-
-      // Search in tags
-      const tagResults = await db
-        .select({ bookmarkId: tagsOnBookmarks.bookmarkId })
-        .from(tagsOnBookmarks)
-        .innerJoin(bookmarkTags, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
-        .innerJoin(bookmarks, eq(bookmarks.id, tagsOnBookmarks.bookmarkId))
-        .where(
-          and(
-            filterConditions.length > 0
-              ? and(...filterConditions)
-              : undefined,
-            like(bookmarkTags.name, searchPattern),
-          ),
-        )
-        .limit(limit);
-
-      // Combine all bookmark IDs from different sources
-      allBookmarkIds = [
-        ...allBookmarkIds,
-        ...linkResults.map((r: { id: string }) => r.id),
-        ...textResults.map((r: { id: string }) => r.id),
-        ...assetResults.map((r: { id: string }) => r.id),
-        ...tagResults.map((r: { bookmarkId: string }) => r.bookmarkId),
-      ];
-
-      // Remove duplicates and apply limit/offset
-      const uniqueIds = [...new Set(allBookmarkIds)];
-      const paginatedIds = uniqueIds.slice(offset, offset + limit);
+      const countResult = (await db.get(countQuery)) as { total: number } | undefined;
 
       const processingTimeMs = Date.now() - startTime;
 
       return {
-        hits: paginatedIds.map((id) => ({
-          id,
+        hits: results.map((r) => ({
+          id: r.id,
           score: 1, // No relevance scoring for DB search
         })),
-        totalHits: uniqueIds.length,
+        totalHits: countResult?.total ?? 0,
         processingTimeMs,
       };
     } else {
       // No query, just apply filters
-      const whereClause =
-        filterConditions.length > 0 ? and(...filterConditions) : undefined;
+      const whereClause = filterConditions;
 
       // Build the ORDER BY clause
       let orderByClause;
