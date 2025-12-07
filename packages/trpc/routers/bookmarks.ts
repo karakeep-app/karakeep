@@ -711,7 +711,7 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      return ctx.db.transaction(async (tx) => {
+      const res = await ctx.db.transaction(async (tx) => {
         // Detaches
         const idsToRemove: string[] = [];
         if (input.detach.length > 0) {
@@ -822,28 +822,32 @@ export const bookmarksAppRouter = router({
             ),
           );
 
-        await triggerRuleEngineOnEvent(input.bookmarkId, [
-          ...idsToRemove.map((t) => ({
-            type: "tagRemoved" as const,
-            tagId: t,
-          })),
-          ...allIds.map((t) => ({
-            type: "tagAdded" as const,
-            tagId: t,
-          })),
-        ]);
-        await triggerSearchReindex(input.bookmarkId, {
-          groupId: ctx.user.id,
-        });
-        await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        });
         return {
           bookmarkId: input.bookmarkId,
           attached: allIds,
           detached: idsToRemove,
         };
       });
+
+      await Promise.allSettled([
+        triggerRuleEngineOnEvent(input.bookmarkId, [
+          ...res.detached.map((t) => ({
+            type: "tagRemoved" as const,
+            tagId: t,
+          })),
+          ...res.attached.map((t) => ({
+            type: "tagAdded" as const,
+            tagId: t,
+          })),
+        ]),
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
+      return res;
     }),
   getBrokenLinks: authedProcedure
     .output(
