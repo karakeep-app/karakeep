@@ -102,6 +102,9 @@ export const zUserStatsResponseSchema = z.object({
   ),
 });
 
+export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
+export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
+
 export const zUserSettingsSchema = z.object({
   bookmarkClickAction: z.enum([
     "open_original_link",
@@ -112,6 +115,10 @@ export const zUserSettingsSchema = z.object({
   backupsEnabled: z.boolean(),
   backupsFrequency: z.enum(["daily", "weekly"]),
   backupsRetentionDays: z.number().int().min(1).max(365),
+  // Reader settings (nullable = opt-in, null means use client default)
+  readerFontSize: z.number().int().min(12).max(24).nullable(),
+  readerLineHeight: z.number().min(1.2).max(2.5).nullable(),
+  readerFontFamily: zReaderFontFamilySchema.nullable(),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -123,6 +130,9 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   backupsEnabled: true,
   backupsFrequency: true,
   backupsRetentionDays: true,
+  readerFontSize: true,
+  readerLineHeight: true,
+  readerFontFamily: true,
 });
 
 export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({

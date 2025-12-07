@@ -433,6 +433,9 @@ export class User {
         backupsEnabled: true,
         backupsFrequency: true,
         backupsRetentionDays: true,
+        readerFontSize: true,
+        readerLineHeight: true,
+        readerFontFamily: true,
       },
     });
 
@@ -450,6 +453,9 @@ export class User {
       backupsEnabled: settings.backupsEnabled,
       backupsFrequency: settings.backupsFrequency,
       backupsRetentionDays: settings.backupsRetentionDays,
+      readerFontSize: settings.readerFontSize,
+      readerLineHeight: settings.readerLineHeight,
+      readerFontFamily: settings.readerFontFamily,
     };
   }
 
@@ -472,6 +478,15 @@ export class User {
         backupsEnabled: input.backupsEnabled,
         backupsFrequency: input.backupsFrequency,
         backupsRetentionDays: input.backupsRetentionDays,
+        ...(input.readerFontSize !== undefined && {
+          readerFontSize: input.readerFontSize,
+        }),
+        ...(input.readerLineHeight !== undefined && {
+          readerLineHeight: input.readerLineHeight,
+        }),
+        ...(input.readerFontFamily !== undefined && {
+          readerFontFamily: input.readerFontFamily,
+        }),
       })
       .where(eq(users.id, this.user.id));
   }
@@ -553,23 +568,23 @@ export class User {
       // Top domains
       this.ctx.db
         .select({
-          domain: sql<string>`CASE 
-            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN 
-              CASE 
+          domain: sql<string>`CASE
+            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+              CASE
                 WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
                   SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
                 ELSE
                   SUBSTR(${bookmarkLinks.url}, 9)
               END
-            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN 
-              CASE 
+            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+              CASE
                 WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
                   SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
                 ELSE
                   SUBSTR(${bookmarkLinks.url}, 8)
               END
-            ELSE 
-              CASE 
+            ELSE
+              CASE
                 WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
                   SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
                 ELSE
@@ -582,23 +597,23 @@ export class User {
         .innerJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
         .where(eq(bookmarks.userId, this.user.id))
         .groupBy(
-          sql`CASE 
-          WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN 
-            CASE 
+          sql`CASE
+          WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+            CASE
               WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
                 SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
               ELSE
                 SUBSTR(${bookmarkLinks.url}, 9)
             END
-          WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN 
-            CASE 
+          WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+            CASE
               WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
                 SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
               ELSE
                 SUBSTR(${bookmarkLinks.url}, 8)
             END
-          ELSE 
-            CASE 
+          ELSE
+            CASE
               WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
                 SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
               ELSE

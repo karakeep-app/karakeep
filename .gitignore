@@ -63,3 +63,6 @@ data
 .vscode
 auth_failures.log
 .claude/settings.local.json
+
+# Local directory for AI agent contexts
+.aicontext/
