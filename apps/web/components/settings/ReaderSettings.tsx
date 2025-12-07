@@ -3,7 +3,7 @@
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
-import { BookOpen, RotateCcw } from "lucide-react";
+import { AlertTriangle, BookOpen, Laptop, RotateCcw } from "lucide-react";
 
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
@@ -11,6 +11,7 @@ import {
   READER_FONT_FAMILIES,
 } from "@karakeep/shared/types/readers";
 
+import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -33,7 +34,14 @@ import { toast } from "../ui/use-toast";
 export default function ReaderSettings() {
   const { t } = useTranslation();
   const clientConfig = useClientConfig();
-  const { settings, serverSettings, clearServerDefaults } = useReaderSettings();
+  const {
+    settings,
+    serverSettings,
+    localOverrides,
+    hasLocalOverrides,
+    clearServerDefaults,
+    clearLocalOverrides,
+  } = useReaderSettings();
   const { mutate: updateServerSettings } = useUpdateUserSettings();
 
   const hasServerSettings =
@@ -44,6 +52,34 @@ export default function ReaderSettings() {
   const handleClearDefaults = () => {
     clearServerDefaults();
     toast({ description: t("settings.info.reader_settings.defaults_cleared") });
+  };
+
+  const handleClearLocalOverrides = () => {
+    clearLocalOverrides();
+    toast({
+      description: t("settings.info.reader_settings.local_overrides_cleared"),
+    });
+  };
+
+  // Format local override for display
+  const formatLocalOverride = (
+    key: "fontSize" | "lineHeight" | "fontFamily",
+  ) => {
+    const value = localOverrides[key];
+    if (value === undefined) return null;
+    if (key === "fontSize") return `${value}px`;
+    if (key === "lineHeight") return (value as number).toFixed(1);
+    if (key === "fontFamily") {
+      switch (value) {
+        case "serif":
+          return t("settings.info.reader_settings.serif");
+        case "sans":
+          return t("settings.info.reader_settings.sans");
+        case "mono":
+          return t("settings.info.reader_settings.mono");
+      }
+    }
+    return String(value);
   };
 
   // Direct update to server (settings page doesn't use preview mode)
@@ -71,6 +107,54 @@ export default function ReaderSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Local Overrides Warning */}
+        {hasLocalOverrides && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="flex flex-col gap-3">
+              <div>
+                <p className="font-medium">
+                  {t("settings.info.reader_settings.local_overrides_title")}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t(
+                    "settings.info.reader_settings.local_overrides_description",
+                  )}
+                </p>
+                <ul className="mt-2 text-sm text-muted-foreground">
+                  {localOverrides.fontFamily !== undefined && (
+                    <li>
+                      {t("settings.info.reader_settings.font_family")}:{" "}
+                      {formatLocalOverride("fontFamily")}
+                    </li>
+                  )}
+                  {localOverrides.fontSize !== undefined && (
+                    <li>
+                      {t("settings.info.reader_settings.font_size")}:{" "}
+                      {formatLocalOverride("fontSize")}
+                    </li>
+                  )}
+                  {localOverrides.lineHeight !== undefined && (
+                    <li>
+                      {t("settings.info.reader_settings.line_height")}:{" "}
+                      {formatLocalOverride("lineHeight")}
+                    </li>
+                  )}
+                </ul>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearLocalOverrides}
+                className="w-fit"
+              >
+                <Laptop className="mr-2 h-4 w-4" />
+                {t("settings.info.reader_settings.clear_local_overrides")}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Font Family */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">

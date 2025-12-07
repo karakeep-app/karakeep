@@ -62,7 +62,7 @@ export default function ReaderViewPage() {
               <Printer className="h-4 w-4" />
             </Button>
 
-            <ReaderSettingsPopover />
+            <ReaderSettingsPopover variant="ghost" />
 
             <Button
               variant={showHighlights ? "default" : "ghost"}

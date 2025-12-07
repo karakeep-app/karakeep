@@ -146,6 +146,10 @@
         "preview": "Preview",
         "preview_text": "The quick brown fox jumps over the lazy dog. This is how your reader view text will appear.",
         "defaults_cleared": "Reader defaults have been cleared",
+        "local_overrides_title": "Device-specific settings active",
+        "local_overrides_description": "This device has reader settings that differ from your global defaults:",
+        "local_overrides_cleared": "Device-specific settings have been cleared",
+        "clear_local_overrides": "Clear device settings",
         "serif": "Serif",
         "sans": "Sans Serif",
         "mono": "Monospace"

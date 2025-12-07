@@ -37,11 +37,13 @@ import { READER_DEFAULTS } from "@karakeep/shared/types/readers";
 interface ReaderSettingsPopoverProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  variant?: "outline" | "ghost";
 }
 
 export default function ReaderSettingsPopover({
   open,
   onOpenChange,
+  variant = "outline",
 }: ReaderSettingsPopoverProps) {
   const {
     settings,
@@ -100,7 +102,7 @@ export default function ReaderSettingsPopover({
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="relative h-8 w-8">
+            <Button variant={variant} size="icon" className="relative">
               <Settings className="h-4 w-4" />
               {(hasSessionChanges || hasLocalOverrides) && (
                 <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" />
@@ -108,7 +110,7 @@ export default function ReaderSettingsPopover({
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side="bottom">
           <p>{getSettingsTooltip()}</p>
         </TooltipContent>
       </Tooltip>
