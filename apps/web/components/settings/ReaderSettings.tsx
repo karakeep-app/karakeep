@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
 import { AlertTriangle, BookOpen, Laptop, RotateCcw } from "lucide-react";
 
-import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
+  formatFontSize,
+  formatLineHeight,
   READER_DEFAULTS,
   READER_FONT_FAMILIES,
+  READER_SETTING_CONSTRAINTS,
 } from "@karakeep/shared/types/readers";
 
 import { Alert, AlertDescription } from "../ui/alert";
@@ -41,8 +44,14 @@ export default function ReaderSettings() {
     hasLocalOverrides,
     clearServerDefaults,
     clearLocalOverrides,
+    updateServerSetting,
   } = useReaderSettings();
-  const { mutate: updateServerSettings } = useUpdateUserSettings();
+
+  // Local state for slider dragging (null = not dragging, use server value)
+  const [draggingFontSize, setDraggingFontSize] = useState<number | null>(null);
+  const [draggingLineHeight, setDraggingLineHeight] = useState<number | null>(
+    null,
+  );
 
   const hasServerSettings =
     serverSettings.fontSize !== null ||
@@ -67,8 +76,8 @@ export default function ReaderSettings() {
   ) => {
     const value = localOverrides[key];
     if (value === undefined) return null;
-    if (key === "fontSize") return `${value}px`;
-    if (key === "lineHeight") return (value as number).toFixed(1);
+    if (key === "fontSize") return formatFontSize(value as number);
+    if (key === "lineHeight") return formatLineHeight(value as number);
     if (key === "fontFamily") {
       switch (value) {
         case "serif":
@@ -80,19 +89,6 @@ export default function ReaderSettings() {
       }
     }
     return String(value);
-  };
-
-  // Direct update to server (settings page doesn't use preview mode)
-  const updateServerSetting = (updates: {
-    fontSize?: number;
-    lineHeight?: number;
-    fontFamily?: "serif" | "sans" | "mono";
-  }) => {
-    updateServerSettings({
-      readerFontSize: updates.fontSize,
-      readerLineHeight: updates.lineHeight,
-      readerFontFamily: updates.fontFamily,
-    });
   };
 
   return (
@@ -207,20 +203,23 @@ export default function ReaderSettings() {
               {t("settings.info.reader_settings.font_size")}
             </Label>
             <span className="text-sm text-muted-foreground">
-              {serverSettings.fontSize ?? `${READER_DEFAULTS.fontSize}`}px
+              {formatFontSize(draggingFontSize ?? settings.fontSize)}
               {serverSettings.fontSize === null &&
+                draggingFontSize === null &&
                 ` (${t("common.default").toLowerCase()})`}
             </span>
           </div>
           <Slider
             disabled={!!clientConfig.demoMode}
-            value={[serverSettings.fontSize ?? READER_DEFAULTS.fontSize]}
-            onValueCommit={([value]) =>
-              updateServerSetting({ fontSize: value })
-            }
-            max={24}
-            min={12}
-            step={1}
+            value={[draggingFontSize ?? settings.fontSize]}
+            onValueChange={([value]) => setDraggingFontSize(value)}
+            onValueCommit={([value]) => {
+              updateServerSetting({ fontSize: value });
+              setDraggingFontSize(null);
+            }}
+            max={READER_SETTING_CONSTRAINTS.fontSize.max}
+            min={READER_SETTING_CONSTRAINTS.fontSize.min}
+            step={READER_SETTING_CONSTRAINTS.fontSize.step}
           />
         </div>
 
@@ -231,22 +230,23 @@ export default function ReaderSettings() {
               {t("settings.info.reader_settings.line_height")}
             </Label>
             <span className="text-sm text-muted-foreground">
-              {(
-                serverSettings.lineHeight ?? READER_DEFAULTS.lineHeight
-              ).toFixed(1)}
+              {formatLineHeight(draggingLineHeight ?? settings.lineHeight)}
               {serverSettings.lineHeight === null &&
+                draggingLineHeight === null &&
                 ` (${t("common.default").toLowerCase()})`}
             </span>
           </div>
           <Slider
             disabled={!!clientConfig.demoMode}
-            value={[serverSettings.lineHeight ?? READER_DEFAULTS.lineHeight]}
-            onValueCommit={([value]) =>
-              updateServerSetting({ lineHeight: value })
-            }
-            max={2.5}
-            min={1.2}
-            step={0.1}
+            value={[draggingLineHeight ?? settings.lineHeight]}
+            onValueChange={([value]) => setDraggingLineHeight(value)}
+            onValueCommit={([value]) => {
+              updateServerSetting({ lineHeight: value });
+              setDraggingLineHeight(null);
+            }}
+            max={READER_SETTING_CONSTRAINTS.lineHeight.max}
+            min={READER_SETTING_CONSTRAINTS.lineHeight.min}
+            step={READER_SETTING_CONSTRAINTS.lineHeight.step}
           />
         </div>
 
@@ -271,10 +271,14 @@ export default function ReaderSettings() {
           <p
             style={{
               fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
-              fontSize: `${settings.fontSize}px`,
-              lineHeight: settings.lineHeight,
+              fontSize: `${draggingFontSize ?? settings.fontSize}px`,
+              lineHeight: draggingLineHeight ?? settings.lineHeight,
             }}
           >
+            {t("settings.info.reader_settings.preview_text")}
+            <br />
+            {t("settings.info.reader_settings.preview_text")}
+            <br />
             {t("settings.info.reader_settings.preview_text")}
           </p>
         </div>

@@ -32,7 +32,13 @@ import {
   X,
 } from "lucide-react";
 
-import { READER_DEFAULTS } from "@karakeep/shared/types/readers";
+import {
+  formatFontFamily,
+  formatFontSize,
+  formatLineHeight,
+  READER_DEFAULTS,
+  READER_SETTING_CONSTRAINTS,
+} from "@karakeep/shared/types/readers";
 
 interface ReaderSettingsPopoverProps {
   open?: boolean;
@@ -81,20 +87,6 @@ export default function ReaderSettingsPopover({
       return "Device settings differ from global";
     }
     return "Reading settings";
-  };
-
-  // Format font family for display
-  const formatFontFamily = (value: string) => {
-    switch (value) {
-      case "serif":
-        return "Serif";
-      case "sans":
-        return "Sans Serif";
-      case "mono":
-        return "Monospace";
-      default:
-        return value;
-    }
   };
 
   return (
@@ -192,7 +184,7 @@ export default function ReaderSettingsPopover({
                 <label className="text-sm font-medium">Font Size</label>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">
-                    {settings.fontSize}px
+                    {formatFontSize(settings.fontSize)}
                     {sessionOverrides.fontSize !== undefined && (
                       <span className="ml-1 text-xs">(preview)</span>
                     )}
@@ -213,7 +205,7 @@ export default function ReaderSettingsPopover({
                         <TooltipContent>
                           <p>
                             Clear device override to use global setting (
-                            {getServerValue("fontSize")}px)
+                            {formatFontSize(getServerValue("fontSize"))})
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -227,7 +219,11 @@ export default function ReaderSettingsPopover({
                   className="h-7 w-7 bg-transparent"
                   onClick={() =>
                     updateSession({
-                      fontSize: Math.max(12, settings.fontSize - 1),
+                      fontSize: Math.max(
+                        READER_SETTING_CONSTRAINTS.fontSize.min,
+                        settings.fontSize -
+                          READER_SETTING_CONSTRAINTS.fontSize.step,
+                      ),
                     })
                   }
                 >
@@ -238,9 +234,9 @@ export default function ReaderSettingsPopover({
                   onValueChange={([value]) =>
                     updateSession({ fontSize: value })
                   }
-                  max={24}
-                  min={12}
-                  step={1}
+                  max={READER_SETTING_CONSTRAINTS.fontSize.max}
+                  min={READER_SETTING_CONSTRAINTS.fontSize.min}
+                  step={READER_SETTING_CONSTRAINTS.fontSize.step}
                   className={`flex-1 ${
                     hasLocalOverride("fontSize") &&
                     sessionOverrides.fontSize === undefined
@@ -254,7 +250,11 @@ export default function ReaderSettingsPopover({
                   className="h-7 w-7 bg-transparent"
                   onClick={() =>
                     updateSession({
-                      fontSize: Math.min(24, settings.fontSize + 1),
+                      fontSize: Math.min(
+                        READER_SETTING_CONSTRAINTS.fontSize.max,
+                        settings.fontSize +
+                          READER_SETTING_CONSTRAINTS.fontSize.step,
+                      ),
                     })
                   }
                 >
@@ -268,7 +268,7 @@ export default function ReaderSettingsPopover({
                 <label className="text-sm font-medium">Line Height</label>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">
-                    {settings.lineHeight.toFixed(1)}
+                    {formatLineHeight(settings.lineHeight)}
                     {sessionOverrides.lineHeight !== undefined && (
                       <span className="ml-1 text-xs">(preview)</span>
                     )}
@@ -289,7 +289,7 @@ export default function ReaderSettingsPopover({
                         <TooltipContent>
                           <p>
                             Clear device override to use global setting (
-                            {getServerValue("lineHeight").toFixed(1)})
+                            {formatLineHeight(getServerValue("lineHeight"))})
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -304,8 +304,12 @@ export default function ReaderSettingsPopover({
                   onClick={() =>
                     updateSession({
                       lineHeight: Math.max(
-                        1.2,
-                        Math.round((settings.lineHeight - 0.1) * 10) / 10,
+                        READER_SETTING_CONSTRAINTS.lineHeight.min,
+                        Math.round(
+                          (settings.lineHeight -
+                            READER_SETTING_CONSTRAINTS.lineHeight.step) *
+                            10,
+                        ) / 10,
                       ),
                     })
                   }
@@ -317,9 +321,9 @@ export default function ReaderSettingsPopover({
                   onValueChange={([value]) =>
                     updateSession({ lineHeight: value })
                   }
-                  max={2.5}
-                  min={1.2}
-                  step={0.1}
+                  max={READER_SETTING_CONSTRAINTS.lineHeight.max}
+                  min={READER_SETTING_CONSTRAINTS.lineHeight.min}
+                  step={READER_SETTING_CONSTRAINTS.lineHeight.step}
                   className={`flex-1 ${
                     hasLocalOverride("lineHeight") &&
                     sessionOverrides.lineHeight === undefined
@@ -334,8 +338,12 @@ export default function ReaderSettingsPopover({
                   onClick={() =>
                     updateSession({
                       lineHeight: Math.min(
-                        2.5,
-                        Math.round((settings.lineHeight + 0.1) * 10) / 10,
+                        READER_SETTING_CONSTRAINTS.lineHeight.max,
+                        Math.round(
+                          (settings.lineHeight +
+                            READER_SETTING_CONSTRAINTS.lineHeight.step) *
+                            10,
+                        ) / 10,
                       ),
                     })
                   }

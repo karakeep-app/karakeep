@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
+import { api } from "@karakeep/shared-react/trpc";
 import {
   READER_DEFAULTS,
   ReaderSettings,
@@ -46,6 +46,10 @@ interface ReaderSettingsContextValue {
   setLocalOverrides: React.Dispatch<
     React.SetStateAction<ReaderSettingsPartial>
   >;
+  pendingServerSave: ReaderSettings | null;
+  setPendingServerSave: React.Dispatch<
+    React.SetStateAction<ReaderSettings | null>
+  >;
 }
 
 const ReaderSettingsContext = createContext<ReaderSettingsContextValue | null>(
@@ -62,6 +66,8 @@ export function ReaderSettingsProvider({
   const [localOverrides, setLocalOverrides] = useState<ReaderSettingsPartial>(
     {},
   );
+  const [pendingServerSave, setPendingServerSave] =
+    useState<ReaderSettings | null>(null);
 
   // Load local overrides from storage on mount
   useEffect(() => {
@@ -74,8 +80,10 @@ export function ReaderSettingsProvider({
       setSessionOverrides,
       localOverrides,
       setLocalOverrides,
+      pendingServerSave,
+      setPendingServerSave,
     }),
-    [sessionOverrides, localOverrides],
+    [sessionOverrides, localOverrides, pendingServerSave],
   );
 
   return (
@@ -98,30 +106,56 @@ export function useReaderSettings() {
     setSessionOverrides,
     localOverrides,
     setLocalOverrides,
+    pendingServerSave,
+    setPendingServerSave,
   } = context;
   const serverSettings = useUserSettings();
-  const { mutate: updateServerSettings } = useUpdateUserSettings();
 
-  // Compute effective settings with precedence: session → local → server → default
+  // Clear pending state only when server settings match what we saved
+  useEffect(() => {
+    if (pendingServerSave) {
+      const serverMatches =
+        serverSettings.readerFontSize === pendingServerSave.fontSize &&
+        serverSettings.readerLineHeight === pendingServerSave.lineHeight &&
+        serverSettings.readerFontFamily === pendingServerSave.fontFamily;
+      if (serverMatches) {
+        setPendingServerSave(null);
+      }
+    }
+  }, [serverSettings, pendingServerSave]);
+
+  const apiUtils = api.useUtils();
+  const { mutate: updateServerSettings } = api.users.updateSettings.useMutation(
+    {
+      onSettled: () => {
+        apiUtils.users.settings.invalidate();
+      },
+    },
+  );
+
+  // Compute effective settings with precedence: session → local → pendingSave → server → default
   const effectiveSettings: ReaderSettings = useMemo(
     () => ({
       fontSize:
         sessionOverrides.fontSize ??
         localOverrides.fontSize ??
+        pendingServerSave?.fontSize ??
         serverSettings.readerFontSize ??
         READER_DEFAULTS.fontSize,
       lineHeight:
         sessionOverrides.lineHeight ??
         localOverrides.lineHeight ??
+        pendingServerSave?.lineHeight ??
         serverSettings.readerLineHeight ??
         READER_DEFAULTS.lineHeight,
       fontFamily:
         sessionOverrides.fontFamily ??
         localOverrides.fontFamily ??
+        pendingServerSave?.fontFamily ??
         serverSettings.readerFontFamily ??
         READER_DEFAULTS.fontFamily,
     }),
-    [sessionOverrides, localOverrides, serverSettings],
+    [sessionOverrides, localOverrides, pendingServerSave, serverSettings],
   );
 
   // Update session override (live preview, not persisted)
@@ -170,12 +204,15 @@ export function useReaderSettings() {
 
   // Save current effective settings to server (all devices)
   const saveToServer = useCallback(() => {
+    const settingsToSave = { ...effectiveSettings };
+    // Set pending state to prevent flicker while server syncs
+    setPendingServerSave(settingsToSave);
     updateServerSettings({
-      readerFontSize: effectiveSettings.fontSize,
-      readerLineHeight: effectiveSettings.lineHeight,
-      readerFontFamily: effectiveSettings.fontFamily,
+      readerFontSize: settingsToSave.fontSize,
+      readerLineHeight: settingsToSave.lineHeight,
+      readerFontFamily: settingsToSave.fontFamily,
     });
-    // Clear session and local overrides since server now has these values
+    // Clear session and local overrides
     setSessionOverrides({});
     setLocalOverrides({});
     saveLocalOverridesToStorage({});
@@ -194,6 +231,24 @@ export function useReaderSettings() {
       readerFontFamily: null,
     });
   }, [updateServerSettings]);
+
+  // Update a single server setting (for settings page direct edits)
+  const updateServerSetting = useCallback(
+    (updates: ReaderSettingsPartial) => {
+      // Merge with current effective settings for pending state
+      const newSettings: ReaderSettings = {
+        ...effectiveSettings,
+        ...updates,
+      };
+      setPendingServerSave(newSettings);
+      updateServerSettings({
+        readerFontSize: updates.fontSize,
+        readerLineHeight: updates.lineHeight,
+        readerFontFamily: updates.fontFamily,
+      });
+    },
+    [effectiveSettings, updateServerSettings, setPendingServerSave],
+  );
 
   // Check if there are unsaved session changes
   const hasSessionChanges = Object.keys(sessionOverrides).length > 0;
@@ -225,6 +280,7 @@ export function useReaderSettings() {
     clearLocalOverrides,
     clearLocalOverride,
     saveToServer,
+    updateServerSetting,
     clearServerDefaults,
   };
 }
