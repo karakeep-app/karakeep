@@ -40,7 +40,7 @@ export default function ActionConfirmingDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {description}
+        <div className="py-4">{description}</div>
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
             <Button type="button" variant="secondary">

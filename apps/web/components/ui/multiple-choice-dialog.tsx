@@ -45,7 +45,7 @@ export default function MultipleChoiceDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {description}
+        <div className="py-4">{description}</div>
         <DialogFooter className="sm:justify-end">
           {actionButtons.map((actionButton) => actionButton(setDialogOpen))}
         </DialogFooter>
