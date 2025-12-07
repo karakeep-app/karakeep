@@ -1,3 +1,4 @@
+import * as undici from "undici";
 import { Ollama } from "ollama";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
@@ -68,9 +69,18 @@ class OpenAIInferenceClient implements InferenceClient {
   openAI: OpenAI;
 
   constructor() {
+    const fetchOptions = serverConfig.inference.openAIProxyUrl
+      ? {
+          dispatcher: new undici.ProxyAgent(
+            serverConfig.inference.openAIProxyUrl,
+          ),
+        }
+      : undefined;
+
     this.openAI = new OpenAI({
       apiKey: serverConfig.inference.openAIApiKey,
       baseURL: serverConfig.inference.openAIBaseUrl,
+      ...(fetchOptions ? { fetchOptions } : {}),
       defaultHeaders: {
         "X-Title": "Karakeep",
         "HTTP-Referer": "https://karakeep.app",
