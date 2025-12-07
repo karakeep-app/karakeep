@@ -41,6 +41,11 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
     ].join("; "),
   );
 
+  // Cache Headers
+  // Assets are immutable (identified by unique assetId), so we can cache aggressively
+  c.header("Cache-Control", "public, max-age=31536000, immutable");
+  c.header("Accept-Ranges", "bytes");
+
   const range = c.req.header("Range");
   if (range) {
     const parts = range.replace(/bytes=/, "").split("-");
@@ -55,7 +60,6 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
     });
     c.status(206); // Partial Content
     c.header("Content-Range", `bytes ${start}-${end}/${size}`);
-    c.header("Accept-Ranges", "bytes");
     c.header("Content-Length", (end - start + 1).toString());
     return stream(c, async (stream) => {
       await stream.pipe(toWebReadableStream(fStream));
