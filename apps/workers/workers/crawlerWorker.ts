@@ -24,8 +24,8 @@ import metascraperImage from "metascraper-image";
 import metascraperLogo from "metascraper-logo-favicon";
 import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
-import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
+import metascraperX from "metascraper-x";
 import metascraperYoutube from "metascraper-youtube";
 import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
@@ -143,7 +143,7 @@ const metascraperParser = metascraper([
   metascraperPublisher(),
   metascraperTitle(),
   metascraperDescription(),
-  metascraperTwitter(),
+  metascraperX(),
   metascraperImage(),
   metascraperLogo({
     gotOpts: {
