@@ -6,27 +6,10 @@ import * as os from "os";
 import { Transform } from "stream";
 import { pipeline } from "stream/promises";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
-import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
-import DOMPurify from "dompurify";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
-import { HttpProxyAgent } from "http-proxy-agent";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import { JSDOM, VirtualConsole } from "jsdom";
-import metascraper from "metascraper";
-import metascraperAmazon from "metascraper-amazon";
-import metascraperAuthor from "metascraper-author";
-import metascraperDate from "metascraper-date";
-import metascraperDescription from "metascraper-description";
-import metascraperImage from "metascraper-image";
-import metascraperLogo from "metascraper-logo-favicon";
-import metascraperPublisher from "metascraper-publisher";
-import metascraperTitle from "metascraper-title";
-import metascraperUrl from "metascraper-url";
-import metascraperX from "metascraper-x";
-import metascraperYoutube from "metascraper-youtube";
 import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
@@ -82,7 +65,7 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import { getParserWorkerPool } from "./parserWorkerPool";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
@@ -119,46 +102,6 @@ function normalizeContentType(header: string | null): string | null {
   }
   return header.split(";", 1)[0]!.trim().toLowerCase();
 }
-
-const metascraperParser = metascraper([
-  metascraperDate({
-    dateModified: true,
-    datePublished: true,
-  }),
-  metascraperAmazon(),
-  metascraperYoutube({
-    gotOpts: {
-      agent: {
-        http: serverConfig.proxy.httpProxy
-          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
-          : undefined,
-        https: serverConfig.proxy.httpsProxy
-          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
-          : undefined,
-      },
-    },
-  }),
-  metascraperReddit(),
-  metascraperAuthor(),
-  metascraperPublisher(),
-  metascraperTitle(),
-  metascraperDescription(),
-  metascraperX(),
-  metascraperImage(),
-  metascraperLogo({
-    gotOpts: {
-      agent: {
-        http: serverConfig.proxy.httpProxy
-          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
-          : undefined,
-        https: serverConfig.proxy.httpsProxy
-          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
-          : undefined,
-      },
-    },
-  }),
-  metascraperUrl(),
-]);
 
 interface Cookie {
   name: string;
@@ -626,61 +569,6 @@ async function crawlPage(
   }
 }
 
-async function extractMetadata(
-  htmlContent: string,
-  url: string,
-  jobId: string,
-) {
-  logger.info(
-    `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
-  );
-  const meta = await metascraperParser({
-    url,
-    html: htmlContent,
-    // We don't want to validate the URL again as we've already done it by visiting the page.
-    // This was added because URL validation fails if the URL ends with a question mark (e.g. empty query params).
-    validateUrl: false,
-  });
-  logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
-  return meta;
-}
-
-function extractReadableContent(
-  htmlContent: string,
-  url: string,
-  jobId: string,
-) {
-  logger.info(
-    `[Crawler][${jobId}] Will attempt to extract readable content ...`,
-  );
-  const virtualConsole = new VirtualConsole();
-  const dom = new JSDOM(htmlContent, { url, virtualConsole });
-  let result: { content: string } | null = null;
-  try {
-    const readableContent = new Readability(dom.window.document).parse();
-    if (!readableContent || typeof readableContent.content !== "string") {
-      return null;
-    }
-
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
-
-      logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
-      result = {
-        content: purifiedHTML,
-      };
-    } finally {
-      purifyWindow.close();
-    }
-  } finally {
-    dom.window.close();
-  }
-
-  return result;
-}
-
 async function storeScreenshot(
   screenshot: Buffer | undefined,
   userId: string,
@@ -1122,17 +1010,22 @@ async function crawlAndParseUrl(
     crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
   }
 
-  const meta = await Promise.race([
-    extractMetadata(htmlContent, browserUrl, jobId),
+  // Use worker thread pool for parsing
+  logger.info(
+    `[Crawler][${jobId}] Will attempt to extract metadata and readable content using worker thread ...`,
+  );
+  const parserPool = await getParserWorkerPool();
+  const parseResult = await Promise.race([
+    parserPool.parse(htmlContent, browserUrl, jobId),
     abortPromise(abortSignal),
   ]);
   abortSignal.throwIfAborted();
 
-  let readableContent = await Promise.race([
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
-  abortSignal.throwIfAborted();
+  const meta = parseResult.meta;
+  let readableContent = parseResult.readableContent;
+  logger.info(
+    `[Crawler][${jobId}] Done extracting metadata and readable content using worker thread.`,
+  );
 
   const screenshotAssetInfo = await Promise.race([
     storeScreenshot(screenshot, userId, jobId),
