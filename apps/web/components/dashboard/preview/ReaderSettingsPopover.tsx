@@ -109,8 +109,16 @@ export default function ReaderSettingsPopover({
           <p>{getSettingsTooltip()}</p>
         </TooltipContent>
       </Tooltip>
-      <PopoverContent side="bottom" align="end" className="w-80">
-        <div className="space-y-4">
+      <PopoverContent
+        side="bottom"
+        align="center"
+        collisionPadding={32}
+        className="flex w-80 flex-col overflow-hidden p-0"
+        style={{
+          maxHeight: "var(--radix-popover-content-available-height)",
+        }}
+      >
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           <div className="flex items-center justify-between pb-2">
             <div className="flex items-center gap-2">
               <Type className="h-4 w-4" />
