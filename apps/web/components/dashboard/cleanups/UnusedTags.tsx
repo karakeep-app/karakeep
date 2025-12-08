@@ -65,12 +65,12 @@ function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
 }
 
 interface UnusedTagsProps {
-  showAsCard?: boolean;
   showCount?: boolean;
+  searchQuery?: string;
 }
 
 export function UnusedTags({
-  showAsCard = true,
+  searchQuery = "",
   showCount = true,
 }: UnusedTagsProps) {
   const { t } = useTranslation();
@@ -84,7 +84,7 @@ export function UnusedTags({
     fetchNextPage: fetchNextPageUnusedTags,
     isFetchingNextPage: isFetchingNextPageUnusedTags,
   } = usePaginatedSearchTags({
-    nameContains: "",
+    nameContains: searchQuery,
     sortBy: "usage",
     attachedBy: "none",
     limit: 50,
@@ -97,70 +97,6 @@ export function UnusedTags({
     setSelectedTag(tag);
   };
 
-  const content = (
-    <>
-      {selectedTag && (
-        <DeleteTagConfirmationDialog
-          tag={selectedTag}
-          open={isDialogOpen}
-          setOpen={(o) => {
-            if (!o) {
-              setSelectedTag(null);
-            }
-          }}
-        />
-      )}
-      {isUnusedTagsLoading && unusedTags.length === 0 ? (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner />
-        </div>
-      ) : (
-        <>
-          {unusedTags.length > 0 && (
-            <div className="flex flex-wrap gap-3">
-              {unusedTags.map((tag) => (
-                <TagPill
-                  key={tag.id}
-                  id={tag.id}
-                  name={tag.name}
-                  count={showCount ? tag.numBookmarks : 0}
-                  isDraggable={false}
-                  onOpenDialog={handleOpenDialog}
-                  showCount={false}
-                />
-              ))}
-            </div>
-          )}
-          {unusedTags.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              {t("tags.no_unused_tags")}
-            </p>
-          )}
-          {hasNextPageUnusedTags && (
-            <div className="mt-4">
-              <ActionButton
-                variant="secondary"
-                onClick={() => fetchNextPageUnusedTags()}
-                loading={isFetchingNextPageUnusedTags}
-                ignoreDemoMode
-              >
-                {t("actions.load_more")}
-              </ActionButton>
-            </div>
-          )}
-          {numUnusedTags > 0 && (
-            <div className="mt-4">
-              <DeleteAllUnusedTags numUnusedTags={numUnusedTags} />
-            </div>
-          )}
-        </>
-      )}
-    </>
-  );
-  if (!showAsCard) {
-    return content;
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -170,7 +106,64 @@ export function UnusedTags({
         </CardTitle>
         <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">{content}</CardContent>
+      <CardContent className="flex flex-col gap-4">
+        {selectedTag && (
+          <DeleteTagConfirmationDialog
+            tag={selectedTag}
+            open={isDialogOpen}
+            setOpen={(o) => {
+              if (!o) {
+                setSelectedTag(null);
+              }
+            }}
+          />
+        )}
+        {isUnusedTagsLoading && unusedTags.length === 0 ? (
+          <div className="flex justify-center py-8">
+            <LoadingSpinner />
+          </div>
+        ) : (
+          <>
+            {unusedTags.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {unusedTags.map((tag) => (
+                  <TagPill
+                    key={tag.id}
+                    id={tag.id}
+                    name={tag.name}
+                    count={showCount ? tag.numBookmarks : 0}
+                    isDraggable={false}
+                    onOpenDialog={handleOpenDialog}
+                    showCount={false}
+                  />
+                ))}
+              </div>
+            )}
+            {unusedTags.length === 0 && (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                {t("tags.no_unused_tags")}
+              </p>
+            )}
+            {hasNextPageUnusedTags && (
+              <div className="mt-4">
+                <ActionButton
+                  variant="secondary"
+                  onClick={() => fetchNextPageUnusedTags()}
+                  loading={isFetchingNextPageUnusedTags}
+                  ignoreDemoMode
+                >
+                  {t("actions.load_more")}
+                </ActionButton>
+              </div>
+            )}
+            {numUnusedTags > 0 && (
+              <div className="mt-4">
+                <DeleteAllUnusedTags numUnusedTags={numUnusedTags} />
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
     </Card>
   );
 }

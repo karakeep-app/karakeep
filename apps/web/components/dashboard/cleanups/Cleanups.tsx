@@ -12,7 +12,7 @@ export function Cleanups() {
 
       <DuplicateTags />
 
-      <UnusedTags showAsCard={true} showCount={true} />
+      <UnusedTags showCount={true} />
     </div>
   );
 }

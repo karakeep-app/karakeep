@@ -332,7 +332,7 @@ export default function AllTagsView() {
           )}
         </CardContent>
       </Card>
-      <UnusedTags showAsCard={true} showCount={true} />
+      <UnusedTags searchQuery={searchQuery} showCount={false} />
     </div>
   );
 }
