@@ -16,7 +16,7 @@ import { useBookmarkImport } from "@/lib/hooks/useBookmarkImport";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Download, Loader2, Upload, X } from "lucide-react";
+import { AlertCircle, Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
 import { toast } from "../ui/use-toast";
@@ -132,7 +132,7 @@ function ExportButton() {
 
 export function ImportExportRow() {
   const { t } = useTranslation();
-  const { importProgress, quotaError, clearQuotaError, runUploadBookmarkFile } =
+  const { importProgress, quotaError, runUploadBookmarkFile } =
     useBookmarkImport();
 
   return (
@@ -142,14 +142,6 @@ export function ImportExportRow() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Import Quota Exceeded</AlertTitle>
           <AlertDescription>{quotaError}</AlertDescription>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-2 top-2 h-6 w-6 p-0"
-            onClick={clearQuotaError}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </Alert>
       )}
       <div className="grid gap-4 md:grid-cols-2">

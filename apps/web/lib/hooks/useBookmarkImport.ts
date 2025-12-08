@@ -68,9 +68,12 @@ export function useBookmarkImport() {
         const quotaUsage =
           await apiUtils.client.subscriptions.getQuotaUsage.query();
 
-        if (!quotaUsage.bookmarks.unlimited) {
+        if (
+          !quotaUsage.bookmarks.unlimited &&
+          quotaUsage.bookmarks.quota !== null
+        ) {
           const remaining =
-            quotaUsage.bookmarks.quota! - quotaUsage.bookmarks.used;
+            quotaUsage.bookmarks.quota - quotaUsage.bookmarks.used;
 
           if (remaining < bookmarkCount) {
             const errorMsg = `Cannot import ${bookmarkCount} bookmarks. You have ${remaining} bookmark${remaining === 1 ? "" : "s"} remaining in your quota of ${quotaUsage.bookmarks.quota}.`;
