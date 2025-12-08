@@ -60,6 +60,7 @@ export default function ReaderSettingsPopover({
     sessionOverrides,
     hasSessionChanges,
     hasLocalOverrides,
+    isSaving,
     updateSession,
     clearSession,
     saveToDevice,
@@ -375,6 +376,7 @@ export default function ReaderSettingsPopover({
                       variant="outline"
                       size="sm"
                       className="flex-1"
+                      disabled={isSaving}
                       onClick={() => saveToDevice()}
                     >
                       <Laptop className="mr-2 h-4 w-4" />
@@ -384,6 +386,7 @@ export default function ReaderSettingsPopover({
                       variant="default"
                       size="sm"
                       className="flex-1"
+                      disabled={isSaving}
                       onClick={() => saveToServer()}
                     >
                       <Globe className="mr-2 h-4 w-4" />

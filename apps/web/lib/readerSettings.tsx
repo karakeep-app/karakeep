@@ -125,8 +125,8 @@ export function useReaderSettings() {
   }, [serverSettings, pendingServerSave]);
 
   const apiUtils = api.useUtils();
-  const { mutate: updateServerSettings } = api.users.updateSettings.useMutation(
-    {
+  const { mutate: updateServerSettings, isPending: isSaving } =
+    api.users.updateSettings.useMutation({
       onSuccess: () => {
         // Clear session and local overrides only after successful server save
         setSessionOverrides({});
@@ -136,8 +136,7 @@ export function useReaderSettings() {
       onSettled: () => {
         apiUtils.users.settings.invalidate();
       },
-    },
-  );
+    });
 
   // Compute effective settings with precedence: session → local → pendingSave → server → default
   const effectiveSettings: ReaderSettings = useMemo(
@@ -270,6 +269,7 @@ export function useReaderSettings() {
     // State indicators
     hasSessionChanges,
     hasLocalOverrides,
+    isSaving,
 
     // Actions
     updateSession,
