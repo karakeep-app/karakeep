@@ -127,6 +127,12 @@ export function useReaderSettings() {
   const apiUtils = api.useUtils();
   const { mutate: updateServerSettings } = api.users.updateSettings.useMutation(
     {
+      onSuccess: () => {
+        // Clear session and local overrides only after successful server save
+        setSessionOverrides({});
+        setLocalOverrides({});
+        saveLocalOverridesToStorage({});
+      },
       onSettled: () => {
         apiUtils.users.settings.invalidate();
       },
@@ -212,16 +218,8 @@ export function useReaderSettings() {
       readerLineHeight: settingsToSave.lineHeight,
       readerFontFamily: settingsToSave.fontFamily,
     });
-    // Clear session and local overrides
-    setSessionOverrides({});
-    setLocalOverrides({});
-    saveLocalOverridesToStorage({});
-  }, [
-    effectiveSettings,
-    updateServerSettings,
-    setSessionOverrides,
-    setLocalOverrides,
-  ]);
+    // Note: Session and local overrides are cleared in onSuccess callback
+  }, [effectiveSettings, updateServerSettings, setPendingServerSave]);
 
   // Clear all server defaults (set to null)
   const clearServerDefaults = useCallback(() => {

@@ -152,7 +152,11 @@
         "clear_local_overrides": "Clear device settings",
         "serif": "Serif",
         "sans": "Sans Serif",
-        "mono": "Monospace"
+        "mono": "Monospace",
+        "tooltip_default": "Reading settings",
+        "tooltip_preview": "Unsaved preview changes",
+        "tooltip_local": "Device settings differ from global",
+        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global"
       }
     },
     "stats": {

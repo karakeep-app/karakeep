@@ -478,15 +478,9 @@ export class User {
         backupsEnabled: input.backupsEnabled,
         backupsFrequency: input.backupsFrequency,
         backupsRetentionDays: input.backupsRetentionDays,
-        ...(input.readerFontSize !== undefined && {
-          readerFontSize: input.readerFontSize,
-        }),
-        ...(input.readerLineHeight !== undefined && {
-          readerLineHeight: input.readerLineHeight,
-        }),
-        ...(input.readerFontFamily !== undefined && {
-          readerFontFamily: input.readerFontFamily,
-        }),
+        readerFontSize: input.readerFontSize,
+        readerLineHeight: input.readerLineHeight,
+        readerFontFamily: input.readerFontFamily,
       })
       .where(eq(users.id, this.user.id));
   }

@@ -20,6 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
 import {
   Globe,
@@ -51,6 +52,7 @@ export default function ReaderSettingsPopover({
   onOpenChange,
   variant = "outline",
 }: ReaderSettingsPopoverProps) {
+  const { t } = useTranslation();
   const {
     settings,
     serverSettings,
@@ -78,15 +80,15 @@ export default function ReaderSettingsPopover({
   // Build tooltip message for the settings button
   const getSettingsTooltip = () => {
     if (hasSessionChanges && hasLocalOverrides) {
-      return "Unsaved preview changes; device settings differ from global";
+      return t("settings.info.reader_settings.tooltip_preview_and_local");
     }
     if (hasSessionChanges) {
-      return "Unsaved preview changes";
+      return t("settings.info.reader_settings.tooltip_preview");
     }
     if (hasLocalOverrides) {
-      return "Device settings differ from global";
+      return t("settings.info.reader_settings.tooltip_local");
     }
-    return "Reading settings";
+    return t("settings.info.reader_settings.tooltip_default");
   };
 
   return (
