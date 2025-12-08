@@ -156,7 +156,13 @@
         "tooltip_default": "Reading settings",
         "tooltip_preview": "Unsaved preview changes",
         "tooltip_local": "Device settings differ from global",
-        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global"
+        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global",
+        "reset_preview": "Reset preview",
+        "save_to_device": "This device",
+        "save_to_all_devices": "All devices",
+        "save_hint": "Save settings for this device only or sync across all devices",
+        "adjust_hint": "Adjust settings above to preview changes",
+        "clear_override_hint": "Clear device override to use global setting ({{value}})"
       }
     },
     "stats": {

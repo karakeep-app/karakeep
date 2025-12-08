@@ -122,11 +122,13 @@ export default function ReaderSettingsPopover({
           <div className="flex items-center justify-between pb-2">
             <div className="flex items-center gap-2">
               <Type className="h-4 w-4" />
-              <h3 className="font-semibold">Reading Settings</h3>
+              <h3 className="font-semibold">
+                {t("settings.info.reader_settings.title")}
+              </h3>
             </div>
             {hasSessionChanges && (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                Preview
+                {t("settings.info.reader_settings.preview")}
               </span>
             )}
           </div>
@@ -134,7 +136,9 @@ export default function ReaderSettingsPopover({
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Font Family</label>
+                <label className="text-sm font-medium">
+                  {t("settings.info.reader_settings.font_family")}
+                </label>
                 <div className="flex items-center gap-1">
                   {sessionOverrides.fontFamily !== undefined && (
                     <span className="text-xs text-muted-foreground">
@@ -156,8 +160,14 @@ export default function ReaderSettingsPopover({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Clear device override to use global setting (
-                            {formatFontFamily(getServerValue("fontFamily"))})
+                            {t(
+                              "settings.info.reader_settings.clear_override_hint",
+                              {
+                                value: formatFontFamily(
+                                  getServerValue("fontFamily"),
+                                ),
+                              },
+                            )}
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -183,16 +193,24 @@ export default function ReaderSettingsPopover({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="serif">Serif</SelectItem>
-                  <SelectItem value="sans">Sans Serif</SelectItem>
-                  <SelectItem value="mono">Monospace</SelectItem>
+                  <SelectItem value="serif">
+                    {t("settings.info.reader_settings.serif")}
+                  </SelectItem>
+                  <SelectItem value="sans">
+                    {t("settings.info.reader_settings.sans")}
+                  </SelectItem>
+                  <SelectItem value="mono">
+                    {t("settings.info.reader_settings.mono")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Font Size</label>
+                <label className="text-sm font-medium">
+                  {t("settings.info.reader_settings.font_size")}
+                </label>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">
                     {formatFontSize(settings.fontSize)}
@@ -215,8 +233,14 @@ export default function ReaderSettingsPopover({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Clear device override to use global setting (
-                            {formatFontSize(getServerValue("fontSize"))})
+                            {t(
+                              "settings.info.reader_settings.clear_override_hint",
+                              {
+                                value: formatFontSize(
+                                  getServerValue("fontSize"),
+                                ),
+                              },
+                            )}
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -276,7 +300,9 @@ export default function ReaderSettingsPopover({
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Line Height</label>
+                <label className="text-sm font-medium">
+                  {t("settings.info.reader_settings.line_height")}
+                </label>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">
                     {formatLineHeight(settings.lineHeight)}
@@ -299,8 +325,14 @@ export default function ReaderSettingsPopover({
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Clear device override to use global setting (
-                            {formatLineHeight(getServerValue("lineHeight"))})
+                            {t(
+                              "settings.info.reader_settings.clear_override_hint",
+                              {
+                                value: formatLineHeight(
+                                  getServerValue("lineHeight"),
+                                ),
+                              },
+                            )}
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -376,7 +408,7 @@ export default function ReaderSettingsPopover({
                     onClick={() => clearSession()}
                   >
                     <RotateCcw className="mr-2 h-4 w-4" />
-                    Reset preview
+                    {t("settings.info.reader_settings.reset_preview")}
                   </Button>
 
                   <div className="flex gap-2">
@@ -388,7 +420,7 @@ export default function ReaderSettingsPopover({
                       onClick={() => saveToDevice()}
                     >
                       <Laptop className="mr-2 h-4 w-4" />
-                      This device
+                      {t("settings.info.reader_settings.save_to_device")}
                     </Button>
                     <Button
                       variant="default"
@@ -398,13 +430,12 @@ export default function ReaderSettingsPopover({
                       onClick={() => saveToServer()}
                     >
                       <Globe className="mr-2 h-4 w-4" />
-                      All devices
+                      {t("settings.info.reader_settings.save_to_all_devices")}
                     </Button>
                   </div>
 
                   <p className="text-center text-xs text-muted-foreground">
-                    Save settings for this device only or sync across all
-                    devices
+                    {t("settings.info.reader_settings.save_hint")}
                   </p>
                 </div>
               </>
@@ -412,7 +443,7 @@ export default function ReaderSettingsPopover({
 
             {!hasSessionChanges && (
               <p className="text-center text-xs text-muted-foreground">
-                Adjust settings above to preview changes
+                {t("settings.info.reader_settings.adjust_hint")}
               </p>
             )}
           </div>
