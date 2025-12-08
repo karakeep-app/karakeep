@@ -17,8 +17,8 @@ import { api } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
-  parseImportFile,
   ParsedBookmark,
+  parseImportFile,
 } from "@karakeep/shared/import-export";
 import {
   BookmarkTypes,
@@ -65,16 +65,18 @@ export function useBookmarkImport() {
 
       // Check quota before proceeding
       if (bookmarkCount > 0) {
-        const quotaCheck = await apiUtils.client.bookmarks.checkImportQuota.query({
-          count: bookmarkCount,
-        });
+        const quotaUsage =
+          await apiUtils.client.subscriptions.getQuotaUsage.query();
 
-        if (!quotaCheck.canImport) {
-          const errorMsg =
-            quotaCheck.error ||
-            `Cannot import ${bookmarkCount} bookmarks. Quota exceeded.`;
-          setQuotaError(errorMsg);
-          throw new Error(errorMsg);
+        if (!quotaUsage.bookmarks.unlimited) {
+          const remaining =
+            quotaUsage.bookmarks.quota! - quotaUsage.bookmarks.used;
+
+          if (remaining < bookmarkCount) {
+            const errorMsg = `Cannot import ${bookmarkCount} bookmarks. You have ${remaining} bookmark${remaining === 1 ? "" : "s"} remaining in your quota of ${quotaUsage.bookmarks.quota}.`;
+            setQuotaError(errorMsg);
+            throw new Error(errorMsg);
+          }
         }
       }
 

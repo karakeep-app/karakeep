@@ -107,43 +107,6 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
 }
 
 export const bookmarksAppRouter = router({
-  checkImportQuota: authedProcedure
-    .input(
-      z.object({
-        count: z.number().int().positive(),
-      }),
-    )
-    .output(
-      z.object({
-        canImport: z.boolean(),
-        error: z.string().optional(),
-        currentCount: z.number().optional(),
-        quota: z.number().optional(),
-        remaining: z.number().optional(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      const result = await QuotaService.canImportBookmarks(
-        ctx.db,
-        ctx.user.id,
-        input.count,
-      );
-
-      if (!result.result) {
-        return {
-          canImport: false,
-          error: result.error,
-          currentCount: result.currentCount,
-          quota: result.quota,
-          remaining: result.remaining,
-        };
-      }
-
-      return {
-        canImport: true,
-      };
-    }),
-
   createBookmark: authedProcedure
     .input(zNewBookmarkRequestSchema)
     .output(
