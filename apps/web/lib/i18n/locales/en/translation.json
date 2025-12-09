@@ -162,7 +162,8 @@
         "save_to_all_devices": "All devices",
         "save_hint": "Save settings for this device only or sync across all devices",
         "adjust_hint": "Adjust settings above to preview changes",
-        "clear_override_hint": "Clear device override to use global setting ({{value}})"
+        "clear_override_hint": "Clear device override to use global setting ({{value}})",
+        "preview_inline": "(preview)"
       }
     },
     "stats": {

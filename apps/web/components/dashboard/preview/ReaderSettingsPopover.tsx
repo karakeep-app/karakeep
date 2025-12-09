@@ -34,7 +34,6 @@ import {
 } from "lucide-react";
 
 import {
-  formatFontFamily,
   formatFontSize,
   formatLineHeight,
   READER_DEFAULTS,
@@ -142,7 +141,7 @@ export default function ReaderSettingsPopover({
                 <div className="flex items-center gap-1">
                   {sessionOverrides.fontFamily !== undefined && (
                     <span className="text-xs text-muted-foreground">
-                      (preview)
+                      {t("settings.info.reader_settings.preview_inline")}
                     </span>
                   )}
                   {hasLocalOverride("fontFamily") &&
@@ -163,8 +162,8 @@ export default function ReaderSettingsPopover({
                             {t(
                               "settings.info.reader_settings.clear_override_hint",
                               {
-                                value: formatFontFamily(
-                                  getServerValue("fontFamily"),
+                                value: t(
+                                  `settings.info.reader_settings.${getServerValue("fontFamily")}` as const,
                                 ),
                               },
                             )}
@@ -215,7 +214,9 @@ export default function ReaderSettingsPopover({
                   <span className="text-sm text-muted-foreground">
                     {formatFontSize(settings.fontSize)}
                     {sessionOverrides.fontSize !== undefined && (
-                      <span className="ml-1 text-xs">(preview)</span>
+                      <span className="ml-1 text-xs">
+                        {t("settings.info.reader_settings.preview_inline")}
+                      </span>
                     )}
                   </span>
                   {hasLocalOverride("fontSize") &&
@@ -307,7 +308,9 @@ export default function ReaderSettingsPopover({
                   <span className="text-sm text-muted-foreground">
                     {formatLineHeight(settings.lineHeight)}
                     {sessionOverrides.lineHeight !== undefined && (
-                      <span className="ml-1 text-xs">(preview)</span>
+                      <span className="ml-1 text-xs">
+                        {t("settings.info.reader_settings.preview_inline")}
+                      </span>
                     )}
                   </span>
                   {hasLocalOverride("lineHeight") &&
