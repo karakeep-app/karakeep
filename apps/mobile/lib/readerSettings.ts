@@ -18,13 +18,6 @@ export const MOBILE_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
   mono: "Courier",
 } as const;
 
-// Font families for WebView HTML content (can use CSS font stacks)
-export const WEBVIEW_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
-  serif: "Georgia, 'Times New Roman', serif",
-  sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-  mono: "ui-monospace, Menlo, Monaco, 'Courier New', monospace",
-} as const;
-
 export function useReaderSettings() {
   const { settings: localSettings, setSettings } = useAppSettings();
   const { data: serverSettings } = api.users.settings.useQuery();

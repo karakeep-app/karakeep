@@ -6,18 +6,14 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
-import { MOBILE_FONT_FAMILIES } from "@/lib/readerSettings";
-import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { MOBILE_FONT_FAMILIES, useReaderSettings } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { Check, RotateCcw } from "lucide-react-native";
 
-import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
   formatFontFamily,
   formatFontSize,
   formatLineHeight,
-  READER_DEFAULTS,
   READER_SETTING_CONSTRAINTS,
 } from "@karakeep/shared/types/readers";
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
@@ -26,27 +22,22 @@ export default function ReaderSettingsPage() {
   const { toast } = useToast();
   const { isDarkColorScheme: isDark } = useColorScheme();
 
-  // Get local settings directly
-  const { settings: localSettings, setSettings } = useAppSettings();
+  const {
+    settings,
+    localOverrides,
+    hasLocalOverrides,
+    hasServerDefaults,
+    updateLocal,
+    clearAllLocal,
+    saveAsDefault,
+    clearAllDefaults,
+  } = useReaderSettings();
 
-  // Get server settings
-  const { data: serverSettings, refetch: refetchServerSettings } =
-    api.users.settings.useQuery();
-  const { mutate: updateServerSettings } = useUpdateUserSettings();
-
-  // Compute effective settings with precedence: local → server → default
-  const effectiveFontSize =
-    localSettings.readerFontSize ??
-    serverSettings?.readerFontSize ??
-    READER_DEFAULTS.fontSize;
-  const effectiveLineHeight =
-    localSettings.readerLineHeight ??
-    serverSettings?.readerLineHeight ??
-    READER_DEFAULTS.lineHeight;
-  const effectiveFontFamily =
-    localSettings.readerFontFamily ??
-    serverSettings?.readerFontFamily ??
-    READER_DEFAULTS.fontFamily;
+  const {
+    fontSize: effectiveFontSize,
+    lineHeight: effectiveLineHeight,
+    fontFamily: effectiveFontFamily,
+  } = settings;
 
   // Shared values for sliders
   const fontSizeProgress = useSharedValue<number>(effectiveFontSize);
@@ -82,68 +73,28 @@ export default function ReaderSettingsPage() {
   }, [effectiveLineHeight]);
 
   const handleFontFamilyChange = (fontFamily: ZReaderFontFamily) => {
-    setSettings({
-      ...localSettings,
-      readerFontFamily: fontFamily,
-    });
+    updateLocal({ fontFamily });
   };
 
   const handleFontSizeChange = (value: number) => {
-    setSettings({
-      ...localSettings,
-      readerFontSize: Math.round(value),
-    });
+    updateLocal({ fontSize: Math.round(value) });
   };
 
   const handleLineHeightChange = (value: number) => {
-    const rounded = Math.round(value * 10) / 10;
-    setSettings({
-      ...localSettings,
-      readerLineHeight: rounded,
-    });
+    updateLocal({ lineHeight: Math.round(value * 10) / 10 });
   };
 
   const handleSaveAsDefault = () => {
-    // Save current effective settings to server
-    updateServerSettings(
-      {
-        readerFontSize: effectiveFontSize,
-        readerLineHeight: effectiveLineHeight,
-        readerFontFamily: effectiveFontFamily,
-      },
-      {
-        onSuccess: async () => {
-          // Refetch server settings to get updated values
-          await refetchServerSettings();
-          // Clear local overrides after server update succeeds
-          setSettings({
-            ...localSettings,
-            readerFontSize: undefined,
-            readerLineHeight: undefined,
-            readerFontFamily: undefined,
-          });
-          toast({
-            message: "Reader settings saved as default for all devices",
-            showProgress: false,
-          });
-        },
-        onError: () => {
-          toast({
-            message: "Failed to save settings",
-            showProgress: false,
-          });
-        },
-      },
-    );
+    saveAsDefault();
+    clearAllLocal();
+    toast({
+      message: "Reader settings saved as default for all devices",
+      showProgress: false,
+    });
   };
 
   const handleClearLocalOverrides = () => {
-    setSettings({
-      ...localSettings,
-      readerFontSize: undefined,
-      readerLineHeight: undefined,
-      readerFontFamily: undefined,
-    });
+    clearAllLocal();
     toast({
       message: "Local overrides cleared",
       showProgress: false,
@@ -151,26 +102,12 @@ export default function ReaderSettingsPage() {
   };
 
   const handleClearServerDefaults = () => {
-    updateServerSettings({
-      readerFontSize: null,
-      readerLineHeight: null,
-      readerFontFamily: null,
-    });
+    clearAllDefaults();
     toast({
       message: "Server defaults cleared",
       showProgress: false,
     });
   };
-
-  const hasLocalOverrides =
-    localSettings.readerFontSize !== undefined ||
-    localSettings.readerLineHeight !== undefined ||
-    localSettings.readerFontFamily !== undefined;
-
-  const hasServerDefaults =
-    serverSettings?.readerFontSize != null ||
-    serverSettings?.readerLineHeight != null ||
-    serverSettings?.readerFontFamily != null;
 
   const fontFamilyOptions: ZReaderFontFamily[] = ["serif", "sans", "mono"];
 
@@ -181,7 +118,7 @@ export default function ReaderSettingsPage() {
         <View className="w-full">
           <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
             Font Family
-            {localSettings.readerFontFamily !== undefined && (
+            {localOverrides.fontFamily !== undefined && (
               <Text className="text-blue-500"> (local)</Text>
             )}
           </Text>
@@ -216,7 +153,7 @@ export default function ReaderSettingsPage() {
         <View className="w-full">
           <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
             Font Size ({formatFontSize(displayFontSize)})
-            {localSettings.readerFontSize !== undefined && (
+            {localOverrides.fontSize !== undefined && (
               <Text className="text-blue-500"> (local)</Text>
             )}
           </Text>
@@ -249,7 +186,7 @@ export default function ReaderSettingsPage() {
         <View className="w-full">
           <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
             Line Height ({formatLineHeight(displayLineHeight)})
-            {localSettings.readerLineHeight !== undefined && (
+            {localOverrides.lineHeight !== undefined && (
               <Text className="text-blue-500"> (local)</Text>
             )}
           </Text>
