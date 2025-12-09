@@ -16,6 +16,7 @@ import {
   Hash,
   Link,
   List,
+  ListMinus,
   Pencil,
   RotateCw,
   Trash2,
@@ -27,6 +28,9 @@ import {
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
+import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
+import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
+import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks/lists";
 import { limitConcurrency } from "@karakeep/shared/concurrency";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -51,10 +55,16 @@ export default function BulkBookmarksAction() {
   );
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRemoveFromListDialogOpen, setIsRemoveFromListDialogOpen] =
+    useState(false);
   const [manageListsModal, setManageListsModalOpen] = useState(false);
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);
   const pathname = usePathname();
   const [currentPathname, setCurrentPathname] = useState("");
+
+  // Get list context for bulk remove from list
+  const withinListContext = useBookmarkListContext();
+  const { listId } = useBookmarkGridContext() ?? {};
 
   // Reset bulk edit state when the route changes
   useEffect(() => {
@@ -87,6 +97,13 @@ export default function BulkBookmarksAction() {
   });
 
   const recrawlBookmarkMutator = useRecrawlBookmark({
+    onSuccess: () => {
+      setIsBulkEditEnabled(false);
+    },
+    onError,
+  });
+
+  const removeBookmarkFromListMutator = useRemoveBookmarkFromList({
     onSuccess: () => {
       setIsBulkEditEnabled(false);
     },
@@ -185,6 +202,31 @@ export default function BulkBookmarksAction() {
     setIsDeleteDialogOpen(false);
   };
 
+  const removeBookmarksFromList = async () => {
+    if (!listId) return;
+
+    const results = await Promise.allSettled(
+      limitConcurrency(
+        selectedBookmarks.map(
+          (item) => () =>
+            removeBookmarkFromListMutator.mutateAsync({
+              bookmarkId: item.id,
+              listId,
+            }),
+        ),
+        MAX_CONCURRENT_BULK_ACTIONS,
+      ),
+    );
+
+    const successes = results.filter((r) => r.status === "fulfilled").length;
+    if (successes > 0) {
+      toast({
+        description: `${successes} bookmarks have been removed from the list!`,
+      });
+    }
+    setIsRemoveFromListDialogOpen(false);
+  };
+
   const alreadyFavourited =
     selectedBookmarks.length &&
     selectedBookmarks.every((item) => item.favourited === true);
@@ -209,6 +251,19 @@ export default function BulkBookmarksAction() {
       action: () => setManageListsModalOpen(true),
       isPending: false,
       hidden: !isBulkEditEnabled,
+    },
+    {
+      name: t("actions.remove_from_list"),
+      icon: <ListMinus size={18} />,
+      action: () => setIsRemoveFromListDialogOpen(true),
+      isPending: removeBookmarkFromListMutator.isPending,
+      hidden:
+        !isBulkEditEnabled ||
+        !listId ||
+        !withinListContext ||
+        withinListContext.type !== "manual" ||
+        (withinListContext.userRole !== "editor" &&
+          withinListContext.userRole !== "owner"),
     },
     {
       name: t("actions.edit_tags"),
@@ -296,6 +351,27 @@ export default function BulkBookmarksAction() {
             onClick={() => deleteBookmarks()}
           >
             {t("actions.delete")}
+          </ActionButton>
+        )}
+      />
+      <ActionConfirmingDialog
+        open={isRemoveFromListDialogOpen}
+        setOpen={setIsRemoveFromListDialogOpen}
+        title={"Remove Bookmarks from List"}
+        description={
+          <p>
+            Are you sure you want to remove {selectedBookmarks.length}{" "}
+            bookmarks from this list?
+          </p>
+        }
+        actionButton={() => (
+          <ActionButton
+            type="button"
+            variant="destructive"
+            loading={removeBookmarkFromListMutator.isPending}
+            onClick={() => removeBookmarksFromList()}
+          >
+            {t("actions.remove")}
           </ActionButton>
         )}
       />
