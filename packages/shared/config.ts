@@ -93,6 +93,7 @@ const allEnv = z.object({
   SEARCH_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   WEBHOOK_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_NUM_WORKERS: z.coerce.number().default(1),
+  ASSET_PREPROCESSING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   RULE_ENGINE_NUM_WORKERS: z.coerce.number().default(1),
   CRAWLER_DOWNLOAD_BANNER_IMAGE: stringBool("true"),
   CRAWLER_STORE_SCREENSHOT: stringBool("true"),
@@ -353,6 +354,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     allowedInternalHostnames: val.CRAWLER_ALLOWED_INTERNAL_HOSTNAMES,
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
+      jobTimeoutSec: val.ASSET_PREPROCESSING_JOB_TIMEOUT_SEC,
     },
     ruleEngine: {
       numWorkers: val.RULE_ENGINE_NUM_WORKERS,
