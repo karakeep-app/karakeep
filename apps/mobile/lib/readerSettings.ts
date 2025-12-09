@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { Platform } from "react-native";
 
 import {
   READER_DEFAULTS,
@@ -10,12 +11,31 @@ import { ZReaderFontFamily } from "@karakeep/shared/types/users";
 import useAppSettings from "./settings";
 import { api } from "./trpc";
 
-// Mobile-specific font families - React Native only accepts single font names
-// These are system fonts available on iOS/Android
-export const MOBILE_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
-  serif: "Georgia",
-  sans: "System", // Uses the system default sans-serif font
-  mono: "Courier",
+// Mobile-specific font families for native Text components
+// On Android, use generic font family names: "serif", "sans-serif", "monospace"
+// On iOS, use specific font names like "Georgia" and "Courier"
+// Note: undefined means use the system default font
+export const MOBILE_FONT_FAMILIES: Record<
+  ZReaderFontFamily,
+  string | undefined
+> = Platform.select({
+  android: {
+    serif: "serif",
+    sans: undefined,
+    mono: "monospace",
+  },
+  default: {
+    serif: "Georgia",
+    sans: undefined,
+    mono: "Courier",
+  },
+})!;
+
+// Font families for WebView HTML content (CSS font stacks)
+export const WEBVIEW_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
+  serif: "Georgia, 'Times New Roman', serif",
+  sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+  mono: "ui-monospace, Menlo, Monaco, 'Courier New', monospace",
 } as const;
 
 export function useReaderSettings() {

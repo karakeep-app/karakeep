@@ -5,12 +5,11 @@ import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
-import { useReaderSettings } from "@/lib/readerSettings";
+import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { api } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
-import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
@@ -64,7 +63,7 @@ export function BookmarkLinkReaderPreview({
     throw new Error("Wrong content type rendered");
   }
 
-  const fontFamily = READER_FONT_FAMILIES[readerSettings.fontFamily];
+  const fontFamily = WEBVIEW_FONT_FAMILIES[readerSettings.fontFamily];
   const fontSize = readerSettings.fontSize;
   const lineHeight = readerSettings.lineHeight;
 
