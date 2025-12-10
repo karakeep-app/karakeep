@@ -25,6 +25,7 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
   // Default Headers
   c.header("Content-type", metadata.contentType);
   c.header("X-Content-Type-Options", "nosniff");
+  c.header("Cache-Control", "private, max-age=31536000, immutable");
   c.header(
     "Content-Security-Policy",
     [
