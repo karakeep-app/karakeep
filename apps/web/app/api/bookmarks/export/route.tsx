@@ -43,23 +43,44 @@ export async function GET(request: NextRequest) {
       ? listsResponse
       : listsResponse.lists;
 
-    // Fetch list memberships for each bookmark
+    // Build a map from bookmark ID to list IDs by querying each list
     const bookmarkListMap = new Map<string, string[]>();
-    for (const bookmark of bookmarks) {
+    for (const list of lists) {
       try {
-        const bookmarkListsResponse = await api.lists.getListsOfBookmark({
-          bookmarkId: bookmark.id,
+        // Get all bookmarks in this list
+        const listBookmarks = await api.bookmarks.getBookmarks({
+          listId: list.id,
+          limit: 1000, // Use a large limit to get all bookmarks
+          includeContent: false, // We don't need the content, just IDs
         });
-        // Handle both array and object with lists property
-        const listArray = Array.isArray(bookmarkListsResponse)
-          ? bookmarkListsResponse
-          : bookmarkListsResponse.lists ?? [];
-        bookmarkListMap.set(
-          bookmark.id,
-          listArray.map((l: { id: string }) => l.id),
-        );
+
+        // Add this list ID to each bookmark's list array
+        for (const bookmark of listBookmarks.bookmarks) {
+          const existingLists = bookmarkListMap.get(bookmark.id) || [];
+          existingLists.push(list.id);
+          bookmarkListMap.set(bookmark.id, existingLists);
+        }
+
+        // Handle pagination if there are more bookmarks
+        let cursor = listBookmarks.nextCursor;
+        while (cursor) {
+          const moreBookmarks = await api.bookmarks.getBookmarks({
+            listId: list.id,
+            cursor,
+            limit: 1000,
+            includeContent: false,
+          });
+
+          for (const bookmark of moreBookmarks.bookmarks) {
+            const existingLists = bookmarkListMap.get(bookmark.id) || [];
+            existingLists.push(list.id);
+            bookmarkListMap.set(bookmark.id, existingLists);
+          }
+
+          cursor = moreBookmarks.nextCursor;
+        }
       } catch {
-        bookmarkListMap.set(bookmark.id, []);
+        // Skip lists that can't be accessed
       }
     }
 
