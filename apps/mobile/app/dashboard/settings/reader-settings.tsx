@@ -86,7 +86,7 @@ export default function ReaderSettingsPage() {
 
   const handleSaveAsDefault = () => {
     saveAsDefault();
-    clearAllLocal();
+    // Note: clearAllLocal is called automatically in the shared hook's onSuccess
     toast({
       message: "Reader settings saved as default for all devices",
       showProgress: false,

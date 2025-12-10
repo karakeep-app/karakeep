@@ -1,15 +1,11 @@
 import { useCallback, useMemo } from "react";
 import { Platform } from "react-native";
 
-import {
-  READER_DEFAULTS,
-  ReaderSettings,
-  ReaderSettingsPartial,
-} from "@karakeep/shared/types/readers";
+import { useReaderSettings as useReaderSettingsBase } from "@karakeep/shared-react/hooks/reader-settings";
+import { ReaderSettingsPartial } from "@karakeep/shared/types/readers";
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
 
 import useAppSettings from "./settings";
-import { api } from "./trpc";
 
 // Mobile-specific font families for native Text components
 // On Android, use generic font family names: "serif", "sans-serif", "monospace"
@@ -40,167 +36,56 @@ export const WEBVIEW_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
 
 export function useReaderSettings() {
   const { settings: localSettings, setSettings } = useAppSettings();
-  const { data: serverSettings } = api.users.settings.useQuery();
-  const { mutate: updateServerSettings } =
-    api.users.updateSettings.useMutation();
 
-  // Compute effective settings with precedence: local → server → default
-  const settings: ReaderSettings = useMemo(
-    () => ({
-      fontSize:
-        localSettings.readerFontSize ??
-        serverSettings?.readerFontSize ??
-        READER_DEFAULTS.fontSize,
-      lineHeight:
-        localSettings.readerLineHeight ??
-        serverSettings?.readerLineHeight ??
-        READER_DEFAULTS.lineHeight,
-      fontFamily:
-        localSettings.readerFontFamily ??
-        serverSettings?.readerFontFamily ??
-        READER_DEFAULTS.fontFamily,
-    }),
-    [
-      localSettings.readerFontSize,
-      localSettings.readerLineHeight,
-      localSettings.readerFontFamily,
-      serverSettings?.readerFontSize,
-      serverSettings?.readerLineHeight,
-      serverSettings?.readerFontFamily,
-    ],
-  );
-
-  // Get the local override values (for UI indicators)
-  const localOverrides: ReaderSettingsPartial = useMemo(
-    () => ({
+  const getLocalOverrides = useCallback((): ReaderSettingsPartial => {
+    return {
       fontSize: localSettings.readerFontSize,
       lineHeight: localSettings.readerLineHeight,
       fontFamily: localSettings.readerFontFamily,
-    }),
-    [
-      localSettings.readerFontSize,
-      localSettings.readerLineHeight,
-      localSettings.readerFontFamily,
-    ],
+    };
+  }, [
+    localSettings.readerFontSize,
+    localSettings.readerLineHeight,
+    localSettings.readerFontFamily,
+  ]);
+
+  const saveLocalOverrides = useCallback(
+    (overrides: ReaderSettingsPartial) => {
+      // Remove reader settings keys first, then add back only defined ones
+      const {
+        readerFontSize: _fs,
+        readerLineHeight: _lh,
+        readerFontFamily: _ff,
+        ...rest
+      } = localSettings;
+
+      const newSettings = { ...rest };
+      if (overrides.fontSize !== undefined) {
+        (newSettings as typeof localSettings).readerFontSize =
+          overrides.fontSize;
+      }
+      if (overrides.lineHeight !== undefined) {
+        (newSettings as typeof localSettings).readerLineHeight =
+          overrides.lineHeight;
+      }
+      if (overrides.fontFamily !== undefined) {
+        (newSettings as typeof localSettings).readerFontFamily =
+          overrides.fontFamily;
+      }
+
+      setSettings(newSettings);
+    },
+    [localSettings, setSettings],
   );
 
-  // Get the server setting values (for UI indicators)
-  const serverDefaults: ReaderSettingsPartial = useMemo(
+  // Memoize options to prevent unnecessary re-renders
+  const options = useMemo(
     () => ({
-      fontSize: serverSettings?.readerFontSize ?? undefined,
-      lineHeight: serverSettings?.readerLineHeight ?? undefined,
-      fontFamily: serverSettings?.readerFontFamily ?? undefined,
+      getLocalOverrides,
+      saveLocalOverrides,
     }),
-    [
-      serverSettings?.readerFontSize,
-      serverSettings?.readerLineHeight,
-      serverSettings?.readerFontFamily,
-    ],
+    [getLocalOverrides, saveLocalOverrides],
   );
 
-  // Update local override (per-device, immediate)
-  const updateLocal = useCallback(
-    (updates: ReaderSettingsPartial) => {
-      setSettings({
-        ...localSettings,
-        readerFontSize: updates.fontSize ?? localSettings.readerFontSize,
-        readerLineHeight: updates.lineHeight ?? localSettings.readerLineHeight,
-        readerFontFamily: updates.fontFamily ?? localSettings.readerFontFamily,
-      });
-    },
-    [localSettings, setSettings],
-  );
-
-  // Clear a specific local override
-  const clearLocal = useCallback(
-    (key: keyof ReaderSettings) => {
-      const keyMap = {
-        fontSize: "readerFontSize",
-        lineHeight: "readerLineHeight",
-        fontFamily: "readerFontFamily",
-      } as const;
-      const settingKey = keyMap[key];
-      // Create a new object without the key
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { [settingKey]: _, ...rest } = localSettings;
-      setSettings(rest);
-    },
-    [localSettings, setSettings],
-  );
-
-  // Clear all local overrides
-  const clearAllLocal = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { readerFontSize, readerLineHeight, readerFontFamily, ...rest } =
-      localSettings;
-    setSettings(rest);
-  }, [localSettings, setSettings]);
-
-  // Save current effective settings as server default (syncs across devices)
-  const saveAsDefault = useCallback(
-    (settingsToSave?: ReaderSettingsPartial) => {
-      const toSave = settingsToSave ?? settings;
-      updateServerSettings({
-        readerFontSize: toSave.fontSize,
-        readerLineHeight: toSave.lineHeight,
-        readerFontFamily: toSave.fontFamily,
-      });
-    },
-    [settings, updateServerSettings],
-  );
-
-  // Clear a specific server default (set to null)
-  const clearDefault = useCallback(
-    (key: keyof ReaderSettings) => {
-      const serverKeyMap = {
-        fontSize: "readerFontSize",
-        lineHeight: "readerLineHeight",
-        fontFamily: "readerFontFamily",
-      } as const;
-      updateServerSettings({ [serverKeyMap[key]]: null });
-    },
-    [updateServerSettings],
-  );
-
-  // Clear all server defaults
-  const clearAllDefaults = useCallback(() => {
-    updateServerSettings({
-      readerFontSize: null,
-      readerLineHeight: null,
-      readerFontFamily: null,
-    });
-  }, [updateServerSettings]);
-
-  // Check if there are any local overrides
-  const hasLocalOverrides =
-    localSettings.readerFontSize !== undefined ||
-    localSettings.readerLineHeight !== undefined ||
-    localSettings.readerFontFamily !== undefined;
-
-  // Check if there are any server defaults
-  const hasServerDefaults =
-    serverSettings?.readerFontSize != null ||
-    serverSettings?.readerLineHeight != null ||
-    serverSettings?.readerFontFamily != null;
-
-  return {
-    // Current effective settings (what should be displayed)
-    settings,
-
-    // Raw values for UI indicators
-    localOverrides,
-    serverDefaults,
-
-    // Status flags
-    hasLocalOverrides,
-    hasServerDefaults,
-
-    // Actions
-    updateLocal,
-    clearLocal,
-    clearAllLocal,
-    saveAsDefault,
-    clearDefault,
-    clearAllDefaults,
-  };
+  return useReaderSettingsBase(options);
 }
