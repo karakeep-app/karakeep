@@ -50,10 +50,23 @@ describe("importBookmarksFromFile", () => {
       ]),
     };
 
-    const createdLists: { name: string; icon: string; parentId?: string }[] =
-      [];
+    const createdLists: {
+      name: string;
+      icon: string;
+      parentId?: string | null;
+      description?: string | null;
+      type?: "manual" | "smart";
+      query?: string | null;
+    }[] = [];
     const createList = vi.fn(
-      async (input: { name: string; icon: string; parentId?: string }) => {
+      async (input: {
+        name: string;
+        icon: string;
+        parentId?: string | null;
+        description?: string | null;
+        type?: "manual" | "smart";
+        query?: string | null;
+      }) => {
         createdLists.push(input);
         return {
           id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
@@ -209,10 +222,23 @@ describe("importBookmarksFromFile", () => {
       ]),
     };
 
-    const createdLists: { name: string; icon: string; parentId?: string }[] =
-      [];
+    const createdLists: {
+      name: string;
+      icon: string;
+      parentId?: string | null;
+      description?: string | null;
+      type?: "manual" | "smart";
+      query?: string | null;
+    }[] = [];
     const createList = vi.fn(
-      async (input: { name: string; icon: string; parentId?: string }) => {
+      async (input: {
+        name: string;
+        icon: string;
+        parentId?: string | null;
+        description?: string | null;
+        type?: "manual" | "smart";
+        query?: string | null;
+      }) => {
         createdLists.push(input);
         return {
           id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
@@ -331,7 +357,14 @@ describe("importBookmarksFromFile", () => {
     };
 
     const createList = vi.fn(
-      async (input: { name: string; icon: string; parentId?: string }) => {
+      async (input: {
+        name: string;
+        icon: string;
+        parentId?: string | null;
+        description?: string | null;
+        type?: "manual" | "smart";
+        query?: string | null;
+      }) => {
         return {
           id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
         };
@@ -428,7 +461,14 @@ describe("importBookmarksFromFile", () => {
       rootListName: "mymind Import",
       deps: {
         createList: vi.fn(
-          async (input: { name: string; icon: string; parentId?: string }) => ({
+          async (input: {
+            name: string;
+            icon: string;
+            parentId?: string | null;
+            description?: string | null;
+            type?: "manual" | "smart";
+            query?: string | null;
+          }) => ({
             id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
           }),
         ),

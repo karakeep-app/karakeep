@@ -60,8 +60,8 @@ export function useBookmarkImport() {
 
       // First, parse the file to count bookmarks
       const textContent = await file.text();
-      const parsedBookmarks = parseImportFile(source, textContent);
-      const bookmarkCount = parsedBookmarks.length;
+      const parsed = parseImportFile(source, textContent);
+      const bookmarkCount = parsed.bookmarks.length;
 
       // Check quota before proceeding
       if (bookmarkCount > 0) {
@@ -92,7 +92,17 @@ export function useBookmarkImport() {
           rootListName: t("settings.import.imported_bookmarks"),
           deps: {
             createImportSession,
-            createList,
+            createList: async (input) => {
+              // Adapt the input to match the tRPC schema
+              return await createList({
+                name: input.name,
+                icon: input.icon,
+                parentId: input.parentId ?? undefined,
+                description: input.description ?? undefined,
+                type: input.type,
+                query: input.query ?? undefined,
+              });
+            },
             createBookmark: async (
               bookmark: ParsedBookmark,
               sessionId: string,
@@ -159,7 +169,7 @@ export function useBookmarkImport() {
         {
           // Use a custom parser to avoid re-parsing the file
           parsers: {
-            [source]: () => parsedBookmarks,
+            [source]: () => parsed,
           },
         },
       );

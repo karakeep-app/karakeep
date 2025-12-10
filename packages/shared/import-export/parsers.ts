@@ -16,6 +16,16 @@ export type ImportSource =
   | "tab-session-manager"
   | "mymind";
 
+export interface ParsedList {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  type: "manual" | "smart";
+  query: string | null;
+  parentId: string | null;
+}
+
 export interface ParsedBookmark {
   title: string;
   content?:
@@ -26,6 +36,12 @@ export interface ParsedBookmark {
   notes?: string;
   archived?: boolean;
   paths: string[][];
+  listIds?: string[];
+}
+
+export interface ParsedImport {
+  bookmarks: ParsedBookmark[];
+  lists?: ParsedList[];
 }
 
 function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -95,7 +111,7 @@ function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
-function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
+function parseKarakeepBookmarkFile(textContent: string): ParsedImport {
   const parsed = zExportSchema.safeParse(JSON.parse(textContent));
   if (!parsed.success) {
     throw new Error(
@@ -103,7 +119,17 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
-  return parsed.data.bookmarks.map((bookmark) => {
+  const lists: ParsedList[] = (parsed.data.lists ?? []).map((list) => ({
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    icon: list.icon,
+    type: list.type,
+    query: list.query,
+    parentId: list.parentId,
+  }));
+
+  const bookmarks = parsed.data.bookmarks.map((bookmark) => {
     let content = undefined;
     if (bookmark.content?.type == BookmarkTypes.LINK) {
       content = {
@@ -123,9 +149,12 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       addDate: bookmark.createdAt,
       notes: bookmark.note ?? undefined,
       archived: bookmark.archived,
-      paths: [], // TODO
+      paths: [],
+      listIds: bookmark.listIds ?? [],
     };
   });
+
+  return { bookmarks, lists };
 }
 
 function parseOmnivoreBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -336,8 +365,8 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
 export function parseImportFile(
   source: ImportSource,
   textContent: string,
-): ParsedBookmark[] {
-  let result: ParsedBookmark[];
+): ParsedImport {
+  let result: ParsedBookmark[] | ParsedImport;
   switch (source) {
     case "html":
       result = parseNetscapeBookmarkFile(textContent);
@@ -361,5 +390,18 @@ export function parseImportFile(
       result = parseMymindBookmarkFile(textContent);
       break;
   }
-  return deduplicateBookmarks(result);
+
+  // Convert ParsedBookmark[] to ParsedImport for backward compatibility
+  if (Array.isArray(result)) {
+    return {
+      bookmarks: deduplicateBookmarks(result),
+      lists: [],
+    };
+  }
+
+  // For ParsedImport, only deduplicate bookmarks
+  return {
+    bookmarks: deduplicateBookmarks(result.bookmarks),
+    lists: result.lists ?? [],
+  };
 }

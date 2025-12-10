@@ -2,6 +2,16 @@ import { z } from "zod";
 
 import { BookmarkTypes, ZBookmark } from "../types/bookmarks";
 
+export const zExportListSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  icon: z.string(),
+  type: z.enum(["manual", "smart"]),
+  query: z.string().nullable(),
+  parentId: z.string().nullable(),
+});
+
 export const zExportBookmarkSchema = z.object({
   createdAt: z.number(),
   title: z.string().nullable(),
@@ -20,14 +30,17 @@ export const zExportBookmarkSchema = z.object({
     .nullable(),
   note: z.string().nullable(),
   archived: z.boolean().optional().default(false),
+  listIds: z.array(z.string()).optional().default([]),
 });
 
 export const zExportSchema = z.object({
+  lists: z.array(zExportListSchema).optional().default([]),
   bookmarks: z.array(zExportBookmarkSchema),
 });
 
 export function toExportFormat(
   bookmark: ZBookmark,
+  listIds: string[] = [],
 ): z.infer<typeof zExportBookmarkSchema> {
   let content = null;
   switch (bookmark.content.type) {
@@ -58,6 +71,27 @@ export function toExportFormat(
     content,
     note: bookmark.note ?? null,
     archived: bookmark.archived,
+    listIds,
+  };
+}
+
+export function toListExportFormat(list: {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string;
+  type: "manual" | "smart";
+  query: string | null;
+  parentId: string | null;
+}): z.infer<typeof zExportListSchema> {
+  return {
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    icon: list.icon,
+    type: list.type,
+    query: list.query,
+    parentId: list.parentId,
   };
 }
 

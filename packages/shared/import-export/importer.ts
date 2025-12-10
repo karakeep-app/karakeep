@@ -1,6 +1,11 @@
 import { limitConcurrency } from "../concurrency";
 import { MAX_LIST_NAME_LENGTH } from "../types/lists";
-import { ImportSource, ParsedBookmark, parseImportFile } from "./parsers";
+import {
+  ImportSource,
+  ParsedBookmark,
+  ParsedList,
+  parseImportFile,
+} from "./parsers";
 
 export interface ImportCounts {
   successes: number;
@@ -13,7 +18,10 @@ export interface ImportDeps {
   createList: (input: {
     name: string;
     icon: string;
-    parentId?: string;
+    parentId?: string | null;
+    description?: string | null;
+    type?: "manual" | "smart";
+    query?: string | null;
   }) => Promise<{ id: string }>;
   createBookmark: (
     bookmark: ParsedBookmark,
@@ -36,7 +44,10 @@ export interface ImportDeps {
 export interface ImportOptions {
   concurrencyLimit?: number;
   parsers?: Partial<
-    Record<ImportSource, (textContent: string) => ParsedBookmark[]>
+    Record<
+      ImportSource,
+      (textContent: string) => { bookmarks: ParsedBookmark[]; lists?: ParsedList[] }
+    >
   >;
 }
 
@@ -65,10 +76,11 @@ export async function importBookmarksFromFile(
   const { concurrencyLimit = 20, parsers } = options;
 
   const textContent = await file.text();
-  const parsedBookmarks = parsers?.[source]
+  const parsed = parsers?.[source]
     ? parsers[source]!(textContent)
     : parseImportFile(source, textContent);
-  if (parsedBookmarks.length === 0) {
+
+  if (parsed.bookmarks.length === 0) {
     return {
       counts: { successes: 0, failures: 0, alreadyExisted: 0, total: 0 },
       rootListId: null,
@@ -82,13 +94,46 @@ export async function importBookmarksFromFile(
     rootListId: rootList.id,
   });
 
-  onProgress?.(0, parsedBookmarks.length);
+  onProgress?.(0, parsed.bookmarks.length);
 
   const PATH_DELIMITER = "$$__$$";
 
-  // Build required paths
+  // Map from old list IDs to new list IDs
+  const listIdMap = new Map<string, string>();
+
+  // If we have lists in the import, create them respecting hierarchy
+  if (parsed.lists && parsed.lists.length > 0) {
+    // Sort lists by hierarchy depth (parents before children)
+    const sortedLists = [...parsed.lists].sort((a, b) => {
+      // Count hierarchy depth
+      const depthA = countParentDepth(a, parsed.lists!);
+      const depthB = countParentDepth(b, parsed.lists!);
+      return depthA - depthB;
+    });
+
+    // Create all imported lists
+    for (const list of sortedLists) {
+      // Map parent ID if it exists
+      const newParentId = list.parentId
+        ? listIdMap.get(list.parentId) ?? rootList.id
+        : rootList.id;
+
+      const newList = await deps.createList({
+        name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
+        icon: list.icon,
+        parentId: newParentId,
+        description: list.description,
+        type: list.type,
+        query: list.query,
+      });
+
+      listIdMap.set(list.id, newList.id);
+    }
+  }
+
+  // Build required paths (for backward compatibility with imports that use paths)
   const allRequiredPaths = new Set<string>();
-  for (const bookmark of parsedBookmarks) {
+  for (const bookmark of parsed.bookmarks) {
     for (const path of bookmark.paths) {
       if (path && path.length > 0) {
         for (let i = 1; i <= path.length; i++) {
@@ -121,28 +166,43 @@ export async function importBookmarksFromFile(
   }
 
   let done = 0;
-  const importPromises = parsedBookmarks.map((bookmark) => async () => {
-    try {
-      const listIds = bookmark.paths.map(
-        (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
-      );
-      if (listIds.length === 0) listIds.push(rootList.id);
+  const importPromises = parsed.bookmarks.map(
+    (bookmark: ParsedBookmark) => async () => {
+      try {
+        // Prefer listIds over paths if available
+        let listIds: string[] = [];
+        if (bookmark.listIds && bookmark.listIds.length > 0) {
+          // Map old list IDs to new list IDs
+          listIds = bookmark.listIds
+            .map((id: string) => listIdMap.get(id))
+            .filter((id): id is string => id !== undefined);
+        } else {
+          // Fall back to path-based lists
+          listIds = bookmark.paths.map(
+            (path: string[]) =>
+              pathMap[path.join(PATH_DELIMITER)] || rootList.id,
+          );
+        }
 
-      const created = await deps.createBookmark(bookmark, session.id);
-      await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
-      if (bookmark.tags && bookmark.tags.length > 0) {
-        await deps.updateBookmarkTags({
-          bookmarkId: created.id,
-          tags: bookmark.tags,
-        });
+        // If no lists, add to root list
+        if (listIds.length === 0) listIds.push(rootList.id);
+
+        const created = await deps.createBookmark(bookmark, session.id);
+        await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
+        if (bookmark.tags && bookmark.tags.length > 0) {
+          await deps.updateBookmarkTags({
+            bookmarkId: created.id,
+            tags: bookmark.tags,
+          });
+        }
+
+        return created;
+      } finally {
+        done += 1;
+        onProgress?.(done, parsed.bookmarks.length);
       }
-
-      return created;
-    } finally {
-      done += 1;
-      onProgress?.(done, parsedBookmarks.length);
-    }
-  });
+    },
+  );
 
   const resultsPromises = limitConcurrency(importPromises, concurrencyLimit);
   const results = await Promise.allSettled(resultsPromises);
@@ -153,8 +213,13 @@ export async function importBookmarksFromFile(
 
   for (const r of results) {
     if (r.status === "fulfilled") {
-      if (r.value.alreadyExists) alreadyExisted++;
-      else successes++;
+      if (
+        (r.value as { id: string; alreadyExists?: boolean }).alreadyExists
+      ) {
+        alreadyExisted++;
+      } else {
+        successes++;
+      }
     } else {
       failures++;
     }
@@ -164,9 +229,24 @@ export async function importBookmarksFromFile(
       successes,
       failures,
       alreadyExisted,
-      total: parsedBookmarks.length,
+      total: parsed.bookmarks.length,
     },
     rootListId: rootList.id,
     importSessionId: session.id,
   };
+}
+
+// Helper function to count parent depth in hierarchy
+function countParentDepth(list: ParsedList, allLists: ParsedList[]): number {
+  let depth = 0;
+  let currentId = list.parentId;
+
+  while (currentId) {
+    depth++;
+    const parent = allLists.find((l) => l.id === currentId);
+    if (!parent) break;
+    currentId = parent.parentId;
+  }
+
+  return depth;
 }

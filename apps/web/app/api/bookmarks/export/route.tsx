@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import {
   toExportFormat,
+  toListExportFormat,
   toNetscapeFormat,
   zExportSchema,
 } from "@karakeep/shared/import-export";
@@ -36,10 +37,47 @@ export async function GET(request: NextRequest) {
   }
 
   if (format === "json") {
+    // Fetch all lists for the user
+    const listsResponse = await api.lists.list();
+    const lists = Array.isArray(listsResponse)
+      ? listsResponse
+      : listsResponse.lists;
+
+    // Fetch list memberships for each bookmark
+    const bookmarkListMap = new Map<string, string[]>();
+    for (const bookmark of bookmarks) {
+      try {
+        const bookmarkListsResponse = await api.lists.getListsOfBookmark({
+          bookmarkId: bookmark.id,
+        });
+        // Handle both array and object with lists property
+        const listArray = Array.isArray(bookmarkListsResponse)
+          ? bookmarkListsResponse
+          : bookmarkListsResponse.lists ?? [];
+        bookmarkListMap.set(
+          bookmark.id,
+          listArray.map((l: { id: string }) => l.id),
+        );
+      } catch {
+        bookmarkListMap.set(bookmark.id, []);
+      }
+    }
+
     // Default JSON format
     const exportData: z.infer<typeof zExportSchema> = {
+      lists: lists.map((list) =>
+        toListExportFormat({
+          id: list.id,
+          name: list.name,
+          description: list.description ?? null,
+          icon: list.icon,
+          type: list.type,
+          query: list.query ?? null,
+          parentId: list.parentId,
+        }),
+      ),
       bookmarks: bookmarks
-        .map(toExportFormat)
+        .map((b) => toExportFormat(b, bookmarkListMap.get(b.id) ?? []))
         .filter((b) => b.content !== null),
     };
 
