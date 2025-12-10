@@ -163,6 +163,7 @@
       "import_export_bookmarks": "Kirjanmerkkien tuonti / vienti",
       "import_bookmarks_from_html_file": "Tuo kirjanmerkkejä HTML-tiedostosta",
       "import_bookmarks_from_pocket_export": "Tuo kirjanmerkit Pocket-viennistä",
+      "import_bookmarks_from_matter_export": "Tuo kirjanmerkit Matter-viennistä",
       "import_bookmarks_from_omnivore_export": "Tuo kirjanmerkit Omnivore-viennistä",
       "import_bookmarks_from_linkwarden_export": "Tuo kirjanmerkit Linkwarden-viennistä",
       "import_bookmarks_from_hoarder_export": "Tuo kirjanmerkit Hoarder-viennistä",

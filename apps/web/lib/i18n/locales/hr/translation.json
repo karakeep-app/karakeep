@@ -197,6 +197,7 @@
       "import_export_bookmarks": "Import / Export knjižnih oznaka",
       "import_bookmarks_from_linkwarden_export": "Import oznaka iz Linkwarden exporta",
       "import_bookmarks_from_pocket_export": "Import oznaka iz Pocket exporta",
+      "import_bookmarks_from_matter_export": "Import oznaka iz Matter exporta",
       "import_bookmarks_from_karakeep_export": "Import oznaka iz Karakeep exporta",
       "export_links_and_notes": "Export veza i bilješki",
       "imported_bookmarks": "Importirane oznake",

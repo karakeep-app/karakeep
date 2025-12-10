@@ -217,6 +217,7 @@
       "import_bookmarks_from_karakeep_export": "Karakeep エクスポートからブックマークをインポート",
       "imported_bookmarks": "インポートされたブックマーク",
       "import_bookmarks_from_pocket_export": "Pocketのエクスポートからブックマークをインポート",
+      "import_bookmarks_from_matter_export": "Matterのエクスポートからブックマークをインポート",
       "import_bookmarks_from_omnivore_export": "Omnivoreエクスポートからブックマークをインポート",
       "export_links_and_notes": "リンクとメモをエクスポートする",
       "import_export": "インポート/エクスポート",

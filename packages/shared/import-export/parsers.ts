@@ -10,6 +10,7 @@ import { zExportSchema } from "./exporters";
 export type ImportSource =
   | "html"
   | "pocket"
+  | "matter"
   | "omnivore"
   | "karakeep"
   | "linkwarden"
@@ -90,6 +91,37 @@ function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
       tags: record.tags.length > 0 ? record.tags.split("|") : [],
       addDate: parseInt(record.time_added),
       archived: record.status === "archive",
+      paths: [], // TODO
+    };
+  });
+}
+
+function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
+  const records = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  }) as {
+    Title: string;
+    Author: string;
+    Publisher: string;
+    URL: string;
+    Tags: string;
+    "Word Count": string;
+    "In Queue": string;
+    Favorited: string;
+    Read: string;
+    "Highlight_Count": string;
+    "Last Interaction Date": string;
+    "File Id": string;
+  }[];
+
+  return records.map((record) => {
+    return {
+      title: record.Title,
+      content: { type: BookmarkTypes.LINK as const, url: record.URL },
+      tags: record.Tags.length > 0 ? record.Tags.split(";") : [],
+      addDate: Date.parse(record["Last Interaction Date"]),
+      archived: record["In Queue"] === "False",
       paths: [], // TODO
     };
   });
@@ -344,6 +376,9 @@ export function parseImportFile(
       break;
     case "pocket":
       result = parsePocketBookmarkFile(textContent);
+      break;
+    case "matter":
+      result = parseMatterBookmarkFile(textContent);
       break;
     case "karakeep":
       result = parseKarakeepBookmarkFile(textContent);
