@@ -30,13 +30,13 @@ wget https://raw.githubusercontent.com/karakeep-app/karakeep/main/docker/docker-
 To configure the app, create a `.env` file in the directory and add this minimal env file:
 
 ```
-KARAKEEP_VERSION=release
-NEXTAUTH_SECRET=super_random_string
-MEILI_MASTER_KEY=another_random_string
-NEXTAUTH_URL=http://localhost:3000
+echo "KARAKEEP_VERSION=release" >> .env
+echo "NEXTAUTH_SECRET=`openssl rand -base64 36`" >> .env
+echo "MEILI_MASTER_KEY=`openssl rand -base64 36`" >> .env
+echo "NEXTAUTH_URL=http://localhost:3000" >> .env
 ```
 
-You **should** change the random strings. You can use `openssl rand -base64 36` in a seperate terminal window to generate the random strings. You should also change the `NEXTAUTH_URL` variable to point to your server address.
+You **should** use random strings. You should also change the `NEXTAUTH_URL` variable to point to your server address.
 
 Using `KARAKEEP_VERSION=release` will pull the latest stable version. You might want to pin the version instead to control the upgrades (e.g. `KARAKEEP_VERSION=0.10.0`). Check the latest versions [here](https://github.com/karakeep-app/karakeep/pkgs/container/karakeep).
 
