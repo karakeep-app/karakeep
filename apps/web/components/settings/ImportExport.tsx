@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import FilePickerButton from "@/components/ui/file-picker-button";
 import { Progress } from "@/components/ui/progress";
@@ -15,7 +16,7 @@ import { useBookmarkImport } from "@/lib/hooks/useBookmarkImport";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Loader2, Upload } from "lucide-react";
+import { AlertCircle, Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
 import { toast } from "../ui/use-toast";
@@ -131,10 +132,18 @@ function ExportButton() {
 
 export function ImportExportRow() {
   const { t } = useTranslation();
-  const { importProgress, runUploadBookmarkFile } = useBookmarkImport();
+  const { importProgress, quotaError, runUploadBookmarkFile } =
+    useBookmarkImport();
 
   return (
     <div className="flex flex-col gap-3">
+      {quotaError && (
+        <Alert variant="destructive" className="relative">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Import Quota Exceeded</AlertTitle>
+          <AlertDescription>{quotaError}</AlertDescription>
+        </Alert>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <ImportCard
           text="HTML File"

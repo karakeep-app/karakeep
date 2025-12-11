@@ -477,6 +477,13 @@
       "when": 1764418020312,
       "tag": "0067_add_backups_table",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "6",
+      "when": 1765310170813,
+      "tag": "0068_optimize_bookmark_indicies",
+      "breakpoints": true
     }
   ]
 }

@@ -81,6 +81,76 @@ export async function runBenchmarks(
     });
   });
 
+  // Benchmark with cursor (without listId)
+  {
+    const firstPage = await seed.trpc.bookmarks.getBookmarks.query({
+      limit: 50,
+    });
+    bench.add("bookmarks.getBookmarks (with cursor)", async () => {
+      if (firstPage.nextCursor) {
+        await seed.trpc.bookmarks.getBookmarks.query({
+          limit: 50,
+          cursor: firstPage.nextCursor,
+        });
+      }
+    });
+  }
+
+  // Benchmark with cursor and listId
+  if (sampleList) {
+    const firstPage = await seed.trpc.bookmarks.getBookmarks.query({
+      limit: 50,
+      listId: sampleList.id,
+    });
+    bench.add("bookmarks.getBookmarks (cursor + list filter)", async () => {
+      if (firstPage.nextCursor) {
+        await seed.trpc.bookmarks.getBookmarks.query({
+          limit: 50,
+          listId: sampleList.id,
+          cursor: firstPage.nextCursor,
+        });
+      }
+    });
+  }
+
+  // Benchmark with archived filter
+  bench.add("bookmarks.getBookmarks (archived filter)", async () => {
+    await seed.trpc.bookmarks.getBookmarks.query({
+      limit: 50,
+      archived: true,
+    });
+  });
+
+  // Benchmark with favourited filter
+  bench.add("bookmarks.getBookmarks (favourited filter)", async () => {
+    await seed.trpc.bookmarks.getBookmarks.query({
+      limit: 50,
+      favourited: true,
+    });
+  });
+
+  // Benchmark with archived and list filter combined
+  if (sampleList) {
+    bench.add("bookmarks.getBookmarks (archived + list filter)", async () => {
+      await seed.trpc.bookmarks.getBookmarks.query({
+        limit: 50,
+        archived: true,
+        listId: sampleList.id,
+      });
+    });
+  }
+
+  // Benchmark with favourited and list filter combined
+  if (sampleList) {
+    bench.add("bookmarks.getBookmarks (favourited + list filter)", async () => {
+      await seed.trpc.bookmarks.getBookmarks.query({
+        limit: 50,
+        favourited: true,
+        listId: sampleList.id,
+      });
+    });
+  }
+
   logStep("Running benchmarks");
   await bench.run();
   logSuccess("Benchmarks complete");
