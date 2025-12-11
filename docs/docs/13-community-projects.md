@@ -12,7 +12,7 @@ _By [@luolei](https://github.com/foru17)._
 
 A user-friendly Raycast extension that seamlessly integrates with Karakeep, bringing powerful bookmark management to your fingertips. Quickly save, search, and organize your bookmarks, texts, and images—all through Raycast's intuitive interface.
 
-Get it [here](https://www.raycast.com/luolei/hoarder).
+Get it [here](https://www.raycast.com/luolei/karakeep).
 
 ### Alfred Workflow
 
@@ -77,3 +77,11 @@ _By [@sidoshi](https://github.com/sidoshi/)_
 Sync links from Hacker News upvotes, Reddit Saves to Karakeep for centralized bookmark management.
 
 Get it [here](https://github.com/sidoshi/karakeep-sync)
+
+### Home Assistant Integration
+
+_By [@sli-cka](https://github.com/sli-cka)_
+
+A custom integration that brings Karakeep data into Home Assistant. It exposes your Karakeep statistics data (like lists, bookmarks, tag, etc.) as Home Assistant entities, enabling dashboards, automations, and notifications based on your Karakeep data.
+
+Get it [here](https://github.com/sli-cka/karakeep-homeassistant)

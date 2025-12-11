@@ -6,6 +6,7 @@ export interface EnqueueOptions {
   idempotencyKey?: string;
   priority?: number;
   delayMs?: number;
+  groupId?: string;
 }
 
 export interface QueueOptions {
@@ -32,9 +33,9 @@ export interface DequeuedJobError<T> {
   numRetriesLeft: number;
 }
 
-export interface RunnerFuncs<T> {
-  run: (job: DequeuedJob<T>) => Promise<void>;
-  onComplete?: (job: DequeuedJob<T>) => Promise<void>;
+export interface RunnerFuncs<T, R = void> {
+  run: (job: DequeuedJob<T>) => Promise<R>;
+  onComplete?: (job: DequeuedJob<T>, result: R) => Promise<void>;
   onError?: (job: DequeuedJobError<T>) => Promise<void>;
 }
 
@@ -68,9 +69,9 @@ export interface QueueClient {
   prepare(): Promise<void>;
   start(): Promise<void>;
   createQueue<T>(name: string, options: QueueOptions): Queue<T>;
-  createRunner<T>(
+  createRunner<T, R = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T>,
+    funcs: RunnerFuncs<T, R>,
     opts: RunnerOptions<T>,
   ): Runner<T>;
   shutdown?(): Promise<void>;

@@ -141,6 +141,10 @@
       },
       "storage_breakdown": {
         "title": "جزئیات مصرف فضا"
+      },
+      "bookmark_sources": {
+        "title": "منابع نشانک",
+        "empty": "اطلاعات منبعی در دسترس نیست."
       }
     },
     "back_to_app": "بازگشت به برنامه",
@@ -215,7 +219,8 @@
       "import_bookmarks_from_tab_session_manager_export": "درون‌ریزی نشانک‌ها از Tab Session Manager",
       "export_links_and_notes": "برون‌بری لینک‌ها و یادداشت‌ها",
       "import_bookmarks_from_karakeep_export": "درون‌ریزی نشانک‌ها از خروجی Karakeep",
-      "imported_bookmarks": "نشانک‌های درون‌ریزی‌شده"
+      "imported_bookmarks": "نشانک‌های درون‌ریزی‌شده",
+      "import_bookmarks_from_mymind_export": "وارد کردن نشانک ها از خروجی mymind"
     },
     "api_keys": {
       "new_api_key": "کلید API جدید",
@@ -339,6 +344,55 @@
       "delete_dialog_title": "حذف نشست درون‌ریزی",
       "delete_dialog_description": "آیا مطمئنید می‌خواهید «{{name}}» را حذف کنید؟ این عمل قابل بازگشت نیست. خود نشانک‌ها حذف نخواهند شد.",
       "delete_session": "حذف جلسه"
+    },
+    "backups": {
+      "backups": "پشتیبان‌گیری‌ها",
+      "page_title": "پشتیبان‌گیری‌ها",
+      "page_description": "به صورت خودکار از بوکمارک‌هات پشتیبان‌گیری ایجاد و مدیریت کن. پشتیبان‌گیری‌ها فشرده شده و به طور امن ذخیره می‌شن.",
+      "configuration": {
+        "title": "پیکربندی پشتیبان‌گیری",
+        "enable_automatic_backups": "فعال کردن پشتیبان‌گیری خودکار",
+        "enable_automatic_backups_description": "به صورت خودکار از بوکمارک‌هات پشتیبان‌گیری ایجاد کن",
+        "backup_frequency": "دورهٔ تناوب پشتیبان‌گیری",
+        "backup_frequency_description": "پشتیبان‌گیری‌ها باید هر چند وقت یک بار ایجاد شن",
+        "retention_period": "دورهٔ نگهداری (روزها)",
+        "retention_period_description": "پشتیبان‌گیری‌ها رو قبل از پاک کردنشون چند روز نگه دار",
+        "frequency": {
+          "daily": "روزانه",
+          "weekly": "هفتگی"
+        },
+        "select_frequency": "انتخاب دوزهٔ تناوب",
+        "save_settings": "ذخیرهٔ تنظیمات"
+      },
+      "list": {
+        "title": "پشتیبان‌گیری‌های شما",
+        "create_backup_now": "الان پشتیبان‌گیری ایجاد کن",
+        "no_backups": "هنوز هیچ پشتیبان‌گیری‌ای نداری. پشتیبان‌گیری خودکار رو فعال کن یا به صورت دستی یه دونه ایجاد کن.",
+        "table": {
+          "created_at": "ایجاد شده در",
+          "bookmarks": "نشانک‌ها",
+          "size": "اندازه",
+          "status": "وضعیت",
+          "actions": "اقدامات"
+        },
+        "status": {
+          "success": "موفقیت‌آمیز",
+          "failed": "ناموفق",
+          "pending": "در انتظار"
+        },
+        "actions": {
+          "download_backup": "بارگیری پشتیبان",
+          "delete_backup": "حذف پشتیبان"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "حذف پشتیبان؟",
+        "delete_backup_description": "آیا مطمئنید که می‌خواهید این پشتیبان را حذف کنید؟ این عمل قابل برگشت نیست."
+      },
+      "toasts": {
+        "backup_queued": "وظیفه پشتیبان‌گیری در صف قرار گرفت! به زودی پردازش خواهد شد.",
+        "backup_deleted": "پشتیبان حذف شد!"
+      }
     }
   },
   "highlights": {
@@ -488,7 +542,57 @@
       "title": "فهرست همگانی",
       "description": "به دیگران اجازه دهید این فهرست را ببینند",
       "share_link": "پیوند هم‌رسانی"
-    }
+    },
+    "shared": "مشترک",
+    "collaborators": {
+      "manage": "مدیریت همکاران",
+      "view": "مشاهده همکاران",
+      "collaborators": "همکاران",
+      "add": "افزودن همکار",
+      "current": "همکاران فعلی",
+      "enter_email": "آدرس ایمیل را وارد کنید",
+      "please_enter_email": "لطفا یک آدرس ایمیل وارد کنید",
+      "added_successfully": "همکار با موفقیت اضافه شد",
+      "failed_to_add": "اضافه کردن همکار با مشکل مواجه شد",
+      "removed": "همکار حذف شد",
+      "failed_to_remove": "حذف همکار با مشکل مواجه شد",
+      "role_updated": "نقش به‌روزرسانی شد",
+      "failed_to_update_role": "به‌روزرسانی نقش با مشکل مواجه شد",
+      "viewer": "بیننده",
+      "editor": "ویرایشگر",
+      "owner": "مالک",
+      "viewer_description": "می‌تواند نشانک‌ها را در لیست مشاهده کند",
+      "editor_description": "می‌تواند نشانک‌ها را اضافه و حذف کند",
+      "no_collaborators": "هنوز هیچ همکاری وجود ندارد. برای شروع همکاری، یک نفر را اضافه کنید!",
+      "no_collaborators_readonly": "هیچ همکاری برای این فهرست وجود ندارد.",
+      "people_with_access": "افرادی که به این فهرست دسترسی دارند",
+      "add_or_remove": "اضافه یا حذف کردن افرادی که می‌توانند به این فهرست دسترسی داشته باشند",
+      "invitation_sent": "دعوت با موفقیت ارسال شد",
+      "invitation_revoked": "دعوت لغو شد",
+      "failed_to_revoke": "لغو دعوت ناموفق بود",
+      "pending": "در انتظار",
+      "revoke": "لغو",
+      "declined": "رد شده"
+    },
+    "leave_list": {
+      "title": "ترک لیست",
+      "confirm_message": "آیا مطمئن هستید که می‌خواهید {{icon}} {{name}} را ترک کنید؟",
+      "warning": "دیگر قادر به مشاهده یا دسترسی به نشانک‌های درون این فهرست نخواهید بود. در صورت نیاز، صاحب فهرست می‌تواند شما را دوباره اضافه کند.",
+      "action": "ترک لیست",
+      "success": "شما «{{icon}} {{name}}» را ترک کرده‌اید"
+    },
+    "invitations": {
+      "pending": "دعوت‌نامه‌های در انتظار",
+      "description": "دعوت‌نامه‌های همکاری لیست را بررسی و به آنها پاسخ دهید",
+      "invited_by": "دعوت شده توسط",
+      "accept": "پذیرفتن",
+      "decline": "نپذیرفتن",
+      "accepted": "دعوت پذیرفته شد",
+      "declined": "دعوت رد شد",
+      "failed_to_accept": "پذیرش دعوت ناموفق بود",
+      "failed_to_decline": "رد کردن دعوت ناموفق بود"
+    },
+    "shared_lists": "لیست های مشترک"
   },
   "tags": {
     "all_tags": "همهٔ برچسب‌ها",

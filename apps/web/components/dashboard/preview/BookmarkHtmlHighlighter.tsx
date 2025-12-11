@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PopoverAnchor } from "@radix-ui/react-popover";
 import { Check, Trash2 } from "lucide-react";
@@ -13,23 +14,38 @@ import {
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
 
-interface ColorPickerMenuProps {
+interface HighlightFormProps {
   position: { x: number; y: number } | null;
-  onColorSelect: (color: ZHighlightColor) => void;
-  onDelete?: () => void;
   selectedHighlight: Highlight | null;
   onClose: () => void;
+  onSave: (color: ZHighlightColor, note: string | null) => void;
+  onDelete?: () => void;
   isMobile: boolean;
 }
 
-const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
+const HighlightForm: React.FC<HighlightFormProps> = ({
   position,
-  onColorSelect,
-  onDelete,
   selectedHighlight,
   onClose,
+  onSave,
+  onDelete,
   isMobile,
 }) => {
+  const [selectedColor, setSelectedColor] = useState<ZHighlightColor>(
+    selectedHighlight?.color || "yellow",
+  );
+  const [noteText, setNoteText] = useState(selectedHighlight?.note || "");
+
+  // Update state when selectedHighlight changes
+  useEffect(() => {
+    setSelectedColor(selectedHighlight?.color || "yellow");
+    setNoteText(selectedHighlight?.note || "");
+  }, [selectedHighlight]);
+
+  const handleSave = () => {
+    onSave(selectedColor, noteText || null);
+  };
+
   return (
     <Popover
       open={position !== null}
@@ -48,35 +64,59 @@ const ColorPickerMenu: React.FC<ColorPickerMenuProps> = ({
       />
       <PopoverContent
         side={isMobile ? "bottom" : "top"}
-        className="flex w-fit items-center gap-1 p-2"
+        className="w-80 space-y-3 p-3"
       >
-        {SUPPORTED_HIGHLIGHT_COLORS.map((color) => (
-          <Button
-            size="none"
-            key={color}
-            onClick={() => onColorSelect(color)}
-            variant="none"
-            className={cn(
-              `size-8 rounded-full hover:border focus-visible:ring-0`,
-              HIGHLIGHT_COLOR_MAP.bg[color],
-            )}
-          >
-            {selectedHighlight?.color === color && (
-              <Check className="size-5 text-gray-600" />
-            )}
-          </Button>
-        ))}
-        {selectedHighlight && (
-          <ActionButton
-            loading={false}
-            size="none"
-            className="size-8 rounded-full"
-            onClick={onDelete}
-            variant="ghost"
-          >
-            <Trash2 className="size-5 text-destructive" />
-          </ActionButton>
-        )}
+        <div>
+          <label className="mb-2 block text-sm font-medium">Color</label>
+          <div className="flex items-center gap-1">
+            {SUPPORTED_HIGHLIGHT_COLORS.map((color) => (
+              <Button
+                size="none"
+                key={color}
+                onClick={() => setSelectedColor(color)}
+                variant="none"
+                className={cn(
+                  `size-8 rounded-full hover:border focus-visible:ring-0`,
+                  HIGHLIGHT_COLOR_MAP.bg[color],
+                )}
+              >
+                {selectedColor === color && (
+                  <Check className="size-5 text-gray-600" />
+                )}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium">Note</label>
+          <Textarea
+            placeholder="Add a note (optional)..."
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            className="min-h-[80px] text-sm"
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-2">
+            <Button onClick={handleSave} size="sm">
+              Save
+            </Button>
+            <Button onClick={onClose} variant="outline" size="sm">
+              Cancel
+            </Button>
+          </div>
+          {selectedHighlight && onDelete && (
+            <ActionButton
+              loading={false}
+              size="sm"
+              onClick={onDelete}
+              variant="ghost"
+              title="Delete highlight"
+            >
+              <Trash2 className="size-4 text-destructive" />
+            </ActionButton>
+          )}
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -88,6 +128,7 @@ export interface Highlight {
   endOffset: number;
   color: ZHighlightColor;
   text: string | null;
+  note?: string | null;
 }
 
 interface HTMLHighlighterProps {
@@ -95,6 +136,7 @@ interface HTMLHighlighterProps {
   style?: React.CSSProperties;
   className?: string;
   highlights?: Highlight[];
+  readOnly?: boolean;
   onHighlight?: (highlight: Highlight) => void;
   onUpdateHighlight?: (highlight: Highlight) => void;
   onDeleteHighlight?: (highlight: Highlight) => void;
@@ -105,6 +147,7 @@ function BookmarkHTMLHighlighter({
   className,
   style,
   highlights = [],
+  readOnly = false,
   onHighlight,
   onUpdateHighlight,
   onDeleteHighlight,
@@ -173,6 +216,10 @@ function BookmarkHTMLHighlighter({
   }, [pendingHighlight, contentRef]);
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    if (readOnly) {
+      return;
+    }
+
     const selection = window.getSelection();
 
     // Check if we clicked on an existing highlight
@@ -215,18 +262,20 @@ function BookmarkHTMLHighlighter({
     setPendingHighlight(createHighlightFromRange(range, "yellow"));
   };
 
-  const handleColorSelect = (color: ZHighlightColor) => {
+  const handleSave = (color: ZHighlightColor, note: string | null) => {
     if (pendingHighlight) {
       pendingHighlight.color = color;
+      pendingHighlight.note = note;
       onHighlight?.(pendingHighlight);
     } else if (selectedHighlight) {
       selectedHighlight.color = color;
+      selectedHighlight.note = note;
       onUpdateHighlight?.(selectedHighlight);
     }
-    closeColorPicker();
+    closeForm();
   };
 
-  const closeColorPicker = () => {
+  const closeForm = () => {
     setMenuPosition(null);
     setPendingHighlight(null);
     setSelectedHighlight(null);
@@ -236,7 +285,7 @@ function BookmarkHTMLHighlighter({
   const handleDelete = () => {
     if (selectedHighlight && onDeleteHighlight) {
       onDeleteHighlight(selectedHighlight);
-      closeColorPicker();
+      closeForm();
     }
   };
 
@@ -349,12 +398,12 @@ function BookmarkHTMLHighlighter({
         className={className}
         style={style}
       />
-      <ColorPickerMenu
+      <HighlightForm
         position={menuPosition}
-        onColorSelect={handleColorSelect}
-        onDelete={handleDelete}
-        selectedHighlight={selectedHighlight}
-        onClose={closeColorPicker}
+        selectedHighlight={selectedHighlight || pendingHighlight}
+        onClose={closeForm}
+        onSave={handleSave}
+        onDelete={selectedHighlight ? handleDelete : undefined}
         isMobile={isMobile}
       />
     </div>

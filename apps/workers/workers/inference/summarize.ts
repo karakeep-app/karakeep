@@ -105,7 +105,7 @@ URL: ${link.url ?? ""}
     },
   });
 
-  const summaryPrompt = buildSummaryPrompt(
+  const summaryPrompt = await buildSummaryPrompt(
     serverConfig.inference.inferredTagLang,
     prompts.map((p) => p.text),
     textToSummarize,
@@ -137,5 +137,6 @@ URL: ${link.url ?? ""}
 
   await triggerSearchReindex(bookmarkId, {
     priority: job.priority,
+    groupId: bookmarkData.userId,
   });
 }

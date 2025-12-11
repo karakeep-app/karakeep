@@ -28,7 +28,7 @@
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "prettier": "^3.4.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9"
   },
   "prettier": "@karakeep/prettier-config"
 }

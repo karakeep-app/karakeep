@@ -86,7 +86,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </CardContent>
       </Card>
@@ -141,7 +141,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
           </div>
 
           <div className="space-y-2 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Please contact an administrator to request a new invitation.
             </p>
           </div>
@@ -170,15 +170,15 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-center">
-          <UserPlus className="h-12 w-12 text-blue-600" />
+          <UserPlus className="h-12 w-12 text-primary" />
         </div>
 
         <div className="space-y-2 text-center">
           <div className="flex items-center justify-center space-x-2">
-            <Mail className="h-4 w-4 text-gray-500" />
-            <p className="text-sm text-gray-600">Invited email:</p>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Invited email:</p>
           </div>
-          <p className="font-medium text-gray-900">{inviteData.email}</p>
+          <p className="font-medium text-foreground">{inviteData.email}</p>
         </div>
 
         <Form {...form}>

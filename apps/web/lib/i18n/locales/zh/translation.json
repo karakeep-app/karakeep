@@ -147,7 +147,8 @@
       "export_links_and_notes": "导出链接和笔记",
       "imported_bookmarks": "已导入书签",
       "import_bookmarks_from_linkwarden_export": "导入 Linkwarden 导出的书签",
-      "import_bookmarks_from_tab_session_manager_export": "从 Tab Session Manager 导入书签"
+      "import_bookmarks_from_tab_session_manager_export": "从 Tab Session Manager 导入书签",
+      "import_bookmarks_from_mymind_export": "从我的 mind 导出导入书签"
     },
     "api_keys": {
       "api_keys": "API密钥",
@@ -290,6 +291,10 @@
       },
       "storage_breakdown": {
         "title": "存储细分"
+      },
+      "bookmark_sources": {
+        "title": "书签来源",
+        "empty": "没有可用的来源数据"
       }
     },
     "subscription": {
@@ -339,6 +344,55 @@
       "delete_dialog_title": "删除导入会话",
       "delete_dialog_description": "确定要删除 “{{name}}” 吗？此操作无法撤销。书签本身不会被删除。",
       "delete_session": "删除会话"
+    },
+    "backups": {
+      "backups": "备份",
+      "page_title": "备份",
+      "page_description": "自动创建和管理您的书签备份。备份经过压缩并安全存储。",
+      "configuration": {
+        "title": "备份配置",
+        "enable_automatic_backups": "启用自动备份",
+        "enable_automatic_backups_description": "自动创建您的书签备份",
+        "backup_frequency": "备份频率",
+        "backup_frequency_description": "应该多久创建一次备份",
+        "retention_period": "保留期限（天）",
+        "retention_period_description": "备份在删除前保留的天数",
+        "frequency": {
+          "daily": "每天",
+          "weekly": "每周"
+        },
+        "select_frequency": "选择频率",
+        "save_settings": "保存设置"
+      },
+      "list": {
+        "title": "您的备份",
+        "create_backup_now": "立即创建备份",
+        "no_backups": "您还没有任何备份。启用自动备份或手动创建一个。",
+        "table": {
+          "created_at": "创建于",
+          "bookmarks": "书签",
+          "size": "大小",
+          "status": "状态",
+          "actions": "操作"
+        },
+        "status": {
+          "success": "成功",
+          "failed": "失败",
+          "pending": "待定"
+        },
+        "actions": {
+          "download_backup": "下载备份",
+          "delete_backup": "删除备份"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "删除备份？",
+        "delete_backup_description": "你确定要删除这个备份吗？这个操作没法撤销哦。"
+      },
+      "toasts": {
+        "backup_queued": "备份任务已加入队列！很快就会处理。",
+        "backup_deleted": "备份已删除！"
+      }
     }
   },
   "admin": {
@@ -509,7 +563,57 @@
       "description": "删除列表不会删除该列表中的任何书签。",
       "delete_children": "删除子列表（递归）",
       "delete_children_description": "如果未选中，所有直接的子列表都将成为根列表"
-    }
+    },
+    "shared": "共享",
+    "collaborators": {
+      "manage": "管理协作者",
+      "view": "查看协作者",
+      "collaborators": "协作者",
+      "add": "添加协作者",
+      "current": "当前协作者",
+      "enter_email": "输入电子邮件地址",
+      "please_enter_email": "请输入一个电子邮件地址",
+      "added_successfully": "已成功添加协作者",
+      "failed_to_add": "添加协作者失败",
+      "removed": "已移除协作者",
+      "failed_to_remove": "移除协作者失败",
+      "role_updated": "角色已更新",
+      "failed_to_update_role": "更新角色失败",
+      "viewer": "查看者",
+      "editor": "编辑者",
+      "owner": "拥有者",
+      "viewer_description": "可以在列表中查看书签",
+      "editor_description": "可以添加和移除书签",
+      "no_collaborators": "还没有协作者。添加一个开始协作吧！",
+      "no_collaborators_readonly": "此列表没有协作者。",
+      "people_with_access": "有权访问此列表的人员",
+      "add_or_remove": "添加或删除可以访问此列表的人员",
+      "invitation_sent": "邀请已成功发送",
+      "invitation_revoked": "邀请已撤销",
+      "failed_to_revoke": "撤销邀请失败",
+      "pending": "待定",
+      "revoke": "撤销",
+      "declined": "已拒绝"
+    },
+    "leave_list": {
+      "title": "离开列表",
+      "confirm_message": "您确定要离开 {{icon}} {{name}} 吗？",
+      "warning": "您将无法再查看或访问此列表中的书签。列表所有者可以在需要时重新添加您。",
+      "action": "离开列表",
+      "success": "你已经离开了“{{icon}} {{name}}”"
+    },
+    "invitations": {
+      "pending": "待处理的邀请",
+      "description": "审核并响应列表协作邀请",
+      "invited_by": "邀请人",
+      "accept": "接受",
+      "decline": "拒绝",
+      "accepted": "邀请已接受",
+      "declined": "邀请已拒绝",
+      "failed_to_accept": "接受邀请失败",
+      "failed_to_decline": "拒绝邀请失败"
+    },
+    "shared_lists": "共享列表"
   },
   "tags": {
     "all_tags": "所有标签",

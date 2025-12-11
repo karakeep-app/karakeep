@@ -13,6 +13,7 @@ import logger from "@karakeep/shared/logger";
 import { shutdownPromise } from "./exit";
 import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
+import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
@@ -31,6 +32,7 @@ const workerBuilders = {
   assetPreprocessing: () => AssetPreprocessingWorker.build(),
   webhook: () => WebhookWorker.build(),
   ruleEngine: () => RuleEngineWorker.build(),
+  backup: () => BackupWorker.build(),
 } as const;
 
 type WorkerName = keyof typeof workerBuilders;
@@ -69,6 +71,10 @@ async function main() {
     FeedRefreshingWorker.start();
   }
 
+  if (workers.some((w) => w.name === "backup")) {
+    BackupSchedulingWorker.start();
+  }
+
   await Promise.any([
     Promise.all([
       ...workers.map(({ worker }) => worker.run()),
@@ -83,6 +89,9 @@ async function main() {
 
   if (workers.some((w) => w.name === "feed")) {
     FeedRefreshingWorker.stop();
+  }
+  if (workers.some((w) => w.name === "backup")) {
+    BackupSchedulingWorker.stop();
   }
   for (const { worker } of workers) {
     worker.stop();

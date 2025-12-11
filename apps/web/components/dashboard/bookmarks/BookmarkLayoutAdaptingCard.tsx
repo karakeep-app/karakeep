@@ -13,6 +13,7 @@ import {
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
 import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -64,12 +65,15 @@ function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
   const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
   const [isSelected, setIsSelected] = useState(false);
   const { theme } = useTheme();
+  const { data: session } = useSession();
 
   useEffect(() => {
     setIsSelected(selectedBookmarks.some((item) => item.id === bookmark.id));
   }, [selectedBookmarks]);
 
-  if (!isBulkEditEnabled) return null;
+  // Don't show selector for non-owned bookmarks or when bulk edit is disabled
+  const isOwner = session?.user?.id === bookmark.userId;
+  if (!isBulkEditEnabled || !isOwner) return null;
 
   const getIconColor = () => {
     if (theme === "dark") {

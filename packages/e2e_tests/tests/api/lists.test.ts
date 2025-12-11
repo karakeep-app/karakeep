@@ -25,6 +25,41 @@ describe("Lists API", () => {
     });
   });
 
+  it("should list all lists", async () => {
+    // Create multiple lists
+    const { data: list1 } = await client.POST("/lists", {
+      body: {
+        name: "First List",
+        icon: "🚀",
+      },
+    });
+
+    const { data: list2 } = await client.POST("/lists", {
+      body: {
+        name: "Second List",
+        icon: "📚",
+        type: "smart",
+        query: "is:fav",
+      },
+    });
+
+    // Get all lists
+    const { data: allLists, response: getResponse } = await client.GET(
+      "/lists",
+      {
+        params: {},
+      },
+    );
+
+    expect(getResponse.status).toBe(200);
+    expect(allLists).toBeDefined();
+    expect(allLists!.lists.length).toBeGreaterThanOrEqual(2);
+
+    const listIds = allLists!.lists.map((l) => l.id);
+    expect(listIds).toContain(list1!.id);
+    expect(listIds).toContain(list2!.id);
+  });
+
   it("should create, get, update and delete a list", async () => {
     // Create a new list
     const { data: createdList, response: createResponse } = await client.POST(

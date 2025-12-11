@@ -5,7 +5,13 @@ import { useClientConfig } from "@/lib/clientConfig";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
-export function NoteEditor({ bookmark }: { bookmark: ZBookmark }) {
+export function NoteEditor({
+  bookmark,
+  disabled,
+}: {
+  bookmark: ZBookmark;
+  disabled?: boolean;
+}) {
   const demoMode = !!useClientConfig().demoMode;
 
   const updateBookmarkMutator = useUpdateBookmark({
@@ -26,7 +32,7 @@ export function NoteEditor({ bookmark }: { bookmark: ZBookmark }) {
     <Textarea
       className="h-44 w-full overflow-auto rounded bg-background p-2 text-sm text-gray-400 dark:text-gray-300"
       defaultValue={bookmark.note ?? ""}
-      disabled={demoMode}
+      disabled={demoMode || disabled}
       placeholder="Write some notes ..."
       onBlur={(e) => {
         if (e.currentTarget.value == bookmark.note) {

@@ -41,6 +41,8 @@ class RestateQueueWrapper<T> implements Queue<T> {
         data: {
           payload: T;
           priority: number;
+          groupId?: string;
+          queuedIdempotencyKey?: string;
         },
       ) => Promise<void>;
     }
@@ -49,6 +51,8 @@ class RestateQueueWrapper<T> implements Queue<T> {
       {
         payload,
         priority: options?.priority ?? 0,
+        groupId: options?.groupId,
+        queuedIdempotencyKey: options?.idempotencyKey,
       },
       restateClient.rpc.sendOpts({
         delay: options?.delayMs
@@ -56,7 +60,6 @@ class RestateQueueWrapper<T> implements Queue<T> {
               milliseconds: options.delayMs,
             }
           : undefined,
-        idempotencyKey: options?.idempotencyKey,
       }),
     );
     return res.invocationId;
@@ -162,9 +165,9 @@ class RestateQueueClient implements QueueClient {
     return wrapper;
   }
 
-  createRunner<T>(
+  createRunner<T, R = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T>,
+    funcs: RunnerFuncs<T, R>,
     opts: RunnerOptions<T>,
   ): Runner<T> {
     const name = queue.name();

@@ -147,7 +147,8 @@
       "import_export_bookmarks": "Importa / Esporta segnalibri",
       "import_bookmarks_from_omnivore_export": "Importa segnalibri da esportazione Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importa i segnalibri dall'esportazione di Linkwarden",
-      "import_bookmarks_from_tab_session_manager_export": "Importa i segnalibri da Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Importa i segnalibri da Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Importa i segnalibri dall'esportazione di mymind"
     },
     "api_keys": {
       "api_keys": "Chiavi API",
@@ -284,6 +285,10 @@
       },
       "storage_breakdown": {
         "title": "Ripartizione archiviazione"
+      },
+      "bookmark_sources": {
+        "title": "Origini segnalibro",
+        "empty": "Nessun dato di origine disponibile"
       }
     },
     "subscription": {
@@ -333,6 +338,55 @@
       "delete_dialog_title": "Elimina sessione di importazione",
       "delete_dialog_description": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata. I segnalibri stessi non verranno eliminati.",
       "delete_session": "Elimina sessione"
+    },
+    "backups": {
+      "backups": "Backup",
+      "page_title": "Backup",
+      "page_description": "Crea e gestisci automaticamente i backup dei tuoi segnalibri. I backup sono compressi e archiviati in modo sicuro.",
+      "configuration": {
+        "title": "Configurazione backup",
+        "enable_automatic_backups": "Abilita backup automatici",
+        "enable_automatic_backups_description": "Crea automaticamente backup dei tuoi segnalibri",
+        "backup_frequency": "Frequenza backup",
+        "backup_frequency_description": "Ogni quanto tempo creare i backup",
+        "retention_period": "Periodo di conservazione (giorni)",
+        "retention_period_description": "Per quanti giorni conservare i backup prima di eliminarli",
+        "frequency": {
+          "daily": "Giornalmente",
+          "weekly": "Settimanalmente"
+        },
+        "select_frequency": "Seleziona frequenza",
+        "save_settings": "Salva impostazioni"
+      },
+      "list": {
+        "title": "I tuoi backup",
+        "create_backup_now": "Crea backup ora",
+        "no_backups": "Non hai ancora nessun backup. Abilita i backup automatici o creane uno manualmente.",
+        "table": {
+          "created_at": "Creato il",
+          "bookmarks": "Segnalibri",
+          "size": "Dimensione",
+          "status": "Stato",
+          "actions": "Azioni"
+        },
+        "status": {
+          "success": "Successo",
+          "failed": "Fallito",
+          "pending": "In sospeso"
+        },
+        "actions": {
+          "download_backup": "Scarica backup",
+          "delete_backup": "Elimina backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Eliminare il backup?",
+        "delete_backup_description": "Sei sicuro di voler eliminare questo backup? Questa azione non può essere annullata."
+      },
+      "toasts": {
+        "backup_queued": "Il processo di backup è stato messo in coda! Verrà elaborato a breve.",
+        "backup_deleted": "Il backup è stato eliminato!"
+      }
     }
   },
   "editor": {
@@ -568,7 +622,57 @@
       "description": "Eliminare una lista non elimina i segnalibri al suo interno.",
       "delete_children": "Elimina le liste figlie (ricorsivamente)",
       "delete_children_description": "Se non selezionato, tutte le liste figlie dirette diventeranno liste radice"
-    }
+    },
+    "shared": "Condiviso",
+    "collaborators": {
+      "manage": "Gestisci collaboratori",
+      "view": "Visualizza collaboratori",
+      "collaborators": "Collaboratori",
+      "add": "Aggiungi collaboratore",
+      "current": "Collaboratori attuali",
+      "enter_email": "Inserisci indirizzo email",
+      "please_enter_email": "Inserisci un indirizzo email",
+      "added_successfully": "Collaboratore aggiunto correttamente",
+      "failed_to_add": "Impossibile aggiungere il collaboratore",
+      "removed": "Collaboratore rimosso",
+      "failed_to_remove": "Impossibile rimuovere il collaboratore",
+      "role_updated": "Ruolo aggiornato",
+      "failed_to_update_role": "Impossibile aggiornare il ruolo",
+      "viewer": "Visualizzatore",
+      "editor": "Editor",
+      "owner": "Proprietario",
+      "viewer_description": "Può visualizzare i segnalibri nella lista",
+      "editor_description": "Può aggiungere e rimuovere segnalibri",
+      "no_collaborators": "Ancora nessun collaboratore. Aggiungi qualcuno per iniziare a collaborare!",
+      "no_collaborators_readonly": "Nessun collaboratore per questo elenco.",
+      "people_with_access": "Persone che hanno accesso a questo elenco",
+      "add_or_remove": "Aggiungi o rimuovi persone che possono accedere a questo elenco",
+      "invitation_sent": "Invito inviato correttamente",
+      "invitation_revoked": "Invito revocato",
+      "failed_to_revoke": "Impossibile revocare l'invito",
+      "pending": "In sospeso",
+      "revoke": "Revoca",
+      "declined": "Rifiutato"
+    },
+    "leave_list": {
+      "title": "Abbandona l'elenco",
+      "confirm_message": "Sei sicuro di voler abbandonare {{icon}} {{name}}?",
+      "warning": "Non potrai più visualizzare o accedere ai segnalibri in questo elenco. Il proprietario dell'elenco potrà aggiungerti di nuovo se necessario.",
+      "action": "Abbandona l'elenco",
+      "success": "Hai abbandonato \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Inviti in sospeso",
+      "description": "Esamina e rispondi agli inviti di collaborazione nell'elenco",
+      "invited_by": "Invitato da",
+      "accept": "Accetta",
+      "decline": "Rifiuta",
+      "accepted": "Invito accettato",
+      "declined": "Invito rifiutato",
+      "failed_to_accept": "Impossibile accettare l'invito",
+      "failed_to_decline": "Impossibile rifiutare l'invito"
+    },
+    "shared_lists": "Elenchi condivisi"
   },
   "tags": {
     "your_tags": "I tuoi tag",

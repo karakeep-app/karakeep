@@ -150,7 +150,8 @@
       "export_links_and_notes": "Bağlantı ve Notları Dışa Aktar",
       "imported_bookmarks": "İçe Aktarılan Yer İşaretleri",
       "import_bookmarks_from_linkwarden_export": "Linkwarden dışa aktarımından Yer İşaretlerini İçe Aktar",
-      "import_bookmarks_from_tab_session_manager_export": "Sekme Oturum Yöneticisi'nden Yer İşaretlerini İçe Aktar"
+      "import_bookmarks_from_tab_session_manager_export": "Sekme Oturum Yöneticisi'nden Yer İşaretlerini İçe Aktar",
+      "import_bookmarks_from_mymind_export": "Mymind dışa aktarımından Yer İşaretlerini İçe Aktar"
     },
     "api_keys": {
       "api_keys": "API Anahtarları",
@@ -293,6 +294,10 @@
       },
       "storage_breakdown": {
         "title": "Depolama Dökümü"
+      },
+      "bookmark_sources": {
+        "title": "Kaynakları işaretle",
+        "empty": "Kullanılabilir kaynak verisi yok"
       }
     },
     "subscription": {
@@ -342,6 +347,55 @@
       "delete_dialog_title": "İçe Aktarma Oturumunu Sil",
       "delete_dialog_description": "\"{{name}}\" öğesini silmek istediğinden emin misin? Bu işlem geri alınamaz. Yer imlerinin kendileri silinmeyecektir.",
       "delete_session": "Oturumu Sil"
+    },
+    "backups": {
+      "backups": "Yedeklemeler",
+      "page_title": "Yedeklemeler",
+      "page_description": "Yer işaretlerinizin otomatik olarak yedeklerini oluşturun ve yönetin. Yedeklemeler sıkıştırılır ve güvenli bir şekilde saklanır.",
+      "configuration": {
+        "title": "Yedekleme Yapılandırması",
+        "enable_automatic_backups": "Otomatik Yedeklemeleri Etkinleştir",
+        "enable_automatic_backups_description": "Yer işaretlerinizin otomatik olarak yedeklerini oluştur.",
+        "backup_frequency": "Yedekleme Sıklığı",
+        "backup_frequency_description": "Yedeklemelerin ne sıklıkla oluşturulması gerektiği",
+        "retention_period": "Saklama Süresi (gün)",
+        "retention_period_description": "Yedekleri silmeden önce kaç gün saklanacağı",
+        "frequency": {
+          "daily": "Günlük",
+          "weekly": "Haftalık"
+        },
+        "select_frequency": "Sıklık seçin",
+        "save_settings": "Ayarları Kaydet"
+      },
+      "list": {
+        "title": "Yedeklemeleriniz",
+        "create_backup_now": "Şimdi Yedekleme Oluştur",
+        "no_backups": "Henüz herhangi bir yedeğiniz yok. Otomatik yedeklemeyi etkinleştirin veya manuel olarak bir tane oluşturun.",
+        "table": {
+          "created_at": "Oluşturulma Zamanı",
+          "bookmarks": "Yer İşaretleri",
+          "size": "Boyut",
+          "status": "Durum",
+          "actions": "Eylemler"
+        },
+        "status": {
+          "success": "Başarılı",
+          "failed": "Başarısız",
+          "pending": "Beklemede"
+        },
+        "actions": {
+          "download_backup": "Yedeklemeyi İndir",
+          "delete_backup": "Yedeklemeyi Sil"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Yedeklemeyi silmek mi istiyorsun?",
+        "delete_backup_description": "Bu yedeklemeyi silmek istediğinden emin misin? Bu işlem geri alınamaz."
+      },
+      "toasts": {
+        "backup_queued": "Yedekleme işi sıraya alındı! Kısa süre içinde işlenecek.",
+        "backup_deleted": "Yedekleme silindi!"
+      }
     }
   },
   "admin": {
@@ -512,7 +566,57 @@
       "description": "Bir listeyi silmek, o listedeki hiçbir yer işaretini silmez.",
       "delete_children": "Alt listeleri sil (özyinelemeli olarak)",
       "delete_children_description": "İşaretli değilse, tüm doğrudan alt listeler kök listelere dönüşür"
-    }
+    },
+    "shared": "Paylaşılan",
+    "collaborators": {
+      "manage": "Ortak Çalışanları Yönet",
+      "view": "Ortak Çalışanları Görüntüle",
+      "collaborators": "Ortak Çalışanlar",
+      "add": "Ortak Çalışan Ekle",
+      "current": "Mevcut Ortak Çalışanlar",
+      "enter_email": "E-posta adresini girin",
+      "please_enter_email": "Lütfen bir e-posta adresi girin",
+      "added_successfully": "Ortak çalışan başarıyla eklendi",
+      "failed_to_add": "Ortak çalışan eklenemedi",
+      "removed": "Ortak çalışan kaldırıldı",
+      "failed_to_remove": "Ortak çalışan kaldırılamadı",
+      "role_updated": "Rol güncellendi",
+      "failed_to_update_role": "Rol güncellenemedi",
+      "viewer": "Görüntüleyici",
+      "editor": "Düzenleyici",
+      "owner": "Sahip",
+      "viewer_description": "Listedeki yer işaretlerini görüntüleyebilir",
+      "editor_description": "Yer işaretleri ekleyebilir ve kaldırabilir",
+      "no_collaborators": "Henüz ortak çalışan yok. İşbirliğine başlamak için birini ekleyin!",
+      "no_collaborators_readonly": "Bu listede işbirlikçi yok.",
+      "people_with_access": "Bu listeye erişimi olan kişiler",
+      "add_or_remove": "Bu listeye erişebilecek kişileri ekle veya kaldır",
+      "invitation_sent": "Davetiye başarıyla gönderildi",
+      "invitation_revoked": "Davetiye iptal edildi",
+      "failed_to_revoke": "Davetiye iptal edilemedi",
+      "pending": "Beklemede",
+      "revoke": "İptal et",
+      "declined": "Reddedildi"
+    },
+    "leave_list": {
+      "title": "Listeden Ayrıl",
+      "confirm_message": "{{icon}} {{name}} listesinden ayrılmak istediğinden emin misin?",
+      "warning": "Artık bu listedeki yer işaretlerini görüntüleyemeyecek veya bunlara erişemeyeceksin. Liste sahibi gerekirse seni geri ekleyebilir.",
+      "action": "Listeden Ayrıl",
+      "success": "\"{{icon}} {{name}}\" listesinden ayrıldın"
+    },
+    "invitations": {
+      "pending": "Bekleyen Davetiyeler",
+      "description": "Liste işbirliği davetlerini inceleyip yanıtlayın",
+      "invited_by": "Davet Eden",
+      "accept": "Kabul Et",
+      "decline": "Reddet",
+      "accepted": "Davetiye kabul edildi",
+      "declined": "Davetiye reddedildi",
+      "failed_to_accept": "Davetiye kabul edilemedi",
+      "failed_to_decline": "Davetiye reddedilemedi"
+    },
+    "shared_lists": "Paylaşılan Listeler"
   },
   "tags": {
     "all_tags": "Tüm Etiketler",

@@ -8,8 +8,6 @@ import {
 
 import type { PluginProvider } from "@karakeep/shared/plugins";
 import type {
-  DequeuedJob,
-  DequeuedJobError,
   EnqueueOptions,
   Queue,
   QueueClient,
@@ -82,9 +80,9 @@ class LitequeQueueClient implements QueueClient {
     return wrapper;
   }
 
-  createRunner<T>(
+  createRunner<T, R = void>(
     queue: Queue<T>,
-    funcs: RunnerFuncs<T>,
+    funcs: RunnerFuncs<T, R>,
     opts: RunnerOptions<T>,
   ): Runner<T> {
     const name = queue.name();
@@ -93,16 +91,12 @@ class LitequeQueueClient implements QueueClient {
       throw new Error(`Queue ${name} not found`);
     }
 
-    const runner = new LQRunner<T>(
+    const runner = new LQRunner<T, R>(
       wrapper._impl,
       {
         run: funcs.run,
-        onComplete: funcs.onComplete as
-          | ((job: DequeuedJob<T>) => Promise<void>)
-          | undefined,
-        onError: funcs.onError as
-          | ((job: DequeuedJobError<T>) => Promise<void>)
-          | undefined,
+        onComplete: funcs.onComplete,
+        onError: funcs.onError,
       },
       {
         pollIntervalMs: opts.pollIntervalMs ?? 1000,

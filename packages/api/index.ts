@@ -10,6 +10,7 @@ import { Context } from "@karakeep/trpc";
 import trpcAdapter from "./middlewares/trpcAdapter";
 import admin from "./routes/admin";
 import assets from "./routes/assets";
+import backups from "./routes/backups";
 import bookmarks from "./routes/bookmarks";
 import health from "./routes/health";
 import highlights from "./routes/highlights";
@@ -20,6 +21,7 @@ import rss from "./routes/rss";
 import tags from "./routes/tags";
 import trpc from "./routes/trpc";
 import users from "./routes/users";
+import version from "./routes/version";
 import webhooks from "./routes/webhooks";
 
 await loadAllPlugins();
@@ -36,7 +38,8 @@ const v1 = new Hono<{
   .route("/users", users)
   .route("/assets", assets)
   .route("/admin", admin)
-  .route("/rss", rss);
+  .route("/rss", rss)
+  .route("/backups", backups);
 
 const app = new Hono<{
   Variables: {
@@ -67,6 +70,7 @@ const app = new Hono<{
   })
   .use(trpcAdapter)
   .route("/health", health)
+  .route("/version", version)
   .route("/trpc", trpc)
   .route("/v1", v1)
   .route("/assets", assets)

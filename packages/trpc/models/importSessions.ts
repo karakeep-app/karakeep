@@ -15,9 +15,8 @@ import {
 } from "@karakeep/shared/types/importSessions";
 
 import type { AuthedContext } from "../index";
-import { PrivacyAware } from "./privacy";
 
-export class ImportSession implements PrivacyAware {
+export class ImportSession {
   protected constructor(
     protected ctx: AuthedContext,
     public session: ZImportSession,
@@ -82,15 +81,6 @@ export class ImportSession implements PrivacyAware {
     );
   }
 
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.session.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access this import session",
-      });
-    }
-  }
-
   async attachBookmark(bookmarkId: string): Promise<void> {
     await this.ctx.db.insert(importSessionBookmarks).values({
       importSessionId: this.session.id,
@@ -133,22 +123,34 @@ export class ImportSession implements PrivacyAware {
     };
 
     statusCounts.forEach((statusCount) => {
-      stats.totalBookmarks += statusCount.count;
-      if (
-        statusCount.crawlStatus === "success" &&
-        statusCount.taggingStatus === "success"
-      ) {
-        stats.completedBookmarks += statusCount.count;
-      } else if (
-        statusCount.crawlStatus === "failure" ||
-        statusCount.taggingStatus === "failure"
-      ) {
-        stats.failedBookmarks += statusCount.count;
-      } else if (
-        statusCount.crawlStatus === "pending" ||
-        statusCount.taggingStatus === "pending"
-      ) {
-        stats.pendingBookmarks += statusCount.count;
+      const { crawlStatus, taggingStatus, count } = statusCount;
+
+      stats.totalBookmarks += count;
+
+      const isCrawlFailure = crawlStatus === "failure";
+      const isTagFailure = taggingStatus === "failure";
+      if (isCrawlFailure || isTagFailure) {
+        stats.failedBookmarks += count;
+        return;
+      }
+
+      const isCrawlPending = crawlStatus === "pending";
+      const isTagPending = taggingStatus === "pending";
+      if (isCrawlPending || isTagPending) {
+        stats.pendingBookmarks += count;
+        return;
+      }
+
+      const isCrawlSuccessfulOrNotRequired =
+        crawlStatus === "success" || crawlStatus === null;
+      const isTagSuccessfulOrUnknown =
+        taggingStatus === "success" || taggingStatus === null;
+
+      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrUnknown) {
+        stats.completedBookmarks += count;
+      } else {
+        // Fallback to pending to avoid leaving imports unclassified
+        stats.pendingBookmarks += count;
       }
     });
 

@@ -44,6 +44,10 @@ export default function CredentialsForm() {
 
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   if (clientConfig.auth.disablePasswordAuth) {

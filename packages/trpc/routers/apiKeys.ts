@@ -131,6 +131,16 @@ export const apiKeysAppRouter = router({
       } catch {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+
+      // Check if email verification is required and if the user has verified their email
+      if (serverConfig.auth.emailVerificationRequired && !user.emailVerified) {
+        throw new TRPCError({
+          message:
+            "Please verify your email address before generating an API key",
+          code: "FORBIDDEN",
+        });
+      }
+
       return await generateApiKey(input.keyName, user.id, ctx.db);
     }),
   validate: publicProcedure

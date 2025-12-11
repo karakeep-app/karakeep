@@ -26,9 +26,8 @@ import {
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
-import { PrivacyAware } from "./privacy";
 
-export class Tag implements PrivacyAware {
+export class Tag {
   constructor(
     protected ctx: AuthedContext,
     public tag: typeof bookmarkTags.$inferSelect,
@@ -281,7 +280,11 @@ export class Tag implements PrivacyAware {
 
     try {
       await Promise.all(
-        affectedBookmarks.map((id) => triggerSearchReindex(id)),
+        affectedBookmarks.map((id) =>
+          triggerSearchReindex(id, {
+            groupId: ctx.user.id,
+          }),
+        ),
       );
     } catch (e) {
       console.error("Failed to reindex affected bookmarks", e);
@@ -291,15 +294,6 @@ export class Tag implements PrivacyAware {
       deletedTags: deletedTags.map((t) => t.id),
       mergedIntoTagId: input.intoTagId,
     };
-  }
-
-  ensureCanAccess(ctx: AuthedContext): void {
-    if (this.tag.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
   }
 
   async delete(): Promise<void> {
@@ -325,7 +319,9 @@ export class Tag implements PrivacyAware {
 
     await Promise.all(
       affectedBookmarks.map(({ bookmarkId }) =>
-        triggerSearchReindex(bookmarkId),
+        triggerSearchReindex(bookmarkId, {
+          groupId: this.ctx.user.id,
+        }),
       ),
     );
   }
@@ -362,7 +358,9 @@ export class Tag implements PrivacyAware {
         await Promise.all(
           affectedBookmarks
             .map((b) => b.bookmarkId)
-            .map((id) => triggerSearchReindex(id)),
+            .map((id) =>
+              triggerSearchReindex(id, { groupId: this.ctx.user.id }),
+            ),
         );
       } catch (e) {
         console.error("Failed to reindex affected bookmarks", e);

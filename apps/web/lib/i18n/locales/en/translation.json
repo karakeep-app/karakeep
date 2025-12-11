@@ -233,6 +233,7 @@
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
@@ -358,6 +359,55 @@
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
       "delete_session": "Delete Session"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Automatically create and manage backups of your bookmarks. Backups are compressed and stored securely.",
+      "configuration": {
+        "title": "Backup Configuration",
+        "enable_automatic_backups": "Enable Automatic Backups",
+        "enable_automatic_backups_description": "Automatically create backups of your bookmarks",
+        "backup_frequency": "Backup Frequency",
+        "backup_frequency_description": "How often backups should be created",
+        "retention_period": "Retention Period (days)",
+        "retention_period_description": "How many days to keep backups before deleting them",
+        "frequency": {
+          "daily": "Daily",
+          "weekly": "Weekly"
+        },
+        "select_frequency": "Select frequency",
+        "save_settings": "Save Settings"
+      },
+      "list": {
+        "title": "Your Backups",
+        "create_backup_now": "Create Backup Now",
+        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually.",
+        "table": {
+          "created_at": "Created At",
+          "bookmarks": "Bookmarks",
+          "size": "Size",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "pending": "Pending"
+        },
+        "actions": {
+          "download_backup": "Download Backup",
+          "delete_backup": "Delete Backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Delete Backup?",
+        "delete_backup_description": "Are you sure you want to delete this backup? This action cannot be undone."
+      },
+      "toasts": {
+        "backup_queued": "Backup job has been queued! It will be processed shortly.",
+        "backup_deleted": "Backup has been deleted!"
+      }
     }
   },
   "admin": {
@@ -469,6 +519,8 @@
   "lists": {
     "all_lists": "All Lists",
     "favourites": "Favourites",
+    "shared": "Shared",
+    "shared_lists": "Shared Lists",
     "new_list": "New List",
     "edit_list": "Edit List",
     "share_list": "Share List",
@@ -500,6 +552,54 @@
       "title": "Public List",
       "description": "Allow others to view this list",
       "share_link": "Share Link"
+    },
+    "collaborators": {
+      "manage": "Manage Collaborators",
+      "view": "View Collaborators",
+      "collaborators": "Collaborators",
+      "add": "Add Collaborator",
+      "current": "Current Collaborators",
+      "enter_email": "Enter email address",
+      "please_enter_email": "Please enter an email address",
+      "added_successfully": "Collaborator added successfully",
+      "invitation_sent": "Invitation sent successfully",
+      "failed_to_add": "Failed to add collaborator",
+      "removed": "Collaborator removed",
+      "failed_to_remove": "Failed to remove collaborator",
+      "role_updated": "Role updated",
+      "failed_to_update_role": "Failed to update role",
+      "invitation_revoked": "Invitation revoked",
+      "failed_to_revoke": "Failed to revoke invitation",
+      "viewer": "Viewer",
+      "editor": "Editor",
+      "owner": "Owner",
+      "pending": "Pending",
+      "revoke": "Revoke",
+      "declined": "Declined",
+      "viewer_description": "Can view bookmarks in the list",
+      "editor_description": "Can add and remove bookmarks",
+      "no_collaborators": "No collaborators yet. Add someone to start collaborating!",
+      "no_collaborators_readonly": "No collaborators for this list.",
+      "people_with_access": "People who have access to this list",
+      "add_or_remove": "Add or remove people who can access this list"
+    },
+    "invitations": {
+      "pending": "Pending Invitations",
+      "description": "Review and respond to list collaboration invitations",
+      "invited_by": "Invited by",
+      "accept": "Accept",
+      "decline": "Decline",
+      "accepted": "Invitation accepted",
+      "declined": "Invitation declined",
+      "failed_to_accept": "Failed to accept invitation",
+      "failed_to_decline": "Failed to decline invitation"
+    },
+    "leave_list": {
+      "title": "Leave List",
+      "confirm_message": "Are you sure you want to leave {{icon}} {{name}}?",
+      "warning": "You will no longer be able to view or access bookmarks in this list. The list owner can add you back if needed.",
+      "action": "Leave List",
+      "success": "You have left \"{{icon}} {{name}}\""
     }
   },
   "tags": {
@@ -562,9 +662,16 @@
     "type_is_not": "Type is not",
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
+    "is_broken_link": "Has Broken Link",
+    "is_not_broken_link": "Has Working Link",
     "and": "And",
     "or": "Or",
-    "history": "Recent Searches"
+    "history": "Recent Searches",
+    "filters": "Filters",
+    "tags": "Tags",
+    "lists": "Lists",
+    "feeds": "Feeds",
+    "no_suggestions": "No suggestions"
   },
   "preview": {
     "view_original": "View Original",
@@ -576,7 +683,6 @@
     }
   },
   "editor": {
-    "quickly_focus": "You can quickly focus on this field by pressing ⌘ + E",
     "multiple_urls_dialog_title": "Importing URLs as separate Bookmarks?",
     "multiple_urls_dialog_desc": "The input contains multiple URLs on separate lines. Do you want to import them as separate bookmarks?",
     "import_as_text": "Import as Text Bookmark",

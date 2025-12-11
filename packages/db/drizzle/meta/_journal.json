@@ -456,6 +456,34 @@
       "when": 1762115406895,
       "tag": "0064_add_import_tags_to_feeds",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "6",
+      "when": 1763335572156,
+      "tag": "0065_collaborative_lists",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "6",
+      "when": 1763854050669,
+      "tag": "0066_collaborative_lists_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "6",
+      "when": 1764418020312,
+      "tag": "0067_add_backups_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "6",
+      "when": 1765310170813,
+      "tag": "0068_optimize_bookmark_indicies",
+      "breakpoints": true
     }
   ]
 }

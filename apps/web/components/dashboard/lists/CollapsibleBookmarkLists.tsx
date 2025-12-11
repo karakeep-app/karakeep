@@ -4,17 +4,15 @@ import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { api } from "@/lib/trpc";
 import { keepPreviousData } from "@tanstack/react-query";
 
-import {
-  augmentBookmarkListsWithInitialData,
-  useBookmarkLists,
-} from "@karakeep/shared-react/hooks/lists";
+import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 
 type RenderFunc = (params: {
-  item: ZBookmarkListTreeNode;
+  node: ZBookmarkListTreeNode;
   level: number;
   open: boolean;
+  onOpenChange: (open: boolean) => void;
   numBookmarks?: number;
 }) => React.ReactNode;
 
@@ -26,11 +24,15 @@ function ListItem({
   level,
   className,
   isOpenFunc,
+  listStats,
+  indentOffset,
 }: {
   node: ZBookmarkListTreeNode;
   render: RenderFunc;
   isOpenFunc: IsOpenFunc;
+  listStats?: Map<string, number>;
   level: number;
+  indentOffset: number;
   className?: string;
 }) {
   // Not the most efficient way to do this, but it works for now
@@ -47,17 +49,15 @@ function ListItem({
   useEffect(() => {
     setOpen((curr) => curr || isAnyChildOpen(node, isOpenFunc));
   }, [node, isOpenFunc]);
-  const { data: listStats } = api.lists.stats.useQuery(undefined, {
-    placeholderData: keepPreviousData,
-  });
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className={className}>
       {render({
-        item: node,
-        level,
+        node,
+        level: level + indentOffset,
         open,
-        numBookmarks: listStats?.stats.get(node.item.id),
+        onOpenChange: setOpen,
+        numBookmarks: listStats?.get(node.item.id),
       })}
       <CollapsibleContent>
         {node.children
@@ -69,6 +69,8 @@ function ListItem({
               node={l}
               render={render}
               level={level + 1}
+              indentOffset={indentOffset}
+              listStats={listStats}
               className={className}
             />
           ))}
@@ -80,40 +82,56 @@ function ListItem({
 export function CollapsibleBookmarkLists({
   render,
   initialData,
+  listsData,
   className,
   isOpenFunc,
+  filter,
+  indentOffset = 0,
 }: {
   initialData?: ZBookmarkList[];
+  listsData?: {
+    data: ZBookmarkList[];
+    root: Record<string, ZBookmarkListTreeNode>;
+    allPaths: ZBookmarkList[][];
+    getPathById: (id: string) => ZBookmarkList[] | undefined;
+  };
   render: RenderFunc;
   isOpenFunc?: IsOpenFunc;
   className?: string;
+  filter?: (node: ZBookmarkListTreeNode) => boolean;
+  indentOffset?: number;
 }) {
-  let { data } = useBookmarkLists(undefined, {
+  // If listsData is provided, use it directly. Otherwise, fetch it.
+  let { data: fetchedData } = useBookmarkLists(undefined, {
     initialData: initialData ? { lists: initialData } : undefined,
+    enabled: !listsData, // Only fetch if listsData is not provided
   });
+  const data = listsData || fetchedData;
 
-  // TODO: This seems to be a bug in react query
-  if (initialData) {
-    data = augmentBookmarkListsWithInitialData(data, initialData);
-  }
+  const { data: listStats } = api.lists.stats.useQuery(undefined, {
+    placeholderData: keepPreviousData,
+  });
 
   if (!data) {
     return <FullPageSpinner />;
   }
 
-  const { root } = data;
+  const rootNodes = Object.values(data.root);
+  const filteredRoots = filter ? rootNodes.filter(filter) : rootNodes;
 
   return (
     <div>
-      {Object.values(root)
+      {filteredRoots
         .sort((a, b) => a.item.name.localeCompare(b.item.name))
-        .map((l) => (
+        .map((node) => (
           <ListItem
-            key={l.item.id}
-            node={l}
+            key={node.item.id}
+            node={node}
             render={render}
             level={0}
+            indentOffset={indentOffset}
             className={className}
+            listStats={listStats?.stats}
             isOpenFunc={isOpenFunc ?? (() => false)}
           />
         ))}

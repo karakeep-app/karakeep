@@ -401,4 +401,83 @@ describe("importBookmarksFromFile", () => {
     // updateBookmarkTags should be called 2 times (once fails at list assignment, one fails at tag update)
     expect(updateBookmarkTags).toHaveBeenCalledTimes(2);
   });
+
+  it("parses mymind CSV export correctly", async () => {
+    const mymindCsv = `id,type,title,url,content,note,tags,created
+1pYm0O0hY4WnmKN,WebPage,mymind,https://access.mymind.com/everything,,,"Wellness,Self-Improvement,Psychology",2024-12-04T23:02:10Z
+1pYm0O0hY5ltduL,WebPage,Movies / TV / Anime,https://fmhy.pages.dev/videopiracyguide,,"Free Media!","Tools,media,Entertainment",2024-12-04T23:02:32Z
+1pYm0O0hY8oFq9C,Note,,,"• Critical Thinking
+• Empathy",,,2024-12-04T23:05:23Z`;
+
+    const mockFile = {
+      text: vi.fn().mockResolvedValue(mymindCsv),
+    } as unknown as File;
+
+    const createdBookmarks: ParsedBookmark[] = [];
+    const createBookmark = vi.fn(async (bookmark: ParsedBookmark) => {
+      createdBookmarks.push(bookmark);
+      return {
+        id: `bookmark-${createdBookmarks.length}`,
+        alreadyExists: false,
+      };
+    });
+
+    const res = await importBookmarksFromFile({
+      file: mockFile,
+      source: "mymind",
+      rootListName: "mymind Import",
+      deps: {
+        createList: vi.fn(
+          async (input: { name: string; icon: string; parentId?: string }) => ({
+            id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
+          }),
+        ),
+        createBookmark,
+        addBookmarkToLists: vi.fn(),
+        updateBookmarkTags: vi.fn(),
+        createImportSession: vi.fn(async () => ({ id: "session-1" })),
+      },
+    });
+
+    expect(res.counts).toEqual({
+      successes: 3,
+      failures: 0,
+      alreadyExisted: 0,
+      total: 3,
+    });
+
+    // Verify first bookmark (WebPage with URL)
+    expect(createdBookmarks[0]).toMatchObject({
+      title: "mymind",
+      content: {
+        type: "link",
+        url: "https://access.mymind.com/everything",
+      },
+      tags: ["Wellness", "Self-Improvement", "Psychology"],
+    });
+    expect(createdBookmarks[0].addDate).toBeCloseTo(
+      new Date("2024-12-04T23:02:10Z").getTime() / 1000,
+    );
+
+    // Verify second bookmark (WebPage with note)
+    expect(createdBookmarks[1]).toMatchObject({
+      title: "Movies / TV / Anime",
+      content: {
+        type: "link",
+        url: "https://fmhy.pages.dev/videopiracyguide",
+      },
+      tags: ["Tools", "media", "Entertainment"],
+      notes: "Free Media!",
+    });
+
+    // Verify third bookmark (Note with text content)
+    expect(createdBookmarks[2]).toMatchObject({
+      title: "",
+      content: {
+        type: "text",
+        text: "• Critical Thinking\n• Empathy",
+      },
+      tags: [],
+    });
+  });
 });

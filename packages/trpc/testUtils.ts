@@ -24,6 +24,10 @@ export async function seedUsers(db: TestDB) {
         name: "Test User 2",
         email: "test2@test.com",
       },
+      {
+        name: "Test User 3",
+        email: "test3@test.com",
+      },
     ])
     .returning();
 }

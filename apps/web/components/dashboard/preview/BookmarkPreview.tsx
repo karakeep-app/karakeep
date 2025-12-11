@@ -17,6 +17,7 @@ import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
@@ -117,6 +118,7 @@ export default function BookmarkPreview({
 }) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>("content");
+  const { data: session } = useSession();
 
   const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
     {
@@ -137,6 +139,9 @@ export default function BookmarkPreview({
   if (!bookmark) {
     return <FullPageSpinner />;
   }
+
+  // Check if the current user owns this bookmark
+  const isOwner = session?.user?.id === bookmark.userId;
 
   let content;
   switch (bookmark.content.type) {
@@ -186,18 +191,18 @@ export default function BookmarkPreview({
       </div>
       <CreationTime createdAt={bookmark.createdAt} />
       <BookmarkMetadata bookmark={bookmark} />
-      <SummarizeBookmarkArea bookmark={bookmark} />
+      <SummarizeBookmarkArea bookmark={bookmark} readOnly={!isOwner} />
       <div className="flex items-center gap-4">
         <p className="text-sm text-gray-400">{t("common.tags")}</p>
-        <BookmarkTagsEditor bookmark={bookmark} />
+        <BookmarkTagsEditor bookmark={bookmark} disabled={!isOwner} />
       </div>
       <div className="flex gap-4">
         <p className="pt-2 text-sm text-gray-400">{t("common.note")}</p>
-        <NoteEditor bookmark={bookmark} />
+        <NoteEditor bookmark={bookmark} disabled={!isOwner} />
       </div>
-      <AttachmentBox bookmark={bookmark} />
-      <HighlightsBox bookmarkId={bookmark.id} />
-      <ActionBar bookmark={bookmark} />
+      <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
+      <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
+      {isOwner && <ActionBar bookmark={bookmark} />}
     </div>
   );
 

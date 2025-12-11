@@ -94,7 +94,7 @@ async function buildPrompt(
       );
       return null;
     }
-    return buildTextPrompt(
+    return await buildTextPrompt(
       serverConfig.inference.inferredTagLang,
       prompts,
       `URL: ${bookmark.link.url}
@@ -106,7 +106,7 @@ Content: ${content ?? ""}`,
   }
 
   if (bookmark.text) {
-    return buildTextPrompt(
+    return await buildTextPrompt(
       serverConfig.inference.inferredTagLang,
       prompts,
       bookmark.text.text ?? "",
@@ -215,7 +215,7 @@ async function inferTagsFromPDF(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
-  const prompt = buildTextPrompt(
+  const prompt = await buildTextPrompt(
     serverConfig.inference.inferredTagLang,
     await fetchCustomPrompts(bookmark.userId, "text"),
     `Content: ${bookmark.asset.content}`,
@@ -460,6 +460,7 @@ export async function runTagging(
   // Propagate priority to child jobs
   const enqueueOpts: EnqueueOptions = {
     priority: job.priority,
+    groupId: bookmark.userId,
   };
 
   // Trigger a webhook

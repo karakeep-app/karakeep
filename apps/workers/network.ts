@@ -7,6 +7,7 @@ import { LRUCache } from "lru-cache";
 import fetch, { Headers } from "node-fetch";
 
 import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
 
 const DISALLOWED_IP_RANGES = new Set([
   // IPv4 ranges
@@ -94,6 +95,10 @@ function hostnameMatchesAnyPattern(
   patterns: string[],
 ): boolean {
   function hostnameMatchesPattern(hostname: string, pattern: string): boolean {
+    if (pattern === ".") {
+      return true;
+    }
+
     return (
       pattern === hostname ||
       (pattern.startsWith(".") && hostname.endsWith(pattern)) ||
@@ -212,9 +217,14 @@ export function getRandomProxy(proxyList: string[]): string {
 }
 
 export function matchesNoProxy(url: string, noProxy: string[]) {
-  const urlObj = new URL(url);
-  const hostname = urlObj.hostname;
-  return hostnameMatchesAnyPattern(hostname, noProxy);
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+    return hostnameMatchesAnyPattern(hostname, noProxy);
+  } catch (e) {
+    logger.error(`Failed to parse URL: ${url}: ${e}`);
+    return false;
+  }
 }
 
 export function getProxyAgent(url: string) {

@@ -54,6 +54,8 @@ const allEnv = z.object({
   OAUTH_TIMEOUT: z.coerce.number().optional().default(3500),
   OAUTH_SCOPE: z.string().default("openid email profile"),
   OAUTH_PROVIDER_NAME: z.string().default("Custom Provider"),
+  TURNSTILE_SITE_KEY: z.string().optional(),
+  TURNSTILE_SECRET_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
@@ -91,6 +93,7 @@ const allEnv = z.object({
   SEARCH_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   WEBHOOK_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_NUM_WORKERS: z.coerce.number().default(1),
+  ASSET_PREPROCESSING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   RULE_ENGINE_NUM_WORKERS: z.coerce.number().default(1),
   CRAWLER_DOWNLOAD_BANNER_IMAGE: stringBool("true"),
   CRAWLER_STORE_SCREENSHOT: stringBool("true"),
@@ -106,6 +109,8 @@ const allEnv = z.object({
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
+  CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
+  CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
@@ -235,6 +240,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         name: val.OAUTH_PROVIDER_NAME,
         timeout: val.OAUTH_TIMEOUT,
       },
+      turnstile: {
+        enabled: val.TURNSTILE_SITE_KEY !== undefined,
+        siteKey: val.TURNSTILE_SITE_KEY,
+        secretKey: val.TURNSTILE_SECRET_KEY,
+      },
     },
     email: {
       smtp: val.SMTP_HOST
@@ -299,6 +309,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         dnsResolverTimeoutSec:
           val.CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC,
       },
+      domainRatelimiting:
+        val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS !== undefined &&
+        val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS !== undefined
+          ? {
+              windowMs: val.CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS,
+              maxRequests: val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS,
+            }
+          : null,
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -336,6 +354,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     allowedInternalHostnames: val.CRAWLER_ALLOWED_INTERNAL_HOSTNAMES,
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
+      jobTimeoutSec: val.ASSET_PREPROCESSING_JOB_TIMEOUT_SEC,
     },
     ruleEngine: {
       numWorkers: val.RULE_ENGINE_NUM_WORKERS,
@@ -391,10 +410,21 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     });
     return z.NEVER;
   }
+  if (obj.auth.turnstile.enabled && !obj.auth.turnstile.secretKey) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "TURNSTILE_SECRET_KEY is required when TURNSTILE_SITE_KEY is set",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
   return obj;
 });
 
-const serverConfig = serverConfigSchema.parse(process.env);
+const serverConfig: Readonly<z.infer<typeof serverConfigSchema>> =
+  serverConfigSchema.parse(process.env);
+
 // Always explicitly pick up stuff from server config to avoid accidentally leaking stuff
 export const clientConfig = {
   publicUrl: serverConfig.publicUrl,
@@ -404,6 +434,12 @@ export const clientConfig = {
     disableSignups: serverConfig.auth.disableSignups,
     disablePasswordAuth: serverConfig.auth.disablePasswordAuth,
   },
+  turnstile:
+    serverConfig.auth.turnstile.enabled && serverConfig.auth.turnstile.siteKey
+      ? {
+          siteKey: serverConfig.auth.turnstile.siteKey,
+        }
+      : null,
   inference: {
     isConfigured: serverConfig.inference.isConfigured,
     inferredTagLang: serverConfig.inference.inferredTagLang,

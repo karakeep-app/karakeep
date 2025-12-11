@@ -27,7 +27,13 @@ import {
   isAllowedToDetachAsset,
 } from "@karakeep/trpc/lib/attachments";
 
-export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
+export default function AttachmentBox({
+  bookmark,
+  readOnly = false,
+}: {
+  bookmark: ZBookmark;
+  readOnly?: boolean;
+}) {
   const { t } = useTranslation();
   const { mutate: attachAsset, isPending: isAttaching } =
     useAttachBookmarkAsset({
@@ -122,7 +128,8 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               >
                 <Download className="size-4" />
               </Link>
-              {isAllowedToAttachAsset(asset.assetType) &&
+              {!readOnly &&
+                isAllowedToAttachAsset(asset.assetType) &&
                 asset.assetType !== "userUploaded" && (
                   <FilePickerButton
                     title="Replace"
@@ -147,7 +154,7 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
                     <Pencil className="size-4" />
                   </FilePickerButton>
                 )}
-              {isAllowedToDetachAsset(asset.assetType) && (
+              {!readOnly && isAllowedToDetachAsset(asset.assetType) && (
                 <ActionConfirmingDialog
                   title="Delete Attachment?"
                   description={`Are you sure you want to delete the attachment of the bookmark?`}
@@ -175,7 +182,8 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
             </div>
           </div>
         ))}
-        {!bookmark.assets.some((asset) => asset.assetType == "bannerImage") &&
+        {!readOnly &&
+          !bookmark.assets.some((asset) => asset.assetType == "bannerImage") &&
           bookmark.content.type != BookmarkTypes.ASSET && (
             <FilePickerButton
               title="Attach a Banner"
@@ -203,30 +211,32 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
               Attach a Banner
             </FilePickerButton>
           )}
-        <FilePickerButton
-          title="Upload File"
-          loading={isAttaching}
-          multiple={false}
-          variant="ghost"
-          size="none"
-          className="flex w-full items-center justify-center gap-2"
-          onFileSelect={(file) =>
-            uploadAsset(file, {
-              onSuccess: (resp) => {
-                attachAsset({
-                  bookmarkId: bookmark.id,
-                  asset: {
-                    id: resp.assetId,
-                    assetType: "userUploaded",
-                  },
-                });
-              },
-            })
-          }
-        >
-          <Plus className="size-4" />
-          Upload File
-        </FilePickerButton>
+        {!readOnly && (
+          <FilePickerButton
+            title="Upload File"
+            loading={isAttaching}
+            multiple={false}
+            variant="ghost"
+            size="none"
+            className="flex w-full items-center justify-center gap-2"
+            onFileSelect={(file) =>
+              uploadAsset(file, {
+                onSuccess: (resp) => {
+                  attachAsset({
+                    bookmarkId: bookmark.id,
+                    asset: {
+                      id: resp.assetId,
+                      assetType: "userUploaded",
+                    },
+                  });
+                },
+              })
+            }
+          >
+            <Plus className="size-4" />
+            Upload File
+          </FilePickerButton>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );

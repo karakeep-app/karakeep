@@ -1,6 +1,8 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 
+import { bookmarks } from "@karakeep/db/schema";
 import {
   BookmarkTypes,
   zNewBookmarkRequestSchema,
@@ -114,6 +116,34 @@ describe("ImportSessions Routes", () => {
       completedBookmarks: 0,
       failedBookmarks: 0,
       processingBookmarks: 0,
+    });
+  });
+
+  test<CustomTestContext>("marks text-only imports as completed when tagging succeeds", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const session = await api.importSessions.createImportSession({
+      name: "Text Import Session",
+    });
+    const bookmarkId = await createTestBookmark(api, session.id);
+
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "success" })
+      .where(eq(bookmarks.id, bookmarkId));
+
+    const stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      completedBookmarks: 1,
+      pendingBookmarks: 0,
+      failedBookmarks: 0,
+      totalBookmarks: 1,
+      status: "completed",
     });
   });
 
