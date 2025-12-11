@@ -991,22 +991,27 @@ export class ManualList extends List {
 
     const bookmarkIds = await this.getBookmarkIds();
 
-    await this.ctx.db.transaction(async (tx) => {
-      await tx
-        .insert(bookmarksInLists)
-        .values(
-          bookmarkIds.map((id) => ({
-            bookmarkId: id,
-            listId: targetList.id,
-          })),
-        )
-        .onConflictDoNothing();
-
-      if (deleteSourceAfterMerge) {
+    await this.ctx.db.transaction(
+      async (tx) => {
         await tx
-          .delete(bookmarkLists)
-          .where(eq(bookmarkLists.id, this.list.id));
-      }
-    });
+          .insert(bookmarksInLists)
+          .values(
+            bookmarkIds.map((id) => ({
+              bookmarkId: id,
+              listId: targetList.id,
+            })),
+          )
+          .onConflictDoNothing();
+
+        if (deleteSourceAfterMerge) {
+          await tx
+            .delete(bookmarkLists)
+            .where(eq(bookmarkLists.id, this.list.id));
+        }
+      },
+      {
+        behavior: "immediate",
+      },
+    );
   }
 }

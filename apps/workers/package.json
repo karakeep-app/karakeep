@@ -13,6 +13,7 @@
     "@karakeep/shared-server": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@libsql/client": "^0.15.15",
     "@mozilla/readability": "^0.6.0",
     "@tsconfig/node22": "^22.0.0",
     "archiver": "^7.0.1",

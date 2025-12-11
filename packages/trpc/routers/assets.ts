@@ -163,16 +163,21 @@ export const assetsAppRouter = router({
         });
       }
 
-      await ctx.db.transaction(async (tx) => {
-        await tx.delete(assets).where(eq(assets.id, input.oldAssetId));
-        await tx
-          .update(assets)
-          .set({
-            bookmarkId: input.bookmarkId,
-            assetType: oldAsset.assetType,
-          })
-          .where(eq(assets.id, input.newAssetId));
-      });
+      await ctx.db.transaction(
+        async (tx) => {
+          await tx.delete(assets).where(eq(assets.id, input.oldAssetId));
+          await tx
+            .update(assets)
+            .set({
+              bookmarkId: input.bookmarkId,
+              assetType: oldAsset.assetType,
+            })
+            .where(eq(assets.id, input.newAssetId));
+        },
+        {
+          behavior: "immediate",
+        },
+      );
 
       await deleteAsset({
         userId: ctx.user.id,

@@ -957,35 +957,40 @@ async function handleAsAssetBookmark(
     return;
   }
   const fileName = path.basename(new URL(url).pathname);
-  await db.transaction(async (trx) => {
-    await updateAsset(
-      undefined,
-      {
-        id: downloaded.assetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.BOOKMARK_ASSET,
-        contentType: downloaded.contentType,
-        size: downloaded.size,
+  await db.transaction(
+    async (trx) => {
+      await updateAsset(
+        undefined,
+        {
+          id: downloaded.assetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.BOOKMARK_ASSET,
+          contentType: downloaded.contentType,
+          size: downloaded.size,
+          fileName,
+        },
+        trx,
+      );
+      await trx.insert(bookmarkAssets).values({
+        id: bookmarkId,
+        assetType,
+        assetId: downloaded.assetId,
+        content: null,
         fileName,
-      },
-      trx,
-    );
-    await trx.insert(bookmarkAssets).values({
-      id: bookmarkId,
-      assetType,
-      assetId: downloaded.assetId,
-      content: null,
-      fileName,
-      sourceUrl: url,
-    });
-    // Switch the type of the bookmark from LINK to ASSET
-    await trx
-      .update(bookmarks)
-      .set({ type: BookmarkTypes.ASSET })
-      .where(eq(bookmarks.id, bookmarkId));
-    await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
-  });
+        sourceUrl: url,
+      });
+      // Switch the type of the bookmark from LINK to ASSET
+      await trx
+        .update(bookmarks)
+        .set({ type: BookmarkTypes.ASSET })
+        .where(eq(bookmarks.id, bookmarkId));
+      await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
+    },
+    {
+      behavior: "immediate",
+    },
+  );
   await AssetPreprocessingQueue.enqueue(
     {
       bookmarkId,
@@ -1172,70 +1177,77 @@ async function crawlAndParseUrl(
       ? (readableContent?.content ?? null)
       : null;
   readableContent = null;
-  await db.transaction(async (txn) => {
-    await txn
-      .update(bookmarkLinks)
-      .set({
-        title: meta.title,
-        description: meta.description,
-        // Don't store data URIs as they're not valid URLs and are usually quite large
-        imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
-        favicon: meta.logo,
-        htmlContent: inlineHtmlContent,
-        contentAssetId:
-          htmlContentAssetInfo.result === "stored"
-            ? htmlContentAssetInfo.assetId
-            : null,
-        crawledAt: new Date(),
-        crawlStatusCode: statusCode,
-        author: meta.author,
-        publisher: meta.publisher,
-        datePublished: parseDate(meta.datePublished),
-        dateModified: parseDate(meta.dateModified),
-      })
-      .where(eq(bookmarkLinks.id, bookmarkId));
+  await db.transaction(
+    async (txn) => {
+      await txn
+        .update(bookmarkLinks)
+        .set({
+          title: meta.title,
+          description: meta.description,
+          // Don't store data URIs as they're not valid URLs and are usually quite large
+          imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
+          favicon: meta.logo,
+          htmlContent: inlineHtmlContent,
+          contentAssetId:
+            htmlContentAssetInfo.result === "stored"
+              ? htmlContentAssetInfo.assetId
+              : null,
+          crawledAt: new Date(),
+          crawlStatusCode: statusCode,
+          author: meta.author,
+          publisher: meta.publisher,
+          datePublished: parseDate(meta.datePublished),
+          dateModified: parseDate(meta.dateModified),
+        })
+        .where(eq(bookmarkLinks.id, bookmarkId));
 
-    if (screenshotAssetInfo) {
-      await updateAsset(
-        oldScreenshotAssetId,
-        {
-          id: screenshotAssetInfo.assetId,
-          bookmarkId,
-          userId,
-          assetType: AssetTypes.LINK_SCREENSHOT,
-          contentType: screenshotAssetInfo.contentType,
-          size: screenshotAssetInfo.size,
-          fileName: screenshotAssetInfo.fileName,
-        },
-        txn,
-      );
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldScreenshotAssetId));
-    }
-    if (imageAssetInfo) {
-      await updateAsset(oldImageAssetId, imageAssetInfo, txn);
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
-    }
-    if (htmlContentAssetInfo.result === "stored") {
-      await updateAsset(
-        oldContentAssetId,
-        {
-          id: htmlContentAssetInfo.assetId,
-          bookmarkId,
-          userId,
-          assetType: AssetTypes.LINK_HTML_CONTENT,
-          contentType: ASSET_TYPES.TEXT_HTML,
-          size: htmlContentAssetInfo.size,
-          fileName: null,
-        },
-        txn,
-      );
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
-    } else if (oldContentAssetId) {
-      // Unlink the old content asset
-      await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
-    }
-  });
+      if (screenshotAssetInfo) {
+        await updateAsset(
+          oldScreenshotAssetId,
+          {
+            id: screenshotAssetInfo.assetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.LINK_SCREENSHOT,
+            contentType: screenshotAssetInfo.contentType,
+            size: screenshotAssetInfo.size,
+            fileName: screenshotAssetInfo.fileName,
+          },
+          txn,
+        );
+        assetDeletionTasks.push(
+          silentDeleteAsset(userId, oldScreenshotAssetId),
+        );
+      }
+      if (imageAssetInfo) {
+        await updateAsset(oldImageAssetId, imageAssetInfo, txn);
+        assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
+      }
+      if (htmlContentAssetInfo.result === "stored") {
+        await updateAsset(
+          oldContentAssetId,
+          {
+            id: htmlContentAssetInfo.assetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.LINK_HTML_CONTENT,
+            contentType: ASSET_TYPES.TEXT_HTML,
+            size: htmlContentAssetInfo.size,
+            fileName: null,
+          },
+          txn,
+        );
+        assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
+      } else if (oldContentAssetId) {
+        // Unlink the old content asset
+        await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
+        assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
+      }
+    },
+    {
+      behavior: "immediate",
+    },
+  );
 
   // Delete the old assets if any
   await Promise.all(assetDeletionTasks);
@@ -1260,21 +1272,26 @@ async function crawlAndParseUrl(
           contentType,
         } = archiveResult;
 
-        await db.transaction(async (txn) => {
-          await updateAsset(
-            oldFullPageArchiveAssetId,
-            {
-              id: fullPageArchiveAssetId,
-              bookmarkId,
-              userId,
-              assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-              contentType,
-              size,
-              fileName: null,
-            },
-            txn,
-          );
-        });
+        await db.transaction(
+          async (txn) => {
+            await updateAsset(
+              oldFullPageArchiveAssetId,
+              {
+                id: fullPageArchiveAssetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+                contentType,
+                size,
+                fileName: null,
+              },
+              txn,
+            );
+          },
+          {
+            behavior: "immediate",
+          },
+        );
         if (oldFullPageArchiveAssetId) {
           await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
         }

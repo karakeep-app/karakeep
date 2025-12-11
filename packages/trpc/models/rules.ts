@@ -87,47 +87,53 @@ export class RuleEngineRuleModel {
     input: z.infer<typeof zNewRuleEngineRuleSchema>,
   ): Promise<RuleEngineRuleModel> {
     // Similar to lists create, but for rules
-    const insertedRule = await ctx.db.transaction(async (tx) => {
-      const [newRule] = await tx
-        .insert(ruleEngineRulesTable)
-        .values({
-          name: input.name,
-          description: input.description,
-          enabled: input.enabled,
-          event: JSON.stringify(input.event),
-          condition: JSON.stringify(input.condition),
-          userId: ctx.user.id,
-          listId:
-            input.event.type === "addedToList" ||
-            input.event.type === "removedFromList"
-              ? input.event.listId
-              : null,
-          tagId:
-            input.event.type === "tagAdded" || input.event.type === "tagRemoved"
-              ? input.event.tagId
-              : null,
-        })
-        .returning();
-
-      if (input.actions.length > 0) {
-        await tx.insert(ruleEngineActionsTable).values(
-          input.actions.map((action) => ({
-            ruleId: newRule.id,
+    const insertedRule = await ctx.db.transaction(
+      async (tx) => {
+        const [newRule] = await tx
+          .insert(ruleEngineRulesTable)
+          .values({
+            name: input.name,
+            description: input.description,
+            enabled: input.enabled,
+            event: JSON.stringify(input.event),
+            condition: JSON.stringify(input.condition),
             userId: ctx.user.id,
-            action: JSON.stringify(action),
             listId:
-              action.type === "addToList" || action.type === "removeFromList"
-                ? action.listId
+              input.event.type === "addedToList" ||
+              input.event.type === "removedFromList"
+                ? input.event.listId
                 : null,
             tagId:
-              action.type === "addTag" || action.type === "removeTag"
-                ? action.tagId
+              input.event.type === "tagAdded" ||
+              input.event.type === "tagRemoved"
+                ? input.event.tagId
                 : null,
-          })),
-        );
-      }
-      return newRule;
-    });
+          })
+          .returning();
+
+        if (input.actions.length > 0) {
+          await tx.insert(ruleEngineActionsTable).values(
+            input.actions.map((action) => ({
+              ruleId: newRule.id,
+              userId: ctx.user.id,
+              action: JSON.stringify(action),
+              listId:
+                action.type === "addToList" || action.type === "removeFromList"
+                  ? action.listId
+                  : null,
+              tagId:
+                action.type === "addTag" || action.type === "removeTag"
+                  ? action.tagId
+                  : null,
+            })),
+          );
+        }
+        return newRule;
+      },
+      {
+        behavior: "immediate",
+      },
+    );
 
     // Fetch the full rule after insertion
     return await RuleEngineRuleModel.fromId(ctx, insertedRule.id);
@@ -140,57 +146,63 @@ export class RuleEngineRuleModel {
       throw new TRPCError({ code: "BAD_REQUEST", message: "ID mismatch" });
     }
 
-    await this.ctx.db.transaction(async (tx) => {
-      const result = await tx
-        .update(ruleEngineRulesTable)
-        .set({
-          name: input.name,
-          description: input.description,
-          enabled: input.enabled,
-          event: JSON.stringify(input.event),
-          condition: JSON.stringify(input.condition),
-          listId:
-            input.event.type === "addedToList" ||
-            input.event.type === "removedFromList"
-              ? input.event.listId
-              : null,
-          tagId:
-            input.event.type === "tagAdded" || input.event.type === "tagRemoved"
-              ? input.event.tagId
-              : null,
-        })
-        .where(
-          and(
-            eq(ruleEngineRulesTable.id, input.id),
-            eq(ruleEngineRulesTable.userId, this.ctx.user.id),
-          ),
-        );
-
-      if (result.rowsAffected === 0) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Rule not found" });
-      }
-
-      if (input.actions.length > 0) {
-        await tx
-          .delete(ruleEngineActionsTable)
-          .where(eq(ruleEngineActionsTable.ruleId, input.id));
-        await tx.insert(ruleEngineActionsTable).values(
-          input.actions.map((action) => ({
-            ruleId: input.id,
-            userId: this.ctx.user.id,
-            action: JSON.stringify(action),
+    await this.ctx.db.transaction(
+      async (tx) => {
+        const result = await tx
+          .update(ruleEngineRulesTable)
+          .set({
+            name: input.name,
+            description: input.description,
+            enabled: input.enabled,
+            event: JSON.stringify(input.event),
+            condition: JSON.stringify(input.condition),
             listId:
-              action.type === "addToList" || action.type === "removeFromList"
-                ? action.listId
+              input.event.type === "addedToList" ||
+              input.event.type === "removedFromList"
+                ? input.event.listId
                 : null,
             tagId:
-              action.type === "addTag" || action.type === "removeTag"
-                ? action.tagId
+              input.event.type === "tagAdded" ||
+              input.event.type === "tagRemoved"
+                ? input.event.tagId
                 : null,
-          })),
-        );
-      }
-    });
+          })
+          .where(
+            and(
+              eq(ruleEngineRulesTable.id, input.id),
+              eq(ruleEngineRulesTable.userId, this.ctx.user.id),
+            ),
+          );
+
+        if (result.rowsAffected === 0) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Rule not found" });
+        }
+
+        if (input.actions.length > 0) {
+          await tx
+            .delete(ruleEngineActionsTable)
+            .where(eq(ruleEngineActionsTable.ruleId, input.id));
+          await tx.insert(ruleEngineActionsTable).values(
+            input.actions.map((action) => ({
+              ruleId: input.id,
+              userId: this.ctx.user.id,
+              action: JSON.stringify(action),
+              listId:
+                action.type === "addToList" || action.type === "removeFromList"
+                  ? action.listId
+                  : null,
+              tagId:
+                action.type === "addTag" || action.type === "removeTag"
+                  ? action.tagId
+                  : null,
+            })),
+          );
+        }
+      },
+      {
+        behavior: "immediate",
+      },
+    );
 
     this.rule = await RuleEngineRuleModel.fromId(this.ctx, this.rule.id).then(
       (r) => r.rule,

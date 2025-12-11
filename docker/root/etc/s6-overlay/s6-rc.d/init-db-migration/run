@@ -3,4 +3,4 @@
 
 echo "Running db migration script";
 cd /db_migrations;
-exec node index.js;
+exec node dist/migrate.js;

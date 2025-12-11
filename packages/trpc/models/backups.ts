@@ -113,29 +113,34 @@ export class Backup {
       });
     }
 
-    await this.ctx.db.transaction(async (db) => {
-      // Delete asset first
-      if (this.backup.assetId) {
+    await this.ctx.db.transaction(
+      async (db) => {
+        // Delete asset first
+        if (this.backup.assetId) {
+          await db
+            .delete(assets)
+            .where(
+              and(
+                eq(assets.id, this.backup.assetId),
+                eq(assets.userId, this.ctx.user.id),
+              ),
+            );
+        }
+
+        // Delete backup record
         await db
-          .delete(assets)
+          .delete(backupsTable)
           .where(
             and(
-              eq(assets.id, this.backup.assetId),
-              eq(assets.userId, this.ctx.user.id),
+              eq(backupsTable.id, this.backup.id),
+              eq(backupsTable.userId, this.ctx.user.id),
             ),
           );
-      }
-
-      // Delete backup record
-      await db
-        .delete(backupsTable)
-        .where(
-          and(
-            eq(backupsTable.id, this.backup.id),
-            eq(backupsTable.userId, this.ctx.user.id),
-          ),
-        );
-    });
+      },
+      {
+        behavior: "immediate",
+      },
+    );
   }
 
   /**

@@ -277,6 +277,9 @@ export class Tag {
           affectedBookmarks: unlinked.map((u) => u.bookmarkId),
         };
       },
+      {
+        behavior: "immediate",
+      },
     );
 
     try {

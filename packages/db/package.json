@@ -6,6 +6,7 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
+    "build": "tsdown",
     "typecheck": "tsc --noEmit",
     "migrate": "tsx migrate.ts",
     "generate": "drizzle-kit generate",
@@ -29,7 +30,7 @@
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
-    "@vercel/ncc": "^0.38.4"
+    "tsdown": "^0.12.9"
   },
   "prettier": "@karakeep/prettier-config"
 }

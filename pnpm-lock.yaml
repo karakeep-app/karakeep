@@ -808,6 +808,9 @@ importers:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
         version: link:../../tooling/typescript
+      '@libsql/client':
+        specifier: ^0.15.15
+        version: 0.15.15
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
@@ -1137,9 +1140,9 @@ importers:
       '@tsconfig/node22':
         specifier: ^22.0.0
         version: 22.0.2
-      '@vercel/ncc':
-        specifier: ^0.38.4
-        version: 0.38.4
+      tsdown:
+        specifier: ^0.12.9
+        version: 0.12.9(typescript@5.9.3)
 
   packages/e2e_tests:
     dependencies:
@@ -6161,10 +6164,6 @@ packages:
     resolution: {integrity: sha512-EEmtFu8JTuwsInqMakhLq+U3qN8ZMd5V3pX44q0EqD2imqTDsa8ikZqJ1schVrN8HljOdN+C08cwZ1/r5uIgLw==}
     peerDependencies:
       '@urql/core': ^5.0.0
-
-  '@vercel/ncc@0.38.4':
-    resolution: {integrity: sha512-8LwjnlP39s08C08J5NstzriPvW1SP8Zfpp1BvC2sI35kPeZnHfxVkCwu4/+Wodgnd60UtT1n8K8zw+Mp7J9JmQ==}
-    hasBin: true
 
   '@vitejs/plugin-react-swc@4.0.1':
     resolution: {integrity: sha512-NQhPjysi5duItyrMd5JWZFf2vNOuSMyw+EoZyTBDzk+DkfYD8WNrsUs09sELV2cr1P15nufsN25hsUBt4CKF9Q==}
@@ -21520,8 +21519,6 @@ snapshots:
     dependencies:
       '@urql/core': 5.1.1
       wonka: 6.3.5
-
-  '@vercel/ncc@0.38.4': {}
 
   '@vitejs/plugin-react-swc@4.0.1(vite@7.0.6(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:

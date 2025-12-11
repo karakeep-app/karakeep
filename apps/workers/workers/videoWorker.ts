@@ -185,20 +185,25 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       quotaApproved,
     });
 
-    await db.transaction(async (txn) => {
-      await updateAsset(
-        oldVideoAssetId,
-        {
-          id: videoAssetId,
-          bookmarkId,
-          userId,
-          assetType: AssetTypes.LINK_VIDEO,
-          contentType: ASSET_TYPES.VIDEO_MP4,
-          size: fileSize,
-        },
-        txn,
-      );
-    });
+    await db.transaction(
+      async (txn) => {
+        await updateAsset(
+          oldVideoAssetId,
+          {
+            id: videoAssetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.LINK_VIDEO,
+            contentType: ASSET_TYPES.VIDEO_MP4,
+            size: fileSize,
+          },
+          txn,
+        );
+      },
+      {
+        behavior: "immediate",
+      },
+    );
     await silentDeleteAsset(userId, oldVideoAssetId);
 
     logger.info(

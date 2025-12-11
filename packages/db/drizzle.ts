@@ -19,25 +19,21 @@ const __dirname = path.dirname(__filename);
 
 const client = createClient({
   url: `file:${dbConfig.dbCredentials.url}`,
+  concurrency: 0,
 });
 
 async function configurePragmas() {
-  const pragmas: { sql: string }[] = [];
-
   if (serverConfig.database.walMode) {
-    pragmas.push({ sql: "PRAGMA journal_mode = WAL" });
-    pragmas.push({ sql: "PRAGMA synchronous = NORMAL" });
+    await client.execute("PRAGMA journal_mode = WAL");
+    await client.execute("PRAGMA synchronous = NORMAL");
   } else {
-    pragmas.push({ sql: "PRAGMA journal_mode = DELETE" });
+    await client.execute("PRAGMA journal_mode = DELETE");
   }
 
-  pragmas.push(
-    { sql: "PRAGMA cache_size = -65536" },
-    { sql: "PRAGMA foreign_keys = ON" },
-    { sql: "PRAGMA temp_store = MEMORY" },
-  );
-
-  await client.batch(pragmas);
+  await client.execute("PRAGMA foreign_keys = ON");
+  await client.execute("PRAGMA temp_store = MEMORY");
+  await client.execute("PRAGMA cache_size = -65536");
+  await client.execute("PRAGMA busy_timeout = 20000");
 }
 
 await configurePragmas();

@@ -144,134 +144,139 @@ export const bookmarksAppRouter = router({
         });
       }
 
-      const bookmark = await ctx.db.transaction(async (tx) => {
-        const bookmark = (
-          await tx
-            .insert(bookmarks)
-            .values({
-              userId: ctx.user.id,
-              title: input.title,
-              type: input.type,
-              archived: input.archived,
-              favourited: input.favourited,
-              note: input.note,
-              summary: input.summary,
-              createdAt: input.createdAt,
-              source: input.source,
-            })
-            .returning()
-        )[0];
+      const bookmark = await ctx.db.transaction(
+        async (tx) => {
+          const bookmark = (
+            await tx
+              .insert(bookmarks)
+              .values({
+                userId: ctx.user.id,
+                title: input.title,
+                type: input.type,
+                archived: input.archived,
+                favourited: input.favourited,
+                note: input.note,
+                summary: input.summary,
+                createdAt: input.createdAt,
+                source: input.source,
+              })
+              .returning()
+          )[0];
 
-        let content: ZBookmarkContent;
+          let content: ZBookmarkContent;
 
-        switch (input.type) {
-          case BookmarkTypes.LINK: {
-            const link = (
-              await tx
-                .insert(bookmarkLinks)
+          switch (input.type) {
+            case BookmarkTypes.LINK: {
+              const link = (
+                await tx
+                  .insert(bookmarkLinks)
+                  .values({
+                    id: bookmark.id,
+                    url: input.url.trim(),
+                  })
+                  .returning()
+              )[0];
+              if (input.precrawledArchiveId) {
+                await ensureAssetOwnership({
+                  ctx,
+                  assetId: input.precrawledArchiveId,
+                });
+                await tx
+                  .update(assets)
+                  .set({
+                    bookmarkId: bookmark.id,
+                    assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+                  })
+                  .where(
+                    and(
+                      eq(assets.id, input.precrawledArchiveId),
+                      eq(assets.userId, ctx.user.id),
+                    ),
+                  );
+              }
+              content = {
+                type: BookmarkTypes.LINK,
+                ...link,
+              };
+              break;
+            }
+            case BookmarkTypes.TEXT: {
+              const text = (
+                await tx
+                  .insert(bookmarkTexts)
+                  .values({
+                    id: bookmark.id,
+                    text: input.text,
+                    sourceUrl: input.sourceUrl,
+                  })
+                  .returning()
+              )[0];
+              content = {
+                type: BookmarkTypes.TEXT,
+                text: text.text ?? "",
+                sourceUrl: text.sourceUrl,
+              };
+              break;
+            }
+            case BookmarkTypes.ASSET: {
+              const [asset] = await tx
+                .insert(bookmarkAssets)
                 .values({
                   id: bookmark.id,
-                  url: input.url.trim(),
+                  assetType: input.assetType,
+                  assetId: input.assetId,
+                  content: null,
+                  metadata: null,
+                  fileName: input.fileName ?? null,
+                  sourceUrl: null,
                 })
-                .returning()
-            )[0];
-            if (input.precrawledArchiveId) {
-              await ensureAssetOwnership({
+                .returning();
+              const uploadedAsset = await ensureAssetOwnership({
                 ctx,
-                assetId: input.precrawledArchiveId,
+                assetId: input.assetId,
               });
+              if (
+                !uploadedAsset.contentType ||
+                !SUPPORTED_BOOKMARK_ASSET_TYPES.has(uploadedAsset.contentType)
+              ) {
+                throw new TRPCError({
+                  code: "BAD_REQUEST",
+                  message: "Unsupported asset type",
+                });
+              }
               await tx
                 .update(assets)
                 .set({
                   bookmarkId: bookmark.id,
-                  assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+                  assetType: AssetTypes.BOOKMARK_ASSET,
                 })
                 .where(
                   and(
-                    eq(assets.id, input.precrawledArchiveId),
+                    eq(assets.id, input.assetId),
                     eq(assets.userId, ctx.user.id),
                   ),
                 );
+              content = {
+                type: BookmarkTypes.ASSET,
+                assetType: asset.assetType,
+                assetId: asset.assetId,
+              };
+              break;
             }
-            content = {
-              type: BookmarkTypes.LINK,
-              ...link,
-            };
-            break;
           }
-          case BookmarkTypes.TEXT: {
-            const text = (
-              await tx
-                .insert(bookmarkTexts)
-                .values({
-                  id: bookmark.id,
-                  text: input.text,
-                  sourceUrl: input.sourceUrl,
-                })
-                .returning()
-            )[0];
-            content = {
-              type: BookmarkTypes.TEXT,
-              text: text.text ?? "",
-              sourceUrl: text.sourceUrl,
-            };
-            break;
-          }
-          case BookmarkTypes.ASSET: {
-            const [asset] = await tx
-              .insert(bookmarkAssets)
-              .values({
-                id: bookmark.id,
-                assetType: input.assetType,
-                assetId: input.assetId,
-                content: null,
-                metadata: null,
-                fileName: input.fileName ?? null,
-                sourceUrl: null,
-              })
-              .returning();
-            const uploadedAsset = await ensureAssetOwnership({
-              ctx,
-              assetId: input.assetId,
-            });
-            if (
-              !uploadedAsset.contentType ||
-              !SUPPORTED_BOOKMARK_ASSET_TYPES.has(uploadedAsset.contentType)
-            ) {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Unsupported asset type",
-              });
-            }
-            await tx
-              .update(assets)
-              .set({
-                bookmarkId: bookmark.id,
-                assetType: AssetTypes.BOOKMARK_ASSET,
-              })
-              .where(
-                and(
-                  eq(assets.id, input.assetId),
-                  eq(assets.userId, ctx.user.id),
-                ),
-              );
-            content = {
-              type: BookmarkTypes.ASSET,
-              assetType: asset.assetType,
-              assetId: asset.assetId,
-            };
-            break;
-          }
-        }
 
-        return {
-          alreadyExists: false,
-          tags: [] as ZBookmarkTags[],
-          assets: [],
-          content,
-          ...bookmark,
-        };
-      });
+          return {
+            alreadyExists: false,
+            tags: [] as ZBookmarkTags[],
+            assets: [],
+            content,
+            ...bookmark,
+          };
+        },
+        {
+          behavior: "immediate",
+        },
+      );
 
       if (input.importSessionId) {
         const session = await ImportSession.fromId(ctx, input.importSessionId);
@@ -341,131 +346,136 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db.transaction(async (tx) => {
-        let somethingChanged = false;
+      await ctx.db.transaction(
+        async (tx) => {
+          let somethingChanged = false;
 
-        // Update link-specific fields if any are provided
-        const linkUpdateData: Partial<{
-          url: string;
-          description: string | null;
-          author: string | null;
-          publisher: string | null;
-          datePublished: Date | null;
-          dateModified: Date | null;
-        }> = {};
-        if (input.url) {
-          linkUpdateData.url = input.url.trim();
-        }
-        if (input.description !== undefined) {
-          linkUpdateData.description = input.description;
-        }
-        if (input.author !== undefined) {
-          linkUpdateData.author = input.author;
-        }
-        if (input.publisher !== undefined) {
-          linkUpdateData.publisher = input.publisher;
-        }
-        if (input.datePublished !== undefined) {
-          linkUpdateData.datePublished = input.datePublished;
-        }
-        if (input.dateModified !== undefined) {
-          linkUpdateData.dateModified = input.dateModified;
-        }
-
-        if (Object.keys(linkUpdateData).length > 0) {
-          const result = await tx
-            .update(bookmarkLinks)
-            .set(linkUpdateData)
-            .where(eq(bookmarkLinks.id, input.bookmarkId));
-          if (result.rowsAffected == 0) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message:
-                "Attempting to set link attributes for non-link type bookmark",
-            });
+          // Update link-specific fields if any are provided
+          const linkUpdateData: Partial<{
+            url: string;
+            description: string | null;
+            author: string | null;
+            publisher: string | null;
+            datePublished: Date | null;
+            dateModified: Date | null;
+          }> = {};
+          if (input.url) {
+            linkUpdateData.url = input.url.trim();
           }
-          somethingChanged = true;
-        }
-
-        if (input.text) {
-          const result = await tx
-            .update(bookmarkTexts)
-            .set({
-              text: input.text,
-            })
-            .where(eq(bookmarkTexts.id, input.bookmarkId));
-
-          if (result.rowsAffected == 0) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message:
-                "Attempting to set link attributes for non-text type bookmark",
-            });
+          if (input.description !== undefined) {
+            linkUpdateData.description = input.description;
           }
-          somethingChanged = true;
-        }
-
-        if (input.assetContent !== undefined) {
-          const result = await tx
-            .update(bookmarkAssets)
-            .set({
-              content: input.assetContent,
-            })
-            .where(and(eq(bookmarkAssets.id, input.bookmarkId)));
-
-          if (result.rowsAffected == 0) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message:
-                "Attempting to set asset content for non-asset type bookmark",
-            });
+          if (input.author !== undefined) {
+            linkUpdateData.author = input.author;
           }
-          somethingChanged = true;
-        }
+          if (input.publisher !== undefined) {
+            linkUpdateData.publisher = input.publisher;
+          }
+          if (input.datePublished !== undefined) {
+            linkUpdateData.datePublished = input.datePublished;
+          }
+          if (input.dateModified !== undefined) {
+            linkUpdateData.dateModified = input.dateModified;
+          }
 
-        // Update common bookmark fields
-        const commonUpdateData: Partial<{
-          title: string | null;
-          archived: boolean;
-          favourited: boolean;
-          note: string | null;
-          summary: string | null;
-          createdAt: Date;
-          modifiedAt: Date; // Always update modifiedAt
-        }> = {
-          modifiedAt: new Date(),
-        };
-        if (input.title !== undefined) {
-          commonUpdateData.title = input.title;
-        }
-        if (input.archived !== undefined) {
-          commonUpdateData.archived = input.archived;
-        }
-        if (input.favourited !== undefined) {
-          commonUpdateData.favourited = input.favourited;
-        }
-        if (input.note !== undefined) {
-          commonUpdateData.note = input.note;
-        }
-        if (input.summary !== undefined) {
-          commonUpdateData.summary = input.summary;
-        }
-        if (input.createdAt !== undefined) {
-          commonUpdateData.createdAt = input.createdAt;
-        }
+          if (Object.keys(linkUpdateData).length > 0) {
+            const result = await tx
+              .update(bookmarkLinks)
+              .set(linkUpdateData)
+              .where(eq(bookmarkLinks.id, input.bookmarkId));
+            if (result.rowsAffected == 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "Attempting to set link attributes for non-link type bookmark",
+              });
+            }
+            somethingChanged = true;
+          }
 
-        if (Object.keys(commonUpdateData).length > 1 || somethingChanged) {
-          await tx
-            .update(bookmarks)
-            .set(commonUpdateData)
-            .where(
-              and(
-                eq(bookmarks.userId, ctx.user.id),
-                eq(bookmarks.id, input.bookmarkId),
-              ),
-            );
-        }
-      });
+          if (input.text) {
+            const result = await tx
+              .update(bookmarkTexts)
+              .set({
+                text: input.text,
+              })
+              .where(eq(bookmarkTexts.id, input.bookmarkId));
+
+            if (result.rowsAffected == 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "Attempting to set link attributes for non-text type bookmark",
+              });
+            }
+            somethingChanged = true;
+          }
+
+          if (input.assetContent !== undefined) {
+            const result = await tx
+              .update(bookmarkAssets)
+              .set({
+                content: input.assetContent,
+              })
+              .where(and(eq(bookmarkAssets.id, input.bookmarkId)));
+
+            if (result.rowsAffected == 0) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message:
+                  "Attempting to set asset content for non-asset type bookmark",
+              });
+            }
+            somethingChanged = true;
+          }
+
+          // Update common bookmark fields
+          const commonUpdateData: Partial<{
+            title: string | null;
+            archived: boolean;
+            favourited: boolean;
+            note: string | null;
+            summary: string | null;
+            createdAt: Date;
+            modifiedAt: Date; // Always update modifiedAt
+          }> = {
+            modifiedAt: new Date(),
+          };
+          if (input.title !== undefined) {
+            commonUpdateData.title = input.title;
+          }
+          if (input.archived !== undefined) {
+            commonUpdateData.archived = input.archived;
+          }
+          if (input.favourited !== undefined) {
+            commonUpdateData.favourited = input.favourited;
+          }
+          if (input.note !== undefined) {
+            commonUpdateData.note = input.note;
+          }
+          if (input.summary !== undefined) {
+            commonUpdateData.summary = input.summary;
+          }
+          if (input.createdAt !== undefined) {
+            commonUpdateData.createdAt = input.createdAt;
+          }
+
+          if (Object.keys(commonUpdateData).length > 1 || somethingChanged) {
+            await tx
+              .update(bookmarks)
+              .set(commonUpdateData)
+              .where(
+                and(
+                  eq(bookmarks.userId, ctx.user.id),
+                  eq(bookmarks.id, input.bookmarkId),
+                ),
+              );
+          }
+        },
+        {
+          behavior: "immediate",
+        },
+      );
 
       // Refetch the updated bookmark data to return the full object
       const updatedBookmark = (
@@ -508,30 +518,35 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db.transaction(async (tx) => {
-        const res = await tx
-          .update(bookmarkTexts)
-          .set({
-            text: input.text,
-          })
-          .where(and(eq(bookmarkTexts.id, input.bookmarkId)))
-          .returning();
-        if (res.length == 0) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Bookmark not found",
-          });
-        }
-        await tx
-          .update(bookmarks)
-          .set({ modifiedAt: new Date() })
-          .where(
-            and(
-              eq(bookmarks.id, input.bookmarkId),
-              eq(bookmarks.userId, ctx.user.id),
-            ),
-          );
-      });
+      await ctx.db.transaction(
+        async (tx) => {
+          const res = await tx
+            .update(bookmarkTexts)
+            .set({
+              text: input.text,
+            })
+            .where(and(eq(bookmarkTexts.id, input.bookmarkId)))
+            .returning();
+          if (res.length == 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Bookmark not found",
+            });
+          }
+          await tx
+            .update(bookmarks)
+            .set({ modifiedAt: new Date() })
+            .where(
+              and(
+                eq(bookmarks.id, input.bookmarkId),
+                eq(bookmarks.userId, ctx.user.id),
+              ),
+            );
+        },
+        {
+          behavior: "immediate",
+        },
+      );
       await triggerSearchReindex(input.bookmarkId, {
         groupId: ctx.user.id,
       });
@@ -711,139 +726,148 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      return ctx.db.transaction(async (tx) => {
-        // Detaches
-        const idsToRemove: string[] = [];
-        if (input.detach.length > 0) {
-          const namesToRemove: string[] = [];
-          input.detach.forEach((detachInfo) => {
-            if (detachInfo.tagId) {
-              idsToRemove.push(detachInfo.tagId);
-            }
-            if (detachInfo.tagName) {
-              namesToRemove.push(detachInfo.tagName);
-            }
-          });
-
-          if (namesToRemove.length > 0) {
-            (
-              await tx.query.bookmarkTags.findMany({
-                where: and(
-                  eq(bookmarkTags.userId, ctx.user.id),
-                  inArray(bookmarkTags.name, namesToRemove),
-                ),
-                columns: {
-                  id: true,
-                },
-              })
-            ).forEach((tag) => {
-              idsToRemove.push(tag.id);
+      const result = await ctx.db.transaction(
+        async (tx) => {
+          // Detaches
+          const idsToRemove: string[] = [];
+          if (input.detach.length > 0) {
+            const namesToRemove: string[] = [];
+            input.detach.forEach((detachInfo) => {
+              if (detachInfo.tagId) {
+                idsToRemove.push(detachInfo.tagId);
+              }
+              if (detachInfo.tagName) {
+                namesToRemove.push(detachInfo.tagName);
+              }
             });
+
+            if (namesToRemove.length > 0) {
+              (
+                await tx.query.bookmarkTags.findMany({
+                  where: and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.name, namesToRemove),
+                  ),
+                  columns: {
+                    id: true,
+                  },
+                })
+              ).forEach((tag) => {
+                idsToRemove.push(tag.id);
+              });
+            }
+
+            await tx
+              .delete(tagsOnBookmarks)
+              .where(
+                and(
+                  eq(tagsOnBookmarks.bookmarkId, input.bookmarkId),
+                  inArray(tagsOnBookmarks.tagId, idsToRemove),
+                ),
+              );
           }
 
-          await tx
-            .delete(tagsOnBookmarks)
-            .where(
-              and(
-                eq(tagsOnBookmarks.bookmarkId, input.bookmarkId),
-                inArray(tagsOnBookmarks.tagId, idsToRemove),
-              ),
-            );
-        }
-
-        if (input.attach.length == 0) {
-          return {
-            bookmarkId: input.bookmarkId,
-            attached: [],
-            detached: idsToRemove,
-          };
-        }
-
-        const toAddTagNames = input.attach
-          .flatMap((i) => (i.tagName ? [i.tagName] : []))
-          .map(normalizeTagName) // strip leading #
-          .filter((n) => n.length > 0); // drop empty results
-
-        const toAddTagIds = input.attach.flatMap((i) =>
-          i.tagId ? [i.tagId] : [],
-        );
-
-        // New Tags
-        if (toAddTagNames.length > 0) {
-          await tx
-            .insert(bookmarkTags)
-            .values(
-              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
-            )
-            .onConflictDoNothing()
-            .returning();
-        }
-
-        // If there is nothing to add, the "or" statement will become useless and
-        // the query below will simply select all the existing tags for this user and assign them to the bookmark
-        invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
-        const allIds = (
-          await tx.query.bookmarkTags.findMany({
-            where: and(
-              eq(bookmarkTags.userId, ctx.user.id),
-              or(
-                toAddTagIds.length > 0
-                  ? inArray(bookmarkTags.id, toAddTagIds)
-                  : undefined,
-                toAddTagNames.length > 0
-                  ? inArray(bookmarkTags.name, toAddTagNames)
-                  : undefined,
-              ),
-            ),
-            columns: {
-              id: true,
-            },
-          })
-        ).map((t) => t.id);
-
-        await tx
-          .insert(tagsOnBookmarks)
-          .values(
-            allIds.map((i) => ({
-              tagId: i,
+          if (input.attach.length == 0) {
+            return {
               bookmarkId: input.bookmarkId,
-              attachedBy: "human" as const,
-              userId: ctx.user.id,
-            })),
-          )
-          .onConflictDoNothing();
-        await tx
-          .update(bookmarks)
-          .set({ modifiedAt: new Date() })
-          .where(
-            and(
-              eq(bookmarks.id, input.bookmarkId),
-              eq(bookmarks.userId, ctx.user.id),
-            ),
+              attached: [],
+              detached: idsToRemove,
+            };
+          }
+
+          const toAddTagNames = input.attach
+            .flatMap((i) => (i.tagName ? [i.tagName] : []))
+            .map(normalizeTagName) // strip leading #
+            .filter((n) => n.length > 0); // drop empty results
+
+          const toAddTagIds = input.attach.flatMap((i) =>
+            i.tagId ? [i.tagId] : [],
           );
 
-        await triggerRuleEngineOnEvent(input.bookmarkId, [
-          ...idsToRemove.map((t) => ({
-            type: "tagRemoved" as const,
-            tagId: t,
-          })),
-          ...allIds.map((t) => ({
-            type: "tagAdded" as const,
-            tagId: t,
-          })),
-        ]);
-        await triggerSearchReindex(input.bookmarkId, {
-          groupId: ctx.user.id,
-        });
-        await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        });
-        return {
-          bookmarkId: input.bookmarkId,
-          attached: allIds,
-          detached: idsToRemove,
-        };
+          // New Tags
+          if (toAddTagNames.length > 0) {
+            await tx
+              .insert(bookmarkTags)
+              .values(
+                toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+              )
+              .onConflictDoNothing()
+              .returning();
+          }
+
+          // If there is nothing to add, the "or" statement will become useless and
+          // the query below will simply select all the existing tags for this user and assign them to the bookmark
+          invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
+          const allIds = (
+            await tx.query.bookmarkTags.findMany({
+              where: and(
+                eq(bookmarkTags.userId, ctx.user.id),
+                or(
+                  toAddTagIds.length > 0
+                    ? inArray(bookmarkTags.id, toAddTagIds)
+                    : undefined,
+                  toAddTagNames.length > 0
+                    ? inArray(bookmarkTags.name, toAddTagNames)
+                    : undefined,
+                ),
+              ),
+              columns: {
+                id: true,
+              },
+            })
+          ).map((t) => t.id);
+
+          await tx
+            .insert(tagsOnBookmarks)
+            .values(
+              allIds.map((i) => ({
+                tagId: i,
+                bookmarkId: input.bookmarkId,
+                attachedBy: "human" as const,
+                userId: ctx.user.id,
+              })),
+            )
+            .onConflictDoNothing();
+          await tx
+            .update(bookmarks)
+            .set({ modifiedAt: new Date() })
+            .where(
+              and(
+                eq(bookmarks.id, input.bookmarkId),
+                eq(bookmarks.userId, ctx.user.id),
+              ),
+            );
+
+          return {
+            bookmarkId: input.bookmarkId,
+            attached: allIds,
+            detached: idsToRemove,
+          };
+        },
+        {
+          behavior: "immediate",
+        },
+      );
+
+      // Trigger queue operations after transaction completes
+      await triggerRuleEngineOnEvent(input.bookmarkId, [
+        ...result.detached.map((t) => ({
+          type: "tagRemoved" as const,
+          tagId: t,
+        })),
+        ...result.attached.map((t) => ({
+          type: "tagAdded" as const,
+          tagId: t,
+        })),
+      ]);
+      await triggerSearchReindex(input.bookmarkId, {
+        groupId: ctx.user.id,
       });
+      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+        groupId: ctx.user.id,
+      });
+
+      return result;
     }),
   getBrokenLinks: authedProcedure
     .output(

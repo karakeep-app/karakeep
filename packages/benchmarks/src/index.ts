@@ -25,7 +25,7 @@ function loadConfig(): CliConfig {
     bookmarkCount: numberFromEnv("BENCH_BOOKMARKS", 400),
     tagCount: numberFromEnv("BENCH_TAGS", 25),
     listCount: numberFromEnv("BENCH_LISTS", 6),
-    concurrency: numberFromEnv("BENCH_SEED_CONCURRENCY", 12),
+    concurrency: numberFromEnv("BENCH_SEED_CONCURRENCY", 5),
     keepContainers: process.env.BENCH_KEEP_CONTAINERS === "1",
     timeMs: numberFromEnv("BENCH_TIME_MS", 1000),
     warmupMs: numberFromEnv("BENCH_WARMUP_MS", 300),
