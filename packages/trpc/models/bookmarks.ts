@@ -817,7 +817,7 @@ export class Bookmark extends BareBookmark {
     await triggerWebhook(this.bookmark.id, "deleted", this.ctx.user.id, {
       groupId: this.ctx.user.id,
     });
-    if (deleted.changes > 0) {
+    if (deleted.rowsAffected > 0) {
       await this.cleanupAssets();
     }
   }

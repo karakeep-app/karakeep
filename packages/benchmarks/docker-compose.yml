@@ -14,8 +14,11 @@ services:
       MEILI_MASTER_KEY: dummy
       MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
-      CRAWLER_NUM_WORKERS: 6
+      CRAWLER_NUM_WORKERS: 1
       CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      DB_WAL_MODE: true
+      # WORKERS_ENABLED_WORKERS: video
+
   meilisearch:
     image: getmeili/meilisearch:v1.13.3
     restart: unless-stopped

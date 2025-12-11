@@ -172,7 +172,7 @@ export class ImportSession {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Import session not found",

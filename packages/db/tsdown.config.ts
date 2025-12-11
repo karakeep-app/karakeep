@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["index.ts"],
+  entry: ["migrate.ts"],
   format: ["esm"],
   target: "node22",
   outDir: "dist",
@@ -11,9 +11,9 @@ export default defineConfig({
   platform: "node",
   shims: true,
   external: [
-    // Keep native binaries external (transitive deps of bundled workspace packages)
+    // Keep native binaries and their dependencies external
     "@libsql/client",
-    "liteque",
+    "libsql",
   ],
   noExternal: [
     // Bundle workspace packages (since they're not published to npm)

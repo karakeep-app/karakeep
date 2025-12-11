@@ -163,16 +163,21 @@ export const assetsAppRouter = router({
         });
       }
 
-      await ctx.db.transaction(async (tx) => {
-        await tx.delete(assets).where(eq(assets.id, input.oldAssetId));
-        await tx
-          .update(assets)
-          .set({
-            bookmarkId: input.bookmarkId,
-            assetType: oldAsset.assetType,
-          })
-          .where(eq(assets.id, input.newAssetId));
-      });
+      await ctx.db.transaction(
+        async (tx) => {
+          await tx.delete(assets).where(eq(assets.id, input.oldAssetId));
+          await tx
+            .update(assets)
+            .set({
+              bookmarkId: input.bookmarkId,
+              assetType: oldAsset.assetType,
+            })
+            .where(eq(assets.id, input.newAssetId));
+        },
+        {
+          behavior: "immediate",
+        },
+      );
 
       await deleteAsset({
         userId: ctx.user.id,
@@ -212,7 +217,7 @@ export const assetsAppRouter = router({
             eq(assets.bookmarkId, input.bookmarkId),
           ),
         );
-      if (result.changes == 0) {
+      if (result.rowsAffected == 0) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
       await deleteAsset({ userId: ctx.user.id, assetId: input.assetId }).catch(

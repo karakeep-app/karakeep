@@ -4,7 +4,7 @@ import { and, count, eq, inArray, or } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
+import { getLibsqlError } from "@karakeep/db";
 import {
   bookmarkLists,
   bookmarksInLists,
@@ -471,7 +471,7 @@ export abstract class List {
           eq(bookmarkLists.userId, this.ctx.user.id),
         ),
       );
-    if (res.changes == 0) {
+    if (res.rowsAffected == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
   }
@@ -635,7 +635,7 @@ export abstract class List {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Collaborator not found",
@@ -666,7 +666,7 @@ export abstract class List {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Collaborator not found",
@@ -693,7 +693,7 @@ export abstract class List {
         ),
       );
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Collaborator not found",
@@ -926,8 +926,9 @@ export class ManualList extends List {
         },
       ]);
     } catch (e) {
-      if (e instanceof SqliteError) {
-        if (e.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
+      const libsqlError = getLibsqlError(e);
+      if (libsqlError) {
+        if (libsqlError.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
           // this is fine, it just means the bookmark is already in the list
           return;
         }
@@ -951,7 +952,7 @@ export class ManualList extends List {
           eq(bookmarksInLists.bookmarkId, bookmarkId),
         ),
       );
-    if (deleted.changes == 0) {
+    if (deleted.rowsAffected == 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
@@ -990,22 +991,27 @@ export class ManualList extends List {
 
     const bookmarkIds = await this.getBookmarkIds();
 
-    await this.ctx.db.transaction(async (tx) => {
-      await tx
-        .insert(bookmarksInLists)
-        .values(
-          bookmarkIds.map((id) => ({
-            bookmarkId: id,
-            listId: targetList.id,
-          })),
-        )
-        .onConflictDoNothing();
-
-      if (deleteSourceAfterMerge) {
+    await this.ctx.db.transaction(
+      async (tx) => {
         await tx
-          .delete(bookmarkLists)
-          .where(eq(bookmarkLists.id, this.list.id));
-      }
-    });
+          .insert(bookmarksInLists)
+          .values(
+            bookmarkIds.map((id) => ({
+              bookmarkId: id,
+              listId: targetList.id,
+            })),
+          )
+          .onConflictDoNothing();
+
+        if (deleteSourceAfterMerge) {
+          await tx
+            .delete(bookmarkLists)
+            .where(eq(bookmarkLists.id, this.list.id));
+        }
+      },
+      {
+        behavior: "immediate",
+      },
+    );
   }
 }

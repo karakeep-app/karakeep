@@ -4,7 +4,7 @@ import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
+import { getLibsqlError } from "@karakeep/db";
 import {
   assets,
   bookmarkLinks,
@@ -94,46 +94,52 @@ export class User {
       emailVerified?: Date | null;
     },
   ) {
-    return await db.transaction(async (trx) => {
-      let userRole = input.role;
-      if (!userRole) {
-        const [{ count: userCount }] = await trx
-          .select({ count: count() })
-          .from(users);
-        userRole = userCount === 0 ? "admin" : "user";
-      }
-
-      try {
-        const [result] = await trx
-          .insert(users)
-          .values({
-            name: input.name,
-            email: input.email,
-            password: input.password,
-            salt: input.salt,
-            role: userRole,
-            emailVerified: input.emailVerified,
-            bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
-            storageQuota: serverConfig.quotas.free.assetSizeBytes,
-          })
-          .returning();
-
-        return result;
-      } catch (e) {
-        if (e instanceof SqliteError) {
-          if (e.code === "SQLITE_CONSTRAINT_UNIQUE") {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Email is already taken",
-            });
-          }
+    return await db.transaction(
+      async (trx) => {
+        let userRole = input.role;
+        if (!userRole) {
+          const [{ count: userCount }] = await trx
+            .select({ count: count() })
+            .from(users);
+          userRole = userCount === 0 ? "admin" : "user";
         }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Something went wrong",
-        });
-      }
-    });
+
+        try {
+          const [result] = await trx
+            .insert(users)
+            .values({
+              name: input.name,
+              email: input.email,
+              password: input.password,
+              salt: input.salt,
+              role: userRole,
+              emailVerified: input.emailVerified,
+              bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
+              storageQuota: serverConfig.quotas.free.assetSizeBytes,
+            })
+            .returning();
+
+          return result;
+        } catch (e) {
+          const libsqlError = getLibsqlError(e);
+          if (libsqlError) {
+            if (libsqlError.code === "SQLITE_CONSTRAINT_UNIQUE") {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "Email is already taken",
+              });
+            }
+          }
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Something went wrong",
+          });
+        }
+      },
+      {
+        behavior: "immediate",
+      },
+    );
   }
 
   static async getAll(ctx: AuthedContext): Promise<User[]> {
@@ -214,7 +220,7 @@ export class User {
       .set({ emailVerified: new Date() })
       .where(eq(users.email, email));
 
-    if (result.changes === 0) {
+    if (result.rowsAffected === 0) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "User not found",
@@ -357,7 +363,7 @@ export class User {
   private static async deleteInternal(db: Context["db"], userId: string) {
     const res = await db.delete(users).where(eq(users.id, userId));
 
-    if (res.changes === 0) {
+    if (res.rowsAffected === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 

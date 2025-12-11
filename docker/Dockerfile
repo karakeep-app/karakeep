@@ -40,9 +40,8 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build the db migration script
-RUN cd packages/db && \
-    pnpm exec ncc build migrate.ts -o /db_migrations && \
-    cp -R drizzle /db_migrations
+RUN (cd packages/db && pnpm build)
+RUN pnpm deploy --node-linker=isolated --filter @karakeep/db --prod /db_migrations
 
 
 # Compile the web app
@@ -107,6 +106,10 @@ ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
 COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=base /app/apps/web/public ./apps/web/public
 COPY --from=base /db_migrations /db_migrations
+
+# Manually copy libsql native bindings that Next.js standalone missed
+# The standalone output doesn't properly include optional dependencies
+COPY --from=base /app/node_modules/@libsql ./node_modules/@libsql
 
 # Set the correct permission for prerender cache
 RUN mkdir -p ./apps/web/.next && chown node:node ./apps/web/.next

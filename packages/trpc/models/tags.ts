@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
-import { SqliteError } from "@karakeep/db";
+import { getLibsqlError } from "@karakeep/db";
 import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
 import { triggerSearchReindex } from "@karakeep/shared-server";
 import {
@@ -71,7 +71,8 @@ export class Tag {
 
       return new Tag(ctx, result);
     } catch (e) {
-      if (e instanceof SqliteError && e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      const libsqlError = getLibsqlError(e);
+      if (libsqlError && libsqlError.code === "SQLITE_CONSTRAINT_UNIQUE") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Tag name already exists for this user.",
@@ -191,7 +192,7 @@ export class Tag {
           ),
         ),
       );
-    return res.changes;
+    return res.rowsAffected;
   }
 
   static async merge(
@@ -276,6 +277,9 @@ export class Tag {
           affectedBookmarks: unlinked.map((u) => u.bookmarkId),
         };
       },
+      {
+        behavior: "immediate",
+      },
     );
 
     try {
@@ -313,7 +317,7 @@ export class Tag {
         ),
       );
 
-    if (res.changes === 0) {
+    if (res.rowsAffected === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
@@ -366,8 +370,9 @@ export class Tag {
         console.error("Failed to reindex affected bookmarks", e);
       }
     } catch (e) {
-      if (e instanceof SqliteError) {
-        if (e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      const libsqlError = getLibsqlError(e);
+      if (libsqlError) {
+        if (libsqlError.code === "SQLITE_CONSTRAINT_UNIQUE") {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
