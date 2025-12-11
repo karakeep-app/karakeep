@@ -194,9 +194,21 @@ export const bookmarks = sqliteTable(
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
-    index("bookmarks_archived_idx").on(b.archived),
-    index("bookmarks_favourited_idx").on(b.favourited),
     index("bookmarks_createdAt_idx").on(b.createdAt),
+    // Composite indexes for optimized pagination queries
+    index("bookmarks_userId_createdAt_id_idx").on(b.userId, b.createdAt, b.id),
+    index("bookmarks_userId_archived_createdAt_id_idx").on(
+      b.userId,
+      b.archived,
+      b.createdAt,
+      b.id,
+    ),
+    index("bookmarks_userId_favourited_createdAt_id_idx").on(
+      b.userId,
+      b.favourited,
+      b.createdAt,
+      b.id,
+    ),
   ],
 );
 
@@ -378,6 +390,8 @@ export const tagsOnBookmarks = sqliteTable(
     primaryKey({ columns: [tb.bookmarkId, tb.tagId] }),
     index("tagsOnBookmarks_tagId_idx").on(tb.tagId),
     index("tagsOnBookmarks_bookmarkId_idx").on(tb.bookmarkId),
+    // Composite index for tag-first queries (when filtering by tagId)
+    index("tagsOnBookmarks_tagId_bookmarkId_idx").on(tb.tagId, tb.bookmarkId),
   ],
 );
 
@@ -437,6 +451,11 @@ export const bookmarksInLists = sqliteTable(
     primaryKey({ columns: [tb.bookmarkId, tb.listId] }),
     index("bookmarksInLists_bookmarkId_idx").on(tb.bookmarkId),
     index("bookmarksInLists_listId_idx").on(tb.listId),
+    // Composite index for list-first queries (when filtering by listId)
+    index("bookmarksInLists_listId_bookmarkId_idx").on(
+      tb.listId,
+      tb.bookmarkId,
+    ),
   ],
 );
 
@@ -584,6 +603,11 @@ export const rssFeedImportsTable = sqliteTable(
     index("rssFeedImports_feedIdIdx_idx").on(bl.rssFeedId),
     index("rssFeedImports_entryIdIdx_idx").on(bl.entryId),
     unique().on(bl.rssFeedId, bl.entryId),
+    // Composite index for RSS feed filter queries (when filtering by rssFeedId)
+    index("rssFeedImports_rssFeedId_bookmarkId_idx").on(
+      bl.rssFeedId,
+      bl.bookmarkId,
+    ),
   ],
 );
 
