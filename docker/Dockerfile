@@ -1,5 +1,5 @@
 ################# Base Builder ##############
-FROM node:22-alpine AS base
+FROM node:22.21-alpine AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -33,7 +33,7 @@ COPY tooling/tailwind/package.json ./tooling/tailwind/
 COPY tooling/typescript/package.json ./tooling/typescript/
 COPY ./patches ./patches
 
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
@@ -60,7 +60,7 @@ RUN (cd apps/mcp && pnpm build)
 
 ################# The All-in-one builder ##############
 
-FROM node:22-alpine AS aio_builder
+FROM node:22.21-alpine AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -101,7 +101,7 @@ RUN apk add --no-cache monolith yt-dlp graphicsmagick ghostscript
 ######################
 
 ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
 
 COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
@@ -154,7 +154,7 @@ ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
 
-FROM node:22-alpine AS cli
+FROM node:22.21-alpine AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -169,7 +169,7 @@ ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
 
-FROM node:22-alpine AS mcp
+FROM node:22.21-alpine AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
