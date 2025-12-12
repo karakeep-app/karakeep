@@ -62,7 +62,7 @@ export class AssetPreprocessingWorker {
         {
           concurrency: serverConfig.assetPreprocessing.numWorkers,
           pollIntervalMs: 1000,
-          timeoutSecs: 30,
+          timeoutSecs: serverConfig.assetPreprocessing.jobTimeoutSec,
         },
       );
 

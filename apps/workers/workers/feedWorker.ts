@@ -14,6 +14,21 @@ import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+/**
+ * Deterministically maps a feed ID to a minute offset within the hour (0-59).
+ * This ensures feeds are spread evenly across the hour based on their ID.
+ */
+function getFeedMinuteOffset(feedId: string): number {
+  // Simple hash function: sum character codes
+  let hash = 0;
+  for (let i = 0; i < feedId.length; i++) {
+    hash = (hash << 5) - hash + feedId.charCodeAt(i);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  // Return a minute offset between 0 and 59
+  return Math.abs(hash) % 60;
+}
+
 export const FeedRefreshingWorker = cron.schedule(
   "0 * * * *",
   () => {
@@ -30,9 +45,24 @@ export const FeedRefreshingWorker = cron.schedule(
         const currentHour = new Date();
         currentHour.setMinutes(0, 0, 0);
         const hourlyWindow = currentHour.toISOString();
+        const now = new Date();
+        const currentMinute = now.getMinutes();
 
         for (const feed of feeds) {
           const idempotencyKey = `${feed.id}-${hourlyWindow}`;
+          const targetMinute = getFeedMinuteOffset(feed.id);
+
+          // Calculate delay: if target minute has passed, schedule for next hour
+          let delayMinutes = targetMinute - currentMinute;
+          if (delayMinutes < 0) {
+            delayMinutes += 60;
+          }
+          const delayMs = delayMinutes * 60 * 1000;
+
+          logger.debug(
+            `[feed] Scheduling feed ${feed.id} at minute ${targetMinute} (delay: ${delayMinutes} minutes)`,
+          );
+
           FeedQueue.enqueue(
             {
               feedId: feed.id,
@@ -40,6 +70,7 @@ export const FeedRefreshingWorker = cron.schedule(
             {
               idempotencyKey,
               groupId: feed.userId,
+              delayMs,
             },
           );
         }

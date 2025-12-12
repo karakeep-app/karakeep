@@ -13,6 +13,7 @@ export interface SeedConfig {
   tagCount: number;
   listCount: number;
   concurrency: number;
+  userCount: number;
 }
 
 export interface SeededBookmark {
@@ -22,13 +23,24 @@ export interface SeededBookmark {
   title: string | null | undefined;
 }
 
+export interface UserSeedData {
+  apiKey: string;
+  trpc: TrpcClient;
+  email: string;
+  tags: ZTagBasic[];
+  lists: ZBookmarkList[];
+  bookmarks: SeededBookmark[];
+}
+
 export interface SeedResult {
+  users: UserSeedData[];
+  searchTerm: string;
+  // For backwards compatibility, expose the first user's data
   apiKey: string;
   trpc: TrpcClient;
   tags: ZTagBasic[];
   lists: ZBookmarkList[];
   bookmarks: SeededBookmark[];
-  searchTerm: string;
 }
 
 const TOPICS = [
@@ -44,14 +56,18 @@ const TOPICS = [
   "cli",
 ];
 
-export async function seedData(config: SeedConfig): Promise<SeedResult> {
-  const authlessClient = getTrpcClient();
-  const email = `benchmarks+${Date.now()}@example.com`;
+async function seedUserData(
+  authlessClient: TrpcClient,
+  userIndex: number,
+  config: SeedConfig,
+  timestamp: number,
+): Promise<UserSeedData> {
+  const email = `benchmarks+${timestamp}+user${userIndex}@example.com`;
   const password = "benchmarks1234";
 
-  logStep("Creating benchmark user and API key");
+  logStep(`Creating user ${userIndex + 1}/${config.userCount}`);
   await authlessClient.users.create.mutate({
-    name: "Benchmark User",
+    name: `Benchmark User ${userIndex + 1}`,
     email,
     password,
     confirmPassword: password,
@@ -59,35 +75,37 @@ export async function seedData(config: SeedConfig): Promise<SeedResult> {
   const { key } = await authlessClient.apiKeys.exchange.mutate({
     email,
     password,
-    keyName: "benchmark-key",
+    keyName: `benchmark-key-${userIndex}`,
   });
 
   const trpc = getTrpcClient(key);
-  logSuccess("User ready");
+  logSuccess(`User ${userIndex + 1} ready`);
 
-  logStep(`Creating ${config.tagCount} tags`);
+  logStep(`Creating ${config.tagCount} tags for user ${userIndex + 1}`);
   const tags: ZTagBasic[] = [];
   for (let i = 0; i < config.tagCount; i++) {
     const tag = await trpc.tags.create.mutate({
-      name: `topic-${i + 1}`,
+      name: `user${userIndex}-topic-${i + 1}`,
     });
     tags.push(tag);
   }
-  logSuccess("Tags created");
+  logSuccess(`Tags created for user ${userIndex + 1}`);
 
-  logStep(`Creating ${config.listCount} lists`);
+  logStep(`Creating ${config.listCount} lists for user ${userIndex + 1}`);
   const lists: ZBookmarkList[] = [];
   for (let i = 0; i < config.listCount; i++) {
     const list = await trpc.lists.create.mutate({
-      name: `List ${i + 1}`,
-      description: `Auto-generated benchmark list #${i + 1}`,
+      name: `User ${userIndex + 1} List ${i + 1}`,
+      description: `Auto-generated benchmark list #${i + 1} for user ${userIndex + 1}`,
       icon: "bookmark",
     });
     lists.push(list);
   }
-  logSuccess("Lists created");
+  logSuccess(`Lists created for user ${userIndex + 1}`);
 
-  logStep(`Creating ${config.bookmarkCount} bookmarks`);
+  logStep(
+    `Creating ${config.bookmarkCount} bookmarks for user ${userIndex + 1}`,
+  );
   const limit = pLimit(config.concurrency);
   const bookmarks: SeededBookmark[] = [];
 
@@ -98,12 +116,12 @@ export async function seedData(config: SeedConfig): Promise<SeedResult> {
         const createdAt = new Date(Date.now() - index * 3000);
         const bookmark = await trpc.bookmarks.createBookmark.mutate({
           type: BookmarkTypes.LINK,
-          url: `https://example.com/${topic}/${index}`,
-          title: `Benchmark ${topic} article ${index}`,
+          url: `https://example.com/user${userIndex}/${topic}/${index}`,
+          title: `User ${userIndex + 1} ${topic} article ${index}`,
           source: "api",
-          summary: `Benchmark dataset entry about ${topic} performance and organization.`,
+          summary: `Benchmark dataset entry about ${topic} for user ${userIndex + 1}.`,
           favourited: index % 7 === 0,
-          archived: false,
+          archived: index % 11 === 0,
           createdAt,
         });
 
@@ -138,13 +156,37 @@ export async function seedData(config: SeedConfig): Promise<SeedResult> {
       }),
     ),
   );
-  logSuccess("Bookmarks created");
+  logSuccess(`Bookmarks created for user ${userIndex + 1}`);
+
+  return {
+    apiKey: key,
+    trpc,
+    email,
+    tags,
+    lists,
+    bookmarks,
+  };
+}
+
+export async function seedData(config: SeedConfig): Promise<SeedResult> {
+  const authlessClient = getTrpcClient();
+  const timestamp = Date.now();
+
+  logInfo(`Seeding data for ${config.userCount} users`);
+  const users: UserSeedData[] = [];
+
+  // Create all users sequentially to avoid race conditions
+  for (let i = 0; i < config.userCount; i++) {
+    const userData = await seedUserData(authlessClient, i, config, timestamp);
+    users.push(userData);
+  }
 
   const searchTerm = "benchmark";
   logStep("Waiting for search index to be ready");
+  // Use the first user's client to check search readiness
   await waitUntil(
     async () => {
-      const results = await trpc.bookmarks.searchBookmarks.query({
+      const results = await users[0].trpc.bookmarks.searchBookmarks.query({
         text: searchTerm,
         limit: 1,
       });
@@ -156,16 +198,26 @@ export async function seedData(config: SeedConfig): Promise<SeedResult> {
   );
   logSuccess("Search index warmed up");
 
+  const totalBookmarks = users.reduce(
+    (sum, user) => sum + user.bookmarks.length,
+    0,
+  );
+  const totalTags = users.reduce((sum, user) => sum + user.tags.length, 0);
+  const totalLists = users.reduce((sum, user) => sum + user.lists.length, 0);
+
   logInfo(
-    `Seeded ${bookmarks.length} bookmarks across ${tags.length} tags and ${lists.length} lists`,
+    `Seeded ${totalBookmarks} bookmarks across ${totalTags} tags and ${totalLists} lists for ${config.userCount} users`,
   );
 
+  // Return first user's data for backwards compatibility
+  const firstUser = users[0];
   return {
-    apiKey: key,
-    trpc,
-    tags,
-    lists,
-    bookmarks,
+    users,
     searchTerm,
+    apiKey: firstUser.apiKey,
+    trpc: firstUser.trpc,
+    tags: firstUser.tags,
+    lists: firstUser.lists,
+    bookmarks: firstUser.bookmarks,
   };
 }

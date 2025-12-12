@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4f54e033-103d-44c0-b25e-09c6b6312d90",
-  "prevId": "6efcc681-eaac-44a6-a224-f97a7df01ff3",
+  "id": "2c662bba-1356-47da-ad2f-39ec463a5fcf",
+  "prevId": "4f54e033-103d-44c0-b25e-09c6b6312d90",
   "tables": {
     "account": {
       "name": "account",
@@ -2805,6 +2805,27 @@
           "notNull": true,
           "autoincrement": false,
           "default": 30
+        },
+        "readerFontSize": {
+          "name": "readerFontSize",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "readerLineHeight": {
+          "name": "readerLineHeight",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "readerFontFamily": {
+          "name": "readerFontFamily",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
