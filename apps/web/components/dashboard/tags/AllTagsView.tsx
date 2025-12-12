@@ -2,7 +2,6 @@
 
 import React, { useEffect } from "react";
 import { ActionButton } from "@/components/ui/action-button";
-import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,60 +23,21 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import Spinner from "@/components/ui/spinner";
 import { Toggle } from "@/components/ui/toggle";
-import { toast } from "@/components/ui/use-toast";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { useTranslation } from "@/lib/i18n/client";
 import { ArrowDownAZ, ChevronDown, Combine, Search, Tag } from "lucide-react";
 import { parseAsStringEnum, useQueryState } from "nuqs";
 
 import type { ZGetTagResponse, ZTagBasic } from "@karakeep/shared/types/tags";
-import {
-  useDeleteUnusedTags,
-  usePaginatedSearchTags,
-} from "@karakeep/shared-react/hooks/tags";
+import { usePaginatedSearchTags } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
+import { UnusedTags } from "../cleanups/UnusedTags";
 import BulkTagAction from "./BulkTagAction";
 import { CreateTagModal } from "./CreateTagModal";
 import DeleteTagConfirmationDialog from "./DeleteTagConfirmationDialog";
 import { MultiTagSelector } from "./MultiTagSelector";
 import { TagPill } from "./TagPill";
-
-function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
-  const { t } = useTranslation();
-  const { mutate, isPending } = useDeleteUnusedTags({
-    onSuccess: () => {
-      toast({
-        description: `Deleted all ${numUnusedTags} unused tags`,
-      });
-    },
-    onError: () => {
-      toast({
-        description: "Something went wrong",
-        variant: "destructive",
-      });
-    },
-  });
-  return (
-    <ActionConfirmingDialog
-      title={t("tags.delete_all_unused_tags")}
-      description={`Are you sure you want to delete the ${numUnusedTags} unused tags?`}
-      actionButton={() => (
-        <ActionButton
-          variant="destructive"
-          loading={isPending}
-          onClick={() => mutate()}
-        >
-          DELETE THEM ALL
-        </ActionButton>
-      )}
-    >
-      <Button variant="destructive" disabled={numUnusedTags == 0}>
-        {t("tags.delete_all_unused_tags")}
-      </Button>
-    </ActionConfirmingDialog>
-  );
-}
 
 export default function AllTagsView() {
   const { t } = useTranslation();
@@ -138,38 +98,22 @@ export default function AllTagsView() {
     limit: 50,
   });
 
-  const {
-    data: allEmptyTagsRaw,
-    isFetching: isEmptyTagsFetching,
-    isLoading: isEmptyTagsLoading,
-    hasNextPage: hasNextPageEmptyTags,
-    fetchNextPage: fetchNextPageEmptyTags,
-    isFetchingNextPage: isFetchingNextPageEmptyTags,
-  } = usePaginatedSearchTags({
-    nameContains: searchQuery,
-    sortBy,
-    attachedBy: "none",
-    limit: 50,
-  });
+  const isFetching = isHumanTagsFetching || isAiTagsFetching;
 
-  const isFetching =
-    isHumanTagsFetching || isAiTagsFetching || isEmptyTagsFetching;
-
-  const { allHumanTags, allAiTags, allEmptyTags } = React.useMemo(() => {
+  const { allHumanTags, allAiTags } = React.useMemo(() => {
     return {
       allHumanTags: allHumanTagsRaw?.tags ?? [],
       allAiTags: allAiTagsRaw?.tags ?? [],
-      allEmptyTags: allEmptyTagsRaw?.tags ?? [],
     };
-  }, [allHumanTagsRaw, allAiTagsRaw, allEmptyTagsRaw]);
+  }, [allHumanTagsRaw, allAiTagsRaw]);
 
   useEffect(() => {
-    const allTags = [...allHumanTags, ...allAiTags, ...allEmptyTags];
+    const allTags = [...allHumanTags, ...allAiTags];
     setVisibleTagIds(allTags.map((tag) => tag.id) ?? []);
     return () => {
       setVisibleTagIds([]);
     };
-  }, [allHumanTags, allAiTags, allEmptyTags, setVisibleTagIds]);
+  }, [allHumanTags, allAiTags, setVisibleTagIds]);
 
   const sortLabels: Record<typeof sortBy, string> = {
     name: t("tags.sort_by_name"),
@@ -388,39 +332,7 @@ export default function AllTagsView() {
           )}
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <span>{t("tags.unused_tags")}</span>
-            <Badge variant="secondary">{allEmptyTags.length}</Badge>
-          </CardTitle>
-          <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {tagsToPill(
-            allEmptyTags,
-            isBulkEditEnabled,
-            {
-              emptyMessage: t("tags.no_unused_tags"),
-              searchEmptyMessage: t("tags.no_unused_tags_match_your_search"),
-            },
-            isEmptyTagsLoading,
-          )}
-          {hasNextPageEmptyTags && (
-            <ActionButton
-              variant="secondary"
-              onClick={() => fetchNextPageEmptyTags()}
-              loading={isFetchingNextPageEmptyTags}
-              ignoreDemoMode
-            >
-              {t("actions.load_more")}
-            </ActionButton>
-          )}
-          {allEmptyTags.length > 0 && (
-            <DeleteAllUnusedTags numUnusedTags={allEmptyTags.length} />
-          )}
-        </CardContent>
-      </Card>
+      <UnusedTags searchQuery={searchQuery} showCount={false} />
     </div>
   );
 }
