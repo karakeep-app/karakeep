@@ -425,6 +425,46 @@ async function browserlessCrawlPage(
   };
 }
 
+async function fetchFromWayback(
+  url: string,
+  jobId: string,
+  abortSignal: AbortSignal,
+): Promise<{ htmlContent: string; url: string; statusCode: number } | null> {
+  if (abortSignal.aborted) {
+    abortSignal.throwIfAborted();
+  }
+  const base = "https://web.archive.org";
+  const searchUrl = `${base}/web/*/${url}`;
+  try {
+    logger.info(`[Crawler][${jobId}] Searching Wayback snapshot for ${url}`);
+    const searchRes = await fetch(searchUrl, {
+      redirect: "manual",
+      signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+    });
+    const snapshotUrl =
+      searchRes.status >= 300 && searchRes.status < 400
+        ? searchRes.headers.get("location")
+        : searchRes.url;
+    if (!snapshotUrl || snapshotUrl.includes("/web/*/")) {
+      return null;
+    }
+    const pageRes = await fetch(snapshotUrl, {
+      signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+    });
+    if (!pageRes.ok) {
+      return null;
+    }
+    return {
+      htmlContent: await pageRes.text(),
+      url: snapshotUrl,
+      statusCode: pageRes.status,
+    };
+  } catch (e) {
+    logger.warn(`[Crawler][${jobId}] Wayback request failed: ${e}`);
+    return null;
+  }
+}
+
 async function crawlPage(
   jobId: string,
   url: string,
@@ -1111,7 +1151,30 @@ async function crawlAndParseUrl(
       url,
     };
   } else {
-    result = await crawlPage(jobId, url, userId, abortSignal);
+    try {
+      result = await crawlPage(jobId, url, userId, abortSignal);
+      if (result.statusCode !== 200) {
+        throw new Error(`status ${result.statusCode}`);
+      }
+    } catch (e) {
+      logger.warn(`[Crawler][${jobId}] Failed to crawl ${url}: ${e}`);
+      if (serverConfig.crawler.waybackFallback) {
+        const archived = await fetchFromWayback(url, jobId, abortSignal);
+        if (archived) {
+          logger.info(
+            `[Crawler][${jobId}] Wayback fallback succeeded: ${archived.url}`,
+          );
+          result = { ...archived, screenshot: undefined };
+        } else {
+          logger.warn(
+            `[Crawler][${jobId}] No snapshot found on Wayback for ${url}`,
+          );
+          throw e;
+        }
+      } else {
+        throw e;
+      }
+    }
   }
   abortSignal.throwIfAborted();
 

@@ -103,6 +103,7 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
+  CRAWLER_WAYBACK_FALLBACK: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
     .string()
     .default("")
@@ -302,6 +303,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
+      waybackFallback: val.CRAWLER_WAYBACK_FALLBACK,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,

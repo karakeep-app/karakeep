@@ -23,6 +23,8 @@ spec:
               value: http://meilisearch:7700
             - name: BROWSER_WEB_URL
               value: http://chrome:9222
+            - name: CRAWLER_WAYBACK_FALLBACK
+              value: "true"
             - name: DATA_DIR
               value: /data
             # Add OPENAI_API_KEY to the ConfigMap if necessary
