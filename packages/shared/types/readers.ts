@@ -20,13 +20,6 @@ export const READER_SETTING_CONSTRAINTS = {
   lineHeight: { min: 1.2, max: 2.5, step: 0.1 },
 } as const;
 
-// Font family options for select controls
-export const READER_FONT_FAMILY_OPTIONS = [
-  { value: "serif", labelKey: "serif" },
-  { value: "sans", labelKey: "sans" },
-  { value: "mono", labelKey: "mono" },
-] as const;
-
 // Formatting functions for display
 export function formatFontSize(value: number): string {
   return `${value}px`;
