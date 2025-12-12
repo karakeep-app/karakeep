@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { Slider } from "react-native-awesome-slider";
 import { runOnJS, useSharedValue } from "react-native-reanimated";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
-import { useToast } from "@/components/ui/Toast";
 import { MOBILE_FONT_FAMILIES, useReaderSettings } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { Check, RotateCcw } from "lucide-react-native";
@@ -19,7 +18,6 @@ import {
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
 
 export default function ReaderSettingsPage() {
-  const { toast } = useToast();
   const { isDarkColorScheme: isDark } = useColorScheme();
 
   const {
@@ -87,33 +85,24 @@ export default function ReaderSettingsPage() {
   const handleSaveAsDefault = () => {
     saveAsDefault();
     // Note: clearAllLocal is called automatically in the shared hook's onSuccess
-    toast({
-      message: "Reader settings saved as default for all devices",
-      showProgress: false,
-    });
   };
 
   const handleClearLocalOverrides = () => {
     clearAllLocal();
-    toast({
-      message: "Local overrides cleared",
-      showProgress: false,
-    });
   };
 
   const handleClearServerDefaults = () => {
     clearAllDefaults();
-    toast({
-      message: "Server defaults cleared",
-      showProgress: false,
-    });
   };
 
   const fontFamilyOptions: ZReaderFontFamily[] = ["serif", "sans", "mono"];
 
   return (
     <CustomSafeAreaView>
-      <View className="flex h-full w-full items-center gap-4 px-4 py-2">
+      <ScrollView
+        className="w-full"
+        contentContainerClassName="items-center gap-4 px-4 py-2"
+      >
         {/* Font Family Selection */}
         <View className="w-full">
           <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
@@ -238,9 +227,12 @@ export default function ReaderSettingsPage() {
         {/* Save as Default */}
         <Pressable
           onPress={handleSaveAsDefault}
+          disabled={!hasLocalOverrides}
           className="w-full rounded-lg bg-card px-4 py-3"
         >
-          <Text className="text-center text-blue-500">
+          <Text
+            className={`text-center ${hasLocalOverrides ? "text-blue-500" : "text-muted-foreground"}`}
+          >
             Save as Default (All Devices)
           </Text>
         </Pressable>
@@ -266,7 +258,7 @@ export default function ReaderSettingsPage() {
             <Text className="text-muted-foreground">Clear Server Defaults</Text>
           </Pressable>
         )}
-      </View>
+      </ScrollView>
     </CustomSafeAreaView>
   );
 }

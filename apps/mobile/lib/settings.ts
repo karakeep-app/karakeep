@@ -79,3 +79,5 @@ export default function useAppSettings() {
 
   return { ...settings, setSettings, load };
 }
+
+export { useSettings };

@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+"use client";
+
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   READER_DEFAULTS,
@@ -8,7 +18,7 @@ import {
 
 import { api } from "../trpc";
 
-interface UseReaderSettingsOptions {
+export interface UseReaderSettingsOptions {
   /**
    * Get local overrides (device-specific settings stored locally)
    */
@@ -65,14 +75,22 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
 
   const { mutate: updateServerSettings, isPending: isSaving } =
     api.users.updateSettings.useMutation({
+      onSettled: async () => {
+        await apiUtils.users.settings.refetch();
+      },
+    });
+
+  // Separate mutation for saving defaults (clears local overrides on success)
+  const { mutate: saveServerSettings, isPending: isSavingDefaults } =
+    api.users.updateSettings.useMutation({
       onSuccess: () => {
         // Clear local and session overrides after successful server save
         setLocalOverrides({});
         saveLocalOverrides({});
         onClearSessionOverrides?.();
       },
-      onSettled: () => {
-        apiUtils.users.settings.invalidate();
+      onSettled: async () => {
+        await apiUtils.users.settings.refetch();
       },
     });
 
@@ -151,13 +169,13 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
       };
       // Set pending state to prevent flicker while server syncs
       setPendingServerSave(toSave);
-      updateServerSettings({
+      saveServerSettings({
         readerFontSize: toSave.fontSize,
         readerLineHeight: toSave.lineHeight,
         readerFontFamily: toSave.fontFamily,
       });
     },
-    [settings, updateServerSettings],
+    [settings, saveServerSettings],
   );
 
   // Clear a specific server default (set to null)
@@ -202,7 +220,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
     // Status flags
     hasLocalOverrides,
     hasServerDefaults,
-    isSaving,
+    isSaving: isSaving || isSavingDefaults,
 
     // Internal state setters (for web's context-based approach)
     setLocalOverrides,
@@ -215,4 +233,46 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
     clearDefault,
     clearAllDefaults,
   };
+}
+
+// Context for sharing reader settings state across components
+export type ReaderSettingsContextValue = ReturnType<typeof useReaderSettings>;
+
+const ReaderSettingsContext = createContext<ReaderSettingsContextValue | null>(
+  null,
+);
+
+export interface ReaderSettingsProviderProps extends UseReaderSettingsOptions {
+  children: ReactNode;
+}
+
+/**
+ * Provider that creates a single instance of reader settings state
+ * and shares it across all child components.
+ */
+export function ReaderSettingsProvider({
+  children,
+  ...options
+}: ReaderSettingsProviderProps) {
+  const value = useReaderSettings(options);
+
+  return (
+    <ReaderSettingsContext.Provider value={value}>
+      {children}
+    </ReaderSettingsContext.Provider>
+  );
+}
+
+/**
+ * Hook to access shared reader settings from context.
+ * Must be used within a ReaderSettingsProvider.
+ */
+export function useReaderSettingsContext() {
+  const context = useContext(ReaderSettingsContext);
+  if (!context) {
+    throw new Error(
+      "useReaderSettingsContext must be used within a ReaderSettingsProvider",
+    );
+  }
+  return context;
 }

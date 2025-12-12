@@ -8,7 +8,10 @@ import {
   useState,
 } from "react";
 
-import { useReaderSettings as useReaderSettingsBase } from "@karakeep/shared-react/hooks/reader-settings";
+import {
+  ReaderSettingsProvider as BaseReaderSettingsProvider,
+  useReaderSettingsContext,
+} from "@karakeep/shared-react/hooks/reader-settings";
 import {
   ReaderSettings,
   ReaderSettingsPartial,
@@ -31,18 +34,16 @@ function saveLocalOverridesToStorage(overrides: ReaderSettingsPartial): void {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(overrides));
 }
 
-// Session overrides are temporary changes that haven't been saved yet
-// They are used for live preview in the reader view
-interface ReaderSettingsContextValue {
+// Session overrides context - web-specific feature for live preview
+interface SessionOverridesContextValue {
   sessionOverrides: ReaderSettingsPartial;
   setSessionOverrides: React.Dispatch<
     React.SetStateAction<ReaderSettingsPartial>
   >;
 }
 
-const ReaderSettingsContext = createContext<ReaderSettingsContextValue | null>(
-  null,
-);
+const SessionOverridesContext =
+  createContext<SessionOverridesContextValue | null>(null);
 
 export function ReaderSettingsProvider({
   children,
@@ -52,7 +53,7 @@ export function ReaderSettingsProvider({
   const [sessionOverrides, setSessionOverrides] =
     useState<ReaderSettingsPartial>({});
 
-  const value = useMemo(
+  const sessionValue = useMemo(
     () => ({
       sessionOverrides,
       setSessionOverrides,
@@ -60,36 +61,37 @@ export function ReaderSettingsProvider({
     [sessionOverrides],
   );
 
-  return (
-    <ReaderSettingsContext.Provider value={value}>
-      {children}
-    </ReaderSettingsContext.Provider>
-  );
-}
-
-export function useReaderSettings() {
-  const context = useContext(ReaderSettingsContext);
-  if (!context) {
-    throw new Error(
-      "useReaderSettings must be used within a ReaderSettingsProvider",
-    );
-  }
-
-  const { sessionOverrides, setSessionOverrides } = context;
-
   // Memoize callbacks to prevent unnecessary re-renders
   const getLocalOverrides = useCallback(getLocalOverridesFromStorage, []);
   const saveLocalOverrides = useCallback(saveLocalOverridesToStorage, []);
   const onClearSessionOverrides = useCallback(() => {
     setSessionOverrides({});
-  }, [setSessionOverrides]);
+  }, []);
 
-  const baseSettings = useReaderSettingsBase({
-    getLocalOverrides,
-    saveLocalOverrides,
-    sessionOverrides,
-    onClearSessionOverrides,
-  });
+  return (
+    <BaseReaderSettingsProvider
+      getLocalOverrides={getLocalOverrides}
+      saveLocalOverrides={saveLocalOverrides}
+      sessionOverrides={sessionOverrides}
+      onClearSessionOverrides={onClearSessionOverrides}
+    >
+      <SessionOverridesContext.Provider value={sessionValue}>
+        {children}
+      </SessionOverridesContext.Provider>
+    </BaseReaderSettingsProvider>
+  );
+}
+
+export function useReaderSettings() {
+  const sessionContext = useContext(SessionOverridesContext);
+  if (!sessionContext) {
+    throw new Error(
+      "useReaderSettings must be used within a ReaderSettingsProvider",
+    );
+  }
+
+  const { sessionOverrides, setSessionOverrides } = sessionContext;
+  const baseSettings = useReaderSettingsContext();
 
   // Update session override (live preview, not persisted)
   const updateSession = useCallback(
