@@ -65,7 +65,10 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
     if (pendingServerSave && serverSettings) {
       const serverMatches =
         serverSettings.readerFontSize === pendingServerSave.fontSize &&
-        serverSettings.readerLineHeight === pendingServerSave.lineHeight &&
+        // Tolerate minor float normalization differences for lineHeight
+        Math.abs(
+          (serverSettings.readerLineHeight ?? 0) - pendingServerSave.lineHeight,
+        ) < 1e-6 &&
         serverSettings.readerFontFamily === pendingServerSave.fontFamily;
       if (serverMatches) {
         setPendingServerSave(null);
@@ -88,6 +91,10 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
         setLocalOverrides({});
         saveLocalOverrides({});
         onClearSessionOverrides?.();
+      },
+      onError: () => {
+        // Clear pending state so we don't show values that failed to persist
+        setPendingServerSave(null);
       },
       onSettled: async () => {
         await apiUtils.users.settings.refetch();
