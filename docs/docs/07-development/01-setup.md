@@ -28,16 +28,16 @@ Press Ctrl+C to stop all services and clean up Docker containers.
 
 ## Manual Setup
 
-Karakeep uses `node` version 22. To install it, you can use `nvm` [^1]
+Karakeep uses `node` version 24. To install it, you can use `nvm` [^1]
 
 ```
-$ nvm install  22
+$ nvm install  24
 ```
 
 Verify node version using this command:
 ```
 $ node --version
-v22.14.0
+v24.14.0
 ```
 
 Karakeep also makes use of `corepack`[^2]. If you have `node` installed, then `corepack` should already be
@@ -45,7 +45,7 @@ installed on your machine, and you don't need to do anything. To verify the `cor
 
 ```
 $ command -v corepack
-/home/<user>/.nvm/versions/node/v22.14.0/bin/corepack
+/home/<user>/.nvm/versions/node/v24.14.0/bin/corepack
 ```
 
 To enable `corepack` run the following command:
