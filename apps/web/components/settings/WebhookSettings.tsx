@@ -482,7 +482,7 @@ export default function WebhookSettings() {
   const { t } = useTranslation();
   const { data: webhooks, isLoading } = api.webhooks.list.useQuery();
   return (
-    <div className="rounded-md border bg-background p-4">
+    <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-lg font-medium">

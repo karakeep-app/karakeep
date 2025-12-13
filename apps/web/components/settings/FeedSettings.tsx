@@ -459,41 +459,33 @@ export default function FeedSettings() {
   const { t } = useTranslation();
   const { data: feeds, isLoading } = api.feeds.list.useQuery();
   return (
-    <>
-      <div className="rounded-md border bg-background p-4">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-lg font-medium">
-              {t("settings.feeds.rss_subscriptions")}
-            </span>
-            <FeedsEditorDialog />
-          </div>
-          {isLoading && <FullPageSpinner />}
-          {feeds && feeds.feeds.length == 0 && (
-            <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-              You don&apos;t have any RSS subscriptions yet.
-            </p>
-          )}
-          {feeds && feeds.feeds.length > 0 && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("common.name")}</TableHead>
-                  <TableHead>{t("common.url")}</TableHead>
-                  <TableHead>Last Fetch</TableHead>
-                  <TableHead>Last Status</TableHead>
-                  <TableHead>{t("common.actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feeds.feeds.map((feed) => (
-                  <FeedRow key={feed.id} feed={feed} />
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+    <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
+      <div className="flex flex-col gap-2">
+        {isLoading && <FullPageSpinner />}
+        {feeds && feeds.feeds.length == 0 && (
+          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+            You don&apos;t have any RSS subscriptions yet.
+          </p>
+        )}
+        {feeds && feeds.feeds.length > 0 && (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("common.name")}</TableHead>
+                <TableHead>{t("common.url")}</TableHead>
+                <TableHead>Last Fetch</TableHead>
+                <TableHead>Last Status</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {feeds.feeds.map((feed) => (
+                <FeedRow key={feed.id} feed={feed} />
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
-    </>
+    </div>
   );
 }

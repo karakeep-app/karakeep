@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import {
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { Link as LinkIcon, RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -58,13 +59,12 @@ export default function BrokenLinksPage() {
     });
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex items-center justify-between">
-        <div className="mb-2 text-lg font-medium">
-          {t("settings.broken_links.broken_links")}
-        </div>
-      </div>
-      <div className="mt-2">
+    <div className="space-y-4">
+      <PageHeader
+        icon={<LinkIcon className="size-5" />}
+        title={t("settings.broken_links.broken_links")}
+      />
+      <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
         {isPending && <FullPageSpinner />}
         {!isPending && data && data.bookmarks.length == 0 && (
           <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">

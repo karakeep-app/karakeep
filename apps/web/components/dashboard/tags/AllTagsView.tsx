@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -256,27 +257,30 @@ export default function AllTagsView() {
         />
       )}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3">
-          <span className="text-2xl">{t("tags.all_tags")}</span>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <CreateTagModal />
-            <BulkTagAction />
-            <Toggle
-              variant="outline"
-              className="bg-background"
-              aria-label={t("tags.drag_and_drop_merging")}
-              pressed={draggingEnabled}
-              onPressedChange={toggleDraggingEnabled}
-              disabled={isBulkEditEnabled}
-            >
-              <Combine className="mr-2 size-4" />
-              {t("tags.drag_and_drop_merging")}
-              <InfoTooltip size={15} className="my-auto ml-2" variant="explain">
-                <p>{t("tags.drag_and_drop_merging_info")}</p>
-              </InfoTooltip>
-            </Toggle>
-          </div>
-        </div>
+        <PageHeader
+          icon={<Tag className="size-5" />}
+          title={t("tags.all_tags")}
+          actions={
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <CreateTagModal />
+              <BulkTagAction />
+              <Toggle
+                variant="outline"
+                className="bg-background"
+                aria-label={t("tags.drag_and_drop_merging")}
+                pressed={draggingEnabled}
+                onPressedChange={toggleDraggingEnabled}
+                disabled={isBulkEditEnabled}
+              >
+                <Combine className="mr-2 size-4" />
+                {t("tags.drag_and_drop_merging")}
+                <InfoTooltip size={15} className="my-auto ml-2" variant="explain">
+                  <p>{t("tags.drag_and_drop_merging_info")}</p>
+                </InfoTooltip>
+              </Toggle>
+            </div>
+          }
+        />
         <div className="flex flex-col gap-3">
           <div className="flex w-full items-center gap-2">
             <div className="flex-1">

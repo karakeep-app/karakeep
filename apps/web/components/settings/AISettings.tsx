@@ -349,7 +349,7 @@ export default function AISettings() {
   const { t } = useTranslation();
   return (
     <>
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
         <div className="mb-2 flex flex-col gap-3">
           <div className="w-full text-2xl font-medium sm:w-1/3">
             {t("settings.ai.ai_settings")}
@@ -357,7 +357,7 @@ export default function AISettings() {
           <TaggingRules />
         </div>
       </div>
-      <div className="mt-4 rounded-md border bg-background p-4">
+      <div className="mt-4 rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
         <PromptDemo />
       </div>
     </>

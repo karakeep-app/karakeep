@@ -3,7 +3,9 @@ import { ChangePassword } from "@/components/settings/ChangePassword";
 import { DeleteAccount } from "@/components/settings/DeleteAccount";
 import UserDetails from "@/components/settings/UserDetails";
 import UserOptions from "@/components/settings/UserOptions";
+import { PageHeader } from "@/components/layout/page-header";
 import { useTranslation } from "@/lib/i18n/server";
+import { User } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   // oxlint-disable-next-line rules-of-hooks
@@ -14,12 +16,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function InfoPage() {
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
   return (
-    <div className="flex flex-col gap-4">
-      <UserDetails />
-      <ChangePassword />
-      <UserOptions />
-      <DeleteAccount />
+    <div className="space-y-4">
+      <PageHeader icon={<User className="size-5" />} title={t("settings.info.user_info")} />
+      <div className="flex flex-col gap-4">
+        <UserDetails />
+        <ChangePassword />
+        <UserOptions />
+        <DeleteAccount />
+      </div>
     </div>
   );
 }

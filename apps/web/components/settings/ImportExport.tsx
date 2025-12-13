@@ -285,7 +285,7 @@ export default function ImportExport() {
   const { t } = useTranslation();
   return (
     <div className="space-y-3">
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
         <div className="flex w-full flex-col gap-6">
           <div>
             <p className="mb-4 text-lg font-medium">
@@ -296,7 +296,7 @@ export default function ImportExport() {
         </div>
       </div>
 
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
         <ImportSessionsSection />
       </div>
     </div>

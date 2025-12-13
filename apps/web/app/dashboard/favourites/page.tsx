@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
+import { PageHeader } from "@/components/layout/page-header";
 import { useTranslation } from "@/lib/i18n/server";
+import { Star } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   // oxlint-disable-next-line rules-of-hooks
@@ -11,12 +13,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FavouritesBookmarkPage() {
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
   return (
     <Bookmarks
       header={
-        <div className="flex items-center justify-between">
-          <p className="text-2xl">⭐️ Favourites</p>
-        </div>
+        <PageHeader
+          icon={<Star className="size-5" />}
+          title={t("lists.favourites")}
+        />
       }
       query={{ favourited: true }}
       showDivider={true}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/page-header";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { formatBytes } from "@/lib/utils";
-import { ExternalLink, Trash2 } from "lucide-react";
+import { ExternalLink, Image as ImageIcon, Trash2 } from "lucide-react";
 
 import { useDetachBookmarkAsset } from "@karakeep/shared-react/hooks/assets";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
@@ -65,11 +66,12 @@ export default function AssetsSettingsPage() {
   }
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="mb-2 text-lg font-medium">
-          {t("settings.manage_assets.manage_assets")}
-        </div>
+    <div className="space-y-4">
+      <PageHeader
+        icon={<ImageIcon className="size-5" />}
+        title={t("settings.manage_assets.manage_assets")}
+      />
+      <div className="flex flex-col gap-2 rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
         {assets.length === 0 && (
           <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
             {t("settings.manage_assets.no_assets")}
