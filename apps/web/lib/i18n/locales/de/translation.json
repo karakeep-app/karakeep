@@ -142,6 +142,7 @@
       "import_export_bookmarks": "Lesezeichen importieren / exportieren",
       "import_bookmarks_from_html_file": "Lesezeichen aus HTML-Datei importieren",
       "import_bookmarks_from_pocket_export": "Lesezeichen aus Pocket-Export importieren",
+      "import_bookmarks_from_matter_export": "Lesezeichen aus Matter-Export importieren",
       "import_bookmarks_from_omnivore_export": "Lesezeichen aus Omnivore-Export importieren",
       "import_bookmarks_from_karakeep_export": "Lesezeichen aus Karakeep-Export importieren",
       "export_links_and_notes": "Links und Notizen exportieren",

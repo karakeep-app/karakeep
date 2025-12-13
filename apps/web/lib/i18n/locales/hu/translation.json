@@ -125,6 +125,7 @@
       "import_export_bookmarks": "Könyvjelző importálása / exportálása",
       "import_bookmarks_from_html_file": "Könyvjelző importálása HTML fájlból",
       "import_bookmarks_from_pocket_export": "Könyvjelző importálása Pocket-ből",
+      "import_bookmarks_from_matter_export": "Könyvjelző importálása Matter-ből",
       "import_bookmarks_from_linkwarden_export": "Könyvjelző importálása Linkwarden-ből",
       "export_links_and_notes": "Jegyzetek és hivatkozások exportálása",
       "imported_bookmarks": "Importált könyvjelzők",

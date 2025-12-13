@@ -163,6 +163,7 @@
       "import_export_bookmarks": "استيراد / تصدير الإشارات المرجعية",
       "import_bookmarks_from_html_file": "استيراد إشارات مرجعية من ملف HTML",
       "import_bookmarks_from_pocket_export": "استيراد إشارات مرجعية من تصدير Pocket",
+      "import_bookmarks_from_matter_export": "استيراد إشارات مرجعية من تصدير Matter",
       "import_bookmarks_from_omnivore_export": "استيراد إشارات مرجعية من تصدير Omnivore",
       "import_bookmarks_from_linkwarden_export": "استيراد إشارات مرجعية من تصدير Linkwarden",
       "import_bookmarks_from_karakeep_export": "استيراد إشارات مرجعية من تصدير Karakeep",

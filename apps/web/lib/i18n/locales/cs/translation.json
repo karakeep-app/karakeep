@@ -223,6 +223,7 @@
       "import_export_bookmarks": "Import / Export záložek",
       "import_bookmarks_from_html_file": "Importovat záložky z HTML souboru",
       "import_bookmarks_from_pocket_export": "Importovat záložky z exportu Pocket",
+      "import_bookmarks_from_matter_export": "Importovat záložky z exportu Matter",
       "import_bookmarks_from_omnivore_export": "Importovat záložky z Omnivore exportu",
       "import_bookmarks_from_linkwarden_export": "Importovat záložky z exportu Linkwarden",
       "import_bookmarks_from_karakeep_export": "Importovat záložky z exportu Karakeep",

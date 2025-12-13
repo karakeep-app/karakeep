@@ -142,6 +142,7 @@
       "import_export_bookmarks": "Importer / Exporter des favoris",
       "import_bookmarks_from_html_file": "Importer des favoris depuis un fichier HTML",
       "import_bookmarks_from_pocket_export": "Importer des favoris depuis une exportation Pocket",
+      "import_bookmarks_from_matter_export": "Importer des favoris depuis une exportation Matter",
       "import_bookmarks_from_omnivore_export": "Importer des favoris depuis une exportation Omnivore",
       "import_bookmarks_from_karakeep_export": "Importer des favoris depuis une exportation Karakeep",
       "export_links_and_notes": "Exporter les liens et les notes",
