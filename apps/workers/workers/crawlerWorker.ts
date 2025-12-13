@@ -1128,10 +1128,19 @@ async function crawlAndParseUrl(
   ]);
   abortSignal.throwIfAborted();
 
-  let readableContent = await Promise.race([
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
+  let readableContent: { content: string } | null = meta.readableContentHtml
+    ? { content: meta.readableContentHtml }
+    : null;
+  if (!readableContent) {
+    readableContent = await Promise.race([
+      extractReadableContent(
+        meta.contentHtml ?? htmlContent,
+        browserUrl,
+        jobId,
+      ),
+      abortPromise(abortSignal),
+    ]);
+  }
   abortSignal.throwIfAborted();
 
   const screenshotAssetInfo = await Promise.race([
