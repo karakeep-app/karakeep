@@ -50,7 +50,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.1);
 
   /* Navbar */
-  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-navbar-background-color: rgba(255, 255, 255, 1);
   --ifm-navbar-shadow: none;
   --ifm-navbar-height: 4rem;
   --ifm-navbar-padding-horizontal: 1.5rem;
@@ -106,7 +106,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(129, 140, 248, 0.15);
 
   /* Navbar */
-  --ifm-navbar-background-color: rgba(10, 10, 10, 0.8);
+  --ifm-navbar-background-color: rgba(10, 10, 10, 1);
 
   /* Sidebar */
   --ifm-menu-color: #a1a1aa;
@@ -181,8 +181,6 @@ a:hover {
    Navbar
    ============================================ */
 .navbar {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--docs-color-border);
   transition: background-color var(--transition-normal);
 }
