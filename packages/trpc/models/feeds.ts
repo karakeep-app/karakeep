@@ -1,8 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { rssFeedsTable } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
 import {
   zFeedSchema,
   zNewFeedSchema,
@@ -44,6 +45,20 @@ export class Feed {
     ctx: AuthedContext,
     input: z.infer<typeof zNewFeedSchema>,
   ): Promise<Feed> {
+    // Check if user has reached the maximum number of feeds
+    const [feedCount] = await ctx.db
+      .select({ count: count() })
+      .from(rssFeedsTable)
+      .where(eq(rssFeedsTable.userId, ctx.user.id));
+
+    const maxFeeds = serverConfig.feeds.maxRssFeedsPerUser;
+    if (feedCount.count >= maxFeeds) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Maximum number of RSS feeds (${maxFeeds}) reached`,
+      });
+    }
+
     const [result] = await ctx.db
       .insert(rssFeedsTable)
       .values({

@@ -29,6 +29,8 @@ The app is mainly configured by environment variables. All the used environment 
 | ASSET_PREPROCESSING_NUM_WORKERS        | No                                    | 1               | Number of concurrent workers for asset preprocessing tasks (image processing, OCR, etc.). Increase this if you have many images or documents that need processing.                                                                                                                                                      |
 | ASSET_PREPROCESSING_JOB_TIMEOUT_SEC    | No                                    | 60              | How long to wait for an asset preprocessing job to finish before timing out. Increase this if you have large images or PDFs that take longer to process.                                                                                                                                                               |
 | RULE_ENGINE_NUM_WORKERS                | No                                    | 1               | Number of concurrent workers for rule engine processing. Increase this if you have complex automation rules that need to be processed quickly.                                                                                                                                                                          |
+| MAX_RSS_FEEDS_PER_USER                 | No                                    | 1000            | The maximum number of RSS feeds a user can create.                                                                                                                                                                                                                                                                      |
+| MAX_WEBHOOKS_PER_USER                  | No                                    | 100             | The maximum number of webhooks a user can create.                                                                                                                                                                                                                                                                       |
 
 ## Asset Storage
 
@@ -184,8 +186,8 @@ Karakeep uses [tesseract.js](https://github.com/naptha/tesseract.js) to extract 
 
 You can use webhooks to trigger actions when bookmarks are created, changed or crawled.
 
-| Name                | Required | Default | Description                                       |
-| ------------------- | -------- | ------- | ------------------------------------------------- |
+| Name                | Required | Default | Description                                        |
+| ------------------- | -------- | ------- | -------------------------------------------------- |
 | WEBHOOK_TIMEOUT_SEC | No       | 5       | The timeout for the webhook request in seconds.   |
 | WEBHOOK_RETRY_TIMES | No       | 3       | The number of times to retry the webhook request. |
 
