@@ -926,7 +926,7 @@ async function getContentType(
       `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
     );
     const response = await fetchWithProxy(url, {
-      method: "HEAD",
+      method: "GET",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
     const rawContentType = response.headers.get("content-type");
