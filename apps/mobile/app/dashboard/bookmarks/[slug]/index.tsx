@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { KeyboardAvoidingView } from "react-native";
+import { KeyboardAvoidingView, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
 import BookmarkLinkTypeSelector, {
   BookmarkLinkType,
@@ -13,12 +13,14 @@ import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
+import { Settings } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { slug } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -87,11 +89,22 @@ export default function BookmarkView() {
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
-              <BookmarkLinkTypeSelector
-                type={bookmarkLinkType}
-                onChange={(type) => setBookmarkLinkType(type)}
-                bookmark={bookmark}
-              />
+              <View className="flex-row items-center gap-3">
+                {bookmarkLinkType === "reader" && (
+                  <Pressable
+                    onPress={() =>
+                      router.push("/dashboard/settings/reader-settings")
+                    }
+                  >
+                    <Settings size={20} color="gray" />
+                  </Pressable>
+                )}
+                <BookmarkLinkTypeSelector
+                  type={bookmarkLinkType}
+                  onChange={(type) => setBookmarkLinkType(type)}
+                  bookmark={bookmark}
+                />
+              </View>
             ) : undefined,
         }}
       />

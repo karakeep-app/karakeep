@@ -144,6 +144,14 @@ export default function Dashboard() {
           headerBackTitle: "Back",
         }}
       />
+      <Stack.Screen
+        name="settings/reader-settings"
+        options={{
+          title: "Reader Settings",
+          headerTitle: "Reader Settings",
+          headerBackTitle: "Back",
+        }}
+      />
     </StyledStack>
   );
 }

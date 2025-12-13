@@ -43,7 +43,7 @@ export default function BookmarkLinkTypeSelector({
 }: BookmarkLinkTypeSelectorProps) {
   const availableTypes = getAvailableViewTypes(bookmark);
 
-  const allActions = [
+  const viewActions = [
     {
       id: "reader" as const,
       title: "Reader View",
@@ -66,7 +66,7 @@ export default function BookmarkLinkTypeSelector({
     },
   ];
 
-  const availableActions = allActions.filter((action) =>
+  const availableViewActions = viewActions.filter((action) =>
     availableTypes.includes(action.id),
   );
 
@@ -76,7 +76,7 @@ export default function BookmarkLinkTypeSelector({
         Haptics.selectionAsync();
         onChange(nativeEvent.event as BookmarkLinkType);
       }}
-      actions={availableActions}
+      actions={availableViewActions}
       shouldOpenOnLongPress={false}
     >
       <ChevronDown onPress={() => Haptics.selectionAsync()} color="gray" />

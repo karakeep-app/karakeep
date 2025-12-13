@@ -7,6 +7,7 @@ import {
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   unique,
@@ -69,6 +70,13 @@ export const users = sqliteTable("user", {
     .notNull()
     .default("weekly"),
   backupsRetentionDays: integer("backupsRetentionDays").notNull().default(30),
+
+  // Reader view settings (nullable = opt-in, null means use client default)
+  readerFontSize: integer("readerFontSize"),
+  readerLineHeight: real("readerLineHeight"),
+  readerFontFamily: text("readerFontFamily", {
+    enum: ["serif", "sans", "mono"],
+  }),
 });
 
 export const accounts = sqliteTable(

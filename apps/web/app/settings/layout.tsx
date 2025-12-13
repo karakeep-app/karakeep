@@ -1,6 +1,7 @@
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
 import Sidebar from "@/components/shared/sidebar/Sidebar";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
+import { ReaderSettingsProvider } from "@/lib/readerSettings";
 import { UserSettingsContextProvider } from "@/lib/userSettings";
 import { api } from "@/server/api/client";
 import { TFunction } from "i18next";
@@ -114,12 +115,14 @@ export default async function SettingsLayout({
   const userSettings = await api.users.settings();
   return (
     <UserSettingsContextProvider userSettings={userSettings}>
-      <SidebarLayout
-        sidebar={<Sidebar items={settingsSidebarItems} />}
-        mobileSidebar={<MobileSidebar items={settingsSidebarItems} />}
-      >
-        {children}
-      </SidebarLayout>
+      <ReaderSettingsProvider>
+        <SidebarLayout
+          sidebar={<Sidebar items={settingsSidebarItems} />}
+          mobileSidebar={<MobileSidebar items={settingsSidebarItems} />}
+        >
+          {children}
+        </SidebarLayout>
+      </ReaderSettingsProvider>
     </UserSettingsContextProvider>
   );
 }
