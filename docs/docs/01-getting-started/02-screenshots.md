@@ -24,11 +24,7 @@
 
 ![Settings](/img/screenshots/settings.png)
 
-## Admin Panel
 
-![Ammin](/img/screenshots/admin.png)
-
-
-## iOS Sharing
+## Sharing
 
 <img src="/img/screenshots/share-sheet.png" width="400px"  />
