@@ -40,7 +40,7 @@ All the URLs in the bookmarks file will be added automatically, you will not be 
 Importing bookmarks using the CLI requires some technical knowledge and might not be very straightforward for non-technical users. Don't hesitate to ask questions in github discussions or discord though.
 :::
 
-If you can get your bookmarks in a text file with one link per line, you can use the following command to import them using the [karakeep cli](https://docs.karakeep.app/command-line):
+If you can get your bookmarks in a text file with one link per line, you can use the following command to import them using the [karakeep cli](../integrations/command-line):
 
 ```
 while IFS= read -r url; do

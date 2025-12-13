@@ -19,7 +19,7 @@ You can also change the `HOARDER_VERSION` environment variable but if you do so 
 
 ## Migrating a Baremetal Installation
 
-If you previously used the [Debian/Ubuntu install script](https://docs.karakeep.app/Installation/debuntu) to install Hoarder, there is an option to migrate your installation to Karakeep.
+If you previously used the [Debian/Ubuntu install script](../installation/debuntu) to install Hoarder, there is an option to migrate your installation to Karakeep.
 
 ```bash
 bash karakeep-linux.sh migrate

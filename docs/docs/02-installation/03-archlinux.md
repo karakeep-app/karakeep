@@ -27,7 +27,7 @@
 
 3. Set up
 
-    Environment variables can be set in `/etc/karakeep/karakeep.env` according to [configuration page](/configuration). **The environment variables that are not specified in `/etc/karakeep/karakeep.env` need to be added by yourself.**
+    Environment variables can be set in `/etc/karakeep/karakeep.env` according to [configuration page](../configuration/environment-variables). **The environment variables that are not specified in `/etc/karakeep/karakeep.env` need to be added by yourself.**
 
 4. Enable service
 
@@ -82,7 +82,7 @@ sudo chown -R karakeep:karakeep /var/lib/karakeep
 ```
 
 **6. Set Karakeep**  
-Edit `/etc/karakeep/karakeep.env` according to [configuration page](/configuration). **The environment variables that are not specified in `/etc/karakeep/karakeep.env` need to be added by yourself.**
+Edit `/etc/karakeep/karakeep.env` according to [configuration page](../configuration/environment-variables). **The environment variables that are not specified in `/etc/karakeep/karakeep.env` need to be added by yourself.**
 
 Or you can copy old hoarder env file to karakeep:
 ```shell

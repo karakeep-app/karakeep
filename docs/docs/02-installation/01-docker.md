@@ -44,7 +44,7 @@ Persistent storage and the wiring between the different services is already take
 
 Keep in mind that every time you change the `.env` file, you'll need to re-run `docker compose up`.
 
-If you want more config params, check the config documentation [here](/configuration).
+If you want more config params, check the config documentation [here](../configuration/environment-variables).
 
 ### 4. Setup OpenAI
 
@@ -57,7 +57,7 @@ To enable automatic tagging, you'll need to configure OpenAI. This is optional t
 OPENAI_API_KEY=<key>
 ```
 
-Learn more about the costs of using openai [here](/openai).
+Learn more about the costs of using openai [here](../integrations/openai).
 
 <details>
     <summary>If you want to use Ollama (https://ollama.com/) instead for local inference.</summary>
@@ -85,11 +85,11 @@ Then visit `http://localhost:3000` and you should be greeted with the Sign In pa
 
 ### [Optional] 6. Enable optional features
 
-Check the [configuration docs](/configuration) for extra features to enable such as full page archival, full page screenshots, inference languages, etc.
+Check the [configuration docs](../configuration/environment-variables) for extra features to enable such as full page archival, full page screenshots, inference languages, etc.
 
 ### [Optional] 7. Setup quick sharing extensions
 
-Go to the [quick sharing page](/quick-sharing) to install the mobile apps and the browser extensions. Those will help you hoard things faster!
+Go to the [quick sharing page](../using-karakeep/quick-sharing) to install the mobile apps and the browser extensions. Those will help you hoard things faster!
 
 ## Updating
 
@@ -98,4 +98,4 @@ Updating Karakeep will depend on what you used for the `KARAKEEP_VERSION` env va
 - If you pinned the app to a specific version, bump the version and re-run `docker compose up -d`. This should pull the new version for you.
 - If you used `KARAKEEP_VERSION=release`, you'll need to force docker to pull the latest version by running `docker compose up --pull always -d`.
 
-Note that if you want to upgrade/migrate `Meilisearch` versions, refer to the [troubleshooting](/troubleshooting) page.
+Note that if you want to upgrade/migrate `Meilisearch` versions, refer to the [troubleshooting](../administration/troubleshooting) page.
