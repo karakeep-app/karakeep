@@ -1,3 +1,8 @@
+---
+sidebar_position: 9
+slug: search-query-language
+---
+
 # Search Query Language
 
 Karakeep provides a search query language to filter and find bookmarks. Here are all the supported qualifiers and how to use them:

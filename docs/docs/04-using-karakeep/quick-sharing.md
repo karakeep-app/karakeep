@@ -1,4 +1,9 @@
-# Quick Sharing Extensions
+---
+sidebar_position: 7
+slug: quick-sharing
+---
+
+# Quick capture and sharing
 
 The whole point of Karakeep is making it easy to hoard the content. That's why there are a couple of 
 

@@ -1,4 +1,9 @@
-# Importing Bookmarks
+---
+sidebar_position: 8
+slug: import
+---
+
+# Import your library
 
 
 Karakeep supports importing bookmarks using the Netscape HTML Format, Pocket's new CSV format & Omnivore's JSONs. Titles, tags and addition date will be preserved during the import. An automatically created list will contain all the imported bookmarks.

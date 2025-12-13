@@ -1,4 +1,4 @@
-# Docker Compose [Recommended]
+# Docker
 
 ### Requirements
 
