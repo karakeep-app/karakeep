@@ -78,7 +78,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              "skipped"
             ]
           },
           "summarizationStatus": {
@@ -87,7 +88,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              "skipped"
             ]
           },
           "note": {
@@ -1191,7 +1193,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        "skipped"
                       ]
                     },
                     "summarizationStatus": {
@@ -1200,7 +1203,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        "skipped"
                       ]
                     },
                     "note": {
@@ -1319,7 +1323,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        "skipped"
                       ]
                     },
                     "summarizationStatus": {
@@ -1328,7 +1333,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        "skipped"
                       ]
                     },
                     "note": {
