@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
-    "@types/node": "^22",
+    "@types/node": "^24",
     "oxlint": "^1.29.0",
     "prettier": "^3.4.2",
     "sherif": "^1.6.1",

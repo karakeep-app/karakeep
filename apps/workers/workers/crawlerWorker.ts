@@ -82,6 +82,7 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
@@ -125,6 +126,7 @@ const metascraperParser = metascraper([
     dateModified: true,
     datePublished: true,
   }),
+  metascraperAmazonImproved(), // Fix image extraction bug - must come before metascraperAmazon()
   metascraperAmazon(),
   metascraperYoutube({
     gotOpts: {
@@ -926,7 +928,7 @@ async function getContentType(
       `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
     );
     const response = await fetchWithProxy(url, {
-      method: "HEAD",
+      method: "GET",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
     const rawContentType = response.headers.get("content-type");
@@ -1128,10 +1130,19 @@ async function crawlAndParseUrl(
   ]);
   abortSignal.throwIfAborted();
 
-  let readableContent = await Promise.race([
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
+  let readableContent: { content: string } | null = meta.readableContentHtml
+    ? { content: meta.readableContentHtml }
+    : null;
+  if (!readableContent) {
+    readableContent = await Promise.race([
+      extractReadableContent(
+        meta.contentHtml ?? htmlContent,
+        browserUrl,
+        jobId,
+      ),
+      abortPromise(abortSignal),
+    ]);
+  }
   abortSignal.throwIfAborted();
 
   const screenshotAssetInfo = await Promise.race([

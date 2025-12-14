@@ -158,6 +158,9 @@ export const bookmarksAppRouter = router({
               summary: input.summary,
               createdAt: input.createdAt,
               source: input.source,
+              // Only links currently support summarization. Let's set the status to null for other types for now.
+              summarizationStatus:
+                input.type === BookmarkTypes.LINK ? "pending" : null,
             })
             .returning()
         )[0];

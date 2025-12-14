@@ -1,30 +1,790 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Modern Docusaurus theme
+ * Clean, minimal aesthetics with excellent dark mode support
  */
 
-/* You can override the default Infima variables here. */
+/* Import Inter font for modern typography */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ============================================
+   CSS Custom Properties (Light Mode)
+   ============================================ */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Primary brand colors - modern blue/indigo */
+  --ifm-color-primary: #6366f1;
+  --ifm-color-primary-dark: #4f46e5;
+  --ifm-color-primary-darker: #4338ca;
+  --ifm-color-primary-darkest: #3730a3;
+  --ifm-color-primary-light: #818cf8;
+  --ifm-color-primary-lighter: #a5b4fc;
+  --ifm-color-primary-lightest: #c7d2fe;
+
+  /* Background colors */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #fafafa;
+  --docs-color-border: #e5e7eb;
+
+  /* Text colors */
+  --ifm-font-color-base: #111827;
+  --ifm-font-color-secondary: #6b7280;
+  --ifm-heading-color: #111827;
+
+  /* Typography */
+  --ifm-font-family-base: "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono", "Fira Code", "SF Mono", Monaco,
+    Consolas, monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.7;
+  --ifm-heading-font-weight: 600;
+
+  /* Spacing */
+  --ifm-spacing-horizontal: 1.5rem;
+  --ifm-global-radius: 0.5rem;
+
+  /* Code */
+  --ifm-code-font-size: 0.875rem;
+  --ifm-code-padding-vertical: 0.1rem;
+  --ifm-code-padding-horizontal: 0.375rem;
+  --ifm-code-background: #f3f4f6;
+  --docusaurus-highlighted-code-line-bg: rgba(99, 102, 241, 0.1);
+
+  /* Navbar */
+  --ifm-navbar-background-color: rgba(255, 255, 255, 1);
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-height: 4rem;
+  --ifm-navbar-padding-horizontal: 1.5rem;
+  --ifm-navbar-padding-vertical: 0;
+
+  /* Sidebar */
+  --doc-sidebar-width: 280px;
+  --ifm-menu-color: #4b5563;
+  --ifm-menu-color-active: var(--ifm-color-primary);
+  --ifm-menu-color-background-active: rgba(99, 102, 241, 0.08);
+  --ifm-menu-color-background-hover: rgba(0, 0, 0, 0.03);
+
+  /* Table of contents */
+  --ifm-toc-border-color: var(--docs-color-border);
+
+  /* Cards and containers */
+  --ifm-card-background-color: #ffffff;
+  --ifm-alert-border-left-width: 0;
+  --ifm-alert-border-radius: 0.75rem;
+  --ifm-alert-padding-horizontal: 1.25rem;
+  --ifm-alert-padding-vertical: 1rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* ============================================
+   Dark Mode
+   ============================================ */
+[data-theme="dark"] {
+  /* Primary brand colors - brighter for dark mode */
+  --ifm-color-primary: #818cf8;
+  --ifm-color-primary-dark: #6366f1;
+  --ifm-color-primary-darker: #4f46e5;
+  --ifm-color-primary-darkest: #4338ca;
+  --ifm-color-primary-light: #a5b4fc;
+  --ifm-color-primary-lighter: #c7d2fe;
+  --ifm-color-primary-lightest: #e0e7ff;
+
+  /* Background colors - true dark */
+  --ifm-background-color: #0a0a0a;
+  --ifm-background-surface-color: #111111;
+  --docs-color-border: #262626;
+
+  /* Text colors */
+  --ifm-font-color-base: #e5e7eb;
+  --ifm-font-color-secondary: #9ca3af;
+  --ifm-heading-color: #f9fafb;
+
+  /* Code */
+  --ifm-code-background: #1f1f1f;
+  --docusaurus-highlighted-code-line-bg: rgba(129, 140, 248, 0.15);
+
+  /* Navbar */
+  --ifm-navbar-background-color: rgba(10, 10, 10, 1);
+
+  /* Sidebar */
+  --ifm-menu-color: #a1a1aa;
+  --ifm-menu-color-background-active: rgba(129, 140, 248, 0.12);
+  --ifm-menu-color-background-hover: rgba(255, 255, 255, 0.05);
+
+  /* Cards */
+  --ifm-card-background-color: #141414;
+}
+
+/* ============================================
+   Global Styles
+   ============================================ */
+html {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  letter-spacing: -0.011em;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--ifm-heading-font-weight);
+  letter-spacing: -0.025em;
+}
+
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin-top: 2.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--docs-color-border);
+}
+
+h3 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin-top: 2rem;
+}
+
+p {
+  margin-bottom: 1.25rem;
+}
+
+a {
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ============================================
+   Navbar
+   ============================================ */
+.navbar {
+  border-bottom: 1px solid var(--docs-color-border);
+  transition: background-color var(--transition-normal);
+}
+
+.navbar__brand {
+  margin-right: 1.5rem;
+}
+
+.navbar__title {
+  font-weight: 600;
+}
+
+.navbar__items {
+  gap: 0.25rem;
+}
+
+.navbar__item {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.375rem;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.navbar__item:hover {
+  background-color: var(--ifm-menu-color-background-hover);
+  text-decoration: none;
+}
+
+.navbar__link--active {
+  color: var(--ifm-color-primary);
+}
+
+/* Search button styling */
+.navbar__search-input {
+  background-color: var(--ifm-background-surface-color);
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem 0.5rem 2.25rem;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.navbar__search-input:focus {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  outline: none;
+}
+
+[data-theme="dark"] .navbar__search-input:focus {
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
+}
+
+/* ============================================
+   Sidebar
+   ============================================ */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--docs-color-border) !important;
+}
+
+.menu {
+  padding: 1rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.menu__list {
+  transition: height var(--transition-normal);
+}
+
+.menu__list-item {
+  margin-bottom: 0.125rem;
+}
+
+.menu__link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-weight: 450;
+  transition: all var(--transition-fast);
+}
+
+.menu__link:hover:not(.menu__link--active) {
+  background-color: var(--ifm-menu-color-background-hover);
+}
+
+.menu__link--active {
+  background-color: var(--ifm-menu-color-background-active);
+  color: var(--ifm-color-primary);
+  font-weight: 500;
+}
+
+.menu__link--sublist-caret::after {
+  background-size: 1.25rem 1.25rem;
+  opacity: 0.5;
+}
+
+.theme-doc-sidebar-item-category-level-1 > .menu__list-item-collapsible {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-font-color-secondary);
+}
+
+.theme-doc-sidebar-item-category-level-1
+  > .menu__list-item-collapsible
+  .menu__link {
+  font-weight: 600;
+}
+
+/* ============================================
+   Main Content Area
+   ============================================ */
+.main-wrapper {
+  background-color: var(--ifm-background-color);
+}
+
+[data-theme="dark"] .main-wrapper,
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .theme-doc-sidebar-container {
+  background-color: #0a0a0a;
+}
+
+[data-theme="dark"] .navbar {
+  background-color: rgba(10, 10, 10, 0.8);
+}
+
+article {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.theme-doc-markdown {
+  margin-top: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumbs__item {
+  font-size: 0.875rem;
+}
+
+.breadcrumbs__link {
+  color: var(--ifm-font-color-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all var(--transition-fast);
+}
+
+.breadcrumbs__link:hover {
+  background-color: var(--ifm-menu-color-background-hover);
+  text-decoration: none;
+}
+
+/* ============================================
+   Table of Contents
+   ============================================ */
+.table-of-contents {
+  font-size: 0.8125rem;
+  border-left: 1px solid var(--docs-color-border);
+  padding-left: 0.75rem;
+}
+
+.table-of-contents__link {
+  color: var(--ifm-font-color-secondary);
+  display: block;
+  padding: 0.375rem 0;
+  transition: color var(--transition-fast);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.table-of-contents__link--active {
+  font-weight: 500;
+}
+
+/* ============================================
+   Code Blocks
+   ============================================ */
+code {
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.375rem;
+  font-size: var(--ifm-code-font-size);
+  padding: var(--ifm-code-padding-vertical) var(--ifm-code-padding-horizontal);
+  background-color: var(--ifm-code-background);
+}
+
+pre {
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.75rem;
+  background-color: var(--ifm-code-background) !important;
+}
+
+pre code {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.prism-code {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Code block title */
+.theme-code-block-title {
+  background-color: var(--ifm-code-background);
+  border-bottom: 1px solid var(--docs-color-border);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.625rem 1rem;
+}
+
+/* Copy button */
+.theme-code-block button {
+  border-radius: 0.375rem;
+  transition: all var(--transition-fast);
+  opacity: 0;
+}
+
+.theme-code-block:hover button {
+  opacity: 1;
+}
+
+/* ============================================
+   Admonitions / Alerts
+   ============================================ */
+.alert {
+  border: 1px solid var(--docs-color-border);
+  box-shadow: none;
+}
+
+.alert--info {
+  --ifm-alert-background-color: rgba(99, 102, 241, 0.08);
+  --ifm-alert-border-color: rgba(99, 102, 241, 0.3);
+  border-color: var(--ifm-alert-border-color);
+}
+
+.alert--warning {
+  --ifm-alert-background-color: rgba(245, 158, 11, 0.08);
+  --ifm-alert-border-color: rgba(245, 158, 11, 0.3);
+  border-color: var(--ifm-alert-border-color);
+}
+
+.alert--danger {
+  --ifm-alert-background-color: rgba(239, 68, 68, 0.08);
+  --ifm-alert-border-color: rgba(239, 68, 68, 0.3);
+  border-color: var(--ifm-alert-border-color);
+}
+
+.alert--success {
+  --ifm-alert-background-color: rgba(34, 197, 94, 0.08);
+  --ifm-alert-border-color: rgba(34, 197, 94, 0.3);
+  border-color: var(--ifm-alert-border-color);
+}
+
+[data-theme="dark"] .alert--info {
+  --ifm-alert-background-color: rgba(129, 140, 248, 0.1);
+  --ifm-alert-border-color: rgba(129, 140, 248, 0.25);
+}
+
+[data-theme="dark"] .alert--warning {
+  --ifm-alert-background-color: rgba(251, 191, 36, 0.1);
+  --ifm-alert-border-color: rgba(251, 191, 36, 0.25);
+}
+
+[data-theme="dark"] .alert--danger {
+  --ifm-alert-background-color: rgba(248, 113, 113, 0.1);
+  --ifm-alert-border-color: rgba(248, 113, 113, 0.25);
+}
+
+[data-theme="dark"] .alert--success {
+  --ifm-alert-background-color: rgba(74, 222, 128, 0.1);
+  --ifm-alert-border-color: rgba(74, 222, 128, 0.25);
+}
+
+.admonition-heading h5 {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+table {
+  display: block;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+th {
+  background-color: var(--ifm-background-surface-color);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--docs-color-border);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--docs-color-border);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   Blockquotes
+   ============================================ */
+blockquote {
+  border-left: 3px solid var(--ifm-color-primary);
+  background-color: var(--ifm-background-surface-color);
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: var(--ifm-font-color-secondary);
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   Lists
+   ============================================ */
+ul,
+ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+li::marker {
+  color: var(--ifm-font-color-secondary);
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+.pagination-nav {
+  margin-top: 3rem;
+  gap: 1rem;
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  transition: all var(--transition-fast);
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+.pagination-nav__sublabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-font-color-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.pagination-nav__label {
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+
+/* ============================================
+   Version Dropdown
+   ============================================ */
+.navbar__item.dropdown .navbar__link {
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.375rem;
+}
+
+.dropdown__menu {
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 0.5rem;
+  min-width: 10rem;
+}
+
+[data-theme="dark"] .dropdown__menu {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown__link {
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: background-color var(--transition-fast);
+}
+
+.dropdown__link:hover {
+  background-color: var(--ifm-menu-color-background-hover);
+}
+
+.dropdown__link--active {
+  background-color: var(--ifm-menu-color-background-active);
+  color: var(--ifm-color-primary);
+}
+
+/* ============================================
+   Theme Toggle
+   ============================================ */
+.navbar__items--right > :last-child {
+  padding-right: 0;
+}
+
+[data-theme="light"]
+  .clean-btn[title="Switch between dark and light mode"]
+  svg {
+  color: var(--ifm-font-color-secondary);
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--docs-color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ifm-font-color-secondary);
+}
+
+/* ============================================
+   Algolia Search
+   ============================================ */
+.DocSearch-Button {
+  border-radius: 0.5rem !important;
+  padding: 0 1rem !important;
+  height: 2.25rem !important;
+  background-color: var(--ifm-background-surface-color) !important;
+  border: 1px solid var(--docs-color-border) !important;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast) !important;
+}
+
+.DocSearch-Button:hover {
+  border-color: var(--ifm-color-primary) !important;
+  box-shadow: none !important;
+}
+
+.DocSearch-Button-Placeholder {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+}
+
+.DocSearch-Button-Keys {
+  min-width: auto !important;
+  gap: 0.125rem !important;
+}
+
+.DocSearch-Button-Key {
+  background: var(--docs-color-border) !important;
+  border-radius: 0.25rem !important;
+  padding: 0.125rem 0.375rem !important;
+  font-size: 0.75rem !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* ============================================
+   API Docs Specific Styles
+   ============================================ */
+.api-method > .menu__link {
+  align-items: center;
+  justify-content: start;
+}
+
+.openapi-tabs__code-container {
+  border-radius: 0.75rem;
+  border: 1px solid var(--docs-color-border);
+}
+
+.openapi-markdown__details {
+  border: 1px solid var(--docs-color-border);
+  border-radius: 0.5rem;
+  background-color: var(--ifm-background-surface-color);
+}
+
+/* HTTP Method badges */
+.api-method .menu__link::before,
+.openapi-method-badge {
+  border-radius: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  padding: 0.125rem 0.375rem;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 996px) {
+  .navbar {
+    padding: 0 1rem;
+  }
+
+  h1 {
+    font-size: 1.875rem;
+  }
+
+  h2 {
+    font-size: 1.375rem;
+  }
+
+  .footer {
+    padding: 2rem 0;
+  }
+}
+
+@media (max-width: 576px) {
+  :root {
+    --ifm-spacing-horizontal: 1rem;
+  }
+
+  h1 {
+    font-size: 1.625rem;
+  }
+
+  .pagination-nav {
+    flex-direction: column;
+  }
+
+  .pagination-nav__link {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   Smooth Animations
+   ============================================ */
+.menu__list-item-collapsible--active .menu__link--sublist-caret::after,
+.menu__list-item-collapsible .menu__link--sublist-caret::after {
+  transition: transform var(--transition-fast);
+}
+
+/* Fade in for content */
+.theme-doc-markdown > * {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -123,6 +123,8 @@ const allEnv = z.object({
   INFERENCE_LANG: z.string().default("english"),
   WEBHOOK_TIMEOUT_SEC: z.coerce.number().default(5),
   WEBHOOK_RETRY_TIMES: z.coerce.number().int().min(0).default(3),
+  MAX_RSS_FEEDS_PER_USER: z.coerce.number().default(1000),
+  MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
   // Build only flag
   SERVER_VERSION: z.string().optional(),
   DISABLE_NEW_RELEASE_CHECK: stringBool("false"),
@@ -345,6 +347,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       timeoutSec: val.WEBHOOK_TIMEOUT_SEC,
       retryTimes: val.WEBHOOK_RETRY_TIMES,
       numWorkers: val.WEBHOOK_NUM_WORKERS,
+      maxWebhooksPerUser: val.MAX_WEBHOOKS_PER_USER,
+    },
+    feeds: {
+      maxRssFeedsPerUser: val.MAX_RSS_FEEDS_PER_USER,
     },
     proxy: {
       httpProxy: val.CRAWLER_HTTP_PROXY,

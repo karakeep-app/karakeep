@@ -19,8 +19,8 @@ const trpc = new Hono<{
     onError: ({ path, error }) => {
       if (process.env.NODE_ENV === "development") {
         console.error(`❌ tRPC failed on ${path}`);
+        console.error(error);
       }
-      console.error(error);
     },
   }),
 );

@@ -488,8 +488,15 @@
     {
       "idx": 69,
       "version": "6",
-      "when": 1765511609034,
-      "tag": "0069_add_reader_settings",
+      "when": 1765721715670,
+      "tag": "0069_fix_pending_summarization",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "6",
+      "when": 1765744716304,
+      "tag": "0070_add_reader_settings",
       "breakpoints": true
     }
   ]
