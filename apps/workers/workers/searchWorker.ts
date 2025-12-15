@@ -26,11 +26,19 @@ export class SearchIndexingWorker {
         SearchIndexingQueue,
         {
           run: runSearchIndexing,
-          onComplete: (job) => {
+          onComplete: async (job) => {
             workerStatsCounter.labels("search", "completed").inc();
             const jobId = job.id;
             logger.info(`[search][${jobId}] Completed successfully`);
-            return Promise.resolve();
+
+            // Update the lastIndexedAt timestamp after successful indexing
+            const request = zSearchIndexingRequestSchema.safeParse(job.data);
+            if (request.success && request.data.type === "index") {
+              await db
+                .update(bookmarks)
+                .set({ lastIndexedAt: new Date() })
+                .where(eq(bookmarks.id, request.data.bookmarkId));
+            }
           },
           onError: (job) => {
             workerStatsCounter.labels("search", "failed").inc();
@@ -107,12 +115,6 @@ async function runIndex(searchClient: SearchIndexClient, bookmarkId: string) {
   };
 
   await searchClient.addDocuments([document]);
-
-  // Update the lastIndexedAt timestamp
-  await db
-    .update(bookmarks)
-    .set({ lastIndexedAt: new Date() })
-    .where(eq(bookmarks.id, bookmarkId));
 }
 
 async function runDelete(searchClient: SearchIndexClient, bookmarkId: string) {

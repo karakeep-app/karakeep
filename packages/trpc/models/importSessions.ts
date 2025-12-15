@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -90,11 +90,12 @@ export class ImportSession {
 
   async getWithStats(): Promise<ZImportSessionWithStats> {
     // Get bookmark counts by status including indexing status
+    // Group by whether indexed (not null) rather than the exact timestamp for better performance
     const statusCounts = await this.ctx.db
       .select({
         crawlStatus: bookmarkLinks.crawlStatus,
         taggingStatus: bookmarks.taggingStatus,
-        lastIndexedAt: bookmarks.lastIndexedAt,
+        isIndexed: sql<number>`case when ${bookmarks.lastIndexedAt} is not null then 1 else 0 end`,
         count: count(),
       })
       .from(importSessionBookmarks)
@@ -116,7 +117,7 @@ export class ImportSession {
       .groupBy(
         bookmarkLinks.crawlStatus,
         bookmarks.taggingStatus,
-        bookmarks.lastIndexedAt,
+        sql`case when ${bookmarks.lastIndexedAt} is not null then 1 else 0 end`,
       );
 
     const stats = {
@@ -137,7 +138,7 @@ export class ImportSession {
     };
 
     statusCounts.forEach((statusCount) => {
-      const { crawlStatus, taggingStatus, lastIndexedAt, count } = statusCount;
+      const { crawlStatus, taggingStatus, isIndexed, count } = statusCount;
 
       stats.totalBookmarks += count;
 
@@ -160,7 +161,7 @@ export class ImportSession {
       }
 
       // Track indexing status
-      if (lastIndexedAt) {
+      if (isIndexed === 1) {
         stats.indexingCompleted += count;
       } else {
         stats.indexingPending += count;
@@ -176,7 +177,7 @@ export class ImportSession {
 
       const isCrawlPending = crawlStatus === "pending";
       const isTagPending = taggingStatus === "pending";
-      const isIndexPending = !lastIndexedAt;
+      const isIndexPending = isIndexed === 0;
       if (isCrawlPending || isTagPending || isIndexPending) {
         stats.pendingBookmarks += count;
         return;
@@ -186,12 +187,12 @@ export class ImportSession {
         crawlStatus === "success" || crawlStatus === null;
       const isTagSuccessfulOrUnknown =
         taggingStatus === "success" || taggingStatus === null;
-      const isIndexed = !!lastIndexedAt;
+      const hasIndexed = isIndexed === 1;
 
       if (
         isCrawlSuccessfulOrNotRequired &&
         isTagSuccessfulOrUnknown &&
-        isIndexed
+        hasIndexed
       ) {
         stats.completedBookmarks += count;
       } else {
