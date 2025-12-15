@@ -1,5 +1,5 @@
 import os from "os";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
@@ -51,6 +51,35 @@ export class AssetPreprocessingWorker {
               workerStatsCounter
                 .labels("assetPreProcessing", "failed_permanent")
                 .inc();
+              // Skip tagging and summarization on permanent failure (only if they're still pending)
+              const bookmarkId = job.data?.bookmarkId;
+              if (bookmarkId) {
+                await db.transaction(async (txn) => {
+                  await txn
+                    .update(bookmarks)
+                    .set({
+                      taggingStatus: "skipped",
+                    })
+                    .where(
+                      and(
+                        eq(bookmarks.id, bookmarkId),
+                        eq(bookmarks.taggingStatus, "pending"),
+                      ),
+                    );
+
+                  await txn
+                    .update(bookmarks)
+                    .set({
+                      summarizationStatus: "skipped",
+                    })
+                    .where(
+                      and(
+                        eq(bookmarks.id, bookmarkId),
+                        eq(bookmarks.summarizationStatus, "pending"),
+                      ),
+                    );
+                });
+              }
             }
             const jobId = job.id;
             logger.error(
