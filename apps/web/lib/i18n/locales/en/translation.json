@@ -1,5 +1,6 @@
 {
   "common": {
+    "default": "Default",
     "url": "URL",
     "name": "Name",
     "email": "Email",
@@ -131,6 +132,38 @@
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
         }
+      },
+      "reader_settings": {
+        "title": "Reader Settings",
+        "description": "Configure default text settings for the reader view. These settings sync across all your devices.",
+        "font_family": "Font Family",
+        "font_size": "Font Size",
+        "line_height": "Line Height",
+        "save_as_default": "Save as default",
+        "clear_defaults": "Clear all defaults",
+        "not_set": "Not set",
+        "using_default": "Using client default",
+        "preview": "Preview",
+        "preview_text": "The quick brown fox jumps over the lazy dog. This is how your reader view text will appear.",
+        "defaults_cleared": "Reader defaults have been cleared",
+        "local_overrides_title": "Device-specific settings active",
+        "local_overrides_description": "This device has reader settings that differ from your global defaults:",
+        "local_overrides_cleared": "Device-specific settings have been cleared",
+        "clear_local_overrides": "Clear device settings",
+        "serif": "Serif",
+        "sans": "Sans Serif",
+        "mono": "Monospace",
+        "tooltip_default": "Reading settings",
+        "tooltip_preview": "Unsaved preview changes",
+        "tooltip_local": "Device settings differ from global",
+        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global",
+        "reset_preview": "Reset preview",
+        "save_to_device": "This device",
+        "save_to_all_devices": "All devices",
+        "save_hint": "Save settings for this device only or sync across all devices",
+        "adjust_hint": "Adjust settings above to preview changes",
+        "clear_override_hint": "Clear device override to use global setting ({{value}})",
+        "preview_inline": "(preview)"
       }
     },
     "stats": {

@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
+import { useReaderSettings } from "@/lib/readerSettings";
 import {
   AlertTriangle,
   Archive,
@@ -34,8 +35,10 @@ import {
   ZBookmark,
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
+import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 
 import { contentRendererRegistry } from "./content-renderers";
+import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
@@ -106,6 +109,7 @@ export default function LinkContentSection({
   bookmark: ZBookmark;
 }) {
   const { t } = useTranslation();
+  const { settings } = useReaderSettings();
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   const defaultSection =
     availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
@@ -135,6 +139,11 @@ export default function LinkContentSection({
       <ScrollArea className="h-full">
         <ReaderView
           className="prose mx-auto dark:prose-invert"
+          style={{
+            fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
+            fontSize: `${settings.fontSize}px`,
+            lineHeight: settings.lineHeight,
+          }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
         />
@@ -213,17 +222,20 @@ export default function LinkContentSection({
           </SelectContent>
         </Select>
         {section === "cached" && (
-          <Tooltip>
-            <TooltipTrigger>
-              <Link
-                href={`/reader/${bookmark.id}`}
-                className={buttonVariants({ variant: "outline" })}
-              >
-                <ExpandIcon className="h-4 w-4" />
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">FullScreen</TooltipContent>
-          </Tooltip>
+          <>
+            <ReaderSettingsPopover />
+            <Tooltip>
+              <TooltipTrigger>
+                <Link
+                  href={`/reader/${bookmark.id}`}
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  <ExpandIcon className="h-4 w-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">FullScreen</TooltipContent>
+            </Tooltip>
+          </>
         )}
       </div>
       {content}
