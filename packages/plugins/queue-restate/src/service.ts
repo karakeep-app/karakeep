@@ -121,7 +121,14 @@ async function runWorkerLogic<T, R>(
     ctx.run(
       `main logic`,
       async () => {
-        return await run(data);
+        return await Promise.race([
+          run(data),
+          new Promise<R>((_, reject) => {
+            data.abortSignal.addEventListener("abort", () => {
+              reject(new Error(`Job didn't complete within timeout`));
+            });
+          }),
+        ]);
       },
       {
         maxRetryAttempts: 1,
