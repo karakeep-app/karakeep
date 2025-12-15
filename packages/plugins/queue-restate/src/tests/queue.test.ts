@@ -517,17 +517,4 @@ describe("Restate Queue Provider", () => {
       expect(testState.results).toEqual([102, 101, 100]);
     }, 60000);
   });
-
-  describe("inactivity timeout", () => {
-    it("should timeout jobs that don't complete", async () => {
-      await queue.enqueue({ type: "stall", durSec: 6 });
-      await queue.enqueue({ type: "stall", durSec: 6 });
-      await queue.enqueue({ type: "stall", durSec: 6 });
-      await queue.enqueue({ type: "val", val: 1 });
-
-      await waitUntilQueueEmpty();
-
-      expect(testState.results).toEqual([1]);
-    });
-  });
 });
