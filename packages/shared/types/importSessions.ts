@@ -36,6 +36,15 @@ export const zImportSessionWithStatsSchema = zImportSessionSchema.extend({
   failedBookmarks: z.number(),
   pendingBookmarks: z.number(),
   processingBookmarks: z.number(),
+  // Detailed progress breakdown
+  crawlingPending: z.number(),
+  crawlingCompleted: z.number(),
+  crawlingFailed: z.number(),
+  taggingPending: z.number(),
+  taggingCompleted: z.number(),
+  taggingFailed: z.number(),
+  indexingPending: z.number(),
+  indexingCompleted: z.number(),
 });
 export type ZImportSessionWithStats = z.infer<
   typeof zImportSessionWithStatsSchema

@@ -107,6 +107,12 @@ async function runIndex(searchClient: SearchIndexClient, bookmarkId: string) {
   };
 
   await searchClient.addDocuments([document]);
+
+  // Update the lastIndexedAt timestamp
+  await db
+    .update(bookmarks)
+    .set({ lastIndexedAt: new Date() })
+    .where(eq(bookmarks.id, bookmarkId));
 }
 
 async function runDelete(searchClient: SearchIndexClient, bookmarkId: string) {

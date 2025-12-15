@@ -199,6 +199,7 @@ export const bookmarks = sqliteTable(
         "import",
       ],
     }),
+    lastIndexedAt: integer("lastIndexedAt", { mode: "timestamp" }),
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),

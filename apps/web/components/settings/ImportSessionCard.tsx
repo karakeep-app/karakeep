@@ -134,6 +134,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Stats Breakdown */}
           {stats.totalBookmarks > 0 && (
             <div className="space-y-3">
+              {/* Overall Status Badges */}
               <div className="flex flex-wrap gap-2">
                 {stats.pendingBookmarks > 0 && (
                   <Badge
@@ -179,6 +180,83 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     })}
                   </Badge>
                 )}
+              </div>
+
+              {/* Detailed Progress Breakdown */}
+              <div className="space-y-2 rounded-lg border bg-muted/30 p-3 dark:bg-muted/10">
+                <h5 className="text-xs font-semibold text-muted-foreground uppercase">
+                  Processing Stages
+                </h5>
+
+                {/* Crawling Stage */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">Crawling</span>
+                      <span className="text-xs text-muted-foreground">
+                        (Fetching webpage content)
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {stats.crawlingCompleted} / {stats.totalBookmarks}
+                    </span>
+                  </div>
+                  {stats.crawlingPending > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {stats.crawlingPending} pending
+                    </p>
+                  )}
+                  {stats.crawlingFailed > 0 && (
+                    <p className="text-xs text-destructive">
+                      {stats.crawlingFailed} failed
+                    </p>
+                  )}
+                </div>
+
+                {/* Tagging Stage */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">Tagging</span>
+                      <span className="text-xs text-muted-foreground">
+                        (AI generating tags)
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {stats.taggingCompleted} / {stats.totalBookmarks}
+                    </span>
+                  </div>
+                  {stats.taggingPending > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {stats.taggingPending} pending
+                    </p>
+                  )}
+                  {stats.taggingFailed > 0 && (
+                    <p className="text-xs text-destructive">
+                      {stats.taggingFailed} failed
+                    </p>
+                  )}
+                </div>
+
+                {/* Indexing Stage */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">Indexing</span>
+                      <span className="text-xs text-muted-foreground">
+                        (Making searchable)
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {stats.indexingCompleted} / {stats.totalBookmarks}
+                    </span>
+                  </div>
+                  {stats.indexingPending > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {stats.indexingPending} pending
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}

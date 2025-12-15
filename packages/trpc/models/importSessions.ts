@@ -89,11 +89,12 @@ export class ImportSession {
   }
 
   async getWithStats(): Promise<ZImportSessionWithStats> {
-    // Get bookmark counts by status
+    // Get bookmark counts by status including indexing status
     const statusCounts = await this.ctx.db
       .select({
         crawlStatus: bookmarkLinks.crawlStatus,
         taggingStatus: bookmarks.taggingStatus,
+        lastIndexedAt: bookmarks.lastIndexedAt,
         count: count(),
       })
       .from(importSessionBookmarks)
@@ -112,7 +113,11 @@ export class ImportSession {
           eq(importSessions.userId, this.ctx.user.id),
         ),
       )
-      .groupBy(bookmarkLinks.crawlStatus, bookmarks.taggingStatus);
+      .groupBy(
+        bookmarkLinks.crawlStatus,
+        bookmarks.taggingStatus,
+        bookmarks.lastIndexedAt,
+      );
 
     const stats = {
       totalBookmarks: 0,
@@ -120,13 +125,48 @@ export class ImportSession {
       failedBookmarks: 0,
       pendingBookmarks: 0,
       processingBookmarks: 0,
+      // Detailed progress breakdown
+      crawlingPending: 0,
+      crawlingCompleted: 0,
+      crawlingFailed: 0,
+      taggingPending: 0,
+      taggingCompleted: 0,
+      taggingFailed: 0,
+      indexingPending: 0,
+      indexingCompleted: 0,
     };
 
     statusCounts.forEach((statusCount) => {
-      const { crawlStatus, taggingStatus, count } = statusCount;
+      const { crawlStatus, taggingStatus, lastIndexedAt, count } = statusCount;
 
       stats.totalBookmarks += count;
 
+      // Track crawling status
+      if (crawlStatus === "pending") {
+        stats.crawlingPending += count;
+      } else if (crawlStatus === "success" || crawlStatus === null) {
+        stats.crawlingCompleted += count;
+      } else if (crawlStatus === "failure") {
+        stats.crawlingFailed += count;
+      }
+
+      // Track tagging status
+      if (taggingStatus === "pending") {
+        stats.taggingPending += count;
+      } else if (taggingStatus === "success") {
+        stats.taggingCompleted += count;
+      } else if (taggingStatus === "failure") {
+        stats.taggingFailed += count;
+      }
+
+      // Track indexing status
+      if (lastIndexedAt) {
+        stats.indexingCompleted += count;
+      } else {
+        stats.indexingPending += count;
+      }
+
+      // Overall status calculation
       const isCrawlFailure = crawlStatus === "failure";
       const isTagFailure = taggingStatus === "failure";
       if (isCrawlFailure || isTagFailure) {
@@ -136,7 +176,8 @@ export class ImportSession {
 
       const isCrawlPending = crawlStatus === "pending";
       const isTagPending = taggingStatus === "pending";
-      if (isCrawlPending || isTagPending) {
+      const isIndexPending = !lastIndexedAt;
+      if (isCrawlPending || isTagPending || isIndexPending) {
         stats.pendingBookmarks += count;
         return;
       }
@@ -145,8 +186,13 @@ export class ImportSession {
         crawlStatus === "success" || crawlStatus === null;
       const isTagSuccessfulOrUnknown =
         taggingStatus === "success" || taggingStatus === null;
+      const isIndexed = !!lastIndexedAt;
 
-      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrUnknown) {
+      if (
+        isCrawlSuccessfulOrNotRequired &&
+        isTagSuccessfulOrUnknown &&
+        isIndexed
+      ) {
         stats.completedBookmarks += count;
       } else {
         // Fallback to pending to avoid leaving imports unclassified
