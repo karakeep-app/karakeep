@@ -31,8 +31,8 @@ To configure the app, create a `.env` file in the directory and add this minimal
 
 ```
 echo "KARAKEEP_VERSION=release" >> .env
-echo "NEXTAUTH_SECRET=`openssl rand -base64 36`" >> .env
-echo "MEILI_MASTER_KEY=`openssl rand -base64 36`" >> .env
+echo "NEXTAUTH_SECRET=$(openssl rand -base64 36)" >> .env
+echo "MEILI_MASTER_KEY=$(openssl rand -base64 36)" >> .env
 echo "NEXTAUTH_URL=http://localhost:3000" >> .env
 ```
 
