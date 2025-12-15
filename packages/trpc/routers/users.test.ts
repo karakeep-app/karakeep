@@ -158,6 +158,11 @@ describe("User Routes", () => {
       backupsEnabled: false,
       backupsFrequency: "weekly",
       backupsRetentionDays: 30,
+
+      // Reader settings
+      readerFontFamily: null,
+      readerFontSize: null,
+      readerLineHeight: null,
     });
 
     // Update settings
@@ -166,6 +171,11 @@ describe("User Routes", () => {
       backupsEnabled: true,
       backupsFrequency: "daily",
       backupsRetentionDays: 7,
+
+      // Reader settings
+      readerFontFamily: "serif",
+      readerFontSize: 12,
+      readerLineHeight: 1.5,
     });
 
     // Verify updated settings
@@ -177,6 +187,11 @@ describe("User Routes", () => {
       backupsEnabled: true,
       backupsFrequency: "daily",
       backupsRetentionDays: 7,
+
+      // Reader settings
+      readerFontFamily: "serif",
+      readerFontSize: 12,
+      readerLineHeight: 1.5,
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)
