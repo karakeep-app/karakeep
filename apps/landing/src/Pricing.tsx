@@ -2,7 +2,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, ExternalLink } from "lucide-react";
 
-import { DOCS_LINK, GITHUB_LINK, WAITLIST_LINK } from "./constants";
+import {
+  CONTACT_EMAIL,
+  DOCS_LINK,
+  GITHUB_LINK,
+  WAITLIST_LINK,
+} from "./constants";
 import NavBar from "./Navbar";
 
 const pricingTiers = [
@@ -37,6 +42,26 @@ const pricingTiers = [
     buttonText: "Join Waitlist",
     buttonVariant: "default" as const,
     popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    period: "",
+    description: "For teams and organizations",
+    features: [
+      "Your own private deployment",
+      "Custom domain (e.g., bookmarks.yourcompany.com)",
+      "Guaranteed uptime with service agreement",
+      "Priority email and chat support",
+      "Team management and permissions",
+      "Data security and compliance",
+      "Setup and onboarding assistance",
+      "Custom storage and bookmark limits",
+    ],
+    buttonText: "Contact Us",
+    buttonVariant: "outline" as const,
+    popular: false,
+    isContact: true,
   },
   {
     name: "Self-Hosted",
@@ -76,7 +101,7 @@ function PricingHeader() {
 
 function PricingCards() {
   return (
-    <div className="mx-auto mt-16 grid max-w-6xl grid-cols-1 gap-8 px-6 md:grid-cols-3">
+    <div className="mx-auto mt-16 grid max-w-7xl grid-cols-1 gap-8 px-6 md:grid-cols-2 lg:grid-cols-4">
       {pricingTiers.map((tier) => (
         <div
           key={tier.name}
@@ -117,6 +142,16 @@ function PricingCards() {
                 rel="noreferrer"
               >
                 <ExternalLink className="h-4 w-4" />
+                {tier.buttonText}
+              </a>
+            ) : tier.isContact ? (
+              <a
+                href={CONTACT_EMAIL}
+                className={cn(
+                  "flex w-full items-center justify-center",
+                  buttonVariants({ variant: tier.buttonVariant, size: "lg" }),
+                )}
+              >
                 {tier.buttonText}
               </a>
             ) : (
