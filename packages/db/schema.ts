@@ -366,6 +366,9 @@ export const bookmarkTags = sqliteTable(
       .primaryKey()
       .$defaultFn(() => createId()),
     name: text("name").notNull(),
+    normalizedName: text("normalizedName")
+      .notNull()
+      .$defaultFn(() => ""), // Temporary default for migration
     createdAt: createdAtField(),
     userId: text("userId")
       .notNull()
@@ -376,6 +379,10 @@ export const bookmarkTags = sqliteTable(
     unique("bookmarkTags_userId_id_idx").on(bt.userId, bt.id),
     index("bookmarkTags_name_idx").on(bt.name),
     index("bookmarkTags_userId_idx").on(bt.userId),
+    index("bookmarkTags_userId_normalizedName_idx").on(
+      bt.userId,
+      bt.normalizedName,
+    ),
   ],
 );
 

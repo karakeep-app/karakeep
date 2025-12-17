@@ -990,22 +990,33 @@ export class ManualList extends List {
 
     const bookmarkIds = await this.getBookmarkIds();
 
-    await this.ctx.db.transaction(async (tx) => {
-      await tx
-        .insert(bookmarksInLists)
-        .values(
-          bookmarkIds.map((id) => ({
-            bookmarkId: id,
-            listId: targetList.id,
-          })),
-        )
-        .onConflictDoNothing();
+    // OPTIMIZATION: Batch inserts to reduce transaction lock time on large lists
+    const BATCH_SIZE = 100;
 
-      if (deleteSourceAfterMerge) {
+    // Insert bookmarks in batches
+    for (let i = 0; i < bookmarkIds.length; i += BATCH_SIZE) {
+      const batch = bookmarkIds.slice(i, i + BATCH_SIZE);
+
+      await this.ctx.db.transaction(async (tx) => {
+        await tx
+          .insert(bookmarksInLists)
+          .values(
+            batch.map((id) => ({
+              bookmarkId: id,
+              listId: targetList.id,
+            })),
+          )
+          .onConflictDoNothing();
+      });
+    }
+
+    // Delete source list in a separate transaction (if requested)
+    if (deleteSourceAfterMerge) {
+      await this.ctx.db.transaction(async (tx) => {
         await tx
           .delete(bookmarkLists)
           .where(eq(bookmarkLists.id, this.list.id));
-      }
-    });
+      });
+    }
   }
 }

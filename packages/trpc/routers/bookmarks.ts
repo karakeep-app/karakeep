@@ -44,7 +44,10 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
-import { normalizeTagName } from "@karakeep/shared/utils/tag";
+import {
+  normalizeTagForDB,
+  normalizeTagName,
+} from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
@@ -714,36 +717,45 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
+      // OPTIMIZATION: Prepare all data BEFORE entering transaction
+      // Extract IDs and names to detach
+      const idsToDetach: string[] = [];
+      const namesToDetach: string[] = [];
+      input.detach.forEach((detachInfo) => {
+        if (detachInfo.tagId) idsToDetach.push(detachInfo.tagId);
+        if (detachInfo.tagName) namesToDetach.push(detachInfo.tagName);
+      });
+
+      // Prepare tags to attach
+      const toAddTagNames = input.attach
+        .flatMap((i) => (i.tagName ? [i.tagName] : []))
+        .map(normalizeTagName) // strip leading #
+        .filter((n) => n.length > 0); // drop empty results
+
+      const toAddTagIds = input.attach.flatMap((i) =>
+        i.tagId ? [i.tagId] : [],
+      );
+
       const res = await ctx.db.transaction(async (tx) => {
         // Detaches
-        const idsToRemove: string[] = [];
-        if (input.detach.length > 0) {
-          const namesToRemove: string[] = [];
-          input.detach.forEach((detachInfo) => {
-            if (detachInfo.tagId) {
-              idsToRemove.push(detachInfo.tagId);
-            }
-            if (detachInfo.tagName) {
-              namesToRemove.push(detachInfo.tagName);
-            }
+        const idsToRemove: string[] = [...idsToDetach];
+
+        if (namesToDetach.length > 0) {
+          const tagsToDetach = await tx.query.bookmarkTags.findMany({
+            where: and(
+              eq(bookmarkTags.userId, ctx.user.id),
+              inArray(bookmarkTags.name, namesToDetach),
+            ),
+            columns: {
+              id: true,
+            },
           });
+          tagsToDetach.forEach((tag) => {
+            idsToRemove.push(tag.id);
+          });
+        }
 
-          if (namesToRemove.length > 0) {
-            (
-              await tx.query.bookmarkTags.findMany({
-                where: and(
-                  eq(bookmarkTags.userId, ctx.user.id),
-                  inArray(bookmarkTags.name, namesToRemove),
-                ),
-                columns: {
-                  id: true,
-                },
-              })
-            ).forEach((tag) => {
-              idsToRemove.push(tag.id);
-            });
-          }
-
+        if (idsToRemove.length > 0) {
           await tx
             .delete(tagsOnBookmarks)
             .where(
@@ -762,47 +774,53 @@ export const bookmarksAppRouter = router({
           };
         }
 
-        const toAddTagNames = input.attach
-          .flatMap((i) => (i.tagName ? [i.tagName] : []))
-          .map(normalizeTagName) // strip leading #
-          .filter((n) => n.length > 0); // drop empty results
-
-        const toAddTagIds = input.attach.flatMap((i) =>
-          i.tagId ? [i.tagId] : [],
-        );
-
         // New Tags
         if (toAddTagNames.length > 0) {
           await tx
             .insert(bookmarkTags)
             .values(
-              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+              toAddTagNames.map((name) => ({
+                name,
+                normalizedName: normalizeTagForDB(name),
+                userId: ctx.user.id,
+              })),
             )
             .onConflictDoNothing()
             .returning();
         }
 
-        // If there is nothing to add, the "or" statement will become useless and
-        // the query below will simply select all the existing tags for this user and assign them to the bookmark
         invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
-        const allIds = (
-          await tx.query.bookmarkTags.findMany({
-            where: and(
-              eq(bookmarkTags.userId, ctx.user.id),
-              or(
-                toAddTagIds.length > 0
-                  ? inArray(bookmarkTags.id, toAddTagIds)
-                  : undefined,
-                toAddTagNames.length > 0
-                  ? inArray(bookmarkTags.name, toAddTagNames)
-                  : undefined,
-              ),
-            ),
-            columns: {
-              id: true,
-            },
-          })
-        ).map((t) => t.id);
+
+        // OPTIMIZATION: Split OR query into two separate queries for better index usage
+        const [tagsByIds, tagsByNames] = await Promise.all([
+          toAddTagIds.length > 0
+            ? tx.query.bookmarkTags.findMany({
+                where: and(
+                  eq(bookmarkTags.userId, ctx.user.id),
+                  inArray(bookmarkTags.id, toAddTagIds),
+                ),
+                columns: {
+                  id: true,
+                },
+              })
+            : [],
+          toAddTagNames.length > 0
+            ? tx.query.bookmarkTags.findMany({
+                where: and(
+                  eq(bookmarkTags.userId, ctx.user.id),
+                  inArray(bookmarkTags.name, toAddTagNames),
+                ),
+                columns: {
+                  id: true,
+                },
+              })
+            : [],
+        ]);
+
+        const allIds = [
+          ...tagsByIds.map((t) => t.id),
+          ...tagsByNames.map((t) => t.id),
+        ];
 
         await tx
           .insert(tagsOnBookmarks)

@@ -24,6 +24,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
+import { normalizeTagForDB } from "@karakeep/shared/utils/tag";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 const openAIResponseSchema = z.object({
@@ -317,35 +318,32 @@ async function connectTags(
     return;
   }
 
-  await db.transaction(async (tx) => {
-    // Attempt to match exiting tags with the new ones
-    const { matchedTagIds, notFoundTagNames } = await (async () => {
-      const { normalizeTag, sql: normalizedTagSql } = tagNormalizer(
-        bookmarkTags.name,
-      );
-      const normalizedInferredTags = inferredTags.map((t) => ({
-        originalTag: t,
-        normalizedTag: normalizeTag(t),
-      }));
+  // Normalize tags BEFORE entering transaction (performance optimization)
+  const normalizedInferredTags = inferredTags.map((t) => ({
+    originalTag: t,
+    normalizedTag: normalizeTagForDB(t),
+  }));
 
+  await db.transaction(async (tx) => {
+    // Attempt to match existing tags with the new ones
+    // Now uses indexed normalizedName column instead of SQL functions
+    const { matchedTagIds, notFoundTagNames } = await (async () => {
       const matchedTags = await tx.query.bookmarkTags.findMany({
         where: and(
           eq(bookmarkTags.userId, userId),
           inArray(
-            normalizedTagSql,
+            bookmarkTags.normalizedName,
             normalizedInferredTags.map((t) => t.normalizedTag),
           ),
         ),
       });
 
       const matchedTagIds = matchedTags.map((r) => r.id);
+      const matchedNormalizedNames = new Set(
+        matchedTags.map((mt) => mt.normalizedName),
+      );
       const notFoundTagNames = normalizedInferredTags
-        .filter(
-          (t) =>
-            !matchedTags.some(
-              (mt) => normalizeTag(mt.name) === t.normalizedTag,
-            ),
-        )
+        .filter((t) => !matchedNormalizedNames.has(t.normalizedTag))
         .map((t) => t.originalTag);
 
       return { matchedTagIds, notFoundTagNames };
@@ -360,6 +358,7 @@ async function connectTags(
           .values(
             notFoundTagNames.map((t) => ({
               name: t,
+              normalizedName: normalizeTagForDB(t),
               userId,
             })),
           )

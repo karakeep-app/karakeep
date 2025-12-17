@@ -94,15 +94,16 @@ export class User {
       emailVerified?: Date | null;
     },
   ) {
-    return await db.transaction(async (trx) => {
-      let userRole = input.role;
-      if (!userRole) {
-        const [{ count: userCount }] = await trx
-          .select({ count: count() })
-          .from(users);
-        userRole = userCount === 0 ? "admin" : "user";
-      }
+    // OPTIMIZATION: Determine role BEFORE transaction to reduce lock time
+    let userRole = input.role;
+    if (!userRole) {
+      const [{ count: userCount }] = await db
+        .select({ count: count() })
+        .from(users);
+      userRole = userCount === 0 ? "admin" : "user";
+    }
 
+    return await db.transaction(async (trx) => {
       try {
         const [result] = await trx
           .insert(users)

@@ -23,6 +23,7 @@ import {
   zTagBasicSchema,
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
+import { normalizeTagForDB } from "@karakeep/shared/utils/tag";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
@@ -65,6 +66,7 @@ export class Tag {
         .insert(bookmarkTags)
         .values({
           name: input.name,
+          normalizedName: normalizeTagForDB(input.name),
           userId: ctx.user.id,
         })
         .returning();
