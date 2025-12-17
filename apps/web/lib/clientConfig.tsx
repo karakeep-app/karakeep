@@ -15,6 +15,9 @@ export const ClientConfigCtx = createContext<ClientConfig>({
     isConfigured: false,
     inferredTagLang: "english",
   },
+  errorReporting: {
+    enabled: false,
+  },
   serverVersion: undefined,
   disableNewReleaseCheck: true,
 });

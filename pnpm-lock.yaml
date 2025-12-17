@@ -1235,6 +1235,9 @@ importers:
       meilisearch:
         specifier: ^0.45.0
         version: 0.45.0
+      nodemailer:
+        specifier: ^7.0.4
+        version: 7.0.4
     devDependencies:
       '@karakeep/prettier-config':
         specifier: workspace:^0.1.0

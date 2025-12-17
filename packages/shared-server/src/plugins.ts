@@ -1,4 +1,5 @@
 import { PluginManager } from "@karakeep/shared/plugins";
+import serverConfig from "@karakeep/shared/config";
 
 let pluginsLoaded = false;
 export async function loadAllPlugins() {
@@ -11,6 +12,12 @@ export async function loadAllPlugins() {
   await import("@karakeep/plugins/queue-restate");
   await import("@karakeep/plugins/search-meilisearch");
   await import("@karakeep/plugins/ratelimit-memory");
+
+  // Error reporting plugin (only if support email is configured)
+  if (serverConfig.email.supportEmail) {
+    await import("@karakeep/plugins/errorreport-email");
+  }
+
   PluginManager.logAllPlugins();
   pluginsLoaded = true;
 }

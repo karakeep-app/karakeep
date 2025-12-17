@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useToggleTheme } from "@/components/theme-provider";
@@ -12,11 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/client";
-import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
+import {
+  AlertCircle,
+  LogOut,
+  Moon,
+  Paintbrush,
+  Settings,
+  Shield,
+  Sun,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
+import { clientConfig } from "@karakeep/shared/config";
+
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
+import { ReportProblemModal } from "./ReportProblemModal";
 
 function DarkModeToggle() {
   const { t } = useTranslation();
@@ -44,19 +56,25 @@ export default function SidebarProfileOptions() {
   const toggleTheme = useToggleTheme();
   const { data: session } = useSession();
   const router = useRouter();
+  const [reportProblemOpen, setReportProblemOpen] = useState(false);
   if (!session) return redirect("/");
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
-          variant="ghost"
-        >
-          {session.user.name?.charAt(0) ?? "U"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="mr-2 min-w-64 p-2">
+    <>
+      <ReportProblemModal
+        open={reportProblemOpen}
+        onOpenChange={setReportProblemOpen}
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
+            variant="ghost"
+          >
+            {session.user.name?.charAt(0) ?? "U"}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="mr-2 min-w-64 p-2">
         <div className="flex gap-2">
           <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center rounded-full border-4 bg-black p-0 text-white">
             {session.user.name?.charAt(0) ?? "U"}
@@ -91,6 +109,12 @@ export default function SidebarProfileOptions() {
             {t("cleanups.cleanups")}
           </Link>
         </DropdownMenuItem>
+        {clientConfig.errorReporting.enabled && (
+          <DropdownMenuItem onClick={() => setReportProblemOpen(true)}>
+            <AlertCircle className="mr-2 size-4" />
+            <span>Report a Problem</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={toggleTheme}>
           <DarkModeToggle />
         </DropdownMenuItem>
@@ -101,5 +125,6 @@ export default function SidebarProfileOptions() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 }

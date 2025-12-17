@@ -8,7 +8,8 @@
     "./queue-liteque": "./queue-liteque/index.ts",
     "./queue-restate": "./queue-restate/index.ts",
     "./ratelimit-memory": "./ratelimit-memory/index.ts",
-    "./search-meilisearch": "./search-meilisearch/index.ts"
+    "./search-meilisearch": "./search-meilisearch/index.ts",
+    "./errorreport-email": "./errorreport-email/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -23,7 +24,8 @@
     "@restatedev/restate-sdk": "^1.9.0",
     "@restatedev/restate-sdk-clients": "^1.9.0",
     "liteque": "^0.7.0",
-    "meilisearch": "^0.45.0"
+    "meilisearch": "^0.45.0",
+    "nodemailer": "^7.0.4"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
