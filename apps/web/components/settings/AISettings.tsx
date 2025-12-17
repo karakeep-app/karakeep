@@ -4,8 +4,10 @@ import { ActionButton } from "@/components/ui/action-button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
@@ -18,10 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
+import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -32,11 +36,116 @@ import {
   buildSummaryPromptUntruncated,
   buildTextPromptUntruncated,
 } from "@karakeep/shared/prompts";
+import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
   zNewPromptSchema,
   ZPrompt,
   zUpdatePromptSchema,
 } from "@karakeep/shared/types/prompts";
+import { zUpdateUserSettingsSchema } from "@karakeep/shared/types/users";
+
+export function AIPreferences() {
+  const { t } = useTranslation();
+  const clientConfig = useClientConfig();
+  const settings = useUserSettings();
+
+  const { mutate: updateSettings } = useUpdateUserSettings({
+    onSuccess: () => {
+      toast({
+        description: "Settings updated successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        description: "Failed to update settings",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const form = useForm<z.infer<typeof zUpdateUserSettingsSchema>>({
+    resolver: zodResolver(zUpdateUserSettingsSchema),
+    values: settings
+      ? {
+          autoTaggingEnabled: settings.autoTaggingEnabled,
+          autoSummarizationEnabled: settings.autoSummarizationEnabled,
+        }
+      : undefined,
+  });
+
+  const showAutoTagging = clientConfig.inference.enableAutoTagging;
+  const showAutoSummarization = clientConfig.inference.enableAutoSummarization;
+
+  // Don't show the section if neither feature is enabled on the server
+  if (!showAutoTagging && !showAutoSummarization) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 flex flex-col gap-2">
+      <div className="w-full text-xl font-medium sm:w-1/3">AI Preferences</div>
+      <p className="mb-1 text-xs italic text-muted-foreground">
+        Control which AI features are enabled for your account.
+      </p>
+      <Form {...form}>
+        <form className="space-y-4">
+          {showAutoTagging && (
+            <FormField
+              control={form.control}
+              name="autoTaggingEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Auto-tagging</FormLabel>
+                    <FormDescription>
+                      Automatically generate tags for your bookmarks using AI.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value ?? true}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        updateSettings({ autoTaggingEnabled: checked });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
+
+          {showAutoSummarization && (
+            <FormField
+              control={form.control}
+              name="autoSummarizationEnabled"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Auto-summarization</FormLabel>
+                    <FormDescription>
+                      Automatically generate summaries for your bookmarks using
+                      AI.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value ?? true}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        updateSettings({ autoSummarizationEnabled: checked });
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
+        </form>
+      </Form>
+    </div>
+  );
+}
 
 export function PromptEditor() {
   const { t } = useTranslation();
@@ -353,6 +462,7 @@ export default function AISettings() {
           <div className="w-full text-2xl font-medium sm:w-1/3">
             {t("settings.ai.ai_settings")}
           </div>
+          <AIPreferences />
           <TaggingRules />
         </div>
       </div>

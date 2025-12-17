@@ -13,6 +13,7 @@ import {
   bookmarkTags,
   customPrompts,
   tagsOnBookmarks,
+  users,
 } from "@karakeep/db/schema";
 import {
   triggerRuleEngineOnEvent,
@@ -435,6 +436,21 @@ export async function runTagging(
     throw new Error(
       `[inference][${jobId}] bookmark with id ${bookmarkId} was not found`,
     );
+  }
+
+  // Check user-level preference
+  const userSettings = await db.query.users.findFirst({
+    where: eq(users.id, bookmark.userId),
+    columns: {
+      autoTaggingEnabled: true,
+    },
+  });
+
+  if (userSettings?.autoTaggingEnabled === false) {
+    logger.debug(
+      `[inference][${jobId}] Skipping tagging job for bookmark with id "${bookmarkId}" because user has disabled auto-tagging.`,
+    );
+    return;
   }
 
   logger.info(

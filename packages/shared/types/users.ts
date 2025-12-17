@@ -119,6 +119,9 @@ export const zUserSettingsSchema = z.object({
   readerFontSize: z.number().int().min(12).max(24).nullable(),
   readerLineHeight: z.number().min(1.2).max(2.5).nullable(),
   readerFontFamily: zReaderFontFamilySchema.nullable(),
+  // AI settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: z.boolean().nullable(),
+  autoSummarizationEnabled: z.boolean().nullable(),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -133,6 +136,8 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   readerFontSize: true,
   readerLineHeight: true,
   readerFontFamily: true,
+  autoTaggingEnabled: true,
+  autoSummarizationEnabled: true,
 });
 
 export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({

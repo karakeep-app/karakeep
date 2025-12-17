@@ -436,6 +436,8 @@ export class User {
         readerFontSize: true,
         readerLineHeight: true,
         readerFontFamily: true,
+        autoTaggingEnabled: true,
+        autoSummarizationEnabled: true,
       },
     });
 
@@ -456,6 +458,8 @@ export class User {
       readerFontSize: settings.readerFontSize,
       readerLineHeight: settings.readerLineHeight,
       readerFontFamily: settings.readerFontFamily,
+      autoTaggingEnabled: settings.autoTaggingEnabled,
+      autoSummarizationEnabled: settings.autoSummarizationEnabled,
     };
   }
 
@@ -481,6 +485,8 @@ export class User {
         readerFontSize: input.readerFontSize,
         readerLineHeight: input.readerLineHeight,
         readerFontFamily: input.readerFontFamily,
+        autoTaggingEnabled: input.autoTaggingEnabled,
+        autoSummarizationEnabled: input.autoSummarizationEnabled,
       })
       .where(eq(users.id, this.user.id));
   }

@@ -16,6 +16,8 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   readerFontSize: null,
   readerLineHeight: null,
   readerFontFamily: null,
+  autoTaggingEnabled: null,
+  autoSummarizationEnabled: null,
 });
 
 export function UserSettingsContextProvider({
