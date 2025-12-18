@@ -100,6 +100,18 @@ export default function Dashboard() {
           </Link>
         </View>
         <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
+          <Link
+            asChild
+            href="/dashboard/settings/stats"
+            className="flex-1"
+          >
+            <Pressable className="flex flex-row justify-between">
+              <Text>Usage Statistics</Text>
+              <ChevronRight />
+            </Pressable>
+          </Link>
+        </View>
+        <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
           <Text>Show note preview in bookmark</Text>
           <Switch
             value={settings.showNotes}

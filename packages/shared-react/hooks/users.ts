@@ -22,3 +22,11 @@ export function useDeleteAccount(
 export function useWhoAmI() {
   return api.users.whoami.useQuery();
 }
+
+export function useUserStats() {
+  return api.users.stats.useQuery();
+}
+
+export function useUserSettings() {
+  return api.users.settings.useQuery();
+}
