@@ -50,7 +50,7 @@ interface SidebarVersionProps {
 }
 
 export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
-  const { disableNewReleaseCheck } = useClientConfig();
+  const { disableNewReleaseCheck, serverBaseVersion } = useClientConfig();
   const { t } = useTranslation();
 
   const stableRelease = isStableRelease(serverVersion);
@@ -123,30 +123,30 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
   }, [releaseNotesQuery.error, t]);
 
   useEffect(() => {
-    if (!stableRelease || !serverVersion || disableNewReleaseCheck) {
+    if (!stableRelease || !serverBaseVersion || disableNewReleaseCheck) {
       setShouldNotify(false);
       return;
     }
 
     try {
       const seenVersion = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-      setShouldNotify(seenVersion !== serverVersion);
+      setShouldNotify(seenVersion !== serverBaseVersion);
     } catch (error) {
       console.warn("Failed to read localStorage:", error);
       setShouldNotify(true);
     }
-  }, [serverVersion, stableRelease, disableNewReleaseCheck]);
+  }, [serverBaseVersion, stableRelease, disableNewReleaseCheck]);
 
   const markReleaseAsSeen = useCallback(() => {
-    if (!serverVersion) return;
+    if (!serverBaseVersion) return;
     try {
-      window.localStorage.setItem(LOCAL_STORAGE_KEY, serverVersion);
+      window.localStorage.setItem(LOCAL_STORAGE_KEY, serverBaseVersion);
     } catch (error) {
       console.warn("Failed to write to localStorage:", error);
       // Ignore failures, we still clear the notification for the session
     }
     setShouldNotify(false);
-  }, [serverVersion]);
+  }, [serverBaseVersion]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {

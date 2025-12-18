@@ -9,6 +9,19 @@ const stringBool = (defaultValue: string) =>
     .refine((s) => s === "true" || s === "false")
     .transform((s) => s === "true");
 
+// Derives the base version (major.minor) from a full version string (major.minor.patch)
+// e.g., "1.2.3" -> "1.2"
+function deriveBaseVersion(version?: string): string | undefined {
+  if (!version) {
+    return undefined;
+  }
+  const parts = version.split(".");
+  if (parts.length >= 2) {
+    return `${parts[0]}.${parts[1]}`;
+  }
+  return version;
+}
+
 const optionalStringBool = () =>
   z
     .string()
@@ -127,6 +140,7 @@ const allEnv = z.object({
   MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
   // Build only flag
   SERVER_VERSION: z.string().optional(),
+  SERVER_BASE_VERSION: z.string().optional(),
   DISABLE_NEW_RELEASE_CHECK: stringBool("false"),
 
   // A flag to detect if the user is running in the old separete containers setup
@@ -341,6 +355,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
     serverVersion: val.SERVER_VERSION,
+    serverBaseVersion: val.SERVER_BASE_VERSION ?? deriveBaseVersion(val.SERVER_VERSION),
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,
     usingLegacySeparateContainers: val.USING_LEGACY_SEPARATE_CONTAINERS,
     webhook: {
@@ -451,6 +466,7 @@ export const clientConfig = {
     inferredTagLang: serverConfig.inference.inferredTagLang,
   },
   serverVersion: serverConfig.serverVersion,
+  serverBaseVersion: serverConfig.serverBaseVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,
 };
 export type ClientConfig = typeof clientConfig;
