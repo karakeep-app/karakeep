@@ -83,6 +83,9 @@ export class RuleEngine {
       case "urlContains": {
         return (this.bookmark.link?.url ?? "").includes(condition.str);
       }
+      case "urlDoesNotContain": {
+        return !(this.bookmark.link?.url ?? "").includes(condition.str);
+      }
       case "importedFromFeed": {
         return this.bookmark.rssFeeds.some(
           (f) => f.rssFeedId === condition.feedId,
