@@ -258,7 +258,7 @@ export function TagsEditor({
 
   return (
     <div ref={containerRef} className="w-full">
-      <Popover open={open && !isDisabled} onOpenChange={handleOpenChange}>
+      <Popover modal={false} open={open && !isDisabled} onOpenChange={handleOpenChange}>
         <Command shouldFilter={false}>
           <PopoverTrigger asChild>
             <div
@@ -326,7 +326,7 @@ export function TagsEditor({
             className="w-[--radix-popover-trigger-width] p-0"
             align="start"
           >
-            <CommandList className="max-h-64">
+            <CommandList className="max-h-64 overflow-y-auto overscroll-contain">
               {displayedOptions.length === 0 ? (
                 <CommandEmpty>
                   {trimmedInputValue ? (
