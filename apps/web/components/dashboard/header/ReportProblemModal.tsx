@@ -51,7 +51,7 @@ export function ReportProblemModal({
   });
 
   const { mutate: reportProblem, isPending } =
-    api.users.reportProblem.useMutation({
+    api.errorReporting.reportProblem.useMutation({
       onSuccess: () => {
         toast({
           description:
@@ -83,7 +83,14 @@ export function ReportProblemModal({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => {
-              reportProblem(values);
+              reportProblem({
+                message: values.message,
+                debugInfo: {
+                  userAgent: navigator.userAgent,
+                  url: window.location.href,
+                  timestamp: new Date().toISOString(),
+                },
+              });
             })}
           >
             <DialogHeader>

@@ -4,6 +4,7 @@ import { apiKeysAppRouter } from "./apiKeys";
 import { assetsAppRouter } from "./assets";
 import { backupsAppRouter } from "./backups";
 import { bookmarksAppRouter } from "./bookmarks";
+import { errorReportingAppRouter } from "./errorReporting";
 import { feedsAppRouter } from "./feeds";
 import { highlightsAppRouter } from "./highlights";
 import { importSessionsRouter } from "./importSessions";
@@ -35,6 +36,7 @@ export const appRouter = router({
   invites: invitesAppRouter,
   publicBookmarks: publicBookmarks,
   subscriptions: subscriptionsRouter,
+  errorReporting: errorReportingAppRouter,
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

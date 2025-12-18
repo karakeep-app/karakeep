@@ -2,6 +2,8 @@ import crypto from "node:crypto";
 import path from "path";
 import { z } from "zod";
 
+import { PluginManager, PluginType } from "./plugins";
+
 const stringBool = (defaultValue: string) =>
   z
     .string()
@@ -142,7 +144,6 @@ const allEnv = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().optional(),
-  SUPPORT_EMAIL: z.string().email().optional(),
   EMAIL_VERIFICATION_REQUIRED: stringBool("false"),
 
   // Asset storage configuration
@@ -260,7 +261,6 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             from: val.SMTP_FROM,
           }
         : undefined,
-      supportEmail: val.SUPPORT_EMAIL,
     },
     inference: {
       isConfigured: !!val.OPENAI_API_KEY || !!val.OLLAMA_BASE_URL,
@@ -453,7 +453,7 @@ export const clientConfig = {
     inferredTagLang: serverConfig.inference.inferredTagLang,
   },
   errorReporting: {
-    enabled: !!serverConfig.email.supportEmail,
+    enabled: PluginManager.isRegistered(PluginType.ErrorReport),
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

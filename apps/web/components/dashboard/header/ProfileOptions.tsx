@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   AlertCircle,
@@ -24,8 +25,6 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
-
-import { clientConfig } from "@karakeep/shared/config";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
 import { ReportProblemModal } from "./ReportProblemModal";
@@ -56,6 +55,7 @@ export default function SidebarProfileOptions() {
   const toggleTheme = useToggleTheme();
   const { data: session } = useSession();
   const router = useRouter();
+  const clientConfig = useClientConfig();
   const [reportProblemOpen, setReportProblemOpen] = useState(false);
   if (!session) return redirect("/");
 

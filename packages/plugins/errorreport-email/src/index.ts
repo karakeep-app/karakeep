@@ -6,14 +6,22 @@ import type {
 } from "@karakeep/shared/error-reporting";
 import serverConfig from "@karakeep/shared/config";
 
+import { envConfig } from "./env";
+
 class EmailErrorReportClient implements ErrorReportClient {
   async reportProblem(params: {
     userId: string;
     userName: string;
     userEmail: string;
     message: string;
+    debugInfo?: {
+      userAgent?: string;
+      url?: string;
+      timestamp?: string;
+      [key: string]: unknown;
+    };
   }): Promise<void> {
-    if (!serverConfig.email.smtp || !serverConfig.email.supportEmail) {
+    if (!serverConfig.email.smtp || !envConfig.SUPPORT_EMAIL) {
       throw new Error("SMTP or support email is not configured");
     }
 
@@ -30,9 +38,25 @@ class EmailErrorReportClient implements ErrorReportClient {
           : undefined,
     });
 
+    const debugInfoHtml = params.debugInfo
+      ? `
+          <hr style="border: 1px solid #eee; margin: 20px 0;">
+          <h3>Debug Information:</h3>
+          <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(params.debugInfo, null, 2)}</pre>
+        `
+      : "";
+
+    const debugInfoText = params.debugInfo
+      ? `
+
+Debug Information:
+${JSON.stringify(params.debugInfo, null, 2)}
+      `
+      : "";
+
     const mailOptions = {
       from: serverConfig.email.smtp.from,
-      to: serverConfig.email.supportEmail,
+      to: envConfig.SUPPORT_EMAIL,
       subject: `Problem Report from ${params.userName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -42,6 +66,7 @@ class EmailErrorReportClient implements ErrorReportClient {
           <hr style="border: 1px solid #eee; margin: 20px 0;">
           <h3>Message:</h3>
           <p style="white-space: pre-wrap;">${params.message}</p>
+          ${debugInfoHtml}
         </div>
       `,
       text: `
@@ -51,7 +76,7 @@ From: ${params.userName} (${params.userEmail})
 User ID: ${params.userId}
 
 Message:
-${params.message}
+${params.message}${debugInfoText}
       `,
     };
 
@@ -63,6 +88,10 @@ export class EmailErrorReportProvider
   implements PluginProvider<ErrorReportClient>
 {
   private client: ErrorReportClient | null = null;
+
+  static isConfigured(): boolean {
+    return envConfig.SUPPORT_EMAIL !== undefined;
+  }
 
   async getClient(): Promise<ErrorReportClient | null> {
     if (!this.client) {

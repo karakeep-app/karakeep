@@ -3,8 +3,10 @@ import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 
 import { EmailErrorReportProvider } from "./src";
 
-PluginManager.register({
-  type: PluginType.ErrorReport,
-  name: "Email",
-  provider: new EmailErrorReportProvider(),
-});
+if (EmailErrorReportProvider.isConfigured()) {
+  PluginManager.register({
+    type: PluginType.ErrorReport,
+    name: "Email",
+    provider: new EmailErrorReportProvider(),
+  });
+}

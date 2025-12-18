@@ -4,6 +4,12 @@ export interface ErrorReportClient {
     userName: string;
     userEmail: string;
     message: string;
+    debugInfo?: {
+      userAgent?: string;
+      url?: string;
+      timestamp?: string;
+      [key: string]: unknown;
+    };
   }): Promise<void>;
 }
 
