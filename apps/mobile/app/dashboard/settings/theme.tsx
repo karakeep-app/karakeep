@@ -14,17 +14,17 @@ export default function ThemePage() {
       return [
         <Pressable
           onPress={() => setSettings({ ...settings, theme })}
-          className="flex flex-row justify-between"
+          className="flex flex-row items-center justify-between gap-2"
           key={theme}
         >
-          <Text>
+          <Text className="flex-1 flex-shrink">
             {
               { light: "Light Mode", dark: "Dark Mode", system: "System" }[
                 theme
               ]
             }
           </Text>
-          {isChecked && <Check color="rgb(0, 122, 255)" />}
+          {isChecked && <Check className="flex-shrink-0" color="rgb(0, 122, 255)" />}
         </Pressable>,
         <Divider
           key={theme + "-divider"}

@@ -118,16 +118,17 @@ export default function ReaderSettingsPage() {
                 <View key={fontFamily}>
                   <Pressable
                     onPress={() => handleFontFamilyChange(fontFamily)}
-                    className="flex flex-row items-center justify-between py-2"
+                    className="flex flex-row items-center justify-between gap-2 py-2"
                   >
                     <Text
+                      className="flex-1 flex-shrink"
                       style={{
                         fontFamily: MOBILE_FONT_FAMILIES[fontFamily],
                       }}
                     >
                       {formatFontFamily(fontFamily)}
                     </Text>
-                    {isChecked && <Check color="rgb(0, 122, 255)" />}
+                    {isChecked && <Check className="flex-shrink-0" color="rgb(0, 122, 255)" />}
                   </Pressable>
                   {index < fontFamilyOptions.length - 1 && (
                     <Divider orientation="horizontal" className="h-0.5" />

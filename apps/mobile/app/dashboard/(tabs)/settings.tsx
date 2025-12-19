@@ -100,8 +100,9 @@ export default function Dashboard() {
           </Link>
         </View>
         <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
-          <Text>Show note preview in bookmark</Text>
+          <Text className="flex-1 flex-shrink">Show note preview in bookmark</Text>
           <Switch
+            className="flex-shrink-0"
             value={settings.showNotes}
             onValueChange={(value) =>
               setSettings({
