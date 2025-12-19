@@ -23,6 +23,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 
 import BookmarkActionBar from "./BookmarkActionBar";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
+import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
 import { NotePreview } from "./NotePreview";
 import TagList from "./TagList";
 
@@ -56,6 +57,23 @@ function BottomRow({
         </Link>
       </div>
       <BookmarkActionBar bookmark={bookmark} />
+    </div>
+  );
+}
+
+function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
+  const { data: session } = useSession();
+  const isOwner = session?.user?.id === bookmark.userId;
+
+  // Only show owner icon for bookmarks not owned by current user
+  if (isOwner || !bookmark.user) return null;
+
+  return (
+    <div className="absolute right-2 top-2 z-40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+      <BookmarkOwnerIcon
+        ownerName={bookmark.user.name}
+        ownerEmail={bookmark.user.email}
+      />
     </div>
   );
 }
@@ -133,11 +151,12 @@ function ListView({
   return (
     <div
       className={cn(
-        "relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
+        "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
         className,
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
+      <OwnerIndicator bookmark={bookmark} />
       <div className="flex size-32 items-center justify-center overflow-hidden">
         {image("list", cn("size-32 rounded-lg", imgFitClass))}
       </div>
@@ -191,12 +210,13 @@ function GridView({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg",
+        "group relative flex flex-col overflow-hidden rounded-lg",
         className,
         fitHeight && layout != "grid" ? "max-h-96" : "h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
+      <OwnerIndicator bookmark={bookmark} />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
@@ -228,12 +248,13 @@ function CompactView({ bookmark, title, footer, className }: Props) {
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg",
+        "group relative flex flex-col overflow-hidden rounded-lg",
         className,
         "max-h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
+      <OwnerIndicator bookmark={bookmark} />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
           {bookmark.content.type === BookmarkTypes.LINK &&
