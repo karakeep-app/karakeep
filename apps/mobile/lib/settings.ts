@@ -18,6 +18,7 @@ const zSettingsSchema = z.object({
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
+  hasSeenOnboarding: z.boolean().optional().default(false),
   // Reader settings (local device overrides)
   readerFontSize: z.number().int().min(12).max(24).optional(),
   readerLineHeight: z.number().min(1.2).max(2.5).optional(),
@@ -42,6 +43,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       defaultBookmarkView: "reader",
       showNotes: false,
       customHeaders: {},
+      hasSeenOnboarding: false,
     },
   },
   setSettings: async (settings) => {

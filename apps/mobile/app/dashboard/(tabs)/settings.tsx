@@ -48,6 +48,18 @@ export default function Dashboard() {
           App Settings
         </Text>
         <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
+          <Link
+            asChild
+            href="/dashboard/settings/onboarding"
+            className="flex-1"
+          >
+            <Pressable className="flex flex-row justify-between">
+              <Text>How to Add to Share Menu</Text>
+              <ChevronRight />
+            </Pressable>
+          </Link>
+        </View>
+        <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
           <Link asChild href="/dashboard/settings/theme" className="flex-1">
             <Pressable className="flex flex-row justify-between">
               <Text>Theme</Text>
