@@ -928,6 +928,9 @@ importers:
       rss-parser:
         specifier: ^3.13.0
         version: 3.13.0
+      sharp:
+        specifier: ^0.33.3
+        version: 0.33.3
       tesseract.js:
         specifier: ^5.1.1
         version: 5.1.1(encoding@0.1.13)
@@ -3084,9 +3087,6 @@ packages:
 
   '@emnapi/core@1.4.5':
     resolution: {integrity: sha512-XsLw1dEOpkSX/WucdqUhPWP7hDxSvZiY+fsUC14h+FtQ2Ifni4znbBt8punRX+Uj2JG/uDb8nEHVKvrVlvdZ5Q==}
-
-  '@emnapi/runtime@1.4.3':
-    resolution: {integrity: sha512-pBPWdu6MLKROBX05wSNKcNb++m5Er+KQ9QkB+WVM+pW2Kx9hoSrVTnu3BdkI5eBLZoKu/J6mW/B6i6bJB2ytXQ==}
 
   '@emnapi/runtime@1.4.5':
     resolution: {integrity: sha512-++LApOtY0pEEz1zrd9vy1/zXVaVJJ/EbAF3u0fXIzPJEDtnITsBGbbK0EkM72amhl/R5b+5xx0Y/QhcVOpuulg==}
@@ -18087,11 +18087,6 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@emnapi/runtime@1.4.3':
-    dependencies:
-      tslib: 2.8.1
-    optional: true
-
   '@emnapi/runtime@1.4.5':
     dependencies:
       tslib: 2.8.1
@@ -18819,7 +18814,7 @@ snapshots:
 
   '@img/sharp-wasm32@0.33.3':
     dependencies:
-      '@emnapi/runtime': 1.4.3
+      '@emnapi/runtime': 1.4.5
     optional: true
 
   '@img/sharp-wasm32@0.34.3':
@@ -19338,7 +19333,7 @@ snapshots:
   '@napi-rs/wasm-runtime@1.0.0':
     dependencies:
       '@emnapi/core': 1.4.5
-      '@emnapi/runtime': 1.4.3
+      '@emnapi/runtime': 1.4.5
       '@tybys/wasm-util': 0.10.0
     optional: true
 
@@ -29172,7 +29167,7 @@ snapshots:
       react: 19.1.0
       react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
       react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
-      semver: 7.7.2
+      semver: 7.7.3
       tailwindcss: 3.4.1
     optionalDependencies:
       react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
@@ -29190,7 +29185,7 @@ snapshots:
       react: 19.1.0
       react-native: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0)
       react-native-reanimated: 3.18.0(@babel/core@7.28.0)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)
-      semver: 7.7.2
+      semver: 7.7.3
       tailwindcss: 3.4.1
     transitivePeerDependencies:
       - supports-color
@@ -30332,7 +30327,7 @@ snapshots:
     dependencies:
       color: 4.2.3
       detect-libc: 2.0.4
-      semver: 7.7.2
+      semver: 7.7.3
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.3
       '@img/sharp-darwin-x64': 0.33.3
@@ -31426,7 +31421,7 @@ snapshots:
       is-yarn-global: 0.4.1
       latest-version: 7.0.0
       pupa: 3.1.0
-      semver: 7.7.2
+      semver: 7.7.3
       semver-diff: 4.0.0
       xdg-basedir: 5.1.0
 

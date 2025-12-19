@@ -5,6 +5,7 @@ import { fetchWithProxy } from "network";
 import { z } from "zod";
 
 import logger from "@karakeep/shared/logger";
+import { RedditBannerRenderer } from "../bannerRenderers/redditBannerRenderer";
 
 /**
  * This is a metascraper plugin to select a better
@@ -86,6 +87,16 @@ interface RedditCacheEntry {
 }
 
 const redditJsonCache = new Map<string, RedditCacheEntry>();
+
+// Lazy-initialized banner renderer
+let bannerRenderer: RedditBannerRenderer | null = null;
+
+const getBannerRenderer = (): RedditBannerRenderer => {
+  if (!bannerRenderer) {
+    bannerRenderer = new RedditBannerRenderer();
+  }
+  return bannerRenderer;
+};
 
 const purgeExpiredCacheEntries = (now: number) => {
   for (const [key, entry] of redditJsonCache.entries()) {
@@ -333,6 +344,34 @@ const metascraperReddit = () => {
         const redditImage = extractImageFromPost(result.post);
         if (redditImage) {
           return redditImage;
+        }
+
+        // If no image found and post has no text content, generate a banner
+        const hasTextContent = result.post.selftext && result.post.selftext.trim().length > 0;
+        if (!hasTextContent) {
+          try {
+            const renderer = getBannerRenderer();
+            const bannerResult = await renderer.render({
+              title: result.post.title || "Reddit Post",
+              subreddit: result.post.subreddit_name_prefixed,
+            });
+
+            // Convert buffer to data URL
+            const base64 = bannerResult.buffer.toString("base64");
+            const dataUrl = `data:${bannerResult.contentType};base64,${base64}`;
+
+            logger.info(
+              `[MetascraperReddit] Generated banner for Reddit post without image: ${url}`
+            );
+
+            return dataUrl;
+          } catch (error) {
+            logger.error(
+              "[MetascraperReddit] Failed to generate banner for Reddit post:",
+              error
+            );
+            // Fall through to return undefined
+          }
         }
       }
 

@@ -53,6 +53,7 @@
     "prom-client": "^15.1.3",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "rss-parser": "^3.13.0",
+    "sharp": "^0.33.3",
     "tesseract.js": "^5.1.1",
     "tsx": "^4.8.1",
     "typescript": "^5.9",
