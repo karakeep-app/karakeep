@@ -3,7 +3,7 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import PageTitle from "@/components/ui/PageTitle";
 import { Text } from "@/components/ui/Text";
 import { useUserStats, useUserSettings } from "@karakeep/shared-react/hooks/users";
-import StatsDisplay from "@/components/stats/StatsDisplay.dom";
+import StatsDisplay from "@karakeep/shared-react/components/stats/StatsDisplay.dom";
 
 export default function StatsPage() {
   const { data: stats, isLoading, error } = useUserStats();
