@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/client";
-import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
+import { LogOut, Moon, Paintbrush, Settings, Shield, Smartphone, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
@@ -90,6 +90,16 @@ export default function SidebarProfileOptions() {
             <Paintbrush className="mr-2 size-4" />
             {t("cleanups.cleanups")}
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a
+            href="https://karakeep.app/apps"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Smartphone className="mr-2 size-4" />
+            Get Mobile & Browser Extensions
+          </a>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={toggleTheme}>
           <DarkModeToggle />

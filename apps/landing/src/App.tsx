@@ -1,3 +1,4 @@
+import Apps from "@/src/Apps";
 import Homepage from "@/src/Homepage";
 import Pricing from "@/src/Pricing";
 import Privacy from "@/src/Privacy";
@@ -10,6 +11,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Homepage />} />
+        <Route path="/apps" element={<Apps />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/privacy" element={<Privacy />} />
       </Routes>
