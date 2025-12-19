@@ -21,6 +21,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
+import { Card, CardContent } from "@/components/ui/card";
 import BookmarkActionBar from "./BookmarkActionBar";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
 import { NotePreview } from "./NotePreview";
@@ -131,9 +132,9 @@ function ListView({
   const note = showNotes ? bookmark.note?.trim() : undefined;
 
   return (
-    <div
+    <Card
       className={cn(
-        "relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
+        "relative flex max-h-96 gap-4 overflow-hidden p-2",
         className,
       )}
     >
@@ -141,7 +142,7 @@ function ListView({
       <div className="flex size-32 items-center justify-center overflow-hidden">
         {image("list", cn("size-32 rounded-lg", imgFitClass))}
       </div>
-      <div className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden">
+      <CardContent className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden p-0">
         <div className="flex flex-col gap-2 overflow-hidden">
           {showTitle && title && (
             <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
@@ -160,8 +161,8 @@ function ListView({
           )}
         </div>
         <BottomRow footer={footer} bookmark={bookmark} />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -189,16 +190,16 @@ function GridView({
   );
 
   return (
-    <div
+    <Card
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg",
+        "relative flex flex-col overflow-hidden",
         className,
         fitHeight && layout != "grid" ? "max-h-96" : "h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
-      <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
+      <CardContent className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
           {showTitle && title && (
             <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
@@ -218,23 +219,23 @@ function GridView({
           )}
         </div>
         <BottomRow footer={footer} bookmark={bookmark} />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
 function CompactView({ bookmark, title, footer, className }: Props) {
   const { showTitle } = useBookmarkDisplaySettings();
   return (
-    <div
+    <Card
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg",
+        "relative flex flex-col overflow-hidden",
         className,
         "max-h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
-      <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
+      <CardContent className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
           {bookmark.content.type === BookmarkTypes.LINK &&
             bookmark.content.favicon && (
@@ -271,8 +272,8 @@ function CompactView({ bookmark, title, footer, className }: Props) {
           </Link>
         </div>
         <BookmarkActionBar bookmark={bookmark} />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
