@@ -59,6 +59,17 @@ export default function SidebarProfileOptions() {
   const [reportProblemOpen, setReportProblemOpen] = useState(false);
   if (!session) return redirect("/");
 
+  const handleReportProblem = () => {
+    if (clientConfig.errorReporting.enabled) {
+      setReportProblemOpen(true);
+    } else {
+      window.open(
+        "https://github.com/karakeep-app/karakeep/issues/new/choose",
+        "_blank",
+      );
+    }
+  };
+
   return (
     <>
       <ReportProblemModal
@@ -109,12 +120,10 @@ export default function SidebarProfileOptions() {
             {t("cleanups.cleanups")}
           </Link>
         </DropdownMenuItem>
-        {clientConfig.errorReporting.enabled && (
-          <DropdownMenuItem onClick={() => setReportProblemOpen(true)}>
-            <AlertCircle className="mr-2 size-4" />
-            <span>Report a Problem</span>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={handleReportProblem}>
+          <AlertCircle className="mr-2 size-4" />
+          <span>Report a Problem</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={toggleTheme}>
           <DarkModeToggle />
         </DropdownMenuItem>
