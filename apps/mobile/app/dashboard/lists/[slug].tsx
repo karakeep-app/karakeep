@@ -8,9 +8,6 @@ import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
 import { Ellipsis } from "lucide-react-native";
-import { useState } from "react";
-import { ShareListModal } from "@/components/lists/ShareListModal";
-import { ManageCollaboratorsModal } from "@/components/lists/ManageCollaboratorsModal";
 
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
@@ -33,7 +30,7 @@ export default function ListView() {
           headerBackTitle: "Back",
           headerLargeTitle: true,
           headerRight: () => (
-            <ListActionsMenu listId={slug} role={list?.userRole ?? "viewer"} list={list} />
+            <ListActionsMenu listId={slug} role={list?.userRole ?? "viewer"} />
           ),
         }}
       />
@@ -57,16 +54,10 @@ export default function ListView() {
 function ListActionsMenu({
   listId,
   role,
-  list,
 }: {
   listId: string;
   role: ZBookmarkList["userRole"];
-  list: ZBookmarkList | undefined;
 }) {
-  const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [collaboratorsModalVisible, setCollaboratorsModalVisible] =
-    useState(false);
-
   const { mutate: deleteList } = api.lists.delete.useMutation({
     onSuccess: () => {
       router.replace("/dashboard/lists");
@@ -106,80 +97,62 @@ function ListActionsMenu({
   };
 
   return (
-    <>
-      <MenuView
-        actions={[
-          {
-            id: "share",
-            title: "Share",
-            attributes: {
-              hidden: role !== "owner",
-            },
-            image: Platform.select({
-              ios: "square.and.arrow.up",
-            }),
+    <MenuView
+      actions={[
+        {
+          id: "share",
+          title: "Share",
+          attributes: {
+            hidden: role !== "owner",
           },
-          {
-            id: "collaborators",
-            title: role === "owner" ? "Manage Collaborators" : "View Collaborators",
-            image: Platform.select({
-              ios: "person.2",
-            }),
+          image: Platform.select({
+            ios: "square.and.arrow.up",
+          }),
+        },
+        {
+          id: "collaborators",
+          title: role === "owner" ? "Manage Collaborators" : "View Collaborators",
+          image: Platform.select({
+            ios: "person.2",
+          }),
+        },
+        {
+          id: "delete",
+          title: "Delete List",
+          attributes: {
+            destructive: true,
+            hidden: role !== "owner",
           },
-          {
-            id: "delete",
-            title: "Delete List",
-            attributes: {
-              destructive: true,
-              hidden: role !== "owner",
-            },
-            image: Platform.select({
-              ios: "trash",
-            }),
+          image: Platform.select({
+            ios: "trash",
+          }),
+        },
+        {
+          id: "leave",
+          title: "Leave List",
+          attributes: {
+            destructive: true,
+            hidden: role === "owner",
           },
-          {
-            id: "leave",
-            title: "Leave List",
-            attributes: {
-              destructive: true,
-              hidden: role === "owner",
-            },
-          },
-        ]}
-        onPressAction={({ nativeEvent }) => {
-          if (nativeEvent.event === "share") {
-            setShareModalVisible(true);
-          }
-          if (nativeEvent.event === "collaborators") {
-            setCollaboratorsModalVisible(true);
-          }
-          if (nativeEvent.event === "delete") {
-            handleDelete();
-          }
-          if (nativeEvent.event === "leave") {
-            handleLeave();
-          }
-        }}
-        shouldOpenOnLongPress={false}
-      >
-        <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
-      </MenuView>
-
-      {list && (
-        <>
-          <ShareListModal
-            visible={shareModalVisible}
-            list={list}
-            onClose={() => setShareModalVisible(false)}
-          />
-          <ManageCollaboratorsModal
-            visible={collaboratorsModalVisible}
-            list={list}
-            readOnly={role !== "owner"}
-            onClose={() => setCollaboratorsModalVisible(false)}
-          />
-        </>
-      )}
-    </>
+        },
+      ]}
+      onPressAction={({ nativeEvent }) => {
+        if (nativeEvent.event === "share") {
+          router.push(`/dashboard/lists/${listId}/share`);
+        }
+        if (nativeEvent.event === "collaborators") {
+          router.push(`/dashboard/lists/${listId}/manage_collaborators`);
+        }
+        if (nativeEvent.event === "delete") {
+          handleDelete();
+        }
+        if (nativeEvent.event === "leave") {
+          handleLeave();
+        }
+      }}
+      shouldOpenOnLongPress={false}
+    >
+      <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+    </MenuView>
   );
 }
