@@ -64,6 +64,14 @@ export default function RootLayout() {
             />
             <Stack.Screen name="sharing" />
             <Stack.Screen
+              name="server-address"
+              options={{
+                title: "Server Address",
+                headerShown: true,
+                presentation: "modal",
+              }}
+            />
+            <Stack.Screen
               name="test-connection"
               options={{
                 title: "Test Connection",

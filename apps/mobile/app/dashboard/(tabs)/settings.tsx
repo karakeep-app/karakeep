@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, Pressable, Switch, View } from "react-native";
 import { Slider } from "react-native-awesome-slider";
 import { useSharedValue } from "react-native-reanimated";
 import { Link } from "expo-router";
-import { ServerAddressModal } from "@/components/ServerAddressModal";
 import { Button } from "@/components/ui/Button";
 import ChevronRight from "@/components/ui/ChevronRight";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
@@ -22,9 +21,6 @@ export default function Dashboard() {
     isLoading: isSettingsLoading,
   } = useAppSettings();
 
-  const [isServerAddressModalVisible, setIsServerAddressModalVisible] =
-    useState(false);
-
   const imageQuality = useSharedValue(0);
   const imageQualityMin = useSharedValue(0);
   const imageQualityMax = useSharedValue(100);
@@ -39,39 +35,14 @@ export default function Dashboard() {
     logout();
   }
 
-  const handleSaveServerAddress = (address: string) => {
-    setSettings({
-      ...settings,
-      address: address,
-    });
-  };
-
   return (
     <CustomSafeAreaView>
       <PageTitle title="Settings" />
       <View className="flex h-full w-full items-center gap-3 px-4 py-2">
         <View className="flex w-full gap-3 rounded-lg bg-card px-4 py-2">
-          <Pressable
-            className="flex flex-row items-center justify-between"
-            onPress={() => setIsServerAddressModalVisible(true)}
-          >
-            <View className="flex-1">
-              <Text className="text-sm text-muted-foreground">
-                Server Address
-              </Text>
-              <Text className="text-base">
-                {isSettingsLoading ? "Loading ..." : settings.address}
-              </Text>
-            </View>
-            <ChevronRight />
-          </Pressable>
+          <Text>{isSettingsLoading ? "Loading ..." : settings.address}</Text>
           <Divider orientation="horizontal" />
-          <View>
-            <Text className="text-sm text-muted-foreground">Email</Text>
-            <Text className="text-base">
-              {isLoading ? "Loading ..." : data?.email}
-            </Text>
-          </View>
+          <Text>{isLoading ? "Loading ..." : data?.email}</Text>
         </View>
         <Text className="w-full p-1 text-2xl font-bold text-foreground">
           App Settings
@@ -171,12 +142,6 @@ export default function Dashboard() {
           <Text>Log Out</Text>
         </Button>
       </View>
-      <ServerAddressModal
-        visible={isServerAddressModalVisible}
-        currentAddress={settings.address ?? "https://cloud.karakeep.app"}
-        onClose={() => setIsServerAddressModalVisible(false)}
-        onSave={handleSaveServerAddress}
-      />
     </CustomSafeAreaView>
   );
 }

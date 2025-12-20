@@ -9,7 +9,6 @@ import {
 import { Redirect, useRouter } from "expo-router";
 import { CustomHeadersModal } from "@/components/CustomHeadersModal";
 import Logo from "@/components/Logo";
-import { ServerAddressModal } from "@/components/ServerAddressModal";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -29,8 +28,6 @@ export default function Signin() {
 
   const [error, setError] = useState<string | undefined>();
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
-  const [isServerAddressModalVisible, setIsServerAddressModalVisible] =
-    useState(false);
   const [isCustomHeadersModalVisible, setIsCustomHeadersModalVisible] =
     useState(false);
 
@@ -83,13 +80,6 @@ export default function Signin() {
 
   const handleSaveCustomHeaders = (headers: Record<string, string>) => {
     setSettings({ ...settings, customHeaders: headers });
-  };
-
-  const handleSaveServerAddress = (address: string) => {
-    setSettings({
-      ...settings,
-      address: address,
-    });
   };
 
   const onSignin = () => {
@@ -152,7 +142,7 @@ export default function Signin() {
               <Button
                 size="icon"
                 variant="secondary"
-                onPress={() => setIsServerAddressModalVisible(true)}
+                onPress={() => router.push("/server-address")}
               >
                 <TailwindResolver
                   comp={(styles) => (
@@ -258,12 +248,6 @@ export default function Signin() {
         customHeaders={settings.customHeaders || {}}
         onClose={() => setIsCustomHeadersModalVisible(false)}
         onSave={handleSaveCustomHeaders}
-      />
-      <ServerAddressModal
-        visible={isServerAddressModalVisible}
-        currentAddress={settings.address ?? "https://cloud.karakeep.app"}
-        onClose={() => setIsServerAddressModalVisible(false)}
-        onSave={handleSaveServerAddress}
       />
     </KeyboardAvoidingView>
   );
