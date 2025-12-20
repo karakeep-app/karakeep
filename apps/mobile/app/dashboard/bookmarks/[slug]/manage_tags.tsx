@@ -1,11 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  SectionList,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable, SectionList, TouchableOpacity, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
@@ -74,11 +68,7 @@ const ListPickerPage = () => {
     );
   }, [existingTags]);
 
-  const {
-    mutate: updateTags,
-    isPending: isUpdatingTags,
-    variables: updateVariables,
-  } = useUpdateBookmarkTags({
+  const { mutate: updateTags } = useUpdateBookmarkTags({
     onMutate: (req) => {
       req.attach.forEach((t) =>
         setOptimisticTags((prev) => [
@@ -92,23 +82,6 @@ const ListPickerPage = () => {
     },
     onError,
   });
-
-  const isTagLoading = (tagId: string, tagName: string) => {
-    if (!isUpdatingTags || !updateVariables) return false;
-
-    // Check if this tag is being attached or detached
-    const isBeingModified =
-      updateVariables.attach.some((t) =>
-        (tagId === NEW_TAG_ID && t.tagName === tagName) ||
-        (t.tagId === tagId)
-      ) ||
-      updateVariables.detach.some((t) =>
-        (tagId === NEW_TAG_ID && t.tagName === tagName) ||
-        (t.tagId === tagId)
-      );
-
-    return isBeingModified;
-  };
 
   const clearAllTags = () => {
     if (optimisticTags.length === 0) return;
@@ -205,67 +178,50 @@ const ListPickerPage = () => {
             data: filteredTags.filteredAllTags ?? [],
           },
         ]}
-        renderItem={(t) => {
-          const isLoading = isTagLoading(t.item.id, t.item.name);
-
-          return (
-            <Pressable
-              key={t.item.id}
-              onPress={() =>
-                !isLoading &&
-                updateTags({
-                  bookmarkId,
-                  detach:
-                    t.section.title == "Existing Tags"
-                      ? [
-                          {
-                            tagId:
-                              t.item.id == NEW_TAG_ID ? undefined : t.item.id,
-                            tagName: t.item.name,
-                          },
-                        ]
-                      : [],
-                  attach:
-                    t.section.title == "All Tags"
-                      ? [
-                          {
-                            tagId:
-                              t.item.id == NEW_TAG_ID ? undefined : t.item.id,
-                            tagName: t.item.name,
-                          },
-                        ]
-                      : [],
-                })
-              }
-              disabled={isLoading}
-            >
-              <View
-                className={`mx-2 flex flex-row items-center gap-2 rounded-xl border border-input bg-card px-4 py-2 ${
-                  isLoading ? "opacity-50" : ""
-                }`}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" />
-                ) : (
-                  <>
-                    {t.section.title == "Existing Tags" && (
-                      <Check color={colors.foreground} />
-                    )}
-                    {t.section.title == "All Tags" &&
-                      t.item.id == NEW_TAG_ID && (
-                        <Plus color={colors.foreground} />
-                      )}
-                  </>
-                )}
-                <Text>
-                  {t.item.id == NEW_TAG_ID
-                    ? `Create new tag '${t.item.name}'`
-                    : t.item.name}
-                </Text>
-              </View>
-            </Pressable>
-          );
-        }}
+        renderItem={(t) => (
+          <Pressable
+            key={t.item.id}
+            onPress={() =>
+              updateTags({
+                bookmarkId,
+                detach:
+                  t.section.title == "Existing Tags"
+                    ? [
+                        {
+                          tagId:
+                            t.item.id == NEW_TAG_ID ? undefined : t.item.id,
+                          tagName: t.item.name,
+                        },
+                      ]
+                    : [],
+                attach:
+                  t.section.title == "All Tags"
+                    ? [
+                        {
+                          tagId:
+                            t.item.id == NEW_TAG_ID ? undefined : t.item.id,
+                          tagName: t.item.name,
+                        },
+                      ]
+                    : [],
+              })
+            }
+          >
+            <View className="mx-2 flex flex-row items-center gap-2 rounded-xl border border-input bg-card px-4 py-2">
+              {t.section.title == "Existing Tags" && (
+                <Check color={colors.foreground} />
+              )}
+              {t.section.title == "All Tags" && t.item.id == NEW_TAG_ID && (
+                <Plus color={colors.foreground} />
+              )}
+              <Text>
+                {t.item.id == NEW_TAG_ID
+                  ? `Create new tag '${t.item.name}'`
+                  : t.item.name}
+              </Text>
+            </View>
+          </Pressable>
+        )}
       />
     </CustomSafeAreaView>
   );

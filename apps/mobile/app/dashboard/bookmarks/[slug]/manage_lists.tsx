@@ -108,7 +108,9 @@ const ListPickerPage = () => {
                 className="flex w-full flex-row justify-between"
               >
                 <Text>
-                  {l.item.map((item) => `${item.icon} ${item.name}`).join(" / ")}
+                  {l.item
+                    .map((item) => `${item.icon} ${item.name}`)
+                    .join(" / ")}
                 </Text>
                 {isLoading ? (
                   <ActivityIndicator size="small" />
