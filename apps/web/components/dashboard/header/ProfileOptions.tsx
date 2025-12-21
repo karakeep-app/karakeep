@@ -12,7 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/client";
-import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
+import {
+  LogOut,
+  Moon,
+  Paintbrush,
+  Settings,
+  Shield,
+  Sparkles,
+  Sun,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
@@ -71,6 +79,15 @@ export default function SidebarProfileOptions() {
           <Link href="/settings">
             <Settings className="mr-2 size-4" />
             {t("settings.user_settings")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href="/wrapped/2025"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+          >
+            <Sparkles className="mr-2 size-4" />
+            <span className="font-semibold">2025 Wrapped</span>
           </Link>
         </DropdownMenuItem>
         {session.user.role == "admin" && (
