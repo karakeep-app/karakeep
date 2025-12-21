@@ -84,6 +84,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import metascraperYouTubeApi from "../metascraper-plugins/metascraper-youtube-api";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
@@ -128,6 +129,7 @@ const metascraperParser = metascraper([
   }),
   metascraperAmazonImproved(), // Fix image extraction bug - must come before metascraperAmazon()
   metascraperAmazon(),
+  metascraperYouTubeApi(), // Use YouTube Data API - must come before metascraperYoutube()
   metascraperYoutube({
     gotOpts: {
       agent: {

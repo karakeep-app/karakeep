@@ -59,6 +59,7 @@ const allEnv = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
+  YOUTUBE_API_KEY: z.string().optional(),
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
@@ -307,6 +308,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
+      youtubeApiKey: val.YOUTUBE_API_KEY,
       ipValidation: {
         dnsResolverTimeoutSec:
           val.CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC,
