@@ -20,6 +20,7 @@ import {
 import { deleteUserAssets } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
+  z2025WrappedResponseSchema,
   zResetPasswordSchema,
   zSignUpSchema,
   zUpdateUserSettingsSchema,
@@ -756,6 +757,336 @@ export class User {
       },
       tagUsage,
       bookmarksBySource,
+    };
+  }
+
+  async get2025Wrapped(): Promise<z.infer<typeof z2025WrappedResponseSchema>> {
+    const userObj = await this.ctx.db.query.users.findFirst({
+      where: eq(users.id, this.user.id),
+      columns: {
+        timezone: true,
+      },
+    });
+    const userTimezone = userObj?.timezone || "UTC";
+
+    // Define 2025 date range (in UTC)
+    const year2025Start = new Date("2025-01-01T00:00:00.000Z");
+    const year2025End = new Date("2025-12-31T23:59:59.999Z");
+
+    const [
+      [{ totalBookmarks2025 }],
+      [{ favorites2025 }],
+      [{ highlights2025 }],
+      [{ listsCreated2025 }],
+      bookmarksByType2025,
+      topDomains2025,
+      topTags2025,
+      bookmarksBySource2025,
+      firstBookmark,
+      allBookmarks2025,
+    ] = await Promise.all([
+      // Total bookmarks in 2025
+      this.ctx.db
+        .select({ totalBookmarks2025: count() })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        ),
+
+      // Favorites in 2025
+      this.ctx.db
+        .select({ favorites2025: count() })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            eq(bookmarks.favourited, true),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        ),
+
+      // Highlights in 2025
+      this.ctx.db
+        .select({ highlights2025: count() })
+        .from(highlights)
+        .innerJoin(bookmarks, eq(highlights.bookmarkId, bookmarks.id))
+        .where(
+          and(
+            eq(highlights.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        ),
+
+      // Lists created in 2025
+      this.ctx.db
+        .select({ listsCreated2025: count() })
+        .from(bookmarkLists)
+        .where(
+          and(
+            eq(bookmarkLists.userId, this.user.id),
+            gte(bookmarkLists.createdAt, year2025Start),
+            sql`${bookmarkLists.createdAt} <= ${year2025End}`,
+          ),
+        ),
+
+      // Bookmarks by type in 2025
+      this.ctx.db
+        .select({
+          type: bookmarks.type,
+          count: count(),
+        })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        )
+        .groupBy(bookmarks.type),
+
+      // Top 5 domains in 2025
+      this.ctx.db
+        .select({
+          domain: sql<string>`CASE
+            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 9)
+              END
+            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 8)
+              END
+            ELSE
+              CASE
+                WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
+                ELSE
+                  ${bookmarkLinks.url}
+              END
+          END`,
+          count: count(),
+        })
+        .from(bookmarkLinks)
+        .innerJoin(bookmarks, eq(bookmarkLinks.id, bookmarks.id))
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        )
+        .groupBy(
+          sql`CASE
+            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 9)
+              END
+            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 8)
+              END
+            ELSE
+              CASE
+                WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
+                ELSE
+                  ${bookmarkLinks.url}
+              END
+          END`,
+        )
+        .orderBy(desc(count()))
+        .limit(5),
+
+      // Top 5 tags in 2025
+      this.ctx.db
+        .select({
+          name: bookmarkTags.name,
+          count: count(),
+        })
+        .from(bookmarkTags)
+        .innerJoin(tagsOnBookmarks, eq(tagsOnBookmarks.tagId, bookmarkTags.id))
+        .innerJoin(bookmarks, eq(tagsOnBookmarks.bookmarkId, bookmarks.id))
+        .where(
+          and(
+            eq(bookmarkTags.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        )
+        .groupBy(bookmarkTags.name)
+        .orderBy(desc(count()))
+        .limit(5),
+
+      // Bookmarks by source in 2025
+      this.ctx.db
+        .select({
+          source: bookmarks.source,
+          count: count(),
+        })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        )
+        .groupBy(bookmarks.source)
+        .orderBy(desc(count())),
+
+      // First bookmark of 2025
+      this.ctx.db
+        .select({
+          id: bookmarks.id,
+          title: bookmarks.title,
+          createdAt: bookmarks.createdAt,
+        })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        )
+        .orderBy(bookmarks.createdAt)
+        .limit(1),
+
+      // All bookmarks in 2025 for time analysis
+      this.ctx.db
+        .select({
+          createdAt: bookmarks.createdAt,
+        })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.user.id),
+            gte(bookmarks.createdAt, year2025Start),
+            sql`${bookmarks.createdAt} <= ${year2025End}`,
+          ),
+        ),
+    ]);
+
+    // Process bookmarks by type
+    const bookmarkTypeMap = { link: 0, text: 0, asset: 0 };
+    bookmarksByType2025.forEach((item) => {
+      if (item.type in bookmarkTypeMap) {
+        bookmarkTypeMap[item.type as keyof typeof bookmarkTypeMap] = item.count;
+      }
+    });
+
+    // Process timestamps with user timezone to find patterns
+    const hourCounts = Array.from({ length: 24 }, () => 0);
+    const dayCounts = Array.from({ length: 7 }, () => 0);
+    const monthCounts = Array.from({ length: 12 }, () => 0);
+
+    allBookmarks2025.forEach(({ createdAt }) => {
+      if (createdAt) {
+        const date = new Date(createdAt);
+        const userDate = new Date(
+          date.toLocaleString("en-US", { timeZone: userTimezone }),
+        );
+
+        const hour = userDate.getHours();
+        const day = userDate.getDay();
+        const month = userDate.getMonth(); // 0-11
+
+        hourCounts[hour]++;
+        dayCounts[day]++;
+        monthCounts[month]++;
+      }
+    });
+
+    // Find most active hour
+    let mostActiveHour = null;
+    const maxHourCount = Math.max(...hourCounts);
+    if (maxHourCount > 0) {
+      const hourIndex = hourCounts.indexOf(maxHourCount);
+      mostActiveHour = {
+        hour: hourIndex,
+        count: maxHourCount,
+      };
+    }
+
+    // Find most active day
+    let mostActiveDay = null;
+    const maxDayCount = Math.max(...dayCounts);
+    if (maxDayCount > 0) {
+      const dayIndex = dayCounts.indexOf(maxDayCount);
+      mostActiveDay = {
+        day: dayIndex,
+        count: maxDayCount,
+      };
+    }
+
+    // Find most active month
+    let mostActiveMonth = null;
+    const maxMonthCount = Math.max(...monthCounts);
+    if (maxMonthCount > 0) {
+      const monthIndex = monthCounts.indexOf(maxMonthCount);
+      mostActiveMonth = {
+        month: monthIndex + 1, // Convert to 1-12
+        count: maxMonthCount,
+      };
+    }
+
+    // Monthly breakdown
+    const monthlyBreakdown = monthCounts.map((count, index) => ({
+      month: index + 1,
+      count,
+    }));
+
+    // Find most used source
+    let mostUsedSource = null;
+    if (bookmarksBySource2025.length > 0) {
+      mostUsedSource = {
+        source: bookmarksBySource2025[0].source,
+        count: bookmarksBySource2025[0].count,
+      };
+    }
+
+    return {
+      totalBookmarks2025: totalBookmarks2025 || 0,
+      mostActiveMonth,
+      mostActiveDay,
+      mostActiveHour,
+      firstBookmark2025:
+        firstBookmark.length > 0
+          ? {
+              id: firstBookmark[0].id,
+              title: firstBookmark[0].title,
+              createdAt: firstBookmark[0].createdAt,
+            }
+          : null,
+      topDomains2025: topDomains2025.filter(
+        (d) => d.domain && d.domain.length > 0,
+      ),
+      topTags2025,
+      bookmarksByType2025: bookmarkTypeMap,
+      favorites2025: favorites2025 || 0,
+      highlights2025: highlights2025 || 0,
+      listsCreated2025: listsCreated2025 || 0,
+      mostUsedSource,
+      monthlyBreakdown,
     };
   }
 

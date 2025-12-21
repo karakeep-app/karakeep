@@ -102,6 +102,80 @@ export const zUserStatsResponseSchema = z.object({
   ),
 });
 
+export const z2025WrappedResponseSchema = z.object({
+  // Total bookmarks saved in 2025
+  totalBookmarks2025: z.number(),
+  // Most active month (1-12)
+  mostActiveMonth: z
+    .object({
+      month: z.number().min(1).max(12),
+      count: z.number(),
+    })
+    .nullable(),
+  // Most active day of the week (0-6, Sunday-Saturday)
+  mostActiveDay: z
+    .object({
+      day: z.number().min(0).max(6),
+      count: z.number(),
+    })
+    .nullable(),
+  // Most active hour (0-23)
+  mostActiveHour: z
+    .object({
+      hour: z.number().min(0).max(23),
+      count: z.number(),
+    })
+    .nullable(),
+  // First bookmark of 2025
+  firstBookmark2025: z
+    .object({
+      id: z.string(),
+      title: z.string().nullable(),
+      createdAt: z.date(),
+    })
+    .nullable(),
+  // Top 5 domains in 2025
+  topDomains2025: z.array(
+    z.object({
+      domain: z.string(),
+      count: z.number(),
+    }),
+  ),
+  // Top 5 tags in 2025
+  topTags2025: z.array(
+    z.object({
+      name: z.string(),
+      count: z.number(),
+    }),
+  ),
+  // Bookmarks by type in 2025
+  bookmarksByType2025: z.object({
+    link: z.number(),
+    text: z.number(),
+    asset: z.number(),
+  }),
+  // Favorites in 2025
+  favorites2025: z.number(),
+  // Highlights in 2025
+  highlights2025: z.number(),
+  // Lists created in 2025
+  listsCreated2025: z.number(),
+  // Most used source in 2025
+  mostUsedSource: z
+    .object({
+      source: zBookmarkSourceSchema.nullable(),
+      count: z.number(),
+    })
+    .nullable(),
+  // Monthly breakdown for the year
+  monthlyBreakdown: z.array(
+    z.object({
+      month: z.number().min(1).max(12),
+      count: z.number(),
+    }),
+  ),
+});
+
 export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
 export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
 

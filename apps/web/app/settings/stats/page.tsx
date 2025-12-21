@@ -26,10 +26,12 @@ import {
   List,
   Rss,
   Smartphone,
+  Sparkles,
   TrendingUp,
   Upload,
   Zap,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
@@ -160,6 +162,7 @@ function StatCard({
 
 export default function StatsPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { data: stats, isLoading } = api.users.stats.useQuery();
   const { data: userSettings } = api.users.settings.useQuery();
 
@@ -235,6 +238,32 @@ export default function StatsPage() {
           )}
         </p>
       </div>
+
+      {/* 2025 Wrapped Banner */}
+      <Card className="bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 border-0 text-white overflow-hidden">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-full">
+                <Sparkles className="h-8 w-8" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-1">Your 2025 Wrapped</h3>
+                <p className="text-white/90">
+                  Discover your year in bookmarks with a personalized story
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/wrapped/2025")}
+              className="bg-white text-purple-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 flex items-center gap-2"
+            >
+              View Your Wrapped
+              <Sparkles className="h-5 w-5" />
+            </button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

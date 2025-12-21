@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import serverConfig from "@karakeep/shared/config";
 import {
+  z2025WrappedResponseSchema,
   zResetPasswordSchema,
   zSignUpSchema,
   zUpdateUserSettingsSchema,
@@ -135,6 +136,12 @@ export const usersAppRouter = router({
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.getStats();
+    }),
+  wrapped2025: authedProcedure
+    .output(z2025WrappedResponseSchema)
+    .query(async ({ ctx }) => {
+      const user = await User.fromCtx(ctx);
+      return await user.get2025Wrapped();
     }),
   settings: authedProcedure
     .output(zUserSettingsSchema)
