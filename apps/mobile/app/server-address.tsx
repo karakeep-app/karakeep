@@ -5,6 +5,7 @@ import { Stack, useRouter } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Input } from "@/components/ui/Input";
+import PageTitle from "@/components/ui/PageTitle";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { Plus, Trash2 } from "lucide-react-native";
@@ -92,6 +93,7 @@ export default function ServerAddress() {
     <CustomSafeAreaView>
       <Stack.Screen
         options={{
+          title: "Server Address",
           headerRight: () => (
             <Pressable onPress={handleSave}>
               <Text className="text-base font-semibold text-blue-500">
@@ -101,29 +103,31 @@ export default function ServerAddress() {
           ),
         }}
       />
+      <PageTitle title="Server Address" />
       <KeyboardAwareScrollView
-        className="px-4"
+        className="w-full"
+        contentContainerClassName="items-center gap-4 px-4 py-4"
         bottomOffset={20}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex w-full gap-4 py-4">
-          <Text className="text-sm text-gray-600 dark:text-gray-400">
-            Enter the URL of your Karakeep server. This should start with
-            http:// or https://.
+        {/* Error Message */}
+        {error && (
+          <View className="w-full rounded-lg bg-red-50 p-3 dark:bg-red-950">
+            <Text className="text-center text-sm text-red-600 dark:text-red-400">
+              {error}
+            </Text>
+          </View>
+        )}
+
+        {/* Server Address Section */}
+        <View className="w-full">
+          <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
+            Server URL
           </Text>
-
-          {/* Error Message */}
-          {error && (
-            <View className="rounded-lg bg-red-50 p-3 dark:bg-red-950">
-              <Text className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </Text>
-            </View>
-          )}
-
-          {/* Server Address Input */}
-          <View className="gap-2">
-            <Text className="text-sm font-semibold">Server URL</Text>
+          <View className="w-full gap-3 rounded-lg bg-card px-4 py-4">
+            <Text className="text-sm text-muted-foreground">
+              Enter the URL of your Karakeep server
+            </Text>
             <Input
               placeholder="https://cloud.karakeep.app"
               value={address}
@@ -134,38 +138,47 @@ export default function ServerAddress() {
               autoCapitalize="none"
               keyboardType="url"
               autoFocus
-              inputClasses="bg-card"
+              inputClasses="bg-background"
             />
-            <Text className="text-xs text-gray-500 dark:text-gray-400">
-              Example: https://cloud.karakeep.app or http://localhost:3000
+            <Text className="text-xs text-muted-foreground">
+              Must start with http:// or https://
             </Text>
           </View>
+        </View>
 
-          {/* Custom Headers Section */}
-          <View className="gap-2 border-t border-border pt-4">
-            <Text className="text-base font-semibold">Custom Headers</Text>
-            <Text className="text-sm text-gray-600 dark:text-gray-400">
-              Add custom HTTP headers that will be sent with every API request.
+        {/* Custom Headers Section */}
+        <View className="w-full">
+          <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
+            Custom Headers
+            {headers.length > 0 && (
+              <Text className="text-muted-foreground"> ({headers.length})</Text>
+            )}
+          </Text>
+          <View className="w-full gap-3 rounded-lg bg-card px-4 py-4">
+            <Text className="text-sm text-muted-foreground">
+              Add custom HTTP headers for API requests
             </Text>
 
             {/* Existing Headers List */}
-            <View className="gap-2">
-              {headers.length === 0 ? (
-                <Text className="py-2 text-center text-sm text-gray-500 dark:text-gray-400">
+            {headers.length === 0 ? (
+              <View className="py-4">
+                <Text className="text-center text-sm text-muted-foreground">
                   No custom headers configured
                 </Text>
-              ) : (
-                headers.map((header, index) => (
+              </View>
+            ) : (
+              <View className="gap-2">
+                {headers.map((header, index) => (
                   <View
                     key={index}
-                    className="flex-row items-center gap-2 rounded-lg border border-border bg-background p-3"
+                    className="flex-row items-center gap-3 rounded-lg border border-border bg-background p-3"
                   >
-                    <View className="flex-1">
+                    <View className="flex-1 gap-1">
                       <Text className="text-sm font-semibold">
                         {header.key}
                       </Text>
                       <Text
-                        className="text-xs text-gray-600 dark:text-gray-400"
+                        className="text-xs text-muted-foreground"
                         numberOfLines={1}
                       >
                         {header.value}
@@ -173,31 +186,32 @@ export default function ServerAddress() {
                     </View>
                     <Pressable
                       onPress={() => handleRemoveHeader(index)}
-                      className="p-2"
+                      className="rounded-md p-2"
+                      hitSlop={8}
                     >
                       <Trash2 size={18} color="#ef4444" />
                     </Pressable>
                   </View>
-                ))
-              )}
-            </View>
+                ))}
+              </View>
+            )}
 
-            {/* Add New Header */}
+            {/* Add New Header Form */}
             <View className="gap-2 border-t border-border pt-4">
-              <Text className="text-sm font-semibold">Add New Header</Text>
+              <Text className="text-sm font-medium">Add New Header</Text>
               <Input
                 placeholder="Header Name (e.g., X-Custom-Header)"
                 value={newHeaderKey}
                 onChangeText={setNewHeaderKey}
                 autoCapitalize="none"
-                inputClasses="bg-card"
+                inputClasses="bg-background"
               />
               <Input
                 placeholder="Header Value"
                 value={newHeaderValue}
                 onChangeText={setNewHeaderValue}
                 autoCapitalize="none"
-                inputClasses="bg-card"
+                inputClasses="bg-background"
               />
               <Button
                 variant="secondary"
