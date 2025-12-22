@@ -827,7 +827,6 @@ export const bookmarksAppRouter = router({
                 tagId: i,
                 bookmarkId: input.bookmarkId,
                 attachedBy: "human" as const,
-                userId: ctx.user.id,
               })),
             )
             .onConflictDoNothing();
