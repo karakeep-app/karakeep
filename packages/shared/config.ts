@@ -449,6 +449,8 @@ export const clientConfig = {
   inference: {
     isConfigured: serverConfig.inference.isConfigured,
     inferredTagLang: serverConfig.inference.inferredTagLang,
+    enableAutoTagging: serverConfig.inference.enableAutoTagging,
+    enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,
