@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare": "effect-language-service patch",
     "build": "turbo --no-daemon build",
     "dev": "turbo --no-daemon dev --parallel",
     "clean": "git clean -xdf node_modules",
@@ -26,6 +27,7 @@
     "husky": "^9.0.11"
   },
   "devDependencies": {
+    "@effect/language-service": "^0.57.1",
     "@karakeep/prettier-config": "workspace:^0.1.0",
     "@types/node": "^24",
     "oxlint": "^1.29.0",

@@ -20,6 +20,7 @@
     "dompurify": "^3.2.4",
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.44.2",
+    "effect": "^3.19.8",
     "execa": "9.3.1",
     "hono": "^4.10.6",
     "html-entities": "^2.6.0",

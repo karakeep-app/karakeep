@@ -1,13 +1,52 @@
 import dns from "node:dns/promises";
 import type { HeadersInit, RequestInit, Response } from "node-fetch";
+import {
+  Cache,
+  Context,
+  Duration,
+  Effect,
+  Either,
+  Layer,
+  Schema,
+} from "effect";
+import { UnknownException } from "effect/Cause";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import ipaddr from "ipaddr.js";
-import { LRUCache } from "lru-cache";
 import fetch, { Headers } from "node-fetch";
 
 import serverConfig from "@karakeep/shared/config";
-import logger from "@karakeep/shared/logger";
+
+class FetchError extends Schema.TaggedError<FetchError>()("FetchError", {
+  cause: Schema.Defect,
+}) {}
+
+class UrlValidationError extends Schema.TaggedError<UrlValidationError>()(
+  "UrlValidationError",
+  {
+    reason: Schema.String,
+  },
+) {}
+
+class UrlParseError extends Schema.TaggedError<UrlParseError>()(
+  "UrlParseError",
+  {
+    cause: Schema.Defect,
+  },
+) {}
+
+class HostAddressResolutionError extends Schema.TaggedError<HostAddressResolutionError>()(
+  "HostAddressResolutionError",
+  {
+    cause: Schema.Array(Schema.Defect),
+  },
+) {}
+
+const parseUrl = (...param: ConstructorParameters<typeof URL>) =>
+  Effect.try({
+    try: () => new URL(...param),
+    catch: (error) => UrlParseError.make({ cause: error }),
+  });
 
 const DISALLOWED_IP_RANGES = new Set([
   // IPv4 ranges
@@ -28,48 +67,77 @@ const DISALLOWED_IP_RANGES = new Set([
   "discard", // RFC 6666 - discard-only prefix
 ]);
 
-// DNS cache with 5 minute TTL and max 1000 entries
-const dnsCache = new LRUCache<string, string[]>({
-  max: 1000,
-  ttl: 5 * 60 * 1000, // 5 minutes in milliseconds
-});
-
-async function resolveHostAddresses(hostname: string): Promise<string[]> {
-  const resolver = new dns.Resolver({
-    timeout: serverConfig.crawler.ipValidation.dnsResolverTimeoutSec * 1000,
-  });
-
-  const results = await Promise.allSettled([
-    resolver.resolve4(hostname),
-    resolver.resolve6(hostname),
-  ]);
-
-  const addresses: string[] = [];
-  const errors: string[] = [];
-
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      addresses.push(...result.value);
-    } else {
-      const reason = result.reason;
-      if (reason instanceof Error) {
-        errors.push(reason.message);
-      } else {
-        errors.push(String(reason));
-      }
-    }
-  }
-
-  if (addresses.length > 0) {
-    return addresses;
-  }
-
-  const errorMessage =
-    errors.length > 0
-      ? errors.join("; ")
-      : "DNS lookup did not return any A or AAAA records";
-  throw new Error(errorMessage);
+interface DnsResolverServiceImpl {
+  resolveHostAddresses(
+    hostname: string,
+  ): Effect.Effect<string[], HostAddressResolutionError>;
 }
+
+class DnsResolverService extends Context.Tag(
+  "@karakeep/apps/workers/DnsResolverService",
+)<DnsResolverService, DnsResolverServiceImpl>() {}
+
+// DNS cache with 5 minute TTL and max 1000 entries
+const DnsCache = Cache.make({
+  capacity: 1000,
+  timeToLive: Duration.minutes(5),
+  lookup: (hostname: string) =>
+    Effect.gen(function* () {
+      const resolver = yield* DnsResolverService;
+      yield* Effect.log(`[DnsCacheStore] Resolving ${hostname}`);
+      return yield* resolver.resolveHostAddresses(hostname);
+    }),
+}).pipe(Effect.cached, Effect.flatten);
+
+const DnsResolverLive = Layer.effect(
+  DnsResolverService,
+  Effect.gen(function* () {
+    const resolver = yield* Effect.sync(
+      () =>
+        new dns.Resolver({
+          timeout:
+            serverConfig.crawler.ipValidation.dnsResolverTimeoutSec * 1000,
+        }),
+    );
+
+    const resolveHostAddresses = (hostname: string) =>
+      Effect.gen(function* () {
+        const results = yield* Effect.all(
+          [
+            Effect.tryPromise(() => resolver.resolve4(hostname)),
+            Effect.tryPromise(() => resolver.resolve6(hostname)),
+          ],
+          {
+            concurrency: "unbounded",
+            mode: "either",
+          },
+        );
+
+        const addresses: string[] = [];
+        const errors: UnknownException[] = [];
+
+        for (const result of results) {
+          if (Either.isRight(result)) {
+            addresses.push(...result.right);
+          } else {
+            errors.push(result.left);
+          }
+        }
+
+        if (addresses.length > 0) {
+          return addresses;
+        }
+
+        return yield* HostAddressResolutionError.make({
+          cause: errors,
+        });
+      });
+
+    return DnsResolverService.of({
+      resolveHostAddresses,
+    });
+  }),
+);
 
 function isAddressForbidden(address: string): boolean {
   if (!ipaddr.isValid(address)) {
@@ -124,137 +192,121 @@ function isHostnameAllowedForInternalAccess(hostname: string): boolean {
   );
 }
 
-export async function validateUrl(
+const validateUrlEffect = (
   urlCandidate: string,
   runningInProxyContext: boolean,
-): Promise<UrlValidationResult> {
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(urlCandidate);
-  } catch (error) {
-    return {
-      ok: false,
-      reason: `Invalid URL "${urlCandidate}": ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    } as const;
-  }
-
-  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-    return {
-      ok: false,
-      reason: `Unsupported protocol for URL: ${parsedUrl.toString()}`,
-    } as const;
-  }
-
-  const hostname = parsedUrl.hostname;
-  if (!hostname) {
-    return {
-      ok: false,
-      reason: `URL ${parsedUrl.toString()} must include a hostname`,
-    } as const;
-  }
-
-  if (isHostnameAllowedForInternalAccess(hostname)) {
-    return { ok: true, url: parsedUrl } as const;
-  }
-
-  if (ipaddr.isValid(hostname)) {
-    if (isAddressForbidden(hostname)) {
-      return {
-        ok: false,
-        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()})`,
-      } as const;
+) =>
+  Effect.gen(function* () {
+    const parsedUrl = yield* parseUrl(urlCandidate);
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return yield* UrlValidationError.make({
+        reason: `Unsupported protocol for URL`,
+      });
     }
-    return { ok: true, url: parsedUrl } as const;
-  }
 
-  if (runningInProxyContext) {
-    // If we're running in a proxy context, we must skip DNS resolution
-    // as the DNS resolution will be handled by the proxy
-    return { ok: true, url: parsedUrl } as const;
-  }
-
-  // Check cache first
-  let records = dnsCache.get(hostname);
-
-  if (!records) {
-    // Cache miss or expired - perform DNS resolution
-    try {
-      records = await resolveHostAddresses(hostname);
-      dnsCache.set(hostname, records);
-    } catch (error) {
-      return {
-        ok: false,
-        reason: `Failed to resolve hostname ${hostname}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      } as const;
+    const hostname = parsedUrl.hostname;
+    if (!hostname) {
+      return yield* UrlValidationError.make({
+        reason: `URL must include a hostname`,
+      });
     }
-  }
 
-  if (!records || records.length === 0) {
-    return {
-      ok: false,
-      reason: `DNS lookup for ${hostname} did not return any addresses (requested via ${parsedUrl.toString()})`,
-    } as const;
-  }
-
-  for (const record of records) {
-    if (isAddressForbidden(record)) {
-      return {
-        ok: false,
-        reason: `Refusing to access disallowed resolved address ${record} for host ${hostname}`,
-      } as const;
+    if (isHostnameAllowedForInternalAccess(hostname)) {
+      return parsedUrl;
     }
-  }
 
-  return { ok: true, url: parsedUrl } as const;
-}
+    if (ipaddr.isValid(hostname)) {
+      if (isAddressForbidden(hostname)) {
+        return yield* UrlValidationError.make({
+          reason: `Refusing to access disallowed IP address ${hostname}`,
+        });
+      }
+      return parsedUrl;
+    }
+
+    if (runningInProxyContext) {
+      // If we're running in a proxy context, we must skip DNS resolution
+      // as the DNS resolution will be handled by the proxy
+      return parsedUrl;
+    }
+
+    const dnsCache = yield* DnsCache;
+
+    // Check cache first
+    let records = yield* dnsCache.get(hostname);
+
+    if (!records || records.length === 0) {
+      return yield* UrlValidationError.make({
+        reason: `DNS lookup for ${hostname} did not return any addresses (requested via ${parsedUrl.toString()})`,
+      });
+    }
+
+    for (const record of records) {
+      if (isAddressForbidden(record)) {
+        return yield* UrlValidationError.make({
+          reason: `Refusing to access disallowed resolved address ${record} for host ${hostname}`,
+        });
+      }
+    }
+    return parsedUrl;
+  });
+
+export const validateUrl = (
+  urlCandidate: string,
+  runningInProxyContext: boolean,
+) =>
+  validateUrlEffect(urlCandidate, runningInProxyContext).pipe(
+    Effect.either,
+    Effect.provide(DnsResolverLive),
+    Effect.runPromise,
+  );
 
 export function getRandomProxy(proxyList: string[]): string {
   return proxyList[Math.floor(Math.random() * proxyList.length)].trim();
 }
 
-export function matchesNoProxy(url: string, noProxy: string[]) {
-  try {
-    const urlObj = new URL(url);
+const matchesNoProxyEffect = (url: string, noProxy: string[]) =>
+  Effect.gen(function* () {
+    const urlObj = yield* parseUrl(url);
     const hostname = urlObj.hostname;
     return hostnameMatchesAnyPattern(hostname, noProxy);
-  } catch (e) {
-    logger.error(`Failed to parse URL: ${url}: ${e}`);
-    return false;
-  }
-}
+  }).pipe(Effect.catchTag("UrlParseError", () => Effect.succeed(false)));
 
-export function getProxyAgent(url: string) {
-  const { proxy } = serverConfig;
+export const matchesNoProxy = (url: string, noProxy: string[]) =>
+  matchesNoProxyEffect(url, noProxy).pipe(Effect.runSync);
 
-  if (!proxy.httpProxy && !proxy.httpsProxy) {
+const getProxyAgentEffect = (url: string) =>
+  Effect.gen(function* () {
+    const { proxy } = serverConfig;
+
+    if (!proxy.httpProxy && !proxy.httpsProxy) {
+      return undefined;
+    }
+
+    const urlObj = yield* parseUrl(url);
+    const protocol = urlObj.protocol;
+
+    // Check if URL should bypass proxy
+    if (proxy.noProxy && (yield* matchesNoProxyEffect(url, proxy.noProxy))) {
+      return undefined;
+    }
+
+    if (protocol === "https:" && proxy.httpsProxy) {
+      const selectedProxy = getRandomProxy(proxy.httpsProxy);
+      return new HttpsProxyAgent(selectedProxy);
+    } else if (protocol === "http:" && proxy.httpProxy) {
+      const selectedProxy = getRandomProxy(proxy.httpProxy);
+      return new HttpProxyAgent(selectedProxy);
+    } else if (proxy.httpProxy) {
+      const selectedProxy = getRandomProxy(proxy.httpProxy);
+      return new HttpProxyAgent(selectedProxy);
+    }
+
     return undefined;
-  }
+  });
 
-  const urlObj = new URL(url);
-  const protocol = urlObj.protocol;
-
-  // Check if URL should bypass proxy
-  if (proxy.noProxy && matchesNoProxy(url, proxy.noProxy)) {
-    return undefined;
-  }
-
-  if (protocol === "https:" && proxy.httpsProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpsProxy);
-    return new HttpsProxyAgent(selectedProxy);
-  } else if (protocol === "http:" && proxy.httpProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpProxy);
-    return new HttpProxyAgent(selectedProxy);
-  } else if (proxy.httpProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpProxy);
-    return new HttpProxyAgent(selectedProxy);
-  }
-
-  return undefined;
-}
+export const getProxyAgent = (url: string) =>
+  getProxyAgentEffect(url).pipe(Effect.runSync);
 
 function cloneHeaders(init?: HeadersInit): Headers {
   const headers = new Headers();
@@ -359,71 +411,74 @@ export function buildFetchOptions({
   };
 }
 
-export const fetchWithProxy = async (
+export const fetchWithProxy = (
   url: string,
   options: FetchWithProxyOptions = {},
-) => {
-  const {
-    maxRedirects,
-    baseHeaders,
-    method: preparedMethod,
-    body: preparedBody,
-    baseOptions,
-  } = prepareFetchOptions(options);
+) =>
+  Effect.gen(function* () {
+    const {
+      maxRedirects,
+      baseHeaders,
+      method: preparedMethod,
+      body: preparedBody,
+      baseOptions,
+    } = prepareFetchOptions(options);
 
-  let redirectsRemaining = maxRedirects;
-  let currentUrl = url;
-  let currentMethod = preparedMethod;
-  let currentBody = preparedBody;
+    let redirectsRemaining = maxRedirects;
+    let currentUrl = url;
+    let currentMethod = preparedMethod;
+    let currentBody = preparedBody;
 
-  while (true) {
-    const agent = getProxyAgent(currentUrl);
+    while (true) {
+      const agent = yield* getProxyAgentEffect(currentUrl);
 
-    const validation = await validateUrl(currentUrl, !!agent);
-    if (!validation.ok) {
-      throw new Error(validation.reason);
+      const requestUrl = yield* validateUrlEffect(currentUrl, !!agent);
+      currentUrl = requestUrl.toString();
+
+      const response = yield* Effect.tryPromise({
+        try: () =>
+          fetch(
+            currentUrl,
+            buildFetchOptions({
+              method: currentMethod,
+              body: currentBody,
+              headers: baseHeaders,
+              agent,
+              baseOptions,
+            }),
+          ),
+        catch: (error) => FetchError.make({ cause: error }),
+      });
+
+      if (!isRedirectResponse(response)) {
+        return response;
+      }
+
+      const locationHeader = response.headers.get("location");
+      if (!locationHeader) {
+        return response;
+      }
+
+      if (redirectsRemaining <= 0) {
+        return yield* FetchError.make({
+          cause: new Error(`Too many redirects while fetching ${url}`),
+        });
+      }
+
+      const nextUrl = yield* parseUrl(locationHeader, currentUrl);
+
+      if (
+        response.status === 303 ||
+        ((response.status === 301 || response.status === 302) &&
+          currentMethod !== "GET" &&
+          currentMethod !== "HEAD")
+      ) {
+        currentMethod = "GET";
+        currentBody = undefined;
+        baseHeaders.delete("content-length");
+      }
+
+      currentUrl = nextUrl.toString();
+      redirectsRemaining -= 1;
     }
-    const requestUrl = validation.url;
-    currentUrl = requestUrl.toString();
-
-    const response = await fetch(
-      currentUrl,
-      buildFetchOptions({
-        method: currentMethod,
-        body: currentBody,
-        headers: baseHeaders,
-        agent,
-        baseOptions,
-      }),
-    );
-
-    if (!isRedirectResponse(response)) {
-      return response;
-    }
-
-    const locationHeader = response.headers.get("location");
-    if (!locationHeader) {
-      return response;
-    }
-
-    if (redirectsRemaining <= 0) {
-      throw new Error(`Too many redirects while fetching ${url}`);
-    }
-
-    const nextUrl = new URL(locationHeader, currentUrl);
-
-    if (
-      response.status === 303 ||
-      ((response.status === 301 || response.status === 302) &&
-        currentMethod !== "GET" &&
-        currentMethod !== "HEAD")
-    ) {
-      currentMethod = "GET";
-      currentBody = undefined;
-      baseHeaders.delete("content-length");
-    }
-
-    currentUrl = nextUrl.toString();
-    redirectsRemaining -= 1;
-  }
-};
+  }).pipe(Effect.provide(DnsResolverLive), Effect.runPromise);
