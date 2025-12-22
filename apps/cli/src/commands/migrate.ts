@@ -16,6 +16,7 @@ import {
   MAX_NUM_BOOKMARKS_PER_PAGE,
 } from "@karakeep/shared/types/bookmarks";
 import { ZCursor } from "@karakeep/shared/types/pagination";
+import { isAllowedToAttachAsset } from "@karakeep/trpc/lib/attachments";
 
 const OK = chalk.green("✓");
 const FAIL = chalk.red("✗");
@@ -782,6 +783,76 @@ async function migrateBookmarks(
           }
           default: {
             continue;
+          }
+        }
+
+        // Migrate bookmark attachments
+        if (b.assets && b.assets.length > 0) {
+          for (const asset of b.assets) {
+            // Only migrate assets that are allowed to be attached
+            if (!isAllowedToAttachAsset(asset.assetType)) {
+              continue;
+            }
+
+            try {
+              // Download asset from source
+              const downloadResp = await fetch(
+                `${opts.srcServer}/api/assets/${asset.id}`,
+                {
+                  headers: { authorization: `Bearer ${opts.srcApiKey}` },
+                },
+              );
+
+              if (!downloadResp.ok) {
+                throw new Error(
+                  `Failed to download asset: ${downloadResp.status} ${downloadResp.statusText}`,
+                );
+              }
+
+              const srcContentType =
+                downloadResp.headers.get("content-type") ??
+                "application/octet-stream";
+              const arrayBuf = await downloadResp.arrayBuffer();
+              const blob = new Blob([arrayBuf], { type: srcContentType });
+              const fileName = asset.fileName ?? `asset-${asset.id}`;
+
+              // Upload to destination
+              const form = new FormData();
+              form.append("file", blob, fileName);
+              const uploadResp = await fetch(`${opts.destServer}/api/assets`, {
+                method: "POST",
+                headers: { authorization: `Bearer ${opts.destApiKey}` },
+                body: form,
+              });
+
+              if (!uploadResp.ok) {
+                throw new Error(
+                  `Failed to upload asset: ${uploadResp.status} ${uploadResp.statusText}`,
+                );
+              }
+
+              const uploaded: {
+                assetId: string;
+                contentType: string | null;
+                size: number | null;
+                fileName: string | null;
+              } = await uploadResp.json();
+
+              // Attach asset to new bookmark
+              await dest.assets.attachAsset.mutate({
+                bookmarkId: createdId!,
+                asset: {
+                  id: uploaded.assetId,
+                  assetType: asset.assetType,
+                },
+              });
+            } catch (error) {
+              // Log error but continue with other assets
+              printErrorMessageWithReason(
+                `Failed migrating asset "${asset.id}" for bookmark "${b.id}"`,
+                error as object,
+              );
+            }
           }
         }
 
