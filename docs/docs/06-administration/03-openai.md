@@ -1,4 +1,4 @@
-# OpenAI Costs
+# Tagging Costs
 
 This service uses OpenAI for automatic tagging. This means that you'll incur some costs if automatic tagging is enabled. There are two type of inferences that we do:
 
