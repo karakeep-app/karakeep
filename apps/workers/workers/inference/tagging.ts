@@ -1,4 +1,4 @@
-import { and, Column, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
@@ -66,14 +66,14 @@ function parseJsonFromLLMResponse(response: string): unknown {
   }
 }
 
-function tagNormalizer(col: Column) {
+function tagNormalizer() {
+  // This function needs to be in sync with the generated normalizedName column in bookmarkTags
   function normalizeTag(tag: string) {
     return tag.toLowerCase().replace(/[ \-_]/g, "");
   }
 
   return {
     normalizeTag,
-    sql: sql`lower(replace(replace(replace(${col}, ' ', ''), '-', ''), '_', ''))`,
   };
 }
 async function buildPrompt(
@@ -317,12 +317,10 @@ async function connectTags(
     return;
   }
 
-  await db.transaction(async (tx) => {
+  const res = await db.transaction(async (tx) => {
     // Attempt to match exiting tags with the new ones
     const { matchedTagIds, notFoundTagNames } = await (async () => {
-      const { normalizeTag, sql: normalizedTagSql } = tagNormalizer(
-        bookmarkTags.name,
-      );
+      const { normalizeTag } = tagNormalizer();
       const normalizedInferredTags = inferredTags.map((t) => ({
         originalTag: t,
         normalizedTag: normalizeTag(t),
@@ -332,7 +330,7 @@ async function connectTags(
         where: and(
           eq(bookmarkTags.userId, userId),
           inArray(
-            normalizedTagSql,
+            bookmarkTags.normalizedName,
             normalizedInferredTags.map((t) => t.normalizedTag),
           ),
         ),
@@ -394,17 +392,19 @@ async function connectTags(
       .onConflictDoNothing()
       .returning();
 
-    await triggerRuleEngineOnEvent(bookmarkId, [
-      ...detachedTags.map((t) => ({
-        type: "tagRemoved" as const,
-        tagId: t.tagId,
-      })),
-      ...attachedTags.map((t) => ({
-        type: "tagAdded" as const,
-        tagId: t.tagId,
-      })),
-    ]);
+    return { detachedTags, attachedTags };
   });
+
+  await triggerRuleEngineOnEvent(bookmarkId, [
+    ...res.detachedTags.map((t) => ({
+      type: "tagRemoved" as const,
+      tagId: t.tagId,
+    })),
+    ...res.attachedTags.map((t) => ({
+      type: "tagAdded" as const,
+      tagId: t.tagId,
+    })),
+  ]);
 }
 
 async function fetchBookmark(linkId: string) {
