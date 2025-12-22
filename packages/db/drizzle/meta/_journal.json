@@ -512,6 +512,13 @@
       "when": 1766414953855,
       "tag": "0072_add_user_ai_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "6",
+      "when": 1766415864664,
+      "tag": "0073_add_last_indexed_at_to_bookmarks",
+      "breakpoints": true
     }
   ]
 }

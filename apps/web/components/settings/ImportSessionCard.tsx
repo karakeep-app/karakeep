@@ -184,7 +184,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
 
               {/* Detailed Progress Breakdown */}
               <div className="space-y-2 rounded-lg border bg-muted/30 p-3 dark:bg-muted/10">
-                <h5 className="text-xs font-semibold text-muted-foreground uppercase">
+                <h5 className="text-xs font-semibold uppercase text-muted-foreground">
                   Processing Stages
                 </h5>
 
