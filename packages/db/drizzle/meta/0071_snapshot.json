@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "40ca508f-99ae-45d7-81f4-4c5e14bd2f5b",
+  "id": "74441c0b-d9b5-4154-9ef5-71fff60d52fe",
   "prevId": "ff48e807-eda8-4a9f-ab94-afd693f415eb",
   "tables": {
     "account": {
@@ -773,6 +773,17 @@
           "notNull": true,
           "autoincrement": false
         },
+        "normalizedName": {
+          "name": "normalizedName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "generated": {
+            "as": "(lower(replace(replace(replace(\"name\", ' ', ''), '-', ''), '_', '')))",
+            "type": "virtual"
+          }
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "integer",
@@ -800,6 +811,13 @@
           "name": "bookmarkTags_userId_idx",
           "columns": [
             "userId"
+          ],
+          "isUnique": false
+        },
+        "bookmarkTags_normalizedName_idx": {
+          "name": "bookmarkTags_normalizedName_idx",
+          "columns": [
+            "normalizedName"
           ],
           "isUnique": false
         },
@@ -2823,20 +2841,6 @@
         "readerFontFamily": {
           "name": "readerFontFamily",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "autoTaggingEnabled": {
-          "name": "autoTaggingEnabled",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "autoSummarizationEnabled": {
-          "name": "autoSummarizationEnabled",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
