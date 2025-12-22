@@ -31,12 +31,12 @@ import { Plus, Save, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
   buildImagePrompt,
   buildSummaryPromptUntruncated,
   buildTextPromptUntruncated,
 } from "@karakeep/shared/prompts";
-import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import {
   zNewPromptSchema,
   ZPrompt,
@@ -83,9 +83,8 @@ export function AIPreferences() {
 
   return (
     <div className="mt-2 flex flex-col gap-2">
-      <div className="w-full text-xl font-medium sm:w-1/3">AI Preferences</div>
       <p className="mb-1 text-xs italic text-muted-foreground">
-        Control which AI features are enabled for your account.
+        {t("settings.ai.ai_preferences_description")}
       </p>
       <Form {...form}>
         <form className="space-y-4">
@@ -96,9 +95,9 @@ export function AIPreferences() {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                   <div className="space-y-0.5">
-                    <FormLabel>Auto-tagging</FormLabel>
+                    <FormLabel>{t("settings.ai.auto_tagging")}</FormLabel>
                     <FormDescription>
-                      Automatically generate tags for your bookmarks using AI.
+                      {t("settings.ai.auto_tagging_description")}
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -122,10 +121,9 @@ export function AIPreferences() {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                   <div className="space-y-0.5">
-                    <FormLabel>Auto-summarization</FormLabel>
+                    <FormLabel>{t("settings.ai.auto_summarization")}</FormLabel>
                     <FormDescription>
-                      Automatically generate summaries for your bookmarks using
-                      AI.
+                      {t("settings.ai.auto_summarization_description")}
                     </FormDescription>
                   </div>
                   <FormControl>
