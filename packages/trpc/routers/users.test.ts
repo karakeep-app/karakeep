@@ -163,6 +163,10 @@ describe("User Routes", () => {
       readerFontFamily: null,
       readerFontSize: null,
       readerLineHeight: null,
+
+      // AI Settings
+      autoSummarizationEnabled: null,
+      autoTaggingEnabled: null,
     });
 
     // Update settings
@@ -176,6 +180,10 @@ describe("User Routes", () => {
       readerFontFamily: "serif",
       readerFontSize: 12,
       readerLineHeight: 1.5,
+
+      // AI Settings
+      autoSummarizationEnabled: true,
+      autoTaggingEnabled: true,
     });
 
     // Verify updated settings
@@ -192,6 +200,10 @@ describe("User Routes", () => {
       readerFontFamily: "serif",
       readerFontSize: 12,
       readerLineHeight: 1.5,
+
+      // AI Settings
+      autoSummarizationEnabled: true,
+      autoTaggingEnabled: true,
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)
