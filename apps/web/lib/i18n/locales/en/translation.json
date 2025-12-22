@@ -222,6 +222,11 @@
     },
     "ai": {
       "ai_settings": "AI Settings",
+      "ai_preferences_description": "Control which AI features are enabled for your account.",
+      "auto_tagging": "Auto-tagging",
+      "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
+      "auto_summarization": "Auto-summarization",
+      "auto_summarization_description": "Automatically generate summaries for your bookmarks using AI.",
       "tagging_rules": "Tagging Rules",
       "tagging_rule_description": "Prompts that you add here will be included as rules to the model during tag generation. You can view the final prompts in the prompt preview section.",
       "prompt_preview": "Prompt Preview",

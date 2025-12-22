@@ -77,6 +77,12 @@ export const users = sqliteTable("user", {
   readerFontFamily: text("readerFontFamily", {
     enum: ["serif", "sans", "mono"],
   }),
+
+  // AI Settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: integer("autoTaggingEnabled", { mode: "boolean" }),
+  autoSummarizationEnabled: integer("autoSummarizationEnabled", {
+    mode: "boolean",
+  }),
 });
 
 export const accounts = sqliteTable(
