@@ -1,6 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
-import invariant from "tiny-invariant";
 import { z } from "zod";
 
 import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
@@ -714,36 +713,79 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
+      // Helper function to fetch tag IDs from a list of tag identifiers
+      const fetchTagIds = async (
+        tagIdentifiers: { tagId?: string; tagName?: string }[],
+      ): Promise<string[]> => {
+        const tagIds = tagIdentifiers.flatMap((t) =>
+          t.tagId ? [t.tagId] : [],
+        );
+        const tagNames = tagIdentifiers.flatMap((t) =>
+          t.tagName ? [t.tagName] : [],
+        );
+
+        // Fetch tag IDs in parallel
+        const [byIds, byNames] = await Promise.all([
+          tagIds.length > 0
+            ? ctx.db
+                .select({ id: bookmarkTags.id })
+                .from(bookmarkTags)
+                .where(
+                  and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.id, tagIds),
+                  ),
+                )
+            : Promise.resolve([]),
+          tagNames.length > 0
+            ? ctx.db
+                .select({ id: bookmarkTags.id })
+                .from(bookmarkTags)
+                .where(
+                  and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.name, tagNames),
+                  ),
+                )
+            : Promise.resolve([]),
+        ]);
+
+        // Union results and deduplicate tag IDs
+        const results = [...byIds, ...byNames];
+        return [...new Set(results.map((t) => t.id))];
+      };
+
+      // Normalize tag names and create new tags outside transaction to reduce transaction duration
+      const normalizedAttachTags = input.attach.map((tag) => ({
+        tagId: tag.tagId,
+        tagName: tag.tagName ? normalizeTagName(tag.tagName) : undefined,
+      }));
+
+      {
+        // Create new tags
+        const toAddTagNames = normalizedAttachTags
+          .flatMap((i) => (i.tagName ? [i.tagName] : []))
+          .filter((n) => n.length > 0); // drop empty results
+
+        if (toAddTagNames.length > 0) {
+          await ctx.db
+            .insert(bookmarkTags)
+            .values(
+              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+            )
+            .onConflictDoNothing();
+        }
+      }
+
+      // Fetch tag IDs for attachment/detachment now that we know that they all exist
+      const [allIdsToAttach, idsToRemove] = await Promise.all([
+        fetchTagIds(normalizedAttachTags),
+        fetchTagIds(input.detach),
+      ]);
+
       const res = await ctx.db.transaction(async (tx) => {
         // Detaches
-        const idsToRemove: string[] = [];
-        if (input.detach.length > 0) {
-          const namesToRemove: string[] = [];
-          input.detach.forEach((detachInfo) => {
-            if (detachInfo.tagId) {
-              idsToRemove.push(detachInfo.tagId);
-            }
-            if (detachInfo.tagName) {
-              namesToRemove.push(detachInfo.tagName);
-            }
-          });
-
-          if (namesToRemove.length > 0) {
-            (
-              await tx.query.bookmarkTags.findMany({
-                where: and(
-                  eq(bookmarkTags.userId, ctx.user.id),
-                  inArray(bookmarkTags.name, namesToRemove),
-                ),
-                columns: {
-                  id: true,
-                },
-              })
-            ).forEach((tag) => {
-              idsToRemove.push(tag.id);
-            });
-          }
-
+        if (idsToRemove.length > 0) {
           await tx
             .delete(tagsOnBookmarks)
             .where(
@@ -754,67 +796,21 @@ export const bookmarksAppRouter = router({
             );
         }
 
-        if (input.attach.length == 0) {
-          return {
-            bookmarkId: input.bookmarkId,
-            attached: [],
-            detached: idsToRemove,
-          };
-        }
-
-        const toAddTagNames = input.attach
-          .flatMap((i) => (i.tagName ? [i.tagName] : []))
-          .map(normalizeTagName) // strip leading #
-          .filter((n) => n.length > 0); // drop empty results
-
-        const toAddTagIds = input.attach.flatMap((i) =>
-          i.tagId ? [i.tagId] : [],
-        );
-
-        // New Tags
-        if (toAddTagNames.length > 0) {
+        // Attach tags
+        if (allIdsToAttach.length > 0) {
           await tx
-            .insert(bookmarkTags)
+            .insert(tagsOnBookmarks)
             .values(
-              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+              allIdsToAttach.map((i) => ({
+                tagId: i,
+                bookmarkId: input.bookmarkId,
+                attachedBy: "human" as const,
+              })),
             )
-            .onConflictDoNothing()
-            .returning();
+            .onConflictDoNothing();
         }
 
-        // If there is nothing to add, the "or" statement will become useless and
-        // the query below will simply select all the existing tags for this user and assign them to the bookmark
-        invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
-        const allIds = (
-          await tx.query.bookmarkTags.findMany({
-            where: and(
-              eq(bookmarkTags.userId, ctx.user.id),
-              or(
-                toAddTagIds.length > 0
-                  ? inArray(bookmarkTags.id, toAddTagIds)
-                  : undefined,
-                toAddTagNames.length > 0
-                  ? inArray(bookmarkTags.name, toAddTagNames)
-                  : undefined,
-              ),
-            ),
-            columns: {
-              id: true,
-            },
-          })
-        ).map((t) => t.id);
-
-        await tx
-          .insert(tagsOnBookmarks)
-          .values(
-            allIds.map((i) => ({
-              tagId: i,
-              bookmarkId: input.bookmarkId,
-              attachedBy: "human" as const,
-              userId: ctx.user.id,
-            })),
-          )
-          .onConflictDoNothing();
+        // Update bookmark modified timestamp
         await tx
           .update(bookmarks)
           .set({ modifiedAt: new Date() })
@@ -827,7 +823,7 @@ export const bookmarksAppRouter = router({
 
         return {
           bookmarkId: input.bookmarkId,
-          attached: allIds,
+          attached: allIdsToAttach,
           detached: idsToRemove,
         };
       });
