@@ -502,8 +502,8 @@
     {
       "idx": 71,
       "version": "6",
-      "when": 1765830486294,
-      "tag": "0071_add_last_indexed_at_to_bookmarks",
+      "when": 1766393060393,
+      "tag": "0071_add_normalized_tag_name",
       "breakpoints": true
     }
   ]

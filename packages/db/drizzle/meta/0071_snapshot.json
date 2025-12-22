@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c793b766-9b87-4613-ad0b-040b175707f8",
+  "id": "74441c0b-d9b5-4154-9ef5-71fff60d52fe",
   "prevId": "ff48e807-eda8-4a9f-ab94-afd693f415eb",
   "tables": {
     "account": {
@@ -773,6 +773,17 @@
           "notNull": true,
           "autoincrement": false
         },
+        "normalizedName": {
+          "name": "normalizedName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "generated": {
+            "as": "(lower(replace(replace(replace(\"name\", ' ', ''), '-', ''), '_', '')))",
+            "type": "virtual"
+          }
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "integer",
@@ -800,6 +811,13 @@
           "name": "bookmarkTags_userId_idx",
           "columns": [
             "userId"
+          ],
+          "isUnique": false
+        },
+        "bookmarkTags_normalizedName_idx": {
+          "name": "bookmarkTags_normalizedName_idx",
+          "columns": [
+            "normalizedName"
           ],
           "isUnique": false
         },
@@ -978,13 +996,6 @@
         "source": {
           "name": "source",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "lastIndexedAt": {
-          "name": "lastIndexedAt",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
