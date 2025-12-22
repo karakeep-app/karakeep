@@ -1,6 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
-import invariant from "tiny-invariant";
 import { z } from "zod";
 
 import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
@@ -714,92 +713,75 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      // Pre-fetch tag name-to-ID mappings outside transaction to reduce transaction duration
-      const namesToRemove = input.detach.flatMap((d) =>
-        d.tagName ? [d.tagName] : [],
-      );
-      const detachTagIdsByName =
-        namesToRemove.length > 0
-          ? await ctx.db.query.bookmarkTags.findMany({
-              where: and(
-                eq(bookmarkTags.userId, ctx.user.id),
-                inArray(bookmarkTags.name, namesToRemove),
-              ),
-              columns: {
-                id: true,
-                name: true,
-              },
-            })
-          : [];
+      // Helper function to fetch tag IDs from a list of tag identifiers
+      const fetchTagIds = async (
+        tagIdentifiers: { tagId?: string; tagName?: string }[],
+      ): Promise<string[]> => {
+        const tagIds = tagIdentifiers.flatMap((t) =>
+          t.tagId ? [t.tagId] : [],
+        );
+        const tagNames = tagIdentifiers.flatMap((t) =>
+          t.tagName ? [t.tagName] : [],
+        );
 
-      const idsToRemove: string[] = [];
-      input.detach.forEach((detachInfo) => {
-        if (detachInfo.tagId) {
-          idsToRemove.push(detachInfo.tagId);
-        }
-        if (detachInfo.tagName) {
-          // Use pre-fetched mapping
-          const tag = detachTagIdsByName.find(
-            (t) => t.name === detachInfo.tagName,
-          );
-          if (tag) {
-            idsToRemove.push(tag.id);
-          }
-        }
-      });
-
-      const toAddTagIds = input.attach.flatMap((i) =>
-        i.tagId ? [i.tagId] : [],
-      );
-
-      const toAddTagNames = input.attach
-        .flatMap((i) => (i.tagName ? [i.tagName] : []))
-        .map(normalizeTagName) // strip leading #
-        .filter((n) => n.length > 0); // drop empty results
-
-      // Create new tags outside transaction to reduce transaction duration
-      if (toAddTagNames.length > 0) {
-        await ctx.db
-          .insert(bookmarkTags)
-          .values(toAddTagNames.map((name) => ({ name, userId: ctx.user.id })))
-          .onConflictDoNothing();
-      }
-
-      // Fetch tag IDs for attachment outside transaction
-      let allIdsToAttach: string[] = [];
-      if (input.attach.length > 0) {
-        invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
-
-        // Execute queries in parallel
-        const [tagsByIds, tagsByNames] = await Promise.all([
-          toAddTagIds.length > 0
+        // Fetch tag IDs in parallel
+        const [byIds, byNames] = await Promise.all([
+          tagIds.length > 0
             ? ctx.db
                 .select({ id: bookmarkTags.id })
                 .from(bookmarkTags)
                 .where(
                   and(
                     eq(bookmarkTags.userId, ctx.user.id),
-                    inArray(bookmarkTags.id, toAddTagIds),
+                    inArray(bookmarkTags.id, tagIds),
                   ),
                 )
             : Promise.resolve([]),
-          toAddTagNames.length > 0
+          tagNames.length > 0
             ? ctx.db
                 .select({ id: bookmarkTags.id })
                 .from(bookmarkTags)
                 .where(
                   and(
                     eq(bookmarkTags.userId, ctx.user.id),
-                    inArray(bookmarkTags.name, toAddTagNames),
+                    inArray(bookmarkTags.name, tagNames),
                   ),
                 )
             : Promise.resolve([]),
         ]);
 
         // Union results and deduplicate tag IDs
-        const results = [...tagsByIds, ...tagsByNames];
-        allIdsToAttach = [...new Set(results.map((t) => t.id))];
+        const results = [...byIds, ...byNames];
+        return [...new Set(results.map((t) => t.id))];
+      };
+
+      // Normalize tag names and create new tags outside transaction to reduce transaction duration
+      const normalizedAttachTags = input.attach.map((tag) => ({
+        tagId: tag.tagId,
+        tagName: tag.tagName ? normalizeTagName(tag.tagName) : undefined,
+      }));
+
+      {
+        // Create new tags
+        const toAddTagNames = normalizedAttachTags
+          .flatMap((i) => (i.tagName ? [i.tagName] : []))
+          .filter((n) => n.length > 0); // drop empty results
+
+        if (toAddTagNames.length > 0) {
+          await ctx.db
+            .insert(bookmarkTags)
+            .values(
+              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+            )
+            .onConflictDoNothing();
+        }
       }
+
+      // Fetch tag IDs for attachment/detachment now that we know that they all exist
+      const [allIdsToAttach, idsToRemove] = await Promise.all([
+        fetchTagIds(normalizedAttachTags),
+        fetchTagIds(input.detach),
+      ]);
 
       const res = await ctx.db.transaction(async (tx) => {
         // Detaches
