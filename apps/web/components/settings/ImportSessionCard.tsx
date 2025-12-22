@@ -185,16 +185,24 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
               {/* Detailed Progress Breakdown */}
               <div className="space-y-2 rounded-lg border bg-muted/30 p-3 dark:bg-muted/10">
                 <h5 className="text-xs font-semibold uppercase text-muted-foreground">
-                  Processing Stages
+                  {t("settings.import_sessions.processing_stages.title")}
                 </h5>
 
                 {/* Crawling Stage */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium">Crawling</span>
+                      <span className="font-medium">
+                        {t(
+                          "settings.import_sessions.processing_stages.crawling.title",
+                        )}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        (Fetching webpage content)
+                        (
+                        {t(
+                          "settings.import_sessions.processing_stages.crawling.description",
+                        )}
+                        )
                       </span>
                     </div>
                     <span className="text-xs">
@@ -203,12 +211,22 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   </div>
                   {stats.crawlingPending > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {stats.crawlingPending} pending
+                      {t(
+                        "settings.import_sessions.processing_stages.crawling.pending",
+                        {
+                          count: stats.crawlingPending,
+                        },
+                      )}
                     </p>
                   )}
                   {stats.crawlingFailed > 0 && (
                     <p className="text-xs text-destructive">
-                      {stats.crawlingFailed} failed
+                      {t(
+                        "settings.import_sessions.processing_stages.crawling.failed",
+                        {
+                          count: stats.crawlingFailed,
+                        },
+                      )}
                     </p>
                   )}
                 </div>
@@ -217,9 +235,17 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium">Tagging</span>
+                      <span className="font-medium">
+                        {t(
+                          "settings.import_sessions.processing_stages.tagging.title",
+                        )}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        (AI generating tags)
+                        (
+                        {t(
+                          "settings.import_sessions.processing_stages.tagging.description",
+                        )}
+                        )
                       </span>
                     </div>
                     <span className="text-xs">
@@ -228,12 +254,22 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   </div>
                   {stats.taggingPending > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {stats.taggingPending} pending
+                      {t(
+                        "settings.import_sessions.processing_stages.tagging.pending",
+                        {
+                          count: stats.taggingPending,
+                        },
+                      )}
                     </p>
                   )}
                   {stats.taggingFailed > 0 && (
                     <p className="text-xs text-destructive">
-                      {stats.taggingFailed} failed
+                      {t(
+                        "settings.import_sessions.processing_stages.tagging.failed",
+                        {
+                          count: stats.taggingFailed,
+                        },
+                      )}
                     </p>
                   )}
                 </div>
@@ -242,9 +278,17 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium">Indexing</span>
+                      <span className="font-medium">
+                        {t(
+                          "settings.import_sessions.processing_stages.indexing.title",
+                        )}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        (Making searchable)
+                        (
+                        {t(
+                          "settings.import_sessions.processing_stages.indexing.description",
+                        )}
+                        )
                       </span>
                     </div>
                     <span className="text-xs">
@@ -253,7 +297,12 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   </div>
                   {stats.indexingPending > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {stats.indexingPending} pending
+                      {t(
+                        "settings.import_sessions.processing_stages.indexing.pending",
+                        {
+                          count: stats.indexingPending,
+                        },
+                      )}
                     </p>
                   )}
                 </div>

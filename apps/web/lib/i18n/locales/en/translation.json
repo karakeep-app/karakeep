@@ -396,7 +396,27 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
-      "delete_session": "Delete Session"
+      "delete_session": "Delete Session",
+      "processing_stages": {
+        "title": "Processing Stages",
+        "crawling": {
+          "title": "Crawling",
+          "description": "Fetching webpage content",
+          "pending": "{{count}} pending",
+          "failed": "{{count}} failed"
+        },
+        "tagging": {
+          "title": "Tagging",
+          "description": "AI generating tags",
+          "pending": "{{count}} pending",
+          "failed": "{{count}} failed"
+        },
+        "indexing": {
+          "title": "Indexing",
+          "description": "Making searchable",
+          "pending": "{{count}} pending"
+        }
+      }
     },
     "backups": {
       "backups": "Backups",
