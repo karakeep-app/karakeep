@@ -770,39 +770,35 @@ export const bookmarksAppRouter = router({
       if (input.attach.length > 0) {
         invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
 
-        const queries = [];
-        if (toAddTagIds.length > 0) {
-          queries.push(
-            ctx.db
-              .select({ id: bookmarkTags.id })
-              .from(bookmarkTags)
-              .where(
-                and(
-                  eq(bookmarkTags.userId, ctx.user.id),
-                  inArray(bookmarkTags.id, toAddTagIds),
-                ),
-              ),
-          );
-        }
-        if (toAddTagNames.length > 0) {
-          queries.push(
-            ctx.db
-              .select({ id: bookmarkTags.id })
-              .from(bookmarkTags)
-              .where(
-                and(
-                  eq(bookmarkTags.userId, ctx.user.id),
-                  inArray(bookmarkTags.name, toAddTagNames),
-                ),
-              ),
-          );
-        }
+        // Execute queries in parallel
+        const [tagsByIds, tagsByNames] = await Promise.all([
+          toAddTagIds.length > 0
+            ? ctx.db
+                .select({ id: bookmarkTags.id })
+                .from(bookmarkTags)
+                .where(
+                  and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.id, toAddTagIds),
+                  ),
+                )
+            : Promise.resolve([]),
+          toAddTagNames.length > 0
+            ? ctx.db
+                .select({ id: bookmarkTags.id })
+                .from(bookmarkTags)
+                .where(
+                  and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.name, toAddTagNames),
+                  ),
+                )
+            : Promise.resolve([]),
+        ]);
 
-        allIdsToAttach = (
-          await (queries.length === 1
-            ? queries[0]
-            : queries[0].unionAll(queries[1]))
-        ).map((t) => t.id);
+        // Union results and deduplicate tag IDs
+        const results = [...tagsByIds, ...tagsByNames];
+        allIdsToAttach = [...new Set(results.map((t) => t.id))];
       }
 
       const res = await ctx.db.transaction(async (tx) => {
