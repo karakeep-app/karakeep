@@ -10,14 +10,15 @@ interface QueueItem {
 }
 
 interface LegacyQueueState {
-  items: QueueItem[];
   itemsv2: Record<string, GroupState>;
   inFlight: number;
+  paused: boolean;
 }
 
 interface QueueState {
   groups: Record<string, GroupState>;
   inFlight: number;
+  paused: boolean;
 }
 
 interface GroupState {
@@ -29,59 +30,101 @@ interface GroupState {
 export const semaphore = object({
   name: "Semaphore",
   handlers: {
-    acquire: async (
-      ctx: ObjectContext<LegacyQueueState>,
-      req: {
-        awakeableId: string;
-        priority: number;
-        capacity: number;
-        groupId?: string;
-        idempotencyKey?: string;
+    acquire: restate.handlers.object.exclusive(
+      {
+        ingressPrivate: true,
       },
-    ): Promise<boolean> => {
-      const state = await getState(ctx);
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        req: {
+          awakeableId: string;
+          priority: number;
+          capacity: number;
+          groupId?: string;
+          idempotencyKey?: string;
+        },
+      ): Promise<boolean> => {
+        const state = await getState(ctx);
 
-      if (
-        req.idempotencyKey &&
-        idempotencyKeyAlreadyExists(state.groups, req.idempotencyKey)
-      ) {
-        return false;
-      }
+        if (
+          req.idempotencyKey &&
+          idempotencyKeyAlreadyExists(state.groups, req.idempotencyKey)
+        ) {
+          return false;
+        }
 
-      req.groupId = req.groupId ?? "__ungrouped__";
+        req.groupId = req.groupId ?? "__ungrouped__";
 
-      if (state.groups[req.groupId] === undefined) {
-        state.groups[req.groupId] = {
-          id: req.groupId,
-          items: [],
-          lastServedTimestamp: Date.now(),
-        };
-      }
+        if (state.groups[req.groupId] === undefined) {
+          state.groups[req.groupId] = {
+            id: req.groupId,
+            items: [],
+            lastServedTimestamp: Date.now(),
+          };
+        }
 
-      state.groups[req.groupId].items.push({
-        awakeable: req.awakeableId,
-        priority: req.priority,
-        idempotencyKey: req.idempotencyKey,
-      });
+        state.groups[req.groupId].items.push({
+          awakeable: req.awakeableId,
+          priority: req.priority,
+          idempotencyKey: req.idempotencyKey,
+        });
 
-      tick(ctx, state, req.capacity);
+        tick(ctx, state, req.capacity);
 
-      setState(ctx, state);
-      return true;
-    },
+        setState(ctx, state);
+        return true;
+      },
+    ),
 
-    release: async (
-      ctx: ObjectContext<LegacyQueueState>,
-      capacity: number,
-    ): Promise<void> => {
-      const state = await getState(ctx);
-      state.inFlight--;
-      tick(ctx, state, capacity);
-      setState(ctx, state);
-    },
+    release: restate.handlers.object.exclusive(
+      {
+        ingressPrivate: true,
+      },
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        capacity: number,
+      ): Promise<void> => {
+        const state = await getState(ctx);
+        state.inFlight--;
+        tick(ctx, state, capacity);
+        setState(ctx, state);
+      },
+    ),
+    pause: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        state.paused = true;
+        setState(ctx, state);
+      },
+    ),
+    resume: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        state.paused = false;
+        tick(ctx, state, 1);
+        setState(ctx, state);
+      },
+    ),
+    resetInflight: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        state.inFlight = 0;
+        setState(ctx, state);
+      },
+    ),
+    tick: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        tick(ctx, state, 1);
+        setState(ctx, state);
+      },
+    ),
   },
   options: {
-    ingressPrivate: true,
     journalRetention: 0,
   },
 });
@@ -134,7 +177,11 @@ function tick(
   state: QueueState,
   capacity: number,
 ) {
-  while (state.inFlight < capacity && Object.keys(state.groups).length > 0) {
+  while (
+    !state.paused &&
+    state.inFlight < capacity &&
+    Object.keys(state.groups).length > 0
+  ) {
     const { item } = selectAndPopItem(state);
     state.inFlight++;
     ctx.resolveAwakeable(item.awakeable);
@@ -145,18 +192,11 @@ async function getState(
   ctx: ObjectContext<LegacyQueueState>,
 ): Promise<QueueState> {
   const groups = (await ctx.get("itemsv2")) ?? {};
-  const items = (await ctx.get("items")) ?? [];
-
-  if (items.length > 0) {
-    groups["__legacy__"] = {
-      id: "__legacy__",
-      items,
-      lastServedTimestamp: 0,
-    };
-  }
+  const paused = (await ctx.get("paused")) ?? false;
 
   return {
     groups,
+    paused,
     inFlight: (await ctx.get("inFlight")) ?? 0,
   };
 }
@@ -176,7 +216,7 @@ function idempotencyKeyAlreadyExists(
 function setState(ctx: ObjectContext<LegacyQueueState>, state: QueueState) {
   ctx.set("itemsv2", state.groups);
   ctx.set("inFlight", state.inFlight);
-  ctx.clear("items");
+  ctx.set("paused", state.paused);
 }
 
 export class RestateSemaphore {

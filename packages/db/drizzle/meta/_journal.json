@@ -505,6 +505,13 @@
       "when": 1766393060393,
       "tag": "0071_add_normalized_tag_name",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "6",
+      "when": 1766414953855,
+      "tag": "0072_add_user_ai_preferences",
+      "breakpoints": true
     }
   ]
 }

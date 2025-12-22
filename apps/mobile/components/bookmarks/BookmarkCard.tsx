@@ -345,7 +345,8 @@ function LinkCard({
       <Pressable onPress={onOpenBookmark}>{imageComp}</Pressable>
       <View className="flex gap-2 p-2">
         <Text
-          className="line-clamp-2 text-xl font-bold text-foreground"
+          className="text-xl font-bold text-foreground"
+          numberOfLines={2}
           onPress={onOpenBookmark}
         >
           {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
@@ -360,7 +361,9 @@ function LinkCard({
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto line-clamp-1">{parsedUrl.host}</Text>
+          <Text className="my-auto" numberOfLines={1}>
+            {parsedUrl.host}
+          </Text>
           <ActionBar bookmark={bookmark} />
         </View>
       </View>
@@ -388,7 +391,7 @@ function TextCard({
     <View className="flex max-h-96 gap-2 p-2">
       <Pressable onPress={onOpenBookmark}>
         {bookmark.title && (
-          <Text className="line-clamp-2 text-xl font-bold">
+          <Text className="text-xl font-bold" numberOfLines={2}>
             {bookmark.title}
           </Text>
         )}
@@ -443,7 +446,9 @@ function AssetCard({
       <View className="flex gap-2 p-2">
         <Pressable onPress={onOpenBookmark}>
           {title && (
-            <Text className="line-clamp-2 text-xl font-bold">{title}</Text>
+            <Text numberOfLines={2} className="text-xl font-bold">
+              {title}
+            </Text>
           )}
         </Pressable>
         {note && (

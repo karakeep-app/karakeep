@@ -20,6 +20,7 @@ export function usePaginatedSearchTags(
 export function useTagAutocomplete<T>(opts: {
   nameContains: string;
   select?: (tags: ZTagListResponse) => T;
+  enabled?: boolean;
 }) {
   return api.tags.list.useQuery(
     {
@@ -31,6 +32,7 @@ export function useTagAutocomplete<T>(opts: {
       select: opts.select,
       placeholderData: keepPreviousData,
       gcTime: opts.nameContains?.length > 0 ? 60_000 : 3_600_000,
+      enabled: opts.enabled,
     },
   );
 }

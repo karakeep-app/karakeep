@@ -1,0 +1,2 @@
+ALTER TABLE `bookmarkTags` ADD `normalizedName` text GENERATED ALWAYS AS (lower(replace(replace(replace("name", ' ', ''), '-', ''), '_', ''))) VIRTUAL;--> statement-breakpoint
+CREATE INDEX `bookmarkTags_normalizedName_idx` ON `bookmarkTags` (`normalizedName`);
