@@ -715,6 +715,7 @@
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
     "tabs": {
       "content": "Content",
       "details": "Details"
