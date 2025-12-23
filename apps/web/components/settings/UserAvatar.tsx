@@ -25,11 +25,6 @@ export default function UserAvatar() {
   const image = whoami.data?.image ?? null;
 
   const updateAvatar = useUpdateUserAvatar({
-    onSuccess: () => {
-      toast({
-        description: t("settings.info.avatar.updated"),
-      });
-    },
     onError: () => {
       toast({
         description: t("common.something_went_wrong"),
@@ -39,7 +34,16 @@ export default function UserAvatar() {
   });
 
   const upload = useUpload({
-    onSuccess: async (resp) => updateAvatar.mutate({ assetId: resp.assetId }),
+    onSuccess: async (resp) => {
+      try {
+        await updateAvatar.mutateAsync({ assetId: resp.assetId });
+        toast({
+          description: t("settings.info.avatar.updated"),
+        });
+      } catch {
+        // handled in onError
+      }
+    },
     onError: (err) => {
       toast({
         description: err.error,
