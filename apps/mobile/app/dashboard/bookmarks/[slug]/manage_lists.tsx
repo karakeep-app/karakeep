@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useLocalSearchParams } from "expo-router";
+import ChevronRight from "@/components/ui/ChevronRight";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useColorScheme } from "@/lib/useColorScheme";
+import { condProps } from "@/lib/utils";
 
 import {
   useAddBookmarkToList,
@@ -12,12 +15,53 @@ import {
   useRemoveBookmarkFromList,
 } from "@karakeep/shared-react/hooks/lists";
 import { api } from "@karakeep/shared-react/trpc";
+import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
+
+interface ListItem {
+  id: string;
+  icon: string;
+  name: string;
+  level: number;
+  parent?: string;
+  numChildren: number;
+  collapsed: boolean;
+  userRole: string;
+}
+
+function traverseTree(
+  node: ZBookmarkListTreeNode,
+  lists: ListItem[],
+  showChildrenOf: Record<string, boolean>,
+  parent?: string,
+  level = 0,
+) {
+  lists.push({
+    id: node.item.id,
+    icon: node.item.icon,
+    name: node.item.name,
+    level,
+    parent,
+    numChildren: node.children?.length ?? 0,
+    collapsed: !showChildrenOf[node.item.id],
+    userRole: node.item.userRole,
+  });
+
+  if (node.children && showChildrenOf[node.item.id]) {
+    node.children.forEach((child) =>
+      traverseTree(child, lists, showChildrenOf, node.item.id, level + 1),
+    );
+  }
+}
 
 const ListPickerPage = () => {
   const { slug: bookmarkId } = useLocalSearchParams();
   if (typeof bookmarkId !== "string") {
     throw new Error("Unexpected param type");
   }
+  const { colors } = useColorScheme();
+  const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
+    {},
+  );
   const { toast } = useToast();
   const onError = () => {
     toast({
@@ -82,11 +126,17 @@ const ListPickerPage = () => {
     );
   };
 
-  const { allPaths } = data ?? {};
+  // Build the nested list structure
+  const lists: ListItem[] = [];
+  if (data?.root) {
+    Object.values(data.root).forEach((list) => {
+      traverseTree(list, lists, showChildrenOf);
+    });
+  }
+
   // Filter out lists where user is a viewer (can't add/remove bookmarks)
-  const filteredPaths = allPaths?.filter(
-    (path) => path[path.length - 1].userRole !== "viewer",
-  );
+  const filteredLists = lists.filter((list) => list.userRole !== "viewer");
+
   return (
     <CustomSafeAreaView>
       <FlatList
@@ -95,22 +145,47 @@ const ListPickerPage = () => {
           gap: 5,
         }}
         renderItem={(l) => {
-          const listId = l.item[l.item.length - 1].id;
+          const listId = l.item.id;
           const isLoading = isListLoading(listId);
           const isChecked = existingLists && existingLists.has(listId);
 
           return (
-            <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2">
+            <View
+              className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2"
+              style={condProps({
+                condition: l.item.level > 0,
+                props: { marginLeft: l.item.level * 20 },
+              })}
+            >
+              {l.item.numChildren > 0 && (
+                <Pressable
+                  className="pr-2"
+                  onPress={() => {
+                    setShowChildrenOf((prev) => ({
+                      ...prev,
+                      [l.item.id]: !prev[l.item.id],
+                    }));
+                  }}
+                >
+                  <ChevronRight
+                    color={colors.foreground}
+                    style={{
+                      transform: [
+                        { rotate: l.item.collapsed ? "0deg" : "90deg" },
+                      ],
+                    }}
+                  />
+                </Pressable>
+              )}
+
               <Pressable
                 key={listId}
                 onPress={() => !isLoading && toggleList(listId)}
                 disabled={isLoading}
-                className="flex w-full flex-row justify-between"
+                className="flex flex-1 flex-row items-center justify-between"
               >
                 <Text>
-                  {l.item
-                    .map((item) => `${item.icon} ${item.name}`)
-                    .join(" / ")}
+                  {l.item.icon} {l.item.name}
                 </Text>
                 {isLoading ? (
                   <ActivityIndicator size="small" />
@@ -127,7 +202,7 @@ const ListPickerPage = () => {
             </View>
           );
         }}
-        data={filteredPaths}
+        data={filteredLists}
       />
     </CustomSafeAreaView>
   );
