@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SqliteError } from "@karakeep/db";
 import {
   assets,
+  AssetTypes,
   bookmarkLinks,
   bookmarkLists,
   bookmarks,
@@ -17,7 +18,7 @@ import {
   users,
   verificationTokens,
 } from "@karakeep/db/schema";
-import { deleteUserAssets } from "@karakeep/shared/assetdb";
+import { deleteAsset, deleteUserAssets } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
   zResetPasswordSchema,
@@ -491,6 +492,89 @@ export class User {
       .where(eq(users.id, this.user.id));
   }
 
+  async updateAvatar(assetId: string | null): Promise<void> {
+    if (assetId) {
+      const asset = await this.ctx.db.query.assets.findFirst({
+        where: and(eq(assets.id, assetId), eq(assets.userId, this.user.id)),
+        columns: {
+          id: true,
+          bookmarkId: true,
+          contentType: true,
+          assetType: true,
+        },
+      });
+
+      if (!asset) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Avatar asset not found",
+        });
+      }
+
+      if (asset.bookmarkId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Avatar asset must not be attached to a bookmark",
+        });
+      }
+
+      if (asset.contentType && !asset.contentType.startsWith("image/")) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Avatar asset must be an image",
+        });
+      }
+
+      if (
+        asset.assetType !== AssetTypes.UNKNOWN &&
+        asset.assetType !== AssetTypes.USER_UPLOADED
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Avatar asset type is not supported",
+        });
+      }
+
+      if (asset.assetType !== AssetTypes.USER_UPLOADED) {
+        await this.ctx.db
+          .update(assets)
+          .set({ assetType: AssetTypes.USER_UPLOADED })
+          .where(eq(assets.id, asset.id));
+      }
+    }
+
+    const previousImage = this.user.image ?? null;
+    if (previousImage === assetId) {
+      return;
+    }
+
+    await this.ctx.db
+      .update(users)
+      .set({ image: assetId })
+      .where(eq(users.id, this.user.id));
+    this.user.image = assetId;
+
+    if (!previousImage || previousImage === assetId) {
+      return;
+    }
+
+    const previousAsset = await this.ctx.db.query.assets.findFirst({
+      where: and(eq(assets.id, previousImage), eq(assets.userId, this.user.id)),
+      columns: {
+        id: true,
+        bookmarkId: true,
+      },
+    });
+
+    if (previousAsset && !previousAsset.bookmarkId) {
+      await this.ctx.db.delete(assets).where(eq(assets.id, previousAsset.id));
+      await deleteAsset({
+        userId: this.user.id,
+        assetId: previousAsset.id,
+      }).catch(() => ({}));
+    }
+  }
+
   async getStats(): Promise<z.infer<typeof zUserStatsResponseSchema>> {
     const userObj = await this.ctx.db.query.users.findFirst({
       where: eq(users.id, this.user.id),
@@ -770,6 +854,7 @@ export class User {
       id: this.user.id,
       name: this.user.name,
       email: this.user.email,
+      image: this.user.image,
       localUser: this.user.password !== null,
     };
   }

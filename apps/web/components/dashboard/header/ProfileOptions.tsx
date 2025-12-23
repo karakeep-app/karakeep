@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useToggleTheme } from "@/components/theme-provider";
@@ -16,7 +17,12 @@ import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
+
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
+
+const isExternalUrl = (value: string) =>
+  value.startsWith("http://") || value.startsWith("https://");
 
 function DarkModeToggle() {
   const { t } = useTranslation();
@@ -43,7 +49,19 @@ export default function SidebarProfileOptions() {
   const { t } = useTranslation();
   const toggleTheme = useToggleTheme();
   const { data: session } = useSession();
+  const { data: whoami } = useWhoAmI();
   const router = useRouter();
+
+  const avatarImage = whoami?.image ?? session?.user.image ?? null;
+  const avatarUrl = useMemo(() => {
+    if (!avatarImage) {
+      return null;
+    }
+    return isExternalUrl(avatarImage)
+      ? avatarImage
+      : `/api/assets/${avatarImage}`;
+  }, [avatarImage]);
+
   if (!session) return redirect("/");
 
   return (
@@ -53,13 +71,31 @@ export default function SidebarProfileOptions() {
           className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
           variant="ghost"
         >
-          {session.user.name?.charAt(0) ?? "U"}
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={session.user.name ?? "User"}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            (session.user.name?.charAt(0) ?? "U")
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-2 min-w-64 p-2">
         <div className="flex gap-2">
-          <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center rounded-full border-4 bg-black p-0 text-white">
-            {session.user.name?.charAt(0) ?? "U"}
+          <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white">
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={session.user.name ?? "User"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              (session.user.name?.charAt(0) ?? "U")
+            )}
           </div>
           <div className="flex flex-col">
             <p>{session.user.name}</p>
