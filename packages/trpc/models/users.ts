@@ -526,8 +526,8 @@ export class User {
       }
 
       if (
-        asset.assetType !== AssetTypes.UNKNOWN &&
-        asset.assetType !== AssetTypes.AVATAR
+        asset.assetType !== AssetTypes.AVATAR &&
+        asset.assetType !== AssetTypes.UNKNOWN
       ) {
         throw new TRPCError({
           code: "BAD_REQUEST",

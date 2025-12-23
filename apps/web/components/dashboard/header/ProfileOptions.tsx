@@ -22,6 +22,9 @@ import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
 
+const isExternalUrl = (value: string) =>
+  value.startsWith("http://") || value.startsWith("https://");
+
 function DarkModeToggle() {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -51,10 +54,12 @@ export default function SidebarProfileOptions() {
   const router = useRouter();
 
   const avatarImage = whoami?.image ?? null;
-  const avatarUrl = useMemo(
-    () => (avatarImage ? getAssetUrl(avatarImage) : null),
-    [avatarImage],
-  );
+  const avatarUrl = useMemo(() => {
+    if (!avatarImage) {
+      return null;
+    }
+    return isExternalUrl(avatarImage) ? avatarImage : getAssetUrl(avatarImage);
+  }, [avatarImage]);
 
   if (!session) return redirect("/");
 

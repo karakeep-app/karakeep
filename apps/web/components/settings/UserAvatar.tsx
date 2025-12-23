@@ -16,15 +16,28 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { toast } from "../ui/use-toast";
 
+const isExternalUrl = (value: string) =>
+  value.startsWith("http://") || value.startsWith("https://");
+
 export default function UserAvatar() {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const whoami = useWhoAmI();
   const image = whoami.data?.image ?? null;
 
-  const avatarUrl = useMemo(() => (image ? getAssetUrl(image) : null), [image]);
+  const avatarUrl = useMemo(() => {
+    if (!image) {
+      return null;
+    }
+    return isExternalUrl(image) ? image : getAssetUrl(image);
+  }, [image]);
 
   const updateAvatar = useUpdateUserAvatar({
+    onSuccess: () => {
+      toast({
+        description: t("settings.info.avatar.updated"),
+      });
+    },
     onError: () => {
       toast({
         description: t("common.something_went_wrong"),
@@ -34,16 +47,7 @@ export default function UserAvatar() {
   });
 
   const upload = useUpload({
-    onSuccess: async (resp) => {
-      try {
-        await updateAvatar.mutateAsync({ assetId: resp.assetId });
-        toast({
-          description: t("settings.info.avatar.updated"),
-        });
-      } catch {
-        // Errors are handled by the mutation's onError callback.
-      }
-    },
+    onSuccess: async (resp) => updateAvatar.mutate({ assetId: resp.assetId }),
     onError: (err) => {
       toast({
         description: err.error,
