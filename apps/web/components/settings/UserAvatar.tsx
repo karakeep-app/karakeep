@@ -10,13 +10,11 @@ import {
   useUpdateUserAvatar,
   useWhoAmI,
 } from "@karakeep/shared-react/hooks/users";
+import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { toast } from "../ui/use-toast";
-
-const isExternalUrl = (value: string) =>
-  value.startsWith("http://") || value.startsWith("https://");
 
 export default function UserAvatar() {
   const { t } = useTranslation();
@@ -24,15 +22,7 @@ export default function UserAvatar() {
   const whoami = useWhoAmI();
   const image = whoami.data?.image ?? null;
 
-  const avatarUrl = useMemo(() => {
-    if (!image) {
-      return null;
-    }
-    if (isExternalUrl(image)) {
-      return image;
-    }
-    return `/api/assets/${image}`;
-  }, [image]);
+  const avatarUrl = useMemo(() => (image ? getAssetUrl(image) : null), [image]);
 
   const updateAvatar = useUpdateUserAvatar({
     onError: () => {

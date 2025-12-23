@@ -17,6 +17,7 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
     [AssetTypes.LINK_HTML_CONTENT]: "linkHtmlContent",
     [AssetTypes.BOOKMARK_ASSET]: "bookmarkAsset",
     [AssetTypes.USER_UPLOADED]: "userUploaded",
+    [AssetTypes.AVATAR]: "avatar",
     [AssetTypes.BACKUP]: "unknown", // Backups are not displayed as regular assets
     [AssetTypes.UNKNOWN]: "bannerImage",
   };
@@ -36,6 +37,7 @@ export function mapSchemaAssetTypeToDB(
     bookmarkAsset: AssetTypes.BOOKMARK_ASSET,
     linkHtmlContent: AssetTypes.LINK_HTML_CONTENT,
     userUploaded: AssetTypes.USER_UPLOADED,
+    avatar: AssetTypes.AVATAR,
     unknown: AssetTypes.UNKNOWN,
   };
   return map[assetType];
@@ -52,6 +54,7 @@ export function humanFriendlyNameForAssertType(type: ZAssetType) {
     bookmarkAsset: "Bookmark Asset",
     linkHtmlContent: "HTML Content",
     userUploaded: "User Uploaded File",
+    avatar: "Avatar",
     unknown: "Unknown",
   };
   return map[type];
@@ -68,6 +71,7 @@ export function isAllowedToAttachAsset(type: ZAssetType) {
     bookmarkAsset: false,
     linkHtmlContent: false,
     userUploaded: true,
+    avatar: false,
     unknown: false,
   };
   return map[type];
@@ -84,6 +88,7 @@ export function isAllowedToDetachAsset(type: ZAssetType) {
     bookmarkAsset: false,
     linkHtmlContent: false,
     userUploaded: true,
+    avatar: false,
     unknown: false,
   };
   return map[type];

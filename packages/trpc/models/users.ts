@@ -527,7 +527,7 @@ export class User {
 
       if (
         asset.assetType !== AssetTypes.UNKNOWN &&
-        asset.assetType !== AssetTypes.USER_UPLOADED
+        asset.assetType !== AssetTypes.AVATAR
       ) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -535,10 +535,10 @@ export class User {
         });
       }
 
-      if (asset.assetType !== AssetTypes.USER_UPLOADED) {
+      if (asset.assetType !== AssetTypes.AVATAR) {
         await this.ctx.db
           .update(assets)
-          .set({ assetType: AssetTypes.USER_UPLOADED })
+          .set({ assetType: AssetTypes.AVATAR })
           .where(eq(assets.id, asset.id));
       }
     }

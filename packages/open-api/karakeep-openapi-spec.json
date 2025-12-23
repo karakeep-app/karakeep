@@ -325,6 +325,7 @@
                     "bookmarkAsset",
                     "precrawledArchive",
                     "userUploaded",
+                    "avatar",
                     "unknown"
                   ]
                 },
@@ -1747,6 +1748,7 @@
                       "bookmarkAsset",
                       "precrawledArchive",
                       "userUploaded",
+                      "avatar",
                       "unknown"
                     ]
                   }
@@ -1782,6 +1784,7 @@
                         "bookmarkAsset",
                         "precrawledArchive",
                         "userUploaded",
+                        "avatar",
                         "unknown"
                       ]
                     },

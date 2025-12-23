@@ -18,11 +18,9 @@ import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
+import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
-
-const isExternalUrl = (value: string) =>
-  value.startsWith("http://") || value.startsWith("https://");
 
 function DarkModeToggle() {
   const { t } = useTranslation();
@@ -52,15 +50,11 @@ export default function SidebarProfileOptions() {
   const { data: whoami } = useWhoAmI();
   const router = useRouter();
 
-  const avatarImage = whoami?.image ?? session?.user.image ?? null;
-  const avatarUrl = useMemo(() => {
-    if (!avatarImage) {
-      return null;
-    }
-    return isExternalUrl(avatarImage)
-      ? avatarImage
-      : `/api/assets/${avatarImage}`;
-  }, [avatarImage]);
+  const avatarImage = whoami?.image ?? null;
+  const avatarUrl = useMemo(
+    () => (avatarImage ? getAssetUrl(avatarImage) : null),
+    [avatarImage],
+  );
 
   if (!session) return redirect("/");
 
