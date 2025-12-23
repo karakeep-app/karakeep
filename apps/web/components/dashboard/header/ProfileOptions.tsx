@@ -12,18 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
 import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
-import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
-
-const isExternalUrl = (value: string) =>
-  value.startsWith("http://") || value.startsWith("https://");
 
 function DarkModeToggle() {
   const { t } = useTranslation();
@@ -54,12 +51,7 @@ export default function SidebarProfileOptions() {
   const router = useRouter();
 
   const avatarImage = whoami?.image ?? null;
-  const avatarUrl = useMemo(() => {
-    if (!avatarImage) {
-      return null;
-    }
-    return isExternalUrl(avatarImage) ? avatarImage : getAssetUrl(avatarImage);
-  }, [avatarImage]);
+  const avatarUrl = useMemo(() => avatarImage ?? null, [avatarImage]);
 
   if (!session) return redirect("/");
 
@@ -70,31 +62,21 @@ export default function SidebarProfileOptions() {
           className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
           variant="ghost"
         >
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarUrl}
-              alt={session.user.name ?? "User"}
-              className="h-full w-full rounded-full object-cover"
-            />
-          ) : (
-            (session.user.name?.charAt(0) ?? "U")
-          )}
+          <UserAvatar
+            image={avatarUrl}
+            name={session.user.name}
+            className="h-full w-full rounded-full"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-2 min-w-64 p-2">
         <div className="flex gap-2">
           <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white">
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatarUrl}
-                alt={session.user.name ?? "User"}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              (session.user.name?.charAt(0) ?? "U")
-            )}
+            <UserAvatar
+              image={avatarUrl}
+              name={session.user.name}
+              className="h-full w-full"
+            />
           </div>
           <div className="flex flex-col">
             <p>{session.user.name}</p>

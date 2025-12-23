@@ -493,17 +493,34 @@ export class User {
   }
 
   async updateAvatar(assetId: string | null): Promise<void> {
-    if (assetId) {
-      const asset = await this.ctx.db.query.assets.findFirst({
-        where: and(eq(assets.id, assetId), eq(assets.userId, this.user.id)),
-        columns: {
-          id: true,
-          bookmarkId: true,
-          contentType: true,
-          assetType: true,
-        },
-      });
+    const previousImage = this.user.image ?? null;
+    const [asset, previousAsset] = await Promise.all([
+      assetId
+        ? this.ctx.db.query.assets.findFirst({
+            where: and(eq(assets.id, assetId), eq(assets.userId, this.user.id)),
+            columns: {
+              id: true,
+              bookmarkId: true,
+              contentType: true,
+              assetType: true,
+            },
+          })
+        : Promise.resolve(null),
+      previousImage && previousImage !== assetId
+        ? this.ctx.db.query.assets.findFirst({
+            where: and(
+              eq(assets.id, previousImage),
+              eq(assets.userId, this.user.id),
+            ),
+            columns: {
+              id: true,
+              bookmarkId: true,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
 
+    if (assetId) {
       if (!asset) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -542,37 +559,35 @@ export class User {
           .where(eq(assets.id, asset.id));
       }
     }
-
-    const previousImage = this.user.image ?? null;
     if (previousImage === assetId) {
       return;
     }
 
-    await this.ctx.db
-      .update(users)
-      .set({ image: assetId })
-      .where(eq(users.id, this.user.id));
+    await this.ctx.db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({ image: assetId })
+        .where(eq(users.id, this.user.id));
+
+      if (!previousImage || previousImage === assetId) {
+        return;
+      }
+
+      if (previousAsset && !previousAsset.bookmarkId) {
+        await tx.delete(assets).where(eq(assets.id, previousAsset.id));
+      }
+    });
+
     this.user.image = assetId;
 
     if (!previousImage || previousImage === assetId) {
       return;
     }
 
-    const previousAsset = await this.ctx.db.query.assets.findFirst({
-      where: and(eq(assets.id, previousImage), eq(assets.userId, this.user.id)),
-      columns: {
-        id: true,
-        bookmarkId: true,
-      },
-    });
-
-    if (previousAsset && !previousAsset.bookmarkId) {
-      await this.ctx.db.delete(assets).where(eq(assets.id, previousAsset.id));
-      await deleteAsset({
-        userId: this.user.id,
-        assetId: previousAsset.id,
-      }).catch(() => ({}));
-    }
+    await deleteAsset({
+      userId: this.user.id,
+      assetId: previousImage,
+    }).catch(() => ({}));
   }
 
   async getStats(): Promise<z.infer<typeof zUserStatsResponseSchema>> {

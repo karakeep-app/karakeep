@@ -126,6 +126,8 @@
         "upload": "Upload avatar",
         "change": "Change avatar",
         "remove": "Remove avatar",
+        "remove_confirm_title": "Remove avatar?",
+        "remove_confirm_description": "This will clear your current profile photo.",
         "updated": "Avatar updated",
         "removed": "Avatar removed"
       },
