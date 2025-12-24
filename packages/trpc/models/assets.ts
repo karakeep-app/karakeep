@@ -35,7 +35,7 @@ export class Asset {
 
     const asset = new Asset(ctx, assetdb);
 
-    if (!asset.canUserView()) {
+    if (!(await asset.canUserView())) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Asset not found",
@@ -177,7 +177,7 @@ export class Asset {
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "You can't deattach this type of asset",
+        message: "You can't detach this type of asset",
       });
     }
 
@@ -202,12 +202,6 @@ export class Asset {
     bookmarkId: string,
   ) {
     const bookmark = await BareBookmark.bareFromId(ctx, bookmarkId);
-    if (!bookmark) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Bookmark not found",
-      });
-    }
     bookmark.ensureOwnership();
   }
 
@@ -224,7 +218,35 @@ export class Asset {
     return (await Asset.fromId(ctx, assetId)).ensureOwnership();
   }
 
-  canUserView(): boolean {
-    return this.asset.userId === this.ctx.user.id;
+  async canUserView(): Promise<boolean> {
+    // Asset owner can always view it
+    if (this.asset.userId === this.ctx.user.id) {
+      return true;
+    }
+
+    // If asset is attached to a bookmark, check bookmark access permissions
+    if (this.asset.bookmarkId) {
+      try {
+        // This throws if the user doesn't have access to the bookmark
+        await BareBookmark.bareFromId(this.ctx, this.asset.bookmarkId);
+        return true;
+      } catch (e) {
+        if (e instanceof TRPCError && e.code === "FORBIDDEN") {
+          return false;
+        }
+        throw e;
+      }
+    }
+
+    return false;
+  }
+
+  async ensureCanView() {
+    if (!(await this.canUserView())) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Asset not found",
+      });
+    }
   }
 }
