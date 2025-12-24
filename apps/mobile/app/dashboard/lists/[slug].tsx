@@ -117,6 +117,9 @@ function ListActionsMenu({
             destructive: true,
             hidden: role === "owner",
           },
+          image: Platform.select({
+            ios: "rectangle.portrait.and.arrow.right",
+          }),
         },
       ]}
       onPressAction={({ nativeEvent }) => {
