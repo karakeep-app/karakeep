@@ -200,6 +200,17 @@
       "confirm_new_password": "Confirm New Password",
       "options": "Options",
       "interface_lang": "Interface Language",
+      "avatar": {
+        "title": "Profile Photo",
+        "description": "Upload a square image to use as your avatar.",
+        "upload": "Upload avatar",
+        "change": "Change avatar",
+        "remove": "Remove avatar",
+        "remove_confirm_title": "Remove avatar?",
+        "remove_confirm_description": "This will clear your current profile photo.",
+        "updated": "Avatar updated",
+        "removed": "Avatar removed"
+      },
       "user_settings": {
         "user_settings_updated": "User settings have been updated!",
         "bookmark_click_action": {

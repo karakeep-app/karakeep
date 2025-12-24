@@ -148,6 +148,16 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       await user.updateSettings(input);
     }),
+  updateAvatar: authedProcedure
+    .input(
+      z.object({
+        assetId: z.string().nullable(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = await User.fromCtx(ctx);
+      await user.updateAvatar(input.assetId);
+    }),
   verifyEmail: publicProcedure
     .use(
       createRateLimitMiddleware({
