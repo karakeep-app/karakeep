@@ -55,7 +55,9 @@ function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
       while (current && current.length > 0) {
         const h3 = current.find("> h3").first();
         if (h3.length > 0) {
-          path.unshift(h3.text());
+          const folderName = h3.text().trim();
+          // Use "Unnamed" for empty folder names
+          path.unshift(folderName || "Unnamed");
         }
         current = current.parent();
       }
