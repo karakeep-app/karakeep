@@ -224,6 +224,11 @@ export class Asset {
       return true;
     }
 
+    // Avatars are always public
+    if (this.asset.assetType === "avatar") {
+      return true;
+    }
+
     // If asset is attached to a bookmark, check bookmark access permissions
     if (this.asset.bookmarkId) {
       try {
