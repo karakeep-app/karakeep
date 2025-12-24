@@ -1,6 +1,6 @@
 import type { AdapterAccount } from "@auth/core/adapters";
 import { createId } from "@paralleldrive/cuid2";
-import { relations } from "drizzle-orm";
+import { relations, sql, SQL } from "drizzle-orm";
 import {
   AnySQLiteColumn,
   foreignKey,
@@ -76,6 +76,12 @@ export const users = sqliteTable("user", {
   readerLineHeight: real("readerLineHeight"),
   readerFontFamily: text("readerFontFamily", {
     enum: ["serif", "sans", "mono"],
+  }),
+
+  // AI Settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: integer("autoTaggingEnabled", { mode: "boolean" }),
+  autoSummarizationEnabled: integer("autoSummarizationEnabled", {
+    mode: "boolean",
   }),
 });
 
@@ -260,6 +266,7 @@ export const enum AssetTypes {
   LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
   USER_UPLOADED = "userUploaded",
+  AVATAR = "avatar",
   BACKUP = "backup",
   UNKNOWN = "unknown",
 }
@@ -280,6 +287,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.USER_UPLOADED,
+        AssetTypes.AVATAR,
         AssetTypes.BACKUP,
         AssetTypes.UNKNOWN,
       ],
@@ -366,6 +374,14 @@ export const bookmarkTags = sqliteTable(
       .primaryKey()
       .$defaultFn(() => createId()),
     name: text("name").notNull(),
+    normalizedName: text("normalizedName").generatedAlwaysAs(
+      (): SQL =>
+        // This function needs to be in sync with the tagNormalizer function in tagging.ts
+        sql`lower(replace(replace(replace(${bookmarkTags.name}, ' ', ''), '-', ''), '_', ''))`,
+      {
+        mode: "virtual",
+      },
+    ),
     createdAt: createdAtField(),
     userId: text("userId")
       .notNull()
@@ -376,6 +392,7 @@ export const bookmarkTags = sqliteTable(
     unique("bookmarkTags_userId_id_idx").on(bt.userId, bt.id),
     index("bookmarkTags_name_idx").on(bt.name),
     index("bookmarkTags_userId_idx").on(bt.userId),
+    index("bookmarkTags_normalizedName_idx").on(bt.normalizedName),
   ],
 );
 

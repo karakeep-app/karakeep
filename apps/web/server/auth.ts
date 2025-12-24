@@ -141,7 +141,6 @@ if (oauth.wellKnownUrl) {
         id: profile.sub,
         name: profile.name || profile.email,
         email: profile.email,
-        image: profile.picture,
         role: admin || firstUser ? "admin" : "user",
       };
     },

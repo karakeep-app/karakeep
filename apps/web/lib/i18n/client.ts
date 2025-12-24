@@ -4,6 +4,7 @@ import i18next from "i18next";
 import resourcesToBackend from "i18next-resources-to-backend";
 import {
   initReactI18next,
+  Trans as TransOrg,
   useTranslation as useTranslationOrg,
 } from "react-i18next";
 
@@ -30,4 +31,5 @@ i18next
   });
 
 export const useTranslation = useTranslationOrg;
+export const Trans = TransOrg;
 export const i18n = i18next;

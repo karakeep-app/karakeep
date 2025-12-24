@@ -120,6 +120,17 @@
       "confirm_new_password": "Confirm New Password",
       "options": "Options",
       "interface_lang": "Interface Language",
+      "avatar": {
+        "title": "Profile Photo",
+        "description": "Upload a square image to use as your avatar.",
+        "upload": "Upload avatar",
+        "change": "Change avatar",
+        "remove": "Remove avatar",
+        "remove_confirm_title": "Remove avatar?",
+        "remove_confirm_description": "This will clear your current profile photo.",
+        "updated": "Avatar updated",
+        "removed": "Avatar removed"
+      },
       "user_settings": {
         "user_settings_updated": "User settings have been updated!",
         "bookmark_click_action": {
@@ -222,6 +233,11 @@
     },
     "ai": {
       "ai_settings": "AI Settings",
+      "ai_preferences_description": "Control which AI features are enabled for your account.",
+      "auto_tagging": "Auto-tagging",
+      "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
+      "auto_summarization": "Auto-summarization",
+      "auto_summarization_description": "Automatically generate summaries for your bookmarks using AI.",
       "tagging_rules": "Tagging Rules",
       "tagging_rule_description": "Prompts that you add here will be included as rules to the model during tag generation. You can view the final prompts in the prompt preview section.",
       "prompt_preview": "Prompt Preview",
@@ -710,6 +726,7 @@
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
     "tabs": {
       "content": "Content",
       "details": "Details"

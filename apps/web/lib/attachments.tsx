@@ -4,6 +4,7 @@ import {
   FileCode,
   Image,
   Paperclip,
+  SquareUser,
   Upload,
   Video,
 } from "lucide-react";
@@ -20,5 +21,6 @@ export const ASSET_TYPE_TO_ICON: Record<ZAssetType, React.ReactNode> = {
   bookmarkAsset: <Paperclip className="size-4" />,
   linkHtmlContent: <FileCode className="size-4" />,
   userUploaded: <Upload className="size-4" />,
+  avatar: <SquareUser className="size-4" />,
   unknown: <Paperclip className="size-4" />,
 };

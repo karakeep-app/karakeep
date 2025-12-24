@@ -402,6 +402,88 @@ describe("importBookmarksFromFile", () => {
     expect(updateBookmarkTags).toHaveBeenCalledTimes(2);
   });
 
+  it("handles HTML bookmarks with empty folder names", async () => {
+    const htmlContent = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+    <DT><H3 ADD_DATE="1765995928" LAST_MODIFIED="1765995928">Bluetooth Fernbedienung</H3>
+    <DL><p>
+        <DT><H3 ADD_DATE="1765995928" LAST_MODIFIED="0"></H3>
+        <DL><p>
+            <DT><A HREF="https://www.example.com/product.html" ADD_DATE="1593444456">Example Product</A>
+        </DL><p>
+    </DL><p>
+</DL><p>`;
+
+    const mockFile = {
+      text: vi.fn().mockResolvedValue(htmlContent),
+    } as unknown as File;
+
+    const createdLists: { name: string; icon: string; parentId?: string }[] =
+      [];
+    const createList = vi.fn(
+      async (input: { name: string; icon: string; parentId?: string }) => {
+        createdLists.push(input);
+        return {
+          id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
+        };
+      },
+    );
+
+    const createdBookmarks: ParsedBookmark[] = [];
+    const createBookmark = vi.fn(async (bookmark: ParsedBookmark) => {
+      createdBookmarks.push(bookmark);
+      return {
+        id: `bookmark-${createdBookmarks.length}`,
+        alreadyExists: false,
+      };
+    });
+
+    const res = await importBookmarksFromFile({
+      file: mockFile,
+      source: "html",
+      rootListName: "HTML Import",
+      deps: {
+        createList,
+        createBookmark,
+        addBookmarkToLists: vi.fn(),
+        updateBookmarkTags: vi.fn(),
+        createImportSession: vi.fn(async () => ({ id: "session-1" })),
+      },
+    });
+
+    expect(res.counts).toEqual({
+      successes: 1,
+      failures: 0,
+      alreadyExisted: 0,
+      total: 1,
+    });
+
+    // Verify that the empty folder name was replaced with "Unnamed"
+    expect(createdLists).toEqual([
+      { name: "HTML Import", icon: "⬆️" },
+      { name: "Bluetooth Fernbedienung", parentId: "HTML Import", icon: "📁" },
+      {
+        name: "Unnamed",
+        parentId: "HTML Import/Bluetooth Fernbedienung",
+        icon: "📁",
+      },
+    ]);
+
+    // Verify the bookmark was created and assigned to the correct path
+    expect(createdBookmarks).toHaveLength(1);
+    expect(createdBookmarks[0]).toMatchObject({
+      title: "Example Product",
+      content: {
+        type: "link",
+        url: "https://www.example.com/product.html",
+      },
+      tags: [],
+    });
+  });
+
   it("parses mymind CSV export correctly", async () => {
     const mymindCsv = `id,type,title,url,content,note,tags,created
 1pYm0O0hY4WnmKN,WebPage,mymind,https://access.mymind.com/everything,,,"Wellness,Self-Improvement,Psychology",2024-12-04T23:02:10Z
