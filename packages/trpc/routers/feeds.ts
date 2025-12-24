@@ -57,8 +57,13 @@ export const feedsAppRouter = router({
     .input(z.object({ feedId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       await Feed.fromId(ctx, input.feedId);
-      await FeedQueue.enqueue({
-        feedId: input.feedId,
-      });
+      await FeedQueue.enqueue(
+        {
+          feedId: input.feedId,
+        },
+        {
+          groupId: ctx.user.id,
+        },
+      );
     }),
 });

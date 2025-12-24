@@ -1,5 +1,6 @@
 {
   "common": {
+    "default": "Default",
     "url": "URL",
     "name": "Name",
     "email": "Email",
@@ -119,6 +120,17 @@
       "confirm_new_password": "Confirm New Password",
       "options": "Options",
       "interface_lang": "Interface Language",
+      "avatar": {
+        "title": "Profile Photo",
+        "description": "Upload a square image to use as your avatar.",
+        "upload": "Upload avatar",
+        "change": "Change avatar",
+        "remove": "Remove avatar",
+        "remove_confirm_title": "Remove avatar?",
+        "remove_confirm_description": "This will clear your current profile photo.",
+        "updated": "Avatar updated",
+        "removed": "Avatar removed"
+      },
       "user_settings": {
         "user_settings_updated": "User settings have been updated!",
         "bookmark_click_action": {
@@ -131,6 +143,38 @@
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
         }
+      },
+      "reader_settings": {
+        "title": "Reader Settings",
+        "description": "Configure default text settings for the reader view. These settings sync across all your devices.",
+        "font_family": "Font Family",
+        "font_size": "Font Size",
+        "line_height": "Line Height",
+        "save_as_default": "Save as default",
+        "clear_defaults": "Clear all defaults",
+        "not_set": "Not set",
+        "using_default": "Using client default",
+        "preview": "Preview",
+        "preview_text": "The quick brown fox jumps over the lazy dog. This is how your reader view text will appear.",
+        "defaults_cleared": "Reader defaults have been cleared",
+        "local_overrides_title": "Device-specific settings active",
+        "local_overrides_description": "This device has reader settings that differ from your global defaults:",
+        "local_overrides_cleared": "Device-specific settings have been cleared",
+        "clear_local_overrides": "Clear device settings",
+        "serif": "Serif",
+        "sans": "Sans Serif",
+        "mono": "Monospace",
+        "tooltip_default": "Reading settings",
+        "tooltip_preview": "Unsaved preview changes",
+        "tooltip_local": "Device settings differ from global",
+        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global",
+        "reset_preview": "Reset preview",
+        "save_to_device": "This device",
+        "save_to_all_devices": "All devices",
+        "save_hint": "Save settings for this device only or sync across all devices",
+        "adjust_hint": "Adjust settings above to preview changes",
+        "clear_override_hint": "Clear device override to use global setting ({{value}})",
+        "preview_inline": "(preview)"
       }
     },
     "stats": {
@@ -189,6 +233,11 @@
     },
     "ai": {
       "ai_settings": "AI Settings",
+      "ai_preferences_description": "Control which AI features are enabled for your account.",
+      "auto_tagging": "Auto-tagging",
+      "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
+      "auto_summarization": "Auto-summarization",
+      "auto_summarization_description": "Automatically generate summaries for your bookmarks using AI.",
       "tagging_rules": "Tagging Rules",
       "tagging_rule_description": "Prompts that you add here will be included as rules to the model during tag generation. You can view the final prompts in the prompt preview section.",
       "prompt_preview": "Prompt Preview",
@@ -359,6 +408,55 @@
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
       "delete_session": "Delete Session"
+    },
+    "backups": {
+      "backups": "Backups",
+      "page_title": "Backups",
+      "page_description": "Automatically create and manage backups of your bookmarks. Backups are compressed and stored securely.",
+      "configuration": {
+        "title": "Backup Configuration",
+        "enable_automatic_backups": "Enable Automatic Backups",
+        "enable_automatic_backups_description": "Automatically create backups of your bookmarks",
+        "backup_frequency": "Backup Frequency",
+        "backup_frequency_description": "How often backups should be created",
+        "retention_period": "Retention Period (days)",
+        "retention_period_description": "How many days to keep backups before deleting them",
+        "frequency": {
+          "daily": "Daily",
+          "weekly": "Weekly"
+        },
+        "select_frequency": "Select frequency",
+        "save_settings": "Save Settings"
+      },
+      "list": {
+        "title": "Your Backups",
+        "create_backup_now": "Create Backup Now",
+        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually.",
+        "table": {
+          "created_at": "Created At",
+          "bookmarks": "Bookmarks",
+          "size": "Size",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "success": "Success",
+          "failed": "Failed",
+          "pending": "Pending"
+        },
+        "actions": {
+          "download_backup": "Download Backup",
+          "delete_backup": "Delete Backup"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Delete Backup?",
+        "delete_backup_description": "Are you sure you want to delete this backup? This action cannot be undone."
+      },
+      "toasts": {
+        "backup_queued": "Backup job has been queued! It will be processed shortly.",
+        "backup_deleted": "Backup has been deleted!"
+      }
     }
   },
   "admin": {
@@ -471,6 +569,7 @@
     "all_lists": "All Lists",
     "favourites": "Favourites",
     "shared": "Shared",
+    "shared_lists": "Shared Lists",
     "new_list": "New List",
     "edit_list": "Edit List",
     "share_list": "Share List",
@@ -612,14 +711,22 @@
     "type_is_not": "Type is not",
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
+    "is_broken_link": "Has Broken Link",
+    "is_not_broken_link": "Has Working Link",
     "and": "And",
     "or": "Or",
-    "history": "Recent Searches"
+    "history": "Recent Searches",
+    "filters": "Filters",
+    "tags": "Tags",
+    "lists": "Lists",
+    "feeds": "Feeds",
+    "no_suggestions": "No suggestions"
   },
   "preview": {
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
     "tabs": {
       "content": "Content",
       "details": "Details"

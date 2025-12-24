@@ -42,6 +42,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
           payload: T;
           priority: number;
           groupId?: string;
+          queuedIdempotencyKey?: string;
         },
       ) => Promise<void>;
     }
@@ -51,6 +52,7 @@ class RestateQueueWrapper<T> implements Queue<T> {
         payload,
         priority: options?.priority ?? 0,
         groupId: options?.groupId,
+        queuedIdempotencyKey: options?.idempotencyKey,
       },
       restateClient.rpc.sendOpts({
         delay: options?.delayMs
@@ -58,7 +60,6 @@ class RestateQueueWrapper<T> implements Queue<T> {
               milliseconds: options.delayMs,
             }
           : undefined,
-        idempotencyKey: options?.idempotencyKey,
       }),
     );
     return res.invocationId;
@@ -133,8 +134,9 @@ class RestateQueueClient implements QueueClient {
       port: envConfig.RESTATE_LISTEN_PORT ?? 0,
       services: [
         ...[...this.services.values()].map((svc) => svc.def),
-        semaphore,
-        idProvider,
+        ...(envConfig.RESTATE_EXPOSE_CORE_SERVICES
+          ? [semaphore, idProvider]
+          : []),
       ],
       identityKeys: envConfig.RESTATE_PUB_KEY
         ? [envConfig.RESTATE_PUB_KEY]

@@ -123,22 +123,34 @@ export class ImportSession {
     };
 
     statusCounts.forEach((statusCount) => {
-      stats.totalBookmarks += statusCount.count;
-      if (
-        statusCount.crawlStatus === "success" &&
-        statusCount.taggingStatus === "success"
-      ) {
-        stats.completedBookmarks += statusCount.count;
-      } else if (
-        statusCount.crawlStatus === "failure" ||
-        statusCount.taggingStatus === "failure"
-      ) {
-        stats.failedBookmarks += statusCount.count;
-      } else if (
-        statusCount.crawlStatus === "pending" ||
-        statusCount.taggingStatus === "pending"
-      ) {
-        stats.pendingBookmarks += statusCount.count;
+      const { crawlStatus, taggingStatus, count } = statusCount;
+
+      stats.totalBookmarks += count;
+
+      const isCrawlFailure = crawlStatus === "failure";
+      const isTagFailure = taggingStatus === "failure";
+      if (isCrawlFailure || isTagFailure) {
+        stats.failedBookmarks += count;
+        return;
+      }
+
+      const isCrawlPending = crawlStatus === "pending";
+      const isTagPending = taggingStatus === "pending";
+      if (isCrawlPending || isTagPending) {
+        stats.pendingBookmarks += count;
+        return;
+      }
+
+      const isCrawlSuccessfulOrNotRequired =
+        crawlStatus === "success" || crawlStatus === null;
+      const isTagSuccessfulOrUnknown =
+        taggingStatus === "success" || taggingStatus === null;
+
+      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrUnknown) {
+        stats.completedBookmarks += count;
+      } else {
+        // Fallback to pending to avoid leaving imports unclassified
+        stats.pendingBookmarks += count;
       }
     });
 

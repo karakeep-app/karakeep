@@ -24,8 +24,9 @@ import metascraperImage from "metascraper-image";
 import metascraperLogo from "metascraper-logo-favicon";
 import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
-import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
+import metascraperX from "metascraper-x";
+import metascraperYoutube from "metascraper-youtube";
 import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
@@ -81,6 +82,7 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
@@ -124,13 +126,26 @@ const metascraperParser = metascraper([
     dateModified: true,
     datePublished: true,
   }),
+  metascraperAmazonImproved(), // Fix image extraction bug - must come before metascraperAmazon()
   metascraperAmazon(),
+  metascraperYoutube({
+    gotOpts: {
+      agent: {
+        http: serverConfig.proxy.httpProxy
+          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+          : undefined,
+        https: serverConfig.proxy.httpsProxy
+          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+          : undefined,
+      },
+    },
+  }),
   metascraperReddit(),
   metascraperAuthor(),
   metascraperPublisher(),
   metascraperTitle(),
   metascraperDescription(),
-  metascraperTwitter(),
+  metascraperX(),
   metascraperImage(),
   metascraperLogo({
     gotOpts: {
@@ -913,7 +928,7 @@ async function getContentType(
       `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
     );
     const response = await fetchWithProxy(url, {
-      method: "HEAD",
+      method: "GET",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
     const rawContentType = response.headers.get("content-type");
@@ -986,10 +1001,15 @@ async function handleAsAssetBookmark(
       .where(eq(bookmarks.id, bookmarkId));
     await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
   });
-  await AssetPreprocessingQueue.enqueue({
-    bookmarkId,
-    fixMode: false,
-  });
+  await AssetPreprocessingQueue.enqueue(
+    {
+      bookmarkId,
+      fixMode: false,
+    },
+    {
+      groupId: userId,
+    },
+  );
 }
 
 type StoreHtmlResult =
@@ -1110,10 +1130,19 @@ async function crawlAndParseUrl(
   ]);
   abortSignal.throwIfAborted();
 
-  let readableContent = await Promise.race([
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
+  let readableContent: { content: string } | null = meta.readableContentHtml
+    ? { content: meta.readableContentHtml }
+    : null;
+  if (!readableContent) {
+    readableContent = await Promise.race([
+      extractReadableContent(
+        meta.contentHtml ?? htmlContent,
+        browserUrl,
+        jobId,
+      ),
+      abortPromise(abortSignal),
+    ]);
+  }
   abortSignal.throwIfAborted();
 
   const screenshotAssetInfo = await Promise.race([
@@ -1286,6 +1315,7 @@ async function checkDomainRateLimit(
   url: string,
   jobId: string,
   jobData: ZCrawlLinkRequest,
+  userId: string,
   jobPriority?: number,
 ): Promise<boolean> {
   const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
@@ -1319,6 +1349,7 @@ async function checkDomainRateLimit(
     await LinkCrawlerQueue.enqueue(jobData, {
       priority: jobPriority,
       delayMs,
+      groupId: userId,
     });
     return false;
   }
@@ -1354,6 +1385,7 @@ async function runCrawler(
     url,
     jobId,
     job.data,
+    userId,
     job.priority,
   );
 
@@ -1411,6 +1443,7 @@ async function runCrawler(
     // Propagate priority to child jobs
     const enqueueOpts: EnqueueOptions = {
       priority: job.priority,
+      groupId: userId,
     };
 
     // Enqueue openai job (if not set, assume it's true for backward compatibility)

@@ -1,5 +1,5 @@
 import React from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useLocalSearchParams } from "expo-router";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
@@ -36,7 +36,11 @@ const ListPickerPage = () => {
   );
   const { data } = useBookmarkLists();
 
-  const { mutate: addToList } = useAddBookmarkToList({
+  const {
+    mutate: addToList,
+    isPending: isAddingToList,
+    variables: addVariables,
+  } = useAddBookmarkToList({
     onSuccess: () => {
       toast({
         message: `The bookmark has been added to the list!`,
@@ -46,7 +50,11 @@ const ListPickerPage = () => {
     onError,
   });
 
-  const { mutate: removeToList } = useRemoveBookmarkFromList({
+  const {
+    mutate: removeToList,
+    isPending: isRemovingFromList,
+    variables: removeVariables,
+  } = useRemoveBookmarkFromList({
     onSuccess: () => {
       toast({
         message: `The bookmark has been removed from the list!`,
@@ -67,6 +75,13 @@ const ListPickerPage = () => {
     }
   };
 
+  const isListLoading = (listId: string) => {
+    return (
+      (isAddingToList && addVariables?.listId === listId) ||
+      (isRemovingFromList && removeVariables?.listId === listId)
+    );
+  };
+
   const { allPaths } = data ?? {};
   // Filter out lists where user is a viewer (can't add/remove bookmarks)
   const filteredPaths = allPaths?.filter(
@@ -79,28 +94,39 @@ const ListPickerPage = () => {
         contentContainerStyle={{
           gap: 5,
         }}
-        renderItem={(l) => (
-          <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2">
-            <Pressable
-              key={l.item[l.item.length - 1].id}
-              onPress={() => toggleList(l.item[l.item.length - 1].id)}
-              className="flex w-full flex-row justify-between"
-            >
-              <Text>
-                {l.item.map((item) => `${item.icon} ${item.name}`).join(" / ")}
-              </Text>
-              <Checkbox
-                value={
-                  existingLists &&
-                  existingLists.has(l.item[l.item.length - 1].id)
-                }
-                onValueChange={() => {
-                  toggleList(l.item[l.item.length - 1].id);
-                }}
-              />
-            </Pressable>
-          </View>
-        )}
+        renderItem={(l) => {
+          const listId = l.item[l.item.length - 1].id;
+          const isLoading = isListLoading(listId);
+          const isChecked = existingLists && existingLists.has(listId);
+
+          return (
+            <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2">
+              <Pressable
+                key={listId}
+                onPress={() => !isLoading && toggleList(listId)}
+                disabled={isLoading}
+                className="flex w-full flex-row justify-between"
+              >
+                <Text>
+                  {l.item
+                    .map((item) => `${item.icon} ${item.name}`)
+                    .join(" / ")}
+                </Text>
+                {isLoading ? (
+                  <ActivityIndicator size="small" />
+                ) : (
+                  <Checkbox
+                    value={isChecked}
+                    onValueChange={() => {
+                      toggleList(listId);
+                    }}
+                    disabled={isLoading}
+                  />
+                )}
+              </Pressable>
+            </View>
+          );
+        }}
         data={filteredPaths}
       />
     </CustomSafeAreaView>

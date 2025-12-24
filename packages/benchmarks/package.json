@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/benchmarks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "tsx src/index.ts",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
+    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/trpc": "workspace:^0.1.0",
+    "@trpc/client": "^11.4.3",
+    "p-limit": "^7.2.0",
+    "superjson": "^2.2.1",
+    "tinybench": "^6.0.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@karakeep/prettier-config": "workspace:^0.1.0",
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "oxlint": "^1.29.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.8.1"
+  },
+  "prettier": "@karakeep/prettier-config"
+}

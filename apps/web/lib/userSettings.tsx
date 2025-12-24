@@ -10,6 +10,14 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   bookmarkClickAction: "open_original_link",
   archiveDisplayBehaviour: "show",
   timezone: "UTC",
+  backupsEnabled: false,
+  backupsFrequency: "daily",
+  backupsRetentionDays: 7,
+  readerFontSize: null,
+  readerLineHeight: null,
+  readerFontFamily: null,
+  autoTaggingEnabled: null,
+  autoSummarizationEnabled: null,
 });
 
 export function UserSettingsContextProvider({

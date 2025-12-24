@@ -719,6 +719,7 @@ export abstract class List {
               id: true,
               name: true,
               email: true,
+              image: true,
             },
           },
         },
@@ -738,6 +739,7 @@ export abstract class List {
         id: true,
         name: true,
         email: true,
+        image: true,
       },
     });
 
@@ -754,6 +756,7 @@ export abstract class List {
           name: c.user.name,
           // Only show email to the owner for privacy
           email: isOwner ? c.user.email : null,
+          image: c.user.image,
         },
       };
     });
@@ -766,6 +769,7 @@ export abstract class List {
             name: owner.name,
             // Only show owner email to the owner for privacy
             email: isOwner ? owner.email : null,
+            image: owner.image,
           }
         : null,
     };

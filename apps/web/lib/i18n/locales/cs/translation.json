@@ -228,7 +228,8 @@
       "import_bookmarks_from_karakeep_export": "Importovat záložky z exportu Karakeep",
       "import_bookmarks_from_tab_session_manager_export": "Importovat záložky ze správce relací panelů",
       "export_links_and_notes": "Exportovat odkazy a poznámky",
-      "imported_bookmarks": "Importované záložky"
+      "imported_bookmarks": "Importované záložky",
+      "import_bookmarks_from_mymind_export": "Importovat záložky z exportu mymind"
     },
     "broken_links": {
       "broken_links": "Nefunkční odkazy",
@@ -284,6 +285,10 @@
       },
       "storage_breakdown": {
         "title": "Rozpis úložiště"
+      },
+      "bookmark_sources": {
+        "title": "Zdroje záložek",
+        "empty": "Nejsou dostupná žádná zdrojová data"
       }
     },
     "subscription": {
@@ -333,6 +338,55 @@
       "delete_dialog_title": "Smazat import relaci",
       "delete_dialog_description": "Určitě chceš smazat \"{{name}}\"? Tahle akce nemůže být vrácena zpátky. Samotný záložky smazaný nebudou.",
       "delete_session": "Smazat relaci"
+    },
+    "backups": {
+      "backups": "Zálohy",
+      "page_title": "Zálohy",
+      "page_description": "Automaticky vytvářej a spravuj zálohy tvých záložek. Zálohy se komprimují a bezpečně ukládají.",
+      "configuration": {
+        "title": "Nastavení zálohování",
+        "enable_automatic_backups": "Povolit automatické zálohování",
+        "enable_automatic_backups_description": "Automaticky vytvářet zálohy mých záložek",
+        "backup_frequency": "Četnost zálohování",
+        "backup_frequency_description": "Jak často by se měly zálohy vytvářet",
+        "retention_period": "Doba uchování (dny)",
+        "retention_period_description": "Kolik dní uchovávat zálohy, než se smažou",
+        "frequency": {
+          "daily": "Denně",
+          "weekly": "Týdně"
+        },
+        "select_frequency": "Vyber četnost",
+        "save_settings": "Uložit nastavení"
+      },
+      "list": {
+        "title": "Tvoje zálohy",
+        "create_backup_now": "Vytvořit zálohu teď",
+        "no_backups": "Zatím nemáš žádné zálohy. Povol automatické zálohování nebo vytvoř zálohu ručně.",
+        "table": {
+          "created_at": "Vytvořeno",
+          "bookmarks": "Záložky",
+          "size": "Velikost",
+          "status": "Stav",
+          "actions": "Akce"
+        },
+        "status": {
+          "success": "Úspěch",
+          "failed": "Neúspěšné",
+          "pending": "Čeká se"
+        },
+        "actions": {
+          "download_backup": "Stáhnout zálohu",
+          "delete_backup": "Smazat zálohu"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Smazat zálohu?",
+        "delete_backup_description": "Jste si jistí, že chcete smazat tuto zálohu? Tuto akci nelze vrátit zpět."
+      },
+      "toasts": {
+        "backup_queued": "Úloha zálohování byla zařazena do fronty! Bude brzy zpracována.",
+        "backup_deleted": "Záloha byla smazána!"
+      }
     }
   },
   "lists": {
@@ -369,7 +423,57 @@
       "description": "Smazáním seznamu se nesmažou žádné záložky v tomto seznamu.",
       "delete_children": "Odstranit podřízené seznamy (rekurzivně)",
       "delete_children_description": "Pokud není zaškrtnuto, všechny přímé podřízené seznamy se stanou kořenovými seznamy."
-    }
+    },
+    "shared": "Sdílené",
+    "collaborators": {
+      "manage": "Spravovat spolupracovníky",
+      "view": "Zobrazit spolupracovníky",
+      "collaborators": "Spolupracovníci",
+      "add": "Přidat spolupracovníka",
+      "current": "Současní spolupracovníci",
+      "enter_email": "Zadej e-mailovou adresu",
+      "please_enter_email": "Zadej e-mailovou adresu",
+      "added_successfully": "Spolupracovník byl úspěšně přidán",
+      "failed_to_add": "Nepodařilo se přidat spolupracovníka",
+      "removed": "Spolupracovník byl odebrán",
+      "failed_to_remove": "Nepodařilo se odebrat spolupracovníka",
+      "role_updated": "Role aktualizována",
+      "failed_to_update_role": "Nepodařilo se aktualizovat roli",
+      "viewer": "Divák",
+      "editor": "Editor",
+      "owner": "Vlastník",
+      "viewer_description": "Může zobrazit záložky v seznamu",
+      "editor_description": "Může přidávat a odebírat záložky",
+      "no_collaborators": "Zatím žádní spolupracovníci. Přidej někoho a začněte spolupracovat!",
+      "no_collaborators_readonly": "Pro tenhle seznam nejsou žádní spolupracovníci.",
+      "people_with_access": "Lidé, kteří mají přístup k tomuto seznamu",
+      "add_or_remove": "Přidej nebo odeber lidi, kteří mají přístup k tomuto seznamu",
+      "invitation_sent": "Pozvánka odeslána úspěšně",
+      "invitation_revoked": "Pozvánka zrušena",
+      "failed_to_revoke": "Nepodařilo se zrušit pozvánku",
+      "pending": "Čeká se",
+      "revoke": "Zrušit",
+      "declined": "Odmítnuto"
+    },
+    "leave_list": {
+      "title": "Opustit Seznam",
+      "confirm_message": "Jsi si jistý, že chceš opustit {{icon}} {{name}}?",
+      "warning": "Nebudeš už moct zobrazovat ani přistupovat k záložkam v tomto seznamu. Vlastník seznamu tě může, když bude potřeba, přidat zpátky.",
+      "action": "Opustit Seznam",
+      "success": "Opustil(a) jsi \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Pozvánky čekající na vyřízení",
+      "description": "Zkontrolujte pozvánky ke spolupráci na seznamech a reagujte na ně",
+      "invited_by": "Pozval(a)",
+      "accept": "Přijmout",
+      "decline": "Odmítnout",
+      "accepted": "Pozvánka přijata",
+      "declined": "Pozvánka odmítnuta",
+      "failed_to_accept": "Nepodařilo se přijmout pozvánku",
+      "failed_to_decline": "Nepodařilo se odmítnout pozvánku"
+    },
+    "shared_lists": "Sdílené seznamy"
   },
   "tags": {
     "unused_tags": "Nepoužité tagy",

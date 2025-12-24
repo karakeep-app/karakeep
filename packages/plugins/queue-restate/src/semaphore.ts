@@ -5,18 +5,20 @@ import { Context, object, ObjectContext } from "@restatedev/restate-sdk";
 
 interface QueueItem {
   awakeable: string;
+  idempotencyKey?: string;
   priority: number;
 }
 
 interface LegacyQueueState {
-  items: QueueItem[];
   itemsv2: Record<string, GroupState>;
   inFlight: number;
+  paused: boolean;
 }
 
 interface QueueState {
   groups: Record<string, GroupState>;
   inFlight: number;
+  paused: boolean;
 }
 
 interface GroupState {
@@ -28,48 +30,101 @@ interface GroupState {
 export const semaphore = object({
   name: "Semaphore",
   handlers: {
-    acquire: async (
-      ctx: ObjectContext<LegacyQueueState>,
-      req: {
-        awakeableId: string;
-        priority: number;
-        capacity: number;
-        groupId?: string;
+    acquire: restate.handlers.object.exclusive(
+      {
+        ingressPrivate: true,
       },
-    ): Promise<void> => {
-      const state = await getState(ctx);
-      req.groupId = req.groupId ?? "__ungrouped__";
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        req: {
+          awakeableId: string;
+          priority: number;
+          capacity: number;
+          groupId?: string;
+          idempotencyKey?: string;
+        },
+      ): Promise<boolean> => {
+        const state = await getState(ctx);
 
-      if (state.groups[req.groupId] === undefined) {
-        state.groups[req.groupId] = {
-          id: req.groupId,
-          items: [],
-          lastServedTimestamp: Date.now(),
-        };
-      }
+        if (
+          req.idempotencyKey &&
+          idempotencyKeyAlreadyExists(state.groups, req.idempotencyKey)
+        ) {
+          return false;
+        }
 
-      state.groups[req.groupId].items.push({
-        awakeable: req.awakeableId,
-        priority: req.priority,
-      });
+        req.groupId = req.groupId ?? "__ungrouped__";
 
-      tick(ctx, state, req.capacity);
+        if (state.groups[req.groupId] === undefined) {
+          state.groups[req.groupId] = {
+            id: req.groupId,
+            items: [],
+            lastServedTimestamp: Date.now(),
+          };
+        }
 
-      setState(ctx, state);
-    },
+        state.groups[req.groupId].items.push({
+          awakeable: req.awakeableId,
+          priority: req.priority,
+          idempotencyKey: req.idempotencyKey,
+        });
 
-    release: async (
-      ctx: ObjectContext<LegacyQueueState>,
-      capacity: number,
-    ): Promise<void> => {
-      const state = await getState(ctx);
-      state.inFlight--;
-      tick(ctx, state, capacity);
-      setState(ctx, state);
-    },
+        tick(ctx, state, req.capacity);
+
+        setState(ctx, state);
+        return true;
+      },
+    ),
+
+    release: restate.handlers.object.exclusive(
+      {
+        ingressPrivate: true,
+      },
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        capacity: number,
+      ): Promise<void> => {
+        const state = await getState(ctx);
+        state.inFlight--;
+        tick(ctx, state, capacity);
+        setState(ctx, state);
+      },
+    ),
+    pause: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        state.paused = true;
+        setState(ctx, state);
+      },
+    ),
+    resume: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        state.paused = false;
+        tick(ctx, state, 1);
+        setState(ctx, state);
+      },
+    ),
+    resetInflight: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        state.inFlight = 0;
+        setState(ctx, state);
+      },
+    ),
+    tick: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        const state = await getState(ctx);
+        tick(ctx, state, 1);
+        setState(ctx, state);
+      },
+    ),
   },
   options: {
-    ingressPrivate: true,
     journalRetention: 0,
   },
 });
@@ -122,7 +177,11 @@ function tick(
   state: QueueState,
   capacity: number,
 ) {
-  while (state.inFlight < capacity && Object.keys(state.groups).length > 0) {
+  while (
+    !state.paused &&
+    state.inFlight < capacity &&
+    Object.keys(state.groups).length > 0
+  ) {
     const { item } = selectAndPopItem(state);
     state.inFlight++;
     ctx.resolveAwakeable(item.awakeable);
@@ -133,26 +192,31 @@ async function getState(
   ctx: ObjectContext<LegacyQueueState>,
 ): Promise<QueueState> {
   const groups = (await ctx.get("itemsv2")) ?? {};
-  const items = (await ctx.get("items")) ?? [];
-
-  if (items.length > 0) {
-    groups["__legacy__"] = {
-      id: "__legacy__",
-      items,
-      lastServedTimestamp: 0,
-    };
-  }
+  const paused = (await ctx.get("paused")) ?? false;
 
   return {
     groups,
+    paused,
     inFlight: (await ctx.get("inFlight")) ?? 0,
   };
+}
+
+function idempotencyKeyAlreadyExists(
+  items: Record<string, GroupState>,
+  key: string,
+) {
+  for (const group of Object.values(items)) {
+    if (group.items.some((item) => item.idempotencyKey === key)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function setState(ctx: ObjectContext<LegacyQueueState>, state: QueueState) {
   ctx.set("itemsv2", state.groups);
   ctx.set("inFlight", state.inFlight);
-  ctx.clear("items");
+  ctx.set("paused", state.paused);
 }
 
 export class RestateSemaphore {
@@ -162,16 +226,21 @@ export class RestateSemaphore {
     private readonly capacity: number,
   ) {}
 
-  async acquire(priority: number, groupId?: string) {
+  async acquire(priority: number, groupId?: string, idempotencyKey?: string) {
     const awk = this.ctx.awakeable();
-    await this.ctx
+    const res = await this.ctx
       .objectClient<typeof semaphore>({ name: "Semaphore" }, this.id)
       .acquire({
         awakeableId: awk.id,
         priority,
         capacity: this.capacity,
         groupId,
+        idempotencyKey,
       });
+
+    if (!res) {
+      return false;
+    }
 
     try {
       await awk.promise;
@@ -181,6 +250,7 @@ export class RestateSemaphore {
         throw e;
       }
     }
+    return true;
   }
   async release() {
     await this.ctx

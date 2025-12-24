@@ -1,4 +1,4 @@
-import { and, Column, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
@@ -13,6 +13,7 @@ import {
   bookmarkTags,
   customPrompts,
   tagsOnBookmarks,
+  users,
 } from "@karakeep/db/schema";
 import {
   triggerRuleEngineOnEvent,
@@ -66,14 +67,14 @@ function parseJsonFromLLMResponse(response: string): unknown {
   }
 }
 
-function tagNormalizer(col: Column) {
+function tagNormalizer() {
+  // This function needs to be in sync with the generated normalizedName column in bookmarkTags
   function normalizeTag(tag: string) {
     return tag.toLowerCase().replace(/[ \-_]/g, "");
   }
 
   return {
     normalizeTag,
-    sql: sql`lower(replace(replace(replace(${col}, ' ', ''), '-', ''), '_', ''))`,
   };
 }
 async function buildPrompt(
@@ -94,7 +95,7 @@ async function buildPrompt(
       );
       return null;
     }
-    return buildTextPrompt(
+    return await buildTextPrompt(
       serverConfig.inference.inferredTagLang,
       prompts,
       `URL: ${bookmark.link.url}
@@ -106,7 +107,7 @@ Content: ${content ?? ""}`,
   }
 
   if (bookmark.text) {
-    return buildTextPrompt(
+    return await buildTextPrompt(
       serverConfig.inference.inferredTagLang,
       prompts,
       bookmark.text.text ?? "",
@@ -215,7 +216,7 @@ async function inferTagsFromPDF(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
 ) {
-  const prompt = buildTextPrompt(
+  const prompt = await buildTextPrompt(
     serverConfig.inference.inferredTagLang,
     await fetchCustomPrompts(bookmark.userId, "text"),
     `Content: ${bookmark.asset.content}`,
@@ -317,12 +318,10 @@ async function connectTags(
     return;
   }
 
-  await db.transaction(async (tx) => {
+  const res = await db.transaction(async (tx) => {
     // Attempt to match exiting tags with the new ones
     const { matchedTagIds, notFoundTagNames } = await (async () => {
-      const { normalizeTag, sql: normalizedTagSql } = tagNormalizer(
-        bookmarkTags.name,
-      );
+      const { normalizeTag } = tagNormalizer();
       const normalizedInferredTags = inferredTags.map((t) => ({
         originalTag: t,
         normalizedTag: normalizeTag(t),
@@ -332,7 +331,7 @@ async function connectTags(
         where: and(
           eq(bookmarkTags.userId, userId),
           inArray(
-            normalizedTagSql,
+            bookmarkTags.normalizedName,
             normalizedInferredTags.map((t) => t.normalizedTag),
           ),
         ),
@@ -394,17 +393,19 @@ async function connectTags(
       .onConflictDoNothing()
       .returning();
 
-    await triggerRuleEngineOnEvent(bookmarkId, [
-      ...detachedTags.map((t) => ({
-        type: "tagRemoved" as const,
-        tagId: t.tagId,
-      })),
-      ...attachedTags.map((t) => ({
-        type: "tagAdded" as const,
-        tagId: t.tagId,
-      })),
-    ]);
+    return { detachedTags, attachedTags };
   });
+
+  await triggerRuleEngineOnEvent(bookmarkId, [
+    ...res.detachedTags.map((t) => ({
+      type: "tagRemoved" as const,
+      tagId: t.tagId,
+    })),
+    ...res.attachedTags.map((t) => ({
+      type: "tagAdded" as const,
+      tagId: t.tagId,
+    })),
+  ]);
 }
 
 async function fetchBookmark(linkId: string) {
@@ -437,6 +438,21 @@ export async function runTagging(
     );
   }
 
+  // Check user-level preference
+  const userSettings = await db.query.users.findFirst({
+    where: eq(users.id, bookmark.userId),
+    columns: {
+      autoTaggingEnabled: true,
+    },
+  });
+
+  if (userSettings?.autoTaggingEnabled === false) {
+    logger.debug(
+      `[inference][${jobId}] Skipping tagging job for bookmark with id "${bookmarkId}" because user has disabled auto-tagging.`,
+    );
+    return;
+  }
+
   logger.info(
     `[inference][${jobId}] Starting an inference job for bookmark with id "${bookmark.id}"`,
   );
@@ -460,6 +476,7 @@ export async function runTagging(
   // Propagate priority to child jobs
   const enqueueOpts: EnqueueOptions = {
     priority: job.priority,
+    groupId: bookmark.userId,
   };
 
   // Trigger a webhook

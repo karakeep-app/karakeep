@@ -11,6 +11,7 @@ export const zSignUpSchema = z
     email: z.string().email(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
+    turnstileToken: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -37,6 +38,7 @@ export const zWhoAmIResponseSchema = z.object({
   id: z.string(),
   name: z.string().nullish(),
   email: z.string().nullish(),
+  image: z.string().nullish(),
   localUser: z.boolean(),
 });
 
@@ -101,6 +103,9 @@ export const zUserStatsResponseSchema = z.object({
   ),
 });
 
+export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
+export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
+
 export const zUserSettingsSchema = z.object({
   bookmarkClickAction: z.enum([
     "open_original_link",
@@ -108,6 +113,16 @@ export const zUserSettingsSchema = z.object({
   ]),
   archiveDisplayBehaviour: z.enum(["show", "hide"]),
   timezone: z.string(),
+  backupsEnabled: z.boolean(),
+  backupsFrequency: z.enum(["daily", "weekly"]),
+  backupsRetentionDays: z.number().int().min(1).max(365),
+  // Reader settings (nullable = opt-in, null means use client default)
+  readerFontSize: z.number().int().min(12).max(24).nullable(),
+  readerLineHeight: z.number().min(1.2).max(2.5).nullable(),
+  readerFontFamily: zReaderFontFamilySchema.nullable(),
+  // AI settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: z.boolean().nullable(),
+  autoSummarizationEnabled: z.boolean().nullable(),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -116,4 +131,18 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   bookmarkClickAction: true,
   archiveDisplayBehaviour: true,
   timezone: true,
+  backupsEnabled: true,
+  backupsFrequency: true,
+  backupsRetentionDays: true,
+  readerFontSize: true,
+  readerLineHeight: true,
+  readerFontFamily: true,
+  autoTaggingEnabled: true,
+  autoSummarizationEnabled: true,
+});
+
+export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({
+  backupsEnabled: true,
+  backupsFrequency: true,
+  backupsRetentionDays: true,
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
@@ -39,6 +39,7 @@ interface ListLink {
   parent?: string;
   numChildren: number;
   collapsed: boolean;
+  isSharedSection?: boolean;
 }
 
 function traverseTree(
@@ -74,6 +75,11 @@ export default function Lists() {
     {},
   );
   const apiUtils = api.useUtils();
+
+  // Check if there are any shared lists
+  const hasSharedLists = useMemo(() => {
+    return lists?.data.some((list) => list.userRole !== "owner") ?? false;
+  }, [lists?.data]);
 
   useEffect(() => {
     setRefreshing(isPending);
@@ -112,9 +118,40 @@ export default function Lists() {
     },
   ];
 
-  Object.values(lists.root).forEach((list) =>
-    traverseTree(list, links, showChildrenOf),
-  );
+  // Add shared lists section if there are any
+  if (hasSharedLists) {
+    // Count shared lists to determine if section has children
+    const sharedListsCount = Object.values(lists.root).filter(
+      (list) => list.item.userRole !== "owner",
+    ).length;
+
+    links.push({
+      id: "shared-section",
+      logo: "👥",
+      name: "Shared Lists",
+      href: "#",
+      level: 0,
+      numChildren: sharedListsCount,
+      collapsed: !showChildrenOf["shared-section"],
+      isSharedSection: true,
+    });
+
+    // Add shared lists as children if section is expanded
+    if (showChildrenOf["shared-section"]) {
+      Object.values(lists.root).forEach((list) => {
+        if (list.item.userRole !== "owner") {
+          traverseTree(list, links, showChildrenOf, "shared-section", 1);
+        }
+      });
+    }
+  }
+
+  // Add owned lists only
+  Object.values(lists.root).forEach((list) => {
+    if (list.item.userRole === "owner") {
+      traverseTree(list, links, showChildrenOf);
+    }
+  });
 
   return (
     <CustomSafeAreaView>
@@ -160,14 +197,35 @@ export default function Lists() {
               </Pressable>
             )}
 
-            <Link asChild key={l.item.id} href={l.item.href} className="flex-1">
-              <Pressable className="flex flex-row items-center justify-between">
+            {l.item.isSharedSection ? (
+              <Pressable
+                className="flex flex-1 flex-row items-center justify-between"
+                onPress={() => {
+                  setShowChildrenOf((prev) => ({
+                    ...prev,
+                    [l.item.id]: !prev[l.item.id],
+                  }));
+                }}
+              >
                 <Text>
                   {l.item.logo} {l.item.name}
                 </Text>
-                <ChevronRight />
               </Pressable>
-            </Link>
+            ) : (
+              <Link
+                asChild
+                key={l.item.id}
+                href={l.item.href}
+                className="flex-1"
+              >
+                <Pressable className="flex flex-row items-center justify-between">
+                  <Text>
+                    {l.item.logo} {l.item.name}
+                  </Text>
+                  <ChevronRight />
+                </Pressable>
+              </Link>
+            )}
           </View>
         )}
         data={links}

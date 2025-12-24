@@ -67,7 +67,8 @@
       "import_bookmarks_from_pocket_export": "Nhập dấu trang từ bản xuất Pocket",
       "import_bookmarks_from_omnivore_export": "Nhập dấu trang từ xuất Omnivore",
       "import_bookmarks_from_karakeep_export": "Nhập dấu trang từ bản xuất Karakeep",
-      "import_bookmarks_from_tab_session_manager_export": "Nhập dấu trang từ Tab Session Manager"
+      "import_bookmarks_from_tab_session_manager_export": "Nhập dấu trang từ Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Nhập dấu trang từ tệp xuất mymind"
     },
     "webhooks": {
       "edit_auth_token": "Sửa mã xác thực",
@@ -248,6 +249,10 @@
       },
       "storage_breakdown": {
         "title": "Phân tích bộ nhớ"
+      },
+      "bookmark_sources": {
+        "title": "Nguồn đánh dấu trang",
+        "empty": "Không có dữ liệu nguồn"
       }
     },
     "subscription": {
@@ -297,6 +302,55 @@
       "delete_dialog_title": "Xóa Phiên Nhập",
       "delete_dialog_description": "Bạn có chắc chắn muốn xóa \"{{name}}\" không? Thao tác này không thể hoàn tác. Bản thân các dấu trang sẽ không bị xóa.",
       "delete_session": "Xóa Phiên"
+    },
+    "backups": {
+      "backups": "Sao lưu",
+      "page_title": "Sao lưu",
+      "page_description": "Tự động tạo và quản lý sao lưu dấu trang của bạn. Bản sao lưu được nén và lưu trữ an toàn.",
+      "configuration": {
+        "title": "Cấu hình sao lưu",
+        "enable_automatic_backups": "Bật sao lưu tự động",
+        "enable_automatic_backups_description": "Tự động tạo bản sao lưu dấu trang của bạn",
+        "backup_frequency": "Tần suất sao lưu",
+        "backup_frequency_description": "Tần suất tạo bản sao lưu",
+        "retention_period": "Thời gian lưu giữ (ngày)",
+        "retention_period_description": "Số ngày giữ bản sao lưu trước khi xóa",
+        "frequency": {
+          "daily": "Hàng ngày",
+          "weekly": "Hàng tuần"
+        },
+        "select_frequency": "Chọn tần suất",
+        "save_settings": "Lưu cài đặt"
+      },
+      "list": {
+        "title": "Các bản sao lưu của bạn",
+        "create_backup_now": "Tạo bản sao lưu ngay",
+        "no_backups": "Bạn chưa có bản sao lưu nào. Bật sao lưu tự động hoặc tạo thủ công.",
+        "table": {
+          "created_at": "Đã tạo vào",
+          "bookmarks": "Dấu trang",
+          "size": "Kích thước",
+          "status": "Trạng thái",
+          "actions": "Hành động"
+        },
+        "status": {
+          "success": "Thành công",
+          "failed": "Thất bại",
+          "pending": "Đang chờ"
+        },
+        "actions": {
+          "download_backup": "Tải xuống bản sao lưu",
+          "delete_backup": "Xóa bản sao lưu"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Xóa bản sao lưu?",
+        "delete_backup_description": "Mày có chắc là muốn xóa bản sao lưu này không? Hành động này không thể hoàn tác đâu đó."
+      },
+      "toasts": {
+        "backup_queued": "Công việc sao lưu đã được đưa vào hàng đợi! Nó sẽ sớm được xử lý thôi.",
+        "backup_deleted": "Đã xóa bản sao lưu!"
+      }
     }
   },
   "admin": {
@@ -508,7 +562,57 @@
       "description": "Xóa một danh sách không xóa bất kỳ dấu trang nào trong danh sách đó.",
       "delete_children": "Xóa danh sách con (đệ quy)",
       "delete_children_description": "Nếu không được chọn, tất cả các danh sách con trực tiếp sẽ trở thành danh sách gốc"
-    }
+    },
+    "shared": "Được chia sẻ",
+    "collaborators": {
+      "manage": "Quản lý Cộng tác viên",
+      "view": "Xem Cộng tác viên",
+      "collaborators": "Cộng tác viên",
+      "add": "Thêm Cộng tác viên",
+      "current": "Cộng tác viên Hiện tại",
+      "enter_email": "Nhập địa chỉ email",
+      "please_enter_email": "Vui lòng nhập địa chỉ email",
+      "added_successfully": "Đã thêm cộng tác viên thành công",
+      "failed_to_add": "Không thêm được cộng tác viên",
+      "removed": "Đã xóa cộng tác viên",
+      "failed_to_remove": "Không xóa được cộng tác viên",
+      "role_updated": "Đã cập nhật vai trò",
+      "failed_to_update_role": "Không cập nhật được vai trò",
+      "viewer": "Người xem",
+      "editor": "Biên tập viên",
+      "owner": "Chủ sở hữu",
+      "viewer_description": "Có thể xem dấu trang trong danh sách",
+      "editor_description": "Có thể thêm và xóa dấu trang",
+      "no_collaborators": "Chưa có cộng tác viên nào. Thêm ai đó để bắt đầu cộng tác!",
+      "no_collaborators_readonly": "Không có cộng tác viên nào cho danh sách này.",
+      "people_with_access": "Những người có quyền truy cập vào danh sách này",
+      "add_or_remove": "Thêm hoặc xóa những người có thể truy cập danh sách này",
+      "invitation_sent": "Đã gửi lời mời thành công",
+      "invitation_revoked": "Đã thu hồi lời mời",
+      "failed_to_revoke": "Không thu hồi được lời mời",
+      "pending": "Đang chờ",
+      "revoke": "Thu hồi",
+      "declined": "Đã từ chối"
+    },
+    "leave_list": {
+      "title": "Rời khỏi danh sách",
+      "confirm_message": "Bạn có chắc chắn muốn rời khỏi {{icon}} {{name}} không?",
+      "warning": "Bạn sẽ không còn có thể xem hoặc truy cập dấu trang trong danh sách này nữa. Chủ sở hữu danh sách có thể thêm bạn lại nếu cần.",
+      "action": "Rời khỏi danh sách",
+      "success": "Bạn đã rời khỏi \"{{icon}} {{name}}\""
+    },
+    "invitations": {
+      "pending": "Lời mời đang chờ",
+      "description": "Xem lại và phản hồi lời mời cộng tác danh sách",
+      "invited_by": "Được mời bởi",
+      "accept": "Chấp nhận",
+      "decline": "Từ chối",
+      "accepted": "Đã chấp nhận lời mời",
+      "declined": "Đã từ chối lời mời",
+      "failed_to_accept": "Không chấp nhận được lời mời",
+      "failed_to_decline": "Không từ chối được lời mời"
+    },
+    "shared_lists": "Danh sách dùng chung"
   },
   "search": {
     "is_favorited": "Được ưa thích",

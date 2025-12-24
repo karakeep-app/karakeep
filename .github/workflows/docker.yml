@@ -8,32 +8,45 @@ on:
       - main
 
 jobs:
-  push:
+  build:
     strategy:
       fail-fast: false
       matrix:
+        platform: [linux/amd64, linux/arm64]
+        image: [web, workers, cli, mcp, aio]
         include:
-          - name: karakeep-web
+          - platform: linux/amd64
+            suffix: amd64
+            os: ubuntu-latest
+          - platform: linux/arm64
+            suffix: arm64
+            os: ubuntu-24.04-arm
+          - image: web
+            name: karakeep-web
             target: web
             tags_latest: ghcr.io/hoarder-app/hoarder-web:latest,ghcr.io/mohamedbassem/hoarder-web:latest,ghcr.io/karakeep-app/karakeep-web:latest
             tags_release: ghcr.io/hoarder-app/hoarder-web:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-web:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-web:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-web:release,ghcr.io/mohamedbassem/hoarder-web:release,ghcr.io/karakeep-app/karakeep-web:release
-          - name: karakeep-workers
+          - image: workers
+            name: karakeep-workers
             target: workers
             tags_latest: ghcr.io/hoarder-app/hoarder-workers:latest,ghcr.io/mohamedbassem/hoarder-workers:latest,ghcr.io/karakeep-app/karakeep-workers:latest
             tags_release: ghcr.io/hoarder-app/hoarder-workers:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-workers:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-workers:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-workers:release,ghcr.io/mohamedbassem/hoarder-workers:release,ghcr.io/karakeep-app/karakeep-workers:release
-          - name: karakeep-cli
+          - image: cli
+            name: karakeep-cli
             target: cli
             tags_latest: ghcr.io/hoarder-app/hoarder-cli:latest,ghcr.io/mohamedbassem/hoarder-cli:latest,ghcr.io/karakeep-app/karakeep-cli:latest
             tags_release: ghcr.io/hoarder-app/hoarder-cli:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-cli:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-cli:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-cli:release,ghcr.io/mohamedbassem/hoarder-cli:release,ghcr.io/karakeep-app/karakeep-cli:release
-          - name: karakeep-mcp
+          - image: mcp
+            name: karakeep-mcp
             target: mcp
             tags_latest: ghcr.io/karakeep-app/karakeep-mcp:latest
             tags_release: ghcr.io/karakeep-app/karakeep-mcp:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-mcp:release
-          - name: karakeep-aio
+          - image: aio
+            name: karakeep-aio
             target: aio
             tags_latest: ghcr.io/hoarder-app/hoarder:latest,ghcr.io/karakeep-app/karakeep:latest
             tags_release: ghcr.io/hoarder-app/hoarder:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder:release,ghcr.io/karakeep-app/karakeep:release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     permissions:
       packages: write
       contents: read
@@ -50,29 +63,116 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_GITHUB_PAT }}
 
+      - name: Prepare tags
+        id: tags
+        run: |
+          set -euo pipefail
+          add_suffix() {
+            local value="$1"
+            local out=""
+            IFS=',' read -ra items <<< "$value"
+            for item in "${items[@]}"; do
+              out+="${item}-${{ matrix.suffix }},"
+            done
+            echo "${out%,}"
+          }
+
+          all_tags=""
+
+          # Only push 'latest' tags on pushes to main, not on releases
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            latest_with_suffix=$(add_suffix "${{ matrix.tags_latest }}")
+            all_tags="${latest_with_suffix}"
+            echo "latest=${latest_with_suffix}" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Only push release-specific tags on releases
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            release_with_suffix=$(add_suffix "${{ matrix.tags_release }}")
+            all_tags="${release_with_suffix}"
+            echo "release=${release_with_suffix}" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "all=${all_tags}" >> "$GITHUB_OUTPUT"
+
       - name: Build ${{ matrix.name }}
         uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: SERVER_VERSION=nightly
+          build-args: SERVER_VERSION=${{ github.event_name == 'release' && github.event.release.name || 'nightly' }}
           file: docker/Dockerfile
           target: ${{ matrix.target }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ matrix.tags_latest }}
-          cache-from: type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
-          cache-to: type=registry,mode=max,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
+          tags: ${{ steps.tags.outputs.all }}
+          cache-from: type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}-${{ matrix.suffix }}
+          cache-to: type=registry,mode=max,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}-${{ matrix.suffix }}
 
-      - name: Build ${{ matrix.name }} (release)
-        uses: docker/build-push-action@v5
-        if: github.event_name == 'release'
+  manifest:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: karakeep-web
+            tags_latest: ghcr.io/hoarder-app/hoarder-web:latest,ghcr.io/mohamedbassem/hoarder-web:latest,ghcr.io/karakeep-app/karakeep-web:latest
+            tags_release: ghcr.io/hoarder-app/hoarder-web:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-web:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-web:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-web:release,ghcr.io/mohamedbassem/hoarder-web:release,ghcr.io/karakeep-app/karakeep-web:release
+          - name: karakeep-workers
+            tags_latest: ghcr.io/hoarder-app/hoarder-workers:latest,ghcr.io/mohamedbassem/hoarder-workers:latest,ghcr.io/karakeep-app/karakeep-workers:latest
+            tags_release: ghcr.io/hoarder-app/hoarder-workers:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-workers:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-workers:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-workers:release,ghcr.io/mohamedbassem/hoarder-workers:release,ghcr.io/karakeep-app/karakeep-workers:release
+          - name: karakeep-cli
+            tags_latest: ghcr.io/hoarder-app/hoarder-cli:latest,ghcr.io/mohamedbassem/hoarder-cli:latest,ghcr.io/karakeep-app/karakeep-cli:latest
+            tags_release: ghcr.io/hoarder-app/hoarder-cli:${{ github.event.release.name }},ghcr.io/mohamedbassem/hoarder-cli:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-cli:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-cli:release,ghcr.io/mohamedbassem/hoarder-cli:release,ghcr.io/karakeep-app/karakeep-cli:release
+          - name: karakeep-mcp
+            tags_latest: ghcr.io/karakeep-app/karakeep-mcp:latest
+            tags_release: ghcr.io/karakeep-app/karakeep-mcp:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-mcp:release
+          - name: karakeep-aio
+            tags_latest: ghcr.io/hoarder-app/hoarder:latest,ghcr.io/karakeep-app/karakeep:latest
+            tags_release: ghcr.io/hoarder-app/hoarder:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder:release,ghcr.io/karakeep-app/karakeep:release
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Github Registry
+        uses: docker/login-action@v3
         with:
-          context: .
-          build-args: SERVER_VERSION=${{ github.event.release.name }}
-          file: docker/Dockerfile
-          target: ${{ matrix.target }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ matrix.tags_release }}
-          cache-from: type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
-          cache-to: type=registry,mode=max,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_GITHUB_PAT }}
+
+      - name: Create manifests for ${{ matrix.name }}
+        env:
+          TAGS_LATEST: ${{ matrix.tags_latest }}
+          TAGS_RELEASE: ${{ matrix.tags_release }}
+          IS_RELEASE: ${{ github.event_name == 'release' }}
+          IS_PUSH: ${{ github.event_name == 'push' }}
+        run: |
+          set -euo pipefail
+
+          create_manifest() {
+            local tag="$1"
+            docker buildx imagetools create \
+              -t "${tag}" \
+              "${tag}-amd64" \
+              "${tag}-arm64"
+          }
+
+          # Only create 'latest' manifests on pushes to main
+          if [[ "${IS_PUSH}" == "true" ]]; then
+            IFS=',' read -ra latest_tags <<< "${TAGS_LATEST}"
+            for tag in "${latest_tags[@]}"; do
+              create_manifest "$tag"
+            done
+          fi
+
+          # Only create release-specific manifests on releases
+          if [[ "${IS_RELEASE}" == "true" ]]; then
+            IFS=',' read -ra release_tags <<< "${TAGS_RELEASE}"
+            for tag in "${release_tags[@]}"; do
+              create_manifest "$tag"
+            done
+          fi

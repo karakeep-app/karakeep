@@ -44,6 +44,4 @@ docker run -d \
 You **MUST** change the `super_random_string` to a true random string which you can generate with `openssl rand -hex 32`.
 :::
 
-Check the [configuration docs](/configuration) for extra features to enable such as full page archival, full page screenshots, inference languages, etc.
-
-
+Check the [configuration docs](../configuration/environment-variables) for extra features to enable such as full page archival, full page screenshots, inference languages, etc.

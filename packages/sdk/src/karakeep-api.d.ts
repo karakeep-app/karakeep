@@ -68,6 +68,16 @@ export interface paths {
             /** @enum {string} */
             crawlPriority?: "low" | "normal";
             importSessionId?: string;
+            /** @enum {string} */
+            source?:
+              | "api"
+              | "web"
+              | "cli"
+              | "mobile"
+              | "extension"
+              | "singlefile"
+              | "rss"
+              | "import";
           } & (
             | {
                 /** @enum {string} */
@@ -322,6 +332,18 @@ export interface paths {
               summarizationStatus: "success" | "failure" | "pending" | null;
               note?: string | null;
               summary?: string | null;
+              /** @enum {string|null} */
+              source?:
+                | "api"
+                | "web"
+                | "cli"
+                | "mobile"
+                | "extension"
+                | "singlefile"
+                | "rss"
+                | "import"
+                | null;
+              userId: string;
             };
           };
         };
@@ -384,6 +406,18 @@ export interface paths {
               summarizationStatus: "success" | "failure" | "pending" | null;
               note?: string | null;
               summary?: string | null;
+              /** @enum {string|null} */
+              source?:
+                | "api"
+                | "web"
+                | "cli"
+                | "mobile"
+                | "extension"
+                | "singlefile"
+                | "rss"
+                | "import"
+                | null;
+              userId: string;
             };
           };
         };
@@ -668,6 +702,7 @@ export interface paths {
               | "video"
               | "bookmarkAsset"
               | "precrawledArchive"
+              | "userUploaded"
               | "unknown";
           };
         };
@@ -691,7 +726,9 @@ export interface paths {
                 | "video"
                 | "bookmarkAsset"
                 | "precrawledArchive"
+                | "userUploaded"
                 | "unknown";
+              fileName?: string | null;
             };
           };
         };
@@ -1684,6 +1721,7 @@ export interface paths {
           "application/json": {
             /** @enum {string} */
             color?: "yellow" | "red" | "green" | "blue";
+            note?: string | null;
           };
         };
       };
@@ -1820,6 +1858,20 @@ export interface paths {
               };
               tagUsage: {
                 name: string;
+                count: number;
+              }[];
+              bookmarksBySource: {
+                /** @enum {string|null} */
+                source:
+                  | "api"
+                  | "web"
+                  | "cli"
+                  | "mobile"
+                  | "extension"
+                  | "singlefile"
+                  | "rss"
+                  | "import"
+                  | null;
                 count: number;
               }[];
             };
@@ -2017,6 +2069,241 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/backups": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get all backups
+     * @description Get all backups
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Object with all backups data. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              backups: {
+                id: string;
+                userId: string;
+                assetId: string;
+                createdAt: string;
+                size: number;
+                bookmarkCount: number;
+                /** @enum {string} */
+                status: "pending" | "success" | "failure";
+                errorMessage?: string | null;
+              }[];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Trigger a new backup
+     * @description Trigger a new backup
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Backup created successfully */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              id: string;
+              userId: string;
+              assetId: string;
+              createdAt: string;
+              size: number;
+              bookmarkCount: number;
+              /** @enum {string} */
+              status: "pending" | "success" | "failure";
+              errorMessage?: string | null;
+            };
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/backups/{backupId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get a single backup
+     * @description Get backup by its id
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          backupId: components["parameters"]["BackupId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Object with backup data. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              id: string;
+              userId: string;
+              assetId: string;
+              createdAt: string;
+              size: number;
+              bookmarkCount: number;
+              /** @enum {string} */
+              status: "pending" | "success" | "failure";
+              errorMessage?: string | null;
+            };
+          };
+        };
+        /** @description Backup not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    /**
+     * Delete a backup
+     * @description Delete backup by its id
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          backupId: components["parameters"]["BackupId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description No content - the backup was deleted */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Backup not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+            };
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/backups/{backupId}/download": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download a backup
+     * @description Download backup file
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          backupId: components["parameters"]["BackupId"];
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Backup file (zip archive) */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/zip": unknown;
+          };
+        };
+        /** @description Backup not found */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2031,6 +2318,8 @@ export interface components {
     HighlightId: string;
     /** @example ieidlxygmwj87oxz5hxttoc8 */
     AssetId: string;
+    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    BackupId: string;
     Bookmark: {
       id: string;
       createdAt: string;
@@ -2044,6 +2333,18 @@ export interface components {
       summarizationStatus: "success" | "failure" | "pending" | null;
       note?: string | null;
       summary?: string | null;
+      /** @enum {string|null} */
+      source?:
+        | "api"
+        | "web"
+        | "cli"
+        | "mobile"
+        | "extension"
+        | "singlefile"
+        | "rss"
+        | "import"
+        | null;
+      userId: string;
       tags: {
         id: string;
         name: string;
@@ -2105,7 +2406,9 @@ export interface components {
           | "video"
           | "bookmarkAsset"
           | "precrawledArchive"
+          | "userUploaded"
           | "unknown";
+        fileName?: string | null;
       }[];
     };
     PaginatedBookmarks: {
@@ -2126,6 +2429,9 @@ export interface components {
       type: "manual" | "smart";
       query?: string | null;
       public: boolean;
+      hasCollaborators: boolean;
+      /** @enum {string} */
+      userRole: "owner" | "editor" | "viewer" | "public";
     };
     Highlight: {
       bookmarkId: string;
@@ -2170,6 +2476,7 @@ export interface components {
     TagId: components["schemas"]["TagId"];
     HighlightId: components["schemas"]["HighlightId"];
     AssetId: components["schemas"]["AssetId"];
+    BackupId: components["schemas"]["BackupId"];
   };
   requestBodies: never;
   headers: never;

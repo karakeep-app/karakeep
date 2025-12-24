@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SqliteError } from "@karakeep/db";
 import {
   assets,
+  AssetTypes,
   bookmarkLinks,
   bookmarkLists,
   bookmarks,
@@ -17,7 +18,7 @@ import {
   users,
   verificationTokens,
 } from "@karakeep/db/schema";
-import { deleteUserAssets } from "@karakeep/shared/assetdb";
+import { deleteAsset, deleteUserAssets } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
   zResetPasswordSchema,
@@ -430,6 +431,14 @@ export class User {
         bookmarkClickAction: true,
         archiveDisplayBehaviour: true,
         timezone: true,
+        backupsEnabled: true,
+        backupsFrequency: true,
+        backupsRetentionDays: true,
+        readerFontSize: true,
+        readerLineHeight: true,
+        readerFontFamily: true,
+        autoTaggingEnabled: true,
+        autoSummarizationEnabled: true,
       },
     });
 
@@ -444,6 +453,14 @@ export class User {
       bookmarkClickAction: settings.bookmarkClickAction,
       archiveDisplayBehaviour: settings.archiveDisplayBehaviour,
       timezone: settings.timezone || "UTC",
+      backupsEnabled: settings.backupsEnabled,
+      backupsFrequency: settings.backupsFrequency,
+      backupsRetentionDays: settings.backupsRetentionDays,
+      readerFontSize: settings.readerFontSize,
+      readerLineHeight: settings.readerLineHeight,
+      readerFontFamily: settings.readerFontFamily,
+      autoTaggingEnabled: settings.autoTaggingEnabled,
+      autoSummarizationEnabled: settings.autoSummarizationEnabled,
     };
   }
 
@@ -463,8 +480,114 @@ export class User {
         bookmarkClickAction: input.bookmarkClickAction,
         archiveDisplayBehaviour: input.archiveDisplayBehaviour,
         timezone: input.timezone,
+        backupsEnabled: input.backupsEnabled,
+        backupsFrequency: input.backupsFrequency,
+        backupsRetentionDays: input.backupsRetentionDays,
+        readerFontSize: input.readerFontSize,
+        readerLineHeight: input.readerLineHeight,
+        readerFontFamily: input.readerFontFamily,
+        autoTaggingEnabled: input.autoTaggingEnabled,
+        autoSummarizationEnabled: input.autoSummarizationEnabled,
       })
       .where(eq(users.id, this.user.id));
+  }
+
+  async updateAvatar(assetId: string | null): Promise<void> {
+    const previousImage = this.user.image ?? null;
+    const [asset, previousAsset] = await Promise.all([
+      assetId
+        ? this.ctx.db.query.assets.findFirst({
+            where: and(eq(assets.id, assetId), eq(assets.userId, this.user.id)),
+            columns: {
+              id: true,
+              bookmarkId: true,
+              contentType: true,
+              assetType: true,
+            },
+          })
+        : Promise.resolve(null),
+      previousImage && previousImage !== assetId
+        ? this.ctx.db.query.assets.findFirst({
+            where: and(
+              eq(assets.id, previousImage),
+              eq(assets.userId, this.user.id),
+            ),
+            columns: {
+              id: true,
+              bookmarkId: true,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    if (assetId) {
+      if (!asset) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Avatar asset not found",
+        });
+      }
+
+      if (asset.bookmarkId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Avatar asset must not be attached to a bookmark",
+        });
+      }
+
+      if (asset.contentType && !asset.contentType.startsWith("image/")) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Avatar asset must be an image",
+        });
+      }
+
+      if (
+        asset.assetType !== AssetTypes.AVATAR &&
+        asset.assetType !== AssetTypes.UNKNOWN
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Avatar asset type is not supported",
+        });
+      }
+
+      if (asset.assetType !== AssetTypes.AVATAR) {
+        await this.ctx.db
+          .update(assets)
+          .set({ assetType: AssetTypes.AVATAR })
+          .where(eq(assets.id, asset.id));
+      }
+    }
+    if (previousImage === assetId) {
+      return;
+    }
+
+    await this.ctx.db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({ image: assetId })
+        .where(eq(users.id, this.user.id));
+
+      if (!previousImage || previousImage === assetId) {
+        return;
+      }
+
+      if (previousAsset && !previousAsset.bookmarkId) {
+        await tx.delete(assets).where(eq(assets.id, previousAsset.id));
+      }
+    });
+
+    this.user.image = assetId;
+
+    if (!previousImage || previousImage === assetId) {
+      return;
+    }
+
+    await deleteAsset({
+      userId: this.user.id,
+      assetId: previousImage,
+    }).catch(() => ({}));
   }
 
   async getStats(): Promise<z.infer<typeof zUserStatsResponseSchema>> {
@@ -544,23 +667,23 @@ export class User {
       // Top domains
       this.ctx.db
         .select({
-          domain: sql<string>`CASE 
-            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN 
-              CASE 
+          domain: sql<string>`CASE
+            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+              CASE
                 WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
                   SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
                 ELSE
                   SUBSTR(${bookmarkLinks.url}, 9)
               END
-            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN 
-              CASE 
+            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+              CASE
                 WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
                   SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
                 ELSE
                   SUBSTR(${bookmarkLinks.url}, 8)
               END
-            ELSE 
-              CASE 
+            ELSE
+              CASE
                 WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
                   SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
                 ELSE
@@ -573,23 +696,23 @@ export class User {
         .innerJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
         .where(eq(bookmarks.userId, this.user.id))
         .groupBy(
-          sql`CASE 
-          WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN 
-            CASE 
+          sql`CASE
+          WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+            CASE
               WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
                 SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
               ELSE
                 SUBSTR(${bookmarkLinks.url}, 9)
             END
-          WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN 
-            CASE 
+          WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+            CASE
               WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
                 SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
               ELSE
                 SUBSTR(${bookmarkLinks.url}, 8)
             END
-          ELSE 
-            CASE 
+          ELSE
+            CASE
               WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
                 SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
               ELSE
@@ -746,6 +869,7 @@ export class User {
       id: this.user.id,
       name: this.user.name,
       email: this.user.email,
+      image: this.user.image,
       localUser: this.user.password !== null,
     };
   }

@@ -10,9 +10,12 @@ export const ClientConfigCtx = createContext<ClientConfig>({
     disableSignups: false,
     disablePasswordAuth: false,
   },
+  turnstile: null,
   inference: {
     isConfigured: false,
     inferredTagLang: "english",
+    enableAutoTagging: false,
+    enableAutoSummarization: false,
   },
   serverVersion: undefined,
   disableNewReleaseCheck: true,

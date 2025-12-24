@@ -155,11 +155,35 @@ describe("User Routes", () => {
       bookmarkClickAction: "open_original_link",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
+      backupsEnabled: false,
+      backupsFrequency: "weekly",
+      backupsRetentionDays: 30,
+
+      // Reader settings
+      readerFontFamily: null,
+      readerFontSize: null,
+      readerLineHeight: null,
+
+      // AI Settings
+      autoSummarizationEnabled: null,
+      autoTaggingEnabled: null,
     });
 
     // Update settings
     await caller.users.updateSettings({
       bookmarkClickAction: "expand_bookmark_preview",
+      backupsEnabled: true,
+      backupsFrequency: "daily",
+      backupsRetentionDays: 7,
+
+      // Reader settings
+      readerFontFamily: "serif",
+      readerFontSize: 12,
+      readerLineHeight: 1.5,
+
+      // AI Settings
+      autoSummarizationEnabled: true,
+      autoTaggingEnabled: true,
     });
 
     // Verify updated settings
@@ -168,6 +192,18 @@ describe("User Routes", () => {
       bookmarkClickAction: "expand_bookmark_preview",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
+      backupsEnabled: true,
+      backupsFrequency: "daily",
+      backupsRetentionDays: 7,
+
+      // Reader settings
+      readerFontFamily: "serif",
+      readerFontSize: 12,
+      readerLineHeight: 1.5,
+
+      // AI Settings
+      autoSummarizationEnabled: true,
+      autoTaggingEnabled: true,
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)
@@ -903,6 +939,81 @@ describe("User Routes", () => {
         .from(users)
         .where(eq(users.id, oauthUser.id));
       expect(deletedUser).toHaveLength(0);
+    });
+  });
+
+  describe("Update Avatar", () => {
+    test<CustomTestContext>("updateAvatar - promotes unknown asset", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Avatar Reject",
+        email: "avatar-reject@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      await db.insert(assets).values({
+        id: "avatar-asset-2",
+        assetType: AssetTypes.UNKNOWN,
+        userId: user.id,
+        contentType: "image/png",
+        size: 12,
+        fileName: "avatar.png",
+        bookmarkId: null,
+      });
+
+      await caller.users.updateAvatar({ assetId: "avatar-asset-2" });
+
+      const updatedAsset = await db
+        .select()
+        .from(assets)
+        .where(eq(assets.id, "avatar-asset-2"))
+        .then((rows) => rows[0]);
+
+      expect(updatedAsset?.assetType).toBe(AssetTypes.AVATAR);
+    });
+
+    test<CustomTestContext>("updateAvatar - deletes avatar asset", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Avatar Delete",
+        email: "avatar-delete@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      await db.insert(assets).values({
+        id: "avatar-asset-3",
+        assetType: AssetTypes.UNKNOWN,
+        userId: user.id,
+        contentType: "image/png",
+        size: 12,
+        fileName: "avatar.png",
+        bookmarkId: null,
+      });
+
+      await caller.users.updateAvatar({ assetId: "avatar-asset-3" });
+      await caller.users.updateAvatar({ assetId: null });
+
+      const updatedUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id))
+        .then((rows) => rows[0]);
+      const remainingAsset = await db
+        .select()
+        .from(assets)
+        .where(eq(assets.id, "avatar-asset-3"))
+        .then((rows) => rows[0]);
+
+      expect(updatedUser?.image).toBeNull();
+      expect(remainingAsset).toBeUndefined();
     });
   });
 
