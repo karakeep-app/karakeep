@@ -67,7 +67,7 @@ function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
   const listContext = useBookmarkListContext();
   const collaborators = api.lists.getCollaborators.useQuery(
     {
-      listId: listContext!.id,
+      listId: listContext?.id ?? "",
     },
     {
       refetchOnWindowFocus: false,
