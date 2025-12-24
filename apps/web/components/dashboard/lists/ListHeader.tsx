@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -69,47 +68,41 @@ export default function ListHeader({
         {list.hasCollaborators && collaboratorsData && (
           <div className="group flex">
             {collaboratorsData.owner && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
-                      <UserAvatar
-                        name={collaboratorsData.owner.name}
-                        image={collaboratorsData.owner.image}
-                        className="size-5 shrink-0 rounded-full ring-2 ring-background"
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{collaboratorsData.owner.name}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                    <UserAvatar
+                      name={collaboratorsData.owner.name}
+                      image={collaboratorsData.owner.image}
+                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{collaboratorsData.owner.name}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             {collaboratorsData.collaborators.map((collab) => (
-              <TooltipProvider key={collab.userId}>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
-                      <UserAvatar
-                        name={collab.user.name}
-                        image={collab.user.image}
-                        className="size-5 shrink-0 rounded-full ring-2 ring-background"
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{collab.user.name}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip key={collab.userId}>
+                <TooltipTrigger>
+                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                    <UserAvatar
+                      name={collab.user.name}
+                      image={collab.user.image}
+                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{collab.user.name}</p>
+                </TooltipContent>
+              </Tooltip>
             ))}
           </div>
         )}
         {list.description && (
-          <span className="text-lg text-gray-400">
-            {`(${list.description})`}
-          </span>
+          <span className="text-lg text-gray-400">{`(${list.description})`}</span>
         )}
       </div>
       <div className="flex items-center">

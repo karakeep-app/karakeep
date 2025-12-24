@@ -1,7 +1,6 @@
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -16,19 +15,17 @@ export default function BookmarkOwnerIcon({
   ownerAvatar,
 }: BookmarkOwnerIconProps) {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>
-          <UserAvatar
-            name={ownerName}
-            image={ownerAvatar}
-            className="size-5 shrink-0 rounded-full ring-1 ring-border"
-          />
-        </TooltipTrigger>
-        <TooltipContent className="font-sm">
-          <p className="font-medium">{ownerName}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger>
+        <UserAvatar
+          name={ownerName}
+          image={ownerAvatar}
+          className="size-5 shrink-0 rounded-full ring-1 ring-border"
+        />
+      </TooltipTrigger>
+      <TooltipContent className="font-sm">
+        <p className="font-medium">{ownerName}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
