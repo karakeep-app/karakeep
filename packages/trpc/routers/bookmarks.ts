@@ -48,9 +48,9 @@ import { normalizeTagName } from "@karakeep/shared/utils/tag";
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
+import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
 import { ImportSession } from "../models/importSessions";
-import { ensureAssetOwnership } from "./assets";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -178,10 +178,7 @@ export const bookmarksAppRouter = router({
                   .returning()
               )[0];
               if (input.precrawledArchiveId) {
-                await ensureAssetOwnership({
-                  ctx,
-                  assetId: input.precrawledArchiveId,
-                });
+                await Asset.ensureOwnership(ctx, input.precrawledArchiveId);
                 await tx
                   .update(assets)
                   .set({
@@ -232,13 +229,13 @@ export const bookmarksAppRouter = router({
                   sourceUrl: null,
                 })
                 .returning();
-              const uploadedAsset = await ensureAssetOwnership({
-                ctx,
-                assetId: input.assetId,
-              });
+              const uploadedAsset = await Asset.fromId(ctx, input.assetId);
+              uploadedAsset.ensureOwnership();
               if (
-                !uploadedAsset.contentType ||
-                !SUPPORTED_BOOKMARK_ASSET_TYPES.has(uploadedAsset.contentType)
+                !uploadedAsset.asset.contentType ||
+                !SUPPORTED_BOOKMARK_ASSET_TYPES.has(
+                  uploadedAsset.asset.contentType,
+                )
               ) {
                 throw new TRPCError({
                   code: "BAD_REQUEST",
