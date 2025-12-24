@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import useBulkActionsStore from "@/lib/bulkActions";
+import { api } from "@/lib/trpc";
 import {
   bookmarkLayoutSwitch,
   useBookmarkDisplaySettings,
@@ -17,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
@@ -62,18 +64,35 @@ function BottomRow({
 }
 
 function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
-  const { data: session } = useSession();
-  const isOwner = session?.user?.id === bookmark.userId;
+  const listContext = useBookmarkListContext();
+  const collaborators = api.lists.getCollaborators.useQuery(
+    {
+      listId: listContext!.id,
+    },
+    {
+      refetchOnWindowFocus: false,
+      enabled: !!listContext?.hasCollaborators,
+    },
+  );
 
-  // Only show owner icon for bookmarks not owned by current user
-  if (isOwner || !bookmark.user) return null;
+  if (!listContext || listContext.userRole === "owner" || !collaborators.data) {
+    return null;
+  }
+
+  let owner = undefined;
+  if (bookmark.userId === collaborators.data.owner?.id) {
+    owner = collaborators.data.owner;
+  } else {
+    owner = collaborators.data.collaborators.find(
+      (c) => c.userId === bookmark.userId,
+    )?.user;
+  }
+
+  if (!owner) return null;
 
   return (
     <div className="absolute right-2 top-2 z-40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-      <BookmarkOwnerIcon
-        ownerName={bookmark.user.name}
-        ownerEmail={bookmark.user.email}
-      />
+      <BookmarkOwnerIcon ownerName={owner.name} ownerAvatar={owner.image} />
     </div>
   );
 }

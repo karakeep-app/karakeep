@@ -109,12 +109,6 @@ export const zBareBookmarkSchema = z.object({
   summary: z.string().nullish(),
   source: zBookmarkSourceSchema.nullish(),
   userId: z.string(),
-  user: z
-    .object({
-      name: z.string(),
-      email: z.string(),
-    })
-    .nullish(),
 });
 
 export type ZBareBookmark = z.infer<typeof zBareBookmarkSchema>;
