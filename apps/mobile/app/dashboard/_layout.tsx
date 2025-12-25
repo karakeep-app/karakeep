@@ -110,6 +110,24 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="lists/[slug]/share"
+        options={{
+          headerTitle: "Share List",
+          headerBackTitle: "Back",
+          headerTransparent: true,
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
+        name="lists/[slug]/manage_collaborators"
+        options={{
+          headerTitle: "Manage Collaborators",
+          headerBackTitle: "Back",
+          headerTransparent: true,
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
         name="archive"
         options={{
           headerTitle: "",
