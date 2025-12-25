@@ -583,6 +583,22 @@ export const bookmarksAppRouter = router({
         },
       );
     }),
+  updateReadingProgress: authedProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        readingProgressOffset: z.number().int().nonnegative(),
+      }),
+    )
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      await ctx.db
+        .update(bookmarkLinks)
+        .set({
+          readingProgressOffset: input.readingProgressOffset,
+        })
+        .where(eq(bookmarkLinks.id, input.bookmarkId));
+    }),
   getBookmark: authedProcedure
     .input(
       z.object({

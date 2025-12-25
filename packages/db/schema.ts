@@ -252,6 +252,9 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+
+    // Reading progress tracking (character offset in content)
+    readingProgressOffset: integer("readingProgressOffset"),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );

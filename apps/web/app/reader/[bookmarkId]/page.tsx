@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
 import ReaderSettingsPopover from "@/components/dashboard/preview/ReaderSettingsPopover";
@@ -12,6 +12,7 @@ import { useReaderSettings } from "@/lib/readerSettings";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 
+import { useReadingProgressAutoSave } from "@karakeep/shared-react/hooks/reading-progress";
 import { api } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
@@ -20,6 +21,7 @@ import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 export default function ReaderViewPage() {
   const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
+  const contentRef = useRef<HTMLDivElement>(null);
   const { data: highlights } = api.highlights.getForBookmark.useQuery({
     bookmarkId,
   });
@@ -32,6 +34,20 @@ export default function ReaderViewPage() {
   const { settings } = useReaderSettings();
   const [showHighlights, setShowHighlights] = useState(false);
   const isOwner = session?.user?.id === bookmark?.userId;
+
+  // Get initial reading progress from bookmark content
+  const initialOffset =
+    bookmark?.content.type === BookmarkTypes.LINK
+      ? bookmark.content.readingProgressOffset
+      : null;
+
+  // Auto-save reading progress on page unload/visibility change
+  useReadingProgressAutoSave({
+    bookmarkId,
+    initialOffset,
+    containerRef: contentRef,
+    enabled: isOwner, // Only track progress for bookmark owner
+  });
 
   const onClose = () => {
     if (window.history.length > 1) {
@@ -122,6 +138,7 @@ export default function ReaderViewPage() {
                 <Suspense fallback={<FullPageSpinner />}>
                   <div className="overflow-x-hidden">
                     <ReaderView
+                      ref={contentRef}
                       className="prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],

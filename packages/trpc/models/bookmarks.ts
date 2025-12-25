@@ -185,6 +185,7 @@ export class Bookmark extends BareBookmark {
         publisher: link.publisher,
         datePublished: link.datePublished,
         dateModified: link.dateModified,
+        readingProgressOffset: link.readingProgressOffset,
       };
     }
     if (bookmark.text) {
@@ -468,6 +469,7 @@ export class Bookmark extends BareBookmark {
               publisher: row.bookmarkLinks.publisher,
               datePublished: row.bookmarkLinks.datePublished,
               dateModified: row.bookmarkLinks.dateModified,
+              readingProgressOffset: row.bookmarkLinks.readingProgressOffset,
             };
           } else if (row.bookmarkTexts) {
             content = {

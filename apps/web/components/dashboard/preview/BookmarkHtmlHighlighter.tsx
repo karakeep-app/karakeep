@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent } from "@/components/ui/popover";
@@ -142,17 +148,26 @@ interface HTMLHighlighterProps {
   onDeleteHighlight?: (highlight: Highlight) => void;
 }
 
-function BookmarkHTMLHighlighter({
-  htmlContent,
-  className,
-  style,
-  highlights = [],
-  readOnly = false,
-  onHighlight,
-  onUpdateHighlight,
-  onDeleteHighlight,
-}: HTMLHighlighterProps) {
+const BookmarkHTMLHighlighter = forwardRef<
+  HTMLDivElement,
+  HTMLHighlighterProps
+>(function BookmarkHTMLHighlighter(
+  {
+    htmlContent,
+    className,
+    style,
+    highlights = [],
+    readOnly = false,
+    onHighlight,
+    onUpdateHighlight,
+    onDeleteHighlight,
+  },
+  ref,
+) {
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Expose the content div ref to parent components
+  useImperativeHandle(ref, () => contentRef.current!, []);
   const [menuPosition, setMenuPosition] = useState<{
     x: number;
     y: number;
@@ -408,6 +423,6 @@ function BookmarkHTMLHighlighter({
       />
     </div>
   );
-}
+});
 
 export default BookmarkHTMLHighlighter;
