@@ -760,6 +760,7 @@ export const bookmarksAppRouter = router({
       const normalizedAttachTags = input.attach.map((tag) => ({
         tagId: tag.tagId,
         tagName: tag.tagName ? normalizeTagName(tag.tagName) : undefined,
+        attachedBy: tag.attachedBy,
       }));
 
       {
@@ -775,6 +776,47 @@ export const bookmarksAppRouter = router({
               toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
             )
             .onConflictDoNothing();
+        }
+      }
+
+      // Fetch tag IDs for attachment/detachment and build a map for attachedBy values
+      const tagIdToAttachedBy = new Map<string, "ai" | "human">();
+
+      // Build the map from normalizedAttachTags
+      for (const tag of normalizedAttachTags) {
+        if (tag.tagId) {
+          tagIdToAttachedBy.set(tag.tagId, tag.attachedBy);
+        }
+      }
+
+      // For tags identified by name, we need to fetch their IDs first
+      const tagNameToAttachedBy = new Map<string, "ai" | "human">();
+      for (const tag of normalizedAttachTags) {
+        if (tag.tagName) {
+          tagNameToAttachedBy.set(tag.tagName, tag.attachedBy);
+        }
+      }
+
+      // Fetch tag IDs by name and add to the map
+      if (tagNameToAttachedBy.size > 0) {
+        const tagsByName = await ctx.db
+          .select({ id: bookmarkTags.id, name: bookmarkTags.name })
+          .from(bookmarkTags)
+          .where(
+            and(
+              eq(bookmarkTags.userId, ctx.user.id),
+              inArray(
+                bookmarkTags.name,
+                Array.from(tagNameToAttachedBy.keys()),
+              ),
+            ),
+          );
+
+        for (const tag of tagsByName) {
+          const attachedBy = tagNameToAttachedBy.get(tag.name);
+          if (attachedBy) {
+            tagIdToAttachedBy.set(tag.id, attachedBy);
+          }
         }
       }
 
@@ -805,7 +847,7 @@ export const bookmarksAppRouter = router({
               allIdsToAttach.map((i) => ({
                 tagId: i,
                 bookmarkId: input.bookmarkId,
-                attachedBy: "human" as const,
+                attachedBy: tagIdToAttachedBy.get(i) ?? "human",
               })),
             )
             .onConflictDoNothing();
