@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 
-import { bookmarks } from "@karakeep/db/schema";
+import { bookmarkLinks, bookmarks } from "@karakeep/db/schema";
 import {
   BookmarkTypes,
   zNewBookmarkRequestSchema,
@@ -230,5 +230,233 @@ describe("ImportSessions Routes", () => {
     await expect(
       createTestBookmark(api2, session.id), // User 2's bookmark
     ).rejects.toThrow("Import session not found");
+  });
+
+  test<CustomTestContext>("tracks detailed progress breakdown for crawling, tagging, and indexing", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const session = await api.importSessions.createImportSession({
+      name: "Detailed Progress Session",
+    });
+
+    // Create text bookmark (no crawling needed)
+    const textBookmarkId = await createTestBookmark(api, session.id);
+
+    // Create link bookmark
+    const linkBookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/test",
+      importSessionId: session.id,
+    });
+
+    // Initial state: all pending
+    let stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      totalBookmarks: 2,
+      crawlingPending: 1, // Link bookmark pending crawl
+      crawlingCompleted: 1, // Text bookmark (no crawl needed)
+      crawlingFailed: 0,
+      taggingPending: 2, // Both pending tagging
+      taggingCompleted: 0,
+      taggingFailed: 0,
+      indexingPending: 2, // Both pending indexing
+      indexingCompleted: 0,
+      pendingBookmarks: 2,
+      completedBookmarks: 0,
+    });
+
+    // Complete crawling for link bookmark
+    await db
+      .update(bookmarkLinks)
+      .set({ crawlStatus: "success" })
+      .where(eq(bookmarkLinks.id, linkBookmark.id));
+
+    stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      crawlingPending: 0,
+      crawlingCompleted: 2,
+      crawlingFailed: 0,
+      taggingPending: 2,
+      taggingCompleted: 0,
+      indexingPending: 2,
+      indexingCompleted: 0,
+      pendingBookmarks: 2,
+      completedBookmarks: 0,
+    });
+
+    // Complete tagging for both
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "success" })
+      .where(eq(bookmarks.id, textBookmarkId));
+
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "success" })
+      .where(eq(bookmarks.id, linkBookmark.id));
+
+    stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      crawlingPending: 0,
+      crawlingCompleted: 2,
+      taggingPending: 0,
+      taggingCompleted: 2,
+      taggingFailed: 0,
+      indexingPending: 2, // Still pending indexing
+      indexingCompleted: 0,
+      pendingBookmarks: 2, // Still pending due to indexing
+      completedBookmarks: 0,
+    });
+
+    // Complete indexing for one bookmark
+    await db
+      .update(bookmarks)
+      .set({ lastIndexedAt: new Date() })
+      .where(eq(bookmarks.id, textBookmarkId));
+
+    stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      indexingPending: 1,
+      indexingCompleted: 1,
+      pendingBookmarks: 1,
+      completedBookmarks: 1,
+    });
+
+    // Complete indexing for second bookmark
+    await db
+      .update(bookmarks)
+      .set({ lastIndexedAt: new Date() })
+      .where(eq(bookmarks.id, linkBookmark.id));
+
+    stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      totalBookmarks: 2,
+      crawlingPending: 0,
+      crawlingCompleted: 2,
+      crawlingFailed: 0,
+      taggingPending: 0,
+      taggingCompleted: 2,
+      taggingFailed: 0,
+      indexingPending: 0,
+      indexingCompleted: 2,
+      pendingBookmarks: 0,
+      completedBookmarks: 2,
+      failedBookmarks: 0,
+      status: "completed",
+    });
+  });
+
+  test<CustomTestContext>("tracks failed states in detailed progress", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const session = await api.importSessions.createImportSession({
+      name: "Failed Progress Session",
+    });
+
+    const linkBookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/failed",
+      importSessionId: session.id,
+    });
+
+    // Set crawling to failed
+    await db
+      .update(bookmarkLinks)
+      .set({ crawlStatus: "failure" })
+      .where(eq(bookmarkLinks.id, linkBookmark.id));
+
+    let stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      crawlingPending: 0,
+      crawlingCompleted: 0,
+      crawlingFailed: 1,
+      failedBookmarks: 1,
+    });
+
+    // Create another bookmark and fail tagging
+    const textBookmarkId = await createTestBookmark(api, session.id);
+
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "failure" })
+      .where(eq(bookmarks.id, textBookmarkId));
+
+    stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      totalBookmarks: 2,
+      taggingPending: 1, // First bookmark still pending tagging
+      taggingCompleted: 0,
+      taggingFailed: 1, // Second bookmark failed tagging
+      failedBookmarks: 2,
+    });
+  });
+
+  test<CustomTestContext>("considers bookmark completed only when crawled, tagged, and indexed", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const session = await api.importSessions.createImportSession({
+      name: "Completion Requirements Session",
+    });
+
+    const textBookmarkId = await createTestBookmark(api, session.id);
+
+    // Set tagging to success but not indexed
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "success" })
+      .where(eq(bookmarks.id, textBookmarkId));
+
+    let stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      completedBookmarks: 0,
+      pendingBookmarks: 1,
+      status: "in_progress",
+    });
+
+    // Set indexed
+    await db
+      .update(bookmarks)
+      .set({ lastIndexedAt: new Date() })
+      .where(eq(bookmarks.id, textBookmarkId));
+
+    stats = await api.importSessions.getImportSessionStats({
+      importSessionId: session.id,
+    });
+
+    expect(stats).toMatchObject({
+      completedBookmarks: 1,
+      pendingBookmarks: 0,
+      status: "completed",
+    });
   });
 });

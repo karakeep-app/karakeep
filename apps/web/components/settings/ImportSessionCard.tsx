@@ -134,6 +134,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Stats Breakdown */}
           {stats.totalBookmarks > 0 && (
             <div className="space-y-3">
+              {/* Overall Status Badges */}
               <div className="flex flex-wrap gap-2">
                 {stats.pendingBookmarks > 0 && (
                   <Badge
@@ -179,6 +180,132 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     })}
                   </Badge>
                 )}
+              </div>
+
+              {/* Detailed Progress Breakdown */}
+              <div className="space-y-2 rounded-lg border bg-muted/30 p-3 dark:bg-muted/10">
+                <h5 className="text-xs font-semibold uppercase text-muted-foreground">
+                  {t("settings.import_sessions.processing_stages.title")}
+                </h5>
+
+                {/* Crawling Stage */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">
+                        {t(
+                          "settings.import_sessions.processing_stages.crawling.title",
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        (
+                        {t(
+                          "settings.import_sessions.processing_stages.crawling.description",
+                        )}
+                        )
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {stats.crawlingCompleted} / {stats.totalBookmarks}
+                    </span>
+                  </div>
+                  {stats.crawlingPending > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t(
+                        "settings.import_sessions.processing_stages.crawling.pending",
+                        {
+                          count: stats.crawlingPending,
+                        },
+                      )}
+                    </p>
+                  )}
+                  {stats.crawlingFailed > 0 && (
+                    <p className="text-xs text-destructive">
+                      {t(
+                        "settings.import_sessions.processing_stages.crawling.failed",
+                        {
+                          count: stats.crawlingFailed,
+                        },
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                {/* Tagging Stage */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">
+                        {t(
+                          "settings.import_sessions.processing_stages.tagging.title",
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        (
+                        {t(
+                          "settings.import_sessions.processing_stages.tagging.description",
+                        )}
+                        )
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {stats.taggingCompleted} / {stats.totalBookmarks}
+                    </span>
+                  </div>
+                  {stats.taggingPending > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t(
+                        "settings.import_sessions.processing_stages.tagging.pending",
+                        {
+                          count: stats.taggingPending,
+                        },
+                      )}
+                    </p>
+                  )}
+                  {stats.taggingFailed > 0 && (
+                    <p className="text-xs text-destructive">
+                      {t(
+                        "settings.import_sessions.processing_stages.tagging.failed",
+                        {
+                          count: stats.taggingFailed,
+                        },
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                {/* Indexing Stage */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium">
+                        {t(
+                          "settings.import_sessions.processing_stages.indexing.title",
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        (
+                        {t(
+                          "settings.import_sessions.processing_stages.indexing.description",
+                        )}
+                        )
+                      </span>
+                    </div>
+                    <span className="text-xs">
+                      {stats.indexingCompleted} / {stats.totalBookmarks}
+                    </span>
+                  </div>
+                  {stats.indexingPending > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t(
+                        "settings.import_sessions.processing_stages.indexing.pending",
+                        {
+                          count: stats.indexingPending,
+                        },
+                      )}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}

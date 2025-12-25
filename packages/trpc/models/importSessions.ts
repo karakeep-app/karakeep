@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -89,11 +89,13 @@ export class ImportSession {
   }
 
   async getWithStats(): Promise<ZImportSessionWithStats> {
-    // Get bookmark counts by status
+    // Get bookmark counts by status including indexing status
+    // Group by whether indexed (not null) rather than the exact timestamp for better performance
     const statusCounts = await this.ctx.db
       .select({
         crawlStatus: bookmarkLinks.crawlStatus,
         taggingStatus: bookmarks.taggingStatus,
+        isIndexed: sql<number>`case when ${bookmarks.lastIndexedAt} is not null then 1 else 0 end`,
         count: count(),
       })
       .from(importSessionBookmarks)
@@ -112,7 +114,11 @@ export class ImportSession {
           eq(importSessions.userId, this.ctx.user.id),
         ),
       )
-      .groupBy(bookmarkLinks.crawlStatus, bookmarks.taggingStatus);
+      .groupBy(
+        bookmarkLinks.crawlStatus,
+        bookmarks.taggingStatus,
+        sql`case when ${bookmarks.lastIndexedAt} is not null then 1 else 0 end`,
+      );
 
     const stats = {
       totalBookmarks: 0,
@@ -120,13 +126,48 @@ export class ImportSession {
       failedBookmarks: 0,
       pendingBookmarks: 0,
       processingBookmarks: 0,
+      // Detailed progress breakdown
+      crawlingPending: 0,
+      crawlingCompleted: 0,
+      crawlingFailed: 0,
+      taggingPending: 0,
+      taggingCompleted: 0,
+      taggingFailed: 0,
+      indexingPending: 0,
+      indexingCompleted: 0,
     };
 
     statusCounts.forEach((statusCount) => {
-      const { crawlStatus, taggingStatus, count } = statusCount;
+      const { crawlStatus, taggingStatus, isIndexed, count } = statusCount;
 
       stats.totalBookmarks += count;
 
+      // Track crawling status
+      if (crawlStatus === "pending") {
+        stats.crawlingPending += count;
+      } else if (crawlStatus === "success" || crawlStatus === null) {
+        stats.crawlingCompleted += count;
+      } else if (crawlStatus === "failure") {
+        stats.crawlingFailed += count;
+      }
+
+      // Track tagging status
+      if (taggingStatus === "pending") {
+        stats.taggingPending += count;
+      } else if (taggingStatus === "success") {
+        stats.taggingCompleted += count;
+      } else if (taggingStatus === "failure") {
+        stats.taggingFailed += count;
+      }
+
+      // Track indexing status
+      if (isIndexed === 1) {
+        stats.indexingCompleted += count;
+      } else {
+        stats.indexingPending += count;
+      }
+
+      // Overall status calculation
       const isCrawlFailure = crawlStatus === "failure";
       const isTagFailure = taggingStatus === "failure";
       if (isCrawlFailure || isTagFailure) {
@@ -136,7 +177,8 @@ export class ImportSession {
 
       const isCrawlPending = crawlStatus === "pending";
       const isTagPending = taggingStatus === "pending";
-      if (isCrawlPending || isTagPending) {
+      const isIndexPending = isIndexed === 0;
+      if (isCrawlPending || isTagPending || isIndexPending) {
         stats.pendingBookmarks += count;
         return;
       }
@@ -145,8 +187,13 @@ export class ImportSession {
         crawlStatus === "success" || crawlStatus === null;
       const isTagSuccessfulOrUnknown =
         taggingStatus === "success" || taggingStatus === null;
+      const hasIndexed = isIndexed === 1;
 
-      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrUnknown) {
+      if (
+        isCrawlSuccessfulOrNotRequired &&
+        isTagSuccessfulOrUnknown &&
+        hasIndexed
+      ) {
         stats.completedBookmarks += count;
       } else {
         // Fallback to pending to avoid leaving imports unclassified
