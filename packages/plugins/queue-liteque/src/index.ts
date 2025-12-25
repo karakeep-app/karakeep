@@ -18,8 +18,8 @@ import type {
   RunnerFuncs,
   RunnerOptions,
 } from "@karakeep/shared/queueing";
-import { RateLimitRetryError } from "@karakeep/shared/queueing";
 import serverConfig from "@karakeep/shared/config";
+import { RateLimitRetryError } from "@karakeep/shared/queueing";
 
 class LitequeQueueWrapper<T> implements Queue<T> {
   constructor(

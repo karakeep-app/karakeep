@@ -326,7 +326,7 @@ export class CrawlerWorker {
       LinkCrawlerQueue,
       {
         run: runCrawler,
-        onComplete: async (job, result) => {
+        onComplete: async (job) => {
           workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
@@ -1306,10 +1306,7 @@ async function crawlAndParseUrl(
  * Checks if the domain should be rate limited and throws RateLimitRetryError if needed.
  * @throws {RateLimitRetryError} if the domain is rate limited
  */
-async function checkDomainRateLimit(
-  url: string,
-  jobId: string,
-): Promise<void> {
+async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
   const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
   if (!crawlerDomainRateLimitConfig) {
     return;

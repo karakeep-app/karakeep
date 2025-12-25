@@ -51,7 +51,12 @@ type TestAction =
   | { type: "err"; err: string }
   | { type: "stall"; durSec: number }
   | { type: "semaphore-acquire" }
-  | { type: "rate-limit"; val: number; delayMs: number; attemptsBeforeSuccess: number };
+  | {
+      type: "rate-limit";
+      val: number;
+      delayMs: number;
+      attemptsBeforeSuccess: number;
+    };
 
 describe("Restate Queue Provider", () => {
   let queueClient: QueueClient;
@@ -140,7 +145,8 @@ describe("Restate Queue Provider", () => {
               break;
             case "rate-limit": {
               const attemptKey = `${job.id}`;
-              const currentAttempts = testState.rateLimitAttempts.get(attemptKey) || 0;
+              const currentAttempts =
+                testState.rateLimitAttempts.get(attemptKey) || 0;
               testState.rateLimitAttempts.set(attemptKey, currentAttempts + 1);
 
               if (currentAttempts < jobData.attemptsBeforeSuccess) {
