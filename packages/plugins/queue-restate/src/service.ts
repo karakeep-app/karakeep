@@ -34,6 +34,9 @@ export function buildRestateService<T, R>(
           minutes: 1,
         },
       },
+      journalRetention: {
+        days: 3,
+      },
     },
     handlers: {
       run: async (
