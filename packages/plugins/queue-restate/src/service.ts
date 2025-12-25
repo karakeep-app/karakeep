@@ -85,21 +85,24 @@ export function buildRestateService<T, R>(
             abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
           });
           await semaphore.release();
-          if (res.error) {
+
+          if (res.type === "rate_limit") {
+            // Handle rate limit retries without counting against retry attempts
+            await ctx.sleep(res.delayMs);
+            // Don't increment runNumber - retry without counting against attempts
+            continue;
+          }
+
+          if (res.type === "error") {
             if (res.error instanceof restate.CancelledError) {
               throw res.error;
-            }
-            // Handle rate limit retries without counting against retry attempts
-            if (res.error instanceof RateLimitRetryError) {
-              await ctx.sleep(res.error.delayMs);
-              // Don't increment runNumber - retry without counting against attempts
-              continue;
             }
             lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000);
             runNumber++;
           } else {
+            // Success
             break;
           }
         }
@@ -114,6 +117,11 @@ export function buildRestateService<T, R>(
   });
 }
 
+type RunResult<R> =
+  | { type: "success"; value: R }
+  | { type: "rate_limit"; delayMs: number }
+  | { type: "error"; error: Error };
+
 async function runWorkerLogic<T, R>(
   ctx: restate.Context,
   { run, onError, onComplete }: RunnerFuncs<T, R>,
@@ -125,24 +133,32 @@ async function runWorkerLogic<T, R>(
     numRetriesLeft: number;
     abortSignal: AbortSignal;
   },
-) {
+): Promise<RunResult<R>> {
   const res = await tryCatch(
     ctx.run(
       `main logic`,
-      async () => {
-        return await run(data);
+      async (): Promise<RunResult<R>> => {
+        try {
+          const value = await run(data);
+          return { type: "success", value };
+        } catch (error) {
+          // Catch RateLimitRetryError before it gets wrapped by restate
+          if (error instanceof RateLimitRetryError) {
+            return { type: "rate_limit", delayMs: error.delayMs };
+          }
+          // Let other errors be thrown so they get wrapped by restate
+          return { type: "error", error: error as Error };
+        }
       },
       {
         maxRetryAttempts: 1,
       },
     ),
   );
-  if (res.error) {
-    // Don't call onError for rate limit retries - they're not real errors
-    if (res.error instanceof RateLimitRetryError) {
-      return res;
-    }
 
+  if (res.error) {
+    // This shouldn't happen since we're catching errors inside ctx.run
+    // but handle it just in case
     await tryCatch(
       ctx.run(
         `onError`,
@@ -156,13 +172,39 @@ async function runWorkerLogic<T, R>(
         },
       ),
     );
-    return res;
+    return { type: "error", error: res.error };
   }
 
+  const result = res.data;
+
+  if (result.type === "rate_limit") {
+    // Don't call onError or onComplete for rate limit retries
+    return result;
+  }
+
+  if (result.type === "error") {
+    // Call onError for real errors
+    await tryCatch(
+      ctx.run(
+        `onError`,
+        async () =>
+          onError?.({
+            ...data,
+            error: result.error,
+          }),
+        {
+          maxRetryAttempts: 1,
+        },
+      ),
+    );
+    return result;
+  }
+
+  // Success case - call onComplete
   await tryCatch(
-    ctx.run("onComplete", async () => await onComplete?.(data, res.data), {
+    ctx.run("onComplete", async () => await onComplete?.(data, result.value), {
       maxRetryAttempts: 1,
     }),
   );
-  return res;
+  return result;
 }
