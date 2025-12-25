@@ -175,7 +175,7 @@ export default function LinkContentSection({
                 return (
                   <SelectItem key={renderer.id} value={renderer.id}>
                     <div className="flex items-center">
-                      <IconComponent className="mr-2 h-4 w-4" />
+                      <IconComponent className="mr-2 h-4 w-4 max-w-[80%]" />
                       {renderer.name}
                     </div>
                   </SelectItem>

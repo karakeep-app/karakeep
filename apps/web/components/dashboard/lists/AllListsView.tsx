@@ -40,7 +40,7 @@ function ListItem({
 }) {
   return (
     <li
-      className="my-2 flex items-center justify-between rounded-md border border-border p-2 hover:bg-accent/50"
+      className="relative my-2 flex items-center justify-between rounded-md border border-border p-2 hover:bg-accent/50"
       style={style}
     >
       <span className="flex flex-1 items-center gap-1">
@@ -48,7 +48,7 @@ function ListItem({
           <CollapsibleTriggerChevron className="size-5" open={open ?? false} />
         )}
         <Link href={path} className="flex flex-1 gap-1">
-          <p className="text-nowrap text-lg">
+          <p className="text-lg">
             {icon} {name}
           </p>
         </Link>
@@ -56,7 +56,7 @@ function ListItem({
       {list && (
         <ListOptions list={list}>
           <Button
-            className="flex h-full items-center justify-end"
+            className="absolute right-0 flex h-full items-center justify-end bg-background"
             variant="ghost"
           >
             <MoreHorizontal />
