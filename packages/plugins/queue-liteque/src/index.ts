@@ -4,6 +4,7 @@ import {
   SqliteQueue as LQ,
   Runner as LQRunner,
   migrateDB,
+  RetryAfterError,
 } from "liteque";
 
 import type { PluginProvider } from "@karakeep/shared/plugins";
@@ -93,21 +94,18 @@ class LitequeQueueClient implements QueueClient {
       throw new Error(`Queue ${name} not found`);
     }
 
-    // Wrap the run function to handle RateLimitRetryError
+    // Wrap the run function to translate RateLimitRetryError to liteque's RetryAfterError
     const wrappedRun = async (job: DequeuedJob<T>): Promise<R> => {
-      while (true) {
-        try {
-          return await funcs.run(job);
-        } catch (error) {
-          if (error instanceof RateLimitRetryError) {
-            // Sleep for the specified delay and retry without counting against attempts
-            await new Promise((resolve) => setTimeout(resolve, error.delayMs));
-            // Continue the loop to retry
-            continue;
-          }
-          // Re-throw any other errors
-          throw error;
+      try {
+        return await funcs.run(job);
+      } catch (error) {
+        if (error instanceof RateLimitRetryError) {
+          // Translate to liteque's native RetryAfterError
+          // This will cause liteque to retry after the delay without counting against attempts
+          throw new RetryAfterError(error.delayMs);
         }
+        // Re-throw any other errors
+        throw error;
       }
     };
 
