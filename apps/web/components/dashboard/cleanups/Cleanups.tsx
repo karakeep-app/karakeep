@@ -1,7 +1,9 @@
-import { DuplicateTags } from "@/components/dashboard/cleanups/DuplicateTags";
-import { UnusedTags } from "@/components/dashboard/cleanups/UnusedTags";
+"use client";
 
-export default function Cleanups() {
+import { DuplicateTags } from "./DuplicateTags";
+import { UnusedTags } from "./UnusedTags";
+
+export function Cleanups() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3">

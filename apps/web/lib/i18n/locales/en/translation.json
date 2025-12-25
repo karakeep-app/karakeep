@@ -660,6 +660,7 @@
     "unused_tags": "Unused Tags",
     "unused_tags_info": "Tags that are not attached to any bookmarks",
     "delete_all_unused_tags": "Delete All Unused Tags",
+    "delete_all_unused_tags_button": "Delete All",
     "drag_and_drop_merging": "Drag & Drop Merging",
     "drag_and_drop_merging_info": "Drag and drop tags on each other to merge them",
     "sort_by_name": "Sort by Name",
