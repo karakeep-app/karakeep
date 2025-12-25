@@ -19,7 +19,7 @@ import type {
   RunnerOptions,
 } from "@karakeep/shared/queueing";
 import serverConfig from "@karakeep/shared/config";
-import { RateLimitRetryError } from "@karakeep/shared/queueing";
+import { QueueRetryAfterError } from "@karakeep/shared/queueing";
 
 class LitequeQueueWrapper<T> implements Queue<T> {
   constructor(
@@ -94,12 +94,12 @@ class LitequeQueueClient implements QueueClient {
       throw new Error(`Queue ${name} not found`);
     }
 
-    // Wrap the run function to translate RateLimitRetryError to liteque's RetryAfterError
+    // Wrap the run function to translate QueueRetryAfterError to liteque's RetryAfterError
     const wrappedRun = async (job: DequeuedJob<T>): Promise<R> => {
       try {
         return await funcs.run(job);
       } catch (error) {
-        if (error instanceof RateLimitRetryError) {
+        if (error instanceof QueueRetryAfterError) {
           // Translate to liteque's native RetryAfterError
           // This will cause liteque to retry after the delay without counting against attempts
           throw new RetryAfterError(error.delayMs);

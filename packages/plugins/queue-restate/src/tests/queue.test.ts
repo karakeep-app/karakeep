@@ -10,7 +10,7 @@ import {
 } from "vitest";
 
 import type { Queue, QueueClient } from "@karakeep/shared/queueing";
-import { RateLimitRetryError } from "@karakeep/shared/queueing";
+import { QueueRetryAfterError } from "@karakeep/shared/queueing";
 
 import { AdminClient } from "../admin";
 import { RestateQueueProvider } from "../index";
@@ -150,7 +150,7 @@ describe("Restate Queue Provider", () => {
               testState.rateLimitAttempts.set(attemptKey, currentAttempts + 1);
 
               if (currentAttempts < jobData.attemptsBeforeSuccess) {
-                throw new RateLimitRetryError(
+                throw new QueueRetryAfterError(
                   `Rate limited (attempt ${currentAttempts + 1})`,
                   jobData.delayMs,
                 );
@@ -542,11 +542,11 @@ describe("Restate Queue Provider", () => {
     }, 60000);
   });
 
-  describe("RateLimitRetryError handling", () => {
+  describe("QueueRetryAfterError handling", () => {
     it("should retry after delay without counting against retry attempts", async () => {
       const startTime = Date.now();
 
-      // This job will fail with RateLimitRetryError twice before succeeding
+      // This job will fail with QueueRetryAfterError twice before succeeding
       await queue.enqueue({
         type: "rate-limit",
         val: 42,

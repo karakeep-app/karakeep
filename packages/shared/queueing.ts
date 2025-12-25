@@ -7,13 +7,13 @@ import { PluginManager, PluginType } from "./plugins";
  * without counting against the retry attempts limit.
  * Useful for handling rate limiting scenarios.
  */
-export class RateLimitRetryError extends Error {
+export class QueueRetryAfterError extends Error {
   constructor(
     message: string,
     public readonly delayMs: number,
   ) {
     super(message);
-    this.name = "RateLimitRetryError";
+    this.name = "QueueRetryAfterError";
   }
 }
 

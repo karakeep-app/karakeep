@@ -77,7 +77,7 @@ import {
   DequeuedJob,
   EnqueueOptions,
   getQueueClient,
-  RateLimitRetryError,
+  QueueRetryAfterError,
 } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
@@ -1303,8 +1303,8 @@ async function crawlAndParseUrl(
 }
 
 /**
- * Checks if the domain should be rate limited and throws RateLimitRetryError if needed.
- * @throws {RateLimitRetryError} if the domain is rate limited
+ * Checks if the domain should be rate limited and throws QueueRetryAfterError if needed.
+ * @throws {QueueRetryAfterError} if the domain is rate limited
  */
 async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
   const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
@@ -1335,7 +1335,7 @@ async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
     logger.info(
       `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Will retry in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
     );
-    throw new RateLimitRetryError(
+    throw new QueueRetryAfterError(
       `Domain "${hostname}" is rate limited`,
       delayMs,
     );

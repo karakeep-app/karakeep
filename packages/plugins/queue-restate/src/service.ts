@@ -6,7 +6,7 @@ import type {
   RunnerFuncs,
   RunnerOptions,
 } from "@karakeep/shared/queueing";
-import { RateLimitRetryError } from "@karakeep/shared/queueing";
+import { QueueRetryAfterError } from "@karakeep/shared/queueing";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import { genId } from "./idProvider";
@@ -140,7 +140,7 @@ async function runWorkerLogic<T, R>(
       async () => {
         const res = await tryCatch(run(data));
         if (res.error) {
-          if (res.error instanceof RateLimitRetryError) {
+          if (res.error instanceof QueueRetryAfterError) {
             return { type: "rate_limit" as const, delayMs: res.error.delayMs };
           }
           throw res.error; // Rethrow
