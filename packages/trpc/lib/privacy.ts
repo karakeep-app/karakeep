@@ -70,9 +70,9 @@ export type AccessLevel = "owner" | "editor" | "viewer";
  * Type that represents having at least the specified access level.
  * Used for method constraints.
  */
-export type HasAccess<L extends AccessLevel> = {
+export interface HasAccess<L extends AccessLevel> {
   readonly __accessLevel: L | HigherAccessLevel<L>;
-};
+}
 
 /**
  * Maps an access level to all levels that are "higher" (more permissive).
@@ -385,7 +385,8 @@ export interface PrivacyQueryResult<T> {
 /**
  * Extract the data type from a VerifiedResource.
  */
-export type DataOf<T> = T extends VerifiedResource<infer D, unknown> ? D : never;
+export type DataOf<T> =
+  T extends VerifiedResource<infer D, unknown> ? D : never;
 
 /**
  * Extract the access level from a VerifiedResource at runtime.

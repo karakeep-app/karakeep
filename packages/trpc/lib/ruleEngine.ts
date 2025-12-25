@@ -180,12 +180,24 @@ export class RuleEngine {
       }
       case "addToList": {
         const list = await List.fromId(this.ctx, action.listId);
-        await list.addBookmark(this.bookmark.id);
+        const editorList = list.requireEditor();
+        // Dispatch to correct implementation based on type
+        if (editorList.type === "smart") {
+          await editorList.asSmartList().addBookmark(this.bookmark.id);
+        } else {
+          await editorList.asManualList().addBookmark(this.bookmark.id);
+        }
         return `Added to list ${action.listId}`;
       }
       case "removeFromList": {
         const list = await List.fromId(this.ctx, action.listId);
-        await list.removeBookmark(this.bookmark.id);
+        const editorList = list.requireEditor();
+        // Dispatch to correct implementation based on type
+        if (editorList.type === "smart") {
+          await editorList.asSmartList().removeBookmark(this.bookmark.id);
+        } else {
+          await editorList.asManualList().removeBookmark(this.bookmark.id);
+        }
         return `Removed from list ${action.listId}`;
       }
       case "downloadFullPageArchive": {

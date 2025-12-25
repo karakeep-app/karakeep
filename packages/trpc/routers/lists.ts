@@ -10,6 +10,7 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import { HasAccess } from "../lib/privacy";
 import { ListInvitation } from "../models/listInvitations";
 import { List } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
@@ -18,7 +19,7 @@ export const ensureListAtLeastViewer = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: { listId: string };
 }>().create(async (opts) => {
-  // This would throw if the user can't view the list
+  // fromId() verifies access and throws if denied
   const list = await List.fromId(opts.ctx, opts.input.listId);
   return opts.next({
     ctx: {
@@ -28,23 +29,39 @@ export const ensureListAtLeastViewer = experimental_trpcMiddleware<{
   });
 });
 
+/**
+ * Ensures the user has at least editor access to the list.
+ * Narrows the list type to include HasAccess<"editor">.
+ */
 export const ensureListAtLeastEditor = experimental_trpcMiddleware<{
   ctx: AuthedContext & { list: List };
   input: { listId: string };
 }>().create(async (opts) => {
-  opts.ctx.list.ensureCanEdit();
+  // requireEditor() throws if insufficient access AND narrows the type
+  opts.ctx.list.requireEditor();
   return opts.next({
-    ctx: opts.ctx,
+    ctx: {
+      ...opts.ctx,
+      list: opts.ctx.list as List & HasAccess<"editor">,
+    },
   });
 });
 
+/**
+ * Ensures the user has owner access to the list.
+ * Narrows the list type to include HasAccess<"owner">.
+ */
 export const ensureListAtLeastOwner = experimental_trpcMiddleware<{
   ctx: AuthedContext & { list: List };
   input: { listId: string };
 }>().create(async (opts) => {
-  opts.ctx.list.ensureCanManage();
+  // requireOwner() throws if insufficient access AND narrows the type
+  opts.ctx.list.requireOwner();
   return opts.next({
-    ctx: opts.ctx,
+    ctx: {
+      ...opts.ctx,
+      list: opts.ctx.list as List & HasAccess<"owner">,
+    },
   });
 });
 
@@ -87,12 +104,20 @@ export const listsAppRouter = router({
         List.fromId(ctx, input.sourceId),
         List.fromId(ctx, input.targetId),
       ]);
-      sourceList.ensureCanManage();
-      targetList.ensureCanManage();
-      return await sourceList.mergeInto(
-        targetList,
-        input.deleteSourceAfterMerge,
-      );
+      // Verify both lists have owner access
+      const ownerSource = sourceList.requireOwner();
+      targetList.requireOwner();
+
+      // Use type-safe dispatch based on list type
+      if (ownerSource.type === "smart") {
+        await ownerSource
+          .asSmartList()
+          .mergeInto(targetList, input.deleteSourceAfterMerge);
+      } else {
+        await ownerSource
+          .asManualList()
+          .mergeInto(targetList, input.deleteSourceAfterMerge);
+      }
     }),
   delete: authedProcedure
     .input(
@@ -106,7 +131,9 @@ export const listsAppRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (input.deleteChildren) {
         const children = await ctx.list.getChildren();
-        await Promise.all(children.map((l) => l.delete()));
+        // Children are owned lists, so we can delete them
+        // Each child inherits owner access since they're returned by getAllOwned
+        await Promise.all(children.map((l) => l.requireOwner().delete()));
       }
       await ctx.list.delete();
     }),

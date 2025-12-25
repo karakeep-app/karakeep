@@ -24,6 +24,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
+import { AccessLevel, HasAccess, VerifiedResource } from "../lib/privacy";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { ListInvitation } from "./listInvitations";
@@ -32,11 +33,34 @@ interface ListCollaboratorEntry {
   membershipId: string;
 }
 
-export abstract class List {
+/**
+ * Privacy-safe List model using VerifiedResource pattern.
+ *
+ * ACCESS LEVELS:
+ * - owner:  Full control (delete, manage collaborators, RSS tokens)
+ * - editor: Can add/remove bookmarks
+ * - viewer: Can only view list contents
+ *
+ * Type constraints ensure methods can only be called with appropriate access.
+ */
+export abstract class List extends VerifiedResource<
+  ZBookmarkList & { userId: string },
+  AuthedContext
+> {
   protected constructor(
-    protected ctx: AuthedContext,
-    protected list: ZBookmarkList & { userId: string },
-  ) {}
+    ctx: AuthedContext,
+    list: ZBookmarkList & { userId: string },
+    accessLevel: AccessLevel | "public",
+  ) {
+    // Map "public" to "viewer" for the type system
+    super(ctx, list, accessLevel === "public" ? "viewer" : accessLevel);
+    // Store the original userRole in the data
+    this.data.userRole = accessLevel;
+  }
+
+  protected get list() {
+    return this.data;
+  }
 
   get id() {
     return this.list.id;
@@ -67,15 +91,22 @@ export abstract class List {
     };
   }
 
+  /**
+   * Internal factory method. Creates instance with verified access level.
+   * @private Only used internally after access verification
+   */
   private static fromData(
     ctx: AuthedContext,
     data: ZBookmarkList & { userId: string },
     collaboratorEntry: ListCollaboratorEntry | null,
   ) {
+    // Extract access level from userRole
+    const accessLevel: AccessLevel | "public" = data.userRole;
+
     if (data.type === "smart") {
-      return new SmartList(ctx, data);
+      return new SmartList(ctx, data, accessLevel);
     } else {
-      return new ManualList(ctx, data, collaboratorEntry);
+      return new ManualList(ctx, data, collaboratorEntry, accessLevel);
     }
   }
 
@@ -148,11 +179,8 @@ export abstract class List {
         message: "List not found",
       });
     }
-    if (list.type === "smart") {
-      return new SmartList(ctx, list);
-    } else {
-      return new ManualList(ctx, list, collaboratorEntry);
-    }
+    // Use fromData which properly handles access level
+    return List.fromData(ctx, list, collaboratorEntry);
   }
 
   private static async getPublicList(
@@ -461,8 +489,11 @@ export abstract class List {
     }
   }
 
-  async delete() {
-    this.ensureCanManage();
+  /**
+   * Delete this list.
+   * TYPE CONSTRAINT: Requires owner access.
+   */
+  async delete(this: List & HasAccess<"owner">): Promise<void> {
     const res = await this.ctx.db
       .delete(bookmarkLists)
       .where(
@@ -512,10 +543,14 @@ export abstract class List {
     return resultIds.map((id) => listById.get(id)!);
   }
 
+  /**
+   * Update list metadata.
+   * TYPE CONSTRAINT: Requires owner access.
+   */
   async update(
+    this: List & HasAccess<"owner">,
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
-    this.ensureCanManage();
     const result = await this.ctx.db
       .update(bookmarkLists)
       .set({
@@ -546,11 +581,12 @@ export abstract class List {
         },
         limit: 1,
       });
-    this.list = {
+    // Update internal state - use Object.assign to preserve readonly
+    Object.assign(this.data, {
       ...result[0],
       userRole: "owner",
       hasCollaborators: collaboratorsCount.length > 0,
-    };
+    });
   }
 
   private async setRssToken(token: string | null) {
@@ -570,8 +606,11 @@ export abstract class List {
     return result[0].rssToken;
   }
 
-  async getRssToken(): Promise<string | null> {
-    this.ensureCanManage();
+  /**
+   * Get the RSS token for this list.
+   * TYPE CONSTRAINT: Requires owner access.
+   */
+  async getRssToken(this: List & HasAccess<"owner">): Promise<string | null> {
     const [result] = await this.ctx.db
       .select({ rssToken: bookmarkLists.rssToken })
       .from(bookmarkLists)
@@ -585,13 +624,22 @@ export abstract class List {
     return result.rssToken ?? null;
   }
 
-  async regenRssToken() {
-    this.ensureCanManage();
-    return await this.setRssToken(crypto.randomBytes(32).toString("hex"));
+  /**
+   * Regenerate the RSS token for this list.
+   * TYPE CONSTRAINT: Requires owner access.
+   */
+  async regenRssToken(this: List & HasAccess<"owner">): Promise<string> {
+    const token = crypto.randomBytes(32).toString("hex");
+    const result = await this.setRssToken(token);
+    // Token is always non-null when we just set it
+    return result!;
   }
 
-  async clearRssToken() {
-    this.ensureCanManage();
+  /**
+   * Clear the RSS token for this list.
+   * TYPE CONSTRAINT: Requires owner access.
+   */
+  async clearRssToken(this: List & HasAccess<"owner">): Promise<void> {
     await this.setRssToken(null);
   }
 
@@ -599,13 +647,13 @@ export abstract class List {
    * Add a collaborator to this list by email.
    * Creates a pending invitation that must be accepted by the user.
    * Returns the invitation ID.
+   * TYPE CONSTRAINT: Requires owner access.
    */
   async addCollaboratorByEmail(
+    this: List & HasAccess<"owner">,
     email: string,
     role: "viewer" | "editor",
   ): Promise<string> {
-    this.ensureCanManage();
-
     return await ListInvitation.inviteByEmail(this.ctx, {
       email,
       role,
@@ -622,10 +670,12 @@ export abstract class List {
    * Remove a collaborator from this list.
    * Only the list owner can remove collaborators.
    * This also removes all bookmarks that the collaborator added to the list.
+   * TYPE CONSTRAINT: Requires owner access.
    */
-  async removeCollaborator(userId: string): Promise<void> {
-    this.ensureCanManage();
-
+  async removeCollaborator(
+    this: List & HasAccess<"owner">,
+    userId: string,
+  ): Promise<void> {
     const result = await this.ctx.db
       .delete(listCollaborators)
       .where(
@@ -676,13 +726,13 @@ export abstract class List {
 
   /**
    * Update a collaborator's role.
+   * TYPE CONSTRAINT: Requires owner access.
    */
   async updateCollaboratorRole(
+    this: List & HasAccess<"owner">,
     userId: string,
     role: "viewer" | "editor",
   ): Promise<void> {
-    this.ensureCanManage();
-
     const result = await this.ctx.db
       .update(listCollaborators)
       .set({ role })
@@ -809,10 +859,56 @@ export abstract class List {
   }
 
   abstract get type(): "manual" | "smart";
-  abstract getBookmarkIds(ctx: AuthedContext): Promise<string[]>;
-  abstract getSize(ctx: AuthedContext): Promise<number>;
+  abstract getBookmarkIds(): Promise<string[]>;
+  abstract getSize(): Promise<number>;
+
+  /**
+   * Type guard to narrow List to SmartList while preserving access level.
+   * This provides a type-safe way to dispatch to concrete implementations
+   * without using `as any` casts.
+   */
+  asSmartList<A extends AccessLevel>(
+    this: List & HasAccess<A>,
+  ): SmartList & HasAccess<A> {
+    if (this.type !== "smart") {
+      throw new Error("Expected SmartList");
+    }
+    return this as SmartList & HasAccess<A>;
+  }
+
+  /**
+   * Type guard to narrow List to ManualList while preserving access level.
+   * This provides a type-safe way to dispatch to concrete implementations
+   * without using `as any` casts.
+   */
+  asManualList<A extends AccessLevel>(
+    this: List & HasAccess<A>,
+  ): ManualList & HasAccess<A> {
+    if (this.type !== "manual") {
+      throw new Error("Expected ManualList");
+    }
+    return this as ManualList & HasAccess<A>;
+  }
+
+  /**
+   * Add a bookmark to this list.
+   * PRIVACY REQUIREMENT: Must have at least editor access.
+   * Implementations enforce this via `this` parameter constraint.
+   */
   abstract addBookmark(bookmarkId: string): Promise<void>;
+
+  /**
+   * Remove a bookmark from this list.
+   * PRIVACY REQUIREMENT: Must have at least editor access.
+   * Implementations enforce this via `this` parameter constraint.
+   */
   abstract removeBookmark(bookmarkId: string): Promise<void>;
+
+  /**
+   * Merge this list into another list.
+   * PRIVACY REQUIREMENT: Must have owner access on both lists.
+   * Implementations enforce this via `this` parameter constraint.
+   */
   abstract mergeInto(
     targetList: List,
     deleteSourceAfterMerge: boolean,
@@ -822,8 +918,12 @@ export abstract class List {
 export class SmartList extends List {
   parsedQuery: ReturnType<typeof parseSearchQuery> | null = null;
 
-  constructor(ctx: AuthedContext, list: ZBookmarkList & { userId: string }) {
-    super(ctx, list);
+  constructor(
+    ctx: AuthedContext,
+    list: ZBookmarkList & { userId: string },
+    accessLevel: AccessLevel | "public",
+  ) {
+    super(ctx, list, accessLevel);
   }
 
   get type(): "smart" {
@@ -859,21 +959,40 @@ export class SmartList extends List {
     return await this.getBookmarkIds().then((ids) => ids.length);
   }
 
-  addBookmark(_bookmarkId: string): Promise<void> {
+  /**
+   * Smart lists cannot have bookmarks added manually.
+   * TYPE CONSTRAINT: Requires editor access (but always throws).
+   */
+  addBookmark(
+    this: SmartList & HasAccess<"editor">,
+    _bookmarkId: string,
+  ): Promise<void> {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Smart lists cannot be added to",
     });
   }
 
-  removeBookmark(_bookmarkId: string): Promise<void> {
+  /**
+   * Smart lists cannot have bookmarks removed manually.
+   * TYPE CONSTRAINT: Requires editor access (but always throws).
+   */
+  removeBookmark(
+    this: SmartList & HasAccess<"editor">,
+    _bookmarkId: string,
+  ): Promise<void> {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Smart lists cannot be removed from",
     });
   }
 
+  /**
+   * Smart lists cannot be merged.
+   * TYPE CONSTRAINT: Requires owner access (enforced via `this` parameter).
+   */
   mergeInto(
+    this: SmartList & HasAccess<"owner">,
     _targetList: List,
     _deleteSourceAfterMerge: boolean,
   ): Promise<void> {
@@ -885,12 +1004,16 @@ export class SmartList extends List {
 }
 
 export class ManualList extends List {
+  private collaboratorEntry: ListCollaboratorEntry | null;
+
   constructor(
     ctx: AuthedContext,
     list: ZBookmarkList & { userId: string },
-    private collaboratorEntry: ListCollaboratorEntry | null,
+    collaboratorEntry: ListCollaboratorEntry | null,
+    accessLevel: AccessLevel | "public",
   ) {
-    super(ctx, list);
+    super(ctx, list, accessLevel);
+    this.collaboratorEntry = collaboratorEntry;
   }
 
   get type(): "manual" {
@@ -914,9 +1037,14 @@ export class ManualList extends List {
     return results[0].count;
   }
 
-  async addBookmark(bookmarkId: string): Promise<void> {
-    this.ensureCanEdit();
-
+  /**
+   * Add a bookmark to this manual list.
+   * TYPE CONSTRAINT: Requires at least editor access.
+   */
+  async addBookmark(
+    this: ManualList & HasAccess<"editor">,
+    bookmarkId: string,
+  ): Promise<void> {
     try {
       await this.ctx.db.insert(bookmarksInLists).values({
         listId: this.list.id,
@@ -943,10 +1071,14 @@ export class ManualList extends List {
     }
   }
 
-  async removeBookmark(bookmarkId: string): Promise<void> {
-    // Check that the user can edit this list
-    this.ensureCanEdit();
-
+  /**
+   * Remove a bookmark from this manual list.
+   * TYPE CONSTRAINT: Requires at least editor access.
+   */
+  async removeBookmark(
+    this: ManualList & HasAccess<"editor">,
+    bookmarkId: string,
+  ): Promise<void> {
     const deleted = await this.ctx.db
       .delete(bookmarksInLists)
       .where(
@@ -979,12 +1111,15 @@ export class ManualList extends List {
     return super.update(input);
   }
 
+  /**
+   * Merge this list into another list.
+   * TYPE CONSTRAINT: Requires owner access (enforced via `this` parameter).
+   */
   async mergeInto(
+    this: ManualList & HasAccess<"owner">,
     targetList: List,
     deleteSourceAfterMerge: boolean,
   ): Promise<void> {
-    this.ensureCanManage();
-    targetList.ensureCanManage();
     if (targetList.type !== "manual") {
       throw new TRPCError({
         code: "BAD_REQUEST",

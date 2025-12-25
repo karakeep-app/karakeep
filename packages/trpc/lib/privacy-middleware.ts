@@ -55,10 +55,7 @@ export function createResourceMiddleware<
   /** The input parameter name containing the resource ID */
   paramName: TParamName;
   /** Function to load and verify the resource */
-  loader: (
-    ctx: AuthedContext,
-    id: TInput[TParamName],
-  ) => Promise<TResource>;
+  loader: (ctx: AuthedContext, id: TInput[TParamName]) => Promise<TResource>;
   /** Key to add the resource under in the context */
   contextKey: TContextKey;
 }) {
@@ -109,16 +106,19 @@ export function createResourceMiddleware<
  */
 export function createAccessLevelMiddleware<
   TContextKey extends string,
-  TResource extends { __accessLevel: AccessLevel; requireOwner: () => unknown; requireEditor: () => unknown },
+  TResource extends {
+    __accessLevel: AccessLevel;
+    requireOwner: () => unknown;
+    requireEditor: () => unknown;
+  },
   TRequiredLevel extends AccessLevel,
->(config: {
-  contextKey: TContextKey;
-  requiredLevel: TRequiredLevel;
-}) {
+>(config: { contextKey: TContextKey; requiredLevel: TRequiredLevel }) {
   return experimental_trpcMiddleware<{
     ctx: AuthedContext & Record<TContextKey, TResource>;
   }>().create(async (opts) => {
-    const resource = (opts.ctx as Record<TContextKey, TResource>)[config.contextKey];
+    const resource = (opts.ctx as Record<TContextKey, TResource>)[
+      config.contextKey
+    ];
 
     // Call the appropriate require method (throws if insufficient access)
     if (config.requiredLevel === "owner") {
@@ -146,9 +146,9 @@ export function createAccessLevelMiddleware<
 /**
  * Factory for creating standard resource middleware with common patterns.
  */
-export function defineResourceMiddleware<TResource extends { __accessLevel: AccessLevel }>(
-  loader: (ctx: AuthedContext, id: string) => Promise<TResource>,
-) {
+export function defineResourceMiddleware<
+  TResource extends { __accessLevel: AccessLevel },
+>(loader: (ctx: AuthedContext, id: string) => Promise<TResource>) {
   return {
     /**
      * Create middleware that loads and verifies the resource.
