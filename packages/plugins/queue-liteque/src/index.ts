@@ -8,6 +8,7 @@ import {
 
 import type { PluginProvider } from "@karakeep/shared/plugins";
 import type {
+  DequeuedJob,
   EnqueueOptions,
   Queue,
   QueueClient,
@@ -16,6 +17,7 @@ import type {
   RunnerFuncs,
   RunnerOptions,
 } from "@karakeep/shared/queueing";
+import { RateLimitRetryError } from "@karakeep/shared/queueing";
 import serverConfig from "@karakeep/shared/config";
 
 class LitequeQueueWrapper<T> implements Queue<T> {
@@ -91,10 +93,28 @@ class LitequeQueueClient implements QueueClient {
       throw new Error(`Queue ${name} not found`);
     }
 
+    // Wrap the run function to handle RateLimitRetryError
+    const wrappedRun = async (job: DequeuedJob<T>): Promise<R> => {
+      while (true) {
+        try {
+          return await funcs.run(job);
+        } catch (error) {
+          if (error instanceof RateLimitRetryError) {
+            // Sleep for the specified delay and retry without counting against attempts
+            await new Promise((resolve) => setTimeout(resolve, error.delayMs));
+            // Continue the loop to retry
+            continue;
+          }
+          // Re-throw any other errors
+          throw error;
+        }
+      }
+    };
+
     const runner = new LQRunner<T, R>(
       wrapper._impl,
       {
-        run: funcs.run,
+        run: wrappedRun,
         onComplete: funcs.onComplete,
         onError: funcs.onError,
       },

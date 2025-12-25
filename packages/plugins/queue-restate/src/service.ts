@@ -6,6 +6,7 @@ import type {
   RunnerFuncs,
   RunnerOptions,
 } from "@karakeep/shared/queueing";
+import { RateLimitRetryError } from "@karakeep/shared/queueing";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import { genId } from "./idProvider";
@@ -65,7 +66,8 @@ export function buildRestateService<T, R>(
         );
 
         let lastError: Error | undefined;
-        for (let runNumber = 0; runNumber <= NUM_RETRIES; runNumber++) {
+        let runNumber = 0;
+        while (runNumber <= NUM_RETRIES) {
           const acquired = await semaphore.acquire(
             priority,
             data.groupId,
@@ -87,9 +89,16 @@ export function buildRestateService<T, R>(
             if (res.error instanceof restate.CancelledError) {
               throw res.error;
             }
+            // Handle rate limit retries without counting against retry attempts
+            if (res.error instanceof RateLimitRetryError) {
+              await ctx.sleep(res.error.delayMs);
+              // Don't increment runNumber - retry without counting against attempts
+              continue;
+            }
             lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000);
+            runNumber++;
           } else {
             break;
           }
