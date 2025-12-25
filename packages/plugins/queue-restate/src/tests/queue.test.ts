@@ -568,6 +568,9 @@ describe("Restate Queue Provider", () => {
 
       // Should have waited at least 1 second total (2 x 500ms delays)
       expect(duration).toBeGreaterThanOrEqual(1000);
+
+      // onError should NOT have been called for rate limit retries
+      expect(testState.errors).toEqual([]);
     }, 60000);
 
     it("should not exhaust retries when rate limited", async () => {

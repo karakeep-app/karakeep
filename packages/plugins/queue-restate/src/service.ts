@@ -138,6 +138,11 @@ async function runWorkerLogic<T, R>(
     ),
   );
   if (res.error) {
+    // Don't call onError for rate limit retries - they're not real errors
+    if (res.error instanceof RateLimitRetryError) {
+      return res;
+    }
+
     await tryCatch(
       ctx.run(
         `onError`,
