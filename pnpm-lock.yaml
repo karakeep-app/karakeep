@@ -1512,6 +1512,40 @@ importers:
         specifier: ^22.0.0
         version: 22.0.2
 
+  tools/compare-models:
+    dependencies:
+      '@karakeep/sdk':
+        specifier: workspace:^
+        version: link:../../packages/sdk
+      chalk:
+        specifier: ^5.3.0
+        version: 5.4.1
+      openai:
+        specifier: ^4.86.1
+        version: 4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.24.2)
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
+      zod-to-json-schema:
+        specifier: ^3.24.3
+        version: 3.24.5(zod@3.24.2)
+    devDependencies:
+      '@karakeep/shared':
+        specifier: workspace:^
+        version: link:../../packages/shared
+      '@karakeep/trpc':
+        specifier: workspace:^
+        version: link:../../packages/trpc
+      '@types/node':
+        specifier: ^24
+        version: 24.10.3
+      tsx:
+        specifier: ^4.8.1
+        version: 4.20.3
+      typescript:
+        specifier: ^5.9
+        version: 5.9.3
+
 packages:
 
   '@0no-co/graphql.web@1.1.2':
@@ -6054,9 +6088,6 @@ packages:
 
   '@types/node@20.19.23':
     resolution: {integrity: sha512-yIdlVVVHXpmqRhtyovZAcSy0MiPcYWGkoO4CGe/+jpP0hmNuihm4XhHbADpK++MsiLHP5MVlv+bcgdF99kSiFQ==}
-
-  '@types/node@22.15.30':
-    resolution: {integrity: sha512-6Q7lr06bEHdlfplU6YRbgG1SFBdlsfNC4/lX+SkhiTs0cpJkOElmWls8PxDFv4yY/xKb8Y6SO0OmSX4wgqTZbA==}
 
   '@types/node@24.10.3':
     resolution: {integrity: sha512-gqkrWUsS8hcm0r44yn7/xZeV1ERva/nLgrLxFRUGb7aoNMIJfZJ3AC261zDQuOAKC7MiXai1WCpYc48jAHoShQ==}
@@ -21225,7 +21256,7 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 22.15.30
+      '@types/node': 24.10.3
 
   '@types/archiver@7.0.0':
     dependencies:
@@ -21258,7 +21289,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.13':
     dependencies:
-      '@types/node': 22.15.30
+      '@types/node': 24.10.3
 
   '@types/body-parser@1.19.5':
     dependencies:
@@ -21413,7 +21444,7 @@ snapshots:
 
   '@types/jsdom@21.1.7':
     dependencies:
-      '@types/node': 22.15.30
+      '@types/node': 24.10.3
       '@types/tough-cookie': 4.0.5
       parse5: 7.3.0
 
@@ -21460,17 +21491,13 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@22.15.30':
-    dependencies:
-      undici-types: 6.21.0
-
   '@types/node@24.10.3':
     dependencies:
       undici-types: 7.16.0
 
   '@types/nodemailer@6.4.17':
     dependencies:
-      '@types/node': 22.15.30
+      '@types/node': 24.10.3
 
   '@types/parse-json@4.0.2': {}
 
@@ -21534,7 +21561,7 @@ snapshots:
 
   '@types/request-ip@0.0.41':
     dependencies:
-      '@types/node': 22.15.30
+      '@types/node': 24.10.3
 
   '@types/resolve@1.17.1':
     dependencies:
