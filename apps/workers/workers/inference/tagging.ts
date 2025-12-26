@@ -81,6 +81,7 @@ function tagNormalizer() {
 async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   tagStyle: ZTagStyle,
+  inferredTagLang: string,
 ): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
@@ -98,7 +99,7 @@ async function buildPrompt(
       return null;
     }
     return await buildTextPrompt(
-      serverConfig.inference.inferredTagLang,
+      inferredTagLang,
       prompts,
       `URL: ${bookmark.link.url}
 Title: ${bookmark.link.title ?? ""}
@@ -111,7 +112,7 @@ Content: ${content ?? ""}`,
 
   if (bookmark.text) {
     return await buildTextPrompt(
-      serverConfig.inference.inferredTagLang,
+      inferredTagLang,
       prompts,
       bookmark.text.text ?? "",
       serverConfig.inference.contextLength,
@@ -128,6 +129,7 @@ async function inferTagsFromImage(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
+  inferredTagLang: string,
 ): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
@@ -149,7 +151,7 @@ async function inferTagsFromImage(
   const base64 = asset.toString("base64");
   return inferenceClient.inferFromImage(
     buildImagePrompt(
-      serverConfig.inference.inferredTagLang,
+      inferredTagLang,
       await fetchCustomPrompts(bookmark.userId, "images"),
       tagStyle,
     ),
@@ -222,9 +224,10 @@ async function inferTagsFromPDF(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
+  inferredTagLang: string,
 ) {
   const prompt = await buildTextPrompt(
-    serverConfig.inference.inferredTagLang,
+    inferredTagLang,
     await fetchCustomPrompts(bookmark.userId, "text"),
     `Content: ${bookmark.asset.content}`,
     serverConfig.inference.contextLength,
@@ -241,8 +244,9 @@ async function inferTagsFromText(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
+  inferredTagLang: string,
 ) {
-  const prompt = await buildPrompt(bookmark, tagStyle);
+  const prompt = await buildPrompt(bookmark, tagStyle, inferredTagLang);
   if (!prompt) {
     return null;
   }
@@ -258,6 +262,7 @@ async function inferTags(
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
+  inferredTagLang: string,
 ) {
   let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
@@ -266,6 +271,7 @@ async function inferTags(
       inferenceClient,
       abortSignal,
       tagStyle,
+      inferredTagLang,
     );
   } else if (bookmark.asset) {
     switch (bookmark.asset.assetType) {
@@ -276,6 +282,7 @@ async function inferTags(
           inferenceClient,
           abortSignal,
           tagStyle,
+          inferredTagLang,
         );
         break;
       case "pdf":
@@ -285,6 +292,7 @@ async function inferTags(
           inferenceClient,
           abortSignal,
           tagStyle,
+          inferredTagLang,
         );
         break;
       default:
@@ -461,6 +469,7 @@ export async function runTagging(
     columns: {
       autoTaggingEnabled: true,
       tagStyle: true,
+      inferredTagLang: true,
     },
   });
 
@@ -481,6 +490,7 @@ export async function runTagging(
     inferenceClient,
     job.abortSignal,
     userSettings?.tagStyle ?? "as-generated",
+    userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
   );
 
   if (tags === null) {

@@ -19,6 +19,7 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   autoTaggingEnabled: null,
   autoSummarizationEnabled: null,
   tagStyle: "as-generated",
+  inferredTagLang: null,
 });
 
 export function UserSettingsContextProvider({

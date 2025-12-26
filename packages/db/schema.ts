@@ -94,6 +94,7 @@ export const users = sqliteTable("user", {
       "as-generated",
     ],
   }).default("as-generated"),
+  inferredTagLang: text("inferredTagLang"),
 });
 
 export const accounts = sqliteTable(

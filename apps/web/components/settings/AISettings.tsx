@@ -45,6 +45,83 @@ import {
 } from "@karakeep/shared/types/prompts";
 import { zUpdateUserSettingsSchema } from "@karakeep/shared/types/users";
 
+export function InferenceLanguageSelector() {
+  const { t } = useTranslation();
+  const settings = useUserSettings();
+  const clientConfig = useClientConfig();
+
+  const { mutate: updateSettings, isPending: isUpdating } =
+    useUpdateUserSettings({
+      onSuccess: () => {
+        toast({
+          description: "Inference language updated successfully!",
+        });
+      },
+      onError: () => {
+        toast({
+          description: "Failed to update inference language",
+          variant: "destructive",
+        });
+      },
+    });
+
+  const languageOptions = [
+    { value: "english", label: "English" },
+    { value: "spanish", label: "Español" },
+    { value: "french", label: "Français" },
+    { value: "german", label: "Deutsch" },
+    { value: "italian", label: "Italiano" },
+    { value: "portuguese", label: "Português" },
+    { value: "russian", label: "Русский" },
+    { value: "chinese", label: "中文" },
+    { value: "japanese", label: "日本語" },
+    { value: "korean", label: "한국어" },
+    { value: "arabic", label: "العربية" },
+    { value: "hindi", label: "हिन्दी" },
+    { value: null, label: t("settings.ai.use_server_default") },
+  ] as const;
+
+  const selectedLanguage =
+    settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="text-xl font-medium">
+        {t("settings.ai.inference_language")}
+      </div>
+      <p className="text-sm text-muted-foreground">
+        {t("settings.ai.inference_language_description")}
+      </p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {languageOptions.map((option) => (
+          <button
+            key={option.value ?? "null"}
+            type="button"
+            onClick={() => {
+              updateSettings({ inferredTagLang: option.value });
+            }}
+            disabled={isUpdating}
+            className={`rounded-lg border p-3 text-left transition-all ${
+              selectedLanguage === option.value
+                ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2"
+                : "border-border hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            <div className="font-medium">{option.label}</div>
+            {selectedLanguage === option.value && (
+              <div className="mt-2 flex items-center justify-center">
+                <div className="flex size-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                  ✓
+                </div>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TagStyleSelector() {
   const { t } = useTranslation();
   const settings = useUserSettings();
@@ -514,6 +591,8 @@ export function PromptDemo() {
   const clientConfig = useClientConfig();
 
   const tagStyle = settings?.tagStyle ?? "as-generated";
+  const inferredTagLang =
+    settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
 
   return (
     <div className="flex flex-col gap-2">
@@ -523,7 +602,7 @@ export function PromptDemo() {
       <p>{t("settings.ai.text_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
         {buildTextPromptUntruncated(
-          clientConfig.inference.inferredTagLang,
+          inferredTagLang,
           (prompts ?? [])
             .filter(
               (p) => p.appliesTo == "text" || p.appliesTo == "all_tagging",
@@ -536,7 +615,7 @@ export function PromptDemo() {
       <p>{t("settings.ai.images_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
         {buildImagePrompt(
-          clientConfig.inference.inferredTagLang,
+          inferredTagLang,
           (prompts ?? [])
             .filter(
               (p) => p.appliesTo == "images" || p.appliesTo == "all_tagging",
@@ -548,7 +627,7 @@ export function PromptDemo() {
       <p>{t("settings.ai.summarization_prompt")}</p>
       <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
         {buildSummaryPromptUntruncated(
-          clientConfig.inference.inferredTagLang,
+          inferredTagLang,
           (prompts ?? [])
             .filter((p) => p.appliesTo == "summary")
             .map((p) => p.text),
@@ -569,6 +648,7 @@ export default function AISettings() {
             {t("settings.ai.ai_settings")}
           </div>
           <AIPreferences />
+          <InferenceLanguageSelector />
           <TagStyleSelector />
           <TaggingRules />
         </div>

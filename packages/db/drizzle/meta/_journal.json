@@ -519,6 +519,20 @@
       "when": 1766749642186,
       "tag": "0073_add_tag_style_to_users",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1766754440362,
+      "tag": "0074_add_inferred_tag_lang_to_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "6",
+      "when": 1766754763502,
+      "tag": "0075_make_inferred_tag_lang_nullable",
+      "breakpoints": true
     }
   ]
 }
