@@ -26,6 +26,7 @@ interface ListItem {
   numChildren: number;
   collapsed: boolean;
   userRole: string;
+  type: "manual" | "smart";
 }
 
 // Helper function to build parent map
@@ -74,6 +75,7 @@ function traverseTree(
     numChildren: node.children?.length ?? 0,
     collapsed: !showChildrenOf[node.item.id],
     userRole: node.item.userRole,
+    type: node.item.type,
   });
 
   if (node.children && showChildrenOf[node.item.id]) {
@@ -205,6 +207,7 @@ const ListPickerPage = () => {
           const listId = l.item.id;
           const isLoading = isListLoading(listId);
           const isChecked = existingLists && existingLists.has(listId);
+          const isSmartList = l.item.type === "smart";
 
           return (
             <View
@@ -235,27 +238,31 @@ const ListPickerPage = () => {
                 </Pressable>
               )}
 
-              <Pressable
-                key={listId}
-                onPress={() => !isLoading && toggleList(listId)}
-                disabled={isLoading}
-                className="flex flex-1 flex-row items-center justify-between"
-              >
+              <View className="flex flex-1 flex-row items-center justify-between">
                 <Text>
                   {l.item.icon} {l.item.name}
                 </Text>
                 {isLoading ? (
                   <ActivityIndicator size="small" />
                 ) : (
-                  <Checkbox
-                    value={isChecked}
-                    onValueChange={() => {
-                      toggleList(listId);
-                    }}
-                    disabled={isLoading}
-                  />
+                  <Pressable
+                    disabled={isLoading || isSmartList}
+                    onPress={() =>
+                      !isLoading && !isSmartList && toggleList(listId)
+                    }
+                  >
+                    <Checkbox
+                      value={isChecked}
+                      onValueChange={() => {
+                        if (!isSmartList) {
+                          toggleList(listId);
+                        }
+                      }}
+                      disabled={isLoading || isSmartList}
+                    />
+                  </Pressable>
                 )}
-              </Pressable>
+              </View>
             </View>
           );
         }}
