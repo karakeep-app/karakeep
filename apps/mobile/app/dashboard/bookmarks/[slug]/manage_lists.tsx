@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useLocalSearchParams } from "expo-router";
@@ -26,6 +26,36 @@ interface ListItem {
   numChildren: number;
   collapsed: boolean;
   userRole: string;
+}
+
+// Helper function to build parent map
+function buildParentMap(
+  node: ZBookmarkListTreeNode,
+  parentMap: Record<string, string>,
+  parent?: string,
+) {
+  if (parent) {
+    parentMap[node.item.id] = parent;
+  }
+  if (node.children) {
+    node.children.forEach((child) =>
+      buildParentMap(child, parentMap, node.item.id),
+    );
+  }
+}
+
+// Helper function to get all ancestors of a list
+function getAncestors(
+  listId: string,
+  parentMap: Record<string, string>,
+): string[] {
+  const ancestors: string[] = [];
+  let current = listId;
+  while (parentMap[current]) {
+    ancestors.push(parentMap[current]);
+    current = parentMap[current];
+  }
+  return ancestors;
 }
 
 function traverseTree(
@@ -79,6 +109,33 @@ const ListPickerPage = () => {
     },
   );
   const { data } = useBookmarkLists();
+
+  // Automatically expand parent lists of selected items
+  useEffect(() => {
+    if (!existingLists || !data?.root) {
+      return;
+    }
+
+    // Build a map of list ID to parent ID
+    const parentMap: Record<string, string> = {};
+    Object.values(data.root).forEach((list) => {
+      buildParentMap(list, parentMap);
+    });
+
+    // Find all ancestors of selected lists
+    const parentsToExpand: Record<string, boolean> = {};
+    existingLists.forEach((listId) => {
+      const ancestors = getAncestors(listId, parentMap);
+      ancestors.forEach((ancestorId) => {
+        parentsToExpand[ancestorId] = true;
+      });
+    });
+
+    // Set initial expansion state
+    if (Object.keys(parentsToExpand).length > 0) {
+      setShowChildrenOf(parentsToExpand);
+    }
+  }, [existingLists, data?.root]);
 
   const {
     mutate: addToList,
