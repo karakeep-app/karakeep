@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useLocalSearchParams } from "expo-router";
@@ -94,6 +94,7 @@ const ListPickerPage = () => {
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
     {},
   );
+  const hasInitializedExpansion = useRef(false);
   const { toast } = useToast();
   const onError = () => {
     toast({
@@ -112,9 +113,9 @@ const ListPickerPage = () => {
   );
   const { data } = useBookmarkLists();
 
-  // Automatically expand parent lists of selected items
+  // Automatically expand parent lists of selected items (only once on mount)
   useEffect(() => {
-    if (!existingLists || !data?.root) {
+    if (!existingLists || !data?.root || hasInitializedExpansion.current) {
       return;
     }
 
@@ -136,6 +137,7 @@ const ListPickerPage = () => {
     // Set initial expansion state
     if (Object.keys(parentsToExpand).length > 0) {
       setShowChildrenOf(parentsToExpand);
+      hasInitializedExpansion.current = true;
     }
   }, [existingLists, data?.root]);
 
