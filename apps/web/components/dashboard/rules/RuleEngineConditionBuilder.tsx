@@ -54,6 +54,9 @@ export function ConditionBuilder({
       case "urlContains":
         onChange({ type: "urlContains", str: "" });
         break;
+      case "urlDoesNotContain":
+        onChange({ type: "urlDoesNotContain", str: "" });
+        break;
       case "importedFromFeed":
         onChange({ type: "importedFromFeed", feedId: "" });
         break;
@@ -88,6 +91,7 @@ export function ConditionBuilder({
   const renderConditionIcon = (type: RuleEngineCondition["type"]) => {
     switch (type) {
       case "urlContains":
+      case "urlDoesNotContain":
         return <Link className="h-4 w-4" />;
       case "importedFromFeed":
         return <Rss className="h-4 w-4" />;
@@ -113,6 +117,18 @@ export function ConditionBuilder({
               value={value.str}
               onChange={(e) => onChange({ ...value, str: e.target.value })}
               placeholder="URL contains..."
+              className="w-full"
+            />
+          </div>
+        );
+
+      case "urlDoesNotContain":
+        return (
+          <div className="mt-2">
+            <Input
+              value={value.str}
+              onChange={(e) => onChange({ ...value, str: e.target.value })}
+              placeholder="URL does not contain..."
               className="w-full"
             />
           </div>
@@ -234,6 +250,9 @@ export function ConditionBuilder({
         </SelectItem>
         <SelectItem value="urlContains">
           {t("settings.rules.conditions_types.url_contains")}
+        </SelectItem>
+        <SelectItem value="urlDoesNotContain">
+          {t("settings.rules.conditions_types.url_does_not_contain")}
         </SelectItem>
         <SelectItem value="importedFromFeed">
           {t("settings.rules.conditions_types.imported_from_feed")}
