@@ -7,6 +7,7 @@ import type {
   InferenceClient,
   InferenceResponse,
 } from "@karakeep/shared/inference";
+import type { ZTagStyle } from "@karakeep/shared/types/users";
 import { db } from "@karakeep/db";
 import {
   bookmarks,
@@ -79,6 +80,7 @@ function tagNormalizer() {
 }
 async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
+  tagStyle: ZTagStyle,
 ): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
@@ -103,6 +105,7 @@ Title: ${bookmark.link.title ?? ""}
 Description: ${bookmark.link.description ?? ""}
 Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
+      tagStyle,
     );
   }
 
@@ -112,6 +115,7 @@ Content: ${content ?? ""}`,
       prompts,
       bookmark.text.text ?? "",
       serverConfig.inference.contextLength,
+      tagStyle,
     );
   }
 
@@ -123,6 +127,7 @@ async function inferTagsFromImage(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
+  tagStyle: ZTagStyle,
 ): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
@@ -146,6 +151,7 @@ async function inferTagsFromImage(
     buildImagePrompt(
       serverConfig.inference.inferredTagLang,
       await fetchCustomPrompts(bookmark.userId, "images"),
+      tagStyle,
     ),
     metadata.contentType,
     base64,
@@ -215,12 +221,14 @@ async function inferTagsFromPDF(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
+  tagStyle: ZTagStyle,
 ) {
   const prompt = await buildTextPrompt(
     serverConfig.inference.inferredTagLang,
     await fetchCustomPrompts(bookmark.userId, "text"),
     `Content: ${bookmark.asset.content}`,
     serverConfig.inference.contextLength,
+    tagStyle,
   );
   return inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
@@ -232,8 +240,9 @@ async function inferTagsFromText(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
+  tagStyle: ZTagStyle,
 ) {
-  const prompt = await buildPrompt(bookmark);
+  const prompt = await buildPrompt(bookmark, tagStyle);
   if (!prompt) {
     return null;
   }
@@ -248,10 +257,16 @@ async function inferTags(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   inferenceClient: InferenceClient,
   abortSignal: AbortSignal,
+  tagStyle: ZTagStyle,
 ) {
   let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
-    response = await inferTagsFromText(bookmark, inferenceClient, abortSignal);
+    response = await inferTagsFromText(
+      bookmark,
+      inferenceClient,
+      abortSignal,
+      tagStyle,
+    );
   } else if (bookmark.asset) {
     switch (bookmark.asset.assetType) {
       case "image":
@@ -260,6 +275,7 @@ async function inferTags(
           bookmark,
           inferenceClient,
           abortSignal,
+          tagStyle,
         );
         break;
       case "pdf":
@@ -268,6 +284,7 @@ async function inferTags(
           bookmark,
           inferenceClient,
           abortSignal,
+          tagStyle,
         );
         break;
       default:
@@ -443,6 +460,7 @@ export async function runTagging(
     where: eq(users.id, bookmark.userId),
     columns: {
       autoTaggingEnabled: true,
+      tagStyle: true,
     },
   });
 
@@ -462,6 +480,7 @@ export async function runTagging(
     bookmark,
     inferenceClient,
     job.abortSignal,
+    userSettings?.tagStyle ?? "as-generated",
   );
 
   if (tags === null) {

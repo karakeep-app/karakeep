@@ -5,6 +5,17 @@ import { zBookmarkSourceSchema } from "./bookmarks";
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 100;
 
+export const zTagStyleSchema = z.enum([
+  "lowercase-hyphens",
+  "lowercase-spaces",
+  "lowercase-underscores",
+  "titlecase-spaces",
+  "titlecase-hyphens",
+  "camelCase",
+  "as-generated",
+]);
+export type ZTagStyle = z.infer<typeof zTagStyleSchema>;
+
 export const zSignUpSchema = z
   .object({
     name: z.string().min(1, { message: "Name can't be empty" }),
@@ -123,6 +134,7 @@ export const zUserSettingsSchema = z.object({
   // AI settings (nullable = opt-in, null means use server default)
   autoTaggingEnabled: z.boolean().nullable(),
   autoSummarizationEnabled: z.boolean().nullable(),
+  tagStyle: zTagStyleSchema,
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -139,6 +151,7 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   readerFontFamily: true,
   autoTaggingEnabled: true,
   autoSummarizationEnabled: true,
+  tagStyle: true,
 });
 
 export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({

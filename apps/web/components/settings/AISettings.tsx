@@ -1,6 +1,7 @@
 "use client";
 
 import { ActionButton } from "@/components/ui/action-button";
+import { Badge } from "@/components/ui/badge";
 import {
   Form,
   FormControl,
@@ -43,6 +44,108 @@ import {
   zUpdatePromptSchema,
 } from "@karakeep/shared/types/prompts";
 import { zUpdateUserSettingsSchema } from "@karakeep/shared/types/users";
+
+export function TagStyleSelector() {
+  const { t } = useTranslation();
+  const settings = useUserSettings();
+
+  const { mutate: updateSettings, isPending: isUpdating } =
+    useUpdateUserSettings({
+      onSuccess: () => {
+        toast({
+          description: "Tag style updated successfully!",
+        });
+      },
+      onError: () => {
+        toast({
+          description: "Failed to update tag style",
+          variant: "destructive",
+        });
+      },
+    });
+
+  const tagStyleOptions = [
+    {
+      value: "lowercase-hyphens",
+      label: t("settings.ai.lowercase_hyphens"),
+      examples: ["machine-learning", "web-development"],
+    },
+    {
+      value: "lowercase-spaces",
+      label: t("settings.ai.lowercase_spaces"),
+      examples: ["machine learning", "web development"],
+    },
+    {
+      value: "lowercase-underscores",
+      label: t("settings.ai.lowercase_underscores"),
+      examples: ["machine_learning", "web_development"],
+    },
+    {
+      value: "titlecase-spaces",
+      label: t("settings.ai.titlecase_spaces"),
+      examples: ["Machine Learning", "Web Development"],
+    },
+    {
+      value: "titlecase-hyphens",
+      label: t("settings.ai.titlecase_hyphens"),
+      examples: ["Machine-Learning", "Web-Development"],
+    },
+    {
+      value: "camelCase",
+      label: t("settings.ai.camelCase"),
+      examples: ["machineLearning", "webDevelopment"],
+    },
+    {
+      value: "as-generated",
+      label: t("settings.ai.as_generated"),
+      examples: ["Machine Learning", "web development", "AI_generated"],
+    },
+  ] as const;
+
+  const selectedStyle = settings?.tagStyle ?? "as-generated";
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="text-xl font-medium">{t("settings.ai.tag_style")}</div>
+      <p className="text-sm text-muted-foreground">
+        {t("settings.ai.tag_style_description")}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {tagStyleOptions.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => {
+              updateSettings({ tagStyle: option.value });
+            }}
+            disabled={isUpdating}
+            className={`flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all ${
+              selectedStyle === option.value
+                ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2"
+                : "border-border hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            <div className="flex-1 space-y-1">
+              <div className="font-medium">{option.label}</div>
+              <div className="flex flex-wrap gap-1">
+                {option.examples.map((example) => (
+                  <Badge key={example} variant="secondary" className="text-xs">
+                    {example}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            {selectedStyle === option.value && (
+              <div className="flex size-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                ✓
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function AIPreferences() {
   const { t } = useTranslation();
@@ -407,7 +510,10 @@ export function TaggingRules() {
 export function PromptDemo() {
   const { t } = useTranslation();
   const { data: prompts } = api.prompts.list.useQuery();
+  const settings = useUserSettings();
   const clientConfig = useClientConfig();
+
+  const tagStyle = settings?.tagStyle ?? "as-generated";
 
   return (
     <div className="flex flex-col gap-2">
@@ -424,6 +530,7 @@ export function PromptDemo() {
             )
             .map((p) => p.text),
           "\n<CONTENT_HERE>\n",
+          tagStyle,
         ).trim()}
       </code>
       <p>{t("settings.ai.images_prompt")}</p>
@@ -435,6 +542,7 @@ export function PromptDemo() {
               (p) => p.appliesTo == "images" || p.appliesTo == "all_tagging",
             )
             .map((p) => p.text),
+          tagStyle,
         ).trim()}
       </code>
       <p>{t("settings.ai.summarization_prompt")}</p>
@@ -461,6 +569,7 @@ export default function AISettings() {
             {t("settings.ai.ai_settings")}
           </div>
           <AIPreferences />
+          <TagStyleSelector />
           <TaggingRules />
         </div>
       </div>

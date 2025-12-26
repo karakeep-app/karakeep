@@ -439,6 +439,7 @@ export class User {
         readerFontFamily: true,
         autoTaggingEnabled: true,
         autoSummarizationEnabled: true,
+        tagStyle: true,
       },
     });
 
@@ -461,6 +462,7 @@ export class User {
       readerFontFamily: settings.readerFontFamily,
       autoTaggingEnabled: settings.autoTaggingEnabled,
       autoSummarizationEnabled: settings.autoSummarizationEnabled,
+      tagStyle: settings.tagStyle ?? "as-generated",
     };
   }
 
@@ -488,6 +490,7 @@ export class User {
         readerFontFamily: input.readerFontFamily,
         autoTaggingEnabled: input.autoTaggingEnabled,
         autoSummarizationEnabled: input.autoSummarizationEnabled,
+        tagStyle: input.tagStyle,
       })
       .where(eq(users.id, this.user.id));
   }
