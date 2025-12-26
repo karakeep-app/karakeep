@@ -33,7 +33,7 @@ export const backupsAppRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const backup = await Backup.fromId(ctx, input.backupId);
-      await backup.delete();
+      await backup.requireOwner().delete();
     }),
 
   triggerBackup: authedProcedure

@@ -71,7 +71,7 @@ export class RuleEngine {
     return new RuleEngine(
       ctx,
       bookmark,
-      rules.map((r) => r.rule),
+      rules.map((r) => r.asRule()),
     );
   }
 

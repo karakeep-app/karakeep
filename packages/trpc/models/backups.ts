@@ -8,12 +8,37 @@ import { deleteAsset } from "@karakeep/shared/assetdb";
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { AuthedContext } from "..";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 
-export class Backup {
-  private constructor(
-    private ctx: AuthedContext,
-    private backup: z.infer<typeof zBackupSchema>,
-  ) {}
+/**
+ * Privacy-safe Backup model using VerifiedResource pattern.
+ *
+ * Backups are always owned by a single user (no sharing).
+ * All verified backups have "owner" access level.
+ */
+export class Backup extends VerifiedResource<
+  z.infer<typeof zBackupSchema>,
+  AuthedContext
+> {
+  protected constructor(
+    ctx: AuthedContext,
+    backup: z.infer<typeof zBackupSchema>,
+  ) {
+    // Backups are always owner-only (no collaboration)
+    super(ctx, backup, "owner");
+  }
+
+  protected get backup() {
+    return this.data;
+  }
+
+  get id() {
+    return this.backup.id;
+  }
+
+  get assetId() {
+    return this.backup.assetId;
+  }
 
   static async fromId(ctx: AuthedContext, backupId: string): Promise<Backup> {
     const backup = await ctx.db.query.backupsTable.findFirst({
@@ -79,9 +104,11 @@ export class Backup {
   }
 
   /**
-   * Generic update method for backup records
+   * Generic update method for backup records.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for backups).
    */
   async update(
+    this: Backup & HasAccess<"owner">,
     data: Partial<{
       size: number;
       bookmarkCount: number;
@@ -100,11 +127,15 @@ export class Backup {
         ),
       );
 
-    // Update local state
-    this.backup = { ...this.backup, ...data };
+    // Update local state - use Object.assign to preserve readonly
+    Object.assign(this.data, data);
   }
 
-  async delete(): Promise<void> {
+  /**
+   * Delete this backup.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for backups).
+   */
+  async delete(this: Backup & HasAccess<"owner">): Promise<void> {
     if (this.backup.assetId) {
       // Delete asset
       await deleteAsset({
@@ -160,13 +191,5 @@ export class Backup {
 
   asPublic(): z.infer<typeof zBackupSchema> {
     return this.backup;
-  }
-
-  get id() {
-    return this.backup.id;
-  }
-
-  get assetId() {
-    return this.backup.assetId;
   }
 }

@@ -18,7 +18,7 @@ export const importSessionsRouter = router({
     .output(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const session = await ImportSession.create(ctx, input);
-      return { id: session.session.id };
+      return { id: session.id };
     }),
 
   getImportSessionStats: authedProcedure
@@ -42,7 +42,7 @@ export const importSessionsRouter = router({
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
       const session = await ImportSession.fromId(ctx, input.importSessionId);
-      await session.delete();
+      await session.requireOwner().delete();
       return { success: true };
     }),
 });

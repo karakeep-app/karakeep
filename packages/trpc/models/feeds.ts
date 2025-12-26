@@ -11,12 +11,33 @@ import {
 } from "@karakeep/shared/types/feeds";
 
 import { AuthedContext } from "..";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 
-export class Feed {
-  constructor(
-    protected ctx: AuthedContext,
-    private feed: typeof rssFeedsTable.$inferSelect,
-  ) {}
+/**
+ * Privacy-safe Feed model using VerifiedResource pattern.
+ *
+ * Feeds are always owned by a single user (no sharing).
+ * All verified feeds have "owner" access level.
+ */
+export class Feed extends VerifiedResource<
+  typeof rssFeedsTable.$inferSelect,
+  AuthedContext
+> {
+  protected constructor(
+    ctx: AuthedContext,
+    feed: typeof rssFeedsTable.$inferSelect,
+  ) {
+    // Feeds are always owner-only (no collaboration)
+    super(ctx, feed, "owner");
+  }
+
+  protected get feed() {
+    return this.data;
+  }
+
+  get id() {
+    return this.feed.id;
+  }
 
   static async fromId(ctx: AuthedContext, id: string): Promise<Feed> {
     const feed = await ctx.db.query.rssFeedsTable.findFirst({
@@ -81,7 +102,11 @@ export class Feed {
     return feeds.map((f) => new Feed(ctx, f));
   }
 
-  async delete(): Promise<void> {
+  /**
+   * Delete this feed.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for feeds).
+   */
+  async delete(this: Feed & HasAccess<"owner">): Promise<void> {
     const res = await this.ctx.db
       .delete(rssFeedsTable)
       .where(
@@ -96,7 +121,14 @@ export class Feed {
     }
   }
 
-  async update(input: z.infer<typeof zUpdateFeedSchema>): Promise<void> {
+  /**
+   * Update this feed.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for feeds).
+   */
+  async update(
+    this: Feed & HasAccess<"owner">,
+    input: z.infer<typeof zUpdateFeedSchema>,
+  ): Promise<void> {
     const result = await this.ctx.db
       .update(rssFeedsTable)
       .set({
@@ -117,7 +149,8 @@ export class Feed {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    this.feed = result[0];
+    // Update internal state - use Object.assign to preserve readonly
+    Object.assign(this.data, result[0]);
   }
 
   asPublicFeed(): z.infer<typeof zFeedSchema> {

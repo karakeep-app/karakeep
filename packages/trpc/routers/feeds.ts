@@ -23,7 +23,7 @@ export const feedsAppRouter = router({
     .output(zFeedSchema)
     .mutation(async ({ input, ctx }) => {
       const feed = await Feed.fromId(ctx, input.feedId);
-      await feed.update(input);
+      await feed.requireOwner().update(input);
       return feed.asPublicFeed();
     }),
   get: authedProcedure
@@ -51,7 +51,7 @@ export const feedsAppRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const feed = await Feed.fromId(ctx, input.feedId);
-      await feed.delete();
+      await feed.requireOwner().delete();
     }),
   fetchNow: authedProcedure
     .input(z.object({ feedId: z.string() }))

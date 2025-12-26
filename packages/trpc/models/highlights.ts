@@ -11,13 +11,34 @@ import {
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import { AuthedContext } from "..";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 import { BareBookmark } from "./bookmarks";
 
-export class Highlight {
-  constructor(
-    protected ctx: AuthedContext,
-    private highlight: typeof highlights.$inferSelect,
-  ) {}
+/**
+ * Privacy-safe Highlight model using VerifiedResource pattern.
+ *
+ * Highlights are always owned by a single user (no sharing).
+ * All verified highlights have "owner" access level.
+ */
+export class Highlight extends VerifiedResource<
+  typeof highlights.$inferSelect,
+  AuthedContext
+> {
+  protected constructor(
+    ctx: AuthedContext,
+    highlight: typeof highlights.$inferSelect,
+  ) {
+    // Highlights are always owner-only (no collaboration)
+    super(ctx, highlight, "owner");
+  }
+
+  protected get highlight() {
+    return this.data;
+  }
+
+  get id() {
+    return this.highlight.id;
+  }
 
   static async fromId(ctx: AuthedContext, id: string): Promise<Highlight> {
     const highlight = await ctx.db.query.highlights.findFirst({
@@ -160,7 +181,13 @@ export class Highlight {
     };
   }
 
-  async delete(): Promise<z.infer<typeof zHighlightSchema>> {
+  /**
+   * Delete this highlight.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for highlights).
+   */
+  async delete(
+    this: Highlight & HasAccess<"owner">,
+  ): Promise<z.infer<typeof zHighlightSchema>> {
     const result = await this.ctx.db
       .delete(highlights)
       .where(
@@ -178,7 +205,14 @@ export class Highlight {
     return result[0];
   }
 
-  async update(input: z.infer<typeof zUpdateHighlightSchema>): Promise<void> {
+  /**
+   * Update this highlight.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for highlights).
+   */
+  async update(
+    this: Highlight & HasAccess<"owner">,
+    input: z.infer<typeof zUpdateHighlightSchema>,
+  ): Promise<void> {
     const result = await this.ctx.db
       .update(highlights)
       .set({
@@ -197,7 +231,8 @@ export class Highlight {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    this.highlight = result[0];
+    // Update internal state - use Object.assign to preserve readonly
+    Object.assign(this.data, result[0]);
   }
 
   asPublicHighlight(): z.infer<typeof zHighlightSchema> {

@@ -900,7 +900,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow("User is not allowed to edit this list");
+      ).rejects.toThrow("This action requires editor access");
     });
 
     test<CustomTestContext>("should allow editor to add bookmarks to list", async ({
@@ -978,7 +978,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           bookmarkId: bookmark.id,
         }),
-      ).rejects.toThrow("User is not allowed to edit this list");
+      ).rejects.toThrow("This action requires editor access");
     });
 
     test<CustomTestContext>("should allow editor to remove bookmarks from list", async ({
@@ -1126,7 +1126,7 @@ describe("Shared Lists", () => {
           listId: list.id,
           name: "Modified Name",
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
     });
 
     test<CustomTestContext>("should not allow collaborator to delete list", async ({
@@ -1153,7 +1153,7 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.delete({
           listId: list.id,
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
     });
 
     test<CustomTestContext>("should not allow collaborator to manage other collaborators", async ({
@@ -1185,7 +1185,7 @@ describe("Shared Lists", () => {
           email: thirdUserEmail,
           role: "viewer",
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
     });
 
     test<CustomTestContext>("should only allow collaborators to view collaborator list", async ({
@@ -1389,7 +1389,7 @@ describe("Shared Lists", () => {
           targetId: list2.id,
           deleteSourceAfterMerge: false,
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
     });
 
     test<CustomTestContext>("should not allow collaborator to access RSS token operations", async ({
@@ -1416,14 +1416,14 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.regenRssToken({
           listId: list.id,
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
 
       // Collaborator tries to get RSS token
       await expect(
         collaboratorApi.lists.getRssToken({
           listId: list.id,
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
 
       // Owner generates token first
       await ownerApi.lists.regenRssToken({
@@ -1435,7 +1435,7 @@ describe("Shared Lists", () => {
         collaboratorApi.lists.clearRssToken({
           listId: list.id,
         }),
-      ).rejects.toThrow("User is not allowed to manage this list");
+      ).rejects.toThrow("This action requires owner access");
     });
 
     test<CustomTestContext>("should not allow collaborator to access getListsOfBookmark for bookmark they don't own", async ({

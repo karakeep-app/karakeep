@@ -78,14 +78,14 @@ export const highlightsAppRouter = router({
     .output(zHighlightSchema)
     .mutation(async ({ input, ctx }) => {
       const highlight = await Highlight.fromId(ctx, input.highlightId);
-      return await highlight.delete();
+      return await highlight.requireOwner().delete();
     }),
   update: authedProcedure
     .input(zUpdateHighlightSchema)
     .output(zHighlightSchema)
     .mutation(async ({ input, ctx }) => {
       const highlight = await Highlight.fromId(ctx, input.highlightId);
-      await highlight.update(input);
+      await highlight.requireOwner().update(input);
       return highlight.asPublicHighlight();
     }),
 });

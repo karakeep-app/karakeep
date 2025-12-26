@@ -15,12 +15,30 @@ import {
 } from "@karakeep/shared/types/importSessions";
 
 import type { AuthedContext } from "../index";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 
-export class ImportSession {
-  protected constructor(
-    protected ctx: AuthedContext,
-    public session: ZImportSession,
-  ) {}
+/**
+ * Privacy-safe ImportSession model using VerifiedResource pattern.
+ *
+ * Import sessions are always owned by a single user (no sharing).
+ * All verified import sessions have "owner" access level.
+ */
+export class ImportSession extends VerifiedResource<
+  ZImportSession,
+  AuthedContext
+> {
+  protected constructor(ctx: AuthedContext, session: ZImportSession) {
+    // Import sessions are always owner-only (no collaboration)
+    super(ctx, session, "owner");
+  }
+
+  protected get session() {
+    return this.data;
+  }
+
+  get id() {
+    return this.session.id;
+  }
 
   static async fromId(
     ctx: AuthedContext,
@@ -161,7 +179,11 @@ export class ImportSession {
     };
   }
 
-  async delete(): Promise<void> {
+  /**
+   * Delete this import session.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for import sessions).
+   */
+  async delete(this: ImportSession & HasAccess<"owner">): Promise<void> {
     // Delete the session (cascade will handle the bookmarks)
     const result = await this.ctx.db
       .delete(importSessions)

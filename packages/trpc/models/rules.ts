@@ -17,6 +17,7 @@ import {
 } from "@karakeep/shared/types/rules";
 
 import { AuthedContext } from "..";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 
 function dummy_fetchRule(ctx: AuthedContext, id: string) {
   return DONT_USE_DB.query.ruleEngineRulesTable.findFirst({
@@ -32,11 +33,39 @@ function dummy_fetchRule(ctx: AuthedContext, id: string) {
 
 type FetchedRuleType = NonNullable<Awaited<ReturnType<typeof dummy_fetchRule>>>;
 
-export class RuleEngineRuleModel {
+/**
+ * Privacy-safe RuleEngineRuleModel using VerifiedResource pattern.
+ *
+ * Rules are always owned by a single user (no sharing).
+ * All verified rules have "owner" access level.
+ */
+export class RuleEngineRuleModel extends VerifiedResource<
+  RuleEngineRule & { userId: string },
+  AuthedContext
+> {
   protected constructor(
-    protected ctx: AuthedContext,
-    public rule: RuleEngineRule & { userId: string },
-  ) {}
+    ctx: AuthedContext,
+    rule: RuleEngineRule & { userId: string },
+  ) {
+    // Rules are always owner-only (no collaboration)
+    super(ctx, rule, "owner");
+  }
+
+  protected get rule() {
+    return this.data;
+  }
+
+  get id() {
+    return this.rule.id;
+  }
+
+  /**
+   * Public getter for the rule data.
+   * Use this to access the rule object outside the class.
+   */
+  public asRule(): RuleEngineRule & { userId: string } {
+    return this.rule;
+  }
 
   private static fromData(
     ctx: AuthedContext,
@@ -133,7 +162,12 @@ export class RuleEngineRuleModel {
     return await RuleEngineRuleModel.fromId(ctx, insertedRule.id);
   }
 
+  /**
+   * Update this rule.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for rules).
+   */
   async update(
+    this: RuleEngineRuleModel & HasAccess<"owner">,
     input: z.infer<typeof zUpdateRuleEngineRuleSchema>,
   ): Promise<void> {
     if (this.rule.id !== input.id) {
@@ -192,12 +226,19 @@ export class RuleEngineRuleModel {
       }
     });
 
-    this.rule = await RuleEngineRuleModel.fromId(this.ctx, this.rule.id).then(
-      (r) => r.rule,
+    // Update internal state - fetch fresh data
+    const updatedRule = await RuleEngineRuleModel.fromId(
+      this.ctx,
+      this.rule.id,
     );
+    Object.assign(this.data, updatedRule.rule);
   }
 
-  async delete(): Promise<void> {
+  /**
+   * Delete this rule.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for rules).
+   */
+  async delete(this: RuleEngineRuleModel & HasAccess<"owner">): Promise<void> {
     const result = await this.ctx.db
       .delete(ruleEngineRulesTable)
       .where(

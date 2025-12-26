@@ -130,7 +130,7 @@ export class BackupWorker {
                 job.data.userId,
               );
               const backup = await Backup.fromId(authCtx, job.data.backupId);
-              await backup.update({
+              await backup.requireOwner().update({
                 status: "failure",
                 errorMessage: job.error?.message || "Unknown error",
               });
@@ -249,7 +249,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
     });
 
     // Step 5: Update backup record
-    await backupInstance.update({
+    await backupInstance.requireOwner().update({
       size: compressedSize,
       bookmarkCount: bookmarkCount,
       status: "success",
@@ -265,7 +265,7 @@ async function run(req: DequeuedJob<ZBackupRequest>) {
   } catch (error) {
     if (backup) {
       try {
-        await backup.update({
+        await backup.requireOwner().update({
           status: "failure",
           errorMessage:
             error instanceof Error ? error.message : "Unknown error",
@@ -409,7 +409,7 @@ async function cleanupOldBackups(
     // Delete each backup using the model's delete method
     for (const backup of oldBackups) {
       try {
-        await backup.delete();
+        await backup.requireOwner().delete();
         logger.info(
           `[backup][${jobId}] Deleted backup ${backup.id} for user ${ctx.user.id}`,
         );

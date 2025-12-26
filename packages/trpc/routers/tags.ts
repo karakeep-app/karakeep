@@ -55,7 +55,7 @@ export const tagsAppRouter = router({
     )
     .use(ensureTagOwnership)
     .mutation(async ({ ctx }) => {
-      await ctx.tag.delete();
+      await ctx.tag.requireOwner().delete();
     }),
   deleteUnused: authedProcedure
     .output(
@@ -72,7 +72,7 @@ export const tagsAppRouter = router({
     .output(zTagBasicSchema)
     .use(ensureTagOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.tag.update(input);
+      await ctx.tag.requireOwner().update(input);
       return ctx.tag.asBasicTag();
     }),
   merge: authedProcedure

@@ -11,12 +11,33 @@ import {
 } from "@karakeep/shared/types/webhooks";
 
 import { AuthedContext } from "..";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 
-export class Webhook {
-  constructor(
-    protected ctx: AuthedContext,
-    public webhook: typeof webhooksTable.$inferSelect,
-  ) {}
+/**
+ * Privacy-safe Webhook model using VerifiedResource pattern.
+ *
+ * Webhooks are always owned by a single user (no sharing).
+ * All verified webhooks have "owner" access level.
+ */
+export class Webhook extends VerifiedResource<
+  typeof webhooksTable.$inferSelect,
+  AuthedContext
+> {
+  protected constructor(
+    ctx: AuthedContext,
+    webhook: typeof webhooksTable.$inferSelect,
+  ) {
+    // Webhooks are always owner-only (no collaboration)
+    super(ctx, webhook, "owner");
+  }
+
+  protected get webhook() {
+    return this.data;
+  }
+
+  get id() {
+    return this.webhook.id;
+  }
 
   static async fromId(ctx: AuthedContext, id: string): Promise<Webhook> {
     const webhook = await ctx.db.query.webhooksTable.findFirst({
@@ -80,7 +101,11 @@ export class Webhook {
     return webhooks.map((w) => new Webhook(ctx, w));
   }
 
-  async delete(): Promise<void> {
+  /**
+   * Delete this webhook.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for webhooks).
+   */
+  async delete(this: Webhook & HasAccess<"owner">): Promise<void> {
     const res = await this.ctx.db
       .delete(webhooksTable)
       .where(
@@ -95,7 +120,14 @@ export class Webhook {
     }
   }
 
-  async update(input: z.infer<typeof zUpdateWebhookSchema>): Promise<void> {
+  /**
+   * Update this webhook.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for webhooks).
+   */
+  async update(
+    this: Webhook & HasAccess<"owner">,
+    input: z.infer<typeof zUpdateWebhookSchema>,
+  ): Promise<void> {
     const result = await this.ctx.db
       .update(webhooksTable)
       .set({
@@ -115,7 +147,8 @@ export class Webhook {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    this.webhook = result[0];
+    // Update internal state - use Object.assign to preserve readonly
+    Object.assign(this.data, result[0]);
   }
 
   asPublicWebhook(): z.infer<typeof zWebhookSchema> {

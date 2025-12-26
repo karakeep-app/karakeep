@@ -26,12 +26,33 @@ import {
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
+import { HasAccess, VerifiedResource } from "../lib/privacy";
 
-export class Tag {
-  constructor(
-    protected ctx: AuthedContext,
-    public tag: typeof bookmarkTags.$inferSelect,
-  ) {}
+/**
+ * Privacy-safe Tag model using VerifiedResource pattern.
+ *
+ * Tags are always owned by a single user (no sharing).
+ * All verified tags have "owner" access level.
+ */
+export class Tag extends VerifiedResource<
+  typeof bookmarkTags.$inferSelect,
+  AuthedContext
+> {
+  protected constructor(
+    ctx: AuthedContext,
+    tag: typeof bookmarkTags.$inferSelect,
+  ) {
+    // Tags are always owner-only (no collaboration)
+    super(ctx, tag, "owner");
+  }
+
+  protected get tag() {
+    return this.data;
+  }
+
+  get id() {
+    return this.tag.id;
+  }
 
   static async fromId(ctx: AuthedContext, id: string): Promise<Tag> {
     const tag = await ctx.db.query.bookmarkTags.findFirst({
@@ -296,7 +317,11 @@ export class Tag {
     };
   }
 
-  async delete(): Promise<void> {
+  /**
+   * Delete this tag.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for tags).
+   */
+  async delete(this: Tag & HasAccess<"owner">): Promise<void> {
     const affectedBookmarks = await this.ctx.db
       .select({
         bookmarkId: tagsOnBookmarks.bookmarkId,
@@ -326,7 +351,14 @@ export class Tag {
     );
   }
 
-  async update(input: z.infer<typeof zUpdateTagRequestSchema>): Promise<void> {
+  /**
+   * Update this tag.
+   * TYPE CONSTRAINT: Requires owner access (always satisfied for tags).
+   */
+  async update(
+    this: Tag & HasAccess<"owner">,
+    input: z.infer<typeof zUpdateTagRequestSchema>,
+  ): Promise<void> {
     try {
       const result = await this.ctx.db
         .update(bookmarkTags)
@@ -345,7 +377,8 @@ export class Tag {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      this.tag = result[0];
+      // Update internal state - use Object.assign to preserve readonly
+      Object.assign(this.data, result[0]);
 
       try {
         const affectedBookmarks =

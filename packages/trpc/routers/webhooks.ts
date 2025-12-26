@@ -37,7 +37,7 @@ export const webhooksAppRouter = router({
     .output(zWebhookSchema)
     .use(ensureWebhookOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.webhook.update(input);
+      await ctx.webhook.requireOwner().update(input);
       return ctx.webhook.asPublicWebhook();
     }),
   list: authedProcedure
@@ -54,6 +54,6 @@ export const webhooksAppRouter = router({
     )
     .use(ensureWebhookOwnership)
     .mutation(async ({ ctx }) => {
-      await ctx.webhook.delete();
+      await ctx.webhook.requireOwner().delete();
     }),
 });

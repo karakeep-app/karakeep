@@ -55,6 +55,7 @@ import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
+import { AccessLevel, HasAccess, VerifiedResource } from "../lib/privacy";
 import { List } from "./lists";
 
 async function dummyDrizzleReturnType() {
@@ -81,11 +82,30 @@ type BookmarkQueryReturnType = Awaited<
   ReturnType<typeof dummyDrizzleReturnType>
 >;
 
-export class BareBookmark {
+/**
+ * Privacy-safe BareBookmark model using VerifiedResource pattern.
+ *
+ * ACCESS LEVELS:
+ * - owner:  Owns the bookmark (can delete, modify)
+ * - viewer: Can view the bookmark (via shared lists)
+ *
+ * BareBookmarks represent minimal bookmark data with access verification.
+ */
+export class BareBookmark extends VerifiedResource<
+  ZBareBookmark,
+  AuthedContext
+> {
   protected constructor(
-    protected ctx: AuthedContext,
-    private bareBookmark: ZBareBookmark,
-  ) {}
+    ctx: AuthedContext,
+    bareBookmark: ZBareBookmark,
+    accessLevel: AccessLevel,
+  ) {
+    super(ctx, bareBookmark, accessLevel);
+  }
+
+  protected get bareBookmark() {
+    return this.data;
+  }
 
   get id() {
     return this.bareBookmark.id;
@@ -107,29 +127,41 @@ export class BareBookmark {
       });
     }
 
-    if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
+    const accessLevel = await BareBookmark.determineAccessLevel(ctx, bookmark);
+    if (!accessLevel) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Bookmark not found",
       });
     }
 
-    return new BareBookmark(ctx, bookmark);
+    return new BareBookmark(ctx, bookmark, accessLevel);
   }
 
-  protected static async isAllowedToAccessBookmark(
+  /**
+   * Determine the access level for a bookmark.
+   * Returns "owner" if the user owns the bookmark.
+   * Returns "viewer" if the user can view it through shared lists.
+   * Returns null if no access.
+   */
+  protected static async determineAccessLevel(
     ctx: AuthedContext,
     { id: bookmarkId, userId: bookmarkOwnerId }: { id: string; userId: string },
-  ): Promise<boolean> {
+  ): Promise<AccessLevel | null> {
     if (bookmarkOwnerId == ctx.user.id) {
-      return true;
+      return "owner";
     }
     const bookmarkLists = await List.forBookmark(ctx, bookmarkId);
-    return bookmarkLists.some((l) => l.canUserView());
+    const canView = bookmarkLists.some((l) => l.canUserView());
+    return canView ? "viewer" : null;
   }
 
+  /**
+   * Legacy method for compatibility.
+   * Use isOwner() type guard instead for new code.
+   */
   ensureOwnership() {
-    if (this.bareBookmark.userId != this.ctx.user.id) {
+    if (!this.isOwner()) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User is not allowed to access resource",
@@ -141,9 +173,14 @@ export class BareBookmark {
 export class Bookmark extends BareBookmark {
   protected constructor(
     ctx: AuthedContext,
-    private bookmark: ZBookmark,
+    bookmark: ZBookmark,
+    accessLevel: AccessLevel,
   ) {
-    super(ctx, bookmark);
+    super(ctx, bookmark, accessLevel);
+  }
+
+  protected get bookmark() {
+    return this.data as ZBookmark;
   }
 
   private static async toZodSchema(
@@ -253,7 +290,8 @@ export class Bookmark extends BareBookmark {
       });
     }
 
-    if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
+    const accessLevel = await BareBookmark.determineAccessLevel(ctx, bookmark);
+    if (!accessLevel) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Bookmark not found",
@@ -262,11 +300,16 @@ export class Bookmark extends BareBookmark {
     return Bookmark.fromData(
       ctx,
       await Bookmark.toZodSchema(bookmark, includeContent),
+      accessLevel,
     );
   }
 
-  static fromData(ctx: AuthedContext, data: ZBookmark) {
-    return new Bookmark(ctx, data);
+  static fromData(
+    ctx: AuthedContext,
+    data: ZBookmark,
+    accessLevel: AccessLevel,
+  ) {
+    return new Bookmark(ctx, data, accessLevel);
   }
 
   static async loadMulti(
@@ -613,7 +656,12 @@ export class Bookmark extends BareBookmark {
     }
 
     return {
-      bookmarks: bookmarksArr.map((b) => Bookmark.fromData(ctx, b)),
+      bookmarks: bookmarksArr.map((b) => {
+        // Determine access level: owner if user owns bookmark, viewer otherwise
+        const accessLevel: AccessLevel =
+          b.userId === ctx.user.id ? "owner" : "viewer";
+        return Bookmark.fromData(ctx, b, accessLevel);
+      }),
       nextCursor,
     };
   }
@@ -793,8 +841,11 @@ export class Bookmark extends BareBookmark {
     );
   }
 
-  async delete() {
-    this.ensureOwnership();
+  /**
+   * Delete this bookmark.
+   * TYPE CONSTRAINT: Requires owner access.
+   */
+  async delete(this: Bookmark & HasAccess<"owner">): Promise<void> {
     const deleted = await this.ctx.db
       .delete(bookmarks)
       .where(

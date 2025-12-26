@@ -548,7 +548,7 @@ export const bookmarksAppRouter = router({
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       const bookmark = await Bookmark.fromId(ctx, input.bookmarkId, false);
-      await bookmark.delete();
+      await bookmark.requireOwner().delete();
     }),
   recrawlBookmark: authedProcedure
     .use(

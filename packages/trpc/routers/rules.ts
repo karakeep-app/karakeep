@@ -89,7 +89,7 @@ export const rulesAppRouter = router({
     .use(ensureTagListOwnership)
     .mutation(async ({ input, ctx }) => {
       const newRule = await RuleEngineRuleModel.create(ctx, input);
-      return newRule.rule;
+      return newRule.asRule();
     }),
   update: authedProcedure
     .input(zUpdateRuleEngineRuleSchema)
@@ -97,14 +97,14 @@ export const rulesAppRouter = router({
     .use(ensureRuleOwnership)
     .use(ensureTagListOwnership)
     .mutation(async ({ ctx, input }) => {
-      await ctx.rule.update(input);
-      return ctx.rule.rule;
+      await ctx.rule.requireOwner().update(input);
+      return ctx.rule.asRule();
     }),
   delete: authedProcedure
     .input(z.object({ id: z.string() }))
     .use(ensureRuleOwnership)
     .mutation(async ({ ctx }) => {
-      await ctx.rule.delete();
+      await ctx.rule.requireOwner().delete();
     }),
   list: authedProcedure
     .output(
@@ -114,7 +114,7 @@ export const rulesAppRouter = router({
     )
     .query(async ({ ctx }) => {
       return {
-        rules: (await RuleEngineRuleModel.getAll(ctx)).map((r) => r.rule),
+        rules: (await RuleEngineRuleModel.getAll(ctx)).map((r) => r.asRule()),
       };
     }),
 });
