@@ -427,6 +427,7 @@ async function crawlPage(
   jobId: string,
   url: string,
   userId: string,
+  forceStorePdf: boolean,
   abortSignal: AbortSignal,
 ): Promise<{
   htmlContent: string;
@@ -610,9 +611,9 @@ async function crawlPage(
       }
     }
 
-    // Capture PDF if configured
+    // Capture PDF if configured or explicitly requested
     let pdf: Buffer | undefined = undefined;
-    if (serverConfig.crawler.storePdf) {
+    if (serverConfig.crawler.storePdf || forceStorePdf) {
       const { data: pdfData, error: pdfError } = await tryCatch(
         Promise.race<Buffer>([
           page.pdf({
@@ -1166,6 +1167,7 @@ async function crawlAndParseUrl(
   oldContentAssetId: string | undefined,
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
+  forceStorePdf: boolean,
   abortSignal: AbortSignal,
 ) {
   let result: {
@@ -1192,7 +1194,7 @@ async function crawlAndParseUrl(
       url,
     };
   } else {
-    result = await crawlPage(jobId, url, userId, abortSignal);
+    result = await crawlPage(jobId, url, userId, forceStorePdf, abortSignal);
   }
   abortSignal.throwIfAborted();
 
@@ -1461,7 +1463,7 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage } = request.data;
+  const { bookmarkId, archiveFullPage, storePdf } = request.data;
   const {
     url,
     userId,
@@ -1520,6 +1522,7 @@ async function runCrawler(
       oldContentAssetId,
       precrawledArchiveAssetId,
       archiveFullPage,
+      storePdf ?? false,
       job.abortSignal,
     );
 

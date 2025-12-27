@@ -71,7 +71,9 @@
     "toggle_show_archived": "Show Archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
-    "download_full_page_archive": "Download Full Page Archive",
+    "offline_preservation": "Offline Preservation",
+    "download_full_page_archive": "Full Page Archive",
+    "preserve_as_pdf": "Preserve as PDF",
     "edit_tags": "Edit Tags",
     "edit_notes": "Edit Notes",
     "add_to_list": "Add to List",
@@ -803,6 +805,7 @@
       "deleted": "The bookmark has been deleted!",
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
+      "preserve_pdf": "PDF preservation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!"
     },

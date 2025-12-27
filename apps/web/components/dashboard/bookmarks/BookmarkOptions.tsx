@@ -6,13 +6,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import {
+  Archive,
   FileDown,
+  FileText,
   Link,
   List,
   ListX,
@@ -110,6 +115,15 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     onError,
   });
 
+  const preservePdfMutator = useRecrawlBookmark({
+    onSuccess: () => {
+      toast({
+        description: t("toasts.bookmarks.preserve_pdf"),
+      });
+    },
+    onError,
+  });
+
   const removeFromListMutator = useRemoveBookmarkFromList({
     onSuccess: () => {
       toast({
@@ -172,19 +186,6 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           bookmarkId: linkId,
           archived: !bookmark.archived,
         }),
-    },
-    {
-      id: "download-full-page",
-      title: t("actions.download_full_page_archive"),
-      icon: <FileDown className="mr-2 size-4" />,
-      visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
-      disabled: false,
-      onClick: () => {
-        fullPageArchiveBookmarkMutator.mutate({
-          bookmarkId: bookmark.id,
-          archiveFullPage: true,
-        });
-      },
     },
     {
       id: "copy-link",
@@ -294,6 +295,38 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
               <span>{item.title}</span>
             </DropdownMenuItem>
           ))}
+          {isOwner && bookmark.content.type === BookmarkTypes.LINK && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Archive className="mr-2 size-4" />
+                <span>{t("actions.offline_preservation")}</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem
+                  onClick={() => {
+                    fullPageArchiveBookmarkMutator.mutate({
+                      bookmarkId: bookmark.id,
+                      archiveFullPage: true,
+                    });
+                  }}
+                >
+                  <FileDown className="mr-2 size-4" />
+                  <span>{t("actions.download_full_page_archive")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    preservePdfMutator.mutate({
+                      bookmarkId: bookmark.id,
+                      storePdf: true,
+                    });
+                  }}
+                >
+                  <FileText className="mr-2 size-4" />
+                  <span>{t("actions.preserve_as_pdf")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

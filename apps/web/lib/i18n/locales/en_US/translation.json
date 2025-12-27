@@ -63,7 +63,9 @@
     "delete": "Delete",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
-    "download_full_page_archive": "Download Full Page Archive",
+    "offline_preservation": "Offline Preservation",
+    "download_full_page_archive": "Full Page Archive",
+    "preserve_as_pdf": "Preserve as PDF",
     "edit_tags": "Edit Tags",
     "add_to_list": "Add to List",
     "select_all": "Select All",
@@ -782,6 +784,7 @@
       "deleted": "The bookmark has been deleted!",
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
+      "preserve_pdf": "PDF preservation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!",
       "updated": "The bookmark has been updated!"
