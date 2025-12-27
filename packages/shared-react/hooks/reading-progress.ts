@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 import {
@@ -36,24 +36,60 @@ export interface UseReadingProgressOptions {
    * Whether the feature is enabled (defaults to true)
    */
   enabled?: boolean;
+  /**
+   * Signal that content is ready for restoration.
+   * When true, the hook will attempt to restore the reading position.
+   */
+  contentReady?: boolean;
+}
+
+export interface UseReadingProgressResult {
+  /**
+   * Whether the content is ready to be shown.
+   * True when either: no restoration needed, or restoration is complete.
+   * Use this to hide content until scroll position is restored to avoid flicker.
+   */
+  isReady: boolean;
 }
 
 /**
  * Hook for automatically tracking and syncing reading progress for a bookmark.
  * Handles scroll tracking, position restoration, and auto-save on visibility
  * change, beforeunload, and unmount.
+ *
+ * @returns Object with `isReady` boolean - use to hide content until restoration completes
  */
-export function useReadingProgress(options: UseReadingProgressOptions): void {
+export function useReadingProgress(
+  options: UseReadingProgressOptions,
+): UseReadingProgressResult {
   const {
     bookmarkId,
     initialOffset,
     initialAnchor,
     containerRef,
     enabled = true,
+    contentReady = false,
   } = options;
 
   const lastSavedOffset = useRef<number | null>(initialOffset ?? null);
   const apiUtils = api.useUtils();
+
+  // Track whether restoration is complete (or not needed)
+  // Ready immediately if: disabled, or no initialOffset to restore
+  const needsRestoration = enabled && !!initialOffset;
+  const [isReady, setIsReady] = useState(!needsRestoration);
+
+  // Update isReady when needsRestoration changes
+  // - If restoration not needed: immediately ready
+  // - If restoration needed: wait for restoration to complete
+  useEffect(() => {
+    if (!needsRestoration) {
+      setIsReady(true);
+    } else {
+      // Reset when we need restoration again (e.g., switching back to cached section)
+      setIsReady(false);
+    }
+  }, [needsRestoration]);
 
   const { mutate: updateProgress } =
     api.bookmarks.updateReadingProgress.useMutation({
@@ -92,10 +128,9 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
       : null,
   );
 
-  // Effect 1: Scroll tracking
+  // Scroll tracking
   const scrollParentRef = useRef<HTMLElement | Window | null>(null);
   const lastScrollTimeRef = useRef<number>(0);
-
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
 
@@ -142,9 +177,8 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
     };
   }, [enabled, containerRef]);
 
-  // Effect 2: Auto-save on visibility change and beforeunload
+  // Auto-save on visibility change and beforeunload
   const autoSaveAttachedRef = useRef(false);
-
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
 
@@ -198,21 +232,15 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
     };
   }, [enabled, containerRef]);
 
-  // Effect 3: Restore position on mount with exponential backoff
+  // Restore position when content is ready
   useEffect(() => {
-    if (!enabled || !initialOffset) return;
-
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let attempts = 0;
-    const maxAttempts = 5;
-    const delays = [0, 50, 100, 200, 400];
+    if (!enabled || !initialOffset || !contentReady) return;
 
     const tryRestore = () => {
       const container = containerRef.current;
+      if (!container || !isElementVisible(container)) return false;
 
-      if (container && !isElementVisible(container)) return;
-
-      const scrollParent = container ? findScrollableParent(container) : null;
+      const scrollParent = findScrollableParent(container);
       const isWindowScroll = scrollParent === document.documentElement;
       const isLayoutReady =
         scrollParent &&
@@ -220,27 +248,45 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
           ? document.body.scrollHeight > window.innerHeight
           : scrollParent.scrollHeight > scrollParent.clientHeight);
 
-      if (container && isLayoutReady) {
+      if (isLayoutReady) {
         scrollToReadingPosition(
           container,
           initialOffset,
           "instant",
           initialAnchor,
         );
-        return;
+        return true;
       }
-
-      attempts++;
-      if (attempts < maxAttempts) {
-        timeoutId = setTimeout(tryRestore, delays[attempts]);
-      }
+      return false;
     };
 
-    timeoutId = setTimeout(tryRestore, delays[0]);
+    // Try immediately
+    if (tryRestore()) {
+      setIsReady(true);
+      return;
+    }
+
+    // If layout not ready, try once more after paint
+    const rafId = requestAnimationFrame(() => {
+      tryRestore();
+      // Mark ready regardless of success to avoid permanent hidden state
+      setIsReady(true);
+    });
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      cancelAnimationFrame(rafId);
+      // Always mark ready on cleanup to prevent stuck hidden state
+      // This handles cases where effect re-runs before RAF fires
+      setIsReady(true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, initialOffset, bookmarkId]);
+  }, [
+    enabled,
+    initialOffset,
+    contentReady,
+    bookmarkId,
+    initialAnchor,
+    containerRef,
+  ]);
+
+  return { isReady };
 }

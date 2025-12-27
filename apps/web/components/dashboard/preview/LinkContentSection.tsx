@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -125,6 +125,18 @@ export default function LinkContentSection({
   const { data: session } = useSession();
   const isOwner = session?.user?.id === bookmark.userId;
 
+  // Track when content is ready for reading progress restoration
+  const [contentReady, setContentReady] = useState(false);
+  const prevSectionRef = useRef(section);
+
+  // Reset contentReady when section changes (but not on initial mount)
+  useEffect(() => {
+    if (prevSectionRef.current !== section) {
+      prevSectionRef.current = section;
+      setContentReady(false);
+    }
+  }, [section]);
+
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");
   }
@@ -134,12 +146,13 @@ export default function LinkContentSection({
   const initialAnchor = bookmark.content.readingProgressAnchor;
 
   // Auto-save reading progress on visibility change/section change
-  useReadingProgress({
+  const { isReady: isReadingPositionReady } = useReadingProgress({
     bookmarkId: bookmark.id,
     initialOffset,
     initialAnchor,
     containerRef: contentRef,
     enabled: section === "cached", // Only track in cached/reader view
+    contentReady,
   });
 
   let content;
@@ -163,9 +176,12 @@ export default function LinkContentSection({
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
             fontSize: `${settings.fontSize}px`,
             lineHeight: settings.lineHeight,
+            // Hide content until reading position is restored to prevent flicker
+            visibility: isReadingPositionReady ? "visible" : "hidden",
           }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
+          onContentReady={() => setContentReady(true)}
         />
       </ScrollArea>
     );

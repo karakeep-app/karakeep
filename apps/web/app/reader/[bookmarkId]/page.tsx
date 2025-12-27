@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useCallback, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
 import ReaderSettingsPopover from "@/components/dashboard/preview/ReaderSettingsPopover";
@@ -35,6 +35,10 @@ export default function ReaderViewPage() {
   const [showHighlights, setShowHighlights] = useState(false);
   const isOwner = session?.user?.id === bookmark?.userId;
 
+  // Track when content is ready for reading progress restoration
+  const [contentReady, setContentReady] = useState(false);
+  const handleContentReady = useCallback(() => setContentReady(true), []);
+
   // Get initial reading progress from bookmark content
   const initialOffset =
     bookmark?.content.type === BookmarkTypes.LINK
@@ -46,11 +50,12 @@ export default function ReaderViewPage() {
       : null;
 
   // Auto-save reading progress on page unload/visibility change
-  useReadingProgress({
+  const { isReady: isReadingPositionReady } = useReadingProgress({
     bookmarkId,
     initialOffset,
     initialAnchor,
     containerRef: contentRef,
+    contentReady,
   });
 
   const onClose = () => {
@@ -148,9 +153,14 @@ export default function ReaderViewPage() {
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,
                         lineHeight: settings.lineHeight,
+                        // Hide content until reading position is restored to prevent flicker
+                        visibility: isReadingPositionReady
+                          ? "visible"
+                          : "hidden",
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}
+                      onContentReady={handleContentReady}
                     />
                   </div>
                 </Suspense>

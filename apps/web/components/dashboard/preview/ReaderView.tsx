@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
@@ -17,10 +17,14 @@ interface ReaderViewProps {
   className?: string;
   style?: React.CSSProperties;
   readOnly: boolean;
+  onContentReady?: () => void;
 }
 
 const ReaderView = forwardRef<HTMLDivElement, ReaderViewProps>(
-  function ReaderView({ bookmarkId, className, style, readOnly }, ref) {
+  function ReaderView(
+    { bookmarkId, className, style, readOnly, onContentReady },
+    ref,
+  ) {
     const { data: highlights } = api.highlights.getForBookmark.useQuery({
       bookmarkId,
     });
@@ -37,6 +41,13 @@ const ReaderView = forwardRef<HTMLDivElement, ReaderViewProps>(
               : null,
         },
       );
+
+    // Signal to parent when content is ready for reading progress restoration
+    useEffect(() => {
+      if (!isCachedContentLoading && cachedContent && onContentReady) {
+        onContentReady();
+      }
+    }, [isCachedContentLoading, cachedContent, onContentReady]);
 
     const { mutate: createHighlight } = useCreateHighlight({
       onSuccess: () => {
