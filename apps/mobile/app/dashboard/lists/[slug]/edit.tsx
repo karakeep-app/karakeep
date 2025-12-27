@@ -15,12 +15,29 @@ const EditListPage = () => {
   const { listId } = useLocalSearchParams<{ listId?: string | string[] }>();
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
+  // TODO: Toast currently not working on iOS either here or on new list
+  // Toast is covered by active modal -- needs to be fixed here and in /lists/new.tsx
+  const { toast } = useToast();
   const { mutate, isPending } = useEditBookmarkList({
     onSuccess: () => {
       dismiss();
     },
+    onError: (error) => {
+      // Extract error message from the error object
+      let errorMessage = "Something went wrong";
+      if (error.data?.zodError) {
+        errorMessage = Object.values(error.data.zodError.fieldErrors)
+          .flat()
+          .join("\n");
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast({
+        message: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
-  const { toast } = useToast();
 
   if (typeof listId !== "string") {
     throw new Error("Unexpected param type");
@@ -39,8 +56,6 @@ const EditListPage = () => {
   }, [list?.id, list?.query, list?.name]);
 
   const onSubmit = () => {
-    // TODO: This is currently not working on edit or on new list
-    // Toast is covered by active modal -- needs to be fixed here and in /lists/new.tsx
     if (list?.type === "smart" && !query.trim()) {
       toast({
         message: "Smart lists must have a search query",
@@ -50,7 +65,7 @@ const EditListPage = () => {
     }
 
     mutate({
-      listId: listId as string,
+      listId: listId,
       name: text,
       query: list?.type === "smart" ? query : undefined,
     });
