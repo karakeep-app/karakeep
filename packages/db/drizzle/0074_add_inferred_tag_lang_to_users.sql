@@ -1,1 +1,0 @@
-ALTER TABLE `user` ADD `inferredTagLang` text DEFAULT 'english';

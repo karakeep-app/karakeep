@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6e321732-d72a-4ca2-973e-f1a849d18a15",
+  "id": "e128fabb-bd3b-42a6-a4aa-335f10d43cba",
   "prevId": "83311234-d840-43f7-9e09-a19a401c3ee8",
   "tables": {
     "account": {
@@ -2866,6 +2866,13 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'as-generated'"
+        },
+        "inferredTagLang": {
+          "name": "inferredTagLang",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {

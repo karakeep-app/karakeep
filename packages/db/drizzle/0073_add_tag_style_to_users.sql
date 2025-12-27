@@ -1,1 +1,0 @@
-ALTER TABLE `user` ADD `tagStyle` text DEFAULT 'as-generated';
