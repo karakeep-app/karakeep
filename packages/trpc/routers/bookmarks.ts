@@ -43,6 +43,7 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
+import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-core";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
@@ -588,7 +589,7 @@ export const bookmarksAppRouter = router({
       z.object({
         bookmarkId: z.string(),
         readingProgressOffset: z.number().int().nonnegative(),
-        readingProgressAnchor: z.string().max(100).nullish(),
+        readingProgressAnchor: z.string().max(ANCHOR_TEXT_MAX_LENGTH).nullish(),
       }),
     )
     .use(ensureBookmarkOwnership)

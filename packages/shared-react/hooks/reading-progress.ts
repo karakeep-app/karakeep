@@ -20,7 +20,7 @@ const restorationClaimed = new Map<string, number>();
 
 /**
  * Try to claim restoration for a bookmark. Returns true if we got the claim.
- * Claims expire after 5 seconds to handle edge cases (reduced from 10s for faster re-open).
+ * Claims expire after 5 seconds to handle edge cases.
  */
 function claimRestoration(bookmarkId: string): boolean {
   const existing = restorationClaimed.get(bookmarkId);

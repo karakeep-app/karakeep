@@ -28,6 +28,12 @@ export const PARAGRAPH_SELECTORS = [
 export const PARAGRAPH_SELECTOR_STRING = PARAGRAPH_SELECTORS.join(", ");
 
 /**
+ * Maximum length of anchor text extracted from paragraphs.
+ * Used for position verification when restoring reading progress.
+ */
+export const ANCHOR_TEXT_MAX_LENGTH = 50;
+
+/**
  * Normalizes text by collapsing all whitespace to single spaces and trimming.
  * This ensures consistent character counting regardless of HTML formatting.
  */
@@ -47,16 +53,16 @@ export function normalizeTextLength(text: string): number {
 
 /**
  * Extracts anchor text from a paragraph for position verification.
- * Returns the first ~50 characters of normalized text.
+ * Returns the first ANCHOR_TEXT_MAX_LENGTH characters of normalized text.
  */
 export function extractAnchorText(element: Element): string {
   const text = element.textContent ?? "";
-  return normalizeText(text).slice(0, 50);
+  return normalizeText(text).slice(0, ANCHOR_TEXT_MAX_LENGTH);
 }
 
 /**
  * Finds a paragraph by matching its anchor text.
- * Returns the first paragraph whose normalized text starts with the anchor.
+ * Tries exact match first, then falls back to fuzzy matching on first 20 chars.
  */
 export function findParagraphByAnchor(
   container: HTMLElement,
