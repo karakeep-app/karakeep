@@ -51,7 +51,6 @@ export default function ReaderViewPage() {
     initialOffset,
     initialAnchor,
     containerRef: contentRef,
-    enabled: isOwner, // Only track progress for bookmark owner
   });
 
   const onClose = () => {

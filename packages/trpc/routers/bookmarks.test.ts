@@ -1089,5 +1089,151 @@ describe("Bookmark Routes", () => {
         api.getBookmark({ bookmarkId: bookmark.id }),
       ).rejects.toThrow(/Bookmark not found/);
     });
+
+    test<CustomTestContext>("collaborator can save reading progress on shared bookmark", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      // Owner creates a link bookmark
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        url: "https://example.com/shared-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Owner creates a list and adds the bookmark
+      const list = await ownerApi.lists.create({
+        name: "Shared Reading List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Share the list with collaborator
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorUser.email!,
+        role: "viewer",
+      });
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+
+      // Collaborator saves their own reading progress on the shared bookmark
+      await collaboratorApi.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 2500,
+        readingProgressAnchor: "Collaborator's position",
+      });
+
+      // Collaborator retrieves the bookmark and sees their progress
+      const collaboratorView = await collaboratorApi.bookmarks.getBookmark({
+        bookmarkId: bookmark.id,
+      });
+      assert(collaboratorView.content.type === BookmarkTypes.LINK);
+      expect(collaboratorView.content.readingProgressOffset).toBe(2500);
+      expect(collaboratorView.content.readingProgressAnchor).toBe(
+        "Collaborator's position",
+      );
+
+      // Owner's progress should be independent (null since owner hasn't set any)
+      const ownerView = await ownerApi.bookmarks.getBookmark({
+        bookmarkId: bookmark.id,
+      });
+      assert(ownerView.content.type === BookmarkTypes.LINK);
+      expect(ownerView.content.readingProgressOffset).toBeNull();
+    });
+
+    test<CustomTestContext>("user without shared access cannot save reading progress", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const unauthorizedApi = apiCallers[1];
+
+      // Owner creates a bookmark (not shared with anyone)
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        url: "https://example.com/private-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Unauthorized user tries to save reading progress
+      await expect(() =>
+        unauthorizedApi.bookmarks.updateReadingProgress({
+          bookmarkId: bookmark.id,
+          readingProgressOffset: 1000,
+        }),
+      ).rejects.toThrow(/Bookmark not found/);
+    });
+
+    test<CustomTestContext>("owner and collaborator have independent reading progress on same bookmark", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      // Owner creates a link bookmark
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        url: "https://example.com/shared-reading",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Owner creates a list and adds the bookmark
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Share with collaborator
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorUser.email!,
+        role: "viewer",
+      });
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+
+      // Owner saves progress at position 1000
+      await ownerApi.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 1000,
+        readingProgressAnchor: "Owner position",
+      });
+
+      // Collaborator saves progress at position 5000
+      await collaboratorApi.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 5000,
+        readingProgressAnchor: "Collaborator position",
+      });
+
+      // Verify each user sees their own progress
+      const ownerView = await ownerApi.bookmarks.getBookmark({
+        bookmarkId: bookmark.id,
+      });
+      const collaboratorView = await collaboratorApi.bookmarks.getBookmark({
+        bookmarkId: bookmark.id,
+      });
+
+      assert(ownerView.content.type === BookmarkTypes.LINK);
+      assert(collaboratorView.content.type === BookmarkTypes.LINK);
+
+      expect(ownerView.content.readingProgressOffset).toBe(1000);
+      expect(ownerView.content.readingProgressAnchor).toBe("Owner position");
+
+      expect(collaboratorView.content.readingProgressOffset).toBe(5000);
+      expect(collaboratorView.content.readingProgressAnchor).toBe(
+        "Collaborator position",
+      );
+    });
   });
 });
