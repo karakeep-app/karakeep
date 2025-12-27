@@ -1,7 +1,7 @@
-import * as undici from "undici";
 import { Ollama } from "ollama";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
+import * as undici from "undici";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
