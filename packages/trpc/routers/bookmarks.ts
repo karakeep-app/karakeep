@@ -20,6 +20,7 @@ import {
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
+  triggerEmbeddingsGeneration,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
   triggerWebhook,
@@ -306,6 +307,8 @@ export const bookmarksAppRouter = router({
             },
             enqueueOpts,
           );
+          // Generate embeddings for similarity search
+          await triggerEmbeddingsGeneration(bookmark.id, enqueueOpts);
           break;
         }
         case BookmarkTypes.ASSET: {

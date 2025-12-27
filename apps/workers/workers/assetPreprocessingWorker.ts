@@ -18,6 +18,7 @@ import {
   OpenAIQueue,
   QuotaService,
   StorageQuotaError,
+  triggerEmbeddingsGeneration,
   triggerSearchReindex,
 } from "@karakeep/shared-server";
 import { newAssetId, readAsset, saveAsset } from "@karakeep/shared/assetdb";
@@ -378,6 +379,8 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       },
       enqueueOpts,
     );
+    // Generate embeddings for similarity search
+    await triggerEmbeddingsGeneration(bookmarkId, enqueueOpts);
 
     // Update the search index
     await triggerSearchReindex(bookmarkId, enqueueOpts);

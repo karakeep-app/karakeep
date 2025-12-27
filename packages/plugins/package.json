@@ -8,7 +8,8 @@
     "./queue-liteque": "./queue-liteque/index.ts",
     "./queue-restate": "./queue-restate/index.ts",
     "./ratelimit-memory": "./ratelimit-memory/index.ts",
-    "./search-meilisearch": "./search-meilisearch/index.ts"
+    "./search-meilisearch": "./search-meilisearch/index.ts",
+    "./vectorstore-meilisearch": "./vectorstore-meilisearch/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

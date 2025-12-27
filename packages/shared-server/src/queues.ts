@@ -250,3 +250,68 @@ export const BackupQueue = QUEUE_CLIENT.createQueue<ZBackupRequest>(
     keepFailedJobs: false,
   },
 );
+
+// Embeddings Generation Worker
+export const zEmbeddingsRequestSchema = z.object({
+  bookmarkId: z.string(),
+});
+export type ZEmbeddingsRequest = z.infer<typeof zEmbeddingsRequestSchema>;
+export const EmbeddingsQueue = QUEUE_CLIENT.createQueue<ZEmbeddingsRequest>(
+  "embeddings_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 3,
+    },
+    keepFailedJobs: false,
+  },
+);
+
+export async function triggerEmbeddingsGeneration(
+  bookmarkId: string,
+  opts?: Omit<EnqueueOptions, "idempotencyKey">,
+) {
+  await EmbeddingsQueue.enqueue(
+    {
+      bookmarkId,
+    },
+    {
+      ...opts,
+      idempotencyKey: `embeddings:${bookmarkId}`,
+    },
+  );
+}
+
+// Embeddings Indexing Worker
+export const zEmbeddingsIndexingRequestSchema = z.object({
+  bookmarkId: z.string(),
+  type: z.enum(["index", "delete"]),
+});
+export type ZEmbeddingsIndexingRequest = z.infer<
+  typeof zEmbeddingsIndexingRequestSchema
+>;
+export const EmbeddingsIndexingQueue =
+  QUEUE_CLIENT.createQueue<ZEmbeddingsIndexingRequest>(
+    "embeddings_indexing_queue",
+    {
+      defaultJobArgs: {
+        numRetries: 5,
+      },
+      keepFailedJobs: false,
+    },
+  );
+
+export async function triggerEmbeddingsIndexing(
+  bookmarkId: string,
+  opts?: Omit<EnqueueOptions, "idempotencyKey">,
+) {
+  await EmbeddingsIndexingQueue.enqueue(
+    {
+      bookmarkId,
+      type: "index",
+    },
+    {
+      ...opts,
+      idempotencyKey: `embeddings-index:${bookmarkId}`,
+    },
+  );
+}

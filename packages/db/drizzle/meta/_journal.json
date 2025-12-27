@@ -519,6 +519,13 @@
       "when": 1766843938658,
       "tag": "0073_ai_tag_style",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1766851618940,
+      "tag": "0074_add_embeddings_support",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { relations, sql, SQL } from "drizzle-orm";
 import {
   AnySQLiteColumn,
+  blob,
   foreignKey,
   index,
   integer,
@@ -198,6 +199,9 @@ export const bookmarks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     summarizationStatus: text("summarizationStatus", {
+      enum: ["pending", "failure", "success"],
+    }).default("pending"),
+    embeddingStatus: text("embeddingStatus", {
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     summary: text("summary"),
@@ -679,6 +683,35 @@ export const backupsTable = sqliteTable(
   ],
 );
 
+// Embeddings storage for bookmark vector embeddings
+export const bookmarkEmbeddings = sqliteTable(
+  "bookmarkEmbeddings",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" })
+      .unique(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // Store embedding as a blob (serialized Float32Array)
+    embedding: blob("embedding", { mode: "buffer" }).notNull(),
+    // The model used to generate the embedding
+    embeddingModel: text("embeddingModel").notNull(),
+    // Dimension of the embedding vector
+    vectorDimension: integer("vectorDimension").notNull(),
+    createdAt: createdAtField(),
+  },
+  (be) => [
+    index("bookmarkEmbeddings_bookmarkId_idx").on(be.bookmarkId),
+    index("bookmarkEmbeddings_userId_idx").on(be.userId),
+  ],
+);
+
 export const config = sqliteTable("config", {
   key: text("key").notNull().primaryKey(),
   value: text("value").notNull(),
@@ -891,6 +924,10 @@ export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
   asset: one(bookmarkAssets, {
     fields: [bookmarks.id],
     references: [bookmarkAssets.id],
+  }),
+  embedding: one(bookmarkEmbeddings, {
+    fields: [bookmarks.id],
+    references: [bookmarkEmbeddings.bookmarkId],
   }),
   tagsOnBookmarks: many(tagsOnBookmarks),
   bookmarksInLists: many(bookmarksInLists),
@@ -1106,3 +1143,17 @@ export const backupsRelations = relations(backupsTable, ({ one }) => ({
     references: [assets.id],
   }),
 }));
+
+export const bookmarkEmbeddingsRelations = relations(
+  bookmarkEmbeddings,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [bookmarkEmbeddings.bookmarkId],
+      references: [bookmarks.id],
+    }),
+    user: one(users, {
+      fields: [bookmarkEmbeddings.userId],
+      references: [users.id],
+    }),
+  }),
+);

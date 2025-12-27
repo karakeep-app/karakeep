@@ -4,17 +4,20 @@ import type { QueueClient } from "./queueing";
 import type { RateLimitClient } from "./ratelimiting";
 import logger from "./logger";
 import { SearchIndexClient } from "./search";
+import { VectorStoreClient } from "./vectorStore";
 
 export enum PluginType {
   Search = "search",
   Queue = "queue",
   RateLimit = "ratelimit",
+  VectorStore = "vectorstore",
 }
 
 interface PluginTypeMap {
   [PluginType.Search]: SearchIndexClient;
   [PluginType.Queue]: QueueClient;
   [PluginType.RateLimit]: RateLimitClient;
+  [PluginType.VectorStore]: VectorStoreClient;
 }
 
 export interface TPlugin<T extends PluginType> {
@@ -35,6 +38,7 @@ export class PluginManager {
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
     [PluginType.RateLimit]: [],
+    [PluginType.VectorStore]: [],
   };
 
   static register<T extends PluginType>(plugin: TPlugin<T>): void {

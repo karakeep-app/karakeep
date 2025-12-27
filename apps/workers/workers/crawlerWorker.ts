@@ -55,6 +55,7 @@ import {
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
+  triggerEmbeddingsGeneration,
   triggerSearchReindex,
   triggerWebhook,
   VideoWorkerQueue,
@@ -1542,6 +1543,8 @@ async function runCrawler(
         },
         enqueueOpts,
       );
+      // Generate embeddings for similarity search
+      await triggerEmbeddingsGeneration(bookmarkId, enqueueOpts);
     }
 
     // Update the search index
