@@ -28,21 +28,13 @@ function claimRestoration(bookmarkId: string): boolean {
 
   // Clean up expired claims (5 seconds should be plenty for restoration to complete)
   if (existing && now - existing > 5000) {
-    console.log(
-      `[RP:claimRestoration] expired claim for ${bookmarkId}, age=${now - existing}ms`,
-    );
     restorationClaimed.delete(bookmarkId);
   }
 
   if (restorationClaimed.has(bookmarkId)) {
-    const age = now - (restorationClaimed.get(bookmarkId) ?? 0);
-    console.log(
-      `[RP:claimRestoration] denied for ${bookmarkId}, existing claim age=${age}ms`,
-    );
     return false;
   }
 
-  console.log(`[RP:claimRestoration] granted for ${bookmarkId}`);
   restorationClaimed.set(bookmarkId, now);
   return true;
 }
@@ -51,7 +43,6 @@ function claimRestoration(bookmarkId: string): boolean {
  * Release a restoration claim (called on cleanup if we never actually restored).
  */
 function releaseRestoration(bookmarkId: string): void {
-  console.log(`[RP:releaseRestoration] releasing claim for ${bookmarkId}`);
   restorationClaimed.delete(bookmarkId);
 }
 
@@ -222,13 +213,6 @@ export function useReadingProgressAutoSave(
     containerRef: React.RefObject<HTMLElement | null>;
   },
 ) {
-  console.log("[RP:useReadingProgressAutoSave] hook called", {
-    bookmarkId: options.bookmarkId,
-    initialOffset: options.initialOffset,
-    initialAnchor: options.initialAnchor,
-    enabled: options.enabled,
-    hasContainerRef: !!options.containerRef,
-  });
   const progress = useReadingProgress(options);
   const { containerRef, enabled = true } = options;
 
@@ -252,12 +236,7 @@ export function useReadingProgressAutoSave(
   const scrollParentRef = useRef<HTMLElement | Window | null>(null);
 
   useEffect(() => {
-    console.log("[RP:scroll] effect running", {
-      enabled,
-      hasContainer: !!containerRef.current,
-    });
     if (!enabled || typeof window === "undefined") {
-      console.log("[RP:scroll] effect skipped - not enabled or no window");
       return;
     }
 
@@ -265,7 +244,6 @@ export function useReadingProgressAutoSave(
       if (containerRef.current) {
         const position = getReadingPosition(containerRef.current);
         if (position !== null && position.offset > 0) {
-          console.log("[RP:scroll] updated lastKnownPosition:", position);
           lastKnownPositionRef.current = position;
         }
       }
@@ -274,13 +252,11 @@ export function useReadingProgressAutoSave(
     // Find the scrollable parent - could be a ScrollArea viewport or the window
     const setupScrollListener = () => {
       if (!containerRef.current) {
-        console.log("[RP:scroll] no container yet");
         return false;
       }
 
       // Skip if container is in a hidden layout (e.g., CSS display:none)
       if (!isElementVisible(containerRef.current)) {
-        console.log("[RP:scroll] skipping - container not visible");
         return true; // Return true to prevent retry - hidden containers stay hidden
       }
 
@@ -291,12 +267,6 @@ export function useReadingProgressAutoSave(
         ? window
         : foundParent;
 
-      console.log("[RP:scroll] found scroll parent:", {
-        isWindowScroll,
-        className: isWindowScroll
-          ? "window"
-          : foundParent.className?.slice(0, 50),
-      });
       scrollParent.addEventListener("scroll", handleScroll, { passive: true });
       scrollParentRef.current = scrollParent;
 
@@ -309,17 +279,12 @@ export function useReadingProgressAutoSave(
     // Retry after a delay if container not ready
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     if (!immediate) {
-      console.log("[RP:scroll] scheduling retry...");
       retryTimer = setTimeout(() => {
-        console.log("[RP:scroll] retrying setup...");
         setupScrollListener();
       }, 300);
     }
 
     return () => {
-      console.log("[RP:scroll] cleanup", {
-        hasScrollParent: !!scrollParentRef.current,
-      });
       if (retryTimer) clearTimeout(retryTimer);
       if (scrollParentRef.current) {
         scrollParentRef.current.removeEventListener("scroll", handleScroll);
@@ -333,12 +298,7 @@ export function useReadingProgressAutoSave(
 
   // Set up auto-save on visibility change and beforeunload (web only)
   useEffect(() => {
-    console.log("[RP:autoSave] effect setup", {
-      enabled,
-      hasWindow: typeof window !== "undefined",
-    });
     if (!enabled || typeof window === "undefined") {
-      console.log("[RP:autoSave] effect skipped - not enabled or no window");
       return;
     }
 
@@ -352,45 +312,32 @@ export function useReadingProgressAutoSave(
         }
       }
 
-      console.log("[RP:autoSave] saveCurrentProgress", {
-        hasRef: !!containerRef.current,
-        lastKnownPosition: lastKnownPositionRef.current,
-        positionToSave,
-      });
-
       if (positionToSave !== null && positionToSave.offset > 0) {
         savePositionRef.current(positionToSave);
-      } else {
-        console.log("[RP:autoSave] no position to save!");
       }
     };
 
     const handleVisibilityChange = () => {
-      console.log("[RP:autoSave] visibilitychange:", document.visibilityState);
       if (document.visibilityState === "hidden") {
         saveCurrentProgress();
       }
     };
 
     const handleBeforeUnload = () => {
-      console.log("[RP:autoSave] beforeunload");
       saveCurrentProgress();
     };
 
     // Setup function that waits for container to be ready and visible
     const setupAutoSave = () => {
       if (!containerRef.current) {
-        console.log("[RP:autoSave] no container yet");
         return false;
       }
 
       // Skip if container is in a hidden layout (e.g., CSS display:none)
       if (!isElementVisible(containerRef.current)) {
-        console.log("[RP:autoSave] skipping - container not visible");
         return true; // Return true to prevent retry - hidden containers stay hidden
       }
 
-      console.log("[RP:autoSave] adding event listeners");
       window.addEventListener("visibilitychange", handleVisibilityChange);
       window.addEventListener("beforeunload", handleBeforeUnload);
       autoSaveAttachedRef.current = true;
@@ -403,9 +350,7 @@ export function useReadingProgressAutoSave(
     // Retry after a delay if container not ready
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     if (!immediate) {
-      console.log("[RP:autoSave] scheduling retry...");
       retryTimer = setTimeout(() => {
-        console.log("[RP:autoSave] retrying setup...");
         setupAutoSave();
       }, 300);
     }
@@ -413,14 +358,11 @@ export function useReadingProgressAutoSave(
     return () => {
       if (retryTimer) clearTimeout(retryTimer);
       if (autoSaveAttachedRef.current) {
-        console.log("[RP:autoSave] cleanup - saving and removing listeners");
         // Save on unmount
         saveCurrentProgress();
         window.removeEventListener("visibilitychange", handleVisibilityChange);
         window.removeEventListener("beforeunload", handleBeforeUnload);
         autoSaveAttachedRef.current = false;
-      } else {
-        console.log("[RP:autoSave] cleanup - no listeners were attached");
       }
     };
   }, [enabled, containerRef]);
@@ -432,19 +374,7 @@ export function useReadingProgressAutoSave(
   const hasLockRef = useRef(false);
 
   useEffect(() => {
-    // Generate unique ID for this effect instance to track in logs
-    const effectId = Math.random().toString(36).slice(2, 6);
-    console.log(`[RP:restore:${effectId}] effect running`, {
-      enabled,
-      bookmarkId: options.bookmarkId,
-      initialOffset: options.initialOffset,
-      hasContainerRef: !!containerRef.current,
-    });
-
     if (!enabled || !options.initialOffset) {
-      console.log(
-        `[RP:restore:${effectId}] skipping - not enabled or no initialOffset`,
-      );
       return;
     }
 
@@ -457,7 +387,6 @@ export function useReadingProgressAutoSave(
 
     const tryRestore = () => {
       if (state.cancelled) {
-        console.log(`[RP:restore:${effectId}] cancelled, stopping`);
         return;
       }
 
@@ -467,9 +396,6 @@ export function useReadingProgressAutoSave(
       // Skip if container is in a hidden layout (e.g., CSS display:none)
       // Check this BEFORE claiming the lock so hidden instances never block visible ones
       if (container && !isElementVisible(container)) {
-        console.log(
-          `[RP:restore:${effectId}] container not visible, giving up`,
-        );
         return; // Stop trying - hidden containers stay hidden
       }
 
@@ -484,28 +410,15 @@ export function useReadingProgressAutoSave(
           ? document.body.scrollHeight > window.innerHeight
           : scrollParent.scrollHeight > scrollParent.clientHeight);
 
-      console.log(`[RP:restore:${effectId}] attempt`, attempts, {
-        hasRef: !!container,
-        isVisible: container ? isElementVisible(container) : false,
-        hasScrollParent: !!scrollParent,
-        isWindowScroll,
-        isLayoutReady,
-      });
-
       if (container && isLayoutReady) {
         // Now try to claim the lock - only when we're ready to restore
         // This handles both StrictMode double-mounting AND multiple component instances.
         if (!hasLockRef.current && !claimRestoration(options.bookmarkId)) {
-          console.log(
-            `[RP:restore:${effectId}] another instance already restored`,
-          );
           return; // Someone else already restored
         }
         hasLockRef.current = true;
 
-        console.log(`[RP:restore:${effectId}] layout ready, restoring...`);
-        const result = restorePositionRef.current(container, "instant");
-        console.log(`[RP:restore:${effectId}] restorePosition result:`, result);
+        restorePositionRef.current(container, "instant");
         didRestoreRef.current = true;
         // Keep the lock - we successfully restored
         return; // Done
@@ -513,30 +426,18 @@ export function useReadingProgressAutoSave(
 
       if (attempts < maxAttempts) {
         requestAnimationFrame(tryRestore);
-      } else {
-        console.log(
-          `[RP:restore:${effectId}] gave up after`,
-          maxAttempts,
-          "attempts",
-        );
       }
     };
 
     // Start the animation frame loop
-    console.log(`[RP:restore:${effectId}] scheduling RAF`);
     requestAnimationFrame(tryRestore);
 
     return () => {
-      console.log(`[RP:restore:${effectId}] cleanup`, {
-        hasLock: hasLockRef.current,
-        didRestore: didRestoreRef.current,
-      });
       state.cancelled = true;
       // Release lock if we claimed it - this allows reopening the preview to work
       // The lock's purpose is to prevent concurrent restoration during mount,
       // not to prevent restoration on subsequent opens
       if (hasLockRef.current) {
-        console.log(`[RP:restore:${effectId}] releasing lock on cleanup`);
         releaseRestoration(options.bookmarkId);
         hasLockRef.current = false;
       }
