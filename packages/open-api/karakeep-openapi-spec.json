@@ -175,6 +175,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "pdfAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "fullPageArchiveAssetId": {
                     "type": "string",
                     "nullable": true
@@ -327,6 +331,7 @@
                   "enum": [
                     "linkHtmlContent",
                     "screenshot",
+                    "pdf",
                     "assetScreenshot",
                     "bannerImage",
                     "fullPageArchive",
@@ -1750,6 +1755,7 @@
                     "enum": [
                       "linkHtmlContent",
                       "screenshot",
+                      "pdf",
                       "assetScreenshot",
                       "bannerImage",
                       "fullPageArchive",
@@ -1786,6 +1792,7 @@
                       "enum": [
                         "linkHtmlContent",
                         "screenshot",
+                        "pdf",
                         "assetScreenshot",
                         "bannerImage",
                         "fullPageArchive",

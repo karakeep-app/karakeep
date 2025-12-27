@@ -161,6 +161,7 @@ export class Bookmark extends BareBookmark {
         screenshotAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_SCREENSHOT,
         )?.id,
+        pdfAssetId: assets.find((a) => a.assetType == AssetTypes.LINK_PDF)?.id,
         fullPageArchiveAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         )?.id,
@@ -530,6 +531,9 @@ export class Bookmark extends BareBookmark {
             invariant(content.type == BookmarkTypes.LINK);
             if (row.assets.assetType == AssetTypes.LINK_SCREENSHOT) {
               content.screenshotAssetId = row.assets.id;
+            }
+            if (row.assets.assetType == AssetTypes.LINK_PDF) {
+              content.pdfAssetId = row.assets.id;
             }
             if (row.assets.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE) {
               content.fullPageArchiveAssetId = row.assets.id;

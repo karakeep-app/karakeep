@@ -25,6 +25,7 @@
       "admin": "Admin"
     },
     "screenshot": "Screenshot",
+    "pdf": "Archived PDF",
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
@@ -62,7 +63,9 @@
     "delete": "Delete",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
+    "offline_copies": "Offline Copies",
     "download_full_page_archive": "Download Full Page Archive",
+    "preserve_as_pdf": "Preserve as PDF",
     "edit_tags": "Edit Tags",
     "add_to_list": "Add to List",
     "select_all": "Select All",
@@ -268,6 +271,7 @@
       "import_export_bookmarks": "Import / Export Bookmarks",
       "import_bookmarks_from_html_file": "Import Bookmarks from HTML file",
       "import_bookmarks_from_pocket_export": "Import Bookmarks from Pocket export",
+      "import_bookmarks_from_matter_export": "Import Bookmarks from Matter export",
       "import_bookmarks_from_omnivore_export": "Import Bookmarks from Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
@@ -781,6 +785,7 @@
       "deleted": "The bookmark has been deleted!",
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
+      "preserve_pdf": "PDF preservation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!",
       "updated": "The bookmark has been updated!"

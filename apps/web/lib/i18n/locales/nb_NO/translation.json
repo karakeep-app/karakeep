@@ -259,6 +259,7 @@
       "import_export_bookmarks": "Importer / eksporter bokmerker",
       "import_bookmarks_from_html_file": "Importer bokmerker fra HTML-fil",
       "import_bookmarks_from_pocket_export": "Importer bokmerker fra Pocket-eksport",
+      "import_bookmarks_from_matter_export": "Importer bokmerker fra Matter-eksport",
       "import_bookmarks_from_linkwarden_export": "Importer bokmerker fra Linkwarden-eksport",
       "import_bookmarks_from_karakeep_export": "Importer bokmerker fra Karakeepp-eksport",
       "export_links_and_notes": "Eksporter lenker og notater",

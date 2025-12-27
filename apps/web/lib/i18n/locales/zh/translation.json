@@ -142,6 +142,7 @@
       "import_export_bookmarks": "导入/导出书签",
       "import_bookmarks_from_html_file": "从HTML文件导入书签",
       "import_bookmarks_from_pocket_export": "从Pocket导出导入书签",
+      "import_bookmarks_from_matter_export": "从Matter导出导入书签",
       "import_bookmarks_from_omnivore_export": "从Omnivore导出导入书签",
       "import_bookmarks_from_karakeep_export": "从Karakeep导出导入书签",
       "export_links_and_notes": "导出链接和笔记",

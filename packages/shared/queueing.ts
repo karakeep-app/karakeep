@@ -2,6 +2,21 @@ import { ZodType } from "zod";
 
 import { PluginManager, PluginType } from "./plugins";
 
+/**
+ * Special error that indicates a job should be retried after a delay
+ * without counting against the retry attempts limit.
+ * Useful for handling rate limiting scenarios.
+ */
+export class QueueRetryAfterError extends Error {
+  constructor(
+    message: string,
+    public readonly delayMs: number,
+  ) {
+    super(message);
+    this.name = "QueueRetryAfterError";
+  }
+}
+
 export interface EnqueueOptions {
   idempotencyKey?: string;
   priority?: number;

@@ -27,6 +27,7 @@ import {
   BookOpen,
   Camera,
   ExpandIcon,
+  FileText,
   Info,
   Video,
 } from "lucide-react";
@@ -105,6 +106,16 @@ function VideoSection({ link }: { link: ZBookmarkedLink }) {
         </video>
       </div>
     </div>
+  );
+}
+
+function PDFSection({ link }: { link: ZBookmarkedLink }) {
+  return (
+    <iframe
+      title="PDF Viewer"
+      src={`/api/assets/${link.pdfAssetId}`}
+      className="relative h-full min-w-full"
+    />
   );
 }
 
@@ -189,6 +200,8 @@ export default function LinkContentSection({
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
+  } else if (section === "pdf") {
+    content = <PDFSection link={bookmark.content} />;
   } else {
     content = <ScreenshotSection link={bookmark.content} />;
   }
@@ -231,6 +244,12 @@ export default function LinkContentSection({
                 <div className="flex items-center">
                   <Camera className="mr-2 h-4 w-4" />
                   {t("common.screenshot")}
+                </div>
+              </SelectItem>
+              <SelectItem value="pdf" disabled={!bookmark.content.pdfAssetId}>
+                <div className="flex items-center">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("common.pdf")}
                 </div>
               </SelectItem>
               <SelectItem

@@ -144,6 +144,7 @@
       "import_bookmarks_from_karakeep_export": "Importera bokmärken från Karakeep-export",
       "import_bookmarks_from_html_file": "Importera bokmärken från HTML-fil",
       "import_bookmarks_from_pocket_export": "Importera bokmärken från Pocket-export",
+      "import_bookmarks_from_matter_export": "Importera bokmärken från Matter-export",
       "export_links_and_notes": "Exportera länkar och anteckningar",
       "import_bookmarks_from_linkwarden_export": "Importera bokmärken från Linkwarden-export",
       "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager",

@@ -516,8 +516,15 @@
     {
       "idx": 73,
       "version": "6",
-      "when": 1766815601803,
-      "tag": "0073_user_reading_progress_table",
+      "when": 1766843938658,
+      "tag": "0073_ai_tag_style",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1766870819057,
+      "tag": "0074_user_reading_progress_table",
       "breakpoints": true
     }
   ]
