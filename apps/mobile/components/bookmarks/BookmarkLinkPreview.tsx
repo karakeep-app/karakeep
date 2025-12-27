@@ -109,7 +109,6 @@ export function BookmarkLinkReaderPreview({
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
   const { data: currentUser, isLoading: isUserLoading } = useWhoAmI();
-  const webViewRef = useRef<WebView>(null);
   const lastSavedOffset = useRef<number | null>(null);
   const currentPosition = useRef<{ offset: number; anchor: string } | null>(
     null,
@@ -132,6 +131,9 @@ export function BookmarkLinkReaderPreview({
     api.bookmarks.updateReadingProgress.useMutation({
       onSuccess: () => {
         apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: bookmark.id });
+      },
+      onError: (error) => {
+        console.error("[ReadingProgress] Failed to save progress:", error);
       },
     });
 
@@ -165,8 +167,8 @@ export function BookmarkLinkReaderPreview({
           anchor: typeof data.anchor === "string" ? data.anchor : "",
         };
       }
-    } catch {
-      // Ignore parse errors
+    } catch (error) {
+      console.warn("[ReadingProgress] Failed to parse WebView message:", error);
     }
   }, []);
 
@@ -216,7 +218,6 @@ export function BookmarkLinkReaderPreview({
   return (
     <View className="flex-1 bg-background">
       <WebView
-        ref={webViewRef}
         originWhitelist={["*"]}
         source={{
           html: `

@@ -136,6 +136,9 @@ export function useReadingProgress(
         // Invalidate bookmark queries to ensure UI reflects saved progress
         apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId });
       },
+      onError: (error) => {
+        console.error("[ReadingProgress] Failed to save progress:", error);
+      },
     });
 
   const capturePosition = useCallback((container: HTMLElement) => {
@@ -378,8 +381,6 @@ export function useReadingProgressAutoSave(
   }, [enabled, containerRef]);
 
   // Restore position on mount - use requestAnimationFrame for reliability
-  // Track whether THIS instance successfully restored (for cleanup purposes)
-  const didRestoreRef = useRef(false);
   // Track whether THIS instance claimed the lock (for cleanup purposes)
   const hasLockRef = useRef(false);
 
@@ -429,7 +430,6 @@ export function useReadingProgressAutoSave(
         hasLockRef.current = true;
 
         restorePositionRef.current(container, "instant");
-        didRestoreRef.current = true;
         // Keep the lock - we successfully restored
         return; // Done
       }

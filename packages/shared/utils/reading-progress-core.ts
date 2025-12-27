@@ -97,6 +97,68 @@ export function findParagraphByAnchor(
 }
 
 /**
+ * Calculates the text offset of the paragraph at the top of the viewport.
+ * Finds the paragraph whose top edge is at or near the top of the visible area.
+ * Returns both the offset and anchor text for position verification.
+ *
+ * @param container - The container element containing the content
+ * @param viewportTop - The Y coordinate of the viewport top (0 for window scrolling)
+ */
+export function getReadingPositionWithViewport(
+  container: HTMLElement,
+  viewportTop: number,
+): ReadingPosition | null {
+  const paragraphs = Array.from(
+    container.querySelectorAll(PARAGRAPH_SELECTOR_STRING),
+  );
+  if (paragraphs.length === 0) return null;
+
+  // Find the paragraph at the top of the viewport
+  let topParagraph: Element | null = null;
+
+  for (const paragraph of paragraphs) {
+    const rect = paragraph.getBoundingClientRect();
+
+    // If this paragraph's top is at or below the viewport top, it's our target
+    if (rect.top >= viewportTop) {
+      topParagraph = paragraph;
+      break;
+    }
+
+    // If this paragraph spans the viewport top (started above, ends below), use it
+    if (rect.top < viewportTop && rect.bottom > viewportTop) {
+      topParagraph = paragraph;
+      break;
+    }
+  }
+
+  if (!topParagraph) return null;
+
+  // Extract anchor text for position verification
+  const anchor = extractAnchorText(topParagraph);
+
+  // Calculate the text offset of this paragraph using TreeWalker
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    null,
+  );
+
+  let offset = 0;
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    if (topParagraph.contains(node)) {
+      // Found the start of our target paragraph
+      return { offset, anchor };
+    }
+    offset += normalizeTextLength(node.textContent ?? "");
+  }
+
+  // topParagraph has no text nodes (empty or contains only non-text elements)
+  return null;
+}
+
+/**
  * Scrolls to the position in the content corresponding to the given text offset.
  * Uses anchor text for verification when available, falling back to offset-based lookup.
  */

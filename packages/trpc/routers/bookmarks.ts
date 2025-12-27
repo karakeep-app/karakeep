@@ -594,13 +594,19 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db
+      const result = await ctx.db
         .update(bookmarkLinks)
         .set({
           readingProgressOffset: input.readingProgressOffset,
           readingProgressAnchor: input.readingProgressAnchor ?? null,
         })
         .where(eq(bookmarkLinks.id, input.bookmarkId));
+      if (result.changes === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark link not found",
+        });
+      }
     }),
   getBookmark: authedProcedure
     .input(
