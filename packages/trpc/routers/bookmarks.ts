@@ -14,6 +14,7 @@ import {
   bookmarkTexts,
   customPrompts,
   tagsOnBookmarks,
+  userReadingProgress,
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
@@ -592,21 +593,23 @@ export const bookmarksAppRouter = router({
         readingProgressAnchor: z.string().max(ANCHOR_TEXT_MAX_LENGTH).nullish(),
       }),
     )
-    .use(ensureBookmarkOwnership)
+    .use(ensureBookmarkAccess)
     .mutation(async ({ input, ctx }) => {
-      const result = await ctx.db
-        .update(bookmarkLinks)
-        .set({
+      await ctx.db
+        .insert(userReadingProgress)
+        .values({
+          bookmarkId: input.bookmarkId,
+          userId: ctx.user.id,
           readingProgressOffset: input.readingProgressOffset,
           readingProgressAnchor: input.readingProgressAnchor ?? null,
         })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
-      if (result.changes === 0) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Bookmark link not found",
+        .onConflictDoUpdate({
+          target: [userReadingProgress.bookmarkId, userReadingProgress.userId],
+          set: {
+            readingProgressOffset: input.readingProgressOffset,
+            readingProgressAnchor: input.readingProgressAnchor ?? null,
+          },
         });
-      }
     }),
   getBookmark: authedProcedure
     .input(
@@ -618,9 +621,28 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
-      return (
-        await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
-      ).asZBookmark();
+      const bookmark = await Bookmark.fromId(
+        ctx,
+        input.bookmarkId,
+        input.includeContent,
+      );
+      const zBookmark = bookmark.asZBookmark();
+
+      // Fetch user's reading progress if this is a link
+      if (zBookmark.content.type === BookmarkTypes.LINK) {
+        const progress = await ctx.db.query.userReadingProgress.findFirst({
+          where: and(
+            eq(userReadingProgress.bookmarkId, input.bookmarkId),
+            eq(userReadingProgress.userId, ctx.user.id),
+          ),
+        });
+        zBookmark.content.readingProgressOffset =
+          progress?.readingProgressOffset ?? null;
+        zBookmark.content.readingProgressAnchor =
+          progress?.readingProgressAnchor ?? null;
+      }
+
+      return zBookmark;
     }),
   searchBookmarks: authedProcedure
     .input(zSearchBookmarksRequestSchema)

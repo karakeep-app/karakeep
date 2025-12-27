@@ -516,8 +516,8 @@
     {
       "idx": 73,
       "version": "6",
-      "when": 1766638456073,
-      "tag": "0073_add_reading_progress_offset",
+      "when": 1766815601803,
+      "tag": "0073_user_reading_progress_table",
       "breakpoints": true
     }
   ]

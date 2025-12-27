@@ -185,8 +185,9 @@ export class Bookmark extends BareBookmark {
         publisher: link.publisher,
         datePublished: link.datePublished,
         dateModified: link.dateModified,
-        readingProgressOffset: link.readingProgressOffset,
-        readingProgressAnchor: link.readingProgressAnchor,
+        // Reading progress is fetched separately per-user in getBookmark
+        readingProgressOffset: null,
+        readingProgressAnchor: null,
       };
     }
     if (bookmark.text) {
@@ -470,8 +471,9 @@ export class Bookmark extends BareBookmark {
               publisher: row.bookmarkLinks.publisher,
               datePublished: row.bookmarkLinks.datePublished,
               dateModified: row.bookmarkLinks.dateModified,
-              readingProgressOffset: row.bookmarkLinks.readingProgressOffset,
-              readingProgressAnchor: row.bookmarkLinks.readingProgressAnchor,
+              // Reading progress is fetched separately per-user in getBookmark
+              readingProgressOffset: null,
+              readingProgressAnchor: null,
             };
           } else if (row.bookmarkTexts) {
             content = {

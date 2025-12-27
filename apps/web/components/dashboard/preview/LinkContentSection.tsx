@@ -139,7 +139,7 @@ export default function LinkContentSection({
     initialOffset,
     initialAnchor,
     containerRef: contentRef,
-    enabled: isOwner && section === "cached", // Only track in cached/reader view
+    enabled: section === "cached", // Only track in cached/reader view
   });
 
   let content;

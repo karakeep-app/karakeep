@@ -9,7 +9,6 @@ import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { api } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
 
-import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { READING_PROGRESS_WEBVIEW_JS } from "@karakeep/shared/utils/reading-progress-webview.generated";
 
@@ -108,13 +107,10 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
-  const { data: currentUser, isLoading: isUserLoading } = useWhoAmI();
   const lastSavedOffset = useRef<number | null>(null);
   const currentPosition = useRef<{ offset: number; anchor: string } | null>(
     null,
   );
-
-  const isOwner = currentUser?.id === bookmark.userId;
 
   const {
     data: bookmarkWithContent,
@@ -139,7 +135,7 @@ export function BookmarkLinkReaderPreview({
 
   // Save progress function
   const saveProgress = useCallback(() => {
-    if (!isOwner || currentPosition.current === null) return;
+    if (currentPosition.current === null) return;
 
     const { offset, anchor } = currentPosition.current;
 
@@ -155,7 +151,7 @@ export function BookmarkLinkReaderPreview({
         readingProgressAnchor: anchor,
       });
     }
-  }, [isOwner, bookmark.id, updateProgress]);
+  }, [bookmark.id, updateProgress]);
 
   // Handle messages from WebView
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
@@ -174,8 +170,6 @@ export function BookmarkLinkReaderPreview({
 
   // Save on AppState change (app going to background)
   useEffect(() => {
-    if (!isOwner) return;
-
     const subscription = AppState.addEventListener("change", (status) => {
       if (status === "background" || status === "inactive") {
         saveProgress();
@@ -187,9 +181,9 @@ export function BookmarkLinkReaderPreview({
       saveProgress();
       subscription.remove();
     };
-  }, [isOwner, saveProgress]);
+  }, [saveProgress]);
 
-  if (isLoading || isUserLoading) {
+  if (isLoading) {
     return <FullPageSpinner />;
   }
 
@@ -211,9 +205,7 @@ export function BookmarkLinkReaderPreview({
     bookmarkWithContent.content.readingProgressAnchor ?? null;
 
   // Build the reading progress script with initial position
-  const injectedJS = isOwner
-    ? buildReadingProgressScript(initialOffset, initialAnchor)
-    : "true;";
+  const injectedJS = buildReadingProgressScript(initialOffset, initialAnchor);
 
   return (
     <View className="flex-1 bg-background">
@@ -234,7 +226,7 @@ export function BookmarkLinkReaderPreview({
                       margin: 0;
                       padding: 16px;
                       background: ${isDark ? "#000000" : "#ffffff"};
-                      ${isOwner && initialOffset > 0 ? "opacity: 0;" : ""}
+                      ${initialOffset > 0 ? "opacity: 0;" : ""}
                     }
                     p { margin: 0 0 1em 0; }
                     h1, h2, h3, h4, h5, h6 { margin: 1.5em 0 0.5em 0; line-height: 1.2; }
