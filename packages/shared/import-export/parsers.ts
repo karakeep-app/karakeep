@@ -10,6 +10,7 @@ import { zExportSchema } from "./exporters";
 export type ImportSource =
   | "html"
   | "pocket"
+  | "matter"
   | "omnivore"
   | "karakeep"
   | "linkwarden"
@@ -92,6 +93,52 @@ function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
       tags: record.tags.length > 0 ? record.tags.split("|") : [],
       addDate: parseInt(record.time_added),
       archived: record.status === "archive",
+      paths: [], // TODO
+    };
+  });
+}
+
+function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zMatterRecordSchema = z.object({
+    Title: z.string(),
+    Author: z.string(),
+    Publisher: z.string(),
+    URL: z.string(),
+    Tags: z
+      .string()
+      .transform((tags) => (tags.length > 0 ? tags.split(";") : [])),
+    "Word Count": z.string(),
+    "In Queue": z.string().transform((inQueue) => inQueue === "False"),
+    Favorited: z.string(),
+    Read: z.string(),
+    Highlight_Count: z.string(),
+    "Last Interaction Date": z
+      .string()
+      .transform((date) => Date.parse(date) / 1000),
+    "File Id": z.string(),
+  });
+
+  const zMatterExportSchema = z.array(zMatterRecordSchema);
+
+  const records = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zMatterExportSchema.safeParse(records);
+  if (!parsed.success) {
+    throw new Error(
+      `The uploaded CSV file contains an invalid Matter bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
+    return {
+      title: record.Title,
+      content: { type: BookmarkTypes.LINK as const, url: record.URL },
+      tags: record.Tags,
+      addDate: record["Last Interaction Date"],
+      archived: record["In Queue"],
       paths: [], // TODO
     };
   });
@@ -346,6 +393,9 @@ export function parseImportFile(
       break;
     case "pocket":
       result = parsePocketBookmarkFile(textContent);
+      break;
+    case "matter":
+      result = parseMatterBookmarkFile(textContent);
       break;
     case "karakeep":
       result = parseKarakeepBookmarkFile(textContent);

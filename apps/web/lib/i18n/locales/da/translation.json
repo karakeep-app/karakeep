@@ -53,6 +53,7 @@
       "import_export_bookmarks": "Import / eksport bogmærker",
       "import_bookmarks_from_html_file": "Importer bogmærker fra HTML-fil",
       "import_bookmarks_from_pocket_export": "Importer bogmærker fra Pocket-eksport",
+      "import_bookmarks_from_matter_export": "Importer bogmærker fra Matter-eksport",
       "imported_bookmarks": "Importerede bogmærker",
       "import_bookmarks_from_linkwarden_export": "Importer bogmærker fra Linkwarden-eksport",
       "import_bookmarks_from_tab_session_manager_export": "Importer bogmærker fra Tab Session Manager",

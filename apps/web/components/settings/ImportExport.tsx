@@ -180,6 +180,23 @@ export function ImportExportRow() {
           </FilePickerButton>
         </ImportCard>
         <ImportCard
+          text="Matter"
+          description={t("settings.import.import_bookmarks_from_matter_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".csv"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "matter" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
           text="Omnivore"
           description={t(
             "settings.import.import_bookmarks_from_omnivore_export",

@@ -214,6 +214,7 @@
       "import_bookmarks_from_html_file": "درون‌ریزی نشانک‌ها از فایل HTML",
       "import_export_bookmarks": "درون‌ریزی / برون‌بری نشانک‌ها",
       "import_bookmarks_from_pocket_export": "درون‌ریزی نشانک‌ها از خروجی Pocket",
+      "import_bookmarks_from_matter_export": "درون‌ریزی نشانک‌ها از خروجی Matter",
       "import_bookmarks_from_omnivore_export": "درون‌ریزی نشانک‌ها از خروجی Omnivore",
       "import_bookmarks_from_linkwarden_export": "درون‌ریزی نشانک‌ها از خروجی Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "درون‌ریزی نشانک‌ها از Tab Session Manager",

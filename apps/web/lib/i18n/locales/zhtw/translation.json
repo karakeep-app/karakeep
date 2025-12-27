@@ -142,6 +142,7 @@
       "import_export_bookmarks": "匯入／匯出書籤",
       "import_bookmarks_from_html_file": "從 HTML 檔案匯入書籤",
       "import_bookmarks_from_pocket_export": "從 Pocket 匯出檔案匯入書籤",
+      "import_bookmarks_from_matter_export": "從 Matter 匯出檔案匯入書籤",
       "import_bookmarks_from_omnivore_export": "從 Omnivore 匯出檔案匯入書籤",
       "import_bookmarks_from_karakeep_export": "從 Karakeep 匯出檔案匯入書籤",
       "export_links_and_notes": "匯出連結和筆記",
