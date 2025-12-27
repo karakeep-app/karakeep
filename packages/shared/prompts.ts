@@ -46,7 +46,7 @@ async function truncateContent(
 export function buildImagePrompt(
   lang: string,
   customPrompts: string[],
-  tagStyle: ZTagStyle = "as-generated",
+  tagStyle: ZTagStyle,
 ) {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
 
@@ -70,7 +70,7 @@ function constructTextTaggingPrompt(
   lang: string,
   customPrompts: string[],
   content: string,
-  tagStyle: ZTagStyle = "as-generated",
+  tagStyle: ZTagStyle,
 ): string {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
 
@@ -115,7 +115,7 @@ export function buildTextPromptUntruncated(
   lang: string,
   customPrompts: string[],
   content: string,
-  tagStyle: ZTagStyle = "as-generated",
+  tagStyle: ZTagStyle,
 ): string {
   return constructTextTaggingPrompt(
     lang,
@@ -130,7 +130,7 @@ export async function buildTextPrompt(
   customPrompts: string[],
   content: string,
   contextLength: number,
-  tagStyle: ZTagStyle = "as-generated",
+  tagStyle: ZTagStyle,
 ): Promise<string> {
   content = preprocessContent(content);
   const promptTemplate = constructTextTaggingPrompt(

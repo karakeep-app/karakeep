@@ -93,7 +93,7 @@ export const users = sqliteTable("user", {
       "camelCase",
       "as-generated",
     ],
-  }).default("as-generated"),
+  }).default("lowercase-hyphens"),
   inferredTagLang: text("inferredTagLang"),
 });
 

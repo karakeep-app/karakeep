@@ -257,8 +257,7 @@
       "camelCase": "camelCase",
       "no_preference": "No preference",
       "inference_language": "Inference Language",
-      "inference_language_description": "Choose language for AI-generated tags and summaries.",
-      "use_server_default": "Use server default"
+      "inference_language_description": "Choose language for AI-generated tags and summaries."
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
