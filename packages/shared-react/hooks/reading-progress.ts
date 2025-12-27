@@ -89,7 +89,7 @@ export function useReadingProgress(
       // Reset when we need restoration again (e.g., switching back to cached section)
       setIsReady(false);
     }
-  }, [needsRestoration]);
+  }, [needsRestoration, bookmarkId]);
 
   const { mutate: updateProgress } =
     api.bookmarks.updateReadingProgress.useMutation({
