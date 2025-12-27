@@ -139,11 +139,8 @@ export function BookmarkLinkReaderPreview({
 
     const { offset, anchor } = currentPosition.current;
 
-    // Only save if offset has meaningfully changed
-    if (
-      lastSavedOffset.current === null ||
-      Math.abs(offset - lastSavedOffset.current) > 100
-    ) {
+    // Only save if offset has changed
+    if (lastSavedOffset.current !== offset) {
       lastSavedOffset.current = offset;
       updateProgress({
         bookmarkId: bookmark.id,

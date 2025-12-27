@@ -34,7 +34,7 @@ import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { useReadingProgressAutoSave } from "@karakeep/shared-react/hooks/reading-progress";
+import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import {
   BookmarkTypes,
   ZBookmark,
@@ -134,7 +134,7 @@ export default function LinkContentSection({
   const initialAnchor = bookmark.content.readingProgressAnchor;
 
   // Auto-save reading progress on visibility change/section change
-  useReadingProgressAutoSave({
+  useReadingProgress({
     bookmarkId: bookmark.id,
     initialOffset,
     initialAnchor,

@@ -13,6 +13,18 @@ export type { ReadingPosition } from "./reading-progress-core";
 export { scrollToReadingPosition } from "./reading-progress-core";
 
 /**
+ * Check if element is visible (not hidden by CSS display:none).
+ * Uses bounding rect - hidden elements have 0 dimensions.
+ * We use this instead of offsetParent because dialogs use position:fixed,
+ * which makes offsetParent null even for visible elements.
+ */
+export function isElementVisible(element: HTMLElement | null): boolean {
+  if (!element) return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+/**
  * Finds the nearest scrollable ancestor of an element.
  * Handles both standard overflow-based scrolling, Radix ScrollArea components,
  * and window-level scrolling (falls back to document.documentElement).

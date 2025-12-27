@@ -12,7 +12,7 @@ import { useReaderSettings } from "@/lib/readerSettings";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-import { useReadingProgressAutoSave } from "@karakeep/shared-react/hooks/reading-progress";
+import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { api } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
@@ -46,7 +46,7 @@ export default function ReaderViewPage() {
       : null;
 
   // Auto-save reading progress on page unload/visibility change
-  useReadingProgressAutoSave({
+  useReadingProgress({
     bookmarkId,
     initialOffset,
     initialAnchor,
