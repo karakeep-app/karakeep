@@ -97,31 +97,44 @@ function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
 }
 
 function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zMatterRecordSchema = z.object({
+    Title: z.string(),
+    Author: z.string(),
+    Publisher: z.string(),
+    URL: z.string(),
+    Tags: z
+      .string()
+      .transform((tags) => (tags.length > 0 ? tags.split(";") : [])),
+    "Word Count": z.string(),
+    "In Queue": z.string().transform((inQueue) => inQueue === "False"),
+    Favorited: z.string(),
+    Read: z.string(),
+    Highlight_Count: z.string(),
+    "Last Interaction Date": z.string().transform((date) => Date.parse(date)),
+    "File Id": z.string(),
+  });
+
+  const zMatterExportSchema = z.array(zMatterRecordSchema);
+
   const records = parse(textContent, {
     columns: true,
     skip_empty_lines: true,
-  }) as {
-    Title: string;
-    Author: string;
-    Publisher: string;
-    URL: string;
-    Tags: string;
-    "Word Count": string;
-    "In Queue": string;
-    Favorited: string;
-    Read: string;
-    "Highlight_Count": string;
-    "Last Interaction Date": string;
-    "File Id": string;
-  }[];
+  });
 
-  return records.map((record) => {
+  const parsed = zMatterExportSchema.safeParse(records);
+  if (!parsed.success) {
+    throw new Error(
+      `The uploaded CSV file contains an invalid Matter bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
     return {
       title: record.Title,
       content: { type: BookmarkTypes.LINK as const, url: record.URL },
-      tags: record.Tags.length > 0 ? record.Tags.split(";") : [],
-      addDate: Date.parse(record["Last Interaction Date"]),
-      archived: record["In Queue"] === "False",
+      tags: record.Tags,
+      addDate: record["Last Interaction Date"],
+      archived: record["In Queue"],
       paths: [], // TODO
     };
   });
