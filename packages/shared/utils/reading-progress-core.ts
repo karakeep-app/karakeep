@@ -13,7 +13,7 @@ export interface ReadingPosition {
   anchor: string;
 }
 
-export const PARAGRAPH_SELECTORS = [
+const PARAGRAPH_SELECTORS = [
   "p",
   "h1",
   "h2",
@@ -25,7 +25,7 @@ export const PARAGRAPH_SELECTORS = [
   "blockquote",
 ];
 
-export const PARAGRAPH_SELECTOR_STRING = PARAGRAPH_SELECTORS.join(", ");
+const PARAGRAPH_SELECTOR_STRING = PARAGRAPH_SELECTORS.join(", ");
 
 /**
  * Maximum length of anchor text extracted from paragraphs.
@@ -49,51 +49,6 @@ export function normalizeText(text: string): string {
  */
 export function normalizeTextLength(text: string): number {
   return normalizeText(text).length;
-}
-
-/**
- * Extracts anchor text from a paragraph for position verification.
- * Returns the first ANCHOR_TEXT_MAX_LENGTH characters of normalized text.
- */
-export function extractAnchorText(element: Element): string {
-  const text = element.textContent ?? "";
-  return normalizeText(text).slice(0, ANCHOR_TEXT_MAX_LENGTH);
-}
-
-/**
- * Finds a paragraph by matching its anchor text.
- * Tries exact match first, then falls back to fuzzy matching on first 20 chars.
- */
-export function findParagraphByAnchor(
-  container: HTMLElement,
-  anchor: string,
-): Element | null {
-  if (!anchor) return null;
-
-  const paragraphs = Array.from(
-    container.querySelectorAll(PARAGRAPH_SELECTOR_STRING),
-  );
-
-  // Exact match first
-  for (const paragraph of paragraphs) {
-    const paragraphAnchor = extractAnchorText(paragraph);
-    if (paragraphAnchor === anchor) {
-      return paragraph;
-    }
-  }
-
-  // Fuzzy fallback: check if first 20 chars match
-  for (const paragraph of paragraphs) {
-    const paragraphAnchor = extractAnchorText(paragraph);
-    if (
-      paragraphAnchor.slice(0, 20) === anchor.slice(0, 20) &&
-      anchor.length >= 20
-    ) {
-      return paragraph;
-    }
-  }
-
-  return null;
 }
 
 /**
@@ -135,7 +90,10 @@ export function getReadingPositionWithViewport(
   if (!topParagraph) return null;
 
   // Extract anchor text for position verification
-  const anchor = extractAnchorText(topParagraph);
+  const anchor = normalizeText(topParagraph.textContent ?? "").slice(
+    0,
+    ANCHOR_TEXT_MAX_LENGTH,
+  );
 
   // Calculate the text offset of this paragraph using TreeWalker
   const walker = document.createTreeWalker(
@@ -172,10 +130,35 @@ export function scrollToReadingPosition(
 
   // Strategy 1: Try to find paragraph by anchor text (most reliable)
   if (anchor) {
-    const anchorMatch = findParagraphByAnchor(container, anchor);
-    if (anchorMatch) {
-      anchorMatch.scrollIntoView({ behavior, block: "start" });
-      return true;
+    const paragraphs = Array.from(
+      container.querySelectorAll(PARAGRAPH_SELECTOR_STRING),
+    );
+
+    // Exact match first
+    for (const paragraph of paragraphs) {
+      const paragraphAnchor = normalizeText(paragraph.textContent ?? "").slice(
+        0,
+        ANCHOR_TEXT_MAX_LENGTH,
+      );
+      if (paragraphAnchor === anchor) {
+        paragraph.scrollIntoView({ behavior, block: "start" });
+        return true;
+      }
+    }
+
+    // Fuzzy fallback: check if first 20 chars match
+    for (const paragraph of paragraphs) {
+      const paragraphAnchor = normalizeText(paragraph.textContent ?? "").slice(
+        0,
+        ANCHOR_TEXT_MAX_LENGTH,
+      );
+      if (
+        paragraphAnchor.slice(0, 20) === anchor.slice(0, 20) &&
+        anchor.length >= 20
+      ) {
+        paragraph.scrollIntoView({ behavior, block: "start" });
+        return true;
+      }
     }
   }
 
