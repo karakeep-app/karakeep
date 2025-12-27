@@ -96,9 +96,23 @@ function ListActionsMenu({
     ]);
   };
 
+  const handleEdit = () => {
+    router.push({
+      pathname: "/dashboard/lists/[slug]/edit",
+      params: { listId },
+    });
+  };
+
   return (
     <MenuView
       actions={[
+        {
+          id: "edit",
+          title: "Edit List",
+          attributes: {
+            hidden: role !== "owner",
+          },
+        },
         {
           id: "delete",
           title: "Delete List",
@@ -122,9 +136,10 @@ function ListActionsMenu({
       onPressAction={({ nativeEvent }) => {
         if (nativeEvent.event === "delete") {
           handleDelete();
-        }
-        if (nativeEvent.event === "leave") {
+        } else if (nativeEvent.event === "leave") {
           handleLeave();
+        } else if (nativeEvent.event === "edit") {
+          return handleEdit();
         }
       }}
       shouldOpenOnLongPress={false}
