@@ -83,6 +83,18 @@ export const users = sqliteTable("user", {
   autoSummarizationEnabled: integer("autoSummarizationEnabled", {
     mode: "boolean",
   }),
+  tagStyle: text("tagStyle", {
+    enum: [
+      "lowercase-hyphens",
+      "lowercase-spaces",
+      "lowercase-underscores",
+      "titlecase-spaces",
+      "titlecase-hyphens",
+      "camelCase",
+      "as-generated",
+    ],
+  }).default("lowercase-hyphens"),
+  inferredTagLang: text("inferredTagLang"),
 });
 
 export const accounts = sqliteTable(

@@ -167,6 +167,8 @@ describe("User Routes", () => {
       // AI Settings
       autoSummarizationEnabled: null,
       autoTaggingEnabled: null,
+      inferredTagLang: null,
+      tagStyle: "lowercase-hyphens",
     });
 
     // Update settings
@@ -184,6 +186,8 @@ describe("User Routes", () => {
       // AI Settings
       autoSummarizationEnabled: true,
       autoTaggingEnabled: true,
+      inferredTagLang: "en",
+      tagStyle: "lowercase-underscores",
     });
 
     // Verify updated settings
@@ -204,6 +208,8 @@ describe("User Routes", () => {
       // AI Settings
       autoSummarizationEnabled: true,
       autoTaggingEnabled: true,
+      inferredTagLang: "en",
+      tagStyle: "lowercase-underscores",
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)
