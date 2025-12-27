@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/ui/Button";
@@ -10,28 +10,37 @@ import { api } from "@/lib/trpc";
 
 import { useEditBookmarkList } from "@karakeep/shared-react/hooks/lists";
 
-// TODO Duplicated from new -- import from somewhere
-type ListType = "manual" | "smart";
-
 const EditListPage = () => {
+  const { listId } = useLocalSearchParams<{ listId?: string | string[] }>();
   const [text, setText] = useState("");
-  const [listType, setListType] = useState<ListType>("manual");
   const [query, setQuery] = useState("");
-  const { listId } = useLocalSearchParams();
-  const { data: list } = api.lists.get.useQuery({ listId: listId as string });
   const { mutate, isPending } = useEditBookmarkList({
     onSuccess: () => {
       dismiss();
     },
   });
   const { toast } = useToast();
+
+  if (typeof listId !== "string") {
+    throw new Error("Unexpected param type");
+  }
+
+  const { data: list } = api.lists.get.useQuery({ listId });
+
   const dismiss = () => {
     router.back();
   };
 
+  useEffect(() => {
+    if (!list) return;
+    setText(list.name ?? "");
+    setQuery(list.query ?? "");
+  }, [list?.id, list?.query, list?.name]);
+
   const onSubmit = () => {
-    // Validate smart list has a query
-    if (listType === "smart" && !query.trim()) {
+    // TODO: This is currently not working on edit or on new list
+    // Toast is covered by active modal -- needs to be fixed here and in /lists/new.tsx
+    if (list?.type === "smart" && !query.trim()) {
       toast({
         message: "Smart lists must have a search query",
         variant: "destructive",
@@ -42,7 +51,7 @@ const EditListPage = () => {
     mutate({
       listId: listId as string,
       name: text,
-      query: listType === "smart" ? query : undefined,
+      query: list?.type === "smart" ? query : undefined,
     });
   };
 
@@ -54,16 +63,14 @@ const EditListPage = () => {
           <Text className="text-sm text-muted-foreground">List Type</Text>
           <View className="flex flex-row gap-2">
             <Button
-              variant={listType === "manual" ? "primary" : "secondary"}
-              onPress={() => setListType("manual")}
+              variant={list?.type === "manual" ? "primary" : "secondary"}
               className="flex-1"
               disabled
             >
               <Text>Manual</Text>
             </Button>
             <Button
-              variant={listType === "smart" ? "primary" : "secondary"}
-              onPress={() => setListType("smart")}
+              variant={list?.type === "smart" ? "primary" : "secondary"}
               className="flex-1"
               disabled
             >
@@ -78,15 +85,15 @@ const EditListPage = () => {
           <Input
             className="flex-1 bg-card"
             onChangeText={setText}
+            value={text}
             placeholder="List Name"
             autoFocus
             autoCapitalize={"none"}
-            defaultValue={list?.name}
           />
         </View>
 
         {/* Smart List Query Input */}
-        {listType === "smart" && (
+        {list?.type === "smart" && (
           <View className="gap-2">
             <Text className="text-sm text-muted-foreground">Search Query</Text>
             <Input
@@ -95,7 +102,6 @@ const EditListPage = () => {
               value={query}
               placeholder="e.g., #important OR list:work"
               autoCapitalize={"none"}
-              defaultValue={list?.type}
             />
             <Text className="text-xs italic text-muted-foreground">
               Smart lists automatically show bookmarks matching your search
