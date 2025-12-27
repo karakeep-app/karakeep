@@ -117,5 +117,6 @@ export function getReadingPosition(
     offset += normalizeTextLength(node.textContent ?? "");
   }
 
-  return { offset, anchor };
+  // topParagraph has no text nodes (empty or contains only non-text elements)
+  return null;
 }

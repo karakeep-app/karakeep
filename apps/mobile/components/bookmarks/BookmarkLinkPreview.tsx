@@ -81,11 +81,15 @@ function buildReadingProgressScript(
         }, 100);
       }
 
-      // Report on scroll end (debounced)
-      var scrollTimeout;
+      // Report on scroll (throttled to prevent jank from expensive DOM operations)
+      var lastScrollTime = 0;
       window.addEventListener('scroll', function() {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(reportProgress, 500);
+        var now = Date.now();
+        if (now - lastScrollTime < 150) {
+          return;
+        }
+        lastScrollTime = now;
+        reportProgress();
       });
 
       // Also report periodically as backup

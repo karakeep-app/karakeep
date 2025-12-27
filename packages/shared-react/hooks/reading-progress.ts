@@ -234,6 +234,8 @@ export function useReadingProgressAutoSave(
   // Update reading position on scroll
   // Store reference to scroll parent for cleanup
   const scrollParentRef = useRef<HTMLElement | Window | null>(null);
+  // Throttle scroll handler to prevent jank from expensive DOM operations
+  const lastScrollTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") {
@@ -241,6 +243,14 @@ export function useReadingProgressAutoSave(
     }
 
     const handleScroll = () => {
+      // Throttle: skip if less than 150ms since last call
+      // Position is only needed for save-on-unload, not real-time tracking
+      const now = Date.now();
+      if (now - lastScrollTimeRef.current < 150) {
+        return;
+      }
+      lastScrollTimeRef.current = now;
+
       if (containerRef.current) {
         const position = getReadingPosition(containerRef.current);
         if (position !== null && position.offset > 0) {
