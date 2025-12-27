@@ -3,16 +3,31 @@
 import { ActionButton } from "@/components/ui/action-button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
+import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -27,9 +42,10 @@ import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { useUserSettings } from "@/lib/userSettings";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Info, Plus, Save, Trash2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
@@ -50,20 +66,19 @@ function SettingsSection({
   description,
   children,
 }: {
-  title: string;
+  title?: string;
   description?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="space-y-3">
-      <div className="flex flex-col gap-1">
-        <div className="text-xl font-medium">{title}</div>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
-      </div>
-      {children}
-    </div>
+    <Card>
+      <CardHeader>
+        {title && <CardTitle>{title}</CardTitle>}
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
@@ -72,7 +87,7 @@ export function AIPreferences() {
   const clientConfig = useClientConfig();
   const settings = useUserSettings();
 
-  const { mutate: updateSettings } = useUpdateUserSettings({
+  const { mutate: updateSettings, isPending } = useUpdateUserSettings({
     onSuccess: () => {
       toast({
         description: "Settings updated successfully!",
@@ -90,6 +105,7 @@ export function AIPreferences() {
     resolver: zodResolver(zUpdateUserSettingsSchema),
     values: settings
       ? {
+          inferredTagLang: settings.inferredTagLang ?? "",
           autoTaggingEnabled: settings.autoTaggingEnabled,
           autoSummarizationEnabled: settings.autoSummarizationEnabled,
         }
@@ -99,141 +115,124 @@ export function AIPreferences() {
   const showAutoTagging = clientConfig.inference.enableAutoTagging;
   const showAutoSummarization = clientConfig.inference.enableAutoSummarization;
 
-  if (!showAutoTagging && !showAutoSummarization) {
-    return null;
-  }
+  const onSubmit = (data: z.infer<typeof zUpdateUserSettingsSchema>) => {
+    updateSettings(data);
+  };
 
   return (
-    <SettingsSection title={t("settings.ai.ai_preferences_description")}>
-      <Form {...form}>
-        <form className="space-y-3">
+    <SettingsSection title="AI preferences">
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldGroup className="gap-3">
+          <Controller
+            name="inferredTagLang"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field
+                className="rounded-lg border p-3"
+                data-invalid={fieldState.invalid}
+              >
+                <FieldContent>
+                  <FieldLabel htmlFor="inferredTagLang">
+                    {t("settings.ai.inference_language")}
+                  </FieldLabel>
+                  <FieldDescription>
+                    {t("settings.ai.inference_language_description")}
+                  </FieldDescription>
+                </FieldContent>
+                <Input
+                  {...field}
+                  id="inferredTagLang"
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value.length > 0 ? e.target.value : null,
+                    )
+                  }
+                  aria-invalid={fieldState.invalid}
+                  placeholder={`Default (${clientConfig.inference.inferredTagLang})`}
+                  type="text"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
           {showAutoTagging && (
-            <FormField
-              control={form.control}
+            <Controller
               name="autoTaggingEnabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>{t("settings.ai.auto_tagging")}</FormLabel>
-                    <FormDescription>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  className="rounded-lg border p-3"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor="autoTaggingEnabled">
+                      {t("settings.ai.auto_tagging")}
+                    </FieldLabel>
+                    <FieldDescription>
                       {t("settings.ai.auto_tagging_description")}
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value ?? true}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked);
-                        updateSettings({ autoTaggingEnabled: checked });
-                      }}
-                    />
-                  </FormControl>
-                </FormItem>
+                    </FieldDescription>
+                  </FieldContent>
+                  <Switch
+                    id="autoTaggingEnabled"
+                    name={field.name}
+                    checked={field.value ?? true}
+                    onCheckedChange={field.onChange}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           )}
 
           {showAutoSummarization && (
-            <FormField
-              control={form.control}
+            <Controller
               name="autoSummarizationEnabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>{t("settings.ai.auto_summarization")}</FormLabel>
-                    <FormDescription>
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  className="rounded-lg border p-3"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor="autoSummarizationEnabled">
+                      {t("settings.ai.auto_summarization")}
+                    </FieldLabel>
+                    <FieldDescription>
                       {t("settings.ai.auto_summarization_description")}
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value ?? true}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked);
-                        updateSettings({ autoSummarizationEnabled: checked });
-                      }}
-                    />
-                  </FormControl>
-                </FormItem>
+                    </FieldDescription>
+                  </FieldContent>
+                  <Switch
+                    id="autoSummarizationEnabled"
+                    name={field.name}
+                    checked={field.value ?? true}
+                    onCheckedChange={field.onChange}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           )}
-        </form>
-      </Form>
-    </SettingsSection>
-  );
-}
 
-export function InferenceLanguageSelector() {
-  const { t } = useTranslation();
-  const settings = useUserSettings();
-  const clientConfig = useClientConfig();
-
-  const { mutate: updateSettings, isPending: isUpdating } =
-    useUpdateUserSettings({
-      onSuccess: () => {
-        toast({
-          description: "Inference language updated successfully!",
-        });
-      },
-      onError: () => {
-        toast({
-          description: "Failed to update inference language",
-          variant: "destructive",
-        });
-      },
-    });
-
-  const languageOptions = [
-    { value: "english", label: "English" },
-    { value: "spanish", label: "Español" },
-    { value: "french", label: "Français" },
-    { value: "german", label: "Deutsch" },
-    { value: "italian", label: "Italiano" },
-    { value: "portuguese", label: "Português" },
-    { value: "russian", label: "Русский" },
-    { value: "chinese", label: "中文" },
-    { value: "japanese", label: "日本語" },
-    { value: "korean", label: "한국어" },
-    { value: "arabic", label: "العربية" },
-    { value: "hindi", label: "हिन्दी" },
-    { value: null, label: t("settings.ai.use_server_default") },
-  ] as const;
-
-  const selectedLanguage =
-    settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
-
-  return (
-    <SettingsSection
-      title={t("settings.ai.inference_language")}
-      description={t("settings.ai.inference_language_description")}
-    >
-      <div className="grid gap-2 sm:grid-cols-3">
-        {languageOptions.map((option) => (
-          <button
-            key={option.value ?? "null"}
-            type="button"
-            onClick={() => {
-              updateSettings({ inferredTagLang: option.value });
-            }}
-            disabled={isUpdating}
-            className={`rounded-lg border p-3 text-left transition-all ${
-              selectedLanguage === option.value
-                ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2"
-                : "border-border hover:bg-accent hover:text-accent-foreground"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="font-medium">{option.label}</div>
-              {selectedLanguage === option.value && (
-                <div className="flex size-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                  ✓
-                </div>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
+          <div className="flex justify-end pt-4">
+            <ActionButton type="submit" loading={isPending} variant="default">
+              <Save className="mr-2 size-4" />
+              {t("actions.save")}
+            </ActionButton>
+          </div>
+        </FieldGroup>
+      </form>
     </SettingsSection>
   );
 }
@@ -290,7 +289,7 @@ export function TagStyleSelector() {
     },
     {
       value: "as-generated",
-      label: t("settings.ai.as_generated"),
+      label: t("settings.ai.no_preference"),
       examples: ["Machine Learning", "web development", "AI_generated"],
     },
   ] as const;
@@ -302,45 +301,40 @@ export function TagStyleSelector() {
       title={t("settings.ai.tag_style")}
       description={t("settings.ai.tag_style_description")}
     >
-      <div className="grid gap-2 sm:grid-cols-2">
+      <RadioGroup
+        value={selectedStyle}
+        onValueChange={(value) => {
+          updateSettings({ tagStyle: value as typeof selectedStyle });
+        }}
+        disabled={isUpdating}
+        className="grid gap-3 sm:grid-cols-2"
+      >
         {tagStyleOptions.map((option) => (
-          <button
+          <FieldLabel
             key={option.value}
-            type="button"
-            onClick={() => {
-              updateSettings({ tagStyle: option.value });
-            }}
-            disabled={isUpdating}
-            className={`flex flex-col items-start gap-2 rounded-lg border p-3 text-left transition-all ${
-              selectedStyle === option.value
-                ? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2"
-                : "border-border hover:bg-accent hover:text-accent-foreground"
-            }`}
+            htmlFor={option.value}
+            className={cn(selectedStyle === option.value && "ring-1")}
           >
-            <div className="flex items-start gap-2">
-              <div className="flex-1 space-y-1">
-                <div className="font-medium">{option.label}</div>
+            <Field orientation="horizontal">
+              <FieldContent>
+                <FieldTitle>{option.label}</FieldTitle>
                 <div className="flex flex-wrap gap-1">
                   {option.examples.map((example) => (
                     <Badge
                       key={example}
                       variant="secondary"
-                      className="text-xs"
+                      className="text-xs font-light"
                     >
                       {example}
                     </Badge>
                   ))}
                 </div>
-              </div>
-              {selectedStyle === option.value && (
-                <div className="flex size-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                  ✓
-                </div>
-              )}
-            </div>
-          </button>
+              </FieldContent>
+              <RadioGroupItem value={option.value} id={option.value} />
+            </Field>
+          </FieldLabel>
         ))}
-      </div>
+      </RadioGroup>
     </SettingsSection>
   );
 }
@@ -588,16 +582,20 @@ export function TaggingRules() {
       title={t("settings.ai.tagging_rules")}
       description={t("settings.ai.tagging_rule_description")}
     >
-      {isLoading && <FullPageSpinner />}
       {prompts && prompts.length == 0 && (
         <div className="flex items-start gap-2 rounded-md bg-muted p-4 text-sm text-muted-foreground">
           <Info className="size-4 flex-shrink-0" />
           <p>You don&apos;t have any custom prompts yet.</p>
         </div>
       )}
-      {prompts &&
-        prompts.map((prompt) => <PromptRow key={prompt.id} prompt={prompt} />)}
-      <PromptEditor />
+      <div className="flex flex-col gap-2">
+        {isLoading && <FullPageSpinner />}
+        {prompts &&
+          prompts.map((prompt) => (
+            <PromptRow key={prompt.id} prompt={prompt} />
+          ))}
+        <PromptEditor />
+      </div>
     </SettingsSection>
   );
 }
@@ -613,11 +611,16 @@ export function PromptDemo() {
     settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
 
   return (
-    <SettingsSection title={t("settings.ai.prompt_preview")}>
-      <div className="space-y-3">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">{t("settings.ai.text_prompt")}</p>
-          <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs text-muted-foreground">
+    <SettingsSection
+      title={t("settings.ai.prompt_preview")}
+      description="Preview the actual prompts sent to AI based on your settings"
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="mb-2 text-sm font-medium">
+            {t("settings.ai.text_prompt")}
+          </p>
+          <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
             {buildTextPromptUntruncated(
               inferredTagLang,
               (prompts ?? [])
@@ -630,11 +633,11 @@ export function PromptDemo() {
             ).trim()}
           </code>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-medium">
+        <div>
+          <p className="mb-2 text-sm font-medium">
             {t("settings.ai.images_prompt")}
           </p>
-          <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs text-muted-foreground">
+          <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
             {buildImagePrompt(
               inferredTagLang,
               (prompts ?? [])
@@ -647,11 +650,11 @@ export function PromptDemo() {
             ).trim()}
           </code>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-medium">
+        <div>
+          <p className="mb-2 text-sm font-medium">
             {t("settings.ai.summarization_prompt")}
           </p>
-          <code className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs text-muted-foreground">
+          <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
             {buildSummaryPromptUntruncated(
               inferredTagLang,
               (prompts ?? [])
@@ -669,17 +672,22 @@ export function PromptDemo() {
 export default function AISettings() {
   const { t } = useTranslation();
   return (
-    <div className="space-y-4 rounded-md border bg-background p-4">
-      <div className="w-full text-2xl font-medium">
+    <div className="space-y-6">
+      <h2 className="text-3xl font-bold tracking-tight">
         {t("settings.ai.ai_settings")}
-      </div>
+      </h2>
+
+      {/* AI Preferences */}
       <AIPreferences />
-      <InferenceLanguageSelector />
+
+      {/* Tag Style */}
       <TagStyleSelector />
+
+      {/* Tagging Rules */}
       <TaggingRules />
-      <div className="border-t pt-4">
-        <PromptDemo />
-      </div>
+
+      {/* Prompt Preview */}
+      <PromptDemo />
     </div>
   );
 }
