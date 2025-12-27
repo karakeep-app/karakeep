@@ -11,6 +11,7 @@ import { useColorScheme } from "@/lib/useColorScheme";
 
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { READING_PROGRESS_CORE_JS } from "@karakeep/shared/utils/reading-progress-dom";
 
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
@@ -34,81 +35,62 @@ export function BookmarkLinkBrowserPreview({
   );
 }
 
-// JavaScript to inject into WebView for reading progress tracking
-const READING_PROGRESS_SCRIPT = `
-  (function() {
-    // Find first visible paragraph and calculate text offset
-    function getReadingPosition() {
-      const paragraphs = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote');
-      const viewportTop = 0;
-      const viewportBottom = window.innerHeight;
+/**
+ * Builds the reading progress injection script for WebView.
+ *
+ * Uses shared reading progress functions from @karakeep/shared to ensure
+ * consistent behavior between web and mobile. The shared code includes
+ * whitespace normalization and anchor text support for reliable position tracking.
+ *
+ * @param initialOffset - The saved reading position offset to restore
+ * @param initialAnchor - The saved anchor text for position verification
+ * @returns JavaScript string to inject into WebView
+ */
+function buildReadingProgressScript(
+  initialOffset: number,
+  initialAnchor: string | null,
+): string {
+  return `
+    (function() {
+      // Core reading progress functions from @karakeep/shared
+      // These are shared with the web implementation for consistency
+      ${READING_PROGRESS_CORE_JS}
 
-      for (const p of paragraphs) {
-        const rect = p.getBoundingClientRect();
-        if (rect.bottom > viewportTop && rect.top < viewportBottom) {
-          // Calculate text offset using TreeWalker
-          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-          let offset = 0;
-          let node;
-          while ((node = walker.nextNode())) {
-            if (p.contains(node)) return offset;
-            offset += (node.textContent || '').length;
-          }
+      // Report current position to React Native
+      function reportProgress() {
+        var position = getReadingPosition(document.body);
+        if (position && position.offset > 0) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'SCROLL_PROGRESS',
+            offset: position.offset,
+            anchor: position.anchor
+          }));
         }
       }
-      return null;
-    }
 
-    // Scroll to text offset position
-    function scrollToPosition(offset) {
-      if (offset <= 0) return;
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      let currentOffset = 0;
-      let node;
-      while ((node = walker.nextNode())) {
-        const nodeLength = (node.textContent || '').length;
-        if (currentOffset + nodeLength >= offset) {
-          let element = node.parentElement;
-          while (element) {
-            if (['P','H1','H2','H3','H4','H5','H6','LI','BLOCKQUOTE'].includes(element.tagName)) {
-              element.scrollIntoView({ behavior: 'instant', block: 'start' });
-              return;
-            }
-            element = element.parentElement;
-          }
-          break;
-        }
-        currentOffset += nodeLength;
+      // Restore position on load if initial offset is provided
+      var initialOffset = ${initialOffset};
+      var initialAnchor = ${JSON.stringify(initialAnchor)};
+      if (initialOffset && initialOffset > 0) {
+        setTimeout(function() {
+          scrollToReadingPosition(document.body, initialOffset, 'instant', initialAnchor);
+        }, 100);
       }
-    }
 
-    // Report current position to React Native
-    function reportProgress() {
-      const offset = getReadingPosition();
-      if (offset !== null && offset > 0) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SCROLL_PROGRESS', offset: offset }));
-      }
-    }
+      // Report on scroll end (debounced)
+      var scrollTimeout;
+      window.addEventListener('scroll', function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(reportProgress, 500);
+      });
 
-    // Restore position on load if initial offset is provided
-    var initialOffset = INITIAL_OFFSET_PLACEHOLDER;
-    if (initialOffset && initialOffset > 0) {
-      setTimeout(function() { scrollToPosition(initialOffset); }, 100);
-    }
+      // Also report periodically as backup
+      setInterval(reportProgress, 10000);
 
-    // Report on scroll end (debounced)
-    var scrollTimeout;
-    window.addEventListener('scroll', function() {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(reportProgress, 500);
-    });
-
-    // Also report periodically as backup
-    setInterval(reportProgress, 10000);
-
-    true; // Required for injectedJavaScript
-  })();
-`;
+      true; // Required for injectedJavaScript
+    })();
+  `;
+}
 
 export function BookmarkLinkReaderPreview({
   bookmark,
@@ -120,7 +102,9 @@ export function BookmarkLinkReaderPreview({
   const { data: currentUser } = useWhoAmI();
   const webViewRef = useRef<WebView>(null);
   const lastSavedOffset = useRef<number | null>(null);
-  const currentOffset = useRef<number | null>(null);
+  const currentPosition = useRef<{ offset: number; anchor: string } | null>(
+    null,
+  );
 
   const isOwner = currentUser?.id === bookmark.userId;
 
@@ -144,17 +128,20 @@ export function BookmarkLinkReaderPreview({
 
   // Save progress function
   const saveProgress = useCallback(() => {
-    if (!isOwner || currentOffset.current === null) return;
+    if (!isOwner || currentPosition.current === null) return;
+
+    const { offset, anchor } = currentPosition.current;
 
     // Only save if offset has meaningfully changed
     if (
       lastSavedOffset.current === null ||
-      Math.abs(currentOffset.current - lastSavedOffset.current) > 100
+      Math.abs(offset - lastSavedOffset.current) > 100
     ) {
-      lastSavedOffset.current = currentOffset.current;
+      lastSavedOffset.current = offset;
       updateProgress({
         bookmarkId: bookmark.id,
-        readingProgressOffset: currentOffset.current,
+        readingProgressOffset: offset,
+        readingProgressAnchor: anchor,
       });
     }
   }, [isOwner, bookmark.id, updateProgress]);
@@ -164,7 +151,10 @@ export function BookmarkLinkReaderPreview({
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === "SCROLL_PROGRESS" && typeof data.offset === "number") {
-        currentOffset.current = data.offset;
+        currentPosition.current = {
+          offset: data.offset,
+          anchor: typeof data.anchor === "string" ? data.anchor : "",
+        };
       }
     } catch {
       // Ignore parse errors
@@ -204,15 +194,14 @@ export function BookmarkLinkReaderPreview({
   const fontSize = readerSettings.fontSize;
   const lineHeight = readerSettings.lineHeight;
 
-  // Get initial offset for restoration
+  // Get initial position for restoration
   const initialOffset = bookmarkWithContent.content.readingProgressOffset ?? 0;
+  const initialAnchor =
+    bookmarkWithContent.content.readingProgressAnchor ?? null;
 
-  // Inject the reading progress script with the initial offset
+  // Build the reading progress script with initial position
   const injectedJS = isOwner
-    ? READING_PROGRESS_SCRIPT.replace(
-        "INITIAL_OFFSET_PLACEHOLDER",
-        String(initialOffset),
-      )
+    ? buildReadingProgressScript(initialOffset, initialAnchor)
     : "true;";
 
   return (
