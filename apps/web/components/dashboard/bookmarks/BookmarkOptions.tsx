@@ -48,6 +48,30 @@ import { EditBookmarkDialog } from "./EditBookmarkDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
 import { useManageListsModal } from "./ManageListsModal";
 
+interface ActionItem {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  visible: boolean;
+  disabled: boolean;
+  className?: string;
+  onClick: () => void;
+}
+
+interface SubsectionItem {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  visible: boolean;
+  items: ActionItem[];
+}
+
+type ActionItemType = ActionItem | SubsectionItem;
+
+function isSubsectionItem(item: ActionItemType): item is SubsectionItem {
+  return "items" in item;
+}
+
 export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -134,7 +158,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   });
 
   // Define action items array
-  const actionItems = [
+  const actionItems: ActionItemType[] = [
     {
       id: "edit",
       title: t("actions.edit"),
@@ -214,14 +238,15 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
       id: "remove-from-list",
       title: t("actions.remove_from_list"),
       icon: <ListX className="mr-2 size-4" />,
-      visible:
+      visible: Boolean(
         (isOwner ||
           (withinListContext &&
             (withinListContext.userRole === "editor" ||
               withinListContext.userRole === "owner"))) &&
-        !!listId &&
-        !!withinListContext &&
-        withinListContext.type === "manual",
+          !!listId &&
+          !!withinListContext &&
+          withinListContext.type === "manual",
+      ),
       disabled: demoMode,
       onClick: () =>
         removeFromListMutator.mutate({
@@ -238,6 +263,40 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
       onClick: () => crawlBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
     },
     {
+      id: "offline-copies",
+      title: t("actions.offline_copies"),
+      icon: <Archive className="mr-2 size-4" />,
+      visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
+      items: [
+        {
+          id: "download-full-page",
+          title: t("actions.download_full_page_archive"),
+          icon: <FileDown className="mr-2 size-4" />,
+          visible: true,
+          disabled: demoMode,
+          onClick: () => {
+            fullPageArchiveBookmarkMutator.mutate({
+              bookmarkId: bookmark.id,
+              archiveFullPage: true,
+            });
+          },
+        },
+        {
+          id: "preserve-pdf",
+          title: t("actions.preserve_as_pdf"),
+          icon: <FileText className="mr-2 size-4" />,
+          visible: true,
+          disabled: demoMode,
+          onClick: () => {
+            preservePdfMutator.mutate({
+              bookmarkId: bookmark.id,
+              storePdf: true,
+            });
+          },
+        },
+      ],
+    },
+    {
       id: "delete",
       title: t("actions.delete"),
       icon: <Trash2 className="mr-2 size-4" />,
@@ -249,7 +308,12 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   ];
 
   // Filter visible items
-  const visibleItems = actionItems.filter((item) => item.visible);
+  const visibleItems: ActionItemType[] = actionItems.filter((item) => {
+    if (isSubsectionItem(item)) {
+      return item.visible && item.items.some((subItem) => subItem.visible);
+    }
+    return item.visible;
+  });
 
   // If no items are visible, don't render the dropdown
   if (visibleItems.length === 0) {
@@ -284,9 +348,36 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-fit">
-          {visibleItems
-            .filter((item) => item.id !== "delete")
-            .map((item) => (
+          {visibleItems.map((item) => {
+            if (isSubsectionItem(item)) {
+              const visibleSubItems = item.items.filter(
+                (subItem) => subItem.visible,
+              );
+              if (visibleSubItems.length === 0) {
+                return null;
+              }
+              return (
+                <DropdownMenuSub key={item.id}>
+                  <DropdownMenuSubTrigger>
+                    {item.icon}
+                    <span>{item.title}</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {visibleSubItems.map((subItem) => (
+                      <DropdownMenuItem
+                        key={subItem.id}
+                        disabled={subItem.disabled}
+                        onClick={subItem.onClick}
+                      >
+                        {subItem.icon}
+                        <span>{subItem.title}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              );
+            }
+            return (
               <DropdownMenuItem
                 key={item.id}
                 disabled={item.disabled}
@@ -296,52 +387,8 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
                 {item.icon}
                 <span>{item.title}</span>
               </DropdownMenuItem>
-            ))}
-          {isOwner && bookmark.content.type === BookmarkTypes.LINK && (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Archive className="mr-2 size-4" />
-                <span>{t("actions.offline_copies")}</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() => {
-                    fullPageArchiveBookmarkMutator.mutate({
-                      bookmarkId: bookmark.id,
-                      archiveFullPage: true,
-                    });
-                  }}
-                >
-                  <FileDown className="mr-2 size-4" />
-                  <span>{t("actions.download_full_page_archive")}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    preservePdfMutator.mutate({
-                      bookmarkId: bookmark.id,
-                      storePdf: true,
-                    });
-                  }}
-                >
-                  <FileText className="mr-2 size-4" />
-                  <span>{t("actions.preserve_as_pdf")}</span>
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          )}
-          {visibleItems
-            .filter((item) => item.id === "delete")
-            .map((item) => (
-              <DropdownMenuItem
-                key={item.id}
-                disabled={item.disabled}
-                className={item.className}
-                onClick={item.onClick}
-              >
-                {item.icon}
-                <span>{item.title}</span>
-              </DropdownMenuItem>
-            ))}
+            );
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
