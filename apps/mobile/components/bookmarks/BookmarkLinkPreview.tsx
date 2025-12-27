@@ -72,14 +72,15 @@ function buildReadingProgressScript(
         }
       }
 
-      // Restore position on load if initial offset is provided
+      // Restore position immediately (no setTimeout needed for inline HTML -
+      // DOM is ready when injectedJavaScript runs)
       var initialOffset = ${initialOffset};
       var initialAnchor = ${JSON.stringify(initialAnchor)};
       if (initialOffset && initialOffset > 0) {
-        setTimeout(function() {
-          scrollToReadingPosition(document.body, initialOffset, 'instant', initialAnchor);
-        }, 100);
+        scrollToReadingPosition(document.body, initialOffset, 'instant', initialAnchor);
       }
+      // Show content after scroll restoration (or immediately if no scroll needed)
+      document.body.style.opacity = '1';
 
       // Report on scroll (throttled to prevent jank from expensive DOM operations)
       var lastScrollTime = 0;
@@ -107,7 +108,7 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
-  const { data: currentUser } = useWhoAmI();
+  const { data: currentUser, isLoading: isUserLoading } = useWhoAmI();
   const webViewRef = useRef<WebView>(null);
   const lastSavedOffset = useRef<number | null>(null);
   const currentPosition = useRef<{ offset: number; anchor: string } | null>(
@@ -186,7 +187,7 @@ export function BookmarkLinkReaderPreview({
     };
   }, [isOwner, saveProgress]);
 
-  if (isLoading) {
+  if (isLoading || isUserLoading) {
     return <FullPageSpinner />;
   }
 
@@ -232,6 +233,7 @@ export function BookmarkLinkReaderPreview({
                       margin: 0;
                       padding: 16px;
                       background: ${isDark ? "#000000" : "#ffffff"};
+                      ${isOwner && initialOffset > 0 ? "opacity: 0;" : ""}
                     }
                     p { margin: 0 0 1em 0; }
                     h1, h2, h3, h4, h5, h6 { margin: 1.5em 0 0.5em 0; line-height: 1.2; }
