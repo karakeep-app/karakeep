@@ -21,6 +21,7 @@ const SRC_FILE = path.join(
   __dirname,
   "../utils/reading-progress-webview-src.ts",
 );
+const CORE_FILE = path.join(__dirname, "../utils/reading-progress-core.ts");
 const OUT_FILE = path.join(
   __dirname,
   "../utils/reading-progress-webview.generated.ts",
@@ -101,7 +102,17 @@ async function watch() {
   // Watch for changes
   fs.watch(SRC_FILE, async (eventType) => {
     if (eventType === "change") {
-      console.log("\nFile changed, rebuilding...");
+      console.log("\nSource file changed, rebuilding...");
+      try {
+        await build();
+      } catch (err) {
+        console.error("Build error:", err);
+      }
+    }
+  });
+  fs.watch(CORE_FILE, async (eventType) => {
+    if (eventType === "change") {
+      console.log("\nCore file changed, rebuilding...");
       try {
         await build();
       } catch (err) {
