@@ -208,7 +208,7 @@ export default function BookmarkPreview({
 
   return (
     <>
-      {/* Desktop layout - hidden on mobile */}
+      {/* Render original layout for wide screens */}
       <div className="hidden h-full grid-cols-3 overflow-hidden bg-background lg:grid">
         <div className="col-span-2 h-full w-full overflow-auto p-2">
           {contentSection}
@@ -217,7 +217,7 @@ export default function BookmarkPreview({
           {detailsSection}
         </div>
       </div>
-      {/* Mobile layout - hidden on desktop */}
+      {/* Render tabbed layout for narrow/vertical screens */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
