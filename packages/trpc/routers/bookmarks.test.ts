@@ -933,4 +933,161 @@ describe("Bookmark Routes", () => {
       );
     });
   });
+
+  describe("Reading Progress", () => {
+    test<CustomTestContext>("saves reading progress and retrieves it with getBookmark", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      // Create a link bookmark
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Save reading progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 1500,
+        readingProgressAnchor: "This is the anchor text for verification",
+      });
+
+      // Retrieve and verify progress is included
+      const retrieved = await api.getBookmark({ bookmarkId: bookmark.id });
+      assert(retrieved.content.type === BookmarkTypes.LINK);
+      expect(retrieved.content.readingProgressOffset).toBe(1500);
+      expect(retrieved.content.readingProgressAnchor).toBe(
+        "This is the anchor text for verification",
+      );
+    });
+
+    test<CustomTestContext>("updates existing progress (upsert behavior)", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Save initial progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 500,
+        readingProgressAnchor: "First anchor",
+      });
+
+      // Update progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 2000,
+        readingProgressAnchor: "Updated anchor",
+      });
+
+      // Verify updated values
+      const retrieved = await api.getBookmark({ bookmarkId: bookmark.id });
+      assert(retrieved.content.type === BookmarkTypes.LINK);
+      expect(retrieved.content.readingProgressOffset).toBe(2000);
+      expect(retrieved.content.readingProgressAnchor).toBe("Updated anchor");
+    });
+
+    test<CustomTestContext>("two users have independent progress on same bookmark", async ({
+      apiCallers,
+    }) => {
+      const api1 = apiCallers[0].bookmarks;
+      const api2 = apiCallers[1].bookmarks;
+
+      // User 1 creates a bookmark
+      const bookmark = await api1.createBookmark({
+        url: "https://example.com/shared-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // User 1 saves progress at position 1000
+      await api1.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 1000,
+        readingProgressAnchor: "User 1 anchor",
+      });
+
+      // User 2 creates the same bookmark (different bookmark ID, same URL)
+      const bookmark2 = await api2.createBookmark({
+        url: "https://example.com/shared-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // User 2 saves progress at position 3000
+      await api2.updateReadingProgress({
+        bookmarkId: bookmark2.id,
+        readingProgressOffset: 3000,
+        readingProgressAnchor: "User 2 anchor",
+      });
+
+      // Verify each user sees their own progress
+      const retrieved1 = await api1.getBookmark({ bookmarkId: bookmark.id });
+      const retrieved2 = await api2.getBookmark({ bookmarkId: bookmark2.id });
+
+      assert(retrieved1.content.type === BookmarkTypes.LINK);
+      assert(retrieved2.content.type === BookmarkTypes.LINK);
+
+      expect(retrieved1.content.readingProgressOffset).toBe(1000);
+      expect(retrieved1.content.readingProgressAnchor).toBe("User 1 anchor");
+
+      expect(retrieved2.content.readingProgressOffset).toBe(3000);
+      expect(retrieved2.content.readingProgressAnchor).toBe("User 2 anchor");
+    });
+
+    test<CustomTestContext>("rejects reading progress on TEXT bookmark", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      const bookmark = await api.createBookmark({
+        text: "Some text content",
+        type: BookmarkTypes.TEXT,
+      });
+
+      await expect(() =>
+        api.updateReadingProgress({
+          bookmarkId: bookmark.id,
+          readingProgressOffset: 100,
+        }),
+      ).rejects.toThrow(
+        /Reading progress can only be saved for link bookmarks/,
+      );
+    });
+
+    test<CustomTestContext>("reading progress is deleted when bookmark is deleted", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/to-delete",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Save reading progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 500,
+        readingProgressAnchor: "Will be deleted",
+      });
+
+      // Verify progress exists
+      const retrieved = await api.getBookmark({ bookmarkId: bookmark.id });
+      assert(retrieved.content.type === BookmarkTypes.LINK);
+      expect(retrieved.content.readingProgressOffset).toBe(500);
+
+      // Delete the bookmark
+      await api.deleteBookmark({ bookmarkId: bookmark.id });
+
+      // Verify bookmark is gone (and implicitly, the progress cascade deleted)
+      await expect(() =>
+        api.getBookmark({ bookmarkId: bookmark.id }),
+      ).rejects.toThrow(/Bookmark not found/);
+    });
+  });
 });
