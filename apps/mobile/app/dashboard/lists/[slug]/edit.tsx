@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { dismiss } from "expo-router/build/global-state/routing";
+import { router, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Input } from "@/components/ui/Input";
@@ -26,6 +25,9 @@ const EditListPage = () => {
     },
   });
   const { toast } = useToast();
+  const dismiss = () => {
+    router.back();
+  };
 
   const onSubmit = () => {
     // Validate smart list has a query
