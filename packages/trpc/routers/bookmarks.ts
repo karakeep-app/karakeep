@@ -595,6 +595,17 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkAccess)
     .mutation(async ({ input, ctx }) => {
+      // Validate this is a LINK bookmark - reading progress only applies to links
+      const linkBookmark = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+      });
+      if (!linkBookmark) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Reading progress can only be saved for link bookmarks",
+        });
+      }
+
       await ctx.db
         .insert(userReadingProgress)
         .values({
