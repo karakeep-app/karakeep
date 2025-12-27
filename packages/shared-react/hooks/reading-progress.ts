@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 import {
   findScrollableParent,
   getReadingPosition,
   scrollToReadingPosition,
 } from "@karakeep/shared/utils/reading-progress-dom";
-import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 
 import { api } from "../trpc";
 
