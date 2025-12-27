@@ -168,18 +168,17 @@ export function useReadingProgress(
     (position: ReadingPosition) => {
       if (!enabled) return;
 
-      // Only save if offset has meaningfully changed (>100 chars difference)
-      if (
-        lastSavedOffset.current === null ||
-        Math.abs(position.offset - lastSavedOffset.current) > 100
-      ) {
-        lastSavedOffset.current = position.offset;
-        updateProgress({
-          bookmarkId,
-          readingProgressOffset: position.offset,
-          readingProgressAnchor: position.anchor,
-        });
+      // Skip if offset hasn't changed at all
+      if (lastSavedOffset.current === position.offset) {
+        return;
       }
+
+      lastSavedOffset.current = position.offset;
+      updateProgress({
+        bookmarkId,
+        readingProgressOffset: position.offset,
+        readingProgressAnchor: position.anchor,
+      });
     },
     [enabled, bookmarkId, updateProgress],
   );
