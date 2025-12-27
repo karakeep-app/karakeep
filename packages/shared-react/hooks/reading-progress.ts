@@ -12,41 +12,6 @@ import {
 
 import { api } from "../trpc";
 
-/**
- * Module-level lock to prevent concurrent restoration attempts.
- * Maps bookmarkId -> timestamp when restoration was claimed.
- * This handles both StrictMode double-mounting AND multiple component instances.
- */
-const restorationClaimed = new Map<string, number>();
-
-/**
- * Try to claim restoration for a bookmark. Returns true if we got the claim.
- * Claims expire after 5 seconds to handle edge cases.
- */
-function claimRestoration(bookmarkId: string): boolean {
-  const existing = restorationClaimed.get(bookmarkId);
-  const now = Date.now();
-
-  // Clean up expired claims (5 seconds should be plenty for restoration to complete)
-  if (existing && now - existing > 5000) {
-    restorationClaimed.delete(bookmarkId);
-  }
-
-  if (restorationClaimed.has(bookmarkId)) {
-    return false;
-  }
-
-  restorationClaimed.set(bookmarkId, now);
-  return true;
-}
-
-/**
- * Release a restoration claim (called on cleanup if we never actually restored).
- */
-function releaseRestoration(bookmarkId: string): void {
-  restorationClaimed.delete(bookmarkId);
-}
-
 // Re-export ReadingPosition type for consumers
 export type { ReadingPosition };
 
@@ -234,8 +199,6 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
   }, [enabled, containerRef]);
 
   // Effect 3: Restore position on mount with exponential backoff
-  const hasLockRef = useRef(false);
-
   useEffect(() => {
     if (!enabled || !initialOffset) return;
 
@@ -258,8 +221,6 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
           : scrollParent.scrollHeight > scrollParent.clientHeight);
 
       if (container && isLayoutReady) {
-        if (!hasLockRef.current && !claimRestoration(bookmarkId)) return;
-        hasLockRef.current = true;
         scrollToReadingPosition(
           container,
           initialOffset,
@@ -279,10 +240,6 @@ export function useReadingProgress(options: UseReadingProgressOptions): void {
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
-      if (hasLockRef.current) {
-        releaseRestoration(bookmarkId);
-        hasLockRef.current = false;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, initialOffset, bookmarkId]);
