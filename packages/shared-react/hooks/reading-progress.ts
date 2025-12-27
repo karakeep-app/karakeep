@@ -128,67 +128,52 @@ export function useReadingProgress(
       : null,
   );
 
-  // Scroll tracking
-  const scrollParentRef = useRef<HTMLElement | Window | null>(null);
+  // Scroll tracking - waits for contentReady and checks visibility
+  // (element may be mounted but hidden via CSS, e.g., inactive tab)
   const lastScrollTimeRef = useRef<number>(0);
   useEffect(() => {
-    if (!enabled || typeof window === "undefined") return;
+    if (!enabled || !contentReady || typeof window === "undefined") return;
+
+    const container = containerRef.current;
+    if (!container || !isElementVisible(container)) return;
 
     const handleScroll = () => {
       const now = Date.now();
       if (now - lastScrollTimeRef.current < 150) return;
       lastScrollTimeRef.current = now;
 
-      if (containerRef.current) {
-        const position = getReadingPosition(containerRef.current);
-        if (position !== null && position.offset > 0) {
-          lastKnownPositionRef.current = position;
-        }
+      const position = getReadingPosition(container);
+      if (position !== null && position.offset > 0) {
+        lastKnownPositionRef.current = position;
       }
     };
 
-    const setupScrollListener = () => {
-      if (!containerRef.current) return false;
-      if (!isElementVisible(containerRef.current)) return true;
+    const foundParent = findScrollableParent(container);
+    const isWindowScroll = foundParent === document.documentElement;
+    const scrollParent: HTMLElement | Window = isWindowScroll
+      ? window
+      : foundParent;
 
-      const foundParent = findScrollableParent(containerRef.current);
-      const isWindowScroll = foundParent === document.documentElement;
-      const scrollParent: HTMLElement | Window = isWindowScroll
-        ? window
-        : foundParent;
-
-      scrollParent.addEventListener("scroll", handleScroll, { passive: true });
-      scrollParentRef.current = scrollParent;
-      return true;
-    };
-
-    const immediate = setupScrollListener();
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    if (!immediate) {
-      retryTimer = setTimeout(setupScrollListener, 300);
-    }
+    scrollParent.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      if (scrollParentRef.current) {
-        scrollParentRef.current.removeEventListener("scroll", handleScroll);
-        scrollParentRef.current = null;
-      }
+      scrollParent.removeEventListener("scroll", handleScroll);
     };
-  }, [enabled, containerRef]);
+  }, [enabled, contentReady, containerRef]);
 
-  // Auto-save on visibility change and beforeunload
-  const autoSaveAttachedRef = useRef(false);
+  // Auto-save on visibility change, beforeunload, and unmount
+  // Also checks element visibility (may be hidden via CSS in inactive tab)
   useEffect(() => {
-    if (!enabled || typeof window === "undefined") return;
+    if (!enabled || !contentReady || typeof window === "undefined") return;
+
+    const container = containerRef.current;
+    if (!container || !isElementVisible(container)) return;
 
     const saveCurrentProgress = () => {
       let positionToSave = lastKnownPositionRef.current;
-      if (containerRef.current) {
-        const freshPosition = getReadingPosition(containerRef.current);
-        if (freshPosition !== null && freshPosition.offset > 0) {
-          positionToSave = freshPosition;
-        }
+      const freshPosition = getReadingPosition(container);
+      if (freshPosition !== null && freshPosition.offset > 0) {
+        positionToSave = freshPosition;
       }
       if (positionToSave !== null && positionToSave.offset > 0) {
         savePositionRef.current(positionToSave);
@@ -205,48 +190,32 @@ export function useReadingProgress(
       saveCurrentProgress();
     };
 
-    const setupAutoSave = () => {
-      if (!containerRef.current) return false;
-      if (!isElementVisible(containerRef.current)) return true;
-
-      window.addEventListener("visibilitychange", handleVisibilityChange);
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      autoSaveAttachedRef.current = true;
-      return true;
-    };
-
-    const immediate = setupAutoSave();
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    if (!immediate) {
-      retryTimer = setTimeout(setupAutoSave, 300);
-    }
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      if (autoSaveAttachedRef.current) {
-        saveCurrentProgress();
-        window.removeEventListener("visibilitychange", handleVisibilityChange);
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-        autoSaveAttachedRef.current = false;
-      }
+      saveCurrentProgress();
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [enabled, containerRef]);
+  }, [enabled, contentReady, containerRef]);
 
-  // Restore position when content is ready
+  // Restore position when content is ready and visible
   useEffect(() => {
     if (!enabled || !initialOffset || !contentReady) return;
 
-    const tryRestore = () => {
-      const container = containerRef.current;
-      if (!container || !isElementVisible(container)) return false;
+    const container = containerRef.current;
+    if (!container || !isElementVisible(container)) {
+      setIsReady(true);
+      return;
+    }
 
+    const tryRestore = () => {
       const scrollParent = findScrollableParent(container);
       const isWindowScroll = scrollParent === document.documentElement;
-      const isLayoutReady =
-        scrollParent &&
-        (isWindowScroll
-          ? document.body.scrollHeight > window.innerHeight
-          : scrollParent.scrollHeight > scrollParent.clientHeight);
+      const isLayoutReady = isWindowScroll
+        ? document.body.scrollHeight > window.innerHeight
+        : scrollParent.scrollHeight > scrollParent.clientHeight;
 
       if (isLayoutReady) {
         scrollToReadingPosition(
@@ -276,17 +245,9 @@ export function useReadingProgress(
     return () => {
       cancelAnimationFrame(rafId);
       // Always mark ready on cleanup to prevent stuck hidden state
-      // This handles cases where effect re-runs before RAF fires
       setIsReady(true);
     };
-  }, [
-    enabled,
-    initialOffset,
-    contentReady,
-    bookmarkId,
-    initialAnchor,
-    containerRef,
-  ]);
+  }, [enabled, initialOffset, contentReady, initialAnchor, containerRef]);
 
   return { isReady };
 }

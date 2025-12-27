@@ -134,31 +134,34 @@ export function scrollToReadingPosition(
       container.querySelectorAll(PARAGRAPH_SELECTOR_STRING),
     );
 
-    // Exact match first
+    let fuzzyMatch: Element | null = null;
+    const anchorPrefix = anchor.slice(0, 20);
+
     for (const paragraph of paragraphs) {
       const paragraphAnchor = normalizeText(paragraph.textContent ?? "").slice(
         0,
         ANCHOR_TEXT_MAX_LENGTH,
       );
+
+      // Exact match - immediate return
       if (paragraphAnchor === anchor) {
         paragraph.scrollIntoView({ behavior, block: "start" });
         return true;
       }
+
+      // Track first fuzzy match for fallback (first 20 chars match)
+      if (
+        !fuzzyMatch &&
+        anchor.length >= 20 &&
+        paragraphAnchor.startsWith(anchorPrefix)
+      ) {
+        fuzzyMatch = paragraph;
+      }
     }
 
-    // Fuzzy fallback: check if first 20 chars match
-    for (const paragraph of paragraphs) {
-      const paragraphAnchor = normalizeText(paragraph.textContent ?? "").slice(
-        0,
-        ANCHOR_TEXT_MAX_LENGTH,
-      );
-      if (
-        paragraphAnchor.slice(0, 20) === anchor.slice(0, 20) &&
-        anchor.length >= 20
-      ) {
-        paragraph.scrollIntoView({ behavior, block: "start" });
-        return true;
-      }
+    if (fuzzyMatch) {
+      fuzzyMatch.scrollIntoView({ behavior, block: "start" });
+      return true;
     }
   }
 
