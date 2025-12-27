@@ -21,13 +21,13 @@ export function BookmarkedTextEditor({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-[80%]">
+      <DialogContent className="max-w-[100%] *:max-w-[95%] md:max-w-[80%]">
         <DialogHeader className="flex">
           <DialogTitle className="w-fit">
             {isNewBookmark ? "New Note" : "Edit Note"}
           </DialogTitle>
         </DialogHeader>
-        <div className="h-[80vh]">
+        <div className="h-[80vh] min-w-[100%]">
           <BookmarkMarkdownComponent readOnly={false}>
             {bookmark as ZBookmarkTypeText}
           </BookmarkMarkdownComponent>
