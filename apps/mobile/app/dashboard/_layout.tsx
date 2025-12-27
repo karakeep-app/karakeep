@@ -110,6 +110,15 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="lists/[slug]/edit"
+        options={{
+          headerTitle: "Edit List",
+          headerBackTitle: "Back",
+          headerTransparent: true,
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
         name="archive"
         options={{
           headerTitle: "",
