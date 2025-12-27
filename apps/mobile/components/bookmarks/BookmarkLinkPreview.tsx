@@ -11,7 +11,7 @@ import { useColorScheme } from "@/lib/useColorScheme";
 
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
-import { READING_PROGRESS_CORE_JS } from "@karakeep/shared/utils/reading-progress-dom";
+import { READING_PROGRESS_WEBVIEW_JS } from "@karakeep/shared/utils/reading-progress-webview.generated";
 
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
@@ -52,9 +52,13 @@ function buildReadingProgressScript(
 ): string {
   return `
     (function() {
-      // Core reading progress functions from @karakeep/shared
+      // Core reading progress functions from @karakeep/shared (bundled IIFE)
       // These are shared with the web implementation for consistency
-      ${READING_PROGRESS_CORE_JS}
+      ${READING_PROGRESS_WEBVIEW_JS}
+
+      // Extract functions from the IIFE global
+      var getReadingPosition = __readingProgress.getReadingPosition;
+      var scrollToReadingPosition = __readingProgress.scrollToReadingPosition;
 
       // Report current position to React Native
       function reportProgress() {

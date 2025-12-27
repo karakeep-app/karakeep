@@ -1,3 +1,4 @@
 pnpm preflight
 pnpm exec sherif
 pnpm run --filter @karakeep/open-api check
+pnpm run --filter @karakeep/shared check:webview-js
