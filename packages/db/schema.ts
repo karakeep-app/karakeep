@@ -356,6 +356,32 @@ export const highlights = sqliteTable(
   ],
 );
 
+export const userReadingProgress = sqliteTable(
+  "userReadingProgress",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, {
+        onDelete: "cascade",
+      }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    readingProgressOffset: integer("readingProgressOffset").notNull(),
+    readingProgressAnchor: text("readingProgressAnchor"),
+    modifiedAt: modifiedAtField(),
+  },
+  (tb) => [
+    unique().on(tb.bookmarkId, tb.userId),
+    index("userReadingProgress_bookmarkId_idx").on(tb.bookmarkId),
+    index("userReadingProgress_userId_idx").on(tb.userId),
+  ],
+);
+
 export const bookmarkTexts = sqliteTable("bookmarkTexts", {
   id: text("id")
     .notNull()
@@ -1106,3 +1132,17 @@ export const backupsRelations = relations(backupsTable, ({ one }) => ({
     references: [assets.id],
   }),
 }));
+
+export const userReadingProgressRelations = relations(
+  userReadingProgress,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [userReadingProgress.bookmarkId],
+      references: [bookmarks.id],
+    }),
+    user: one(users, {
+      fields: [userReadingProgress.userId],
+      references: [users.id],
+    }),
+  }),
+);

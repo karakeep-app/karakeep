@@ -14,6 +14,7 @@ import {
   bookmarkTexts,
   customPrompts,
   tagsOnBookmarks,
+  userReadingProgress,
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
@@ -43,6 +44,7 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
+import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-core";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
@@ -585,6 +587,43 @@ export const bookmarksAppRouter = router({
         },
       );
     }),
+  updateReadingProgress: authedProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        readingProgressOffset: z.number().int().nonnegative(),
+        readingProgressAnchor: z.string().max(ANCHOR_TEXT_MAX_LENGTH).nullish(),
+      }),
+    )
+    .use(ensureBookmarkAccess)
+    .mutation(async ({ input, ctx }) => {
+      // Validate this is a LINK bookmark - reading progress only applies to links
+      const linkBookmark = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+      });
+      if (!linkBookmark) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Reading progress can only be saved for link bookmarks",
+        });
+      }
+
+      await ctx.db
+        .insert(userReadingProgress)
+        .values({
+          bookmarkId: input.bookmarkId,
+          userId: ctx.user.id,
+          readingProgressOffset: input.readingProgressOffset,
+          readingProgressAnchor: input.readingProgressAnchor ?? null,
+        })
+        .onConflictDoUpdate({
+          target: [userReadingProgress.bookmarkId, userReadingProgress.userId],
+          set: {
+            readingProgressOffset: input.readingProgressOffset,
+            readingProgressAnchor: input.readingProgressAnchor ?? null,
+          },
+        });
+    }),
   getBookmark: authedProcedure
     .input(
       z.object({
@@ -595,9 +634,28 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
-      return (
-        await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
-      ).asZBookmark();
+      const bookmark = await Bookmark.fromId(
+        ctx,
+        input.bookmarkId,
+        input.includeContent,
+      );
+      const zBookmark = bookmark.asZBookmark();
+
+      // Fetch user's reading progress if this is a link
+      if (zBookmark.content.type === BookmarkTypes.LINK) {
+        const progress = await ctx.db.query.userReadingProgress.findFirst({
+          where: and(
+            eq(userReadingProgress.bookmarkId, input.bookmarkId),
+            eq(userReadingProgress.userId, ctx.user.id),
+          ),
+        });
+        zBookmark.content.readingProgressOffset =
+          progress?.readingProgressOffset ?? null;
+        zBookmark.content.readingProgressAnchor =
+          progress?.readingProgressAnchor ?? null;
+      }
+
+      return zBookmark;
     }),
   searchBookmarks: authedProcedure
     .input(zSearchBookmarksRequestSchema)
