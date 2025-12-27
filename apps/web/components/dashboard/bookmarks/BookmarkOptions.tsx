@@ -284,22 +284,24 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-fit">
-          {visibleItems.map((item) => (
-            <DropdownMenuItem
-              key={item.id}
-              disabled={item.disabled}
-              className={item.className}
-              onClick={item.onClick}
-            >
-              {item.icon}
-              <span>{item.title}</span>
-            </DropdownMenuItem>
-          ))}
+          {visibleItems
+            .filter((item) => item.id !== "delete")
+            .map((item) => (
+              <DropdownMenuItem
+                key={item.id}
+                disabled={item.disabled}
+                className={item.className}
+                onClick={item.onClick}
+              >
+                {item.icon}
+                <span>{item.title}</span>
+              </DropdownMenuItem>
+            ))}
           {isOwner && bookmark.content.type === BookmarkTypes.LINK && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Archive className="mr-2 size-4" />
-                <span>{t("actions.offline_preservation")}</span>
+                <span>{t("actions.offline_copies")}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
@@ -327,6 +329,19 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
+          {visibleItems
+            .filter((item) => item.id === "delete")
+            .map((item) => (
+              <DropdownMenuItem
+                key={item.id}
+                disabled={item.disabled}
+                className={item.className}
+                onClick={item.onClick}
+              >
+                {item.icon}
+                <span>{item.title}</span>
+              </DropdownMenuItem>
+            ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
