@@ -38,7 +38,7 @@ export const LinkCrawlerQueue = QUEUE_CLIENT.createQueue<ZCrawlLinkRequest>(
 // Inference Worker
 export const zOpenAIRequestSchema = z.object({
   bookmarkId: z.string(),
-  type: z.enum(["summarize", "tag"]).default("tag"),
+  type: z.enum(["summarize", "tag", "embedding"]).default("tag"),
 });
 export type ZOpenAIRequest = z.infer<typeof zOpenAIRequestSchema>;
 
@@ -56,8 +56,10 @@ export const OpenAIQueue = QUEUE_CLIENT.createQueue<ZOpenAIRequest>(
 export const zSearchIndexingRequestSchema = z.object({
   bookmarkId: z.string(),
   type: z.enum(["index", "delete"]),
+  indexEmbedding: z.boolean().optional().default(false),
 });
-export type ZSearchIndexingRequest = z.infer<
+// Use z.input to allow omitting optional fields when enqueuing
+export type ZSearchIndexingRequest = z.input<
   typeof zSearchIndexingRequestSchema
 >;
 export const SearchIndexingQueue =
@@ -107,15 +109,19 @@ export const AdminMaintenanceQueue =
 export async function triggerSearchReindex(
   bookmarkId: string,
   opts?: Omit<EnqueueOptions, "idempotencyKey">,
+  indexEmbedding = false,
 ) {
   await SearchIndexingQueue.enqueue(
     {
       bookmarkId,
       type: "index",
+      indexEmbedding,
     },
     {
       ...opts,
-      idempotencyKey: `index:${bookmarkId}`,
+      idempotencyKey: indexEmbedding
+        ? `index-with-embedding:${bookmarkId}`
+        : `index:${bookmarkId}`,
     },
   );
 }
@@ -251,67 +257,19 @@ export const BackupQueue = QUEUE_CLIENT.createQueue<ZBackupRequest>(
   },
 );
 
-// Embeddings Generation Worker
-export const zEmbeddingsRequestSchema = z.object({
-  bookmarkId: z.string(),
-});
-export type ZEmbeddingsRequest = z.infer<typeof zEmbeddingsRequestSchema>;
-export const EmbeddingsQueue = QUEUE_CLIENT.createQueue<ZEmbeddingsRequest>(
-  "embeddings_queue",
-  {
-    defaultJobArgs: {
-      numRetries: 3,
-    },
-    keepFailedJobs: false,
-  },
-);
-
+// Embeddings Generation - uses OpenAIQueue with type "embedding"
 export async function triggerEmbeddingsGeneration(
   bookmarkId: string,
   opts?: Omit<EnqueueOptions, "idempotencyKey">,
 ) {
-  await EmbeddingsQueue.enqueue(
+  await OpenAIQueue.enqueue(
     {
       bookmarkId,
+      type: "embedding",
     },
     {
       ...opts,
-      idempotencyKey: `embeddings:${bookmarkId}`,
-    },
-  );
-}
-
-// Embeddings Indexing Worker
-export const zEmbeddingsIndexingRequestSchema = z.object({
-  bookmarkId: z.string(),
-  type: z.enum(["index", "delete"]),
-});
-export type ZEmbeddingsIndexingRequest = z.infer<
-  typeof zEmbeddingsIndexingRequestSchema
->;
-export const EmbeddingsIndexingQueue =
-  QUEUE_CLIENT.createQueue<ZEmbeddingsIndexingRequest>(
-    "embeddings_indexing_queue",
-    {
-      defaultJobArgs: {
-        numRetries: 5,
-      },
-      keepFailedJobs: false,
-    },
-  );
-
-export async function triggerEmbeddingsIndexing(
-  bookmarkId: string,
-  opts?: Omit<EnqueueOptions, "idempotencyKey">,
-) {
-  await EmbeddingsIndexingQueue.enqueue(
-    {
-      bookmarkId,
-      type: "index",
-    },
-    {
-      ...opts,
-      idempotencyKey: `embeddings-index:${bookmarkId}`,
+      idempotencyKey: `embedding:${bookmarkId}`,
     },
   );
 }

@@ -3,7 +3,7 @@ import { workerStatsCounter } from "metrics";
 
 import type { ZSearchIndexingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
-import { bookmarks } from "@karakeep/db/schema";
+import { bookmarkEmbeddings, bookmarks } from "@karakeep/db/schema";
 import {
   SearchIndexingQueue,
   zSearchIndexingRequestSchema,
@@ -16,6 +16,11 @@ import {
   getSearchClient,
   SearchIndexClient,
 } from "@karakeep/shared/search";
+import {
+  BookmarkVectorDocument,
+  getVectorStoreClient,
+  VectorStoreClient,
+} from "@karakeep/shared/vectorStore";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 export class SearchIndexingWorker {
@@ -113,6 +118,61 @@ async function runDelete(searchClient: SearchIndexClient, bookmarkId: string) {
   await searchClient.deleteDocuments([bookmarkId]);
 }
 
+/**
+ * Converts a Buffer back to a number array
+ */
+function bufferToEmbedding(buffer: Buffer): number[] {
+  const float32Array = new Float32Array(
+    buffer.buffer,
+    buffer.byteOffset,
+    buffer.byteLength / Float32Array.BYTES_PER_ELEMENT,
+  );
+  return Array.from(float32Array);
+}
+
+async function runEmbeddingIndex(
+  vectorStoreClient: VectorStoreClient,
+  bookmarkId: string,
+  jobId: string,
+) {
+  // Fetch the embedding from the database
+  const embeddingRecord = await db.query.bookmarkEmbeddings.findFirst({
+    where: eq(bookmarkEmbeddings.bookmarkId, bookmarkId),
+  });
+
+  if (!embeddingRecord) {
+    logger.warn(
+      `[search][${jobId}] Embedding for bookmark ${bookmarkId} not found in database, skipping vector indexing`,
+    );
+    return;
+  }
+
+  // Convert the buffer back to an array
+  const vector = bufferToEmbedding(embeddingRecord.embedding);
+
+  const document: BookmarkVectorDocument = {
+    id: embeddingRecord.bookmarkId,
+    userId: embeddingRecord.userId,
+    vector,
+  };
+
+  await vectorStoreClient.addVectors([document]);
+  logger.info(
+    `[search][${jobId}] Indexed embedding for bookmark ${bookmarkId}`,
+  );
+}
+
+async function runEmbeddingDelete(
+  vectorStoreClient: VectorStoreClient,
+  bookmarkId: string,
+  jobId: string,
+) {
+  await vectorStoreClient.deleteVectors([bookmarkId]);
+  logger.info(
+    `[search][${jobId}] Deleted embedding for bookmark ${bookmarkId}`,
+  );
+}
+
 async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
   const jobId = job.id;
 
@@ -123,27 +183,54 @@ async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
     );
   }
 
+  const bookmarkId = request.data.bookmarkId;
+  const indexEmbedding = request.data.indexEmbedding ?? false;
+
+  // Handle full-text search indexing
   const searchClient = await getSearchClient();
-  if (!searchClient) {
-    logger.debug(
-      `[search][${jobId}] Search is not configured, nothing to do now`,
+  if (searchClient) {
+    logger.info(
+      `[search][${jobId}] Attempting to ${request.data.type} bookmark with id ${bookmarkId} ...`,
     );
-    return;
+
+    switch (request.data.type) {
+      case "index": {
+        await runIndex(searchClient, bookmarkId);
+        break;
+      }
+      case "delete": {
+        await runDelete(searchClient, bookmarkId);
+        break;
+      }
+    }
+  } else {
+    logger.debug(
+      `[search][${jobId}] Search is not configured, skipping full-text indexing`,
+    );
   }
 
-  const bookmarkId = request.data.bookmarkId;
-  logger.info(
-    `[search][${jobId}] Attempting to index bookmark with id ${bookmarkId} ...`,
-  );
+  // Handle vector store indexing (only if indexEmbedding is true)
+  if (indexEmbedding) {
+    const vectorStoreClient = await getVectorStoreClient();
+    if (vectorStoreClient) {
+      logger.info(
+        `[search][${jobId}] Attempting to ${request.data.type} embedding for bookmark ${bookmarkId} ...`,
+      );
 
-  switch (request.data.type) {
-    case "index": {
-      await runIndex(searchClient, bookmarkId);
-      break;
-    }
-    case "delete": {
-      await runDelete(searchClient, bookmarkId);
-      break;
+      switch (request.data.type) {
+        case "index": {
+          await runEmbeddingIndex(vectorStoreClient, bookmarkId, jobId);
+          break;
+        }
+        case "delete": {
+          await runEmbeddingDelete(vectorStoreClient, bookmarkId, jobId);
+          break;
+        }
+      }
+    } else {
+      logger.debug(
+        `[search][${jobId}] Vector store is not configured, skipping embedding indexing`,
+      );
     }
   }
 }

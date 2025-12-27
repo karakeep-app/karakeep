@@ -15,8 +15,6 @@ import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
-import { EmbeddingsIndexingWorker } from "./workers/embeddingsIndexingWorker";
-import { EmbeddingsWorker } from "./workers/embeddingsWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
 import { RuleEngineWorker } from "./workers/ruleEngineWorker";
@@ -27,8 +25,6 @@ import { WebhookWorker } from "./workers/webhookWorker";
 const workerBuilders = {
   crawler: () => CrawlerWorker.build(),
   inference: () => OpenAiWorker.build(),
-  embeddings: () => EmbeddingsWorker.build(),
-  embeddingsIndexing: () => EmbeddingsIndexingWorker.build(),
   search: () => SearchIndexingWorker.build(),
   adminMaintenance: () => AdminMaintenanceWorker.build(),
   video: () => VideoWorker.build(),

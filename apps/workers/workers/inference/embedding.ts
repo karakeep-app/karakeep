@@ -1,75 +1,31 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
 
-import type { ZEmbeddingsRequest } from "@karakeep/shared-server";
+import type { ZOpenAIRequest } from "@karakeep/shared-server";
+import type { InferenceClient } from "@karakeep/shared/inference";
 import { db } from "@karakeep/db";
 import { bookmarkEmbeddings, bookmarks } from "@karakeep/db/schema";
-import {
-  EmbeddingsQueue,
-  triggerEmbeddingsIndexing,
-  zEmbeddingsRequestSchema,
-} from "@karakeep/shared-server";
+import { triggerSearchReindex } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
-import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
-import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
+import { DequeuedJob } from "@karakeep/shared/queueing";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
 const MAX_EMBEDDING_TEXT_LENGTH = 8000; // Most embedding models have token limits
 
-async function attemptMarkStatus(
-  bookmarkId: string | undefined,
-  status: "success" | "failure",
-) {
-  if (!bookmarkId) {
-    return;
-  }
-  try {
-    await db
-      .update(bookmarks)
-      .set({ embeddingStatus: status })
-      .where(eq(bookmarks.id, bookmarkId));
-  } catch (e) {
-    logger.error(
-      `[embeddings] Something went wrong when marking the embedding status: ${e}`,
-    );
-  }
-}
-
-export class EmbeddingsWorker {
-  static async build() {
-    logger.info("Starting embeddings worker ...");
-    const worker = (await getQueueClient())!.createRunner<ZEmbeddingsRequest>(
-      EmbeddingsQueue,
-      {
-        run: runEmbeddings,
-        onComplete: async (job) => {
-          workerStatsCounter.labels("embeddings", "completed").inc();
-          const jobId = job.id;
-          logger.info(`[embeddings][${jobId}] Completed successfully`);
-          await attemptMarkStatus(job.data?.bookmarkId, "success");
-        },
-        onError: async (job) => {
-          workerStatsCounter.labels("embeddings", "failed").inc();
-          const jobId = job.id;
-          logger.error(
-            `[embeddings][${jobId}] embeddings job failed: ${job.error}\n${job.error.stack}`,
-          );
-          if (job.numRetriesLeft == 0) {
-            workerStatsCounter.labels("embeddings", "failed_permanent").inc();
-            await attemptMarkStatus(job.data?.bookmarkId, "failure");
-          }
+async function fetchBookmark(bookmarkId: string) {
+  return await db.query.bookmarks.findFirst({
+    where: eq(bookmarks.id, bookmarkId),
+    with: {
+      link: true,
+      text: true,
+      asset: true,
+      tagsOnBookmarks: {
+        with: {
+          tag: true,
         },
       },
-      {
-        concurrency: serverConfig.inference.numWorkers,
-        pollIntervalMs: 1000,
-        timeoutSecs: serverConfig.inference.jobTimeoutSec,
-      },
-    );
-
-    return worker;
-  }
+    },
+  });
 }
 
 /**
@@ -147,22 +103,6 @@ async function buildEmbeddingText(
   return fullText;
 }
 
-async function fetchBookmark(bookmarkId: string) {
-  return await db.query.bookmarks.findFirst({
-    where: eq(bookmarks.id, bookmarkId),
-    with: {
-      link: true,
-      text: true,
-      asset: true,
-      tagsOnBookmarks: {
-        with: {
-          tag: true,
-        },
-      },
-    },
-  });
-}
-
 /**
  * Converts a number array to a Buffer for storage
  */
@@ -171,48 +111,34 @@ function embeddingToBuffer(embedding: number[]): Buffer {
   return Buffer.from(float32Array.buffer);
 }
 
-async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
+export async function runEmbedding(
+  bookmarkId: string,
+  job: DequeuedJob<ZOpenAIRequest>,
+  inferenceClient: InferenceClient,
+) {
   const jobId = job.id;
 
-  const inferenceClient = InferenceClientFactory.build();
-  if (!inferenceClient) {
-    logger.debug(
-      `[embeddings][${jobId}] No inference client configured, nothing to do now`,
-    );
-    return;
-  }
-
-  const request = zEmbeddingsRequestSchema.safeParse(job.data);
-  if (!request.success) {
-    throw new Error(
-      `[embeddings][${jobId}] Got malformed job request: ${request.error.toString()}`,
-    );
-  }
-
-  const { bookmarkId } = request.data;
   logger.info(
-    `[embeddings][${jobId}] Generating embeddings for bookmark ${bookmarkId}`,
+    `[inference][${jobId}] Generating embeddings for bookmark ${bookmarkId}`,
   );
 
   // Fetch the bookmark with all related data
   const bookmark = await fetchBookmark(bookmarkId);
   if (!bookmark) {
-    throw new Error(
-      `[embeddings][${jobId}] Bookmark ${bookmarkId} not found`,
-    );
+    throw new Error(`[inference][${jobId}] Bookmark ${bookmarkId} not found`);
   }
 
   // Build the text to embed
   const embeddingText = await buildEmbeddingText(bookmark);
   if (!embeddingText) {
     logger.info(
-      `[embeddings][${jobId}] No content found for bookmark ${bookmarkId}, skipping embedding generation`,
+      `[inference][${jobId}] No content found for bookmark ${bookmarkId}, skipping embedding generation`,
     );
     return;
   }
 
   logger.debug(
-    `[embeddings][${jobId}] Embedding text length: ${embeddingText.length} characters`,
+    `[inference][${jobId}] Embedding text length: ${embeddingText.length} characters`,
   );
 
   // Generate embeddings using the inference client
@@ -225,13 +151,13 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
     embeddingResponse.embeddings.length === 0
   ) {
     throw new Error(
-      `[embeddings][${jobId}] No embeddings returned from inference client`,
+      `[inference][${jobId}] No embeddings returned from inference client`,
     );
   }
 
   const embedding = embeddingResponse.embeddings[0];
   logger.info(
-    `[embeddings][${jobId}] Generated embedding with ${embedding.length} dimensions`,
+    `[inference][${jobId}] Generated embedding with ${embedding.length} dimensions`,
   );
 
   // Store the embedding in the database
@@ -257,16 +183,20 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
     });
 
   logger.info(
-    `[embeddings][${jobId}] Stored embedding for bookmark ${bookmarkId}`,
+    `[inference][${jobId}] Stored embedding for bookmark ${bookmarkId}`,
   );
 
-  // Trigger embeddings indexing
-  await triggerEmbeddingsIndexing(bookmarkId, {
-    priority: job.priority,
-    groupId: bookmark.userId,
-  });
+  // Trigger search indexing with embedding indexing enabled
+  await triggerSearchReindex(
+    bookmarkId,
+    {
+      priority: job.priority,
+      groupId: bookmark.userId,
+    },
+    true, // indexEmbedding
+  );
 
   logger.info(
-    `[embeddings][${jobId}] Triggered embeddings indexing for bookmark ${bookmarkId}`,
+    `[inference][${jobId}] Triggered embedding indexing for bookmark ${bookmarkId}`,
   );
 }

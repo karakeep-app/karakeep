@@ -10,6 +10,7 @@ import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { runEmbedding } from "./embedding";
 import { runSummarization } from "./summarize";
 import { runTagging } from "./tagging";
 
@@ -29,6 +30,7 @@ async function attemptMarkStatus(
           ? { summarizationStatus: status }
           : {}),
         ...(request.type === "tag" ? { taggingStatus: status } : {}),
+        ...(request.type === "embedding" ? { embeddingStatus: status } : {}),
       })
       .where(eq(bookmarks.id, request.bookmarkId));
   } catch (e) {
@@ -98,7 +100,12 @@ async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
     case "tag":
       await runTagging(bookmarkId, job, inferenceClient);
       break;
-    default:
-      throw new Error(`Unknown inference type: ${request.data.type}`);
+    case "embedding":
+      await runEmbedding(bookmarkId, job, inferenceClient);
+      break;
+    default: {
+      const _exhaustiveCheck: never = request.data.type;
+      throw new Error(`Unknown inference type: ${_exhaustiveCheck}`);
+    }
   }
 }
