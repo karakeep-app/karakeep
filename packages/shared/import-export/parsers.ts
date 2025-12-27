@@ -110,7 +110,9 @@ function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
     Favorited: z.string(),
     Read: z.string(),
     Highlight_Count: z.string(),
-    "Last Interaction Date": z.string().transform((date) => Date.parse(date)),
+    "Last Interaction Date": z
+      .string()
+      .transform((date) => Date.parse(date) / 1000),
     "File Id": z.string(),
   });
 
