@@ -767,12 +767,6 @@ async function storePdf(
   userId: string,
   jobId: string,
 ) {
-  if (!serverConfig.crawler.storePdf) {
-    logger.info(
-      `[Crawler][${jobId}] Skipping storing the PDF as per the config.`,
-    );
-    return null;
-  }
   if (!pdf) {
     logger.info(`[Crawler][${jobId}] Skipping storing the PDF as it's empty.`);
     return null;
