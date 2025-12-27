@@ -588,6 +588,7 @@ export const bookmarksAppRouter = router({
       z.object({
         bookmarkId: z.string(),
         readingProgressOffset: z.number().int().nonnegative(),
+        readingProgressAnchor: z.string().max(100).nullish(),
       }),
     )
     .use(ensureBookmarkOwnership)
@@ -596,6 +597,7 @@ export const bookmarksAppRouter = router({
         .update(bookmarkLinks)
         .set({
           readingProgressOffset: input.readingProgressOffset,
+          readingProgressAnchor: input.readingProgressAnchor ?? null,
         })
         .where(eq(bookmarkLinks.id, input.bookmarkId));
     }),

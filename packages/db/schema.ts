@@ -255,6 +255,8 @@ export const bookmarkLinks = sqliteTable(
 
     // Reading progress tracking (character offset in content)
     readingProgressOffset: integer("readingProgressOffset"),
+    // Anchor text for reading progress (first ~50 chars of paragraph for verification)
+    readingProgressAnchor: text("readingProgressAnchor"),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );

@@ -602,6 +602,13 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "readingProgressAnchor": {
+          "name": "readingProgressAnchor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {

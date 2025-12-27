@@ -40,11 +40,16 @@ export default function ReaderViewPage() {
     bookmark?.content.type === BookmarkTypes.LINK
       ? bookmark.content.readingProgressOffset
       : null;
+  const initialAnchor =
+    bookmark?.content.type === BookmarkTypes.LINK
+      ? bookmark.content.readingProgressAnchor
+      : null;
 
   // Auto-save reading progress on page unload/visibility change
   useReadingProgressAutoSave({
     bookmarkId,
     initialOffset,
+    initialAnchor,
     containerRef: contentRef,
     enabled: isOwner, // Only track progress for bookmark owner
   });
@@ -139,7 +144,7 @@ export default function ReaderViewPage() {
                   <div className="overflow-x-hidden">
                     <ReaderView
                       ref={contentRef}
-                      className="prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
+                      className="prose prose-neutral max-w-none break-words dark:prose-invert [&_blockquote]:scroll-mt-16 [&_code]:break-all [&_h1]:scroll-mt-16 [&_h2]:scroll-mt-16 [&_h3]:scroll-mt-16 [&_h4]:scroll-mt-16 [&_h5]:scroll-mt-16 [&_h6]:scroll-mt-16 [&_img]:h-auto [&_img]:max-w-full [&_li]:scroll-mt-16 [&_p]:scroll-mt-16 [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,

@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -31,6 +34,7 @@ import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
+import { useReadingProgressAutoSave } from "@karakeep/shared-react/hooks/reading-progress";
 import {
   BookmarkTypes,
   ZBookmark,
@@ -111,6 +115,7 @@ export default function LinkContentSection({
 }) {
   const { t } = useTranslation();
   const { settings } = useReaderSettings();
+  const contentRef = useRef<HTMLDivElement>(null);
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   const defaultSection =
     availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
@@ -123,6 +128,19 @@ export default function LinkContentSection({
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");
   }
+
+  // Get initial reading progress from bookmark content
+  const initialOffset = bookmark.content.readingProgressOffset;
+  const initialAnchor = bookmark.content.readingProgressAnchor;
+
+  // Auto-save reading progress on visibility change/section change
+  useReadingProgressAutoSave({
+    bookmarkId: bookmark.id,
+    initialOffset,
+    initialAnchor,
+    containerRef: contentRef,
+    enabled: isOwner && section === "cached", // Only track in cached/reader view
+  });
 
   let content;
 
@@ -139,6 +157,7 @@ export default function LinkContentSection({
     content = (
       <ScrollArea className="h-full">
         <ReaderView
+          ref={contentRef}
           className="prose mx-auto dark:prose-invert"
           style={{
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],

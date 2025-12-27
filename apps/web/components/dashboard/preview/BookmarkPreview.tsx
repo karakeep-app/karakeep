@@ -208,7 +208,7 @@ export default function BookmarkPreview({
 
   return (
     <>
-      {/* Render original layout for wide screens */}
+      {/* Desktop layout - hidden on mobile */}
       <div className="hidden h-full grid-cols-3 overflow-hidden bg-background lg:grid">
         <div className="col-span-2 h-full w-full overflow-auto p-2">
           {contentSection}
@@ -217,16 +217,13 @@ export default function BookmarkPreview({
           {detailsSection}
         </div>
       </div>
-
-      {/* Render tabbed layout for narrow/vertical screens */}
+      {/* Mobile layout - hidden on desktop */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
         className="flex h-full w-full flex-col overflow-hidden lg:hidden"
       >
-        <TabsList
-          className={`sticky top-0 z-10 grid h-auto w-full grid-cols-2`}
-        >
+        <TabsList className="sticky top-0 z-10 grid h-auto w-full grid-cols-2">
           <TabsTrigger value="content">{t("preview.tabs.content")}</TabsTrigger>
           <TabsTrigger value="details">{t("preview.tabs.details")}</TabsTrigger>
         </TabsList>

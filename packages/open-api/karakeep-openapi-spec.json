@@ -223,6 +223,10 @@
                     "type": "integer",
                     "nullable": true,
                     "minimum": 0
+                  },
+                  "readingProgressAnchor": {
+                    "type": "string",
+                    "nullable": true
                   }
                 },
                 "required": [
