@@ -139,7 +139,7 @@ function ListActionsMenu({
         } else if (nativeEvent.event === "leave") {
           handleLeave();
         } else if (nativeEvent.event === "edit") {
-          return handleEdit();
+          handleEdit();
         }
       }}
       shouldOpenOnLongPress={false}
