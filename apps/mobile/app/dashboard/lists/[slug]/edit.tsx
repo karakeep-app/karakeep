@@ -16,7 +16,7 @@ const EditListPage = () => {
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
   const { toast } = useToast();
-  const { mutate, isPending } = useEditBookmarkList({
+  const { mutate, isPending: editIsPending } = useEditBookmarkList({
     onSuccess: () => {
       dismiss();
     },
@@ -41,7 +41,9 @@ const EditListPage = () => {
     throw new Error("Unexpected param type");
   }
 
-  const { data: list } = api.lists.get.useQuery({ listId });
+  const { data: list, isLoading: fetchIsPending } = api.lists.get.useQuery({
+    listId,
+  });
 
   const dismiss = () => {
     router.back();
@@ -73,6 +75,8 @@ const EditListPage = () => {
       query: list?.type === "smart" ? query : undefined,
     });
   };
+
+  const isPending = fetchIsPending || editIsPending;
 
   return (
     <CustomSafeAreaView>
