@@ -1,5 +1,5 @@
+import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";

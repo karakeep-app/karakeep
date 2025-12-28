@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { CreditCard, Loader2 } from "lucide-react";
@@ -16,7 +17,6 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
-import { toast } from "../ui/use-toast";
 
 export default function SubscriptionSettings() {
   const { t } = useTranslation();

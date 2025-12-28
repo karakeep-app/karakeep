@@ -2,7 +2,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, ExternalLink } from "lucide-react";
 
-import { DOCS_LINK, GITHUB_LINK, WAITLIST_LINK } from "./constants";
+import { CLOUD_SIGNUP_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
 import NavBar from "./Navbar";
 
 const pricingTiers = [
@@ -17,7 +17,7 @@ const pricingTiers = [
       "Mobile & web apps",
       "Browser extensions",
     ],
-    buttonText: "Join Waitlist",
+    buttonText: "Get Started",
     buttonVariant: "outline" as const,
     popular: false,
   },
@@ -34,7 +34,7 @@ const pricingTiers = [
       "Mobile & web apps",
       "Browser extensions",
     ],
-    buttonText: "Join Waitlist",
+    buttonText: "Get Started",
     buttonVariant: "default" as const,
     popular: true,
   },
@@ -121,7 +121,7 @@ function PricingCards() {
               </a>
             ) : (
               <a
-                href={WAITLIST_LINK}
+                href={CLOUD_SIGNUP_LINK}
                 target="_blank"
                 className={cn(
                   "flex w-full items-center justify-center",

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import useBulkActionsStore from "@/lib/bulkActions";
+import { api } from "@/lib/trpc";
 import {
   bookmarkLayoutSwitch,
   useBookmarkDisplaySettings,
@@ -17,12 +18,14 @@ import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import BookmarkActionBar from "./BookmarkActionBar";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
+import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
 import { NotePreview } from "./NotePreview";
 import TagList from "./TagList";
 
@@ -56,6 +59,40 @@ function BottomRow({
         </Link>
       </div>
       <BookmarkActionBar bookmark={bookmark} />
+    </div>
+  );
+}
+
+function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
+  const listContext = useBookmarkListContext();
+  const collaborators = api.lists.getCollaborators.useQuery(
+    {
+      listId: listContext?.id ?? "",
+    },
+    {
+      refetchOnWindowFocus: false,
+      enabled: !!listContext?.hasCollaborators,
+    },
+  );
+
+  if (!listContext || listContext.userRole === "owner" || !collaborators.data) {
+    return null;
+  }
+
+  let owner = undefined;
+  if (bookmark.userId === collaborators.data.owner?.id) {
+    owner = collaborators.data.owner;
+  } else {
+    owner = collaborators.data.collaborators.find(
+      (c) => c.userId === bookmark.userId,
+    )?.user;
+  }
+
+  if (!owner) return null;
+
+  return (
+    <div className="absolute right-2 top-2 z-40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+      <BookmarkOwnerIcon ownerName={owner.name} ownerAvatar={owner.image} />
     </div>
   );
 }
@@ -133,11 +170,12 @@ function ListView({
   return (
     <div
       className={cn(
-        "relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
+        "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
         className,
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
+      <OwnerIndicator bookmark={bookmark} />
       <div className="flex size-32 items-center justify-center overflow-hidden">
         {image("list", cn("size-32 rounded-lg", imgFitClass))}
       </div>
@@ -191,12 +229,13 @@ function GridView({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg",
+        "group relative flex flex-col overflow-hidden rounded-lg",
         className,
         fitHeight && layout != "grid" ? "max-h-96" : "h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
+      <OwnerIndicator bookmark={bookmark} />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
@@ -228,12 +267,13 @@ function CompactView({ bookmark, title, footer, className }: Props) {
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-lg",
+        "group relative flex flex-col overflow-hidden rounded-lg",
         className,
         "max-h-96",
       )}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
+      <OwnerIndicator bookmark={bookmark} />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
           {bookmark.content.type === BookmarkTypes.LINK &&

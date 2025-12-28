@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 
 import { useUpdateBookmarkTags } from "@karakeep/shared-react/hooks/bookmarks";
 import { api } from "@karakeep/shared-react/trpc";

@@ -175,6 +175,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "pdfAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "fullPageArchiveAssetId": {
                     "type": "string",
                     "nullable": true
@@ -318,6 +322,7 @@
                   "enum": [
                     "linkHtmlContent",
                     "screenshot",
+                    "pdf",
                     "assetScreenshot",
                     "bannerImage",
                     "fullPageArchive",
@@ -325,6 +330,7 @@
                     "bookmarkAsset",
                     "precrawledArchive",
                     "userUploaded",
+                    "avatar",
                     "unknown"
                   ]
                 },
@@ -1740,6 +1746,7 @@
                     "enum": [
                       "linkHtmlContent",
                       "screenshot",
+                      "pdf",
                       "assetScreenshot",
                       "bannerImage",
                       "fullPageArchive",
@@ -1747,6 +1754,7 @@
                       "bookmarkAsset",
                       "precrawledArchive",
                       "userUploaded",
+                      "avatar",
                       "unknown"
                     ]
                   }
@@ -1775,6 +1783,7 @@
                       "enum": [
                         "linkHtmlContent",
                         "screenshot",
+                        "pdf",
                         "assetScreenshot",
                         "bannerImage",
                         "fullPageArchive",
@@ -1782,6 +1791,7 @@
                         "bookmarkAsset",
                         "precrawledArchive",
                         "userUploaded",
+                        "avatar",
                         "unknown"
                       ]
                     },
@@ -3245,6 +3255,10 @@
                       "nullable": true
                     },
                     "email": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "image": {
                       "type": "string",
                       "nullable": true
                     },

@@ -7,7 +7,7 @@ import {
   ActionButtonWithTooltip,
 } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useTranslation } from "@/lib/i18n/client";
 import {
@@ -49,7 +49,6 @@ export default function BulkBookmarksAction() {
   const isEverythingSelected = useBulkActionsStore(
     (state) => state.isEverythingSelected,
   );
-  const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [manageListsModal, setManageListsModalOpen] = useState(false);
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);

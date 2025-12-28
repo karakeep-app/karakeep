@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+import { toast } from "@/components/ui/sonner";
 import useUpload from "@/lib/hooks/upload-file";
 import { cn } from "@/lib/utils";
 import { TRPCClientError } from "@trpc/client";
@@ -10,7 +11,6 @@ import { useCreateBookmarkWithPostHook } from "@karakeep/shared-react/hooks/book
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import LoadingSpinner from "../ui/spinner";
-import { toast } from "../ui/use-toast";
 import BookmarkAlreadyExistsToast from "../utils/BookmarkAlreadyExistsToast";
 
 export function useUploadAsset() {

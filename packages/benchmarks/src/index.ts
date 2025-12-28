@@ -8,6 +8,7 @@ interface CliConfig {
   tagCount: number;
   listCount: number;
   concurrency: number;
+  userCount: number;
   keepContainers: boolean;
   timeMs: number;
   warmupMs: number;
@@ -26,6 +27,7 @@ function loadConfig(): CliConfig {
     tagCount: numberFromEnv("BENCH_TAGS", 25),
     listCount: numberFromEnv("BENCH_LISTS", 6),
     concurrency: numberFromEnv("BENCH_SEED_CONCURRENCY", 12),
+    userCount: numberFromEnv("BENCH_USERS", 3),
     keepContainers: process.env.BENCH_KEEP_CONTAINERS === "1",
     timeMs: numberFromEnv("BENCH_TIME_MS", 1000),
     warmupMs: numberFromEnv("BENCH_WARMUP_MS", 300),
@@ -36,9 +38,10 @@ async function main() {
   const config = loadConfig();
 
   logStep("Benchmark configuration");
-  logInfo(`Bookmarks:    ${config.bookmarkCount}`);
-  logInfo(`Tags:         ${config.tagCount}`);
-  logInfo(`Lists:        ${config.listCount}`);
+  logInfo(`Users:        ${config.userCount}`);
+  logInfo(`Bookmarks:    ${config.bookmarkCount} per user`);
+  logInfo(`Tags:         ${config.tagCount} per user`);
+  logInfo(`Lists:        ${config.listCount} per user`);
   logInfo(`Seed concur.: ${config.concurrency}`);
   logInfo(`Time per case:${config.timeMs}ms (warmup ${config.warmupMs}ms)`);
   logInfo(`Keep containers after run: ${config.keepContainers ? "yes" : "no"}`);
@@ -70,6 +73,7 @@ async function main() {
       tagCount: config.tagCount,
       listCount: config.listCount,
       concurrency: config.concurrency,
+      userCount: config.userCount,
     });
 
     await runBenchmarks(seedResult, {

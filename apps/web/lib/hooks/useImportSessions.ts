@@ -1,6 +1,6 @@
 "use client";
 
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 
 import { api } from "@karakeep/shared-react/trpc";
 

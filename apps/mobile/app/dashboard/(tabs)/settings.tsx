@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ActivityIndicator, Pressable, Switch, View } from "react-native";
 import { Slider } from "react-native-awesome-slider";
 import { useSharedValue } from "react-native-reanimated";
+import Constants from "expo-constants";
 import { Link } from "expo-router";
 import { Button } from "@/components/ui/Button";
 import ChevronRight from "@/components/ui/ChevronRight";
@@ -9,6 +10,7 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Divider } from "@/components/ui/Divider";
 import PageTitle from "@/components/ui/PageTitle";
 import { Text } from "@/components/ui/Text";
+import { useServerVersion } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
 import useAppSettings from "@/lib/settings";
 import { api } from "@/lib/trpc";
@@ -30,6 +32,11 @@ export default function Dashboard() {
   }, [settings]);
 
   const { data, error, isLoading } = api.users.whoami.useQuery();
+  const {
+    data: serverVersion,
+    isLoading: isServerVersionLoading,
+    error: serverVersionError,
+  } = useServerVersion();
 
   if (error?.data?.code === "UNAUTHORIZED") {
     logout();
@@ -88,6 +95,18 @@ export default function Dashboard() {
           </Link>
         </View>
         <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
+          <Link
+            asChild
+            href="/dashboard/settings/reader-settings"
+            className="flex-1"
+          >
+            <Pressable className="flex flex-row justify-between">
+              <Text>Reader Text Settings</Text>
+              <ChevronRight />
+            </Pressable>
+          </Link>
+        </View>
+        <View className="flex w-full flex-row items-center justify-between gap-8 rounded-lg bg-card px-4 py-2">
           <Text>Show note preview in bookmark</Text>
           <Switch
             value={settings.showNotes}
@@ -129,6 +148,19 @@ export default function Dashboard() {
         >
           <Text>Log Out</Text>
         </Button>
+        <View className="mt-4 w-full gap-1">
+          <Text className="text-center text-sm text-muted-foreground">
+            App Version: {Constants.expoConfig?.version ?? "unknown"}
+          </Text>
+          <Text className="text-center text-sm text-muted-foreground">
+            Server Version:{" "}
+            {isServerVersionLoading
+              ? "Loading..."
+              : serverVersionError
+                ? "unavailable"
+                : (serverVersion ?? "unknown")}
+          </Text>
+        </View>
       </View>
     </CustomSafeAreaView>
   );

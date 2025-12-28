@@ -113,6 +113,7 @@
     "import": {
       "import_bookmarks_from_html_file": "Importuj zakładki z pliku HTML",
       "import_bookmarks_from_pocket_export": "Importuj zakładki z eksportu Pocket",
+      "import_bookmarks_from_matter_export": "Importuj zakładki z eksportu Matter",
       "import_export": "Import / Eksport",
       "import_export_bookmarks": "Import / Eksport zakładek",
       "import_bookmarks_from_omnivore_export": "Importuj zakładki z eksportu Omnivore",

@@ -8,6 +8,7 @@ import {
   Github,
   Highlighter,
   Plug,
+  Rocket,
   Rss,
   Server,
   Star,
@@ -17,7 +18,12 @@ import {
   Workflow,
 } from "lucide-react";
 
-import { DEMO_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
+import {
+  CLOUD_SIGNUP_LINK,
+  DEMO_LINK,
+  DOCS_LINK,
+  GITHUB_LINK,
+} from "./constants";
 import NavBar from "./Navbar";
 import appStoreBadge from "/app-store-badge.png?url";
 import chromeExtensionBadge from "/chrome-extension-badge.png?url";
@@ -119,6 +125,29 @@ const featuresList = [
 
 const currentYear = new Date().getFullYear();
 
+function Banner() {
+  return (
+    <div className="border-b border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 px-4 py-3 text-center">
+      <div className="container flex items-center justify-center gap-3 text-sm text-slate-700 sm:text-base">
+        <div className="inline-flex items-center gap-2 px-3 py-1">
+          <Rocket className="size-4 text-amber-600 sm:size-5" />
+          <span className="font-semibold text-slate-800">
+            Karakeep Cloud Public Beta is Now Live
+          </span>
+        </div>
+        <a
+          href={CLOUD_SIGNUP_LINK}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-500 px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all hover:border-amber-400 hover:bg-amber-600 sm:text-sm"
+        >
+          Join Now <span className="hidden sm:inline">→</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function Hero() {
   return (
     <div className="mt-10 flex flex-grow flex-col items-center justify-center gap-6 sm:mt-20">
@@ -144,7 +173,7 @@ function Hero() {
           className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
         >
           <Star className="size-4 fill-yellow-400 text-yellow-400" />
-          <span className="font-semibold">21k</span>
+          <span className="font-semibold">22k</span>
           <span className="text-gray-500">stars on GitHub</span>
         </a>
       </div>
@@ -269,6 +298,7 @@ function Screenshots() {
 export default function Homepage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <Banner />
       <div className="container flex flex-col pb-10">
         <NavBar />
         <Hero />

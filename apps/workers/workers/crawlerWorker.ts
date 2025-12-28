@@ -24,8 +24,9 @@ import metascraperImage from "metascraper-image";
 import metascraperLogo from "metascraper-logo-favicon";
 import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
-import metascraperTwitter from "metascraper-twitter";
 import metascraperUrl from "metascraper-url";
+import metascraperX from "metascraper-x";
+import metascraperYoutube from "metascraper-youtube";
 import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
@@ -76,11 +77,13 @@ import {
   DequeuedJob,
   EnqueueOptions,
   getQueueClient,
+  QueueRetryAfterError,
 } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 
 function abortPromise(signal: AbortSignal): Promise<never> {
@@ -124,13 +127,26 @@ const metascraperParser = metascraper([
     dateModified: true,
     datePublished: true,
   }),
+  metascraperAmazonImproved(), // Fix image extraction bug - must come before metascraperAmazon()
   metascraperAmazon(),
+  metascraperYoutube({
+    gotOpts: {
+      agent: {
+        http: serverConfig.proxy.httpProxy
+          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+          : undefined,
+        https: serverConfig.proxy.httpsProxy
+          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+          : undefined,
+      },
+    },
+  }),
   metascraperReddit(),
   metascraperAuthor(),
   metascraperPublisher(),
   metascraperTitle(),
   metascraperDescription(),
-  metascraperTwitter(),
+  metascraperX(),
   metascraperImage(),
   metascraperLogo({
     gotOpts: {
@@ -172,7 +188,7 @@ const cookieSchema = z.object({
 const cookiesSchema = z.array(cookieSchema);
 
 interface CrawlerRunResult {
-  status: "completed" | "rescheduled";
+  status: "completed";
 }
 
 function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
@@ -310,13 +326,7 @@ export class CrawlerWorker {
       LinkCrawlerQueue,
       {
         run: runCrawler,
-        onComplete: async (job, result) => {
-          if (result.status === "rescheduled") {
-            logger.info(
-              `[Crawler][${job.id}] Rescheduled due to domain rate limiting`,
-            );
-            return;
-          }
+        onComplete: async (job) => {
           workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
@@ -408,6 +418,7 @@ async function browserlessCrawlPage(
     htmlContent: await response.text(),
     statusCode: response.status,
     screenshot: undefined,
+    pdf: undefined,
     url: response.url,
   };
 }
@@ -416,10 +427,12 @@ async function crawlPage(
   jobId: string,
   url: string,
   userId: string,
+  forceStorePdf: boolean,
   abortSignal: AbortSignal,
 ): Promise<{
   htmlContent: string;
   screenshot: Buffer | undefined;
+  pdf: Buffer | undefined;
   statusCode: number;
   url: string;
 }> {
@@ -598,10 +611,45 @@ async function crawlPage(
       }
     }
 
+    // Capture PDF if configured or explicitly requested
+    let pdf: Buffer | undefined = undefined;
+    if (serverConfig.crawler.storePdf || forceStorePdf) {
+      const { data: pdfData, error: pdfError } = await tryCatch(
+        Promise.race<Buffer>([
+          page.pdf({
+            format: "A4",
+            printBackground: true,
+          }),
+          new Promise((_, reject) =>
+            setTimeout(
+              () =>
+                reject(
+                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                ),
+              serverConfig.crawler.screenshotTimeoutSec * 1000,
+            ),
+          ),
+          abortPromise(abortSignal).then(() => Buffer.from("")),
+        ]),
+      );
+      abortSignal.throwIfAborted();
+      if (pdfError) {
+        logger.warn(
+          `[Crawler][${jobId}] Failed to capture the PDF. Reason: ${pdfError}`,
+        );
+      } else {
+        logger.info(
+          `[Crawler][${jobId}] Finished capturing page content as PDF`,
+        );
+        pdf = pdfData;
+      }
+    }
+
     return {
       htmlContent,
       statusCode: response?.status() ?? 0,
       screenshot,
+      pdf,
       url: page.url(),
     };
   } finally {
@@ -712,6 +760,44 @@ async function storeScreenshot(
     `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId} (${screenshot.byteLength} bytes)`,
   );
   return { assetId, contentType, fileName, size: screenshot.byteLength };
+}
+
+async function storePdf(
+  pdf: Buffer | undefined,
+  userId: string,
+  jobId: string,
+) {
+  if (!pdf) {
+    logger.info(`[Crawler][${jobId}] Skipping storing the PDF as it's empty.`);
+    return null;
+  }
+  const assetId = newAssetId();
+  const contentType = "application/pdf";
+  const fileName = "page.pdf";
+
+  // Check storage quota before saving the PDF
+  const { data: quotaApproved, error: quotaError } = await tryCatch(
+    QuotaService.checkStorageQuota(db, userId, pdf.byteLength),
+  );
+
+  if (quotaError) {
+    logger.warn(
+      `[Crawler][${jobId}] Skipping PDF storage due to quota exceeded: ${quotaError.message}`,
+    );
+    return null;
+  }
+
+  await saveAsset({
+    userId,
+    assetId,
+    metadata: { contentType, fileName },
+    asset: pdf,
+    quotaApproved,
+  });
+  logger.info(
+    `[Crawler][${jobId}] Stored the PDF as assetId: ${assetId} (${pdf.byteLength} bytes)`,
+  );
+  return { assetId, contentType, fileName, size: pdf.byteLength };
 }
 
 async function downloadAndStoreFile(
@@ -913,7 +999,7 @@ async function getContentType(
       `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
     );
     const response = await fetchWithProxy(url, {
-      method: "HEAD",
+      method: "GET",
       signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
     });
     const rawContentType = response.headers.get("content-type");
@@ -1069,16 +1155,19 @@ async function crawlAndParseUrl(
   jobId: string,
   bookmarkId: string,
   oldScreenshotAssetId: string | undefined,
+  oldPdfAssetId: string | undefined,
   oldImageAssetId: string | undefined,
   oldFullPageArchiveAssetId: string | undefined,
   oldContentAssetId: string | undefined,
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
+  forceStorePdf: boolean,
   abortSignal: AbortSignal,
 ) {
   let result: {
     htmlContent: string;
     screenshot: Buffer | undefined;
+    pdf: Buffer | undefined;
     statusCode: number | null;
     url: string;
   };
@@ -1094,15 +1183,16 @@ async function crawlAndParseUrl(
     result = {
       htmlContent: asset.asset.toString(),
       screenshot: undefined,
+      pdf: undefined,
       statusCode: 200,
       url,
     };
   } else {
-    result = await crawlPage(jobId, url, userId, abortSignal);
+    result = await crawlPage(jobId, url, userId, forceStorePdf, abortSignal);
   }
   abortSignal.throwIfAborted();
 
-  const { htmlContent, screenshot, statusCode, url: browserUrl } = result;
+  const { htmlContent, screenshot, pdf, statusCode, url: browserUrl } = result;
 
   // Track status code in Prometheus
   if (statusCode !== null) {
@@ -1115,14 +1205,29 @@ async function crawlAndParseUrl(
   ]);
   abortSignal.throwIfAborted();
 
-  let readableContent = await Promise.race([
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
+  let readableContent: { content: string } | null = meta.readableContentHtml
+    ? { content: meta.readableContentHtml }
+    : null;
+  if (!readableContent) {
+    readableContent = await Promise.race([
+      extractReadableContent(
+        meta.contentHtml ?? htmlContent,
+        browserUrl,
+        jobId,
+      ),
+      abortPromise(abortSignal),
+    ]);
+  }
   abortSignal.throwIfAborted();
 
   const screenshotAssetInfo = await Promise.race([
     storeScreenshot(screenshot, userId, jobId),
+    abortPromise(abortSignal),
+  ]);
+  abortSignal.throwIfAborted();
+
+  const pdfAssetInfo = await Promise.race([
+    storePdf(pdf, userId, jobId),
     abortPromise(abortSignal),
   ]);
   abortSignal.throwIfAborted();
@@ -1211,6 +1316,22 @@ async function crawlAndParseUrl(
       );
       assetDeletionTasks.push(silentDeleteAsset(userId, oldScreenshotAssetId));
     }
+    if (pdfAssetInfo) {
+      await updateAsset(
+        oldPdfAssetId,
+        {
+          id: pdfAssetInfo.assetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_PDF,
+          contentType: pdfAssetInfo.contentType,
+          size: pdfAssetInfo.size,
+          fileName: pdfAssetInfo.fileName,
+        },
+        txn,
+      );
+      assetDeletionTasks.push(silentDeleteAsset(userId, oldPdfAssetId));
+    }
     if (imageAssetInfo) {
       await updateAsset(oldImageAssetId, imageAssetInfo, txn);
       assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
@@ -1284,24 +1405,18 @@ async function crawlAndParseUrl(
 }
 
 /**
- * Checks if the domain should be rate limited and reschedules the job if needed.
- * @returns true if the job should continue, false if it was rescheduled
+ * Checks if the domain should be rate limited and throws QueueRetryAfterError if needed.
+ * @throws {QueueRetryAfterError} if the domain is rate limited
  */
-async function checkDomainRateLimit(
-  url: string,
-  jobId: string,
-  jobData: ZCrawlLinkRequest,
-  userId: string,
-  jobPriority?: number,
-): Promise<boolean> {
+async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
   const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
   if (!crawlerDomainRateLimitConfig) {
-    return true;
+    return;
   }
 
   const rateLimitClient = await getRateLimitClient();
   if (!rateLimitClient) {
-    return true;
+    return;
   }
 
   const hostname = new URL(url).hostname;
@@ -1320,17 +1435,13 @@ async function checkDomainRateLimit(
     const jitterFactor = 1.0 + Math.random() * 0.4; // Random value between 1.0 and 1.4
     const delayMs = Math.floor(resetInSeconds * 1000 * jitterFactor);
     logger.info(
-      `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Rescheduling in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
+      `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Will retry in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
     );
-    await LinkCrawlerQueue.enqueue(jobData, {
-      priority: jobPriority,
+    throw new QueueRetryAfterError(
+      `Domain "${hostname}" is rate limited`,
       delayMs,
-      groupId: userId,
-    });
-    return false;
+    );
   }
-
-  return true;
 }
 
 async function runCrawler(
@@ -1346,28 +1457,19 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage } = request.data;
+  const { bookmarkId, archiveFullPage, storePdf } = request.data;
   const {
     url,
     userId,
     screenshotAssetId: oldScreenshotAssetId,
+    pdfAssetId: oldPdfAssetId,
     imageAssetId: oldImageAssetId,
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
     contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  const shouldContinue = await checkDomainRateLimit(
-    url,
-    jobId,
-    job.data,
-    userId,
-    job.priority,
-  );
-
-  if (!shouldContinue) {
-    return { status: "rescheduled" };
-  }
+  await checkDomainRateLimit(url, jobId);
 
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
@@ -1408,11 +1510,13 @@ async function runCrawler(
       jobId,
       bookmarkId,
       oldScreenshotAssetId,
+      oldPdfAssetId,
       oldImageAssetId,
       oldFullPageArchiveAssetId,
       oldContentAssetId,
       precrawledArchiveAssetId,
       archiveFullPage,
+      storePdf ?? false,
       job.abortSignal,
     );
 

@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { Loader2, Trash2, UserPlus, Users } from "lucide-react";
@@ -256,15 +257,22 @@ export function ManageCollaboratorsModal({
                     key={`owner-${collaboratorsData.owner.id}`}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
-                    <div className="flex-1">
-                      <div className="font-medium">
-                        {collaboratorsData.owner.name}
-                      </div>
-                      {collaboratorsData.owner.email && (
-                        <div className="text-sm text-muted-foreground">
-                          {collaboratorsData.owner.email}
+                    <div className="flex flex-1 items-center gap-3">
+                      <UserAvatar
+                        name={collaboratorsData.owner.name}
+                        image={collaboratorsData.owner.image}
+                        className="size-10 ring-1 ring-border"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">
+                          {collaboratorsData.owner.name}
                         </div>
-                      )}
+                        {collaboratorsData.owner.email && (
+                          <div className="text-sm text-muted-foreground">
+                            {collaboratorsData.owner.email}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="text-sm capitalize text-muted-foreground">
                       {t("lists.collaborators.owner")}
@@ -278,27 +286,34 @@ export function ManageCollaboratorsModal({
                       key={collaborator.id}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">
-                            {collaborator.user.name}
+                      <div className="flex flex-1 items-center gap-3">
+                        <UserAvatar
+                          name={collaborator.user.name}
+                          image={collaborator.user.image}
+                          className="size-10 ring-1 ring-border"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium">
+                              {collaborator.user.name}
+                            </div>
+                            {collaborator.status === "pending" && (
+                              <Badge variant="outline" className="text-xs">
+                                {t("lists.collaborators.pending")}
+                              </Badge>
+                            )}
+                            {collaborator.status === "declined" && (
+                              <Badge variant="destructive" className="text-xs">
+                                {t("lists.collaborators.declined")}
+                              </Badge>
+                            )}
                           </div>
-                          {collaborator.status === "pending" && (
-                            <Badge variant="outline" className="text-xs">
-                              {t("lists.collaborators.pending")}
-                            </Badge>
-                          )}
-                          {collaborator.status === "declined" && (
-                            <Badge variant="destructive" className="text-xs">
-                              {t("lists.collaborators.declined")}
-                            </Badge>
+                          {collaborator.user.email && (
+                            <div className="text-sm text-muted-foreground">
+                              {collaborator.user.email}
+                            </div>
                           )}
                         </div>
-                        {collaborator.user.email && (
-                          <div className="text-sm text-muted-foreground">
-                            {collaborator.user.email}
-                          </div>
-                        )}
                       </div>
                       {readOnly ? (
                         <div className="text-sm capitalize text-muted-foreground">

@@ -64,6 +64,12 @@ const QUALIFIER_DEFINITIONS = [
     appendSpace: true,
   },
   {
+    value: "is:broken",
+    descriptionKey: "search.is_broken_link",
+    negatedDescriptionKey: "search.is_not_broken_link",
+    appendSpace: true,
+  },
+  {
     value: "url:",
     descriptionKey: "search.url_contains",
   },
@@ -257,6 +263,7 @@ const useTagSuggestions = (
   const { data: tagResults } = useTagAutocomplete({
     nameContains: debouncedTagSearchTerm,
     select: (data) => data.tags,
+    enabled: parsed.activeToken.length > 0,
   });
 
   const tagSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
@@ -293,7 +300,9 @@ const useFeedSuggestions = (
     : "";
   const feedSearchTerm = stripSurroundingQuotes(feedSearchTermRaw);
   const normalizedFeedSearchTerm = feedSearchTerm.toLowerCase();
-  const { data: feedResults } = api.feeds.list.useQuery();
+  const { data: feedResults } = api.feeds.list.useQuery(undefined, {
+    enabled: parsed.activeToken.length > 0,
+  });
 
   const feedSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestFeeds) {
@@ -343,7 +352,9 @@ const useListSuggestions = (
     : "";
   const listSearchTerm = stripSurroundingQuotes(listSearchTermRaw);
   const normalizedListSearchTerm = listSearchTerm.toLowerCase();
-  const { data: listResults } = useBookmarkLists();
+  const { data: listResults } = useBookmarkLists(undefined, {
+    enabled: parsed.activeToken.length > 0,
+  });
 
   const listSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestLists) {

@@ -140,6 +140,7 @@
     "import": {
       "import_export": "Importa / Esporta",
       "import_bookmarks_from_pocket_export": "Importa segnalibri da esportazione Pocket",
+      "import_bookmarks_from_matter_export": "Importa segnalibri da esportazione Matter",
       "import_bookmarks_from_karakeep_export": "Importa segnalibri da esportazione Karakeep",
       "export_links_and_notes": "Esporta link e note",
       "imported_bookmarks": "Segnalibri importati",

@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@karakeep/db";
-import { bookmarks, customPrompts } from "@karakeep/db/schema";
+import { bookmarks, customPrompts, users } from "@karakeep/db/schema";
 import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClient } from "@karakeep/shared/inference";
@@ -56,6 +56,22 @@ export async function runSummarization(
 
   const bookmarkData = await fetchBookmarkDetailsForSummary(bookmarkId);
 
+  // Check user-level preference
+  const userSettings = await db.query.users.findFirst({
+    where: eq(users.id, bookmarkData.userId),
+    columns: {
+      autoSummarizationEnabled: true,
+      inferredTagLang: true,
+    },
+  });
+
+  if (userSettings?.autoSummarizationEnabled === false) {
+    logger.debug(
+      `[inference][${jobId}] Skipping summarization job for bookmark with id "${bookmarkId}" because user has disabled auto-summarization.`,
+    );
+    return;
+  }
+
   let textToSummarize = "";
   if (bookmarkData.type === BookmarkTypes.LINK && bookmarkData.link) {
     const link = bookmarkData.link;
@@ -106,7 +122,7 @@ URL: ${link.url ?? ""}
   });
 
   const summaryPrompt = await buildSummaryPrompt(
-    serverConfig.inference.inferredTagLang,
+    userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
     prompts.map((p) => p.text),
     textToSummarize,
     serverConfig.inference.contextLength,

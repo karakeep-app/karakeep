@@ -149,6 +149,7 @@
       "import_export_bookmarks": "Importar / Exportar marcadores",
       "import_bookmarks_from_html_file": "Importar marcadores desde arquivo HTML",
       "import_bookmarks_from_pocket_export": "Importar marcadores desde Pocket",
+      "import_bookmarks_from_matter_export": "Importar marcadores desde Matter",
       "import_bookmarks_from_omnivore_export": "Importar marcadores desde Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importar marcadores desde Linkwarden",
       "import_bookmarks_from_karakeep_export": "Importar marcadores desde Karakeep",

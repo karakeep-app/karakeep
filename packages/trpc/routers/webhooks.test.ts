@@ -125,4 +125,26 @@ describe("Webhook Routes", () => {
       false,
     );
   });
+
+  test<CustomTestContext>("webhook limit enforcement", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].webhooks;
+
+    // Create 100 webhooks (the maximum)
+    for (let i = 0; i < 100; i++) {
+      await api.create({
+        url: `https://example${i}.com/webhook`,
+        events: ["created"],
+      });
+    }
+
+    // The 101st webhook should fail
+    await expect(() =>
+      api.create({
+        url: "https://example101.com/webhook",
+        events: ["created"],
+      }),
+    ).rejects.toThrow(/Maximum number of webhooks \(100\) reached/);
+  });
 });

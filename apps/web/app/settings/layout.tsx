@@ -1,8 +1,12 @@
+import { redirect } from "next/navigation";
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
 import Sidebar from "@/components/shared/sidebar/Sidebar";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
+import { ReaderSettingsProvider } from "@/lib/readerSettings";
 import { UserSettingsContextProvider } from "@/lib/userSettings";
 import { api } from "@/server/api/client";
+import { getServerAuthSession } from "@/server/auth";
+import { TRPCError } from "@trpc/server";
 import { TFunction } from "i18next";
 import {
   ArrowLeft,
@@ -21,6 +25,7 @@ import {
 } from "lucide-react";
 
 import serverConfig from "@karakeep/shared/config";
+import { tryCatch } from "@karakeep/shared/tryCatch";
 
 const settingsSidebarItems = (
   t: TFunction,
@@ -111,15 +116,35 @@ export default async function SettingsLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const userSettings = await api.users.settings();
+  const session = await getServerAuthSession();
+  if (!session) {
+    redirect("/");
+  }
+
+  const userSettings = await tryCatch(api.users.settings());
+
+  if (userSettings.error) {
+    if (userSettings.error instanceof TRPCError) {
+      if (
+        userSettings.error.code === "NOT_FOUND" ||
+        userSettings.error.code === "UNAUTHORIZED"
+      ) {
+        redirect("/logout");
+      }
+    }
+    throw userSettings.error;
+  }
+
   return (
-    <UserSettingsContextProvider userSettings={userSettings}>
-      <SidebarLayout
-        sidebar={<Sidebar items={settingsSidebarItems} />}
-        mobileSidebar={<MobileSidebar items={settingsSidebarItems} />}
-      >
-        {children}
-      </SidebarLayout>
+    <UserSettingsContextProvider userSettings={userSettings.data}>
+      <ReaderSettingsProvider>
+        <SidebarLayout
+          sidebar={<Sidebar items={settingsSidebarItems} />}
+          mobileSidebar={<MobileSidebar items={settingsSidebarItems} />}
+        >
+          {children}
+        </SidebarLayout>
+      </ReaderSettingsProvider>
     </UserSettingsContextProvider>
   );
 }

@@ -2,6 +2,7 @@
 
 import { ActionButton } from "@/components/ui/action-button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import { toast } from "@/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -10,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -331,6 +331,130 @@ describe("Bookmark Routes", () => {
     ).rejects.toThrow(/You must provide either a tagId or a tagName/);
   });
 
+  test<CustomTestContext>("update tags - comprehensive edge cases", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    // Create two bookmarks
+    const bookmark1 = await api.createBookmark({
+      url: "https://bookmark1.com",
+      type: BookmarkTypes.LINK,
+    });
+    const bookmark2 = await api.createBookmark({
+      url: "https://bookmark2.com",
+      type: BookmarkTypes.LINK,
+    });
+
+    // Test 1: Attach tags by name to bookmark1 (creates new tags)
+    await api.updateTags({
+      bookmarkId: bookmark1.id,
+      attach: [{ tagName: "existing-tag" }, { tagName: "shared-tag" }],
+      detach: [],
+    });
+
+    let b1 = await api.getBookmark({ bookmarkId: bookmark1.id });
+    expect(b1.tags.map((t) => t.name).sort()).toEqual([
+      "existing-tag",
+      "shared-tag",
+    ]);
+
+    const existingTagId = b1.tags.find((t) => t.name === "existing-tag")!.id;
+    const sharedTagId = b1.tags.find((t) => t.name === "shared-tag")!.id;
+
+    // Test 2: Attach existing tag by ID to bookmark2 (tag already exists in DB from bookmark1)
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [{ tagId: existingTagId }],
+      detach: [],
+    });
+
+    let b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    expect(b2.tags.map((t) => t.name)).toEqual(["existing-tag"]);
+
+    // Test 3: Attach existing tag by NAME to bookmark2 (tag already exists in DB)
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [{ tagName: "shared-tag" }],
+      detach: [],
+    });
+
+    b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    expect(b2.tags.map((t) => t.name).sort()).toEqual([
+      "existing-tag",
+      "shared-tag",
+    ]);
+
+    // Test 4: Re-attaching the same tag (idempotency) - should be no-op
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [{ tagId: existingTagId }],
+      detach: [],
+    });
+
+    b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    expect(b2.tags.map((t) => t.name).sort()).toEqual([
+      "existing-tag",
+      "shared-tag",
+    ]);
+
+    // Test 5: Detach non-existent tag by name (should be no-op)
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [],
+      detach: [{ tagName: "non-existent-tag" }],
+    });
+
+    b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    expect(b2.tags.map((t) => t.name).sort()).toEqual([
+      "existing-tag",
+      "shared-tag",
+    ]);
+
+    // Test 6: Mixed attach/detach with pre-existing tags
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [{ tagName: "new-tag" }, { tagId: sharedTagId }], // sharedTagId already attached
+      detach: [{ tagName: "existing-tag" }],
+    });
+
+    b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    expect(b2.tags.map((t) => t.name).sort()).toEqual([
+      "new-tag",
+      "shared-tag",
+    ]);
+
+    // Test 7: Detach by ID and re-attach by name in same operation
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [{ tagName: "new-tag" }], // Already exists, should be idempotent
+      detach: [{ tagId: sharedTagId }],
+    });
+
+    b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    expect(b2.tags.map((t) => t.name).sort()).toEqual(["new-tag"]);
+
+    // Verify bookmark1 still has its original tags (operations on bookmark2 didn't affect it)
+    b1 = await api.getBookmark({ bookmarkId: bookmark1.id });
+    expect(b1.tags.map((t) => t.name).sort()).toEqual([
+      "existing-tag",
+      "shared-tag",
+    ]);
+
+    // Test 8: Attach same tag multiple times in one operation (deduplication)
+    await api.updateTags({
+      bookmarkId: bookmark1.id,
+      attach: [{ tagName: "duplicate-test" }, { tagName: "duplicate-test" }],
+      detach: [],
+    });
+
+    b1 = await api.getBookmark({ bookmarkId: bookmark1.id });
+    const duplicateTagCount = b1.tags.filter(
+      (t) => t.name === "duplicate-test",
+    ).length;
+    expect(duplicateTagCount).toEqual(1); // Should only be attached once
+  });
+
   test<CustomTestContext>("update bookmark text", async ({ apiCallers }) => {
     const api = apiCallers[0].bookmarks;
     const createdBookmark = await api.createBookmark({

@@ -2,6 +2,7 @@
 
 import { ActionButton } from "@/components/ui/action-button";
 import { ButtonWithTooltip } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
 import {
   Table,
@@ -11,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 import { Mail, MailX, UserPlus } from "lucide-react";
