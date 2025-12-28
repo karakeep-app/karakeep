@@ -13,6 +13,11 @@ import { useEditBookmarkList } from "@karakeep/shared-react/hooks/lists";
 
 const EditListPage = () => {
   const { slug: listId } = useLocalSearchParams<{ slug?: string | string[] }>();
+
+  if (typeof listId !== "string") {
+    throw new Error("Unexpected param type");
+  }
+
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
   const { toast } = useToast();
@@ -36,10 +41,6 @@ const EditListPage = () => {
       });
     },
   });
-
-  if (typeof listId !== "string") {
-    throw new Error("Unexpected param type");
-  }
 
   const { data: list, isLoading: fetchIsPending } = api.lists.get.useQuery({
     listId,
