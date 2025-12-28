@@ -88,20 +88,22 @@ const EditListPage = () => {
           <View className="gap-2">
             <Text className="text-sm text-muted-foreground">List Type</Text>
             <View className="flex flex-row gap-2">
-              <Button
-                variant={list?.type === "manual" ? "primary" : "secondary"}
-                className="flex-1"
-                disabled
-              >
-                <Text>Manual</Text>
-              </Button>
-              <Button
-                variant={list?.type === "smart" ? "primary" : "secondary"}
-                className="flex-1"
-                disabled
-              >
-                <Text>Smart</Text>
-              </Button>
+              <View className="flex-1">
+                <Button
+                  variant={list?.type === "manual" ? "primary" : "secondary"}
+                  disabled
+                >
+                  <Text>Manual</Text>
+                </Button>
+              </View>
+              <View className="flex-1">
+                <Button
+                  variant={list?.type === "smart" ? "primary" : "secondary"}
+                  disabled
+                >
+                  <Text>Smart</Text>
+                </Button>
+              </View>
             </View>
           </View>
 
