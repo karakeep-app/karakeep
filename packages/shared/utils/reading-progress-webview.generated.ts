@@ -8,10 +8,6 @@
  * Uses window-level scrolling only (no container scrolling detection).
  *
  * Exposes these functions on the __readingProgress global:
- * - normalizeText(text)
- * - normalizeTextLength(text)
- * - extractAnchorText(element)
- * - findParagraphByAnchor(container, anchor)
  * - getReadingPosition(container)
  * - scrollToReadingPosition(container, offset, behavior, anchor)
  */
