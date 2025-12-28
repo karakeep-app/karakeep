@@ -1,6 +1,7 @@
 import fs from "fs";
 import * as os from "os";
 import path from "path";
+import { Either } from "effect";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
 import { getProxyAgent, validateUrl } from "network";
@@ -107,13 +108,13 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
 
   const proxy = getProxyAgent(url);
   const validation = await validateUrl(url, !!proxy);
-  if (!validation.ok) {
+  if (!Either.isRight(validation)) {
     logger.warn(
-      `[VideoCrawler][${jobId}] Skipping video download to disallowed URL "${url}": ${validation.reason}`,
+      `[VideoCrawler][${jobId}] Skipping video download to disallowed URL "${url}": ${validation.left.message}`,
     );
     return;
   }
-  const normalizedUrl = validation.url.toString();
+  const normalizedUrl = validation.right.toString();
 
   const videoAssetId = newAssetId();
   let assetPath = `${TMP_FOLDER}/${videoAssetId}`;
