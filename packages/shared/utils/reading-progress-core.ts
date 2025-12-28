@@ -55,9 +55,6 @@ export function normalizeTextLength(text: string): number {
  * Calculates the text offset of the paragraph at the top of the viewport.
  * Finds the paragraph whose top edge is at or near the top of the visible area.
  * Returns both the offset and anchor text for position verification.
- *
- * @param container - The container element containing the content
- * @param viewportTop - The Y coordinate of the viewport top (0 for window scrolling)
  */
 export function getReadingPositionWithViewport(
   container: HTMLElement,

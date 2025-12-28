@@ -16,48 +16,23 @@ import { api } from "../trpc";
 export type { ReadingPosition };
 
 export interface UseReadingProgressOptions {
-  /**
-   * The bookmark ID to track reading progress for
-   */
   bookmarkId: string;
-  /**
-   * Initial reading progress offset from the bookmark data
-   */
   initialOffset?: number | null;
-  /**
-   * Initial anchor text for position verification
-   */
   initialAnchor?: string | null;
-  /**
-   * Ref to the container element for position tracking
-   */
   containerRef: React.RefObject<HTMLElement | null>;
-  /**
-   * Whether the feature is enabled (defaults to true)
-   */
   enabled?: boolean;
-  /**
-   * Signal that content is ready for restoration.
-   * When true, the hook will attempt to restore the reading position.
-   */
+  /** Signal that content is ready for restoration */
   contentReady?: boolean;
 }
 
 export interface UseReadingProgressResult {
-  /**
-   * Whether the content is ready to be shown.
-   * True when either: no restoration needed, or restoration is complete.
-   * Use this to hide content until scroll position is restored to avoid flicker.
-   */
+  /** True when content can be shown (restoration complete or not needed) */
   isReady: boolean;
 }
 
 /**
- * Hook for automatically tracking and syncing reading progress for a bookmark.
- * Handles scroll tracking, position restoration, and auto-save on visibility
- * change, beforeunload, and unmount.
- *
- * @returns Object with `isReady` boolean - use to hide content until restoration completes
+ * Tracks and syncs reading progress for a bookmark.
+ * Handles scroll tracking, position restoration, and auto-save on visibility change.
  */
 export function useReadingProgress(
   options: UseReadingProgressOptions,
