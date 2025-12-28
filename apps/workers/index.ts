@@ -3,12 +3,17 @@ import "dotenv/config";
 import { buildServer } from "server";
 
 import {
+  initTracing,
   loadAllPlugins,
   prepareQueue,
+  shutdownTracing,
   startQueue,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+
+// Initialize tracing before anything else
+initTracing("workers");
 
 import { shutdownPromise } from "./exit";
 import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
@@ -97,6 +102,10 @@ async function main() {
     worker.stop();
   }
   await httpServer.stop();
+
+  // Gracefully shutdown tracing to flush any remaining spans
+  await shutdownTracing();
+
   process.exit(0);
 }
 

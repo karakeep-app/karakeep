@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { logger as loggerMiddleware } from "hono/logger";
 import { poweredBy } from "hono/powered-by";
 
-import { loadAllPlugins } from "@karakeep/shared-server";
+import { initTracing, loadAllPlugins } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 import { Context } from "@karakeep/trpc";
 
@@ -23,6 +23,9 @@ import trpc from "./routes/trpc";
 import users from "./routes/users";
 import version from "./routes/version";
 import webhooks from "./routes/webhooks";
+
+// Initialize tracing before anything else
+initTracing("api");
 
 await loadAllPlugins();
 

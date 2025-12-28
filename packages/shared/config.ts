@@ -210,6 +210,12 @@ const allEnv = z.object({
 
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
+
+  // OpenTelemetry tracing configuration
+  OTEL_TRACING_ENABLED: stringBool("false"),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_SERVICE_NAME: z.string().default("karakeep"),
+  OTEL_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(1.0),
 });
 
 const serverConfigSchema = allEnv.transform((val, ctx) => {
@@ -410,6 +416,12 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     database: {
       walMode: val.DB_WAL_MODE,
+    },
+    tracing: {
+      enabled: val.OTEL_TRACING_ENABLED,
+      otlpEndpoint: val.OTEL_EXPORTER_OTLP_ENDPOINT,
+      serviceName: val.OTEL_SERVICE_NAME,
+      sampleRate: val.OTEL_SAMPLE_RATE,
     },
   };
   if (obj.auth.emailVerificationRequired && !obj.email.smtp) {

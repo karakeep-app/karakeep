@@ -241,3 +241,44 @@ If your Karakeep instance needs to connect through a proxy server, you can confi
 :::info
 These proxy settings will be used by the crawler and other components that make outgoing HTTP requests.
 :::
+
+## OpenTelemetry Tracing
+
+Karakeep supports distributed tracing via OpenTelemetry. When enabled, traces are collected for tRPC API calls, background worker operations, and other key workflows.
+
+| Name                       | Required | Default   | Description                                                                                                                                                                                                                                       |
+| -------------------------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OTEL_TRACING_ENABLED       | No       | false     | Set to `true` to enable OpenTelemetry tracing. When disabled, all tracing operations are no-ops.                                                                                                                                                  |
+| OTEL_EXPORTER_OTLP_ENDPOINT| No       | Not set   | The OTLP HTTP endpoint to send traces to (e.g., `http://jaeger:4318/v1/traces` or `http://otel-collector:4318/v1/traces`). If not set, traces are logged to the console.                                                                          |
+| OTEL_SERVICE_NAME          | No       | karakeep  | The service name that will appear in your tracing backend. The actual service name will include a suffix (e.g., `karakeep-api`, `karakeep-workers`).                                                                                              |
+| OTEL_SAMPLE_RATE           | No       | 1.0       | The sampling rate for traces, between 0.0 and 1.0. A value of 1.0 means all traces are sampled, while 0.1 means only 10% of traces are sampled. Lower values reduce overhead and storage costs in production.                                     |
+
+:::info
+**Supported Tracing Backends**: Any OpenTelemetry-compatible backend can be used, including:
+- [Jaeger](https://www.jaegertracing.io/)
+- [Zipkin](https://zipkin.io/) (via OTLP collector)
+- [Grafana Tempo](https://grafana.com/oss/tempo/)
+- Cloud providers: AWS X-Ray, Google Cloud Trace, Azure Monitor
+
+**Example with Jaeger**:
+```yaml
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4318:4318"    # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+```
+
+Then set:
+```
+OTEL_TRACING_ENABLED=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces
+```
+:::
+
+:::warning
+Tracing adds minimal overhead but does generate additional network traffic and data. In high-traffic production environments, consider using a lower `OTEL_SAMPLE_RATE` (e.g., 0.1 or 0.01) to reduce costs while still capturing representative traces.
+:::
