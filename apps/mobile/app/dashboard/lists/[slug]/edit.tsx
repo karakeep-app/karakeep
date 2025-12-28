@@ -15,8 +15,6 @@ const EditListPage = () => {
   const { listId } = useLocalSearchParams<{ listId?: string | string[] }>();
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
-  // TODO: Toast currently not working on iOS either here or on new list
-  // Toast is covered by active modal -- needs to be fixed here and in /lists/new.tsx
   const { toast } = useToast();
   const { mutate, isPending } = useEditBookmarkList({
     onSuccess: () => {
@@ -56,6 +54,11 @@ const EditListPage = () => {
   }, [list?.id, list?.query, list?.name]);
 
   const onSubmit = () => {
+    if (!text.trim()) {
+      toast({ message: "List name can't be empty", variant: "destructive" });
+      return;
+    }
+
     if (list?.type === "smart" && !query.trim()) {
       toast({
         message: "Smart lists must have a search query",
