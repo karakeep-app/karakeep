@@ -70,9 +70,9 @@ const EditListPage = () => {
     }
 
     mutate({
-      listId: listId,
-      name: text,
-      query: list?.type === "smart" ? query : undefined,
+      listId,
+      name: text.trim(),
+      query: list?.type === "smart" ? query.trim() : undefined,
     });
   };
 
