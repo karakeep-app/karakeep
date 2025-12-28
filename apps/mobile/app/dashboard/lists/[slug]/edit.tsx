@@ -12,7 +12,7 @@ import { api } from "@/lib/trpc";
 import { useEditBookmarkList } from "@karakeep/shared-react/hooks/lists";
 
 const EditListPage = () => {
-  const { listId } = useLocalSearchParams<{ listId?: string | string[] }>();
+  const { slug: listId } = useLocalSearchParams<{ slug?: string | string[] }>();
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
   const { toast } = useToast();

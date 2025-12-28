@@ -99,7 +99,7 @@ function ListActionsMenu({
   const handleEdit = () => {
     router.push({
       pathname: "/dashboard/lists/[slug]/edit",
-      params: { listId },
+      params: { slug: listId },
     });
   };
 
