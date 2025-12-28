@@ -100,6 +100,23 @@ function ListActionsMenu({
     <MenuView
       actions={[
         {
+          id: "share",
+          title: "Share",
+          attributes: {
+            hidden: role !== "owner",
+          },
+          image: Platform.select({
+            ios: "square.and.arrow.up",
+          }),
+        },
+        {
+          id: "collaborators",
+          title: role === "owner" ? "Manage Collaborators" : "View Collaborators",
+          image: Platform.select({
+            ios: "person.2",
+          }),
+        },
+        {
           id: "delete",
           title: "Delete List",
           attributes: {
@@ -120,6 +137,12 @@ function ListActionsMenu({
         },
       ]}
       onPressAction={({ nativeEvent }) => {
+        if (nativeEvent.event === "share") {
+          router.push(`/dashboard/lists/${listId}/share`);
+        }
+        if (nativeEvent.event === "collaborators") {
+          router.push(`/dashboard/lists/${listId}/manage_collaborators`);
+        }
         if (nativeEvent.event === "delete") {
           handleDelete();
         }
