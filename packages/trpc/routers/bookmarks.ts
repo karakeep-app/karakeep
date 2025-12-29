@@ -300,7 +300,6 @@ export const bookmarksAppRouter = router({
       if (input.importSessionId) {
         const session = await ImportSession.fromId(ctx, input.importSessionId);
         await session.attachBookmark(bookmark.id);
-        addSpanEvent("import_session_attached");
       }
 
       const enqueueOpts: EnqueueOptions = {
@@ -310,9 +309,6 @@ export const bookmarksAppRouter = router({
       };
 
       // Enqueue background processing jobs
-      addSpanEvent("queue_enqueue_start", {
-        content_type: bookmark.content.type,
-      });
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
@@ -322,7 +318,6 @@ export const bookmarksAppRouter = router({
             },
             enqueueOpts,
           );
-          addSpanEvent("crawler_queue_enqueued");
           break;
         }
         case BookmarkTypes.TEXT: {
@@ -333,7 +328,6 @@ export const bookmarksAppRouter = router({
             },
             enqueueOpts,
           );
-          addSpanEvent("openai_queue_enqueued");
           break;
         }
         case BookmarkTypes.ASSET: {
@@ -344,7 +338,6 @@ export const bookmarksAppRouter = router({
             },
             enqueueOpts,
           );
-          addSpanEvent("asset_preprocessing_queue_enqueued");
           break;
         }
       }
@@ -358,10 +351,8 @@ export const bookmarksAppRouter = router({
         ],
         enqueueOpts,
       );
-      addSpanEvent("rule_engine_triggered");
 
       await triggerSearchReindex(bookmark.id, enqueueOpts);
-      addSpanEvent("search_reindex_triggered");
 
       await triggerWebhook(
         bookmark.id,
@@ -369,8 +360,6 @@ export const bookmarksAppRouter = router({
         /* userId */ undefined,
         enqueueOpts,
       );
-      addSpanEvent("webhook_triggered");
-
       return bookmark;
     }),
 
