@@ -1,9 +1,8 @@
 import * as React from "react";
 import { Image, View } from "react-native";
 import { Text } from "@/components/ui/Text";
+import { useAssetUrl } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
-
-import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 interface AvatarProps {
   image?: string | null;
@@ -27,10 +26,19 @@ export function Avatar({
   fallbackClassName,
 }: AvatarProps) {
   const [imageError, setImageError] = React.useState(false);
+  const assetUrl = useAssetUrl(image ?? "");
 
   const imageUrl = React.useMemo(() => {
     if (!image) return null;
-    return isExternalUrl(image) ? image : getAssetUrl(image);
+    return isExternalUrl(image)
+      ? {
+          uri: image,
+        }
+      : assetUrl;
+  }, [image]);
+
+  React.useEffect(() => {
+    setImageError(false);
   }, [image]);
 
   const initials = React.useMemo(() => {
@@ -69,7 +77,7 @@ export function Avatar({
         </View>
       ) : (
         <Image
-          source={{ uri: imageUrl }}
+          source={imageUrl}
           className={cn("h-full w-full", imageClassName)}
           style={{ resizeMode: "cover" }}
           onError={() => setImageError(true)}

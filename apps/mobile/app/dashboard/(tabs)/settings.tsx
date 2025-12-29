@@ -123,7 +123,7 @@ export default function Dashboard() {
           </View>
         </View>
 
-        <View className="rounded-xl bg-card py-2">
+        <View className="w-full rounded-xl bg-card py-2">
           <View className="flex w-full flex-row items-center justify-between gap-8 px-4 py-1">
             <Text>Upload Image Quality</Text>
             <View className="flex flex-1 flex-row items-center justify-center gap-2">
