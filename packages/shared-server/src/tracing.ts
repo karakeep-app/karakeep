@@ -7,7 +7,7 @@ import {
   trace,
 } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import {
   BatchSpanProcessor,
   ConsoleSpanExporter,
@@ -49,35 +49,36 @@ export function initTracing(serviceSuffix?: string): void {
 
   logger.info(`Initializing OpenTelemetry tracing for service: ${serviceName}`);
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: serviceName,
     [ATTR_SERVICE_VERSION]: serverConfig.serverVersion ?? "unknown",
   });
+
+  // Configure span processors
+  const spanProcessors = [];
+
+  if (serverConfig.tracing.otlpEndpoint) {
+    // OTLP exporter (Jaeger, Zipkin, etc.)
+    const otlpExporter = new OTLPTraceExporter({
+      url: serverConfig.tracing.otlpEndpoint,
+    });
+    spanProcessors.push(new BatchSpanProcessor(otlpExporter));
+    logger.info(
+      `OTLP exporter configured: ${serverConfig.tracing.otlpEndpoint}`,
+    );
+  } else {
+    // Fallback to console exporter for development
+    spanProcessors.push(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+    logger.info("Console span exporter configured (no OTLP endpoint set)");
+  }
 
   tracerProvider = new NodeTracerProvider({
     resource,
     sampler: new ParentBasedSampler({
       root: new TraceIdRatioBasedSampler(serverConfig.tracing.sampleRate),
     }),
+    spanProcessors,
   });
-
-  // Configure exporters
-  if (serverConfig.tracing.otlpEndpoint) {
-    // OTLP exporter (Jaeger, Zipkin, etc.)
-    const otlpExporter = new OTLPTraceExporter({
-      url: serverConfig.tracing.otlpEndpoint,
-    });
-    tracerProvider.addSpanProcessor(new BatchSpanProcessor(otlpExporter));
-    logger.info(
-      `OTLP exporter configured: ${serverConfig.tracing.otlpEndpoint}`,
-    );
-  } else {
-    // Fallback to console exporter for development
-    tracerProvider.addSpanProcessor(
-      new SimpleSpanProcessor(new ConsoleSpanExporter()),
-    );
-    logger.info("Console span exporter configured (no OTLP endpoint set)");
-  }
 
   // Register the provider globally
   tracerProvider.register();
