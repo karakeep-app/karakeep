@@ -62,7 +62,7 @@ export class InferenceClient {
       model: model,
       response_format: opts.schema
         ? zodResponseFormat(opts.schema, "schema")
-        : { type: "json_object" },
+        : { type: "json_object" as const },
     });
 
     const response = chatCompletion.choices[0].message.content;

@@ -260,7 +260,14 @@
       "camelCase": "camelCase",
       "no_preference": "No preference",
       "inference_language": "Inference Language",
-      "inference_language_description": "Choose language for AI-generated tags and summaries."
+      "inference_language_description": "Choose language for AI-generated tags and summaries.",
+      "provider_status": "Provider Status",
+      "provider_status_description": "The AI provider and models currently configured for this instance.",
+      "no_provider_configured": "No AI provider is configured. Contact your administrator to set up AI inference.",
+      "provider": "Provider",
+      "text_model": "Text Model",
+      "image_model": "Image Model",
+      "embeddings": "Embeddings"
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
