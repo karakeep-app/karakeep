@@ -148,7 +148,9 @@ export async function withSpan<T>(
           code: SpanStatusCode.ERROR,
           message: error instanceof Error ? error.message : String(error),
         });
-        span.recordException(error instanceof Error ? error : new Error(String(error)));
+        span.recordException(
+          error instanceof Error ? error : new Error(String(error)),
+        );
         throw error;
       } finally {
         span.end();
@@ -185,7 +187,9 @@ export function withSpanSync<T>(
       code: SpanStatusCode.ERROR,
       message: error instanceof Error ? error.message : String(error),
     });
-    span.recordException(error instanceof Error ? error : new Error(String(error)));
+    span.recordException(
+      error instanceof Error ? error : new Error(String(error)),
+    );
     throw error;
   } finally {
     span.end();

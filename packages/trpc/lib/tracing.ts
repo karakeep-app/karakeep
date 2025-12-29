@@ -1,6 +1,10 @@
 import { SpanKind } from "@opentelemetry/api";
 
-import { getTracer, setSpanAttributes, withSpan } from "@karakeep/shared-server";
+import {
+  getTracer,
+  setSpanAttributes,
+  withSpan,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 
 import type { Context } from "../index";
@@ -42,9 +46,7 @@ export function createTracingMiddleware() {
       async (span) => {
         // Add input size as an attribute (not the actual input for privacy)
         const inputSize =
-          opts.input !== undefined
-            ? JSON.stringify(opts.input).length
-            : 0;
+          opts.input !== undefined ? JSON.stringify(opts.input).length : 0;
         span.setAttribute("rpc.input.size", inputSize);
 
         const result = await opts.next();

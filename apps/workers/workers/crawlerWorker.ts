@@ -51,17 +51,13 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
-  addSpanEvent,
   AssetPreprocessingQueue,
-  getTracer,
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
-  setSpanAttributes,
   triggerSearchReindex,
   triggerWebhook,
   VideoWorkerQueue,
-  withSpan,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared-server";
 import {
@@ -89,9 +85,6 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
-
-// Tracer for crawler worker operations
-const tracer = getTracer("@karakeep/workers/crawler");
 
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
@@ -1465,149 +1458,111 @@ async function runCrawler(
   }
 
   const { bookmarkId, archiveFullPage, storePdf } = request.data;
+  const {
+    url,
+    userId,
+    screenshotAssetId: oldScreenshotAssetId,
+    pdfAssetId: oldPdfAssetId,
+    imageAssetId: oldImageAssetId,
+    fullPageArchiveAssetId: oldFullPageArchiveAssetId,
+    contentAssetId: oldContentAssetId,
+    precrawledArchiveAssetId,
+  } = await getBookmarkDetails(bookmarkId);
 
-  // Wrap the crawler execution in a span for distributed tracing
-  return withSpan(
-    tracer,
-    "crawler.run",
-    {
-      attributes: {
-        "crawler.job_id": jobId,
-        "crawler.bookmark_id": bookmarkId,
-        "crawler.run_number": job.runNumber,
-        "crawler.archive_full_page": archiveFullPage ?? false,
-        "crawler.store_pdf": storePdf ?? false,
-      },
-    },
-    async () => {
-      const {
-        url,
-        userId,
-        screenshotAssetId: oldScreenshotAssetId,
-        pdfAssetId: oldPdfAssetId,
-        imageAssetId: oldImageAssetId,
-        fullPageArchiveAssetId: oldFullPageArchiveAssetId,
-        contentAssetId: oldContentAssetId,
-        precrawledArchiveAssetId,
-      } = await getBookmarkDetails(bookmarkId);
+  await checkDomainRateLimit(url, jobId);
 
-      // Add URL to span attributes (after we have it)
-      setSpanAttributes({
-        "crawler.url": url,
-        "crawler.user_id": userId,
-      });
-      addSpanEvent("bookmark_details_fetched");
-
-      await checkDomainRateLimit(url, jobId);
-      addSpanEvent("rate_limit_checked");
-
-      logger.info(
-        `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
-      );
-
-      const contentType = await getContentType(url, jobId, job.abortSignal);
-      job.abortSignal.throwIfAborted();
-      addSpanEvent("content_type_detected", {
-        content_type: contentType ?? "unknown",
-      });
-
-      // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
-      const isPdf = contentType === ASSET_TYPES.APPLICATION_PDF;
-
-      if (isPdf) {
-        addSpanEvent("handling_as_pdf_asset");
-        await handleAsAssetBookmark(
-          url,
-          "pdf",
-          userId,
-          jobId,
-          bookmarkId,
-          job.abortSignal,
-        );
-      } else if (
-        contentType &&
-        IMAGE_ASSET_TYPES.has(contentType) &&
-        SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
-      ) {
-        addSpanEvent("handling_as_image_asset");
-        await handleAsAssetBookmark(
-          url,
-          "image",
-          userId,
-          jobId,
-          bookmarkId,
-          job.abortSignal,
-        );
-      } else {
-        addSpanEvent("crawling_webpage");
-        const archivalLogic = await crawlAndParseUrl(
-          url,
-          userId,
-          jobId,
-          bookmarkId,
-          oldScreenshotAssetId,
-          oldPdfAssetId,
-          oldImageAssetId,
-          oldFullPageArchiveAssetId,
-          oldContentAssetId,
-          precrawledArchiveAssetId,
-          archiveFullPage,
-          storePdf ?? false,
-          job.abortSignal,
-        );
-        addSpanEvent("webpage_crawled");
-
-        // Propagate priority to child jobs
-        const enqueueOpts: EnqueueOptions = {
-          priority: job.priority,
-          groupId: userId,
-        };
-
-        // Enqueue openai job (if not set, assume it's true for backward compatibility)
-        if (job.data.runInference !== false) {
-          await OpenAIQueue.enqueue(
-            {
-              bookmarkId,
-              type: "tag",
-            },
-            enqueueOpts,
-          );
-          await OpenAIQueue.enqueue(
-            {
-              bookmarkId,
-              type: "summarize",
-            },
-            enqueueOpts,
-          );
-          addSpanEvent("openai_jobs_enqueued");
-        }
-
-        // Update the search index
-        await triggerSearchReindex(bookmarkId, enqueueOpts);
-        addSpanEvent("search_reindex_triggered");
-
-        if (serverConfig.crawler.downloadVideo) {
-          // Trigger a potential download of a video from the URL
-          await VideoWorkerQueue.enqueue(
-            {
-              bookmarkId,
-              url,
-            },
-            enqueueOpts,
-          );
-          addSpanEvent("video_download_enqueued");
-        }
-
-        // Trigger a webhook
-        await triggerWebhook(bookmarkId, "crawled", undefined, enqueueOpts);
-        addSpanEvent("webhook_triggered");
-
-        // Do the archival as a separate last step as it has the potential for failure
-        await archivalLogic();
-        addSpanEvent("archival_complete");
-      }
-
-      return { status: "completed" };
-    },
+  logger.info(
+    `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
+
+  const contentType = await getContentType(url, jobId, job.abortSignal);
+  job.abortSignal.throwIfAborted();
+
+  // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
+  const isPdf = contentType === ASSET_TYPES.APPLICATION_PDF;
+
+  if (isPdf) {
+    await handleAsAssetBookmark(
+      url,
+      "pdf",
+      userId,
+      jobId,
+      bookmarkId,
+      job.abortSignal,
+    );
+  } else if (
+    contentType &&
+    IMAGE_ASSET_TYPES.has(contentType) &&
+    SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
+  ) {
+    await handleAsAssetBookmark(
+      url,
+      "image",
+      userId,
+      jobId,
+      bookmarkId,
+      job.abortSignal,
+    );
+  } else {
+    const archivalLogic = await crawlAndParseUrl(
+      url,
+      userId,
+      jobId,
+      bookmarkId,
+      oldScreenshotAssetId,
+      oldPdfAssetId,
+      oldImageAssetId,
+      oldFullPageArchiveAssetId,
+      oldContentAssetId,
+      precrawledArchiveAssetId,
+      archiveFullPage,
+      storePdf ?? false,
+      job.abortSignal,
+    );
+
+    // Propagate priority to child jobs
+    const enqueueOpts: EnqueueOptions = {
+      priority: job.priority,
+      groupId: userId,
+    };
+
+    // Enqueue openai job (if not set, assume it's true for backward compatibility)
+    if (job.data.runInference !== false) {
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "tag",
+        },
+        enqueueOpts,
+      );
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "summarize",
+        },
+        enqueueOpts,
+      );
+    }
+
+    // Update the search index
+    await triggerSearchReindex(bookmarkId, enqueueOpts);
+
+    if (serverConfig.crawler.downloadVideo) {
+      // Trigger a potential download of a video from the URL
+      await VideoWorkerQueue.enqueue(
+        {
+          bookmarkId,
+          url,
+        },
+        enqueueOpts,
+      );
+    }
+
+    // Trigger a webhook
+    await triggerWebhook(bookmarkId, "crawled", undefined, enqueueOpts);
+
+    // Do the archival as a separate last step as it has the potential for failure
+    await archivalLogic();
+  }
+  return { status: "completed" };
 }
