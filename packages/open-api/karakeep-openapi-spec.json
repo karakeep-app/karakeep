@@ -207,6 +207,15 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "crawlStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending"
+                    ]
+                  },
                   "author": {
                     "type": "string",
                     "nullable": true

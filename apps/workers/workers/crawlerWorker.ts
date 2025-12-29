@@ -9,7 +9,7 @@ import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -332,7 +332,12 @@ export class CrawlerWorker {
           logger.info(`[Crawler][${jobId}] Completed successfully`);
           const bookmarkId = job.data.bookmarkId;
           if (bookmarkId) {
-            await changeBookmarkStatus(bookmarkId, "success");
+            await db
+              .update(bookmarkLinks)
+              .set({
+                crawlStatus: "success",
+              })
+              .where(eq(bookmarkLinks.id, bookmarkId));
           }
         },
         onError: async (job) => {
@@ -346,7 +351,36 @@ export class CrawlerWorker {
           );
           const bookmarkId = job.data?.bookmarkId;
           if (bookmarkId && job.numRetriesLeft == 0) {
-            await changeBookmarkStatus(bookmarkId, "failure");
+            await db.transaction(async (tx) => {
+              await tx
+                .update(bookmarkLinks)
+                .set({
+                  crawlStatus: "failure",
+                })
+                .where(eq(bookmarkLinks.id, bookmarkId));
+              await tx
+                .update(bookmarks)
+                .set({
+                  taggingStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.taggingStatus, "pending"),
+                  ),
+                );
+              await tx
+                .update(bookmarks)
+                .set({
+                  summarizationStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.summarizationStatus, "pending"),
+                  ),
+                );
+            });
           }
         },
       },
@@ -387,18 +421,6 @@ async function loadCookiesFromFile(): Promise<void> {
 }
 
 type DBAssetType = typeof assets.$inferInsert;
-
-async function changeBookmarkStatus(
-  bookmarkId: string,
-  crawlStatus: "success" | "failure",
-) {
-  await db
-    .update(bookmarkLinks)
-    .set({
-      crawlStatus,
-    })
-    .where(eq(bookmarkLinks.id, bookmarkId));
-}
 
 async function browserlessCrawlPage(
   jobId: string,
