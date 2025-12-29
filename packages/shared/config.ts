@@ -129,6 +129,7 @@ const allEnv = z.object({
   MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
   // Build only flag
   SERVER_VERSION: z.string().optional(),
+  CHANGELOG_VERSION: z.string().optional(),
   DISABLE_NEW_RELEASE_CHECK: stringBool("false"),
 
   // A flag to detect if the user is running in the old separete containers setup
@@ -345,6 +346,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
     serverVersion: val.SERVER_VERSION,
+    changelogVersion: val.CHANGELOG_VERSION,
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,
     usingLegacySeparateContainers: val.USING_LEGACY_SEPARATE_CONTAINERS,
     webhook: {
