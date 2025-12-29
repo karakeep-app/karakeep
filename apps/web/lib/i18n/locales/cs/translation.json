@@ -98,7 +98,14 @@
       "all_tagging": "Všechny štítky",
       "text_tagging": "Označování textu",
       "image_tagging": "Označování obrázků",
-      "summarization": "Shrnutí"
+      "summarization": "Shrnutí",
+      "provider_status": "Stav poskytovatele",
+      "provider_status_description": "Poskytovatel AI a modely aktuálně nakonfigurované pro tuto instanci.",
+      "no_provider_configured": "Není nakonfigurován žádný poskytovatel AI. Kontaktujte administrátora pro nastavení AI inference.",
+      "provider": "Poskytovatel",
+      "text_model": "Textový model",
+      "image_model": "Obrazový model",
+      "embeddings": "Vložení"
     },
     "webhooks": {
       "webhooks": "Webhooky",

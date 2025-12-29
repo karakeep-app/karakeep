@@ -153,7 +153,14 @@
       "text_tagging": "Marcação de texto",
       "image_tagging": "Marcação de imagem",
       "summarization": "Sumarização",
-      "ai_settings": "Configurações de IA"
+      "ai_settings": "Configurações de IA",
+      "provider_status": "Estado do fornecedor",
+      "provider_status_description": "O fornecedor de IA e os modelos atualmente configurados para esta instância.",
+      "no_provider_configured": "Nenhum fornecedor de IA está configurado. Contacte o seu administrador para configurar a inferência de IA.",
+      "provider": "Fornecedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imagem",
+      "embeddings": "Embeddings"
     },
     "api_keys": {
       "new_api_key": "Nova chave da API",

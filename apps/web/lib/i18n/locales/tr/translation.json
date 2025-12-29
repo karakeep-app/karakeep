@@ -132,7 +132,14 @@
       "summarization_prompt": "Özetleme İstemi",
       "all_tagging": "Tüm Etiketleme",
       "text_tagging": "Metin Etiketleme",
-      "summarization": "Özetleme"
+      "summarization": "Özetleme",
+      "provider_status": "Sağlayıcı Durumu",
+      "provider_status_description": "Bu örnek için şu anda yapılandırılmış yapay zeka sağlayıcısı ve modeller.",
+      "no_provider_configured": "Hiçbir yapay zeka sağlayıcısı yapılandırılmamış. Yapay zeka çıkarımını ayarlamak için yöneticinizle iletişime geçin.",
+      "provider": "Sağlayıcı",
+      "text_model": "Metin Modeli",
+      "image_model": "Görsel Modeli",
+      "embeddings": "Gömüler"
     },
     "feeds": {
       "rss_subscriptions": "RSS Abonelikleri",

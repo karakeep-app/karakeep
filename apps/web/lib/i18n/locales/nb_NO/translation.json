@@ -251,7 +251,14 @@
       "text_tagging": "Teksttagging",
       "image_tagging": "Bilde-tagging",
       "summarization": "Oppsummering",
-      "images_prompt": "Bildeledetekst"
+      "images_prompt": "Bildeledetekst",
+      "provider_status": "Leverandørstatus",
+      "provider_status_description": "AI-leverandøren og modellene som er konfigurert for denne instansen.",
+      "no_provider_configured": "Ingen AI-leverandør er konfigurert. Kontakt administratoren din for å sette opp AI-inferens.",
+      "provider": "Leverandør",
+      "text_model": "Tekstmodell",
+      "image_model": "Bildemodell",
+      "embeddings": "Innbygginger"
     },
     "import": {
       "import_bookmarks_from_omnivore_export": "Importer bokmerker fra Omnivore-eksport",

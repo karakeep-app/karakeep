@@ -137,7 +137,14 @@
       "summarization_prompt": "Monit o podsumowanie",
       "all_tagging": "Wszystkie tagi",
       "text_tagging": "Tagowanie tekstu",
-      "image_tagging": "Tagowanie obrazów"
+      "image_tagging": "Tagowanie obrazów",
+      "provider_status": "Status dostawcy",
+      "provider_status_description": "Dostawca AI i modele aktualnie skonfigurowane dla tej instancji.",
+      "no_provider_configured": "Nie skonfigurowano dostawcy AI. Skontaktuj się z administratorem, aby skonfigurować wnioskowanie AI.",
+      "provider": "Dostawca",
+      "text_model": "Model tekstowy",
+      "image_model": "Model obrazu",
+      "embeddings": "Osadzenia"
     },
     "feeds": {
       "rss_subscriptions": "Subskrypcje RSS",

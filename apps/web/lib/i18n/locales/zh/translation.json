@@ -129,7 +129,14 @@
       "image_tagging": "图片标记",
       "text_tagging": "文字标记",
       "all_tagging": "所有标记",
-      "summarization_prompt": "摘要生成提示"
+      "summarization_prompt": "摘要生成提示",
+      "provider_status": "提供商状态",
+      "provider_status_description": "当前为此实例配置的AI提供商和模型。",
+      "no_provider_configured": "未配置AI提供商。请联系您的管理员设置AI推理。",
+      "provider": "提供商",
+      "text_model": "文本模型",
+      "image_model": "图像模型",
+      "embeddings": "嵌入"
     },
     "feeds": {
       "rss_subscriptions": "RSS订阅",

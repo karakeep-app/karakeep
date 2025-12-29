@@ -100,7 +100,14 @@
       "summarization": "Opsummering",
       "all_tagging": "Tagging for alle typer",
       "text_tagging": "Tekst-tagging",
-      "image_tagging": "Billede-tagging"
+      "image_tagging": "Billede-tagging",
+      "provider_status": "Udbyderstatus",
+      "provider_status_description": "AI-udbyderen og modellerne, der aktuelt er konfigureret for denne instans.",
+      "no_provider_configured": "Ingen AI-udbyder er konfigureret. Kontakt din administrator for at konfigurere AI-inferens.",
+      "provider": "Udbyder",
+      "text_model": "Tekstmodel",
+      "image_model": "Billedmodel",
+      "embeddings": "Indlejringer"
     },
     "broken_links": {
       "crawling_status": "Gennemsøgningsstatus",

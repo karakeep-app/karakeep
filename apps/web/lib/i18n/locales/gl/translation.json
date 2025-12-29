@@ -194,7 +194,14 @@
       "all_tagging": "Todas as etiquetas",
       "text_tagging": "Etiquetaxe de texto",
       "image_tagging": "Etiquetaxe de imaxes",
-      "summarization": "Resumo"
+      "summarization": "Resumo",
+      "provider_status": "Estado do provedor",
+      "provider_status_description": "O provedor de IA e os modelos configurados actualmente para esta instancia.",
+      "no_provider_configured": "Non hai ningún provedor de IA configurado. Contacta co teu administrador para configurar a inferencia de IA.",
+      "provider": "Provedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imaxe",
+      "embeddings": "Incrustacións"
     },
     "feeds": {
       "rss_subscriptions": "Subscricións RSS",

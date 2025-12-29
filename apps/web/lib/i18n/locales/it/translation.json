@@ -129,7 +129,14 @@
       "image_tagging": "Tagging immagini",
       "text_tagging": "Tagging testo",
       "all_tagging": "Tutte le etichette",
-      "summarization": "Riassunto"
+      "summarization": "Riassunto",
+      "provider_status": "Stato del fornitore",
+      "provider_status_description": "Il fornitore AI e i modelli attualmente configurati per questa istanza.",
+      "no_provider_configured": "Nessun fornitore AI è configurato. Contatta il tuo amministratore per configurare l'inferenza AI.",
+      "provider": "Fornitore",
+      "text_model": "Modello di testo",
+      "image_model": "Modello di immagine",
+      "embeddings": "Embedding"
     },
     "feeds": {
       "rss_subscriptions": "Iscrizione RSS",

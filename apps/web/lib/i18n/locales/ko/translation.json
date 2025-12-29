@@ -322,7 +322,14 @@
       "all_tagging": "모든 태깅",
       "text_tagging": "텍스트 태깅",
       "image_tagging": "이미지 태깅",
-      "summarization": "요약"
+      "summarization": "요약",
+      "provider_status": "제공자 상태",
+      "provider_status_description": "이 인스턴스에 현재 구성된 AI 제공자 및 모델입니다.",
+      "no_provider_configured": "AI 제공자가 구성되지 않았습니다. AI 추론을 설정하려면 관리자에게 문의하세요.",
+      "provider": "제공자",
+      "text_model": "텍스트 모델",
+      "image_model": "이미지 모델",
+      "embeddings": "임베딩"
     },
     "feeds": {
       "add_a_subscription": "구독 추가",

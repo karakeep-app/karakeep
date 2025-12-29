@@ -60,7 +60,14 @@
       "summarization_prompt": "Povzemni ukaz",
       "all_tagging": "Vse oznake",
       "tagging_rules": "Pravila za označevanje",
-      "tagging_rule_description": "Pozivi, ki jih dodaš tukaj, bodo vključeni kot pravila za model med ustvarjanjem oznak. Končne pozive si lahko ogledaš v razdelku za predogled pozivov."
+      "tagging_rule_description": "Pozivi, ki jih dodaš tukaj, bodo vključeni kot pravila za model med ustvarjanjem oznak. Končne pozive si lahko ogledaš v razdelku za predogled pozivov.",
+      "provider_status": "Stanje ponudnika",
+      "provider_status_description": "Ponudnik AI in modeli, ki so trenutno konfigurirani za to instanco.",
+      "no_provider_configured": "Noben ponudnik AI ni konfiguriran. Obrnite se na skrbnika za nastavitev AI sklepanja.",
+      "provider": "Ponudnik",
+      "text_model": "Model besedila",
+      "image_model": "Model slike",
+      "embeddings": "Vložitve"
     },
     "back_to_app": "Nazaj v aplikacijo",
     "webhooks": {

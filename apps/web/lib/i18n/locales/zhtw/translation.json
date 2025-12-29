@@ -129,7 +129,14 @@
       "text_tagging": "文字標籤",
       "image_tagging": "圖片標籤",
       "summarization": "摘要",
-      "summarization_prompt": "摘要提示詞"
+      "summarization_prompt": "摘要提示詞",
+      "provider_status": "提供者狀態",
+      "provider_status_description": "目前為此實例配置的 AI 提供者和模型。",
+      "no_provider_configured": "未配置 AI 提供者。請聯繫您的管理員設定 AI 推論。",
+      "provider": "提供者",
+      "text_model": "文字模型",
+      "image_model": "圖片模型",
+      "embeddings": "嵌入"
     },
     "feeds": {
       "rss_subscriptions": "RSS 訂閱",

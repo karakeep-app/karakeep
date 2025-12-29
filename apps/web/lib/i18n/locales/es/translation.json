@@ -77,7 +77,14 @@
       "summarization_prompt": "Indicación de resumen",
       "all_tagging": "Todo el etiquetado",
       "text_tagging": "Etiquetado de texto",
-      "image_tagging": "Etiquetado de imágenes"
+      "image_tagging": "Etiquetado de imágenes",
+      "provider_status": "Estado del proveedor",
+      "provider_status_description": "El proveedor de IA y los modelos configurados actualmente para esta instancia.",
+      "no_provider_configured": "No hay ningún proveedor de IA configurado. Contacta a tu administrador para configurar la inferencia de IA.",
+      "provider": "Proveedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imagen",
+      "embeddings": "Incrustaciones"
     },
     "user_settings": "Ajustes de usuario",
     "feeds": {

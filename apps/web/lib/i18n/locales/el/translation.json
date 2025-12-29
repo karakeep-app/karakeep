@@ -132,7 +132,14 @@
       "all_tagging": "Όλη η Ετικετοποίηση",
       "text_tagging": "Ετικετοποίηση Κειμένου",
       "image_tagging": "Ετικετοποίηση Εικόνων",
-      "summarization": "Περίληψη"
+      "summarization": "Περίληψη",
+      "provider_status": "Κατάσταση παρόχου",
+      "provider_status_description": "Ο πάροχος AI και τα μοντέλα που έχουν ρυθμιστεί για αυτήν την εγκατάσταση.",
+      "no_provider_configured": "Δεν έχει ρυθμιστεί πάροχος AI. Επικοινωνήστε με τον διαχειριστή σας για να ρυθμίσετε την AI εξαγωγή συμπερασμάτων.",
+      "provider": "Πάροχος",
+      "text_model": "Μοντέλο κειμένου",
+      "image_model": "Μοντέλο εικόνας",
+      "embeddings": "Ενσωματώσεις"
     },
     "feeds": {
       "rss_subscriptions": "Συνδρομές RSS",

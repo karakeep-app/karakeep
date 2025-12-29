@@ -209,7 +209,14 @@
       "all_tagging": "すべてのタグ付け",
       "text_tagging": "テキストタグ付け",
       "image_tagging": "画像タグ付け",
-      "summarization": "要約"
+      "summarization": "要約",
+      "provider_status": "プロバイダーのステータス",
+      "provider_status_description": "このインスタンスに現在設定されているAIプロバイダーとモデル。",
+      "no_provider_configured": "AIプロバイダーが設定されていません。AI推論を設定するには管理者に連絡してください。",
+      "provider": "プロバイダー",
+      "text_model": "テキストモデル",
+      "image_model": "画像モデル",
+      "embeddings": "埋め込み"
     },
     "import": {
       "import_export_bookmarks": "ブックマークのインポート/エクスポート",

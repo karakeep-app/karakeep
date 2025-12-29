@@ -239,7 +239,14 @@
       "all_tagging": "All Tagging",
       "text_tagging": "Text Tagging",
       "image_tagging": "Image Tagging",
-      "summarization": "Summarization"
+      "summarization": "Summarization",
+      "provider_status": "Provider Status",
+      "provider_status_description": "The AI provider and models currently configured for this instance.",
+      "no_provider_configured": "No AI provider is configured. Contact your administrator to set up AI inference.",
+      "provider": "Provider",
+      "text_model": "Text Model",
+      "image_model": "Image Model",
+      "embeddings": "Embeddings"
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",

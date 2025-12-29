@@ -104,7 +104,14 @@
       "images_prompt": "Utasítás képpel",
       "text_tagging": "Szöveg címkézés",
       "image_tagging": "Kép címkézés",
-      "summarization": "Összesítés"
+      "summarization": "Összesítés",
+      "provider_status": "Szolgáltató állapota",
+      "provider_status_description": "A jelenleg ehhez a példányhoz konfigurált MI szolgáltató és modellek.",
+      "no_provider_configured": "Nincs MI szolgáltató konfigurálva. Lépjen kapcsolatba a rendszergazdával az MI következtetés beállításához.",
+      "provider": "Szolgáltató",
+      "text_model": "Szöveg modell",
+      "image_model": "Kép modell",
+      "embeddings": "Beágyazások"
     },
     "api_keys": {
       "new_api_key": "Új API kulcs",

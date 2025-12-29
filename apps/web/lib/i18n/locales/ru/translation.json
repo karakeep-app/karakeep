@@ -189,7 +189,14 @@
       "image_tagging": "Пометка изображений тегами",
       "summarization": "Суммирование",
       "summarization_prompt": "Подсказка для суммирования",
-      "all_tagging": "Все теги"
+      "all_tagging": "Все теги",
+      "provider_status": "Статус провайдера",
+      "provider_status_description": "Провайдер ИИ и модели, настроенные в данный момент для этого экземпляра.",
+      "no_provider_configured": "Провайдер ИИ не настроен. Свяжитесь с администратором для настройки ИИ-инференса.",
+      "provider": "Провайдер",
+      "text_model": "Текстовая модель",
+      "image_model": "Модель изображений",
+      "embeddings": "Эмбеддинги"
     },
     "feeds": {
       "rss_subscriptions": "RSS подписки",

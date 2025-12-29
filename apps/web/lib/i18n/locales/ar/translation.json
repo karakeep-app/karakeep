@@ -132,7 +132,14 @@
       "all_tagging": "التوسيم الشامل",
       "text_tagging": "توسيم النصوص",
       "image_tagging": "توسيم الصور",
-      "summarization": "التلخيص"
+      "summarization": "التلخيص",
+      "provider_status": "حالة المزود",
+      "provider_status_description": "مزود الذكاء الاصطناعي والنماذج المكونة حاليًا لهذا المثيل.",
+      "no_provider_configured": "لم يتم تكوين مزود للذكاء الاصطناعي. اتصل بالمسؤول لإعداد استدلال الذكاء الاصطناعي.",
+      "provider": "المزود",
+      "text_model": "نموذج النص",
+      "image_model": "نموذج الصورة",
+      "embeddings": "التضمينات"
     },
     "feeds": {
       "rss_subscriptions": "اشتراكات RSS",

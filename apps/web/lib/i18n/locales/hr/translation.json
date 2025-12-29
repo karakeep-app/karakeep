@@ -189,7 +189,14 @@
       "text_tagging": "Označavanje teksta",
       "image_tagging": "Označavanje slika",
       "summarization": "Sažetak",
-      "all_tagging": "Sve oznake"
+      "all_tagging": "Sve oznake",
+      "provider_status": "Status pružatelja",
+      "provider_status_description": "AI pružatelj i modeli trenutno konfigurirani za ovu instancu.",
+      "no_provider_configured": "Nije konfiguriran nijedan AI pružatelj. Kontaktirajte svog administratora za postavljanje AI inferencije.",
+      "provider": "Pružatelj",
+      "text_model": "Tekstualni model",
+      "image_model": "Model slike",
+      "embeddings": "Ugradnje"
     },
     "import": {
       "import_bookmarks_from_html_file": "Import knjižnih oznaka iz HTML datoteke",

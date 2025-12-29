@@ -132,7 +132,14 @@
       "all_tagging": "Kaikki tägääminen",
       "text_tagging": "Tekstin merkitseminen",
       "image_tagging": "Kuvien merkitseminen",
-      "summarization": "Yhteenvedon luonti"
+      "summarization": "Yhteenvedon luonti",
+      "provider_status": "Palveluntarjoajan tila",
+      "provider_status_description": "Tällä hetkellä tälle instanssille määritetty tekoälypalveluntarjoaja ja mallit.",
+      "no_provider_configured": "Tekoälypalveluntarjoajaa ei ole määritetty. Ota yhteyttä ylläpitäjään tekoälypäättelyn käyttöönottamiseksi.",
+      "provider": "Palveluntarjoaja",
+      "text_model": "Tekstimalli",
+      "image_model": "Kuvamalli",
+      "embeddings": "Upotukset"
     },
     "feeds": {
       "rss_subscriptions": "RSS-tilaukset",

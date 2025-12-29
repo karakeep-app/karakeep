@@ -98,7 +98,14 @@
       "all_tagging": "Gach Clibeáil",
       "text_tagging": "Clibeáil Téacs",
       "image_tagging": "Clibeáil Íomhá",
-      "summarization": "Achoimre"
+      "summarization": "Achoimre",
+      "provider_status": "Stádas an tSoláthraí",
+      "provider_status_description": "An soláthraí AI agus na samhlacha atá cumraithe faoi láthair don ásc seo.",
+      "no_provider_configured": "Níl aon soláthraí AI cumraithe. Déan teagmháil le do riarthóir chun tátal AI a shocrú.",
+      "provider": "Soláthraí",
+      "text_model": "Samhail Téacs",
+      "image_model": "Samhail Íomhá",
+      "embeddings": "Leabuithe"
     },
     "webhooks": {
       "webhooks": "Crúcaí Gréasáin",

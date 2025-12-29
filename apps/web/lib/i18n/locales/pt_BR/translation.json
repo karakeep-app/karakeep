@@ -123,7 +123,14 @@
       "all_tagging": "Todas as Tags",
       "text_tagging": "Tags de Texto",
       "image_tagging": "Tags de Imagem",
-      "summarization": "Resumo"
+      "summarization": "Resumo",
+      "provider_status": "Status do provedor",
+      "provider_status_description": "O provedor de IA e os modelos configurados atualmente para esta instância.",
+      "no_provider_configured": "Nenhum provedor de IA está configurado. Entre em contato com seu administrador para configurar a inferência de IA.",
+      "provider": "Provedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imagem",
+      "embeddings": "Embeddings"
     },
     "feeds": {
       "rss_subscriptions": "Assinaturas de RSS",

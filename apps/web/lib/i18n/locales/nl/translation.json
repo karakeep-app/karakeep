@@ -104,7 +104,14 @@
       "all_tagging": "Alle tags",
       "text_tagging": "Tekst taggen",
       "image_tagging": "Afbeeldingen taggen",
-      "tagging_rule_description": "Prompts die je hier toevoegt, worden opgenomen als regels voor het model tijdens het genereren van tags. Je kunt de uiteindelijke prompts bekijken in het promptvoorbeeldgedeelte."
+      "tagging_rule_description": "Prompts die je hier toevoegt, worden opgenomen als regels voor het model tijdens het genereren van tags. Je kunt de uiteindelijke prompts bekijken in het promptvoorbeeldgedeelte.",
+      "provider_status": "Providerstatus",
+      "provider_status_description": "De AI-provider en modellen die momenteel zijn geconfigureerd voor deze instantie.",
+      "no_provider_configured": "Er is geen AI-provider geconfigureerd. Neem contact op met uw beheerder om AI-inferentie in te stellen.",
+      "provider": "Provider",
+      "text_model": "Tekstmodel",
+      "image_model": "Afbeeldingsmodel",
+      "embeddings": "Embeddings"
     },
     "import": {
       "import_export": "Importeren / Exporteren",

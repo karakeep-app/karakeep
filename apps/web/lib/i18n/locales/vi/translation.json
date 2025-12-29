@@ -112,7 +112,14 @@
       "summarization": "Tóm tắt",
       "all_tagging": "Tất cả nhãn",
       "image_tagging": "Nhãn cho hình ảnh",
-      "text_tagging": "Nhãn cho văn bản"
+      "text_tagging": "Nhãn cho văn bản",
+      "provider_status": "Trạng thái nhà cung cấp",
+      "provider_status_description": "Nhà cung cấp AI và các mô hình hiện đang được cấu hình cho phiên bản này.",
+      "no_provider_configured": "Chưa có nhà cung cấp AI nào được cấu hình. Liên hệ với quản trị viên của bạn để thiết lập suy luận AI.",
+      "provider": "Nhà cung cấp",
+      "text_model": "Mô hình văn bản",
+      "image_model": "Mô hình hình ảnh",
+      "embeddings": "Nhúng"
     },
     "info": {
       "basic_details": "Thông tin cơ bản",
