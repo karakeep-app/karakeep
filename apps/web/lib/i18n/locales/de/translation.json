@@ -190,7 +190,14 @@
       "tag_style_description": "Wähle, wie deine automatisch generierten Tags formatiert werden sollen.",
       "auto_tagging_description": "Automatische Tag-Generierung für deine Lesezeichen mithilfe von KI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatische Zusammenfassung"
+      "auto_summarization": "Automatische Zusammenfassung",
+      "provider_status": "Anbieterstatus",
+      "provider_status_description": "Der KI-Anbieter und die Modelle, die derzeit für diese Instanz konfiguriert sind.",
+      "no_provider_configured": "Kein KI-Anbieter ist konfiguriert. Kontaktiere deinen Administrator, um KI-Inferenz einzurichten.",
+      "provider": "Anbieter",
+      "text_model": "Textmodell",
+      "image_model": "Bildmodell",
+      "embeddings": "Einbettungen"
     },
     "feeds": {
       "rss_subscriptions": "RSS-Abonnements",

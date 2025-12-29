@@ -21,7 +21,7 @@
     "@karakeep/trpc": "workspace:^0.1.0",
     "@trpc/client": "^11.4.3",
     "superjson": "^2.2.1",
-    "zod": "^3.24.2"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",

@@ -190,7 +190,14 @@
       "tag_style_description": "Choisissez le format de vos balises générées automatiquement.",
       "auto_tagging_description": "Générez automatiquement des balises pour vos favoris à l’aide de l’IA.",
       "camelCase": "camelCase",
-      "auto_summarization": "Résumés automatiques"
+      "auto_summarization": "Résumés automatiques",
+      "provider_status": "Statut du fournisseur",
+      "provider_status_description": "Le fournisseur d'IA et les modèles actuellement configurés pour cette instance.",
+      "no_provider_configured": "Aucun fournisseur d'IA n'est configuré. Contactez votre administrateur pour configurer l'inférence IA.",
+      "provider": "Fournisseur",
+      "text_model": "Modèle de texte",
+      "image_model": "Modèle d'image",
+      "embeddings": "Embeddings"
     },
     "feeds": {
       "rss_subscriptions": "Abonnements RSS",

@@ -56,26 +56,49 @@ const allEnv = z.object({
   OAUTH_PROVIDER_NAME: z.string().default("Custom Provider"),
   TURNSTILE_SITE_KEY: z.string().optional(),
   TURNSTILE_SECRET_KEY: z.string().optional(),
+  // Inference provider selection
+  INFERENCE_PROVIDER: z
+    .enum(["openai", "anthropic", "google", "ollama"])
+    .optional(),
+
+  // OpenAI configuration
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_PROXY_URL: z.string().url().optional(),
   OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
+
+  // Anthropic configuration
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+
+  // Google Gemini configuration
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_BASE_URL: z.string().url().optional(),
+
+  // Ollama configuration
   OLLAMA_BASE_URL: z.string().url().optional(),
   OLLAMA_KEEP_ALIVE: z.string().optional(),
+
+  // Embeddings provider (defaults to inference provider if it supports embeddings)
+  EMBEDDING_PROVIDER: z.enum(["openai", "google", "ollama"]).optional(),
+
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
-  INFERENCE_TEXT_MODEL: z.string().default("gpt-4.1-mini"),
-  INFERENCE_IMAGE_MODEL: z.string().default("gpt-4o-mini"),
+  INFERENCE_TEXT_MODEL: z.string().default("gpt-5-mini"),
+  INFERENCE_IMAGE_MODEL: z.string().default("gpt-5-mini"),
   EMBEDDING_TEXT_MODEL: z.string().default("text-embedding-3-small"),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
-  INFERENCE_USE_MAX_COMPLETION_TOKENS: stringBool("false"),
-  INFERENCE_SUPPORTS_STRUCTURED_OUTPUT: optionalStringBool(),
   INFERENCE_OUTPUT_SCHEMA: z
     .enum(["structured", "json", "plain"])
     .default("structured"),
   INFERENCE_ENABLE_AUTO_TAGGING: stringBool("true"),
   INFERENCE_ENABLE_AUTO_SUMMARIZATION: stringBool("false"),
+  // OpenAI-specific options
+  OPENAI_USE_RESPONSES_API: stringBool("false"),
+  OPENAI_REASONING_EFFORT: z
+    .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
+    .default("low"),
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
@@ -270,33 +293,79 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           }
         : undefined,
     },
-    inference: {
-      isConfigured: !!val.OPENAI_API_KEY || !!val.OLLAMA_BASE_URL,
-      numWorkers: val.INFERENCE_NUM_WORKERS,
-      jobTimeoutSec: val.INFERENCE_JOB_TIMEOUT_SEC,
-      fetchTimeoutSec: val.INFERENCE_FETCH_TIMEOUT_SEC,
-      openAIApiKey: val.OPENAI_API_KEY,
-      openAIBaseUrl: val.OPENAI_BASE_URL,
-      openAIProxyUrl: val.OPENAI_PROXY_URL,
-      openAIServiceTier: val.OPENAI_SERVICE_TIER,
-      ollamaBaseUrl: val.OLLAMA_BASE_URL,
-      ollamaKeepAlive: val.OLLAMA_KEEP_ALIVE,
-      textModel: val.INFERENCE_TEXT_MODEL,
-      imageModel: val.INFERENCE_IMAGE_MODEL,
-      inferredTagLang: val.INFERENCE_LANG,
-      contextLength: val.INFERENCE_CONTEXT_LENGTH,
-      maxOutputTokens: val.INFERENCE_MAX_OUTPUT_TOKENS,
-      useMaxCompletionTokens: val.INFERENCE_USE_MAX_COMPLETION_TOKENS,
-      outputSchema:
-        val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT !== undefined
-          ? val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT
-            ? ("structured" as const)
-            : ("plain" as const)
-          : val.INFERENCE_OUTPUT_SCHEMA,
-      enableAutoTagging: val.INFERENCE_ENABLE_AUTO_TAGGING,
-      enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
-    },
+    inference: (() => {
+      // Determine the provider based on explicit setting or available credentials
+      const determineProvider = ():
+        | "openai"
+        | "anthropic"
+        | "google"
+        | "ollama"
+        | null => {
+        if (val.INFERENCE_PROVIDER) {
+          return val.INFERENCE_PROVIDER;
+        }
+        // Legacy behavior: auto-detect based on available credentials
+        if (val.OPENAI_API_KEY) return "openai";
+        if (val.ANTHROPIC_API_KEY) return "anthropic";
+        if (val.GEMINI_API_KEY) return "google";
+        if (val.OLLAMA_BASE_URL) return "ollama";
+        return null;
+      };
+
+      const provider = determineProvider();
+
+      return {
+        provider,
+        isConfigured: provider !== null,
+        numWorkers: val.INFERENCE_NUM_WORKERS,
+        jobTimeoutSec: val.INFERENCE_JOB_TIMEOUT_SEC,
+        fetchTimeoutSec: val.INFERENCE_FETCH_TIMEOUT_SEC,
+        // Provider-specific configs
+        openAIApiKey: val.OPENAI_API_KEY,
+        openAIBaseUrl: val.OPENAI_BASE_URL,
+        openAIProxyUrl: val.OPENAI_PROXY_URL,
+        openAIServiceTier: val.OPENAI_SERVICE_TIER,
+        anthropicApiKey: val.ANTHROPIC_API_KEY,
+        anthropicBaseUrl: val.ANTHROPIC_BASE_URL,
+        geminiApiKey: val.GEMINI_API_KEY,
+        geminiBaseUrl: val.GEMINI_BASE_URL,
+        ollamaBaseUrl: val.OLLAMA_BASE_URL,
+        ollamaKeepAlive: val.OLLAMA_KEEP_ALIVE,
+        // Model settings
+        textModel: val.INFERENCE_TEXT_MODEL,
+        imageModel: val.INFERENCE_IMAGE_MODEL,
+        inferredTagLang: val.INFERENCE_LANG,
+        contextLength: val.INFERENCE_CONTEXT_LENGTH,
+        maxOutputTokens: val.INFERENCE_MAX_OUTPUT_TOKENS,
+        outputSchema: val.INFERENCE_OUTPUT_SCHEMA,
+        enableAutoTagging: val.INFERENCE_ENABLE_AUTO_TAGGING,
+        enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
+        // OpenAI-specific options
+        openaiUseResponsesApi: val.OPENAI_USE_RESPONSES_API,
+        openaiReasoningEffort: val.OPENAI_REASONING_EFFORT,
+      };
+    })(),
     embedding: {
+      provider: (() => {
+        // Determine embedding provider
+        if (val.EMBEDDING_PROVIDER) {
+          return val.EMBEDDING_PROVIDER;
+        }
+        // Auto-detect based on inference provider
+        const inferenceProvider = val.INFERENCE_PROVIDER;
+        if (
+          inferenceProvider === "openai" ||
+          inferenceProvider === "google" ||
+          inferenceProvider === "ollama"
+        ) {
+          return inferenceProvider;
+        }
+        // For anthropic or auto-detected providers
+        if (val.OPENAI_API_KEY) return "openai" as const;
+        if (val.GEMINI_API_KEY) return "google" as const;
+        if (val.OLLAMA_BASE_URL) return "ollama" as const;
+        return null;
+      })(),
       textModel: val.EMBEDDING_TEXT_MODEL,
     },
     crawler: {
@@ -471,6 +540,12 @@ export const clientConfig = {
     inferredTagLang: serverConfig.inference.inferredTagLang,
     enableAutoTagging: serverConfig.inference.enableAutoTagging,
     enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
+    // Provider info for read-only display
+    provider: serverConfig.inference.provider,
+    textModel: serverConfig.inference.textModel,
+    imageModel: serverConfig.inference.imageModel,
+    embeddingProvider: serverConfig.embedding.provider,
+    embeddingModel: serverConfig.embedding.textModel,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

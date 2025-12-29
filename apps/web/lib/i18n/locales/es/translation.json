@@ -136,7 +136,14 @@
       "tag_style_description": "Elige cómo quieres que se formateen las etiquetas que se generan automáticamente.",
       "auto_tagging_description": "Genera etiquetas automáticamente para tus marcadores usando IA.",
       "camelCase": "camelCase",
-      "auto_summarization": "Resumen automático"
+      "auto_summarization": "Resumen automático",
+      "provider_status": "Estado del proveedor",
+      "provider_status_description": "El proveedor de IA y los modelos configurados actualmente para esta instancia.",
+      "no_provider_configured": "No hay ningún proveedor de IA configurado. Contacta a tu administrador para configurar la inferencia de IA.",
+      "provider": "Proveedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imagen",
+      "embeddings": "Incrustaciones"
     },
     "user_settings": "Ajustes de usuario",
     "feeds": {

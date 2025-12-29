@@ -198,7 +198,14 @@
       "tag_style_description": "Wybierz, jak powinny być formatowane autogenerowane tagi.",
       "auto_tagging_description": "Automatycznie generuj tagi dla zakładek za pomocą AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatyczne podsumowywanie"
+      "auto_summarization": "Automatyczne podsumowywanie",
+      "provider_status": "Status dostawcy",
+      "provider_status_description": "Dostawca AI i modele aktualnie skonfigurowane dla tej instancji.",
+      "no_provider_configured": "Nie skonfigurowano dostawcy AI. Skontaktuj się z administratorem, aby skonfigurować wnioskowanie AI.",
+      "provider": "Dostawca",
+      "text_model": "Model tekstowy",
+      "image_model": "Model obrazu",
+      "embeddings": "Osadzenia"
     },
     "feeds": {
       "rss_subscriptions": "Subskrypcje RSS",

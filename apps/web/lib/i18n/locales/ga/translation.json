@@ -116,7 +116,14 @@
       "tag_style_description": "Roghnaigh conas ar cheart do chlibeanna uathghinte a bheith formáidithe.",
       "auto_tagging_description": "Clibeanna a ghiniúint go huathoibríoch do do leabharmharcanna ag úsáid AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Uathachoimriú"
+      "auto_summarization": "Uathachoimriú",
+      "provider_status": "Stádas an tSoláthraí",
+      "provider_status_description": "An soláthraí AI agus na samhlacha atá cumraithe faoi láthair don ásc seo.",
+      "no_provider_configured": "Níl aon soláthraí AI cumraithe. Déan teagmháil le do riarthóir chun tátal AI a shocrú.",
+      "provider": "Soláthraí",
+      "text_model": "Samhail Téacs",
+      "image_model": "Samhail Íomhá",
+      "embeddings": "Leabuithe"
     },
     "webhooks": {
       "webhooks": "Crúcaí Gréasáin",

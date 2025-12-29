@@ -248,7 +248,14 @@
       "tag_style_description": "Выбери, как форматировать автосгенерированные теги.",
       "auto_tagging_description": "Автоматически генерируйте теги для ваших закладок с помощью ИИ.",
       "camelCase": "camelCase",
-      "auto_summarization": "Автоматическое создание сводок"
+      "auto_summarization": "Автоматическое создание сводок",
+      "provider_status": "Статус провайдера",
+      "provider_status_description": "Провайдер ИИ и модели, настроенные в данный момент для этого экземпляра.",
+      "no_provider_configured": "Провайдер ИИ не настроен. Свяжитесь с администратором для настройки ИИ-инференса.",
+      "provider": "Провайдер",
+      "text_model": "Текстовая модель",
+      "image_model": "Модель изображений",
+      "embeddings": "Эмбеддинги"
     },
     "feeds": {
       "rss_subscriptions": "RSS подписки",

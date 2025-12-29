@@ -128,7 +128,14 @@
       "tag_style_description": "Chọn cách định dạng các thẻ tự động tạo của bạn.",
       "auto_tagging_description": "Tự động tạo thẻ cho dấu trang bằng AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Tự động tóm tắt"
+      "auto_summarization": "Tự động tóm tắt",
+      "provider_status": "Trạng thái nhà cung cấp",
+      "provider_status_description": "Nhà cung cấp AI và các mô hình hiện đang được cấu hình cho phiên bản này.",
+      "no_provider_configured": "Chưa có nhà cung cấp AI nào được cấu hình. Liên hệ với quản trị viên của bạn để thiết lập suy luận AI.",
+      "provider": "Nhà cung cấp",
+      "text_model": "Mô hình văn bản",
+      "image_model": "Mô hình hình ảnh",
+      "embeddings": "Nhúng"
     },
     "info": {
       "basic_details": "Thông tin cơ bản",

@@ -193,7 +193,14 @@
       "tag_style_description": "Otomatik oluşturulan etiketlerinin nasıl biçimlendirileceğini seç.",
       "auto_tagging_description": "Yapay zeka kullanarak yer işaretlerin için otomatik olarak etiket oluştur.",
       "camelCase": "camelCase",
-      "auto_summarization": "Otomatik özetleme"
+      "auto_summarization": "Otomatik özetleme",
+      "provider_status": "Sağlayıcı Durumu",
+      "provider_status_description": "Bu örnek için şu anda yapılandırılmış yapay zeka sağlayıcısı ve modeller.",
+      "no_provider_configured": "Hiçbir yapay zeka sağlayıcısı yapılandırılmamış. Yapay zeka çıkarımını ayarlamak için yöneticinizle iletişime geçin.",
+      "provider": "Sağlayıcı",
+      "text_model": "Metin Modeli",
+      "image_model": "Görsel Modeli",
+      "embeddings": "Gömüler"
     },
     "feeds": {
       "rss_subscriptions": "RSS Abonelikleri",

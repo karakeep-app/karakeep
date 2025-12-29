@@ -163,7 +163,14 @@
       "tag_style_description": "Válaszd ki, hogyan legyenek formázva az automatikusan létrehozott címkék.",
       "auto_tagging_description": "A MI használatával automatikusan címkéket generálhatsz a könyvjelzőidhez.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatikus összefoglalás"
+      "auto_summarization": "Automatikus összefoglalás",
+      "provider_status": "Szolgáltató állapota",
+      "provider_status_description": "A jelenleg ehhez a példányhoz konfigurált MI szolgáltató és modellek.",
+      "no_provider_configured": "Nincs MI szolgáltató konfigurálva. Lépjen kapcsolatba a rendszergazdával az MI következtetés beállításához.",
+      "provider": "Szolgáltató",
+      "text_model": "Szöveg modell",
+      "image_model": "Kép modell",
+      "embeddings": "Beágyazások"
     },
     "api_keys": {
       "new_api_key": "Új API kulcs",

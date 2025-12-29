@@ -268,7 +268,14 @@
       "tag_style_description": "自動生成されるタグの書式を選んでくれ。",
       "auto_tagging_description": "AIを使ってブックマークのタグを自動生成する。",
       "camelCase": "camelCase",
-      "auto_summarization": "自動要約"
+      "auto_summarization": "自動要約",
+      "provider_status": "プロバイダーのステータス",
+      "provider_status_description": "このインスタンスに現在設定されているAIプロバイダーとモデル。",
+      "no_provider_configured": "AIプロバイダーが設定されていません。AI推論を設定するには管理者に連絡してください。",
+      "provider": "プロバイダー",
+      "text_model": "テキストモデル",
+      "image_model": "画像モデル",
+      "embeddings": "埋め込み"
     },
     "import": {
       "import_export_bookmarks": "ブックマークのインポート/エクスポート",

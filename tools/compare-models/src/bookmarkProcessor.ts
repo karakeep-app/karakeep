@@ -1,7 +1,6 @@
-import type { InferenceClient } from "@karakeep/shared/inference";
 import { buildTextPrompt } from "@karakeep/shared/prompts";
 
-import { inferTags } from "./inferenceClient";
+import { type InferenceClient, inferTags } from "./inferenceClient";
 import type { Bookmark } from "./types";
 
 export async function extractBookmarkContent(

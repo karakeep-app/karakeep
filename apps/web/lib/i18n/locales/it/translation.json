@@ -190,7 +190,14 @@
       "tag_style_description": "Scegli come formattare le etichette generate automaticamente.",
       "auto_tagging_description": "Genera automaticamente i tag per i tuoi segnalibri usando l'AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Riassunto automatico"
+      "auto_summarization": "Riassunto automatico",
+      "provider_status": "Stato del fornitore",
+      "provider_status_description": "Il fornitore AI e i modelli attualmente configurati per questa istanza.",
+      "no_provider_configured": "Nessun fornitore AI è configurato. Contatta il tuo amministratore per configurare l'inferenza AI.",
+      "provider": "Fornitore",
+      "text_model": "Modello di testo",
+      "image_model": "Modello di immagine",
+      "embeddings": "Embedding"
     },
     "feeds": {
       "rss_subscriptions": "Iscrizione RSS",

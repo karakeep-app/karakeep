@@ -214,7 +214,14 @@
       "tag_style_description": "Escolha como as suas etiquetas geradas automaticamente devem ser formatadas.",
       "auto_tagging_description": "Gerar automaticamente tags para seus favoritos usando IA.",
       "camelCase": "camelCase",
-      "auto_summarization": "Resumo automático"
+      "auto_summarization": "Resumo automático",
+      "provider_status": "Estado do fornecedor",
+      "provider_status_description": "O fornecedor de IA e os modelos atualmente configurados para esta instância.",
+      "no_provider_configured": "Nenhum fornecedor de IA está configurado. Contacte o seu administrador para configurar a inferência de IA.",
+      "provider": "Fornecedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imagem",
+      "embeddings": "Embeddings"
     },
     "api_keys": {
       "new_api_key": "Nova chave da API",

@@ -256,7 +256,14 @@
       "tag_style_description": "Elixe como se deben formatar as etiquetas xeradas automaticamente.",
       "auto_tagging_description": "Xera automaticamente etiquetas para os teus marcadores usando a intelixencia artificial.",
       "camelCase": "camelCase (a primeira palabra en minúsculas e as seguintes en maiúsculas)",
-      "auto_summarization": "Resumo automático"
+      "auto_summarization": "Resumo automático",
+      "provider_status": "Estado do provedor",
+      "provider_status_description": "O provedor de IA e os modelos configurados actualmente para esta instancia.",
+      "no_provider_configured": "Non hai ningún provedor de IA configurado. Contacta co teu administrador para configurar a inferencia de IA.",
+      "provider": "Provedor",
+      "text_model": "Modelo de texto",
+      "image_model": "Modelo de imaxe",
+      "embeddings": "Incrustacións"
     },
     "feeds": {
       "rss_subscriptions": "Subscricións RSS",

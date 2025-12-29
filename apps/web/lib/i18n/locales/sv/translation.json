@@ -195,7 +195,14 @@
       "tag_style_description": "Välj hur dina automatiskt genererade taggar ska formateras.",
       "auto_tagging_description": "Generera automatiskt taggar för dina bokmärken genom att använda AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatisk sammanfattning"
+      "auto_summarization": "Automatisk sammanfattning",
+      "provider_status": "Leverantörsstatus",
+      "provider_status_description": "AI-leverantören och modellerna som för närvarande är konfigurerade för denna instans.",
+      "no_provider_configured": "Ingen AI-leverantör är konfigurerad. Kontakta din administratör för att konfigurera AI-inferens.",
+      "provider": "Leverantör",
+      "text_model": "Textmodell",
+      "image_model": "Bildmodell",
+      "embeddings": "Inbäddningar"
     },
     "import": {
       "import_export": "Importera / exportera",

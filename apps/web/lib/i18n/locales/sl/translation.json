@@ -117,7 +117,14 @@
       "tag_style_description": "Izberi obliko samodejno ustvarjenih oznak.",
       "auto_tagging_description": "Samodejno ustvari oznake za tvoje zaznamke z uporabo UI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Samodejno povzemanje"
+      "auto_summarization": "Samodejno povzemanje",
+      "provider_status": "Stanje ponudnika",
+      "provider_status_description": "Ponudnik AI in modeli, ki so trenutno konfigurirani za to instanco.",
+      "no_provider_configured": "Noben ponudnik AI ni konfiguriran. Obrnite se na skrbnika za nastavitev AI sklepanja.",
+      "provider": "Ponudnik",
+      "text_model": "Model besedila",
+      "image_model": "Model slike",
+      "embeddings": "Vložitve"
     },
     "back_to_app": "Nazaj v aplikacijo",
     "webhooks": {

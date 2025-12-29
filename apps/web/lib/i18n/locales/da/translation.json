@@ -159,7 +159,14 @@
       "tag_style_description": "Vælg, hvordan dine automatisk genererede tags skal formateres.",
       "auto_tagging_description": "Generér automatisk tags til dine bogmærker ved hjælp af AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatisk opsummering"
+      "auto_summarization": "Automatisk opsummering",
+      "provider_status": "Udbyderstatus",
+      "provider_status_description": "AI-udbyderen og modellerne, der aktuelt er konfigureret for denne instans.",
+      "no_provider_configured": "Ingen AI-udbyder er konfigureret. Kontakt din administrator for at konfigurere AI-inferens.",
+      "provider": "Udbyder",
+      "text_model": "Tekstmodel",
+      "image_model": "Billedmodel",
+      "embeddings": "Indlejringer"
     },
     "broken_links": {
       "crawling_status": "Gennemsøgningsstatus",

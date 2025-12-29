@@ -312,7 +312,14 @@
       "tag_style_description": "Velg hvordan de automatisk genererte merkelappene dine skal formateres.",
       "auto_tagging_description": "Generer automatisk tagger for bokmerkene dine ved hjelp av AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatisk oppsummering"
+      "auto_summarization": "Automatisk oppsummering",
+      "provider_status": "Leverandørstatus",
+      "provider_status_description": "AI-leverandøren og modellene som er konfigurert for denne instansen.",
+      "no_provider_configured": "Ingen AI-leverandør er konfigurert. Kontakt administratoren din for å sette opp AI-inferens.",
+      "provider": "Leverandør",
+      "text_model": "Tekstmodell",
+      "image_model": "Bildemodell",
+      "embeddings": "Innbygginger"
     },
     "import": {
       "import_bookmarks_from_omnivore_export": "Importer bokmerker fra Omnivore-eksport",
