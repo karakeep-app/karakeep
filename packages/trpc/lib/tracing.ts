@@ -43,20 +43,8 @@ export function createTracingMiddleware() {
           "user.role": opts.ctx.user?.role ?? "none",
         },
       },
-      async (span) => {
-        // Add input size as an attribute (not the actual input for privacy)
-        const inputSize =
-          opts.input !== undefined ? JSON.stringify(opts.input).length : 0;
-        span.setAttribute("rpc.input.size", inputSize);
-
-        const result = await opts.next();
-
-        // Mark success
-        setSpanAttributes({
-          "rpc.success": true,
-        });
-
-        return result;
+      async () => {
+        return await opts.next();
       },
     );
   };
