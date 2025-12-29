@@ -33,6 +33,8 @@
     "@lexical/react": "^0.20.2",
     "@lexical/rich-text": "^0.20.2",
     "@marsidev/react-turnstile": "^1.3.1",
+    "@opentelemetry/instrumentation": "^0.208.0",
+    "@opentelemetry/sdk-node": "^0.208.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
