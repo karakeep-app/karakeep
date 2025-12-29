@@ -16,12 +16,10 @@ import {
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
 import {
-  addSpanEvent,
   AssetPreprocessingQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
-  setSpanAttributes,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
   triggerWebhook,
@@ -118,20 +116,10 @@ export const bookmarksAppRouter = router({
       ),
     )
     .mutation(async ({ input, ctx }) => {
-      // Set tracing attributes for the bookmark creation
-      setSpanAttributes({
-        "bookmark.type": input.type,
-        "bookmark.has_title": !!input.title,
-        "bookmark.archived": !!input.archived,
-        "bookmark.favourited": !!input.favourited,
-      });
-
       if (input.type == BookmarkTypes.LINK) {
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
-        addSpanEvent("dedup_check_start");
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
-          addSpanEvent("dedup_found", { bookmark_id: alreadyExists.id });
           if (input.importSessionId) {
             const session = await ImportSession.fromId(
               ctx,
@@ -141,10 +129,8 @@ export const bookmarksAppRouter = router({
           }
           return { ...alreadyExists, alreadyExists: true };
         }
-        addSpanEvent("dedup_check_complete", { found: false });
       }
 
-      addSpanEvent("db_transaction_start");
       const bookmark = await ctx.db.transaction(
         async (tx) => {
           // Check user quota
@@ -289,13 +275,6 @@ export const bookmarksAppRouter = router({
           behavior: "immediate",
         },
       );
-      addSpanEvent("db_transaction_complete", { bookmark_id: bookmark.id });
-
-      // Set the created bookmark ID as an attribute
-      setSpanAttributes({
-        "bookmark.id": bookmark.id,
-        "bookmark.content_type": bookmark.content.type,
-      });
 
       if (input.importSessionId) {
         const session = await ImportSession.fromId(ctx, input.importSessionId);
@@ -308,7 +287,6 @@ export const bookmarksAppRouter = router({
         groupId: ctx.user.id,
       };
 
-      // Enqueue background processing jobs
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
@@ -351,9 +329,7 @@ export const bookmarksAppRouter = router({
         ],
         enqueueOpts,
       );
-
       await triggerSearchReindex(bookmark.id, enqueueOpts);
-
       await triggerWebhook(
         bookmark.id,
         "created",
