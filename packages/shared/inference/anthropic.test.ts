@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import {
@@ -272,6 +272,12 @@ describe("AnthropicInferenceClient with plain output", () => {
     serverConfig.inference.outputSchema = "plain";
 
     client = new AnthropicInferenceClient();
+  });
+
+  afterEach(async () => {
+    // Restore original config value to prevent test pollution
+    const { default: serverConfig } = await import("../config");
+    serverConfig.inference.outputSchema = "structured";
   });
 
   it("should not include output_format when outputSchema is plain", async () => {

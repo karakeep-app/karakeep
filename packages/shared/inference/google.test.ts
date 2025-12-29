@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { GoogleEmbeddingClient, GoogleGeminiInferenceClient } from "./google";
@@ -241,6 +241,12 @@ describe("GoogleGeminiInferenceClient with plain output", () => {
     serverConfig.inference.outputSchema = "plain";
 
     client = new GoogleGeminiInferenceClient();
+  });
+
+  afterEach(async () => {
+    // Restore original config value to prevent test pollution
+    const { default: serverConfig } = await import("../config");
+    serverConfig.inference.outputSchema = "structured";
   });
 
   it("should use text/plain mime type when outputSchema is plain", async () => {

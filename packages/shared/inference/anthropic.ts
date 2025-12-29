@@ -76,6 +76,30 @@ function validateModel(model: string, needsStructuredOutput: boolean): void {
 }
 
 /**
+ * Supported image media types for Anthropic's API.
+ */
+const SUPPORTED_MEDIA_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+] as const;
+type AnthropicMediaType = (typeof SUPPORTED_MEDIA_TYPES)[number];
+
+/**
+ * Validate and convert a content type to Anthropic's expected media type.
+ * Throws if the content type is not supported.
+ */
+function toAnthropicMediaType(contentType: string): AnthropicMediaType {
+  if (!SUPPORTED_MEDIA_TYPES.includes(contentType as AnthropicMediaType)) {
+    throw new Error(
+      `Unsupported image type: "${contentType}". Anthropic supports: ${SUPPORTED_MEDIA_TYPES.join(", ")}`,
+    );
+  }
+  return contentType as AnthropicMediaType;
+}
+
+/**
  * Anthropic Inference Client
  *
  * Uses Claude's Messages API for text and vision inference.
@@ -161,12 +185,8 @@ export class AnthropicInferenceClient implements InferenceClient {
     // Validate model supports structured outputs if needed
     validateModel(model, useStructuredOutput);
 
-    // Map content type to Anthropic's expected media type
-    const mediaType = contentType as
-      | "image/jpeg"
-      | "image/png"
-      | "image/gif"
-      | "image/webp";
+    // Validate and convert content type to Anthropic's expected media type
+    const mediaType = toAnthropicMediaType(contentType);
 
     // Build base request options
     const baseOptions: MessageCreateParamsNonStreaming = {

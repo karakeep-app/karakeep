@@ -284,8 +284,12 @@ export class OpenAIInferenceClient implements InferenceClient {
       };
     }
 
-    // GPT-4 models need max_output_tokens
-    if (model.startsWith("gpt-4")) {
+    // o-series models (o1, o3, o4) need max_output_tokens to control output length
+    if (
+      model.startsWith("o1") ||
+      model.startsWith("o3") ||
+      model.startsWith("o4")
+    ) {
       requestObj.max_output_tokens = serverConfig.inference.maxOutputTokens;
     }
 

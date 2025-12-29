@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { OpenAIEmbeddingClient, OpenAIInferenceClient } from "./openai";
@@ -222,6 +222,14 @@ describe("OpenAIInferenceClient with Responses API", () => {
     client = new OpenAIInferenceClient();
   });
 
+  afterEach(async () => {
+    // Restore original config values to prevent test pollution
+    const { default: serverConfig } = await import("../config");
+    serverConfig.inference.openaiUseResponsesApi = false;
+    serverConfig.inference.textModel = "gpt-4o-mini";
+    serverConfig.inference.imageModel = "gpt-4o-mini";
+  });
+
   it("should use Responses API for GPT-5 models when enabled", async () => {
     mockResponsesCreate.mockResolvedValueOnce({
       output_text: "response from responses api",
@@ -265,6 +273,12 @@ describe("OpenAIInferenceClient with json output", () => {
     serverConfig.inference.textModel = "gpt-4o-mini";
 
     client = new OpenAIInferenceClient();
+  });
+
+  afterEach(async () => {
+    // Restore original config values to prevent test pollution
+    const { default: serverConfig } = await import("../config");
+    serverConfig.inference.outputSchema = "structured";
   });
 
   it("should use json_object format when outputSchema is json", async () => {
@@ -311,6 +325,12 @@ describe("OpenAIInferenceClient with plain output", () => {
     serverConfig.inference.textModel = "gpt-4o-mini";
 
     client = new OpenAIInferenceClient();
+  });
+
+  afterEach(async () => {
+    // Restore original config values to prevent test pollution
+    const { default: serverConfig } = await import("../config");
+    serverConfig.inference.outputSchema = "structured";
   });
 
   it("should not set response_format when outputSchema is plain", async () => {
