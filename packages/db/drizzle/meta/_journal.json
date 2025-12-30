@@ -477,6 +477,62 @@
       "when": 1764418020312,
       "tag": "0067_add_backups_table",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "6",
+      "when": 1765310170813,
+      "tag": "0068_optimize_bookmark_indicies",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "6",
+      "when": 1765721715670,
+      "tag": "0069_fix_pending_summarization",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "6",
+      "when": 1765744716304,
+      "tag": "0070_add_reader_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "6",
+      "when": 1766393060393,
+      "tag": "0071_add_normalized_tag_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "6",
+      "when": 1766414953855,
+      "tag": "0072_add_user_ai_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "6",
+      "when": 1766843938658,
+      "tag": "0073_ai_tag_style",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1767006387391,
+      "tag": "0074_reset_tagging_summarization",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "6",
+      "when": 1767052770526,
+      "tag": "0075_change_default_tag_style",
+      "breakpoints": true
     }
   ]
 }

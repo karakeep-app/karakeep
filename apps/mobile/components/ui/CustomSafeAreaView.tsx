@@ -15,6 +15,7 @@ export default function CustomSafeAreaView({
   return (
     <SafeAreaView
       style={{
+        flex: 1,
         paddingTop:
           // Some ugly hacks to make the app look the same on both android and ios
           Platform.OS == "android" && edges.includes("top")

@@ -112,6 +112,7 @@
       "import_export_bookmarks": "Importeer / Exporteer Bladwijzers",
       "import_bookmarks_from_html_file": "Importeer Bladwijzers van HTML bestand",
       "import_bookmarks_from_pocket_export": "Importeer Bladwijzers van Pocket export",
+      "import_bookmarks_from_matter_export": "Importeer Bladwijzers van Matter export",
       "import_bookmarks_from_omnivore_export": "Bladwijzers importeren uit Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Bladwijzers importeren uit Linkwarden-export",
       "import_bookmarks_from_karakeep_export": "Bladwijzers importeren uit Karakeep-export",

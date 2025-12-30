@@ -4,6 +4,7 @@ import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
 import Sidebar from "@/components/shared/sidebar/Sidebar";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
 import { Separator } from "@/components/ui/separator";
+import { ReaderSettingsProvider } from "@/lib/readerSettings";
 import { UserSettingsContextProvider } from "@/lib/userSettings";
 import { api } from "@/server/api/client";
 import { getServerAuthSession } from "@/server/auth";
@@ -15,6 +16,7 @@ import {
   Highlighter,
   Home,
   Search,
+  Sparkles,
   Tag,
 } from "lucide-react";
 
@@ -33,9 +35,10 @@ export default async function Dashboard({
     redirect("/");
   }
 
-  const [lists, userSettings] = await Promise.all([
+  const [lists, userSettings, showWrapped] = await Promise.all([
     tryCatch(api.lists.list()),
     tryCatch(api.users.settings()),
+    tryCatch(api.users.hasWrapped()),
   ]);
 
   if (userSettings.error) {
@@ -52,6 +55,10 @@ export default async function Dashboard({
 
   if (lists.error) {
     throw lists.error;
+  }
+
+  if (showWrapped.error) {
+    throw showWrapped.error;
   }
 
   const items = (t: TFunction) =>
@@ -85,10 +92,20 @@ export default async function Dashboard({
         icon: <Archive size={18} />,
         path: "/dashboard/archive",
       },
+      // Only show wrapped if user has at least 20 bookmarks
+      showWrapped.data
+        ? [
+            {
+              name: t("wrapped.button"),
+              icon: <Sparkles size={18} />,
+              path: "/dashboard/wrapped",
+            },
+          ]
+        : [],
     ].flat();
 
   const mobileSidebar = (t: TFunction) => [
-    ...items(t),
+    ...items(t).filter((item) => item.path !== "/dashboard/wrapped"),
     {
       name: t("lists.all_lists"),
       icon: <ClipboardList size={18} />,
@@ -98,23 +115,25 @@ export default async function Dashboard({
 
   return (
     <UserSettingsContextProvider userSettings={userSettings.data}>
-      <SidebarLayout
-        sidebar={
-          <Sidebar
-            items={items}
-            extraSections={
-              <>
-                <Separator />
-                <AllLists initialData={lists.data} />
-              </>
-            }
-          />
-        }
-        mobileSidebar={<MobileSidebar items={mobileSidebar} />}
-        modal={modal}
-      >
-        {children}
-      </SidebarLayout>
+      <ReaderSettingsProvider>
+        <SidebarLayout
+          sidebar={
+            <Sidebar
+              items={items}
+              extraSections={
+                <>
+                  <Separator />
+                  <AllLists initialData={lists.data} />
+                </>
+              }
+            />
+          }
+          mobileSidebar={<MobileSidebar items={mobileSidebar} />}
+          modal={modal}
+        >
+          {children}
+        </SidebarLayout>
+      </ReaderSettingsProvider>
     </UserSettingsContextProvider>
   );
 }

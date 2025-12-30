@@ -8,8 +8,7 @@ export const zStringBool = z
   .transform((val) => val === "true");
 
 export const zIncludeContentSearchParamsSchema = z.object({
-  // TODO: Change the default to false in a couple of releases.
-  includeContent: zStringBool.optional().default("true"),
+  includeContent: zStringBool.optional().default("false"),
 });
 
 export const zGetBookmarkQueryParamsSchema = z

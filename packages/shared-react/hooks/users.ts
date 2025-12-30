@@ -13,6 +13,19 @@ export function useUpdateUserSettings(
   });
 }
 
+export function useUpdateUserAvatar(
+  ...opts: Parameters<typeof api.users.updateAvatar.useMutation>
+) {
+  const apiUtils = api.useUtils();
+  return api.users.updateAvatar.useMutation({
+    ...opts[0],
+    onSuccess: (res, req, meta, context) => {
+      apiUtils.users.whoami.invalidate();
+      return opts[0]?.onSuccess?.(res, req, meta, context);
+    },
+  });
+}
+
 export function useDeleteAccount(
   ...opts: Parameters<typeof api.users.deleteAccount.useMutation>
 ) {

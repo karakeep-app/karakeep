@@ -1,5 +1,5 @@
 ################# Base Builder ##############
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -60,7 +60,7 @@ RUN (cd apps/mcp && pnpm build)
 
 ################# The All-in-one builder ##############
 
-FROM node:22-alpine AS aio_builder
+FROM node:24-alpine AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -154,7 +154,7 @@ ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
 
-FROM node:22-alpine AS cli
+FROM node:24-alpine AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -169,7 +169,7 @@ ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
 
-FROM node:22-alpine AS mcp
+FROM node:24-alpine AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 

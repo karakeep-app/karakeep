@@ -2,8 +2,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, ExternalLink } from "lucide-react";
 
-import { DOCS_LINK, GITHUB_LINK, WAITLIST_LINK } from "./constants";
+import { CLOUD_SIGNUP_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
 import NavBar from "./Navbar";
+
+const CONTACT_EMAIL = "mailto:support@karakeep.app";
 
 const pricingTiers = [
   {
@@ -17,7 +19,7 @@ const pricingTiers = [
       "Mobile & web apps",
       "Browser extensions",
     ],
-    buttonText: "Join Waitlist",
+    buttonText: "Get Started",
     buttonVariant: "outline" as const,
     popular: false,
   },
@@ -34,7 +36,7 @@ const pricingTiers = [
       "Mobile & web apps",
       "Browser extensions",
     ],
-    buttonText: "Join Waitlist",
+    buttonText: "Get Started",
     buttonVariant: "default" as const,
     popular: true,
   },
@@ -56,6 +58,23 @@ const pricingTiers = [
     popular: false,
     isGitHub: true,
   },
+  {
+    name: "Corporate",
+    price: "Custom",
+    period: "per seat",
+    description: "For teams and organizations",
+    features: [
+      "Everything in Pro",
+      "Custom deployment & domain",
+      "Single Sign-On (SSO)",
+      "User management",
+      "Priority support",
+    ],
+    buttonText: "Contact Us",
+    buttonVariant: "outline" as const,
+    popular: false,
+    isContact: true,
+  },
 ];
 
 function PricingHeader() {
@@ -75,66 +94,86 @@ function PricingHeader() {
 }
 
 function PricingCards() {
-  return (
-    <div className="mx-auto mt-16 grid max-w-6xl grid-cols-1 gap-8 px-6 md:grid-cols-3">
-      {pricingTiers.map((tier) => (
-        <div
-          key={tier.name}
-          className={cn(
-            "relative rounded-2xl border bg-white p-8 shadow-sm",
-            tier.popular && "border-purple-500 shadow-lg",
+  const renderCard = (tier: (typeof pricingTiers)[number]) => (
+    <div
+      key={tier.name}
+      className={cn(
+        "relative rounded-2xl border bg-white p-8 shadow-sm",
+        tier.popular && "border-purple-500 shadow-lg",
+      )}
+    >
+      <div className="text-center">
+        <h3 className="text-xl font-semibold">{tier.name}</h3>
+        <div className="mt-4 flex items-baseline justify-center">
+          <span className="text-4xl font-bold">{tier.price}</span>
+          {tier.period && (
+            <span className="ml-1 text-gray-500">/{tier.period}</span>
           )}
-        >
-          <div className="text-center">
-            <h3 className="text-xl font-semibold">{tier.name}</h3>
-            <div className="mt-4 flex items-baseline justify-center">
-              <span className="text-4xl font-bold">{tier.price}</span>
-              {tier.period && (
-                <span className="ml-1 text-gray-500">/{tier.period}</span>
-              )}
-            </div>
-            <p className="mt-2 text-gray-600">{tier.description}</p>
-          </div>
-
-          <ul className="mt-8 space-y-3">
-            {tier.features.map((feature) => (
-              <li key={feature} className="flex items-center">
-                <Check className="h-5 w-5 text-green-500" />
-                <span className="ml-3 text-gray-700">{feature}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8">
-            {tier.isGitHub ? (
-              <a
-                href={GITHUB_LINK}
-                target="_blank"
-                className={cn(
-                  "flex w-full items-center justify-center gap-2",
-                  buttonVariants({ variant: tier.buttonVariant, size: "lg" }),
-                )}
-                rel="noreferrer"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {tier.buttonText}
-              </a>
-            ) : (
-              <a
-                href={WAITLIST_LINK}
-                target="_blank"
-                className={cn(
-                  "flex w-full items-center justify-center",
-                  buttonVariants({ variant: tier.buttonVariant, size: "lg" }),
-                )}
-                rel="noreferrer"
-              >
-                {tier.buttonText}
-              </a>
-            )}
-          </div>
         </div>
-      ))}
+        <p className="mt-2 text-gray-600">{tier.description}</p>
+      </div>
+
+      <ul className="mt-8 space-y-3">
+        {tier.features.map((feature) => (
+          <li key={feature} className="flex items-center">
+            <Check className="h-5 w-5 text-green-500" />
+            <span className="ml-3 text-gray-700">{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-8">
+        {tier.isContact ? (
+          <a
+            href={CONTACT_EMAIL}
+            className={cn(
+              "flex w-full items-center justify-center",
+              buttonVariants({ variant: tier.buttonVariant, size: "lg" }),
+            )}
+          >
+            {tier.buttonText}
+          </a>
+        ) : tier.isGitHub ? (
+          <a
+            href={GITHUB_LINK}
+            target="_blank"
+            className={cn(
+              "flex w-full items-center justify-center gap-2",
+              buttonVariants({ variant: tier.buttonVariant, size: "lg" }),
+            )}
+            rel="noreferrer"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {tier.buttonText}
+          </a>
+        ) : (
+          <a
+            href={CLOUD_SIGNUP_LINK}
+            target="_blank"
+            className={cn(
+              "flex w-full items-center justify-center",
+              buttonVariants({ variant: tier.buttonVariant, size: "lg" }),
+            )}
+            rel="noreferrer"
+          >
+            {tier.buttonText}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mx-auto mt-16 max-w-6xl px-6">
+      {/* First 3 tiers */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        {pricingTiers.slice(0, 3).map(renderCard)}
+      </div>
+
+      {/* Corporate tier - centered below */}
+      <div className="mt-8 flex justify-center">
+        <div className="w-full md:max-w-sm">{renderCard(pricingTiers[3])}</div>
+      </div>
     </div>
   );
 }

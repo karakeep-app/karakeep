@@ -65,6 +65,7 @@
       "import_export_bookmarks": "Nhập / Xuất đánh dấu trang",
       "import_bookmarks_from_linkwarden_export": "Nhập dấu trang từ bản xuất Linkwarden",
       "import_bookmarks_from_pocket_export": "Nhập dấu trang từ bản xuất Pocket",
+      "import_bookmarks_from_matter_export": "Nhập dấu trang từ bản xuất Matter",
       "import_bookmarks_from_omnivore_export": "Nhập dấu trang từ xuất Omnivore",
       "import_bookmarks_from_karakeep_export": "Nhập dấu trang từ bản xuất Karakeep",
       "import_bookmarks_from_tab_session_manager_export": "Nhập dấu trang từ Tab Session Manager",

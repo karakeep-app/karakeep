@@ -4,13 +4,14 @@ import {
   asc,
   desc,
   eq,
-  exists,
+  getTableColumns,
   gt,
   gte,
   inArray,
   lt,
   lte,
   or,
+  SQL,
 } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
@@ -21,12 +22,10 @@ import {
   AssetTypes,
   bookmarkAssets,
   bookmarkLinks,
-  bookmarkLists,
   bookmarks,
   bookmarksInLists,
   bookmarkTags,
   bookmarkTexts,
-  listCollaborators,
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
@@ -162,6 +161,7 @@ export class Bookmark extends BareBookmark {
         screenshotAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_SCREENSHOT,
         )?.id,
+        pdfAssetId: assets.find((a) => a.assetType == AssetTypes.LINK_PDF)?.id,
         fullPageArchiveAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         )?.id,
@@ -182,6 +182,7 @@ export class Bookmark extends BareBookmark {
           ? await Bookmark.getBookmarkHtmlContent(link, bookmark.userId)
           : null,
         crawledAt: link.crawledAt,
+        crawlStatus: link.crawlStatus,
         author: link.author,
         publisher: link.publisher,
         datePublished: link.datePublished,
@@ -283,6 +284,21 @@ export class Bookmark extends BareBookmark {
     if (!input.limit) {
       input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
     }
+
+    // Validate that only one of listId, tagId, or rssFeedId is specified
+    // Combined filters are not supported as they would require different query strategies
+    const filterCount = [input.listId, input.tagId, input.rssFeedId].filter(
+      (f) => f !== undefined,
+    ).length;
+    if (filterCount > 1) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Cannot filter by multiple of listId, tagId, and rssFeedId simultaneously",
+      });
+    }
+
+    // Handle smart lists by converting to bookmark IDs
     if (input.listId) {
       const list = await List.fromId(ctx, input.listId);
       if (list.type === "smart") {
@@ -291,121 +307,132 @@ export class Bookmark extends BareBookmark {
       }
     }
 
-    const sq = ctx.db.$with("bookmarksSq").as(
-      ctx.db
-        .select()
-        .from(bookmarks)
-        .where(
+    // Build cursor condition for pagination
+    const buildCursorCondition = (
+      createdAtCol: typeof bookmarks.createdAt,
+      idCol: typeof bookmarks.id,
+    ): SQL | undefined => {
+      if (!input.cursor) return undefined;
+
+      if (input.sortOrder === "asc") {
+        return or(
+          gt(createdAtCol, input.cursor.createdAt),
           and(
-            // Access control: User can access bookmarks if they either:
-            // 1. Own the bookmark (always)
-            // 2. The bookmark is in a specific shared list being viewed
-            // When listId is specified, we need special handling to show all bookmarks in that list
-            input.listId !== undefined
-              ? // If querying a specific list, check if user has access to that list
-                or(
-                  eq(bookmarks.userId, ctx.user.id),
-                  // User is the owner of the list being queried
-                  exists(
-                    ctx.db
-                      .select()
-                      .from(bookmarkLists)
-                      .where(
-                        and(
-                          eq(bookmarkLists.id, input.listId),
-                          eq(bookmarkLists.userId, ctx.user.id),
-                        ),
-                      ),
-                  ),
-                  // User is a collaborator on the list being queried
-                  exists(
-                    ctx.db
-                      .select()
-                      .from(listCollaborators)
-                      .where(
-                        and(
-                          eq(listCollaborators.listId, input.listId),
-                          eq(listCollaborators.userId, ctx.user.id),
-                        ),
-                      ),
-                  ),
-                )
-              : // If not querying a specific list, only show bookmarks the user owns
-                // Shared bookmarks should only appear when viewing the specific shared list
-                eq(bookmarks.userId, ctx.user.id),
-            input.archived !== undefined
-              ? eq(bookmarks.archived, input.archived)
-              : undefined,
-            input.favourited !== undefined
-              ? eq(bookmarks.favourited, input.favourited)
-              : undefined,
-            input.ids ? inArray(bookmarks.id, input.ids) : undefined,
-            input.tagId !== undefined
-              ? exists(
-                  ctx.db
-                    .select()
-                    .from(tagsOnBookmarks)
-                    .where(
-                      and(
-                        eq(tagsOnBookmarks.bookmarkId, bookmarks.id),
-                        eq(tagsOnBookmarks.tagId, input.tagId),
-                      ),
-                    ),
-                )
-              : undefined,
-            input.rssFeedId !== undefined
-              ? exists(
-                  ctx.db
-                    .select()
-                    .from(rssFeedImportsTable)
-                    .where(
-                      and(
-                        eq(rssFeedImportsTable.bookmarkId, bookmarks.id),
-                        eq(rssFeedImportsTable.rssFeedId, input.rssFeedId),
-                      ),
-                    ),
-                )
-              : undefined,
-            input.listId !== undefined
-              ? exists(
-                  ctx.db
-                    .select()
-                    .from(bookmarksInLists)
-                    .where(
-                      and(
-                        eq(bookmarksInLists.bookmarkId, bookmarks.id),
-                        eq(bookmarksInLists.listId, input.listId),
-                      ),
-                    ),
-                )
-              : undefined,
-            input.cursor
-              ? input.sortOrder === "asc"
-                ? or(
-                    gt(bookmarks.createdAt, input.cursor.createdAt),
-                    and(
-                      eq(bookmarks.createdAt, input.cursor.createdAt),
-                      gte(bookmarks.id, input.cursor.id),
-                    ),
-                  )
-                : or(
-                    lt(bookmarks.createdAt, input.cursor.createdAt),
-                    and(
-                      eq(bookmarks.createdAt, input.cursor.createdAt),
-                      lte(bookmarks.id, input.cursor.id),
-                    ),
-                  )
-              : undefined,
+            eq(createdAtCol, input.cursor.createdAt),
+            gte(idCol, input.cursor.id),
           ),
-        )
-        .limit(input.limit + 1)
-        .orderBy(
-          input.sortOrder === "asc"
-            ? asc(bookmarks.createdAt)
-            : desc(bookmarks.createdAt),
-          desc(bookmarks.id),
+        );
+      }
+      return or(
+        lt(createdAtCol, input.cursor.createdAt),
+        and(
+          eq(createdAtCol, input.cursor.createdAt),
+          lte(idCol, input.cursor.id),
         ),
-    );
+      );
+    };
+
+    // Build common filter conditions (archived, favourited, ids)
+    const buildCommonFilters = (): (SQL | undefined)[] => [
+      input.archived !== undefined
+        ? eq(bookmarks.archived, input.archived)
+        : undefined,
+      input.favourited !== undefined
+        ? eq(bookmarks.favourited, input.favourited)
+        : undefined,
+      input.ids ? inArray(bookmarks.id, input.ids) : undefined,
+    ];
+
+    // Build ORDER BY clause
+    const buildOrderBy = () =>
+      [
+        input.sortOrder === "asc"
+          ? asc(bookmarks.createdAt)
+          : desc(bookmarks.createdAt),
+        desc(bookmarks.id),
+      ] as const;
+
+    // Choose query strategy based on filters
+    // Strategy: Use the most selective filter as the driving table
+    let sq;
+
+    if (input.listId !== undefined) {
+      // PATH: List filter - start from bookmarksInLists (more selective)
+      // Access control is already verified by List.fromId() called above
+      sq = ctx.db.$with("bookmarksSq").as(
+        ctx.db
+          .select(getTableColumns(bookmarks))
+          .from(bookmarksInLists)
+          .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
+          .where(
+            and(
+              eq(bookmarksInLists.listId, input.listId),
+              ...buildCommonFilters(),
+              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+            ),
+          )
+          .limit(input.limit + 1)
+          .orderBy(...buildOrderBy()),
+      );
+    } else if (input.tagId !== undefined) {
+      // PATH: Tag filter - start from tagsOnBookmarks (more selective)
+      sq = ctx.db.$with("bookmarksSq").as(
+        ctx.db
+          .select(getTableColumns(bookmarks))
+          .from(tagsOnBookmarks)
+          .innerJoin(bookmarks, eq(bookmarks.id, tagsOnBookmarks.bookmarkId))
+          .where(
+            and(
+              eq(tagsOnBookmarks.tagId, input.tagId),
+              eq(bookmarks.userId, ctx.user.id), // Access control
+              ...buildCommonFilters(),
+              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+            ),
+          )
+          .limit(input.limit + 1)
+          .orderBy(...buildOrderBy()),
+      );
+    } else if (input.rssFeedId !== undefined) {
+      // PATH: RSS feed filter - start from rssFeedImportsTable (more selective)
+      sq = ctx.db.$with("bookmarksSq").as(
+        ctx.db
+          .select(getTableColumns(bookmarks))
+          .from(rssFeedImportsTable)
+          .innerJoin(
+            bookmarks,
+            eq(bookmarks.id, rssFeedImportsTable.bookmarkId),
+          )
+          .where(
+            and(
+              eq(rssFeedImportsTable.rssFeedId, input.rssFeedId),
+              eq(bookmarks.userId, ctx.user.id), // Access control
+              ...buildCommonFilters(),
+              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+            ),
+          )
+          .limit(input.limit + 1)
+          .orderBy(...buildOrderBy()),
+      );
+    } else {
+      // PATH: No list/tag/rssFeed filter - query bookmarks directly
+      // Uses composite index: bookmarks_userId_createdAt_id_idx (or archived/favourited variants)
+      sq = ctx.db.$with("bookmarksSq").as(
+        ctx.db
+          .select()
+          .from(bookmarks)
+          .where(
+            and(
+              eq(bookmarks.userId, ctx.user.id),
+              ...buildCommonFilters(),
+              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+            ),
+          )
+          .limit(input.limit + 1)
+          .orderBy(...buildOrderBy()),
+      );
+    }
+
+    // Execute the query with joins for related data
     // TODO: Consider not inlining the tags in the response of getBookmarks as this query is getting kinda expensive
     const results = await ctx.db
       .with(sq)
@@ -438,6 +465,7 @@ export class Bookmark extends BareBookmark {
                   : row.bookmarkLinks.htmlContent
                 : null,
               contentAssetId: row.bookmarkLinks.contentAssetId,
+              crawlStatus: row.bookmarkLinks.crawlStatus,
               crawledAt: row.bookmarkLinks.crawledAt,
               author: row.bookmarkLinks.author,
               publisher: row.bookmarkLinks.publisher,
@@ -499,6 +527,9 @@ export class Bookmark extends BareBookmark {
             invariant(content.type == BookmarkTypes.LINK);
             if (row.assets.assetType == AssetTypes.LINK_SCREENSHOT) {
               content.screenshotAssetId = row.assets.id;
+            }
+            if (row.assets.assetType == AssetTypes.LINK_PDF) {
+              content.pdfAssetId = row.assets.id;
             }
             if (row.assets.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE) {
               content.fullPageArchiveAssetId = row.assets.id;

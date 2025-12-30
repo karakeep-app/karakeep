@@ -1,5 +1,6 @@
 {
   "common": {
+    "default": "Default",
     "url": "URL",
     "name": "Name",
     "email": "Email",
@@ -25,6 +26,7 @@
     "highlights": "Highlights",
     "source": "Source",
     "screenshot": "Screenshot",
+    "pdf": "Archived PDF",
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
@@ -69,7 +71,9 @@
     "toggle_show_archived": "Show Archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
+    "offline_copies": "Offline Copies",
     "download_full_page_archive": "Download Full Page Archive",
+    "preserve_as_pdf": "Preserve as PDF",
     "edit_tags": "Edit Tags",
     "edit_notes": "Edit Notes",
     "add_to_list": "Add to List",
@@ -120,6 +124,17 @@
       "confirm_new_password": "Confirm New Password",
       "options": "Options",
       "interface_lang": "Interface Language",
+      "avatar": {
+        "title": "Profile Photo",
+        "description": "Upload a square image to use as your avatar.",
+        "upload": "Upload avatar",
+        "change": "Change avatar",
+        "remove": "Remove avatar",
+        "remove_confirm_title": "Remove avatar?",
+        "remove_confirm_description": "This will clear your current profile photo.",
+        "updated": "Avatar updated",
+        "removed": "Avatar removed"
+      },
       "user_settings": {
         "user_settings_updated": "User settings have been updated!",
         "bookmark_click_action": {
@@ -132,6 +147,38 @@
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
         }
+      },
+      "reader_settings": {
+        "title": "Reader Settings",
+        "description": "Configure default text settings for the reader view. These settings sync across all your devices.",
+        "font_family": "Font Family",
+        "font_size": "Font Size",
+        "line_height": "Line Height",
+        "save_as_default": "Save as default",
+        "clear_defaults": "Clear all defaults",
+        "not_set": "Not set",
+        "using_default": "Using client default",
+        "preview": "Preview",
+        "preview_text": "The quick brown fox jumps over the lazy dog. This is how your reader view text will appear.",
+        "defaults_cleared": "Reader defaults have been cleared",
+        "local_overrides_title": "Device-specific settings active",
+        "local_overrides_description": "This device has reader settings that differ from your global defaults:",
+        "local_overrides_cleared": "Device-specific settings have been cleared",
+        "clear_local_overrides": "Clear device settings",
+        "serif": "Serif",
+        "sans": "Sans Serif",
+        "mono": "Monospace",
+        "tooltip_default": "Reading settings",
+        "tooltip_preview": "Unsaved preview changes",
+        "tooltip_local": "Device settings differ from global",
+        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global",
+        "reset_preview": "Reset preview",
+        "save_to_device": "This device",
+        "save_to_all_devices": "All devices",
+        "save_hint": "Save settings for this device only or sync across all devices",
+        "adjust_hint": "Adjust settings above to preview changes",
+        "clear_override_hint": "Clear device override to use global setting ({{value}})",
+        "preview_inline": "(preview)"
       }
     },
     "stats": {
@@ -190,6 +237,10 @@
     },
     "ai": {
       "ai_settings": "AI Settings",
+      "auto_tagging": "Auto-tagging",
+      "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
+      "auto_summarization": "Auto-summarization",
+      "auto_summarization_description": "Automatically generate summaries for your bookmarks using AI.",
       "tagging_rules": "Tagging Rules",
       "tagging_rule_description": "Prompts that you add here will be included as rules to the model during tag generation. You can view the final prompts in the prompt preview section.",
       "prompt_preview": "Prompt Preview",
@@ -199,7 +250,18 @@
       "all_tagging": "All Tagging",
       "text_tagging": "Text Tagging",
       "image_tagging": "Image Tagging",
-      "summarization": "Summarization"
+      "summarization": "Summarization",
+      "tag_style": "Tag Style",
+      "tag_style_description": "Choose how your auto-generated tags should be formatted.",
+      "lowercase_hyphens": "Lowercase with hyphens",
+      "lowercase_spaces": "Lowercase with spaces",
+      "lowercase_underscores": "Lowercase with underscores",
+      "titlecase_spaces": "Title case with spaces",
+      "titlecase_hyphens": "Title case with hyphens",
+      "camelCase": "camelCase",
+      "no_preference": "No preference",
+      "inference_language": "Inference Language",
+      "inference_language_description": "Choose language for AI-generated tags and summaries."
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
@@ -230,6 +292,7 @@
       "import_export_bookmarks": "Import / Export Bookmarks",
       "import_bookmarks_from_html_file": "Import Bookmarks from HTML file",
       "import_bookmarks_from_pocket_export": "Import Bookmarks from Pocket export",
+      "import_bookmarks_from_matter_export": "Import Bookmarks from Matter export",
       "import_bookmarks_from_omnivore_export": "Import Bookmarks from Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
@@ -678,6 +741,7 @@
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
     "tabs": {
       "content": "Content",
       "details": "Details"
@@ -753,6 +817,7 @@
       "deleted": "The bookmark has been deleted!",
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
+      "preserve_pdf": "PDF preservation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!"
     },
@@ -799,5 +864,54 @@
     "no_release_notes": "No release notes were published for this version.",
     "release_notes_synced": "Release notes are synced from GitHub.",
     "view_on_github": "View on GitHub"
+  },
+  "wrapped": {
+    "title": "Your {{year}} Wrapped",
+    "subtitle": "A Year in Karakeep",
+    "banner": {
+      "title": "Your 2025 Wrapped is ready!",
+      "description": "See your year in bookmarks",
+      "view_now": "View Now"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Loading your Wrapped...",
+    "failed_to_load": "Failed to load your Wrapped stats",
+    "sections": {
+      "total_saves": {
+        "prefix": "You saved",
+        "suffix": "items this year",
+        "suffix_singular": "item this year"
+      },
+      "first_bookmark": {
+        "title": "Your Journey Started",
+        "description": "First save of {{year}}:"
+      },
+      "top_domains": "Your Top Sites",
+      "top_tags": "Your Top Tags",
+      "monthly_activity": "Your Year in Saves",
+      "most_active_day": "Your Most Active Day",
+      "peak_times": {
+        "title": "When You Save",
+        "peak_hour": "Peak Hour",
+        "peak_day": "Peak Day"
+      },
+      "how_you_save": "How You Save",
+      "what_you_saved": "What You Saved",
+      "summary": {
+        "favorites": "Favorites",
+        "tags_created": "Tags Created",
+        "highlights": "Highlights"
+      },
+      "types": {
+        "links": "Links",
+        "notes": "Notes",
+        "assets": "Assets"
+      }
+    },
+    "footer": "Made with Karakeep",
+    "share": "Share",
+    "download": "Download",
+    "close": "Close",
+    "generating": "Generating..."
   }
 }

@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
-import { MoreHorizontal, SearchIcon, Users } from "lucide-react";
+import { MoreHorizontal, SearchIcon } from "lucide-react";
 
 import { api } from "@karakeep/shared-react/trpc";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -35,6 +35,16 @@ export default function ListHeader({
     },
   );
 
+  const { data: collaboratorsData } = api.lists.getCollaborators.useQuery(
+    {
+      listId: initialData.id,
+    },
+    {
+      refetchOnWindowFocus: false,
+      enabled: list.hasCollaborators,
+    },
+  );
+
   const parsedQuery = useMemo(() => {
     if (!list.query) {
       return null;
@@ -55,22 +65,44 @@ export default function ListHeader({
         <span className="text-2xl">
           {list.icon} {list.name}
         </span>
-        {list.hasCollaborators && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Users className="size-5 text-primary" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("lists.shared")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {list.hasCollaborators && collaboratorsData && (
+          <div className="group flex">
+            {collaboratorsData.owner && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                    <UserAvatar
+                      name={collaboratorsData.owner.name}
+                      image={collaboratorsData.owner.image}
+                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{collaboratorsData.owner.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {collaboratorsData.collaborators.map((collab) => (
+              <Tooltip key={collab.userId}>
+                <TooltipTrigger>
+                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                    <UserAvatar
+                      name={collab.user.name}
+                      image={collab.user.image}
+                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{collab.user.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
         )}
         {list.description && (
-          <span className="text-lg text-gray-400">
-            {`(${list.description})`}
-          </span>
+          <span className="text-lg text-gray-400">{`(${list.description})`}</span>
         )}
       </div>
       <div className="flex items-center">

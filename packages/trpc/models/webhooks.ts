@@ -1,8 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { webhooksTable } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
 import {
   zNewWebhookSchema,
   zUpdateWebhookSchema,
@@ -44,6 +45,20 @@ export class Webhook {
     ctx: AuthedContext,
     input: z.infer<typeof zNewWebhookSchema>,
   ): Promise<Webhook> {
+    // Check if user has reached the maximum number of webhooks
+    const [webhookCount] = await ctx.db
+      .select({ count: count() })
+      .from(webhooksTable)
+      .where(eq(webhooksTable.userId, ctx.user.id));
+
+    const maxWebhooks = serverConfig.webhook.maxWebhooksPerUser;
+    if (webhookCount.count >= maxWebhooks) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Maximum number of webhooks (${maxWebhooks}) reached`,
+      });
+    }
+
     const [result] = await ctx.db
       .insert(webhooksTable)
       .values({

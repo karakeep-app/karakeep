@@ -205,7 +205,7 @@ install_karakeep() {
   msg_start "Installing Node.js..."
   mkdir -p /etc/apt/keyrings
   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" >/etc/apt/sources.list.d/nodesource.list
   $shh apt-get update
   $shh apt-get install -y nodejs
   # https://github.com/karakeep-app/karakeep/issues/967
@@ -272,8 +272,12 @@ EOF
   msg_done "Configuration complete"
 
   msg_start "Creating users and modifying permissions..."
-  useradd -U -s /usr/sbin/nologin -r -m -d "$M_DATA_DIR" meilisearch
-  useradd -U -s /usr/sbin/nologin -r -M -d "$INSTALL_DIR" karakeep
+  if ! id -u meilisearch >/dev/null 2>&1; then
+    useradd -U -s /usr/sbin/nologin -r -m -d "$M_DATA_DIR" meilisearch
+  fi
+  if ! id -u karakeep >/dev/null 2>&1; then
+    useradd -U -s /usr/sbin/nologin -r -M -d "$INSTALL_DIR" karakeep
+  fi
   chown meilisearch:meilisearch "$M_CONFIG_FILE"
   touch "$LOG_DIR"/{karakeep-workers.log,karakeep-web.log}
   chown -R karakeep:karakeep "$INSTALL_DIR" "$CONFIG_DIR" "$DATA_DIR" "$LOG_DIR"

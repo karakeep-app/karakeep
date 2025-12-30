@@ -110,6 +110,15 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="lists/[slug]/edit"
+        options={{
+          headerTitle: "Edit List",
+          headerBackTitle: "Back",
+          headerTransparent: true,
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
         name="archive"
         options={{
           headerTitle: "",
@@ -141,6 +150,14 @@ export default function Dashboard() {
         options={{
           title: "Bookmark View Mode",
           headerTitle: "Bookmark View Mode",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
+        name="settings/reader-settings"
+        options={{
+          title: "Reader Settings",
+          headerTitle: "Reader Settings",
           headerBackTitle: "Back",
         }}
       />

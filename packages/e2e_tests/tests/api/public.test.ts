@@ -6,6 +6,7 @@ import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { createTestUser, uploadTestAsset } from "../../utils/api";
+import { createTestPdfFile } from "../../utils/assets";
 import { waitUntil } from "../../utils/general";
 import { getTrpcClient } from "../../utils/trpc";
 
@@ -43,9 +44,7 @@ describe("Public API", () => {
     });
 
     // Create a second bookmark with an asset
-    const file = new File(["test content"], "test.pdf", {
-      type: "application/pdf",
-    });
+    const file = createTestPdfFile();
 
     const uploadResponse = await uploadTestAsset(currentApiKey, port, file);
     const createBookmark2 = await trpcClient.bookmarks.createBookmark.mutate({
@@ -160,9 +159,7 @@ describe("Public API", () => {
       const assetUpload = await uploadTestAsset(
         apiKey,
         port,
-        new File(["test content for token validation"], "token_test.pdf", {
-          type: "application/pdf",
-        }),
+        createTestPdfFile("token_test.pdf"),
       );
       assetId = assetUpload.assetId;
     });
@@ -246,9 +243,7 @@ describe("Public API", () => {
       const anotherAssetUpload = await uploadTestAsset(
         apiKey, // Same user
         port,
-        new File(["other content"], "other_asset.pdf", {
-          type: "application/pdf",
-        }),
+        createTestPdfFile("other_asset.pdf"),
       );
       const anotherAssetId = anotherAssetUpload.assetId;
 

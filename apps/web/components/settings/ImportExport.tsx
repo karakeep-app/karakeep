@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/components/ui/sonner";
 import { useBookmarkImport } from "@/lib/hooks/useBookmarkImport";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
@@ -19,7 +20,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
-import { toast } from "../ui/use-toast";
 import { ImportSessionsSection } from "./ImportSessionsSection";
 
 function ImportCard({
@@ -174,6 +174,23 @@ export function ImportExportRow() {
             className="flex items-center gap-2"
             onFileSelect={(file) =>
               runUploadBookmarkFile({ file, source: "pocket" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
+          text="Matter"
+          description={t("settings.import.import_bookmarks_from_matter_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".csv"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "matter" })
             }
           >
             <p>Import</p>

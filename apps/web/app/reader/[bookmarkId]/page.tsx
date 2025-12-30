@@ -3,36 +3,18 @@
 import { Suspense, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
+import ReaderSettingsPopover from "@/components/dashboard/preview/ReaderSettingsPopover";
 import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
-import {
-  HighlighterIcon as Highlight,
-  Minus,
-  Plus,
-  Printer,
-  Settings,
-  Type,
-  X,
-} from "lucide-react";
+import { useReaderSettings } from "@/lib/readerSettings";
+import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { api } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 export default function ReaderViewPage() {
@@ -47,18 +29,9 @@ export default function ReaderViewPage() {
 
   const { data: session } = useSession();
   const router = useRouter();
-  const [fontSize, setFontSize] = useState([18]);
-  const [lineHeight, setLineHeight] = useState([1.6]);
-  const [fontFamily, setFontFamily] = useState("serif");
+  const { settings } = useReaderSettings();
   const [showHighlights, setShowHighlights] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const isOwner = session?.user?.id === bookmark?.userId;
-
-  const fontFamilies = {
-    serif: "ui-serif, Georgia, Cambria, serif",
-    sans: "ui-sans-serif, system-ui, sans-serif",
-    mono: "ui-monospace, Menlo, Monaco, monospace",
-  };
 
   const onClose = () => {
     if (window.history.length > 1) {
@@ -89,94 +62,7 @@ export default function ReaderViewPage() {
               <Printer className="h-4 w-4" />
             </Button>
 
-            <Popover open={showSettings} onOpenChange={setShowSettings}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" align="end" className="w-80">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2">
-                    <Type className="h-4 w-4" />
-                    <h3 className="font-semibold">Reading Settings</h3>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Font Family</label>
-                      <Select value={fontFamily} onValueChange={setFontFamily}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="serif">Serif</SelectItem>
-                          <SelectItem value="sans">Sans Serif</SelectItem>
-                          <SelectItem value="mono">Monospace</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">Font Size</label>
-                        <span className="text-sm text-muted-foreground">
-                          {fontSize[0]}px
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7 w-7 bg-transparent"
-                          onClick={() =>
-                            setFontSize([Math.max(12, fontSize[0] - 1)])
-                          }
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <Slider
-                          value={fontSize}
-                          onValueChange={setFontSize}
-                          max={24}
-                          min={12}
-                          step={1}
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7 w-7 bg-transparent"
-                          onClick={() =>
-                            setFontSize([Math.min(24, fontSize[0] + 1)])
-                          }
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">
-                          Line Height
-                        </label>
-                        <span className="text-sm text-muted-foreground">
-                          {lineHeight[0]}
-                        </span>
-                      </div>
-                      <Slider
-                        value={lineHeight}
-                        onValueChange={setLineHeight}
-                        max={2.5}
-                        min={1.2}
-                        step={0.1}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <ReaderSettingsPopover variant="ghost" />
 
             <Button
               variant={showHighlights ? "default" : "ghost"}
@@ -216,10 +102,9 @@ export default function ReaderViewPage() {
                   <h1
                     className="font-bold leading-tight"
                     style={{
-                      fontFamily:
-                        fontFamilies[fontFamily as keyof typeof fontFamilies],
-                      fontSize: `${fontSize[0] * 1.8}px`,
-                      lineHeight: lineHeight[0] * 0.9,
+                      fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
+                      fontSize: `${settings.fontSize * 1.8}px`,
+                      lineHeight: settings.lineHeight * 0.9,
                     }}
                   >
                     {getBookmarkTitle(bookmark)}
@@ -239,10 +124,9 @@ export default function ReaderViewPage() {
                     <ReaderView
                       className="prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
                       style={{
-                        fontFamily:
-                          fontFamilies[fontFamily as keyof typeof fontFamilies],
-                        fontSize: `${fontSize[0]}px`,
-                        lineHeight: lineHeight[0],
+                        fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
+                        fontSize: `${settings.fontSize}px`,
+                        lineHeight: settings.lineHeight,
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}
@@ -255,20 +139,6 @@ export default function ReaderViewPage() {
             )}
           </article>
         </main>
-
-        {/* Mobile backdrop */}
-        {showHighlights && (
-          <button
-            className="fixed inset-0 top-14 z-40 bg-black/50 lg:hidden"
-            onClick={() => setShowHighlights(false)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                setShowHighlights(false);
-              }
-            }}
-            aria-label="Close highlights sidebar"
-          />
-        )}
 
         {/* Highlights Sidebar */}
         {showHighlights && highlights && (

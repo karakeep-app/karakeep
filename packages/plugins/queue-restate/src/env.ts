@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const stringBool = (defaultValue: string) =>
+  z
+    .string()
+    .default(defaultValue)
+    .refine((s) => s === "true" || s === "false")
+    .transform((s) => s === "true");
+
 export const envConfig = z
   .object({
     RESTATE_LISTEN_PORT: z.coerce.number().optional(),
@@ -9,5 +16,6 @@ export const envConfig = z
       .default("http://localhost:8080"),
     RESTATE_ADMIN_ADDR: z.string().optional().default("http://localhost:9070"),
     RESTATE_PUB_KEY: z.string().optional(),
+    RESTATE_EXPOSE_CORE_SERVICES: stringBool("true"),
   })
   .parse(process.env);

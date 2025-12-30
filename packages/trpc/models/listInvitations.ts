@@ -372,6 +372,7 @@ export class ListInvitation {
         // This protects user privacy until they accept
         name: "Pending User",
         email: invitation.user.email || "",
+        image: null,
       },
     }));
   }

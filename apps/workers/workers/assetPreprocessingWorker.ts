@@ -4,6 +4,7 @@ import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
 import { createWorker } from "tesseract.js";
+import { withWorkerTracing } from "workerTracing";
 
 import type { AssetPreprocessingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -36,7 +37,7 @@ export class AssetPreprocessingWorker {
       (await getQueueClient())!.createRunner<AssetPreprocessingRequest>(
         AssetPreprocessingQueue,
         {
-          run: run,
+          run: withWorkerTracing("assetPreprocessingWorker.run", run),
           onComplete: async (job) => {
             workerStatsCounter.labels("assetPreprocessing", "completed").inc();
             const jobId = job.id;
@@ -62,7 +63,7 @@ export class AssetPreprocessingWorker {
         {
           concurrency: serverConfig.assetPreprocessing.numWorkers,
           pollIntervalMs: 1000,
-          timeoutSecs: 30,
+          timeoutSecs: serverConfig.assetPreprocessing.jobTimeoutSec,
         },
       );
 

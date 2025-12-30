@@ -107,6 +107,7 @@
     },
     "import": {
       "import_bookmarks_from_pocket_export": "Importar marcadores da exportação do Pocket",
+      "import_bookmarks_from_matter_export": "Importar marcadores da exportação do Matter",
       "import_bookmarks_from_omnivore_export": "Importar marcadores da exportação do Omnivore",
       "import_export": "Importar / Exportar",
       "import_export_bookmarks": "Importar/Exportar Marcadores",

@@ -1,9 +1,11 @@
+import { httpInstrumentationMiddleware } from "@hono/otel";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as loggerMiddleware } from "hono/logger";
 import { poweredBy } from "hono/powered-by";
 
 import { loadAllPlugins } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { Context } from "@karakeep/trpc";
 
@@ -52,7 +54,20 @@ const app = new Hono<{
       logger.info(str);
     }),
   )
-  .use(poweredBy())
+  .use(poweredBy());
+
+// Add OpenTelemetry middleware if tracing is enabled
+if (serverConfig.tracing.enabled) {
+  app.use(
+    "*",
+    httpInstrumentationMiddleware({
+      serviceName: `${serverConfig.tracing.serviceName}-api`,
+      serviceVersion: serverConfig.serverVersion ?? "unknown",
+    }),
+  );
+}
+
+app
   .use(
     cors({
       origin: "*",

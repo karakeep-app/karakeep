@@ -1,4 +1,5 @@
 import { workerStatsCounter } from "metrics";
+import { withWorkerTracing } from "workerTracing";
 
 import {
   AdminMaintenanceQueue,
@@ -20,7 +21,10 @@ export class AdminMaintenanceWorker {
       (await getQueueClient())!.createRunner<ZAdminMaintenanceTask>(
         AdminMaintenanceQueue,
         {
-          run: runAdminMaintenance,
+          run: withWorkerTracing(
+            "adminMaintenanceWorker.run",
+            runAdminMaintenance,
+          ),
           onComplete: (job) => {
             workerStatsCounter
               .labels(`adminMaintenance:${job.data.type}`, "completed")

@@ -19,7 +19,7 @@ const config: Config = {
   organizationName: "karakeep-app", // Usually your GitHub org/user name.
   projectName: "karakeep", // Usually your repo name.
 
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
@@ -42,7 +42,7 @@ const config: Config = {
           }) => {
             const sidebarItems = await defaultSidebarItemsGenerator(args);
             return sidebarItems.filter(
-              (item) => !(item.type == "category" && item.label === "API"),
+              (item) => !(item.type == "category" && item.label === "🔗 API"),
             );
           },
           editUrl: "https://github.com/karakeep-app/karakeep/tree/main/docs/",
@@ -57,6 +57,85 @@ const config: Config = {
     ],
   ],
   plugins: [
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+      //   redirects: [
+      //     {
+      //       to: "/getting-started/intro",
+      //       from: "/intro",
+      //     },
+      //     {
+      //       to: "/getting-started/screenshots",
+      //       from: "/screenshots",
+      //     },
+      //     {
+      //       to: "/configuration/environment-variables",
+      //       from: "/configuration",
+      //     },
+      //     {
+      //       to: "/using-karakeep/quick-sharing",
+      //       from: "/quick-sharing",
+      //     },
+      //     {
+      //       to: "/using-karakeep/import",
+      //       from: "/import",
+      //     },
+      //     {
+      //       to: "/using-karakeep/search-query-language",
+      //       from: "/guides/search-query-language",
+      //     },
+      //     {
+      //       to: "/integrations/openai",
+      //       from: "/openai",
+      //     },
+      //     {
+      //       to: "/integrations/command-line",
+      //       from: "/command-line",
+      //     },
+      //     {
+      //       to: "/integrations/mcp",
+      //       from: "/mcp",
+      //     },
+      //     {
+      //       to: "/integrations/different-ai-providers",
+      //       from: "/guides/different-ai-providers",
+      //     },
+      //     {
+      //       to: "/integrations/singlefile",
+      //       from: "/guides/singlefile",
+      //     },
+      //     {
+      //       to: "/administration/security-considerations",
+      //       from: "/security-considerations",
+      //     },
+      //     {
+      //       to: "/administration/FAQ",
+      //       from: "/FAQ",
+      //     },
+      //     {
+      //       to: "/administration/troubleshooting",
+      //       from: "/troubleshooting",
+      //     },
+      //     {
+      //       to: "/administration/server-migration",
+      //       from: "/guides/server-migration",
+      //     },
+      //     {
+      //       to: "/administration/legacy-container-upgrade",
+      //       from: "/guides/legacy-container-upgrade",
+      //     },
+      //     {
+      //       to: "/administration/hoarder-to-karakeep-migration",
+      //       from: "/guides/hoarder-to-karakeep-migration",
+      //     },
+      //     {
+      //       to: "/community/community-projects",
+      //       from: "/community-projects",
+      //     },
+      //   ],
+      },
+    ],
     [
       "docusaurus-plugin-openapi-docs",
       {
@@ -108,52 +187,12 @@ const config: Config = {
         },
       ],
     },
-    footer: {
-      style: "dark",
-      links: [
-        {
-          title: "Docs",
-          items: [
-            {
-              label: "Introduction",
-              to: "/",
-            },
-          ],
-        },
-        {
-          title: "Community",
-          items: [
-            {
-              label: "GitHub",
-              href: "https://github.com/karakeep-app/karakeep",
-            },
-          ],
-        },
-        {
-          title: "More",
-          items: [
-            {
-              label: "Homepage",
-              href: "https://karakeep.app",
-            },
-            {
-              label: "GitHub",
-              href: "https://github.com/karakeep-app/karakeep",
-            },
-            {
-              label: "Demo",
-              href: "https://try.karakeep.app",
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} Karakeep App. Built with Docusaurus.`,
-    },
+
     algolia: {
-      appId: 'V93C1M14G6',
+      appId: "V93C1M14G6",
       // Public API key: it is safe to commit it
-      apiKey: '0eb8853d9740822fb9d21620d5515f35',
-      indexName: 'karakeep',
+      apiKey: "0eb8853d9740822fb9d21620d5515f35",
+      indexName: "karakeep",
       contextualSearch: true,
       insights: true,
     },

@@ -66,20 +66,22 @@ const NewListPage = () => {
         <View className="gap-2">
           <Text className="text-sm text-muted-foreground">List Type</Text>
           <View className="flex flex-row gap-2">
-            <Button
-              variant={listType === "manual" ? "primary" : "secondary"}
-              onPress={() => setListType("manual")}
-              className="flex-1"
-            >
-              <Text>Manual</Text>
-            </Button>
-            <Button
-              variant={listType === "smart" ? "primary" : "secondary"}
-              onPress={() => setListType("smart")}
-              className="flex-1"
-            >
-              <Text>Smart</Text>
-            </Button>
+            <View className="flex-1">
+              <Button
+                variant={listType === "manual" ? "primary" : "secondary"}
+                onPress={() => setListType("manual")}
+              >
+                <Text>Manual</Text>
+              </Button>
+            </View>
+            <View className="flex-1">
+              <Button
+                variant={listType === "smart" ? "primary" : "secondary"}
+                onPress={() => setListType("smart")}
+              >
+                <Text>Smart</Text>
+              </Button>
+            </View>
           </View>
         </View>
 

@@ -695,6 +695,7 @@ async function migrateBookmarks(
           summary: b.summary ?? undefined,
           createdAt: b.createdAt,
           crawlPriority: "low" as const,
+          source: b.source === null ? undefined : b.source,
         };
         let createdId: string | null = null;
         switch (b.content.type) {

@@ -9,7 +9,7 @@ import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
 import DOMPurify from "dompurify";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -37,6 +37,7 @@ import {
 import { Browser, BrowserContextOptions } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { withWorkerTracing } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -52,12 +53,14 @@ import {
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  getTracer,
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
   triggerSearchReindex,
   triggerWebhook,
   VideoWorkerQueue,
+  withSpan,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared-server";
 import {
@@ -77,12 +80,16 @@ import {
   DequeuedJob,
   EnqueueOptions,
   getQueueClient,
+  QueueRetryAfterError,
 } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+
+const tracer = getTracer("@karakeep/workers");
 
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
@@ -125,6 +132,7 @@ const metascraperParser = metascraper([
     dateModified: true,
     datePublished: true,
   }),
+  metascraperAmazonImproved(), // Fix image extraction bug - must come before metascraperAmazon()
   metascraperAmazon(),
   metascraperYoutube({
     gotOpts: {
@@ -185,7 +193,7 @@ const cookieSchema = z.object({
 const cookiesSchema = z.array(cookieSchema);
 
 interface CrawlerRunResult {
-  status: "completed" | "rescheduled";
+  status: "completed";
 }
 
 function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
@@ -322,20 +330,19 @@ export class CrawlerWorker {
     >(
       LinkCrawlerQueue,
       {
-        run: runCrawler,
-        onComplete: async (job, result) => {
-          if (result.status === "rescheduled") {
-            logger.info(
-              `[Crawler][${job.id}] Rescheduled due to domain rate limiting`,
-            );
-            return;
-          }
+        run: withWorkerTracing("crawlerWorker.run", runCrawler),
+        onComplete: async (job) => {
           workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
           const bookmarkId = job.data.bookmarkId;
           if (bookmarkId) {
-            await changeBookmarkStatus(bookmarkId, "success");
+            await db
+              .update(bookmarkLinks)
+              .set({
+                crawlStatus: "success",
+              })
+              .where(eq(bookmarkLinks.id, bookmarkId));
           }
         },
         onError: async (job) => {
@@ -349,7 +356,36 @@ export class CrawlerWorker {
           );
           const bookmarkId = job.data?.bookmarkId;
           if (bookmarkId && job.numRetriesLeft == 0) {
-            await changeBookmarkStatus(bookmarkId, "failure");
+            await db.transaction(async (tx) => {
+              await tx
+                .update(bookmarkLinks)
+                .set({
+                  crawlStatus: "failure",
+                })
+                .where(eq(bookmarkLinks.id, bookmarkId));
+              await tx
+                .update(bookmarks)
+                .set({
+                  taggingStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.taggingStatus, "pending"),
+                  ),
+                );
+              await tx
+                .update(bookmarks)
+                .set({
+                  summarizationStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.summarizationStatus, "pending"),
+                  ),
+                );
+            });
           }
         },
       },
@@ -391,239 +427,286 @@ async function loadCookiesFromFile(): Promise<void> {
 
 type DBAssetType = typeof assets.$inferInsert;
 
-async function changeBookmarkStatus(
-  bookmarkId: string,
-  crawlStatus: "success" | "failure",
-) {
-  await db
-    .update(bookmarkLinks)
-    .set({
-      crawlStatus,
-    })
-    .where(eq(bookmarkLinks.id, bookmarkId));
-}
-
 async function browserlessCrawlPage(
   jobId: string,
   url: string,
   abortSignal: AbortSignal,
 ) {
-  logger.info(
-    `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
+  return await withSpan(
+    tracer,
+    "crawlerWorker.browserlessCrawlPage",
+    { attributes: { url, jobId } },
+    async () => {
+      logger.info(
+        `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
+      );
+      const response = await fetchWithProxy(url, {
+        signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+      });
+      logger.info(
+        `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
+      );
+      return {
+        htmlContent: await response.text(),
+        statusCode: response.status,
+        screenshot: undefined,
+        pdf: undefined,
+        url: response.url,
+      };
+    },
   );
-  const response = await fetchWithProxy(url, {
-    signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-  });
-  logger.info(
-    `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
-  );
-  return {
-    htmlContent: await response.text(),
-    statusCode: response.status,
-    screenshot: undefined,
-    url: response.url,
-  };
 }
 
 async function crawlPage(
   jobId: string,
   url: string,
   userId: string,
+  forceStorePdf: boolean,
   abortSignal: AbortSignal,
 ): Promise<{
   htmlContent: string;
   screenshot: Buffer | undefined;
+  pdf: Buffer | undefined;
   statusCode: number;
   url: string;
 }> {
-  // Check user's browser crawling setting
-  const userData = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-    columns: { browserCrawlingEnabled: true },
-  });
-  if (!userData) {
-    logger.error(`[Crawler][${jobId}] User ${userId} not found`);
-    throw new Error(`User ${userId} not found`);
-  }
-
-  const browserCrawlingEnabled = userData.browserCrawlingEnabled;
-
-  if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
-    return browserlessCrawlPage(jobId, url, abortSignal);
-  }
-
-  let browser: Browser | undefined;
-  if (serverConfig.crawler.browserConnectOnDemand) {
-    browser = await startBrowserInstance();
-  } else {
-    browser = globalBrowser;
-  }
-  if (!browser) {
-    return browserlessCrawlPage(jobId, url, abortSignal);
-  }
-
-  const proxyConfig = getPlaywrightProxyConfig();
-  const isRunningInProxyContext =
-    proxyConfig !== undefined &&
-    !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
-  const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    proxy: proxyConfig,
-  });
-
-  try {
-    if (globalCookies.length > 0) {
-      await context.addCookies(globalCookies);
-      logger.info(
-        `[Crawler][${jobId}] Cookies successfully loaded into browser context`,
-      );
-    }
-
-    // Create a new page in the context
-    const page = await context.newPage();
-
-    // Apply ad blocking
-    if (globalBlocker) {
-      await globalBlocker.enableBlockingInPage(page);
-    }
-
-    // Block audio/video resources and disallowed sub-requests
-    await page.route("**/*", async (route) => {
-      if (abortSignal.aborted) {
-        await route.abort("aborted");
-        return;
-      }
-      const request = route.request();
-      const resourceType = request.resourceType();
-
-      // Block audio/video resources
-      if (
-        resourceType === "media" ||
-        request.headers()["content-type"]?.includes("video/") ||
-        request.headers()["content-type"]?.includes("audio/")
-      ) {
-        await route.abort("aborted");
-        return;
+  return await withSpan(
+    tracer,
+    "crawlerWorker.crawlPage",
+    { attributes: { url, jobId, userId, forceStorePdf } },
+    async () => {
+      // Check user's browser crawling setting
+      const userData = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: { browserCrawlingEnabled: true },
+      });
+      if (!userData) {
+        logger.error(`[Crawler][${jobId}] User ${userId} not found`);
+        throw new Error(`User ${userId} not found`);
       }
 
-      const requestUrl = request.url();
-      const requestIsRunningInProxyContext =
+      const browserCrawlingEnabled = userData.browserCrawlingEnabled;
+
+      if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
+        return browserlessCrawlPage(jobId, url, abortSignal);
+      }
+
+      let browser: Browser | undefined;
+      if (serverConfig.crawler.browserConnectOnDemand) {
+        browser = await startBrowserInstance();
+      } else {
+        browser = globalBrowser;
+      }
+      if (!browser) {
+        return browserlessCrawlPage(jobId, url, abortSignal);
+      }
+
+      const proxyConfig = getPlaywrightProxyConfig();
+      const isRunningInProxyContext =
         proxyConfig !== undefined &&
-        !matchesNoProxy(requestUrl, proxyConfig.bypass?.split(",") ?? []);
-      if (
-        requestUrl.startsWith("http://") ||
-        requestUrl.startsWith("https://")
-      ) {
-        const validation = await validateUrl(
-          requestUrl,
-          requestIsRunningInProxyContext,
-        );
-        if (!validation.ok) {
-          logger.warn(
-            `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
+        !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
+      const context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+        userAgent:
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        proxy: proxyConfig,
+      });
+
+      try {
+        if (globalCookies.length > 0) {
+          await context.addCookies(globalCookies);
+          logger.info(
+            `[Crawler][${jobId}] Cookies successfully loaded into browser context`,
           );
-          await route.abort("blockedbyclient");
-          return;
+        }
+
+        // Create a new page in the context
+        const page = await context.newPage();
+
+        // Apply ad blocking
+        if (globalBlocker) {
+          await globalBlocker.enableBlockingInPage(page);
+        }
+
+        // Block audio/video resources and disallowed sub-requests
+        await page.route("**/*", async (route) => {
+          if (abortSignal.aborted) {
+            await route.abort("aborted");
+            return;
+          }
+          const request = route.request();
+          const resourceType = request.resourceType();
+
+          // Block audio/video resources
+          if (
+            resourceType === "media" ||
+            request.headers()["content-type"]?.includes("video/") ||
+            request.headers()["content-type"]?.includes("audio/")
+          ) {
+            await route.abort("aborted");
+            return;
+          }
+
+          const requestUrl = request.url();
+          const requestIsRunningInProxyContext =
+            proxyConfig !== undefined &&
+            !matchesNoProxy(requestUrl, proxyConfig.bypass?.split(",") ?? []);
+          if (
+            requestUrl.startsWith("http://") ||
+            requestUrl.startsWith("https://")
+          ) {
+            const validation = await validateUrl(
+              requestUrl,
+              requestIsRunningInProxyContext,
+            );
+            if (!validation.ok) {
+              logger.warn(
+                `[Crawler][${jobId}] Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
+              );
+              await route.abort("blockedbyclient");
+              return;
+            }
+          }
+
+          // Continue with other requests
+          await route.continue();
+        });
+
+        // Navigate to the target URL
+        const navigationValidation = await validateUrl(
+          url,
+          isRunningInProxyContext,
+        );
+        if (!navigationValidation.ok) {
+          throw new Error(
+            `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
+          );
+        }
+        const targetUrl = navigationValidation.url.toString();
+        logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
+        const response = await Promise.race([
+          page.goto(targetUrl, {
+            timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
+            waitUntil: "domcontentloaded",
+          }),
+          abortPromise(abortSignal).then(() => null),
+        ]);
+
+        logger.info(
+          `[Crawler][${jobId}] Successfully navigated to "${targetUrl}". Waiting for the page to load ...`,
+        );
+
+        // Wait until network is relatively idle or timeout after 5 seconds
+        await Promise.race([
+          page
+            .waitForLoadState("networkidle", { timeout: 5000 })
+            .catch(() => ({})),
+          new Promise((resolve) => setTimeout(resolve, 5000)),
+          abortPromise(abortSignal),
+        ]);
+
+        abortSignal.throwIfAborted();
+
+        logger.info(
+          `[Crawler][${jobId}] Finished waiting for the page to load.`,
+        );
+
+        // Extract content from the page
+        const htmlContent = await page.content();
+
+        abortSignal.throwIfAborted();
+
+        logger.info(
+          `[Crawler][${jobId}] Successfully fetched the page content.`,
+        );
+
+        // Take a screenshot if configured
+        let screenshot: Buffer | undefined = undefined;
+        if (serverConfig.crawler.storeScreenshot) {
+          const { data: screenshotData, error: screenshotError } =
+            await tryCatch(
+              Promise.race<Buffer>([
+                page.screenshot({
+                  // If you change this, you need to change the asset type in the store function.
+                  type: "jpeg",
+                  fullPage: serverConfig.crawler.fullPageScreenshot,
+                  quality: 80,
+                }),
+                new Promise((_, reject) =>
+                  setTimeout(
+                    () =>
+                      reject(
+                        "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                      ),
+                    serverConfig.crawler.screenshotTimeoutSec * 1000,
+                  ),
+                ),
+                abortPromise(abortSignal).then(() => Buffer.from("")),
+              ]),
+            );
+          abortSignal.throwIfAborted();
+          if (screenshotError) {
+            logger.warn(
+              `[Crawler][${jobId}] Failed to capture the screenshot. Reason: ${screenshotError}`,
+            );
+          } else {
+            logger.info(
+              `[Crawler][${jobId}] Finished capturing page content and a screenshot. FullPageScreenshot: ${serverConfig.crawler.fullPageScreenshot}`,
+            );
+            screenshot = screenshotData;
+          }
+        }
+
+        // Capture PDF if configured or explicitly requested
+        let pdf: Buffer | undefined = undefined;
+        if (serverConfig.crawler.storePdf || forceStorePdf) {
+          const { data: pdfData, error: pdfError } = await tryCatch(
+            Promise.race<Buffer>([
+              page.pdf({
+                format: "A4",
+                printBackground: true,
+              }),
+              new Promise((_, reject) =>
+                setTimeout(
+                  () =>
+                    reject(
+                      "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                    ),
+                  serverConfig.crawler.screenshotTimeoutSec * 1000,
+                ),
+              ),
+              abortPromise(abortSignal).then(() => Buffer.from("")),
+            ]),
+          );
+          abortSignal.throwIfAborted();
+          if (pdfError) {
+            logger.warn(
+              `[Crawler][${jobId}] Failed to capture the PDF. Reason: ${pdfError}`,
+            );
+          } else {
+            logger.info(
+              `[Crawler][${jobId}] Finished capturing page content as PDF`,
+            );
+            pdf = pdfData;
+          }
+        }
+
+        return {
+          htmlContent,
+          statusCode: response?.status() ?? 0,
+          screenshot,
+          pdf,
+          url: page.url(),
+        };
+      } finally {
+        await context.close();
+        // Only close the browser if it was created on demand
+        if (serverConfig.crawler.browserConnectOnDemand) {
+          await browser.close();
         }
       }
-
-      // Continue with other requests
-      await route.continue();
-    });
-
-    // Navigate to the target URL
-    const navigationValidation = await validateUrl(
-      url,
-      isRunningInProxyContext,
-    );
-    if (!navigationValidation.ok) {
-      throw new Error(
-        `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
-      );
-    }
-    const targetUrl = navigationValidation.url.toString();
-    logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
-    const response = await Promise.race([
-      page.goto(targetUrl, {
-        timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
-        waitUntil: "domcontentloaded",
-      }),
-      abortPromise(abortSignal).then(() => null),
-    ]);
-
-    logger.info(
-      `[Crawler][${jobId}] Successfully navigated to "${targetUrl}". Waiting for the page to load ...`,
-    );
-
-    // Wait until network is relatively idle or timeout after 5 seconds
-    await Promise.race([
-      page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => ({})),
-      new Promise((resolve) => setTimeout(resolve, 5000)),
-      abortPromise(abortSignal),
-    ]);
-
-    abortSignal.throwIfAborted();
-
-    logger.info(`[Crawler][${jobId}] Finished waiting for the page to load.`);
-
-    // Extract content from the page
-    const htmlContent = await page.content();
-
-    abortSignal.throwIfAborted();
-
-    logger.info(`[Crawler][${jobId}] Successfully fetched the page content.`);
-
-    // Take a screenshot if configured
-    let screenshot: Buffer | undefined = undefined;
-    if (serverConfig.crawler.storeScreenshot) {
-      const { data: screenshotData, error: screenshotError } = await tryCatch(
-        Promise.race<Buffer>([
-          page.screenshot({
-            // If you change this, you need to change the asset type in the store function.
-            type: "jpeg",
-            fullPage: serverConfig.crawler.fullPageScreenshot,
-            quality: 80,
-          }),
-          new Promise((_, reject) =>
-            setTimeout(
-              () =>
-                reject(
-                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                ),
-              serverConfig.crawler.screenshotTimeoutSec * 1000,
-            ),
-          ),
-          abortPromise(abortSignal).then(() => Buffer.from("")),
-        ]),
-      );
-      abortSignal.throwIfAborted();
-      if (screenshotError) {
-        logger.warn(
-          `[Crawler][${jobId}] Failed to capture the screenshot. Reason: ${screenshotError}`,
-        );
-      } else {
-        logger.info(
-          `[Crawler][${jobId}] Finished capturing page content and a screenshot. FullPageScreenshot: ${serverConfig.crawler.fullPageScreenshot}`,
-        );
-        screenshot = screenshotData;
-      }
-    }
-
-    return {
-      htmlContent,
-      statusCode: response?.status() ?? 0,
-      screenshot,
-      url: page.url(),
-    };
-  } finally {
-    await context.close();
-    // Only close the browser if it was created on demand
-    if (serverConfig.crawler.browserConnectOnDemand) {
-      await browser.close();
-    }
-  }
+    },
+  );
 }
 
 async function extractMetadata(
@@ -631,54 +714,70 @@ async function extractMetadata(
   url: string,
   jobId: string,
 ) {
-  logger.info(
-    `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
+  return await withSpan(
+    tracer,
+    "crawlerWorker.extractMetadata",
+    { attributes: { url, jobId } },
+    async () => {
+      logger.info(
+        `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
+      );
+      const meta = await metascraperParser({
+        url,
+        html: htmlContent,
+        // We don't want to validate the URL again as we've already done it by visiting the page.
+        // This was added because URL validation fails if the URL ends with a question mark (e.g. empty query params).
+        validateUrl: false,
+      });
+      logger.info(
+        `[Crawler][${jobId}] Done extracting metadata from the page.`,
+      );
+      return meta;
+    },
   );
-  const meta = await metascraperParser({
-    url,
-    html: htmlContent,
-    // We don't want to validate the URL again as we've already done it by visiting the page.
-    // This was added because URL validation fails if the URL ends with a question mark (e.g. empty query params).
-    validateUrl: false,
-  });
-  logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
-  return meta;
 }
 
-function extractReadableContent(
+async function extractReadableContent(
   htmlContent: string,
   url: string,
   jobId: string,
 ) {
-  logger.info(
-    `[Crawler][${jobId}] Will attempt to extract readable content ...`,
+  return await withSpan(
+    tracer,
+    "crawlerWorker.extractReadableContent",
+    { attributes: { url, jobId } },
+    async () => {
+      logger.info(
+        `[Crawler][${jobId}] Will attempt to extract readable content ...`,
+      );
+      const virtualConsole = new VirtualConsole();
+      const dom = new JSDOM(htmlContent, { url, virtualConsole });
+      let result: { content: string } | null = null;
+      try {
+        const readableContent = new Readability(dom.window.document).parse();
+        if (!readableContent || typeof readableContent.content !== "string") {
+          return null;
+        }
+
+        const purifyWindow = new JSDOM("").window;
+        try {
+          const purify = DOMPurify(purifyWindow);
+          const purifiedHTML = purify.sanitize(readableContent.content);
+
+          logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
+          result = {
+            content: purifiedHTML,
+          };
+        } finally {
+          purifyWindow.close();
+        }
+      } finally {
+        dom.window.close();
+      }
+
+      return result;
+    },
   );
-  const virtualConsole = new VirtualConsole();
-  const dom = new JSDOM(htmlContent, { url, virtualConsole });
-  let result: { content: string } | null = null;
-  try {
-    const readableContent = new Readability(dom.window.document).parse();
-    if (!readableContent || typeof readableContent.content !== "string") {
-      return null;
-    }
-
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
-
-      logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
-      result = {
-        content: purifiedHTML,
-      };
-    } finally {
-      purifyWindow.close();
-    }
-  } finally {
-    dom.window.close();
-  }
-
-  return result;
 }
 
 async function storeScreenshot(
@@ -686,45 +785,111 @@ async function storeScreenshot(
   userId: string,
   jobId: string,
 ) {
-  if (!serverConfig.crawler.storeScreenshot) {
-    logger.info(
-      `[Crawler][${jobId}] Skipping storing the screenshot as per the config.`,
-    );
-    return null;
-  }
-  if (!screenshot) {
-    logger.info(
-      `[Crawler][${jobId}] Skipping storing the screenshot as it's empty.`,
-    );
-    return null;
-  }
-  const assetId = newAssetId();
-  const contentType = "image/jpeg";
-  const fileName = "screenshot.jpeg";
+  return await withSpan(
+    tracer,
+    "crawlerWorker.storeScreenshot",
+    {
+      attributes: {
+        jobId,
+        userId,
+        size: screenshot?.byteLength ?? 0,
+      },
+    },
+    async () => {
+      if (!serverConfig.crawler.storeScreenshot) {
+        logger.info(
+          `[Crawler][${jobId}] Skipping storing the screenshot as per the config.`,
+        );
+        return null;
+      }
+      if (!screenshot) {
+        logger.info(
+          `[Crawler][${jobId}] Skipping storing the screenshot as it's empty.`,
+        );
+        return null;
+      }
+      const assetId = newAssetId();
+      const contentType = "image/jpeg";
+      const fileName = "screenshot.jpeg";
 
-  // Check storage quota before saving the screenshot
-  const { data: quotaApproved, error: quotaError } = await tryCatch(
-    QuotaService.checkStorageQuota(db, userId, screenshot.byteLength),
+      // Check storage quota before saving the screenshot
+      const { data: quotaApproved, error: quotaError } = await tryCatch(
+        QuotaService.checkStorageQuota(db, userId, screenshot.byteLength),
+      );
+
+      if (quotaError) {
+        logger.warn(
+          `[Crawler][${jobId}] Skipping screenshot storage due to quota exceeded: ${quotaError.message}`,
+        );
+        return null;
+      }
+
+      await saveAsset({
+        userId,
+        assetId,
+        metadata: { contentType, fileName },
+        asset: screenshot,
+        quotaApproved,
+      });
+      logger.info(
+        `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId} (${screenshot.byteLength} bytes)`,
+      );
+      return { assetId, contentType, fileName, size: screenshot.byteLength };
+    },
   );
+}
 
-  if (quotaError) {
-    logger.warn(
-      `[Crawler][${jobId}] Skipping screenshot storage due to quota exceeded: ${quotaError.message}`,
-    );
-    return null;
-  }
+async function storePdf(
+  pdf: Buffer | undefined,
+  userId: string,
+  jobId: string,
+) {
+  return await withSpan(
+    tracer,
+    "crawlerWorker.storePdf",
+    {
+      attributes: {
+        jobId,
+        userId,
+        size: pdf?.byteLength ?? 0,
+      },
+    },
+    async () => {
+      if (!pdf) {
+        logger.info(
+          `[Crawler][${jobId}] Skipping storing the PDF as it's empty.`,
+        );
+        return null;
+      }
+      const assetId = newAssetId();
+      const contentType = "application/pdf";
+      const fileName = "page.pdf";
 
-  await saveAsset({
-    userId,
-    assetId,
-    metadata: { contentType, fileName },
-    asset: screenshot,
-    quotaApproved,
-  });
-  logger.info(
-    `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId} (${screenshot.byteLength} bytes)`,
+      // Check storage quota before saving the PDF
+      const { data: quotaApproved, error: quotaError } = await tryCatch(
+        QuotaService.checkStorageQuota(db, userId, pdf.byteLength),
+      );
+
+      if (quotaError) {
+        logger.warn(
+          `[Crawler][${jobId}] Skipping PDF storage due to quota exceeded: ${quotaError.message}`,
+        );
+        return null;
+      }
+
+      await saveAsset({
+        userId,
+        assetId,
+        metadata: { contentType, fileName },
+        asset: pdf,
+        quotaApproved,
+      });
+      logger.info(
+        `[Crawler][${jobId}] Stored the PDF as assetId: ${assetId} (${pdf.byteLength} bytes)`,
+      );
+      return { assetId, contentType, fileName, size: pdf.byteLength };
+    },
   );
-  return { assetId, contentType, fileName, size: screenshot.byteLength };
 }
 
 async function downloadAndStoreFile(
@@ -734,91 +899,98 @@ async function downloadAndStoreFile(
   fileType: string,
   abortSignal: AbortSignal,
 ) {
-  let assetPath: string | undefined;
-  try {
-    logger.info(
-      `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
-    );
-    const response = await fetchWithProxy(url, {
-      signal: abortSignal,
-    });
-    if (!response.ok || response.body == null) {
-      throw new Error(`Failed to download ${fileType}: ${response.status}`);
-    }
-
-    const contentType = normalizeContentType(
-      response.headers.get("content-type"),
-    );
-    if (!contentType) {
-      throw new Error("No content type in the response");
-    }
-
-    const assetId = newAssetId();
-    assetPath = path.join(os.tmpdir(), assetId);
-
-    let bytesRead = 0;
-    const contentLengthEnforcer = new Transform({
-      transform(chunk, _, callback) {
-        bytesRead += chunk.length;
-
-        if (abortSignal.aborted) {
-          callback(new Error("AbortError"));
-        } else if (bytesRead > serverConfig.maxAssetSizeMb * 1024 * 1024) {
-          callback(
-            new Error(
-              `Content length exceeds maximum allowed size: ${serverConfig.maxAssetSizeMb}MB`,
-            ),
-          );
-        } else {
-          callback(null, chunk); // pass data along unchanged
+  return await withSpan(
+    tracer,
+    "crawlerWorker.downloadAndStoreFile",
+    { attributes: { url, jobId, userId, fileType } },
+    async () => {
+      let assetPath: string | undefined;
+      try {
+        logger.info(
+          `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+        );
+        const response = await fetchWithProxy(url, {
+          signal: abortSignal,
+        });
+        if (!response.ok || response.body == null) {
+          throw new Error(`Failed to download ${fileType}: ${response.status}`);
         }
-      },
-      flush(callback) {
-        callback();
-      },
-    });
 
-    await pipeline(
-      response.body,
-      contentLengthEnforcer,
-      fsSync.createWriteStream(assetPath),
-    );
+        const contentType = normalizeContentType(
+          response.headers.get("content-type"),
+        );
+        if (!contentType) {
+          throw new Error("No content type in the response");
+        }
 
-    // Check storage quota before saving the asset
-    const { data: quotaApproved, error: quotaError } = await tryCatch(
-      QuotaService.checkStorageQuota(db, userId, bytesRead),
-    );
+        const assetId = newAssetId();
+        assetPath = path.join(os.tmpdir(), assetId);
 
-    if (quotaError) {
-      logger.warn(
-        `[Crawler][${jobId}] Skipping ${fileType} storage due to quota exceeded: ${quotaError.message}`,
-      );
-      return null;
-    }
+        let bytesRead = 0;
+        const contentLengthEnforcer = new Transform({
+          transform(chunk, _, callback) {
+            bytesRead += chunk.length;
 
-    await saveAssetFromFile({
-      userId,
-      assetId,
-      metadata: { contentType },
-      assetPath,
-      quotaApproved,
-    });
+            if (abortSignal.aborted) {
+              callback(new Error("AbortError"));
+            } else if (bytesRead > serverConfig.maxAssetSizeMb * 1024 * 1024) {
+              callback(
+                new Error(
+                  `Content length exceeds maximum allowed size: ${serverConfig.maxAssetSizeMb}MB`,
+                ),
+              );
+            } else {
+              callback(null, chunk); // pass data along unchanged
+            }
+          },
+          flush(callback) {
+            callback();
+          },
+        });
 
-    logger.info(
-      `[Crawler][${jobId}] Downloaded ${fileType} as assetId: ${assetId} (${bytesRead} bytes)`,
-    );
+        await pipeline(
+          response.body,
+          contentLengthEnforcer,
+          fsSync.createWriteStream(assetPath),
+        );
 
-    return { assetId, userId, contentType, size: bytesRead };
-  } catch (e) {
-    logger.error(
-      `[Crawler][${jobId}] Failed to download and store ${fileType}: ${e}`,
-    );
-    return null;
-  } finally {
-    if (assetPath) {
-      await tryCatch(fs.unlink(assetPath));
-    }
-  }
+        // Check storage quota before saving the asset
+        const { data: quotaApproved, error: quotaError } = await tryCatch(
+          QuotaService.checkStorageQuota(db, userId, bytesRead),
+        );
+
+        if (quotaError) {
+          logger.warn(
+            `[Crawler][${jobId}] Skipping ${fileType} storage due to quota exceeded: ${quotaError.message}`,
+          );
+          return null;
+        }
+
+        await saveAssetFromFile({
+          userId,
+          assetId,
+          metadata: { contentType },
+          assetPath,
+          quotaApproved,
+        });
+
+        logger.info(
+          `[Crawler][${jobId}] Downloaded ${fileType} as assetId: ${assetId} (${bytesRead} bytes)`,
+        );
+
+        return { assetId, userId, contentType, size: bytesRead };
+      } catch (e) {
+        logger.error(
+          `[Crawler][${jobId}] Failed to download and store ${fileType}: ${e}`,
+        );
+        return null;
+      } finally {
+        if (assetPath) {
+          await tryCatch(fs.unlink(assetPath));
+        }
+      }
+    },
+  );
 }
 
 async function downloadAndStoreImage(
@@ -843,77 +1015,84 @@ async function archiveWebpage(
   jobId: string,
   abortSignal: AbortSignal,
 ) {
-  logger.info(`[Crawler][${jobId}] Will attempt to archive page ...`);
-  const assetId = newAssetId();
-  const assetPath = path.join(os.tmpdir(), assetId);
+  return await withSpan(
+    tracer,
+    "crawlerWorker.archiveWebpage",
+    { attributes: { url, jobId, userId } },
+    async () => {
+      logger.info(`[Crawler][${jobId}] Will attempt to archive page ...`);
+      const assetId = newAssetId();
+      const assetPath = path.join(os.tmpdir(), assetId);
 
-  let res = await execa({
-    input: html,
-    cancelSignal: abortSignal,
-    env: {
-      https_proxy: serverConfig.proxy.httpsProxy
-        ? getRandomProxy(serverConfig.proxy.httpsProxy)
-        : undefined,
-      http_proxy: serverConfig.proxy.httpProxy
-        ? getRandomProxy(serverConfig.proxy.httpProxy)
-        : undefined,
-      no_proxy: serverConfig.proxy.noProxy?.join(","),
+      let res = await execa({
+        input: html,
+        cancelSignal: abortSignal,
+        env: {
+          https_proxy: serverConfig.proxy.httpsProxy
+            ? getRandomProxy(serverConfig.proxy.httpsProxy)
+            : undefined,
+          http_proxy: serverConfig.proxy.httpProxy
+            ? getRandomProxy(serverConfig.proxy.httpProxy)
+            : undefined,
+          no_proxy: serverConfig.proxy.noProxy?.join(","),
+        },
+      })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
+
+      if (res.isCanceled) {
+        logger.error(
+          `[Crawler][${jobId}] Canceled archiving the page as we hit global timeout.`,
+        );
+        await tryCatch(fs.unlink(assetPath));
+        return null;
+      }
+
+      if (res.exitCode !== 0) {
+        logger.error(
+          `[Crawler][${jobId}] Failed to archive the page as the command exited with code ${res.exitCode}`,
+        );
+        await tryCatch(fs.unlink(assetPath));
+        return null;
+      }
+
+      const contentType = "text/html";
+
+      // Get file size and check quota before saving
+      const stats = await fs.stat(assetPath);
+      const fileSize = stats.size;
+
+      const { data: quotaApproved, error: quotaError } = await tryCatch(
+        QuotaService.checkStorageQuota(db, userId, fileSize),
+      );
+
+      if (quotaError) {
+        logger.warn(
+          `[Crawler][${jobId}] Skipping page archive storage due to quota exceeded: ${quotaError.message}`,
+        );
+        await tryCatch(fs.unlink(assetPath));
+        return null;
+      }
+
+      await saveAssetFromFile({
+        userId,
+        assetId,
+        assetPath,
+        metadata: {
+          contentType,
+        },
+        quotaApproved,
+      });
+
+      logger.info(
+        `[Crawler][${jobId}] Done archiving the page as assetId: ${assetId}`,
+      );
+
+      return {
+        assetId,
+        contentType,
+        size: await getAssetSize({ userId, assetId }),
+      };
     },
-  })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
-
-  if (res.isCanceled) {
-    logger.error(
-      `[Crawler][${jobId}] Canceled archiving the page as we hit global timeout.`,
-    );
-    await tryCatch(fs.unlink(assetPath));
-    return null;
-  }
-
-  if (res.exitCode !== 0) {
-    logger.error(
-      `[Crawler][${jobId}] Failed to archive the page as the command exited with code ${res.exitCode}`,
-    );
-    await tryCatch(fs.unlink(assetPath));
-    return null;
-  }
-
-  const contentType = "text/html";
-
-  // Get file size and check quota before saving
-  const stats = await fs.stat(assetPath);
-  const fileSize = stats.size;
-
-  const { data: quotaApproved, error: quotaError } = await tryCatch(
-    QuotaService.checkStorageQuota(db, userId, fileSize),
   );
-
-  if (quotaError) {
-    logger.warn(
-      `[Crawler][${jobId}] Skipping page archive storage due to quota exceeded: ${quotaError.message}`,
-    );
-    await tryCatch(fs.unlink(assetPath));
-    return null;
-  }
-
-  await saveAssetFromFile({
-    userId,
-    assetId,
-    assetPath,
-    metadata: {
-      contentType,
-    },
-    quotaApproved,
-  });
-
-  logger.info(
-    `[Crawler][${jobId}] Done archiving the page as assetId: ${assetId}`,
-  );
-
-  return {
-    assetId,
-    contentType,
-    size: await getAssetSize({ userId, assetId }),
-  };
 }
 
 async function getContentType(
@@ -921,26 +1100,33 @@ async function getContentType(
   jobId: string,
   abortSignal: AbortSignal,
 ): Promise<string | null> {
-  try {
-    logger.info(
-      `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
-    );
-    const response = await fetchWithProxy(url, {
-      method: "HEAD",
-      signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-    });
-    const rawContentType = response.headers.get("content-type");
-    const contentType = normalizeContentType(rawContentType);
-    logger.info(
-      `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
-    );
-    return contentType;
-  } catch (e) {
-    logger.error(
-      `[Crawler][${jobId}] Failed to determine the content-type for the url ${url}: ${e}`,
-    );
-    return null;
-  }
+  return await withSpan(
+    tracer,
+    "crawlerWorker.getContentType",
+    { attributes: { url, jobId } },
+    async () => {
+      try {
+        logger.info(
+          `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
+        );
+        const response = await fetchWithProxy(url, {
+          method: "GET",
+          signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+        });
+        const rawContentType = response.headers.get("content-type");
+        const contentType = normalizeContentType(rawContentType);
+        logger.info(
+          `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
+        );
+        return contentType;
+      } catch (e) {
+        logger.error(
+          `[Crawler][${jobId}] Failed to determine the content-type for the url ${url}: ${e}`,
+        );
+        return null;
+      }
+    },
+  );
 }
 
 /**
@@ -959,53 +1145,60 @@ async function handleAsAssetBookmark(
   bookmarkId: string,
   abortSignal: AbortSignal,
 ) {
-  const downloaded = await downloadAndStoreFile(
-    url,
-    userId,
-    jobId,
-    assetType,
-    abortSignal,
-  );
-  if (!downloaded) {
-    return;
-  }
-  const fileName = path.basename(new URL(url).pathname);
-  await db.transaction(async (trx) => {
-    await updateAsset(
-      undefined,
-      {
-        id: downloaded.assetId,
-        bookmarkId,
+  return await withSpan(
+    tracer,
+    "crawlerWorker.handleAsAssetBookmark",
+    { attributes: { url, jobId, userId, bookmarkId, assetType } },
+    async () => {
+      const downloaded = await downloadAndStoreFile(
+        url,
         userId,
-        assetType: AssetTypes.BOOKMARK_ASSET,
-        contentType: downloaded.contentType,
-        size: downloaded.size,
-        fileName,
-      },
-      trx,
-    );
-    await trx.insert(bookmarkAssets).values({
-      id: bookmarkId,
-      assetType,
-      assetId: downloaded.assetId,
-      content: null,
-      fileName,
-      sourceUrl: url,
-    });
-    // Switch the type of the bookmark from LINK to ASSET
-    await trx
-      .update(bookmarks)
-      .set({ type: BookmarkTypes.ASSET })
-      .where(eq(bookmarks.id, bookmarkId));
-    await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
-  });
-  await AssetPreprocessingQueue.enqueue(
-    {
-      bookmarkId,
-      fixMode: false,
-    },
-    {
-      groupId: userId,
+        jobId,
+        assetType,
+        abortSignal,
+      );
+      if (!downloaded) {
+        return;
+      }
+      const fileName = path.basename(new URL(url).pathname);
+      await db.transaction(async (trx) => {
+        await updateAsset(
+          undefined,
+          {
+            id: downloaded.assetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.BOOKMARK_ASSET,
+            contentType: downloaded.contentType,
+            size: downloaded.size,
+            fileName,
+          },
+          trx,
+        );
+        await trx.insert(bookmarkAssets).values({
+          id: bookmarkId,
+          assetType,
+          assetId: downloaded.assetId,
+          content: null,
+          fileName,
+          sourceUrl: url,
+        });
+        // Switch the type of the bookmark from LINK to ASSET
+        await trx
+          .update(bookmarks)
+          .set({ type: BookmarkTypes.ASSET })
+          .where(eq(bookmarks.id, bookmarkId));
+        await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
+      });
+      await AssetPreprocessingQueue.enqueue(
+        {
+          bookmarkId,
+          fixMode: false,
+        },
+        {
+          groupId: userId,
+        },
+      );
     },
   );
 }
@@ -1020,60 +1213,73 @@ async function storeHtmlContent(
   userId: string,
   jobId: string,
 ): Promise<StoreHtmlResult> {
-  if (!htmlContent) {
-    return { result: "not_stored" };
-  }
-
-  const contentSize = Buffer.byteLength(htmlContent, "utf8");
-
-  // Only store in assets if content is >= 50KB
-  if (contentSize < serverConfig.crawler.htmlContentSizeThreshold) {
-    logger.info(
-      `[Crawler][${jobId}] HTML content size (${contentSize} bytes) is below threshold, storing inline`,
-    );
-    return { result: "store_inline" };
-  }
-
-  const { data: quotaApproved, error: quotaError } = await tryCatch(
-    QuotaService.checkStorageQuota(db, userId, contentSize),
-  );
-  if (quotaError) {
-    logger.warn(
-      `[Crawler][${jobId}] Skipping HTML content storage due to quota exceeded: ${quotaError.message}`,
-    );
-    return { result: "not_stored" };
-  }
-
-  const assetId = newAssetId();
-
-  const { error: saveError } = await tryCatch(
-    saveAsset({
-      userId,
-      assetId,
-      asset: Buffer.from(htmlContent, "utf8"),
-      metadata: {
-        contentType: ASSET_TYPES.TEXT_HTML,
-        fileName: null,
+  return await withSpan(
+    tracer,
+    "crawlerWorker.storeHtmlContent",
+    {
+      attributes: {
+        jobId,
+        userId,
+        contentSize: htmlContent ? Buffer.byteLength(htmlContent, "utf8") : 0,
       },
-      quotaApproved,
-    }),
-  );
-  if (saveError) {
-    logger.error(
-      `[Crawler][${jobId}] Failed to store HTML content as asset: ${saveError}`,
-    );
-    throw saveError;
-  }
+    },
+    async () => {
+      if (!htmlContent) {
+        return { result: "not_stored" };
+      }
 
-  logger.info(
-    `[Crawler][${jobId}] Stored large HTML content (${contentSize} bytes) as asset: ${assetId}`,
-  );
+      const contentSize = Buffer.byteLength(htmlContent, "utf8");
 
-  return {
-    result: "stored",
-    assetId,
-    size: contentSize,
-  };
+      // Only store in assets if content is >= 50KB
+      if (contentSize < serverConfig.crawler.htmlContentSizeThreshold) {
+        logger.info(
+          `[Crawler][${jobId}] HTML content size (${contentSize} bytes) is below threshold, storing inline`,
+        );
+        return { result: "store_inline" };
+      }
+
+      const { data: quotaApproved, error: quotaError } = await tryCatch(
+        QuotaService.checkStorageQuota(db, userId, contentSize),
+      );
+      if (quotaError) {
+        logger.warn(
+          `[Crawler][${jobId}] Skipping HTML content storage due to quota exceeded: ${quotaError.message}`,
+        );
+        return { result: "not_stored" };
+      }
+
+      const assetId = newAssetId();
+
+      const { error: saveError } = await tryCatch(
+        saveAsset({
+          userId,
+          assetId,
+          asset: Buffer.from(htmlContent, "utf8"),
+          metadata: {
+            contentType: ASSET_TYPES.TEXT_HTML,
+            fileName: null,
+          },
+          quotaApproved,
+        }),
+      );
+      if (saveError) {
+        logger.error(
+          `[Crawler][${jobId}] Failed to store HTML content as asset: ${saveError}`,
+        );
+        throw saveError;
+      }
+
+      logger.info(
+        `[Crawler][${jobId}] Stored large HTML content (${contentSize} bytes) as asset: ${assetId}`,
+      );
+
+      return {
+        result: "stored",
+        assetId,
+        size: contentSize,
+      };
+    },
+  );
 }
 
 async function crawlAndParseUrl(
@@ -1082,268 +1288,332 @@ async function crawlAndParseUrl(
   jobId: string,
   bookmarkId: string,
   oldScreenshotAssetId: string | undefined,
+  oldPdfAssetId: string | undefined,
   oldImageAssetId: string | undefined,
   oldFullPageArchiveAssetId: string | undefined,
   oldContentAssetId: string | undefined,
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
+  forceStorePdf: boolean,
   abortSignal: AbortSignal,
 ) {
-  let result: {
-    htmlContent: string;
-    screenshot: Buffer | undefined;
-    statusCode: number | null;
-    url: string;
-  };
-
-  if (precrawledArchiveAssetId) {
-    logger.info(
-      `[Crawler][${jobId}] The page has been precrawled. Will use the precrawled archive instead.`,
-    );
-    const asset = await readAsset({
-      userId,
-      assetId: precrawledArchiveAssetId,
-    });
-    result = {
-      htmlContent: asset.asset.toString(),
-      screenshot: undefined,
-      statusCode: 200,
-      url,
-    };
-  } else {
-    result = await crawlPage(jobId, url, userId, abortSignal);
-  }
-  abortSignal.throwIfAborted();
-
-  const { htmlContent, screenshot, statusCode, url: browserUrl } = result;
-
-  // Track status code in Prometheus
-  if (statusCode !== null) {
-    crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
-  }
-
-  const meta = await Promise.race([
-    extractMetadata(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
-  abortSignal.throwIfAborted();
-
-  let readableContent = await Promise.race([
-    extractReadableContent(htmlContent, browserUrl, jobId),
-    abortPromise(abortSignal),
-  ]);
-  abortSignal.throwIfAborted();
-
-  const screenshotAssetInfo = await Promise.race([
-    storeScreenshot(screenshot, userId, jobId),
-    abortPromise(abortSignal),
-  ]);
-  abortSignal.throwIfAborted();
-
-  const htmlContentAssetInfo = await storeHtmlContent(
-    readableContent?.content,
-    userId,
-    jobId,
-  );
-  abortSignal.throwIfAborted();
-  let imageAssetInfo: DBAssetType | null = null;
-  if (meta.image) {
-    const downloaded = await downloadAndStoreImage(
-      meta.image,
-      userId,
-      jobId,
-      abortSignal,
-    );
-    if (downloaded) {
-      imageAssetInfo = {
-        id: downloaded.assetId,
-        bookmarkId,
+  return await withSpan(
+    tracer,
+    "crawlerWorker.crawlAndParseUrl",
+    {
+      attributes: {
+        url,
+        jobId,
         userId,
-        assetType: AssetTypes.LINK_BANNER_IMAGE,
-        contentType: downloaded.contentType,
-        size: downloaded.size,
+        bookmarkId,
+        archiveFullPage,
+        forceStorePdf,
+        hasPrecrawledArchive: !!precrawledArchiveAssetId,
+      },
+    },
+    async () => {
+      let result: {
+        htmlContent: string;
+        screenshot: Buffer | undefined;
+        pdf: Buffer | undefined;
+        statusCode: number | null;
+        url: string;
       };
-    }
-  }
-  abortSignal.throwIfAborted();
 
-  const parseDate = (date: string | undefined) => {
-    if (!date) {
-      return null;
-    }
-    try {
-      return new Date(date);
-    } catch {
-      return null;
-    }
-  };
-
-  // TODO(important): Restrict the size of content to store
-  const assetDeletionTasks: Promise<void>[] = [];
-  const inlineHtmlContent =
-    htmlContentAssetInfo.result === "store_inline"
-      ? (readableContent?.content ?? null)
-      : null;
-  readableContent = null;
-  await db.transaction(async (txn) => {
-    await txn
-      .update(bookmarkLinks)
-      .set({
-        title: meta.title,
-        description: meta.description,
-        // Don't store data URIs as they're not valid URLs and are usually quite large
-        imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
-        favicon: meta.logo,
-        htmlContent: inlineHtmlContent,
-        contentAssetId:
-          htmlContentAssetInfo.result === "stored"
-            ? htmlContentAssetInfo.assetId
-            : null,
-        crawledAt: new Date(),
-        crawlStatusCode: statusCode,
-        author: meta.author,
-        publisher: meta.publisher,
-        datePublished: parseDate(meta.datePublished),
-        dateModified: parseDate(meta.dateModified),
-      })
-      .where(eq(bookmarkLinks.id, bookmarkId));
-
-    if (screenshotAssetInfo) {
-      await updateAsset(
-        oldScreenshotAssetId,
-        {
-          id: screenshotAssetInfo.assetId,
-          bookmarkId,
+      if (precrawledArchiveAssetId) {
+        logger.info(
+          `[Crawler][${jobId}] The page has been precrawled. Will use the precrawled archive instead.`,
+        );
+        const asset = await readAsset({
           userId,
-          assetType: AssetTypes.LINK_SCREENSHOT,
-          contentType: screenshotAssetInfo.contentType,
-          size: screenshotAssetInfo.size,
-          fileName: screenshotAssetInfo.fileName,
-        },
-        txn,
-      );
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldScreenshotAssetId));
-    }
-    if (imageAssetInfo) {
-      await updateAsset(oldImageAssetId, imageAssetInfo, txn);
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
-    }
-    if (htmlContentAssetInfo.result === "stored") {
-      await updateAsset(
-        oldContentAssetId,
-        {
-          id: htmlContentAssetInfo.assetId,
-          bookmarkId,
+          assetId: precrawledArchiveAssetId,
+        });
+        result = {
+          htmlContent: asset.asset.toString(),
+          screenshot: undefined,
+          pdf: undefined,
+          statusCode: 200,
+          url,
+        };
+      } else {
+        result = await crawlPage(
+          jobId,
+          url,
           userId,
-          assetType: AssetTypes.LINK_HTML_CONTENT,
-          contentType: ASSET_TYPES.TEXT_HTML,
-          size: htmlContentAssetInfo.size,
-          fileName: null,
-        },
-        txn,
-      );
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
-    } else if (oldContentAssetId) {
-      // Unlink the old content asset
-      await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
-      assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
-    }
-  });
+          forceStorePdf,
+          abortSignal,
+        );
+      }
+      abortSignal.throwIfAborted();
 
-  // Delete the old assets if any
-  await Promise.all(assetDeletionTasks);
-
-  return async () => {
-    if (
-      !precrawledArchiveAssetId &&
-      (serverConfig.crawler.fullPageArchive || archiveFullPage)
-    ) {
-      const archiveResult = await archiveWebpage(
+      const {
         htmlContent,
-        browserUrl,
+        screenshot,
+        pdf,
+        statusCode,
+        url: browserUrl,
+      } = result;
+
+      // Track status code in Prometheus
+      if (statusCode !== null) {
+        crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+      }
+
+      const meta = await Promise.race([
+        extractMetadata(htmlContent, browserUrl, jobId),
+        abortPromise(abortSignal),
+      ]);
+      abortSignal.throwIfAborted();
+
+      let readableContent: { content: string } | null = meta.readableContentHtml
+        ? { content: meta.readableContentHtml }
+        : null;
+      if (!readableContent) {
+        readableContent = await Promise.race([
+          extractReadableContent(
+            meta.contentHtml ?? htmlContent,
+            browserUrl,
+            jobId,
+          ),
+          abortPromise(abortSignal),
+        ]);
+      }
+      abortSignal.throwIfAborted();
+
+      const screenshotAssetInfo = await Promise.race([
+        storeScreenshot(screenshot, userId, jobId),
+        abortPromise(abortSignal),
+      ]);
+      abortSignal.throwIfAborted();
+
+      const pdfAssetInfo = await Promise.race([
+        storePdf(pdf, userId, jobId),
+        abortPromise(abortSignal),
+      ]);
+      abortSignal.throwIfAborted();
+
+      const htmlContentAssetInfo = await storeHtmlContent(
+        readableContent?.content,
         userId,
         jobId,
-        abortSignal,
       );
+      abortSignal.throwIfAborted();
+      let imageAssetInfo: DBAssetType | null = null;
+      if (meta.image) {
+        const downloaded = await downloadAndStoreImage(
+          meta.image,
+          userId,
+          jobId,
+          abortSignal,
+        );
+        if (downloaded) {
+          imageAssetInfo = {
+            id: downloaded.assetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.LINK_BANNER_IMAGE,
+            contentType: downloaded.contentType,
+            size: downloaded.size,
+          };
+        }
+      }
+      abortSignal.throwIfAborted();
 
-      if (archiveResult) {
-        const {
-          assetId: fullPageArchiveAssetId,
-          size,
-          contentType,
-        } = archiveResult;
+      const parseDate = (date: string | undefined) => {
+        if (!date) {
+          return null;
+        }
+        try {
+          return new Date(date);
+        } catch {
+          return null;
+        }
+      };
 
-        await db.transaction(async (txn) => {
+      // TODO(important): Restrict the size of content to store
+      const assetDeletionTasks: Promise<void>[] = [];
+      const inlineHtmlContent =
+        htmlContentAssetInfo.result === "store_inline"
+          ? (readableContent?.content ?? null)
+          : null;
+      readableContent = null;
+      await db.transaction(async (txn) => {
+        await txn
+          .update(bookmarkLinks)
+          .set({
+            title: meta.title,
+            description: meta.description,
+            // Don't store data URIs as they're not valid URLs and are usually quite large
+            imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
+            favicon: meta.logo,
+            htmlContent: inlineHtmlContent,
+            contentAssetId:
+              htmlContentAssetInfo.result === "stored"
+                ? htmlContentAssetInfo.assetId
+                : null,
+            crawledAt: new Date(),
+            crawlStatusCode: statusCode,
+            author: meta.author,
+            publisher: meta.publisher,
+            datePublished: parseDate(meta.datePublished),
+            dateModified: parseDate(meta.dateModified),
+          })
+          .where(eq(bookmarkLinks.id, bookmarkId));
+
+        if (screenshotAssetInfo) {
           await updateAsset(
-            oldFullPageArchiveAssetId,
+            oldScreenshotAssetId,
             {
-              id: fullPageArchiveAssetId,
+              id: screenshotAssetInfo.assetId,
               bookmarkId,
               userId,
-              assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-              contentType,
-              size,
+              assetType: AssetTypes.LINK_SCREENSHOT,
+              contentType: screenshotAssetInfo.contentType,
+              size: screenshotAssetInfo.size,
+              fileName: screenshotAssetInfo.fileName,
+            },
+            txn,
+          );
+          assetDeletionTasks.push(
+            silentDeleteAsset(userId, oldScreenshotAssetId),
+          );
+        }
+        if (pdfAssetInfo) {
+          await updateAsset(
+            oldPdfAssetId,
+            {
+              id: pdfAssetInfo.assetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.LINK_PDF,
+              contentType: pdfAssetInfo.contentType,
+              size: pdfAssetInfo.size,
+              fileName: pdfAssetInfo.fileName,
+            },
+            txn,
+          );
+          assetDeletionTasks.push(silentDeleteAsset(userId, oldPdfAssetId));
+        }
+        if (imageAssetInfo) {
+          await updateAsset(oldImageAssetId, imageAssetInfo, txn);
+          assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
+        }
+        if (htmlContentAssetInfo.result === "stored") {
+          await updateAsset(
+            oldContentAssetId,
+            {
+              id: htmlContentAssetInfo.assetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.LINK_HTML_CONTENT,
+              contentType: ASSET_TYPES.TEXT_HTML,
+              size: htmlContentAssetInfo.size,
               fileName: null,
             },
             txn,
           );
-        });
-        if (oldFullPageArchiveAssetId) {
-          await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
+          assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
+        } else if (oldContentAssetId) {
+          // Unlink the old content asset
+          await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
+          assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
         }
-      }
-    }
-  };
+      });
+
+      // Delete the old assets if any
+      await Promise.all(assetDeletionTasks);
+
+      return async () => {
+        if (
+          !precrawledArchiveAssetId &&
+          (serverConfig.crawler.fullPageArchive || archiveFullPage)
+        ) {
+          const archiveResult = await archiveWebpage(
+            htmlContent,
+            browserUrl,
+            userId,
+            jobId,
+            abortSignal,
+          );
+
+          if (archiveResult) {
+            const {
+              assetId: fullPageArchiveAssetId,
+              size,
+              contentType,
+            } = archiveResult;
+
+            await db.transaction(async (txn) => {
+              await updateAsset(
+                oldFullPageArchiveAssetId,
+                {
+                  id: fullPageArchiveAssetId,
+                  bookmarkId,
+                  userId,
+                  assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+                  contentType,
+                  size,
+                  fileName: null,
+                },
+                txn,
+              );
+            });
+            if (oldFullPageArchiveAssetId) {
+              await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
+            }
+          }
+        }
+      };
+    },
+  );
 }
 
 /**
- * Checks if the domain should be rate limited and reschedules the job if needed.
- * @returns true if the job should continue, false if it was rescheduled
+ * Checks if the domain should be rate limited and throws QueueRetryAfterError if needed.
+ * @throws {QueueRetryAfterError} if the domain is rate limited
  */
-async function checkDomainRateLimit(
-  url: string,
-  jobId: string,
-  jobData: ZCrawlLinkRequest,
-  userId: string,
-  jobPriority?: number,
-): Promise<boolean> {
-  const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
-  if (!crawlerDomainRateLimitConfig) {
-    return true;
-  }
+async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
+  return await withSpan(
+    tracer,
+    "crawlerWorker.checkDomainRateLimit",
+    { attributes: { url, jobId } },
+    async () => {
+      const crawlerDomainRateLimitConfig =
+        serverConfig.crawler.domainRatelimiting;
+      if (!crawlerDomainRateLimitConfig) {
+        return;
+      }
 
-  const rateLimitClient = await getRateLimitClient();
-  if (!rateLimitClient) {
-    return true;
-  }
+      const rateLimitClient = await getRateLimitClient();
+      if (!rateLimitClient) {
+        return;
+      }
 
-  const hostname = new URL(url).hostname;
-  const rateLimitResult = rateLimitClient.checkRateLimit(
-    {
-      name: "domain-ratelimit",
-      maxRequests: crawlerDomainRateLimitConfig.maxRequests,
-      windowMs: crawlerDomainRateLimitConfig.windowMs,
+      const hostname = new URL(url).hostname;
+      const rateLimitResult = rateLimitClient.checkRateLimit(
+        {
+          name: "domain-ratelimit",
+          maxRequests: crawlerDomainRateLimitConfig.maxRequests,
+          windowMs: crawlerDomainRateLimitConfig.windowMs,
+        },
+        hostname,
+      );
+
+      if (!rateLimitResult.allowed) {
+        const resetInSeconds = rateLimitResult.resetInSeconds;
+        // Add jitter to prevent thundering herd: +40% random variation
+        const jitterFactor = 1.0 + Math.random() * 0.4; // Random value between 1.0 and 1.4
+        const delayMs = Math.floor(resetInSeconds * 1000 * jitterFactor);
+        logger.info(
+          `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Will retry in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
+        );
+        throw new QueueRetryAfterError(
+          `Domain "${hostname}" is rate limited`,
+          delayMs,
+        );
+      }
     },
-    hostname,
   );
-
-  if (!rateLimitResult.allowed) {
-    const resetInSeconds = rateLimitResult.resetInSeconds;
-    // Add jitter to prevent thundering herd: +40% random variation
-    const jitterFactor = 1.0 + Math.random() * 0.4; // Random value between 1.0 and 1.4
-    const delayMs = Math.floor(resetInSeconds * 1000 * jitterFactor);
-    logger.info(
-      `[Crawler][${jobId}] Domain "${hostname}" is rate limited. Rescheduling in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
-    );
-    await LinkCrawlerQueue.enqueue(jobData, {
-      priority: jobPriority,
-      delayMs,
-      groupId: userId,
-    });
-    return false;
-  }
-
-  return true;
 }
 
 async function runCrawler(
@@ -1359,28 +1629,19 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage } = request.data;
+  const { bookmarkId, archiveFullPage, storePdf } = request.data;
   const {
     url,
     userId,
     screenshotAssetId: oldScreenshotAssetId,
+    pdfAssetId: oldPdfAssetId,
     imageAssetId: oldImageAssetId,
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
     contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  const shouldContinue = await checkDomainRateLimit(
-    url,
-    jobId,
-    job.data,
-    userId,
-    job.priority,
-  );
-
-  if (!shouldContinue) {
-    return { status: "rescheduled" };
-  }
+  await checkDomainRateLimit(url, jobId);
 
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
@@ -1421,11 +1682,13 @@ async function runCrawler(
       jobId,
       bookmarkId,
       oldScreenshotAssetId,
+      oldPdfAssetId,
       oldImageAssetId,
       oldFullPageArchiveAssetId,
       oldContentAssetId,
       precrawledArchiveAssetId,
       archiveFullPage,
+      storePdf ?? false,
       job.abortSignal,
     );
 

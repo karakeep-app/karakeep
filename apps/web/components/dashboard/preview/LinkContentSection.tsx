@@ -16,13 +16,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTranslation } from "@/lib/i18n/client";
+import { Trans, useTranslation } from "@/lib/i18n/client";
+import { useReaderSettings } from "@/lib/readerSettings";
 import {
   AlertTriangle,
   Archive,
   BookOpen,
   Camera,
   ExpandIcon,
+  FileText,
+  Info,
   Video,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -34,8 +37,10 @@ import {
   ZBookmark,
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
+import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 
 import { contentRendererRegistry } from "./content-renderers";
+import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
@@ -100,12 +105,23 @@ function VideoSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
+function PDFSection({ link }: { link: ZBookmarkedLink }) {
+  return (
+    <iframe
+      title="PDF Viewer"
+      src={`/api/assets/${link.pdfAssetId}`}
+      className="relative h-full min-w-full"
+    />
+  );
+}
+
 export default function LinkContentSection({
   bookmark,
 }: {
   bookmark: ZBookmark;
 }) {
   const { t } = useTranslation();
+  const { settings } = useReaderSettings();
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   const defaultSection =
     availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
@@ -135,6 +151,11 @@ export default function LinkContentSection({
       <ScrollArea className="h-full">
         <ReaderView
           className="prose mx-auto dark:prose-invert"
+          style={{
+            fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
+            fontSize: `${settings.fontSize}px`,
+            lineHeight: settings.lineHeight,
+          }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
         />
@@ -144,6 +165,8 @@ export default function LinkContentSection({
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
+  } else if (section === "pdf") {
+    content = <PDFSection link={bookmark.content} />;
   } else {
     content = <ScreenshotSection link={bookmark.content} />;
   }
@@ -188,6 +211,12 @@ export default function LinkContentSection({
                   {t("common.screenshot")}
                 </div>
               </SelectItem>
+              <SelectItem value="pdf" disabled={!bookmark.content.pdfAssetId}>
+                <div className="flex items-center">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("common.pdf")}
+                </div>
+              </SelectItem>
               <SelectItem
                 value="archive"
                 disabled={
@@ -213,16 +242,47 @@ export default function LinkContentSection({
           </SelectContent>
         </Select>
         {section === "cached" && (
+          <>
+            <ReaderSettingsPopover />
+            <Tooltip>
+              <TooltipTrigger>
+                <Link
+                  href={`/reader/${bookmark.id}`}
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  <ExpandIcon className="h-4 w-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">FullScreen</TooltipContent>
+            </Tooltip>
+          </>
+        )}
+        {section === "archive" && (
           <Tooltip>
-            <TooltipTrigger>
-              <Link
-                href={`/reader/${bookmark.id}`}
-                className={buttonVariants({ variant: "outline" })}
-              >
-                <ExpandIcon className="h-4 w-4" />
-              </Link>
+            <TooltipTrigger asChild>
+              <div className="flex h-10 items-center gap-1 rounded-md border border-blue-500/50 bg-blue-50 px-3 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                <Info className="h-4 w-4" />
+              </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom">FullScreen</TooltipContent>
+            <TooltipContent side="bottom" className="max-w-sm">
+              <p className="text-sm">
+                <Trans
+                  i18nKey="preview.archive_info"
+                  components={{
+                    1: (
+                      <Link
+                        prefetch={false}
+                        href={`/api/assets/${bookmark.content.fullPageArchiveAssetId ?? bookmark.content.precrawledArchiveAssetId}`}
+                        download
+                        className="font-medium underline"
+                      >
+                        link
+                      </Link>
+                    ),
+                  }}
+                />
+              </p>
+            </TooltipContent>
           </Tooltip>
         )}
       </div>

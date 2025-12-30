@@ -134,8 +134,9 @@ class RestateQueueClient implements QueueClient {
       port: envConfig.RESTATE_LISTEN_PORT ?? 0,
       services: [
         ...[...this.services.values()].map((svc) => svc.def),
-        semaphore,
-        idProvider,
+        ...(envConfig.RESTATE_EXPOSE_CORE_SERVICES
+          ? [semaphore, idProvider]
+          : []),
       ],
       identityKeys: envConfig.RESTATE_PUB_KEY
         ? [envConfig.RESTATE_PUB_KEY]

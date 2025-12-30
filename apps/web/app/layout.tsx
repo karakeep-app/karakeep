@@ -8,11 +8,11 @@ import "@karakeep/tailwind-config/globals.css";
 
 import type { Viewport } from "next";
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
 import Providers from "@/lib/providers";
 import { getUserLocalSettings } from "@/lib/userLocalSettings/userLocalSettings";
 import { getServerAuthSession } from "@/server/auth";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "sonner";
 
 import { clientConfig } from "@karakeep/shared/config";
 

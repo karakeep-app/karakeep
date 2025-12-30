@@ -157,6 +157,7 @@
       "import_export": "Импорт / Экспорт",
       "import_export_bookmarks": "Импорт / Экспорт закладок",
       "import_bookmarks_from_pocket_export": "Импортировать закладки из экспорта Pocket",
+      "import_bookmarks_from_matter_export": "Импортировать закладки из экспорта Matter",
       "import_bookmarks_from_omnivore_export": "Импортировать закладки из экспорта Omnivore",
       "imported_bookmarks": "Импортировано закладок",
       "import_bookmarks_from_html_file": "Импортировать закладки из HTML файла",

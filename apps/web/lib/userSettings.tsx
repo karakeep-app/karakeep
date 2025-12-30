@@ -13,6 +13,13 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   backupsEnabled: false,
   backupsFrequency: "daily",
   backupsRetentionDays: 7,
+  readerFontSize: null,
+  readerLineHeight: null,
+  readerFontFamily: null,
+  autoTaggingEnabled: null,
+  autoSummarizationEnabled: null,
+  tagStyle: "as-generated",
+  inferredTagLang: null,
 });
 
 export function UserSettingsContextProvider({

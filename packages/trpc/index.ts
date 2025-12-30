@@ -6,6 +6,7 @@ import type { db } from "@karakeep/db";
 import serverConfig from "@karakeep/shared/config";
 
 import { createRateLimitMiddleware } from "./lib/rateLimit";
+import { createTracingMiddleware } from "./lib/tracing";
 import {
   apiErrorsTotalCounter,
   apiRequestDurationSummary,
@@ -86,7 +87,9 @@ export const procedure = t.procedure
     });
     end();
     return res;
-  });
+  })
+  // OpenTelemetry tracing middleware
+  .use(createTracingMiddleware());
 
 // Default public procedure rate limiting
 export const publicProcedure = procedure.use(

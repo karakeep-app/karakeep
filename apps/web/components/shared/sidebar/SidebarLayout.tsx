@@ -1,7 +1,11 @@
+import { Suspense } from "react";
+import ErrorFallback from "@/components/dashboard/ErrorFallback";
 import Header from "@/components/dashboard/header/Header";
 import DemoModeBanner from "@/components/DemoModeBanner";
 import { Separator } from "@/components/ui/separator";
+import LoadingSpinner from "@/components/ui/spinner";
 import ValidAccountCheck from "@/components/utils/ValidAccountCheck";
+import { ErrorBoundary } from "react-error-boundary";
 
 import serverConfig from "@karakeep/shared/config";
 
@@ -29,7 +33,11 @@ export default function SidebarLayout({
             <Separator />
           </div>
           {modal}
-          <div className="min-h-30 container p-4">{children}</div>
+          <div className="min-h-30 container p-4">
+            <ErrorBoundary fallback={<ErrorFallback />}>
+              <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+            </ErrorBoundary>
+          </div>
         </main>
       </div>
     </div>

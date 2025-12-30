@@ -1,12 +1,13 @@
 import type { AdapterAccount } from "@auth/core/adapters";
 import { createId } from "@paralleldrive/cuid2";
-import { relations } from "drizzle-orm";
+import { relations, sql, SQL } from "drizzle-orm";
 import {
   AnySQLiteColumn,
   foreignKey,
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   unique,
@@ -69,6 +70,31 @@ export const users = sqliteTable("user", {
     .notNull()
     .default("weekly"),
   backupsRetentionDays: integer("backupsRetentionDays").notNull().default(30),
+
+  // Reader view settings (nullable = opt-in, null means use client default)
+  readerFontSize: integer("readerFontSize"),
+  readerLineHeight: real("readerLineHeight"),
+  readerFontFamily: text("readerFontFamily", {
+    enum: ["serif", "sans", "mono"],
+  }),
+
+  // AI Settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: integer("autoTaggingEnabled", { mode: "boolean" }),
+  autoSummarizationEnabled: integer("autoSummarizationEnabled", {
+    mode: "boolean",
+  }),
+  tagStyle: text("tagStyle", {
+    enum: [
+      "lowercase-hyphens",
+      "lowercase-spaces",
+      "lowercase-underscores",
+      "titlecase-spaces",
+      "titlecase-hyphens",
+      "camelCase",
+      "as-generated",
+    ],
+  }).default("titlecase-spaces"),
+  inferredTagLang: text("inferredTagLang"),
 });
 
 export const accounts = sqliteTable(
@@ -194,9 +220,21 @@ export const bookmarks = sqliteTable(
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
-    index("bookmarks_archived_idx").on(b.archived),
-    index("bookmarks_favourited_idx").on(b.favourited),
     index("bookmarks_createdAt_idx").on(b.createdAt),
+    // Composite indexes for optimized pagination queries
+    index("bookmarks_userId_createdAt_id_idx").on(b.userId, b.createdAt, b.id),
+    index("bookmarks_userId_archived_createdAt_id_idx").on(
+      b.userId,
+      b.archived,
+      b.createdAt,
+      b.id,
+    ),
+    index("bookmarks_userId_favourited_createdAt_id_idx").on(
+      b.userId,
+      b.favourited,
+      b.createdAt,
+      b.id,
+    ),
   ],
 );
 
@@ -233,6 +271,7 @@ export const bookmarkLinks = sqliteTable(
 export const enum AssetTypes {
   LINK_BANNER_IMAGE = "linkBannerImage",
   LINK_SCREENSHOT = "linkScreenshot",
+  LINK_PDF = "linkPdf",
   ASSET_SCREENSHOT = "assetScreenshot",
   LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
   LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
@@ -240,6 +279,7 @@ export const enum AssetTypes {
   LINK_HTML_CONTENT = "linkHtmlContent",
   BOOKMARK_ASSET = "bookmarkAsset",
   USER_UPLOADED = "userUploaded",
+  AVATAR = "avatar",
   BACKUP = "backup",
   UNKNOWN = "unknown",
 }
@@ -253,6 +293,7 @@ export const assets = sqliteTable(
       enum: [
         AssetTypes.LINK_BANNER_IMAGE,
         AssetTypes.LINK_SCREENSHOT,
+        AssetTypes.LINK_PDF,
         AssetTypes.ASSET_SCREENSHOT,
         AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         AssetTypes.LINK_PRECRAWLED_ARCHIVE,
@@ -260,6 +301,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.USER_UPLOADED,
+        AssetTypes.AVATAR,
         AssetTypes.BACKUP,
         AssetTypes.UNKNOWN,
       ],
@@ -346,6 +388,14 @@ export const bookmarkTags = sqliteTable(
       .primaryKey()
       .$defaultFn(() => createId()),
     name: text("name").notNull(),
+    normalizedName: text("normalizedName").generatedAlwaysAs(
+      (): SQL =>
+        // This function needs to be in sync with the tagNormalizer function in tagging.ts
+        sql`lower(replace(replace(replace(${bookmarkTags.name}, ' ', ''), '-', ''), '_', ''))`,
+      {
+        mode: "virtual",
+      },
+    ),
     createdAt: createdAtField(),
     userId: text("userId")
       .notNull()
@@ -356,6 +406,7 @@ export const bookmarkTags = sqliteTable(
     unique("bookmarkTags_userId_id_idx").on(bt.userId, bt.id),
     index("bookmarkTags_name_idx").on(bt.name),
     index("bookmarkTags_userId_idx").on(bt.userId),
+    index("bookmarkTags_normalizedName_idx").on(bt.normalizedName),
   ],
 );
 
@@ -378,6 +429,8 @@ export const tagsOnBookmarks = sqliteTable(
     primaryKey({ columns: [tb.bookmarkId, tb.tagId] }),
     index("tagsOnBookmarks_tagId_idx").on(tb.tagId),
     index("tagsOnBookmarks_bookmarkId_idx").on(tb.bookmarkId),
+    // Composite index for tag-first queries (when filtering by tagId)
+    index("tagsOnBookmarks_tagId_bookmarkId_idx").on(tb.tagId, tb.bookmarkId),
   ],
 );
 
@@ -437,6 +490,11 @@ export const bookmarksInLists = sqliteTable(
     primaryKey({ columns: [tb.bookmarkId, tb.listId] }),
     index("bookmarksInLists_bookmarkId_idx").on(tb.bookmarkId),
     index("bookmarksInLists_listId_idx").on(tb.listId),
+    // Composite index for list-first queries (when filtering by listId)
+    index("bookmarksInLists_listId_bookmarkId_idx").on(
+      tb.listId,
+      tb.bookmarkId,
+    ),
   ],
 );
 
@@ -584,6 +642,11 @@ export const rssFeedImportsTable = sqliteTable(
     index("rssFeedImports_feedIdIdx_idx").on(bl.rssFeedId),
     index("rssFeedImports_entryIdIdx_idx").on(bl.entryId),
     unique().on(bl.rssFeedId, bl.entryId),
+    // Composite index for RSS feed filter queries (when filtering by rssFeedId)
+    index("rssFeedImports_rssFeedId_bookmarkId_idx").on(
+      bl.rssFeedId,
+      bl.bookmarkId,
+    ),
   ],
 );
 
