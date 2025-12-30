@@ -16,6 +16,7 @@ import Masonry from "react-masonry-css";
 import resolveConfig from "tailwindcss/resolveConfig";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 
 import BookmarkCard from "./BookmarkCard";
 import EditorCard from "./EditorCard";
@@ -64,6 +65,7 @@ export default function BookmarksGrid({
   const gridColumns = useGridColumns();
   const bulkActionsStore = useBulkActionsStore();
   const inBookmarkGrid = useInBookmarkGridStore();
+  const withinListContext = useBookmarkListContext();
   const breakpointConfig = useMemo(
     () => getBreakpointConfig(gridColumns),
     [gridColumns],
@@ -72,10 +74,13 @@ export default function BookmarksGrid({
 
   useEffect(() => {
     bulkActionsStore.setVisibleBookmarks(bookmarks);
+    bulkActionsStore.setListContext(withinListContext);
+
     return () => {
       bulkActionsStore.setVisibleBookmarks([]);
+      bulkActionsStore.setListContext(undefined);
     };
-  }, [bookmarks]);
+  }, [bookmarks, withinListContext?.id]);
 
   useEffect(() => {
     inBookmarkGrid.setInBookmarkGrid(true);

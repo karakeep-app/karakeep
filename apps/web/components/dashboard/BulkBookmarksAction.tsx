@@ -23,8 +23,6 @@ import {
   X,
 } from "lucide-react";
 
-import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
-import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import {
   useDeleteBookmark,
   useRecrawlBookmark,
@@ -42,7 +40,11 @@ const MAX_CONCURRENT_BULK_ACTIONS = 50;
 
 export default function BulkBookmarksAction() {
   const { t } = useTranslation();
-  const { selectedBookmarks, isBulkEditEnabled } = useBulkActionsStore();
+  const {
+    selectedBookmarks,
+    isBulkEditEnabled,
+    listContext: withinListContext,
+  } = useBulkActionsStore();
   const setIsBulkEditEnabled = useBulkActionsStore(
     (state) => state.setIsBulkEditEnabled,
   );
@@ -60,10 +62,6 @@ export default function BulkBookmarksAction() {
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);
   const pathname = usePathname();
   const [currentPathname, setCurrentPathname] = useState("");
-
-  // Get list context for bulk remove from list
-  const withinListContext = useBookmarkListContext();
-  const { listId } = useBookmarkGridContext() ?? {};
 
   // Reset bulk edit state when the route changes
   useEffect(() => {
@@ -202,7 +200,7 @@ export default function BulkBookmarksAction() {
   };
 
   const removeBookmarksFromList = async () => {
-    if (!listId) return;
+    if (!withinListContext) return;
 
     const results = await Promise.allSettled(
       limitConcurrency(
@@ -210,7 +208,7 @@ export default function BulkBookmarksAction() {
           (item) => () =>
             removeBookmarkFromListMutator.mutateAsync({
               bookmarkId: item.id,
-              listId,
+              listId: withinListContext.id,
             }),
         ),
         MAX_CONCURRENT_BULK_ACTIONS,
@@ -258,7 +256,6 @@ export default function BulkBookmarksAction() {
       isPending: removeBookmarkFromListMutator.isPending,
       hidden:
         !isBulkEditEnabled ||
-        !listId ||
         !withinListContext ||
         withinListContext.type !== "manual" ||
         (withinListContext.userRole !== "editor" &&
