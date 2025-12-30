@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
+import { withWorkerTracing } from "workerTracing";
 
 import type { ZSearchIndexingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -25,7 +26,7 @@ export class SearchIndexingWorker {
       (await getQueueClient())!.createRunner<ZSearchIndexingRequest>(
         SearchIndexingQueue,
         {
-          run: runSearchIndexing,
+          run: withWorkerTracing("searchWorker.run", runSearchIndexing),
           onComplete: (job) => {
             workerStatsCounter.labels("search", "completed").inc();
             const jobId = job.id;

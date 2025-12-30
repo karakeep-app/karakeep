@@ -4,6 +4,7 @@ import { fetchWithProxy } from "network";
 import cron from "node-cron";
 import Parser from "rss-parser";
 import { buildImpersonatingTRPCClient } from "trpc";
+import { withWorkerTracing } from "workerTracing";
 import { z } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
@@ -88,7 +89,7 @@ export class FeedWorker {
     const worker = (await getQueueClient())!.createRunner<ZFeedRequestSchema>(
       FeedQueue,
       {
-        run: run,
+        run: withWorkerTracing("feedWorker.run", run),
         onComplete: async (job) => {
           workerStatsCounter.labels("feed", "completed").inc();
           const jobId = job.id;

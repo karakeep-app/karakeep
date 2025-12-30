@@ -8,6 +8,7 @@ import archiver from "archiver";
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
+import { withWorkerTracing } from "workerTracing";
 
 import type { ZBackupRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -107,7 +108,7 @@ export class BackupWorker {
     const worker = (await getQueueClient())!.createRunner<ZBackupRequest>(
       BackupQueue,
       {
-        run: run,
+        run: withWorkerTracing("backupWorker.run", run),
         onComplete: async (job) => {
           workerStatsCounter.labels("backup", "completed").inc();
           const jobId = job.id;
