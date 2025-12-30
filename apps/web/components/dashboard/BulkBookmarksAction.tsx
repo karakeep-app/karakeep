@@ -23,13 +23,13 @@ import {
   X,
 } from "lucide-react";
 
+import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
+import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import {
   useDeleteBookmark,
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
-import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
-import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
 import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks/lists";
 import { limitConcurrency } from "@karakeep/shared/concurrency";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -359,8 +359,8 @@ export default function BulkBookmarksAction() {
         title={"Remove Bookmarks from List"}
         description={
           <p>
-            Are you sure you want to remove {selectedBookmarks.length}{" "}
-            bookmarks from this list?
+            Are you sure you want to remove {selectedBookmarks.length} bookmarks
+            from this list?
           </p>
         }
         actionButton={() => (
