@@ -1445,6 +1445,14 @@
                         },
                         "tagName": {
                           "type": "string"
+                        },
+                        "attachedBy": {
+                          "type": "string",
+                          "enum": [
+                            "ai",
+                            "human"
+                          ],
+                          "default": "human"
                         }
                       }
                     }
@@ -1536,6 +1544,14 @@
                         },
                         "tagName": {
                           "type": "string"
+                        },
+                        "attachedBy": {
+                          "type": "string",
+                          "enum": [
+                            "ai",
+                            "human"
+                          ],
+                          "default": "human"
                         }
                       }
                     }

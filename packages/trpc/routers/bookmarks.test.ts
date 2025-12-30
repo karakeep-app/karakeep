@@ -455,6 +455,74 @@ describe("Bookmark Routes", () => {
     expect(duplicateTagCount).toEqual(1); // Should only be attached once
   });
 
+  test<CustomTestContext>("updateTags with attachedBy field", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const bookmark = await api.createBookmark({
+      url: "https://bookmark.com",
+      type: BookmarkTypes.LINK,
+    });
+
+    // Test 1: Attach tags with different attachedBy values
+    await api.updateTags({
+      bookmarkId: bookmark.id,
+      attach: [
+        { tagName: "ai-tag", attachedBy: "ai" },
+        { tagName: "human-tag", attachedBy: "human" },
+        { tagName: "default-tag" }, // Should default to "human"
+      ],
+      detach: [],
+    });
+
+    let b = await api.getBookmark({ bookmarkId: bookmark.id });
+    expect(b.tags.length).toEqual(3);
+
+    const aiTag = b.tags.find((t) => t.name === "ai-tag");
+    const humanTag = b.tags.find((t) => t.name === "human-tag");
+    const defaultTag = b.tags.find((t) => t.name === "default-tag");
+
+    expect(aiTag?.attachedBy).toEqual("ai");
+    expect(humanTag?.attachedBy).toEqual("human");
+    expect(defaultTag?.attachedBy).toEqual("human");
+
+    // Test 2: Attach existing tag by ID with different attachedBy
+    // First detach the ai-tag
+    await api.updateTags({
+      bookmarkId: bookmark.id,
+      attach: [],
+      detach: [{ tagId: aiTag!.id }],
+    });
+
+    // Re-attach the same tag but as human
+    await api.updateTags({
+      bookmarkId: bookmark.id,
+      attach: [{ tagId: aiTag!.id, attachedBy: "human" }],
+      detach: [],
+    });
+
+    b = await api.getBookmark({ bookmarkId: bookmark.id });
+    const reAttachedTag = b.tags.find((t) => t.id === aiTag!.id);
+    expect(reAttachedTag?.attachedBy).toEqual("human");
+
+    // Test 3: Attach existing tag by name with AI attachedBy
+    const bookmark2 = await api.createBookmark({
+      url: "https://bookmark2.com",
+      type: BookmarkTypes.LINK,
+    });
+
+    await api.updateTags({
+      bookmarkId: bookmark2.id,
+      attach: [{ tagName: "ai-tag", attachedBy: "ai" }],
+      detach: [],
+    });
+
+    const b2 = await api.getBookmark({ bookmarkId: bookmark2.id });
+    const aiTagOnB2 = b2.tags.find((t) => t.name === "ai-tag");
+    expect(aiTagOnB2?.attachedBy).toEqual("ai");
+    expect(aiTagOnB2?.id).toEqual(aiTag!.id); // Should be the same tag
+  });
+
   test<CustomTestContext>("update bookmark text", async ({ apiCallers }) => {
     const api = apiCallers[0].bookmarks;
     const createdBookmark = await api.createBookmark({

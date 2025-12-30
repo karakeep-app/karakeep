@@ -289,6 +289,76 @@ describe("Bookmarks API", () => {
     expect(removeTagsRes.status).toBe(200);
   });
 
+  it("should manage tags with attachedBy field", async () => {
+    // Create a new bookmark
+    const { data: createdBookmark, error: createError } = await client.POST(
+      "/bookmarks",
+      {
+        body: {
+          type: "text",
+          title: "Test Bookmark for attachedBy",
+          text: "Testing attachedBy field",
+        },
+      },
+    );
+
+    if (createError) {
+      console.error("Error creating bookmark:", createError);
+      throw createError;
+    }
+    if (!createdBookmark) {
+      throw new Error("Bookmark creation failed");
+    }
+
+    // Add tags with different attachedBy values
+    const { data: addTagsResponse, response: addTagsRes } = await client.POST(
+      "/bookmarks/{bookmarkId}/tags",
+      {
+        params: {
+          path: {
+            bookmarkId: createdBookmark.id,
+          },
+        },
+        body: {
+          tags: [
+            { tagName: "ai-tag", attachedBy: "ai" },
+            { tagName: "human-tag", attachedBy: "human" },
+            { tagName: "default-tag" }, // Should default to "human"
+          ],
+        },
+      },
+    );
+
+    expect(addTagsRes.status).toBe(200);
+    expect(addTagsResponse!.attached.length).toBe(3);
+
+    // Get the bookmark and verify the attachedBy values
+    const { data: retrievedBookmark } = await client.GET(
+      "/bookmarks/{bookmarkId}",
+      {
+        params: {
+          path: {
+            bookmarkId: createdBookmark.id,
+          },
+        },
+      },
+    );
+
+    expect(retrievedBookmark!.tags.length).toBe(3);
+
+    const aiTag = retrievedBookmark!.tags.find((t) => t.name === "ai-tag");
+    const humanTag = retrievedBookmark!.tags.find(
+      (t) => t.name === "human-tag",
+    );
+    const defaultTag = retrievedBookmark!.tags.find(
+      (t) => t.name === "default-tag",
+    );
+
+    expect(aiTag?.attachedBy).toBe("ai");
+    expect(humanTag?.attachedBy).toBe("human");
+    expect(defaultTag?.attachedBy).toBe("human");
+  });
+
   it("should get lists for a bookmark", async () => {
     const { data: createdBookmark } = await client.POST("/bookmarks", {
       body: {
