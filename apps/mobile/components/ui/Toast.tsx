@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { Animated, View } from "react-native";
+import { Animated, Platform, View } from "react-native";
+import { FullWindowOverlay } from "react-native-screens";
 import { Text } from "@/components/ui/Text";
 import { cn } from "@/lib/utils";
 
@@ -147,27 +148,37 @@ function ToastProvider({
     setMessages((prev) => prev.filter((message) => message.id !== id));
   };
 
+  const content = (
+    <View
+      className={cn("absolute left-0 right-0", {
+        "top-[45px]": position === "top",
+        "bottom-0": position === "bottom",
+      })}
+    >
+      {messages.map((message) => (
+        <Toast
+          key={message.id}
+          id={message.id}
+          message={message.text}
+          variant={message.variant}
+          duration={message.duration}
+          showProgress={message.showProgress}
+          onHide={removeToast}
+        />
+      ))}
+    </View>
+  );
+
   return (
     <ToastContext.Provider value={{ toast, removeToast }}>
       {children}
-      <View
-        className={cn("absolute left-0 right-0", {
-          "top-[45px]": position === "top",
-          "bottom-0": position === "bottom",
-        })}
-      >
-        {messages.map((message) => (
-          <Toast
-            key={message.id}
-            id={message.id}
-            message={message.text}
-            variant={message.variant}
-            duration={message.duration}
-            showProgress={message.showProgress}
-            onHide={removeToast}
-          />
-        ))}
-      </View>
+      {/* Use FullWindowOverlay on iOS to ensure toasts appear above all content */}
+      {/* Platform specific implementation due to FullWindowOverlay being iOS-only */}
+      {Platform.OS === "ios" ? (
+        <FullWindowOverlay>{content}</FullWindowOverlay>
+      ) : (
+        content
+      )}
     </ToastContext.Provider>
   );
 }
