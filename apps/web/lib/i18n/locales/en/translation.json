@@ -863,5 +863,54 @@
     "no_release_notes": "No release notes were published for this version.",
     "release_notes_synced": "Release notes are synced from GitHub.",
     "view_on_github": "View on GitHub"
+  },
+  "wrapped": {
+    "title": "Your {{year}} Wrapped",
+    "subtitle": "A Year in Karakeep",
+    "banner": {
+      "title": "Your 2025 Wrapped is ready!",
+      "description": "See your year in bookmarks",
+      "view_now": "View Now"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Loading your Wrapped...",
+    "failed_to_load": "Failed to load your Wrapped stats",
+    "sections": {
+      "total_saves": {
+        "prefix": "You saved",
+        "suffix": "items this year",
+        "suffix_singular": "item this year"
+      },
+      "first_bookmark": {
+        "title": "Your Journey Started",
+        "description": "First save of {{year}}:"
+      },
+      "top_domains": "Your Top Sites",
+      "top_tags": "Your Top Tags",
+      "monthly_activity": "Your Year in Saves",
+      "most_active_day": "Your Most Active Day",
+      "peak_times": {
+        "title": "When You Save",
+        "peak_hour": "Peak Hour",
+        "peak_day": "Peak Day"
+      },
+      "how_you_save": "How You Save",
+      "what_you_saved": "What You Saved",
+      "summary": {
+        "favorites": "Favorites",
+        "tags_created": "Tags Created",
+        "highlights": "Highlights"
+      },
+      "types": {
+        "links": "Links",
+        "notes": "Notes",
+        "assets": "Assets"
+      }
+    },
+    "footer": "Made with Karakeep",
+    "share": "Share",
+    "download": "Download",
+    "close": "Close",
+    "generating": "Generating..."
   }
 }

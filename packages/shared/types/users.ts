@@ -114,6 +114,73 @@ export const zUserStatsResponseSchema = z.object({
   ),
 });
 
+export const zWrappedStatsResponseSchema = z.object({
+  year: z.number(),
+  totalBookmarks: z.number(),
+  totalFavorites: z.number(),
+  totalArchived: z.number(),
+  totalHighlights: z.number(),
+  totalTags: z.number(),
+  totalLists: z.number(),
+
+  firstBookmark: z
+    .object({
+      id: z.string(),
+      title: z.string().nullable(),
+      createdAt: z.date(),
+      type: z.enum(["link", "text", "asset"]),
+    })
+    .nullable(),
+
+  mostActiveDay: z
+    .object({
+      date: z.string(),
+      count: z.number(),
+    })
+    .nullable(),
+
+  topDomains: z
+    .array(
+      z.object({
+        domain: z.string(),
+        count: z.number(),
+      }),
+    )
+    .max(5),
+
+  topTags: z
+    .array(
+      z.object({
+        name: z.string(),
+        count: z.number(),
+      }),
+    )
+    .max(5),
+
+  bookmarksByType: z.object({
+    link: z.number(),
+    text: z.number(),
+    asset: z.number(),
+  }),
+
+  bookmarksBySource: z.array(
+    z.object({
+      source: zBookmarkSourceSchema.nullable(),
+      count: z.number(),
+    }),
+  ),
+
+  monthlyActivity: z.array(
+    z.object({
+      month: z.number(),
+      count: z.number(),
+    }),
+  ),
+
+  peakHour: z.number(),
+  peakDayOfWeek: z.number(),
+});
+
 export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
 export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
 

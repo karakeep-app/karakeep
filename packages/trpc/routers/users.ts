@@ -9,6 +9,7 @@ import {
   zUserSettingsSchema,
   zUserStatsResponseSchema,
   zWhoAmIResponseSchema,
+  zWrappedStatsResponseSchema,
 } from "@karakeep/shared/types/users";
 
 import {
@@ -135,6 +136,12 @@ export const usersAppRouter = router({
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.getStats();
+    }),
+  wrapped: authedProcedure
+    .output(zWrappedStatsResponseSchema)
+    .query(async ({ ctx }) => {
+      const user = await User.fromCtx(ctx);
+      return await user.getWrappedStats(2025);
     }),
   settings: authedProcedure
     .output(zUserSettingsSchema)

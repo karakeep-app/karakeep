@@ -16,6 +16,7 @@ import {
   Highlighter,
   Home,
   Search,
+  Sparkles,
   Tag,
 } from "lucide-react";
 
@@ -86,10 +87,15 @@ export default async function Dashboard({
         icon: <Archive size={18} />,
         path: "/dashboard/archive",
       },
+      {
+        name: t("wrapped.button"),
+        icon: <Sparkles size={18} />,
+        path: "/dashboard/wrapped",
+      },
     ].flat();
 
   const mobileSidebar = (t: TFunction) => [
-    ...items(t),
+    ...items(t).filter((item) => item.path !== "/dashboard/wrapped"),
     {
       name: t("lists.all_lists"),
       icon: <ClipboardList size={18} />,
