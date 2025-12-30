@@ -243,13 +243,6 @@ export default function BulkBookmarksAction() {
       hidden: !isBulkEditEnabled,
     },
     {
-      name: t("actions.add_to_list"),
-      icon: <List size={18} />,
-      action: () => setManageListsModalOpen(true),
-      isPending: false,
-      hidden: !isBulkEditEnabled,
-    },
-    {
       name: t("actions.remove_from_list"),
       icon: <ListMinus size={18} />,
       action: () => setIsRemoveFromListDialogOpen(true),
@@ -260,6 +253,13 @@ export default function BulkBookmarksAction() {
         withinListContext.type !== "manual" ||
         (withinListContext.userRole !== "editor" &&
           withinListContext.userRole !== "owner"),
+    },
+    {
+      name: t("actions.add_to_list"),
+      icon: <List size={18} />,
+      action: () => setManageListsModalOpen(true),
+      isPending: false,
+      hidden: !isBulkEditEnabled,
     },
     {
       name: t("actions.edit_tags"),
