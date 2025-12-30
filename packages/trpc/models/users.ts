@@ -871,6 +871,17 @@ export class User {
     };
   }
 
+  async hasWrapped(): Promise<boolean> {
+    const [{ numBookmarks }] = await this.ctx.db
+      .select({
+        numBookmarks: count(bookmarks.id),
+      })
+      .from(bookmarks)
+      .where(eq(bookmarks.userId, this.user.id));
+
+    return numBookmarks >= 20;
+  }
+
   async getWrappedStats(
     year: number,
   ): Promise<z.infer<typeof zWrappedStatsResponseSchema>> {

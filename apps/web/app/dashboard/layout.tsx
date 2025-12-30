@@ -35,9 +35,10 @@ export default async function Dashboard({
     redirect("/");
   }
 
-  const [lists, userSettings] = await Promise.all([
+  const [lists, userSettings, showWrapped] = await Promise.all([
     tryCatch(api.lists.list()),
     tryCatch(api.users.settings()),
+    tryCatch(api.users.hasWrapped()),
   ]);
 
   if (userSettings.error) {
@@ -54,6 +55,10 @@ export default async function Dashboard({
 
   if (lists.error) {
     throw lists.error;
+  }
+
+  if (showWrapped.error) {
+    throw showWrapped.error;
   }
 
   const items = (t: TFunction) =>
@@ -87,11 +92,16 @@ export default async function Dashboard({
         icon: <Archive size={18} />,
         path: "/dashboard/archive",
       },
-      {
-        name: t("wrapped.button"),
-        icon: <Sparkles size={18} />,
-        path: "/dashboard/wrapped",
-      },
+      // Only show wrapped if user has at least 20 bookmarks
+      showWrapped.data
+        ? [
+            {
+              name: t("wrapped.button"),
+              icon: <Sparkles size={18} />,
+              path: "/dashboard/wrapped",
+            },
+          ]
+        : [],
     ].flat();
 
   const mobileSidebar = (t: TFunction) => [

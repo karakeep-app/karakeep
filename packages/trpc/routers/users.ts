@@ -143,6 +143,10 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       return await user.getWrappedStats(2025);
     }),
+  hasWrapped: authedProcedure.output(z.boolean()).query(async ({ ctx }) => {
+    const user = await User.fromCtx(ctx);
+    return await user.hasWrapped();
+  }),
   settings: authedProcedure
     .output(zUserSettingsSchema)
     .query(async ({ ctx }) => {

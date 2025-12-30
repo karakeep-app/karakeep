@@ -165,6 +165,7 @@ export default function StatsPage() {
   const { t } = useTranslation();
   const { data: stats, isLoading } = api.users.stats.useQuery();
   const { data: userSettings } = api.users.settings.useQuery();
+  const { data: hasWrapped } = api.users.hasWrapped.useQuery();
   const [showWrapped, setShowWrapped] = useState(false);
 
   const maxHourlyActivity = useMemo(() => {
@@ -240,10 +241,12 @@ export default function StatsPage() {
             )}
           </p>
         </div>
-        <Button onClick={() => setShowWrapped(true)} className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          View Your 2025 Wrapped
-        </Button>
+        {hasWrapped && (
+          <Button onClick={() => setShowWrapped(true)} className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            View Your 2025 Wrapped
+          </Button>
+        )}
       </div>
 
       <WrappedModal open={showWrapped} onClose={() => setShowWrapped(false)} />
