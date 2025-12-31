@@ -567,13 +567,18 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db
-        .update(bookmarkLinks)
-        .set({
-          crawlStatus: "pending",
-          crawlStatusCode: null,
-        })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
+      // Only set crawlStatus to pending for regular refreshes (not for archive/PDF-only requests)
+      // This prevents the pending banner from appearing when users only want to generate an archive or PDF
+      const isRegularRefresh = !input.archiveFullPage && !input.storePdf;
+      if (isRegularRefresh) {
+        await ctx.db
+          .update(bookmarkLinks)
+          .set({
+            crawlStatus: "pending",
+            crawlStatusCode: null,
+          })
+          .where(eq(bookmarkLinks.id, input.bookmarkId));
+      }
       await LinkCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
