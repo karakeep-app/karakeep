@@ -99,7 +99,10 @@ export default function Home() {
                   <Search size={16} color={styles?.color?.toString()} />
                 )}
               />
-              <Text className="text-muted">Search</Text>
+              {/* Trailing space fixes Android text clipping: https://github.com/facebook/react-native/issues/53286 */}
+              <Text className="text-muted">
+                Search{Platform.OS === "android" ? " " : ""}
+              </Text>
             </Pressable>
           </View>
         }
