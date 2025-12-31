@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/components/ui/sonner";
 import { useBookmarkImport } from "@/lib/hooks/useBookmarkImport";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
@@ -19,7 +20,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Download, Loader2, Upload } from "lucide-react";
 
 import { Card, CardContent } from "../ui/card";
-import { toast } from "../ui/use-toast";
 import { ImportSessionsSection } from "./ImportSessionsSection";
 
 function ImportCard({

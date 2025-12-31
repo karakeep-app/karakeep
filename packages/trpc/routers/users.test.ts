@@ -168,7 +168,7 @@ describe("User Routes", () => {
       autoSummarizationEnabled: null,
       autoTaggingEnabled: null,
       inferredTagLang: null,
-      tagStyle: "lowercase-hyphens",
+      tagStyle: "titlecase-spaces",
     });
 
     // Update settings

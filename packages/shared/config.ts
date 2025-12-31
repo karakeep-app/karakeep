@@ -129,6 +129,7 @@ const allEnv = z.object({
   MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
   // Build only flag
   SERVER_VERSION: z.string().optional(),
+  CHANGELOG_VERSION: z.string().optional(),
   DISABLE_NEW_RELEASE_CHECK: stringBool("false"),
 
   // A flag to detect if the user is running in the old separete containers setup
@@ -210,6 +211,12 @@ const allEnv = z.object({
 
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
+
+  // OpenTelemetry tracing configuration
+  OTEL_TRACING_ENABLED: stringBool("false"),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_SERVICE_NAME: z.string().default("karakeep"),
+  OTEL_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(1.0),
 });
 
 const serverConfigSchema = allEnv.transform((val, ctx) => {
@@ -345,6 +352,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
     serverVersion: val.SERVER_VERSION,
+    changelogVersion: val.CHANGELOG_VERSION,
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,
     usingLegacySeparateContainers: val.USING_LEGACY_SEPARATE_CONTAINERS,
     webhook: {
@@ -410,6 +418,12 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     database: {
       walMode: val.DB_WAL_MODE,
+    },
+    tracing: {
+      enabled: val.OTEL_TRACING_ENABLED,
+      otlpEndpoint: val.OTEL_EXPORTER_OTLP_ENDPOINT,
+      serviceName: val.OTEL_SERVICE_NAME,
+      sampleRate: val.OTEL_SAMPLE_RATE,
     },
   };
   if (obj.auth.emailVerificationRequired && !obj.email.smtp) {

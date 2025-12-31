@@ -29,7 +29,9 @@ cssInterop(FlashList, {
 type ListDataItem = string | { title: string; subTitle?: string };
 type ListVariant = "insets" | "full-width";
 
-type ListRef<T extends ListDataItem> = React.Ref<typeof FlashList<T>>;
+type ListRef<T extends ListDataItem> = React.Ref<
+  React.ComponentRef<typeof FlashList<T>>
+>;
 
 type ListRenderItemProps<T extends ListDataItem> = ListRenderItemInfo<T> & {
   variant?: ListVariant;
@@ -76,17 +78,20 @@ const rootVariants = cva("min-h-2 flex-1", {
   },
 });
 
-function ListComponent<T extends ListDataItem>({
-  variant = "full-width",
-  rootClassName,
-  rootStyle,
-  contentContainerClassName,
-  renderItem,
-  data,
-  sectionHeaderAsGap = false,
-  contentInsetAdjustmentBehavior = "automatic",
-  ...props
-}: ListProps<T>) {
+function ListComponent<T extends ListDataItem>(
+  {
+    variant = "full-width",
+    rootClassName,
+    rootStyle,
+    contentContainerClassName,
+    renderItem,
+    data,
+    sectionHeaderAsGap = false,
+    contentInsetAdjustmentBehavior = "automatic",
+    ...props
+  }: ListProps<T>,
+  ref: ListRef<T>,
+) {
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -100,6 +105,7 @@ function ListComponent<T extends ListDataItem>({
       style={rootStyle}
     >
       <FlashList
+        ref={ref}
         data={data}
         contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
         renderItem={renderItemWithVariant(
@@ -311,10 +317,9 @@ function ListItemComponent<T extends ListDataItem>(
           {!!leftView && <View>{leftView}</View>}
           <View
             className={cn(
-              "h-full flex-1 flex-row",
+              "h-full flex-1 flex-row pr-4",
               !item.subTitle ? "ios:py-3 py-[18px]" : "ios:py-2 py-2",
               !leftView && "ml-4",
-              !rightView && "pr-4",
               !removeSeparator &&
                 (!isLastInSection || variant === "full-width") &&
                 "ios:border-b ios:border-border/80",
@@ -328,7 +333,7 @@ function ListItemComponent<T extends ListDataItem>(
               <Text
                 numberOfLines={textNumberOfLines}
                 style={titleStyle}
-                className={titleClassName}
+                className={cn("text-base", titleClassName)}
               >
                 {item.title}
               </Text>
@@ -343,7 +348,11 @@ function ListItemComponent<T extends ListDataItem>(
                 </Text>
               )}
             </View>
-            {!!rightView && <View>{rightView}</View>}
+            {!!rightView && (
+              <View className="flex items-center justify-center">
+                {rightView}
+              </View>
+            )}
           </View>
         </TextClassContext.Provider>
       </Button>

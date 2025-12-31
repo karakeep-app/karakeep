@@ -1,12 +1,15 @@
 # Model Comparison Tool
 
-A standalone CLI tool to compare the tagging performance of two AI models using your existing Karakeep bookmarks.
+A standalone CLI tool to compare the tagging performance of AI models using your existing Karakeep bookmarks.
 
 ## Features
 
+- **Two comparison modes:**
+  - **Model vs Model**: Compare two AI models against each other
+  - **Model vs Existing**: Compare a new model against existing AI-generated tags on your bookmarks
 - Fetches existing bookmarks from your Karakeep instance
-- Runs tagging inference on each bookmark with two different models
-- **Random shuffling**: Models are randomly assigned to "Model A" or "Model B" for each bookmark to eliminate bias
+- Runs tagging inference with AI models
+- **Random shuffling**: Models/tags are randomly assigned to "Model A" or "Model B" for each bookmark to eliminate bias
 - Blind comparison: Model names are hidden during voting (only shown as "Model A" and "Model B")
 - Interactive voting interface
 - Shows final results with winner
@@ -22,7 +25,14 @@ Required environment variables:
 KARAKEEP_API_KEY=your_api_key_here
 KARAKEEP_SERVER_ADDR=https://your-karakeep-instance.com
 
+# Comparison mode (default: model-vs-model)
+# - "model-vs-model": Compare two models against each other
+# - "model-vs-existing": Compare a model against existing AI tags
+COMPARISON_MODE=model-vs-model
+
 # Models to compare
+# MODEL1_NAME: The new model to test (always required)
+# MODEL2_NAME: The second model to compare against (required only for model-vs-model mode)
 MODEL1_NAME=gpt-4o-mini
 MODEL2_NAME=claude-3-5-sonnet
 
@@ -92,11 +102,43 @@ export OPENAI_API_KEY=your_openai_key
 node dist/index.js
 ```
 
+## Comparison Modes
+
+### Model vs Model Mode
+
+Compare two different AI models against each other:
+
+```bash
+COMPARISON_MODE=model-vs-model
+MODEL1_NAME=gpt-4o-mini
+MODEL2_NAME=claude-3-5-sonnet
+```
+
+This mode runs inference with both models on each bookmark and lets you choose which tags are better.
+
+### Model vs Existing Mode
+
+Compare a new model against existing AI-generated tags on your bookmarks:
+
+```bash
+COMPARISON_MODE=model-vs-existing
+MODEL1_NAME=gpt-4o-mini
+# MODEL2_NAME is not required in this mode
+```
+
+This mode is useful for:
+- Testing if a new model produces better tags than your current model
+- Evaluating whether to switch from one model to another
+- Quality assurance on existing AI tags
+
+**Note:** This mode only compares bookmarks that already have AI-generated tags (tags with `attachedBy: "ai"`). Bookmarks without AI tags are automatically filtered out.
+
 ## Usage Flow
 
 1. The tool fetches your latest link bookmarks from Karakeep
-2. For each bookmark, it randomly assigns your two models to "Model A" or "Model B" and runs tagging with both
-3. You'll see a side-by-side comparison (models are randomly shuffled each time):
+   - In **model-vs-existing** mode, only bookmarks with existing AI tags are included
+2. For each bookmark, it randomly assigns the options to "Model A" or "Model B" and runs tagging
+3. You'll see a side-by-side comparison (randomly shuffled each time):
    ```
    === Bookmark 1/10 ===
    How to Build Better AI Systems
@@ -150,13 +192,15 @@ The tool currently tests only:
 - **Link-type bookmarks** (not text notes or assets)
 - **Non-archived** bookmarks
 - **Latest N bookmarks** (where N is COMPARE_LIMIT)
+- **In model-vs-existing mode**: Only bookmarks with existing AI tags (tags with `attachedBy: "ai"`)
 
-## SDK Usage
+## Architecture
 
-This tool uses the Karakeep SDK for all API interactions:
-- Type-safe requests using `@karakeep/sdk`
-- Proper authentication handling via Bearer token
-- Pagination support for fetching multiple bookmarks
+This tool leverages Karakeep's shared infrastructure:
+- **API Client**: Uses `@karakeep/sdk` for type-safe API interactions with proper authentication
+- **Inference**: Reuses `@karakeep/shared/inference` for OpenAI client with structured output support
+- **Prompts**: Uses `@karakeep/shared/prompts` for consistent tagging prompt generation with token management
+- No code duplication - all core functionality is shared with the main Karakeep application
 
 
 ## Error Handling

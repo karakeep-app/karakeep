@@ -13,6 +13,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@hono/otel": "^1.1.0",
     "@hono/prometheus": "^1.0.2",
     "@hono/trpc-server": "^0.4.0",
     "@hono/zod-validator": "^0.5.0",

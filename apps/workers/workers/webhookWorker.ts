@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
+import { withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
@@ -19,7 +20,7 @@ export class WebhookWorker {
     const worker = (await getQueueClient())!.createRunner<ZWebhookRequest>(
       WebhookQueue,
       {
-        run: runWebhook,
+        run: withWorkerTracing("webhookWorker.run", runWebhook),
         onComplete: async (job) => {
           workerStatsCounter.labels("webhook", "completed").inc();
           const jobId = job.id;

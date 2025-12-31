@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 
 import { bookmarks, tagsOnBookmarks } from "@karakeep/db/schema";
 import { LinkCrawlerQueue } from "@karakeep/shared-server";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
   RuleEngineCondition,
@@ -82,6 +83,12 @@ export class RuleEngine {
       }
       case "urlContains": {
         return (this.bookmark.link?.url ?? "").includes(condition.str);
+      }
+      case "urlDoesNotContain": {
+        return (
+          this.bookmark.type == BookmarkTypes.LINK &&
+          !(this.bookmark.link?.url ?? "").includes(condition.str)
+        );
       }
       case "importedFromFeed": {
         return this.bookmark.rssFeeds.some(

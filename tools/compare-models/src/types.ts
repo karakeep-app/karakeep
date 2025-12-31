@@ -3,12 +3,13 @@ export interface Bookmark {
   title: string | null;
   content: {
     type: string;
+    title: string;
     url?: string;
     text?: string;
     htmlContent?: string;
     description?: string;
   };
-  tags: Array<{ name: string }>;
+  tags: Array<{ name: string; attachedBy?: "ai" | "human" }>;
 }
 
 export interface ModelConfig {

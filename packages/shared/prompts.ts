@@ -52,7 +52,7 @@ export function buildImagePrompt(
 
   return `
 You are an expert whose responsibility is to help with automatic text tagging for a read-it-later/bookmarking app.
-Please analyze the attached image and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
+Analyze the attached image and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
 - Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
 - The tags must be in ${lang}.
 - If the tag is not generic enough, don't include it.
@@ -76,11 +76,13 @@ function constructTextTaggingPrompt(
 
   return `
 You are an expert whose responsibility is to help with automatic tagging for a read-it-later/bookmarking app.
-Please analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
+Analyze the TEXT_CONTENT below and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
 - Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
 - The tags must be in ${lang}.
 - If the tag is not generic enough, don't include it.
-- The content can include text for cookie consent and privacy policy, ignore those while tagging.
+- Do NOT generate tags related to:
+    - An error page (404, 403, blocked, not found, dns errors)
+    - Boilerplate content (cookie consent, login walls, GDPR notices)
 - Aim for 3-5 tags.
 - If there are no good tags, leave the array empty.
 ${tagStyleInstruction}

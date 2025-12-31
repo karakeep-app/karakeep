@@ -2,7 +2,7 @@
 
 import { ActionButton } from "@/components/ui/action-button";
 import { ButtonWithTooltip } from "@/components/ui/button";
-import LoadingSpinner from "@/components/ui/spinner";
+import { toast } from "@/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -11,17 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
 import { api } from "@/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
 import { Mail, MailX, UserPlus } from "lucide-react";
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
+import { AdminCard } from "./AdminCard";
 import CreateInviteDialog from "./CreateInviteDialog";
 
 export default function InvitesList() {
   const invalidateInvitesList = api.useUtils().invites.list.invalidate;
-  const { data: invites, isLoading } = api.invites.list.useQuery();
+  const [invites] = api.invites.list.useSuspenseQuery();
 
   const { mutateAsync: revokeInvite, isPending: isRevokePending } =
     api.invites.revoke.useMutation({
@@ -54,10 +54,6 @@ export default function InvitesList() {
         });
       },
     });
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
 
   const activeInvites = invites?.invites || [];
 
@@ -139,17 +135,19 @@ export default function InvitesList() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="mb-2 flex items-center justify-between text-xl font-medium">
-        <span>User Invitations ({activeInvites.length})</span>
-        <CreateInviteDialog>
-          <ButtonWithTooltip tooltip="Send Invite" variant="outline">
-            <UserPlus size={16} />
-          </ButtonWithTooltip>
-        </CreateInviteDialog>
-      </div>
+    <AdminCard>
+      <div className="flex flex-col gap-4">
+        <div className="mb-2 flex items-center justify-between text-xl font-medium">
+          <span>User Invitations ({activeInvites.length})</span>
+          <CreateInviteDialog>
+            <ButtonWithTooltip tooltip="Send Invite" variant="outline">
+              <UserPlus size={16} />
+            </ButtonWithTooltip>
+          </CreateInviteDialog>
+        </div>
 
-      <InviteTable invites={activeInvites} title="Invites" />
-    </div>
+        <InviteTable invites={activeInvites} title="Invites" />
+      </div>
+    </AdminCard>
   );
 }

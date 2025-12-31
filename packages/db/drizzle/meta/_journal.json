@@ -523,8 +523,22 @@
     {
       "idx": 74,
       "version": "6",
-      "when": 1766870819057,
-      "tag": "0074_user_reading_progress_table",
+      "when": 1767006387391,
+      "tag": "0074_reset_tagging_summarization",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "6",
+      "when": 1767052770526,
+      "tag": "0075_change_default_tag_style",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1767202306194,
+      "tag": "0076_user_reading_progress",
       "breakpoints": true
     }
   ]

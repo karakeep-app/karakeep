@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { useDragAndDrop } from "@/lib/drag-and-drop";
 import { X } from "lucide-react";
 import Draggable from "react-draggable";

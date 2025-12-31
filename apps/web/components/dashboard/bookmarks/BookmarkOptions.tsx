@@ -11,7 +11,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import {
@@ -74,7 +74,6 @@ function isSubsectionItem(item: ActionItemType): item is SubsectionItem {
 
 export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const { t } = useTranslation();
-  const { toast } = useToast();
   const linkId = bookmark.id;
   const { data: session } = useSession();
 

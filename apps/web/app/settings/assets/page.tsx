@@ -5,6 +5,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import { toast } from "@/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -13,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
 import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";

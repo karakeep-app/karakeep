@@ -53,7 +53,13 @@ export class KarakeepAPIClient {
 
       const batchBookmarks = (data?.bookmarks || [])
         .filter((b) => b.content?.type === "link")
-        .map((b) => b as Bookmark);
+        .map((b) => ({
+          ...b,
+          tags: (b.tags || []).map((tag) => ({
+            name: tag.name,
+            attachedBy: tag.attachedBy,
+          })),
+        })) as Bookmark[];
 
       bookmarks.push(...batchBookmarks);
       cursor = data?.nextCursor || null;

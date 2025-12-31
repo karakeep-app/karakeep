@@ -46,36 +46,50 @@ function isStableRelease(version?: string) {
 }
 
 interface SidebarVersionProps {
+  // The actual version of the server
   serverVersion?: string;
+  // The version that should be displayed in the changelog
+  changeLogVersion?: string;
 }
 
-export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
+export default function SidebarVersion({
+  serverVersion,
+  changeLogVersion,
+}: SidebarVersionProps) {
   const { disableNewReleaseCheck } = useClientConfig();
   const { t } = useTranslation();
 
-  const stableRelease = isStableRelease(serverVersion);
+  const effectiveChangelogVersion = changeLogVersion ?? serverVersion;
+  const stableRelease = isStableRelease(effectiveChangelogVersion);
   const displayVersion = serverVersion ?? "unknown";
+  const changelogDisplayVersion = effectiveChangelogVersion ?? displayVersion;
   const versionLabel = `Karakeep v${displayVersion}`;
   const releasePageUrl = useMemo(() => {
-    if (!serverVersion || !isStableRelease(serverVersion)) {
+    if (
+      !effectiveChangelogVersion ||
+      !isStableRelease(effectiveChangelogVersion)
+    ) {
       return GITHUB_REPO_URL;
     }
-    return `${GITHUB_RELEASE_URL}v${serverVersion}`;
-  }, [serverVersion]);
+    return `${GITHUB_RELEASE_URL}v${effectiveChangelogVersion}`;
+  }, [effectiveChangelogVersion]);
 
   const [open, setOpen] = useState(false);
   const [shouldNotify, setShouldNotify] = useState(false);
 
   const releaseNotesQuery = useQuery<string>({
-    queryKey: ["sidebar-release-notes", serverVersion],
+    queryKey: ["sidebar-release-notes", effectiveChangelogVersion],
     queryFn: async ({ signal }) => {
-      if (!serverVersion) {
+      if (!effectiveChangelogVersion) {
         return "";
       }
 
-      const response = await fetch(`${RELEASE_API_URL}v${serverVersion}`, {
-        signal,
-      });
+      const response = await fetch(
+        `${RELEASE_API_URL}v${effectiveChangelogVersion}`,
+        {
+          signal,
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to load release notes");
@@ -89,7 +103,7 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
       open &&
       stableRelease &&
       !disableNewReleaseCheck &&
-      Boolean(serverVersion),
+      Boolean(effectiveChangelogVersion),
     staleTime: RELEASE_NOTES_STALE_TIME,
     retry: 1,
     refetchOnWindowFocus: false,
@@ -123,30 +137,34 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
   }, [releaseNotesQuery.error, t]);
 
   useEffect(() => {
-    if (!stableRelease || !serverVersion || disableNewReleaseCheck) {
+    if (
+      !stableRelease ||
+      !effectiveChangelogVersion ||
+      disableNewReleaseCheck
+    ) {
       setShouldNotify(false);
       return;
     }
 
     try {
       const seenVersion = window.localStorage.getItem(LOCAL_STORAGE_KEY);
-      setShouldNotify(seenVersion !== serverVersion);
+      setShouldNotify(seenVersion !== effectiveChangelogVersion);
     } catch (error) {
       console.warn("Failed to read localStorage:", error);
       setShouldNotify(true);
     }
-  }, [serverVersion, stableRelease, disableNewReleaseCheck]);
+  }, [effectiveChangelogVersion, stableRelease, disableNewReleaseCheck]);
 
   const markReleaseAsSeen = useCallback(() => {
-    if (!serverVersion) return;
+    if (!effectiveChangelogVersion) return;
     try {
-      window.localStorage.setItem(LOCAL_STORAGE_KEY, serverVersion);
+      window.localStorage.setItem(LOCAL_STORAGE_KEY, effectiveChangelogVersion);
     } catch (error) {
       console.warn("Failed to write to localStorage:", error);
       // Ignore failures, we still clear the notification for the session
     }
     setShouldNotify(false);
-  }, [serverVersion]);
+  }, [effectiveChangelogVersion]);
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -202,7 +220,9 @@ export default function SidebarVersion({ serverVersion }: SidebarVersionProps) {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
-              {t("version.whats_new_title", { version: displayVersion })}
+              {t("version.whats_new_title", {
+                version: changelogDisplayVersion,
+              })}
             </DialogTitle>
             <DialogDescription>
               {t("version.release_notes_description")}

@@ -219,6 +219,22 @@ describe("RuleEngine", () => {
       expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
     });
 
+    it("should return false for urlDoesNotContain condition when URL contains string", () => {
+      const condition: RuleEngineCondition = {
+        type: "urlDoesNotContain",
+        str: "example.com",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return true for urlDoesNotContain condition when URL does not contain string", () => {
+      const condition: RuleEngineCondition = {
+        type: "urlDoesNotContain",
+        str: "nonexistent",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
     it("should return true for importedFromFeed condition", () => {
       const condition: RuleEngineCondition = {
         type: "importedFromFeed",

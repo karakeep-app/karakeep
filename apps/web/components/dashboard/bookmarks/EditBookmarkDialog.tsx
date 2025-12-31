@@ -25,8 +25,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
 import { useDialogFormReset } from "@/lib/hooks/useDialogFormReset";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";

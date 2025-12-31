@@ -1,17 +1,15 @@
 import { createTransport } from "nodemailer";
 
+import { getTracer, withSpan } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 
-export async function sendVerificationEmail(
-  email: string,
-  name: string,
-  token: string,
-) {
+const tracer = getTracer("@karakeep/trpc");
+
+function buildTransporter() {
   if (!serverConfig.email.smtp) {
     throw new Error("SMTP is not configured");
   }
-
-  const transporter = createTransport({
+  return createTransport({
     host: serverConfig.email.smtp.host,
     port: serverConfig.email.smtp.port,
     secure: serverConfig.email.smtp.secure,
@@ -23,14 +21,48 @@ export async function sendVerificationEmail(
           }
         : undefined,
   });
+}
 
-  const verificationUrl = `${serverConfig.publicUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+type Transporter = ReturnType<typeof buildTransporter>;
 
-  const mailOptions = {
-    from: serverConfig.email.smtp.from,
-    to: email,
-    subject: "Verify your email address",
-    html: `
+type Fn<Args extends unknown[] = unknown[]> = (
+  transport: Transporter,
+  ...args: Args
+) => Promise<void>;
+
+interface TracingOptions {
+  silentFail?: boolean;
+}
+
+function withTracing<Args extends unknown[]>(
+  name: string,
+  fn: Fn<Args>,
+  options: TracingOptions = {},
+) {
+  return async (...args: Args): Promise<void> => {
+    if (options.silentFail && !serverConfig.email.smtp) {
+      return;
+    }
+    const transporter = buildTransporter();
+    await withSpan(tracer, name, {}, () => fn(transporter, ...args));
+  };
+}
+
+export const sendVerificationEmail = withTracing(
+  "sendVerificationEmail",
+  async (
+    transporter: Transporter,
+    email: string,
+    name: string,
+    token: string,
+  ) => {
+    const verificationUrl = `${serverConfig.publicUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+
+    const mailOptions = {
+      from: serverConfig.email.smtp!.from,
+      to: email,
+      subject: "Verify your email address",
+      html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Welcome to Karakeep, ${name}!</h2>
         <p>Please verify your email address by clicking the link below:</p>
@@ -45,7 +77,7 @@ export async function sendVerificationEmail(
         <p>If you didn't create an account with us, please ignore this email.</p>
       </div>
     `,
-    text: `
+      text: `
 Welcome to Karakeep, ${name}!
 
 Please verify your email address by visiting this link:
@@ -55,40 +87,27 @@ This link will expire in 24 hours.
 
 If you didn't create an account with us, please ignore this email.
     `,
-  };
+    };
 
-  await transporter.sendMail(mailOptions);
-}
+    await transporter.sendMail(mailOptions);
+  },
+);
 
-export async function sendInviteEmail(
-  email: string,
-  token: string,
-  inviterName: string,
-) {
-  if (!serverConfig.email.smtp) {
-    throw new Error("SMTP is not configured");
-  }
+export const sendInviteEmail = withTracing(
+  "sendInviteEmail",
+  async (
+    transporter: Transporter,
+    email: string,
+    token: string,
+    inviterName: string,
+  ) => {
+    const inviteUrl = `${serverConfig.publicUrl}/invite/${encodeURIComponent(token)}`;
 
-  const transporter = createTransport({
-    host: serverConfig.email.smtp.host,
-    port: serverConfig.email.smtp.port,
-    secure: serverConfig.email.smtp.secure,
-    auth:
-      serverConfig.email.smtp.user && serverConfig.email.smtp.password
-        ? {
-            user: serverConfig.email.smtp.user,
-            pass: serverConfig.email.smtp.password,
-          }
-        : undefined,
-  });
-
-  const inviteUrl = `${serverConfig.publicUrl}/invite/${encodeURIComponent(token)}`;
-
-  const mailOptions = {
-    from: serverConfig.email.smtp.from,
-    to: email,
-    subject: "You've been invited to join Karakeep",
-    html: `
+    const mailOptions = {
+      from: serverConfig.email.smtp!.from,
+      to: email,
+      subject: "You've been invited to join Karakeep",
+      html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>You've been invited to join Karakeep!</h2>
         <p>${inviterName} has invited you to join Karakeep, the bookmark everything app.</p>
@@ -104,7 +123,7 @@ export async function sendInviteEmail(
         <p>If you weren't expecting this invitation, you can safely ignore this email.</p>
       </div>
     `,
-    text: `
+      text: `
 You've been invited to join Karakeep!
 
 ${inviterName} has invited you to join Karakeep, a powerful bookmarking and content organization platform.
@@ -116,40 +135,27 @@ ${inviteUrl}
 
 If you weren't expecting this invitation, you can safely ignore this email.
     `,
-  };
+    };
 
-  await transporter.sendMail(mailOptions);
-}
+    await transporter.sendMail(mailOptions);
+  },
+);
 
-export async function sendPasswordResetEmail(
-  email: string,
-  name: string,
-  token: string,
-) {
-  if (!serverConfig.email.smtp) {
-    throw new Error("SMTP is not configured");
-  }
+export const sendPasswordResetEmail = withTracing(
+  "sendPasswordResetEmail",
+  async (
+    transporter: Transporter,
+    email: string,
+    name: string,
+    token: string,
+  ) => {
+    const resetUrl = `${serverConfig.publicUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
-  const transporter = createTransport({
-    host: serverConfig.email.smtp.host,
-    port: serverConfig.email.smtp.port,
-    secure: serverConfig.email.smtp.secure,
-    auth:
-      serverConfig.email.smtp.user && serverConfig.email.smtp.password
-        ? {
-            user: serverConfig.email.smtp.user,
-            pass: serverConfig.email.smtp.password,
-          }
-        : undefined,
-  });
-
-  const resetUrl = `${serverConfig.publicUrl}/reset-password?token=${encodeURIComponent(token)}`;
-
-  const mailOptions = {
-    from: serverConfig.email.smtp.from,
-    to: email,
-    subject: "Reset your password",
-    html: `
+    const mailOptions = {
+      from: serverConfig.email.smtp!.from,
+      to: email,
+      subject: "Reset your password",
+      html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Password Reset Request</h2>
         <p>Hi ${name},</p>
@@ -165,7 +171,7 @@ export async function sendPasswordResetEmail(
         <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
       </div>
     `,
-    text: `
+      text: `
 Hi ${name},
 
 You requested to reset your password for your Karakeep account. Visit this link to reset your password:
@@ -175,42 +181,28 @@ This link will expire in 1 hour.
 
 If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
     `,
-  };
+    };
 
-  await transporter.sendMail(mailOptions);
-}
+    await transporter.sendMail(mailOptions);
+  },
+);
 
-export async function sendListInvitationEmail(
-  email: string,
-  inviterName: string,
-  listName: string,
-  listId: string,
-) {
-  if (!serverConfig.email.smtp) {
-    // Silently fail if email is not configured
-    return;
-  }
+export const sendListInvitationEmail = withTracing(
+  "sendListInvitationEmail",
+  async (
+    transporter: Transporter,
+    email: string,
+    inviterName: string,
+    listName: string,
+    listId: string,
+  ) => {
+    const inviteUrl = `${serverConfig.publicUrl}/dashboard/lists?pendingInvitation=${encodeURIComponent(listId)}`;
 
-  const transporter = createTransport({
-    host: serverConfig.email.smtp.host,
-    port: serverConfig.email.smtp.port,
-    secure: serverConfig.email.smtp.secure,
-    auth:
-      serverConfig.email.smtp.user && serverConfig.email.smtp.password
-        ? {
-            user: serverConfig.email.smtp.user,
-            pass: serverConfig.email.smtp.password,
-          }
-        : undefined,
-  });
-
-  const inviteUrl = `${serverConfig.publicUrl}/dashboard/lists?pendingInvitation=${encodeURIComponent(listId)}`;
-
-  const mailOptions = {
-    from: serverConfig.email.smtp.from,
-    to: email,
-    subject: `${inviterName} invited you to collaborate on "${listName}"`,
-    html: `
+    const mailOptions = {
+      from: serverConfig.email.smtp!.from,
+      to: email,
+      subject: `${inviterName} invited you to collaborate on "${listName}"`,
+      html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>You've been invited to collaborate on a list!</h2>
         <p>${inviterName} has invited you to collaborate on the list <strong>"${listName}"</strong> in Karakeep.</p>
@@ -226,7 +218,7 @@ export async function sendListInvitationEmail(
         <p>If you weren't expecting this invitation, you can safely ignore this email or decline it in your dashboard.</p>
       </div>
     `,
-    text: `
+      text: `
 You've been invited to collaborate on a list!
 
 ${inviterName} has invited you to collaborate on the list "${listName}" in Karakeep.
@@ -238,7 +230,9 @@ You can accept or decline this invitation from your Karakeep dashboard.
 
 If you weren't expecting this invitation, you can safely ignore this email or decline it in your dashboard.
     `,
-  };
+    };
 
-  await transporter.sendMail(mailOptions);
-}
+    await transporter.sendMail(mailOptions);
+  },
+  { silentFail: true },
+);
