@@ -1295,6 +1295,7 @@ async function crawlAndParseUrl(
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
   forceStorePdf: boolean,
+  skipMetadataRefresh: boolean,
   abortSignal: AbortSignal,
 ) {
   return await withSpan(
@@ -1357,6 +1358,82 @@ async function crawlAndParseUrl(
       // Track status code in Prometheus
       if (statusCode !== null) {
         crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+      }
+
+      // When skipMetadataRefresh is true, only store PDF/archive assets
+      if (skipMetadataRefresh) {
+        logger.info(
+          `[Crawler][${jobId}] Skipping metadata refresh, only storing PDF/archive assets`,
+        );
+
+        // Only store PDF asset if requested
+        const pdfAssetInfo = await Promise.race([
+          storePdf(pdf, userId, jobId),
+          abortPromise(abortSignal),
+        ]);
+        abortSignal.throwIfAborted();
+
+        // Update only the PDF asset in database if it exists
+        if (pdfAssetInfo) {
+          await db.transaction(async (txn) => {
+            await updateAsset(
+              oldPdfAssetId,
+              {
+                id: pdfAssetInfo.assetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_PDF,
+                contentType: pdfAssetInfo.contentType,
+                size: pdfAssetInfo.size,
+                fileName: pdfAssetInfo.fileName,
+              },
+              txn,
+            );
+          });
+          await silentDeleteAsset(userId, oldPdfAssetId);
+        }
+
+        // Return archive logic to be executed later
+        return async () => {
+          if (
+            !precrawledArchiveAssetId &&
+            (serverConfig.crawler.fullPageArchive || archiveFullPage)
+          ) {
+            const archiveResult = await archiveWebpage(
+              htmlContent,
+              browserUrl,
+              userId,
+              jobId,
+              abortSignal,
+            );
+
+            if (archiveResult) {
+              const {
+                assetId: fullPageArchiveAssetId,
+                size,
+                contentType,
+              } = archiveResult;
+
+              await db.transaction(async (txn) => {
+                await updateAsset(
+                  oldFullPageArchiveAssetId,
+                  {
+                    id: fullPageArchiveAssetId,
+                    bookmarkId,
+                    userId,
+                    assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+                    contentType,
+                    size,
+                    fileName: null,
+                  },
+                  txn,
+                );
+              });
+
+              await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
+            }
+          }
+        };
       }
 
       const meta = await Promise.race([
@@ -1629,7 +1706,8 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage, storePdf } = request.data;
+  const { bookmarkId, archiveFullPage, storePdf, skipMetadataRefresh } =
+    request.data;
   const {
     url,
     userId,
@@ -1689,6 +1767,7 @@ async function runCrawler(
       precrawledArchiveAssetId,
       archiveFullPage,
       storePdf ?? false,
+      skipMetadataRefresh ?? false,
       job.abortSignal,
     );
 

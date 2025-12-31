@@ -277,6 +277,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             fullPageArchiveBookmarkMutator.mutate({
               bookmarkId: bookmark.id,
               archiveFullPage: true,
+              skipMetadataRefresh: true,
             });
           },
         },
@@ -290,6 +291,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             preservePdfMutator.mutate({
               bookmarkId: bookmark.id,
               storePdf: true,
+              skipMetadataRefresh: true,
             });
           },
         },
