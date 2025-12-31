@@ -114,7 +114,7 @@ export default function BulkBookmarksAction() {
 
   const recrawlBookmarks = async (
     archiveFullPage: boolean,
-    skipMetadataRefresh: boolean = false,
+    parseAndExtractMetadata: boolean = true,
   ) => {
     const links = selectedBookmarks.filter(
       (item) => item.content.type === BookmarkTypes.LINK,
@@ -126,7 +126,7 @@ export default function BulkBookmarksAction() {
             recrawlBookmarkMutator.mutateAsync({
               bookmarkId: item.id,
               archiveFullPage,
-              skipMetadataRefresh,
+              parseAndExtractMetadata,
             }),
         ),
         MAX_CONCURRENT_BULK_ACTIONS,
@@ -289,7 +289,7 @@ export default function BulkBookmarksAction() {
     {
       name: t("actions.download_full_page_archive"),
       icon: <FileDown size={18} />,
-      action: () => recrawlBookmarks(true, true),
+      action: () => recrawlBookmarks(true, false),
       isPending: recrawlBookmarkMutator.isPending,
       hidden: !isBulkEditEnabled,
     },

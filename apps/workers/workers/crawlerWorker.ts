@@ -1295,7 +1295,7 @@ async function crawlAndParseUrl(
   precrawledArchiveAssetId: string | undefined,
   archiveFullPage: boolean,
   forceStorePdf: boolean,
-  skipMetadataRefresh: boolean,
+  parseAndExtractMetadata: boolean,
   abortSignal: AbortSignal,
 ) {
   return await withSpan(
@@ -1360,10 +1360,10 @@ async function crawlAndParseUrl(
         crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
       }
 
-      // When skipMetadataRefresh is true, only store PDF/archive assets
-      if (skipMetadataRefresh) {
+      // When parseAndExtractMetadata is false, only store PDF/archive assets
+      if (!parseAndExtractMetadata) {
         logger.info(
-          `[Crawler][${jobId}] Skipping metadata refresh, only storing PDF/archive assets`,
+          `[Crawler][${jobId}] Skipping metadata extraction, only storing PDF/archive assets`,
         );
 
         // Only store PDF asset if requested
@@ -1706,7 +1706,7 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage, storePdf, skipMetadataRefresh } =
+  const { bookmarkId, archiveFullPage, storePdf, parseAndExtractMetadata } =
     request.data;
   const {
     url,
@@ -1767,7 +1767,7 @@ async function runCrawler(
       precrawledArchiveAssetId,
       archiveFullPage,
       storePdf ?? false,
-      skipMetadataRefresh ?? false,
+      parseAndExtractMetadata ?? true,
       job.abortSignal,
     );
 

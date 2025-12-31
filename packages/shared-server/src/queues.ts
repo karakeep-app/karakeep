@@ -22,7 +22,7 @@ export const zCrawlLinkRequestSchema = z.object({
   runInference: z.boolean().optional(),
   archiveFullPage: z.boolean().optional().default(false),
   storePdf: z.boolean().optional().default(false),
-  skipMetadataRefresh: z.boolean().optional().default(false),
+  parseAndExtractMetadata: z.boolean().optional().default(true),
 });
 export type ZCrawlLinkRequest = z.input<typeof zCrawlLinkRequestSchema>;
 

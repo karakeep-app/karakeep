@@ -563,7 +563,7 @@ export const bookmarksAppRouter = router({
         bookmarkId: z.string(),
         archiveFullPage: z.boolean().optional().default(false),
         storePdf: z.boolean().optional().default(false),
-        skipMetadataRefresh: z.boolean().optional().default(false),
+        parseAndExtractMetadata: z.boolean().optional().default(true),
       }),
     )
     .use(ensureBookmarkOwnership)
@@ -580,7 +580,7 @@ export const bookmarksAppRouter = router({
           bookmarkId: input.bookmarkId,
           archiveFullPage: input.archiveFullPage,
           storePdf: input.storePdf,
-          skipMetadataRefresh: input.skipMetadataRefresh,
+          parseAndExtractMetadata: input.parseAndExtractMetadata,
         },
         {
           groupId: ctx.user.id,
