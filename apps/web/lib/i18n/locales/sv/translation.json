@@ -779,7 +779,9 @@
     "year_s_ago": " År sedan",
     "history": "Senaste sökningar",
     "title_contains": "Titeln innehåller",
-    "title_does_not_contain": "Titeln innehåller inte"
+    "title_does_not_contain": "Titeln innehåller inte",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "highlights": {
     "no_highlights": "Du har inga markeringar ännu."

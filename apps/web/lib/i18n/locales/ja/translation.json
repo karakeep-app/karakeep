@@ -678,7 +678,9 @@
     "year_s_ago": " ～年前",
     "history": "最近の検索",
     "title_contains": "タイトルに含む",
-    "title_does_not_contain": "タイトルに含まない"
+    "title_does_not_contain": "タイトルに含まない",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "cached_content": "キャッシュされたコンテンツ",

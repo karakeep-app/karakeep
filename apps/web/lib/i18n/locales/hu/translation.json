@@ -487,7 +487,9 @@
     "year_s_ago": " Év(ek)kel ezelőtt",
     "history": "Legutóbbi keresések",
     "title_contains": "A cím tartalmazza",
-    "title_does_not_contain": "A cím nem tartalmazza"
+    "title_does_not_contain": "A cím nem tartalmazza",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "lists": {
     "manual_list": "Manuális lista",

@@ -296,6 +296,42 @@ describe("Search Query Parser", () => {
         inverse: true,
       },
     });
+    expect(parseSearchQuery("under:my-list")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listTree",
+        listName: "my-list",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("-under:my-list")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listTree",
+        listName: "my-list",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery('under:"my list"')).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listTree",
+        listName: "my list",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery('-under:"my list"')).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listTree",
+        listName: "my list",
+        inverse: true,
+      },
+    });
     expect(parseSearchQuery("feed:my-feed")).toEqual({
       result: "full",
       text: "",

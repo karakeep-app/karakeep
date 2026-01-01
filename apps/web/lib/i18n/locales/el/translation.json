@@ -681,7 +681,9 @@
     "or": "Ή",
     "history": "Πρόσφατες αναζητήσεις",
     "title_contains": "Ο τίτλος περιέχει",
-    "title_does_not_contain": "Ο τίτλος δεν περιέχει"
+    "title_does_not_contain": "Ο τίτλος δεν περιέχει",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "view_original": "Προβολή Πρωτότυπου",

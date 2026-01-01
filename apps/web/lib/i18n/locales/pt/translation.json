@@ -672,7 +672,9 @@
     "year_s_ago": " Ano(s) atrás",
     "history": "Pesquisas recentes",
     "title_contains": "O título contém…",
-    "title_does_not_contain": "O título não contém…"
+    "title_does_not_contain": "O título não contém…",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "cached_content": "Conteúdo em cache",

@@ -769,7 +769,9 @@
     "filters": "Filters",
     "tags": "Tags",
     "lists": "Lists",
-    "no_suggestions": "No suggestions"
+    "no_suggestions": "No suggestions",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "view_original": "View Original",

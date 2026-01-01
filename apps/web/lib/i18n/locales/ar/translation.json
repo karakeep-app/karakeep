@@ -681,7 +681,9 @@
     "week_s_ago": " منذ أسبوع (أسابيع)",
     "history": "عمليات البحث الأخيرة",
     "title_contains": "العنوان يحتوي على",
-    "title_does_not_contain": "العنوان لا يحتوي على"
+    "title_does_not_contain": "العنوان لا يحتوي على",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",

@@ -682,7 +682,9 @@
     "year_s_ago": " Vuosi(a) sitten",
     "history": "Viimeaikaiset haut",
     "title_contains": "Otsikko sisältää",
-    "title_does_not_contain": "Otsikko ei sisällä"
+    "title_does_not_contain": "Otsikko ei sisällä",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "view_original": "Näytä alkuperäinen",

@@ -538,7 +538,9 @@
     "or": "Nó",
     "history": "Cuardaigh Déanaí",
     "title_contains": "Tá Teideal I Láthair",
-    "title_does_not_contain": "Níl Teideal I Láthair"
+    "title_does_not_contain": "Níl Teideal I Láthair",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "editor": {
     "disabled_submissions": "Tá aighneachtaí díchumasaithe",

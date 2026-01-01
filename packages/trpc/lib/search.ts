@@ -4,6 +4,7 @@ import {
   exists,
   gt,
   gte,
+  inArray,
   isNotNull,
   isNull,
   like,
@@ -159,6 +160,69 @@ async function getIds(
                     eq(bookmarksInLists.bookmarkId, bookmarks.id),
                     eq(bookmarkLists.userId, userId),
                     eq(bookmarkLists.name, matcher.listName),
+                  ),
+                ),
+            ),
+          ),
+        );
+    }
+    case "listTree": {
+      // First, find the list ID by name
+      const targetList = await db
+        .select({ id: bookmarkLists.id })
+        .from(bookmarkLists)
+        .where(
+          and(
+            eq(bookmarkLists.userId, userId),
+            eq(bookmarkLists.name, matcher.listName),
+          ),
+        )
+        .limit(1);
+
+      if (targetList.length === 0) {
+        return []; // List not found
+      }
+
+      const targetListId = targetList[0].id;
+
+      // Get all descendant list IDs using BFS traversal
+      const allListIds = [targetListId];
+      const queue = [targetListId];
+
+      while (queue.length > 0) {
+        const currentId = queue.pop()!;
+        const children = await db
+          .select({ id: bookmarkLists.id })
+          .from(bookmarkLists)
+          .where(
+            and(
+              eq(bookmarkLists.userId, userId),
+              eq(bookmarkLists.parentId, currentId),
+            ),
+          );
+
+        for (const child of children) {
+          allListIds.push(child.id);
+          queue.push(child.id);
+        }
+      }
+
+      // Find bookmarks in any of these lists
+      const comp = matcher.inverse ? notExists : exists;
+      return db
+        .selectDistinct({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            comp(
+              db
+                .select()
+                .from(bookmarksInLists)
+                .where(
+                  and(
+                    eq(bookmarksInLists.bookmarkId, bookmarks.id),
+                    inArray(bookmarksInLists.listId, allListIds),
                   ),
                 ),
             ),

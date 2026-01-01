@@ -657,7 +657,9 @@
     "is_not_from_feed": "از فید RSS نیست",
     "and": "و",
     "or": "یا",
-    "history": "جستجوهای اخیر"
+    "history": "جستجوهای اخیر",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "view_original": "مشاهده‌ی اصلی",

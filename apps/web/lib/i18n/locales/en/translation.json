@@ -720,6 +720,8 @@
     "title_does_not_contain": "Title Does Not Contain",
     "is_in_list": "Is In List",
     "is_not_in_list": "Is not In List",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List",
     "has_tag": "Has Tag",
     "does_not_have_tag": "Does Not Have Tag",
     "full_text_search": "Full Text Search",

@@ -776,7 +776,9 @@
     "month_s_ago": " Ay Önce",
     "history": "Son Aramalar",
     "title_contains": "Başlık İçeriyor",
-    "title_does_not_contain": "Başlık İçermiyor"
+    "title_does_not_contain": "Başlık İçermiyor",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "dialogs": {
     "bookmarks": {

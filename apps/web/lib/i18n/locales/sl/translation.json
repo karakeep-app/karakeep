@@ -471,7 +471,9 @@
     "year_s_ago": " Let(a) nazaj",
     "history": "Nedavna iskanja",
     "title_contains": "Naslov vsebuje",
-    "title_does_not_contain": "Naslov ne vsebuje"
+    "title_does_not_contain": "Naslov ne vsebuje",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",

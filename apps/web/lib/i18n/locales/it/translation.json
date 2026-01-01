@@ -773,7 +773,9 @@
     "year_s_ago": " Anni fa",
     "history": "Ricerche recenti",
     "title_contains": "Il titolo contiene",
-    "title_does_not_contain": "Il titolo non contiene"
+    "title_does_not_contain": "Il titolo non contiene",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "dialogs": {
     "bookmarks": {

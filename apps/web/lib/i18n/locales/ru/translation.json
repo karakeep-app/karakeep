@@ -773,7 +773,9 @@
     "year_s_ago": " Год(а) назад",
     "history": "Недавние поиски",
     "title_contains": "Содержит в заголовке",
-    "title_does_not_contain": "Не содержит в заголовке"
+    "title_does_not_contain": "Не содержит в заголовке",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "dialogs": {
     "bookmarks": {

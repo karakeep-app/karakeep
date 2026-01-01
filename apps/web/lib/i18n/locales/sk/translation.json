@@ -514,7 +514,9 @@
     "year_s_ago": " Rok(y) dozadu",
     "history": "Nedávne vyhľadávania",
     "title_contains": "Názov obsahuje",
-    "title_does_not_contain": "Názov neobsahuje"
+    "title_does_not_contain": "Názov neobsahuje",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "layouts": {
     "masonry": "Dlaždice",

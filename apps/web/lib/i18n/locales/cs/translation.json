@@ -538,7 +538,9 @@
     "or": "Nebo",
     "history": "Poslední hledání",
     "title_contains": "Název obsahuje",
-    "title_does_not_contain": "Název neobsahuje"
+    "title_does_not_contain": "Název neobsahuje",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "editor": {
     "disabled_submissions": "Odesílání příspěvků je zakázáno",

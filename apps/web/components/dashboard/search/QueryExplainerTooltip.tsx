@@ -44,6 +44,17 @@ export default function QueryExplainerTooltip({
             <TableCell>{matcher.listName}</TableCell>
           </TableRow>
         );
+      case "listTree":
+        return (
+          <TableRow>
+            <TableCell>
+              {matcher.inverse
+                ? t("search.is_not_under_list")
+                : t("search.is_under_list")}
+            </TableCell>
+            <TableCell>{matcher.listName}</TableCell>
+          </TableRow>
+        );
       case "dateAfter":
         return (
           <TableRow>

@@ -154,7 +154,9 @@
     "year_s_ago": " 년 전",
     "history": "최근 검색어",
     "title_contains": "제목에 다음 내용이 포함됨",
-    "title_does_not_contain": "제목에 다음 내용이 포함되지 않음"
+    "title_does_not_contain": "제목에 다음 내용이 포함되지 않음",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "preview": {
     "view_original": "원본 보기",

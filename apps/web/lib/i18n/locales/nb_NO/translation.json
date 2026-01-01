@@ -672,7 +672,9 @@
     "year_s_ago": " År siden",
     "history": "Nylige søk",
     "title_contains": "Tittel inneholder",
-    "title_does_not_contain": "Tittel inneholder ikke"
+    "title_does_not_contain": "Tittel inneholder ikke",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "editor": {
     "text_toolbar": {

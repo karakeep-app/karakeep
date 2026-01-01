@@ -776,7 +776,9 @@
     "year_s_ago": " År siden",
     "history": "Seneste søgninger",
     "title_contains": "Titel indeholder",
-    "title_does_not_contain": "Titel indeholder ikke"
+    "title_does_not_contain": "Titel indeholder ikke",
+    "is_under_list": "Is Under List",
+    "is_not_under_list": "Is Not Under List"
   },
   "dialogs": {
     "bookmarks": {
