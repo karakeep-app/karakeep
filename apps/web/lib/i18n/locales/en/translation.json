@@ -72,7 +72,7 @@
     "refresh": "Refresh",
     "recrawl": "Recrawl",
     "offline_copies": "Offline Copies",
-    "download_full_page_archive": "Download Full Page Archive",
+    "preserve_offline_archive": "Preserve Offline Archive",
     "download_full_page_archive_file": "Download Archive File",
     "preserve_as_pdf": "Preserve as PDF",
     "download_pdf_file": "Download PDF File",

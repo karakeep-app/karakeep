@@ -337,6 +337,67 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         }),
     },
     {
+      id: "offline-copies",
+      title: t("actions.offline_copies"),
+      icon: <Archive className="mr-2 size-4" />,
+      visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
+      items: [
+        {
+          id: "download-full-page",
+          title: t("actions.preserve_offline_archive"),
+          icon: <FileDown className="mr-2 size-4" />,
+          visible: true,
+          disabled: demoMode,
+          onClick: () => {
+            fullPageArchiveBookmarkMutator.mutate({
+              bookmarkId: bookmark.id,
+              archiveFullPage: true,
+            });
+          },
+        },
+        {
+          id: "preserve-pdf",
+          title: t("actions.preserve_as_pdf"),
+          icon: <FileText className="mr-2 size-4" />,
+          visible: true,
+          disabled: demoMode,
+          onClick: () => {
+            preservePdfMutator.mutate({
+              bookmarkId: bookmark.id,
+              storePdf: true,
+            });
+          },
+        },
+        {
+          id: "download-full-page-archive",
+          title: t("actions.download_full_page_archive_file"),
+          icon: <Download className="mr-2 size-4" />,
+          visible: !!(bookmark.content as ZBookmarkedLink)
+            .fullPageArchiveAssetId,
+          disabled: false,
+          onClick: () => {
+            const link = bookmark.content as ZBookmarkedLink;
+            if (link.fullPageArchiveAssetId) {
+              window.open(getAssetUrl(link.fullPageArchiveAssetId), "_blank");
+            }
+          },
+        },
+        {
+          id: "download-pdf",
+          title: t("actions.download_pdf_file"),
+          icon: <Download className="mr-2 size-4" />,
+          visible: !!(bookmark.content as ZBookmarkedLink).pdfAssetId,
+          disabled: false,
+          onClick: () => {
+            const link = bookmark.content as ZBookmarkedLink;
+            if (link.pdfAssetId) {
+              window.open(getAssetUrl(link.pdfAssetId), "_blank");
+            }
+          },
+        },
+      ],
+    },
+    {
       id: "more",
       title: t("actions.more"),
       icon: <MoreHorizontal className="mr-2 size-4" />,
@@ -360,67 +421,6 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           visible: true,
           disabled: demoMode || isAttaching || isReplacing,
           onClick: () => bannerFileInputRef.current?.click(),
-        },
-      ],
-    },
-    {
-      id: "offline-copies",
-      title: t("actions.offline_copies"),
-      icon: <Archive className="mr-2 size-4" />,
-      visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
-      items: [
-        {
-          id: "download-full-page",
-          title: t("actions.download_full_page_archive"),
-          icon: <FileDown className="mr-2 size-4" />,
-          visible: true,
-          disabled: demoMode,
-          onClick: () => {
-            fullPageArchiveBookmarkMutator.mutate({
-              bookmarkId: bookmark.id,
-              archiveFullPage: true,
-            });
-          },
-        },
-        {
-          id: "download-full-page-archive",
-          title: t("actions.download_full_page_archive_file"),
-          icon: <Download className="mr-2 size-4" />,
-          visible: !!(bookmark.content as ZBookmarkedLink)
-            .fullPageArchiveAssetId,
-          disabled: false,
-          onClick: () => {
-            const link = bookmark.content as ZBookmarkedLink;
-            if (link.fullPageArchiveAssetId) {
-              window.open(getAssetUrl(link.fullPageArchiveAssetId), "_blank");
-            }
-          },
-        },
-        {
-          id: "preserve-pdf",
-          title: t("actions.preserve_as_pdf"),
-          icon: <FileText className="mr-2 size-4" />,
-          visible: true,
-          disabled: demoMode,
-          onClick: () => {
-            preservePdfMutator.mutate({
-              bookmarkId: bookmark.id,
-              storePdf: true,
-            });
-          },
-        },
-        {
-          id: "download-pdf",
-          title: t("actions.download_pdf_file"),
-          icon: <Download className="mr-2 size-4" />,
-          visible: !!(bookmark.content as ZBookmarkedLink).pdfAssetId,
-          disabled: false,
-          onClick: () => {
-            const link = bookmark.content as ZBookmarkedLink;
-            if (link.pdfAssetId) {
-              window.open(getAssetUrl(link.pdfAssetId), "_blank");
-            }
-          },
         },
       ],
     },
