@@ -372,13 +372,19 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           id: "download-full-page-archive",
           title: t("actions.download_full_page_archive_file"),
           icon: <Download className="mr-2 size-4" />,
-          visible: !!(bookmark.content as ZBookmarkedLink)
-            .fullPageArchiveAssetId,
+          visible:
+            bookmark.content.type === BookmarkTypes.LINK &&
+            !!(
+              bookmark.content.fullPageArchiveAssetId ||
+              bookmark.content.precrawledArchiveAssetId
+            ),
           disabled: false,
           onClick: () => {
             const link = bookmark.content as ZBookmarkedLink;
-            if (link.fullPageArchiveAssetId) {
-              window.open(getAssetUrl(link.fullPageArchiveAssetId), "_blank");
+            const archiveAssetId =
+              link.fullPageArchiveAssetId ?? link.precrawledArchiveAssetId;
+            if (archiveAssetId) {
+              window.open(getAssetUrl(archiveAssetId), "_blank");
             }
           },
         },
