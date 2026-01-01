@@ -594,3 +594,336 @@ describe("recursive delete", () => {
     expect(lists.lists.find((l) => l.id === child.id)).toBeUndefined();
   });
 });
+
+describe("Nested smart lists", () => {
+  test<CustomTestContext>("smart list can reference another smart list", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create a bookmark that is favourited
+    const bookmark1 = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Favourited bookmark",
+    });
+    await api.bookmarks.updateBookmark({
+      bookmarkId: bookmark1.id,
+      favourited: true,
+    });
+
+    // Create a bookmark that is not favourited
+    const bookmark2 = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Non-favourited bookmark",
+    });
+
+    // Create a smart list that matches favourited bookmarks
+    await api.lists.create({
+      name: "Favourites",
+      type: "smart",
+      query: "is:fav",
+      icon: "⭐",
+    });
+
+    // Create a smart list that references the first smart list
+    const smartListB = await api.lists.create({
+      name: "From Favourites",
+      type: "smart",
+      query: "list:Favourites",
+      icon: "📋",
+    });
+
+    // Get bookmarks from the nested smart list
+    const bookmarksInSmartListB = await api.bookmarks.getBookmarks({
+      listId: smartListB.id,
+    });
+
+    // Should contain the favourited bookmark
+    expect(bookmarksInSmartListB.bookmarks.length).toBe(1);
+    expect(bookmarksInSmartListB.bookmarks[0].id).toBe(bookmark1.id);
+
+    // Verify bookmark2 is not in the nested smart list
+    expect(
+      bookmarksInSmartListB.bookmarks.find((b) => b.id === bookmark2.id),
+    ).toBeUndefined();
+  });
+
+  test<CustomTestContext>("nested smart lists with multiple levels", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create a bookmark that is archived
+    const bookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Archived bookmark",
+    });
+    await api.bookmarks.updateBookmark({
+      bookmarkId: bookmark.id,
+      archived: true,
+    });
+
+    // Create smart list A: matches archived bookmarks
+    await api.lists.create({
+      name: "Archived",
+      type: "smart",
+      query: "is:archived",
+      icon: "📦",
+    });
+
+    // Create smart list B: references list A
+    await api.lists.create({
+      name: "Level1",
+      type: "smart",
+      query: "list:Archived",
+      icon: "1️⃣",
+    });
+
+    // Create smart list C: references list B (3 levels deep)
+    const smartListC = await api.lists.create({
+      name: "Level2",
+      type: "smart",
+      query: "list:Level1",
+      icon: "2️⃣",
+    });
+
+    // Get bookmarks from the deepest nested smart list
+    const bookmarksInSmartListC = await api.bookmarks.getBookmarks({
+      listId: smartListC.id,
+    });
+
+    // Should contain the archived bookmark
+    expect(bookmarksInSmartListC.bookmarks.length).toBe(1);
+    expect(bookmarksInSmartListC.bookmarks[0].id).toBe(bookmark.id);
+  });
+
+  test<CustomTestContext>("smart list with inverse reference to another smart list", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create two bookmarks
+    const favouritedBookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Favourited bookmark",
+    });
+    await api.bookmarks.updateBookmark({
+      bookmarkId: favouritedBookmark.id,
+      favourited: true,
+    });
+
+    const normalBookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Normal bookmark",
+    });
+
+    // Create a smart list that matches favourited bookmarks
+    await api.lists.create({
+      name: "Favourites",
+      type: "smart",
+      query: "is:fav",
+      icon: "⭐",
+    });
+
+    // Create a smart list with negative reference to Favourites
+    const notInFavourites = await api.lists.create({
+      name: "Not In Favourites",
+      type: "smart",
+      query: "-list:Favourites",
+      icon: "❌",
+    });
+
+    // Get bookmarks from the smart list
+    const bookmarksNotInFav = await api.bookmarks.getBookmarks({
+      listId: notInFavourites.id,
+    });
+
+    // Should contain only the non-favourited bookmark
+    expect(bookmarksNotInFav.bookmarks.length).toBe(1);
+    expect(bookmarksNotInFav.bookmarks[0].id).toBe(normalBookmark.id);
+  });
+
+  test<CustomTestContext>("circular reference between smart lists returns empty", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create a bookmark
+    const bookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Test bookmark",
+    });
+    await api.bookmarks.updateBookmark({
+      bookmarkId: bookmark.id,
+      favourited: true,
+    });
+
+    // Create smart list A that references smart list B
+    const smartListA = await api.lists.create({
+      name: "ListA",
+      type: "smart",
+      query: "list:ListB",
+      icon: "🅰️",
+    });
+
+    // Create smart list B that references smart list A (circular!)
+    await api.lists.create({
+      name: "ListB",
+      type: "smart",
+      query: "list:ListA",
+      icon: "🅱️",
+    });
+
+    // Querying ListA should return empty because of the circular reference
+    const bookmarksInListA = await api.bookmarks.getBookmarks({
+      listId: smartListA.id,
+    });
+
+    // Should be empty due to circular reference detection
+    expect(bookmarksInListA.bookmarks.length).toBe(0);
+  });
+
+  test<CustomTestContext>("self-referencing smart list returns empty", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create a bookmark
+    await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Test bookmark",
+    });
+
+    // Create a smart list that references itself
+    const selfRefList = await api.lists.create({
+      name: "SelfRef",
+      type: "smart",
+      query: "list:SelfRef",
+      icon: "🔄",
+    });
+
+    // Querying should return empty because of self-reference
+    const bookmarks = await api.bookmarks.getBookmarks({
+      listId: selfRefList.id,
+    });
+
+    expect(bookmarks.bookmarks.length).toBe(0);
+  });
+
+  test<CustomTestContext>("three-way circular reference returns empty", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create a bookmark
+    await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Test bookmark",
+    });
+
+    // Create three smart lists with circular references: A -> B -> C -> A
+    const listA = await api.lists.create({
+      name: "CircularA",
+      type: "smart",
+      query: "list:CircularB",
+      icon: "🅰️",
+    });
+
+    await api.lists.create({
+      name: "CircularB",
+      type: "smart",
+      query: "list:CircularC",
+      icon: "🅱️",
+    });
+
+    await api.lists.create({
+      name: "CircularC",
+      type: "smart",
+      query: "list:CircularA",
+      icon: "©️",
+    });
+
+    // Querying any of them should return empty due to circular reference
+    const bookmarksInListA = await api.bookmarks.getBookmarks({
+      listId: listA.id,
+    });
+
+    expect(bookmarksInListA.bookmarks.length).toBe(0);
+  });
+
+  test<CustomTestContext>("smart list references non-existent list returns empty", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create a bookmark
+    await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Test bookmark",
+    });
+
+    // Create a smart list that references a non-existent list
+    const smartList = await api.lists.create({
+      name: "RefNonExistent",
+      type: "smart",
+      query: "list:NonExistentList",
+      icon: "❓",
+    });
+
+    // Should return empty since the referenced list doesn't exist
+    const bookmarks = await api.bookmarks.getBookmarks({
+      listId: smartList.id,
+    });
+
+    expect(bookmarks.bookmarks.length).toBe(0);
+  });
+
+  test<CustomTestContext>("smart list can reference manual list", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    // Create bookmarks
+    const bookmark1 = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Bookmark in manual list",
+    });
+    const bookmark2 = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Bookmark not in list",
+    });
+
+    // Create a manual list and add bookmark1
+    const manualList = await api.lists.create({
+      name: "ManualList",
+      type: "manual",
+      icon: "📋",
+    });
+    await api.lists.addToList({
+      listId: manualList.id,
+      bookmarkId: bookmark1.id,
+    });
+
+    // Create a smart list that references the manual list
+    const smartList = await api.lists.create({
+      name: "SmartRefManual",
+      type: "smart",
+      query: "list:ManualList",
+      icon: "🔗",
+    });
+
+    // Get bookmarks from the smart list
+    const bookmarksInSmartList = await api.bookmarks.getBookmarks({
+      listId: smartList.id,
+    });
+
+    // Should contain only bookmark1
+    expect(bookmarksInSmartList.bookmarks.length).toBe(1);
+    expect(bookmarksInSmartList.bookmarks[0].id).toBe(bookmark1.id);
+
+    // Verify bookmark2 is not in the smart list
+    expect(
+      bookmarksInSmartList.bookmarks.find((b) => b.id === bookmark2.id),
+    ).toBeUndefined();
+  });
+});

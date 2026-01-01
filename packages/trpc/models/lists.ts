@@ -809,8 +809,8 @@ export abstract class List {
   }
 
   abstract get type(): "manual" | "smart";
-  abstract getBookmarkIds(ctx: AuthedContext): Promise<string[]>;
-  abstract getSize(ctx: AuthedContext): Promise<number>;
+  abstract getBookmarkIds(visitedListNames?: Set<string>): Promise<string[]>;
+  abstract getSize(): Promise<number>;
   abstract addBookmark(bookmarkId: string): Promise<void>;
   abstract removeBookmark(bookmarkId: string): Promise<void>;
   abstract mergeInto(
@@ -847,12 +847,18 @@ export class SmartList extends List {
     return this.parsedQuery;
   }
 
-  async getBookmarkIds(): Promise<string[]> {
+  async getBookmarkIds(
+    visitedListNames = new Set<string>(),
+  ): Promise<string[]> {
     const parsedQuery = this.getParsedQuery();
     if (!parsedQuery.matcher) {
       return [];
     }
-    return await getBookmarkIdsFromMatcher(this.ctx, parsedQuery.matcher);
+    return await getBookmarkIdsFromMatcher(
+      this.ctx,
+      parsedQuery.matcher,
+      visitedListNames,
+    );
   }
 
   async getSize(): Promise<number> {
@@ -898,7 +904,9 @@ export class ManualList extends List {
     return this.list.type;
   }
 
-  async getBookmarkIds(): Promise<string[]> {
+  async getBookmarkIds(
+    _visitedListNames?: Set<string>,
+  ): Promise<string[]> {
     const results = await this.ctx.db
       .select({ id: bookmarksInLists.bookmarkId })
       .from(bookmarksInLists)
