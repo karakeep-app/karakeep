@@ -292,7 +292,7 @@ class OllamaInferenceClient implements InferenceClient {
         num_ctx: this.config.contextLength,
         num_predict: this.config.maxOutputTokens,
       },
-      prompt: prompt, 
+      prompt: prompt,
       images: image ? [image] : undefined,
     });
 
