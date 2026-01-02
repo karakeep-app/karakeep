@@ -232,7 +232,7 @@ export default function BookmarkPreview({
         </TabsList>
         <TabsContent
           value="content"
-          className="h-full w-full flex-1 justify-center overflow-hidden overflow-y-auto bg-background p-2 data-[state=inactive]:hidden"
+          className="h-full w-full flex-1 overflow-hidden overflow-y-auto bg-background p-2 data-[state=inactive]:hidden"
         >
           {contentSection}
         </TabsContent>
