@@ -21,7 +21,7 @@ export function BookmarkedTextEditor({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-[100%] *:max-w-[95%] md:max-w-[80%]">
+      <DialogContent className="max-w-[80%]">
         <DialogHeader className="flex">
           <DialogTitle className="w-fit">
             {isNewBookmark ? "New Note" : "Edit Note"}
