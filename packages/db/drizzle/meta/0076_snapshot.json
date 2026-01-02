@@ -2732,6 +2732,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "readingProgressPercent": {
+          "name": "readingProgressPercent",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "modifiedAt": {
           "name": "modifiedAt",
           "type": "integer",

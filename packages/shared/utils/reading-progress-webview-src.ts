@@ -1,4 +1,4 @@
-import type { ReadingPosition } from "./reading-progress-core";
+import type { ReadingPosition, ScrollInfo } from "./reading-progress-core";
 import { getReadingPositionWithViewport } from "./reading-progress-core";
 
 /**
@@ -20,10 +20,18 @@ export { scrollToReadingPosition } from "./reading-progress-core";
 /**
  * Gets the reading position of the topmost visible paragraph.
  * WebView-specific: assumes window-level scrolling (viewport top is always 0).
+ * Returns 100% when scrolled to the bottom of the document.
  */
 export function getReadingPosition(
   container: HTMLElement,
 ): ReadingPosition | null {
+  // Build scroll info for 100% detection
+  const scrollInfo: ScrollInfo = {
+    scrollTop: window.scrollY,
+    scrollHeight: document.body.scrollHeight,
+    clientHeight: window.innerHeight,
+  };
+
   // WebView: viewport top is always 0 (window-level scrolling)
-  return getReadingPositionWithViewport(container, 0);
+  return getReadingPositionWithViewport(container, 0, scrollInfo);
 }

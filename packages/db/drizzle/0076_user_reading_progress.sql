@@ -4,6 +4,7 @@ CREATE TABLE `userReadingProgress` (
 	`userId` text NOT NULL,
 	`readingProgressOffset` integer NOT NULL,
 	`readingProgressAnchor` text,
+	`readingProgressPercent` integer,
 	`modifiedAt` integer,
 	FOREIGN KEY (`bookmarkId`) REFERENCES `bookmarks`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade

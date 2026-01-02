@@ -6,11 +6,12 @@
  */
 
 /**
- * Reading position data including offset and anchor text for verification.
+ * Reading position data including offset, anchor text for verification, and percentage.
  */
 export interface ReadingPosition {
   offset: number;
   anchor: string;
+  percent: number;
 }
 
 const PARAGRAPH_SELECTORS = [
@@ -33,6 +34,18 @@ const PARAGRAPH_SELECTOR_STRING = PARAGRAPH_SELECTORS.join(", ");
  */
 export const ANCHOR_TEXT_MAX_LENGTH = 50;
 
+/** Threshold in pixels for detecting "scrolled to bottom" */
+const SCROLL_BOTTOM_THRESHOLD = 5;
+
+/**
+ * Scroll position info for determining if user is at bottom of content.
+ */
+export interface ScrollInfo {
+  scrollTop: number;
+  scrollHeight: number;
+  clientHeight: number;
+}
+
 /**
  * Normalizes text by collapsing all whitespace to single spaces and trimming.
  * This ensures consistent character counting regardless of HTML formatting.
@@ -54,16 +67,42 @@ export function normalizeTextLength(text: string): number {
 /**
  * Calculates the text offset of the paragraph at the top of the viewport.
  * Finds the paragraph whose top edge is at or near the top of the visible area.
- * Returns both the offset and anchor text for position verification.
+ * Returns offset, anchor text for position verification, and percentage through the document.
+ *
+ * If scrollInfo is provided and user is scrolled to bottom, returns 100% immediately.
  */
 export function getReadingPositionWithViewport(
   container: HTMLElement,
   viewportTop: number,
+  scrollInfo?: ScrollInfo,
 ): ReadingPosition | null {
   const paragraphs = Array.from(
     container.querySelectorAll(PARAGRAPH_SELECTOR_STRING),
   );
   if (paragraphs.length === 0) return null;
+
+  // Calculate total length for percentage calculation
+  const totalLength = normalizeTextLength(container.textContent ?? "");
+
+  // Check if scrolled to bottom - return 100% immediately
+  if (scrollInfo) {
+    const { scrollTop, scrollHeight, clientHeight } = scrollInfo;
+    const isAtBottom =
+      scrollTop + clientHeight >= scrollHeight - SCROLL_BOTTOM_THRESHOLD;
+
+    if (isAtBottom) {
+      // Find the last paragraph for anchor text
+      const lastParagraph = paragraphs[paragraphs.length - 1];
+      const anchor = lastParagraph
+        ? normalizeText(lastParagraph.textContent ?? "").slice(
+            0,
+            ANCHOR_TEXT_MAX_LENGTH,
+          )
+        : "";
+
+      return { offset: totalLength, anchor, percent: 100 };
+    }
+  }
 
   // Find the paragraph at the top of the viewport
   let topParagraph: Element | null = null;
@@ -104,7 +143,12 @@ export function getReadingPositionWithViewport(
   while ((node = walker.nextNode())) {
     if (topParagraph.contains(node)) {
       // Found the start of our target paragraph
-      return { offset, anchor };
+      // Calculate percentage (clamped to 0-100)
+      const percent =
+        totalLength > 0
+          ? Math.min(100, Math.max(0, Math.round((offset / totalLength) * 100)))
+          : 0;
+      return { offset, anchor, percent };
     }
     offset += normalizeTextLength(node.textContent ?? "");
   }

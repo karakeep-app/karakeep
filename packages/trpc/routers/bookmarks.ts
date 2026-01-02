@@ -586,6 +586,7 @@ export const bookmarksAppRouter = router({
         bookmarkId: z.string(),
         readingProgressOffset: z.number().int().nonnegative(),
         readingProgressAnchor: z.string().max(ANCHOR_TEXT_MAX_LENGTH).nullish(),
+        readingProgressPercent: z.number().int().min(0).max(100).nullish(),
       }),
     )
     .use(ensureBookmarkAccess)
@@ -608,12 +609,14 @@ export const bookmarksAppRouter = router({
           userId: ctx.user.id,
           readingProgressOffset: input.readingProgressOffset,
           readingProgressAnchor: input.readingProgressAnchor ?? null,
+          readingProgressPercent: input.readingProgressPercent ?? null,
         })
         .onConflictDoUpdate({
           target: [userReadingProgress.bookmarkId, userReadingProgress.userId],
           set: {
             readingProgressOffset: input.readingProgressOffset,
             readingProgressAnchor: input.readingProgressAnchor ?? null,
+            readingProgressPercent: input.readingProgressPercent ?? null,
           },
         });
     }),
@@ -646,6 +649,8 @@ export const bookmarksAppRouter = router({
           progress?.readingProgressOffset ?? null;
         zBookmark.content.readingProgressAnchor =
           progress?.readingProgressAnchor ?? null;
+        zBookmark.content.readingProgressPercent =
+          progress?.readingProgressPercent ?? null;
       }
 
       return zBookmark;

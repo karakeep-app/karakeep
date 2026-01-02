@@ -87,6 +87,7 @@ export function useReadingProgress(
         bookmarkId,
         readingProgressOffset: position.offset,
         readingProgressAnchor: position.anchor,
+        readingProgressPercent: position.percent,
       });
     },
     [enabled, bookmarkId, updateProgress],
@@ -99,7 +100,7 @@ export function useReadingProgress(
   // Track current reading position on scroll
   const lastKnownPositionRef = useRef<ReadingPosition | null>(
     initialOffset
-      ? { offset: initialOffset, anchor: initialAnchor ?? "" }
+      ? { offset: initialOffset, anchor: initialAnchor ?? "", percent: 0 }
       : null,
   );
 

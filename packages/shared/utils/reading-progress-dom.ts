@@ -1,4 +1,4 @@
-import type { ReadingPosition } from "./reading-progress-core";
+import type { ReadingPosition, ScrollInfo } from "./reading-progress-core";
 import { getReadingPositionWithViewport } from "./reading-progress-core";
 
 /**
@@ -57,9 +57,10 @@ export function findScrollableParent(element: HTMLElement): HTMLElement {
 /**
  * Calculates the text offset of the paragraph at the top of the viewport.
  * Finds the paragraph whose top edge is at or near the top of the visible area.
- * Returns both the offset and anchor text for position verification.
+ * Returns offset, anchor text for position verification, and percentage through the document.
  *
  * Web-specific: handles nested scrolling with Radix ScrollArea detection.
+ * Returns 100% when scrolled to the bottom of the document.
  */
 export function getReadingPosition(
   container: HTMLElement,
@@ -68,10 +69,21 @@ export function getReadingPosition(
   const scrollParent = findScrollableParent(container);
   const isWindowScroll = scrollParent === document.documentElement;
 
+  // Build scroll info for 100% detection
+  const scrollInfo: ScrollInfo = {
+    scrollTop: isWindowScroll ? window.scrollY : scrollParent.scrollTop,
+    scrollHeight: isWindowScroll
+      ? document.body.scrollHeight
+      : scrollParent.scrollHeight,
+    clientHeight: isWindowScroll
+      ? window.innerHeight
+      : scrollParent.clientHeight,
+  };
+
   // For window-level scrolling, viewport top is 0; for container scrolling, use container's top
   const viewportTop = isWindowScroll
     ? 0
     : scrollParent.getBoundingClientRect().top;
 
-  return getReadingPositionWithViewport(container, viewportTop);
+  return getReadingPositionWithViewport(container, viewportTop, scrollInfo);
 }

@@ -373,6 +373,7 @@ export const userReadingProgress = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     readingProgressOffset: integer("readingProgressOffset").notNull(),
     readingProgressAnchor: text("readingProgressAnchor"),
+    readingProgressPercent: integer("readingProgressPercent"),
     modifiedAt: modifiedAtField(),
   },
   (tb) => [
