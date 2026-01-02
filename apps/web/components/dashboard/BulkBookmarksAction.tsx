@@ -283,7 +283,7 @@ export default function BulkBookmarksAction() {
       hidden: !isBulkEditEnabled,
     },
     {
-      name: t("actions.download_full_page_archive"),
+      name: t("actions.preserve_offline_archive"),
       icon: <FileDown size={18} />,
       action: () => recrawlBookmarks(true),
       isPending: recrawlBookmarkMutator.isPending,

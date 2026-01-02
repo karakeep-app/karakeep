@@ -696,6 +696,7 @@ export interface paths {
             assetType:
               | "linkHtmlContent"
               | "screenshot"
+              | "pdf"
               | "assetScreenshot"
               | "bannerImage"
               | "fullPageArchive"
@@ -703,6 +704,7 @@ export interface paths {
               | "bookmarkAsset"
               | "precrawledArchive"
               | "userUploaded"
+              | "avatar"
               | "unknown";
           };
         };
@@ -720,6 +722,7 @@ export interface paths {
               assetType:
                 | "linkHtmlContent"
                 | "screenshot"
+                | "pdf"
                 | "assetScreenshot"
                 | "bannerImage"
                 | "fullPageArchive"
@@ -727,6 +730,7 @@ export interface paths {
                 | "bookmarkAsset"
                 | "precrawledArchive"
                 | "userUploaded"
+                | "avatar"
                 | "unknown";
               fileName?: string | null;
             };
@@ -1781,6 +1785,7 @@ export interface paths {
               id: string;
               name?: string | null;
               email?: string | null;
+              image?: string | null;
               localUser: boolean;
             };
           };
@@ -2099,7 +2104,7 @@ export interface paths {
               backups: {
                 id: string;
                 userId: string;
-                assetId: string;
+                assetId: string | null;
                 createdAt: string;
                 size: number;
                 bookmarkCount: number;
@@ -2135,7 +2140,7 @@ export interface paths {
             "application/json": {
               id: string;
               userId: string;
-              assetId: string;
+              assetId: string | null;
               createdAt: string;
               size: number;
               bookmarkCount: number;
@@ -2184,7 +2189,7 @@ export interface paths {
             "application/json": {
               id: string;
               userId: string;
-              assetId: string;
+              assetId: string | null;
               createdAt: string;
               size: number;
               bookmarkCount: number;
@@ -2361,6 +2366,7 @@ export interface components {
             imageUrl?: string | null;
             imageAssetId?: string | null;
             screenshotAssetId?: string | null;
+            pdfAssetId?: string | null;
             fullPageArchiveAssetId?: string | null;
             precrawledArchiveAssetId?: string | null;
             videoAssetId?: string | null;
@@ -2368,6 +2374,8 @@ export interface components {
             htmlContent?: string | null;
             contentAssetId?: string | null;
             crawledAt?: string | null;
+            /** @enum {string|null} */
+            crawlStatus?: "success" | "failure" | "pending" | null;
             author?: string | null;
             publisher?: string | null;
             datePublished?: string | null;
@@ -2400,6 +2408,7 @@ export interface components {
         assetType:
           | "linkHtmlContent"
           | "screenshot"
+          | "pdf"
           | "assetScreenshot"
           | "bannerImage"
           | "fullPageArchive"
@@ -2407,6 +2416,7 @@ export interface components {
           | "bookmarkAsset"
           | "precrawledArchive"
           | "userUploaded"
+          | "avatar"
           | "unknown";
         fileName?: string | null;
       }[];

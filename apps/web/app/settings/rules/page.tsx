@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
-import { Tooltip, TooltipContent, TooltipTrigger } from "components/ui/tooltip";
-import { FlaskConical, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 import { RuleEngineRule } from "@karakeep/shared/types/rules";
 
@@ -49,14 +48,6 @@ export default function RulesSettingsPage() {
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-lg font-medium">
             {t("settings.rules.rules")}
-            <Tooltip>
-              <TooltipTrigger className="text-muted-foreground">
-                <FlaskConical size={15} />
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {t("common.experimental")}
-              </TooltipContent>
-            </Tooltip>
           </span>
           <Button onClick={handleCreateRule} variant="default">
             <PlusCircle className="mr-2 h-4 w-4" />

@@ -569,13 +569,6 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db
-        .update(bookmarkLinks)
-        .set({
-          crawlStatus: "pending",
-          crawlStatusCode: null,
-        })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
       await LinkCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,

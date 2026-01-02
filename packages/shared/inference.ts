@@ -274,7 +274,7 @@ class OllamaInferenceClient implements InferenceClient {
         this.ollama.abort();
       };
     }
-    const chatCompletion = await this.ollama.chat({
+    const chatCompletion = await this.ollama.generate({
       model: model,
       format: mapInferenceOutputSchema(
         {
@@ -292,16 +292,15 @@ class OllamaInferenceClient implements InferenceClient {
         num_ctx: this.config.contextLength,
         num_predict: this.config.maxOutputTokens,
       },
-      messages: [
-        { role: "user", content: prompt, images: image ? [image] : undefined },
-      ],
+      prompt: prompt,
+      images: image ? [image] : undefined,
     });
 
     let totalTokens = 0;
     let response = "";
     try {
       for await (const part of chatCompletion) {
-        response += part.message.content;
+        response += part.response;
         if (!isNaN(part.eval_count)) {
           totalTokens += part.eval_count;
         }

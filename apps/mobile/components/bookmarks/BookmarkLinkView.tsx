@@ -1,6 +1,7 @@
 import {
   BookmarkLinkArchivePreview,
   BookmarkLinkBrowserPreview,
+  BookmarkLinkPdfPreview,
   BookmarkLinkReaderPreview,
   BookmarkLinkScreenshotPreview,
 } from "@/components/bookmarks/BookmarkLinkPreview";
@@ -31,5 +32,7 @@ export default function BookmarkLinkView({
       return <BookmarkLinkScreenshotPreview bookmark={bookmark} />;
     case "archive":
       return <BookmarkLinkArchivePreview bookmark={bookmark} />;
+    case "pdf":
+      return <BookmarkLinkPdfPreview bookmark={bookmark} />;
   }
 }

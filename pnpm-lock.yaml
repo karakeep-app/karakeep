@@ -452,6 +452,9 @@ importers:
       react-native-webview:
         specifier: ^13.13.5
         version: 13.14.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      sonner-native:
+        specifier: ^0.22.2
+        version: 0.22.2(react-native-gesture-handler@2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
       tailwind-merge:
         specifier: ^2.2.1
         version: 2.2.1
@@ -1372,7 +1375,7 @@ importers:
         version: 19.1.0
       react-native:
         specifier: 0.79.5
-        version: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0)
+        version: 0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0)
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -13927,6 +13930,17 @@ packages:
     resolution: {integrity: sha512-D3YaD0aRxR3mEcqnidIs7ReYJFVzWdd6fXJYUM8ixcQcJRGTka/b3saV0KflYhyVJXKhb947GndU35SxYNResQ==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
+  sonner-native@0.22.2:
+    resolution: {integrity: sha512-yboVB3EWPyEs8w3nC+mKio3Tr5uMEHVCGi5ko4ibemNEVxNKpZ4nIM0zMTTrh4R0Ihm3n11unDJN8K44eXZLlw==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+      react-native-gesture-handler: '>=2.16.1'
+      react-native-reanimated: '>=3.10.1'
+      react-native-safe-area-context: '>=4.10.5'
+      react-native-screens: '>=3.31.1'
+      react-native-svg: '>=15.6.0'
+
   sonner@2.0.7:
     resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
     peerDependencies:
@@ -16157,7 +16171,7 @@ snapshots:
       '@babel/traverse': 7.27.4
       '@babel/types': 7.27.6
       convert-source-map: 2.0.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@10.0.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -17251,7 +17265,7 @@ snapshots:
       '@babel/parser': 7.27.5
       '@babel/template': 7.27.2
       '@babel/types': 7.27.6
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@10.0.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -17264,7 +17278,7 @@ snapshots:
       '@babel/parser': 7.28.0
       '@babel/template': 7.27.2
       '@babel/types': 7.28.1
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@10.0.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -20884,15 +20898,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
-  '@react-native/virtualized-lists@0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      invariant: 2.2.4
-      nullthrows: 1.1.1
-      react: 19.1.0
-      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0)
-    optionalDependencies:
-      '@types/react': 19.2.5
-
   '@react-native/virtualized-lists@0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)':
     dependencies:
       invariant: 2.2.4
@@ -23936,10 +23941,6 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.4.1:
-    dependencies:
-      ms: 2.1.3
-
   debug@4.4.1(supports-color@10.0.0):
     dependencies:
       ms: 2.1.3
@@ -25883,14 +25884,6 @@ snapshots:
       quick-lru: 5.1.1
       resolve-alpn: 1.2.1
 
-  https-proxy-agent@7.0.6:
-    dependencies:
-      agent-base: 7.1.3
-      debug: 4.4.3
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
-
   https-proxy-agent@7.0.6(supports-color@10.0.0):
     dependencies:
       agent-base: 7.1.3
@@ -26486,7 +26479,7 @@ snapshots:
       decimal.js: 10.6.0
       html-encoding-sniffer: 4.0.0
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
+      https-proxy-agent: 7.0.6(supports-color@10.0.0)
       is-potential-custom-element-name: 1.0.1
       parse5: 8.0.0
       saxes: 6.0.0
@@ -30169,54 +30162,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0):
-    dependencies:
-      '@jest/create-cache-key-function': 29.7.0
-      '@react-native/assets-registry': 0.79.5
-      '@react-native/codegen': 0.79.5(@babel/core@7.26.0)
-      '@react-native/community-cli-plugin': 0.79.5
-      '@react-native/gradle-plugin': 0.79.5
-      '@react-native/js-polyfills': 0.79.5
-      '@react-native/normalize-colors': 0.79.5
-      '@react-native/virtualized-lists': 0.79.5(@types/react@19.2.5)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.2.5)(react@19.1.0))(react@19.1.0)
-      abort-controller: 3.0.0
-      anser: 1.4.10
-      ansi-regex: 5.0.1
-      babel-jest: 29.7.0(@babel/core@7.26.0)
-      babel-plugin-syntax-hermes-parser: 0.25.1
-      base64-js: 1.5.1
-      chalk: 4.1.2
-      commander: 12.1.0
-      event-target-shim: 5.0.1
-      flow-enums-runtime: 0.0.6
-      glob: 7.2.3
-      invariant: 2.2.4
-      jest-environment-node: 29.7.0
-      memoize-one: 5.2.1
-      metro-runtime: 0.82.5
-      metro-source-map: 0.82.5
-      nullthrows: 1.1.1
-      pretty-format: 29.7.0
-      promise: 8.3.0
-      react: 19.1.0
-      react-devtools-core: 6.1.5
-      react-refresh: 0.14.2
-      regenerator-runtime: 0.13.11
-      scheduler: 0.25.0
-      semver: 7.7.3
-      stacktrace-parser: 0.1.11
-      whatwg-fetch: 3.6.20
-      ws: 6.2.3
-      yargs: 17.7.2
-    optionalDependencies:
-      '@types/react': 19.2.5
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@react-native-community/cli'
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
   react-native@0.79.5(@babel/core@7.28.0)(@types/react@19.2.5)(react@19.1.0):
     dependencies:
       '@jest/create-cache-key-function': 29.7.0
@@ -31377,6 +31322,16 @@ snapshots:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
 
+  sonner-native@0.22.2(react-native-gesture-handler@2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-reanimated@3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-safe-area-context@5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-screens@4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native-svg@15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0))(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-native: 0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0)
+      react-native-gesture-handler: 2.24.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-reanimated: 3.18.0(@babel/core@7.26.0)(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-safe-area-context: 5.4.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-screens: 4.11.1(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+      react-native-svg: 15.12.0(react-native@0.79.5(@babel/core@7.26.0)(@types/react@19.1.8)(react@19.1.0))(react@19.1.0)
+
   sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       react: 19.1.0
@@ -32398,7 +32353,7 @@ snapshots:
   vite-node@3.2.4(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@10.0.0)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)
@@ -32448,7 +32403,7 @@ snapshots:
 
   vite-tsconfig-paths@4.3.2(typescript@5.9.3)(vite@7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)):
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@10.0.0)
       globrex: 0.1.2
       tsconfck: 3.1.6(typescript@5.9.3)
     optionalDependencies:
@@ -32486,7 +32441,7 @@ snapshots:
       '@vitest/spy': 3.2.4
       '@vitest/utils': 3.2.4
       chai: 5.2.1
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@10.0.0)
       expect-type: 1.2.2
       magic-string: 0.30.17
       pathe: 2.0.3

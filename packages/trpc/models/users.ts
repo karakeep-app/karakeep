@@ -872,12 +872,22 @@ export class User {
   }
 
   async hasWrapped(): Promise<boolean> {
+    // Check for bookmarks created in 2025
+    const yearStart = new Date("2025-01-01T00:00:00Z");
+    const yearEnd = new Date("2025-12-31T23:59:59Z");
+
     const [{ numBookmarks }] = await this.ctx.db
       .select({
         numBookmarks: count(bookmarks.id),
       })
       .from(bookmarks)
-      .where(eq(bookmarks.userId, this.user.id));
+      .where(
+        and(
+          eq(bookmarks.userId, this.user.id),
+          gte(bookmarks.createdAt, yearStart),
+          lte(bookmarks.createdAt, yearEnd),
+        ),
+      );
 
     return numBookmarks >= 20;
   }
