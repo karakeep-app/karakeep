@@ -35,7 +35,7 @@ export function BookmarkMarkdownComponent({
   };
 
   return (
-    <div className="h-full py-5 flex flex-col min-h-full items-center justify-center">
+    <div className="h-full">
       {readOnly ? (
         <MarkdownReadonly onSave={onSave}>
           {bookmark.content.text}
@@ -48,3 +48,4 @@ export function BookmarkMarkdownComponent({
     </div>
   );
 }
+
