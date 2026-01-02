@@ -13,6 +13,8 @@ export default function TagView() {
   }
 
   const { data: tag, error, refetch } = api.tags.get.useQuery({ tagId: slug });
+  const { data: userSettings } = api.users.settings.useQuery();
+  const showArchived = userSettings?.archiveDisplayBehaviour === "show";
 
   return (
     <CustomSafeAreaView>
@@ -31,6 +33,7 @@ export default function TagView() {
           <UpdatingBookmarkList
             query={{
               tagId: tag.id,
+              archived: showArchived ? undefined : false,
             }}
           />
         </View>

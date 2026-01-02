@@ -21,6 +21,8 @@ export default function ListView() {
     error,
     refetch,
   } = api.lists.get.useQuery({ listId: slug });
+  const { data: userSettings } = api.users.settings.useQuery();
+  const showArchived = userSettings?.archiveDisplayBehaviour === "show";
 
   return (
     <CustomSafeAreaView>
@@ -41,6 +43,7 @@ export default function ListView() {
           <UpdatingBookmarkList
             query={{
               listId: list.id,
+              archived: showArchived ? undefined : false,
             }}
           />
         </View>

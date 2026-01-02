@@ -75,10 +75,13 @@ function HeaderRight({
 }
 
 export default function Home() {
+  const { data: userSettings } = api.users.settings.useQuery();
+  const showArchived = userSettings?.archiveDisplayBehaviour === "show";
+
   return (
     <CustomSafeAreaView>
       <UpdatingBookmarkList
-        query={{ archived: false }}
+        query={{ archived: showArchived ? undefined : false }}
         header={
           <View className="flex flex-col gap-1">
             <View className="flex flex-row justify-between">
