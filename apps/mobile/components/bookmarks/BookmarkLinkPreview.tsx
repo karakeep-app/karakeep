@@ -67,7 +67,8 @@ function buildReadingProgressScript(
           window.ReactNativeWebView.postMessage(JSON.stringify({
             type: 'SCROLL_PROGRESS',
             offset: position.offset,
-            anchor: position.anchor
+            anchor: position.anchor,
+            percent: position.percent
           }));
         }
       }
@@ -133,9 +134,11 @@ export function BookmarkLinkReaderPreview({
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
   const lastSavedOffset = useRef<number | null>(null);
-  const currentPosition = useRef<{ offset: number; anchor: string } | null>(
-    null,
-  );
+  const currentPosition = useRef<{
+    offset: number;
+    anchor: string;
+    percent: number;
+  } | null>(null);
 
   const {
     data: bookmarkWithContent,
@@ -162,7 +165,7 @@ export function BookmarkLinkReaderPreview({
   const saveProgress = useCallback(() => {
     if (currentPosition.current === null) return;
 
-    const { offset, anchor } = currentPosition.current;
+    const { offset, anchor, percent } = currentPosition.current;
 
     // Only save if offset has changed
     if (lastSavedOffset.current !== offset) {
@@ -171,6 +174,7 @@ export function BookmarkLinkReaderPreview({
         bookmarkId: bookmark.id,
         readingProgressOffset: offset,
         readingProgressAnchor: anchor,
+        readingProgressPercent: percent,
       });
     }
   }, [bookmark.id, updateProgress]);
@@ -183,6 +187,7 @@ export function BookmarkLinkReaderPreview({
         currentPosition.current = {
           offset: data.offset,
           anchor: typeof data.anchor === "string" ? data.anchor : "",
+          percent: typeof data.percent === "number" ? data.percent : 0,
         };
       }
     } catch (error) {

@@ -190,6 +190,7 @@ export class Bookmark extends BareBookmark {
         // Reading progress is fetched separately per-user in getBookmark
         readingProgressOffset: null,
         readingProgressAnchor: null,
+        readingProgressPercent: null,
       };
     }
     if (bookmark.text) {
@@ -477,6 +478,7 @@ export class Bookmark extends BareBookmark {
               // Reading progress is fetched separately per-user in getBookmark
               readingProgressOffset: null,
               readingProgressAnchor: null,
+              readingProgressPercent: null,
             };
           } else if (row.bookmarkTexts) {
             content = {
