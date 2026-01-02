@@ -5,6 +5,7 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { useArchiveFilter } from "@/lib/hooks";
 import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
 import { Ellipsis } from "lucide-react-native";
@@ -21,8 +22,7 @@ export default function ListView() {
     error,
     refetch,
   } = api.lists.get.useQuery({ listId: slug });
-  const { data: userSettings } = api.users.settings.useQuery();
-  const showArchived = userSettings?.archiveDisplayBehaviour === "show";
+  const archived = useArchiveFilter();
 
   return (
     <CustomSafeAreaView>
@@ -43,7 +43,7 @@ export default function ListView() {
           <UpdatingBookmarkList
             query={{
               listId: list.id,
-              archived: showArchived ? undefined : false,
+              archived,
             }}
           />
         </View>

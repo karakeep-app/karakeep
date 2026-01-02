@@ -2,6 +2,7 @@ import { ImageURISource } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 
 import useAppSettings from "./settings";
+import { api } from "./trpc";
 import { buildApiHeaders } from "./utils";
 
 export function useAssetUrl(assetId: string): ImageURISource {
@@ -32,4 +33,13 @@ export function useServerVersion() {
     enabled: !!settings.address,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+}
+
+/**
+ * Hook to determine the appropriate archived filter value based on user settings.
+ * Returns `false` to hide archived bookmarks, or `undefined` to show all bookmarks.
+ */
+export function useArchiveFilter(): boolean | undefined {
+  const { data: userSettings } = api.users.settings.useQuery();
+  return userSettings?.archiveDisplayBehaviour === "show" ? undefined : false;
 }

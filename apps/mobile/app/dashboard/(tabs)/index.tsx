@@ -8,6 +8,7 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import PageTitle from "@/components/ui/PageTitle";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useArchiveFilter } from "@/lib/hooks";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { MenuView } from "@react-native-menu/menu";
@@ -75,13 +76,12 @@ function HeaderRight({
 }
 
 export default function Home() {
-  const { data: userSettings } = api.users.settings.useQuery();
-  const showArchived = userSettings?.archiveDisplayBehaviour === "show";
+  const archived = useArchiveFilter();
 
   return (
     <CustomSafeAreaView>
       <UpdatingBookmarkList
-        query={{ archived: showArchived ? undefined : false }}
+        query={{ archived }}
         header={
           <View className="flex flex-col gap-1">
             <View className="flex flex-row justify-between">
