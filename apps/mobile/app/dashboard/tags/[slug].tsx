@@ -4,6 +4,7 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { useArchiveFilter } from "@/lib/hooks";
 import { api } from "@/lib/trpc";
 
 export default function TagView() {
@@ -13,6 +14,7 @@ export default function TagView() {
   }
 
   const { data: tag, error, refetch } = api.tags.get.useQuery({ tagId: slug });
+  const archived = useArchiveFilter();
 
   return (
     <CustomSafeAreaView>
@@ -31,6 +33,7 @@ export default function TagView() {
           <UpdatingBookmarkList
             query={{
               tagId: tag.id,
+              archived,
             }}
           />
         </View>
