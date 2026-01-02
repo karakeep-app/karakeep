@@ -44,7 +44,16 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "permissions": ["storage", "tabs", "contextMenus"],
+  "permissions": ["storage", "tabs", "contextMenus", "activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content-scripts/singlefile-content-script.ts"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
   "commands": {
     "add-link": {
       "suggested_key": {
