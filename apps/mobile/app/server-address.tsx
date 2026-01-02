@@ -94,6 +94,7 @@ export default function ServerAddress() {
       <Stack.Screen
         options={{
           title: "Server Address",
+          headerTransparent: false,
           headerRight: () => (
             <Pressable onPress={handleSave}>
               <Text className="text-base font-semibold text-blue-500">
