@@ -6,6 +6,7 @@ import {
   getAssetSize,
   readAssetMetadata,
 } from "@karakeep/shared/assetdb";
+import serverConfig from "@karakeep/shared/config";
 
 import { toWebReadableStream } from "./upload";
 
@@ -26,21 +27,25 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
   c.header("Content-type", metadata.contentType);
   c.header("X-Content-Type-Options", "nosniff");
   c.header("Cache-Control", "private, max-age=31536000, immutable");
-  c.header(
-    "Content-Security-Policy",
-    [
-      "sandbox",
-      "default-src 'none'",
-      "base-uri 'none'",
-      "form-action 'none'",
-      "img-src https: data: blob:",
-      "style-src 'unsafe-inline' https:",
-      "connect-src 'none'",
-      "media-src https: data: blob:",
-      "object-src 'none'",
-      "frame-src 'none'",
-    ].join("; "),
-  );
+
+  // Only set CSP headers if not disabled
+  if (!serverConfig.security.disableCspHeaders) {
+    c.header(
+      "Content-Security-Policy",
+      [
+        "sandbox",
+        "default-src 'none'",
+        "base-uri 'none'",
+        "form-action 'none'",
+        "img-src https: data: blob:",
+        "style-src 'unsafe-inline' https:",
+        "connect-src 'none'",
+        "media-src https: data: blob:",
+        "object-src 'none'",
+        "frame-src 'none'",
+      ].join("; "),
+    );
+  }
 
   const range = c.req.header("Range");
   if (range) {

@@ -212,6 +212,9 @@ const allEnv = z.object({
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
 
+  // Security configuration
+  DISABLE_CSP_HEADERS: stringBool("false"),
+
   // OpenTelemetry tracing configuration
   OTEL_TRACING_ENABLED: stringBool("false"),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
@@ -418,6 +421,9 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     database: {
       walMode: val.DB_WAL_MODE,
+    },
+    security: {
+      disableCspHeaders: val.DISABLE_CSP_HEADERS,
     },
     tracing: {
       enabled: val.OTEL_TRACING_ENABLED,
