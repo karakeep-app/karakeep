@@ -67,7 +67,10 @@ export function MarkdownReadonly({
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
-      className={cn("prose dark:prose-invert", className)}
+      className={cn(
+        "prose min-w-full flex-1 items-center justify-center px-1 py-2 dark:prose-invert",
+        className,
+      )}
       components={{
         input: (props) =>
           props.type === "checkbox" ? (
