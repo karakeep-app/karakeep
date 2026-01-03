@@ -274,8 +274,14 @@ export class OpenAIInferenceClient implements InferenceClient {
       top_p: 1,
     };
 
-    // GPT-5 models support reasoning effort
-    if (model.startsWith("gpt-5")) {
+    // GPT-5 and o-series models support reasoning effort
+    // Note: o-series models default to "medium" and don't support "none"
+    if (
+      model.startsWith("gpt-5") ||
+      model.startsWith("o1") ||
+      model.startsWith("o3") ||
+      model.startsWith("o4")
+    ) {
       requestObj.reasoning = {
         effort:
           opts.reasoningEffort ||

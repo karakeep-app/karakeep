@@ -192,7 +192,7 @@
       "all_tagging": "Sve oznake",
       "provider_status": "Status pružatelja",
       "provider_status_description": "AI pružatelj i modeli trenutno konfigurirani za ovu instancu.",
-      "no_provider_configured": "Nije konfiguriran nijedan AI pružatelj. Kontaktirajte svog administratora za postavljanje AI inferencije.",
+      "no_provider_configured": "Nije konfiguriran nijedan AI pružatelj. Kontaktirajte svog administratora za postavljanje AI zaključivanja.",
       "provider": "Pružatelj",
       "text_model": "Tekstualni model",
       "image_model": "Model slike",
