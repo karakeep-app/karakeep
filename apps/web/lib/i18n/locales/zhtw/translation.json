@@ -190,7 +190,14 @@
       "tag_style_description": "選擇自動產生的標籤應如何格式化。",
       "auto_tagging_description": "使用 AI 自動為你的書籤產生標籤。",
       "camelCase": "駝峰式大小寫",
-      "auto_summarization": "自動摘要"
+      "auto_summarization": "自動摘要",
+      "provider_status": "提供者狀態",
+      "provider_status_description": "目前為此實例配置的 AI 提供者和模型。",
+      "no_provider_configured": "未配置 AI 提供者。請聯繫您的管理員設定 AI 推論。",
+      "provider": "提供者",
+      "text_model": "文字模型",
+      "image_model": "圖片模型",
+      "embeddings": "嵌入"
     },
     "feeds": {
       "rss_subscriptions": "RSS 訂閱",

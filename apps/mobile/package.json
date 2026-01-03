@@ -63,7 +63,7 @@
     "react-native-webview": "^13.13.5",
     "sonner-native": "^0.22.2",
     "tailwind-merge": "^2.2.1",
-    "zod": "^3.24.2",
+    "zod": "^3.25.0",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

@@ -5,7 +5,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@aws-sdk/client-s3": "^3.842.0",
+    "@google/genai": "^1.34.0",
     "glob": "^11.0.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
@@ -14,7 +16,7 @@
     "openai": "^4.86.1",
     "typescript-parsec": "^0.3.4",
     "winston": "^3.11.0",
-    "zod": "^3.24.2",
+    "zod": "^3.25.0",
     "zod-to-json-schema": "^3.24.3"
   },
   "devDependencies": {

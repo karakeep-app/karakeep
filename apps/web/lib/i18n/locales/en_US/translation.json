@@ -286,7 +286,14 @@
       "tag_style_description": "Choose how your auto-generated tags should be formatted.",
       "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Auto-summarization"
+      "auto_summarization": "Auto-summarization",
+      "provider_status": "Provider Status",
+      "provider_status_description": "The AI provider and models currently configured for this instance.",
+      "no_provider_configured": "No AI provider is configured. Contact your administrator to set up AI inference.",
+      "provider": "Provider",
+      "text_model": "Text Model",
+      "image_model": "Image Model",
+      "embeddings": "Embeddings"
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",

@@ -20,7 +20,8 @@
     "lint:fix": "turbo --no-daemon lint:fix --continue",
     "typecheck": "turbo --no-daemon typecheck",
     "preflight": "turbo run --no-daemon typecheck lint format",
-    "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix"
+    "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix",
+    "inference:live-test": "pnpm --filter @karakeep/shared exec tsx inference/live-test.ts"
   },
   "dependencies": {
     "husky": "^9.0.11"

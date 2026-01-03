@@ -205,7 +205,14 @@
       "tag_style_description": "Odaberi kako će tvoje automatski generirane oznake biti formatirane.",
       "auto_tagging_description": "Automatski generiraj oznake za svoje knjižne oznake pomoću AI-ja.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatsko sažimanje"
+      "auto_summarization": "Automatsko sažimanje",
+      "provider_status": "Status pružatelja",
+      "provider_status_description": "AI pružatelj i modeli trenutno konfigurirani za ovu instancu.",
+      "no_provider_configured": "Nije konfiguriran nijedan AI pružatelj. Kontaktirajte svog administratora za postavljanje AI zaključivanja.",
+      "provider": "Pružatelj",
+      "text_model": "Tekstualni model",
+      "image_model": "Model slike",
+      "embeddings": "Ugradnje"
     },
     "import": {
       "import_bookmarks_from_html_file": "Import knjižnih oznaka iz HTML datoteke",

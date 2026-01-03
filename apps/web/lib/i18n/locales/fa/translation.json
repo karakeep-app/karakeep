@@ -244,7 +244,14 @@
       "tag_style_description": "انتخاب کنید که برچسب‌های تولیدشده خودکار شما چگونه قالب‌بندی شوند.",
       "auto_tagging_description": "به‌طور خودکار با استفاده از هوش مصنوعی برای نشانک‌هایت برچسب تولید کن.",
       "camelCase": "camelCase",
-      "auto_summarization": "خلاصه‌سازی خودکار"
+      "auto_summarization": "خلاصه‌سازی خودکار",
+      "provider_status": "وضعیت ارائه‌دهنده",
+      "provider_status_description": "ارائه‌دهنده هوش مصنوعی و مدل‌های پیکربندی شده برای این نمونه.",
+      "no_provider_configured": "هیچ ارائه‌دهنده هوش مصنوعی پیکربندی نشده است. برای راه‌اندازی استنتاج هوش مصنوعی با مدیر خود تماس بگیرید.",
+      "provider": "ارائه‌دهنده",
+      "text_model": "مدل متن",
+      "image_model": "مدل تصویر",
+      "embeddings": "جاسازی‌ها"
     },
     "feeds": {
       "feed_enabled": "خوراک RSS فعال شد",

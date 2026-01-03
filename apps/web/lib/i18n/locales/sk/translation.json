@@ -284,7 +284,14 @@
       "tag_style_description": "Vyber si, ako majú byť formátované automaticky generované tagy.",
       "auto_tagging_description": "Automaticky generujte štítky pre vaše záložky pomocou AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatické zhrnutie"
+      "auto_summarization": "Automatické zhrnutie",
+      "provider_status": "Stav poskytovateľa",
+      "provider_status_description": "Poskytovateľ AI a modely aktuálne nakonfigurované pre túto inštanciu.",
+      "no_provider_configured": "Nie je nakonfigurovaný žiadny poskytovateľ AI. Kontaktujte administrátora pre nastavenie AI inferencie.",
+      "provider": "Poskytovateľ",
+      "text_model": "Textový model",
+      "image_model": "Obrazový model",
+      "embeddings": "Vkladania"
     },
     "webhooks": {
       "add_auth_token": "Pridať autorizačný token",

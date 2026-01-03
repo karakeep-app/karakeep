@@ -193,7 +193,14 @@
       "tag_style_description": "اختر كيف ينبغي تنسيق علاماتك التي تم إنشاؤها تلقائيًا.",
       "auto_tagging_description": "إنشاء علامات تلقائيًا لعلاماتك المرجعية باستخدام الذكاء الاصطناعي.",
       "camelCase": "camelCase",
-      "auto_summarization": "التلخيص التلقائي"
+      "auto_summarization": "التلخيص التلقائي",
+      "provider_status": "حالة المزود",
+      "provider_status_description": "مزود الذكاء الاصطناعي والنماذج المكونة حاليًا لهذا المثيل.",
+      "no_provider_configured": "لم يتم تكوين مزود للذكاء الاصطناعي. اتصل بالمسؤول لإعداد استدلال الذكاء الاصطناعي.",
+      "provider": "المزود",
+      "text_model": "نموذج النص",
+      "image_model": "نموذج الصورة",
+      "embeddings": "التضمينات"
     },
     "feeds": {
       "rss_subscriptions": "اشتراكات RSS",

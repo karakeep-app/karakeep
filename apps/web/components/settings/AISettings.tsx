@@ -44,7 +44,7 @@ import { api } from "@/lib/trpc";
 import { useUserSettings } from "@/lib/userSettings";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Plus, Save, Trash2 } from "lucide-react";
+import { Bot, Cpu, Image, Info, Plus, Save, Trash2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -79,6 +79,98 @@ function SettingsSection({
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  );
+}
+
+const providerDisplayNames: Record<string, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic Claude",
+  google: "Google Gemini",
+  ollama: "Ollama (Local)",
+};
+
+function ProviderInfoItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className="flex h-8 w-8 items-center justify-center rounded-md bg-muted"
+        aria-hidden="true"
+      >
+        {icon}
+      </div>
+      <div className="flex flex-col">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-sm font-medium">{value}</span>
+      </div>
+    </div>
+  );
+}
+
+export function ProviderIndicator() {
+  const { t } = useTranslation();
+  const clientConfig = useClientConfig();
+
+  const { provider, textModel, imageModel, embeddingProvider, embeddingModel } =
+    clientConfig.inference;
+
+  if (!provider) {
+    return (
+      <SettingsSection title={t("settings.ai.provider_status")}>
+        <div className="flex items-start gap-2 rounded-md bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          <Info className="size-4 flex-shrink-0" />
+          <p>{t("settings.ai.no_provider_configured")}</p>
+        </div>
+      </SettingsSection>
+    );
+  }
+
+  const providerName = providerDisplayNames[provider] ?? provider;
+  const embeddingProviderName = embeddingProvider
+    ? (providerDisplayNames[embeddingProvider] ?? embeddingProvider)
+    : null;
+
+  return (
+    <SettingsSection
+      title={t("settings.ai.provider_status")}
+      description={t("settings.ai.provider_status_description")}
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ProviderInfoItem
+          icon={<Bot className="size-4 text-muted-foreground" />}
+          label={t("settings.ai.provider")}
+          value={providerName}
+        />
+        {providerName && textModel && (
+          <ProviderInfoItem
+            icon={<Cpu className="size-4 text-muted-foreground" />}
+            label={t("settings.ai.text_model")}
+            value={textModel}
+          />
+        )}
+        {providerName && imageModel && (
+          <ProviderInfoItem
+            icon={<Image className="size-4 text-muted-foreground" />}
+            label={t("settings.ai.image_model")}
+            value={imageModel}
+          />
+        )}
+        {embeddingProviderName && embeddingModel && (
+          <ProviderInfoItem
+            icon={<Cpu className="size-4 text-muted-foreground" />}
+            label={t("settings.ai.embeddings")}
+            value={`${embeddingProviderName} / ${embeddingModel}`}
+          />
+        )}
+      </div>
+    </SettingsSection>
   );
 }
 
@@ -676,6 +768,9 @@ export default function AISettings() {
       <h2 className="text-3xl font-bold tracking-tight">
         {t("settings.ai.ai_settings")}
       </h2>
+
+      {/* Provider Status */}
+      <ProviderIndicator />
 
       {/* AI Preferences */}
       <AIPreferences />

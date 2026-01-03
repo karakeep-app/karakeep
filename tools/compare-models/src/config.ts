@@ -24,11 +24,6 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? parseInt(val, 10) : 2048)),
-  INFERENCE_USE_MAX_COMPLETION_TOKENS: z
-    .string()
-    .optional()
-    .transform((val) => val === "true")
-    .default("false"),
 });
 
 export const config = envSchema.parse(process.env);

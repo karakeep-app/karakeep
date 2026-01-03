@@ -41,6 +41,6 @@
     "@karakeep/sdk": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.9.0",
     "turndown": "^7.2.0",
-    "zod": "^3.24.2"
+    "zod": "^3.25.0"
   }
 }
