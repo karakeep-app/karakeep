@@ -555,11 +555,14 @@
         }
       },
       "actions": {
+        "recrawl_pending_links_only": "Recrawl Pending Links Only",
         "recrawl_failed_links_only": "Recrawl Failed Links Only",
         "recrawl_all_links": "Recrawl All Links",
         "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
         "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerate AI Summaries for Pending Bookmarks Only",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",

@@ -201,7 +201,7 @@ export const adminAppRouter = router({
   recrawlLinks: adminProcedure
     .input(
       z.object({
-        crawlStatus: z.enum(["success", "failure", "all"]),
+        crawlStatus: z.enum(["success", "failure", "pending", "all"]),
         runInference: z.boolean(),
       }),
     )
@@ -255,7 +255,7 @@ export const adminAppRouter = router({
     .input(
       z.object({
         type: z.enum(["tag", "summarize"]),
-        status: z.enum(["success", "failure", "all"]),
+        status: z.enum(["success", "failure", "pending", "all"]),
       }),
     )
     .mutation(async ({ input, ctx }) => {
