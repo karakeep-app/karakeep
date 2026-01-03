@@ -8,6 +8,7 @@ const envSchema = z.object({
   MODEL2_NAME: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1),
   OPENAI_BASE_URL: z.string().url().optional(),
+  OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
   COMPARISON_MODE: z
     .enum(["model-vs-model", "model-vs-existing"])
     .default("model-vs-model"),

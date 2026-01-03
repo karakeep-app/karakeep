@@ -11,6 +11,7 @@ export function createInferenceClient(modelName: string): InferenceClient {
   const inferenceConfig: OpenAIInferenceConfig = {
     apiKey: config.OPENAI_API_KEY,
     baseURL: config.OPENAI_BASE_URL,
+    serviceTier: config.OPENAI_SERVICE_TIER,
     textModel: modelName,
     imageModel: modelName, // Use same model for images if needed
     contextLength: config.INFERENCE_CONTEXT_LENGTH,
