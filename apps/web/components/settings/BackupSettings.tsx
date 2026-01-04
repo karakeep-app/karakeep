@@ -196,8 +196,8 @@ function BackupConfigurationForm() {
             type="submit"
             loading={isUpdating}
             className="items-center"
+            icon={<Save className="mr-2 size-4" />}
           >
-            <Save className="mr-2 size-4" />
             {t("settings.backups.configuration.save_settings")}
           </ActionButton>
         </form>
@@ -314,8 +314,8 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
               onClick={() => deleteBackup({ backupId: backup.id })}
               className="items-center"
               type="button"
+              icon={<Trash2 className="mr-2 size-4" />}
             >
-              <Trash2 className="mr-2 size-4" />
               {t("settings.backups.list.actions.delete_backup")}
             </ActionButton>
           )}
@@ -370,8 +370,8 @@ function BackupsList() {
             loading={isTriggering}
             variant="default"
             className="items-center"
+            icon={<Play className="mr-2 size-4" />}
           >
-            <Play className="mr-2 size-4" />
             {t("settings.backups.list.create_backup_now")}
           </ActionButton>
         </div>

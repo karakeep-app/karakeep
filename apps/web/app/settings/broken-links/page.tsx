@@ -105,8 +105,8 @@ export default function BrokenLinksPage() {
                       loading={isRecrawling}
                       onClick={() => recrawlBookmark({ bookmarkId: b.id })}
                       className="flex items-center gap-2"
+                      icon={<RefreshCw className="size-4" />}
                     >
-                      <RefreshCw className="size-4" />
                       {t("actions.recrawl")}
                     </ActionButton>
                     <ActionButton
@@ -114,8 +114,8 @@ export default function BrokenLinksPage() {
                       onClick={() => deleteBookmark({ bookmarkId: b.id })}
                       loading={isDeleting}
                       className="flex items-center gap-2"
+                      icon={<Trash2 className="size-4" />}
                     >
-                      <Trash2 className="size-4" />
                       {t("actions.delete")}
                     </ActionButton>
                   </TableCell>

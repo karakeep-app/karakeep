@@ -431,8 +431,8 @@ export function PromptEditor() {
           loading={isCreating}
           variant="default"
           className="items-center"
+          icon={<Plus className="mr-2 size-4" />}
         >
-          <Plus className="mr-2 size-4" />
           {t("actions.add")}
         </ActionButton>
       </form>
@@ -554,8 +554,8 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
           variant="secondary"
           type="submit"
           className="items-center"
+          icon={<Save className="mr-2 size-4" />}
         >
-          <Save className="mr-2 size-4" />
           {t("actions.save")}
         </ActionButton>
         <ActionButton
@@ -564,8 +564,8 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
           onClick={() => deletePrompt({ promptId: prompt.id })}
           className="items-center"
           type="button"
+          icon={<Trash2 className="mr-2 size-4" />}
         >
-          <Trash2 className="mr-2 size-4" />
           {t("actions.delete")}
         </ActionButton>
       </form>

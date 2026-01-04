@@ -180,8 +180,8 @@ export function FeedsEditorDialog() {
             loading={isCreating}
             variant="default"
             className="items-center"
+            icon={<Plus className="mr-2 size-4" />}
           >
-            <Plus className="mr-2 size-4" />
             Add
           </ActionButton>
         </DialogFooter>
@@ -328,8 +328,8 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
             })}
             type="submit"
             className="items-center"
+            icon={<Save className="mr-2 size-4" />}
           >
-            <Save className="mr-2 size-4" />
             {t("actions.save")}
           </ActionButton>
         </DialogFooter>
@@ -424,9 +424,8 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
               variant="ghost"
               className="items-center"
               onClick={() => fetchNow({ feedId: feed.id })}
-            >
-              <ArrowDownToLine className="size-4" />
-            </ActionButton>
+              icon={<ArrowDownToLine className="size-4" />}
+            />
           </TooltipTrigger>
           <TooltipContent>{t("actions.fetch_now")}</TooltipContent>
         </Tooltip>
@@ -440,8 +439,8 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
               onClick={() => deleteFeed({ feedId: feed.id })}
               className="items-center"
               type="button"
+              icon={<Trash2 className="mr-2 size-4" />}
             >
-              <Trash2 className="mr-2 size-4" />
               {t("actions.delete")}
             </ActionButton>
           )}

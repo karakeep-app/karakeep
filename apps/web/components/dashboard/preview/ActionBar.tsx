@@ -83,9 +83,8 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
                 favourited: !bookmark.favourited,
               });
             }}
-          >
-            <FavouritedActionIcon favourited={bookmark.favourited} />
-          </ActionButton>
+            icon={<FavouritedActionIcon favourited={bookmark.favourited} />}
+          />
         </TooltipTrigger>
         <TooltipContent side="bottom">
           {bookmark.favourited
@@ -105,9 +104,8 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
                 archived: !bookmark.archived,
               });
             }}
-          >
-            <ArchivedActionIcon archived={bookmark.archived} />
-          </ActionButton>
+            icon={<ArchivedActionIcon archived={bookmark.archived} />}
+          />
         </TooltipTrigger>
         <TooltipContent side="bottom">
           {bookmark.archived ? t("actions.unarchive") : t("actions.archive")}
