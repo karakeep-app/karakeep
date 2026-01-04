@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState, Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
-import WebView from "react-native-webview";
+import WebView, { WebViewMessageEvent } from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
@@ -10,6 +10,7 @@ import { api } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { READING_PROGRESS_WEBVIEW_JS } from "@karakeep/shared/utils/reading-progress-webview.generated";
 
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
@@ -32,6 +33,73 @@ export function BookmarkLinkBrowserPreview({
       source={{ uri: bookmark.content.url }}
     />
   );
+}
+
+/**
+ * Builds the reading progress injection script for WebView.
+ *
+ * Uses shared reading progress functions from @karakeep/shared to ensure
+ * consistent behavior between web and mobile. The shared code includes
+ * whitespace normalization and anchor text support for reliable position tracking.
+ *
+ * @param initialOffset - The saved reading position offset to restore
+ * @param initialAnchor - The saved anchor text for position verification
+ * @returns JavaScript string to inject into WebView
+ */
+function buildReadingProgressScript(
+  initialOffset: number,
+  initialAnchor: string | null,
+): string {
+  return `
+    (function() {
+      // Core reading progress functions from @karakeep/shared (bundled IIFE)
+      // These are shared with the web implementation for consistency
+      ${READING_PROGRESS_WEBVIEW_JS}
+
+      // Extract functions from the IIFE global
+      var getReadingPosition = __readingProgress.getReadingPosition;
+      var scrollToReadingPosition = __readingProgress.scrollToReadingPosition;
+
+      // Report current position to React Native
+      function reportProgress() {
+        var position = getReadingPosition(document.body);
+        if (position && position.offset > 0) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'SCROLL_PROGRESS',
+            offset: position.offset,
+            anchor: position.anchor,
+            percent: position.percent
+          }));
+        }
+      }
+
+      // Restore position immediately (no setTimeout needed for inline HTML -
+      // DOM is ready when injectedJavaScript runs)
+      var initialOffset = ${initialOffset};
+      var initialAnchor = ${JSON.stringify(initialAnchor)};
+      if (initialOffset && initialOffset > 0) {
+        scrollToReadingPosition(document.body, initialOffset, 'instant', initialAnchor);
+      }
+      // Show content after scroll restoration (or immediately if no scroll needed)
+      document.body.style.opacity = '1';
+
+      // Report on scroll (throttled to prevent jank from expensive DOM operations)
+      var lastScrollTime = 0;
+      window.addEventListener('scroll', function() {
+        var now = Date.now();
+        if (now - lastScrollTime < 150) {
+          return;
+        }
+        lastScrollTime = now;
+        reportProgress();
+      });
+
+      // Also report periodically as backup
+      setInterval(reportProgress, 10000);
+
+      true; // Required for injectedJavaScript
+    })();
+  `;
 }
 
 export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
@@ -65,6 +133,12 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const lastSavedOffset = useRef<number | null>(null);
+  const currentPosition = useRef<{
+    offset: number;
+    anchor: string;
+    percent: number;
+  } | null>(null);
 
   const {
     data: bookmarkWithContent,
@@ -75,6 +149,66 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
     includeContent: true,
   });
+
+  const apiUtils = api.useUtils();
+  const { mutate: updateProgress } =
+    api.bookmarks.updateReadingProgress.useMutation({
+      onSuccess: () => {
+        apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: bookmark.id });
+      },
+      onError: (error) => {
+        console.error("[ReadingProgress] Failed to save progress:", error);
+      },
+    });
+
+  // Save progress function
+  const saveProgress = useCallback(() => {
+    if (currentPosition.current === null) return;
+
+    const { offset, anchor, percent } = currentPosition.current;
+
+    // Only save if offset has changed
+    if (lastSavedOffset.current !== offset) {
+      lastSavedOffset.current = offset;
+      updateProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: offset,
+        readingProgressAnchor: anchor,
+        readingProgressPercent: percent,
+      });
+    }
+  }, [bookmark.id, updateProgress]);
+
+  // Handle messages from WebView
+  const handleMessage = useCallback((event: WebViewMessageEvent) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === "SCROLL_PROGRESS" && typeof data.offset === "number") {
+        currentPosition.current = {
+          offset: data.offset,
+          anchor: typeof data.anchor === "string" ? data.anchor : "",
+          percent: typeof data.percent === "number" ? data.percent : 0,
+        };
+      }
+    } catch (error) {
+      console.warn("[ReadingProgress] Failed to parse WebView message:", error);
+    }
+  }, []);
+
+  // Save on AppState change (app going to background)
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (status) => {
+      if (status === "background" || status === "inactive") {
+        saveProgress();
+      }
+    });
+
+    return () => {
+      // Save on unmount
+      saveProgress();
+      subscription.remove();
+    };
+  }, [saveProgress]);
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -91,6 +225,14 @@ export function BookmarkLinkReaderPreview({
   const fontFamily = WEBVIEW_FONT_FAMILIES[readerSettings.fontFamily];
   const fontSize = readerSettings.fontSize;
   const lineHeight = readerSettings.lineHeight;
+
+  // Get initial position for restoration
+  const initialOffset = bookmarkWithContent.content.readingProgressOffset ?? 0;
+  const initialAnchor =
+    bookmarkWithContent.content.readingProgressAnchor ?? null;
+
+  // Build the reading progress script with initial position
+  const injectedJS = buildReadingProgressScript(initialOffset, initialAnchor);
 
   return (
     <View className="flex-1 bg-background">
@@ -111,6 +253,7 @@ export function BookmarkLinkReaderPreview({
                       margin: 0;
                       padding: 16px;
                       background: ${isDark ? "#000000" : "#ffffff"};
+                      ${initialOffset > 0 ? "opacity: 0;" : ""}
                     }
                     p { margin: 0 0 1em 0; }
                     h1, h2, h3, h4, h5, h6 { margin: 1.5em 0 0.5em 0; line-height: 1.2; }
@@ -156,6 +299,8 @@ export function BookmarkLinkReaderPreview({
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         decelerationRate={0.998}
+        injectedJavaScript={injectedJS}
+        onMessage={handleMessage}
       />
     </View>
   );
