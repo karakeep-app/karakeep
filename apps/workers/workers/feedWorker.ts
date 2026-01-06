@@ -156,9 +156,9 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
   const response = await fetchWithProxy(feed.url, {
     signal: AbortSignal.timeout(5000),
     headers: {
-      UserAgent:
+      "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      Accept: "application/rss+xml",
+      "Accept": "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8"   
     },
   });
   if (response.status !== 200) {
