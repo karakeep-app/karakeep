@@ -58,6 +58,7 @@ Analyze the attached image and suggest relevant tags that describe its key theme
 - If the tag is not generic enough, don't include it.
 - Aim for 10-15 tags.
 - If there are no good tags, don't emit any.
+- You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
 You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
