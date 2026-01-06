@@ -47,7 +47,7 @@ Get all bookmarks
 </Heading>
 
 <ParamsDetails
-  parameters={[{"schema":{"type":"boolean"},"required":false,"name":"archived","in":"query"},{"schema":{"type":"boolean"},"required":false,"name":"favourited","in":"query"},{"schema":{"type":"string","enum":["asc","desc"],"default":"desc"},"required":false,"name":"sortOrder","in":"query"},{"schema":{"type":"number"},"required":false,"name":"limit","in":"query"},{"schema":{"type":"string","title":"Cursor"},"required":false,"name":"cursor","in":"query"},{"schema":{"type":"boolean","default":true,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."},"required":false,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.","name":"includeContent","in":"query"}]}
+  parameters={[{"schema":{"type":"boolean"},"required":false,"name":"archived","in":"query"},{"schema":{"type":"boolean"},"required":false,"name":"favourited","in":"query"},{"schema":{"type":"string","enum":["asc","desc"],"default":"desc"},"required":false,"name":"sortOrder","in":"query"},{"schema":{"type":"number"},"required":false,"name":"limit","in":"query"},{"schema":{"type":"string","title":"Cursor"},"required":false,"name":"cursor","in":"query"},{"schema":{"type":"boolean","default":false,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."},"required":false,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.","name":"includeContent","in":"query"}]}
 >
   
 </ParamsDetails>
