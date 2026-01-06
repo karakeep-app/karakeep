@@ -85,6 +85,7 @@ Analyze the TEXT_CONTENT below and suggest relevant tags that describe its key t
     - Boilerplate content (cookie consent, login walls, GDPR notices)
 - Aim for 3-5 tags.
 - If there are no good tags, leave the array empty.
+- You must respond in JSON with the key "tags" and the value is an array of string tags.
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
 
