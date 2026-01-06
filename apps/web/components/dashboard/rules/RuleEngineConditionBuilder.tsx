@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileType,
+  Heading,
   Link,
   PlusCircle,
   Rss,
@@ -57,6 +58,12 @@ export function ConditionBuilder({
       case "urlDoesNotContain":
         onChange({ type: "urlDoesNotContain", str: "" });
         break;
+      case "titleContains":
+        onChange({ type: "titleContains", str: "" });
+        break;
+      case "titleDoesNotContain":
+        onChange({ type: "titleDoesNotContain", str: "" });
+        break;
       case "importedFromFeed":
         onChange({ type: "importedFromFeed", feedId: "" });
         break;
@@ -93,6 +100,9 @@ export function ConditionBuilder({
       case "urlContains":
       case "urlDoesNotContain":
         return <Link className="h-4 w-4" />;
+      case "titleContains":
+      case "titleDoesNotContain":
+        return <Heading className="h-4 w-4" />;
       case "importedFromFeed":
         return <Rss className="h-4 w-4" />;
       case "bookmarkTypeIs":
@@ -129,6 +139,30 @@ export function ConditionBuilder({
               value={value.str}
               onChange={(e) => onChange({ ...value, str: e.target.value })}
               placeholder="URL does not contain..."
+              className="w-full"
+            />
+          </div>
+        );
+
+      case "titleContains":
+        return (
+          <div className="mt-2">
+            <Input
+              value={value.str}
+              onChange={(e) => onChange({ ...value, str: e.target.value })}
+              placeholder="Title contains..."
+              className="w-full"
+            />
+          </div>
+        );
+
+      case "titleDoesNotContain":
+        return (
+          <div className="mt-2">
+            <Input
+              value={value.str}
+              onChange={(e) => onChange({ ...value, str: e.target.value })}
+              placeholder="Title does not contain..."
               className="w-full"
             />
           </div>
@@ -253,6 +287,12 @@ export function ConditionBuilder({
         </SelectItem>
         <SelectItem value="urlDoesNotContain">
           {t("settings.rules.conditions_types.url_does_not_contain")}
+        </SelectItem>
+        <SelectItem value="titleContains">
+          {t("settings.rules.conditions_types.title_contains")}
+        </SelectItem>
+        <SelectItem value="titleDoesNotContain">
+          {t("settings.rules.conditions_types.title_does_not_contain")}
         </SelectItem>
         <SelectItem value="importedFromFeed">
           {t("settings.rules.conditions_types.imported_from_feed")}

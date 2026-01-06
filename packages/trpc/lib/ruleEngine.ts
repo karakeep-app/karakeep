@@ -90,6 +90,12 @@ export class RuleEngine {
           !(this.bookmark.link?.url ?? "").includes(condition.str)
         );
       }
+      case "titleContains": {
+        return (this.bookmark.title ?? "").includes(condition.str);
+      }
+      case "titleDoesNotContain": {
+        return !(this.bookmark.title ?? "").includes(condition.str);
+      }
       case "importedFromFeed": {
         return this.bookmark.rssFeeds.some(
           (f) => f.rssFeedId === condition.feedId,

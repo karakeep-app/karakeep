@@ -355,6 +355,8 @@
         "always": "Always",
         "url_contains": "URL Contains",
         "url_does_not_contain": "URL Does Not Contain",
+        "title_contains": "Title Contains",
+        "title_does_not_contain": "Title Does Not Contain",
         "imported_from_feed": "Imported From Feed",
         "bookmark_type_is": "Bookmark Type Is",
         "has_tag": "Has Tag",
