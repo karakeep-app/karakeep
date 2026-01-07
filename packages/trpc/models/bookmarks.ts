@@ -271,6 +271,151 @@ export class Bookmark extends BareBookmark {
     return new Bookmark(ctx, data);
   }
 
+  static async getDebugInfoAsAdmin(ctx: AuthedContext, bookmarkId: string) {
+    // Verify the user is an admin
+    if (ctx.user.role !== "admin") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin access required",
+      });
+    }
+
+    // Fetch bookmark with all relations (no access check - admin can see all)
+    const bookmark = await ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+      with: {
+        link: true,
+        text: true,
+        asset: true,
+        tagsOnBookmarks: {
+          with: {
+            tag: true,
+          },
+        },
+        assets: true,
+      },
+    });
+
+    if (!bookmark) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
+      });
+    }
+
+    return bookmark;
+  }
+
+  static async buildDebugInfo(ctx: AuthedContext, bookmarkId: string) {
+    // Verify the user is an admin
+    if (ctx.user.role !== "admin") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin access required",
+      });
+    }
+
+    // Fetch bookmark with all relations (admin access)
+    const bookmark = await Bookmark.getDebugInfoAsAdmin(ctx, bookmarkId);
+
+    // Build link info
+    let linkInfo = null;
+    if (bookmark.link) {
+      const htmlContentPreview = await (async () => {
+        if (bookmark.link!.htmlContent) {
+          return bookmark.link!.htmlContent.substring(0, 1000);
+        }
+        if (bookmark.link!.contentAssetId) {
+          try {
+            const content = await Bookmark.getBookmarkHtmlContent(
+              bookmark.link!,
+              bookmark.userId,
+            );
+            return content ? content.substring(0, 1000) : null;
+          } catch {
+            return null;
+          }
+        }
+        return null;
+      })();
+
+      linkInfo = {
+        url: bookmark.link.url,
+        crawlStatus: bookmark.link.crawlStatus ?? "pending",
+        crawlStatusCode: bookmark.link.crawlStatusCode ?? 200,
+        crawledAt: bookmark.link.crawledAt,
+        hasHtmlContent: !!bookmark.link.htmlContent,
+        hasContentAsset: !!bookmark.link.contentAssetId,
+        htmlContentPreview,
+      };
+    }
+
+    // Build text info
+    let textInfo = null;
+    if (bookmark.text) {
+      textInfo = {
+        hasText: !!bookmark.text.text,
+        sourceUrl: bookmark.text.sourceUrl,
+      };
+    }
+
+    // Build asset info
+    let assetInfo = null;
+    if (bookmark.asset) {
+      assetInfo = {
+        assetType: bookmark.asset.assetType,
+        hasContent: !!bookmark.asset.content,
+        fileName: bookmark.asset.fileName,
+      };
+    }
+
+    // Build tags
+    const tags = bookmark.tagsOnBookmarks.map((t) => ({
+      id: t.tag.id,
+      name: t.tag.name,
+      attachedBy: t.attachedBy,
+    }));
+
+    // Build assets list with signed URLs (exclude userUploaded)
+    const assetsWithUrls = bookmark.assets
+      .filter((a) => a.assetType !== "userUploaded")
+      .map((a) => {
+        // Generate signed token with 1 hour expiry
+        const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+        const token = createSignedToken(
+          { assetId: a.id, userId: bookmark.userId },
+          serverConfig.signingSecret(),
+          expiresAt,
+        );
+        const url = `/api/public/assets/${a.id}?token=${encodeURIComponent(token)}`;
+
+        return {
+          id: a.id,
+          assetType: a.assetType,
+          size: a.size,
+          url,
+        };
+      });
+
+    return {
+      id: bookmark.id,
+      type: bookmark.type,
+      source: bookmark.source,
+      createdAt: bookmark.createdAt,
+      modifiedAt: bookmark.modifiedAt,
+      title: bookmark.title,
+      summary: bookmark.summary,
+      taggingStatus: bookmark.taggingStatus,
+      summarizationStatus: bookmark.summarizationStatus,
+      userId: bookmark.userId,
+      linkInfo,
+      textInfo,
+      assetInfo,
+      tags,
+      assets: assetsWithUrls,
+    };
+  }
+
   static async loadMulti(
     ctx: AuthedContext,
     input: z.infer<typeof zGetBookmarksRequestSchema>,
