@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Save } from "lucide-react";
 
 import {
@@ -15,6 +15,7 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
   const [isSaving, setIsSaving] = useState(false);
   const [noteValue, setNoteValue] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Update local state when bookmark changes, but only if there are no unsaved changes
   // This prevents overwriting user's edits while they're typing
@@ -23,6 +24,12 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
       setNoteValue(bookmark.note ?? "");
     }
   }, [bookmark?.note, bookmark, hasUnsavedChanges]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  });
 
   const updateBookmarkMutator = useUpdateBookmark({
     onSuccess: () => {
@@ -55,6 +62,7 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <Textarea
+        ref={textareaRef}
         className="h-32 w-full overflow-auto rounded bg-background p-2 text-sm text-gray-400 dark:text-gray-300"
         value={noteValue}
         placeholder="Write some notes ..."
