@@ -22,7 +22,7 @@ export function buildRestateService<T, R>(
     name: queue.name(),
     options: {
       inactivityTimeout: {
-        seconds: opts.timeoutSecs,
+        seconds: opts.timeoutSecs * 2,
       },
       retryPolicy: {
         maxAttempts: NUM_RETRIES,
@@ -84,6 +84,7 @@ export function buildRestateService<T, R>(
             runNumber,
             numRetriesLeft: NUM_RETRIES - runNumber,
             abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
+            timeoutSecs: opts.timeoutSecs,
           });
           await semaphore.release();
 
@@ -126,25 +127,33 @@ async function runWorkerLogic<T, R>(
     runNumber: number;
     numRetriesLeft: number;
     abortSignal: AbortSignal;
+    timeoutSecs: number;
   },
 ): Promise<RunResult<R>> {
   const res = await tryCatch(
-    ctx.run(
-      `main logic`,
-      async () => {
-        const res = await tryCatch(run(data));
-        if (res.error) {
-          if (res.error instanceof QueueRetryAfterError) {
-            return { type: "rate_limit" as const, delayMs: res.error.delayMs };
+    ctx
+      .run(
+        `main logic`,
+        async () => {
+          const res = await tryCatch(run(data));
+          if (res.error) {
+            if (res.error instanceof QueueRetryAfterError) {
+              return {
+                type: "rate_limit" as const,
+                delayMs: res.error.delayMs,
+              };
+            }
+            throw res.error; // Rethrow
           }
-          throw res.error; // Rethrow
-        }
-        return { type: "success" as const, value: res.data };
-      },
-      {
-        maxRetryAttempts: 1,
-      },
-    ),
+          return { type: "success" as const, value: res.data };
+        },
+        {
+          maxRetryAttempts: 1,
+        },
+      )
+      .orTimeout({
+        seconds: data.timeoutSecs * 1.1,
+      }),
   );
 
   if (res.error) {
