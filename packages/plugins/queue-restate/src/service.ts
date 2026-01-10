@@ -65,16 +65,17 @@ export function buildRestateService<T, R>(
           ctx,
           `queue:${queue.name()}`,
           opts.concurrency,
+          Math.ceil(opts.timeoutSecs * 1.5 * 1000),
         );
 
         let runNumber = 0;
         while (runNumber <= NUM_RETRIES) {
-          const acquired = await semaphore.acquire(
+          const leaseId = await semaphore.acquire(
             priority,
             data.groupId,
             data.queuedIdempotencyKey,
           );
-          if (!acquired) {
+          if (!leaseId) {
             return;
           }
           const res = await runWorkerLogic(ctx, funcs, {
@@ -86,7 +87,7 @@ export function buildRestateService<T, R>(
             abortSignal: AbortSignal.timeout(opts.timeoutSecs * 1000),
             timeoutSecs: opts.timeoutSecs,
           });
-          await semaphore.release();
+          await semaphore.release(leaseId);
 
           if (res.type === "rate_limit") {
             // Handle rate limit retries without counting against retry attempts
