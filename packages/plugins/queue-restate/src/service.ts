@@ -67,7 +67,6 @@ export function buildRestateService<T, R>(
           opts.concurrency,
         );
 
-        let lastError: Error | undefined;
         let runNumber = 0;
         while (runNumber <= NUM_RETRIES) {
           const acquired = await semaphore.acquire(
@@ -99,21 +98,13 @@ export function buildRestateService<T, R>(
             if (res.error instanceof restate.CancelledError) {
               throw res.error;
             }
-            lastError = res.error;
             // TODO: add backoff
             await ctx.sleep(1000, "error retry");
             runNumber++;
           } else {
-            lastError = undefined;
             // Success
             break;
           }
-        }
-        if (lastError) {
-          throw new restate.TerminalError(lastError.message, {
-            errorCode: 500,
-            cause: "cause" in lastError ? lastError.cause : undefined,
-          });
         }
       },
     },
