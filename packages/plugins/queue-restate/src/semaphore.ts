@@ -272,8 +272,8 @@ export class RestateSemaphore {
     } catch (e) {
       if (e instanceof restate.CancelledError) {
         await this.release(awk.id);
-        throw e;
       }
+      throw e;
     }
     return awk.id;
   }
