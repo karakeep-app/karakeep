@@ -63,6 +63,12 @@ export default function ReaderSettingsPage() {
   const [displayLineHeight, setDisplayLineHeight] =
     useState(effectiveLineHeight);
 
+  // Refs to track latest display values (avoids stale closures in callbacks)
+  const displayFontSizeRef = useRef(displayFontSize);
+  displayFontSizeRef.current = displayFontSize;
+  const displayLineHeightRef = useRef(displayLineHeight);
+  displayLineHeightRef.current = displayLineHeight;
+
   // Ref for the WebView preview component
   const previewRef = useRef<ReaderPreviewRef>(null);
 
@@ -73,10 +79,10 @@ export default function ReaderSettingsPage() {
       previewRef.current?.updateStyles(
         effectiveFontFamily,
         fontSize,
-        displayLineHeight,
+        displayLineHeightRef.current,
       );
     },
-    [effectiveFontFamily, displayLineHeight],
+    [effectiveFontFamily],
   );
 
   const updatePreviewLineHeight = useCallback(
@@ -84,11 +90,11 @@ export default function ReaderSettingsPage() {
       setDisplayLineHeight(lineHeight);
       previewRef.current?.updateStyles(
         effectiveFontFamily,
-        displayFontSize,
+        displayFontSizeRef.current,
         lineHeight,
       );
     },
-    [effectiveFontFamily, displayFontSize],
+    [effectiveFontFamily],
   );
 
   // Sync slider progress and display values with effective settings

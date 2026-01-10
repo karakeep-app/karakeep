@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { View } from "react-native";
 import WebView from "react-native-webview";
 import { WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
@@ -45,6 +45,15 @@ export const ReaderPreview = forwardRef<ReaderPreviewRef, ReaderPreviewProps>(
         `);
       },
     }));
+
+    // Update colors when theme changes
+    useEffect(() => {
+      webViewRef.current?.injectJavaScript(`
+        document.body.style.color = "${textColor}";
+        document.body.style.background = "${bgColor}";
+        true;
+      `);
+    }, [isDark, textColor, bgColor]);
 
     const html = `
       <!DOCTYPE html>
