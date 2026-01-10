@@ -29,7 +29,7 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
-  });
+  }, []);
 
   const updateBookmarkMutator = useUpdateBookmark({
     onSuccess: () => {
