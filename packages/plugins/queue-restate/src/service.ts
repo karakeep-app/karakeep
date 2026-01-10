@@ -104,6 +104,7 @@ export function buildRestateService<T, R>(
             await ctx.sleep(1000, "error retry");
             runNumber++;
           } else {
+            lastError = undefined;
             // Success
             break;
           }
