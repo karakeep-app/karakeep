@@ -59,19 +59,7 @@ OPENAI_API_KEY=<key>
 
 Learn more about the costs of using openai [here](../administration/openai).
 
-<details>
-    <summary>If you want to use Ollama (https://ollama.com/) instead for local inference.</summary>
-
-    **Note:** The quality of the tags you'll get will depend on the quality of the model you choose.
-
-    - Make sure ollama is running.
-    - Set the `OLLAMA_BASE_URL` env variable to the address of the ollama API.
-    - Set `INFERENCE_TEXT_MODEL` to the model you want to use for text inference in ollama (for example: `llama3.1`)
-    - Set `INFERENCE_IMAGE_MODEL` to the model you want to use for image inference in ollama (for example: `llava`)
-    - Make sure that you `ollama pull`-ed the models that you want to use.
-    - You might want to tune the `INFERENCE_CONTEXT_LENGTH` as the default is quite small. The larger the value, the better the quality of the tags, but the more expensive the inference will be.
-
-</details>
+If you want to use a different AI provider (e.g. Ollama for local inference), check out the [different AI providers](../configuration/different-ai-providers) guide.
 
 ### 5. Start the service
 
