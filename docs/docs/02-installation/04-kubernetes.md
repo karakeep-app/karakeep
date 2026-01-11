@@ -22,7 +22,7 @@ To see all available configuration options check the [documentation](../configur
 
 To configure the neccessary secrets for the application copy the `.secrets_sample` file to `.secrets` and change the sample secrets to your generated secrets.
 
-> Note: You **should** change the random strings. You can use `openssl rand -base64 36` to generate the random strings. 
+> Note: You **should** change the random strings. You can use `openssl rand -base64 36` to generate the random strings.
 
 ### 3. Setup OpenAI
 
