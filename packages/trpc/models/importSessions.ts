@@ -3,10 +3,9 @@ import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import {
-  bookmarkLinks,
-  bookmarks,
   importSessionBookmarks,
   importSessions,
+  importStagingBookmarks,
 } from "@karakeep/db/schema";
 import {
   zCreateImportSessionRequestSchema,
@@ -89,30 +88,15 @@ export class ImportSession {
   }
 
   async getWithStats(): Promise<ZImportSessionWithStats> {
-    // Get bookmark counts by status
+    // Get bookmark counts by status from staging table
     const statusCounts = await this.ctx.db
       .select({
-        crawlStatus: bookmarkLinks.crawlStatus,
-        taggingStatus: bookmarks.taggingStatus,
+        status: importStagingBookmarks.status,
         count: count(),
       })
-      .from(importSessionBookmarks)
-      .innerJoin(
-        importSessions,
-        eq(importSessions.id, importSessionBookmarks.importSessionId),
-      )
-      .leftJoin(bookmarks, eq(bookmarks.id, importSessionBookmarks.bookmarkId))
-      .leftJoin(
-        bookmarkLinks,
-        eq(bookmarkLinks.id, importSessionBookmarks.bookmarkId),
-      )
-      .where(
-        and(
-          eq(importSessionBookmarks.importSessionId, this.session.id),
-          eq(importSessions.userId, this.ctx.user.id),
-        ),
-      )
-      .groupBy(bookmarkLinks.crawlStatus, bookmarks.taggingStatus);
+      .from(importStagingBookmarks)
+      .where(eq(importStagingBookmarks.importSessionId, this.session.id))
+      .groupBy(importStagingBookmarks.status);
 
     const stats = {
       totalBookmarks: 0,
@@ -123,40 +107,24 @@ export class ImportSession {
     };
 
     statusCounts.forEach((statusCount) => {
-      const { crawlStatus, taggingStatus, count } = statusCount;
+      const { status, count: itemCount } = statusCount;
 
-      stats.totalBookmarks += count;
+      stats.totalBookmarks += itemCount;
 
-      const isCrawlFailure = crawlStatus === "failure";
-      const isTagFailure = taggingStatus === "failure";
-      if (isCrawlFailure || isTagFailure) {
-        stats.failedBookmarks += count;
-        return;
-      }
-
-      const isCrawlPending = crawlStatus === "pending";
-      const isTagPending = taggingStatus === "pending";
-      if (isCrawlPending || isTagPending) {
-        stats.pendingBookmarks += count;
-        return;
-      }
-
-      const isCrawlSuccessfulOrNotRequired =
-        crawlStatus === "success" || crawlStatus === null;
-      const isTagSuccessfulOrUnknown =
-        taggingStatus === "success" || taggingStatus === null;
-
-      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrUnknown) {
-        stats.completedBookmarks += count;
-      } else {
-        // Fallback to pending to avoid leaving imports unclassified
-        stats.pendingBookmarks += count;
+      if (status === "pending") {
+        stats.pendingBookmarks += itemCount;
+      } else if (status === "processing") {
+        stats.processingBookmarks += itemCount;
+      } else if (status === "completed") {
+        stats.completedBookmarks += itemCount;
+      } else if (status === "failed") {
+        stats.failedBookmarks += itemCount;
       }
     });
 
     return {
       ...this.session,
-      status: stats.pendingBookmarks > 0 ? "in_progress" : "completed",
+      status: this.session.status,
       ...stats,
     };
   }

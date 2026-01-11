@@ -1,4 +1,3 @@
-import { limitConcurrency } from "../concurrency";
 import { MAX_LIST_NAME_LENGTH } from "../types/lists";
 import { ImportSource, ParsedBookmark, parseImportFile } from "./parsers";
 
@@ -15,22 +14,22 @@ export interface ImportDeps {
     icon: string;
     parentId?: string;
   }) => Promise<{ id: string }>;
-  createBookmark: (
-    bookmark: ParsedBookmark,
-    sessionId: string,
-  ) => Promise<{ id: string; alreadyExists?: boolean }>;
-  addBookmarkToLists: (input: {
-    bookmarkId: string;
-    listIds: string[];
-  }) => Promise<void>;
-  updateBookmarkTags: (input: {
-    bookmarkId: string;
+  stageImportedBookmark: (input: {
+    importSessionId: string;
+    type: "link" | "text" | "asset";
+    url?: string;
+    title?: string;
+    content?: string;
+    note?: string;
     tags: string[];
+    listPaths: string[];
+    sourceAddedAt?: Date;
   }) => Promise<void>;
   createImportSession: (input: {
     name: string;
     rootListId: string;
   }) => Promise<{ id: string }>;
+  finalizeImportStaging: (sessionId: string) => Promise<void>;
 }
 
 export interface ImportOptions {
@@ -62,7 +61,7 @@ export async function importBookmarksFromFile(
   },
   options: ImportOptions = {},
 ): Promise<ImportResult> {
-  const { concurrencyLimit = 20, parsers } = options;
+  const { parsers } = options;
 
   const textContent = await file.text();
   const parsedBookmarks = parsers?.[source]
@@ -120,50 +119,52 @@ export async function importBookmarksFromFile(
     pathMap[pathKey] = folderList.id;
   }
 
-  let done = 0;
-  const importPromises = parsedBookmarks.map((bookmark) => async () => {
-    try {
-      const listIds = bookmark.paths.map(
-        (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
-      );
-      if (listIds.length === 0) listIds.push(rootList.id);
+  // Stage all bookmarks (no side effects, just DB inserts)
+  let staged = 0;
+  for (const bookmark of parsedBookmarks) {
+    const listPaths = bookmark.paths.map((path) => path.join("/"));
 
-      const created = await deps.createBookmark(bookmark, session.id);
-      await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
-      if (bookmark.tags && bookmark.tags.length > 0) {
-        await deps.updateBookmarkTags({
-          bookmarkId: created.id,
-          tags: bookmark.tags,
-        });
+    // Determine type and extract content appropriately
+    let type: "link" | "text" | "asset" = "link";
+    let url: string | undefined;
+    let textContent: string | undefined;
+
+    if (bookmark.content) {
+      if (bookmark.content.type === "link") {
+        type = "link";
+        url = bookmark.content.url;
+      } else if (bookmark.content.type === "text") {
+        type = "text";
+        textContent = bookmark.content.text;
       }
-
-      return created;
-    } finally {
-      done += 1;
-      onProgress?.(done, parsedBookmarks.length);
     }
-  });
 
-  const resultsPromises = limitConcurrency(importPromises, concurrencyLimit);
-  const results = await Promise.allSettled(resultsPromises);
+    await deps.stageImportedBookmark({
+      importSessionId: session.id,
+      type,
+      url,
+      title: bookmark.title,
+      content: textContent,
+      note: bookmark.notes,
+      tags: bookmark.tags ?? [],
+      listPaths,
+      sourceAddedAt: bookmark.addDate
+        ? new Date(bookmark.addDate * 1000)
+        : undefined,
+    });
 
-  let successes = 0;
-  let failures = 0;
-  let alreadyExisted = 0;
-
-  for (const r of results) {
-    if (r.status === "fulfilled") {
-      if (r.value.alreadyExists) alreadyExisted++;
-      else successes++;
-    } else {
-      failures++;
-    }
+    staged++;
+    onProgress?.(staged, parsedBookmarks.length);
   }
+
+  // Finalize staging - marks session as "pending" for worker pickup
+  await deps.finalizeImportStaging(session.id);
+
   return {
     counts: {
-      successes,
-      failures,
-      alreadyExisted,
+      successes: 0,
+      failures: 0,
+      alreadyExisted: 0,
       total: parsedBookmarks.length,
     },
     rootListId: rootList.id,
