@@ -29,7 +29,10 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { RuleEngineCondition } from "@karakeep/shared/types/rules";
+import type {
+  RuleEngineCondition,
+  RuleEngineEvent,
+} from "@karakeep/shared/types/rules";
 
 import { FeedSelector } from "../feeds/FeedSelector";
 import { TagAutocomplete } from "../tags/TagAutocomplete";
@@ -37,6 +40,7 @@ import { TagAutocomplete } from "../tags/TagAutocomplete";
 interface ConditionBuilderProps {
   value: RuleEngineCondition;
   onChange: (condition: RuleEngineCondition) => void;
+  eventType: RuleEngineEvent["type"];
   level?: number;
   onRemove?: () => void;
 }
@@ -44,6 +48,7 @@ interface ConditionBuilderProps {
 export function ConditionBuilder({
   value,
   onChange,
+  eventType,
   level = 0,
   onRemove,
 }: ConditionBuilderProps) {
@@ -232,6 +237,7 @@ export function ConditionBuilder({
                   newConditions[index] = newCondition;
                   onChange({ ...value, conditions: newConditions });
                 }}
+                eventType={eventType}
                 level={level + 1}
                 onRemove={() => {
                   const newConditions = [...value.conditions];
@@ -267,6 +273,10 @@ export function ConditionBuilder({
     }
   };
 
+  // Title conditions are hidden for "bookmarkAdded" event because
+  // titles are not available at bookmark creation time (they're fetched during crawling)
+  const showTitleConditions = eventType !== "bookmarkAdded";
+
   const ConditionSelector = () => (
     <Select value={value.type} onValueChange={handleTypeChange}>
       <SelectTrigger className="ml-2 h-8 border-none bg-transparent px-2">
@@ -288,12 +298,16 @@ export function ConditionBuilder({
         <SelectItem value="urlDoesNotContain">
           {t("settings.rules.conditions_types.url_does_not_contain")}
         </SelectItem>
-        <SelectItem value="titleContains">
-          {t("settings.rules.conditions_types.title_contains")}
-        </SelectItem>
-        <SelectItem value="titleDoesNotContain">
-          {t("settings.rules.conditions_types.title_does_not_contain")}
-        </SelectItem>
+        {showTitleConditions && (
+          <SelectItem value="titleContains">
+            {t("settings.rules.conditions_types.title_contains")}
+          </SelectItem>
+        )}
+        {showTitleConditions && (
+          <SelectItem value="titleDoesNotContain">
+            {t("settings.rules.conditions_types.title_does_not_contain")}
+          </SelectItem>
+        )}
         <SelectItem value="importedFromFeed">
           {t("settings.rules.conditions_types.imported_from_feed")}
         </SelectItem>

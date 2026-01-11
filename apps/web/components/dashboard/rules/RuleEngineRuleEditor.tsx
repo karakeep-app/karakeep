@@ -175,6 +175,7 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
             <ConditionBuilder
               value={editedRule.condition}
               onChange={handleConditionChange}
+              eventType={editedRule.event.type}
             />
           </div>
 
