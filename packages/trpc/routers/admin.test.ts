@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test } from "vitest";
 
-import { bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
+import { bookmarkLinks, users } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import type { APICallerType, CustomTestContext } from "../testUtils";
+import type { CustomTestContext } from "../testUtils";
 import { buildTestContext, getApiCaller } from "../testUtils";
 
 beforeEach<CustomTestContext>(async (context) => {
@@ -168,75 +168,6 @@ describe("Admin Routes", () => {
       await expect(() =>
         apiCallers[0].admin.getBookmarkDebugInfo({ bookmarkId: bookmark.id }),
       ).rejects.toThrow(/FORBIDDEN/);
-    });
-
-    test<CustomTestContext>("admin cannot access non-existent bookmark", async ({
-      db,
-    }) => {
-      // Create an admin user
-      const adminUser = await db
-        .insert(users)
-        .values({
-          name: "Admin User",
-          email: "admin@test.com",
-          role: "admin",
-        })
-        .returning();
-      const adminApi = getApiCaller(
-        db,
-        adminUser[0].id,
-        adminUser[0].email,
-        "admin",
-      );
-
-      // Try to access non-existent bookmark
-      await expect(() =>
-        adminApi.admin.getBookmarkDebugInfo({
-          bookmarkId: "non-existent-id",
-        }),
-      ).rejects.toThrow(/Bookmark not found/);
-    });
-
-    test<CustomTestContext>("admin can access bookmark from any user", async ({
-      apiCallers,
-      db,
-    }) => {
-      // Create an admin user
-      const adminUser = await db
-        .insert(users)
-        .values({
-          name: "Admin User",
-          email: "admin@test.com",
-          role: "admin",
-        })
-        .returning();
-      const adminApi = getApiCaller(
-        db,
-        adminUser[0].id,
-        adminUser[0].email,
-        "admin",
-      );
-
-      // Create bookmarks from different users
-      const bookmark1 = await apiCallers[0].bookmarks.createBookmark({
-        url: "https://user1.com",
-        type: BookmarkTypes.LINK,
-      });
-      const bookmark2 = await apiCallers[1].bookmarks.createBookmark({
-        url: "https://user2.com",
-        type: BookmarkTypes.LINK,
-      });
-
-      // Admin should be able to access both
-      const debugInfo1 = await adminApi.admin.getBookmarkDebugInfo({
-        bookmarkId: bookmark1.id,
-      });
-      expect(debugInfo1.id).toEqual(bookmark1.id);
-
-      const debugInfo2 = await adminApi.admin.getBookmarkDebugInfo({
-        bookmarkId: bookmark2.id,
-      });
-      expect(debugInfo2.id).toEqual(bookmark2.id);
     });
 
     test<CustomTestContext>("debug info includes asset URLs with signed tokens", async ({

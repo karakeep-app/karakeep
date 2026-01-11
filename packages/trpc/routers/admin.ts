@@ -3,16 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { count, eq, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
-import {
-  assets,
-  bookmarkAssets,
-  bookmarkLinks,
-  bookmarks,
-  bookmarkTags,
-  bookmarkTexts,
-  tagsOnBookmarks,
-  users,
-} from "@karakeep/db/schema";
+import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
@@ -584,7 +575,7 @@ export const adminAppRouter = router({
           .object({
             url: z.string(),
             crawlStatus: z.enum(["pending", "failure", "success"]),
-            crawlStatusCode: z.number(),
+            crawlStatusCode: z.number().nullable(),
             crawledAt: z.date().nullable(),
             hasHtmlContent: z.boolean(),
             hasContentAsset: z.boolean(),
@@ -616,7 +607,7 @@ export const adminAppRouter = router({
             id: z.string(),
             assetType: z.string(),
             size: z.number(),
-            url: z.string(),
+            url: z.string().nullable(),
           }),
         ),
       }),

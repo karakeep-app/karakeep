@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { formatDistanceToNow } from "date-fns";
@@ -30,6 +30,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
+import { toast } from "sonner";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -70,64 +71,52 @@ export default function BookmarkDebugger() {
 
   const recrawlMutation = api.admin.adminRecrawlBookmark.useMutation({
     onSuccess: () => {
-      toast({
-        title: t("admin.admin_tools.action_success"),
+      toast.success(t("admin.admin_tools.action_success"), {
         description: t("admin.admin_tools.recrawl_queued"),
       });
     },
     onError: (error) => {
-      toast({
-        title: t("admin.admin_tools.action_failed"),
+      toast.error(t("admin.admin_tools.action_failed"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });
 
   const reindexMutation = api.admin.adminReindexBookmark.useMutation({
     onSuccess: () => {
-      toast({
-        title: t("admin.admin_tools.action_success"),
+      toast.success(t("admin.admin_tools.action_success"), {
         description: t("admin.admin_tools.reindex_queued"),
       });
     },
     onError: (error) => {
-      toast({
-        title: t("admin.admin_tools.action_failed"),
+      toast.error(t("admin.admin_tools.action_failed"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });
 
   const retagMutation = api.admin.adminRetagBookmark.useMutation({
     onSuccess: () => {
-      toast({
-        title: t("admin.admin_tools.action_success"),
+      toast.success(t("admin.admin_tools.action_success"), {
         description: t("admin.admin_tools.retag_queued"),
       });
     },
     onError: (error) => {
-      toast({
-        title: t("admin.admin_tools.action_failed"),
+      toast.error(t("admin.admin_tools.action_failed"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });
 
   const resummarizeMutation = api.admin.adminResummarizeBookmark.useMutation({
     onSuccess: () => {
-      toast({
-        title: t("admin.admin_tools.action_success"),
+      toast.success(t("admin.admin_tools.action_success"), {
         description: t("admin.admin_tools.resummarize_queued"),
       });
     },
     onError: (error) => {
-      toast({
-        title: t("admin.admin_tools.action_failed"),
+      toast.error(t("admin.admin_tools.action_failed"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });
@@ -336,8 +325,9 @@ export default function BookmarkDebugger() {
                         </span>
                         <Badge
                           variant={
-                            debugInfo.linkInfo.crawlStatusCode >= 200 &&
-                            debugInfo.linkInfo.crawlStatusCode < 300
+                            debugInfo.linkInfo.crawlStatusCode === null ||
+                            (debugInfo.linkInfo.crawlStatusCode >= 200 &&
+                              debugInfo.linkInfo.crawlStatusCode < 300)
                               ? "default"
                               : "destructive"
                           }
@@ -354,7 +344,9 @@ export default function BookmarkDebugger() {
                           <span className="text-xs">
                             {formatDistanceToNow(
                               new Date(debugInfo.linkInfo.crawledAt),
-                              { addSuffix: true },
+                              {
+                                addSuffix: true,
+                              },
                             )}
                           </span>
                         </div>
@@ -407,7 +399,8 @@ export default function BookmarkDebugger() {
                         <LinkIcon className="h-3.5 w-3.5" />
                         {t("admin.admin_tools.url")}
                       </div>
-                      <a
+                      <Link
+                        prefetch={false}
                         href={debugInfo.linkInfo.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -417,7 +410,7 @@ export default function BookmarkDebugger() {
                           {debugInfo.linkInfo.url}
                         </span>
                         <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
-                      </a>
+                      </Link>
                     </div>
                   )}
                   {debugInfo.textInfo?.sourceUrl && (
@@ -426,7 +419,8 @@ export default function BookmarkDebugger() {
                         <LinkIcon className="h-3.5 w-3.5" />
                         {t("admin.admin_tools.source_url")}
                       </div>
-                      <a
+                      <Link
+                        prefetch={false}
                         href={debugInfo.textInfo.sourceUrl}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -436,7 +430,7 @@ export default function BookmarkDebugger() {
                           {debugInfo.textInfo.sourceUrl}
                         </span>
                         <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
-                      </a>
+                      </Link>
                     </div>
                   )}
                   {debugInfo.assetInfo && (
@@ -544,15 +538,18 @@ export default function BookmarkDebugger() {
                           </div>
                         </div>
                       </div>
-                      <a
-                        href={asset.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-primary hover:underline"
-                      >
-                        {t("admin.admin_tools.view")}
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
+                      {asset.url && (
+                        <Link
+                          prefetch={false}
+                          href={asset.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-primary hover:underline"
+                        >
+                          {t("admin.admin_tools.view")}
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Link>
+                      )}
                     </div>
                   ))}
                 </div>
