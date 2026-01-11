@@ -57,11 +57,14 @@ export default function BookmarkDebugger() {
     }
   }, [bookmarkId]);
 
-  const { data: debugInfo, isLoading } =
-    api.admin.getBookmarkDebugInfo.useQuery(
-      { bookmarkId: bookmarkId },
-      { enabled: !!bookmarkId && bookmarkId.length > 0 },
-    );
+  const {
+    data: debugInfo,
+    isLoading,
+    error,
+  } = api.admin.getBookmarkDebugInfo.useQuery(
+    { bookmarkId: bookmarkId },
+    { enabled: !!bookmarkId && bookmarkId.length > 0 },
+  );
 
   const handleLookup = () => {
     if (inputValue.trim()) {
@@ -214,8 +217,25 @@ export default function BookmarkDebugger() {
         </AdminCard>
       )}
 
+      {/* Error State */}
+      {!isLoading && error && (
+        <AdminCard>
+          <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <XCircle className="h-5 w-5 flex-shrink-0 text-destructive" />
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-destructive">
+                {t("admin.admin_tools.fetch_error")}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {error.message}
+              </p>
+            </div>
+          </div>
+        </AdminCard>
+      )}
+
       {/* Debug Info Display */}
-      {!isLoading && debugInfo && (
+      {!isLoading && !error && debugInfo && (
         <AdminCard>
           <div className="space-y-4">
             {/* Basic Info & Status */}

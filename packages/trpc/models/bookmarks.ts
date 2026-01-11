@@ -276,6 +276,11 @@ export class Bookmark extends BareBookmark {
       });
     }
 
+    const PRIVACY_REDACTED_ASSET_TYPES = new Set<AssetTypes>([
+      AssetTypes.USER_UPLOADED,
+      AssetTypes.BOOKMARK_ASSET,
+    ]);
+
     const bookmark = await ctx.db.query.bookmarks.findFirst({
       where: eq(bookmarks.id, bookmarkId),
       with: {
@@ -355,10 +360,9 @@ export class Bookmark extends BareBookmark {
       // Generate signed token with 10 mins expiry
       const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
       // Exclude userUploaded assets for privacy reasons
-      const url =
-        a.assetType !== "userUploaded"
-          ? Asset.getPublicSignedAssetUrl(a.id, bookmark.userId, expiresAt)
-          : null;
+      const url = !PRIVACY_REDACTED_ASSET_TYPES.has(a.assetType)
+        ? Asset.getPublicSignedAssetUrl(a.id, bookmark.userId, expiresAt)
+        : null;
 
       return {
         id: a.id,

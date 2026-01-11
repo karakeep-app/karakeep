@@ -618,7 +618,8 @@
       "reindex_queued": "Re-index job has been queued",
       "retag_queued": "Re-tag job has been queued",
       "resummarize_queued": "Re-summarize job has been queued",
-      "view": "View"
+      "view": "View",
+      "fetch_error": "Error fetching bookmark"
     }
   },
   "options": {
