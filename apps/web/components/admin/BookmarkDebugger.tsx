@@ -5,9 +5,11 @@ import Link from "next/link";
 import { AdminCard } from "@/components/admin/AdminCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import InfoTooltip from "@/components/ui/info-tooltip";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
+import { formatBytes } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
@@ -33,13 +35,6 @@ import { parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
-function formatBytes(bytes: number) {
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-  if (bytes === 0) return "0 Bytes";
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
-}
 
 export default function BookmarkDebugger() {
   const { t } = useTranslation();
@@ -185,6 +180,9 @@ export default function BookmarkDebugger() {
           <h2 className="text-lg font-semibold">
             {t("admin.admin_tools.bookmark_debugger")}
           </h2>
+          <InfoTooltip className="text-muted-foreground" size={16}>
+            Some data will be redacted for privacy.
+          </InfoTooltip>
         </div>
         <div className="flex gap-2">
           <div className="relative max-w-md flex-1">
