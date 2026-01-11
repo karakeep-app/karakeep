@@ -65,7 +65,7 @@ body:
     attributes:
       label: Have you checked the troubleshooting guide?
       description: |
-        We have a troubleshooting guide that you can find [here](https://docs.karakeep.app/next/troubleshooting). Please check it out as you might find a solution to your problem.
+        We have a troubleshooting guide that you can find [here](https://docs.karakeep.app/administration/troubleshooting). Please check it out as you might find a solution to your problem.
       options:
         - label: I have checked the troubleshooting guide and I haven't found a solution to my problem
           required: true

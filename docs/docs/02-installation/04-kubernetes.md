@@ -35,7 +35,7 @@ To enable automatic tagging, you'll need to configure OpenAI. This is optional t
 OPENAI_API_KEY=<key>
 ```
 
-Learn more about the costs of using openai [here](../integrations/openai).
+Learn more about the costs of using openai [here](../administration/openai).
 
 <details>
     <summary>[EXPERIMENTAL] If you want to use Ollama (https://ollama.com/) instead for local inference.</summary>

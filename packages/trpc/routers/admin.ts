@@ -204,7 +204,7 @@ export const adminAppRouter = router({
   recrawlLinks: adminProcedure
     .input(
       z.object({
-        crawlStatus: z.enum(["success", "failure", "all"]),
+        crawlStatus: z.enum(["success", "failure", "pending", "all"]),
         runInference: z.boolean(),
       }),
     )
@@ -220,10 +220,15 @@ export const adminAppRouter = router({
 
       await Promise.all(
         bookmarkIds.map((b) =>
-          LinkCrawlerQueue.enqueue({
-            bookmarkId: b.id,
-            runInference: input.runInference,
-          }),
+          LinkCrawlerQueue.enqueue(
+            {
+              bookmarkId: b.id,
+              runInference: input.runInference,
+            },
+            {
+              priority: 50,
+            },
+          ),
         ),
       );
     }),
@@ -236,7 +241,13 @@ export const adminAppRouter = router({
       },
     });
 
-    await Promise.all(bookmarkIds.map((b) => triggerSearchReindex(b.id)));
+    await Promise.all(
+      bookmarkIds.map((b) =>
+        triggerSearchReindex(b.id, {
+          priority: 50,
+        }),
+      ),
+    );
   }),
   reprocessAssetsFixMode: adminProcedure.mutation(async ({ ctx }) => {
     const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({
@@ -247,10 +258,15 @@ export const adminAppRouter = router({
 
     await Promise.all(
       bookmarkIds.map((b) =>
-        AssetPreprocessingQueue.enqueue({
-          bookmarkId: b.id,
-          fixMode: true,
-        }),
+        AssetPreprocessingQueue.enqueue(
+          {
+            bookmarkId: b.id,
+            fixMode: true,
+          },
+          {
+            priority: 50,
+          },
+        ),
       ),
     );
   }),
@@ -258,7 +274,7 @@ export const adminAppRouter = router({
     .input(
       z.object({
         type: z.enum(["tag", "summarize"]),
-        status: z.enum(["success", "failure", "all"]),
+        status: z.enum(["success", "failure", "pending", "all"]),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -280,7 +296,12 @@ export const adminAppRouter = router({
 
       await Promise.all(
         bookmarkIds.map((b) =>
-          OpenAIQueue.enqueue({ bookmarkId: b.id, type: input.type }),
+          OpenAIQueue.enqueue(
+            { bookmarkId: b.id, type: input.type },
+            {
+              priority: 50,
+            },
+          ),
         ),
       );
     }),

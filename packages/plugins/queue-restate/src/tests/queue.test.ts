@@ -56,6 +56,12 @@ type TestAction =
       val: number;
       delayMs: number;
       attemptsBeforeSuccess: number;
+    }
+  | {
+      type: "timeout-then-succeed";
+      val: number;
+      timeoutDurSec: number;
+      attemptsBeforeSuccess: number;
     };
 
 describe("Restate Queue Provider", () => {
@@ -70,6 +76,7 @@ describe("Restate Queue Provider", () => {
     maxInFlight: 0,
     baton: new Baton(),
     rateLimitAttempts: new Map<string, number>(),
+    timeoutAttempts: new Map<string, number>(),
   };
 
   async function waitUntilQueueEmpty() {
@@ -90,6 +97,7 @@ describe("Restate Queue Provider", () => {
     testState.maxInFlight = 0;
     testState.baton = new Baton();
     testState.rateLimitAttempts = new Map<string, number>();
+    testState.timeoutAttempts = new Map<string, number>();
   });
   afterEach(async () => {
     await waitUntilQueueEmpty();
@@ -154,6 +162,22 @@ describe("Restate Queue Provider", () => {
                   `Rate limited (attempt ${currentAttempts + 1})`,
                   jobData.delayMs,
                 );
+              }
+              return jobData.val;
+            }
+            case "timeout-then-succeed": {
+              const attemptKey = `${job.id}`;
+              const currentAttempts =
+                testState.timeoutAttempts.get(attemptKey) || 0;
+              testState.timeoutAttempts.set(attemptKey, currentAttempts + 1);
+
+              if (currentAttempts < jobData.attemptsBeforeSuccess) {
+                // Stall longer than the timeout to trigger a timeout
+                await new Promise((resolve) =>
+                  setTimeout(resolve, jobData.timeoutDurSec * 1000),
+                );
+                // This should not be reached if timeout works correctly
+                throw new Error("Should have timed out");
               }
               return jobData.val;
             }
@@ -611,5 +635,69 @@ describe("Restate Queue Provider", () => {
       ]);
       expect(testState.results).toEqual([]);
     }, 90000);
+  });
+
+  describe("Timeout handling", () => {
+    it("should retry timed out jobs and not waste semaphore slots", async () => {
+      // This test verifies that:
+      // 1. Jobs that timeout get retried correctly
+      // 2. Semaphore slots are freed when jobs timeout (via lease expiry)
+      // 3. Other jobs can still run while a job is being retried
+
+      // Enqueue a job that will timeout on first attempt, succeed on second
+      // timeoutSecs is 2, so we stall for 5 seconds to ensure timeout
+      await queue.enqueue({
+        type: "timeout-then-succeed",
+        val: 42,
+        timeoutDurSec: 5,
+        attemptsBeforeSuccess: 1, // Timeout once, then succeed
+      });
+
+      // Wait a bit for the first attempt to start
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Enqueue more jobs to verify semaphore slots are eventually freed
+      // With concurrency=3, these should be able to run after the timeout
+      await queue.enqueue({ type: "val", val: 100 });
+      await queue.enqueue({ type: "val", val: 101 });
+      await queue.enqueue({ type: "val", val: 102 });
+
+      await waitUntilQueueEmpty();
+
+      // The timeout job should have succeeded after retry
+      expect(testState.results).toContain(42);
+
+      // All other jobs should have completed
+      expect(testState.results).toContain(100);
+      expect(testState.results).toContain(101);
+      expect(testState.results).toContain(102);
+
+      // The timeout job should have been attempted twice
+      const attempts = Array.from(testState.timeoutAttempts.values())[0];
+      expect(attempts).toBe(2);
+
+      // Concurrency should not have exceeded the limit
+      expect(testState.maxInFlight).toBeLessThanOrEqual(3);
+    }, 120000);
+
+    it("should handle job that times out multiple times before succeeding", async () => {
+      // Enqueue a single job that times out twice before succeeding
+      // This tests that the retry mechanism works correctly for timeouts
+      await queue.enqueue({
+        type: "timeout-then-succeed",
+        val: 99,
+        timeoutDurSec: 5,
+        attemptsBeforeSuccess: 2, // Timeout twice, then succeed
+      });
+
+      await waitUntilQueueEmpty();
+
+      // Job should eventually succeed
+      expect(testState.results).toEqual([99]);
+
+      // Should have been attempted 3 times (2 timeouts + 1 success)
+      const attempts = Array.from(testState.timeoutAttempts.values())[0];
+      expect(attempts).toBe(3);
+    }, 180000);
   });
 });
