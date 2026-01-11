@@ -9,12 +9,22 @@ import {
 
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
+import usePluginSettings from "./utils/settings";
+import {
+  capturePageWithSingleFile,
+  uploadSingleFileAndCreateBookmark,
+} from "./utils/singlefile";
 import { api } from "./utils/trpc";
 import { MessageType } from "./utils/type";
 import { isHttpUrl } from "./utils/url";
 
 export default function SavePage() {
   const [error, setError] = useState<string | undefined>(undefined);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedBookmarkId, setSavedBookmarkId] = useState<string | undefined>(
+    undefined,
+  );
+  const { settings } = usePluginSettings();
 
   const {
     data,
@@ -68,6 +78,34 @@ export default function SavePage() {
           return;
         }
 
+        // If SingleFile is enabled, capture and upload the page
+        if (settings.useSingleFile && currentTab.id) {
+          try {
+            setIsSaving(true);
+            const html = await capturePageWithSingleFile(currentTab.id);
+            const response = await uploadSingleFileAndCreateBookmark(
+              currentTab.url,
+              html,
+              currentTab.title,
+            );
+            const bookmark = await response.json();
+            setSavedBookmarkId(bookmark.id);
+
+            // Update badge cache
+            await chrome.runtime.sendMessage({
+              type: MessageType.BOOKMARK_REFRESH_BADGE,
+              currentTab: currentTab,
+            });
+            return;
+          } catch (e) {
+            setError(
+              `Failed to capture page with SingleFile: ${e instanceof Error ? e.message : String(e)}`,
+            );
+            setIsSaving(false);
+            return;
+          }
+        }
+
         newBookmarkRequest = {
           type: BookmarkTypes.LINK,
           title: currentTab.title,
@@ -83,10 +121,25 @@ export default function SavePage() {
     }
 
     runSave();
-  }, [createBookmark]);
+  }, [createBookmark, settings.useSingleFile]);
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
+  }
+
+  // If we saved via SingleFile, navigate to the bookmark
+  if (savedBookmarkId) {
+    return <Navigate to={`/bookmark/${savedBookmarkId}`} />;
+  }
+
+  // If we're saving via SingleFile, show loading
+  if (isSaving) {
+    return (
+      <div className="flex justify-between text-lg">
+        <span>Capturing and Saving Page </span>
+        <Spinner />
+      </div>
+    );
   }
 
   switch (status) {

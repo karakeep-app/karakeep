@@ -115,6 +115,21 @@ export default function OptionsPage() {
         </>
       )}
       <hr />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">Use SingleFile</span>
+          <span className="text-xs text-gray-500">
+            Capture full page archives when saving bookmarks
+          </span>
+        </div>
+        <Switch
+          checked={settings.useSingleFile}
+          onCheckedChange={(checked) =>
+            setSettings((s) => ({ ...s, useSingleFile: checked }))
+          }
+        />
+      </div>
+      <hr />
       <div className="flex gap-2">
         <span className="my-auto">Server Address:</span>
         {settings.address}
