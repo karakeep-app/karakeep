@@ -1,3 +1,5 @@
+import { LRUCache } from "lru-cache";
+
 import type {
   RateLimitClient,
   RateLimitConfig,
@@ -11,49 +13,19 @@ interface RateLimitEntry {
 }
 
 const DEFAULT_MAX_SIZE = 50_000;
-const DEFAULT_CLEANUP_INTERVAL_CALLS = 1000;
 
 export class RateLimiter implements RateLimitClient {
-  private store = new Map<string, RateLimitEntry>();
-  private callsSinceCleanup = 0;
-  private readonly maxSize: number;
-  private readonly cleanupIntervalCalls: number;
+  private store: LRUCache<string, RateLimitEntry>;
 
-  constructor(
-    maxSize = DEFAULT_MAX_SIZE,
-    cleanupIntervalCalls = DEFAULT_CLEANUP_INTERVAL_CALLS,
-  ) {
-    this.maxSize = maxSize;
-    this.cleanupIntervalCalls = cleanupIntervalCalls;
-  }
-
-  private cleanupExpiredEntries() {
-    const now = Date.now();
-    for (const [key, entry] of this.store.entries()) {
-      if (now > entry.resetTime) {
-        this.store.delete(key);
-      }
-    }
-  }
-
-  private evictOldestEntries(count: number) {
-    const iterator = this.store.keys();
-    for (let i = 0; i < count; i++) {
-      const result = iterator.next();
-      if (result.done) break;
-      this.store.delete(result.value);
-    }
+  constructor(maxSize = DEFAULT_MAX_SIZE) {
+    this.store = new LRUCache<string, RateLimitEntry>({
+      max: maxSize,
+    });
   }
 
   checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult {
     if (!key) {
       return { allowed: true };
-    }
-
-    this.callsSinceCleanup++;
-    if (this.callsSinceCleanup >= this.cleanupIntervalCalls) {
-      this.cleanupExpiredEntries();
-      this.callsSinceCleanup = 0;
     }
 
     const rateLimitKey = `${config.name}:${key}`;
@@ -62,13 +34,6 @@ export class RateLimiter implements RateLimitClient {
     let entry = this.store.get(rateLimitKey);
 
     if (!entry || now > entry.resetTime) {
-      if (this.store.size >= this.maxSize) {
-        this.cleanupExpiredEntries();
-        if (this.store.size >= this.maxSize) {
-          this.evictOldestEntries(Math.ceil(this.maxSize * 0.1));
-        }
-      }
-
       entry = {
         count: 1,
         resetTime: now + config.windowMs,
