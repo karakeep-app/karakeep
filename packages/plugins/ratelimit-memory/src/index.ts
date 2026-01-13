@@ -10,13 +10,21 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
+const DEFAULT_MAX_SIZE = 50_000;
+const DEFAULT_CLEANUP_INTERVAL_CALLS = 1000;
+
 export class RateLimiter implements RateLimitClient {
   private store = new Map<string, RateLimitEntry>();
-  private cleanupProbability: number;
+  private callsSinceCleanup = 0;
+  private readonly maxSize: number;
+  private readonly cleanupIntervalCalls: number;
 
-  constructor(cleanupProbability = 0.01) {
-    // Probability of cleanup on each check (default 1%)
-    this.cleanupProbability = cleanupProbability;
+  constructor(
+    maxSize = DEFAULT_MAX_SIZE,
+    cleanupIntervalCalls = DEFAULT_CLEANUP_INTERVAL_CALLS,
+  ) {
+    this.maxSize = maxSize;
+    this.cleanupIntervalCalls = cleanupIntervalCalls;
   }
 
   private cleanupExpiredEntries() {
@@ -28,14 +36,24 @@ export class RateLimiter implements RateLimitClient {
     }
   }
 
+  private evictOldestEntries(count: number) {
+    const iterator = this.store.keys();
+    for (let i = 0; i < count; i++) {
+      const result = iterator.next();
+      if (result.done) break;
+      this.store.delete(result.value);
+    }
+  }
+
   checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult {
     if (!key) {
       return { allowed: true };
     }
 
-    // Probabilistic cleanup
-    if (Math.random() < this.cleanupProbability) {
+    this.callsSinceCleanup++;
+    if (this.callsSinceCleanup >= this.cleanupIntervalCalls) {
       this.cleanupExpiredEntries();
+      this.callsSinceCleanup = 0;
     }
 
     const rateLimitKey = `${config.name}:${key}`;
@@ -44,6 +62,13 @@ export class RateLimiter implements RateLimitClient {
     let entry = this.store.get(rateLimitKey);
 
     if (!entry || now > entry.resetTime) {
+      if (this.store.size >= this.maxSize) {
+        this.cleanupExpiredEntries();
+        if (this.store.size >= this.maxSize) {
+          this.evictOldestEntries(Math.ceil(this.maxSize * 0.1));
+        }
+      }
+
       entry = {
         count: 1,
         resetTime: now + config.windowMs,
