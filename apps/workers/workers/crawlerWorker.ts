@@ -512,6 +512,7 @@ async function crawlPage(
         proxy: proxyConfig,
       });
 
+      let page;
       try {
         if (globalCookies.length > 0) {
           await context.addCookies(globalCookies);
@@ -521,7 +522,7 @@ async function crawlPage(
         }
 
         // Create a new page in the context
-        const page = await context.newPage();
+        page = await context.newPage();
 
         // Apply ad blocking
         if (globalBlocker) {
@@ -699,6 +700,14 @@ async function crawlPage(
           url: page.url(),
         };
       } finally {
+        // Explicitly close the page before closing the context to prevent leaks
+        if (page) {
+          await page.close().catch((err) => {
+            logger.warn(
+              `[Crawler][${jobId}] Failed to close page: ${err.message}`,
+            );
+          });
+        }
         await context.close();
         // Only close the browser if it was created on demand
         if (serverConfig.crawler.browserConnectOnDemand) {
