@@ -72,6 +72,12 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
 
   // Use live stats if available, otherwise fallback to session stats
   const stats = liveStats || session;
+  const displayStatus =
+    stats.status === "running"
+      ? "in_progress"
+      : stats.status === "staging"
+        ? "pending"
+        : stats.status;
   const progress =
     stats.totalBookmarks > 0
       ? ((stats.completedBookmarks + stats.failedBookmarks) /
@@ -79,7 +85,10 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
         100
       : 0;
 
-  const canDelete = stats.status !== "in_progress";
+  const canDelete =
+    stats.status === "completed" ||
+    stats.status === "failed" ||
+    stats.status === "paused";
 
   return (
     <Card className="transition-all hover:shadow-md">
@@ -97,11 +106,11 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Badge
-              className={`${getStatusColor(stats.status)} hover:bg-inherit`}
+              className={`${getStatusColor(displayStatus)} hover:bg-inherit`}
             >
-              {getStatusIcon(stats.status)}
+              {getStatusIcon(displayStatus)}
               <span className="ml-1 capitalize">
-                {statusLabels[stats.status] ?? stats.status.replace("_", " ")}
+                {statusLabels[displayStatus] ?? displayStatus.replace("_", " ")}
               </span>
             </Badge>
           </div>

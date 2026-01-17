@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 export const zImportSessionStatusSchema = z.enum([
+  "staging",
   "pending",
-  "in_progress",
+  "running",
+  "paused",
   "completed",
   "failed",
 ]);
@@ -24,13 +26,14 @@ export const zImportSessionSchema = z.object({
   userId: z.string(),
   message: z.string().nullable(),
   rootListId: z.string().nullable(),
+  status: zImportSessionStatusSchema,
   createdAt: z.date(),
   modifiedAt: z.date().nullable(),
 });
 export type ZImportSession = z.infer<typeof zImportSessionSchema>;
 
 export const zImportSessionWithStatsSchema = zImportSessionSchema.extend({
-  status: z.enum(["pending", "in_progress", "completed", "failed"]),
+  status: zImportSessionStatusSchema,
   totalBookmarks: z.number(),
   completedBookmarks: z.number(),
   failedBookmarks: z.number(),

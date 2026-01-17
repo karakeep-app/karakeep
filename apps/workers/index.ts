@@ -18,6 +18,7 @@ import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
+import { ImportWorker } from "./workers/importWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
 import { RuleEngineWorker } from "./workers/ruleEngineWorker";
 import { SearchIndexingWorker } from "./workers/searchWorker";
@@ -78,10 +79,15 @@ async function main() {
     BackupSchedulingWorker.start();
   }
 
+  // Start import polling worker
+  const importWorker = new ImportWorker();
+  const importWorkerPromise = importWorker.start();
+
   await Promise.any([
     Promise.all([
       ...workers.map(({ worker }) => worker.run()),
       httpServer.serve(),
+      importWorkerPromise,
     ]),
     shutdownPromise,
   ]);
@@ -96,6 +102,7 @@ async function main() {
   if (workers.some((w) => w.name === "backup")) {
     BackupSchedulingWorker.stop();
   }
+  importWorker.stop();
   for (const { worker } of workers) {
     worker.stop();
   }
