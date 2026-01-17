@@ -533,6 +533,13 @@
       "when": 1767052770526,
       "tag": "0075_change_default_tag_style",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1767202306194,
+      "tag": "0076_user_reading_progress",
+      "breakpoints": true
     }
   ]
 }
