@@ -1,10 +1,10 @@
 services:
   web:
     build:
-      dockerfile: docker/Dockerfile.dev
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     volumes:
-      - .:/app
+      - ..:/app
       - node_modules:/app/node_modules
       - pnpm-store:/pnpm
       # By default, the data is stored in a docker volume called "data".
@@ -61,10 +61,10 @@ services:
       - meilisearch:/meili_data
   workers:
     build:
-      dockerfile: docker/Dockerfile.dev
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     volumes:
-      - .:/app
+      - ..:/app
       - node_modules:/app/node_modules
       - pnpm-store:/pnpm
       - data:${DATA_DIR:-/data}
@@ -87,7 +87,7 @@ services:
         condition: service_started
   prep:
     build:
-      dockerfile: docker/Dockerfile.dev
+      dockerfile: Dockerfile.dev
     restart: "no"
     working_dir: /app
     environment:
@@ -96,7 +96,7 @@ services:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-super-secure-nextauth-secret}
     volumes:
-      - .:/app
+      - ..:/app
       - node_modules:/app/node_modules
       - pnpm-store:/pnpm
       - data:${DATA_DIR:-/data}
