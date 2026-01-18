@@ -22,6 +22,7 @@ async function fetchBookmark(db: AuthedContext["db"], bookmarkId: string) {
       link: {
         columns: {
           url: true,
+          title: true,
         },
       },
       text: true,
