@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { buildImpersonatingAuthedContext } from "trpc";
+import { withWorkerTracing } from "workerTracing";
 
 import type { ZRuleEngineRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -20,7 +21,7 @@ export class RuleEngineWorker {
     const worker = (await getQueueClient())!.createRunner<ZRuleEngineRequest>(
       RuleEngineQueue,
       {
-        run: runRuleEngine,
+        run: withWorkerTracing("ruleEngineWorker.run", runRuleEngine),
         onComplete: (job) => {
           workerStatsCounter.labels("ruleEngine", "completed").inc();
           const jobId = job.id;

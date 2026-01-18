@@ -1,0 +1,63 @@
+---
+id: get-current-user-stats
+title: "Get current user stats"
+description: "Returns stats about the current user"
+sidebar_label: "Get current user stats"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVktv20gM/isCz4Ll7FE3F32lu4sWGwdFYfgwkmlramlG5VBuVEH/veBItiXF3iTNKYr5+kh+Q7KBDbqUdMnaGojhP+SKjAscK3aBSmzFAWcYpBURGg4qhwQhsNo5iFdw75AcrENwmFakuYZ41UCCipAWFWcQr9btOgRCV1rj0EHcwF/zufwZB/6cfMeUg5+aMx+kQzCDEFJrGA2LiSrLXKdKTKLvTuwacGmGhZIvrkuEGKz3BCGUZEsk1l1UUxVvrN0XivZuoG2qIkGCNpSv9+pgSTNeVVhQmukDbq7Jl74ul2X/aMdXhR/1Lsv1LruikRyRv6mXXvZUtrk2+4ueGB/4okA5h5ckrXTvR6VJsl51jns3R6O1+LXlW1sobYYJKCJVQwiasXBPg954BwM9x6TNTtCltjLPQNd7OOoLsEI93Hbhb+YeJ6t8IbDv9C+8XonHlX5hMjy2fjqVHtsVWJNEvfToa2i5bgd00Wa3SFkf/MN8EnCm3VfEK7TJtPvXGnnRV6TfUNFl7tYfbUV/XshsbH12/ExOePszIzyit6r+vJ0k+1Kyqvo1qDY+1gnUtL3HXgwrP6jzqarjZPxDVLt7p3avYK5RxcuYOwHv7f/nCQ6G2Z2tKH0FVDe178HKTM1zleQIMVOFIaCpCgGnSg0h/MREEObyXdhE5wIYHxiNk3UUgtNml+O2E5BzAqkoLXUJPbMQPbrrbR7tpMkGGu+b83YZ7JLp5ni8J0Zz+dHwm4y6y3NjwKhLrZOkJK0CObMbiGGHvk1KRgVEsspdVGDk17kUFukgN4PcCRXlEEOjNhtC59pIlTo63EAIB0Vamud73Iu7k2Grqpwhhoy5dHEUMdWzvSK1RyxnqiwhnNwVywyD3kNgt/6W+bvXDzos0Lbt4IK5k3uiizy8Y069lsiSh1eDuFeS2viP95YKJQg/fV16QmiztWIuWXeQbmbz2Vzqqln4CSc8iy+3F/EvvtwGW0tj8JJsG0JpHRfKnN8tfEAenWvBsfQjx835rnr20dcVQFZ/VOayZ9uw62HT93sFvt/yqIQtXeB1CJl1LNKmSZTDe8rbVn7+USHJxbg+d9wfjCFkqDZIniR7rCGGRZpiyZ4aeeUHxfQUlB6eSPjh3VLYPe7cpFPe+3HsmHrgu2k6jaXdo2lbCHsQLP9DK5T/DVVi30E=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get current user stats"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/users/me/stats"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Returns stats about the current user
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Object with user stats.","content":{"application/json":{"schema":{"type":"object","properties":{"numBookmarks":{"type":"number"},"numFavorites":{"type":"number"},"numArchived":{"type":"number"},"numTags":{"type":"number"},"numLists":{"type":"number"},"numHighlights":{"type":"number"},"bookmarksByType":{"type":"object","properties":{"link":{"type":"number"},"text":{"type":"number"},"asset":{"type":"number"}},"required":["link","text","asset"]},"topDomains":{"type":"array","items":{"type":"object","properties":{"domain":{"type":"string"},"count":{"type":"number"}},"required":["domain","count"]},"maxItems":10},"totalAssetSize":{"type":"number"},"assetsByType":{"type":"array","items":{"type":"object","properties":{"type":{"type":"string"},"count":{"type":"number"},"totalSize":{"type":"number"}},"required":["type","count","totalSize"]}},"bookmarkingActivity":{"type":"object","properties":{"thisWeek":{"type":"number"},"thisMonth":{"type":"number"},"thisYear":{"type":"number"},"byHour":{"type":"array","items":{"type":"object","properties":{"hour":{"type":"number"},"count":{"type":"number"}},"required":["hour","count"]}},"byDayOfWeek":{"type":"array","items":{"type":"object","properties":{"day":{"type":"number"},"count":{"type":"number"}},"required":["day","count"]}}},"required":["thisWeek","thisMonth","thisYear","byHour","byDayOfWeek"]},"tagUsage":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"},"count":{"type":"number"}},"required":["name","count"]},"maxItems":10},"bookmarksBySource":{"type":"array","items":{"type":"object","properties":{"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"count":{"type":"number"}},"required":["source","count"]}}},"required":["numBookmarks","numFavorites","numArchived","numTags","numLists","numHighlights","bookmarksByType","topDomains","totalAssetSize","assetsByType","bookmarkingActivity","tagUsage","bookmarksBySource"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

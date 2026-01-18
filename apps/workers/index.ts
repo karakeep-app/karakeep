@@ -3,8 +3,10 @@ import "dotenv/config";
 import { buildServer } from "server";
 
 import {
+  initTracing,
   loadAllPlugins,
   prepareQueue,
+  shutdownTracing,
   startQueue,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
@@ -51,6 +53,7 @@ function isWorkerEnabled(name: WorkerName) {
 
 async function main() {
   await loadAllPlugins();
+  initTracing("workers");
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
   await prepareQueue();
 
@@ -97,6 +100,7 @@ async function main() {
     worker.stop();
   }
   await httpServer.stop();
+  await shutdownTracing();
   process.exit(0);
 }
 

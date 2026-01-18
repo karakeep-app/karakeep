@@ -25,8 +25,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
 import { useDialogFormReset } from "@/lib/hooks/useDialogFormReset";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
@@ -78,6 +78,7 @@ export function EditBookmarkDialog({
   const bookmarkToDefault = (bookmark: ZBookmark) => ({
     bookmarkId: bookmark.id,
     summary: bookmark.summary,
+    note: bookmark.note === null ? undefined : bookmark.note,
     title: getBookmarkTitle(bookmark),
     createdAt: bookmark.createdAt ?? new Date(),
     // Link specific defaults (only if bookmark is a link)
@@ -195,6 +196,26 @@ export function EditBookmarkDialog({
                 )}
               />
             )}
+
+            {
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("common.note")}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Bookmark notes"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            }
 
             {isLink && (
               <FormField

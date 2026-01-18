@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "@/components/ui/sonner";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
@@ -43,7 +44,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Slider } from "../ui/slider";
-import { toast } from "../ui/use-toast";
 
 export default function ReaderSettings() {
   const { t } = useTranslation();

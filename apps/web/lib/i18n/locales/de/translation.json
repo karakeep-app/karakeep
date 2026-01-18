@@ -39,7 +39,9 @@
     "summary": "Zusammenfassung",
     "quota": "Kontingent",
     "bookmarks": "Lesezeichen",
-    "storage": "Speicher"
+    "storage": "Speicher",
+    "pdf": "Archivierte PDF-Datei",
+    "default": "Standard"
   },
   "layouts": {
     "masonry": "Verschachtelt",
@@ -90,7 +92,9 @@
     "confirm": "Bestätigen",
     "regenerate": "Regenerieren",
     "load_more": "Mehr laden",
-    "edit_notes": "Notizen bearbeiten"
+    "edit_notes": "Notizen bearbeiten",
+    "preserve_as_pdf": "Als PDF speichern",
+    "offline_copies": "Offline-Kopien"
   },
   "settings": {
     "back_to_app": "Zurück zur App",
@@ -116,6 +120,49 @@
           "show": "Archivierte Lesezeichen in Tags und Listen anzeigen",
           "hide": "Archivierte Lesezeichen in Tags und Listen ausblenden"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Gerätespezifische Einstellungen aktiv",
+        "using_default": "Client-Standard verwenden",
+        "clear_override_hint": "Geräteüberschreibung löschen, um die globale Einstellung zu verwenden ({{value}})",
+        "font_size": "Schriftgröße",
+        "font_family": "Schriftfamilie",
+        "preview_inline": "(Vorschau)",
+        "tooltip_preview": "Nicht gespeicherte Vorschaueinstellungen",
+        "save_to_all_devices": "Alle Geräte",
+        "tooltip_local": "Geräteeinstellungen weichen von den globalen Einstellungen ab",
+        "reset_preview": "Vorschau zurücksetzen",
+        "mono": "Monospace",
+        "line_height": "Zeilenhöhe",
+        "tooltip_default": "Leseeinstellungen",
+        "title": "Lesereinstellungen",
+        "serif": "Serif",
+        "preview": "Vorschau",
+        "not_set": "Nicht festgelegt",
+        "clear_local_overrides": "Geräteeinstellungen löschen",
+        "preview_text": "The quick brown fox jumps over the lazy dog. So wird der Text Ihrer Leseransicht aussehen.",
+        "local_overrides_cleared": "Gerätespezifische Einstellungen wurden gelöscht",
+        "local_overrides_description": "Dieses Gerät hat Lesereinstellungen, die von Ihren globalen Standardeinstellungen abweichen:",
+        "clear_defaults": "Alle Standardeinstellungen löschen",
+        "description": "Standard-Texteinstellungen für die Leseransicht konfigurieren. Diese Einstellungen werden auf allen Ihren Geräten synchronisiert.",
+        "defaults_cleared": "Die Standardeinstellungen des Readers wurden gelöscht",
+        "save_hint": "Einstellungen nur für dieses Gerät speichern oder über alle Geräte synchronisieren",
+        "save_as_default": "Als Standard speichern",
+        "save_to_device": "Dieses Gerät",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Nicht gespeicherte Vorschaueinstellungen; Geräteeinstellungen weichen von den globalen Einstellungen ab",
+        "adjust_hint": "Passe die Einstellungen oben an, um eine Vorschau der Änderungen zu sehen"
+      },
+      "avatar": {
+        "upload": "Avatar hochladen",
+        "change": "Avatar ändern",
+        "remove_confirm_title": "Avatar entfernen?",
+        "updated": "Avatar aktualisiert",
+        "removed": "Avatar entfernt",
+        "description": "Lade ein quadratisches Bild hoch, das du als Avatar verwenden möchtest.",
+        "remove_confirm_description": "Dadurch wird dein aktuelles Profilfoto gelöscht.",
+        "title": "Profilfoto",
+        "remove": "Avatar entfernen"
       }
     },
     "ai": {
@@ -129,7 +176,21 @@
       "all_tagging": "Gesamtes Tagging",
       "text_tagging": "Text-Tagging",
       "image_tagging": "Bild-Tagging",
-      "summarization": "Zusammenfassung"
+      "summarization": "Zusammenfassung",
+      "tag_style": "Tag-Stil",
+      "auto_summarization_description": "Automatische Zusammenfassung deiner Lesezeichen mithilfe von KI.",
+      "auto_tagging": "Automatisches Tagging",
+      "titlecase_spaces": "Titel-Schreibweise mit Leerzeichen",
+      "lowercase_underscores": "Kleinbuchstaben mit Unterstrichen",
+      "inference_language": "Schlussfolgerungs-Sprache",
+      "titlecase_hyphens": "Titel-Schreibweise mit Bindestrichen",
+      "lowercase_hyphens": "Kleinbuchstaben mit Bindestrichen",
+      "lowercase_spaces": "Kleinbuchstaben mit Leerzeichen",
+      "inference_language_description": "Sprache für von KI generierte Tags und Zusammenfassungen auswählen.",
+      "tag_style_description": "Wähle, wie deine automatisch generierten Tags formatiert werden sollen.",
+      "auto_tagging_description": "Automatische Tag-Generierung für deine Lesezeichen mithilfe von KI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatische Zusammenfassung"
     },
     "feeds": {
       "rss_subscriptions": "RSS-Abonnements",
@@ -142,6 +203,7 @@
       "import_export_bookmarks": "Lesezeichen importieren / exportieren",
       "import_bookmarks_from_html_file": "Lesezeichen aus HTML-Datei importieren",
       "import_bookmarks_from_pocket_export": "Lesezeichen aus Pocket-Export importieren",
+      "import_bookmarks_from_matter_export": "Lesezeichen aus Matter-Export importieren",
       "import_bookmarks_from_omnivore_export": "Lesezeichen aus Omnivore-Export importieren",
       "import_bookmarks_from_karakeep_export": "Lesezeichen aus Karakeep-Export importieren",
       "export_links_and_notes": "Links und Notizen exportieren",
@@ -646,7 +708,8 @@
     "tabs": {
       "content": "Inhalt",
       "details": "Details"
-    }
+    },
+    "archive_info": "Archive werden möglicherweise nicht korrekt inline dargestellt, wenn sie Javascript benötigen. Die besten Ergebnisse erzielst du, wenn du sie <1>herunterlädst und in deinem Browser öffnest</1>."
   },
   "editor": {
     "quickly_focus": "Sie können schnell auf dieses Feld fokussieren, indem Sie ⌘ + E drücken",
@@ -714,7 +777,8 @@
       "refetch": "Neuabruf wurde in die Warteschlange gestellt!",
       "full_page_archive": "Erstellung des vollständigen Seitenarchivs wurde ausgelöst",
       "delete_from_list": "Das Lesezeichen wurde aus der Liste gelöscht",
-      "clipboard_copied": "Link wurde in Ihre Zwischenablage kopiert!"
+      "clipboard_copied": "Link wurde in Ihre Zwischenablage kopiert!",
+      "preserve_pdf": "Die PDF-Speicherung wurde ausgelöst"
     },
     "lists": {
       "created": "Liste wurde erstellt!",
@@ -781,7 +845,14 @@
     "year_s_ago": " Vor Jahr(en)",
     "history": "Letzte Suchanfragen",
     "title_contains": "Titel enthält",
-    "title_does_not_contain": "Titel enthält nicht"
+    "title_does_not_contain": "Titel enthält nicht",
+    "is_broken_link": "Hat defekten Link",
+    "tags": "Schlagwörter",
+    "no_suggestions": "Keine Vorschläge",
+    "filters": "Filter",
+    "is_not_broken_link": "Hat funktionierenden Link",
+    "lists": "Listen",
+    "feeds": "Feeds"
   },
   "bookmark_editor": {
     "subtitle": "Ändere die Details des Lesezeichens. Klicke auf Speichern, wenn du fertig bist.",

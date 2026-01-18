@@ -18,6 +18,7 @@ export type ZSortOrder = z.infer<typeof zSortOrder>;
 export const zAssetTypesSchema = z.enum([
   "linkHtmlContent",
   "screenshot",
+  "pdf",
   "assetScreenshot",
   "bannerImage",
   "fullPageArchive",
@@ -44,6 +45,7 @@ export const zBookmarkedLinkSchema = z.object({
   imageUrl: z.string().nullish(),
   imageAssetId: z.string().nullish(),
   screenshotAssetId: z.string().nullish(),
+  pdfAssetId: z.string().nullish(),
   fullPageArchiveAssetId: z.string().nullish(),
   precrawledArchiveAssetId: z.string().nullish(),
   videoAssetId: z.string().nullish(),
@@ -51,6 +53,7 @@ export const zBookmarkedLinkSchema = z.object({
   htmlContent: z.string().nullish(),
   contentAssetId: z.string().nullish(),
   crawledAt: z.date().nullish(),
+  crawlStatus: z.enum(["success", "failure", "pending"]).nullish(),
   author: z.string().nullish(),
   publisher: z.string().nullish(),
   datePublished: z.date().nullish(),

@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -340,6 +340,13 @@ function useJobActions() {
   return {
     crawlActions: [
       {
+        label: t("admin.background_jobs.actions.recrawl_pending_links_only"),
+        onClick: () =>
+          recrawlLinks({ crawlStatus: "pending", runInference: true }),
+        variant: "secondary" as const,
+        loading: isRecrawlPending,
+      },
+      {
         label: t("admin.background_jobs.actions.recrawl_failed_links_only"),
         onClick: () =>
           recrawlLinks({ crawlStatus: "failure", runInference: true }),
@@ -361,6 +368,15 @@ function useJobActions() {
     inferenceActions: [
       {
         label: t(
+          "admin.background_jobs.actions.regenerate_ai_tags_for_pending_bookmarks_only",
+        ),
+        onClick: () =>
+          reRunInferenceOnAllBookmarks({ type: "tag", status: "pending" }),
+        variant: "secondary" as const,
+        loading: isInferencePending,
+      },
+      {
+        label: t(
           "admin.background_jobs.actions.regenerate_ai_tags_for_failed_bookmarks_only",
         ),
         onClick: () =>
@@ -374,6 +390,18 @@ function useJobActions() {
         ),
         onClick: () =>
           reRunInferenceOnAllBookmarks({ type: "tag", status: "all" }),
+        loading: isInferencePending,
+      },
+      {
+        label: t(
+          "admin.background_jobs.actions.regenerate_ai_summaries_for_pending_bookmarks_only",
+        ),
+        onClick: () =>
+          reRunInferenceOnAllBookmarks({
+            type: "summarize",
+            status: "pending",
+          }),
+        variant: "secondary" as const,
         loading: isInferencePending,
       },
       {

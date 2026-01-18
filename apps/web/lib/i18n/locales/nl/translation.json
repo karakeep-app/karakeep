@@ -39,7 +39,9 @@
     "summary": "Samenvatting",
     "quota": "Quota",
     "bookmarks": "Bladwijzers",
-    "storage": "Opslag"
+    "storage": "Opslag",
+    "pdf": "Gearchiveerde PDF",
+    "default": "Standaard"
   },
   "layouts": {
     "list": "Lijst",
@@ -90,7 +92,9 @@
     "confirm": "Bevestigen",
     "regenerate": "Opnieuw genereren",
     "load_more": "Laad meer",
-    "edit_notes": "Notities bewerken"
+    "edit_notes": "Notities bewerken",
+    "preserve_as_pdf": "Opslaan als PDF",
+    "offline_copies": "Offline kopieën"
   },
   "settings": {
     "ai": {
@@ -104,7 +108,21 @@
       "all_tagging": "Alle tags",
       "text_tagging": "Tekst taggen",
       "image_tagging": "Afbeeldingen taggen",
-      "tagging_rule_description": "Prompts die je hier toevoegt, worden opgenomen als regels voor het model tijdens het genereren van tags. Je kunt de uiteindelijke prompts bekijken in het promptvoorbeeldgedeelte."
+      "tagging_rule_description": "Prompts die je hier toevoegt, worden opgenomen als regels voor het model tijdens het genereren van tags. Je kunt de uiteindelijke prompts bekijken in het promptvoorbeeldgedeelte.",
+      "tag_style": "Tagstijl",
+      "auto_summarization_description": "Genereer automatisch samenvattingen voor je bladwijzers met behulp van AI.",
+      "auto_tagging": "Automatisch labelen",
+      "titlecase_spaces": "Hoofdletters met spaties",
+      "lowercase_underscores": "Kleine letters met underscores",
+      "inference_language": "Inferentietalen",
+      "titlecase_hyphens": "Hoofdletters met koppeltekens",
+      "lowercase_hyphens": "Kleine letters met koppeltekens",
+      "lowercase_spaces": "Kleine letters met spaties",
+      "inference_language_description": "Kies taal voor door AI gegenereerde tags en samenvattingen.",
+      "tag_style_description": "Kies hoe je automatisch gegenereerde tags moeten worden opgemaakt.",
+      "auto_tagging_description": "Genereer automatisch tags voor je bladwijzers met behulp van AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatische samenvatting"
     },
     "import": {
       "import_export": "Importeren / Exporteren",
@@ -112,6 +130,7 @@
       "import_export_bookmarks": "Importeer / Exporteer Bladwijzers",
       "import_bookmarks_from_html_file": "Importeer Bladwijzers van HTML bestand",
       "import_bookmarks_from_pocket_export": "Importeer Bladwijzers van Pocket export",
+      "import_bookmarks_from_matter_export": "Importeer Bladwijzers van Matter export",
       "import_bookmarks_from_omnivore_export": "Bladwijzers importeren uit Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Bladwijzers importeren uit Linkwarden-export",
       "import_bookmarks_from_karakeep_export": "Bladwijzers importeren uit Karakeep-export",
@@ -158,6 +177,49 @@
           "show": "Gearchiveerde bladwijzers weergeven in tags en lijsten",
           "hide": "Gearchiveerde bladwijzers verbergen in tags en lijsten"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Apparaatspecifieke instellingen actief",
+        "using_default": "Standaardinstelling van de client gebruiken",
+        "clear_override_hint": "Apparaatoverschrijving wissen om algemene instelling te gebruiken ({{value}})",
+        "font_size": "Lettergrootte",
+        "font_family": "Lettertypefamilie",
+        "preview_inline": "(voorbeeld)",
+        "tooltip_preview": "Niet-opgeslagen voorbeeldwijzigingen",
+        "save_to_all_devices": "Alle apparaten",
+        "tooltip_local": "Apparaatinstellingen verschillen van algemene instellingen",
+        "reset_preview": "Voorbeeld resetten",
+        "mono": "Monospace",
+        "line_height": "Regelhoogte",
+        "tooltip_default": "Leesinstellingen",
+        "title": "Lezerinstellingen",
+        "serif": "Serif",
+        "preview": "Voorbeeld",
+        "not_set": "Niet ingesteld",
+        "clear_local_overrides": "Apparaatinstellingen wissen",
+        "preview_text": "The quick brown fox jumps over the lazy dog. Zo ziet de tekst in je lezerweergave eruit.",
+        "local_overrides_cleared": "Apparaatspecifieke instellingen zijn gewist",
+        "local_overrides_description": "Dit apparaat heeft lezerinstellingen die afwijken van je globale standaardwaarden:",
+        "clear_defaults": "Alle standaarden wissen",
+        "description": "Configureer de standaard tekstinstellingen voor de lezerweergave. Deze instellingen worden gesynchroniseerd op al je apparaten.",
+        "defaults_cleared": "Standaardwaarden van de lezer zijn gewist",
+        "save_hint": "Instellingen opslaan alleen voor dit apparaat of synchroniseren op alle apparaten",
+        "save_as_default": "Opslaan als standaard",
+        "save_to_device": "Dit apparaat",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Niet-opgeslagen voorbeeldwijzigingen; apparaatinstellingen verschillen van algemene instellingen",
+        "adjust_hint": "Pas de bovenstaande instellingen aan om een voorbeeld van de wijzigingen te bekijken"
+      },
+      "avatar": {
+        "upload": "Avatar uploaden",
+        "change": "Avatar wijzigen",
+        "remove_confirm_title": "Avatar verwijderen?",
+        "updated": "Avatar bijgewerkt",
+        "removed": "Avatar verwijderd",
+        "description": "Upload een vierkante afbeelding om als je avatar te gebruiken.",
+        "remove_confirm_description": "Hiermee verwijder je je huidige profielfoto.",
+        "title": "Profielfoto",
+        "remove": "Avatar verwijderen"
       }
     },
     "back_to_app": "Terug Naar App",
@@ -556,7 +618,8 @@
     "tabs": {
       "content": "Inhoud",
       "details": "Details"
-    }
+    },
+    "archive_info": "Archieven worden mogelijk niet correct inline weergegeven als ze Javascript vereisen. Voor de beste resultaten kun je het <1>downloaden en openen in je browser</1>."
   },
   "editor": {
     "text_toolbar": {
@@ -745,7 +808,14 @@
     "year_s_ago": " Jaar geleden",
     "history": "Recente zoekopdrachten",
     "title_contains": "Titel bevat",
-    "title_does_not_contain": "Titel bevat niet"
+    "title_does_not_contain": "Titel bevat niet",
+    "is_broken_link": "Heeft een verbroken link",
+    "tags": "Labels",
+    "no_suggestions": "Geen suggesties",
+    "filters": "Filters",
+    "is_not_broken_link": "Heeft een werkende link",
+    "lists": "Lijsten",
+    "feeds": "Feeds"
   },
   "dialogs": {
     "bookmarks": {
@@ -760,7 +830,8 @@
       "updated": "De bladwijzer is bijgewerkt!",
       "deleted": "De bladwijzer is verwijderd!",
       "delete_from_list": "De bladwijzer is uit de lijst verwijderd",
-      "clipboard_copied": "Link is naar je klembord gekopieerd!"
+      "clipboard_copied": "Link is naar je klembord gekopieerd!",
+      "preserve_pdf": "PDF-opslag is geactiveerd"
     },
     "lists": {
       "updated": "Lijst is bijgewerkt!",

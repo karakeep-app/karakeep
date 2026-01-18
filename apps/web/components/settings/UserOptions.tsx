@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/sonner";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
@@ -28,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { toast } from "../ui/use-toast";
 
 const LanguageSelect = () => {
   const lang = useInterfaceLang();

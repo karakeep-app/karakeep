@@ -39,7 +39,9 @@
     "summary": "摘要",
     "quota": "配額",
     "bookmarks": "書籤",
-    "storage": "儲存空間"
+    "storage": "儲存空間",
+    "pdf": "已封存的 PDF",
+    "default": "預設"
   },
   "layouts": {
     "masonry": "瀑布式",
@@ -90,7 +92,9 @@
     "confirm": "確認",
     "regenerate": "重新產生",
     "load_more": "載入更多",
-    "edit_notes": "編輯註解"
+    "edit_notes": "編輯註解",
+    "preserve_as_pdf": "儲存為 PDF",
+    "offline_copies": "離線副本"
   },
   "settings": {
     "back_to_app": "返回應用程式",
@@ -116,6 +120,49 @@
           "open_external_url": "開啟原始網址",
           "open_bookmark_details": "開啟書籤詳細資訊"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "裝置專用設定已啟動",
+        "using_default": "使用用戶端預設值",
+        "clear_override_hint": "清除裝置覆寫以使用全域設定（{{value}}）",
+        "font_size": "字型大小",
+        "font_family": "字型",
+        "preview_inline": "（預覽）",
+        "tooltip_preview": "未儲存的預覽變更",
+        "save_to_all_devices": "所有裝置",
+        "tooltip_local": "裝置設定與全域不同",
+        "reset_preview": "重設預覽",
+        "mono": "等寬字體",
+        "line_height": "行高",
+        "tooltip_default": "閱讀設定",
+        "title": "閱讀器設定",
+        "serif": "襯線體",
+        "preview": "預覽",
+        "not_set": "未設定",
+        "clear_local_overrides": "清除裝置設定",
+        "preview_text": "敏捷的棕色狐狸跳過懶惰的狗。您的閱讀器檢視文字會像這樣顯示。",
+        "local_overrides_cleared": "裝置專用設定已清除",
+        "local_overrides_description": "此裝置具有與全域預設值不同的閱讀器設定：",
+        "clear_defaults": "清除所有預設值",
+        "description": "設定閱讀器檢視的預設文字設定。這些設定會在您的所有裝置之間同步。",
+        "defaults_cleared": "閱讀器預設值已清除",
+        "save_hint": "僅儲存此裝置的設定，或跨所有裝置同步",
+        "save_as_default": "儲存為預設值",
+        "save_to_device": "此裝置",
+        "sans": "無襯線體",
+        "tooltip_preview_and_local": "未儲存的預覽變更數目；裝置設定與全域不同",
+        "adjust_hint": "調整以上設定以預覽變更"
+      },
+      "avatar": {
+        "upload": "上傳頭像",
+        "change": "變更頭像",
+        "remove_confirm_title": "要移除頭像嗎？",
+        "updated": "頭像已更新",
+        "removed": "頭像已移除",
+        "description": "上傳一張正方形圖片做為您的頭像。",
+        "remove_confirm_description": "這會清除您目前的個人資料相片。",
+        "title": "個人資料相片",
+        "remove": "移除頭像"
       }
     },
     "ai": {
@@ -129,7 +176,21 @@
       "text_tagging": "文字標籤",
       "image_tagging": "圖片標籤",
       "summarization": "摘要",
-      "summarization_prompt": "摘要提示詞"
+      "summarization_prompt": "摘要提示詞",
+      "tag_style": "標籤樣式",
+      "auto_summarization_description": "使用 AI 自動為你的書籤產生摘要。",
+      "auto_tagging": "自動標記",
+      "titlecase_spaces": "首字大寫，含空格",
+      "lowercase_underscores": "小寫，含底線",
+      "inference_language": "推論語言",
+      "titlecase_hyphens": "首字大寫，含連字號",
+      "lowercase_hyphens": "小寫，含連字號",
+      "lowercase_spaces": "小寫，含空格",
+      "inference_language_description": "選擇 AI 產生的標籤和摘要的語言。",
+      "tag_style_description": "選擇自動產生的標籤應如何格式化。",
+      "auto_tagging_description": "使用 AI 自動為你的書籤產生標籤。",
+      "camelCase": "駝峰式大小寫",
+      "auto_summarization": "自動摘要"
     },
     "feeds": {
       "rss_subscriptions": "RSS 訂閱",
@@ -142,6 +203,7 @@
       "import_export_bookmarks": "匯入／匯出書籤",
       "import_bookmarks_from_html_file": "從 HTML 檔案匯入書籤",
       "import_bookmarks_from_pocket_export": "從 Pocket 匯出檔案匯入書籤",
+      "import_bookmarks_from_matter_export": "從 Matter 匯出檔案匯入書籤",
       "import_bookmarks_from_omnivore_export": "從 Omnivore 匯出檔案匯入書籤",
       "import_bookmarks_from_karakeep_export": "從 Karakeep 匯出檔案匯入書籤",
       "export_links_and_notes": "匯出連結和筆記",
@@ -646,7 +708,8 @@
     "tabs": {
       "content": "內容",
       "details": "詳細資訊"
-    }
+    },
+    "archive_info": "如果封存檔需要 Javascript，可能無法正確地內嵌呈現。為了獲得最佳效果，<1>請下載並在瀏覽器中開啟</1>。"
   },
   "editor": {
     "quickly_focus": "您可以按下 ⌘ + E 快速聚焦此欄位",
@@ -714,7 +777,8 @@
       "refetch": "已將重新抓取加入佇列！",
       "full_page_archive": "已觸發完整網頁封存建立",
       "delete_from_list": "已從清單中移除書籤",
-      "clipboard_copied": "連結已複製到剪貼簿！"
+      "clipboard_copied": "連結已複製到剪貼簿！",
+      "preserve_pdf": "已觸發 PDF 儲存"
     },
     "lists": {
       "created": "清單已建立！",
@@ -772,7 +836,14 @@
     "year_s_ago": " 幾年前",
     "history": "近期搜尋",
     "title_contains": "標題包含",
-    "title_does_not_contain": "標題不包含"
+    "title_does_not_contain": "標題不包含",
+    "is_broken_link": "連結已損毀",
+    "tags": "標籤",
+    "no_suggestions": "沒有任何建議",
+    "filters": "篩選器",
+    "is_not_broken_link": "擁有可用的連結",
+    "lists": "清單",
+    "feeds": "動態饋給"
   },
   "dialogs": {
     "bookmarks": {

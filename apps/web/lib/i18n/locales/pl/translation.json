@@ -39,7 +39,9 @@
     "summary": "Podsumowanie",
     "quota": "Limit",
     "bookmarks": "Zakładki",
-    "storage": "Miejsce na dane"
+    "storage": "Miejsce na dane",
+    "pdf": "Zarchiwizowane PDF",
+    "default": "Domyślne"
   },
   "actions": {
     "remove_from_list": "Usuń z listy",
@@ -84,7 +86,9 @@
     "confirm": "Potwierdź",
     "regenerate": "Wygeneruj ponownie",
     "load_more": "Załaduj więcej",
-    "edit_notes": "Edytuj notatki"
+    "edit_notes": "Edytuj notatki",
+    "preserve_as_pdf": "Zachowaj jako PDF",
+    "offline_copies": "Kopie offline"
   },
   "settings": {
     "info": {
@@ -108,11 +112,55 @@
           "open_external_url": "Otwórz oryginalny URL",
           "open_bookmark_details": "Otwórz szczegóły zakładki"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Aktywne ustawienia specyficzne dla urządzenia",
+        "using_default": "Użyj ustawień domyślnych klienta",
+        "clear_override_hint": "Wyczyść ustawienia urządzenia, aby użyć ustawień globalnych ({{value}})",
+        "font_size": "Rozmiar czcionki",
+        "font_family": "Rodzina czcionek",
+        "preview_inline": "(podgląd)",
+        "tooltip_preview": "Niezapisane zmiany podglądu",
+        "save_to_all_devices": "Wszystkie urządzenia",
+        "tooltip_local": "Ustawienia urządzenia różnią się od globalnych",
+        "reset_preview": "Zresetuj podgląd",
+        "mono": "Monospace",
+        "line_height": "Wysokość linii",
+        "tooltip_default": "Ustawienia czytania",
+        "title": "Ustawienia czytnika",
+        "serif": "Z szeryfami",
+        "preview": "Podgląd",
+        "not_set": "Nie ustawiono",
+        "clear_local_overrides": "Wyczyść ustawienia urządzenia",
+        "preview_text": "The quick brown fox jumps over the lazy dog. Tak będzie wyglądał tekst w widoku czytnika.",
+        "local_overrides_cleared": "Ustawienia specyficzne dla urządzenia zostały wyczyszczone",
+        "local_overrides_description": "To urządzenie ma ustawienia czytnika, które różnią się od globalnych ustawień domyślnych:",
+        "clear_defaults": "Wyczyść wszystkie ustawienia domyślne",
+        "description": "Skonfiguruj domyślne ustawienia tekstu dla widoku czytnika. Ustawienia te synchronizują się na wszystkich Twoich urządzeniach.",
+        "defaults_cleared": "Ustawienia domyślne czytnika zostały wyczyszczone",
+        "save_hint": "Zapisz ustawienia tylko dla tego urządzenia lub synchronizuj na wszystkich urządzeniach",
+        "save_as_default": "Zapisz jako domyślne",
+        "save_to_device": "To urządzenie",
+        "sans": "Bezszeryfowa",
+        "tooltip_preview_and_local": "Nie zapisano zmian w podglądzie; ustawienia urządzenia różnią się od globalnych",
+        "adjust_hint": "Dostosuj powyższe ustawienia, aby wyświetlić zmiany w podglądzie"
+      },
+      "avatar": {
+        "upload": "Wrzuć awatar",
+        "change": "Zmień awatar",
+        "remove_confirm_title": "Usunąć awatar?",
+        "updated": "Awatar zaktualizowany",
+        "removed": "Awatar usunięty",
+        "description": "Wrzuć kwadratowy obrazek, który będzie Twoim awatarem.",
+        "remove_confirm_description": "To wyczyści Twoje aktualne zdjęcie profilowe.",
+        "title": "Zdjęcie profilowe",
+        "remove": "Usuń awatar"
       }
     },
     "import": {
       "import_bookmarks_from_html_file": "Importuj zakładki z pliku HTML",
       "import_bookmarks_from_pocket_export": "Importuj zakładki z eksportu Pocket",
+      "import_bookmarks_from_matter_export": "Importuj zakładki z eksportu Matter",
       "import_export": "Import / Eksport",
       "import_export_bookmarks": "Import / Eksport zakładek",
       "import_bookmarks_from_omnivore_export": "Importuj zakładki z eksportu Omnivore",
@@ -136,7 +184,21 @@
       "summarization_prompt": "Monit o podsumowanie",
       "all_tagging": "Wszystkie tagi",
       "text_tagging": "Tagowanie tekstu",
-      "image_tagging": "Tagowanie obrazów"
+      "image_tagging": "Tagowanie obrazów",
+      "tag_style": "Styl tagów",
+      "auto_summarization_description": "Automatycznie generuj streszczenia dla zakładek za pomocą AI.",
+      "auto_tagging": "Automatyczne tagowanie",
+      "titlecase_spaces": "Wielkie litery ze spacjami",
+      "lowercase_underscores": "Małe litery z podkreślnikami",
+      "inference_language": "Język wnioskowania",
+      "titlecase_hyphens": "Wielkie litery z myślnikami",
+      "lowercase_hyphens": "Małe litery z myślnikami",
+      "lowercase_spaces": "Małe litery ze spacjami",
+      "inference_language_description": "Wybierz język dla tagów i podsumowań generowanych przez AI.",
+      "tag_style_description": "Wybierz, jak powinny być formatowane autogenerowane tagi.",
+      "auto_tagging_description": "Automatycznie generuj tagi dla zakładek za pomocą AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatyczne podsumowywanie"
     },
     "feeds": {
       "rss_subscriptions": "Subskrypcje RSS",
@@ -622,7 +684,8 @@
       "refetch": "Pobieranie ponownie zostało zaplanowane!",
       "full_page_archive": "Tworzenie pełnego archiwum strony zostało rozpoczęte",
       "delete_from_list": "Zakładka została usunięta z listy",
-      "clipboard_copied": "Link został skopiowany do schowka!"
+      "clipboard_copied": "Link został skopiowany do schowka!",
+      "preserve_pdf": "Zapis PDF został uruchomiony"
     },
     "tags": {
       "created": "Etykieta została utworzona!",
@@ -732,7 +795,8 @@
     "tabs": {
       "content": "Treść",
       "details": "Szczegóły"
-    }
+    },
+    "archive_info": "Archiwa mogą się nie wyświetlać poprawnie w wierszu, jeśli wymagają Javascript. Dla najlepszych rezultatów, <1>pobierz i otwórz w przeglądarce</1>."
   },
   "highlights": {
     "no_highlights": "Nie masz jeszcze żadnych wyróżnień."
@@ -775,7 +839,14 @@
     "year_s_ago": " Lat(a) temu",
     "history": "Ostatnie wyszukiwania",
     "title_contains": "Tytuł zawiera",
-    "title_does_not_contain": "Tytuł nie zawiera"
+    "title_does_not_contain": "Tytuł nie zawiera",
+    "is_broken_link": "Ma Zepsuty Link",
+    "tags": "Tagi",
+    "no_suggestions": "Brak propozycji",
+    "filters": "Filtry",
+    "is_not_broken_link": "Ma Działający Link",
+    "lists": "Listy",
+    "feeds": "Kanały"
   },
   "dialogs": {
     "bookmarks": {

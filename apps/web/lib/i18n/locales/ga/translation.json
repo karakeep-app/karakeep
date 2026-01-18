@@ -39,7 +39,9 @@
     },
     "quota": "Cuóta",
     "bookmarks": "Leabhair mharcála",
-    "storage": "Stóráil"
+    "storage": "Stóráil",
+    "pdf": "PDF Cartlainne",
+    "default": "Réamhshocrú"
   },
   "actions": {
     "close": "Dún",
@@ -84,7 +86,9 @@
     "confirm": "Deimhnigh",
     "regenerate": "Athghinigh",
     "load_more": "Luchtaigh Níos Mó",
-    "edit_notes": "Nótaí a Chur in Eagar"
+    "edit_notes": "Nótaí a Chur in Eagar",
+    "preserve_as_pdf": "Caomhnaigh mar PDF",
+    "offline_copies": "Cóipeanna As Líne"
   },
   "settings": {
     "ai": {
@@ -98,7 +102,21 @@
       "all_tagging": "Gach Clibeáil",
       "text_tagging": "Clibeáil Téacs",
       "image_tagging": "Clibeáil Íomhá",
-      "summarization": "Achoimre"
+      "summarization": "Achoimre",
+      "tag_style": "Stíl Clibe",
+      "auto_summarization_description": "Achoimrí a ghiniúint go huathoibríoch do do leabharmharcanna ag úsáid AI.",
+      "auto_tagging": "Uathchlibeáil",
+      "titlecase_spaces": "Cás teidil le spásanna",
+      "lowercase_underscores": "Cás íseal le fostríocaí",
+      "inference_language": "Teanga Inbhainte",
+      "titlecase_hyphens": "Cás teidil le fleiscíní",
+      "lowercase_hyphens": "Cás íseal le fleiscíní",
+      "lowercase_spaces": "Cás íseal le spásanna",
+      "inference_language_description": "Roghnaigh teanga do chlibeanna agus achoimrí arna nginiúint ag AI.",
+      "tag_style_description": "Roghnaigh conas ar cheart do chlibeanna uathghinte a bheith formáidithe.",
+      "auto_tagging_description": "Clibeanna a ghiniúint go huathoibríoch do do leabharmharcanna ag úsáid AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Uathachoimriú"
     },
     "webhooks": {
       "webhooks": "Crúcaí Gréasáin",
@@ -210,6 +228,49 @@
           "show": "Taispeáin leabhair mharcáilte atá cartlannaithe i gclibeanna agus i liostaí",
           "hide": "Folaigh leabharmharcanna cartlannaithe i gclibeanna agus i liostaí"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Socruithe gléas-sonracha gníomhach",
+        "using_default": "Ag baint úsáide as réamhshocrú an chliaint",
+        "clear_override_hint": "Glan sárú gléis chun socrú ginearálta a úsáid ({{value}})",
+        "font_size": "Méid Cló",
+        "font_family": "Cló-Aicme",
+        "preview_inline": "(réamhamharc)",
+        "tooltip_preview": "Athruithe réamhamhairc neamhshábháilte",
+        "save_to_all_devices": "Gach gléas",
+        "tooltip_local": "Tá socruithe gléis difriúil ó shocruithe ginearálta",
+        "reset_preview": "Athshocraigh réamhamharc",
+        "mono": "Monaspás",
+        "line_height": "Airde Líne",
+        "tooltip_default": "Socruithe léitheoireachta",
+        "title": "Socruithe Léitheora",
+        "serif": "Searif",
+        "preview": "Réamhamharc",
+        "not_set": "Níl sé socraithe",
+        "clear_local_overrides": "Glan socruithe gléis",
+        "preview_text": "Léimeann an sionnach rua tapa thar an madra leisciúil. Seo an chuma a bheidh ar théacs do radhairc léitheora.",
+        "local_overrides_cleared": "Tá socruithe gléas-sonracha glanta",
+        "local_overrides_description": "Tá socruithe léitheora ag an ngléas seo atá difriúil ó do réamhshocruithe domhanda:",
+        "clear_defaults": "Glan gach réamhshocrú",
+        "description": "Cumraigh socruithe téacs réamhshocraithe do radharc an léitheora. Déantar na socruithe seo a shioncronú ar fud do ghléasanna go léir.",
+        "defaults_cleared": "Tá réamhshocruithe léitheora glanta",
+        "save_hint": "Sábháil socruithe don ghléas seo amháin nó sioncronaigh ar gach gléas",
+        "save_as_default": "Sábháil mar réamhshocrú",
+        "save_to_device": "An gléas seo",
+        "sans": "Sans Searif",
+        "tooltip_preview_and_local": "Athruithe réamhamhairc neamhshábháilte; tá socruithe gléis difriúil ó shocruithe ginearálta",
+        "adjust_hint": "Coigeartaigh na socruithe thuas chun athruithe a réamhamharc"
+      },
+      "avatar": {
+        "upload": "Uaslódáil avatar",
+        "change": "Athraigh avatar",
+        "remove_confirm_title": "Bain avatar?",
+        "updated": "Nuashonraíodh avatar",
+        "removed": "Baineadh avatar",
+        "description": "Uaslódáil íomhá chearnach le húsáid mar avatar.",
+        "remove_confirm_description": "Glanfaidh sé seo an grianghraf próifíle atá agat faoi láthair.",
+        "title": "Grianghraf Próifíle",
+        "remove": "Bain avatar"
       }
     },
     "feeds": {
@@ -223,6 +284,7 @@
       "import_export_bookmarks": "Iompórtáil / Easpórtáil Leabharmharcanna",
       "import_bookmarks_from_html_file": "Iompórtáil Leabharmharcanna ó chomhad HTML",
       "import_bookmarks_from_pocket_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Pocket",
+      "import_bookmarks_from_matter_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Matter",
       "import_bookmarks_from_omnivore_export": "Iompórtáil Leabharcmharcanna ó onnmhairiú Omnivore",
       "import_bookmarks_from_linkwarden_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Linkwarden",
       "import_bookmarks_from_karakeep_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Karakeep",
@@ -537,7 +599,14 @@
     "or": "Nó",
     "history": "Cuardaigh Déanaí",
     "title_contains": "Tá Teideal I Láthair",
-    "title_does_not_contain": "Níl Teideal I Láthair"
+    "title_does_not_contain": "Níl Teideal I Láthair",
+    "is_broken_link": "Tá Nasc Briste Ann",
+    "tags": "Clibeanna",
+    "no_suggestions": "Níl moltaí ar bith ann",
+    "filters": "Scagairí",
+    "is_not_broken_link": "Tá Nasc Oibre Ann",
+    "lists": "Liostaí",
+    "feeds": "Fothaí"
   },
   "editor": {
     "disabled_submissions": "Tá aighneachtaí díchumasaithe",
@@ -605,7 +674,8 @@
       "refetch": "Cuireadh atógáil sa scuaine!",
       "full_page_archive": "Tá cruthú Cartlainne Leathanach Iomlán tosaithe",
       "delete_from_list": "Scriosadh an leabharmharc ón liosta",
-      "clipboard_copied": "Tá an nasc curtha le do ghearrthaisce!"
+      "clipboard_copied": "Tá an nasc curtha le do ghearrthaisce!",
+      "preserve_pdf": "Tá caomhnú PDF tosaithe"
     },
     "lists": {
       "created": "Cruthaíodh liosta!",
@@ -778,7 +848,8 @@
     "tabs": {
       "content": "Ábhar",
       "details": "Sonraí"
-    }
+    },
+    "archive_info": "Seans nach ndéanfaidh cartlanna rindreáil i gceart inline má tá Javascript ag teastáil uathu. Chun na torthaí is fearr a fháil, <1>íoslódáil é agus oscail i do bhrabhsálaí</1>."
   },
   "dialogs": {
     "bookmarks": {

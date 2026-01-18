@@ -39,7 +39,9 @@
     "summary": "Краткое содержание",
     "quota": "Квота",
     "bookmarks": "Закладки",
-    "storage": "Хранилище"
+    "storage": "Хранилище",
+    "pdf": "Архивированный PDF",
+    "default": "По умолчанию"
   },
   "lists": {
     "new_list": "Новый список",
@@ -150,6 +152,49 @@
           "title": "Архивированные закладки",
           "show": "Показывать архивированные закладки в тегах и списках"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Активны настройки для этого устройства",
+        "using_default": "Используются настройки клиента по умолчанию",
+        "clear_override_hint": "Удалите переопределение устройства, чтобы использовать глобальную настройку ({{value}})",
+        "font_size": "Размер шрифта",
+        "font_family": "Тип шрифта",
+        "preview_inline": "(предпросмотр)",
+        "tooltip_preview": "Несохраненные изменения предпросмотра",
+        "save_to_all_devices": "Все устройства",
+        "tooltip_local": "Настройки устройства отличаются от глобальных",
+        "reset_preview": "Сбросить предпросмотр",
+        "mono": "Моноширинный",
+        "line_height": "Высота строки",
+        "tooltip_default": "Настройки чтения",
+        "title": "Настройки читалки",
+        "serif": "С засечками",
+        "preview": "Предварительный просмотр",
+        "not_set": "Не задано",
+        "clear_local_overrides": "Сбросить настройки для устройства",
+        "preview_text": "Шустрая бурая лиса перепрыгивает ленивого пса. Вот так будет выглядеть текст в режиме чтения.",
+        "local_overrides_cleared": "Настройки для устройства сброшены",
+        "local_overrides_description": "На этом устройстве параметры читалки отличаются от ваших глобальных настроек:",
+        "clear_defaults": "Сбросить все значения по умолчанию",
+        "description": "Настройте параметры текста по умолчанию для режима чтения. Эти параметры синхронизируются на всех ваших устройствах.",
+        "defaults_cleared": "Настройки читалки по умолчанию сброшены",
+        "save_hint": "Сохранить настройки только для этого устройства или синхронизировать на всех устройствах",
+        "save_as_default": "Сохранить как значения по умолчанию",
+        "save_to_device": "Это устройство",
+        "sans": "Без засечек",
+        "tooltip_preview_and_local": "Несохраненные изменения предпросмотра; настройки устройства отличаются от глобальных",
+        "adjust_hint": "Отрегулируйте настройки выше, чтобы просмотреть изменения"
+      },
+      "avatar": {
+        "upload": "Загрузить аватар",
+        "change": "Сменить аватар",
+        "remove_confirm_title": "Удалить аватар?",
+        "updated": "Аватар обновлён",
+        "removed": "Аватар удалён",
+        "description": "Загрузи квадратное изображение, которое будет твоим аватаром.",
+        "remove_confirm_description": "Текущее фото профиля будет удалено.",
+        "title": "Фото профиля",
+        "remove": "Удалить аватар"
       }
     },
     "import": {
@@ -157,13 +202,14 @@
       "import_export": "Импорт / Экспорт",
       "import_export_bookmarks": "Импорт / Экспорт закладок",
       "import_bookmarks_from_pocket_export": "Импортировать закладки из экспорта Pocket",
+      "import_bookmarks_from_matter_export": "Импортировать закладки из экспорта Matter",
       "import_bookmarks_from_omnivore_export": "Импортировать закладки из экспорта Omnivore",
       "imported_bookmarks": "Импортировано закладок",
       "import_bookmarks_from_html_file": "Импортировать закладки из HTML файла",
       "export_links_and_notes": "Экспортировать ссылки и заметки",
       "import_bookmarks_from_linkwarden_export": "Импортировать закладки из экспорта Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Импортировать закладки из Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Импортируй закладки из экспорта mymind."
+      "import_bookmarks_from_mymind_export": "Импортировать закладки из экспорта mymind"
     },
     "api_keys": {
       "key_success": "Ключ был успешно создан",
@@ -188,7 +234,21 @@
       "image_tagging": "Пометка изображений тегами",
       "summarization": "Суммирование",
       "summarization_prompt": "Подсказка для суммирования",
-      "all_tagging": "Все теги"
+      "all_tagging": "Все теги",
+      "tag_style": "Стиль тегов",
+      "auto_summarization_description": "Автоматически генерируйте сводки для своих закладок с помощью ИИ.",
+      "auto_tagging": "Автоматическая расстановка тегов",
+      "titlecase_spaces": "Заглавные с пробелами",
+      "lowercase_underscores": "Строчные с подчеркиваниями",
+      "inference_language": "Язык логического вывода",
+      "titlecase_hyphens": "Заглавные с дефисами",
+      "lowercase_hyphens": "Строчные с дефисами",
+      "lowercase_spaces": "Строчные с пробелами",
+      "inference_language_description": "Выбери язык для тегов и саммари, которые генерит ИИ.",
+      "tag_style_description": "Выбери, как форматировать автосгенерированные теги.",
+      "auto_tagging_description": "Автоматически генерируйте теги для ваших закладок с помощью ИИ.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Автоматическое создание сводок"
     },
     "feeds": {
       "rss_subscriptions": "RSS подписки",
@@ -473,7 +533,9 @@
     "confirm": "Подтвердить",
     "regenerate": "Обновить",
     "load_more": "Загрузить еще",
-    "edit_notes": "Редактировать заметки"
+    "edit_notes": "Редактировать заметки",
+    "preserve_as_pdf": "Сохранить как PDF",
+    "offline_copies": "Автономные копии"
   },
   "editor": {
     "text_toolbar": {
@@ -705,7 +767,8 @@
     "tabs": {
       "content": "Содержание",
       "details": "Подробности"
-    }
+    },
+    "archive_info": "Архивы могут неправильно отображаться во встроенном режиме, если для них требуется Javascript. Для достижения наилучших результатов <1>загрузите их и откройте в браузере</1>."
   },
   "toasts": {
     "bookmarks": {
@@ -714,7 +777,8 @@
       "delete_from_list": "Закладка была удалена из списка",
       "clipboard_copied": "Ссылка была скопирована в буфер обмена!",
       "deleted": "Закладка была удалена!",
-      "updated": "Закладка была обновлена!"
+      "updated": "Закладка была обновлена!",
+      "preserve_pdf": "Сохранение в формате PDF было запущено"
     },
     "lists": {
       "created": "Список был создан!",
@@ -772,12 +836,19 @@
     "year_s_ago": " Год(а) назад",
     "history": "Недавние поиски",
     "title_contains": "Содержит в заголовке",
-    "title_does_not_contain": "Не содержит в заголовке"
+    "title_does_not_contain": "Не содержит в заголовке",
+    "is_broken_link": "Битые ссылки",
+    "tags": "Теги",
+    "no_suggestions": "Нет предложений",
+    "filters": "Фильтры",
+    "is_not_broken_link": "Рабочие ссылки",
+    "lists": "Списки",
+    "feeds": "Ленты"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Удалить закладку?",
-      "delete_confirmation_description": "Ты уверен, что хочешь удалить эту закладку?"
+      "delete_confirmation_description": "Вы уверены, что хотите удалить эту закладку?"
     }
   },
   "highlights": {

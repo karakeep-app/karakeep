@@ -17,6 +17,7 @@
       "import_bookmarks_from_linkwarden_export": "Uvozi zaznamke iz Linkwarden izvoza",
       "imported_bookmarks": "Uvoženi zaznamki",
       "import_bookmarks_from_pocket_export": "Uvozi zaznamke iz Pocket izvoza",
+      "import_bookmarks_from_matter_export": "Uvozi zaznamke iz Matter izvoza",
       "import_export_bookmarks": "Uvoz / Izvoz zaznamkov",
       "import_bookmarks_from_omnivore_export": "Uvozi zaznamke iz Omnivore izvoza",
       "export_links_and_notes": "Izvozi povezave in zapiske",
@@ -46,6 +47,49 @@
           "show": "Prikaži arhivirane zaznamke v oznakah in seznamih",
           "hide": "Skrij arhivirane zaznamke v oznakah in seznamih"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Aktivne nastavitve, specifične za napravo",
+        "using_default": "Uporaba privzete vrednosti odjemalca",
+        "clear_override_hint": "Počisti preglasitev naprave, da uporabiš globalno nastavitev ({{value}})",
+        "font_size": "Velikost pisave",
+        "font_family": "Družina pisav",
+        "preview_inline": "(predogled)",
+        "tooltip_preview": "Neshranjene spremembe predogleda",
+        "save_to_all_devices": "Vse naprave",
+        "tooltip_local": "Nastavitve naprave se razlikujejo od globalnih",
+        "reset_preview": "Ponastavi predogled",
+        "mono": "Enoprostorska",
+        "line_height": "Višina vrstice",
+        "tooltip_default": "Nastavitve branja",
+        "title": "Nastavitve bralnika",
+        "serif": "Serif",
+        "preview": "Predogled",
+        "not_set": "Ni nastavljeno",
+        "clear_local_overrides": "Počisti nastavitve naprave",
+        "preview_text": "Rjava lisica skoči čez lenega psa. Tako bo videti vaše besedilo v pogledu bralnika.",
+        "local_overrides_cleared": "Nastavitve, specifične za napravo, so bile počiscene",
+        "local_overrides_description": "Ta naprava ima nastavitve bralnika, ki se razlikujejo od vaših splošnih privzetih nastavitev:",
+        "clear_defaults": "Počisti vse privzete nastavitve",
+        "description": "Nastavite privzete nastavitve besedila za pogled bralnika. Te nastavitve se sinhronizirajo v vseh vaših napravah.",
+        "defaults_cleared": "Privzeti bralnik je bil počiščen",
+        "save_hint": "Shrani nastavitve samo za to napravo ali sinhroniziraj med vsemi napravami",
+        "save_as_default": "Shrani kot privzeto",
+        "save_to_device": "Ta naprava",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Neshranjene spremembe predogleda; nastavitve naprave se razlikujejo od globalnih",
+        "adjust_hint": "Prilagodite nastavitve zgoraj za predogled sprememb"
+      },
+      "avatar": {
+        "upload": "Naloži avatar",
+        "change": "Spremeni avatar",
+        "remove_confirm_title": "Odstranim avatar?",
+        "updated": "Avatar posodobljen",
+        "removed": "Avatar odstranjen",
+        "description": "Naloži kvadratno sliko, ki jo boš uporabil kot svoj avatar.",
+        "remove_confirm_description": "S tem boš odstranil svojo trenutno sliko profila.",
+        "title": "Fotka profila",
+        "remove": "Odstrani avatar"
       }
     },
     "ai": {
@@ -59,7 +103,21 @@
       "summarization_prompt": "Povzemni ukaz",
       "all_tagging": "Vse oznake",
       "tagging_rules": "Pravila za označevanje",
-      "tagging_rule_description": "Pozivi, ki jih dodaš tukaj, bodo vključeni kot pravila za model med ustvarjanjem oznak. Končne pozive si lahko ogledaš v razdelku za predogled pozivov."
+      "tagging_rule_description": "Pozivi, ki jih dodaš tukaj, bodo vključeni kot pravila za model med ustvarjanjem oznak. Končne pozive si lahko ogledaš v razdelku za predogled pozivov.",
+      "tag_style": "Slog oznake",
+      "auto_summarization_description": "Samodejno ustvari povzetke za tvoje zaznamke z uporabo UI.",
+      "auto_tagging": "Samodejno označevanje",
+      "titlecase_spaces": "Velike začetnice s presledki",
+      "lowercase_underscores": "Male črke s podčrtaji",
+      "inference_language": "Jezik sklepanja",
+      "titlecase_hyphens": "Velike začetnice s povezaji",
+      "lowercase_hyphens": "Male črke s povezaji",
+      "lowercase_spaces": "Male črke s presledki",
+      "inference_language_description": "Izberi jezik za oznake in povzetke, ustvarjene z umetno inteligenco.",
+      "tag_style_description": "Izberi obliko samodejno ustvarjenih oznak.",
+      "auto_tagging_description": "Samodejno ustvari oznake za tvoje zaznamke z uporabo UI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Samodejno povzemanje"
     },
     "back_to_app": "Nazaj v aplikacijo",
     "webhooks": {
@@ -470,7 +528,14 @@
     "year_s_ago": " Let(a) nazaj",
     "history": "Nedavna iskanja",
     "title_contains": "Naslov vsebuje",
-    "title_does_not_contain": "Naslov ne vsebuje"
+    "title_does_not_contain": "Naslov ne vsebuje",
+    "is_broken_link": "Ima polomljeno povezavo",
+    "tags": "Oznake",
+    "no_suggestions": "Ni predlogov",
+    "filters": "Filtri",
+    "is_not_broken_link": "Ima delujočo povezavo",
+    "lists": "Seznami",
+    "feeds": "Viri"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",
@@ -536,7 +601,9 @@
     "summary": "Povzetek",
     "quota": "Količina",
     "bookmarks": "Zaznamki",
-    "storage": "Shranjevanje"
+    "storage": "Shranjevanje",
+    "pdf": "Arhiviran PDF",
+    "default": "Privzeto"
   },
   "actions": {
     "close_bulk_edit": "Zapri množično urejanje",
@@ -581,7 +648,9 @@
     "confirm": "Potrdi",
     "regenerate": "Osveži",
     "load_more": "Naloži več",
-    "edit_notes": "Uredi opombe"
+    "edit_notes": "Uredi opombe",
+    "preserve_as_pdf": "Shrani kot PDF",
+    "offline_copies": "Kopije brez povezave"
   },
   "layouts": {
     "compact": "Kompaktno",
@@ -745,7 +814,8 @@
       "clipboard_copied": "Povezava je bila kopirana v odložišče!",
       "updated": "Zaznamek je bil posodobljen!",
       "refetch": "Ponovno pridobivanje je bilo dodano v čakalno vrsto!",
-      "full_page_archive": "Ustvarjanje arhiva celotne strani je bilo sproženo"
+      "full_page_archive": "Ustvarjanje arhiva celotne strani je bilo sproženo",
+      "preserve_pdf": "Ohranjanje PDF je bilo sproženo"
     },
     "lists": {
       "created": "Seznam je bil ustvarjen!",
@@ -778,7 +848,8 @@
     "tabs": {
       "content": "Vsebina",
       "details": "Podrobnosti"
-    }
+    },
+    "archive_info": "Arhivi se morda ne bodo pravilno izrisali v vrstici, če zahtevajo Javascript. Za najboljše rezultate <1>jih prenesi in odpri v brskalniku</1>."
   },
   "highlights": {
     "no_highlights": "Še nimaš nobenih poudarkov."

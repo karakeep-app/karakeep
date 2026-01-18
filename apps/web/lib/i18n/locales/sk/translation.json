@@ -39,7 +39,9 @@
     "summary": "Zhrnutie",
     "quota": "Kvóta",
     "bookmarks": "Záložky",
-    "storage": "Úložisko"
+    "storage": "Úložisko",
+    "pdf": "Archivované PDF",
+    "default": "Predvolené"
   },
   "actions": {
     "cancel": "Zrušiť",
@@ -84,7 +86,9 @@
     "confirm": "Potvrdiť",
     "regenerate": "Obnoviť",
     "load_more": "Načítať viac",
-    "edit_notes": "Upraviť poznámky"
+    "edit_notes": "Upraviť poznámky",
+    "preserve_as_pdf": "Uložiť ako PDF",
+    "offline_copies": "Offline kópie"
   },
   "lists": {
     "favourites": "Obľúbené",
@@ -178,6 +182,7 @@
       "import_export_bookmarks": "Importovať / exportovať záložky",
       "import_bookmarks_from_html_file": "Importovať záložky z HTML súboru",
       "import_bookmarks_from_pocket_export": "Importovať záložky z Pocket exportu",
+      "import_bookmarks_from_matter_export": "Importovať záložky z Matter exportu",
       "import_bookmarks_from_linkwarden_export": "Importovať záložky z Linkwarden exportu",
       "import_bookmarks_from_karakeep_export": "Importovať záložky z Karakeep exportu",
       "export_links_and_notes": "Exportovať odkazy a poznámky",
@@ -209,6 +214,49 @@
           "hide": "Skryť archivované záložky v tagoch a zoznamoch",
           "show": "Zobraziť archivované záložky v tagoch a zoznamoch"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Sú aktívne nastavenia špecifické pre zariadenie",
+        "using_default": "Používa sa predvolené nastavenie pre klienta",
+        "clear_override_hint": "Vymažte prepísanie zariadenia a použite globálne nastavenie ({{value}})",
+        "font_size": "Veľkosť písma",
+        "font_family": "Rodina písma",
+        "preview_inline": "(Náhľad)",
+        "tooltip_preview": "Neuložené zmeny ukážky",
+        "save_to_all_devices": "Všetky zariadenia",
+        "tooltip_local": "Nastavenia zariadenia sa líšia od globálnych",
+        "reset_preview": "Resetovať ukážku",
+        "mono": "Neproporcionálne",
+        "line_height": "Výška riadku",
+        "tooltip_default": "Nastavenia čítania",
+        "title": "Nastavenia čítačky",
+        "serif": "Pätkové",
+        "preview": "Náhľad",
+        "not_set": "Nenastavené",
+        "clear_local_overrides": "Vymazať nastavenia zariadenia",
+        "preview_text": "The quick brown fox jumps over the lazy dog. Takto sa bude zobrazovať text v režime čítačky.",
+        "local_overrides_cleared": "Nastavenia špecifické pre zariadenie boli vymazané",
+        "local_overrides_description": "Toto zariadenie má nastavenia čítačky, ktoré sa líšia od tvojich globálnych predvolených nastavení:",
+        "clear_defaults": "Vymazať všetky predvolené",
+        "description": "Konfigurácia predvolených nastavení textu pre zobrazenie čítačky. Tieto nastavenia sa synchronizujú medzi všetkými tvojimi zariadeniami.",
+        "defaults_cleared": "Predvolené nastavenia čítačky boli vymazané",
+        "save_hint": "Uložte nastavenia iba pre toto zariadenie alebo ich synchronizujte na všetkých zariadeniach",
+        "save_as_default": "Uložiť ako predvolené",
+        "save_to_device": "Toto zariadenie",
+        "sans": "Bez pätiek",
+        "tooltip_preview_and_local": "Neuložené zmeny ukážky; nastavenia zariadenia sa líšia od globálnych",
+        "adjust_hint": "Upravte nastavenia vyššie, aby ste si prezreli zmeny"
+      },
+      "avatar": {
+        "upload": "Nahrať avatara",
+        "change": "Zmeniť avatara",
+        "remove_confirm_title": "Odstrániť avatara?",
+        "updated": "Avatar aktualizovaný",
+        "removed": "Avatar odstránený",
+        "description": "Nahraj štvorcový obrázok, ktorý sa použije ako tvoj avatar.",
+        "remove_confirm_description": "Týmto sa vymaže tvoja aktuálna profilová fotka.",
+        "title": "Profilová fotka",
+        "remove": "Odstrániť avatara"
       }
     },
     "ai": {
@@ -222,7 +270,21 @@
       "image_tagging": "Označovanie obrázkov",
       "summarization": "Zhrnutie",
       "images_prompt": "Výzva obrázka",
-      "summarization_prompt": "Výzva na sumarizáciu"
+      "summarization_prompt": "Výzva na sumarizáciu",
+      "tag_style": "Štýl tagov",
+      "auto_summarization_description": "Automaticky generujte zhrnutia pre vaše záložky pomocou AI.",
+      "auto_tagging": "Automatické označovanie štítkami",
+      "titlecase_spaces": "Veľké začiatočné písmená s medzerami",
+      "lowercase_underscores": "Malé písmená s podčiarkovníkmi",
+      "inference_language": "Jazyk inferencie",
+      "titlecase_hyphens": "Veľké začiatočné písmená s pomlčkami",
+      "lowercase_hyphens": "Malé písmená s pomlčkami",
+      "lowercase_spaces": "Malé písmená s medzerami",
+      "inference_language_description": "Vyber jazyk pre tagy a súhrny generované AI.",
+      "tag_style_description": "Vyber si, ako majú byť formátované automaticky generované tagy.",
+      "auto_tagging_description": "Automaticky generujte štítky pre vaše záložky pomocou AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatické zhrnutie"
     },
     "webhooks": {
       "add_auth_token": "Pridať autorizačný token",
@@ -513,7 +575,14 @@
     "year_s_ago": " Rok(y) dozadu",
     "history": "Nedávne vyhľadávania",
     "title_contains": "Názov obsahuje",
-    "title_does_not_contain": "Názov neobsahuje"
+    "title_does_not_contain": "Názov neobsahuje",
+    "is_broken_link": "Má nefunkčný odkaz",
+    "tags": "Značky",
+    "no_suggestions": "Žiadne návrhy",
+    "filters": "Filtre",
+    "is_not_broken_link": "Má funkčný odkaz",
+    "lists": "Zoznamy",
+    "feeds": "Kanály"
   },
   "layouts": {
     "masonry": "Dlaždice",
@@ -745,7 +814,8 @@
     "tabs": {
       "content": "Obsah",
       "details": "Podrobnosti"
-    }
+    },
+    "archive_info": "Archívy sa nemusia vykresľovať správne priamo, ak vyžadujú Javascript. Pre dosiahnutie najlepších výsledkov si ich <1>stiahni a otvor v prehliadači</1>."
   },
   "toasts": {
     "bookmarks": {
@@ -754,7 +824,8 @@
       "delete_from_list": "Záložka bola odstránená zo zoznamu",
       "deleted": "Záložka bola zmazaná!",
       "refetch": "Opätovné načítanie bolo zaradené do frontu!",
-      "full_page_archive": "Bolo spustené vytváranie archívu celej stránky"
+      "full_page_archive": "Bolo spustené vytváranie archívu celej stránky",
+      "preserve_pdf": "Ukladanie do PDF bolo spustené"
     },
     "lists": {
       "updated": "Zoznam bol aktualizovaný!",

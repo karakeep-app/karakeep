@@ -42,7 +42,9 @@
     "confirm": "Conferma",
     "regenerate": "Rigenera",
     "load_more": "Carica altro",
-    "edit_notes": "Modifica note"
+    "edit_notes": "Modifica note",
+    "preserve_as_pdf": "Salva come PDF",
+    "offline_copies": "Copie offline"
   },
   "common": {
     "attachments": "Allegati",
@@ -84,7 +86,9 @@
     "summary": "Riepilogo",
     "quota": "Quota",
     "bookmarks": "Segnalibri",
-    "storage": "Archiviazione"
+    "storage": "Archiviazione",
+    "pdf": "PDF archiviato",
+    "default": "Predefinito"
   },
   "settings": {
     "broken_links": {
@@ -114,6 +118,49 @@
           "show": "Mostra i segnalibri archiviati in tag e liste",
           "hide": "Nascondi i segnalibri archiviati in tag e liste"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Impostazioni specifiche del dispositivo attive",
+        "using_default": "Utilizzo predefinito del client",
+        "clear_override_hint": "Cancella la sostituzione del dispositivo per utilizzare l'impostazione globale ({{value}})",
+        "font_size": "Dimensione del font",
+        "font_family": "Famiglia di caratteri",
+        "preview_inline": "(anteprima)",
+        "tooltip_preview": "Modifiche all'anteprima non salvate",
+        "save_to_all_devices": "Tutti i dispositivi",
+        "tooltip_local": "Le impostazioni del dispositivo differiscono da quelle globali",
+        "reset_preview": "Ripristina l'anteprima",
+        "mono": "Monospace",
+        "line_height": "Altezza della linea",
+        "tooltip_default": "Impostazioni di lettura",
+        "title": "Impostazioni lettore",
+        "serif": "Serif",
+        "preview": "Anteprima",
+        "not_set": "Non impostato",
+        "clear_local_overrides": "Cancella impostazioni del dispositivo",
+        "preview_text": "The quick brown fox jumps over the lazy dog. Ecco come apparirà il testo nella visualizzazione del lettore.",
+        "local_overrides_cleared": "Le impostazioni specifiche del dispositivo sono state cancellate",
+        "local_overrides_description": "Questo dispositivo ha impostazioni del lettore diverse da quelle predefinite globali:",
+        "clear_defaults": "Cancella tutti i predefiniti",
+        "description": "Configura le impostazioni di testo predefinite per la visualizzazione del lettore. Queste impostazioni si sincronizzano su tutti i tuoi dispositivi.",
+        "defaults_cleared": "Le impostazioni predefinite del lettore sono state cancellate",
+        "save_hint": "Salva le impostazioni solo per questo dispositivo o sincronizza su tutti i dispositivi",
+        "save_as_default": "Salva come predefinito",
+        "save_to_device": "Questo dispositivo",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Modifiche all'anteprima non salvate; le impostazioni del dispositivo differiscono da quelle globali",
+        "adjust_hint": "Regola le impostazioni sopra per visualizzare l'anteprima delle modifiche"
+      },
+      "avatar": {
+        "upload": "Carica avatar",
+        "change": "Cambia avatar",
+        "remove_confirm_title": "Rimuovere l'avatar?",
+        "updated": "Avatar aggiornato",
+        "removed": "Avatar rimosso",
+        "description": "Carica un'immagine quadrata da usare come avatar.",
+        "remove_confirm_description": "Ehm... rimuoverai la tua attuale foto del profilo.",
+        "title": "Foto profilo",
+        "remove": "Rimuovi avatar"
       }
     },
     "back_to_app": "Torna all'App",
@@ -129,7 +176,21 @@
       "image_tagging": "Tagging immagini",
       "text_tagging": "Tagging testo",
       "all_tagging": "Tutte le etichette",
-      "summarization": "Riassunto"
+      "summarization": "Riassunto",
+      "tag_style": "Stile etichetta",
+      "auto_summarization_description": "Genera automaticamente riassunti per i tuoi segnalibri usando l'AI.",
+      "auto_tagging": "Tagging automatico",
+      "titlecase_spaces": "Maiuscola con spazi",
+      "lowercase_underscores": "Minuscolo con trattini bassi",
+      "inference_language": "Lingua di inferenza",
+      "titlecase_hyphens": "Maiuscola con trattini",
+      "lowercase_hyphens": "Minuscolo con trattini",
+      "lowercase_spaces": "Minuscolo con spazi",
+      "inference_language_description": "Scegli la lingua per i tag e i riepiloghi generati dall'AI.",
+      "tag_style_description": "Scegli come formattare le etichette generate automaticamente.",
+      "auto_tagging_description": "Genera automaticamente i tag per i tuoi segnalibri usando l'AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Riassunto automatico"
     },
     "feeds": {
       "rss_subscriptions": "Iscrizione RSS",
@@ -140,6 +201,7 @@
     "import": {
       "import_export": "Importa / Esporta",
       "import_bookmarks_from_pocket_export": "Importa segnalibri da esportazione Pocket",
+      "import_bookmarks_from_matter_export": "Importa segnalibri da esportazione Matter",
       "import_bookmarks_from_karakeep_export": "Importa segnalibri da esportazione Karakeep",
       "export_links_and_notes": "Esporta link e note",
       "imported_bookmarks": "Segnalibri importati",
@@ -705,7 +767,8 @@
     "tabs": {
       "content": "Contenuto",
       "details": "Dettagli"
-    }
+    },
+    "archive_info": "Gli archivi potrebbero non essere visualizzati correttamente in linea se richiedono Javascript. Per risultati ottimali, <1>scaricalo e aprilo nel tuo browser</1>."
   },
   "toasts": {
     "bookmarks": {
@@ -714,7 +777,8 @@
       "refetch": "L'aggiornamento è stato messo in coda!",
       "full_page_archive": "L'archivio della pagina completa è stato attivato",
       "delete_from_list": "Il segnalibro è stato eliminato dalla lista",
-      "clipboard_copied": "Il link è stato copiato!"
+      "clipboard_copied": "Il link è stato copiato!",
+      "preserve_pdf": "È stato attivato il salvataggio in PDF"
     },
     "lists": {
       "created": "Lista creata!",
@@ -772,7 +836,14 @@
     "year_s_ago": " Anni fa",
     "history": "Ricerche recenti",
     "title_contains": "Il titolo contiene",
-    "title_does_not_contain": "Il titolo non contiene"
+    "title_does_not_contain": "Il titolo non contiene",
+    "is_broken_link": "Ha Link Non Funzionante",
+    "tags": "Tag",
+    "no_suggestions": "Nessun suggerimento",
+    "filters": "Filtri",
+    "is_not_broken_link": "Ha Link Funzionante",
+    "lists": "Elenchi",
+    "feeds": "Feed"
   },
   "dialogs": {
     "bookmarks": {

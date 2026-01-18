@@ -42,7 +42,9 @@
     "confirm": "Bekræft",
     "regenerate": "Regenerér",
     "load_more": "Indlæs mere",
-    "edit_notes": "Rediger noter"
+    "edit_notes": "Rediger noter",
+    "preserve_as_pdf": "Bevar som PDF",
+    "offline_copies": "Offline kopier"
   },
   "settings": {
     "import": {
@@ -53,6 +55,7 @@
       "import_export_bookmarks": "Import / eksport bogmærker",
       "import_bookmarks_from_html_file": "Importer bogmærker fra HTML-fil",
       "import_bookmarks_from_pocket_export": "Importer bogmærker fra Pocket-eksport",
+      "import_bookmarks_from_matter_export": "Importer bogmærker fra Matter-eksport",
       "imported_bookmarks": "Importerede bogmærker",
       "import_bookmarks_from_linkwarden_export": "Importer bogmærker fra Linkwarden-eksport",
       "import_bookmarks_from_tab_session_manager_export": "Importer bogmærker fra Tab Session Manager",
@@ -80,6 +83,49 @@
           "show": "Vis arkiverede bogmærker i tags og lister",
           "hide": "Skjul arkiverede bogmærker i tags og lister"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Apparatspecifikke indstillinger er aktive",
+        "using_default": "Bruger klientstandard",
+        "clear_override_hint": "Ryd tilsidesættelsen af enheden for at bruge den globale indstilling ({{value}})",
+        "font_size": "Skriftstørrelse",
+        "font_family": "Skrifttype",
+        "preview_inline": "(forhåndsvisning)",
+        "tooltip_preview": "Ikke-gemte ændringer i forhåndsvisning",
+        "save_to_all_devices": "Alle enheder",
+        "tooltip_local": "Enhedsindstillinger adskiller sig fra globale",
+        "reset_preview": "Nulstil forhåndsvisning",
+        "mono": "Monospace",
+        "line_height": "Linjehøjde",
+        "tooltip_default": "Læseindstillinger",
+        "title": "Læserindstillinger",
+        "serif": "Serif",
+        "preview": "Forhåndsvisning",
+        "not_set": "Ikke angivet",
+        "clear_local_overrides": "Ryd enhedsindstillinger",
+        "preview_text": "\"The quick brown fox jumps over the lazy dog.\" Sådan vises din tekst i læsevisning.",
+        "local_overrides_cleared": "Apparatspecifikke indstillinger er blevet ryddet",
+        "local_overrides_description": "Denne enhed har læserindstillinger, der afviger fra dine globale standardindstillinger:",
+        "clear_defaults": "Ryd alle standarder",
+        "description": "Konfigurer standard tekstindstillinger for læsevisningen. Disse indstillinger synkroniseres på tværs af alle dine enheder.",
+        "defaults_cleared": "Læserstandarder er blevet ryddet",
+        "save_hint": "Gem indstillinger kun for denne enhed eller synkroniser på tværs af alle enheder",
+        "save_as_default": "Gem som standard",
+        "save_to_device": "Denne enhed",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Ikke-gemte ændringer i forhåndsvisning; enhedsindstillinger adskiller sig fra globale",
+        "adjust_hint": "Juster indstillingerne ovenfor for at se et eksempel på ændringerne"
+      },
+      "avatar": {
+        "upload": "Upload avatar",
+        "change": "Skift avatar",
+        "remove_confirm_title": "Fjern avatar?",
+        "updated": "Avatar opdateret",
+        "removed": "Avatar fjernet",
+        "description": "Upload et firkantet billede, som du kan bruge som din avatar.",
+        "remove_confirm_description": "Dette vil fjerne dit nuværende profilbillede.",
+        "title": "Profilbillede",
+        "remove": "Fjern avatar"
       }
     },
     "feeds": {
@@ -99,7 +145,21 @@
       "summarization": "Opsummering",
       "all_tagging": "Tagging for alle typer",
       "text_tagging": "Tekst-tagging",
-      "image_tagging": "Billede-tagging"
+      "image_tagging": "Billede-tagging",
+      "tag_style": "Tag-stil",
+      "auto_summarization_description": "Generér automatisk opsummeringer til dine bogmærker ved hjælp af AI.",
+      "auto_tagging": "Automatisk taggning",
+      "titlecase_spaces": "Store forbogstaver med mellemrum",
+      "lowercase_underscores": "Små bogstaver med understregninger",
+      "inference_language": "Inferenssprog",
+      "titlecase_hyphens": "Store forbogstaver med bindestreger",
+      "lowercase_hyphens": "Små bogstaver med bindestreger",
+      "lowercase_spaces": "Små bogstaver med mellemrum",
+      "inference_language_description": "Vælg sprog for AI-genererede tags og opsummeringer.",
+      "tag_style_description": "Vælg, hvordan dine automatisk genererede tags skal formateres.",
+      "auto_tagging_description": "Generér automatisk tags til dine bogmærker ved hjælp af AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatisk opsummering"
     },
     "broken_links": {
       "crawling_status": "Gennemsøgningsstatus",
@@ -604,7 +664,9 @@
     "summary": "Opsummering",
     "quota": "Kvote",
     "bookmarks": "Bogmærker",
-    "storage": "Lagring"
+    "storage": "Lagring",
+    "pdf": "Arkiveret PDF",
+    "default": "Standard"
   },
   "layouts": {
     "masonry": "Fliser",
@@ -705,7 +767,8 @@
     "tabs": {
       "content": "Indhold",
       "details": "Detaljer"
-    }
+    },
+    "archive_info": "Arkiver gengives muligvis ikke korrekt inline, hvis de kræver Javascript. For at opnå de bedste resultater skal du <1>downloade den og åbne den i din browser</1>."
   },
   "toasts": {
     "bookmarks": {
@@ -714,7 +777,8 @@
       "delete_from_list": "Bogmærket er blevet slettet fra listen",
       "deleted": "Bogmærket er blevet slettet!",
       "clipboard_copied": "Linket er kopieret til din udklipsholder!",
-      "updated": "Bogmærket er blevet opdateret!"
+      "updated": "Bogmærket er blevet opdateret!",
+      "preserve_pdf": "PDF-bevaring er blevet udløst"
     },
     "lists": {
       "created": "Listen er oprettet!",
@@ -775,7 +839,14 @@
     "year_s_ago": " År siden",
     "history": "Seneste søgninger",
     "title_contains": "Titel indeholder",
-    "title_does_not_contain": "Titel indeholder ikke"
+    "title_does_not_contain": "Titel indeholder ikke",
+    "is_broken_link": "Har Beskadet Link",
+    "tags": "Tags",
+    "no_suggestions": "Ingen forslag",
+    "filters": "Filtre",
+    "is_not_broken_link": "Har Fungerende Link",
+    "lists": "Lister",
+    "feeds": "Feeds"
   },
   "dialogs": {
     "bookmarks": {

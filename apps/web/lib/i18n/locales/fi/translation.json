@@ -39,7 +39,9 @@
     "url": "URL",
     "quota": "Kiintiö",
     "bookmarks": "Kirjanmerkit",
-    "storage": "Tallennustila"
+    "storage": "Tallennustila",
+    "pdf": "Arkistoitu PDF",
+    "default": "Oletus"
   },
   "layouts": {
     "masonry": "Tiililadonta",
@@ -90,7 +92,9 @@
     "confirm": "Vahvista",
     "regenerate": "Uudista",
     "load_more": "Lataa lisää",
-    "edit_notes": "Muokkaa muistiinpanoja"
+    "edit_notes": "Muokkaa muistiinpanoja",
+    "preserve_as_pdf": "Säilytä PDF-muodossa",
+    "offline_copies": "Offline-kopiot"
   },
   "highlights": {
     "no_highlights": "Sulla ei oo vielä yhtään korostusta."
@@ -119,6 +123,49 @@
           "show": "Näytä arkistoidut kirjanmerkit tunnisteissa ja listoissa",
           "hide": "Piilota arkistoidut kirjanmerkit tunnisteissa ja listoissa"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Laitteen omat asetukset ovat käytössä",
+        "using_default": "Käytetään asiakkaan oletusarvoa",
+        "clear_override_hint": "Tyhjennä laitteen ohitus, jotta voit käyttää globaalia asetusta ({{value}})",
+        "font_size": "Fonttikoko",
+        "font_family": "Fonttiperhe",
+        "preview_inline": "(esikatselu)",
+        "tooltip_preview": "Tallentamattomia esikatselun muutoksia",
+        "save_to_all_devices": "Kaikissa laitteissa",
+        "tooltip_local": "Laitteen asetukset poikkeavat globaaleista",
+        "reset_preview": "Nollaa esikatselu",
+        "mono": "Monospace",
+        "line_height": "Rivikorkeus",
+        "tooltip_default": "Lukemisen asetukset",
+        "title": "Lukijan asetukset",
+        "serif": "Serif",
+        "preview": "Esikatselu",
+        "not_set": "Ei asetettu",
+        "clear_local_overrides": "Tyhjennä laitteen asetukset",
+        "preview_text": "The quick brown fox jumps over the lazy dog. Näin lukijanäkymän tekstisi näkyy.",
+        "local_overrides_cleared": "Laitteen omat asetukset on tyhjennetty",
+        "local_overrides_description": "Tässä laitteessa on lukija-asetukset, jotka poikkeavat yleisistä oletusarvoistasi:",
+        "clear_defaults": "Tyhjennä kaikki oletusarvot",
+        "description": "Määritä lukijanäkymän oletustekstiasetukset. Nämä asetukset synkronoidaan kaikkien laitteidesi välillä.",
+        "defaults_cleared": "Lukijan oletusarvot on tyhjennetty",
+        "save_hint": "Tallenna asetukset vain tälle laitteelle tai synkronoi kaikkiin laitteisiin",
+        "save_as_default": "Tallenna oletusarvoksi",
+        "save_to_device": "Tällä laitteella",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Tallentamattomia esikatselun muutoksia; laitteen asetukset poikkeavat globaaleista",
+        "adjust_hint": "Säädä yllä olevia asetuksia, jotta näet muutokset"
+      },
+      "avatar": {
+        "upload": "Lataa avatar",
+        "change": "Vaihda avatar",
+        "remove_confirm_title": "Poistetaanko avatar?",
+        "updated": "Avatar päivitetty",
+        "removed": "Avatar poistettu",
+        "description": "Lataa neliön muotoinen kuva, jota käytetään avatarinasi.",
+        "remove_confirm_description": "Tämä poistaa nykyisen profiilikuvasi.",
+        "title": "Profiilikuva",
+        "remove": "Poista avatar"
       }
     },
     "ai": {
@@ -132,7 +179,21 @@
       "all_tagging": "Kaikki tägääminen",
       "text_tagging": "Tekstin merkitseminen",
       "image_tagging": "Kuvien merkitseminen",
-      "summarization": "Yhteenvedon luonti"
+      "summarization": "Yhteenvedon luonti",
+      "tag_style": "Tagityyli",
+      "auto_summarization_description": "Luo kirjanmerkeillesi automaattisesti tiivistelmiä tekoälyn avulla.",
+      "auto_tagging": "Automaattinen tägääminen",
+      "titlecase_spaces": "Isot alkukirjaimet ja välilyönnit",
+      "lowercase_underscores": "Pienet kirjaimet ja alleviivat",
+      "inference_language": "Päättelykieli",
+      "titlecase_hyphens": "Isot alkukirjaimet ja yhdysmerkit",
+      "lowercase_hyphens": "Pienet kirjaimet ja yhdysmerkit",
+      "lowercase_spaces": "Pienet kirjaimet ja välilyönnit",
+      "inference_language_description": "Valitse kieli AI-generoiduille tunnisteille ja yhteenvedoille.",
+      "tag_style_description": "Valitse, miten automaattisesti luotujen tunnisteiden muoto tulisi olla.",
+      "auto_tagging_description": "Luo kirjanmerkeillesi automaattisesti tägejä tekoälyn avulla.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automaattinen tiivistys"
     },
     "feeds": {
       "rss_subscriptions": "RSS-tilaukset",
@@ -163,6 +224,7 @@
       "import_export_bookmarks": "Kirjanmerkkien tuonti / vienti",
       "import_bookmarks_from_html_file": "Tuo kirjanmerkkejä HTML-tiedostosta",
       "import_bookmarks_from_pocket_export": "Tuo kirjanmerkit Pocket-viennistä",
+      "import_bookmarks_from_matter_export": "Tuo kirjanmerkit Matter-viennistä",
       "import_bookmarks_from_omnivore_export": "Tuo kirjanmerkit Omnivore-viennistä",
       "import_bookmarks_from_linkwarden_export": "Tuo kirjanmerkit Linkwarden-viennistä",
       "import_bookmarks_from_hoarder_export": "Tuo kirjanmerkit Hoarder-viennistä",
@@ -681,7 +743,14 @@
     "year_s_ago": " Vuosi(a) sitten",
     "history": "Viimeaikaiset haut",
     "title_contains": "Otsikko sisältää",
-    "title_does_not_contain": "Otsikko ei sisällä"
+    "title_does_not_contain": "Otsikko ei sisällä",
+    "is_broken_link": "On rikkinäinen linkki",
+    "tags": "Tunnisteet",
+    "no_suggestions": "Ei ehdotuksia",
+    "filters": "Suodattimet",
+    "is_not_broken_link": "On toimiva linkki",
+    "lists": "Listat",
+    "feeds": "Syötteet"
   },
   "preview": {
     "view_original": "Näytä alkuperäinen",
@@ -690,7 +759,8 @@
     "tabs": {
       "content": "Sisältö",
       "details": "Tiedot"
-    }
+    },
+    "archive_info": "Arkistot eivät välttämättä hahmotu oikein, jos ne vaativat Javascriptiä. Parhaan tuloksen saat, kun <1>lataat sen ja avaat sen selaimessasi</1>."
   },
   "editor": {
     "quickly_focus": "Voit nopeasti kohdistaa tähän kenttään painamalla ⌘ + E",
@@ -764,7 +834,8 @@
       "refetch": "Uudelleennouto on jonossa!",
       "full_page_archive": "Koko sivun arkiston luonti on käynnistetty",
       "delete_from_list": "Kirjanmerkki on poistettu luettelosta",
-      "clipboard_copied": "Linkki on lisätty leikepöydälle!"
+      "clipboard_copied": "Linkki on lisätty leikepöydälle!",
+      "preserve_pdf": "PDF:nä säilytys on käynnistetty"
     },
     "lists": {
       "created": "Lista on luotu!",

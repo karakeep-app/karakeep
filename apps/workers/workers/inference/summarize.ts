@@ -61,6 +61,7 @@ export async function runSummarization(
     where: eq(users.id, bookmarkData.userId),
     columns: {
       autoSummarizationEnabled: true,
+      inferredTagLang: true,
     },
   });
 
@@ -121,7 +122,7 @@ URL: ${link.url ?? ""}
   });
 
   const summaryPrompt = await buildSummaryPrompt(
-    serverConfig.inference.inferredTagLang,
+    userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
     prompts.map((p) => p.text),
     textToSummarize,
     serverConfig.inference.contextLength,

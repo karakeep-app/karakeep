@@ -14,6 +14,7 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
 import BookmarkAssetImage from "./BookmarkAssetImage";
+import { PDFViewer } from "./PDFViewer";
 
 export function BookmarkLinkBrowserPreview({
   bookmark,
@@ -30,6 +31,30 @@ export function BookmarkLinkBrowserPreview({
       mediaPlaybackRequiresUserAction={true}
       source={{ uri: bookmark.content.url }}
     />
+  );
+}
+
+export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
+  if (bookmark.content.type !== BookmarkTypes.LINK) {
+    throw new Error("Wrong content type rendered");
+  }
+
+  const asset = bookmark.assets.find((r) => r.assetType == "pdf");
+
+  const assetSource = useAssetUrl(asset?.id ?? "");
+
+  if (!asset) {
+    return (
+      <View className="flex-1 bg-background">
+        <Text>Asset has no PDF</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex flex-1">
+      <PDFViewer source={assetSource.uri ?? ""} headers={assetSource.headers} />
+    </View>
   );
 }
 

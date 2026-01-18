@@ -320,22 +320,24 @@ export const bookmarksAppRouter = router({
         }
       }
 
-      await triggerRuleEngineOnEvent(
-        bookmark.id,
-        [
-          {
-            type: "bookmarkAdded",
-          },
-        ],
-        enqueueOpts,
-      );
-      await triggerSearchReindex(bookmark.id, enqueueOpts);
-      await triggerWebhook(
-        bookmark.id,
-        "created",
-        /* userId */ undefined,
-        enqueueOpts,
-      );
+      await Promise.all([
+        triggerRuleEngineOnEvent(
+          bookmark.id,
+          [
+            {
+              type: "bookmarkAdded",
+            },
+          ],
+          enqueueOpts,
+        ),
+        triggerSearchReindex(bookmark.id, enqueueOpts),
+        triggerWebhook(
+          bookmark.id,
+          "created",
+          /* userId */ undefined,
+          enqueueOpts,
+        ),
+      ]);
       return bookmark;
     }),
 
@@ -490,13 +492,14 @@ export const bookmarksAppRouter = router({
           })),
         );
       }
-      // Trigger re-indexing and webhooks
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
 
       return updatedBookmark;
     }),
@@ -535,12 +538,14 @@ export const bookmarksAppRouter = router({
             ),
           );
       });
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
     }),
 
   deleteBookmark: authedProcedure
@@ -562,21 +567,16 @@ export const bookmarksAppRouter = router({
       z.object({
         bookmarkId: z.string(),
         archiveFullPage: z.boolean().optional().default(false),
+        storePdf: z.boolean().optional().default(false),
       }),
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db
-        .update(bookmarkLinks)
-        .set({
-          crawlStatus: "pending",
-          crawlStatusCode: null,
-        })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
       await LinkCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
           archiveFullPage: input.archiveFullPage,
+          storePdf: input.storePdf,
         },
         {
           groupId: ctx.user.id,
@@ -1011,12 +1011,14 @@ Author: ${bookmark.author ?? ""}
           summary: summary.response,
         })
         .where(eq(bookmarks.id, input.bookmarkId));
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
 
       return {
         bookmarkId: input.bookmarkId,

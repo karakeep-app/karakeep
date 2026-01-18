@@ -39,7 +39,9 @@
     "summary": "Resumo",
     "quota": "Cota",
     "bookmarks": "Favoritos",
-    "storage": "Armazenamento"
+    "storage": "Armazenamento",
+    "pdf": "PDF Arquivado",
+    "default": "Padrão"
   },
   "actions": {
     "unarchive": "Desarquivar",
@@ -84,7 +86,9 @@
     "confirm": "Confirmar",
     "regenerate": "Regenerar",
     "load_more": "Carregar mais",
-    "edit_notes": "Editar notas"
+    "edit_notes": "Editar notas",
+    "preserve_as_pdf": "Preservar como PDF",
+    "offline_copies": "Cópias Offline"
   },
   "settings": {
     "info": {
@@ -108,6 +112,49 @@
           "open_external_url": "Abrir URL original",
           "open_bookmark_details": "Abrir detalhes do favorito"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Configurações específicas do dispositivo ativas",
+        "using_default": "Usando o padrão do cliente",
+        "clear_override_hint": "Limpar substituição do dispositivo para usar a configuração global ({{value}})",
+        "font_size": "Tamanho da Fonte",
+        "font_family": "Família da Fonte",
+        "preview_inline": "(visualização)",
+        "tooltip_preview": "Alterações de visualização não salvas",
+        "save_to_all_devices": "Todos os dispositivos",
+        "tooltip_local": "Configurações do dispositivo diferentes das globais",
+        "reset_preview": "Redefinir visualização",
+        "mono": "Monoespaçado",
+        "line_height": "Altura da Linha",
+        "tooltip_default": "Configurações de leitura",
+        "title": "Configurações do Leitor",
+        "serif": "Serifa",
+        "preview": "Visualização",
+        "not_set": "Não definido",
+        "clear_local_overrides": "Limpar configurações do dispositivo",
+        "preview_text": "A raposa marrom rápida pula sobre o cão preguiçoso. É assim que o texto da sua visualização do leitor aparecerá.",
+        "local_overrides_cleared": "As configurações específicas do dispositivo foram apagadas",
+        "local_overrides_description": "Este dispositivo tem configurações de leitor que diferem de suas configurações padrão globais:",
+        "clear_defaults": "Limpar todos os padrões",
+        "description": "Configure as configurações de texto padrão para a visualização do leitor. Essas configurações são sincronizadas em todos os seus dispositivos.",
+        "defaults_cleared": "Os padrões do leitor foram apagados",
+        "save_hint": "Salvar configurações apenas para este dispositivo ou sincronizar entre todos os dispositivos",
+        "save_as_default": "Salvar como padrão",
+        "save_to_device": "Este dispositivo",
+        "sans": "Sem serifa",
+        "tooltip_preview_and_local": "Alterações de visualização não salvas; configurações do dispositivo diferentes das globais",
+        "adjust_hint": "Ajuste as configurações acima para visualizar as alterações"
+      },
+      "avatar": {
+        "upload": "Enviar avatar",
+        "change": "Mudar avatar",
+        "remove_confirm_title": "Remover avatar?",
+        "updated": "Avatar atualizado",
+        "removed": "Avatar removido",
+        "description": "Envie uma imagem quadrada para usar como seu avatar.",
+        "remove_confirm_description": "Isso vai apagar a foto do seu perfil atual.",
+        "title": "Foto do perfil",
+        "remove": "Remover avatar"
       }
     },
     "back_to_app": "Voltar ao App",
@@ -123,7 +170,21 @@
       "all_tagging": "Todas as Tags",
       "text_tagging": "Tags de Texto",
       "image_tagging": "Tags de Imagem",
-      "summarization": "Resumo"
+      "summarization": "Resumo",
+      "tag_style": "Estilo da etiqueta",
+      "auto_summarization_description": "Gere automaticamente resumos para seus favoritos usando IA.",
+      "auto_tagging": "Marcação automática",
+      "titlecase_spaces": "Maiúsculas e minúsculas com espaços",
+      "lowercase_underscores": "Minúsculas com sublinhados",
+      "inference_language": "Linguagem de inferência",
+      "titlecase_hyphens": "Maiúsculas e minúsculas com hífens",
+      "lowercase_hyphens": "Minúsculas com hífens",
+      "lowercase_spaces": "Minúsculas com espaços",
+      "inference_language_description": "Escolha o idioma para tags e resumos gerados por IA.",
+      "tag_style_description": "Escolha como suas tags auto-geradas devem ser formatadas.",
+      "auto_tagging_description": "Gere automaticamente tags para seus favoritos usando IA.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Resumo automático"
     },
     "feeds": {
       "rss_subscriptions": "Assinaturas de RSS",
@@ -154,6 +215,7 @@
       "import_export_bookmarks": "Importar / Exportar Favoritos",
       "import_bookmarks_from_html_file": "Importar Favoritos de arquivo HTML",
       "import_bookmarks_from_pocket_export": "Importar Favoritos de exportação do Pocket",
+      "import_bookmarks_from_matter_export": "Importar Favoritos de exportação do Matter",
       "import_bookmarks_from_omnivore_export": "Importar Favoritos de exportação do Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importar Favoritos de exportação do Linkwarden",
       "import_bookmarks_from_karakeep_export": "Importar Favoritos de exportação do Karakeep",
@@ -680,7 +742,14 @@
     "year_s_ago": " Ano(s) atrás",
     "history": "Pesquisas recentes",
     "title_contains": "Título Contém",
-    "title_does_not_contain": "Título Não Contém"
+    "title_does_not_contain": "Título Não Contém",
+    "is_broken_link": "Possui link quebrado",
+    "tags": "Tags",
+    "no_suggestions": "Sem sugestões",
+    "filters": "Filtros",
+    "is_not_broken_link": "Possui link funcionando",
+    "lists": "Listas",
+    "feeds": "Feeds"
   },
   "preview": {
     "view_original": "Ver Original",
@@ -689,7 +758,8 @@
     "tabs": {
       "content": "Conteúdo",
       "details": "Detalhes"
-    }
+    },
+    "archive_info": "Arquivos podem não renderizar corretamente embutidos se eles exigirem Javascript. Para obter melhores resultados, <1>baixe-o e abra-o no seu navegador</1>."
   },
   "editor": {
     "quickly_focus": "Você pode acessar rapidamente este campo pressionando ⌘ + E",
@@ -763,7 +833,8 @@
       "refetch": "A nova busca foi enfileirada!",
       "full_page_archive": "A criação do arquivo de página inteira foi acionada",
       "delete_from_list": "O favorito foi excluído da lista",
-      "clipboard_copied": "O link foi adicionado à sua área de transferência!"
+      "clipboard_copied": "O link foi adicionado à sua área de transferência!",
+      "preserve_pdf": "A preservação em PDF foi acionada"
     },
     "lists": {
       "created": "A lista foi criada!",

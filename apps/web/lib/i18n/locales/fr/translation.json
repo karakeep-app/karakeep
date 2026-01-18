@@ -39,7 +39,9 @@
     "summary": "Résumé",
     "quota": "Quota",
     "bookmarks": "Marque-pages",
-    "storage": "Stockage"
+    "storage": "Stockage",
+    "pdf": "PDF archivé",
+    "default": "Par défaut"
   },
   "layouts": {
     "masonry": "Mosaïque",
@@ -90,7 +92,9 @@
     "confirm": "Confirmer",
     "regenerate": "Régénérer",
     "load_more": "En charger plus",
-    "edit_notes": "Modifier les notes"
+    "edit_notes": "Modifier les notes",
+    "preserve_as_pdf": "Conserver en PDF",
+    "offline_copies": "Copies hors ligne"
   },
   "settings": {
     "back_to_app": "Retour à l'application",
@@ -116,6 +120,49 @@
           "open_external_url": "Ouvrir l’URL d’origine",
           "open_bookmark_details": "Ouvrir les détails du marque-page"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Paramètres spécifiques à l’appareil actifs",
+        "using_default": "Utilisation des paramètres par défaut du client",
+        "clear_override_hint": "Effacer la substitution de l’appareil pour utiliser le paramètre général ({{value}})",
+        "font_size": "Taille de la police",
+        "font_family": "Famille de polices",
+        "preview_inline": "(aperçu)",
+        "tooltip_preview": "Modifications de l’aperçu non enregistrées",
+        "save_to_all_devices": "Tous les appareils",
+        "tooltip_local": "Les paramètres de l’appareil diffèrent des paramètres généraux",
+        "reset_preview": "Réinitialiser l’aperçu",
+        "mono": "Monospace",
+        "line_height": "Hauteur de ligne",
+        "tooltip_default": "Paramètres de lecture",
+        "title": "Paramètres du lecteur",
+        "serif": "Avec empattement",
+        "preview": "Aperçu",
+        "not_set": "Non défini",
+        "clear_local_overrides": "Effacer les paramètres de l’appareil",
+        "preview_text": "Le rapide renard brun saute par-dessus le chien paresseux. Voici comment apparaîtra le texte de votre affichage de lecteur.",
+        "local_overrides_cleared": "Les paramètres spécifiques à l’appareil ont été effacés",
+        "local_overrides_description": "Cet appareil a des paramètres de lecteur qui diffèrent de vos paramètres par défaut globaux :",
+        "clear_defaults": "Effacer toutes les valeurs par défaut",
+        "description": "Configurez les paramètres de texte par défaut pour l’affichage du lecteur. Ces paramètres sont synchronisés sur tous vos appareils.",
+        "defaults_cleared": "Les paramètres par défaut du lecteur ont été supprimés",
+        "save_hint": "Enregistrer les paramètres pour cet appareil uniquement ou synchroniser avec tous les appareils",
+        "save_as_default": "Enregistrer comme valeurs par défaut",
+        "save_to_device": "Cet appareil",
+        "sans": "Sans empattement",
+        "tooltip_preview_and_local": "Modifications de l’aperçu non enregistrées ; les paramètres de l’appareil diffèrent des paramètres généraux",
+        "adjust_hint": "Ajustez les paramètres ci-dessus pour prévisualiser les modifications"
+      },
+      "avatar": {
+        "upload": "Téléverser un avatar",
+        "change": "Changer d’avatar",
+        "remove_confirm_title": "Supprimer l’avatar ?",
+        "updated": "Avatar mis à jour",
+        "removed": "Avatar supprimé",
+        "description": "Téléversez une image carrée à utiliser comme avatar.",
+        "remove_confirm_description": "Cela supprimera votre photo de profil actuelle.",
+        "title": "Photo de profil",
+        "remove": "Supprimer l’avatar"
       }
     },
     "ai": {
@@ -129,7 +176,21 @@
       "all_tagging": "Tout le tagging",
       "text_tagging": "Balises de texte",
       "image_tagging": "Marquage d'image",
-      "summarization": "Résumer"
+      "summarization": "Résumer",
+      "tag_style": "Style des balises",
+      "auto_summarization_description": "Générez automatiquement des résumés pour vos favoris à l’aide de l’IA.",
+      "auto_tagging": "Attribution automatique de balises",
+      "titlecase_spaces": "Majuscule en début de mot avec espaces",
+      "lowercase_underscores": "Minuscules avec traits de soulignement",
+      "inference_language": "Langue d’inférence",
+      "titlecase_hyphens": "Majuscule en début de mot avec tirets",
+      "lowercase_hyphens": "Minuscules avec tirets",
+      "lowercase_spaces": "Minuscules avec espaces",
+      "inference_language_description": "Choisissez la langue pour les balises et les résumés générés par l’IA.",
+      "tag_style_description": "Choisissez le format de vos balises générées automatiquement.",
+      "auto_tagging_description": "Générez automatiquement des balises pour vos favoris à l’aide de l’IA.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Résumés automatiques"
     },
     "feeds": {
       "rss_subscriptions": "Abonnements RSS",
@@ -142,6 +203,7 @@
       "import_export_bookmarks": "Importer / Exporter des favoris",
       "import_bookmarks_from_html_file": "Importer des favoris depuis un fichier HTML",
       "import_bookmarks_from_pocket_export": "Importer des favoris depuis une exportation Pocket",
+      "import_bookmarks_from_matter_export": "Importer des favoris depuis une exportation Matter",
       "import_bookmarks_from_omnivore_export": "Importer des favoris depuis une exportation Omnivore",
       "import_bookmarks_from_karakeep_export": "Importer des favoris depuis une exportation Karakeep",
       "export_links_and_notes": "Exporter les liens et les notes",
@@ -646,7 +708,8 @@
     "tabs": {
       "details": "Détails",
       "content": "Contenu"
-    }
+    },
+    "archive_info": "Les archives peuvent ne pas s'afficher correctement en ligne si elles nécessitent Javascript. Pour de meilleurs résultats, <1>téléchargez-les et ouvrez-les dans votre navigateur</1>."
   },
   "editor": {
     "quickly_focus": "Vous pouvez rapidement vous concentrer sur ce champ en appuyant sur ⌘ + E",
@@ -714,7 +777,8 @@
       "refetch": "Re-fetch a été mis en file d'attente !",
       "full_page_archive": "La création de l'archive de la page complète a été déclenchée",
       "delete_from_list": "Le favori a été supprimé de la liste",
-      "clipboard_copied": "Le lien a été ajouté à votre presse-papiers !"
+      "clipboard_copied": "Le lien a été ajouté à votre presse-papiers !",
+      "preserve_pdf": "La conservation en PDF a été déclenchée"
     },
     "lists": {
       "created": "La liste a été créée !",
@@ -772,7 +836,14 @@
     "year_s_ago": " Il y a {years} an(s)",
     "history": "Recherches récentes",
     "title_contains": "Le titre contient",
-    "title_does_not_contain": "Le titre ne contient pas"
+    "title_does_not_contain": "Le titre ne contient pas",
+    "is_broken_link": "A un lien brisé",
+    "tags": "Balises",
+    "no_suggestions": "Pas de suggestions",
+    "filters": "Filtres",
+    "is_not_broken_link": "A un lien fonctionnel",
+    "lists": "Listes",
+    "feeds": "Flux"
   },
   "dialogs": {
     "bookmarks": {

@@ -1,5 +1,5 @@
 import { ActionButton } from "@/components/ui/action-button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 

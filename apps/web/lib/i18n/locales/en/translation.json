@@ -1,6 +1,7 @@
 {
   "common": {
     "default": "Default",
+    "id": "ID",
     "url": "URL",
     "name": "Name",
     "email": "Email",
@@ -9,6 +10,7 @@
     "actions": "Actions",
     "created_at": "Created At",
     "updated_at": "Updated At",
+    "last_used": "Last Used",
     "key": "Key",
     "role": "Role",
     "type": "Type",
@@ -26,6 +28,7 @@
     "highlights": "Highlights",
     "source": "Source",
     "screenshot": "Screenshot",
+    "pdf": "Archived PDF",
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
@@ -70,7 +73,11 @@
     "toggle_show_archived": "Show Archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
-    "download_full_page_archive": "Download Full Page Archive",
+    "offline_copies": "Offline Copies",
+    "preserve_offline_archive": "Preserve Offline Archive",
+    "download_full_page_archive_file": "Download Archive File",
+    "preserve_as_pdf": "Preserve as PDF",
+    "download_pdf_file": "Download PDF File",
     "edit_tags": "Edit Tags",
     "edit_notes": "Edit Notes",
     "add_to_list": "Add to List",
@@ -83,6 +90,7 @@
     "remove_from_list": "Remove from List",
     "save": "Save",
     "add": "Add",
+    "remove": "Remove",
     "edit": "Edit",
     "confirm": "Confirm",
     "open_editor": "Open Editor",
@@ -97,6 +105,9 @@
     "regenerate": "Regenerate",
     "apply_all": "Apply All",
     "ignore": "Ignore",
+    "more": "More",
+    "replace_banner": "Replace Banner",
+    "add_banner": "Add Banner",
     "sort": {
       "title": "Sort",
       "relevant_first": "Most Relevant First",
@@ -233,7 +244,6 @@
     },
     "ai": {
       "ai_settings": "AI Settings",
-      "ai_preferences_description": "Control which AI features are enabled for your account.",
       "auto_tagging": "Auto-tagging",
       "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
       "auto_summarization": "Auto-summarization",
@@ -247,7 +257,18 @@
       "all_tagging": "All Tagging",
       "text_tagging": "Text Tagging",
       "image_tagging": "Image Tagging",
-      "summarization": "Summarization"
+      "summarization": "Summarization",
+      "tag_style": "Tag Style",
+      "tag_style_description": "Choose how your auto-generated tags should be formatted.",
+      "lowercase_hyphens": "Lowercase with hyphens",
+      "lowercase_spaces": "Lowercase with spaces",
+      "lowercase_underscores": "Lowercase with underscores",
+      "titlecase_spaces": "Title case with spaces",
+      "titlecase_hyphens": "Title case with hyphens",
+      "camelCase": "camelCase",
+      "no_preference": "No preference",
+      "inference_language": "Inference Language",
+      "inference_language_description": "Choose language for AI-generated tags and summaries."
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
@@ -278,6 +299,7 @@
       "import_export_bookmarks": "Import / Export Bookmarks",
       "import_bookmarks_from_html_file": "Import Bookmarks from HTML file",
       "import_bookmarks_from_pocket_export": "Import Bookmarks from Pocket export",
+      "import_bookmarks_from_matter_export": "Import Bookmarks from Matter export",
       "import_bookmarks_from_omnivore_export": "Import Bookmarks from Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
@@ -334,6 +356,9 @@
       "conditions_types": {
         "always": "Always",
         "url_contains": "URL Contains",
+        "url_does_not_contain": "URL Does Not Contain",
+        "title_contains": "Title Contains",
+        "title_does_not_contain": "Title Does Not Contain",
         "imported_from_feed": "Imported From Feed",
         "bookmark_type_is": "Bookmark Type Is",
         "has_tag": "Has Tag",
@@ -534,11 +559,14 @@
         }
       },
       "actions": {
+        "recrawl_pending_links_only": "Recrawl Pending Links Only",
         "recrawl_failed_links_only": "Recrawl Failed Links Only",
         "recrawl_all_links": "Recrawl All Links",
         "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
         "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerate AI Summaries for Pending Bookmarks Only",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",
@@ -559,6 +587,42 @@
       "local_user": "Local User",
       "confirm_password": "Confirm Password",
       "unlimited": "Unlimited"
+    },
+    "admin_tools": {
+      "admin_tools": "Admin Tools",
+      "bookmark_debugger": "Bookmark Debugger",
+      "bookmark_id": "Bookmark ID",
+      "bookmark_id_placeholder": "Enter bookmark ID",
+      "lookup": "Lookup",
+      "debug_info": "Debug Information",
+      "basic_info": "Basic Information",
+      "status": "Status",
+      "content": "Content",
+      "html_preview": "HTML Preview (First 1000 chars)",
+      "summary": "Summary",
+      "url": "URL",
+      "source_url": "Source URL",
+      "asset_type": "Asset Type",
+      "file_name": "File Name",
+      "owner_user_id": "Owner User ID",
+      "tagging_status": "Tagging Status",
+      "summarization_status": "Summarization Status",
+      "crawl_status": "Crawl Status",
+      "crawl_status_code": "HTTP Status Code",
+      "crawled_at": "Crawled At",
+      "recrawl": "Re-crawl",
+      "reindex": "Re-index",
+      "retag": "Re-tag",
+      "resummarize": "Re-summarize",
+      "bookmark_not_found": "Bookmark not found",
+      "action_success": "Action completed successfully",
+      "action_failed": "Action failed",
+      "recrawl_queued": "Re-crawl job has been queued",
+      "reindex_queued": "Re-index job has been queued",
+      "retag_queued": "Re-tag job has been queued",
+      "resummarize_queued": "Re-summarize job has been queued",
+      "view": "View",
+      "fetch_error": "Error fetching bookmark"
     }
   },
   "options": {
@@ -802,8 +866,11 @@
       "deleted": "The bookmark has been deleted!",
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
+      "preserve_pdf": "PDF preservation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
-      "clipboard_copied": "Link has been added to your clipboard!"
+      "clipboard_copied": "Link has been added to your clipboard!",
+      "update_banner": "Banner has been updated!",
+      "uploading_banner": "Uploading banner..."
     },
     "lists": {
       "created": "List has been created!",
@@ -848,5 +915,54 @@
     "no_release_notes": "No release notes were published for this version.",
     "release_notes_synced": "Release notes are synced from GitHub.",
     "view_on_github": "View on GitHub"
+  },
+  "wrapped": {
+    "title": "Your {{year}} Wrapped",
+    "subtitle": "A Year in Karakeep",
+    "banner": {
+      "title": "Your 2025 Wrapped is ready!",
+      "description": "See your year in bookmarks",
+      "view_now": "View Now"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Loading your Wrapped...",
+    "failed_to_load": "Failed to load your Wrapped stats",
+    "sections": {
+      "total_saves": {
+        "prefix": "You saved",
+        "suffix": "items this year",
+        "suffix_singular": "item this year"
+      },
+      "first_bookmark": {
+        "title": "Your Journey Started",
+        "description": "First save of {{year}}:"
+      },
+      "top_domains": "Your Top Sites",
+      "top_tags": "Your Top Tags",
+      "monthly_activity": "Your Year in Saves",
+      "most_active_day": "Your Most Active Day",
+      "peak_times": {
+        "title": "When You Save",
+        "peak_hour": "Peak Hour",
+        "peak_day": "Peak Day"
+      },
+      "how_you_save": "How You Save",
+      "what_you_saved": "What You Saved",
+      "summary": {
+        "favorites": "Favorites",
+        "tags_created": "Tags Created",
+        "highlights": "Highlights"
+      },
+      "types": {
+        "links": "Links",
+        "notes": "Notes",
+        "assets": "Assets"
+      }
+    },
+    "footer": "Made with Karakeep",
+    "share": "Share",
+    "download": "Download",
+    "close": "Close",
+    "generating": "Generating..."
   }
 }

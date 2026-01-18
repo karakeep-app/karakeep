@@ -18,6 +18,8 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   readerFontFamily: null,
   autoTaggingEnabled: null,
   autoSummarizationEnabled: null,
+  tagStyle: "as-generated",
+  inferredTagLang: null,
 });
 
 export function UserSettingsContextProvider({

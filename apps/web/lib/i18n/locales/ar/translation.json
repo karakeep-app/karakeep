@@ -39,7 +39,9 @@
     "updated_at": "تم التحديث في",
     "quota": "حصة",
     "bookmarks": "الإشارات المرجعية",
-    "storage": "تخزين"
+    "storage": "تخزين",
+    "pdf": "نسخة PDF مؤرشفة",
+    "default": "افتراضي"
   },
   "layouts": {
     "masonry": "متعدد الأعمدة",
@@ -90,7 +92,9 @@
     "confirm": "تأكيد",
     "regenerate": "تجديد",
     "load_more": "المزيد",
-    "edit_notes": "تحرير الملاحظات"
+    "edit_notes": "تحرير الملاحظات",
+    "preserve_as_pdf": "حفظ كملف PDF",
+    "offline_copies": "نسخ غير متصلة بالإنترنت"
   },
   "highlights": {
     "no_highlights": "ليس لديك أي تمييزات بعد."
@@ -119,6 +123,49 @@
           "show": "اعرض الإشارات المرجعية المؤرشفة في العلامات والقوائم",
           "hide": "إخفاء الإشارات المرجعية المؤرشفة في العلامات والقوائم"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "إعدادات خاصة بالجهاز مُفعلة",
+        "using_default": "استخدام الإعدادات الافتراضية للعميل",
+        "clear_override_hint": "امسح تجاوز الجهاز لاستخدام الإعداد العام ({{value}})",
+        "font_size": "حجم الخط",
+        "font_family": "نوع الخط",
+        "preview_inline": "(معاينة)",
+        "tooltip_preview": "تغييرات المعاينة غير المحفوظة",
+        "save_to_all_devices": "كل الأجهزة",
+        "tooltip_local": "إعدادات الجهاز تختلف عن الإعدادات العامة",
+        "reset_preview": "إعادة ضبط المعاينة",
+        "mono": "Monospace",
+        "line_height": "ارتفاع السطر",
+        "tooltip_default": "إعدادات القراءة",
+        "title": "إعدادات القارئ",
+        "serif": "Serif",
+        "preview": "معاينة",
+        "not_set": "غير مضبوط",
+        "clear_local_overrides": "مسح إعدادات الجهاز",
+        "preview_text": "الـ quick brown fox jumps over the lazy dog. ستظهر نصوص عرض القارئ بهذه الطريقة.",
+        "local_overrides_cleared": "تم مسح إعدادات الجهاز المخصصة",
+        "local_overrides_description": "يحتوي هذا الجهاز على إعدادات قارئ مختلفة عن الإعدادات الافتراضية العامة:",
+        "clear_defaults": "مسح كل الإعدادات الافتراضية",
+        "description": "اضبط إعدادات النص الافتراضية لعرض القارئ. تتم مزامنة هذه الإعدادات عبر جميع أجهزتك.",
+        "defaults_cleared": "تم مسح الإعدادات الافتراضية للقارئ",
+        "save_hint": "احفظ الإعدادات لهذا الجهاز فقط أو قم بمزامنتها عبر جميع الأجهزة",
+        "save_as_default": "حفظ كافتراضي",
+        "save_to_device": "هذا الجهاز",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "تغييرات المعاينة غير المحفوظة؛ إعدادات الجهاز تختلف عن الإعدادات العامة",
+        "adjust_hint": "اضبط الإعدادات أعلاه لمعاينة التغييرات"
+      },
+      "avatar": {
+        "upload": "ارفع الصورة الرمزية",
+        "change": "غير الصورة الرمزية",
+        "remove_confirm_title": "تشيل الصورة الرمزية؟",
+        "updated": "تم تحديث الصورة الرمزية",
+        "removed": "تمت إزالة الصورة الرمزية",
+        "description": "ارفع صورة مربعة عشان تستخدمها كصورة رمزية.",
+        "remove_confirm_description": "ده هيمسح صورة ملفك الشخصي الحالية.",
+        "title": "صورة الملف الشخصي",
+        "remove": "شيل الصورة الرمزية"
       }
     },
     "ai": {
@@ -132,7 +179,21 @@
       "all_tagging": "التوسيم الشامل",
       "text_tagging": "توسيم النصوص",
       "image_tagging": "توسيم الصور",
-      "summarization": "التلخيص"
+      "summarization": "التلخيص",
+      "tag_style": "نمط العلامة",
+      "auto_summarization_description": "إنشاء ملخصات تلقائيًا لعلاماتك المرجعية باستخدام الذكاء الاصطناعي.",
+      "auto_tagging": "وضع العلامات التلقائي",
+      "titlecase_spaces": "أحرف استهلالية مع مسافات",
+      "lowercase_underscores": "أحرف صغيرة مع شرطات سفلية",
+      "inference_language": "لُغة الاستنتاج",
+      "titlecase_hyphens": "أحرف استهلالية مع واصلات",
+      "lowercase_hyphens": "أحرف صغيرة مع واصلات",
+      "lowercase_spaces": "أحرف صغيرة مع مسافات",
+      "inference_language_description": "اختر اللغة الخاصة بالعلامات والملخصات التي تم إنشاؤها بواسطة الذكاء الاصطناعي.",
+      "tag_style_description": "اختر كيف ينبغي تنسيق علاماتك التي تم إنشاؤها تلقائيًا.",
+      "auto_tagging_description": "إنشاء علامات تلقائيًا لعلاماتك المرجعية باستخدام الذكاء الاصطناعي.",
+      "camelCase": "camelCase",
+      "auto_summarization": "التلخيص التلقائي"
     },
     "feeds": {
       "rss_subscriptions": "اشتراكات RSS",
@@ -163,6 +224,7 @@
       "import_export_bookmarks": "استيراد / تصدير الإشارات المرجعية",
       "import_bookmarks_from_html_file": "استيراد إشارات مرجعية من ملف HTML",
       "import_bookmarks_from_pocket_export": "استيراد إشارات مرجعية من تصدير Pocket",
+      "import_bookmarks_from_matter_export": "استيراد إشارات مرجعية من تصدير Matter",
       "import_bookmarks_from_omnivore_export": "استيراد إشارات مرجعية من تصدير Omnivore",
       "import_bookmarks_from_linkwarden_export": "استيراد إشارات مرجعية من تصدير Linkwarden",
       "import_bookmarks_from_karakeep_export": "استيراد إشارات مرجعية من تصدير Karakeep",
@@ -680,7 +742,14 @@
     "week_s_ago": " منذ أسبوع (أسابيع)",
     "history": "عمليات البحث الأخيرة",
     "title_contains": "العنوان يحتوي على",
-    "title_does_not_contain": "العنوان لا يحتوي على"
+    "title_does_not_contain": "العنوان لا يحتوي على",
+    "is_broken_link": "لديه رابط معطّل",
+    "tags": "العلامات",
+    "no_suggestions": "لا توجد اقتراحات",
+    "filters": "الفلاتر",
+    "is_not_broken_link": "لديه رابط صالح",
+    "lists": "القوائم",
+    "feeds": "خلاصات الأخبار"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",
@@ -689,7 +758,8 @@
     "tabs": {
       "content": "المحتوى",
       "details": "التفاصيل"
-    }
+    },
+    "archive_info": "قد لا يتم عرض الأرشيفات بشكل صحيح في السطر إذا كانت تتطلب Javascript. للحصول على أفضل النتائج، <1>قم بتنزيلها وافتحها في متصفحك</1>."
   },
   "editor": {
     "quickly_focus": "يمكنك التركيز سريعاً على هذا الحقل بالضغط على ⌘ + E",
@@ -763,7 +833,8 @@
       "refetch": "تم إضافة إعادة الجلب إلى قائمة الانتظار!",
       "full_page_archive": "تم بدء إنشاء أرشيف الصفحة الكامل",
       "delete_from_list": "تم حذف الإشارة المرجعية من القائمة",
-      "clipboard_copied": "تم نسخ الرابط إلى الحافظة!"
+      "clipboard_copied": "تم نسخ الرابط إلى الحافظة!",
+      "preserve_pdf": "تم تشغيل حفظ PDF"
     },
     "lists": {
       "created": "تم إنشاء القائمة!",

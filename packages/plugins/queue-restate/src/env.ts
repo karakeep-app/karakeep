@@ -17,5 +17,8 @@ export const envConfig = z
     RESTATE_ADMIN_ADDR: z.string().optional().default("http://localhost:9070"),
     RESTATE_PUB_KEY: z.string().optional(),
     RESTATE_EXPOSE_CORE_SERVICES: stringBool("true"),
+    // Deployment mode configuration - allows running dispatchers and runners separately
+    RESTATE_ENABLE_DISPATCHERS: stringBool("true"),
+    RESTATE_ENABLE_RUNNERS: stringBool("true"),
   })
   .parse(process.env);

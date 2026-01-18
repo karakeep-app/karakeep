@@ -1,6 +1,6 @@
 import React from "react";
 import { ActionButton, ActionButtonProps } from "@/components/ui/action-button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { api } from "@/lib/trpc";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";

@@ -1,0 +1,71 @@
+---
+id: get-lists-of-a-bookmark
+title: "Get lists of a bookmark"
+description: "Get lists of a bookmark"
+sidebar_label: "Get lists of a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVU2P3DYM/SsGTy0grCdFiga+bYs22CaHINmih8EcODZnrB1ZUiR6dyaG/ntB2fO162x76Mm29CQ+Pj7SAzQU66A9a2ehgvfEhdGRY+E2BRZr53Ydhh0oYNxGqJbw67QUYaUgUt0HzQeolgOsCQOF255bqJartFLgMWBHTCFmQKxb6hCqAfjgCSqIHLTdggLaY+eNLGnSjdkftt3Tw7tf3P7bz+2e2dXvhIHmDDkyuGsgKQj0tdeBGqg49KTAYieg9RmkQEtqHrkFYRUoemcjRWHy02Ihj2sV7lvKKogIrd62Rm9bjqCgdpbJspxA742uUU6UD1GOzSTo1g9UMyjwwXkKrMegWeELGIaAB+HJ1MV/P66blxqmY+YzG1fJvRTf9sbgWqQVBZMCXc8BU64nWb6bCT9zywiYqbXtOzFSh7ZHAwpih4HFTQ1tsDcM1XEvKfjaUzj8p3i+XxtdX0DXzhlCK7e0GH9zgncB2YU4j+ojhc/OvMraPVkK8t1odvLyqOkpr0zxV+nKlEup1lSbSdkLHU+nZihe8Fmdzf9RR4b0PMZoqFXKG28Xb19a+tg0hXVcbFxvm//PzrVr5o3XUYy4ndt7xj/fcMbnRPJ5bl0DFWwpR5UOrqA89nYsh3Obp3IUQYZSeDyOnD4YqGDApgkUYyrR6/LxjZQNgxb75ASm7VG1owdbZh+rsuRwuNlhwB2Rv0HvQc1Mi+kGGRjcUvFhwhcjFynYxbT8IrqOkS9n5kkkiSx5ZJhYNINATS9/uNChMPzz7/uspLYbJ8cl65HSm5vFzeJiZJ743H66m+V/++mu2LhwTV6SlcZykTvMjpiG6/f/Es9Gzclgr/1YxqSZ9lx6g3psRanbMFV8eZrmUt7qarRPzlfQusgCHYY1RvormJRkeZofy9W55NkYjY7y3kC1QRPpFeY/fJ6M+mPxPbbHMW4P2Vmmly9QsKPD9a8orWQYETYUMosRcFvX5Pni6ItmFPecmuH97/egAK8988wj+fZZWsMwIu7djmxKJ5Ys30IwpX8ASlbEvw==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get lists of a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/bookmarks/{bookmarkId}/lists"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get lists of a bookmark
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The list of highlights","content":{"application/json":{"schema":{"type":"object","properties":{"lists":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}},"required":["lists"]}}}},"404":{"description":"Bookmark not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

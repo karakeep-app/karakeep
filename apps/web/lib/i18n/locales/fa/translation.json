@@ -39,7 +39,9 @@
       "text": "متن",
       "media": "رسانه"
     },
-    "quota": "سهمیه"
+    "quota": "سهمیه",
+    "pdf": "پی‌دی‌اف بایگانی‌شده",
+    "default": "پیش‌فرض"
   },
   "layouts": {
     "grid": "شبکه‌ای",
@@ -90,7 +92,9 @@
       "oldest_first": "قدیمی‌ترین‌ها ابتدا"
     },
     "load_more": "بارگذاری بیشتر",
-    "edit_notes": "ویرایش یادداشت‌ها"
+    "edit_notes": "ویرایش یادداشت‌ها",
+    "preserve_as_pdf": "به عنوان پی‌دی‌اف نگهداری‌اش کن",
+    "offline_copies": "نسخه‌های آفلاین"
   },
   "settings": {
     "stats": {
@@ -169,6 +173,49 @@
           "show": "نمایش نشانک‌های بایگانی‌شده در برچسب‌ها و فهرست‌ها",
           "hide": "مخفی‌کردن نشانک‌های بایگانی‌شده در برچسب‌ها و فهرست‌ها"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "تنظیمات مختص دستگاه فعال هستن",
+        "using_default": "در حال استفاده از پیش‌فرض مشتری",
+        "clear_override_hint": "پاک کردن لغو دستگاه برای استفاده از تنظیمات سراسری ({{value}})",
+        "font_size": "اندازه فونت",
+        "font_family": "خانواده فونت",
+        "preview_inline": "(پیش‌نمایش)",
+        "tooltip_preview": "تغییرات پیش نمایش ذخیره نشده",
+        "save_to_all_devices": "همه دستگاه‌ها",
+        "tooltip_local": "تنظیمات دستگاه با تنظیمات سراسری فرق داره",
+        "reset_preview": "بازنشانی پیش‌نمایش",
+        "mono": "تک‌فاصله",
+        "line_height": "ارتفاع خط",
+        "tooltip_default": "تنظیمات خواندن",
+        "title": "تنظیمات خواننده",
+        "serif": "سری‌دار",
+        "preview": "پیش‌نمایش",
+        "not_set": "تنظیم نشده",
+        "clear_local_overrides": "تنظیمات دستگاه رو پاک کن",
+        "preview_text": "روباه قهوه‌ای زرنگ از روی سگ تنبل می‌پره. متن قسمت خواننده اینجوری نمایش داده میشه.",
+        "local_overrides_cleared": "تنظیمات دستگاه پاک شدن",
+        "local_overrides_description": "این دستگاه تنظیمات خواننده‌ای داره که با تنظیمات پیش‌فرض کلی‌ت فرق دارن:",
+        "clear_defaults": "همه پیش‌فرض‌ها رو پاک کن",
+        "description": "تنظیم متن پیش‌فرض برای بخش خواننده رو پیکربندی کن. این تنظیمات با بقیه دستگاه‌هات هماهنگ میشه.",
+        "defaults_cleared": "پیش‌فرض‌های قسمت خواننده پاک شدن",
+        "save_hint": "ذخیره تنظیمات فقط برای این دستگاه یا همگام سازی بین همه دستگاه ها",
+        "save_as_default": "به عنوان پیش‌فرض ذخیره کن",
+        "save_to_device": "این دستگاه",
+        "sans": "بدون سری",
+        "tooltip_preview_and_local": "تغییرات پیش‌نمایش ذخیره نشده‌؛ تنظیمات دستگاه با تنظیمات کلی فرق داره",
+        "adjust_hint": "برای پیش نمایش تغییرات، تنظیمات بالا را تنظیم کنید"
+      },
+      "avatar": {
+        "upload": "بارگذاری آواتار",
+        "change": "تغییر آواتار",
+        "remove_confirm_title": "آواتار حذف بشه؟",
+        "updated": "آواتار به‌روز شد",
+        "removed": "آواتار حذف شد",
+        "description": "یه عکس مربع بارگذاری کن تا به عنوان آواتارت استفاده بشه.",
+        "remove_confirm_description": "این کار عکس پروفایل فعلیتو پاک می‌کنه.",
+        "title": "عکس پروفایل",
+        "remove": "حذف آواتار"
       }
     },
     "user_settings": "تنظیمات کاربر",
@@ -183,7 +230,21 @@
       "text_prompt": "پرامپت متنی",
       "text_tagging": "برچسب‌گذاری متن",
       "summarization_prompt": "پرامپت خلاصه‌سازی",
-      "summarization": "خلاصه‌سازی"
+      "summarization": "خلاصه‌سازی",
+      "tag_style": "استایل برچسب",
+      "auto_summarization_description": "به‌طور خودکار با استفاده از هوش مصنوعی برای نشانک‌هایت خلاصه تولید کن.",
+      "auto_tagging": "برچسب‌گذاری خودکار",
+      "titlecase_spaces": "حالت عنوان با فاصله‌ها",
+      "lowercase_underscores": "حروف کوچک با زیرخط‌ها",
+      "inference_language": "زبان استنباطی",
+      "titlecase_hyphens": "حالت عنوان با خط تیره",
+      "lowercase_hyphens": "حروف کوچک با خط تیره",
+      "lowercase_spaces": "حروف کوچک با فاصله‌ها",
+      "inference_language_description": "زبانی را برای برچسب‌ها و خلاصه‌های تولید شده توسط هوش مصنوعی انتخاب کنید.",
+      "tag_style_description": "انتخاب کنید که برچسب‌های تولیدشده خودکار شما چگونه قالب‌بندی شوند.",
+      "auto_tagging_description": "به‌طور خودکار با استفاده از هوش مصنوعی برای نشانک‌هایت برچسب تولید کن.",
+      "camelCase": "camelCase",
+      "auto_summarization": "خلاصه‌سازی خودکار"
     },
     "feeds": {
       "feed_enabled": "خوراک RSS فعال شد",
@@ -214,6 +275,7 @@
       "import_bookmarks_from_html_file": "درون‌ریزی نشانک‌ها از فایل HTML",
       "import_export_bookmarks": "درون‌ریزی / برون‌بری نشانک‌ها",
       "import_bookmarks_from_pocket_export": "درون‌ریزی نشانک‌ها از خروجی Pocket",
+      "import_bookmarks_from_matter_export": "درون‌ریزی نشانک‌ها از خروجی Matter",
       "import_bookmarks_from_omnivore_export": "درون‌ریزی نشانک‌ها از خروجی Omnivore",
       "import_bookmarks_from_linkwarden_export": "درون‌ریزی نشانک‌ها از خروجی Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "درون‌ریزی نشانک‌ها از Tab Session Manager",
@@ -656,7 +718,14 @@
     "is_not_from_feed": "از فید RSS نیست",
     "and": "و",
     "or": "یا",
-    "history": "جستجوهای اخیر"
+    "history": "جستجوهای اخیر",
+    "is_broken_link": "لینک خراب دارد",
+    "tags": "برچسب‌ها",
+    "no_suggestions": "بدون پیشنهاد‌ها",
+    "filters": "فیلترها",
+    "is_not_broken_link": "لینک درست دارد",
+    "lists": "فهرست‌ها",
+    "feeds": "فیدها"
   },
   "preview": {
     "view_original": "مشاهده‌ی اصلی",
@@ -665,7 +734,8 @@
     "tabs": {
       "content": "محتوا",
       "details": "جزئیات"
-    }
+    },
+    "archive_info": "ممکنه آرشیوها اگه نیاز به جاوااسکریپت داشته باشن، درست نشون داده نشن. برای بهترین نتیجه، <1>اونو دانلود و تو مرورگر بازش کن</1>."
   },
   "editor": {
     "quickly_focus": "با فشردن ⌘ + E می‌توانید به سرعت روی این فیلد تمرکز کنید",
@@ -739,7 +809,8 @@
       "refetch": "دوباره واکشی به صف اضافه شد!",
       "full_page_archive": "ایجاد بایگانی کامل صفحه آغاز شد",
       "delete_from_list": "نشانک از فهرست حذف شد",
-      "clipboard_copied": "لینک به کلیپ‌بورد شما اضافه شد!"
+      "clipboard_copied": "لینک به کلیپ‌بورد شما اضافه شد!",
+      "preserve_pdf": "نگهداری پی‌دی‌اف فعال شده‌است"
     },
     "lists": {
       "created": "فهرست درست شد!",

@@ -39,7 +39,9 @@
     "summary": "摘要",
     "quota": "配额",
     "bookmarks": "书签",
-    "storage": "存储"
+    "storage": "存储",
+    "pdf": "已存档的 PDF",
+    "default": "默认"
   },
   "layouts": {
     "masonry": "砌体",
@@ -90,7 +92,9 @@
     "confirm": "确认",
     "regenerate": "重新生成",
     "load_more": "加载更多",
-    "edit_notes": "编辑备注"
+    "edit_notes": "编辑备注",
+    "preserve_as_pdf": "另存为 PDF",
+    "offline_copies": "离线副本"
   },
   "settings": {
     "back_to_app": "返回应用",
@@ -116,6 +120,49 @@
           "show": "在标签和列表中显示已存档的书签",
           "hide": "在标签和列表中隐藏已存档的书签"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "设备特定的设置已激活",
+        "using_default": "正在使用客户端默认值",
+        "clear_override_hint": "清除设备覆盖以使用全局设置（{{value}}）",
+        "font_size": "字体大小",
+        "font_family": "字体系列",
+        "preview_inline": "（预览）",
+        "tooltip_preview": "未保存的预览更改",
+        "save_to_all_devices": "所有设备",
+        "tooltip_local": "设备设置与全局设置不同",
+        "reset_preview": "重置预览",
+        "mono": "等宽",
+        "line_height": "行高",
+        "tooltip_default": "阅读设置",
+        "title": "阅读器设置",
+        "serif": "衬线",
+        "preview": "预览",
+        "not_set": "未设置",
+        "clear_local_overrides": "清除设备设置",
+        "preview_text": "敏捷的棕色狐狸跳过懒惰的狗。这是您的阅读器视图文本的显示方式。",
+        "local_overrides_cleared": "设备特定的设置已清除",
+        "local_overrides_description": "此设备上的阅读器设置与您的全局默认值不同：",
+        "clear_defaults": "清除所有默认值",
+        "description": "配置阅读器视图的默认文本设置。这些设置将在您的所有设备上同步。",
+        "defaults_cleared": "阅读器默认值已清除",
+        "save_hint": "仅保存此设备的设置，还是在所有设备同步",
+        "save_as_default": "保存为默认值",
+        "save_to_device": "此设备",
+        "sans": "无衬线",
+        "tooltip_preview_and_local": "未保存的预览更改；设备设置与全局设置不同",
+        "adjust_hint": "调整以上设置以预览更改"
+      },
+      "avatar": {
+        "upload": "上传虚拟形象",
+        "change": "更改虚拟形象",
+        "remove_confirm_title": "移除虚拟形象？",
+        "updated": "虚拟形象已更新",
+        "removed": "虚拟形象已移除",
+        "description": "上传一张方形图片作为您的虚拟形象。",
+        "remove_confirm_description": "这会清除您当前的头像照片。",
+        "title": "头像照片",
+        "remove": "移除虚拟形象"
       }
     },
     "ai": {
@@ -129,7 +176,21 @@
       "image_tagging": "图片标记",
       "text_tagging": "文字标记",
       "all_tagging": "所有标记",
-      "summarization_prompt": "摘要生成提示"
+      "summarization_prompt": "摘要生成提示",
+      "tag_style": "标签样式",
+      "auto_summarization_description": "使用 AI 自动为你的书签生成摘要。",
+      "auto_tagging": "自动添加标签",
+      "titlecase_spaces": "带空格的首字母大写",
+      "lowercase_underscores": "带下划线的小写",
+      "inference_language": "推理语言",
+      "titlecase_hyphens": "带连字符的首字母大写",
+      "lowercase_hyphens": "带连字符的小写",
+      "lowercase_spaces": "带空格的小写",
+      "inference_language_description": "为 AI 生成的标签和摘要选择语言。",
+      "tag_style_description": "选择自动生成的标签应如何格式化。",
+      "auto_tagging_description": "使用 AI 自动为你的书签生成标签。",
+      "camelCase": "驼峰式命名",
+      "auto_summarization": "自动摘要"
     },
     "feeds": {
       "rss_subscriptions": "RSS订阅",
@@ -142,6 +203,7 @@
       "import_export_bookmarks": "导入/导出书签",
       "import_bookmarks_from_html_file": "从HTML文件导入书签",
       "import_bookmarks_from_pocket_export": "从Pocket导出导入书签",
+      "import_bookmarks_from_matter_export": "从Matter导出导入书签",
       "import_bookmarks_from_omnivore_export": "从Omnivore导出导入书签",
       "import_bookmarks_from_karakeep_export": "从Karakeep导出导入书签",
       "export_links_and_notes": "导出链接和笔记",
@@ -646,7 +708,8 @@
     "tabs": {
       "content": "内容",
       "details": "详情"
-    }
+    },
+    "archive_info": "如果存档需要 Javascript，则可能无法正确地以内联方式呈现。为了获得最佳效果，<1>请下载并在浏览器中打开它</1>。"
   },
   "editor": {
     "quickly_focus": "您可以按⌘ + E快速聚焦到此字段",
@@ -714,7 +777,8 @@
       "refetch": "重新获取已排队！",
       "full_page_archive": "已触发完整页面归档创建",
       "delete_from_list": "书签已从列表中删除",
-      "clipboard_copied": "链接已添加到您的剪贴板！"
+      "clipboard_copied": "链接已添加到您的剪贴板！",
+      "preserve_pdf": "已触发 PDF 保存"
     },
     "lists": {
       "created": "列表已创建！",
@@ -772,7 +836,14 @@
     "week_s_ago": " {weeks} 周前",
     "history": "最近搜索",
     "title_contains": "标题包含",
-    "title_does_not_contain": "标题不包含"
+    "title_does_not_contain": "标题不包含",
+    "is_broken_link": "有损坏的链接",
+    "tags": "标签",
+    "no_suggestions": "没有建议",
+    "filters": "筛选器",
+    "is_not_broken_link": "有可用的链接",
+    "lists": "列表",
+    "feeds": "订阅"
   },
   "dialogs": {
     "bookmarks": {

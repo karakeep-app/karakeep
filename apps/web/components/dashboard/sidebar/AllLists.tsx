@@ -71,7 +71,7 @@ export default function AllLists({
   }, [isViewingSharedList, sharedListsOpen]);
 
   return (
-    <ul className="max-h-full gap-y-2 overflow-auto text-sm">
+    <ul className="sidebar-scrollbar max-h-full gap-y-2 overflow-auto text-sm">
       <li className="flex justify-between pb-3">
         <p className="text-xs uppercase tracking-wider text-muted-foreground">
           Lists

@@ -83,6 +83,18 @@ export const users = sqliteTable("user", {
   autoSummarizationEnabled: integer("autoSummarizationEnabled", {
     mode: "boolean",
   }),
+  tagStyle: text("tagStyle", {
+    enum: [
+      "lowercase-hyphens",
+      "lowercase-spaces",
+      "lowercase-underscores",
+      "titlecase-spaces",
+      "titlecase-hyphens",
+      "camelCase",
+      "as-generated",
+    ],
+  }).default("titlecase-spaces"),
+  inferredTagLang: text("inferredTagLang"),
 });
 
 export const accounts = sqliteTable(
@@ -156,6 +168,7 @@ export const apiKeys = sqliteTable(
       .$defaultFn(() => createId()),
     name: text("name").notNull(),
     createdAt: createdAtField(),
+    lastUsedAt: integer("lastUsedAt", { mode: "timestamp" }),
     keyId: text("keyId").notNull().unique(),
     keyHash: text("keyHash").notNull(),
     userId: text("userId")
@@ -259,6 +272,7 @@ export const bookmarkLinks = sqliteTable(
 export const enum AssetTypes {
   LINK_BANNER_IMAGE = "linkBannerImage",
   LINK_SCREENSHOT = "linkScreenshot",
+  LINK_PDF = "linkPdf",
   ASSET_SCREENSHOT = "assetScreenshot",
   LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
   LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
@@ -280,6 +294,7 @@ export const assets = sqliteTable(
       enum: [
         AssetTypes.LINK_BANNER_IMAGE,
         AssetTypes.LINK_SCREENSHOT,
+        AssetTypes.LINK_PDF,
         AssetTypes.ASSET_SCREENSHOT,
         AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         AssetTypes.LINK_PRECRAWLED_ARCHIVE,

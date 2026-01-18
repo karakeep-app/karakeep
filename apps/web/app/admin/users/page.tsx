@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import InvitesList from "@/components/admin/InvitesList";
+import InvitesListSkeleton from "@/components/admin/InvitesListSkeleton";
 import UserList from "@/components/admin/UserList";
+import UserListSkeleton from "@/components/admin/UserListSkeleton";
 import { useTranslation } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,5 +15,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function AdminUsersPage() {
-  return <UserList />;
+  return (
+    <div className="flex flex-col gap-4">
+      <Suspense fallback={<UserListSkeleton />}>
+        <UserList />
+      </Suspense>
+      <Suspense fallback={<InvitesListSkeleton />}>
+        <InvitesList />
+      </Suspense>
+    </div>
+  );
 }

@@ -39,7 +39,9 @@
     "title": "Tittel",
     "quota": "Kvote",
     "bookmarks": "Bokmerker",
-    "storage": "Lagring"
+    "storage": "Lagring",
+    "pdf": "Arkivert PDF",
+    "default": "Standard"
   },
   "admin": {
     "users_list": {
@@ -214,7 +216,9 @@
     "confirm": "Bekreft",
     "regenerate": "Regenerer",
     "load_more": "Last inn mer",
-    "edit_notes": "Rediger notater"
+    "edit_notes": "Rediger notater",
+    "preserve_as_pdf": "Bevar som PDF",
+    "offline_copies": "Offline kopier"
   },
   "settings": {
     "info": {
@@ -238,6 +242,49 @@
           "show": "Vis arkiverte bokmerker i tagger og lister",
           "hide": "Skjul arkiverte bokmerker i tagger og lister"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Enhetsspesifikke innstillinger er aktive",
+        "using_default": "Bruker klientstandard",
+        "clear_override_hint": "Fjern overstyring av enhet for å bruke global innstilling ({{value}})",
+        "font_size": "Skriftstørrelse",
+        "font_family": "Skrifttype",
+        "preview_inline": "(forhåndsvisning)",
+        "tooltip_preview": "Ulagrede forhåndsvisningsendringer",
+        "save_to_all_devices": "Alle enheter",
+        "tooltip_local": "Enhetsinnstillingene er forskjellige fra de globale",
+        "reset_preview": "Tilbakestill forhåndsvisning",
+        "mono": "Monospace",
+        "line_height": "Linjehøyde",
+        "tooltip_default": "Leseinnstillinger",
+        "title": "Leserinnstillinger",
+        "serif": "Serif",
+        "preview": "Forhåndsvisning",
+        "not_set": "Ikke angitt",
+        "clear_local_overrides": "Fjern enhetsinnstillinger",
+        "preview_text": "Den rappe, brune reven hopper over den late hunden. Slik vil teksten i leservisningen din se ut.",
+        "local_overrides_cleared": "Enhetsspesifikke innstillinger er fjernet",
+        "local_overrides_description": "Denne enheten har leserinnstillinger som er forskjellige fra dine globale standardinnstillinger:",
+        "clear_defaults": "Fjern alle standarder",
+        "description": "Konfigurer standard tekstinnstillinger for leservisningen. Disse innstillingene synkroniseres på tvers av alle enhetene dine.",
+        "defaults_cleared": "Leserstandarder er fjernet",
+        "save_hint": "Lagre innstillinger bare for denne enheten eller synkroniser på tvers av alle enheter",
+        "save_as_default": "Lagre som standard",
+        "save_to_device": "Denne enheten",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Ulagrede forhåndsvisningsendringer; enhetsinnstillingene er forskjellige fra de globale",
+        "adjust_hint": "Juster innstillingene ovenfor for å forhåndsvise endringer"
+      },
+      "avatar": {
+        "upload": "Last opp avatar",
+        "change": "Endre avatar",
+        "remove_confirm_title": "Fjerne avatar?",
+        "updated": "Avatar oppdatert",
+        "removed": "Avatar fjernet",
+        "description": "Last opp et kvadratisk bilde som avatar.",
+        "remove_confirm_description": "Dette vil fjerne ditt nåværende profilbilde.",
+        "title": "Profilbilde",
+        "remove": "Fjern avatar"
       }
     },
     "ai": {
@@ -251,7 +298,21 @@
       "text_tagging": "Teksttagging",
       "image_tagging": "Bilde-tagging",
       "summarization": "Oppsummering",
-      "images_prompt": "Bildeledetekst"
+      "images_prompt": "Bildeledetekst",
+      "tag_style": "Stil for merkelapper",
+      "auto_summarization_description": "Generer automatisk sammendrag for bokmerkene dine ved hjelp av AI.",
+      "auto_tagging": "Automatisk merking",
+      "titlecase_spaces": "Tittel-case med mellomrom",
+      "lowercase_underscores": "Små bokstaver med understreker",
+      "inference_language": "Språk for inferens",
+      "titlecase_hyphens": "Tittel-case med bindestreker",
+      "lowercase_hyphens": "Små bokstaver med bindestreker",
+      "lowercase_spaces": "Små bokstaver med mellomrom",
+      "inference_language_description": "Velg språk for AI-genererte merkelapper og sammendrag.",
+      "tag_style_description": "Velg hvordan de automatisk genererte merkelappene dine skal formateres.",
+      "auto_tagging_description": "Generer automatisk tagger for bokmerkene dine ved hjelp av AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatisk oppsummering"
     },
     "import": {
       "import_bookmarks_from_omnivore_export": "Importer bokmerker fra Omnivore-eksport",
@@ -259,6 +320,7 @@
       "import_export_bookmarks": "Importer / eksporter bokmerker",
       "import_bookmarks_from_html_file": "Importer bokmerker fra HTML-fil",
       "import_bookmarks_from_pocket_export": "Importer bokmerker fra Pocket-eksport",
+      "import_bookmarks_from_matter_export": "Importer bokmerker fra Matter-eksport",
       "import_bookmarks_from_linkwarden_export": "Importer bokmerker fra Linkwarden-eksport",
       "import_bookmarks_from_karakeep_export": "Importer bokmerker fra Karakeepp-eksport",
       "export_links_and_notes": "Eksporter lenker og notater",
@@ -671,7 +733,14 @@
     "year_s_ago": " År siden",
     "history": "Nylige søk",
     "title_contains": "Tittel inneholder",
-    "title_does_not_contain": "Tittel inneholder ikke"
+    "title_does_not_contain": "Tittel inneholder ikke",
+    "is_broken_link": "Har ødelagt lenke",
+    "tags": "Merker",
+    "no_suggestions": "Ingen forslag",
+    "filters": "Filtere",
+    "is_not_broken_link": "Har fungerende lenke",
+    "lists": "Lister",
+    "feeds": "Feeder"
   },
   "editor": {
     "text_toolbar": {
@@ -739,7 +808,8 @@
       "delete_from_list": "Bokmerket er sletta fra lista",
       "clipboard_copied": "Lenken er lagt til utklippstavlen din!",
       "updated": "Bokmerket er oppdatert!",
-      "deleted": "Bokmerket er slettet!"
+      "deleted": "Bokmerket er slettet!",
+      "preserve_pdf": "PDF-bevaring er trigget"
     },
     "lists": {
       "created": "Liste er opprettet!",
@@ -775,7 +845,8 @@
     "tabs": {
       "content": "Innhold",
       "details": "Detaljer"
-    }
+    },
+    "archive_info": "Det kan hende at arkiver ikke gjengis riktig direkte hvis de krever Javascript. For best resultat, <1>last ned og åpne i nettleseren din</1>."
   },
   "dialogs": {
     "bookmarks": {

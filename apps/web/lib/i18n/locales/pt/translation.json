@@ -39,7 +39,9 @@
     "summary": "Resumo",
     "quota": "Quota",
     "bookmarks": "Favoritos",
-    "storage": "Armazenamento"
+    "storage": "Armazenamento",
+    "pdf": "PDF arquivado",
+    "default": "Padrão"
   },
   "actions": {
     "close": "Fechar",
@@ -84,7 +86,9 @@
     "confirm": "Confirmar",
     "regenerate": "Regenerar",
     "load_more": "Carregar mais",
-    "edit_notes": "Editar notas"
+    "edit_notes": "Editar notas",
+    "preserve_as_pdf": "Preservar como PDF",
+    "offline_copies": "Cópias offline"
   },
   "settings": {
     "webhooks": {
@@ -107,6 +111,7 @@
     },
     "import": {
       "import_bookmarks_from_pocket_export": "Importar marcadores da exportação do Pocket",
+      "import_bookmarks_from_matter_export": "Importar marcadores da exportação do Matter",
       "import_bookmarks_from_omnivore_export": "Importar marcadores da exportação do Omnivore",
       "import_export": "Importar / Exportar",
       "import_export_bookmarks": "Importar/Exportar Marcadores",
@@ -139,6 +144,49 @@
           "show": "Mostrar marcadores arquivados em tags e listas",
           "hide": "Ocultar marcadores arquivados em tags e listas"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Configurações específicas do dispositivo ativas",
+        "using_default": "Usando o padrão do cliente",
+        "clear_override_hint": "Limpar a substituição do dispositivo para usar a configuração global ({{value}})",
+        "font_size": "Tamanho da fonte",
+        "font_family": "Família da fonte",
+        "preview_inline": "(visualização)",
+        "tooltip_preview": "Alterações não salvas na pré-visualização",
+        "save_to_all_devices": "Todos os dispositivos",
+        "tooltip_local": "Configurações do dispositivo são diferentes das globais",
+        "reset_preview": "Redefinir pré-visualização",
+        "mono": "Monoespaçada",
+        "line_height": "Altura da linha",
+        "tooltip_default": "Configurações de leitura",
+        "title": "Configurações do Leitor",
+        "serif": "Com serifa",
+        "preview": "Pré-visualização",
+        "not_set": "Não definido",
+        "clear_local_overrides": "Limpar configurações do dispositivo",
+        "preview_text": "A raposa marrom rápida pula sobre o cachorro preguiçoso. É assim que o texto da visualização do leitor será exibido.",
+        "local_overrides_cleared": "As configurações específicas do dispositivo foram apagadas",
+        "local_overrides_description": "Este dispositivo tem configurações de leitor que diferem de suas configurações padrão globais:",
+        "clear_defaults": "Limpar todos os padrões",
+        "description": "Configure as configurações de texto padrão para a visualização do leitor. Essas configurações são sincronizadas em todos os seus dispositivos.",
+        "defaults_cleared": "Os padrões do leitor foram apagados",
+        "save_hint": "Salvar configurações apenas para este dispositivo ou sincronizar entre todos os dispositivos",
+        "save_as_default": "Salvar como padrão",
+        "save_to_device": "Este dispositivo",
+        "sans": "Sem serifa",
+        "tooltip_preview_and_local": "Alterações não salvas na pré-visualização; as configurações do dispositivo são diferentes das globais",
+        "adjust_hint": "Ajuste as configurações acima para visualizar as alterações"
+      },
+      "avatar": {
+        "upload": "Mandar avatar",
+        "change": "Trocar avatar",
+        "remove_confirm_title": "Remover avatar?",
+        "updated": "Avatar atualizado",
+        "removed": "Avatar removido",
+        "description": "Manda uma imagem quadrada para usar como teu avatar.",
+        "remove_confirm_description": "Isso vai apagar tua foto de perfil atual.",
+        "title": "Foto do perfil",
+        "remove": "Remover avatar"
       }
     },
     "ai": {
@@ -152,7 +200,21 @@
       "text_tagging": "Marcação de texto",
       "image_tagging": "Marcação de imagem",
       "summarization": "Sumarização",
-      "ai_settings": "Configurações de IA"
+      "ai_settings": "Configurações de IA",
+      "tag_style": "Estilo da etiqueta",
+      "auto_summarization_description": "Gerar automaticamente resumos para seus favoritos usando IA.",
+      "auto_tagging": "Marcação automática",
+      "titlecase_spaces": "Maiúsculas e minúsculas com espaços",
+      "lowercase_underscores": "Minúsculas com underscores",
+      "inference_language": "Linguagem de Inferência",
+      "titlecase_hyphens": "Maiúsculas e minúsculas com hífens",
+      "lowercase_hyphens": "Minúsculas com hífens",
+      "lowercase_spaces": "Minúsculas com espaços",
+      "inference_language_description": "Escolha o idioma para as tags e resumos gerados por IA.",
+      "tag_style_description": "Escolha como as suas etiquetas geradas automaticamente devem ser formatadas.",
+      "auto_tagging_description": "Gerar automaticamente tags para seus favoritos usando IA.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Resumo automático"
     },
     "api_keys": {
       "new_api_key": "Nova chave da API",
@@ -671,7 +733,14 @@
     "year_s_ago": " Ano(s) atrás",
     "history": "Pesquisas recentes",
     "title_contains": "O título contém…",
-    "title_does_not_contain": "O título não contém…"
+    "title_does_not_contain": "O título não contém…",
+    "is_broken_link": "Tem link quebrado",
+    "tags": "Etiquetas",
+    "no_suggestions": "Sem sugestões",
+    "filters": "Filtros",
+    "is_not_broken_link": "Tem link funcionando",
+    "lists": "Listas",
+    "feeds": "Feeds"
   },
   "preview": {
     "cached_content": "Conteúdo em cache",
@@ -680,7 +749,8 @@
     "tabs": {
       "content": "Conteúdo",
       "details": "Detalhes"
-    }
+    },
+    "archive_info": "Os arquivos podem não ser renderizados corretamente embutidos se exigirem Javascript. Para obter melhores resultados, <1>baixe-o e abra-o no seu navegador</1>."
   },
   "editor": {
     "new_item": "NOVO ITEM",
@@ -748,7 +818,8 @@
       "clipboard_copied": "Link foi adicionado à sua área de transferência!",
       "updated": "O marcador foi atualizado!",
       "deleted": "O marcador foi excluído!",
-      "refetch": "A nova busca foi enfileirada!"
+      "refetch": "A nova busca foi enfileirada!",
+      "preserve_pdf": "A preservação em PDF foi acionada"
     },
     "lists": {
       "updated": "A lista foi atualizada!",

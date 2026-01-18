@@ -94,18 +94,12 @@ export default function ServerAddress() {
       <Stack.Screen
         options={{
           title: "Server Address",
-          headerRight: () => (
-            <Pressable onPress={handleSave}>
-              <Text className="text-base font-semibold text-blue-500">
-                Save
-              </Text>
-            </Pressable>
-          ),
+          headerTransparent: true,
         }}
       />
       <PageTitle title="Server Address" />
       <KeyboardAwareScrollView
-        className="w-full"
+        className="w-full flex-1"
         contentContainerClassName="items-center gap-4 px-4 py-4"
         bottomOffset={20}
         keyboardShouldPersistTaps="handled"
@@ -225,6 +219,13 @@ export default function ServerAddress() {
           </View>
         </View>
       </KeyboardAwareScrollView>
+
+      {/* Fixed Save Button */}
+      <View className="border-t border-border bg-background px-4 py-3">
+        <Button onPress={handleSave} className="w-full">
+          <Text className="font-semibold">Save</Text>
+        </Button>
+      </View>
     </CustomSafeAreaView>
   );
 }

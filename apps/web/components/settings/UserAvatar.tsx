@@ -4,6 +4,7 @@ import type { ChangeEvent } from "react";
 import { useRef } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
+import { toast } from "@/components/ui/sonner";
 import { UserAvatar as UserAvatarImage } from "@/components/ui/user-avatar";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
@@ -16,7 +17,6 @@ import {
 
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { toast } from "../ui/use-toast";
 
 export default function UserAvatar() {
   const { t } = useTranslation();

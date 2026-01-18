@@ -512,6 +512,34 @@
       "when": 1766414953855,
       "tag": "0072_add_user_ai_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "6",
+      "when": 1766843938658,
+      "tag": "0073_ai_tag_style",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1767006387391,
+      "tag": "0074_reset_tagging_summarization",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "6",
+      "when": 1767052770526,
+      "tag": "0075_change_default_tag_style",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1768691440519,
+      "tag": "0076_add_api_key_last_used_tracking",
+      "breakpoints": true
     }
   ]
 }

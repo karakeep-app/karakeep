@@ -39,7 +39,9 @@
     "summary": "Resumo",
     "quota": "Cota",
     "bookmarks": "Marcadores",
-    "storage": "Almacenamento"
+    "storage": "Almacenamento",
+    "pdf": "PDF Arquivado",
+    "default": "Predeterminado"
   },
   "actions": {
     "favorite": "Marcar como favorito",
@@ -84,7 +86,9 @@
     "confirm": "Confirmar",
     "regenerate": "Rexenerar",
     "load_more": "Cargar máis",
-    "edit_notes": "Editar notas"
+    "edit_notes": "Editar notas",
+    "preserve_as_pdf": "Gardar como PDF",
+    "offline_copies": "Copias sen conexión"
   },
   "tags": {
     "drag_and_drop_merging_info": "Arrastra e solta etiquetas sobre outras para unilas",
@@ -117,7 +121,8 @@
       "refetch": "Solicitouse a actualización!",
       "full_page_archive": "Pediuse un Arquivo de Páxina Completa",
       "delete_from_list": "O marcador borrouse da lista",
-      "clipboard_copied": "A ligazón copiouse no teu portapapeis!"
+      "clipboard_copied": "A ligazón copiouse no teu portapapeis!",
+      "preserve_pdf": "Activouse a preservación en PDF"
     },
     "lists": {
       "updated": "A lista foi actualizada!",
@@ -149,6 +154,7 @@
       "import_export_bookmarks": "Importar / Exportar marcadores",
       "import_bookmarks_from_html_file": "Importar marcadores desde arquivo HTML",
       "import_bookmarks_from_pocket_export": "Importar marcadores desde Pocket",
+      "import_bookmarks_from_matter_export": "Importar marcadores desde Matter",
       "import_bookmarks_from_omnivore_export": "Importar marcadores desde Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importar marcadores desde Linkwarden",
       "import_bookmarks_from_karakeep_export": "Importar marcadores desde Karakeep",
@@ -180,6 +186,49 @@
           "show": "Mostrar os marcadores arquivados en etiquetas e listas",
           "hide": "Ocultar os marcadores arquivados en etiquetas e listas"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Axustes específicos do dispositivo activos",
+        "using_default": "Usando o predeterminado do cliente",
+        "clear_override_hint": "Limpa a anulación do dispositivo para usar a configuración global ({{value}})",
+        "font_size": "Tamaño da letra",
+        "font_family": "Familia tipográfica",
+        "preview_inline": "(vista previa)",
+        "tooltip_preview": "Cambios da vista previa sen gardar",
+        "save_to_all_devices": "Todos os dispositivos",
+        "tooltip_local": "Os axustes do dispositivo difiren dos globais",
+        "reset_preview": "Restabelecer a vista previa",
+        "mono": "Monoespazo",
+        "line_height": "Alto de liña",
+        "tooltip_default": "Axustes de lectura",
+        "title": "Axustes do Reader",
+        "serif": "Con serifas",
+        "preview": "Vista previa",
+        "not_set": "Sen axustar",
+        "clear_local_overrides": "Eliminar axustes do dispositivo",
+        "preview_text": "A raposa marrón rápida salta sobre o can preguiceiro. Así é como aparecerá o texto da vista do lector.",
+        "local_overrides_cleared": "Elimináronse os axustes específicos do dispositivo",
+        "local_overrides_description": "Este dispositivo ten parámetros de lector que difieren dos teus predeterminados globais:",
+        "clear_defaults": "Borrar todos os predeterminados",
+        "description": "Configure os axustes de texto predeterminados para a vista do lector. Estes axustes sincronízanse en todos os teus dispositivos.",
+        "defaults_cleared": "Elimináronse os valores predeterminados do lector",
+        "save_hint": "Garda os axustes só para este dispositivo ou sincronízaos en todos os dispositivos",
+        "save_as_default": "Gardar como predeterminado",
+        "save_to_device": "Este dispositivo",
+        "sans": "Sen serifas",
+        "tooltip_preview_and_local": "Cambios da vista previa sen gardar; os axustes do dispositivo difiren dos globais",
+        "adjust_hint": "Axusta os axustes de arriba para previsualizar os cambios"
+      },
+      "avatar": {
+        "upload": "Subir avatar",
+        "change": "Cambiar o avatar",
+        "remove_confirm_title": "Queres eliminar o avatar?",
+        "updated": "Avatar actualizado",
+        "removed": "Avatar eliminado",
+        "description": "Sube unha imaxe cadrada para usar como avatar.",
+        "remove_confirm_description": "Isto borrará a túa foto de perfil actual.",
+        "title": "Foto de perfil",
+        "remove": "Eliminar o avatar"
       }
     },
     "ai": {
@@ -193,7 +242,21 @@
       "all_tagging": "Todas as etiquetas",
       "text_tagging": "Etiquetaxe de texto",
       "image_tagging": "Etiquetaxe de imaxes",
-      "summarization": "Resumo"
+      "summarization": "Resumo",
+      "tag_style": "Estilo da etiqueta",
+      "auto_summarization_description": "Xera automaticamente resumos para os teus marcadores usando a intelixencia artificial.",
+      "auto_tagging": "Etiquetado automático",
+      "titlecase_spaces": "Maiúsculas e minúsculas con espazos",
+      "lowercase_underscores": "Minúsculas con guións baixos",
+      "inference_language": "Linguaxe dedución",
+      "titlecase_hyphens": "Maiúsculas só na primeira palabra con guións",
+      "lowercase_hyphens": "Minúsculas con guións",
+      "lowercase_spaces": "Minúsculas con espazos",
+      "inference_language_description": "Elixe a lingua para as etiquetas e os resumos xerados pola IA.",
+      "tag_style_description": "Elixe como se deben formatar as etiquetas xeradas automaticamente.",
+      "auto_tagging_description": "Xera automaticamente etiquetas para os teus marcadores usando a intelixencia artificial.",
+      "camelCase": "camelCase (a primeira palabra en minúsculas e as seguintes en maiúsculas)",
+      "auto_summarization": "Resumo automático"
     },
     "feeds": {
       "rss_subscriptions": "Subscricións RSS",
@@ -676,7 +739,8 @@
     "tabs": {
       "content": "Contido",
       "details": "Detalles"
-    }
+    },
+    "archive_info": "É posible que os arquivos non se representen correctamente en liña se requiren Javascript. Para obter os mellores resultados, <1>descárgueo e ábreo no navegador</1>."
   },
   "editor": {
     "quickly_focus": "Podes enfocar este campo pulsando ⌘ + E",
@@ -775,7 +839,14 @@
     "year_s_ago": " Hai anos",
     "history": "Buscas recentes",
     "title_contains": "O título contén",
-    "title_does_not_contain": "O título non contén"
+    "title_does_not_contain": "O título non contén",
+    "is_broken_link": "Ten Ligazón Rota",
+    "tags": "Etiquetas",
+    "no_suggestions": "Sen suxestións",
+    "filters": "Filtros",
+    "is_not_broken_link": "Ten Ligazón Válida",
+    "lists": "Listas",
+    "feeds": "Fontes"
   },
   "dialogs": {
     "bookmarks": {

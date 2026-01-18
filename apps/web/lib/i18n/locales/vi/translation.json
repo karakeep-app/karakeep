@@ -42,7 +42,9 @@
     "confirm": "Xác nhận",
     "regenerate": "Tạo lại",
     "load_more": "Tải thêm",
-    "edit_notes": "Sửa ghi chú"
+    "edit_notes": "Sửa ghi chú",
+    "preserve_as_pdf": "Lưu giữ dưới dạng PDF",
+    "offline_copies": "Bản sao ngoại tuyến"
   },
   "layouts": {
     "list": "Danh sách",
@@ -65,6 +67,7 @@
       "import_export_bookmarks": "Nhập / Xuất đánh dấu trang",
       "import_bookmarks_from_linkwarden_export": "Nhập dấu trang từ bản xuất Linkwarden",
       "import_bookmarks_from_pocket_export": "Nhập dấu trang từ bản xuất Pocket",
+      "import_bookmarks_from_matter_export": "Nhập dấu trang từ bản xuất Matter",
       "import_bookmarks_from_omnivore_export": "Nhập dấu trang từ xuất Omnivore",
       "import_bookmarks_from_karakeep_export": "Nhập dấu trang từ bản xuất Karakeep",
       "import_bookmarks_from_tab_session_manager_export": "Nhập dấu trang từ Tab Session Manager",
@@ -111,7 +114,21 @@
       "summarization": "Tóm tắt",
       "all_tagging": "Tất cả nhãn",
       "image_tagging": "Nhãn cho hình ảnh",
-      "text_tagging": "Nhãn cho văn bản"
+      "text_tagging": "Nhãn cho văn bản",
+      "tag_style": "Kiểu Thẻ",
+      "auto_summarization_description": "Tự động tạo bản tóm tắt cho dấu trang bằng AI.",
+      "auto_tagging": "Tự động gắn thẻ",
+      "titlecase_spaces": "Tiêu đề viết hoa có dấu cách",
+      "lowercase_underscores": "Chữ thường có dấu gạch dưới",
+      "inference_language": "Ngôn ngữ Suy luận",
+      "titlecase_hyphens": "Tiêu đề viết hoa có dấu gạch ngang",
+      "lowercase_hyphens": "Chữ thường có dấu gạch ngang",
+      "lowercase_spaces": "Chữ thường có dấu cách",
+      "inference_language_description": "Chọn ngôn ngữ cho các thẻ và tóm tắt do AI tạo.",
+      "tag_style_description": "Chọn cách định dạng các thẻ tự động tạo của bạn.",
+      "auto_tagging_description": "Tự động tạo thẻ cho dấu trang bằng AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Tự động tóm tắt"
     },
     "info": {
       "basic_details": "Thông tin cơ bản",
@@ -134,6 +151,49 @@
           "show": "Hiển thị các bookmark đã lưu trữ trong tag và danh sách",
           "hide": "Ẩn các bookmark đã lưu trữ trong tag và danh sách"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Đã kích hoạt cài đặt dành riêng cho thiết bị",
+        "using_default": "Sử dụng mặc định của ứng dụng",
+        "clear_override_hint": "Xóa ghi đè thiết bị để sử dụng cài đặt chung ({{value}})",
+        "font_size": "Cỡ chữ",
+        "font_family": "Họ phông chữ",
+        "preview_inline": "(xem trước)",
+        "tooltip_preview": "Các thay đổi xem trước chưa được lưu",
+        "save_to_all_devices": "Tất cả các thiết bị",
+        "tooltip_local": "Cài đặt thiết bị khác với cài đặt chung",
+        "reset_preview": "Đặt lại bản xem trước",
+        "mono": "Đơn cách",
+        "line_height": "Chiều cao dòng",
+        "tooltip_default": "Cài đặt đọc",
+        "title": "Cài đặt Trình đọc",
+        "serif": "Chân phương",
+        "preview": "Xem trước",
+        "not_set": "Chưa đặt",
+        "clear_local_overrides": "Xóa cài đặt thiết bị",
+        "preview_text": "Một con cáo nâu nhanh chóng nhảy qua con chó lười biếng. Đây là cách mà văn bản chế độ xem trình đọc của bạn sẽ hiển thị.",
+        "local_overrides_cleared": "Đã xóa cài đặt cho thiết bị",
+        "local_overrides_description": "Thiết bị này có các cài đặt trình đọc khác với cài đặt mặc định toàn cầu của bạn:",
+        "clear_defaults": "Xóa tất cả mặc định",
+        "description": "Cấu hình cài đặt văn bản mặc định cho chế độ xem trình đọc. Các cài đặt này đồng bộ hóa trên tất cả các thiết bị của bạn.",
+        "defaults_cleared": "Đã xóa các mặc định của trình đọc",
+        "save_hint": "Lưu cài đặt chỉ cho thiết bị này hoặc đồng bộ hóa trên tất cả các thiết bị",
+        "save_as_default": "Lưu làm mặc định",
+        "save_to_device": "Thiết bị này",
+        "sans": "Không chân phương",
+        "tooltip_preview_and_local": "Các thay đổi xem trước chưa được lưu; cài đặt thiết bị khác với cài đặt chung",
+        "adjust_hint": "Điều chỉnh các cài đặt ở trên để xem trước các thay đổi"
+      },
+      "avatar": {
+        "upload": "Tải lên ảnh đại diện",
+        "change": "Đổi ảnh đại diện",
+        "remove_confirm_title": "Xóa ảnh đại diện?",
+        "updated": "Đã cập nhật ảnh đại diện",
+        "removed": "Đã xóa ảnh đại diện",
+        "description": "Tải lên ảnh vuông để dùng làm ảnh đại diện nha.",
+        "remove_confirm_description": "Hành động này sẽ xóa ảnh hồ sơ hiện tại của bạn đó.",
+        "title": "Ảnh hồ sơ",
+        "remove": "Xóa ảnh đại diện"
       }
     },
     "user_settings": "Cài đặt người dùng",
@@ -523,7 +583,9 @@
     "summary": "Tóm tắt",
     "quota": "Hạn ngạch",
     "bookmarks": "Dấu trang",
-    "storage": "Lưu trữ"
+    "storage": "Lưu trữ",
+    "pdf": "PDF đã lưu trữ",
+    "default": "Mặc định"
   },
   "highlights": {
     "no_highlights": "Bạn chưa có đánh dấu nào."
@@ -652,7 +714,14 @@
     "year_s_ago": " Năm trước",
     "history": "Tìm kiếm gần đây",
     "title_contains": "Chứa trong tiêu đề",
-    "title_does_not_contain": "Không chứa trong tiêu đề"
+    "title_does_not_contain": "Không chứa trong tiêu đề",
+    "is_broken_link": "Có liên kết hỏng",
+    "tags": "Thẻ",
+    "no_suggestions": "Không có đề xuất nào",
+    "filters": "Bộ lọc",
+    "is_not_broken_link": "Có liên kết hoạt động",
+    "lists": "Danh sách",
+    "feeds": "Nguồn cấp dữ liệu"
   },
   "tags": {
     "all_tags": "Tất cả nhãn",
@@ -761,7 +830,8 @@
       "refetch": "Đã xếp hàng tìm nạp lại!",
       "full_page_archive": "Đã kích hoạt tạo bản lưu trữ toàn trang",
       "delete_from_list": "Đã xóa dấu trang khỏi danh sách",
-      "clipboard_copied": "Liên kết đã được thêm vào bảng nhớ tạm của bạn!"
+      "clipboard_copied": "Liên kết đã được thêm vào bảng nhớ tạm của bạn!",
+      "preserve_pdf": "Đã kích hoạt lưu giữ PDF"
     },
     "lists": {
       "created": "Đã tạo danh sách!",
@@ -781,7 +851,8 @@
     "tabs": {
       "content": "Nội dung",
       "details": "Chi tiết"
-    }
+    },
+    "archive_info": "Các bản lưu trữ có thể không hiển thị chính xác nội dòng nếu chúng yêu cầu Javascript. Để có kết quả tốt nhất, <1>hãy tải xuống và mở trong trình duyệt của bạn</1>."
   },
   "bookmark_editor": {
     "title": "Sửa dấu trang",

@@ -54,6 +54,21 @@ const zUrlContainsCondition = z.object({
   str: z.string(),
 });
 
+const zUrlDoesNotContainCondition = z.object({
+  type: z.literal("urlDoesNotContain"),
+  str: z.string(),
+});
+
+const zTitleContainsCondition = z.object({
+  type: z.literal("titleContains"),
+  str: z.string(),
+});
+
+const zTitleDoesNotContainCondition = z.object({
+  type: z.literal("titleDoesNotContain"),
+  str: z.string(),
+});
+
 const zImportedFromFeedCondition = z.object({
   type: z.literal("importedFromFeed"),
   feedId: z.string(),
@@ -80,6 +95,9 @@ const zIsArchivedCondition = z.object({
 const nonRecursiveCondition = z.discriminatedUnion("type", [
   zAlwaysTrueCondition,
   zUrlContainsCondition,
+  zUrlDoesNotContainCondition,
+  zTitleContainsCondition,
+  zTitleDoesNotContainCondition,
   zImportedFromFeedCondition,
   zBookmarkTypeIsCondition,
   zHasTagCondition,
@@ -98,6 +116,9 @@ export const zRuleEngineConditionSchema: z.ZodType<RuleEngineCondition> =
     z.discriminatedUnion("type", [
       zAlwaysTrueCondition,
       zUrlContainsCondition,
+      zUrlDoesNotContainCondition,
+      zTitleContainsCondition,
+      zTitleDoesNotContainCondition,
       zImportedFromFeedCondition,
       zBookmarkTypeIsCondition,
       zHasTagCondition,
@@ -227,10 +248,22 @@ const ruleValidaitorFn = (
       case "isArchived":
         return true;
       case "urlContains":
+      case "urlDoesNotContain":
         if (condition.str.length == 0) {
           ctx.addIssue({
             code: "custom",
             message: "You must specify a URL for this condition type",
+            path: ["condition", "str"],
+          });
+          return false;
+        }
+        return true;
+      case "titleContains":
+      case "titleDoesNotContain":
+        if (condition.str.length == 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: "You must specify a title for this condition type",
             path: ["condition", "str"],
           });
           return false;

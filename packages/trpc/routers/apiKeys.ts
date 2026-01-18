@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { apiKeys } from "@karakeep/db/schema";
@@ -83,6 +83,7 @@ export const apiKeysAppRouter = router({
             name: z.string(),
             createdAt: z.date(),
             keyId: z.string(),
+            lastUsedAt: z.date().nullish(),
           }),
         ),
       }),
@@ -94,8 +95,10 @@ export const apiKeysAppRouter = router({
           id: true,
           name: true,
           createdAt: true,
+          lastUsedAt: true,
           keyId: true,
         },
+        orderBy: desc(apiKeys.createdAt),
       });
       return { keys: resp };
     }),

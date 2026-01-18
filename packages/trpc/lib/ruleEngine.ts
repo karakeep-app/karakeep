@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 
 import { bookmarks, tagsOnBookmarks } from "@karakeep/db/schema";
 import { LinkCrawlerQueue } from "@karakeep/shared-server";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
   RuleEngineCondition,
@@ -21,6 +22,7 @@ async function fetchBookmark(db: AuthedContext["db"], bookmarkId: string) {
       link: {
         columns: {
           url: true,
+          title: true,
         },
       },
       text: true,
@@ -60,6 +62,16 @@ export class RuleEngine {
     private rules: RuleEngineRule[],
   ) {}
 
+  private get bookmarkTitle(): string {
+    return (
+      this.bookmark.title ??
+      (this.bookmark.type === BookmarkTypes.LINK
+        ? this.bookmark.link?.title
+        : "") ??
+      ""
+    );
+  }
+
   static async forBookmark(ctx: AuthedContext, bookmarkId: string) {
     const [bookmark, rules] = await Promise.all([
       fetchBookmark(ctx.db, bookmarkId),
@@ -82,6 +94,18 @@ export class RuleEngine {
       }
       case "urlContains": {
         return (this.bookmark.link?.url ?? "").includes(condition.str);
+      }
+      case "urlDoesNotContain": {
+        return (
+          this.bookmark.type == BookmarkTypes.LINK &&
+          !(this.bookmark.link?.url ?? "").includes(condition.str)
+        );
+      }
+      case "titleContains": {
+        return this.bookmarkTitle.includes(condition.str);
+      }
+      case "titleDoesNotContain": {
+        return !this.bookmarkTitle.includes(condition.str);
       }
       case "importedFromFeed": {
         return this.bookmark.rssFeeds.some(

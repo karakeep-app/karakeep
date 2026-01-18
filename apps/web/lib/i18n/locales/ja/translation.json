@@ -42,7 +42,9 @@
     "confirm": "確認",
     "regenerate": "再生成",
     "load_more": "もっと読み込む",
-    "edit_notes": "注釈を編集"
+    "edit_notes": "注釈を編集",
+    "preserve_as_pdf": "PDFとして保存する",
+    "offline_copies": "オフラインコピー"
   },
   "admin": {
     "actions": {
@@ -196,6 +198,49 @@
           "title": "アーカイブされたブックマーク",
           "hide": "タグとリストにアーカイブされたブックマークを非表示にする"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "デバイス固有の設定が有効",
+        "using_default": "クライアントの既定を使用中",
+        "clear_override_hint": "デバイスのオーバーライドをクリアして、全体設定 ({{value}}) を使用します",
+        "font_size": "フォントサイズ",
+        "font_family": "フォントファミリー",
+        "preview_inline": "(プレビュー)",
+        "tooltip_preview": "未保存のプレビュー変更",
+        "save_to_all_devices": "すべてのデバイス",
+        "tooltip_local": "デバイス設定が全体設定と異なります",
+        "reset_preview": "プレビューをリセット",
+        "mono": "等幅",
+        "line_height": "行の高さ",
+        "tooltip_default": "リーディング設定",
+        "title": "リーダー設定",
+        "serif": "セリフ",
+        "preview": "プレビュー",
+        "not_set": "未設定",
+        "clear_local_overrides": "デバイス設定をクリア",
+        "preview_text": "すばやい茶色のキツネがのろまな犬を飛び越えます。リーダー表示のテキストはこんな感じになります。",
+        "local_overrides_cleared": "デバイス固有の設定がクリアされました",
+        "local_overrides_description": "このデバイスには、グローバル既定と異なるリーダー設定があります。",
+        "clear_defaults": "すべての既定をクリア",
+        "description": "リーダー表示の既定のテキスト設定を構成します。これらの設定は、すべてのデバイス間で同期されます。",
+        "defaults_cleared": "リーダーの既定がクリアされました",
+        "save_hint": "このデバイスのみの設定を保存するか、すべてのデバイス間で同期します",
+        "save_as_default": "既定として保存",
+        "save_to_device": "このデバイス",
+        "sans": "サンセリフ",
+        "tooltip_preview_and_local": "未保存のプレビュー変更; デバイス設定が全体設定と異なります",
+        "adjust_hint": "変更をプレビューするには、上記の設定を調整してください"
+      },
+      "avatar": {
+        "upload": "アバターをアップロードする",
+        "change": "アバターを変更する",
+        "remove_confirm_title": "アバターを削除する？",
+        "updated": "アバターを更新したで",
+        "removed": "アバターを削除したで",
+        "description": "アバターとして使う正方形の画像をアップロードしてちょ。",
+        "remove_confirm_description": "現在のプロフィール写真が消去されるけど、ええんか？",
+        "title": "プロフィール画像",
+        "remove": "アバターを削除する"
       }
     },
     "ai": {
@@ -209,7 +254,21 @@
       "all_tagging": "すべてのタグ付け",
       "text_tagging": "テキストタグ付け",
       "image_tagging": "画像タグ付け",
-      "summarization": "要約"
+      "summarization": "要約",
+      "tag_style": "タグのスタイル",
+      "auto_summarization_description": "AIを使ってブックマークの要約を自動生成する。",
+      "auto_tagging": "自動タグ付け",
+      "titlecase_spaces": "タイトルケース、スペース区切り",
+      "lowercase_underscores": "小文字、アンダースコア区切り",
+      "inference_language": "推論言語",
+      "titlecase_hyphens": "タイトルケース、ハイフン区切り",
+      "lowercase_hyphens": "小文字、ハイフン区切り",
+      "lowercase_spaces": "小文字、スペース区切り",
+      "inference_language_description": "AIが生成するタグや概要の言語を選んでくれ。",
+      "tag_style_description": "自動生成されるタグの書式を選んでくれ。",
+      "auto_tagging_description": "AIを使ってブックマークのタグを自動生成する。",
+      "camelCase": "camelCase",
+      "auto_summarization": "自動要約"
     },
     "import": {
       "import_export_bookmarks": "ブックマークのインポート/エクスポート",
@@ -217,6 +276,7 @@
       "import_bookmarks_from_karakeep_export": "Karakeep エクスポートからブックマークをインポート",
       "imported_bookmarks": "インポートされたブックマーク",
       "import_bookmarks_from_pocket_export": "Pocketのエクスポートからブックマークをインポート",
+      "import_bookmarks_from_matter_export": "Matterのエクスポートからブックマークをインポート",
       "import_bookmarks_from_omnivore_export": "Omnivoreエクスポートからブックマークをインポート",
       "export_links_and_notes": "リンクとメモをエクスポートする",
       "import_export": "インポート/エクスポート",
@@ -517,7 +577,9 @@
     "summary": "概要",
     "quota": "割り当て",
     "bookmarks": "ブックマーク",
-    "storage": "ストレージ"
+    "storage": "ストレージ",
+    "pdf": "PDFをアーカイブしたよ",
+    "default": "既定"
   },
   "layouts": {
     "grid": "グリッド",
@@ -677,7 +739,14 @@
     "year_s_ago": " ～年前",
     "history": "最近の検索",
     "title_contains": "タイトルに含む",
-    "title_does_not_contain": "タイトルに含まない"
+    "title_does_not_contain": "タイトルに含まない",
+    "is_broken_link": "リンク切れ",
+    "tags": "タグ",
+    "no_suggestions": "サジェストはありません",
+    "filters": "フィルター",
+    "is_not_broken_link": "リンクは有効です",
+    "lists": "リスト",
+    "feeds": "フィード"
   },
   "preview": {
     "cached_content": "キャッシュされたコンテンツ",
@@ -686,7 +755,8 @@
     "tabs": {
       "content": "コンテンツ",
       "details": "詳細"
-    }
+    },
+    "archive_info": "アーカイブは Javascript を必要とする場合、インラインで正しく表示されないことがあります。最良の結果を得るには、<1>ダウンロードしてブラウザで開いてください</1>。"
   },
   "editor": {
     "quickly_focus": "⌘ + E を押すと、このフィールドにすばやくフォーカスできます",
@@ -760,7 +830,8 @@
       "full_page_archive": "フルページアーカイブの作成が開始されました",
       "delete_from_list": "ブックマークがリストから削除されました",
       "deleted": "ブックマークが削除されたよ！",
-      "refetch": "再取得をエンキューしたぞ！"
+      "refetch": "再取得をエンキューしたぞ！",
+      "preserve_pdf": "PDF保存が開始されたよ"
     },
     "lists": {
       "created": "リストが作成されました！",

@@ -22,9 +22,9 @@ import {
 import InfoTooltip from "@/components/ui/info-tooltip";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/sonner";
 import Spinner from "@/components/ui/spinner";
 import { Toggle } from "@/components/ui/toggle";
-import { toast } from "@/components/ui/use-toast";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { useTranslation } from "@/lib/i18n/client";
 import { ArrowDownAZ, ChevronDown, Combine, Search, Tag } from "lucide-react";

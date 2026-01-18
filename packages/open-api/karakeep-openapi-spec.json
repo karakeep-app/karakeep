@@ -175,6 +175,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "pdfAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "fullPageArchiveAssetId": {
                     "type": "string",
                     "nullable": true
@@ -202,6 +206,15 @@
                   "crawledAt": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "crawlStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending"
+                    ]
                   },
                   "author": {
                     "type": "string",
@@ -318,6 +331,7 @@
                   "enum": [
                     "linkHtmlContent",
                     "screenshot",
+                    "pdf",
                     "assetScreenshot",
                     "bannerImage",
                     "fullPageArchive",
@@ -1757,6 +1771,7 @@
                     "enum": [
                       "linkHtmlContent",
                       "screenshot",
+                      "pdf",
                       "assetScreenshot",
                       "bannerImage",
                       "fullPageArchive",
@@ -1793,6 +1808,7 @@
                       "enum": [
                         "linkHtmlContent",
                         "screenshot",
+                        "pdf",
                         "assetScreenshot",
                         "bannerImage",
                         "fullPageArchive",

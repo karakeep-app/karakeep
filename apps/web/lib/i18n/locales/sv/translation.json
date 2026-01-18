@@ -39,7 +39,9 @@
     "summary": "Sammanfattning",
     "quota": "Kvot",
     "bookmarks": "Bokmärken",
-    "storage": "Lagring"
+    "storage": "Lagring",
+    "pdf": "Arkiverad PDF",
+    "default": "Standard"
   },
   "layouts": {
     "grid": "Rutnät",
@@ -90,7 +92,9 @@
     "confirm": "Bekräfta",
     "regenerate": "Återskapa",
     "load_more": "Ladda mer",
-    "edit_notes": "Redigera anteckningar"
+    "edit_notes": "Redigera anteckningar",
+    "preserve_as_pdf": "Spara som PDF",
+    "offline_copies": "Offlinelagrade kopior"
   },
   "settings": {
     "back_to_app": "Tillbaka till app",
@@ -115,6 +119,49 @@
           "show": "Visa arkiverade bokmärken i taggar och listor",
           "hide": "Dölj arkiverade bokmärken i taggar och listor"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Enhetsspecifika inställningar aktiva",
+        "using_default": "Använder klientstandard",
+        "clear_override_hint": "Rensa enhetsåsidosättning för att använda global inställning ({{value}})",
+        "font_size": "Teckenstorlek",
+        "font_family": "Typsnittsfamilj",
+        "preview_inline": "(förhandsvisning)",
+        "tooltip_preview": "Osparade förhandsvisningsändringar",
+        "save_to_all_devices": "Alla enheter",
+        "tooltip_local": "Enhetsinställningar skiljer sig från globala",
+        "reset_preview": "Återställ förhandsvisning",
+        "mono": "Monospace",
+        "line_height": "Radhöjd",
+        "tooltip_default": "Läsningsinställningar",
+        "title": "Läsarinställningar",
+        "serif": "Serif",
+        "preview": "Förhandsgranskning",
+        "not_set": "Ej inställt",
+        "clear_local_overrides": "Rensa enhetsinställningar",
+        "preview_text": "The quick brown fox jumps over the lazy dog. Så här kommer din läsarvytext att se ut.",
+        "local_overrides_cleared": "Enhetsspecifika inställningar har rensats",
+        "local_overrides_description": "Den här enheten har läsarinställningar som skiljer sig från dina globala standardinställningar:",
+        "clear_defaults": "Rensa alla standardvärden",
+        "description": "Konfigurera standardtextinställningar för läsarvyn. Dessa inställningar synkroniseras mellan alla dina enheter.",
+        "defaults_cleared": "Läsarstandardvärden har rensats",
+        "save_hint": "Spara inställningar endast för den här enheten eller synkronisera över alla enheter",
+        "save_as_default": "Spara som standard",
+        "save_to_device": "Den här enheten",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Osparade ändringar i förhandsvisningen; enhetsinställningarna skiljer sig från de globala",
+        "adjust_hint": "Justera inställningarna ovan för att förhandsvisa ändringarna"
+      },
+      "avatar": {
+        "upload": "Ladda upp avatar",
+        "change": "Ändra avatar",
+        "remove_confirm_title": "Ta bort avatar?",
+        "updated": "Avatar uppdaterad",
+        "removed": "Avatar borttagen",
+        "description": "Ladda upp en kvadratisk bild för att använda som din avatar.",
+        "remove_confirm_description": "Detta kommer att ta bort ditt nuvarande profilfoto.",
+        "title": "Profilbild",
+        "remove": "Ta bort avatar"
       }
     },
     "feeds": {
@@ -134,7 +181,21 @@
       "image_tagging": "Bildtaggning",
       "summarization": "Sammanfattning",
       "summarization_prompt": "Sammanfattningsprompt",
-      "all_tagging": "All taggning"
+      "all_tagging": "All taggning",
+      "tag_style": "Taggstil",
+      "auto_summarization_description": "Generera automatisk sammanfattning för dina bokmärken genom att använda AI.",
+      "auto_tagging": "Automatisk taggning",
+      "titlecase_spaces": "Versala inledande bokstäver med mellanslag",
+      "lowercase_underscores": "Små bokstäver med understreck",
+      "inference_language": "Språk för inferens",
+      "titlecase_hyphens": "Versala inledande bokstäver med bindestreck",
+      "lowercase_hyphens": "Små bokstäver med bindestreck",
+      "lowercase_spaces": "Små bokstäver med mellanslag",
+      "inference_language_description": "Välj språk för AI-genererade taggar och sammanfattningar.",
+      "tag_style_description": "Välj hur dina automatiskt genererade taggar ska formateras.",
+      "auto_tagging_description": "Generera automatiskt taggar för dina bokmärken genom att använda AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatisk sammanfattning"
     },
     "import": {
       "import_export": "Importera / exportera",
@@ -144,6 +205,7 @@
       "import_bookmarks_from_karakeep_export": "Importera bokmärken från Karakeep-export",
       "import_bookmarks_from_html_file": "Importera bokmärken från HTML-fil",
       "import_bookmarks_from_pocket_export": "Importera bokmärken från Pocket-export",
+      "import_bookmarks_from_matter_export": "Importera bokmärken från Matter-export",
       "export_links_and_notes": "Exportera länkar och anteckningar",
       "import_bookmarks_from_linkwarden_export": "Importera bokmärken från Linkwarden-export",
       "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager",
@@ -705,7 +767,8 @@
       "deleted": "Bokmärket har raderats!",
       "delete_from_list": "Bokmärket har raderats från listan",
       "clipboard_copied": "Länken har lags till i ditt urklipp!",
-      "refetch": "Hämtning har köats!"
+      "refetch": "Hämtning har köats!",
+      "preserve_pdf": "PDF-sparande har triggats"
     },
     "lists": {
       "created": "Listan har skapats!",
@@ -732,7 +795,8 @@
     "tabs": {
       "content": "Innehåll",
       "details": "Detaljer"
-    }
+    },
+    "archive_info": "Arkiv kanske inte återges korrekt inbäddade om de kräver Javascript. För bästa resultat, <1>ladda ner den och öppna den i din webbläsare</1>."
   },
   "dialogs": {
     "bookmarks": {
@@ -778,7 +842,14 @@
     "year_s_ago": " År sedan",
     "history": "Senaste sökningar",
     "title_contains": "Titeln innehåller",
-    "title_does_not_contain": "Titeln innehåller inte"
+    "title_does_not_contain": "Titeln innehåller inte",
+    "is_broken_link": "Har trasig länk",
+    "tags": "Taggar",
+    "no_suggestions": "Inga förslag",
+    "filters": "Filter",
+    "is_not_broken_link": "Har fungerande länk",
+    "lists": "Listor",
+    "feeds": "Feeds"
   },
   "highlights": {
     "no_highlights": "Du har inga markeringar ännu."

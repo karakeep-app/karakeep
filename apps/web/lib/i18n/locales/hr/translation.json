@@ -175,7 +175,9 @@
     "summary": "Sažetak",
     "quota": "Kvota",
     "bookmarks": "Oznake",
-    "storage": "Pohrana"
+    "storage": "Pohrana",
+    "pdf": "Arhivirani PDF",
+    "default": "Zadano"
   },
   "settings": {
     "ai": {
@@ -189,7 +191,21 @@
       "text_tagging": "Označavanje teksta",
       "image_tagging": "Označavanje slika",
       "summarization": "Sažetak",
-      "all_tagging": "Sve oznake"
+      "all_tagging": "Sve oznake",
+      "tag_style": "Stil oznake",
+      "auto_summarization_description": "Automatski generiraj sažetke za svoje knjižne oznake pomoću AI-ja.",
+      "auto_tagging": "Automatsko označavanje",
+      "titlecase_spaces": "Veliko početno slovo s razmacima",
+      "lowercase_underscores": "Mala slova s podvlakama",
+      "inference_language": "Jezik zaključka",
+      "titlecase_hyphens": "Veliko početno slovo s crticama",
+      "lowercase_hyphens": "Mala slova s crticama",
+      "lowercase_spaces": "Mala slova s razmacima",
+      "inference_language_description": "Odaberi jezik za oznake i sažetke generirane pomoću AI-a.",
+      "tag_style_description": "Odaberi kako će tvoje automatski generirane oznake biti formatirane.",
+      "auto_tagging_description": "Automatski generiraj oznake za svoje knjižne oznake pomoću AI-ja.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatsko sažimanje"
     },
     "import": {
       "import_bookmarks_from_html_file": "Import knjižnih oznaka iz HTML datoteke",
@@ -197,6 +213,7 @@
       "import_export_bookmarks": "Import / Export knjižnih oznaka",
       "import_bookmarks_from_linkwarden_export": "Import oznaka iz Linkwarden exporta",
       "import_bookmarks_from_pocket_export": "Import oznaka iz Pocket exporta",
+      "import_bookmarks_from_matter_export": "Import oznaka iz Matter exporta",
       "import_bookmarks_from_karakeep_export": "Import oznaka iz Karakeep exporta",
       "export_links_and_notes": "Export veza i bilješki",
       "imported_bookmarks": "Importirane oznake",
@@ -227,6 +244,49 @@
           "show": "Prikaži arhivirane oznake u oznakama i popisima",
           "hide": "Sakrij arhivirane oznake u oznakama i popisima"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Aktivne postavke specifične za uređaj",
+        "using_default": "Korištenje zadanih postavki klijenta",
+        "clear_override_hint": "Obriši nadjačavanje uređaja za korištenje globalne postavke ({{value}})",
+        "font_size": "Veličina fonta",
+        "font_family": "Vrsta fonta",
+        "preview_inline": "(pregled)",
+        "tooltip_preview": "Nespremljene promjene pregleda",
+        "save_to_all_devices": "Svi uređaji",
+        "tooltip_local": "Postavke uređaja razlikuju se od globalnih",
+        "reset_preview": "Resetiraj pregled",
+        "mono": "Monospace",
+        "line_height": "Visina retka",
+        "tooltip_default": "Postavke čitanja",
+        "title": "Postavke čitača",
+        "serif": "Serif",
+        "preview": "Pregled",
+        "not_set": "Nije postavljeno",
+        "clear_local_overrides": "Očisti postavke uređaja",
+        "preview_text": "Smeđi lisac brzo skače preko lijenog psa. Ovako će izgledati tekst u prikazu čitača.",
+        "local_overrides_cleared": "Postavke specifične za uređaj su očišćene",
+        "local_overrides_description": "Ovaj uređaj ima postavke čitanja koje se razlikuju od tvojih globalnih zadanih postavki:",
+        "clear_defaults": "Očisti sve zadane vrijednosti",
+        "description": "Konfiguriraj zadane postavke teksta za prikaz čitača. Ove se postavke sinkroniziraju na svim tvojim uređajima.",
+        "defaults_cleared": "Zadane postavke čitača su očišćene",
+        "save_hint": "Spremi postavke samo za ovaj uređaj ili sinkroniziraj na svim uređajima",
+        "save_as_default": "Spremi kao zadane",
+        "save_to_device": "Ovaj uređaj",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Nespremljene promjene pregleda; postavke uređaja razlikuju se od globalnih",
+        "adjust_hint": "Prilagodite postavke iznad za pregled promjena"
+      },
+      "avatar": {
+        "upload": "Učitaj avatar",
+        "change": "Promijeni avatar",
+        "remove_confirm_title": "Ukloniti avatar?",
+        "updated": "Avatar ažuriran",
+        "removed": "Avatar uklonjen",
+        "description": "Učitaj kvadratnu sliku koju ćeš koristiti kao avatar.",
+        "remove_confirm_description": "Ovim ćeš ukloniti trenutnu fotku profila.",
+        "title": "Fotka profila",
+        "remove": "Ukloni avatar"
       }
     },
     "api_keys": {
@@ -523,7 +583,9 @@
     "confirm": "Potvrdi",
     "regenerate": "Ponovo stvori",
     "load_more": "Učitaj više",
-    "edit_notes": "Uredi bilješke"
+    "edit_notes": "Uredi bilješke",
+    "preserve_as_pdf": "Spremi kao PDF",
+    "offline_copies": "Izvanmrežne kopije"
   },
   "highlights": {
     "no_highlights": "Još nemate nijednu istaknutu stavku."
@@ -649,7 +711,8 @@
     "tabs": {
       "content": "Sadržaj",
       "details": "Detalji"
-    }
+    },
+    "archive_info": "Arhive se možda neće ispravno prikazati inline ako zahtijevaju Javascript. Za najbolje rezultate, <1>preuzmite ih i otvorite u svom pregledniku</1>."
   },
   "editor": {
     "quickly_focus": "Možete brzo fokusirati ovo polje pritiskanjem ⌘ + E",
@@ -717,7 +780,8 @@
       "refetch": "Ponovno preuzimanje je stavljeno u čekanje!",
       "full_page_archive": "Pokrenuto je stvaranje potpune arhive stranice",
       "delete_from_list": "Oznaka je izbrisana s popisa",
-      "clipboard_copied": "Veza je dodana u vaš međuspremnik!"
+      "clipboard_copied": "Veza je dodana u vaš međuspremnik!",
+      "preserve_pdf": "Spremanje u PDF formatu je pokrenuto"
     },
     "lists": {
       "created": "Popis je kreiran!",
@@ -775,7 +839,14 @@
     "year_s_ago": " Godina(e) prije",
     "history": "Nedavne pretrage",
     "title_contains": "Naslov sadrži",
-    "title_does_not_contain": "Naslov ne sadrži"
+    "title_does_not_contain": "Naslov ne sadrži",
+    "is_broken_link": "Ima pokvareni link",
+    "tags": "Oznake",
+    "no_suggestions": "Nema prijedloga",
+    "filters": "Filtri",
+    "is_not_broken_link": "Ima radni link",
+    "lists": "Popisi",
+    "feeds": "Kanali"
   },
   "dialogs": {
     "bookmarks": {

@@ -140,20 +140,6 @@ export default function ReaderViewPage() {
           </article>
         </main>
 
-        {/* Mobile backdrop */}
-        {showHighlights && (
-          <button
-            className="fixed inset-0 top-14 z-40 bg-black/50 lg:hidden"
-            onClick={() => setShowHighlights(false)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                setShowHighlights(false);
-              }
-            }}
-            aria-label="Close highlights sidebar"
-          />
-        )}
-
         {/* Highlights Sidebar */}
         {showHighlights && highlights && (
           <aside className="fixed right-0 top-14 z-50 h-[calc(100vh-3.5rem)] w-full border-l bg-background sm:w-80 lg:z-auto lg:bg-background/95 lg:backdrop-blur lg:supports-[backdrop-filter]:bg-background/60 print:hidden">

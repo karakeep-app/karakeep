@@ -1,0 +1,24 @@
+{
+  "name": "@karakeep/compare-models",
+  "version": "0.1.0",
+  "description": "Standalone tool to compare tagging performance between AI models",
+  "bin": {
+    "compare-models": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "run": "tsx --env-file=./.env src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@karakeep/sdk": "workspace:^",
+    "@karakeep/shared": "workspace:^",
+    "chalk": "^5.3.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "tsx": "^4.8.1",
+    "typescript": "^5.9"
+  }
+}

@@ -39,7 +39,9 @@
     "description": "Descripción",
     "quota": "Cuota",
     "bookmarks": "Marcadores",
-    "storage": "Almacenamiento"
+    "storage": "Almacenamiento",
+    "pdf": "PDF archivado",
+    "default": "Predeterminado"
   },
   "settings": {
     "info": {
@@ -63,6 +65,49 @@
           "show": "Mostrar marcadores archivados en etiquetas y listas",
           "hide": "Ocultar marcadores archivados en etiquetas y listas"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Ajustes específicos del dispositivo activos",
+        "using_default": "Usando el valor predeterminado del cliente",
+        "clear_override_hint": "Borra la configuración específica del dispositivo para usar la configuración global ({{value}})",
+        "font_size": "Tamaño de fuente",
+        "font_family": "Familia de fuentes",
+        "preview_inline": "(vista previa)",
+        "tooltip_preview": "Cambios de la vista previa sin guardar",
+        "save_to_all_devices": "Todos los dispositivos",
+        "tooltip_local": "Los ajustes del dispositivo difieren de los globales",
+        "reset_preview": "Restablecer vista previa",
+        "mono": "Monoespacio",
+        "line_height": "Altura de la línea",
+        "tooltip_default": "Ajustes de lectura",
+        "title": "Ajustes del lector",
+        "serif": "Con gracias",
+        "preview": "Vista previa",
+        "not_set": "No configurado",
+        "clear_local_overrides": "Borrar la configuración del dispositivo",
+        "preview_text": "El veloz murciélago hindú comía feliz cardillo y kiwi. Así es como aparecerá el texto en tu vista de lectura.",
+        "local_overrides_cleared": "Se han borrado los ajustes específicos del dispositivo",
+        "local_overrides_description": "Este dispositivo tiene ajustes de lector que difieren de los valores predeterminados globales:",
+        "clear_defaults": "Borrar todos los valores predeterminados",
+        "description": "Configura los ajustes de texto predeterminados para la vista de lectura. Estos ajustes se sincronizan en todos tus dispositivos.",
+        "defaults_cleared": "Se han borrado los valores predeterminados del lector",
+        "save_hint": "Guarda la configuración sólo para este dispositivo o sincronízala en todos los dispositivos",
+        "save_as_default": "Guardar como predeterminado",
+        "save_to_device": "Este dispositivo",
+        "sans": "Sin gracias",
+        "tooltip_preview_and_local": "Cambios de la vista previa sin guardar; los ajustes del dispositivo difieren de los globales",
+        "adjust_hint": "Just the tip: ajusta la configuración de arriba para previsualizar los cambios"
+      },
+      "avatar": {
+        "upload": "Subir avatar",
+        "change": "Cambiar avatar",
+        "remove_confirm_title": "¿Eliminar avatar?",
+        "updated": "Avatar actualizado",
+        "removed": "Avatar eliminado",
+        "description": "Sube una imagen cuadrada para usarla como tu avatar.",
+        "remove_confirm_description": "Esto borrará tu foto de perfil actual.",
+        "title": "Foto de perfil",
+        "remove": "Eliminar avatar"
       }
     },
     "back_to_app": "Volver a la aplicación",
@@ -77,7 +122,21 @@
       "summarization_prompt": "Indicación de resumen",
       "all_tagging": "Todo el etiquetado",
       "text_tagging": "Etiquetado de texto",
-      "image_tagging": "Etiquetado de imágenes"
+      "image_tagging": "Etiquetado de imágenes",
+      "tag_style": "Estilo de etiqueta",
+      "auto_summarization_description": "Genera resúmenes automáticamente para tus marcadores usando IA.",
+      "auto_tagging": "Etiquetado automático",
+      "titlecase_spaces": "Mayúsculas y minúsculas con espacios",
+      "lowercase_underscores": "Minúsculas con guiones bajos",
+      "inference_language": "Idioma de Inferencia",
+      "titlecase_hyphens": "Mayúsculas y minúsculas con guiones",
+      "lowercase_hyphens": "Minúsculas con guiones",
+      "lowercase_spaces": "Minúsculas con espacios",
+      "inference_language_description": "Elige el idioma para las etiquetas y los resúmenes generados por la IA.",
+      "tag_style_description": "Elige cómo quieres que se formateen las etiquetas que se generan automáticamente.",
+      "auto_tagging_description": "Genera etiquetas automáticamente para tus marcadores usando IA.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Resumen automático"
     },
     "user_settings": "Ajustes de usuario",
     "feeds": {
@@ -90,6 +149,7 @@
       "import_export": "Importar / Exportar",
       "import_export_bookmarks": "Importar / Exportar marcadores",
       "import_bookmarks_from_pocket_export": "Importar marcadores desde exportación de Pocket",
+      "import_bookmarks_from_matter_export": "Importar marcadores desde exportación de Matter",
       "export_links_and_notes": "Exportar links y notas",
       "imported_bookmarks": "Marcadores importados",
       "import_bookmarks_from_karakeep_export": "Importar marcadores desde exportación de Karakeep",
@@ -387,7 +447,9 @@
     "confirm": "Confirmar",
     "regenerate": "Regenerar",
     "load_more": "Cargar más",
-    "edit_notes": "Editar notas"
+    "edit_notes": "Editar notas",
+    "preserve_as_pdf": "Conservar como PDF",
+    "offline_copies": "Copias sin conexión"
   },
   "layouts": {
     "compact": "Compacto",
@@ -646,7 +708,8 @@
     "tabs": {
       "content": "Contenido",
       "details": "Detalles"
-    }
+    },
+    "archive_info": "Es posible que los archivos no se rendericen correctamente en línea si requieren Javascript. Para obtener mejores resultados, <1>descárgalo y ábrelo en tu navegador</1>."
   },
   "editor": {
     "multiple_urls_dialog_title": "¿Importar URLs como marcadores independientes?",
@@ -714,7 +777,8 @@
       "deleted": "¡El marcador se ha eliminado!",
       "full_page_archive": "Se ha pedido un Archivo de Página Completa",
       "delete_from_list": "El marcador se ha borrado de la lista",
-      "clipboard_copied": "¡El enlace se ha copiado en tu portapapeles!"
+      "clipboard_copied": "¡El enlace se ha copiado en tu portapapeles!",
+      "preserve_pdf": "Se ha activado la preservación en PDF"
     },
     "lists": {
       "created": "¡Enlace creado correctamente!",
@@ -775,7 +839,14 @@
     "year_s_ago": " Hace año(s)",
     "history": "Búsquedas recientes",
     "title_contains": "El título contiene",
-    "title_does_not_contain": "El título no contiene"
+    "title_does_not_contain": "El título no contiene",
+    "is_broken_link": "Tiene enlace roto",
+    "tags": "Etiquetas",
+    "no_suggestions": "Sin sugerencias",
+    "filters": "Filtros",
+    "is_not_broken_link": "Tiene enlace que funciona",
+    "lists": "Listas",
+    "feeds": "Feeds"
   },
   "dialogs": {
     "bookmarks": {

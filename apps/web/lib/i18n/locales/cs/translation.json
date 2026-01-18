@@ -39,7 +39,9 @@
     },
     "quota": "Kvóta",
     "bookmarks": "Záložky",
-    "storage": "Úložiště"
+    "storage": "Úložiště",
+    "pdf": "Archivovaný PDF",
+    "default": "Výchozí"
   },
   "actions": {
     "close": "Zavřít",
@@ -84,7 +86,9 @@
     "confirm": "Potvrdit",
     "regenerate": "Regenerovat",
     "load_more": "Načíst další",
-    "edit_notes": "Upravit poznámky"
+    "edit_notes": "Upravit poznámky",
+    "preserve_as_pdf": "Uložit jako PDF",
+    "offline_copies": "Offline kopie"
   },
   "settings": {
     "ai": {
@@ -98,7 +102,21 @@
       "all_tagging": "Všechny štítky",
       "text_tagging": "Označování textu",
       "image_tagging": "Označování obrázků",
-      "summarization": "Shrnutí"
+      "summarization": "Shrnutí",
+      "tag_style": "Styl štítků",
+      "auto_summarization_description": "Automaticky generovat shrnutí pro tvoje záložky pomocí umělý inteligence.",
+      "auto_tagging": "Automatický štítkování",
+      "titlecase_spaces": "Velká písmena s mezerami",
+      "lowercase_underscores": "Malá písmena s podtržítky",
+      "inference_language": "Jazyk pro odvozování",
+      "titlecase_hyphens": "Velká písmena s pomlčkami",
+      "lowercase_hyphens": "Malá písmena s pomlčkami",
+      "lowercase_spaces": "Malá písmena s mezerami",
+      "inference_language_description": "Vyber jazyk pro štítky a souhrny generované AI.",
+      "tag_style_description": "Vyber si, jakým způsobem se mají automaticky generované štítky formátovat.",
+      "auto_tagging_description": "Automaticky generovat štítky pro tvoje záložky pomocí umělý inteligence.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatický shrnutí"
     },
     "webhooks": {
       "webhooks": "Webhooky",
@@ -210,7 +228,50 @@
       "new_password": "Nový heslo",
       "confirm_new_password": "Potvrďte nový heslo",
       "options": "Možnosti",
-      "interface_lang": "Jazyk rozhraní"
+      "interface_lang": "Jazyk rozhraní",
+      "reader_settings": {
+        "local_overrides_title": "Aktivní nastavení specifická pro zařízení",
+        "using_default": "Používám výchozí nastavení klienta",
+        "clear_override_hint": "Vymažte přepsání zařízení, abyste použili globální nastavení ({{value}})",
+        "font_size": "Velikost písma",
+        "font_family": "Rodina písem",
+        "preview_inline": "(náhled)",
+        "tooltip_preview": "Neuložené změny náhledu",
+        "save_to_all_devices": "Všechna zařízení",
+        "tooltip_local": "Nastavení zařízení se liší od globálních",
+        "reset_preview": "Obnovit náhled",
+        "mono": "Neproporcionální",
+        "line_height": "Výška řádku",
+        "tooltip_default": "Nastavení čtení",
+        "title": "Nastavení čtečky",
+        "serif": "Patkové",
+        "preview": "Náhled",
+        "not_set": "Nenastaveno",
+        "clear_local_overrides": "Vymazat nastavení zařízení",
+        "preview_text": "Příliš žluťoučký kůň úpěl ďábelské ódy. Takto bude vypadat text v zobrazení čtečky.",
+        "local_overrides_cleared": "Nastavení specifická pro zařízení byla vymazána",
+        "local_overrides_description": "Toto zařízení má nastavení čtečky, která se liší od výchozích:",
+        "clear_defaults": "Smazat všechna výchozí nastavení",
+        "description": "Nastav výchozí nastavení textu pro zobrazení v čtečce. Tato nastavení se synchronizují na všech tvých zařízeních.",
+        "defaults_cleared": "Výchozí nastavení čtečky byla vymazána",
+        "save_hint": "Uložit nastavení jen pro toto zařízení, nebo synchronizovat na všech zařízeních",
+        "save_as_default": "Uložit jako výchozí",
+        "save_to_device": "Toto zařízení",
+        "sans": "Bezpatkové",
+        "tooltip_preview_and_local": "Neuložené změny náhledu; nastavení zařízení se liší od globálních",
+        "adjust_hint": "Upravte nastavení výše, abyste si prohlédli změny"
+      },
+      "avatar": {
+        "upload": "Nahrát avatara",
+        "change": "Změnit avatara",
+        "remove_confirm_title": "Odebrat avatara?",
+        "updated": "Avatar aktualizován",
+        "removed": "Avatar byl odebrán",
+        "description": "Nahrajte čtvercový obrázek, který se použije jako váš avatar.",
+        "remove_confirm_description": "Tímto vymažete vaši aktuální profilovou fotku.",
+        "title": "Profilová fotka",
+        "remove": "Odebrat avatara"
+      }
     },
     "feeds": {
       "rss_subscriptions": "RSS odběry",
@@ -223,6 +284,7 @@
       "import_export_bookmarks": "Import / Export záložek",
       "import_bookmarks_from_html_file": "Importovat záložky z HTML souboru",
       "import_bookmarks_from_pocket_export": "Importovat záložky z exportu Pocket",
+      "import_bookmarks_from_matter_export": "Importovat záložky z exportu Matter",
       "import_bookmarks_from_omnivore_export": "Importovat záložky z Omnivore exportu",
       "import_bookmarks_from_linkwarden_export": "Importovat záložky z exportu Linkwarden",
       "import_bookmarks_from_karakeep_export": "Importovat záložky z exportu Karakeep",
@@ -537,7 +599,14 @@
     "or": "Nebo",
     "history": "Poslední hledání",
     "title_contains": "Název obsahuje",
-    "title_does_not_contain": "Název neobsahuje"
+    "title_does_not_contain": "Název neobsahuje",
+    "is_broken_link": "Má nefunkční odkaz",
+    "tags": "Štítky",
+    "no_suggestions": "Žádné návrhy",
+    "filters": "Filtry",
+    "is_not_broken_link": "Má funkční odkaz",
+    "lists": "Seznamy",
+    "feeds": "Kanály"
   },
   "editor": {
     "disabled_submissions": "Odesílání příspěvků je zakázáno",
@@ -605,7 +674,8 @@
       "refetch": "Opětovné načtení bylo zařazeno do fronty!",
       "full_page_archive": "Vytváření archivu celé stránky bylo spuštěno",
       "delete_from_list": "Záložka byla ze seznamu smazána",
-      "clipboard_copied": "Odkaz byl přidán do schránky!"
+      "clipboard_copied": "Odkaz byl přidán do schránky!",
+      "preserve_pdf": "Ukládání do PDF spuštěno"
     },
     "lists": {
       "created": "Seznam byl vytvořen!",
@@ -778,7 +848,8 @@
     "tabs": {
       "content": "Obsah",
       "details": "Podrobnosti"
-    }
+    },
+    "archive_info": "Archivy se nemusí vykreslovat správně inline, pokud vyžadují Javascript. Pro nejlepší výsledky si <1>stáhněte a otevřete v prohlížeči</1>."
   },
   "dialogs": {
     "bookmarks": {

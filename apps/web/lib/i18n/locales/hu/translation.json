@@ -42,7 +42,9 @@
     "confirm": "Megerősít",
     "regenerate": "Újragenerálás",
     "load_more": "Továbbiak betöltése",
-    "edit_notes": "Jegyzetek szerkesztése"
+    "edit_notes": "Jegyzetek szerkesztése",
+    "preserve_as_pdf": "Mentés PDF-ként",
+    "offline_copies": "Offline példányok"
   },
   "settings": {
     "user_settings": "Felhasználói beállítások",
@@ -73,6 +75,49 @@
           "show": "Archivált könyvjelzők megjelenítése címkékben és listákban",
           "hide": "Archivált könyvjelzők elrejtése címkékben és listákban"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Eszközspecifikus beállítások aktívak",
+        "using_default": "Ügyfél alapértelmezettjének használata",
+        "clear_override_hint": "Eszközfelülírás törlése a globális beállítás ({{value}}) használatához",
+        "font_size": "Betűméret",
+        "font_family": "Betűtípus családja",
+        "preview_inline": "(előnézet)",
+        "tooltip_preview": "El nem mentett előnézeti módosítások",
+        "save_to_all_devices": "Minden eszköz",
+        "tooltip_local": "Az eszköz beállításai eltérnek a globálistól",
+        "reset_preview": "Előnézet visszaállítása",
+        "mono": "Monospace",
+        "line_height": "Sortávolság",
+        "tooltip_default": "Olvasási beállítások",
+        "title": "Olvasó beállításai",
+        "serif": "Serif",
+        "preview": "Előnézet",
+        "not_set": "Nincs beállítva",
+        "clear_local_overrides": "Eszközbeállítások törlése",
+        "preview_text": "A gyors barna róka átugorja a lusta kutyát. Így fog megjelenni az olvasónézeti szöveg.",
+        "local_overrides_cleared": "Az eszközspecifikus beállítások törölve lettek",
+        "local_overrides_description": "Ennek az eszköznek az olvasási beállításai eltérnek a globális alapértelmezésektől:",
+        "clear_defaults": "Összes alapértelmezett törlése",
+        "description": "Az olvasónézet alapértelmezett szövegbeállításainak konfigurálása. Ezek a beállítások szinkronizálva vannak az összes eszközén.",
+        "defaults_cleared": "Az olvasó alapértelmezései törölve",
+        "save_hint": "Beállítások mentése csak ehhez az eszközhöz, vagy szinkronizálás minden eszközre",
+        "save_as_default": "Mentés alapértelmezettként",
+        "save_to_device": "Ez az eszköz",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "El nem mentett előnézeti módosítások; az eszköz beállításai eltérnek a globálistól",
+        "adjust_hint": "A módosítások előnézetéhez állítsa be a fenti beállításokat"
+      },
+      "avatar": {
+        "upload": "Avatár feltöltése",
+        "change": "Avatár módosítása",
+        "remove_confirm_title": "Avatár eltávolítása?",
+        "updated": "Avatár frissítve",
+        "removed": "Avatár eltávolítva",
+        "description": "Tölts fel egy négyzet alakú képet, amit avatárként használhatsz.",
+        "remove_confirm_description": "Ezzel törlöd a jelenlegi profilképed.",
+        "title": "Profilkép",
+        "remove": "Avatár eltávolítása"
       }
     },
     "webhooks": {
@@ -104,7 +149,21 @@
       "images_prompt": "Utasítás képpel",
       "text_tagging": "Szöveg címkézés",
       "image_tagging": "Kép címkézés",
-      "summarization": "Összesítés"
+      "summarization": "Összesítés",
+      "tag_style": "Címke stílusa",
+      "auto_summarization_description": "A MI használatával automatikusan összefoglalókat generálhatsz a könyvjelzőidhez.",
+      "auto_tagging": "Automatikus címkézés",
+      "titlecase_spaces": "Címzett nagybetűs, szóközökkel",
+      "lowercase_underscores": "Kisbetűs, aláhúzásokkal",
+      "inference_language": "Következtetési nyelv",
+      "titlecase_hyphens": "Címzett nagybetűs, kötőjelekkel",
+      "lowercase_hyphens": "Kisbetűs, kötőjelekkel",
+      "lowercase_spaces": "Kisbetűs, szóközökkel",
+      "inference_language_description": "Válaszd ki az AI által generált címkék és összefoglalók nyelvét.",
+      "tag_style_description": "Válaszd ki, hogyan legyenek formázva az automatikusan létrehozott címkék.",
+      "auto_tagging_description": "A MI használatával automatikusan címkéket generálhatsz a könyvjelzőidhez.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Automatikus összefoglalás"
     },
     "api_keys": {
       "new_api_key": "Új API kulcs",
@@ -125,6 +184,7 @@
       "import_export_bookmarks": "Könyvjelző importálása / exportálása",
       "import_bookmarks_from_html_file": "Könyvjelző importálása HTML fájlból",
       "import_bookmarks_from_pocket_export": "Könyvjelző importálása Pocket-ből",
+      "import_bookmarks_from_matter_export": "Könyvjelző importálása Matter-ből",
       "import_bookmarks_from_linkwarden_export": "Könyvjelző importálása Linkwarden-ből",
       "export_links_and_notes": "Jegyzetek és hivatkozások exportálása",
       "imported_bookmarks": "Importált könyvjelzők",
@@ -387,7 +447,9 @@
     "summary": "Összegzés",
     "quota": "Keret",
     "bookmarks": "Könyvjelzők",
-    "storage": "Tárhely"
+    "storage": "Tárhely",
+    "pdf": "Archivált PDF",
+    "default": "Alapértelmezett"
   },
   "editor": {
     "import_as_text": "Importálás szöveges könyvjelzőként",
@@ -486,7 +548,14 @@
     "year_s_ago": " Év(ek)kel ezelőtt",
     "history": "Legutóbbi keresések",
     "title_contains": "A cím tartalmazza",
-    "title_does_not_contain": "A cím nem tartalmazza"
+    "title_does_not_contain": "A cím nem tartalmazza",
+    "is_broken_link": "Van hibás link",
+    "tags": "Címkék",
+    "no_suggestions": "Nincsenek javaslatok",
+    "filters": "Szűrők",
+    "is_not_broken_link": "Van működő link",
+    "lists": "Listák",
+    "feeds": "Hírcsatornák"
   },
   "lists": {
     "manual_list": "Manuális lista",
@@ -745,7 +814,8 @@
     "tabs": {
       "content": "Tartalom",
       "details": "Részletek"
-    }
+    },
+    "archive_info": "Lehetséges, hogy a JavaScriptet igénylő archívumok nem jelennek meg helyesen beágyazva. A legjobb eredmény érdekében <1>töltsd le és nyisd meg a böngésződben</1>."
   },
   "dialogs": {
     "bookmarks": {
@@ -760,7 +830,8 @@
       "refetch": "Újra begyűjtés beütemezve!",
       "full_page_archive": "Minden oldal lecserélése beütemezésre került",
       "delete_from_list": "A könyvjelző törlődött a listából",
-      "clipboard_copied": "A hivatkozás kimásolva a memóriába!"
+      "clipboard_copied": "A hivatkozás kimásolva a memóriába!",
+      "preserve_pdf": "A PDF archiválás elindult."
     },
     "lists": {
       "created": "A hivatkozás létrejött!",

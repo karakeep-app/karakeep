@@ -80,6 +80,7 @@ class MeiliSearchIndexClient implements SearchIndexClient {
 export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
   private client: MeiliSearch | undefined;
   private indexClient: SearchIndexClient | undefined;
+  private initPromise: Promise<SearchIndexClient | null> | undefined;
   private readonly indexName = "bookmarks";
 
   constructor() {
@@ -100,6 +101,17 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
       return this.indexClient;
     }
 
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
+    this.initPromise = this.initClient();
+    const client = await this.initPromise;
+    this.initPromise = undefined;
+    return client;
+  }
+
+  private async initClient(): Promise<SearchIndexClient | null> {
     if (!this.client) {
       return null;
     }

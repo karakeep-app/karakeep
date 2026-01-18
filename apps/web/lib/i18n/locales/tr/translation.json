@@ -39,7 +39,9 @@
     "summary": "Özet",
     "quota": "Kota",
     "bookmarks": "Yer İmleri",
-    "storage": "Depolama"
+    "storage": "Depolama",
+    "pdf": "Arşivlenmiş PDF",
+    "default": "Varsayılan"
   },
   "layouts": {
     "masonry": "Döşeme",
@@ -90,7 +92,9 @@
     "confirm": "Onayla",
     "regenerate": "Yeniden oluştur",
     "load_more": "Daha Fazla Yükle",
-    "edit_notes": "Notları Düzenle"
+    "edit_notes": "Notları Düzenle",
+    "preserve_as_pdf": "PDF olarak sakla",
+    "offline_copies": "Çevrimdışı Kopyalar"
   },
   "highlights": {
     "no_highlights": "Henüz hiçbir öne çıkarılmış içeriğiniz yok."
@@ -119,6 +123,49 @@
           "show": "Arşivlenmiş yer imlerini etiketlerde ve listelerde göster",
           "hide": "Arşivlenmiş yer imlerini etiketlerde ve listelerde gizle"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Cihaza özel ayarlar etkin",
+        "using_default": "İstemci varsayılanı kullanılıyor",
+        "clear_override_hint": "Genel ayarı ({{value}}) kullanmak için cihaz geçersiz kılmasını temizle",
+        "font_size": "Yazı Tipi Boyutu",
+        "font_family": "Yazı Tipi Ailesi",
+        "preview_inline": "(önizleme)",
+        "tooltip_preview": "Kaydedilmemiş önizleme değişiklikleri",
+        "save_to_all_devices": "Tüm cihazlar",
+        "tooltip_local": "Cihaz ayarları, genel ayarlardan farklı",
+        "reset_preview": "Önizlemeyi sıfırla",
+        "mono": "Tek Aralık",
+        "line_height": "Satır Yüksekliği",
+        "tooltip_default": "Okuma ayarları",
+        "title": "Okuyucu Ayarları",
+        "serif": "Serif",
+        "preview": "Önizleme",
+        "not_set": "Ayarlanmadı",
+        "clear_local_overrides": "Cihaz ayarlarını temizle",
+        "preview_text": "Hızlı kahverengi tilki tembel köpeğin üzerinden atlar. Okuyucu görünümü metniniz bu şekilde görünecek.",
+        "local_overrides_cleared": "Cihaza özel ayarlar temizlendi",
+        "local_overrides_description": "Bu cihaz, genel varsayılanlarınızdan farklı okuyucu ayarlarına sahiptir:",
+        "clear_defaults": "Tüm varsayılanları temizle",
+        "description": "Okuyucu görünümü için varsayılan metin ayarlarını yapılandır. Bu ayarlar tüm cihazlarınızda senkronize edilir.",
+        "defaults_cleared": "Okuyucu varsayılanları temizlendi",
+        "save_hint": "Ayarları yalnızca bu cihaz için kaydet veya tüm cihazlarda senkronize et",
+        "save_as_default": "Varsayılan olarak kaydet",
+        "save_to_device": "Bu cihaz",
+        "sans": "Sans Serif",
+        "tooltip_preview_and_local": "Kaydedilmemiş önizleme değişiklikleri; cihaz ayarları genel ayarlardan farklı",
+        "adjust_hint": "Değişiklikleri önizlemek için yukarıdaki ayarları düzenle"
+      },
+      "avatar": {
+        "upload": "Avatar yükle",
+        "change": "Avatarı değiştir",
+        "remove_confirm_title": "Avatarı kaldırılsın mı?",
+        "updated": "Avatar güncellendi",
+        "removed": "Avatar silindi",
+        "description": "Avatarınız olarak kullanmak için kare bir resim yükleyin.",
+        "remove_confirm_description": "Bu, mevcut profil fotoğrafınızı temizleyecek.",
+        "title": "Profil Fotoğrafı",
+        "remove": "Avatarı kaldır"
       }
     },
     "ai": {
@@ -132,7 +179,21 @@
       "summarization_prompt": "Özetleme İstemi",
       "all_tagging": "Tüm Etiketleme",
       "text_tagging": "Metin Etiketleme",
-      "summarization": "Özetleme"
+      "summarization": "Özetleme",
+      "tag_style": "Etiket Stili",
+      "auto_summarization_description": "Yapay zeka kullanarak yer işaretlerin için otomatik olarak özet oluştur.",
+      "auto_tagging": "Otomatik etiketleme",
+      "titlecase_spaces": "Büyük harf ve boşluklu",
+      "lowercase_underscores": "Küçük harf ve alt çizgili",
+      "inference_language": "Çıkarım Dili",
+      "titlecase_hyphens": "Büyük harf ve tireli",
+      "lowercase_hyphens": "Küçük harf ve tireli",
+      "lowercase_spaces": "Küçük harf ve boşluklu",
+      "inference_language_description": "Yapay zeka tarafından oluşturulan etiketler ve özetler için dili seç.",
+      "tag_style_description": "Otomatik oluşturulan etiketlerinin nasıl biçimlendirileceğini seç.",
+      "auto_tagging_description": "Yapay zeka kullanarak yer işaretlerin için otomatik olarak etiket oluştur.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Otomatik özetleme"
     },
     "feeds": {
       "rss_subscriptions": "RSS Abonelikleri",
@@ -145,6 +206,7 @@
       "import_export_bookmarks": "Yer İşaretlerini İçe / Dışa Aktar",
       "import_bookmarks_from_html_file": "HTML Dosyasından Yer İşaretlerini İçe Aktar",
       "import_bookmarks_from_pocket_export": "Pocket Dışa Aktarımından Yer İşaretlerini İçe Aktar",
+      "import_bookmarks_from_matter_export": "Matter Dışa Aktarımından Yer İşaretlerini İçe Aktar",
       "import_bookmarks_from_omnivore_export": "Omnivore Dışa Aktarımından Yer İşaretlerini İçe Aktar",
       "import_bookmarks_from_karakeep_export": "Karakeep Dışa Aktarımından Yer İşaretlerini İçe Aktar",
       "export_links_and_notes": "Bağlantı ve Notları Dışa Aktar",
@@ -649,7 +711,8 @@
     "tabs": {
       "content": "İçerik",
       "details": "Ayrıntılar"
-    }
+    },
+    "archive_info": "Arşivler Javascript gerektiriyorsa satır içi olarak doğru şekilde işlenmeyebilir. En iyi sonuçlar için, <1>indirin ve tarayıcınızda açın</1>."
   },
   "editor": {
     "quickly_focus": "Bu alana hızlıca odaklanmak için ⌘ + E tuşlarına basabilirsiniz",
@@ -717,7 +780,8 @@
       "refetch": "Yeniden getir kuyruğa alındı!",
       "full_page_archive": "Tüm Sayfa Arşivi oluşturma başlatıldı",
       "delete_from_list": "Yer işareti listeden silindi",
-      "clipboard_copied": "Bağlantı panonuza eklendi!"
+      "clipboard_copied": "Bağlantı panonuza eklendi!",
+      "preserve_pdf": "PDF olarak saklama tetiklendi"
     },
     "lists": {
       "created": "Liste oluşturuldu!",
@@ -775,7 +839,14 @@
     "month_s_ago": " Ay Önce",
     "history": "Son Aramalar",
     "title_contains": "Başlık İçeriyor",
-    "title_does_not_contain": "Başlık İçermiyor"
+    "title_does_not_contain": "Başlık İçermiyor",
+    "is_broken_link": "Bozuk Bağlantısı Var",
+    "tags": "Etiketler",
+    "no_suggestions": "Öneri yok",
+    "filters": "Filtreler",
+    "is_not_broken_link": "Çalışan Bağlantısı Var",
+    "lists": "Listeler",
+    "feeds": "Akışlar"
   },
   "dialogs": {
     "bookmarks": {

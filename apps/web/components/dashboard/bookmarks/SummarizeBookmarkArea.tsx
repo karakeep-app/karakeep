@@ -1,8 +1,8 @@
 import React from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { MarkdownReadonly } from "@/components/ui/markdown/markdown-readonly";
+import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
-import { toast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";

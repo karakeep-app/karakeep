@@ -163,7 +163,7 @@ export async function validateUrl(
     if (isAddressForbidden(hostname)) {
       return {
         ok: false,
-        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()})`,
+        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()}). You can use CRAWLER_ALLOWED_INTERNAL_HOSTNAMES to allowlist specific hostnames for internal access.`,
       } as const;
     }
     return { ok: true, url: parsedUrl } as const;
