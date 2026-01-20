@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7ea2c3ca-83b7-480f-8ec3-65e8fb57a08d",
+  "id": "609c4402-c36e-4efc-9fd0-4f9038f8a164",
   "prevId": "ee577510-4b62-4675-be2c-777446e86a6d",
   "tables": {
     "account": {
@@ -135,6 +135,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "lastUsedAt": {
+          "name": "lastUsedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "keyId": {
@@ -2691,115 +2698,6 @@
           "name": "tagsOnBookmarks_bookmarkId_tagId_pk"
         }
       },
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "userReadingProgress": {
-      "name": "userReadingProgress",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "bookmarkId": {
-          "name": "bookmarkId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "readingProgressOffset": {
-          "name": "readingProgressOffset",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "readingProgressAnchor": {
-          "name": "readingProgressAnchor",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "readingProgressPercent": {
-          "name": "readingProgressPercent",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "modifiedAt": {
-          "name": "modifiedAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "userReadingProgress_bookmarkId_idx": {
-          "name": "userReadingProgress_bookmarkId_idx",
-          "columns": [
-            "bookmarkId"
-          ],
-          "isUnique": false
-        },
-        "userReadingProgress_userId_idx": {
-          "name": "userReadingProgress_userId_idx",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": false
-        },
-        "userReadingProgress_bookmarkId_userId_unique": {
-          "name": "userReadingProgress_bookmarkId_userId_unique",
-          "columns": [
-            "bookmarkId",
-            "userId"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {
-        "userReadingProgress_bookmarkId_bookmarks_id_fk": {
-          "name": "userReadingProgress_bookmarkId_bookmarks_id_fk",
-          "tableFrom": "userReadingProgress",
-          "tableTo": "bookmarks",
-          "columnsFrom": [
-            "bookmarkId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "userReadingProgress_userId_user_id_fk": {
-          "name": "userReadingProgress_userId_user_id_fk",
-          "tableFrom": "userReadingProgress",
-          "tableTo": "user",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },

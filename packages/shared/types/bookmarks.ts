@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { zCursorV2 } from "./pagination";
-import { zBookmarkTagSchema } from "./tags";
+import { zAttachedByEnumSchema, zBookmarkTagSchema } from "./tags";
 
 export const MAX_BOOKMARK_TITLE_LENGTH = 1000;
 
@@ -255,6 +255,7 @@ export const zManipulatedTagSchema = z
     // At least one of the two must be set
     tagId: z.string().optional(), // If the tag already exists and we know its id we should pass it
     tagName: z.string().optional(),
+    attachedBy: zAttachedByEnumSchema.optional().default("human"),
   })
   .refine((val) => !!val.tagId || !!val.tagName, {
     message: "You must provide either a tagId or a tagName",

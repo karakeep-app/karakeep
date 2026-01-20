@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Slider } from "react-native-awesome-slider";
 import { runOnJS, useSharedValue } from "react-native-reanimated";
+import {
+  ReaderPreview,
+  ReaderPreviewRef,
+} from "@/components/reader/ReaderPreview";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
@@ -59,6 +63,40 @@ export default function ReaderSettingsPage() {
   const [displayLineHeight, setDisplayLineHeight] =
     useState(effectiveLineHeight);
 
+  // Refs to track latest display values (avoids stale closures in callbacks)
+  const displayFontSizeRef = useRef(displayFontSize);
+  displayFontSizeRef.current = displayFontSize;
+  const displayLineHeightRef = useRef(displayLineHeight);
+  displayLineHeightRef.current = displayLineHeight;
+
+  // Ref for the WebView preview component
+  const previewRef = useRef<ReaderPreviewRef>(null);
+
+  // Functions to update preview styles via IPC (called from worklets via runOnJS)
+  const updatePreviewFontSize = useCallback(
+    (fontSize: number) => {
+      setDisplayFontSize(fontSize);
+      previewRef.current?.updateStyles(
+        effectiveFontFamily,
+        fontSize,
+        displayLineHeightRef.current,
+      );
+    },
+    [effectiveFontFamily],
+  );
+
+  const updatePreviewLineHeight = useCallback(
+    (lineHeight: number) => {
+      setDisplayLineHeight(lineHeight);
+      previewRef.current?.updateStyles(
+        effectiveFontFamily,
+        displayFontSizeRef.current,
+        lineHeight,
+      );
+    },
+    [effectiveFontFamily],
+  );
+
   // Sync slider progress and display values with effective settings
   useEffect(() => {
     fontSizeProgress.value = effectiveFontSize;
@@ -72,6 +110,12 @@ export default function ReaderSettingsPage() {
 
   const handleFontFamilyChange = (fontFamily: ZReaderFontFamily) => {
     updateLocal({ fontFamily });
+    // Update preview immediately with new font family
+    previewRef.current?.updateStyles(
+      fontFamily,
+      displayFontSize,
+      displayLineHeight,
+    );
   };
 
   const handleFontSizeChange = (value: number) => {
@@ -158,7 +202,7 @@ export default function ReaderSettingsPage() {
                 renderBubble={() => null}
                 onValueChange={(value) => {
                   "worklet";
-                  runOnJS(setDisplayFontSize)(Math.round(value));
+                  runOnJS(updatePreviewFontSize)(Math.round(value));
                 }}
                 onSlidingComplete={(value) =>
                   handleFontSizeChange(Math.round(value))
@@ -191,7 +235,7 @@ export default function ReaderSettingsPage() {
                 renderBubble={() => null}
                 onValueChange={(value) => {
                   "worklet";
-                  runOnJS(setDisplayLineHeight)(Math.round(value * 10) / 10);
+                  runOnJS(updatePreviewLineHeight)(Math.round(value * 10) / 10);
                 }}
                 onSlidingComplete={handleLineHeightChange}
               />
@@ -207,19 +251,12 @@ export default function ReaderSettingsPage() {
           <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
             Preview
           </Text>
-          <View className="w-full rounded-lg bg-card px-4 py-3">
-            <Text
-              style={{
-                fontFamily: MOBILE_FONT_FAMILIES[effectiveFontFamily],
-                fontSize: effectiveFontSize,
-                lineHeight: effectiveFontSize * effectiveLineHeight,
-              }}
-              className="text-foreground"
-            >
-              The quick brown fox jumps over the lazy dog. Pack my box with five
-              dozen liquor jugs. How vexingly quick daft zebras jump!
-            </Text>
-          </View>
+          <ReaderPreview
+            ref={previewRef}
+            initialFontFamily={effectiveFontFamily}
+            initialFontSize={effectiveFontSize}
+            initialLineHeight={effectiveLineHeight}
+          />
         </View>
 
         <Divider orientation="horizontal" className="my-2 w-full" />

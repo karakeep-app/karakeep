@@ -81,6 +81,17 @@ export default function Lists() {
     return lists?.data.some((list) => list.userRole !== "owner") ?? false;
   }, [lists?.data]);
 
+  // Check if any list has children to determine if we need chevron spacing
+  const hasAnyListsWithChildren = useMemo(() => {
+    const checkForChildren = (node: ZBookmarkListTreeNode): boolean => {
+      if (node.children && node.children.length > 0) return true;
+      return false;
+    };
+    return (
+      Object.values(lists?.root ?? {}).some(checkForChildren) || hasSharedLists
+    );
+  }, [lists?.root, hasSharedLists]);
+
   useEffect(() => {
     setRefreshing(isPending);
   }, [isPending]);
@@ -176,25 +187,29 @@ export default function Lists() {
               props: { marginLeft: l.item.level * 20 },
             })}
           >
-            {l.item.numChildren > 0 && (
-              <Pressable
-                className="pr-2"
-                onPress={() => {
-                  setShowChildrenOf((prev) => ({
-                    ...prev,
-                    [l.item.id]: !prev[l.item.id],
-                  }));
-                }}
-              >
-                <ChevronRight
-                  color={colors.foreground}
-                  style={{
-                    transform: [
-                      { rotate: l.item.collapsed ? "0deg" : "90deg" },
-                    ],
-                  }}
-                />
-              </Pressable>
+            {hasAnyListsWithChildren && (
+              <View style={{ width: 32 }}>
+                {l.item.numChildren > 0 && (
+                  <Pressable
+                    className="pr-2"
+                    onPress={() => {
+                      setShowChildrenOf((prev) => ({
+                        ...prev,
+                        [l.item.id]: !prev[l.item.id],
+                      }));
+                    }}
+                  >
+                    <ChevronRight
+                      color={colors.foreground}
+                      style={{
+                        transform: [
+                          { rotate: l.item.collapsed ? "0deg" : "90deg" },
+                        ],
+                      }}
+                    />
+                  </Pressable>
+                )}
+              </View>
             )}
 
             {l.item.isSharedSection ? (

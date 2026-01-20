@@ -31,12 +31,7 @@ import {
 } from "@karakeep/db/schema";
 import { SearchIndexingQueue, triggerWebhook } from "@karakeep/shared-server";
 import { deleteAsset, readAsset } from "@karakeep/shared/assetdb";
-import serverConfig from "@karakeep/shared/config";
-import {
-  createSignedToken,
-  getAlignedExpiry,
-} from "@karakeep/shared/signedTokens";
-import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";
+import { getAlignedExpiry } from "@karakeep/shared/signedTokens";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
@@ -55,6 +50,7 @@ import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
+import { Asset } from "./assets";
 import { List } from "./lists";
 
 async function dummyDrizzleReturnType() {
@@ -273,6 +269,130 @@ export class Bookmark extends BareBookmark {
 
   static fromData(ctx: AuthedContext, data: ZBookmark) {
     return new Bookmark(ctx, data);
+  }
+
+  static async buildDebugInfo(ctx: AuthedContext, bookmarkId: string) {
+    // Verify the user is an admin
+    if (ctx.user.role !== "admin") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin access required",
+      });
+    }
+
+    const PRIVACY_REDACTED_ASSET_TYPES = new Set<AssetTypes>([
+      AssetTypes.USER_UPLOADED,
+      AssetTypes.BOOKMARK_ASSET,
+    ]);
+
+    const bookmark = await ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+      with: {
+        link: true,
+        text: true,
+        asset: true,
+        tagsOnBookmarks: {
+          with: {
+            tag: true,
+          },
+        },
+        assets: true,
+      },
+    });
+
+    if (!bookmark) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
+      });
+    }
+
+    // Build link info
+    let linkInfo = null;
+    if (bookmark.link) {
+      const htmlContentPreview = await (async () => {
+        try {
+          const content = await Bookmark.getBookmarkHtmlContent(
+            bookmark.link!,
+            bookmark.userId,
+          );
+          return content ? content.substring(0, 1000) : null;
+        } catch {
+          return null;
+        }
+      })();
+
+      linkInfo = {
+        url: bookmark.link.url,
+        crawlStatus: bookmark.link.crawlStatus ?? "pending",
+        crawlStatusCode: bookmark.link.crawlStatusCode,
+        crawledAt: bookmark.link.crawledAt,
+        hasHtmlContent: !!bookmark.link.htmlContent,
+        hasContentAsset: !!bookmark.link.contentAssetId,
+        htmlContentPreview,
+      };
+    }
+
+    // Build text info
+    let textInfo = null;
+    if (bookmark.text) {
+      textInfo = {
+        hasText: !!bookmark.text.text,
+        sourceUrl: bookmark.text.sourceUrl,
+      };
+    }
+
+    // Build asset info
+    let assetInfo = null;
+    if (bookmark.asset) {
+      assetInfo = {
+        assetType: bookmark.asset.assetType,
+        hasContent: !!bookmark.asset.content,
+        fileName: bookmark.asset.fileName,
+      };
+    }
+
+    // Build tags
+    const tags = bookmark.tagsOnBookmarks.map((t) => ({
+      id: t.tag.id,
+      name: t.tag.name,
+      attachedBy: t.attachedBy,
+    }));
+
+    // Build assets list with signed URLs (exclude userUploaded)
+    const assetsWithUrls = bookmark.assets.map((a) => {
+      // Generate signed token with 10 mins expiry
+      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+      // Exclude userUploaded assets for privacy reasons
+      const url = !PRIVACY_REDACTED_ASSET_TYPES.has(a.assetType)
+        ? Asset.getPublicSignedAssetUrl(a.id, bookmark.userId, expiresAt)
+        : null;
+
+      return {
+        id: a.id,
+        assetType: a.assetType,
+        size: a.size,
+        url,
+      };
+    });
+
+    return {
+      id: bookmark.id,
+      type: bookmark.type,
+      source: bookmark.source,
+      createdAt: bookmark.createdAt,
+      modifiedAt: bookmark.modifiedAt,
+      title: bookmark.title,
+      summary: bookmark.summary,
+      taggingStatus: bookmark.taggingStatus,
+      summarizationStatus: bookmark.summarizationStatus,
+      userId: bookmark.userId,
+      linkInfo,
+      textInfo,
+      assetInfo,
+      tags,
+      assets: assetsWithUrls,
+    };
   }
 
   static async loadMulti(
@@ -649,17 +769,12 @@ export class Bookmark extends BareBookmark {
 
   asPublicBookmark(): ZPublicBookmark {
     const getPublicSignedAssetUrl = (assetId: string) => {
-      const payload: z.infer<typeof zAssetSignedTokenSchema> = {
+      // Tokens will expire in 1 hour and will have a grace period of 15mins
+      return Asset.getPublicSignedAssetUrl(
         assetId,
-        userId: this.ctx.user.id,
-      };
-      const signedToken = createSignedToken(
-        payload,
-        serverConfig.signingSecret(),
-        // Tokens will expire in 1 hour and will have a grace period of 15mins
-        getAlignedExpiry(/* interval */ 3600, /* grace */ 900),
+        this.bookmark.userId,
+        getAlignedExpiry(3600, 900),
       );
-      return `${serverConfig.publicApiUrl}/public/assets/${assetId}?token=${signedToken}`;
     };
     const getContent = (
       content: ZBookmarkContent,

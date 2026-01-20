@@ -142,9 +142,13 @@ export function PendingInvitationsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 font-normal">
           <Mail className="h-5 w-5" />
-          {t("lists.invitations.pending")} ({invitations.length})
+          {t("lists.invitations.pending")}
+
+          <span className="rounded bg-secondary p-1 text-sm text-secondary-foreground">
+            {invitations.length}
+          </span>
         </CardTitle>
         <CardDescription>{t("lists.invitations.description")}</CardDescription>
       </CardHeader>

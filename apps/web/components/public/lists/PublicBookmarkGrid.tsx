@@ -227,7 +227,11 @@ export default function PublicBookmarkGrid({
   }, [data]);
   return (
     <>
-      <Masonry className="flex gap-4" breakpointCols={breakpointConfig}>
+      <Masonry
+        className="-ml-4 flex w-auto"
+        columnClassName="pl-4"
+        breakpointCols={breakpointConfig}
+      >
         {bookmarks.map((bookmark) => (
           <BookmarkCard key={bookmark.id} bookmark={bookmark} />
         ))}

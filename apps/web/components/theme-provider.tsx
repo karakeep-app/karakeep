@@ -5,7 +5,11 @@ import * as React from "react";
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+  return (
+    <NextThemesProvider scriptProps={{ "data-cfasync": "false" }} {...props}>
+      {children}
+    </NextThemesProvider>
+  );
 }
 
 export function useToggleTheme() {

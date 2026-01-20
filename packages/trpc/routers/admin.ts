@@ -17,6 +17,7 @@ import {
   zAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 import { getSearchClient } from "@karakeep/shared/search";
 import {
@@ -24,9 +25,11 @@ import {
   updateUserSchema,
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { adminProcedure, router } from "../index";
+import { Bookmark } from "../models/bookmarks";
 import { User } from "../models/users";
 
 export const adminAppRouter = router({
@@ -201,7 +204,7 @@ export const adminAppRouter = router({
   recrawlLinks: adminProcedure
     .input(
       z.object({
-        crawlStatus: z.enum(["success", "failure", "all"]),
+        crawlStatus: z.enum(["success", "failure", "pending", "all"]),
         runInference: z.boolean(),
       }),
     )
@@ -217,10 +220,15 @@ export const adminAppRouter = router({
 
       await Promise.all(
         bookmarkIds.map((b) =>
-          LinkCrawlerQueue.enqueue({
-            bookmarkId: b.id,
-            runInference: input.runInference,
-          }),
+          LinkCrawlerQueue.enqueue(
+            {
+              bookmarkId: b.id,
+              runInference: input.runInference,
+            },
+            {
+              priority: 50,
+            },
+          ),
         ),
       );
     }),
@@ -233,7 +241,13 @@ export const adminAppRouter = router({
       },
     });
 
-    await Promise.all(bookmarkIds.map((b) => triggerSearchReindex(b.id)));
+    await Promise.all(
+      bookmarkIds.map((b) =>
+        triggerSearchReindex(b.id, {
+          priority: 50,
+        }),
+      ),
+    );
   }),
   reprocessAssetsFixMode: adminProcedure.mutation(async ({ ctx }) => {
     const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({
@@ -244,10 +258,15 @@ export const adminAppRouter = router({
 
     await Promise.all(
       bookmarkIds.map((b) =>
-        AssetPreprocessingQueue.enqueue({
-          bookmarkId: b.id,
-          fixMode: true,
-        }),
+        AssetPreprocessingQueue.enqueue(
+          {
+            bookmarkId: b.id,
+            fixMode: true,
+          },
+          {
+            priority: 50,
+          },
+        ),
       ),
     );
   }),
@@ -255,7 +274,7 @@ export const adminAppRouter = router({
     .input(
       z.object({
         type: z.enum(["tag", "summarize"]),
-        status: z.enum(["success", "failure", "all"]),
+        status: z.enum(["success", "failure", "pending", "all"]),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -277,7 +296,12 @@ export const adminAppRouter = router({
 
       await Promise.all(
         bookmarkIds.map((b) =>
-          OpenAIQueue.enqueue({ bookmarkId: b.id, type: input.type }),
+          OpenAIQueue.enqueue(
+            { bookmarkId: b.id, type: input.type },
+            {
+              priority: 50,
+            },
+          ),
         ),
       );
     }),
@@ -536,5 +560,174 @@ export const adminAppRouter = router({
         browser: browserStatus,
         queue: queueStatus,
       };
+    }),
+  getBookmarkDebugInfo: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .output(
+      z.object({
+        id: z.string(),
+        type: z.enum([
+          BookmarkTypes.LINK,
+          BookmarkTypes.TEXT,
+          BookmarkTypes.ASSET,
+        ]),
+        source: z
+          .enum([
+            "api",
+            "web",
+            "extension",
+            "cli",
+            "mobile",
+            "singlefile",
+            "rss",
+            "import",
+          ])
+          .nullable(),
+        createdAt: z.date(),
+        modifiedAt: z.date().nullable(),
+        title: z.string().nullable(),
+        summary: z.string().nullable(),
+        taggingStatus: z.enum(["pending", "failure", "success"]).nullable(),
+        summarizationStatus: z
+          .enum(["pending", "failure", "success"])
+          .nullable(),
+        userId: z.string(),
+        linkInfo: z
+          .object({
+            url: z.string(),
+            crawlStatus: z.enum(["pending", "failure", "success"]),
+            crawlStatusCode: z.number().nullable(),
+            crawledAt: z.date().nullable(),
+            hasHtmlContent: z.boolean(),
+            hasContentAsset: z.boolean(),
+            htmlContentPreview: z.string().nullable(),
+          })
+          .nullable(),
+        textInfo: z
+          .object({
+            hasText: z.boolean(),
+            sourceUrl: z.string().nullable(),
+          })
+          .nullable(),
+        assetInfo: z
+          .object({
+            assetType: z.enum(["image", "pdf"]),
+            hasContent: z.boolean(),
+            fileName: z.string().nullable(),
+          })
+          .nullable(),
+        tags: z.array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            attachedBy: z.enum(["ai", "human"]),
+          }),
+        ),
+        assets: z.array(
+          z.object({
+            id: z.string(),
+            assetType: z.string(),
+            size: z.number(),
+            url: z.string().nullable(),
+          }),
+        ),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      logger.info(
+        `[admin] Admin ${ctx.user.id} accessed debug info for bookmark ${input.bookmarkId}`,
+      );
+
+      return await Bookmark.buildDebugInfo(ctx, input.bookmarkId);
+    }),
+  adminRecrawlBookmark: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify bookmark exists and is a link
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      if (bookmark.type !== BookmarkTypes.LINK) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only link bookmarks can be recrawled",
+        });
+      }
+
+      await LinkCrawlerQueue.enqueue({
+        bookmarkId: input.bookmarkId,
+      });
+    }),
+  adminReindexBookmark: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify bookmark exists
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      await triggerSearchReindex(input.bookmarkId);
+    }),
+  adminRetagBookmark: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify bookmark exists
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      await OpenAIQueue.enqueue({
+        bookmarkId: input.bookmarkId,
+        type: "tag",
+      });
+    }),
+  adminResummarizeBookmark: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify bookmark exists and is a link
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      if (bookmark.type !== BookmarkTypes.LINK) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only link bookmarks can be summarized",
+        });
+      }
+
+      await OpenAIQueue.enqueue({
+        bookmarkId: input.bookmarkId,
+        type: "summarize",
+      });
     }),
 });

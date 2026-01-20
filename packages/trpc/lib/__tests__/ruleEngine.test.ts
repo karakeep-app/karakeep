@@ -126,6 +126,7 @@ describe("RuleEngine", () => {
         .values({
           userId,
           type: BookmarkTypes.LINK,
+          title: "Example Bookmark Title",
           favourited: false,
           archived: false,
         })
@@ -230,6 +231,38 @@ describe("RuleEngine", () => {
     it("should return true for urlDoesNotContain condition when URL does not contain string", () => {
       const condition: RuleEngineCondition = {
         type: "urlDoesNotContain",
+        str: "nonexistent",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
+    it("should return true for titleContains condition", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleContains",
+        str: "Example",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
+    it("should return false for titleContains condition mismatch", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleContains",
+        str: "nonexistent",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return false for titleDoesNotContain condition when title contains string", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleDoesNotContain",
+        str: "Example",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return true for titleDoesNotContain condition when title does not contain string", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleDoesNotContain",
         str: "nonexistent",
       };
       expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);

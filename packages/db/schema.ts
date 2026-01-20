@@ -168,6 +168,7 @@ export const apiKeys = sqliteTable(
       .$defaultFn(() => createId()),
     name: text("name").notNull(),
     createdAt: createdAtField(),
+    lastUsedAt: integer("lastUsedAt", { mode: "timestamp" }),
     keyId: text("keyId").notNull().unique(),
     keyHash: text("keyHash").notNull(),
     userId: text("userId")

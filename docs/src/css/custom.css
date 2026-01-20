@@ -163,19 +163,6 @@ h3 {
   margin-top: 2rem;
 }
 
-p {
-  margin-bottom: 1.25rem;
-}
-
-a {
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-a:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 
 /* ============================================
    Navbar
@@ -319,7 +306,6 @@ article {
 .theme-doc-markdown {
   margin-top: 1rem;
   max-width: 100%;
-  overflow-x: auto;
 }
 
 /* Breadcrumbs */
@@ -341,32 +327,6 @@ article {
 .breadcrumbs__link:hover {
   background-color: var(--ifm-menu-color-background-hover);
   text-decoration: none;
-}
-
-/* ============================================
-   Table of Contents
-   ============================================ */
-.table-of-contents {
-  font-size: 0.8125rem;
-  border-left: 1px solid var(--docs-color-border);
-  padding-left: 0.75rem;
-}
-
-.table-of-contents__link {
-  color: var(--ifm-font-color-secondary);
-  display: block;
-  padding: 0.375rem 0;
-  transition: color var(--transition-fast);
-}
-
-.table-of-contents__link:hover,
-.table-of-contents__link--active {
-  color: var(--ifm-color-primary);
-  text-decoration: none;
-}
-
-.table-of-contents__link--active {
-  font-weight: 500;
 }
 
 /* ============================================
@@ -569,61 +529,6 @@ li::marker {
 .pagination-nav__label {
   font-weight: 500;
   font-size: 0.9375rem;
-}
-
-/* ============================================
-   Version Dropdown
-   ============================================ */
-.navbar__item.dropdown .navbar__link {
-  font-size: 0.8125rem;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid var(--docs-color-border);
-  border-radius: 0.375rem;
-}
-
-.dropdown__menu {
-  border: 1px solid var(--docs-color-border);
-  border-radius: 0.5rem;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 0.5rem;
-  min-width: 10rem;
-}
-
-[data-theme="dark"] .dropdown__menu {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.3),
-    0 2px 4px -1px rgba(0, 0, 0, 0.2);
-}
-
-.dropdown__link {
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  transition: background-color var(--transition-fast);
-}
-
-.dropdown__link:hover {
-  background-color: var(--ifm-menu-color-background-hover);
-}
-
-.dropdown__link--active {
-  background-color: var(--ifm-menu-color-background-active);
-  color: var(--ifm-color-primary);
-}
-
-/* ============================================
-   Theme Toggle
-   ============================================ */
-.navbar__items--right > :last-child {
-  padding-right: 0;
-}
-
-[data-theme="light"]
-  .clean-btn[title="Switch between dark and light mode"]
-  svg {
-  color: var(--ifm-font-color-secondary);
 }
 
 /* ============================================
