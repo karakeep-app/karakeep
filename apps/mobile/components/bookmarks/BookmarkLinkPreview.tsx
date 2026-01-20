@@ -10,6 +10,10 @@ import { api } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import {
+  PERIODIC_SAVE_INTERVAL_MS,
+  SCROLL_THROTTLE_MS,
+} from "@karakeep/shared/utils/reading-progress-core";
 import { READING_PROGRESS_WEBVIEW_JS } from "@karakeep/shared/utils/reading-progress-webview.generated";
 
 import FullPageError from "../FullPageError";
@@ -87,7 +91,7 @@ function buildReadingProgressScript(
       var lastScrollTime = 0;
       window.addEventListener('scroll', function() {
         var now = Date.now();
-        if (now - lastScrollTime < 150) {
+        if (now - lastScrollTime < ${SCROLL_THROTTLE_MS}) {
           return;
         }
         lastScrollTime = now;
@@ -95,7 +99,7 @@ function buildReadingProgressScript(
       });
 
       // Also report periodically as backup
-      setInterval(reportProgress, 10000);
+      setInterval(reportProgress, ${PERIODIC_SAVE_INTERVAL_MS});
 
       true; // Required for injectedJavaScript
     })();

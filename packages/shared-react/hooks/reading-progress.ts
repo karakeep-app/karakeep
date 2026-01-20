@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
+import { SCROLL_THROTTLE_MS } from "@karakeep/shared/utils/reading-progress-core";
 import {
   findScrollableParent,
   getReadingPosition,
@@ -115,7 +116,7 @@ export function useReadingProgress(
 
     const handleScroll = () => {
       const now = Date.now();
-      if (now - lastScrollTimeRef.current < 150) return;
+      if (now - lastScrollTimeRef.current < SCROLL_THROTTLE_MS) return;
       lastScrollTimeRef.current = now;
 
       const position = getReadingPosition(container);

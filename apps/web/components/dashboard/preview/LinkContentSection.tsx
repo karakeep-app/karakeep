@@ -138,14 +138,10 @@ export default function LinkContentSection({
 
   // Track when content is ready for reading progress restoration
   const [contentReady, setContentReady] = useState(false);
-  const prevSectionRef = useRef(section);
 
-  // Reset contentReady when section changes (but not on initial mount)
+  // Reset contentReady when section changes
   useEffect(() => {
-    if (prevSectionRef.current !== section) {
-      prevSectionRef.current = section;
-      setContentReady(false);
-    }
+    setContentReady(false);
   }, [section]);
 
   if (bookmark.content.type != BookmarkTypes.LINK) {
