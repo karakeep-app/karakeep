@@ -622,6 +622,7 @@ export const bookmarksAppRouter = router({
             readingProgressOffset: input.readingProgressOffset,
             readingProgressAnchor: input.readingProgressAnchor ?? null,
             readingProgressPercent: input.readingProgressPercent ?? null,
+            modifiedAt: new Date(),
           },
         });
     }),
