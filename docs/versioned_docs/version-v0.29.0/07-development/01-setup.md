@@ -136,14 +136,16 @@ For detailed setup instructions, refer to the [Expo documentation](https://docs.
 
 - `pnpm --filter mobile expo prebuild --no-install` to build the app.
   - add `--clean` if you need to, for example, change the bundleIdentifier/package
-    it doesn't change with e.g. `expo run:android` alone
-    `pnpm --filter mobile expo prebuild --no-install --clean`
+    i.e. running just `expo run:android` will not update the bundleIdentifier/package
+    verbose: `pnpm --filter mobile expo prebuild --no-install --clean`
     or
-    `pnpm --filter mobile clean:prebuild`
-    - you might also want to add `APP_VARIANT=development`, so you can install the `dev` variant on your phone along side the production version
-      `APP_VARIANT=development pnpm --filter mobile expo prebuild --no-install --clean`
+    alias:   `pnpm --filter mobile clean:prebuild`
+  - why would I want to change the bundleIdentifier/package?
+    - so you can install `dev` variant, to try out your own build alongside your "production" karakeep app without uninstalling it
+    - you need to inject the env var`APP_VARIANT=development`
+      verbose: `APP_VARIANT=development pnpm --filter mobile expo prebuild --no-install --clean`
       or
-      `pnpm --filter mobile clean:prebuild:dev`
+      alias:   `pnpm --filter mobile clean:prebuild:dev`
 
 **For iOS:**
 - `pnpm ios`
