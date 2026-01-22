@@ -132,6 +132,19 @@ To build and run the mobile app locally, you'll need:
 
 For detailed setup instructions, refer to the [Expo documentation](https://docs.expo.dev/guides/local-app-development/).
 
+
+#### TLDR??? THIS IS TOO VERBOSE!
+
+```sh
+# ios
+pnpm --filter mobile clean:prebuild:dev && APP_VARIANT=development pnpm ios
+
+# android
+pnpm --filter mobile clean:prebuild:dev && APP_VARIANT=development pnpm android
+```
+
+More details below if you want to understand what's going on
+
 #### Running the app
 
 - `pnpm --filter mobile expo prebuild --no-install` to build the app.
@@ -139,13 +152,15 @@ For detailed setup instructions, refer to the [Expo documentation](https://docs.
     i.e. running just `expo run:android` will not update the bundleIdentifier/package
     - verbose: `pnpm --filter mobile expo prebuild --no-install --clean`  
       or
-    - alias:   `pnpm --filter mobile clean:prebuild`
+    - alias: `pnpm --filter mobile clean:prebuild`
   - why would I want to change the bundleIdentifier/package?
     - so you can install `dev` variant, to try out your own build alongside your "production" karakeep app without uninstalling it
-    - you need to inject the env var`APP_VARIANT=development`  
+    - you need to inject the env var `APP_VARIANT=development`  
       - verbose: `APP_VARIANT=development pnpm --filter mobile expo prebuild --no-install --clean`  
         or
-      - alias:   `pnpm --filter mobile clean:prebuild:dev`
+      - alias: `pnpm --filter mobile clean:prebuild:dev`
+
+Keep in mind that the app that you install at this point, expects the dev server to be available and accessible.
 
 **For iOS:**
 - `pnpm ios`
@@ -161,14 +176,14 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 - Start the Android emulator or connect a physical device.
 - `pnpm android`
 - The app will be installed and started on the emulator/device.
-- You might need to add `APP_VARIANT=development` if you intend to run the dev variant, however, my personal experience is that instead, the key is to run `prebuild` with `APP_VARIANT=development` instead
+- You might need to add `APP_VARIANT=development` if you intend to run the dev variant, however, my personal experience is that instead, the key is to run `prebuild` with `APP_VARIANT=development` instead. But after you already prebuild properly, then you can just run run expo
   `APP_VARIANT=development pnpm android`
   or 
-  `pnpm --filter mobile clean:prebuild:dev && pnpm android`
+  `pnpm --filter mobile clean:prebuild:dev && APP_VARIANT=development pnpm android`
 
 Changing the code will hot reload the app. However, installing new packages requires restarting the expo server.
 
-**Installing a release build:**
+**Installing a release build (only tested for android):**
 
 It might be slightly confusing, but if you want to install the `dev` variant of the app, but you want it to be a "release" build; does not use the dev server, you can do the following:
 - `pnpm --filter mobile clean:prebuild:dev`

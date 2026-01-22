@@ -11,7 +11,7 @@
     "android": "expo run:android",
     "android:dev:release": "APP_VARIANT=development pnpm run android --variant release",
     "ios": "expo run:ios",
-    "ios:dev:release": "echo 'i don't have an ios device to confirm if this works'",
+    "ios:dev:release": "echo 'i dont have an ios device to confirm if this works'",
     "web": "expo start --web",
     "format": "prettier . --cache --check",
     "format:fix": "prettier . --cache --write",
