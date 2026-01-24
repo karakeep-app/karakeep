@@ -33,6 +33,7 @@ enum TokenType {
   Space = "SPACE",
   Hash = "HASH",
   Minus = "MINUS",
+  Exclamation = "EXCLAMATION",
 }
 
 // Rules are in order of priority
@@ -41,7 +42,7 @@ const lexerRules: [RegExp, TokenType][] = [
   [/^\s+or/i, TokenType.Or],
 
   [/^#/, TokenType.Hash],
-  [/^(is|url|list|after|before|age|feed|title):/, TokenType.Qualifier],
+  [/^(is|url|list|after|before|age|feed|title|tag):/, TokenType.Qualifier],
 
   [/^"([^"]+)"/, TokenType.StringLiteral],
 
@@ -49,6 +50,7 @@ const lexerRules: [RegExp, TokenType][] = [
   [/^\)/, TokenType.RParen],
   [/^\s+/, TokenType.Space],
   [/^-/, TokenType.Minus],
+  [/^!/, TokenType.Exclamation],
 
   // This needs to be last as it matches a lot of stuff
   [/^[^ )(]+/, TokenType.Ident],
@@ -116,7 +118,10 @@ const EXP = rule<TokenType, TextAndMatcher>();
 MATCHER.setPattern(
   alt_sc(
     apply(
-      seq(opt(str("-")), kright(str("is:"), tok(TokenType.Ident))),
+      seq(
+        opt(alt(str("-"), str("!"))),
+        kright(str("is:"), tok(TokenType.Ident)),
+      ),
       ([minus, ident]) => {
         switch (ident.text) {
           case "fav":
@@ -182,7 +187,7 @@ MATCHER.setPattern(
     ),
     apply(
       seq(
-        opt(str("-")),
+        opt(alt(str("-"), str("!"))),
         alt(tok(TokenType.Qualifier), tok(TokenType.Hash)),
         alt(
           apply(tok(TokenType.Ident), (tok) => {
@@ -206,6 +211,7 @@ MATCHER.setPattern(
               matcher: { type: "title", title: ident, inverse: !!minus },
             };
           case "#":
+          case "tag:":
             return {
               text: "",
               matcher: { type: "tagName", tagName: ident, inverse: !!minus },

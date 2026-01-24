@@ -11,7 +11,7 @@ Karakeep provides a search query language to filter and find bookmarks. Here are
 
 - Use spaces to separate multiple conditions (implicit AND)
 - Use `and`/`or` keywords for explicit boolean logic
-- Prefix qualifiers with `-` to negate them
+- Prefix qualifiers with `-` or `!` to negate them (e.g., `-is:archived` or `!is:archived`)
 - Use parentheses `()` for grouping conditions (note that groups can't be negated)
 
 ## Qualifiers
@@ -29,8 +29,8 @@ Here's a comprehensive table of all supported qualifiers:
 | `url:<value>`                    | Match bookmarks with URL substring                                                                                                                                                                        | `url:example.com`                            |
 | `title:<value>`                  | Match bookmarks with title substring                                                                                                               | `title:example`                              |
 |                                  | Supports quoted strings for titles with spaces                                                                                                   | `title:"my title"`                           |
-| `#<tag>`                         | Match bookmarks with specific tag                                                                                                                                                                         | `#important`                                 |
-|                                  | Supports quoted strings for tags with spaces                                                                                                                                                              | `#"work in progress"`                        |
+| `#<tag>` or `tag:<tag>`          | Match bookmarks with specific tag                                                                                                                                                                         | `#important` or `tag:important`              |
+|                                  | Supports quoted strings for tags with spaces                                                                                                                                                              | `#"work in progress"` or `tag:"work in progress"` |
 | `list:<name>`                    | Match bookmarks in specific list                                                                                                                                                                          | `list:reading`                               |
 |                                  | Supports quoted strings for list names with spaces                                                                                                                                                        | `list:"to review"`                           |
 | `after:<date>`                   | Bookmarks created on or after date (YYYY-MM-DD)                                                                                                                                                           | `after:2023-01-01`                           |
@@ -66,6 +66,12 @@ is:archived and (list:reading or #work)
 
 # Find bookmarks that are not favorited and not archived
 -is:fav -is:archived
+
+# Using ! as an alias for negation
+!is:fav !is:archived
+
+# Using tag: as an alias for #
+tag:important tag:"work in progress"
 ```
 
 ## Text Search
