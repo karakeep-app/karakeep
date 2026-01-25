@@ -17,7 +17,10 @@ export interface RateLimitClient {
    * @param key Unique rate limiting key (e.g., "ip:127.0.0.1:path:/api/v1")
    * @returns Result indicating if the request is allowed and reset time if not
    */
-  checkRateLimit(config: RateLimitConfig, key: string): RateLimitResult;
+  checkRateLimit(
+    config: RateLimitConfig,
+    key: string,
+  ): RateLimitResult | Promise<RateLimitResult>;
 
   /**
    * Reset rate limit for a specific key

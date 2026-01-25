@@ -167,6 +167,14 @@ const allEnv = z.object({
   // Rate limiting configuration
   RATE_LIMITING_ENABLED: stringBool("false"),
 
+  // Redis configuration
+  REDIS_URL: z.string().optional(),
+  REDIS_HOST: z.string().optional(),
+  REDIS_PORT: z.coerce.number().optional(),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_DB: z.coerce.number().optional(),
+  REDIS_TLS: stringBool("false"),
+
   // Stripe configuration
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -414,6 +422,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     rateLimiting: {
       enabled: val.RATE_LIMITING_ENABLED,
+    },
+    redis: {
+      url: val.REDIS_URL,
+      host: val.REDIS_HOST,
+      port: val.REDIS_PORT,
+      password: val.REDIS_PASSWORD,
+      db: val.REDIS_DB,
+      tls: val.REDIS_TLS,
     },
     stripe: {
       secretKey: val.STRIPE_SECRET_KEY,
