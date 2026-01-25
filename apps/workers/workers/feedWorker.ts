@@ -94,9 +94,14 @@ export class FeedWorker {
           workerStatsCounter.labels("feed", "completed").inc();
           const jobId = job.id;
           logger.info(`[feed][${jobId}] Completed successfully`);
+          const now = new Date();
           await db
             .update(rssFeedsTable)
-            .set({ lastFetchedStatus: "success", lastFetchedAt: new Date() })
+            .set({
+              lastFetchedStatus: "success",
+              lastFetchedAt: now,
+              lastSuccessfulFetchAt: now,
+            })
             .where(eq(rssFeedsTable.id, job.data?.feedId));
         },
         onError: async (job) => {
@@ -109,10 +114,40 @@ export class FeedWorker {
             `[feed][${jobId}] Feed fetch job failed: ${job.error}\n${job.error.stack}`,
           );
           if (job.data) {
-            await db
-              .update(rssFeedsTable)
-              .set({ lastFetchedStatus: "failure", lastFetchedAt: new Date() })
-              .where(eq(rssFeedsTable.id, job.data?.feedId));
+            // Check if the feed should be auto-disabled (failing for 7 days)
+            const feed = await db.query.rssFeedsTable.findFirst({
+              where: eq(rssFeedsTable.id, job.data.feedId),
+            });
+
+            const now = new Date();
+            const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+            // Auto-disable if the feed has been failing for a week
+            // Check lastSuccessfulFetchAt, or if null, check createdAt
+            const lastSuccessDate =
+              feed?.lastSuccessfulFetchAt ?? feed?.createdAt;
+            const shouldAutoDisable =
+              feed && lastSuccessDate && lastSuccessDate < oneWeekAgo;
+
+            if (shouldAutoDisable) {
+              logger.warn(
+                `[feed][${jobId}] Auto-disabling feed "${feed.name}" (${feed.id}) - failing for more than 7 days`,
+              );
+              await db
+                .update(rssFeedsTable)
+                .set({
+                  lastFetchedStatus: "failure",
+                  lastFetchedAt: now,
+                  enabled: false,
+                  disabledReason: "auto_disabled",
+                })
+                .where(eq(rssFeedsTable.id, job.data.feedId));
+            } else {
+              await db
+                .update(rssFeedsTable)
+                .set({ lastFetchedStatus: "failure", lastFetchedAt: now })
+                .where(eq(rssFeedsTable.id, job.data.feedId));
+            }
           }
         },
       },

@@ -274,7 +274,8 @@
       "rss_subscriptions": "RSS Subscriptions",
       "add_a_subscription": "Add a Subscription",
       "feed_enabled": "RSS Feed enabled",
-      "feed_disabled": "RSS Feed disabled"
+      "feed_disabled": "RSS Feed disabled",
+      "auto_disabled_tooltip": "This feed was automatically disabled because it has been failing for more than 7 days. Re-enable it to try again."
     },
     "webhooks": {
       "webhooks": "Webhooks",

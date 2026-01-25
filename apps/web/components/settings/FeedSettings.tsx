@@ -20,6 +20,7 @@ import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AlertTriangle,
   ArrowDownToLine,
   CheckCircle,
   CircleDashed,
@@ -382,15 +383,29 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
     updateFeedEnabled({ feedId: feed.id, enabled: checked });
   };
 
+  const isAutoDisabled = feed.disabledReason === "auto_disabled";
+
   return (
-    <TableRow>
+    <TableRow className={isAutoDisabled ? "bg-destructive/10" : undefined}>
       <TableCell>
-        <Link
-          href={`/dashboard/feeds/${feed.id}`}
-          className={cn(buttonVariants({ variant: "link" }))}
-        >
-          {feed.name}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/dashboard/feeds/${feed.id}`}
+            className={cn(buttonVariants({ variant: "link" }))}
+          >
+            {feed.name}
+          </Link>
+          {isAutoDisabled && (
+            <Tooltip>
+              <TooltipTrigger>
+                <AlertTriangle className="size-4 text-destructive" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                {t("settings.feeds.auto_disabled_tooltip")}
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </TableCell>
       <TableCell
         className="max-w-64 overflow-clip text-ellipsis"

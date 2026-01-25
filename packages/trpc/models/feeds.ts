@@ -97,6 +97,13 @@ export class Feed {
   }
 
   async update(input: z.infer<typeof zUpdateFeedSchema>): Promise<void> {
+    // When user explicitly enables a feed, clear the disabled reason
+    // When user explicitly disables a feed, set the reason to "manual"
+    let disabledReason: "manual" | null | undefined = undefined;
+    if (input.enabled !== undefined) {
+      disabledReason = input.enabled ? null : "manual";
+    }
+
     const result = await this.ctx.db
       .update(rssFeedsTable)
       .set({
@@ -104,6 +111,7 @@ export class Feed {
         url: input.url,
         enabled: input.enabled,
         importTags: input.importTags,
+        disabledReason,
       })
       .where(
         and(

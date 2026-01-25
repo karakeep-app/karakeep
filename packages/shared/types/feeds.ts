@@ -5,6 +5,9 @@ const MAX_FEED_NAME_LENGTH = 100;
 
 export const zAppliesToEnumSchema = z.enum(["all", "text", "images"]);
 
+export const zDisabledReasonSchema = z.enum(["manual", "auto_disabled"]);
+export type ZDisabledReason = z.infer<typeof zDisabledReasonSchema>;
+
 export const zFeedSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(MAX_FEED_NAME_LENGTH),
@@ -13,6 +16,8 @@ export const zFeedSchema = z.object({
   importTags: z.boolean(),
   lastFetchedStatus: z.enum(["success", "failure", "pending"]).nullable(),
   lastFetchedAt: z.date().nullable(),
+  lastSuccessfulFetchAt: z.date().nullable(),
+  disabledReason: zDisabledReasonSchema.nullable(),
 });
 
 export type ZFeed = z.infer<typeof zFeedSchema>;

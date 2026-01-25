@@ -596,6 +596,12 @@ export const rssFeedsTable = sqliteTable(
     lastFetchedStatus: text("lastFetchedStatus", {
       enum: ["pending", "failure", "success"],
     }).default("pending"),
+    lastSuccessfulFetchAt: integer("lastSuccessfulFetchAt", {
+      mode: "timestamp",
+    }),
+    disabledReason: text("disabledReason", {
+      enum: ["manual", "auto_disabled"],
+    }),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
