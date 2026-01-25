@@ -540,6 +540,13 @@
       "when": 1768691440519,
       "tag": "0076_add_api_key_last_used_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "6",
+      "when": 1769347824511,
+      "tag": "0077_add_bookmark_indexing_timestamps",
+      "breakpoints": true
     }
   ]
 }

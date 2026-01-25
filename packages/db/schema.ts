@@ -218,6 +218,7 @@ export const bookmarks = sqliteTable(
         "import",
       ],
     }),
+    indexedAt: integer("indexedAt", { mode: "timestamp" }),
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
@@ -265,6 +266,7 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+    indexedPostCrawlingAt: integer("indexedPostCrawlingAt", { mode: "timestamp" }),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );
