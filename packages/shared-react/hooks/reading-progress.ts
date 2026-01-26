@@ -98,13 +98,6 @@ export function useReadingProgress(
     savePositionRef.current = savePosition;
   });
 
-  // Track current reading position on scroll
-  const lastKnownPositionRef = useRef<ReadingPosition | null>(
-    initialOffset
-      ? { offset: initialOffset, anchor: initialAnchor ?? "", percent: 0 }
-      : null,
-  );
-
   // Scroll tracking - waits for contentReady and checks visibility
   // (element may be mounted but hidden via CSS, e.g., inactive tab)
   const lastScrollTimeRef = useRef<number>(0);
@@ -118,11 +111,6 @@ export function useReadingProgress(
       const now = Date.now();
       if (now - lastScrollTimeRef.current < SCROLL_THROTTLE_MS) return;
       lastScrollTimeRef.current = now;
-
-      const position = getReadingPosition(container);
-      if (position !== null && position.offset > 0) {
-        lastKnownPositionRef.current = position;
-      }
     };
 
     const foundParent = findScrollableParent(container);
@@ -147,13 +135,9 @@ export function useReadingProgress(
     if (!container || !isElementVisible(container)) return;
 
     const saveCurrentProgress = () => {
-      let positionToSave = lastKnownPositionRef.current;
-      const freshPosition = getReadingPosition(container);
-      if (freshPosition !== null && freshPosition.offset > 0) {
-        positionToSave = freshPosition;
-      }
-      if (positionToSave !== null && positionToSave.offset > 0) {
-        savePositionRef.current(positionToSave);
+      const position = getReadingPosition(container);
+      if (position !== null && position.offset > 0) {
+        savePositionRef.current(position);
       }
     };
 
