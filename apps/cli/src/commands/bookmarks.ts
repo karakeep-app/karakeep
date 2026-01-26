@@ -29,18 +29,10 @@ type Bookmark = Omit<ZBookmark, "tags"> & {
 };
 
 function normalizeBookmark(bookmark: ZBookmark): Bookmark {
-  const ret = {
+  return {
     ...bookmark,
     tags: bookmark.tags.map((t) => t.name),
   };
-
-  if (ret.content.type == BookmarkTypes.LINK && ret.content.htmlContent) {
-    if (ret.content.htmlContent.length > 10) {
-      ret.content.htmlContent =
-        ret.content.htmlContent.substring(0, 10) + "... <CROPPED>";
-    }
-  }
-  return ret;
 }
 
 function printBookmark(bookmark: ZBookmark) {
@@ -151,10 +143,15 @@ bookmarkCmd
   .command("get")
   .description("fetch information about a bookmark")
   .argument("<id>", "The id of the bookmark to get")
-  .action(async (id) => {
+  .option(
+    "--include-content",
+    "include full bookmark content in results",
+    false,
+  )
+  .action(async (id, opts) => {
     const api = getAPIClient();
     await api.bookmarks.getBookmark
-      .query({ bookmarkId: id })
+      .query({ bookmarkId: id, includeContent: opts.includeContent })
       .then(printBookmark)
       .catch(printError(`Failed to get the bookmark with id "${id}"`));
   });
@@ -254,6 +251,11 @@ bookmarkCmd
     false,
   )
   .option("--list-id <id>", "if set, only items from that list will be fetched")
+  .option(
+    "--include-content",
+    "include full bookmark content in results",
+    false,
+  )
   .action(async (opts) => {
     const api = getAPIClient();
 
@@ -262,6 +264,7 @@ bookmarkCmd
       listId: opts.listId,
       limit: MAX_NUM_BOOKMARKS_PER_PAGE,
       useCursorV2: true,
+      includeContent: opts.includeContent,
     };
 
     try {
@@ -284,7 +287,10 @@ bookmarkCmd
 bookmarkCmd
   .command("search")
   .description("search bookmarks using query matchers")
-  .argument("<query>", "the search query (supports matchers like tag:name, is:fav, etc.)")
+  .argument(
+    "<query>",
+    "the search query (supports matchers like tag:name, is:fav, etc.)",
+  )
   .option(
     "--limit <limit>",
     "number of results per page",
@@ -307,11 +313,7 @@ bookmarkCmd
     "include full bookmark content in results",
     false,
   )
-  .option(
-    "--all",
-    "fetch all results (paginate through all pages)",
-    false,
-  )
+  .option("--all", "fetch all results (paginate through all pages)", false)
   .action(async (query, opts) => {
     const api = getAPIClient();
 
