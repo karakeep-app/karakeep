@@ -77,7 +77,12 @@ export function useReadingProgress(
       },
     });
 
-  // Stable save function via ref to avoid effect dependency issues
+  // Save function stored in a ref for stable access from event handlers.
+  // Why this pattern? Effects below subscribe to visibilitychange/beforeunload and
+  // need to call savePosition. If we used savePosition directly in those effects:
+  //   - Adding it to deps → re-subscribes to events when bookmarkId changes (wasteful)
+  //   - Omitting from deps → stale closure captures old bookmarkId (bug)
+  // The ref lets event handlers always access the latest function without re-subscribing.
   const savePosition = useCallback(
     (position: ReadingPosition) => {
       if (!enabled) return;
@@ -93,9 +98,9 @@ export function useReadingProgress(
     },
     [enabled, bookmarkId, updateProgress],
   );
-  const savePositionRef = useRef(savePosition);
+  const savePositionCallbackRef = useRef(savePosition);
   useEffect(() => {
-    savePositionRef.current = savePosition;
+    savePositionCallbackRef.current = savePosition;
   });
 
   // Scroll tracking - waits for contentReady and checks visibility
@@ -137,7 +142,7 @@ export function useReadingProgress(
     const saveCurrentProgress = () => {
       const position = getReadingPosition(container);
       if (position !== null && position.offset > 0) {
-        savePositionRef.current(position);
+        savePositionCallbackRef.current(position);
       }
     };
 
