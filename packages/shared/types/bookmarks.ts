@@ -58,6 +58,9 @@ export const zBookmarkedLinkSchema = z.object({
   publisher: z.string().nullish(),
   datePublished: z.date().nullish(),
   dateModified: z.date().nullish(),
+  readingProgressOffset: z.number().int().nonnegative().nullish(),
+  readingProgressAnchor: z.string().nullish(),
+  readingProgressPercent: z.number().int().min(0).max(100).nullish(),
 });
 export type ZBookmarkedLink = z.infer<typeof zBookmarkedLinkSchema>;
 
