@@ -1,10 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  ANCHOR_TEXT_MAX_LENGTH,
-  normalizeText,
-  normalizeTextLength,
-} from "./reading-progress-core";
+import { normalizeText, normalizeTextLength } from "./reading-progress-core";
 
 describe("normalizeText", () => {
   test("collapses multiple spaces to single space", () => {
@@ -56,11 +52,5 @@ describe("normalizeTextLength", () => {
 
   test("returns 0 for whitespace-only string", () => {
     expect(normalizeTextLength("   \n\t")).toBe(0);
-  });
-});
-
-describe("ANCHOR_TEXT_MAX_LENGTH", () => {
-  test("is 50 characters", () => {
-    expect(ANCHOR_TEXT_MAX_LENGTH).toBe(50);
   });
 });
