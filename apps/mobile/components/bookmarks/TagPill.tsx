@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { Link } from "expo-router";
 
 import { ZBookmarkTags } from "@karakeep/shared/types/tags";
@@ -10,6 +10,7 @@ export default function TagPill({
   tag: ZBookmarkTags;
   clickable?: boolean;
 }) {
+  // Trailing space fixes Android text clipping: https://github.com/facebook/react-native/issues/53286
   return (
     <View
       key={tag.id}
@@ -18,9 +19,13 @@ export default function TagPill({
       {clickable ? (
         <Link className="text-foreground" href={`dashboard/tags/${tag.id}`}>
           {tag.name}
+          {Platform.OS === "android" ? " " : ""}
         </Link>
       ) : (
-        <Text className="text-foreground">{tag.name}</Text>
+        <Text className="text-foreground">
+          {tag.name}
+          {Platform.OS === "android" ? " " : ""}
+        </Text>
       )}
     </View>
   );
