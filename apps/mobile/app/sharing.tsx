@@ -109,7 +109,7 @@ export default function Sharing() {
       comp = (
         <View className="items-center gap-4">
           <Text variant="largeTitle">
-            {mode.type === "alreadyExists" ? "Already Hoarded!" : "Hoarded!"}
+            {mode.type === "alreadyExists" ? "Already Karakept!" : "Karakept!"}
           </Text>
           <Button
             onPress={() => {
