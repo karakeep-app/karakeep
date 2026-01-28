@@ -14,6 +14,7 @@ import {
   bookmarkTexts,
   customPrompts,
   tagsOnBookmarks,
+  users,
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
@@ -988,8 +989,15 @@ Author: ${bookmark.author ?? ""}
         },
       });
 
+      const userSettings = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+        columns: {
+          inferredTagLang: true,
+        },
+      });
+
       const summaryPrompt = await buildSummaryPrompt(
-        serverConfig.inference.inferredTagLang,
+        userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
         prompts.map((p) => p.text),
         bookmarkDetails,
         serverConfig.inference.contextLength,
