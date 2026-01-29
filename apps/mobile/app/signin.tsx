@@ -221,6 +221,14 @@ export default function Signin() {
                 : "Use password instead?"}
             </Text>
           </Pressable>
+          <Pressable onPress={() => router.push("/signup")}>
+            <Text className="mt-4 text-center text-sm text-gray-500">
+              Don&apos;t have an account?{" "}
+              <Text className="font-medium text-blue-600 dark:text-blue-400">
+                Sign up
+              </Text>
+            </Text>
+          </Pressable>
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
