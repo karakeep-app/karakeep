@@ -16,7 +16,8 @@ export type ImportSource =
   | "karakeep"
   | "linkwarden"
   | "tab-session-manager"
-  | "mymind";
+  | "mymind"
+  | "instapaper";
 
 export interface ParsedBookmark {
   title: string;
@@ -357,6 +358,64 @@ function parseMymindBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
+function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zInstapaperRecordScheme = z.object({
+    URL: z.string(),
+    Title: z.string(),
+    Selection: z.string(),
+    Folder: z.string(),
+    Timestamp: z.string(),
+    Tags: z.string(),
+  });
+
+  const zInstapaperExportScheme = z.array(zInstapaperRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zInstapaperExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid instapaper bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
+    let content: ParsedBookmark["content"];
+    if (record.URL && record.URL.trim().length > 0) {
+      content = { type: BookmarkTypes.LINK as const, url: record.URL.trim() };
+    } else if (record.Selection && record.Selection.trim().length > 0) {
+      content = {
+        type: BookmarkTypes.TEXT as const,
+        text: record.Selection.trim(),
+      };
+    }
+
+    const addDate = parseInt(record.Timestamp);
+
+    let tags: string[] = [];
+    try {
+      const parsedTags = JSON.parse(record.Tags);
+      if (Array.isArray(parsedTags)) {
+        tags = parsedTags.map((tag) => tag.toString().trim());
+      }
+    } catch {
+      tags = [];
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths: [], // TODO
+    };
+  });
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -427,6 +486,9 @@ export function parseImportFile(
       break;
     case "mymind":
       result = parseMymindBookmarkFile(textContent);
+      break;
+    case "instapaper":
+      result = parseInstapaperBookmarkFile(textContent);
       break;
   }
   return deduplicateBookmarks(result);
