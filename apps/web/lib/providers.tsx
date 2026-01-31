@@ -1,14 +1,13 @@
 "use client";
 
 import type { UserLocalSettings } from "@/lib/userLocalSettings/types";
-import type { Session } from "next-auth";
 import React, { useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Session, SessionProvider } from "@/lib/auth/client";
 import { UserLocalSettingsCtx } from "@/lib/userLocalSettings/bookmarksLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
-import { SessionProvider } from "next-auth/react";
 import superjson from "superjson";
 
 import type { ClientConfig } from "@karakeep/shared/config";

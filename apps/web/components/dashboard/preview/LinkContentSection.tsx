@@ -16,6 +16,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSession } from "@/lib/auth/client";
 import { Trans, useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
 import {
@@ -28,7 +29,6 @@ import {
   Info,
   Video,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 

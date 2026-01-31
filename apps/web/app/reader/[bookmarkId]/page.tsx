@@ -8,9 +8,9 @@ import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth/client";
 import { useReaderSettings } from "@/lib/readerSettings";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { api } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";

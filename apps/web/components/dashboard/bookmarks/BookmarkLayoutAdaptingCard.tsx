@@ -12,9 +12,9 @@ import {
   useBookmarkDisplaySettings,
   useBookmarkLayout,
 } from "@/lib/userLocalSettings/bookmarksLayout";
+import { useSession } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";

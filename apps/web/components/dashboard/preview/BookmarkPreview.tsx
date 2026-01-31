@@ -13,11 +13,11 @@ import {
   TooltipPortal,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSession } from "@/lib/auth/client";
 import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
 import { api } from "@/lib/trpc";
 import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
