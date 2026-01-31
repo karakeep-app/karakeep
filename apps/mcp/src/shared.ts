@@ -11,6 +11,9 @@ export const karakeepClient = createKarakeepClient({
   headers: {
     "Content-Type": "application/json",
     authorization: `Bearer ${apiKey}`,
+    ...(process.env.KARAKEEP_CUSTOM_HEADERS
+      ? JSON.parse(process.env.KARAKEEP_CUSTOM_HEADERS)
+      : {}),
   },
 });
 
