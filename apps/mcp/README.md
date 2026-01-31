@@ -1,6 +1,7 @@
 # Karakeep MCP Server
 
-This is the Karakeep MCP server, which is a server that can be used to interact with Karakeep from other tools.
+This is the Karakeep MCP server, which is a server that can be used to interact
+with Karakeep from other tools.
 
 ## Supported Tools
 
@@ -22,11 +23,12 @@ From NPM:
     "karakeep": {
       "command": "npx",
       "args": [
-        "@karakeep/mcp",
+        "@karakeep/mcp"
       ],
       "env": {
         "KARAKEEP_API_ADDR": "https://<YOUR_SERVER_ADDR>",
-        "KARAKEEP_API_KEY": "<YOUR_TOKEN>"
+        "KARAKEEP_API_KEY": "<YOUR_TOKEN>",
+        "KARAKEEP_CUSTOM_HEADERS": "{\"cf-access-client-id\": \"...\", \"cf-access-client-secret\": \"...\"}"
       }
     }
   }
@@ -46,6 +48,8 @@ From Docker:
         "KARAKEEP_API_ADDR=https://<YOUR_SERVER_ADDR>",
         "-e",
         "KARAKEEP_API_KEY=<YOUR_TOKEN>",
+        "-e",
+        "KARAKEEP_CUSTOM_HEADERS={\"cf-access-client-id\": \"...\", \"cf-access-client-secret\": \"...\"}",
         "ghcr.io/karakeep-app/karakeep-mcp:latest"
       ]
     }
