@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { validateRedirectUrl } from "@/lib/redirectUrl";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, Mail } from "lucide-react";
 
@@ -23,7 +24,7 @@ export default function CheckEmailPage() {
   const [message, setMessage] = useState("");
 
   const email = searchParams.get("email");
-  const redirectUrl = searchParams.get("redirectUrl") ?? "/";
+  const redirectUrl = validateRedirectUrl(searchParams.get("redirectUrl"));
 
   const resendEmailMutation = useMutation(
     api.users.resendVerificationEmail.mutationOptions({

@@ -19,6 +19,7 @@ import {
   publicProcedure,
   router,
 } from "../index";
+import { validateRedirectUrl } from "../lib/redirectUrl";
 import { verifyTurnstileToken } from "../lib/turnstile";
 import { User } from "../models/users";
 
@@ -65,7 +66,11 @@ export const usersAppRouter = router({
           });
         }
       }
-      const user = await User.create(ctx, input);
+      const validatedRedirectUrl = validateRedirectUrl(input.redirectUrl);
+      const user = await User.create(ctx, {
+        ...input,
+        redirectUrl: validatedRedirectUrl,
+      });
       return {
         id: user.id,
         name: user.name,
@@ -210,7 +215,12 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await User.resendVerificationEmail(ctx, input.email, input.redirectUrl);
+      const validatedRedirectUrl = validateRedirectUrl(input.redirectUrl);
+      await User.resendVerificationEmail(
+        ctx,
+        input.email,
+        validatedRedirectUrl,
+      );
       return { success: true };
     }),
   forgotPassword: publicProcedure
