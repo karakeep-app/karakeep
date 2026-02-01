@@ -28,7 +28,7 @@ From NPM:
       "env": {
         "KARAKEEP_API_ADDR": "https://<YOUR_SERVER_ADDR>",
         "KARAKEEP_API_KEY": "<YOUR_TOKEN>",
-        "KARAKEEP_CUSTOM_HEADERS": "{\"cf-access-client-id\": \"...\", \"cf-access-client-secret\": \"...\"}"
+        "KARAKEEP_CUSTOM_HEADERS": "{\"CF-Access-Client-Id\": \"...\", \"CF-Access-Client-Secret\": \"...\"}"
       }
     }
   }
@@ -49,7 +49,7 @@ From Docker:
         "-e",
         "KARAKEEP_API_KEY=<YOUR_TOKEN>",
         "-e",
-        "KARAKEEP_CUSTOM_HEADERS={\"cf-access-client-id\": \"...\", \"cf-access-client-secret\": \"...\"}",
+        "KARAKEEP_CUSTOM_HEADERS={\"CF-Access-Client-Id\": \"...\", \"CF-Access-Client-Secret\": \"...\"}",
         "ghcr.io/karakeep-app/karakeep-mcp:latest"
       ]
     }
