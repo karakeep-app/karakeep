@@ -35,6 +35,7 @@ import { z } from "zod";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zSignUpSchema } from "@karakeep/shared/types/users";
+import { isMobileAppRedirect } from "@karakeep/shared/utils/redirectUrl";
 
 const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 
@@ -154,7 +155,11 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                 }
                 return;
               }
-              router.replace(redirectUrl);
+              if (isMobileAppRedirect(redirectUrl)) {
+                window.location.href = redirectUrl;
+              } else {
+                router.replace(redirectUrl);
+              }
             })}
             className="space-y-4"
           >
