@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "@/lib/auth/client";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { api } from "@/lib/trpc";
 import {
@@ -12,7 +13,6 @@ import {
   useBookmarkDisplaySettings,
   useBookmarkLayout,
 } from "@/lib/userLocalSettings/bookmarksLayout";
-import { useSession } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
 import { useTheme } from "next-themes";
