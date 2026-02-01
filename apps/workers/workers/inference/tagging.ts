@@ -7,7 +7,7 @@ import type {
   InferenceClient,
   InferenceResponse,
 } from "@karakeep/shared/inference";
-import type { ZTagStyle } from "@karakeep/shared/types/users";
+import type { ZTagGranularity, ZTagStyle } from "@karakeep/shared/types/users";
 import { db } from "@karakeep/db";
 import {
   bookmarks,
@@ -83,6 +83,8 @@ async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  tagGranularity: ZTagGranularity,
+  curatedTags?: string[],
 ): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
@@ -108,6 +110,8 @@ Description: ${bookmark.link.description ?? ""}
 Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
       tagStyle,
+      tagGranularity,
+      curatedTags,
     );
   }
 
@@ -118,6 +122,8 @@ Content: ${content ?? ""}`,
       bookmark.text.text ?? "",
       serverConfig.inference.contextLength,
       tagStyle,
+      tagGranularity,
+      curatedTags,
     );
   }
 
@@ -131,6 +137,8 @@ async function inferTagsFromImage(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  tagGranularity: ZTagGranularity,
+  curatedTags?: string[],
 ): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
@@ -155,6 +163,8 @@ async function inferTagsFromImage(
       inferredTagLang,
       await fetchCustomPrompts(bookmark.userId, "images"),
       tagStyle,
+      tagGranularity,
+      curatedTags,
     ),
     metadata.contentType,
     base64,
@@ -226,6 +236,8 @@ async function inferTagsFromPDF(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  tagGranularity: ZTagGranularity,
+  curatedTags?: string[],
 ) {
   const prompt = await buildTextPrompt(
     inferredTagLang,
@@ -233,6 +245,8 @@ async function inferTagsFromPDF(
     `Content: ${bookmark.asset.content}`,
     serverConfig.inference.contextLength,
     tagStyle,
+    tagGranularity,
+    curatedTags,
   );
   return inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
@@ -246,8 +260,16 @@ async function inferTagsFromText(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  tagGranularity: ZTagGranularity,
+  curatedTags?: string[],
 ) {
-  const prompt = await buildPrompt(bookmark, tagStyle, inferredTagLang);
+  const prompt = await buildPrompt(
+    bookmark,
+    tagStyle,
+    inferredTagLang,
+    tagGranularity,
+    curatedTags,
+  );
   if (!prompt) {
     return null;
   }
@@ -264,6 +286,8 @@ async function inferTags(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  tagGranularity: ZTagGranularity,
+  curatedTags?: string[],
 ) {
   let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
@@ -273,6 +297,8 @@ async function inferTags(
       abortSignal,
       tagStyle,
       inferredTagLang,
+      tagGranularity,
+      curatedTags,
     );
   } else if (bookmark.asset) {
     switch (bookmark.asset.assetType) {
@@ -284,6 +310,8 @@ async function inferTags(
           abortSignal,
           tagStyle,
           inferredTagLang,
+          tagGranularity,
+          curatedTags,
         );
         break;
       case "pdf":
@@ -294,6 +322,8 @@ async function inferTags(
           abortSignal,
           tagStyle,
           inferredTagLang,
+          tagGranularity,
+          curatedTags,
         );
         break;
       default:
@@ -470,6 +500,8 @@ export async function runTagging(
     columns: {
       autoTaggingEnabled: true,
       tagStyle: true,
+      tagGranularity: true,
+      curatedTagIds: true,
       inferredTagLang: true,
     },
   });
@@ -479,6 +511,24 @@ export async function runTagging(
       `[inference][${jobId}] Skipping tagging job for bookmark with id "${bookmarkId}" because user has disabled auto-tagging.`,
     );
     return;
+  }
+
+  // Resolve curated tag names if using curated mode
+  let curatedTagNames: string[] | undefined;
+  const tagGranularity = userSettings?.tagGranularity ?? "focused";
+  if (
+    tagGranularity === "curated" &&
+    userSettings?.curatedTagIds &&
+    userSettings.curatedTagIds.length > 0
+  ) {
+    const tags = await db.query.bookmarkTags.findMany({
+      where: and(
+        eq(bookmarkTags.userId, bookmark.userId),
+        inArray(bookmarkTags.id, userSettings.curatedTagIds),
+      ),
+      columns: { name: true },
+    });
+    curatedTagNames = tags.map((t) => t.name);
   }
 
   logger.info(
@@ -492,6 +542,8 @@ export async function runTagging(
     job.abortSignal,
     userSettings?.tagStyle ?? "as-generated",
     userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
+    tagGranularity,
+    curatedTagNames,
   );
 
   if (tags === null) {

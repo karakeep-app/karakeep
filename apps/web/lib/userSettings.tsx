@@ -19,6 +19,8 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   autoTaggingEnabled: null,
   autoSummarizationEnabled: null,
   tagStyle: "as-generated",
+  tagGranularity: "focused",
+  curatedTagIds: null,
   inferredTagLang: null,
 });
 

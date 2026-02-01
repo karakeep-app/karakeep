@@ -1,4 +1,4 @@
-import type { ZTagStyle } from "../types/users";
+import type { ZTagGranularity, ZTagStyle } from "../types/users";
 
 /**
  * Ensures exactly ONE leading #
@@ -8,6 +8,7 @@ export function normalizeTagName(raw: string): string {
 }
 
 export type TagStyle = ZTagStyle;
+export type TagGranularity = ZTagGranularity;
 
 export function getTagStylePrompt(style: TagStyle): string {
   switch (style) {
@@ -26,5 +27,28 @@ export function getTagStylePrompt(style: TagStyle): string {
     case "as-generated":
     default:
       return "";
+  }
+}
+
+export function getTagGranularityPrompt(
+  granularity: TagGranularity,
+  curatedTags?: string[],
+  isImage?: boolean,
+): string {
+  switch (granularity) {
+    case "comprehensive":
+      return isImage
+        ? "- Aim for 10-15 tags, including broad categories, specific keywords, and potential sub-genres."
+        : "- Aim for 8-12 tags, including broad categories, specific keywords, and potential sub-genres.";
+    case "focused":
+      return "- Aim for 3-5 essential tags that capture only the most important themes.";
+    case "curated":
+      if (curatedTags && curatedTags.length > 0) {
+        return `- ONLY use tags from this predefined list: [${curatedTags.join(", ")}]. Do not create any new tags outside this list. If the content does not match any of the tags in the list, return an empty list.`;
+      }
+      // Fallback if no curated tags are configured
+      return "- Aim for 3-5 tags.";
+    default:
+      return "- Aim for 3-5 tags.";
   }
 }

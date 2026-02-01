@@ -26,11 +26,13 @@ export function TagsEditor({
   onAttach,
   onDetach,
   disabled,
+  allowCreation = true,
 }: {
   tags: ZBookmarkTags[];
   onAttach: (tag: { tagName: string; tagId?: string }) => void;
   onDetach: (tag: { tagName: string; tagId: string }) => void;
   disabled?: boolean;
+  allowCreation?: boolean;
 }) {
   const api = useTRPC();
   const demoMode = !!useClientConfig().demoMode;
@@ -41,6 +43,7 @@ export function TagsEditor({
   const [inputValue, setInputValue] = React.useState("");
   const [optimisticTags, setOptimisticTags] = useState<ZBookmarkTags[]>(_tags);
   const tempIdCounter = React.useRef(0);
+  const hasInitializedRef = React.useRef(_tags.length > 0);
 
   const generateTempId = React.useCallback(() => {
     tempIdCounter.current += 1;
@@ -55,22 +58,39 @@ export function TagsEditor({
   }, []);
 
   React.useEffect(() => {
+    // When allowCreation is false, only sync on initial load
+    // After that, rely on optimistic updates to avoid re-ordering
+    if (!allowCreation) {
+      if (!hasInitializedRef.current && _tags.length > 0) {
+        hasInitializedRef.current = true;
+        setOptimisticTags(_tags);
+      }
+      return;
+    }
+
+    // For allowCreation mode, sync server state with optimistic state
     setOptimisticTags((prev) => {
-      let results = prev;
+      // Start with a copy to avoid mutating the previous state
+      const results = [...prev];
+      let changed = false;
+
       for (const tag of _tags) {
         const idx = results.findIndex((t) => t.name === tag.name);
         if (idx == -1) {
           results.push(tag);
+          changed = true;
           continue;
         }
         if (results[idx].id.startsWith("temp-")) {
           results[idx] = tag;
+          changed = true;
           continue;
         }
       }
-      return results;
+
+      return changed ? results : prev;
     });
-  }, [_tags]);
+  }, [_tags, allowCreation]);
 
   const { data: filteredOptions, isLoading: isExistingTagsLoading } = useQuery(
     api.tags.list.queryOptions(
@@ -124,7 +144,7 @@ export function TagsEditor({
       (opt) => opt.name.toLowerCase() === trimmedInputValue.toLowerCase(),
     );
 
-    if (!exactMatch) {
+    if (!exactMatch && allowCreation) {
       return [
         {
           id: "create-new",
@@ -138,7 +158,7 @@ export function TagsEditor({
     }
 
     return baseOptions;
-  }, [filteredOptions, trimmedInputValue]);
+  }, [filteredOptions, trimmedInputValue, allowCreation]);
 
   const onChange = (
     actionMeta:
@@ -331,7 +351,7 @@ export function TagsEditor({
             <CommandList className="max-h-64">
               {displayedOptions.length === 0 ? (
                 <CommandEmpty>
-                  {trimmedInputValue ? (
+                  {trimmedInputValue && allowCreation ? (
                     <div className="flex items-center justify-between px-2 py-1.5">
                       <span>Create &quot;{trimmedInputValue}&quot;</span>
                       <Button

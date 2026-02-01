@@ -1,5 +1,5 @@
-import type { ZTagStyle } from "./types/users";
-import { getTagStylePrompt } from "./utils/tag";
+import type { ZTagGranularity, ZTagStyle } from "./types/users";
+import { getTagGranularityPrompt, getTagStylePrompt } from "./utils/tag";
 
 /**
  * Remove duplicate whitespaces to avoid tokenization issues
@@ -12,8 +12,11 @@ export function buildImagePrompt(
   lang: string,
   customPrompts: string[],
   tagStyle: ZTagStyle,
+  tagGranularity: ZTagGranularity = "focused",
+  curatedTags?: string[],
 ) {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
+  const tagGranularityInstruction = getTagGranularityPrompt(tagGranularity, curatedTags, true);
 
   return `
 You are an expert whose responsibility is to help with automatic text tagging for a read-it-later/bookmarking app.
@@ -21,7 +24,7 @@ Analyze the attached image and suggest relevant tags that describe its key theme
 - Aim for a variety of tags, including broad categories, specific keywords, and potential sub-genres.
 - The tags must be in ${lang}.
 - If the tag is not generic enough, don't include it.
-- Aim for 10-15 tags.
+${tagGranularityInstruction}
 - If there are no good tags, don't emit any.
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
@@ -36,8 +39,15 @@ export function constructTextTaggingPrompt(
   customPrompts: string[],
   content: string,
   tagStyle: ZTagStyle,
+  tagGranularity: ZTagGranularity = "focused",
+  curatedTags?: string[],
 ): string {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
+  const tagGranularityInstruction = getTagGranularityPrompt(
+    tagGranularity,
+    curatedTags,
+    false,
+  );
 
   return `
 You are an expert whose responsibility is to help with automatic tagging for a read-it-later/bookmarking app.
@@ -48,7 +58,7 @@ Analyze the TEXT_CONTENT below and suggest relevant tags that describe its key t
 - Do NOT generate tags related to:
     - An error page (404, 403, blocked, not found, dns errors)
     - Boilerplate content (cookie consent, login walls, GDPR notices)
-- Aim for 3-5 tags.
+${tagGranularityInstruction}
 - If there are no good tags, leave the array empty.
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
@@ -83,12 +93,16 @@ export function buildTextPromptUntruncated(
   customPrompts: string[],
   content: string,
   tagStyle: ZTagStyle,
+  tagGranularity: ZTagGranularity = "focused",
+  curatedTags?: string[],
 ): string {
   return constructTextTaggingPrompt(
     lang,
     customPrompts,
     preprocessContent(content),
     tagStyle,
+    tagGranularity,
+    curatedTags,
   );
 }
 

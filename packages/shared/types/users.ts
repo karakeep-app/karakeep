@@ -16,6 +16,13 @@ export const zTagStyleSchema = z.enum([
 ]);
 export type ZTagStyle = z.infer<typeof zTagStyleSchema>;
 
+export const zTagGranularitySchema = z.enum([
+  "comprehensive", // 8-12 tags
+  "focused", // 3-5 tags
+  "curated", // user-selected tags only
+]);
+export type ZTagGranularity = z.infer<typeof zTagGranularitySchema>;
+
 export const zSignUpSchema = z
   .object({
     name: z.string().min(1, { message: "Name can't be empty" }),
@@ -202,6 +209,8 @@ export const zUserSettingsSchema = z.object({
   autoTaggingEnabled: z.boolean().nullable(),
   autoSummarizationEnabled: z.boolean().nullable(),
   tagStyle: zTagStyleSchema,
+  tagGranularity: zTagGranularitySchema,
+  curatedTagIds: z.array(z.string()).nullable(),
   inferredTagLang: z.string().nullable(),
 });
 
@@ -220,6 +229,8 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   autoTaggingEnabled: true,
   autoSummarizationEnabled: true,
   tagStyle: true,
+  tagGranularity: true,
+  curatedTagIds: true,
   inferredTagLang: true,
 });
 

@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import { TagsEditor } from "@/components/dashboard/bookmarks/TagsEditor";
 import { ActionButton } from "@/components/ui/action-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -48,6 +50,7 @@ import { Info, Plus, Save, Trash2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
@@ -340,6 +343,157 @@ export function TagStyleSelector() {
   );
 }
 
+export function TagGranularitySelector() {
+  const api = useTRPC();
+  const { t } = useTranslation();
+  const settings = useUserSettings();
+
+  const { mutate: updateSettings, isPending: isUpdating } =
+    useUpdateUserSettings({
+      onSuccess: () => {
+        toast({
+          description: t("settings.ai.tag_granularity_updated"),
+        });
+      },
+      onError: () => {
+        toast({
+          description: t("settings.ai.tag_granularity_update_failed"),
+          variant: "destructive",
+        });
+      },
+    });
+
+  const tagGranularityOptions = [
+    {
+      value: "comprehensive",
+      label: t("settings.ai.comprehensive"),
+      description: t("settings.ai.comprehensive_description"),
+    },
+    {
+      value: "focused",
+      label: t("settings.ai.focused"),
+      description: t("settings.ai.focused_description"),
+    },
+    {
+      value: "curated",
+      label: t("settings.ai.curated"),
+      description: t("settings.ai.curated_description"),
+    },
+  ] as const;
+
+  const selectedGranularity = settings?.tagGranularity ?? "focused";
+  const curatedTagIds = settings?.curatedTagIds ?? [];
+  const [localCuratedTagIds, setLocalCuratedTagIds] =
+    React.useState<string[]>(curatedTagIds);
+
+  React.useEffect(() => {
+    setLocalCuratedTagIds(curatedTagIds);
+  }, [curatedTagIds]);
+
+  const handleCuratedTagsChange = (tagIds: string[]) => {
+    updateSettings({ curatedTagIds: tagIds.length > 0 ? tagIds : null });
+  };
+
+  // Fetch selected tags to display their names
+  const { data: selectedTagsData } = useQuery(
+    api.tags.list.queryOptions(
+      { ids: localCuratedTagIds },
+      { enabled: localCuratedTagIds.length > 0 },
+    ),
+  );
+
+  const selectedTags: ZBookmarkTags[] = React.useMemo(() => {
+    const tagsMap = new Map(
+      (selectedTagsData?.tags ?? []).map((tag) => [tag.id, tag]),
+    );
+    // Preserve the order from curatedTagIds instead of server sort order
+    return localCuratedTagIds
+      .map((id) => tagsMap.get(id))
+      .filter((tag): tag is NonNullable<typeof tag> => tag != null)
+      .map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        attachedBy: "human" as const,
+      }));
+  }, [selectedTagsData?.tags, localCuratedTagIds]);
+
+  return (
+    <SettingsSection
+      title={t("settings.ai.tag_granularity")}
+      description={t("settings.ai.tag_granularity_description")}
+    >
+      <div className="space-y-4">
+        <RadioGroup
+          value={selectedGranularity}
+          onValueChange={(value) => {
+            updateSettings({
+              tagGranularity: value as typeof selectedGranularity,
+            });
+          }}
+          disabled={isUpdating}
+          className="grid gap-3"
+        >
+          {tagGranularityOptions.map((option) => (
+            <FieldLabel
+              key={option.value}
+              htmlFor={`granularity-${option.value}`}
+              className={cn(selectedGranularity === option.value && "ring-1")}
+            >
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldTitle>{option.label}</FieldTitle>
+                  <FieldDescription>{option.description}</FieldDescription>
+                </FieldContent>
+                <RadioGroupItem
+                  value={option.value}
+                  id={`granularity-${option.value}`}
+                />
+              </Field>
+            </FieldLabel>
+          ))}
+        </RadioGroup>
+
+        {selectedGranularity === "curated" && (
+          <div className="rounded-lg border p-4">
+            <p className="mb-3 text-sm font-medium">
+              {t("settings.ai.select_curated_tags")}
+            </p>
+            <TagsEditor
+              tags={selectedTags}
+              onAttach={(tag) => {
+                if (tag.tagId) {
+                  setLocalCuratedTagIds((prev) => {
+                    if (prev.includes(tag.tagId)) {
+                      return prev;
+                    }
+                    const next = [...prev, tag.tagId];
+                    handleCuratedTagsChange(next);
+                    return next;
+                  });
+                }
+              }}
+              onDetach={(tag) => {
+                setLocalCuratedTagIds((prev) => {
+                  const next = prev.filter((id) => id !== tag.tagId);
+                  handleCuratedTagsChange(next);
+                  return next;
+                });
+              }}
+              allowCreation={false}
+            />
+            {localCuratedTagIds.length === 0 && (
+              <div className="mt-3 flex items-start gap-2 rounded-md bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+                <Info className="size-4 flex-shrink-0" />
+                <p>{t("settings.ai.no_curated_tags_warning")}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </SettingsSection>
+  );
+}
+
 export function PromptEditor() {
   const api = useTRPC();
   const { t } = useTranslation();
@@ -613,12 +767,23 @@ export function PromptDemo() {
   const api = useTRPC();
   const { t } = useTranslation();
   const { data: prompts } = useQuery(api.prompts.list.queryOptions());
+  const { data: tagsData } = useQuery(api.tags.list.queryOptions({}));
   const settings = useUserSettings();
   const clientConfig = useClientConfig();
 
   const tagStyle = settings?.tagStyle ?? "as-generated";
+  const tagGranularity = settings?.tagGranularity ?? "focused";
+  const curatedTagIds = settings?.curatedTagIds ?? [];
   const inferredTagLang =
     settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
+
+  // Resolve curated tag names for preview
+  const curatedTagNames =
+    tagGranularity === "curated" && tagsData?.tags
+      ? tagsData.tags
+          .filter((tag) => curatedTagIds.includes(tag.id))
+          .map((tag) => tag.name)
+      : undefined;
 
   return (
     <SettingsSection
@@ -640,6 +805,8 @@ export function PromptDemo() {
                 .map((p) => p.text),
               "\n<CONTENT_HERE>\n",
               tagStyle,
+              tagGranularity,
+              curatedTagNames,
             ).trim()}
           </code>
         </div>
@@ -657,6 +824,8 @@ export function PromptDemo() {
                 )
                 .map((p) => p.text),
               tagStyle,
+              tagGranularity,
+              curatedTagNames,
             ).trim()}
           </code>
         </div>
@@ -692,6 +861,9 @@ export default function AISettings() {
 
       {/* Tag Style */}
       <TagStyleSelector />
+
+      {/* Tag Granularity */}
+      <TagGranularitySelector />
 
       {/* Tagging Rules */}
       <TaggingRules />

@@ -268,7 +268,21 @@
       "camelCase": "camelCase",
       "no_preference": "No preference",
       "inference_language": "Inference Language",
-      "inference_language_description": "Choose language for AI-generated tags and summaries."
+      "inference_language_description": "Choose language for AI-generated tags and summaries.",
+      "tag_granularity": "Tag Granularity",
+      "tag_granularity_description": "Choose how many tags the AI should generate for each bookmark.",
+      "tag_granularity_updated": "Tag granularity updated successfully!",
+      "tag_granularity_update_failed": "Failed to update tag granularity",
+      "comprehensive": "Comprehensive",
+      "comprehensive_description": "Generate 8-12 tags covering broad and specific topics",
+      "focused": "Focused",
+      "focused_description": "Generate 3-5 essential tags for key themes only",
+      "curated": "Curated",
+      "curated_description": "AI selects only from your predefined tag list",
+      "select_curated_tags": "Select tags for AI to use",
+      "no_tags_for_curated": "You don't have any tags yet. Create some tags first to use curated mode.",
+      "no_curated_tags_warning": "Please select at least one tag for curated mode to work effectively.",
+      "no_tags_found": "No tags found."
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
