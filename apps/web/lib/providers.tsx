@@ -80,8 +80,8 @@ export default function Providers({
     <ClientConfigCtx.Provider value={clientConfig}>
       <UserLocalSettingsCtx.Provider value={userLocalSettings}>
         <SessionProvider session={session}>
-          <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
               <CustomI18nextProvider lang={userLocalSettings.lang}>
                 <ThemeProvider
                   attribute="class"
@@ -94,8 +94,8 @@ export default function Providers({
                   </TooltipProvider>
                 </ThemeProvider>
               </CustomI18nextProvider>
-            </QueryClientProvider>
-          </TRPCProvider>
+            </TRPCProvider>
+          </QueryClientProvider>
         </SessionProvider>
       </UserLocalSettingsCtx.Provider>
     </ClientConfigCtx.Provider>
