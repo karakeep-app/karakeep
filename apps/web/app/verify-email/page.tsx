@@ -11,8 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { isMobileAppRedirect, validateRedirectUrl } from "@/lib/redirectUrl";
 import { useMutation } from "@tanstack/react-query";
+
+import {
+  isMobileAppRedirect,
+  validateRedirectUrl,
+} from "@karakeep/shared/utils/redirectUrl";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -28,7 +32,7 @@ export default function VerifyEmailPage() {
 
   const token = searchParams.get("token");
   const email = searchParams.get("email");
-  const redirectUrl = validateRedirectUrl(searchParams.get("redirectUrl"));
+  const redirectUrl = validateRedirectUrl(searchParams.get("redirectUrl")) ?? "/";
 
   const verifyEmailMutation = useMutation(
     api.users.verifyEmail.mutationOptions({

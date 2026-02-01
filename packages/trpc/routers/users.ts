@@ -11,6 +11,7 @@ import {
   zWhoAmIResponseSchema,
   zWrappedStatsResponseSchema,
 } from "@karakeep/shared/types/users";
+import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 import {
   adminProcedure,
@@ -19,7 +20,6 @@ import {
   publicProcedure,
   router,
 } from "../index";
-import { validateRedirectUrl } from "../lib/redirectUrl";
 import { verifyTurnstileToken } from "../lib/turnstile";
 import { User } from "../models/users";
 

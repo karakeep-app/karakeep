@@ -1,8 +1,9 @@
 import { redirect } from "next/dist/client/components/navigation";
 import KarakeepLogo from "@/components/KarakeepIcon";
 import SignUpForm from "@/components/signup/SignUpForm";
-import { validateRedirectUrl } from "@/lib/redirectUrl";
 import { getServerAuthSession } from "@/server/auth";
+
+import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 export default async function SignUpPage({
   searchParams,
@@ -11,7 +12,7 @@ export default async function SignUpPage({
 }) {
   const session = await getServerAuthSession();
   const { redirectUrl: rawRedirectUrl } = await searchParams;
-  const redirectUrl = validateRedirectUrl(rawRedirectUrl);
+  const redirectUrl = validateRedirectUrl(rawRedirectUrl) ?? "/";
 
   if (session) {
     redirect(redirectUrl);

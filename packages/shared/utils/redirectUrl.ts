@@ -4,11 +4,13 @@
  * - Relative paths starting with "/" (but not "//" to prevent protocol-relative URLs)
  * - The karakeep:// scheme for the mobile app
  *
- * Returns "/" as a safe fallback for invalid URLs.
+ * @returns The validated URL if valid, otherwise undefined.
  */
-export function validateRedirectUrl(url: string | null | undefined): string {
+export function validateRedirectUrl(
+  url: string | null | undefined,
+): string | undefined {
   if (!url) {
-    return "/";
+    return undefined;
   }
 
   // Allow relative paths starting with "/" but not "//" (protocol-relative URLs)
@@ -22,7 +24,7 @@ export function validateRedirectUrl(url: string | null | undefined): string {
   }
 
   // Reject all other schemes (http, https, javascript, data, etc.)
-  return "/";
+  return undefined;
 }
 
 /**
