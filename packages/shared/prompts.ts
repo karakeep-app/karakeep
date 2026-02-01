@@ -106,3 +106,19 @@ export function buildSummaryPromptUntruncated(
     preprocessContent(content),
   );
 }
+
+/**
+ * Build OCR prompt for extracting text from images using LLM
+ */
+export function buildOCRPrompt(): string {
+  return `You are an OCR (Optical Character Recognition) expert. Your task is to extract ALL text from this image.
+
+Rules:
+- Extract every piece of text visible in the image, including titles, body text, captions, labels, watermarks, and any other textual content.
+- Preserve the original structure and formatting as much as possible (e.g., paragraphs, lists, headings).
+- If text appears in multiple columns, read from left to right, top to bottom.
+- If text is partially obscured or unclear, make your best attempt and indicate uncertainty with [unclear] if needed.
+- Do not add any commentary, explanations, or descriptions of non-text elements.
+- If there is no text in the image, respond with an empty string.
+- Output ONLY the extracted text, nothing else.`;
+}
