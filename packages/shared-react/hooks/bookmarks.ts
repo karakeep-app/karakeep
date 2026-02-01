@@ -1,132 +1,196 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
-import { api } from "../trpc";
+import { useTRPC } from "../trpc";
 import { useBookmarkGridContext } from "./bookmark-grid-context";
 import { useAddBookmarkToList } from "./lists";
 
+type TRPCApi = ReturnType<typeof useTRPC>;
+
 export function useAutoRefreshingBookmarkQuery(
-  input: Parameters<typeof api.bookmarks.getBookmark.useQuery>[0],
+  input: Parameters<TRPCApi["bookmarks"]["getBookmark"]["queryOptions"]>[0],
 ) {
-  return api.bookmarks.getBookmark.useQuery(input, {
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (!data) {
-        return false;
-      }
-      return getBookmarkRefreshInterval(data);
-    },
-  });
+  const api = useTRPC();
+  return useQuery(
+    api.bookmarks.getBookmark.queryOptions(input, {
+      refetchInterval: (query) => {
+        const data = query.state.data;
+        if (!data) {
+          return false;
+        }
+        return getBookmarkRefreshInterval(data);
+      },
+    }),
+  );
 }
 
 export function useCreateBookmark(
-  ...opts: Parameters<typeof api.bookmarks.createBookmark.useMutation>
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["createBookmark"]["mutationOptions"]
+  >[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.bookmarks.createBookmark.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.createBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useCreateBookmarkWithPostHook(
-  ...opts: Parameters<typeof api.bookmarks.createBookmark.useMutation>
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["createBookmark"]["mutationOptions"]
+  >[0],
 ) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const postCreationCB = useBookmarkPostCreationHook();
-  return api.bookmarks.createBookmark.useMutation({
-    ...opts[0],
-    onSuccess: async (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      await postCreationCB(res.id);
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  return useMutation(
+    api.bookmarks.createBookmark.mutationOptions({
+      ...opts,
+      onSuccess: async (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        await postCreationCB(res.id);
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteBookmark(
-  ...opts: Parameters<typeof api.bookmarks.deleteBookmark.useMutation>
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["deleteBookmark"]["mutationOptions"]
+  >[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.bookmarks.deleteBookmark.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.deleteBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useUpdateBookmark(
-  ...opts: Parameters<typeof api.bookmarks.updateBookmark.useMutation>
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["updateBookmark"]["mutationOptions"]
+  >[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.bookmarks.updateBookmark.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.updateBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useSummarizeBookmark(
-  ...opts: Parameters<typeof api.bookmarks.summarizeBookmark.useMutation>
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["summarizeBookmark"]["mutationOptions"]
+  >[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.bookmarks.summarizeBookmark.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.summarizeBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useRecrawlBookmark(
-  ...opts: Parameters<typeof api.bookmarks.recrawlBookmark.useMutation>
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["recrawlBookmark"]["mutationOptions"]
+  >[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.bookmarks.recrawlBookmark.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.recrawlBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useUpdateBookmarkTags(
-  ...opts: Parameters<typeof api.bookmarks.updateTags.useMutation>
+  opts?: Parameters<TRPCApi["bookmarks"]["updateTags"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.bookmarks.updateTags.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.updateTags.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
 
-      [...res.attached, ...res.detached].forEach((id) => {
-        apiUtils.tags.get.invalidate({ tagId: id });
-        apiUtils.bookmarks.getBookmarks.invalidate({ tagId: id });
-      });
-      apiUtils.tags.list.invalidate();
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+        [...res.attached, ...res.detached].forEach((id) => {
+          queryClient.invalidateQueries(
+            api.tags.get.queryFilter({ tagId: id }),
+          );
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.queryFilter({ tagId: id }),
+          );
+        });
+        queryClient.invalidateQueries(api.tags.list.pathFilter());
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 /**

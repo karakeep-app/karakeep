@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 
-import { api } from "../trpc";
+import type { AppRouter } from "@karakeep/trpc/routers/_app";
+
+import { TRPCProvider } from "../trpc";
 
 interface Settings {
   apiKey?: string;
@@ -12,7 +14,7 @@ interface Settings {
 }
 
 function getTRPCClient(settings: Settings) {
-  return api.createClient({
+  return createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({
         url: `${settings.address}/api/trpc`,
@@ -31,7 +33,7 @@ function getTRPCClient(settings: Settings) {
   });
 }
 
-export function TRPCProvider({
+export function TRPCSettingsProvider({
   settings,
   children,
 }: {
@@ -42,8 +44,8 @@ export function TRPCProvider({
   const trpcClient = useMemo(() => getTRPCClient(settings), [settings]);
 
   return (
-    <api.Provider client={trpcClient} queryClient={queryClient}>
+    <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </api.Provider>
+    </TRPCProvider>
   );
 }

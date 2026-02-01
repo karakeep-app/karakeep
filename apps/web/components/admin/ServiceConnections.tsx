@@ -2,7 +2,8 @@
 
 import { AdminCard } from "@/components/admin/AdminCard";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 function ConnectionStatus({
   label,
@@ -105,10 +106,13 @@ function ConnectionsSkeleton() {
 }
 
 export default function ServiceConnections() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: connections } = api.admin.checkConnections.useQuery(undefined, {
-    refetchInterval: 10000,
-  });
+  const { data: connections } = useQuery(
+    api.admin.checkConnections.queryOptions(undefined, {
+      refetchInterval: 10000,
+    }),
+  );
 
   if (!connections) {
     return <ConnectionsSkeleton />;

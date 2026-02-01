@@ -5,7 +5,8 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,14 +17,17 @@ export default function DeleteApiKey({
   name: string;
   id: string;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const router = useRouter();
-  const mutator = api.apiKeys.revoke.useMutation({
-    onSuccess: () => {
-      toast.success("Key was successfully deleted");
-      router.refresh();
-    },
-  });
+  const mutator = useMutation(
+    api.apiKeys.revoke.mutationOptions({
+      onSuccess: () => {
+        toast.success("Key was successfully deleted");
+        router.refresh();
+      },
+    }),
+  );
 
   return (
     <ActionConfirmingDialog

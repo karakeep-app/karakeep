@@ -3,7 +3,7 @@
 import { AdminCard } from "@/components/admin/AdminCard";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
 
 const REPO_LATEST_RELEASE_API =
@@ -42,7 +42,7 @@ function ReleaseInfo() {
         rel="noreferrer"
         title="Update available"
       >
-        ({latestRelease} ⬆️)
+        ({latestRelease}⬆️)
       </a>
     );
   }
@@ -71,10 +71,13 @@ function StatsSkeleton() {
 }
 
 export default function BasicStats() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: serverStats } = api.admin.stats.useQuery(undefined, {
-    refetchInterval: 5000,
-  });
+  const { data: serverStats } = useQuery(
+    api.admin.stats.queryOptions(undefined, {
+      refetchInterval: 5000,
+    }),
+  );
 
   if (!serverStats) {
     return <StatsSkeleton />;

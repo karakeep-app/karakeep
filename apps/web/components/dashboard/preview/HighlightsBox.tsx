@@ -5,8 +5,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronsDownUp } from "lucide-react";
 
 import HighlightCard from "../highlights/HighlightCard";
@@ -18,10 +19,12 @@ export default function HighlightsBox({
   bookmarkId: string;
   readOnly: boolean;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
 
-  const { data: highlights, isPending: isLoading } =
-    api.highlights.getForBookmark.useQuery({ bookmarkId });
+  const { data: highlights, isPending: isLoading } = useQuery(
+    api.highlights.getForBookmark.queryOptions({ bookmarkId }),
+  );
 
   if (isLoading || !highlights || highlights?.highlights.length === 0) {
     return null;

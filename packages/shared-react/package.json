@@ -9,6 +9,7 @@
     "@karakeep/trpc": "workspace:^0.1.0",
     "@tanstack/react-query": "5.90.2",
     "@trpc/client": "^11.4.3",
+    "@trpc/tanstack-react-query": "^11.9.0",
     "superjson": "^2.2.1"
   },
   "devDependencies": {

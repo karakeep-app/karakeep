@@ -11,10 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 
 export default function VerifyEmailPage() {
+  const api = useTRPC();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -25,32 +27,36 @@ export default function VerifyEmailPage() {
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  const verifyEmailMutation = api.users.verifyEmail.useMutation({
-    onSuccess: () => {
-      setStatus("success");
-      setMessage(
-        "Your email has been successfully verified! You can now sign in.",
-      );
-    },
-    onError: (error) => {
-      setStatus("error");
-      setMessage(
-        error.message ||
-          "Failed to verify email. The link may be invalid or expired.",
-      );
-    },
-  });
+  const verifyEmailMutation = useMutation(
+    api.users.verifyEmail.mutationOptions({
+      onSuccess: () => {
+        setStatus("success");
+        setMessage(
+          "Your email has been successfully verified! You can now sign in.",
+        );
+      },
+      onError: (error) => {
+        setStatus("error");
+        setMessage(
+          error.message ||
+            "Failed to verify email. The link may be invalid or expired.",
+        );
+      },
+    }),
+  );
 
-  const resendEmailMutation = api.users.resendVerificationEmail.useMutation({
-    onSuccess: () => {
-      setMessage(
-        "A new verification email has been sent to your email address.",
-      );
-    },
-    onError: (error) => {
-      setMessage(error.message || "Failed to resend verification email.");
-    },
-  });
+  const resendEmailMutation = useMutation(
+    api.users.resendVerificationEmail.mutationOptions({
+      onSuccess: () => {
+        setMessage(
+          "A new verification email has been sent to your email address.",
+        );
+      },
+      onError: (error) => {
+        setMessage(error.message || "Failed to resend verification email.");
+      },
+    }),
+  );
 
   useEffect(() => {
     if (token && email) {

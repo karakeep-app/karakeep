@@ -24,9 +24,10 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle,
   Download,
@@ -207,16 +208,17 @@ function BackupConfigurationForm() {
 }
 
 function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
 
-  const { mutate: deleteBackup, isPending: isDeleting } =
-    api.backups.delete.useMutation({
+  const { mutate: deleteBackup, isPending: isDeleting } = useMutation(
+    api.backups.delete.mutationOptions({
       onSuccess: () => {
         toast({
           description: t("settings.backups.toasts.backup_deleted"),
         });
-        apiUtils.backups.list.invalidate();
+        queryClient.invalidateQueries(api.backups.list.pathFilter());
       },
       onError: (error) => {
         toast({
@@ -224,7 +226,8 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
           variant: "destructive",
         });
       },
-    });
+    }),
+  );
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -330,25 +333,28 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
 }
 
 function BackupsList() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
-  const { data: backups, isLoading } = api.backups.list.useQuery(undefined, {
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      // Poll every 3 seconds if there's a pending backup, otherwise don't poll
-      return data?.backups.some((backup) => backup.status === "pending")
-        ? 3000
-        : false;
-    },
-  });
+  const queryClient = useQueryClient();
+  const { data: backups, isLoading } = useQuery(
+    api.backups.list.queryOptions(undefined, {
+      refetchInterval: (query) => {
+        const data = query.state.data;
+        // Poll every 3 seconds if there's a pending backup, otherwise don't poll
+        return data?.backups.some((backup) => backup.status === "pending")
+          ? 3000
+          : false;
+      },
+    }),
+  );
 
-  const { mutate: triggerBackup, isPending: isTriggering } =
-    api.backups.triggerBackup.useMutation({
+  const { mutate: triggerBackup, isPending: isTriggering } = useMutation(
+    api.backups.triggerBackup.mutationOptions({
       onSuccess: () => {
         toast({
           description: t("settings.backups.toasts.backup_queued"),
         });
-        apiUtils.backups.list.invalidate();
+        queryClient.invalidateQueries(api.backups.list.pathFilter());
       },
       onError: (error) => {
         toast({
@@ -356,7 +362,8 @@ function BackupsList() {
           variant: "destructive",
         });
       },
-    });
+    }),
+  );
 
   return (
     <div className="rounded-md border bg-background p-4">

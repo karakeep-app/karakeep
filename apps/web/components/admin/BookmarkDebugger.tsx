@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import InfoTooltip from "@/components/ui/info-tooltip";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { formatBytes } from "@/lib/utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
@@ -37,6 +38,7 @@ import { toast } from "sonner";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 export default function BookmarkDebugger() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState("");
   const [bookmarkId, setBookmarkId] = useQueryState(
@@ -56,9 +58,11 @@ export default function BookmarkDebugger() {
     data: debugInfo,
     isLoading,
     error,
-  } = api.admin.getBookmarkDebugInfo.useQuery(
-    { bookmarkId: bookmarkId },
-    { enabled: !!bookmarkId && bookmarkId.length > 0 },
+  } = useQuery(
+    api.admin.getBookmarkDebugInfo.queryOptions(
+      { bookmarkId: bookmarkId },
+      { enabled: !!bookmarkId && bookmarkId.length > 0 },
+    ),
   );
 
   const handleLookup = () => {
@@ -67,57 +71,65 @@ export default function BookmarkDebugger() {
     }
   };
 
-  const recrawlMutation = api.admin.adminRecrawlBookmark.useMutation({
-    onSuccess: () => {
-      toast.success(t("admin.admin_tools.action_success"), {
-        description: t("admin.admin_tools.recrawl_queued"),
-      });
-    },
-    onError: (error) => {
-      toast.error(t("admin.admin_tools.action_failed"), {
-        description: error.message,
-      });
-    },
-  });
+  const recrawlMutation = useMutation(
+    api.admin.adminRecrawlBookmark.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("admin.admin_tools.action_success"), {
+          description: t("admin.admin_tools.recrawl_queued"),
+        });
+      },
+      onError: (error) => {
+        toast.error(t("admin.admin_tools.action_failed"), {
+          description: error.message,
+        });
+      },
+    }),
+  );
 
-  const reindexMutation = api.admin.adminReindexBookmark.useMutation({
-    onSuccess: () => {
-      toast.success(t("admin.admin_tools.action_success"), {
-        description: t("admin.admin_tools.reindex_queued"),
-      });
-    },
-    onError: (error) => {
-      toast.error(t("admin.admin_tools.action_failed"), {
-        description: error.message,
-      });
-    },
-  });
+  const reindexMutation = useMutation(
+    api.admin.adminReindexBookmark.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("admin.admin_tools.action_success"), {
+          description: t("admin.admin_tools.reindex_queued"),
+        });
+      },
+      onError: (error) => {
+        toast.error(t("admin.admin_tools.action_failed"), {
+          description: error.message,
+        });
+      },
+    }),
+  );
 
-  const retagMutation = api.admin.adminRetagBookmark.useMutation({
-    onSuccess: () => {
-      toast.success(t("admin.admin_tools.action_success"), {
-        description: t("admin.admin_tools.retag_queued"),
-      });
-    },
-    onError: (error) => {
-      toast.error(t("admin.admin_tools.action_failed"), {
-        description: error.message,
-      });
-    },
-  });
+  const retagMutation = useMutation(
+    api.admin.adminRetagBookmark.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("admin.admin_tools.action_success"), {
+          description: t("admin.admin_tools.retag_queued"),
+        });
+      },
+      onError: (error) => {
+        toast.error(t("admin.admin_tools.action_failed"), {
+          description: error.message,
+        });
+      },
+    }),
+  );
 
-  const resummarizeMutation = api.admin.adminResummarizeBookmark.useMutation({
-    onSuccess: () => {
-      toast.success(t("admin.admin_tools.action_success"), {
-        description: t("admin.admin_tools.resummarize_queued"),
-      });
-    },
-    onError: (error) => {
-      toast.error(t("admin.admin_tools.action_failed"), {
-        description: error.message,
-      });
-    },
-  });
+  const resummarizeMutation = useMutation(
+    api.admin.adminResummarizeBookmark.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("admin.admin_tools.action_success"), {
+          description: t("admin.admin_tools.resummarize_queued"),
+        });
+      },
+      onError: (error) => {
+        toast.error(t("admin.admin_tools.action_failed"), {
+          description: error.message,
+        });
+      },
+    }),
+  );
 
   const handleRecrawl = () => {
     if (bookmarkId) {

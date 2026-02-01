@@ -14,8 +14,9 @@ import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Edit,
   KeyRound,
@@ -56,9 +57,10 @@ import {
 import { WebhookEventSelector } from "./WebhookEventSelector";
 
 export function WebhooksEditorDialog() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof zNewWebhookSchema>>({
     resolver: zodResolver(zNewWebhookSchema),
@@ -75,16 +77,17 @@ export function WebhooksEditorDialog() {
     }
   }, [open]);
 
-  const { mutateAsync: createWebhook, isPending: isCreating } =
-    api.webhooks.create.useMutation({
+  const { mutateAsync: createWebhook, isPending: isCreating } = useMutation(
+    api.webhooks.create.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook has been created!",
         });
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
         setOpen(false);
       },
-    });
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -179,8 +182,9 @@ export function WebhooksEditorDialog() {
 }
 
 export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
@@ -191,16 +195,17 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
       });
     }
   }, [open]);
-  const { mutateAsync: updateWebhook, isPending: isUpdating } =
-    api.webhooks.update.useMutation({
+  const { mutateAsync: updateWebhook, isPending: isUpdating } = useMutation(
+    api.webhooks.update.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook has been updated!",
         });
         setOpen(false);
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
-    });
+    }),
+  );
   const updateSchema = zUpdateWebhookSchema.required({
     events: true,
     url: true,
@@ -302,8 +307,9 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
 }
 
 export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
@@ -331,16 +337,17 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
     },
   });
 
-  const { mutateAsync: updateWebhook, isPending: isUpdating } =
-    api.webhooks.update.useMutation({
+  const { mutateAsync: updateWebhook, isPending: isUpdating } = useMutation(
+    api.webhooks.update.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook token has been updated!",
         });
         setOpen(false);
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
-    });
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -432,17 +439,19 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
 }
 
 export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
-  const { mutate: deleteWebhook, isPending: isDeleting } =
-    api.webhooks.delete.useMutation({
+  const queryClient = useQueryClient();
+  const { mutate: deleteWebhook, isPending: isDeleting } = useMutation(
+    api.webhooks.delete.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook has been deleted!",
         });
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
-    });
+    }),
+  );
 
   return (
     <TableRow>
@@ -479,8 +488,11 @@ export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
 }
 
 export default function WebhookSettings() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: webhooks, isLoading } = api.webhooks.list.useQuery();
+  const { data: webhooks, isLoading } = useQuery(
+    api.webhooks.list.queryOptions(),
+  );
   return (
     <div className="rounded-md border bg-background p-4">
       <div className="flex flex-col gap-2">

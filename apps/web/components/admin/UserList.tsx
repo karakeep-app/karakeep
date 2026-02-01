@@ -13,7 +13,12 @@ import {
 } from "@/components/ui/table";
 import { useSession } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Check, KeyRound, Pencil, Trash, UserPlus, X } from "lucide-react";
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
@@ -30,18 +35,23 @@ function toHumanReadableSize(size: number) {
 }
 
 export default function UsersSection() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { data: session } = useSession();
-  const invalidateUserList = api.useUtils().users.list.invalidate;
-  const [{ users }] = api.users.list.useSuspenseQuery();
-  const [userStats] = api.admin.userStats.useSuspenseQuery();
-  const { mutateAsync: deleteUser, isPending: isDeletionPending } =
-    api.users.delete.useMutation({
+  const {
+    data: { users },
+  } = useSuspenseQuery(api.users.list.queryOptions());
+  const { data: userStats } = useSuspenseQuery(
+    api.admin.userStats.queryOptions(),
+  );
+  const { mutateAsync: deleteUser, isPending: isDeletionPending } = useMutation(
+    api.users.delete.mutationOptions({
       onSuccess: () => {
         toast({
           description: "User deleted",
         });
-        invalidateUserList();
+        queryClient.invalidateQueries(api.users.list.pathFilter());
       },
       onError: (e) => {
         toast({
@@ -49,7 +59,8 @@ export default function UsersSection() {
           description: `Something went wrong: ${e.message}`,
         });
       },
-    });
+    }),
+  );
 
   return (
     <AdminCard>

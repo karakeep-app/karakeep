@@ -7,13 +7,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
 import useBulkActionsStore from "@/lib/bulkActions";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import {
   bookmarkLayoutSwitch,
   useBookmarkDisplaySettings,
   useBookmarkLayout,
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -64,15 +65,18 @@ function BottomRow({
 }
 
 function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
+  const api = useTRPC();
   const listContext = useBookmarkListContext();
-  const collaborators = api.lists.getCollaborators.useQuery(
-    {
-      listId: listContext?.id ?? "",
-    },
-    {
-      refetchOnWindowFocus: false,
-      enabled: !!listContext?.hasCollaborators,
-    },
+  const collaborators = useQuery(
+    api.lists.getCollaborators.queryOptions(
+      {
+        listId: listContext?.id ?? "",
+      },
+      {
+        refetchOnWindowFocus: false,
+        enabled: !!listContext?.hasCollaborators,
+      },
+    ),
   );
 
   if (!listContext || listContext.userRole === "owner" || !collaborators.data) {

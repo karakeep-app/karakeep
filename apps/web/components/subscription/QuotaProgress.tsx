@@ -1,7 +1,8 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { Database, HardDrive } from "lucide-react";
 
 import {
@@ -110,9 +111,11 @@ function QuotaProgressItem({
 }
 
 export function QuotaProgress() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: quotaUsage, isLoading } =
-    api.subscriptions.getQuotaUsage.useQuery();
+  const { data: quotaUsage, isLoading } = useQuery(
+    api.subscriptions.getQuotaUsage.queryOptions(),
+  );
 
   if (isLoading) {
     return (

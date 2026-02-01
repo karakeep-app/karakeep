@@ -13,9 +13,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useClientConfig } from "@/lib/clientConfig";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
 import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
@@ -32,6 +32,7 @@ export function TagsEditor({
   onDetach: (tag: { tagName: string; tagId: string }) => void;
   disabled?: boolean;
 }) {
+  const api = useTRPC();
   const demoMode = !!useClientConfig().demoMode;
   const isDisabled = demoMode || disabled;
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -71,8 +72,8 @@ export function TagsEditor({
     });
   }, [_tags]);
 
-  const { data: filteredOptions, isLoading: isExistingTagsLoading } =
-    api.tags.list.useQuery(
+  const { data: filteredOptions, isLoading: isExistingTagsLoading } = useQuery(
+    api.tags.list.queryOptions(
       {
         nameContains: inputValue,
         limit: 50,
@@ -91,7 +92,8 @@ export function TagsEditor({
         placeholderData: keepPreviousData,
         gcTime: inputValue.length > 0 ? 60_000 : 3_600_000,
       },
-    );
+    ),
+  );
 
   const selectedValues = optimisticTags.map((tag) => tag.id);
 

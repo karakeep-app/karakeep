@@ -9,9 +9,10 @@ import { ActionButton } from "@/components/ui/action-button";
 import { badgeVariants } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import tailwindConfig from "@/tailwind.config";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Expand, FileIcon, ImageIcon } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import Masonry from "react-masonry-css";
@@ -199,19 +200,22 @@ export default function PublicBookmarkGrid({
   bookmarks: ZPublicBookmark[];
   nextCursor: ZCursor | null;
 }) {
+  const api = useTRPC();
   const { ref: loadMoreRef, inView: loadMoreButtonInView } = useInView();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    api.publicBookmarks.getPublicBookmarksInList.useInfiniteQuery(
-      { listId: list.id },
-      {
-        initialData: () => ({
-          pages: [{ bookmarks: initialBookmarks, nextCursor, list }],
-          pageParams: [null],
-        }),
-        initialCursor: null,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        refetchOnMount: true,
-      },
+    useInfiniteQuery(
+      api.publicBookmarks.getPublicBookmarksInList.infiniteQueryOptions(
+        { listId: list.id },
+        {
+          initialData: () => ({
+            pages: [{ bookmarks: initialBookmarks, nextCursor, list }],
+            pageParams: [null],
+          }),
+          initialCursor: null,
+          getNextPageParam: (lastPage) => lastPage.nextCursor,
+          refetchOnMount: true,
+        },
+      ),
     );
 
   useEffect(() => {

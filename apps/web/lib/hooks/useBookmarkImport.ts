@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { useMutation } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   useCreateBookmarkWithPostHook,
@@ -13,7 +14,6 @@ import {
   useAddBookmarkToList,
   useCreateBookmarkList,
 } from "@karakeep/shared-react/hooks/lists";
-import { api } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
@@ -34,13 +34,14 @@ export interface ImportProgress {
 
 export function useBookmarkImport() {
   const { t } = useTranslation();
+  const api = useTRPC();
 
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
   );
   const [quotaError, setQuotaError] = useState<string | null>(null);
 
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const { mutateAsync: createImportSession } = useCreateImportSession();
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook();
   const { mutateAsync: createList } = useCreateBookmarkList();
@@ -65,8 +66,9 @@ export function useBookmarkImport() {
 
       // Check quota before proceeding
       if (bookmarkCount > 0) {
-        const quotaUsage =
-          await apiUtils.client.subscriptions.getQuotaUsage.query();
+        const quotaUsage = await queryClient.fetchQuery(
+          api.subscriptions.getQuotaUsage.queryOptions(),
+        );
 
         if (
           !quotaUsage.bookmarks.unlimited &&

@@ -2,7 +2,8 @@ import type translation from "@/lib/i18n/locales/en/translation.json";
 import type { TFunction } from "i18next";
 import type { LucideIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import {
   History,
   ListTree,
@@ -293,6 +294,7 @@ const useTagSuggestions = (
 const useFeedSuggestions = (
   parsed: ParsedSearchState,
 ): AutocompleteSuggestionItem[] => {
+  const api = useTRPC();
   const shouldSuggestFeeds =
     parsed.normalizedTokenWithoutMinus.startsWith("feed:");
   const feedSearchTermRaw = shouldSuggestFeeds
@@ -300,9 +302,11 @@ const useFeedSuggestions = (
     : "";
   const feedSearchTerm = stripSurroundingQuotes(feedSearchTermRaw);
   const normalizedFeedSearchTerm = feedSearchTerm.toLowerCase();
-  const { data: feedResults } = api.feeds.list.useQuery(undefined, {
-    enabled: parsed.activeToken.length > 0,
-  });
+  const { data: feedResults } = useQuery(
+    api.feeds.list.queryOptions(undefined, {
+      enabled: parsed.activeToken.length > 0,
+    }),
+  );
 
   const feedSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestFeeds) {

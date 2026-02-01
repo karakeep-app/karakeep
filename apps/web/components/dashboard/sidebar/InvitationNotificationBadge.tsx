@@ -1,13 +1,14 @@
 "use client";
 
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 export function InvitationNotificationBadge() {
-  const { data: pendingInvitations } = api.lists.getPendingInvitations.useQuery(
-    undefined,
-    {
+  const api = useTRPC();
+  const { data: pendingInvitations } = useQuery(
+    api.lists.getPendingInvitations.queryOptions(undefined, {
       refetchInterval: 1000 * 60 * 5,
-    },
+    }),
   );
   const pendingInvitationsCount = pendingInvitations?.length ?? 0;
 

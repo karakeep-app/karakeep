@@ -20,8 +20,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -32,6 +33,7 @@ const forgotPasswordSchema = z.object({
 });
 
 export default function ForgotPasswordForm() {
+  const api = useTRPC();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
@@ -40,7 +42,9 @@ export default function ForgotPasswordForm() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const forgotPasswordMutation = api.users.forgotPassword.useMutation();
+  const forgotPasswordMutation = useMutation(
+    api.users.forgotPassword.mutationOptions(),
+  );
 
   const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {

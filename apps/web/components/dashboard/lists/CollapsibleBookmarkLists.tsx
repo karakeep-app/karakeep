@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
-import { api } from "@/lib/trpc";
-import { keepPreviousData } from "@tanstack/react-query";
+import { useTRPC } from "@/lib/trpc";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
@@ -101,6 +101,7 @@ export function CollapsibleBookmarkLists({
   filter?: (node: ZBookmarkListTreeNode) => boolean;
   indentOffset?: number;
 }) {
+  const api = useTRPC();
   // If listsData is provided, use it directly. Otherwise, fetch it.
   let { data: fetchedData } = useBookmarkLists(undefined, {
     initialData: initialData ? { lists: initialData } : undefined,
@@ -108,9 +109,11 @@ export function CollapsibleBookmarkLists({
   });
   const data = listsData || fetchedData;
 
-  const { data: listStats } = api.lists.stats.useQuery(undefined, {
-    placeholderData: keepPreviousData,
-  });
+  const { data: listStats } = useQuery(
+    api.lists.stats.queryOptions(undefined, {
+      placeholderData: keepPreviousData,
+    }),
+  );
 
   if (!data) {
     return <FullPageSpinner />;

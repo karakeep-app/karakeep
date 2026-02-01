@@ -7,29 +7,38 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useClientConfig } from "@/lib/clientConfig";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function RssLink({ listId }: { listId: string }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const clientConfig = useClientConfig();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
 
-  const { mutate: regenRssToken, isPending: isRegenPending } =
-    api.lists.regenRssToken.useMutation({
+  const { mutate: regenRssToken, isPending: isRegenPending } = useMutation(
+    api.lists.regenRssToken.mutationOptions({
       onSuccess: () => {
-        apiUtils.lists.getRssToken.invalidate({ listId });
+        queryClient.invalidateQueries(
+          api.lists.getRssToken.queryFilter({ listId }),
+        );
       },
-    });
-  const { mutate: clearRssToken, isPending: isClearPending } =
-    api.lists.clearRssToken.useMutation({
+    }),
+  );
+  const { mutate: clearRssToken, isPending: isClearPending } = useMutation(
+    api.lists.clearRssToken.mutationOptions({
       onSuccess: () => {
-        apiUtils.lists.getRssToken.invalidate({ listId });
+        queryClient.invalidateQueries(
+          api.lists.getRssToken.queryFilter({ listId }),
+        );
       },
-    });
-  const { data: rssToken, isLoading: isTokenLoading } =
-    api.lists.getRssToken.useQuery({ listId });
+    }),
+  );
+  const { data: rssToken, isLoading: isTokenLoading } = useQuery(
+    api.lists.getRssToken.queryOptions({ listId }),
+  );
 
   const rssUrl = useMemo(() => {
     if (!rssToken || !rssToken.token) {

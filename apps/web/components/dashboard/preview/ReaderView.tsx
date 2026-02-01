@@ -1,6 +1,7 @@
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   useCreateHighlight,
@@ -22,11 +23,14 @@ export default function ReaderView({
   style?: React.CSSProperties;
   readOnly: boolean;
 }) {
-  const { data: highlights } = api.highlights.getForBookmark.useQuery({
-    bookmarkId,
-  });
-  const { data: cachedContent, isPending: isCachedContentLoading } =
-    api.bookmarks.getBookmark.useQuery(
+  const api = useTRPC();
+  const { data: highlights } = useQuery(
+    api.highlights.getForBookmark.queryOptions({
+      bookmarkId,
+    }),
+  );
+  const { data: cachedContent, isPending: isCachedContentLoading } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
       {
         bookmarkId,
         includeContent: true,
@@ -37,7 +41,8 @@ export default function ReaderView({
             ? data.content.htmlContent
             : null,
       },
-    );
+    ),
+  );
 
   const { mutate: createHighlight } = useCreateHighlight({
     onSuccess: () => {

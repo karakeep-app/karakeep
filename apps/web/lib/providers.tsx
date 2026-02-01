@@ -7,14 +7,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Session, SessionProvider } from "@/lib/auth/client";
 import { UserLocalSettingsCtx } from "@/lib/userLocalSettings/bookmarksLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, loggerLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import superjson from "superjson";
 
 import type { ClientConfig } from "@karakeep/shared/config";
+import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
 import { ClientConfigCtx } from "./clientConfig";
 import CustomI18nextProvider from "./i18n/provider";
-import { api } from "./trpc";
+import { TRPCProvider } from "./trpc";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -58,7 +59,7 @@ export default function Providers({
   const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
-    api.createClient({
+    createTRPCClient<AppRouter>({
       links: [
         loggerLink({
           enabled: (op) =>
@@ -79,7 +80,7 @@ export default function Providers({
     <ClientConfigCtx.Provider value={clientConfig}>
       <UserLocalSettingsCtx.Provider value={userLocalSettings}>
         <SessionProvider session={session}>
-          <api.Provider client={trpcClient} queryClient={queryClient}>
+          <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
             <QueryClientProvider client={queryClient}>
               <CustomI18nextProvider lang={userLocalSettings.lang}>
                 <ThemeProvider
@@ -94,7 +95,7 @@ export default function Providers({
                 </ThemeProvider>
               </CustomI18nextProvider>
             </QueryClientProvider>
-          </api.Provider>
+          </TRPCProvider>
         </SessionProvider>
       </UserLocalSettingsCtx.Provider>
     </ClientConfigCtx.Provider>

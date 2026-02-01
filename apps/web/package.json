@@ -58,6 +58,7 @@
     "@trpc/client": "^11.4.3",
     "@trpc/react-query": "^11.4.3",
     "@trpc/server": "^11.4.3",
+    "@trpc/tanstack-react-query": "^11.9.0",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

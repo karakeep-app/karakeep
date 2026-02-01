@@ -40,10 +40,11 @@ import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { useUserSettings } from "@/lib/userSettings";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Info, Plus, Save, Trash2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -340,8 +341,9 @@ export function TagStyleSelector() {
 }
 
 export function PromptEditor() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof zNewPromptSchema>>({
     resolver: zodResolver(zNewPromptSchema),
@@ -351,15 +353,16 @@ export function PromptEditor() {
     },
   });
 
-  const { mutateAsync: createPrompt, isPending: isCreating } =
-    api.prompts.create.useMutation({
+  const { mutateAsync: createPrompt, isPending: isCreating } = useMutation(
+    api.prompts.create.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Prompt has been created!",
         });
-        apiUtils.prompts.list.invalidate();
+        queryClient.invalidateQueries(api.prompts.list.pathFilter());
       },
-    });
+    }),
+  );
 
   return (
     <Form {...form}>
@@ -441,26 +444,29 @@ export function PromptEditor() {
 }
 
 export function PromptRow({ prompt }: { prompt: ZPrompt }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
-  const { mutateAsync: updatePrompt, isPending: isUpdating } =
-    api.prompts.update.useMutation({
+  const queryClient = useQueryClient();
+  const { mutateAsync: updatePrompt, isPending: isUpdating } = useMutation(
+    api.prompts.update.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Prompt has been updated!",
         });
-        apiUtils.prompts.list.invalidate();
+        queryClient.invalidateQueries(api.prompts.list.pathFilter());
       },
-    });
-  const { mutate: deletePrompt, isPending: isDeleting } =
-    api.prompts.delete.useMutation({
+    }),
+  );
+  const { mutate: deletePrompt, isPending: isDeleting } = useMutation(
+    api.prompts.delete.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Prompt has been deleted!",
         });
-        apiUtils.prompts.list.invalidate();
+        queryClient.invalidateQueries(api.prompts.list.pathFilter());
       },
-    });
+    }),
+  );
 
   const form = useForm<z.infer<typeof zUpdatePromptSchema>>({
     resolver: zodResolver(zUpdatePromptSchema),
@@ -574,8 +580,11 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
 }
 
 export function TaggingRules() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: prompts, isLoading } = api.prompts.list.useQuery();
+  const { data: prompts, isLoading } = useQuery(
+    api.prompts.list.queryOptions(),
+  );
 
   return (
     <SettingsSection
@@ -601,8 +610,9 @@ export function TaggingRules() {
 }
 
 export function PromptDemo() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: prompts } = api.prompts.list.useQuery();
+  const { data: prompts } = useQuery(api.prompts.list.queryOptions());
   const settings = useUserSettings();
   const clientConfig = useClientConfig();
 

@@ -11,7 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Mail, MailX, UserPlus } from "lucide-react";
 
@@ -20,16 +25,17 @@ import { AdminCard } from "./AdminCard";
 import CreateInviteDialog from "./CreateInviteDialog";
 
 export default function InvitesList() {
-  const invalidateInvitesList = api.useUtils().invites.list.invalidate;
-  const [invites] = api.invites.list.useSuspenseQuery();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: invites } = useSuspenseQuery(api.invites.list.queryOptions());
 
-  const { mutateAsync: revokeInvite, isPending: isRevokePending } =
-    api.invites.revoke.useMutation({
+  const { mutateAsync: revokeInvite, isPending: isRevokePending } = useMutation(
+    api.invites.revoke.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Invite revoked successfully",
         });
-        invalidateInvitesList();
+        queryClient.invalidateQueries(api.invites.list.pathFilter());
       },
       onError: (e) => {
         toast({
@@ -37,15 +43,16 @@ export default function InvitesList() {
           description: `Failed to revoke invite: ${e.message}`,
         });
       },
-    });
+    }),
+  );
 
-  const { mutateAsync: resendInvite, isPending: isResendPending } =
-    api.invites.resend.useMutation({
+  const { mutateAsync: resendInvite, isPending: isResendPending } = useMutation(
+    api.invites.resend.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Invite resent successfully",
         });
-        invalidateInvitesList();
+        queryClient.invalidateQueries(api.invites.list.pathFilter());
       },
       onError: (e) => {
         toast({
@@ -53,7 +60,8 @@ export default function InvitesList() {
           description: `Failed to resend invite: ${e.message}`,
         });
       },
-    });
+    }),
+  );
 
   const activeInvites = invites?.invites || [];
 

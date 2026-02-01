@@ -16,7 +16,8 @@ import {
 import { useSession } from "@/lib/auth/client";
 import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -116,24 +117,27 @@ export default function BookmarkPreview({
   bookmarkId: string;
   initialData?: ZBookmark;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>("content");
   const { data: session } = useSession();
 
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId,
-    },
-    {
-      initialData,
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        if (!data) {
-          return false;
-        }
-        return getBookmarkRefreshInterval(data);
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId,
       },
-    },
+      {
+        initialData,
+        refetchInterval: (query) => {
+          const data = query.state.data;
+          if (!data) {
+            return false;
+          }
+          return getBookmarkRefreshInterval(data);
+        },
+      },
+    ),
   );
 
   if (!bookmark) {

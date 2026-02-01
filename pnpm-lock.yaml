@@ -630,6 +630,9 @@ importers:
       '@trpc/server':
         specifier: ^11.4.3
         version: 11.4.3(typescript@5.9.3)
+      '@trpc/tanstack-react-query':
+        specifier: ^11.9.0
+        version: 11.9.0(@tanstack/react-query@5.90.2(react@19.2.3))(@trpc/client@11.4.3(@trpc/server@11.4.3(typescript@5.9.3))(typescript@5.9.3))(@trpc/server@11.4.3(typescript@5.9.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       cheerio:
         specifier: ^1.0.0
         version: 1.0.0
@@ -1382,6 +1385,9 @@ importers:
       '@trpc/client':
         specifier: ^11.4.3
         version: 11.4.3(@trpc/server@11.4.3(typescript@5.9.3))(typescript@5.9.3)
+      '@trpc/tanstack-react-query':
+        specifier: ^11.9.0
+        version: 11.9.0(@tanstack/react-query@5.90.2(react@19.2.3))(@trpc/client@11.4.3(@trpc/server@11.4.3(typescript@5.9.3))(typescript@5.9.3))(@trpc/server@11.4.3(typescript@5.9.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       react:
         specifier: ^19.2.1
         version: 19.2.3
@@ -6186,6 +6192,16 @@ packages:
   '@trpc/server@11.4.3':
     resolution: {integrity: sha512-wnWq3wiLlMOlYkaIZz+qbuYA5udPTLS4GVVRyFkr6aT83xpdCHyVtURT+u4hSoIrOXQM9OPCNXSXsAujWZDdaw==}
     peerDependencies:
+      typescript: '>=5.7.2'
+
+  '@trpc/tanstack-react-query@11.9.0':
+    resolution: {integrity: sha512-EV9/m9HTD4yrZPI051+lKbKSwvRQpoF+1fIEoYHuJ009yFtCdCovn8XOwsdcugOQu84OCs11qDDKCEmUCNXUIg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.80.3
+      '@trpc/client': 11.9.0
+      '@trpc/server': 11.9.0
+      react: '>=18.2.0'
+      react-dom: '>=18.2.0'
       typescript: '>=5.7.2'
 
   '@trysound/sax@0.2.0':
@@ -14391,10 +14407,12 @@ packages:
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   tar@7.5.3:
     resolution: {integrity: sha512-ENg5JUHUm2rDD7IvKNFGzyElLXNjachNLp6RaGf4+JOgxXHkqA+gq81ZAMCUmtMtqBsoU62lcp6S27g1LCYGGQ==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   tdigest@0.1.2:
     resolution: {integrity: sha512-+G0LLgjjo9BZX2MfdvPfH+MKLCrxlXSYec5DaPYP1fe6Iyhf0/fSmJ0bFiZ1F8BT6cGXl2LpltQptzjXKWEkKA==}
@@ -22240,6 +22258,15 @@ snapshots:
 
   '@trpc/server@11.4.3(typescript@5.9.3)':
     dependencies:
+      typescript: 5.9.3
+
+  '@trpc/tanstack-react-query@11.9.0(@tanstack/react-query@5.90.2(react@19.2.3))(@trpc/client@11.4.3(@trpc/server@11.4.3(typescript@5.9.3))(typescript@5.9.3))(@trpc/server@11.4.3(typescript@5.9.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)':
+    dependencies:
+      '@tanstack/react-query': 5.90.2(react@19.2.3)
+      '@trpc/client': 11.4.3(@trpc/server@11.4.3(typescript@5.9.3))(typescript@5.9.3)
+      '@trpc/server': 11.4.3(typescript@5.9.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
       typescript: 5.9.3
 
   '@trysound/sax@0.2.0': {}

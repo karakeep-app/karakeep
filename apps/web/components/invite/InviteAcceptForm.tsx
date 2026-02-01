@@ -22,8 +22,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, Clock, Loader2, Mail, UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -47,6 +48,7 @@ interface InviteAcceptFormProps {
 }
 
 export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
+  const api = useTRPC();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof inviteAcceptSchema>>({
@@ -59,7 +61,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     isPending: loading,
     data: inviteData,
     error,
-  } = api.invites.get.useQuery({ token });
+  } = useQuery(api.invites.get.queryOptions({ token }));
 
   useEffect(() => {
     if (error) {
@@ -67,7 +69,9 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     }
   }, [error]);
 
-  const acceptInviteMutation = api.invites.accept.useMutation();
+  const acceptInviteMutation = useMutation(
+    api.invites.accept.mutationOptions(),
+  );
 
   const handleBackToSignIn = () => {
     router.push("/signin");

@@ -4,11 +4,13 @@ import HighlightList from "@/components/highlights/HighlightList";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import PageTitle from "@/components/ui/PageTitle";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function Highlights() {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const {
     data,
     isPending,
@@ -17,12 +19,14 @@ export default function Highlights() {
     fetchNextPage,
     isFetchingNextPage,
     refetch,
-  } = api.highlights.getAll.useInfiniteQuery(
-    {},
-    {
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  } = useInfiniteQuery(
+    api.highlights.getAll.infiniteQueryOptions(
+      {},
+      {
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   if (error) {
@@ -34,7 +38,7 @@ export default function Highlights() {
   }
 
   const onRefresh = () => {
-    apiUtils.highlights.getAll.invalidate();
+    queryClient.invalidateQueries(api.highlights.getAll.pathFilter());
   };
 
   return (

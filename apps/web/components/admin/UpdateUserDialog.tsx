@@ -27,8 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -51,7 +52,8 @@ export default function UpdateUserDialog({
   currentStorageQuota,
   children,
 }: UpdateUserDialogProps) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const [isOpen, onOpenChange] = useState(false);
   const defaultValues = {
     userId,
@@ -63,28 +65,30 @@ export default function UpdateUserDialog({
     resolver: zodResolver(updateUserSchema),
     defaultValues,
   });
-  const { mutate, isPending } = api.admin.updateUser.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "User updated successfully",
-      });
-      apiUtils.users.list.invalidate();
-      onOpenChange(false);
-    },
-    onError: (error) => {
-      if (error instanceof TRPCClientError) {
+  const { mutate, isPending } = useMutation(
+    api.admin.updateUser.mutationOptions({
+      onSuccess: () => {
         toast({
-          variant: "destructive",
-          description: error.message,
+          description: "User updated successfully",
         });
-      } else {
-        toast({
-          variant: "destructive",
-          description: "Failed to update user",
-        });
-      }
-    },
-  });
+        queryClient.invalidateQueries(api.users.list.pathFilter());
+        onOpenChange(false);
+      },
+      onError: (error) => {
+        if (error instanceof TRPCClientError) {
+          toast({
+            variant: "destructive",
+            description: error.message,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            description: "Failed to update user",
+          });
+        }
+      },
+    }),
+  );
 
   useEffect(() => {
     if (isOpen) {

@@ -25,7 +25,8 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Trash2, UserPlus, Users } from "lucide-react";
 
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
@@ -43,6 +44,7 @@ export function ManageCollaboratorsModal({
   children?: React.ReactNode;
   readOnly?: boolean;
 }) {
+  const api = useTRPC();
   if (
     (userOpen !== undefined && !userSetOpen) ||
     (userOpen === undefined && userSetOpen)
@@ -61,82 +63,102 @@ export function ManageCollaboratorsModal({
   >("viewer");
 
   const { t } = useTranslation();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const invalidateListCaches = () =>
     Promise.all([
-      utils.lists.getCollaborators.invalidate({ listId: list.id }),
-      utils.lists.get.invalidate({ listId: list.id }),
-      utils.lists.list.invalidate(),
-      utils.bookmarks.getBookmarks.invalidate({ listId: list.id }),
+      queryClient.invalidateQueries(
+        api.lists.getCollaborators.queryFilter({ listId: list.id }),
+      ),
+      queryClient.invalidateQueries(
+        api.lists.get.queryFilter({ listId: list.id }),
+      ),
+      queryClient.invalidateQueries(api.lists.list.pathFilter()),
+      queryClient.invalidateQueries(
+        api.bookmarks.getBookmarks.queryFilter({ listId: list.id }),
+      ),
     ]);
 
   // Fetch collaborators
-  const { data: collaboratorsData, isLoading } =
-    api.lists.getCollaborators.useQuery({ listId: list.id }, { enabled: open });
+  const { data: collaboratorsData, isLoading } = useQuery(
+    api.lists.getCollaborators.queryOptions(
+      { listId: list.id },
+      { enabled: open },
+    ),
+  );
 
   // Mutations
-  const addCollaborator = api.lists.addCollaborator.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.invitation_sent"),
-      });
-      setNewCollaboratorEmail("");
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.collaborators.failed_to_add"),
-      });
-    },
-  });
+  const addCollaborator = useMutation(
+    api.lists.addCollaborator.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.invitation_sent"),
+        });
+        setNewCollaboratorEmail("");
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description: error.message || t("lists.collaborators.failed_to_add"),
+        });
+      },
+    }),
+  );
 
-  const removeCollaborator = api.lists.removeCollaborator.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.removed"),
-      });
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.collaborators.failed_to_remove"),
-      });
-    },
-  });
+  const removeCollaborator = useMutation(
+    api.lists.removeCollaborator.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.removed"),
+        });
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.collaborators.failed_to_remove"),
+        });
+      },
+    }),
+  );
 
-  const updateCollaboratorRole = api.lists.updateCollaboratorRole.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.role_updated"),
-      });
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description:
-          error.message || t("lists.collaborators.failed_to_update_role"),
-      });
-    },
-  });
+  const updateCollaboratorRole = useMutation(
+    api.lists.updateCollaboratorRole.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.role_updated"),
+        });
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.collaborators.failed_to_update_role"),
+        });
+      },
+    }),
+  );
 
-  const revokeInvitation = api.lists.revokeInvitation.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.invitation_revoked"),
-      });
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.collaborators.failed_to_revoke"),
-      });
-    },
-  });
+  const revokeInvitation = useMutation(
+    api.lists.revokeInvitation.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.invitation_revoked"),
+        });
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.collaborators.failed_to_revoke"),
+        });
+      },
+    }),
+  );
 
   const handleAddCollaborator = () => {
     if (!newCollaboratorEmail.trim()) {

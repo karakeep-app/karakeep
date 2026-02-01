@@ -2,7 +2,8 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 
 import { AdminCard } from "./AdminCard";
@@ -14,7 +15,8 @@ interface AdminNotice {
 }
 
 function useAdminNotices() {
-  const { data } = api.admin.getAdminNoticies.useQuery();
+  const api = useTRPC();
+  const { data } = useQuery(api.admin.getAdminNoticies.queryOptions());
   if (!data) {
     return [];
   }

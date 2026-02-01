@@ -5,8 +5,9 @@ import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
 import { Input } from "@/components/ui/input";
 import useRelativeTime from "@/lib/hooks/relative-time";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Dot, LinkIcon, Search, X } from "lucide-react";
@@ -49,6 +50,7 @@ export default function AllHighlights({
 }: {
   highlights: ZGetAllHighlightsResponse;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
@@ -56,28 +58,32 @@ export default function AllHighlights({
   // Use search endpoint if searchQuery is provided, otherwise use getAll
   const useSearchQuery = debouncedSearch.trim().length > 0;
 
-  const getAllQuery = api.highlights.getAll.useInfiniteQuery(
-    {},
-    {
-      enabled: !useSearchQuery,
-      initialData: !useSearchQuery
-        ? () => ({
-            pages: [initialHighlights],
-            pageParams: [null],
-          })
-        : undefined,
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  const getAllQuery = useInfiniteQuery(
+    api.highlights.getAll.infiniteQueryOptions(
+      {},
+      {
+        enabled: !useSearchQuery,
+        initialData: !useSearchQuery
+          ? () => ({
+              pages: [initialHighlights],
+              pageParams: [null],
+            })
+          : undefined,
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
-  const searchQueryResult = api.highlights.search.useInfiniteQuery(
-    { text: debouncedSearch },
-    {
-      enabled: useSearchQuery,
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  const searchQueryResult = useInfiniteQuery(
+    api.highlights.search.infiniteQueryOptions(
+      { text: debouncedSearch },
+      {
+        enabled: useSearchQuery,
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =

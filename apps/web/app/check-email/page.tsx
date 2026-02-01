@@ -11,26 +11,30 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2, Mail } from "lucide-react";
 
 export default function CheckEmailPage() {
+  const api = useTRPC();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [message, setMessage] = useState("");
 
   const email = searchParams.get("email");
 
-  const resendEmailMutation = api.users.resendVerificationEmail.useMutation({
-    onSuccess: () => {
-      setMessage(
-        "A new verification email has been sent to your email address.",
-      );
-    },
-    onError: (error) => {
-      setMessage(error.message || "Failed to resend verification email.");
-    },
-  });
+  const resendEmailMutation = useMutation(
+    api.users.resendVerificationEmail.mutationOptions({
+      onSuccess: () => {
+        setMessage(
+          "A new verification email has been sent to your email address.",
+        );
+      },
+      onError: (error) => {
+        setMessage(error.message || "Failed to resend verification email.");
+      },
+    }),
+  );
 
   const handleResendEmail = () => {
     if (email) {
