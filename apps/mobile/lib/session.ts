@@ -1,12 +1,16 @@
 import { useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 import useAppSettings from "./settings";
-import { api } from "./trpc";
+import { useTRPC } from "./trpc";
 
 export function useSession() {
   const { settings, setSettings } = useAppSettings();
+  const api = useTRPC();
 
-  const { mutate: deleteKey } = api.apiKeys.revoke.useMutation();
+  const { mutate: deleteKey } = useMutation(
+    api.apiKeys.revoke.mutationOptions(),
+  );
 
   const logout = useCallback(() => {
     if (settings.apiKeyId) {

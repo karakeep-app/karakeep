@@ -2,7 +2,8 @@ import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { ExternalLink, Trash2 } from "lucide-react-native";
@@ -29,6 +30,7 @@ export default function HighlightCard({
 }) {
   const { toast } = useToast();
   const router = useRouter();
+  const api = useTRPC();
 
   const onError = () => {
     toast({
@@ -64,13 +66,15 @@ export default function HighlightCard({
       ],
     );
 
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId: highlight.bookmarkId,
-    },
-    {
-      retry: false,
-    },
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: highlight.bookmarkId,
+      },
+      {
+        retry: false,
+      },
+    ),
   );
 
   const handleBookmarkPress = () => {

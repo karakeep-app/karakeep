@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "./components/ui/button";
@@ -17,27 +18,32 @@ import usePluginSettings, {
   DEFAULT_BADGE_CACHE_EXPIRE_MS,
 } from "./utils/settings";
 import { useTheme } from "./utils/ThemeProvider";
-import { api } from "./utils/trpc";
+import { useTRPC } from "./utils/trpc";
 
 export default function OptionsPage() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { settings, setSettings } = usePluginSettings();
   const { setTheme, theme } = useTheme();
 
-  const { data: whoami, error: whoAmIError } = api.users.whoami.useQuery(
-    undefined,
-    {
+  const { data: whoami, error: whoAmIError } = useQuery(
+    api.users.whoami.queryOptions(undefined, {
       enabled: settings.address != "",
-    },
+    }),
   );
 
-  const { mutate: deleteKey } = api.apiKeys.revoke.useMutation();
+  const { mutate: deleteKey } = useMutation(
+    api.apiKeys.revoke.mutationOptions(),
+  );
 
-  const invalidateWhoami = api.useUtils().users.whoami.refetch;
+  const invalidateWhoami = () => {
+    queryClient.refetchQueries(api.users.whoami.queryFilter());
+  };
 
   useEffect(() => {
     invalidateWhoami();
-  }, [settings, invalidateWhoami]);
+  }, [settings]);
 
   let loggedInMessage: React.ReactNode;
   if (whoAmIError) {

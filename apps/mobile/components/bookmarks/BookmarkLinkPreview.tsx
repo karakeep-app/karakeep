@@ -6,8 +6,9 @@ import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useQuery } from "@tanstack/react-query";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
@@ -65,16 +66,19 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const api = useTRPC();
 
   const {
     data: bookmarkWithContent,
     error,
     isLoading,
     refetch,
-  } = api.bookmarks.getBookmark.useQuery({
-    bookmarkId: bookmark.id,
-    includeContent: true,
-  });
+  } = useQuery(
+    api.bookmarks.getBookmark.queryOptions({
+      bookmarkId: bookmark.id,
+      includeContent: true,
+    }),
+  );
 
   if (isLoading) {
     return <FullPageSpinner />;

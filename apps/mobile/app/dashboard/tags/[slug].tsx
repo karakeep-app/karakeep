@@ -4,15 +4,21 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 export default function TagView() {
   const { slug } = useLocalSearchParams();
+  const api = useTRPC();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
   }
 
-  const { data: tag, error, refetch } = api.tags.get.useQuery({ tagId: slug });
+  const {
+    data: tag,
+    error,
+    refetch,
+  } = useQuery(api.tags.get.queryOptions({ tagId: slug }));
 
   return (
     <CustomSafeAreaView>

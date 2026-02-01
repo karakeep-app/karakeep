@@ -1,4 +1,5 @@
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { ZGetBookmarksRequest } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -14,7 +15,8 @@ export default function UpdatingBookmarkList({
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is not supported in mobile yet
   header?: React.ReactElement;
 }) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const {
     data,
     isPending,
@@ -23,12 +25,14 @@ export default function UpdatingBookmarkList({
     fetchNextPage,
     isFetchingNextPage,
     refetch,
-  } = api.bookmarks.getBookmarks.useInfiniteQuery(
-    { ...query, useCursorV2: true, includeContent: false },
-    {
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  } = useInfiniteQuery(
+    api.bookmarks.getBookmarks.infiniteQueryOptions(
+      { ...query, useCursorV2: true, includeContent: false },
+      {
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   if (error) {
@@ -40,8 +44,8 @@ export default function UpdatingBookmarkList({
   }
 
   const onRefresh = () => {
-    apiUtils.bookmarks.getBookmarks.invalidate();
-    apiUtils.bookmarks.getBookmark.invalidate();
+    queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+    queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
   };
 
   return (

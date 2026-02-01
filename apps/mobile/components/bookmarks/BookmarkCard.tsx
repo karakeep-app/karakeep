@@ -15,9 +15,10 @@ import { router, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { buildApiHeaders } from "@/lib/utils";
 import { MenuView } from "@react-native-menu/menu";
+import { useQuery } from "@tanstack/react-query";
 import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -477,20 +478,23 @@ export default function BookmarkCard({
 }: {
   bookmark: ZBookmark;
 }) {
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId: initialData.id,
-    },
-    {
-      initialData,
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        if (!data) {
-          return false;
-        }
-        return getBookmarkRefreshInterval(data);
+  const api = useTRPC();
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: initialData.id,
       },
-    },
+      {
+        initialData,
+        refetchInterval: (query) => {
+          const data = query.state.data;
+          if (!data) {
+            return false;
+          }
+          return getBookmarkRefreshInterval(data);
+        },
+      },
+    ),
   );
 
   const router = useRouter();

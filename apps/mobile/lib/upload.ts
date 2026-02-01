@@ -1,5 +1,5 @@
 import ReactNativeBlobUtil from "react-native-blob-util";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@karakeep/shared/types/uploads";
 
 import type { Settings } from "./settings";
-import { api } from "./trpc";
+import { useTRPC } from "./trpc";
 import { buildApiHeaders } from "./utils";
 
 export function useUploadAsset(
@@ -18,13 +18,13 @@ export function useUploadAsset(
     onError?: (e: string) => void;
   },
 ) {
-  const invalidateAllBookmarks =
-    api.useUtils().bookmarks.getBookmarks.invalidate;
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  const { mutate: createBookmark, isPending: isCreatingBookmark } =
-    api.bookmarks.createBookmark.useMutation({
+  const { mutate: createBookmark, isPending: isCreatingBookmark } = useMutation(
+    api.bookmarks.createBookmark.mutationOptions({
       onSuccess: (d) => {
-        invalidateAllBookmarks();
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
         if (options.onSuccess) {
           options.onSuccess(d);
         }
@@ -34,7 +34,8 @@ export function useUploadAsset(
           options.onError(e.message);
         }
       },
-    });
+    }),
+  );
 
   const { mutate: uploadAsset, isPending: isUploading } = useMutation({
     mutationFn: async (file: { type: string; name: string; uri: string }) => {

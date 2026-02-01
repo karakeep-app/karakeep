@@ -8,7 +8,8 @@ import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import PageTitle from "@/components/ui/PageTitle";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { usePaginatedSearchTags } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
@@ -23,7 +24,8 @@ interface TagItem {
 export default function Tags() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
   // Debounce search query to avoid too many API calls
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -56,7 +58,7 @@ export default function Tags() {
   }
 
   const onRefresh = () => {
-    apiUtils.tags.list.invalidate();
+    queryClient.invalidateQueries(api.tags.list.pathFilter());
   };
 
   const tags: TagItem[] = data.tags.map((tag) => ({

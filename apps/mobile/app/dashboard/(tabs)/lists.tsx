@@ -8,9 +8,10 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import PageTitle from "@/components/ui/PageTitle";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
+import { useTRPC } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react-native";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
@@ -84,8 +85,9 @@ export default function Lists() {
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
     {},
   );
-  const apiUtils = api.useUtils();
-  const { data: listStats } = api.lists.stats.useQuery();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: listStats } = useQuery(api.lists.stats.queryOptions());
 
   // Check if there are any shared lists
   const hasSharedLists = useMemo(() => {
@@ -116,8 +118,8 @@ export default function Lists() {
   }
 
   const onRefresh = () => {
-    apiUtils.lists.list.invalidate();
-    apiUtils.lists.stats.invalidate();
+    queryClient.invalidateQueries(api.lists.list.pathFilter());
+    queryClient.invalidateQueries(api.lists.stats.pathFilter());
   };
 
   const links: ListLink[] = [
