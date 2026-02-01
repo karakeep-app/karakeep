@@ -12,11 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
-
-import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 import { Loader2, Mail } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 export default function CheckEmailPage() {
   const api = useTRPC();
@@ -25,7 +24,8 @@ export default function CheckEmailPage() {
   const [message, setMessage] = useState("");
 
   const email = searchParams.get("email");
-  const redirectUrl = validateRedirectUrl(searchParams.get("redirectUrl")) ?? "/";
+  const redirectUrl =
+    validateRedirectUrl(searchParams.get("redirectUrl")) ?? "/";
 
   const resendEmailMutation = useMutation(
     api.users.resendVerificationEmail.mutationOptions({
