@@ -31,7 +31,7 @@ export const usersAppRouter = router({
         maxRequests: 3,
       }),
     )
-    .input(zSignUpSchema)
+    .input(zSignUpSchema.and(z.object({ redirectUrl: z.string().optional() })))
     .output(
       z.object({
         id: z.string(),
@@ -206,10 +206,11 @@ export const usersAppRouter = router({
     .input(
       z.object({
         email: z.string().email(),
+        redirectUrl: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await User.resendVerificationEmail(ctx, input.email);
+      await User.resendVerificationEmail(ctx, input.email, input.redirectUrl);
       return { success: true };
     }),
   forgotPassword: publicProcedure

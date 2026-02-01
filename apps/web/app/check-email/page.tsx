@@ -23,6 +23,7 @@ export default function CheckEmailPage() {
   const [message, setMessage] = useState("");
 
   const email = searchParams.get("email");
+  const redirectUrl = searchParams.get("redirectUrl") ?? "/";
 
   const resendEmailMutation = useMutation(
     api.users.resendVerificationEmail.mutationOptions({
@@ -39,7 +40,7 @@ export default function CheckEmailPage() {
 
   const handleResendEmail = () => {
     if (email) {
-      resendEmailMutation.mutate({ email });
+      resendEmailMutation.mutate({ email, redirectUrl });
     }
   };
 

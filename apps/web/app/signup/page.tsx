@@ -1,12 +1,20 @@
 import { redirect } from "next/dist/client/components/navigation";
 import KarakeepLogo from "@/components/KarakeepIcon";
 import SignUpForm from "@/components/signup/SignUpForm";
+import { validateRedirectUrl } from "@/lib/redirectUrl";
 import { getServerAuthSession } from "@/server/auth";
 
-export default async function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectUrl?: string }>;
+}) {
   const session = await getServerAuthSession();
+  const { redirectUrl: rawRedirectUrl } = await searchParams;
+  const redirectUrl = validateRedirectUrl(rawRedirectUrl);
+
   if (session) {
-    redirect("/");
+    redirect(redirectUrl);
   }
 
   return (
@@ -15,7 +23,7 @@ export default async function SignUpPage() {
         <div className="flex items-center justify-center">
           <KarakeepLogo height={80} />
         </div>
-        <SignUpForm />
+        <SignUpForm redirectUrl={redirectUrl} />
       </div>
     </div>
   );
