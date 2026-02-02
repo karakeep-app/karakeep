@@ -18,6 +18,7 @@ import {
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  ImportLinkCrawlerQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
@@ -278,7 +279,11 @@ export const bookmarksAppRouter = router({
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
-          await LinkCrawlerQueue.enqueue(
+          // Use a separate queue for imports to avoid impacting main queue parallelism
+          const crawlerQueue = input.importSessionId
+            ? ImportLinkCrawlerQueue
+            : LinkCrawlerQueue;
+          await crawlerQueue.enqueue(
             {
               bookmarkId: bookmark.id,
             },

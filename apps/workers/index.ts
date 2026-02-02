@@ -7,6 +7,7 @@ import {
   AssetPreprocessingQueue,
   BackupQueue,
   FeedQueue,
+  ImportLinkCrawlerQueue,
   initTracing,
   LinkCrawlerQueue,
   loadAllPlugins,
@@ -38,6 +39,7 @@ import { WebhookWorker } from "./workers/webhookWorker";
 const workerBuilders = {
   crawler: async () => {
     await LinkCrawlerQueue.ensureInit();
+    await ImportLinkCrawlerQueue.ensureInit();
     return CrawlerWorker.build();
   },
   inference: async () => {

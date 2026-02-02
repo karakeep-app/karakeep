@@ -91,6 +91,18 @@ export const LinkCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
   },
 );
 
+// Separate queue for link crawling coming from imports
+// This prevents import crawling from impacting the parallelism of the main queue
+export const ImportLinkCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
+  "import_link_crawler_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 5,
+    },
+    keepFailedJobs: false,
+  },
+);
+
 // Inference Worker
 export const zOpenAIRequestSchema = z.object({
   bookmarkId: z.string(),

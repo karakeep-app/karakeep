@@ -54,6 +54,7 @@ import {
 import {
   AssetPreprocessingQueue,
   getTracer,
+  ImportLinkCrawlerQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
@@ -78,6 +79,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
   DequeuedJob,
+  DequeuedJobError,
   EnqueueOptions,
   getQueueClient,
   QueueRetryAfterError,
@@ -323,82 +325,99 @@ export class CrawlerWorker {
       );
     }
 
-    logger.info("Starting crawler worker ...");
-    const worker = (await getQueueClient())!.createRunner<
-      ZCrawlLinkRequest,
-      CrawlerRunResult
-    >(
-      LinkCrawlerQueue,
-      {
-        run: withWorkerTracing("crawlerWorker.run", runCrawler),
-        onComplete: async (job) => {
-          workerStatsCounter.labels("crawler", "completed").inc();
-          const jobId = job.id;
-          logger.info(`[Crawler][${jobId}] Completed successfully`);
-          const bookmarkId = job.data.bookmarkId;
-          if (bookmarkId) {
-            await db
+    const queueClient = await getQueueClient();
+
+    const runnerCallbacks = {
+      run: withWorkerTracing("crawlerWorker.run", runCrawler),
+      onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
+        workerStatsCounter.labels("crawler", "completed").inc();
+        const jobId = job.id;
+        logger.info(`[Crawler][${jobId}] Completed successfully`);
+        const bookmarkId = job.data.bookmarkId;
+        if (bookmarkId) {
+          await db
+            .update(bookmarkLinks)
+            .set({
+              crawlStatus: "success",
+            })
+            .where(eq(bookmarkLinks.id, bookmarkId));
+        }
+      },
+      onError: async (job: DequeuedJobError<ZCrawlLinkRequest>) => {
+        workerStatsCounter.labels("crawler", "failed").inc();
+        if (job.numRetriesLeft == 0) {
+          workerStatsCounter.labels("crawler", "failed_permanent").inc();
+        }
+        const jobId = job.id;
+        logger.error(
+          `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
+        );
+        const bookmarkId = job.data?.bookmarkId;
+        if (bookmarkId && job.numRetriesLeft == 0) {
+          await db.transaction(async (tx) => {
+            await tx
               .update(bookmarkLinks)
               .set({
-                crawlStatus: "success",
+                crawlStatus: "failure",
               })
               .where(eq(bookmarkLinks.id, bookmarkId));
-          }
-        },
-        onError: async (job) => {
-          workerStatsCounter.labels("crawler", "failed").inc();
-          if (job.numRetriesLeft == 0) {
-            workerStatsCounter.labels("crawler", "failed_permanent").inc();
-          }
-          const jobId = job.id;
-          logger.error(
-            `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
-          );
-          const bookmarkId = job.data?.bookmarkId;
-          if (bookmarkId && job.numRetriesLeft == 0) {
-            await db.transaction(async (tx) => {
-              await tx
-                .update(bookmarkLinks)
-                .set({
-                  crawlStatus: "failure",
-                })
-                .where(eq(bookmarkLinks.id, bookmarkId));
-              await tx
-                .update(bookmarks)
-                .set({
-                  taggingStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.taggingStatus, "pending"),
-                  ),
-                );
-              await tx
-                .update(bookmarks)
-                .set({
-                  summarizationStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.summarizationStatus, "pending"),
-                  ),
-                );
-            });
-          }
-        },
+            await tx
+              .update(bookmarks)
+              .set({
+                taggingStatus: null,
+              })
+              .where(
+                and(
+                  eq(bookmarks.id, bookmarkId),
+                  eq(bookmarks.taggingStatus, "pending"),
+                ),
+              );
+            await tx
+              .update(bookmarks)
+              .set({
+                summarizationStatus: null,
+              })
+              .where(
+                and(
+                  eq(bookmarks.id, bookmarkId),
+                  eq(bookmarks.summarizationStatus, "pending"),
+                ),
+              );
+          });
+        }
       },
-      {
-        pollIntervalMs: 1000,
-        timeoutSecs: serverConfig.crawler.jobTimeoutSec,
-        concurrency: serverConfig.crawler.numWorkers,
-      },
-    );
+    };
+
+    const runnerOptions = {
+      pollIntervalMs: 1000,
+      timeoutSecs: serverConfig.crawler.jobTimeoutSec,
+      concurrency: serverConfig.crawler.numWorkers,
+    };
+
+    logger.info("Starting crawler worker ...");
+    const mainWorker = queueClient.createRunner<
+      ZCrawlLinkRequest,
+      CrawlerRunResult
+    >(LinkCrawlerQueue, runnerCallbacks, runnerOptions);
+
+    logger.info("Starting import crawler worker ...");
+    const importWorker = queueClient.createRunner<
+      ZCrawlLinkRequest,
+      CrawlerRunResult
+    >(ImportLinkCrawlerQueue, runnerCallbacks, runnerOptions);
 
     await loadCookiesFromFile();
 
-    return worker;
+    // Return a combined worker that manages both runners
+    return {
+      run: async () => {
+        await Promise.all([mainWorker.run(), importWorker.run()]);
+      },
+      stop: () => {
+        mainWorker.stop();
+        importWorker.stop();
+      },
+    };
   }
 }
 
