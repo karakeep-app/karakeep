@@ -1,9 +1,8 @@
-import { TRPCError } from "@trpc/server";
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { and, eq, gt } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@karakeep/db";
-import { importSessions, importStagingBookmarks } from "@karakeep/db/schema";
+import { importStagingBookmarks } from "@karakeep/db/schema";
 import {
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
@@ -13,8 +12,25 @@ import {
   zListImportSessionsResponseSchema,
 } from "@karakeep/shared/types/importSessions";
 
+import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
 import { ImportSession } from "../models/importSessions";
+
+const ensureImportSessionAccess = experimental_trpcMiddleware<{
+  ctx: AuthedContext;
+  input: { importSessionId: string };
+}>().create(async (opts) => {
+  const importSession = await ImportSession.fromId(
+    opts.ctx,
+    opts.input.importSessionId,
+  );
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      importSession,
+    },
+  });
+});
 
 export const importSessionsRouter = router({
   createImportSession: authedProcedure
@@ -56,166 +72,44 @@ export const importSessionsRouter = router({
         importSessionId: z.string(),
         bookmarks: z
           .array(
-            z
-              .object({
-                type: z.enum(["link", "text", "asset"]),
-                url: z.string().optional(),
-                title: z.string().optional(),
-                content: z.string().optional(),
-                note: z.string().optional(),
-                tags: z.array(z.string()).default([]),
-                listPaths: z.array(z.string()).default([]),
-                sourceAddedAt: z.date().optional(),
-              })
-              .refine(
-                (data) => {
-                  if (data.type === "link" && !data.url) return false;
-                  if (data.type === "text" && !data.content) return false;
-                  return true;
-                },
-                {
-                  message:
-                    "URL is required for link bookmarks, content is required for text bookmarks",
-                },
-              ),
+            z.object({
+              type: z.enum(["link", "text", "asset"]),
+              url: z.string().optional(),
+              title: z.string().optional(),
+              content: z.string().optional(),
+              note: z.string().optional(),
+              tags: z.array(z.string()).default([]),
+              listPaths: z.array(z.string()).default([]),
+              sourceAddedAt: z.date().optional(),
+            }),
           )
           .max(50),
       }),
     )
+    .use(ensureImportSessionAccess)
     .mutation(async ({ input, ctx }) => {
-      if (input.bookmarks.length === 0) {
-        return;
-      }
-
-      // Verify session belongs to user and is in staging status
-      const session = await db.query.importSessions.findFirst({
-        where: and(
-          eq(importSessions.id, input.importSessionId),
-          eq(importSessions.userId, ctx.user.id),
-        ),
-      });
-
-      if (!session) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Import session not found",
-        });
-      }
-
-      if (session.status !== "staging") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Session not in staging status",
-        });
-      }
-
-      // Batch insert into staging table - NO side effects triggered
-      await ctx.db.insert(importStagingBookmarks).values(
-        input.bookmarks.map((bookmark) => ({
-          importSessionId: input.importSessionId,
-          type: bookmark.type,
-          url: bookmark.url,
-          title: bookmark.title,
-          content: bookmark.content,
-          note: bookmark.note,
-          tags: bookmark.tags,
-          listPaths: bookmark.listPaths,
-          sourceAddedAt: bookmark.sourceAddedAt,
-          status: "pending" as const,
-        })),
-      );
+      await ctx.importSession.stageBookmarks(input.bookmarks);
     }),
 
   finalizeImportStaging: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      const session = await db.query.importSessions.findFirst({
-        where: and(
-          eq(importSessions.id, input.importSessionId),
-          eq(importSessions.userId, ctx.user.id),
-        ),
-      });
-
-      if (!session) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Import session not found",
-        });
-      }
-
-      if (session.status !== "staging") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Session not in staging status",
-        });
-      }
-
-      // Mark session as pending - polling worker will pick it up
-      await ctx.db
-        .update(importSessions)
-        .set({ status: "pending" })
-        .where(eq(importSessions.id, input.importSessionId));
+    .use(ensureImportSessionAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.importSession.finalize();
     }),
 
   pauseImportSession: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const session = await db.query.importSessions.findFirst({
-        where: and(
-          eq(importSessions.id, input.importSessionId),
-          eq(importSessions.userId, ctx.user.id),
-        ),
-      });
-
-      if (!session) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Import session not found",
-        });
-      }
-
-      if (!["pending", "running"].includes(session.status)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Session cannot be paused in current status",
-        });
-      }
-
-      await ctx.db
-        .update(importSessions)
-        .set({ status: "paused" })
-        .where(eq(importSessions.id, input.importSessionId));
+    .use(ensureImportSessionAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.importSession.pause();
     }),
 
   resumeImportSession: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const session = await db.query.importSessions.findFirst({
-        where: and(
-          eq(importSessions.id, input.importSessionId),
-          eq(importSessions.userId, ctx.user.id),
-        ),
-      });
-
-      if (!session) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Import session not found",
-        });
-      }
-
-      if (session.status !== "paused") {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Session not paused",
-        });
-      }
-
-      // Mark as pending - polling worker will pick it up
-      await ctx.db
-        .update(importSessions)
-        .set({ status: "pending" })
-        .where(eq(importSessions.id, input.importSessionId));
+    .use(ensureImportSessionAccess)
+    .mutation(async ({ ctx }) => {
+      await ctx.importSession.resume();
     }),
 
   getImportSessionResults: authedProcedure
@@ -229,27 +123,17 @@ export const importSessionsRouter = router({
         limit: z.number().default(50),
       }),
     )
+    .use(ensureImportSessionAccess)
     .query(async ({ ctx, input }) => {
-      const session = await db.query.importSessions.findFirst({
-        where: and(
-          eq(importSessions.id, input.importSessionId),
-          eq(importSessions.userId, ctx.user.id),
-        ),
-      });
-
-      if (!session) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Import session not found",
-        });
-      }
-
       const results = await ctx.db
         .select()
         .from(importStagingBookmarks)
         .where(
           and(
-            eq(importStagingBookmarks.importSessionId, input.importSessionId),
+            eq(
+              importStagingBookmarks.importSessionId,
+              ctx.importSession.session.id,
+            ),
             input.filter && input.filter !== "all"
               ? input.filter === "pending"
                 ? eq(importStagingBookmarks.status, "pending")

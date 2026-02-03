@@ -147,4 +147,92 @@ export class ImportSession {
       });
     }
   }
+
+  async stageBookmarks(
+    bookmarks: {
+      type: "link" | "text" | "asset";
+      url?: string;
+      title?: string;
+      content?: string;
+      note?: string;
+      tags: string[];
+      listPaths: string[];
+      sourceAddedAt?: Date;
+    }[],
+  ): Promise<void> {
+    if (this.session.status !== "staging") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Session not in staging status",
+      });
+    }
+
+    // Filter out invalid bookmarks (link without url, text without content)
+    const validBookmarks = bookmarks.filter((bookmark) => {
+      if (bookmark.type === "link" && !bookmark.url) return false;
+      if (bookmark.type === "text" && !bookmark.content) return false;
+      return true;
+    });
+
+    if (validBookmarks.length === 0) {
+      return;
+    }
+
+    await this.ctx.db.insert(importStagingBookmarks).values(
+      validBookmarks.map((bookmark) => ({
+        importSessionId: this.session.id,
+        type: bookmark.type,
+        url: bookmark.url,
+        title: bookmark.title,
+        content: bookmark.content,
+        note: bookmark.note,
+        tags: bookmark.tags,
+        listPaths: bookmark.listPaths,
+        sourceAddedAt: bookmark.sourceAddedAt,
+        status: "pending" as const,
+      })),
+    );
+  }
+
+  async finalize(): Promise<void> {
+    if (this.session.status !== "staging") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Session not in staging status",
+      });
+    }
+
+    await this.ctx.db
+      .update(importSessions)
+      .set({ status: "pending" })
+      .where(eq(importSessions.id, this.session.id));
+  }
+
+  async pause(): Promise<void> {
+    if (!["pending", "running"].includes(this.session.status)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Session cannot be paused in current status",
+      });
+    }
+
+    await this.ctx.db
+      .update(importSessions)
+      .set({ status: "paused" })
+      .where(eq(importSessions.id, this.session.id));
+  }
+
+  async resume(): Promise<void> {
+    if (this.session.status !== "paused") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Session not paused",
+      });
+    }
+
+    await this.ctx.db
+      .update(importSessions)
+      .set({ status: "pending" })
+      .where(eq(importSessions.id, this.session.id));
+  }
 }
