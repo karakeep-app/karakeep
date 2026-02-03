@@ -19,7 +19,9 @@ import {
   Clock,
   ExternalLink,
   Loader2,
+  Pause,
   Trash2,
+  Upload,
 } from "lucide-react";
 
 import type { ZImportSessionWithStats } from "@karakeep/shared/types/importSessions";
@@ -30,10 +32,14 @@ interface ImportSessionCardProps {
 
 function getStatusColor(status: string) {
   switch (status) {
+    case "staging":
+      return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
     case "pending":
       return "bg-muted text-muted-foreground";
-    case "in_progress":
+    case "running":
       return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+    case "paused":
+      return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
     case "completed":
       return "bg-green-500/10 text-green-700 dark:text-green-400";
     case "failed":
@@ -45,10 +51,14 @@ function getStatusColor(status: string) {
 
 function getStatusIcon(status: string) {
   switch (status) {
+    case "staging":
+      return <Upload className="h-4 w-4" />;
     case "pending":
       return <Clock className="h-4 w-4" />;
-    case "in_progress":
+    case "running":
       return <Loader2 className="h-4 w-4 animate-spin" />;
+    case "paused":
+      return <Pause className="h-4 w-4" />;
     case "completed":
       return <CheckCircle2 className="h-4 w-4" />;
     case "failed":
@@ -64,20 +74,16 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const deleteSession = useDeleteImportSession();
 
   const statusLabels: Record<string, string> = {
+    staging: t("settings.import_sessions.status.staging"),
     pending: t("settings.import_sessions.status.pending"),
-    in_progress: t("settings.import_sessions.status.in_progress"),
+    running: t("settings.import_sessions.status.running"),
+    paused: t("settings.import_sessions.status.paused"),
     completed: t("settings.import_sessions.status.completed"),
     failed: t("settings.import_sessions.status.failed"),
   };
 
   // Use live stats if available, otherwise fallback to session stats
   const stats = liveStats || session;
-  const displayStatus =
-    stats.status === "running"
-      ? "in_progress"
-      : stats.status === "staging"
-        ? "pending"
-        : stats.status;
   const progress =
     stats.totalBookmarks > 0
       ? ((stats.completedBookmarks + stats.failedBookmarks) /
@@ -106,11 +112,11 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Badge
-              className={`${getStatusColor(displayStatus)} hover:bg-inherit`}
+              className={`${getStatusColor(stats.status)} hover:bg-inherit`}
             >
-              {getStatusIcon(displayStatus)}
+              {getStatusIcon(stats.status)}
               <span className="ml-1 capitalize">
-                {statusLabels[displayStatus] ?? displayStatus.replace("_", " ")}
+                {statusLabels[stats.status] ?? stats.status.replace("_", " ")}
               </span>
             </Badge>
           </div>

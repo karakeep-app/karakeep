@@ -416,11 +416,12 @@
       "created_at": "Created {{time}}",
       "progress": "Progress",
       "status": {
+        "staging": "Staging",
         "pending": "Pending",
-        "in_progress": "In progress",
+        "running": "Running",
+        "paused": "Paused",
         "completed": "Completed",
-        "failed": "Failed",
-        "processing": "Processing"
+        "failed": "Failed"
       },
       "badges": {
         "pending": "{{count}} pending",
