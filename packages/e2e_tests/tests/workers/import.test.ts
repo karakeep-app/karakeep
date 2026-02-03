@@ -48,10 +48,20 @@ describe("Import Worker Tests", () => {
     });
     assert(nestedList);
 
-    // Create an import session
+    // Create a root list that all imported bookmarks will be attached to
+    const { data: rootList } = await client.POST("/lists", {
+      body: {
+        name: "Import Root List",
+        icon: "folder",
+      },
+    });
+    assert(rootList);
+
+    // Create an import session with rootListId
     const { id: importSessionId } =
       await trpc.importSessions.createImportSession.mutate({
         name: "E2E Test Import",
+        rootListId: rootList.id,
       });
     assert(importSessionId);
 
@@ -297,53 +307,9 @@ describe("Import Worker Tests", () => {
     assert(nestedListBookmarks);
     // Should have the bookmark with listIds containing nestedList.id
     expect(nestedListBookmarks.bookmarks.length).toBeGreaterThanOrEqual(1);
-  });
 
-  it("should attach imported bookmarks to root list", async () => {
-    // Create a root list first
-    const { data: rootList } = await client.POST("/lists", {
-      body: {
-        name: "Import Root List",
-        icon: "folder",
-      },
-    });
-    assert(rootList);
-
-    // Create import session with rootListId
-    const { id: importSessionId } =
-      await trpc.importSessions.createImportSession.mutate({
-        name: "Root List Import Test",
-        rootListId: rootList.id,
-      });
-
-    // Stage bookmarks
-    await trpc.importSessions.stageImportedBookmarks.mutate({
-      importSessionId,
-      bookmarks: [
-        { type: "text" as const, content: "Root list bookmark 1" },
-        { type: "text" as const, content: "Root list bookmark 2" },
-      ],
-    });
-
-    // Finalize
-    await trpc.importSessions.finalizeImportStaging.mutate({
-      importSessionId,
-    });
-
-    // Wait for completion
-    await waitUntil(
-      async () => {
-        const stats = await trpc.importSessions.getImportSessionStats.query({
-          importSessionId,
-        });
-        return stats.completedBookmarks === 2;
-      },
-      "All bookmarks processed",
-      60000,
-    );
-
-    // Verify bookmarks are in the root list
-    const { data: listBookmarks } = await client.GET(
+    // Verify ALL imported bookmarks are in the root list (via rootListId)
+    const { data: rootListBookmarks } = await client.GET(
       "/lists/{listId}/bookmarks",
       {
         params: {
@@ -351,7 +317,8 @@ describe("Import Worker Tests", () => {
         },
       },
     );
-    assert(listBookmarks);
-    expect(listBookmarks.bookmarks.length).toBe(2);
+    assert(rootListBookmarks);
+    // All 12 unique bookmarks should be in the root list
+    expect(rootListBookmarks.bookmarks.length).toBe(12);
   });
 });
