@@ -2,17 +2,15 @@ import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, Trash2 } from "lucide-react-native";
 
 import type { ZHighlight } from "@karakeep/shared/types/highlights";
 import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { useToast } from "../ui/Toast";
-
-dayjs.extend(relativeTime);
 
 // Color map for highlights (mapped to Tailwind CSS classes used in NativeWind)
 const HIGHLIGHT_COLOR_MAP = {
@@ -29,6 +27,7 @@ export default function HighlightCard({
 }) {
   const { toast } = useToast();
   const router = useRouter();
+  const api = useTRPC();
 
   const onError = () => {
     toast({
@@ -64,13 +63,15 @@ export default function HighlightCard({
       ],
     );
 
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId: highlight.bookmarkId,
-    },
-    {
-      retry: false,
-    },
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: highlight.bookmarkId,
+      },
+      {
+        retry: false,
+      },
+    ),
   );
 
   const handleBookmarkPress = () => {
@@ -104,7 +105,7 @@ export default function HighlightCard({
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-row items-center gap-2">
             <Text className="text-xs text-muted-foreground">
-              {dayjs(highlight.createdAt).fromNow()}
+              {formatDistanceToNow(highlight.createdAt, { addSuffix: true })}
             </Text>
             {bookmark && (
               <>

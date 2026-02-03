@@ -7,9 +7,11 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { api } from "@/lib/trpc";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { ShareButton } from "./ShareButton";
 import { WrappedContent } from "./WrappedContent";
@@ -20,13 +22,18 @@ interface WrappedModalProps {
 }
 
 export function WrappedModal({ open, onClose }: WrappedModalProps) {
+  const api = useTRPC();
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const { data: stats, isLoading } = api.users.wrapped.useQuery(undefined, {
-    enabled: open,
-  });
-  const { data: whoami } = api.users.whoami.useQuery(undefined, {
-    enabled: open,
-  });
+  const { data: stats, isLoading } = useQuery(
+    api.users.wrapped.queryOptions(undefined, {
+      enabled: open,
+    }),
+  );
+  const { data: whoami } = useQuery(
+    api.users.whoami.queryOptions(undefined, {
+      enabled: open,
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

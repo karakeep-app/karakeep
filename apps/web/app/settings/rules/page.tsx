@@ -6,21 +6,25 @@ import RuleList from "@/components/dashboard/rules/RuleEngineRuleList";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { PlusCircle } from "lucide-react";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { RuleEngineRule } from "@karakeep/shared/types/rules";
 
 export default function RulesSettingsPage() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [editingRule, setEditingRule] = useState<
     (Omit<RuleEngineRule, "id"> & { id: string | null }) | null
   >(null);
 
-  const { data: rules, isLoading } = api.rules.list.useQuery(undefined, {
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const { data: rules, isLoading } = useQuery(
+    api.rules.list.queryOptions(undefined, {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    }),
+  );
 
   const handleCreateRule = () => {
     const newRule = {

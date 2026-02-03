@@ -11,6 +11,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSession } from "@/lib/auth/client";
 import { useClientConfig } from "@/lib/clientConfig";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
@@ -29,7 +30,6 @@ import {
   SquarePen,
   Trash2,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import type {

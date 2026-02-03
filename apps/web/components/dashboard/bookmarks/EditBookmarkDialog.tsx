@@ -29,14 +29,15 @@ import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useDialogFormReset } from "@/lib/hooks/useDialogFormReset";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   BookmarkTypes,
   ZBookmark,
@@ -60,10 +61,11 @@ export function EditBookmarkDialog({
   open: boolean;
   setOpen: (v: boolean) => void;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
 
-  const { data: assetContent, isLoading: isAssetContentLoading } =
-    api.bookmarks.getBookmark.useQuery(
+  const { data: assetContent, isLoading: isAssetContentLoading } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
       {
         bookmarkId: bookmark.id,
         includeContent: true,
@@ -73,7 +75,8 @@ export function EditBookmarkDialog({
         select: (b) =>
           b.content.type == BookmarkTypes.ASSET ? b.content.content : null,
       },
-    );
+    ),
+  );
 
   const bookmarkToDefault = (bookmark: ZBookmark) => ({
     bookmarkId: bookmark.id,

@@ -1,49 +1,74 @@
-import { api } from "../trpc";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useTRPC } from "../trpc";
+
+type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useAttachBookmarkAsset(
-  ...opts: Parameters<typeof api.assets.attachAsset.useMutation>
+  opts?: Parameters<TRPCApi["assets"]["attachAsset"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.assets.attachAsset.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      apiUtils.assets.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.assets.attachAsset.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(api.assets.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useReplaceBookmarkAsset(
-  ...opts: Parameters<typeof api.assets.replaceAsset.useMutation>
+  opts?: Parameters<TRPCApi["assets"]["replaceAsset"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.assets.replaceAsset.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      apiUtils.assets.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.assets.replaceAsset.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(api.assets.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDetachBookmarkAsset(
-  ...opts: Parameters<typeof api.assets.detachAsset.useMutation>
+  opts?: Parameters<TRPCApi["assets"]["detachAsset"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.assets.detachAsset.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate();
-      apiUtils.bookmarks.searchBookmarks.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId: req.bookmarkId });
-      apiUtils.assets.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.assets.detachAsset.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(api.assets.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }

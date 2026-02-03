@@ -8,10 +8,11 @@ import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import PageTitle from "@/components/ui/PageTitle";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { usePaginatedSearchTags } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 interface TagItem {
   id: string;
@@ -23,7 +24,8 @@ interface TagItem {
 export default function Tags() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
   // Debounce search query to avoid too many API calls
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -56,7 +58,7 @@ export default function Tags() {
   }
 
   const onRefresh = () => {
-    apiUtils.tags.list.invalidate();
+    queryClient.invalidateQueries(api.tags.list.pathFilter());
   };
 
   const tags: TagItem[] = data.tags.map((tag) => ({
@@ -73,7 +75,7 @@ export default function Tags() {
   };
 
   return (
-    <CustomSafeAreaView>
+    <CustomSafeAreaView edges={["top"]}>
       <FlatList
         className="h-full"
         ListHeaderComponent={
@@ -88,17 +90,17 @@ export default function Tags() {
           </View>
         }
         contentContainerStyle={{
-          gap: 5,
+          gap: 6,
         }}
         renderItem={(item) => (
-          <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2">
+          <View className="mx-2 flex flex-row items-center rounded-xl bg-card px-4 py-2">
             <Link
               asChild
               key={item.item.id}
               href={item.item.href}
               className="flex-1"
             >
-              <Pressable className="flex flex-row justify-between">
+              <Pressable className="flex flex-row items-center justify-between">
                 <View className="flex-1">
                   <Text className="font-medium">{item.item.name}</Text>
                   <Text className="text-sm text-muted-foreground">

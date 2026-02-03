@@ -7,15 +7,17 @@ import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 import { useEditBookmarkList } from "@karakeep/shared-react/hooks/lists";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const EditListPage = () => {
   const { slug: listId } = useLocalSearchParams<{ slug?: string | string[] }>();
   const [text, setText] = useState("");
   const [query, setQuery] = useState("");
   const { toast } = useToast();
+  const api = useTRPC();
   const { mutate, isPending: editIsPending } = useEditBookmarkList({
     onSuccess: () => {
       dismiss();
@@ -41,9 +43,11 @@ const EditListPage = () => {
     throw new Error("Unexpected param type");
   }
 
-  const { data: list, isLoading: fetchIsPending } = api.lists.get.useQuery({
-    listId,
-  });
+  const { data: list, isLoading: fetchIsPending } = useQuery(
+    api.lists.get.queryOptions({
+      listId,
+    }),
+  );
 
   const dismiss = () => {
     router.back();

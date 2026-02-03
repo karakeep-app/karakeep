@@ -42,7 +42,7 @@ const config: Config = {
           }) => {
             const sidebarItems = await defaultSidebarItemsGenerator(args);
             return sidebarItems.filter(
-              (item) => !(item.type == "category" && item.label === "🔗 API"),
+              (item) => !(item.type == "category" && item.label === "API"),
             );
           },
           editUrl: "https://github.com/karakeep-app/karakeep/tree/main/docs/",

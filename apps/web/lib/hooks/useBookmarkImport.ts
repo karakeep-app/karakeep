@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useCreateBookmarkList } from "@karakeep/shared-react/hooks/lists";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   importBookmarksFromFile,
   ImportSource,
@@ -22,19 +22,22 @@ export interface ImportProgress {
 
 export function useBookmarkImport() {
   const { t } = useTranslation();
+  const api = useTRPC();
 
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(
     null,
   );
   const [quotaError, setQuotaError] = useState<string | null>(null);
 
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const { mutateAsync: createImportSession } = useCreateImportSession();
   const { mutateAsync: createList } = useCreateBookmarkList();
-  const { mutateAsync: stageImportedBookmarks } =
-    api.importSessions.stageImportedBookmarks.useMutation();
-  const { mutateAsync: finalizeImportStaging } =
-    api.importSessions.finalizeImportStaging.useMutation();
+  const { mutateAsync: stageImportedBookmarks } = useMutation(
+    api.importSessions.stageImportedBookmarks.mutationOptions(),
+  );
+  const { mutateAsync: finalizeImportStaging } = useMutation(
+    api.importSessions.finalizeImportStaging.mutationOptions(),
+  );
 
   const uploadBookmarkFileMutation = useMutation({
     mutationFn: async ({
@@ -54,8 +57,9 @@ export function useBookmarkImport() {
 
       // Check quota before proceeding
       if (bookmarkCount > 0) {
-        const quotaUsage =
-          await apiUtils.client.subscriptions.getQuotaUsage.query();
+        const quotaUsage = await queryClient.fetchQuery(
+          api.subscriptions.getQuotaUsage.queryOptions(),
+        );
 
         if (
           !quotaUsage.bookmarks.unlimited &&

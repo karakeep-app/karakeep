@@ -3,11 +3,21 @@ import "dotenv/config";
 import { buildServer } from "server";
 
 import {
+  AdminMaintenanceQueue,
+  AssetPreprocessingQueue,
+  BackupQueue,
+  FeedQueue,
   initTracing,
+  LinkCrawlerQueue,
   loadAllPlugins,
+  OpenAIQueue,
   prepareQueue,
+  RuleEngineQueue,
+  SearchIndexingQueue,
   shutdownTracing,
   startQueue,
+  VideoWorkerQueue,
+  WebhookQueue,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -26,16 +36,46 @@ import { VideoWorker } from "./workers/videoWorker";
 import { WebhookWorker } from "./workers/webhookWorker";
 
 const workerBuilders = {
-  crawler: () => CrawlerWorker.build(),
-  inference: () => OpenAiWorker.build(),
-  search: () => SearchIndexingWorker.build(),
-  adminMaintenance: () => AdminMaintenanceWorker.build(),
-  video: () => VideoWorker.build(),
-  feed: () => FeedWorker.build(),
-  assetPreprocessing: () => AssetPreprocessingWorker.build(),
-  webhook: () => WebhookWorker.build(),
-  ruleEngine: () => RuleEngineWorker.build(),
-  backup: () => BackupWorker.build(),
+  crawler: async () => {
+    await LinkCrawlerQueue.ensureInit();
+    return CrawlerWorker.build();
+  },
+  inference: async () => {
+    await OpenAIQueue.ensureInit();
+    return OpenAiWorker.build();
+  },
+  search: async () => {
+    await SearchIndexingQueue.ensureInit();
+    return SearchIndexingWorker.build();
+  },
+  adminMaintenance: async () => {
+    await AdminMaintenanceQueue.ensureInit();
+    return AdminMaintenanceWorker.build();
+  },
+  video: async () => {
+    await VideoWorkerQueue.ensureInit();
+    return VideoWorker.build();
+  },
+  feed: async () => {
+    await FeedQueue.ensureInit();
+    return FeedWorker.build();
+  },
+  assetPreprocessing: async () => {
+    await AssetPreprocessingQueue.ensureInit();
+    return AssetPreprocessingWorker.build();
+  },
+  webhook: async () => {
+    await WebhookQueue.ensureInit();
+    return WebhookWorker.build();
+  },
+  ruleEngine: async () => {
+    await RuleEngineQueue.ensureInit();
+    return RuleEngineWorker.build();
+  },
+  backup: async () => {
+    await BackupQueue.ensureInit();
+    return BackupWorker.build();
+  },
 } as const;
 
 type WorkerName = keyof typeof workerBuilders;

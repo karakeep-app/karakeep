@@ -60,6 +60,26 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: environment
+    attributes:
+      label: Environment Details
+      description: |
+        Tell us where Karakeep is running, and reverse proxy (e.g. Docker, Bare linux, Proxmox, Unraid, K8s, Cloud).
+      placeholder: (eg. Docker on Ubuntu 22.04 behind Caddy, or Proxmox LXC)
+    validations:
+      required: false
+
+  - type: textarea
+    id: containerlogs
+    attributes:
+      label: Debug Logs
+      description: |
+        Please provide relevant logs where possible
+      placeholder: (paste logs here)
+    validations:
+      required: false
+
   - type: checkboxes
     id: confirm-troubleshooting
     attributes:

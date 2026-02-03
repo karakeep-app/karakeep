@@ -6,17 +6,19 @@ import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Plus } from "lucide-react-native";
 
 import {
   useAutoRefreshingBookmarkQuery,
   useUpdateBookmarkTags,
 } from "@karakeep/shared-react/hooks/bookmarks";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const NEW_TAG_ID = "new-tag";
 
 const ListPickerPage = () => {
+  const api = useTRPC();
   const { colors } = useColorScheme();
   const { slug: bookmarkId } = useLocalSearchParams();
 
@@ -34,22 +36,24 @@ const ListPickerPage = () => {
     });
   };
 
-  const { data: allTags, isPending: isAllTagsPending } = api.tags.list.useQuery(
-    {},
-    {
-      select: React.useCallback(
-        (data: { tags: { id: string; name: string }[] }) => {
-          return data.tags
-            .map((t) => ({
-              id: t.id,
-              name: t.name,
-              lowered: t.name.toLowerCase(),
-            }))
-            .sort((a, b) => a.lowered.localeCompare(b.lowered));
-        },
-        [],
-      ),
-    },
+  const { data: allTags, isPending: isAllTagsPending } = useQuery(
+    api.tags.list.queryOptions(
+      {},
+      {
+        select: React.useCallback(
+          (data: { tags: { id: string; name: string }[] }) => {
+            return data.tags
+              .map((t) => ({
+                id: t.id,
+                name: t.name,
+                lowered: t.name.toLowerCase(),
+              }))
+              .sort((a, b) => a.lowered.localeCompare(b.lowered));
+          },
+          [],
+        ),
+      },
+    ),
   );
   const { data: existingTags } = useAutoRefreshingBookmarkQuery({
     bookmarkId,
@@ -165,7 +169,7 @@ const ListPickerPage = () => {
         contentInsetAdjustmentBehavior="automatic"
         keyExtractor={(t) => t.id}
         contentContainerStyle={{
-          gap: 5,
+          gap: 6,
         }}
         SectionSeparatorComponent={() => <View className="h-1" />}
         sections={[
@@ -207,7 +211,7 @@ const ListPickerPage = () => {
               })
             }
           >
-            <View className="mx-2 flex flex-row items-center gap-2 rounded-xl border border-input bg-card px-4 py-2">
+            <View className="mx-2 flex flex-row items-center gap-2 rounded-xl bg-card px-4 py-2">
               {t.section.title == "Existing Tags" && (
                 <Check color={colors.foreground} />
               )}

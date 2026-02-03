@@ -3,4 +3,7 @@
 
 echo "Running db migration script";
 cd /db_migrations;
+if [ "${USE_JEMALLOC:-false}" = "true" ]; then
+    export LD_PRELOAD=/usr/local/lib/libjemalloc.so
+fi
 exec node index.js;

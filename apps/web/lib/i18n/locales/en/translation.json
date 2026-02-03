@@ -10,6 +10,7 @@
     "actions": "Actions",
     "created_at": "Created At",
     "updated_at": "Updated At",
+    "last_used": "Last Used",
     "key": "Key",
     "role": "Role",
     "type": "Type",
@@ -356,6 +357,8 @@
         "always": "Always",
         "url_contains": "URL Contains",
         "url_does_not_contain": "URL Does Not Contain",
+        "title_contains": "Title Contains",
+        "title_does_not_contain": "Title Does Not Contain",
         "imported_from_feed": "Imported From Feed",
         "bookmark_type_is": "Bookmark Type Is",
         "has_tag": "Has Tag",
@@ -788,6 +791,8 @@
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
     "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
+    "fetch_error_title": "Content Unavailable",
+    "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
     "tabs": {
       "content": "Content",
       "details": "Details"

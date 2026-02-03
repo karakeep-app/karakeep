@@ -59,6 +59,16 @@ const zUrlDoesNotContainCondition = z.object({
   str: z.string(),
 });
 
+const zTitleContainsCondition = z.object({
+  type: z.literal("titleContains"),
+  str: z.string(),
+});
+
+const zTitleDoesNotContainCondition = z.object({
+  type: z.literal("titleDoesNotContain"),
+  str: z.string(),
+});
+
 const zImportedFromFeedCondition = z.object({
   type: z.literal("importedFromFeed"),
   feedId: z.string(),
@@ -86,6 +96,8 @@ const nonRecursiveCondition = z.discriminatedUnion("type", [
   zAlwaysTrueCondition,
   zUrlContainsCondition,
   zUrlDoesNotContainCondition,
+  zTitleContainsCondition,
+  zTitleDoesNotContainCondition,
   zImportedFromFeedCondition,
   zBookmarkTypeIsCondition,
   zHasTagCondition,
@@ -105,6 +117,8 @@ export const zRuleEngineConditionSchema: z.ZodType<RuleEngineCondition> =
       zAlwaysTrueCondition,
       zUrlContainsCondition,
       zUrlDoesNotContainCondition,
+      zTitleContainsCondition,
+      zTitleDoesNotContainCondition,
       zImportedFromFeedCondition,
       zBookmarkTypeIsCondition,
       zHasTagCondition,
@@ -239,6 +253,17 @@ const ruleValidaitorFn = (
           ctx.addIssue({
             code: "custom",
             message: "You must specify a URL for this condition type",
+            path: ["condition", "str"],
+          });
+          return false;
+        }
+        return true;
+      case "titleContains":
+      case "titleDoesNotContain":
+        if (condition.str.length == 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: "You must specify a title for this condition type",
             path: ["condition", "str"],
           });
           return false;

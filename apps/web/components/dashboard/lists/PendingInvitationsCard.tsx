@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Mail, X } from "lucide-react";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 interface Invitation {
   id: string;
@@ -27,41 +29,51 @@ interface Invitation {
 }
 
 function InvitationRow({ invitation }: { invitation: Invitation }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
-  const acceptInvitation = api.lists.acceptInvitation.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.invitations.accepted"),
-      });
-      await Promise.all([
-        utils.lists.getPendingInvitations.invalidate(),
-        utils.lists.list.invalidate(),
-      ]);
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.invitations.failed_to_accept"),
-      });
-    },
-  });
+  const acceptInvitation = useMutation(
+    api.lists.acceptInvitation.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.invitations.accepted"),
+        });
+        await Promise.all([
+          queryClient.invalidateQueries(
+            api.lists.getPendingInvitations.pathFilter(),
+          ),
+          queryClient.invalidateQueries(api.lists.list.pathFilter()),
+        ]);
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description: error.message || t("lists.invitations.failed_to_accept"),
+        });
+      },
+    }),
+  );
 
-  const declineInvitation = api.lists.declineInvitation.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.invitations.declined"),
-      });
-      await utils.lists.getPendingInvitations.invalidate();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.invitations.failed_to_decline"),
-      });
-    },
-  });
+  const declineInvitation = useMutation(
+    api.lists.declineInvitation.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.invitations.declined"),
+        });
+        await queryClient.invalidateQueries(
+          api.lists.getPendingInvitations.pathFilter(),
+        );
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.invitations.failed_to_decline"),
+        });
+      },
+    }),
+  );
 
   return (
     <div className="flex items-center justify-between rounded-lg border p-4">
@@ -126,10 +138,12 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
 }
 
 export function PendingInvitationsCard() {
+  const api = useTRPC();
   const { t } = useTranslation();
 
-  const { data: invitations, isLoading } =
-    api.lists.getPendingInvitations.useQuery();
+  const { data: invitations, isLoading } = useQuery(
+    api.lists.getPendingInvitations.queryOptions(),
+  );
 
   if (isLoading) {
     return null;
@@ -142,9 +156,13 @@ export function PendingInvitationsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 font-normal">
           <Mail className="h-5 w-5" />
-          {t("lists.invitations.pending")} ({invitations.length})
+          {t("lists.invitations.pending")}
+
+          <span className="rounded bg-secondary p-1 text-sm text-secondary-foreground">
+            {invitations.length}
+          </span>
         </CardTitle>
         <CardDescription>{t("lists.invitations.description")}</CardDescription>
       </CardHeader>

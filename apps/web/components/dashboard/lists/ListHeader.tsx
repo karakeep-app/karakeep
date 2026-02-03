@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
+import { useQuery } from "@tanstack/react-query";
 import { MoreHorizontal, SearchIcon } from "lucide-react";
 
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
@@ -24,25 +25,30 @@ export default function ListHeader({
 }: {
   initialData: ZBookmarkList;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: list, error } = api.lists.get.useQuery(
-    {
-      listId: initialData.id,
-    },
-    {
-      initialData,
-    },
+  const { data: list, error } = useQuery(
+    api.lists.get.queryOptions(
+      {
+        listId: initialData.id,
+      },
+      {
+        initialData,
+      },
+    ),
   );
 
-  const { data: collaboratorsData } = api.lists.getCollaborators.useQuery(
-    {
-      listId: initialData.id,
-    },
-    {
-      refetchOnWindowFocus: false,
-      enabled: list.hasCollaborators,
-    },
+  const { data: collaboratorsData } = useQuery(
+    api.lists.getCollaborators.queryOptions(
+      {
+        listId: initialData.id,
+      },
+      {
+        refetchOnWindowFocus: false,
+        enabled: list.hasCollaborators,
+      },
+    ),
   );
 
   const parsedQuery = useMemo(() => {

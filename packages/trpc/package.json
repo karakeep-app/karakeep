@@ -17,7 +17,7 @@
     "@karakeep/plugins": "workspace:*",
     "@karakeep/shared": "workspace:*",
     "@karakeep/shared-server": "workspace:*",
-    "@trpc/server": "^11.4.3",
+    "@trpc/server": "^11.9.0",
     "bcryptjs": "^2.4.3",
     "deep-equal": "^2.2.3",
     "drizzle-orm": "^0.44.2",

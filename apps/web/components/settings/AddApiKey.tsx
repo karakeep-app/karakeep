@@ -26,32 +26,37 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
+
 import ApiKeySuccess from "./ApiKeySuccess";
 
 function AddApiKeyForm({ onSuccess }: { onSuccess: (key: string) => void }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const formSchema = z.object({
     name: z.string(),
   });
   const router = useRouter();
-  const mutator = api.apiKeys.create.useMutation({
-    onSuccess: (resp) => {
-      onSuccess(resp.key);
-      router.refresh();
-    },
-    onError: () => {
-      toast({
-        description: t("common.something_went_wrong"),
-        variant: "destructive",
-      });
-    },
-  });
+  const mutator = useMutation(
+    api.apiKeys.create.mutationOptions({
+      onSuccess: (resp) => {
+        onSuccess(resp.key);
+        router.refresh();
+      },
+      onError: () => {
+        toast({
+          description: t("common.something_went_wrong"),
+          variant: "destructive",
+        });
+      },
+    }),
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

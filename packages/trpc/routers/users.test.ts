@@ -1116,6 +1116,7 @@ describe("User Routes", () => {
         "resend@test.com",
         "Test User",
         expect.any(String), // token
+        undefined, // redirectUrl
       );
     });
 

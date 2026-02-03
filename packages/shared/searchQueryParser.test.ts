@@ -333,6 +333,139 @@ describe("Search Query Parser", () => {
       },
     });
   });
+  test("! negation alias for -", () => {
+    // ! should work exactly like - for negation
+    expect(parseSearchQuery("!is:archived")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "archived",
+        archived: false,
+      },
+    });
+    expect(parseSearchQuery("!is:fav")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "favourited",
+        favourited: false,
+      },
+    });
+    expect(parseSearchQuery("!#my-tag")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "my-tag",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery("!tag:my-tag")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "my-tag",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery("!url:example.com")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "url",
+        url: "example.com",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery("!list:my-list")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listName",
+        listName: "my-list",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery("!is:link")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "type",
+        typeName: BookmarkTypes.LINK,
+        inverse: true,
+      },
+    });
+    // Combined with complex queries
+    expect(parseSearchQuery("is:fav !is:archived")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "and",
+        matchers: [
+          {
+            type: "favourited",
+            favourited: true,
+          },
+          {
+            type: "archived",
+            archived: false,
+          },
+        ],
+      },
+    });
+  });
+
+  test("tag: qualifier alias for #", () => {
+    // tag: should work exactly like #
+    expect(parseSearchQuery("tag:my-tag")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "my-tag",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("-tag:my-tag")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "my-tag",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery('tag:"my tag"')).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "my tag",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery('-tag:"my tag"')).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "my tag",
+        inverse: true,
+      },
+    });
+    // Tags starting with qualifiers should be treated correctly
+    expect(parseSearchQuery("tag:android")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "tagName",
+        tagName: "android",
+        inverse: false,
+      },
+    });
+  });
+
   test("date queries", () => {
     expect(parseSearchQuery("after:2023-10-12")).toEqual({
       result: "full",

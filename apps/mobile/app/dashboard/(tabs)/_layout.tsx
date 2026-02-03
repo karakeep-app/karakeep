@@ -1,69 +1,62 @@
-import React, { useLayoutEffect } from "react";
-import { Tabs, useNavigation } from "expo-router";
-import { StyledTabs } from "@/components/navigation/tabs";
-import { useColorScheme } from "@/lib/useColorScheme";
+import React from "react";
 import {
-  ClipboardList,
-  Highlighter,
-  Home,
-  Settings,
-  Tag,
-} from "lucide-react-native";
+  Icon,
+  Label,
+  NativeTabs,
+  VectorIcon,
+} from "expo-router/unstable-native-tabs";
+import { useColorScheme } from "@/lib/useColorScheme";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function TabLayout() {
   const { colors } = useColorScheme();
-  const navigation = useNavigation();
-  // Hide the header on the parent screen
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   return (
-    <StyledTabs
-      tabBarClassName="bg-gray-100 dark:bg-background"
-      sceneClassName="bg-gray-100 dark:bg-background"
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.foreground,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <Home color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="lists"
-        options={{
-          title: "Lists",
-          tabBarIcon: ({ color }) => <ClipboardList color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="tags"
-        options={{
-          title: "Tags",
-          tabBarIcon: ({ color }) => <Tag color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="highlights"
-        options={{
-          title: "Highlights",
-          tabBarIcon: ({ color }) => <Highlighter color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <Settings color={color} />,
-        }}
-      />
-    </StyledTabs>
+    <NativeTabs backgroundColor={colors.grey6} minimizeBehavior="onScrollDown">
+      <NativeTabs.Trigger name="index">
+        <Icon
+          sf="house.fill"
+          androidSrc={
+            <VectorIcon family={MaterialCommunityIcons} name="home" />
+          }
+        />
+        <Label>Home</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="lists">
+        <Icon
+          sf="list.clipboard.fill"
+          androidSrc={
+            <VectorIcon family={MaterialCommunityIcons} name="clipboard-list" />
+          }
+        />
+        <Label>Lists</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="tags">
+        <Icon
+          sf="tag.fill"
+          androidSrc={<VectorIcon family={MaterialCommunityIcons} name="tag" />}
+        />
+        <Label>Tags</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="highlights">
+        <Icon
+          sf="highlighter"
+          androidSrc={
+            <VectorIcon family={MaterialCommunityIcons} name="marker" />
+          }
+        />
+        <Label>Highlights</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="settings">
+        <Icon
+          sf="gearshape.fill"
+          androidSrc={<VectorIcon family={MaterialCommunityIcons} name="cog" />}
+        />
+        <Label>Settings</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

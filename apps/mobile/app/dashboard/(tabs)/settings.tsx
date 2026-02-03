@@ -13,7 +13,9 @@ import { Text } from "@/components/ui/Text";
 import { useServerVersion } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function Dashboard() {
   const { logout } = useSession();
@@ -22,6 +24,7 @@ export default function Dashboard() {
     setSettings,
     isLoading: isSettingsLoading,
   } = useAppSettings();
+  const api = useTRPC();
 
   const imageQuality = useSharedValue(0);
   const imageQualityMin = useSharedValue(0);
@@ -31,7 +34,7 @@ export default function Dashboard() {
     imageQuality.value = settings.imageQuality * 100;
   }, [settings]);
 
-  const { data, error } = api.users.whoami.useQuery();
+  const { data, error } = useQuery(api.users.whoami.queryOptions());
   const {
     data: serverVersion,
     isLoading: isServerVersionLoading,
@@ -43,7 +46,7 @@ export default function Dashboard() {
   }
 
   return (
-    <CustomSafeAreaView>
+    <CustomSafeAreaView edges={["top"]}>
       <UserProfileHeader
         image={data?.image}
         name={data?.name}

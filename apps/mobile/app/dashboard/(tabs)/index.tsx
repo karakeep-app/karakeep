@@ -76,7 +76,7 @@ function HeaderRight({
 
 export default function Home() {
   return (
-    <CustomSafeAreaView>
+    <CustomSafeAreaView edges={["top"]}>
       <UpdatingBookmarkList
         query={{ archived: false }}
         header={

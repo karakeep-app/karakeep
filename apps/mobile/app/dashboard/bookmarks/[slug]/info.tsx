@@ -477,14 +477,14 @@ const ViewBookmarkPage = () => {
               </Button>
             </View>
           )}
-          <View className="gap-2">
-            <Text className="items-center text-center">
+          <View className="gap-1">
+            <Text className="text-center text-xs text-muted-foreground">
               Created {bookmark.createdAt.toLocaleString()}
             </Text>
             {bookmark.modifiedAt &&
               bookmark.modifiedAt.getTime() !==
                 bookmark.createdAt.getTime() && (
-                <Text className="items-center text-center">
+                <Text className="text-center text-xs text-muted-foreground">
                   Modified {bookmark.modifiedAt.toLocaleString()}
                 </Text>
               )}

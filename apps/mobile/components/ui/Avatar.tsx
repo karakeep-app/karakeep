@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Image, View } from "react-native";
+import { View } from "react-native";
+import { Image } from "expo-image";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -9,7 +10,6 @@ interface AvatarProps {
   name?: string | null;
   size?: number;
   className?: string;
-  imageClassName?: string;
   fallbackClassName?: string;
 }
 
@@ -22,7 +22,6 @@ export function Avatar({
   name,
   size = 40,
   className,
-  imageClassName,
   fallbackClassName,
 }: AvatarProps) {
   const [imageError, setImageError] = React.useState(false);
@@ -78,8 +77,8 @@ export function Avatar({
       ) : (
         <Image
           source={imageUrl}
-          className={cn("h-full w-full", imageClassName)}
-          style={{ resizeMode: "cover" }}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
           onError={() => setImageError(true)}
         />
       )}

@@ -593,6 +593,7 @@ li::marker {
 /* ============================================
    API Docs Specific Styles
    ============================================ */
+
 .api-method > .menu__link {
   align-items: center;
   justify-content: start;

@@ -1,40 +1,53 @@
-import { api } from "../trpc";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useTRPC } from "../trpc";
+
+type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useCreateRule(
-  ...opts: Parameters<typeof api.rules.create.useMutation>
+  opts?: Parameters<TRPCApi["rules"]["create"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.rules.create.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.rules.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.rules.create.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.rules.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useUpdateRule(
-  ...opts: Parameters<typeof api.rules.update.useMutation>
+  opts?: Parameters<TRPCApi["rules"]["update"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.rules.update.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.rules.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.rules.update.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.rules.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteRule(
-  ...opts: Parameters<typeof api.rules.delete.useMutation>
+  opts?: Parameters<TRPCApi["rules"]["delete"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.rules.delete.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.rules.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.rules.delete.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.rules.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }

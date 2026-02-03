@@ -1,9 +1,11 @@
 import type { Index } from "meilisearch";
+import { Mutex } from "async-mutex";
 import { MeiliSearch } from "meilisearch";
 
 import type {
   BookmarkSearchDocument,
   FilterQuery,
+  IndexingOptions,
   SearchIndexClient,
   SearchOptions,
   SearchResponse,
@@ -26,19 +28,190 @@ function filterToMeiliSearchFilter(filter: FilterQuery): string {
   }
 }
 
-class MeiliSearchIndexClient implements SearchIndexClient {
-  constructor(private index: Index<BookmarkSearchDocument>) {}
+type PendingOperation =
+  | {
+      type: "add";
+      document: BookmarkSearchDocument;
+      resolve: () => void;
+      reject: (error: Error) => void;
+    }
+  | {
+      type: "delete";
+      id: string;
+      resolve: () => void;
+      reject: (error: Error) => void;
+    };
 
-  async addDocuments(documents: BookmarkSearchDocument[]): Promise<void> {
-    const task = await this.index.addDocuments(documents, {
-      primaryKey: "id",
+class BatchingDocumentQueue {
+  private pendingOperations: PendingOperation[] = [];
+  private flushTimeout: ReturnType<typeof setTimeout> | null = null;
+  private mutex = new Mutex();
+
+  constructor(
+    private index: Index<BookmarkSearchDocument>,
+    private jobTimeoutSec: number,
+    private batchSize: number,
+    private batchTimeoutMs: number,
+  ) {}
+
+  async addDocument(document: BookmarkSearchDocument): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.pendingOperations.push({ type: "add", document, resolve, reject });
+      this.scheduleFlush();
+
+      if (this.pendingOperations.length >= this.batchSize) {
+        void this.flush();
+      }
     });
-    await this.ensureTaskSuccess(task.taskUid);
   }
 
-  async deleteDocuments(ids: string[]): Promise<void> {
-    const task = await this.index.deleteDocuments(ids);
-    await this.ensureTaskSuccess(task.taskUid);
+  async deleteDocument(id: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.pendingOperations.push({ type: "delete", id, resolve, reject });
+      this.scheduleFlush();
+
+      if (this.pendingOperations.length >= this.batchSize) {
+        void this.flush();
+      }
+    });
+  }
+
+  private scheduleFlush(): void {
+    if (this.flushTimeout === null) {
+      this.flushTimeout = setTimeout(() => {
+        void this.flush();
+      }, this.batchTimeoutMs);
+    }
+  }
+
+  private async flush(): Promise<void> {
+    await this.mutex.runExclusive(async () => {
+      if (this.flushTimeout) {
+        clearTimeout(this.flushTimeout);
+        this.flushTimeout = null;
+      }
+
+      // Process operations in order, batching consecutive operations of the same type
+      while (this.pendingOperations.length > 0) {
+        const currentType = this.pendingOperations[0].type;
+
+        // Collect consecutive operations of the same type (up to batchSize)
+        const batch: PendingOperation[] = [];
+        while (
+          batch.length < this.batchSize &&
+          this.pendingOperations.length > 0 &&
+          this.pendingOperations[0].type === currentType
+        ) {
+          batch.push(this.pendingOperations.shift()!);
+        }
+
+        if (currentType === "add") {
+          await this.flushAddBatch(
+            batch as Extract<PendingOperation, { type: "add" }>[],
+          );
+        } else {
+          await this.flushDeleteBatch(
+            batch as Extract<PendingOperation, { type: "delete" }>[],
+          );
+        }
+      }
+    });
+  }
+
+  private async flushAddBatch(
+    batch: Extract<PendingOperation, { type: "add" }>[],
+  ): Promise<void> {
+    if (batch.length === 0) return;
+
+    try {
+      const documents = batch.map((p) => p.document);
+      const task = await this.index.addDocuments(documents, {
+        primaryKey: "id",
+      });
+      await this.ensureTaskSuccess(task.taskUid);
+      batch.forEach((p) => p.resolve());
+    } catch (error) {
+      batch.forEach((p) => p.reject(error as Error));
+    }
+  }
+
+  private async flushDeleteBatch(
+    batch: Extract<PendingOperation, { type: "delete" }>[],
+  ): Promise<void> {
+    if (batch.length === 0) return;
+
+    try {
+      const ids = batch.map((p) => p.id);
+      const task = await this.index.deleteDocuments(ids);
+      await this.ensureTaskSuccess(task.taskUid);
+      batch.forEach((p) => p.resolve());
+    } catch (error) {
+      batch.forEach((p) => p.reject(error as Error));
+    }
+  }
+
+  private async ensureTaskSuccess(taskUid: number): Promise<void> {
+    const task = await this.index.waitForTask(taskUid, {
+      intervalMs: 200,
+      timeOutMs: this.jobTimeoutSec * 1000 * 0.9,
+    });
+    if (task.error) {
+      throw new Error(`Search task failed: ${task.error.message}`);
+    }
+  }
+}
+
+class MeiliSearchIndexClient implements SearchIndexClient {
+  private batchQueue: BatchingDocumentQueue;
+  private jobTimeoutSec: number;
+
+  constructor(
+    private index: Index<BookmarkSearchDocument>,
+    jobTimeoutSec: number,
+    batchSize: number,
+    batchTimeoutMs: number,
+  ) {
+    this.jobTimeoutSec = jobTimeoutSec;
+    this.batchQueue = new BatchingDocumentQueue(
+      index,
+      jobTimeoutSec,
+      batchSize,
+      batchTimeoutMs,
+    );
+  }
+
+  async addDocuments(
+    documents: BookmarkSearchDocument[],
+    options?: IndexingOptions,
+  ): Promise<void> {
+    const shouldBatch = options?.batch !== false;
+
+    if (shouldBatch) {
+      await Promise.all(
+        documents.map((doc) => this.batchQueue.addDocument(doc)),
+      );
+    } else {
+      // Direct indexing without batching
+      const task = await this.index.addDocuments(documents, {
+        primaryKey: "id",
+      });
+      await this.ensureTaskSuccess(task.taskUid);
+    }
+  }
+
+  async deleteDocuments(
+    ids: string[],
+    options?: IndexingOptions,
+  ): Promise<void> {
+    const shouldBatch = options?.batch !== false;
+
+    if (shouldBatch) {
+      await Promise.all(ids.map((id) => this.batchQueue.deleteDocument(id)));
+    } else {
+      // Direct deletion without batching
+      const task = await this.index.deleteDocuments(ids);
+      await this.ensureTaskSuccess(task.taskUid);
+    }
   }
 
   async search(options: SearchOptions): Promise<SearchResponse> {
@@ -69,7 +242,7 @@ class MeiliSearchIndexClient implements SearchIndexClient {
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
     const task = await this.index.waitForTask(taskUid, {
       intervalMs: 200,
-      timeOutMs: serverConfig.search.jobTimeoutSec * 1000 * 0.9,
+      timeOutMs: this.jobTimeoutSec * 1000 * 0.9,
     });
     if (task.error) {
       throw new Error(`Search task failed: ${task.error.message}`);
@@ -130,7 +303,12 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
     }
 
     await this.configureIndex(indexFound);
-    this.indexClient = new MeiliSearchIndexClient(indexFound);
+    this.indexClient = new MeiliSearchIndexClient(
+      indexFound,
+      serverConfig.search.jobTimeoutSec,
+      envConfig.MEILI_BATCH_SIZE,
+      envConfig.MEILI_BATCH_TIMEOUT_MS,
+    );
     return this.indexClient;
   }
 

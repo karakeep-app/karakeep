@@ -125,6 +125,19 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
     throw new Error("Invalid API Key");
   }
 
+  // Update lastUsedAt with 10-minute throttle to avoid excessive DB writes
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  if (!apiKey.lastUsedAt || apiKey.lastUsedAt < tenMinutesAgo) {
+    // Fire and forget - don't await to avoid blocking the auth response
+    database
+      .update(apiKeys)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(apiKeys.id, apiKey.id))
+      .catch((err) => {
+        console.error("Failed to update API key lastUsedAt:", err);
+      });
+  }
+
   return apiKey.user;
 }
 
