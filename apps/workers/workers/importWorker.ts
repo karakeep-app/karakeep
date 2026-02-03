@@ -321,22 +321,29 @@ export class ImportWorker {
       const baseRequest = {
         title: staged.title ?? undefined,
         note: staged.note ?? undefined,
+        createdAt: staged.sourceAddedAt ?? undefined,
         crawlPriority: "low" as const,
       };
 
       let bookmarkRequest: CreateBookmarkInput;
 
       if (staged.type === "link") {
+        if (!staged.url) {
+          throw new Error("URL is required for link bookmarks");
+        }
         bookmarkRequest = {
           ...baseRequest,
           type: BookmarkTypes.LINK,
-          url: staged.url!,
+          url: staged.url,
         };
       } else if (staged.type === "text") {
+        if (!staged.content) {
+          throw new Error("Content is required for text bookmarks");
+        }
         bookmarkRequest = {
           ...baseRequest,
           type: BookmarkTypes.TEXT,
-          text: staged.content!,
+          text: staged.content,
         };
       } else {
         // asset type - skip for now as it needs special handling
@@ -358,6 +365,15 @@ export class ImportWorker {
 
       const result = await caller.bookmarks.createBookmark(bookmarkRequest);
 
+      // Apply tags via existing mutation (for both new and duplicate bookmarks)
+      if (staged.tags && staged.tags.length > 0) {
+        await caller.bookmarks.updateTags({
+          bookmarkId: result.id,
+          attach: staged.tags.map((t) => ({ tagName: t })),
+          detach: [],
+        });
+      }
+
       // Handle duplicate case (createBookmark returns alreadyExists: true)
       if (result.alreadyExists) {
         await db
@@ -375,15 +391,6 @@ export class ImportWorker {
         await this.attachBookmarkToLists(caller, session, staged, result.id);
         await this.updateSessionLastProcessedAt(staged.importSessionId);
         return;
-      }
-
-      // Handle tags via existing mutation
-      if (staged.tags && staged.tags.length > 0) {
-        await caller.bookmarks.updateTags({
-          bookmarkId: result.id,
-          attach: staged.tags.map((t) => ({ tagName: t })),
-          detach: [],
-        });
       }
 
       // Mark as accepted

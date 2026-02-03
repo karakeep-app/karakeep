@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@karakeep/db";
@@ -56,16 +56,28 @@ export const importSessionsRouter = router({
         importSessionId: z.string(),
         bookmarks: z
           .array(
-            z.object({
-              type: z.enum(["link", "text", "asset"]),
-              url: z.string().optional(),
-              title: z.string().optional(),
-              content: z.string().optional(),
-              note: z.string().optional(),
-              tags: z.array(z.string()).default([]),
-              listPaths: z.array(z.string()).default([]),
-              sourceAddedAt: z.date().optional(),
-            }),
+            z
+              .object({
+                type: z.enum(["link", "text", "asset"]),
+                url: z.string().optional(),
+                title: z.string().optional(),
+                content: z.string().optional(),
+                note: z.string().optional(),
+                tags: z.array(z.string()).default([]),
+                listPaths: z.array(z.string()).default([]),
+                sourceAddedAt: z.date().optional(),
+              })
+              .refine(
+                (data) => {
+                  if (data.type === "link" && !data.url) return false;
+                  if (data.type === "text" && !data.content) return false;
+                  return true;
+                },
+                {
+                  message:
+                    "URL is required for link bookmarks, content is required for text bookmarks",
+                },
+              ),
           )
           .max(50),
       }),
@@ -148,16 +160,31 @@ export const importSessionsRouter = router({
   pauseImportSession: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const session = await db.query.importSessions.findFirst({
+        where: and(
+          eq(importSessions.id, input.importSessionId),
+          eq(importSessions.userId, ctx.user.id),
+        ),
+      });
+
+      if (!session) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Import session not found",
+        });
+      }
+
+      if (!["pending", "running"].includes(session.status)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Session cannot be paused in current status",
+        });
+      }
+
       await ctx.db
         .update(importSessions)
         .set({ status: "paused" })
-        .where(
-          and(
-            eq(importSessions.id, input.importSessionId),
-            eq(importSessions.userId, ctx.user.id),
-            inArray(importSessions.status, ["pending", "running"]),
-          ),
-        );
+        .where(eq(importSessions.id, input.importSessionId));
     }),
 
   resumeImportSession: authedProcedure
