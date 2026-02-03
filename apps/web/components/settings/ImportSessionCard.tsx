@@ -126,11 +126,11 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Badge
-              className={`${getStatusColor(stats.computedStatus)} hover:bg-inherit`}
+              className={`${getStatusColor(stats.status)} hover:bg-inherit`}
             >
               {getStatusIcon(stats.status)}
               <span className="ml-1 capitalize">
-                {statusLabels(stats.computedStatus)}
+                {statusLabels(stats.status)}
               </span>
             </Badge>
           </div>

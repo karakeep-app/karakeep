@@ -33,8 +33,6 @@ export const zImportSessionSchema = z.object({
 export type ZImportSession = z.infer<typeof zImportSessionSchema>;
 
 export const zImportSessionWithStatsSchema = zImportSessionSchema.extend({
-  status: zImportSessionStatusSchema,
-  computedStatus: zImportSessionStatusSchema,
   totalBookmarks: z.number(),
   completedBookmarks: z.number(),
   failedBookmarks: z.number(),

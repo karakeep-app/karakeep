@@ -2,18 +2,12 @@ import { TRPCError } from "@trpc/server";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import {
-  bookmarkLinks,
-  bookmarks,
-  importSessions,
-  importStagingBookmarks,
-} from "@karakeep/db/schema";
+import { importSessions, importStagingBookmarks } from "@karakeep/db/schema";
 import {
   zCreateImportSessionRequestSchema,
   ZImportSession,
   ZImportSessionWithStats,
 } from "@karakeep/shared/types/importSessions";
-import { switchCase } from "@karakeep/shared/utils/switch";
 
 import type { AuthedContext } from "../index";
 
@@ -83,29 +77,16 @@ export class ImportSession {
   }
 
   async getWithStats(): Promise<ZImportSessionWithStats> {
-    // Get bookmark counts by staging status and crawl/tagging status
+    // Count by staging status - this now reflects the true state since
+    // items stay in "processing" until downstream crawl/tag is complete
     const statusCounts = await this.ctx.db
       .select({
-        stagingStatus: importStagingBookmarks.status,
-        crawlStatus: bookmarkLinks.crawlStatus,
-        taggingStatus: bookmarks.taggingStatus,
+        status: importStagingBookmarks.status,
         count: count(),
       })
       .from(importStagingBookmarks)
-      .leftJoin(
-        bookmarks,
-        eq(bookmarks.id, importStagingBookmarks.resultBookmarkId),
-      )
-      .leftJoin(
-        bookmarkLinks,
-        eq(bookmarkLinks.id, importStagingBookmarks.resultBookmarkId),
-      )
       .where(eq(importStagingBookmarks.importSessionId, this.session.id))
-      .groupBy(
-        importStagingBookmarks.status,
-        bookmarkLinks.crawlStatus,
-        bookmarks.taggingStatus,
-      );
+      .groupBy(importStagingBookmarks.status);
 
     const stats = {
       totalBookmarks: 0,
@@ -115,78 +96,27 @@ export class ImportSession {
       processingBookmarks: 0,
     };
 
-    statusCounts.forEach((statusCount) => {
-      const {
-        stagingStatus,
-        crawlStatus,
-        taggingStatus,
-        count: itemCount,
-      } = statusCount;
-
+    statusCounts.forEach(({ status, count: itemCount }) => {
       stats.totalBookmarks += itemCount;
 
-      // Staging-level status takes precedence for pending/processing/failed
-      if (stagingStatus === "pending") {
-        stats.pendingBookmarks += itemCount;
-        return;
+      switch (status) {
+        case "pending":
+          stats.pendingBookmarks += itemCount;
+          break;
+        case "processing":
+          stats.processingBookmarks += itemCount;
+          break;
+        case "completed":
+          stats.completedBookmarks += itemCount;
+          break;
+        case "failed":
+          stats.failedBookmarks += itemCount;
+          break;
       }
-
-      if (stagingStatus === "processing") {
-        stats.processingBookmarks += itemCount;
-        return;
-      }
-
-      if (stagingStatus === "failed") {
-        stats.failedBookmarks += itemCount;
-        return;
-      }
-
-      // For completed staging bookmarks, check crawl and tagging status
-      const isCrawlFailure = crawlStatus === "failure";
-      const isTagFailure = taggingStatus === "failure";
-      if (isCrawlFailure || isTagFailure) {
-        stats.failedBookmarks += itemCount;
-        return;
-      }
-
-      const isCrawlPending = crawlStatus === "pending";
-      const isTagPending = taggingStatus === "pending";
-      if (isCrawlPending || isTagPending) {
-        stats.processingBookmarks += itemCount;
-        return;
-      }
-
-      const isCrawlSuccessfulOrNotRequired =
-        crawlStatus === "success" || crawlStatus === null;
-      const isTagSuccessfulOrNotRequired =
-        taggingStatus === "success" || taggingStatus === null;
-
-      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrNotRequired) {
-        stats.completedBookmarks += itemCount;
-      } else {
-        // Fallback to processing to avoid leaving imports unclassified
-        stats.processingBookmarks += itemCount;
-      }
-    });
-
-    const computedStatus = switchCase<
-      typeof this.session.status,
-      typeof this.session.status
-    >(this.session.status, {
-      staging: "staging",
-      pending: "pending",
-      running: "running",
-      paused: "paused",
-      failed: "failed",
-      completed:
-        stats.processingBookmarks + stats.pendingBookmarks > 0
-          ? "running"
-          : "completed",
     });
 
     return {
       ...this.session,
-      computedStatus: computedStatus,
       ...stats,
     };
   }

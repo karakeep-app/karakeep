@@ -1,9 +1,24 @@
-import { and, count, eq, gt, inArray, lt } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+} from "drizzle-orm";
 import { Counter, Gauge, Histogram } from "prom-client";
 import { buildImpersonatingTRPCClient } from "trpc";
 
 import { db } from "@karakeep/db";
-import { importSessions, importStagingBookmarks } from "@karakeep/db/schema";
+import {
+  bookmarkLinks,
+  bookmarks,
+  importSessions,
+  importStagingBookmarks,
+} from "@karakeep/db/schema";
 import logger from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -68,6 +83,9 @@ export class ImportWorker {
           await this.resetStaleProcessingItems();
         }
         iterationCount++;
+
+        // Check if any processing items have completed downstream work
+        await this.checkAndCompleteProcessingItems();
 
         const processed = await this.processBatch();
         if (processed === 0) {
@@ -350,18 +368,15 @@ export class ImportWorker {
         return;
       }
 
-      // Mark as accepted
+      // Mark as accepted but keep in "processing" until crawl/tag is done
+      // The item will be moved to "completed" by checkAndCompleteProcessingItems()
       await db
         .update(importStagingBookmarks)
         .set({
-          status: "completed",
           result: "accepted",
           resultBookmarkId: result.id,
-          completedAt: new Date(),
         })
         .where(eq(importStagingBookmarks.id, staged.id));
-
-      importStagingProcessedCounter.inc({ result: "accepted" });
 
       await this.attachBookmarkToLists(caller, session, staged, result.id);
 
@@ -414,26 +429,95 @@ export class ImportWorker {
   }
 
   /**
-   * Backpressure: Calculate available capacity based on sliding window.
-   * Counts items currently processing + items completed within windowMs.
-   * This prevents flooding downstream queues even though createBookmark returns fast.
-   *
-   * Note: "processing" items older than staleThresholdMs are excluded (likely crashed).
+   * Check processing items that have a bookmark created and mark them as completed
+   * once downstream processing (crawling/tagging) is done.
    */
-  private async getAvailableCapacity(): Promise<number> {
-    const windowStart = new Date(Date.now() - this.windowMs);
-    const staleThreshold = new Date(Date.now() - this.staleThresholdMs);
-
-    // Count items currently being processed (excluding stale ones)
-    const processing = await db
-      .select({ count: count() })
+  private async checkAndCompleteProcessingItems(): Promise<number> {
+    // Find processing items where:
+    // - A bookmark was created (resultBookmarkId is set)
+    // - Downstream processing is complete (crawl/tag not pending)
+    const completedItems = await db
+      .select({
+        id: importStagingBookmarks.id,
+        importSessionId: importStagingBookmarks.importSessionId,
+      })
       .from(importStagingBookmarks)
+      .leftJoin(
+        bookmarks,
+        eq(bookmarks.id, importStagingBookmarks.resultBookmarkId),
+      )
+      .leftJoin(
+        bookmarkLinks,
+        eq(bookmarkLinks.id, importStagingBookmarks.resultBookmarkId),
+      )
       .where(
         and(
           eq(importStagingBookmarks.status, "processing"),
-          gt(importStagingBookmarks.processingStartedAt, staleThreshold),
+          isNotNull(importStagingBookmarks.resultBookmarkId),
+          // Crawl is done (not pending) - either success, failure, or null (not a link)
+          or(
+            isNull(bookmarkLinks.crawlStatus),
+            eq(bookmarkLinks.crawlStatus, "success"),
+            eq(bookmarkLinks.crawlStatus, "failure"),
+          ),
+          // Tagging is done (not pending) - either success, failure, or null
+          or(
+            isNull(bookmarks.taggingStatus),
+            eq(bookmarks.taggingStatus, "success"),
+            eq(bookmarks.taggingStatus, "failure"),
+          ),
         ),
       );
+
+    if (completedItems.length === 0) {
+      return 0;
+    }
+
+    // Mark them as completed
+    await db
+      .update(importStagingBookmarks)
+      .set({
+        status: "completed",
+        completedAt: new Date(),
+      })
+      .where(
+        inArray(
+          importStagingBookmarks.id,
+          completedItems.map((i) => i.id),
+        ),
+      );
+
+    // Increment counter for completed items
+    importStagingProcessedCounter.inc(
+      { result: "accepted" },
+      completedItems.length,
+    );
+
+    // Check if any sessions are now complete
+    const sessionIds = [
+      ...new Set(completedItems.map((i) => i.importSessionId)),
+    ];
+    await this.checkAndCompleteEmptySessions(sessionIds);
+
+    return completedItems.length;
+  }
+
+  /**
+   * Backpressure: Calculate available capacity based on sliding window.
+   * Counts items currently processing (including those waiting for downstream
+   * crawling/tagging) + items completed within windowMs.
+   *
+   * Note: "processing" items without a bookmark (stale) are excluded.
+   */
+  private async getAvailableCapacity(): Promise<number> {
+    const windowStart = new Date(Date.now() - this.windowMs);
+
+    // Count items currently being processed or waiting for downstream
+    // Items with resultBookmarkId are waiting for crawl/tag, count them too
+    const processing = await db
+      .select({ count: count() })
+      .from(importStagingBookmarks)
+      .where(eq(importStagingBookmarks.status, "processing"));
 
     // Count items completed within the sliding window
     const recentlyCompleted = await db
@@ -454,6 +538,9 @@ export class ImportWorker {
   /**
    * Reset stale "processing" items back to "pending" so they can be retried.
    * Called periodically to handle crashed workers or stuck items.
+   *
+   * Only resets items that don't have a resultBookmarkId - those with a bookmark
+   * are waiting for downstream processing (crawl/tag), not stale.
    */
   private async resetStaleProcessingItems(): Promise<number> {
     const staleThreshold = new Date(Date.now() - this.staleThresholdMs);
@@ -465,6 +552,9 @@ export class ImportWorker {
         and(
           eq(importStagingBookmarks.status, "processing"),
           lt(importStagingBookmarks.processingStartedAt, staleThreshold),
+          // Only reset items that haven't created a bookmark yet
+          // Items with a bookmark are waiting for downstream, not stale
+          isNull(importStagingBookmarks.resultBookmarkId),
         ),
       );
 

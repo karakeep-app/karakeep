@@ -217,6 +217,8 @@ describe("ImportSessions Routes", () => {
     });
 
     // Create staging bookmarks in different states
+    // Note: With the new import worker design, items stay in "processing" until
+    // crawl/tag is done. Only then do they move to "completed".
     await db.insert(importStagingBookmarks).values([
       // Staging pending -> pendingBookmarks
       {
@@ -225,7 +227,7 @@ describe("ImportSessions Routes", () => {
         content: "pending staging",
         status: "pending",
       },
-      // Staging processing -> processingBookmarks
+      // Staging processing (no bookmark yet) -> processingBookmarks
       {
         importSessionId: session.id,
         type: "text",
@@ -247,23 +249,23 @@ describe("ImportSessions Routes", () => {
         status: "completed",
         resultBookmarkId: completedLinkBookmark.id,
       },
-      // Staging completed + crawl pending -> processingBookmarks
+      // Staging processing + crawl pending -> processingBookmarks (waiting for crawl)
       {
         importSessionId: session.id,
         type: "link",
         url: "https://example.com/2",
-        status: "completed",
+        status: "processing",
         resultBookmarkId: crawlPendingBookmark.id,
       },
-      // Staging completed + tag pending -> processingBookmarks
+      // Staging processing + tag pending -> processingBookmarks (waiting for tag)
       {
         importSessionId: session.id,
         type: "text",
         content: "tag pending",
-        status: "completed",
+        status: "processing",
         resultBookmarkId: tagPendingBookmark.id,
       },
-      // Staging completed + crawl failure -> failedBookmarks
+      // Staging completed + crawl failure -> completedBookmarks (failure is terminal)
       {
         importSessionId: session.id,
         type: "link",
@@ -271,7 +273,7 @@ describe("ImportSessions Routes", () => {
         status: "completed",
         resultBookmarkId: crawlFailedBookmark.id,
       },
-      // Staging completed + tag failure -> failedBookmarks
+      // Staging completed + tag failure -> completedBookmarks (failure is terminal)
       {
         importSessionId: session.id,
         type: "text",
@@ -296,9 +298,9 @@ describe("ImportSessions Routes", () => {
     expect(stats).toMatchObject({
       totalBookmarks: 9,
       pendingBookmarks: 1, // staging pending
-      processingBookmarks: 3, // staging processing + crawl pending + tag pending
-      completedBookmarks: 2, // link success + text success
-      failedBookmarks: 3, // staging failed + crawl failure + tag failure
+      processingBookmarks: 3, // staging processing (no bookmark) + crawl pending + tag pending
+      completedBookmarks: 4, // link success + text success + crawl failure + tag failure
+      failedBookmarks: 1, // staging failed
     });
   });
 
