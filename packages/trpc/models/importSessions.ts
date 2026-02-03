@@ -3,7 +3,8 @@ import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import {
-  importSessionBookmarks,
+  bookmarkLinks,
+  bookmarks,
   importSessions,
   importStagingBookmarks,
 } from "@karakeep/db/schema";
@@ -80,23 +81,30 @@ export class ImportSession {
     );
   }
 
-  async attachBookmark(bookmarkId: string): Promise<void> {
-    await this.ctx.db.insert(importSessionBookmarks).values({
-      importSessionId: this.session.id,
-      bookmarkId,
-    });
-  }
-
   async getWithStats(): Promise<ZImportSessionWithStats> {
-    // Get bookmark counts by status from staging table
+    // Get bookmark counts by staging status and crawl/tagging status
     const statusCounts = await this.ctx.db
       .select({
-        status: importStagingBookmarks.status,
+        stagingStatus: importStagingBookmarks.status,
+        crawlStatus: bookmarkLinks.crawlStatus,
+        taggingStatus: bookmarks.taggingStatus,
         count: count(),
       })
       .from(importStagingBookmarks)
+      .leftJoin(
+        bookmarks,
+        eq(bookmarks.id, importStagingBookmarks.resultBookmarkId),
+      )
+      .leftJoin(
+        bookmarkLinks,
+        eq(bookmarkLinks.id, importStagingBookmarks.resultBookmarkId),
+      )
       .where(eq(importStagingBookmarks.importSessionId, this.session.id))
-      .groupBy(importStagingBookmarks.status);
+      .groupBy(
+        importStagingBookmarks.status,
+        bookmarkLinks.crawlStatus,
+        bookmarks.taggingStatus,
+      );
 
     const stats = {
       totalBookmarks: 0,
@@ -107,18 +115,56 @@ export class ImportSession {
     };
 
     statusCounts.forEach((statusCount) => {
-      const { status, count: itemCount } = statusCount;
+      const {
+        stagingStatus,
+        crawlStatus,
+        taggingStatus,
+        count: itemCount,
+      } = statusCount;
 
       stats.totalBookmarks += itemCount;
 
-      if (status === "pending") {
+      // Staging-level status takes precedence for pending/processing/failed
+      if (stagingStatus === "pending") {
         stats.pendingBookmarks += itemCount;
-      } else if (status === "processing") {
+        return;
+      }
+
+      if (stagingStatus === "processing") {
         stats.processingBookmarks += itemCount;
-      } else if (status === "completed") {
-        stats.completedBookmarks += itemCount;
-      } else if (status === "failed") {
+        return;
+      }
+
+      if (stagingStatus === "failed") {
         stats.failedBookmarks += itemCount;
+        return;
+      }
+
+      // For completed staging bookmarks, check crawl and tagging status
+      const isCrawlFailure = crawlStatus === "failure";
+      const isTagFailure = taggingStatus === "failure";
+      if (isCrawlFailure || isTagFailure) {
+        stats.failedBookmarks += itemCount;
+        return;
+      }
+
+      const isCrawlPending = crawlStatus === "pending";
+      const isTagPending = taggingStatus === "pending";
+      if (isCrawlPending || isTagPending) {
+        stats.processingBookmarks += itemCount;
+        return;
+      }
+
+      const isCrawlSuccessfulOrNotRequired =
+        crawlStatus === "success" || crawlStatus === null;
+      const isTagSuccessfulOrNotRequired =
+        taggingStatus === "success" || taggingStatus === null;
+
+      if (isCrawlSuccessfulOrNotRequired && isTagSuccessfulOrNotRequired) {
+        stats.completedBookmarks += itemCount;
+      } else {
+        // Fallback to processing to avoid leaving imports unclassified
+        stats.processingBookmarks += itemCount;
       }
     });
 

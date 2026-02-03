@@ -51,7 +51,6 @@ import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
-import { ImportSession } from "../models/importSessions";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -121,13 +120,6 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
-          if (input.importSessionId) {
-            const session = await ImportSession.fromId(
-              ctx,
-              input.importSessionId,
-            );
-            await session.attachBookmark(alreadyExists.id);
-          }
           return { ...alreadyExists, alreadyExists: true };
         }
       }
@@ -276,11 +268,6 @@ export const bookmarksAppRouter = router({
           behavior: "immediate",
         },
       );
-
-      if (input.importSessionId) {
-        const session = await ImportSession.fromId(ctx, input.importSessionId);
-        await session.attachBookmark(bookmark.id);
-      }
 
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed

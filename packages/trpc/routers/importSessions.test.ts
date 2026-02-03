@@ -1,8 +1,12 @@
-import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 
-import { bookmarks } from "@karakeep/db/schema";
+import {
+  bookmarkLinks,
+  bookmarks,
+  bookmarkTexts,
+  importStagingBookmarks,
+} from "@karakeep/db/schema";
 import {
   BookmarkTypes,
   zNewBookmarkRequestSchema,
@@ -98,8 +102,15 @@ describe("ImportSessions Routes", () => {
     const session = await api.importSessions.createImportSession({
       name: "Test Import Session",
     });
-    await createTestBookmark(api, session.id);
-    await createTestBookmark(api, session.id);
+
+    // Stage bookmarks using the staging flow
+    await api.importSessions.stageImportedBookmarks({
+      importSessionId: session.id,
+      bookmarks: [
+        { type: "text", content: "Test bookmark 1", tags: [], listIds: [] },
+        { type: "text", content: "Test bookmark 2", tags: [], listIds: [] },
+      ],
+    });
 
     const statsInput: z.infer<typeof zGetImportSessionStatsRequestSchema> = {
       importSessionId: session.id,
@@ -110,7 +121,7 @@ describe("ImportSessions Routes", () => {
     expect(stats).toMatchObject({
       id: session.id,
       name: "Test Import Session",
-      status: "in_progress",
+      status: "staging",
       totalBookmarks: 2,
       pendingBookmarks: 2,
       completedBookmarks: 0,
@@ -119,31 +130,189 @@ describe("ImportSessions Routes", () => {
     });
   });
 
-  test<CustomTestContext>("marks text-only imports as completed when tagging succeeds", async ({
+  test<CustomTestContext>("stats reflect crawl and tagging status for completed staging bookmarks", async ({
     apiCallers,
     db,
   }) => {
     const api = apiCallers[0];
-    const session = await api.importSessions.createImportSession({
-      name: "Text Import Session",
-    });
-    const bookmarkId = await createTestBookmark(api, session.id);
 
-    await db
-      .update(bookmarks)
-      .set({ taggingStatus: "success" })
-      .where(eq(bookmarks.id, bookmarkId));
+    const session = await api.importSessions.createImportSession({
+      name: "Test Import Session",
+    });
+
+    // Create bookmarks with different crawl/tag statuses
+    const user = (await db.query.users.findFirst())!;
+
+    // 1. Link bookmark: crawl success, tag success -> completed
+    const [completedLinkBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId: user.id,
+        type: BookmarkTypes.LINK,
+        taggingStatus: "success",
+      })
+      .returning();
+    await db.insert(bookmarkLinks).values({
+      id: completedLinkBookmark.id,
+      url: "https://example.com/1",
+      crawlStatus: "success",
+    });
+
+    // 2. Link bookmark: crawl pending, tag success -> processing
+    const [crawlPendingBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId: user.id,
+        type: BookmarkTypes.LINK,
+        taggingStatus: "success",
+      })
+      .returning();
+    await db.insert(bookmarkLinks).values({
+      id: crawlPendingBookmark.id,
+      url: "https://example.com/2",
+      crawlStatus: "pending",
+    });
+
+    // 3. Text bookmark: tag pending -> processing
+    const [tagPendingBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId: user.id,
+        type: BookmarkTypes.TEXT,
+        taggingStatus: "pending",
+      })
+      .returning();
+    await db.insert(bookmarkTexts).values({
+      id: tagPendingBookmark.id,
+      text: "Test text",
+    });
+
+    // 4. Link bookmark: crawl failure -> failed
+    const [crawlFailedBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId: user.id,
+        type: BookmarkTypes.LINK,
+        taggingStatus: "success",
+      })
+      .returning();
+    await db.insert(bookmarkLinks).values({
+      id: crawlFailedBookmark.id,
+      url: "https://example.com/3",
+      crawlStatus: "failure",
+    });
+
+    // 5. Text bookmark: tag failure -> failed
+    const [tagFailedBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId: user.id,
+        type: BookmarkTypes.TEXT,
+        taggingStatus: "failure",
+      })
+      .returning();
+    await db.insert(bookmarkTexts).values({
+      id: tagFailedBookmark.id,
+      text: "Test text 2",
+    });
+
+    // 6. Text bookmark: tag success (no crawl needed) -> completed
+    const [completedTextBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId: user.id,
+        type: BookmarkTypes.TEXT,
+        taggingStatus: "success",
+      })
+      .returning();
+    await db.insert(bookmarkTexts).values({
+      id: completedTextBookmark.id,
+      text: "Test text 3",
+    });
+
+    // Create staging bookmarks in different states
+    await db.insert(importStagingBookmarks).values([
+      // Staging pending -> pendingBookmarks
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "pending staging",
+        status: "pending",
+      },
+      // Staging processing -> processingBookmarks
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "processing staging",
+        status: "processing",
+      },
+      // Staging failed -> failedBookmarks
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "failed staging",
+        status: "failed",
+      },
+      // Staging completed + crawl/tag success -> completedBookmarks
+      {
+        importSessionId: session.id,
+        type: "link",
+        url: "https://example.com/1",
+        status: "completed",
+        resultBookmarkId: completedLinkBookmark.id,
+      },
+      // Staging completed + crawl pending -> processingBookmarks
+      {
+        importSessionId: session.id,
+        type: "link",
+        url: "https://example.com/2",
+        status: "completed",
+        resultBookmarkId: crawlPendingBookmark.id,
+      },
+      // Staging completed + tag pending -> processingBookmarks
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "tag pending",
+        status: "completed",
+        resultBookmarkId: tagPendingBookmark.id,
+      },
+      // Staging completed + crawl failure -> failedBookmarks
+      {
+        importSessionId: session.id,
+        type: "link",
+        url: "https://example.com/3",
+        status: "completed",
+        resultBookmarkId: crawlFailedBookmark.id,
+      },
+      // Staging completed + tag failure -> failedBookmarks
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "tag failed",
+        status: "completed",
+        resultBookmarkId: tagFailedBookmark.id,
+      },
+      // Staging completed + tag success (text, no crawl) -> completedBookmarks
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "completed text",
+        status: "completed",
+        resultBookmarkId: completedTextBookmark.id,
+      },
+    ]);
 
     const stats = await api.importSessions.getImportSessionStats({
       importSessionId: session.id,
     });
 
     expect(stats).toMatchObject({
-      completedBookmarks: 1,
-      pendingBookmarks: 0,
-      failedBookmarks: 0,
-      totalBookmarks: 1,
-      status: "completed",
+      totalBookmarks: 9,
+      pendingBookmarks: 1, // staging pending
+      processingBookmarks: 3, // staging processing + crawl pending + tag pending
+      completedBookmarks: 2, // link success + text success
+      failedBookmarks: 3, // staging failed + crawl failure + tag failure
     });
   });
 
