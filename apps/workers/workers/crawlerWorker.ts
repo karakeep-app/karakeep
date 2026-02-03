@@ -30,6 +30,7 @@ import metascraperYoutube from "metascraper-youtube";
 import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
 import {
   fetchWithProxy,
+  getBookmarkDomain,
   getRandomProxy,
   matchesNoProxy,
   validateUrl,
@@ -57,6 +58,7 @@ import {
   LinkCrawlerQueue,
   OpenAIQueue,
   QuotaService,
+  setSpanAttributes,
   triggerSearchReindex,
   triggerWebhook,
   VideoWorkerQueue,
@@ -435,7 +437,13 @@ async function browserlessCrawlPage(
   return await withSpan(
     tracer,
     "crawlerWorker.browserlessCrawlPage",
-    { attributes: { url, jobId } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+      },
+    },
     async () => {
       logger.info(
         `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
@@ -473,7 +481,15 @@ async function crawlPage(
   return await withSpan(
     tracer,
     "crawlerWorker.crawlPage",
-    { attributes: { url, jobId, userId, forceStorePdf } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+        "user.id": userId,
+        "crawler.forceStorePdf": forceStorePdf,
+      },
+    },
     async () => {
       // Check user's browser crawling setting
       const userData = await db.query.users.findFirst({
@@ -717,7 +733,13 @@ async function extractMetadata(
   return await withSpan(
     tracer,
     "crawlerWorker.extractMetadata",
-    { attributes: { url, jobId } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+      },
+    },
     async () => {
       logger.info(
         `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
@@ -745,7 +767,13 @@ async function extractReadableContent(
   return await withSpan(
     tracer,
     "crawlerWorker.extractReadableContent",
-    { attributes: { url, jobId } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+      },
+    },
     async () => {
       logger.info(
         `[Crawler][${jobId}] Will attempt to extract readable content ...`,
@@ -790,9 +818,9 @@ async function storeScreenshot(
     "crawlerWorker.storeScreenshot",
     {
       attributes: {
-        jobId,
-        userId,
-        size: screenshot?.byteLength ?? 0,
+        "job.id": jobId,
+        "user.id": userId,
+        "asset.size": screenshot?.byteLength ?? 0,
       },
     },
     async () => {
@@ -849,9 +877,9 @@ async function storePdf(
     "crawlerWorker.storePdf",
     {
       attributes: {
-        jobId,
-        userId,
-        size: pdf?.byteLength ?? 0,
+        "job.id": jobId,
+        "user.id": userId,
+        "asset.size": pdf?.byteLength ?? 0,
       },
     },
     async () => {
@@ -902,7 +930,15 @@ async function downloadAndStoreFile(
   return await withSpan(
     tracer,
     "crawlerWorker.downloadAndStoreFile",
-    { attributes: { url, jobId, userId, fileType } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+        "user.id": userId,
+        "asset.type": fileType,
+      },
+    },
     async () => {
       let assetPath: string | undefined;
       try {
@@ -1018,7 +1054,14 @@ async function archiveWebpage(
   return await withSpan(
     tracer,
     "crawlerWorker.archiveWebpage",
-    { attributes: { url, jobId, userId } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+        "user.id": userId,
+      },
+    },
     async () => {
       logger.info(`[Crawler][${jobId}] Will attempt to archive page ...`);
       const assetId = newAssetId();
@@ -1103,7 +1146,13 @@ async function getContentType(
   return await withSpan(
     tracer,
     "crawlerWorker.getContentType",
-    { attributes: { url, jobId } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+      },
+    },
     async () => {
       try {
         logger.info(
@@ -1113,8 +1162,14 @@ async function getContentType(
           method: "GET",
           signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
         });
+        setSpanAttributes({
+          "crawler.getContentType.statusCode": response.status,
+        });
         const rawContentType = response.headers.get("content-type");
         const contentType = normalizeContentType(rawContentType);
+        setSpanAttributes({
+          "crawler.contentType": contentType ?? undefined,
+        });
         logger.info(
           `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
         );
@@ -1148,7 +1203,16 @@ async function handleAsAssetBookmark(
   return await withSpan(
     tracer,
     "crawlerWorker.handleAsAssetBookmark",
-    { attributes: { url, jobId, userId, bookmarkId, assetType } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+        "user.id": userId,
+        "bookmark.id": bookmarkId,
+        "asset.type": assetType,
+      },
+    },
     async () => {
       const downloaded = await downloadAndStoreFile(
         url,
@@ -1218,9 +1282,11 @@ async function storeHtmlContent(
     "crawlerWorker.storeHtmlContent",
     {
       attributes: {
-        jobId,
-        userId,
-        contentSize: htmlContent ? Buffer.byteLength(htmlContent, "utf8") : 0,
+        "job.id": jobId,
+        "user.id": userId,
+        "bookmark.content.size": htmlContent
+          ? Buffer.byteLength(htmlContent, "utf8")
+          : 0,
       },
     },
     async () => {
@@ -1302,13 +1368,14 @@ async function crawlAndParseUrl(
     "crawlerWorker.crawlAndParseUrl",
     {
       attributes: {
-        url,
-        jobId,
-        userId,
-        bookmarkId,
-        archiveFullPage,
-        forceStorePdf,
-        hasPrecrawledArchive: !!precrawledArchiveAssetId,
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+        "user.id": userId,
+        "bookmark.id": bookmarkId,
+        "crawler.archiveFullPage": archiveFullPage,
+        "crawler.forceStorePdf": forceStorePdf,
+        "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
       },
     },
     async () => {
@@ -1357,6 +1424,9 @@ async function crawlAndParseUrl(
       // Track status code in Prometheus
       if (statusCode !== null) {
         crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+        setSpanAttributes({
+          "crawler.statusCode": statusCode,
+        });
       }
 
       const meta = await Promise.race([
@@ -1576,7 +1646,13 @@ async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
   return await withSpan(
     tracer,
     "crawlerWorker.checkDomainRateLimit",
-    { attributes: { url, jobId } },
+    {
+      attributes: {
+        "bookmark.url": url,
+        "bookmark.domain": getBookmarkDomain(url),
+        "job.id": jobId,
+      },
+    },
     async () => {
       const crawlerDomainRateLimitConfig =
         serverConfig.crawler.domainRatelimiting;
