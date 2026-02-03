@@ -2,7 +2,6 @@ import {
   and,
   count,
   eq,
-  gt,
   inArray,
   isNotNull,
   isNull,
@@ -66,7 +65,6 @@ export class ImportWorker {
 
   // Backpressure settings
   private maxInFlight = 50;
-  private windowMs = 60_000; // 1 minute
   private batchSize = 10;
   private staleThresholdMs = 60 * 60 * 1000; // 1 hour
 
@@ -503,36 +501,18 @@ export class ImportWorker {
   }
 
   /**
-   * Backpressure: Calculate available capacity based on sliding window.
-   * Counts items currently processing (including those waiting for downstream
-   * crawling/tagging) + items completed within windowMs.
-   *
-   * Note: "processing" items without a bookmark (stale) are excluded.
+   * Backpressure: Calculate available capacity.
+   * Counts items currently in "processing" status, which includes both:
+   * - Items being actively imported
+   * - Items waiting for downstream crawl/tag to complete
    */
   private async getAvailableCapacity(): Promise<number> {
-    const windowStart = new Date(Date.now() - this.windowMs);
-
-    // Count items currently being processed or waiting for downstream
-    // Items with resultBookmarkId are waiting for crawl/tag, count them too
     const processing = await db
       .select({ count: count() })
       .from(importStagingBookmarks)
       .where(eq(importStagingBookmarks.status, "processing"));
 
-    // Count items completed within the sliding window
-    const recentlyCompleted = await db
-      .select({ count: count() })
-      .from(importStagingBookmarks)
-      .where(
-        and(
-          inArray(importStagingBookmarks.status, ["completed", "failed"]),
-          gt(importStagingBookmarks.completedAt, windowStart),
-        ),
-      );
-
-    const inFlight =
-      (processing[0]?.count ?? 0) + (recentlyCompleted[0]?.count ?? 0);
-    return this.maxInFlight - inFlight;
+    return this.maxInFlight - (processing[0]?.count ?? 0);
   }
 
   /**
