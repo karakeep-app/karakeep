@@ -7,10 +7,7 @@ import {
   bookmarkTexts,
   importStagingBookmarks,
 } from "@karakeep/db/schema";
-import {
-  BookmarkTypes,
-  zNewBookmarkRequestSchema,
-} from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
@@ -24,17 +21,6 @@ import { defaultBeforeEach } from "../testUtils";
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("ImportSessions Routes", () => {
-  async function createTestBookmark(api: APICallerType, sessionId: string) {
-    const newBookmarkInput: z.infer<typeof zNewBookmarkRequestSchema> = {
-      type: BookmarkTypes.TEXT,
-      text: "Test bookmark text",
-      importSessionId: sessionId,
-    };
-    const createdBookmark =
-      await api.bookmarks.createBookmark(newBookmarkInput);
-    return createdBookmark.id;
-  }
-
   async function createTestList(api: APICallerType) {
     const newListInput: z.infer<typeof zNewBookmarkListSchema> = {
       name: "Test Import List",
@@ -384,7 +370,7 @@ describe("ImportSessions Routes", () => {
     ).rejects.toThrow("Import session not found");
   });
 
-  test<CustomTestContext>("cannot attach other user's bookmark", async ({
+  test<CustomTestContext>("cannot stage other user's session", async ({
     apiCallers,
   }) => {
     const api1 = apiCallers[0];
@@ -397,7 +383,17 @@ describe("ImportSessions Routes", () => {
 
     // User 1 tries to attach User 2's bookmark
     await expect(
-      createTestBookmark(api2, session.id), // User 2's bookmark
+      api2.importSessions.stageImportedBookmarks({
+        importSessionId: session.id,
+        bookmarks: [
+          {
+            type: "text",
+            content: "Test bookmark",
+            tags: [],
+            listIds: [],
+          },
+        ],
+      }),
     ).rejects.toThrow("Import session not found");
   });
 });
