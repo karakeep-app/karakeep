@@ -31,8 +31,8 @@ export function useBookmarkImport() {
   const apiUtils = api.useUtils();
   const { mutateAsync: createImportSession } = useCreateImportSession();
   const { mutateAsync: createList } = useCreateBookmarkList();
-  const { mutateAsync: stageImportedBookmark } =
-    api.importSessions.stageImportedBookmark.useMutation();
+  const { mutateAsync: stageImportedBookmarks } =
+    api.importSessions.stageImportedBookmarks.useMutation();
   const { mutateAsync: finalizeImportStaging } =
     api.importSessions.finalizeImportStaging.useMutation();
 
@@ -81,7 +81,7 @@ export function useBookmarkImport() {
           deps: {
             createImportSession,
             createList,
-            stageImportedBookmark,
+            stageImportedBookmarks,
             finalizeImportStaging: async (sessionId: string) => {
               await finalizeImportStaging({ importSessionId: sessionId });
             },

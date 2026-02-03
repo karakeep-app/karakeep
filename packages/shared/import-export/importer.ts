@@ -8,22 +8,26 @@ export interface ImportCounts {
   total: number;
 }
 
+export interface StagedBookmark {
+  type: "link" | "text" | "asset";
+  url?: string;
+  title?: string;
+  content?: string;
+  note?: string;
+  tags: string[];
+  listPaths: string[];
+  sourceAddedAt?: Date;
+}
+
 export interface ImportDeps {
   createList: (input: {
     name: string;
     icon: string;
     parentId?: string;
   }) => Promise<{ id: string }>;
-  stageImportedBookmark: (input: {
+  stageImportedBookmarks: (input: {
     importSessionId: string;
-    type: "link" | "text" | "asset";
-    url?: string;
-    title?: string;
-    content?: string;
-    note?: string;
-    tags: string[];
-    listPaths: string[];
-    sourceAddedAt?: Date;
+    bookmarks: StagedBookmark[];
   }) => Promise<void>;
   createImportSession: (input: {
     name: string;
@@ -119,9 +123,8 @@ export async function importBookmarksFromFile(
     pathMap[pathKey] = folderList.id;
   }
 
-  // Stage all bookmarks (no side effects, just DB inserts)
-  let staged = 0;
-  for (const bookmark of parsedBookmarks) {
+  // Prepare all bookmarks for staging
+  const bookmarksToStage: StagedBookmark[] = parsedBookmarks.map((bookmark) => {
     const listPaths = bookmark.paths.map((path) => path.join("/"));
 
     // Determine type and extract content appropriately
@@ -139,8 +142,7 @@ export async function importBookmarksFromFile(
       }
     }
 
-    await deps.stageImportedBookmark({
-      importSessionId: session.id,
+    return {
       type,
       url,
       title: bookmark.title,
@@ -151,9 +153,20 @@ export async function importBookmarksFromFile(
       sourceAddedAt: bookmark.addDate
         ? new Date(bookmark.addDate * 1000)
         : undefined,
-    });
+    };
+  });
 
-    staged++;
+  // Stage bookmarks in batches of 50
+  const BATCH_SIZE = 50;
+  let staged = 0;
+
+  for (let i = 0; i < bookmarksToStage.length; i += BATCH_SIZE) {
+    const batch = bookmarksToStage.slice(i, i + BATCH_SIZE);
+    await deps.stageImportedBookmarks({
+      importSessionId: session.id,
+      bookmarks: batch,
+    });
+    staged += batch.length;
     onProgress?.(staged, parsedBookmarks.length);
   }
 

@@ -50,21 +50,31 @@ export const importSessionsRouter = router({
       return { success: true };
     }),
 
-  stageImportedBookmark: authedProcedure
+  stageImportedBookmarks: authedProcedure
     .input(
       z.object({
         importSessionId: z.string(),
-        type: z.enum(["link", "text", "asset"]),
-        url: z.string().optional(),
-        title: z.string().optional(),
-        content: z.string().optional(),
-        note: z.string().optional(),
-        tags: z.array(z.string()).default([]),
-        listPaths: z.array(z.string()).default([]),
-        sourceAddedAt: z.date().optional(),
+        bookmarks: z
+          .array(
+            z.object({
+              type: z.enum(["link", "text", "asset"]),
+              url: z.string().optional(),
+              title: z.string().optional(),
+              content: z.string().optional(),
+              note: z.string().optional(),
+              tags: z.array(z.string()).default([]),
+              listPaths: z.array(z.string()).default([]),
+              sourceAddedAt: z.date().optional(),
+            }),
+          )
+          .max(50),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (input.bookmarks.length === 0) {
+        return;
+      }
+
       // Verify session belongs to user and is in staging status
       const session = await db.query.importSessions.findFirst({
         where: and(
@@ -87,19 +97,21 @@ export const importSessionsRouter = router({
         });
       }
 
-      // Insert into staging table - NO side effects triggered
-      await ctx.db.insert(importStagingBookmarks).values({
-        importSessionId: input.importSessionId,
-        type: input.type,
-        url: input.url,
-        title: input.title,
-        content: input.content,
-        note: input.note,
-        tags: input.tags,
-        listPaths: input.listPaths,
-        sourceAddedAt: input.sourceAddedAt,
-        status: "pending",
-      });
+      // Batch insert into staging table - NO side effects triggered
+      await ctx.db.insert(importStagingBookmarks).values(
+        input.bookmarks.map((bookmark) => ({
+          importSessionId: input.importSessionId,
+          type: bookmark.type,
+          url: bookmark.url,
+          title: bookmark.title,
+          content: bookmark.content,
+          note: bookmark.note,
+          tags: bookmark.tags,
+          listPaths: bookmark.listPaths,
+          sourceAddedAt: bookmark.sourceAddedAt,
+          status: "pending" as const,
+        })),
+      );
     }),
 
   finalizeImportStaging: authedProcedure

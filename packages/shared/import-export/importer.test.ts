@@ -1,9 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ImportDeps } from ".";
+import type { StagedBookmark } from ".";
 import { importBookmarksFromFile } from ".";
-
-type StagedBookmark = Parameters<ImportDeps["stageImportedBookmark"]>[0];
 
 const fakeFile = {
   text: vi.fn().mockResolvedValue("fake file content"),
@@ -65,9 +63,14 @@ describe("importBookmarksFromFile", () => {
     );
 
     const stagedBookmarks: StagedBookmark[] = [];
-    const stageImportedBookmark = vi.fn(async (input: StagedBookmark) => {
-      stagedBookmarks.push(input);
-    });
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
 
     const finalizeImportStaging = vi.fn();
     const createImportSession = vi.fn(
@@ -84,7 +87,7 @@ describe("importBookmarksFromFile", () => {
         rootListName: "Imported",
         deps: {
           createList,
-          stageImportedBookmark,
+          stageImportedBookmarks,
           finalizeImportStaging,
           createImportSession,
         },
@@ -113,9 +116,9 @@ describe("importBookmarksFromFile", () => {
       { name: "Duplicates", parentId: "Imported/Development", icon: "📁" },
     ]);
 
-    // Verify 5 bookmarks were staged
+    // Verify 5 bookmarks were staged (in 1 batch since < 50)
     expect(stagedBookmarks).toHaveLength(5);
-    expect(stageImportedBookmark).toHaveBeenCalledTimes(5);
+    expect(stageImportedBookmarks).toHaveBeenCalledTimes(1);
 
     // Verify GitHub link bookmark was staged correctly
     const githubBookmark = stagedBookmarks.find(
@@ -153,7 +156,7 @@ describe("importBookmarksFromFile", () => {
         rootListName: "Imported",
         deps: {
           createList: vi.fn(),
-          stageImportedBookmark: vi.fn(),
+          stageImportedBookmarks: vi.fn(),
           finalizeImportStaging: vi.fn(),
           createImportSession: vi.fn(async () => ({ id: "session-1" })),
         },
@@ -206,9 +209,14 @@ describe("importBookmarksFromFile", () => {
     );
 
     const stagedBookmarks: StagedBookmark[] = [];
-    const stageImportedBookmark = vi.fn(async (input: StagedBookmark) => {
-      stagedBookmarks.push(input);
-    });
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
 
     const finalizeImportStaging = vi.fn();
     const createImportSession = vi.fn(
@@ -225,7 +233,7 @@ describe("importBookmarksFromFile", () => {
         rootListName: "Imported",
         deps: {
           createList,
-          stageImportedBookmark,
+          stageImportedBookmarks,
           finalizeImportStaging,
           createImportSession,
         },
@@ -250,9 +258,9 @@ describe("importBookmarksFromFile", () => {
       { name: "Category2", parentId: "Imported", icon: "📁" },
     ]);
 
-    // All bookmarks should be staged
+    // All bookmarks should be staged (in 1 batch since < 50)
     expect(stagedBookmarks).toHaveLength(3);
-    expect(stageImportedBookmark).toHaveBeenCalledTimes(3);
+    expect(stageImportedBookmarks).toHaveBeenCalledTimes(1);
 
     // Verify finalizeImportStaging was called
     expect(finalizeImportStaging).toHaveBeenCalledWith("session-1");
@@ -298,9 +306,14 @@ describe("importBookmarksFromFile", () => {
     );
 
     const stagedBookmarks: StagedBookmark[] = [];
-    const stageImportedBookmark = vi.fn(async (input: StagedBookmark) => {
-      stagedBookmarks.push(input);
-    });
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
 
     const finalizeImportStaging = vi.fn();
     const createImportSession = vi.fn(
@@ -317,7 +330,7 @@ describe("importBookmarksFromFile", () => {
         rootListName: "Imported",
         deps: {
           createList,
-          stageImportedBookmark,
+          stageImportedBookmarks,
           finalizeImportStaging,
           createImportSession,
         },
@@ -335,9 +348,9 @@ describe("importBookmarksFromFile", () => {
       total: 3,
     });
 
-    // All bookmarks should be staged
+    // All bookmarks should be staged (in 1 batch since < 50)
     expect(stagedBookmarks).toHaveLength(3);
-    expect(stageImportedBookmark).toHaveBeenCalledTimes(3);
+    expect(stageImportedBookmarks).toHaveBeenCalledTimes(1);
 
     // Verify finalizeImportStaging was called
     expect(finalizeImportStaging).toHaveBeenCalledWith("session-1");
@@ -374,9 +387,14 @@ describe("importBookmarksFromFile", () => {
     );
 
     const stagedBookmarks: StagedBookmark[] = [];
-    const stageImportedBookmark = vi.fn(async (input: StagedBookmark) => {
-      stagedBookmarks.push(input);
-    });
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
 
     const finalizeImportStaging = vi.fn();
     const createImportSession = vi.fn(
@@ -391,7 +409,7 @@ describe("importBookmarksFromFile", () => {
       rootListName: "HTML Import",
       deps: {
         createList,
-        stageImportedBookmark,
+        stageImportedBookmarks,
         finalizeImportStaging,
         createImportSession,
       },
@@ -440,9 +458,14 @@ describe("importBookmarksFromFile", () => {
     } as unknown as File;
 
     const stagedBookmarks: StagedBookmark[] = [];
-    const stageImportedBookmark = vi.fn(async (input: StagedBookmark) => {
-      stagedBookmarks.push(input);
-    });
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
 
     const finalizeImportStaging = vi.fn();
     const createImportSession = vi.fn(
@@ -461,7 +484,7 @@ describe("importBookmarksFromFile", () => {
             id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
           }),
         ),
-        stageImportedBookmark,
+        stageImportedBookmarks,
         finalizeImportStaging,
         createImportSession,
       },
