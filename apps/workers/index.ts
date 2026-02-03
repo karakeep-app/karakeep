@@ -78,7 +78,7 @@ const workerBuilders = {
   },
 } as const;
 
-type WorkerName = keyof typeof workerBuilders;
+type WorkerName = keyof typeof workerBuilders | "import";
 const enabledWorkers = new Set(serverConfig.workers.enabledWorkers);
 const disabledWorkers = new Set(serverConfig.workers.disabledWorkers);
 
@@ -120,14 +120,18 @@ async function main() {
   }
 
   // Start import polling worker
-  const importWorker = new ImportWorker();
-  const importWorkerPromise = importWorker.start();
+  let importWorker: ImportWorker | null = null;
+  let importWorkerPromise: Promise<void> | null = null;
+  if (isWorkerEnabled("import")) {
+    importWorker = new ImportWorker();
+    importWorkerPromise = importWorker.start();
+  }
 
   await Promise.any([
     Promise.all([
       ...workers.map(({ worker }) => worker.run()),
       httpServer.serve(),
-      importWorkerPromise,
+      ...(importWorkerPromise ? [importWorkerPromise] : []),
     ]),
     shutdownPromise,
   ]);
@@ -142,7 +146,9 @@ async function main() {
   if (workers.some((w) => w.name === "backup")) {
     BackupSchedulingWorker.stop();
   }
-  importWorker.stop();
+  if (importWorker) {
+    importWorker.stop();
+  }
   for (const { worker } of workers) {
     worker.stop();
   }
