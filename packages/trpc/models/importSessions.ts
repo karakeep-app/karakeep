@@ -13,6 +13,7 @@ import {
   ZImportSession,
   ZImportSessionWithStats,
 } from "@karakeep/shared/types/importSessions";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 import type { AuthedContext } from "../index";
 
@@ -168,9 +169,24 @@ export class ImportSession {
       }
     });
 
+    const computedStatus = switchCase<
+      typeof this.session.status,
+      typeof this.session.status
+    >(this.session.status, {
+      staging: "staging",
+      pending: "pending",
+      running: "running",
+      paused: "paused",
+      failed: "failed",
+      completed:
+        stats.processingBookmarks + stats.pendingBookmarks > 0
+          ? "running"
+          : "completed",
+    });
+
     return {
       ...this.session,
-      status: this.session.status,
+      computedStatus: computedStatus,
       ...stats,
     };
   }

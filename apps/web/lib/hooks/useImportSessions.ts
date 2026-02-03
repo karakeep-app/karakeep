@@ -46,7 +46,10 @@ export function useImportSessionStats(importSessionId: string) {
         importSessionId,
       },
       {
-        refetchInterval: 5000, // Refetch every 5 seconds to show progress
+        refetchInterval: (q) =>
+          !q.state.data || q.state.data.computedStatus != "completed"
+            ? 5000
+            : false, // Refetch every 5 seconds to show progress
         enabled: !!importSessionId,
       },
     ),

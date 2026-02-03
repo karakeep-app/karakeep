@@ -27,7 +27,11 @@ import {
   Upload,
 } from "lucide-react";
 
-import type { ZImportSessionWithStats } from "@karakeep/shared/types/importSessions";
+import type {
+  ZImportSessionStatus,
+  ZImportSessionWithStats,
+} from "@karakeep/shared/types/importSessions";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 interface ImportSessionCardProps {
   session: ZImportSessionWithStats;
@@ -78,14 +82,15 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const pauseSession = usePauseImportSession();
   const resumeSession = useResumeImportSession();
 
-  const statusLabels: Record<string, string> = {
-    staging: t("settings.import_sessions.status.staging"),
-    pending: t("settings.import_sessions.status.pending"),
-    running: t("settings.import_sessions.status.running"),
-    paused: t("settings.import_sessions.status.paused"),
-    completed: t("settings.import_sessions.status.completed"),
-    failed: t("settings.import_sessions.status.failed"),
-  };
+  const statusLabels = (s: ZImportSessionStatus) =>
+    switchCase(s, {
+      staging: t("settings.import_sessions.status.staging"),
+      pending: t("settings.import_sessions.status.pending"),
+      running: t("settings.import_sessions.status.running"),
+      paused: t("settings.import_sessions.status.paused"),
+      completed: t("settings.import_sessions.status.completed"),
+      failed: t("settings.import_sessions.status.failed"),
+    });
 
   // Use live stats if available, otherwise fallback to session stats
   const stats = liveStats || session;
@@ -121,11 +126,11 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Badge
-              className={`${getStatusColor(stats.status)} hover:bg-inherit`}
+              className={`${getStatusColor(stats.computedStatus)} hover:bg-inherit`}
             >
               {getStatusIcon(stats.status)}
               <span className="ml-1 capitalize">
-                {statusLabels[stats.status] ?? stats.status.replace("_", " ")}
+                {statusLabels(stats.computedStatus)}
               </span>
             </Badge>
           </div>
