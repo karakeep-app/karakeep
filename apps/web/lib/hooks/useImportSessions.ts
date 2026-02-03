@@ -77,3 +77,53 @@ export function useDeleteImportSession() {
     }),
   );
 }
+
+export function usePauseImportSession() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    api.importSessions.pauseImportSession.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          api.importSessions.listImportSessions.pathFilter(),
+        );
+        toast({
+          description: "Import session paused",
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          description: error.message || "Failed to pause import session",
+          variant: "destructive",
+        });
+      },
+    }),
+  );
+}
+
+export function useResumeImportSession() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    api.importSessions.resumeImportSession.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          api.importSessions.listImportSessions.pathFilter(),
+        );
+        toast({
+          description: "Import session resumed",
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          description: error.message || "Failed to resume import session",
+          variant: "destructive",
+        });
+      },
+    }),
+  );
+}

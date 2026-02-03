@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import {
   useDeleteImportSession,
   useImportSessionStats,
+  usePauseImportSession,
+  useResumeImportSession,
 } from "@/lib/hooks/useImportSessions";
 import { useTranslation } from "@/lib/i18n/client";
 import { formatDistanceToNow } from "date-fns";
@@ -20,6 +22,7 @@ import {
   ExternalLink,
   Loader2,
   Pause,
+  Play,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -72,6 +75,8 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const { t } = useTranslation();
   const { data: liveStats } = useImportSessionStats(session.id);
   const deleteSession = useDeleteImportSession();
+  const pauseSession = usePauseImportSession();
+  const resumeSession = useResumeImportSession();
 
   const statusLabels: Record<string, string> = {
     staging: t("settings.import_sessions.status.staging"),
@@ -95,6 +100,10 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
     stats.status === "completed" ||
     stats.status === "failed" ||
     stats.status === "paused";
+
+  const canPause = stats.status === "pending" || stats.status === "running";
+
+  const canResume = stats.status === "paused";
 
   return (
     <Card className="transition-all hover:shadow-md">
@@ -228,6 +237,32 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
+              {canPause && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    pauseSession.mutate({ importSessionId: session.id })
+                  }
+                  disabled={pauseSession.isPending}
+                >
+                  <Pause className="mr-1 h-4 w-4" />
+                  {t("settings.import_sessions.pause_session")}
+                </Button>
+              )}
+              {canResume && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    resumeSession.mutate({ importSessionId: session.id })
+                  }
+                  disabled={resumeSession.isPending}
+                >
+                  <Play className="mr-1 h-4 w-4" />
+                  {t("settings.import_sessions.resume_session")}
+                </Button>
+              )}
               {canDelete && (
                 <ActionConfirmingDialog
                   title={t("settings.import_sessions.delete_dialog_title")}
