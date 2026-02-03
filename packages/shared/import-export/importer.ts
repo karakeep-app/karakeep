@@ -15,7 +15,7 @@ export interface StagedBookmark {
   content?: string;
   note?: string;
   tags: string[];
-  listPaths: string[];
+  listIds: string[];
   sourceAddedAt?: Date;
 }
 
@@ -125,7 +125,20 @@ export async function importBookmarksFromFile(
 
   // Prepare all bookmarks for staging
   const bookmarksToStage: StagedBookmark[] = parsedBookmarks.map((bookmark) => {
-    const listPaths = bookmark.paths.map((path) => path.join("/"));
+    // Convert paths to list IDs using pathMap
+    // If no paths, assign to root list
+    const listIds =
+      bookmark.paths.length === 0
+        ? [rootList.id]
+        : bookmark.paths
+            .map((path) => {
+              if (path.length === 0) {
+                return rootList.id;
+              }
+              const pathKey = path.join(PATH_DELIMITER);
+              return pathMap[pathKey] || rootList.id;
+            })
+            .filter((id, index, arr) => arr.indexOf(id) === index); // dedupe
 
     // Determine type and extract content appropriately
     let type: "link" | "text" | "asset" = "link";
@@ -149,7 +162,7 @@ export async function importBookmarksFromFile(
       content: textContent,
       note: bookmark.notes,
       tags: bookmark.tags ?? [],
-      listPaths,
+      listIds,
       sourceAddedAt: bookmark.addDate
         ? new Date(bookmark.addDate * 1000)
         : undefined,

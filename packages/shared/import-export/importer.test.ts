@@ -130,6 +130,7 @@ describe("importBookmarksFromFile", () => {
     }
     expect(githubBookmark.title).toBe("GitHub Repository");
     expect(githubBookmark.tags).toEqual(["dev", "github"]);
+    expect(githubBookmark.listIds).toEqual(["Imported/Development/Projects"]);
 
     // Verify text bookmark was staged correctly
     const textBookmark = stagedBookmarks.find((b) => b.type === "text");
@@ -139,6 +140,14 @@ describe("importBookmarksFromFile", () => {
     }
     expect(textBookmark.content).toBe("Important notes about the project");
     expect(textBookmark.note).toBe("Additional context");
+    expect(textBookmark.listIds).toEqual(["Imported/Personal"]);
+
+    // Verify bookmark with empty paths gets root list ID
+    const noCategoryBookmark = stagedBookmarks.find(
+      (b) => b.url === "https://example.com/misc",
+    );
+    expect(noCategoryBookmark).toBeDefined();
+    expect(noCategoryBookmark!.listIds).toEqual(["Imported"]);
 
     // Verify finalizeImportStaging was called
     expect(finalizeImportStaging).toHaveBeenCalledWith("session-1");
@@ -433,13 +442,14 @@ describe("importBookmarksFromFile", () => {
       },
     ]);
 
-    // Verify the bookmark was staged
+    // Verify the bookmark was staged with correct listIds
     expect(stagedBookmarks).toHaveLength(1);
     expect(stagedBookmarks[0]).toMatchObject({
       title: "Example Product",
       url: "https://www.example.com/product.html",
       type: "link",
       tags: [],
+      listIds: ["HTML Import/Bluetooth Fernbedienung/Unnamed"],
     });
 
     // Verify finalizeImportStaging was called
@@ -500,12 +510,13 @@ describe("importBookmarksFromFile", () => {
     // Verify 3 bookmarks were staged
     expect(stagedBookmarks).toHaveLength(3);
 
-    // Verify first bookmark (WebPage with URL)
+    // Verify first bookmark (WebPage with URL) - mymind has no paths, so root list
     expect(stagedBookmarks[0]).toMatchObject({
       title: "mymind",
       url: "https://access.mymind.com/everything",
       type: "link",
       tags: ["Wellness", "Self-Improvement", "Psychology"],
+      listIds: ["mymind Import"],
     });
     expect(stagedBookmarks[0].sourceAddedAt).toEqual(
       new Date("2024-12-04T23:02:10Z"),
@@ -518,6 +529,7 @@ describe("importBookmarksFromFile", () => {
       type: "link",
       tags: ["Tools", "media", "Entertainment"],
       note: "Free Media!",
+      listIds: ["mymind Import"],
     });
 
     // Verify third bookmark (Note with text content)
@@ -526,6 +538,7 @@ describe("importBookmarksFromFile", () => {
       content: "• Critical Thinking\n• Empathy",
       type: "text",
       tags: [],
+      listIds: ["mymind Import"],
     });
 
     // Verify finalizeImportStaging was called
