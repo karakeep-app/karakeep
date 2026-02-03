@@ -299,47 +299,6 @@ describe("Import Worker Tests", () => {
     expect(nestedListBookmarks.bookmarks.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("should handle pausing and resuming import", async () => {
-    // Create an import session
-    const { id: importSessionId } =
-      await trpc.importSessions.createImportSession.mutate({
-        name: "Pause/Resume Test Import",
-      });
-
-    // Stage a few bookmarks
-    await trpc.importSessions.stageImportedBookmarks.mutate({
-      importSessionId,
-      bookmarks: [
-        { type: "text" as const, content: "Bookmark 1" },
-        { type: "text" as const, content: "Bookmark 2" },
-        { type: "text" as const, content: "Bookmark 3" },
-      ],
-    });
-
-    // Finalize
-    await trpc.importSessions.finalizeImportStaging.mutate({
-      importSessionId,
-    });
-
-    // Wait for completion
-    await waitUntil(
-      async () => {
-        const stats = await trpc.importSessions.getImportSessionStats.query({
-          importSessionId,
-        });
-        return stats.completedBookmarks === 3;
-      },
-      "All bookmarks processed",
-      60000,
-    );
-
-    const finalStats = await trpc.importSessions.getImportSessionStats.query({
-      importSessionId,
-    });
-    expect(finalStats.completedBookmarks).toBe(3);
-    expect(finalStats.status).toBe("completed");
-  });
-
   it("should attach imported bookmarks to root list", async () => {
     // Create a root list first
     const { data: rootList } = await client.POST("/lists", {

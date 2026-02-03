@@ -842,7 +842,10 @@ export const importSessions = sqliteTable(
     createdAt: createdAtField(),
     modifiedAt: modifiedAtField(),
   },
-  (is) => [index("importSessions_userId_idx").on(is.userId)],
+  (is) => [
+    index("importSessions_userId_idx").on(is.userId),
+    index("importSessions_status_idx").on(is.status),
+  ],
 );
 
 export const importSessionBookmarks = sqliteTable(
@@ -916,6 +919,11 @@ export const importStagingBookmarks = sqliteTable(
       isb.status,
     ),
     index("importStaging_completedAt_idx").on(isb.completedAt),
+    index("importStaging_status_idx").on(isb.status),
+    index("importStaging_status_processingStartedAt_idx").on(
+      isb.status,
+      isb.processingStartedAt,
+    ),
   ],
 );
 
