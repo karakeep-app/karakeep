@@ -156,7 +156,7 @@ export class ImportSession {
       content?: string;
       note?: string;
       tags: string[];
-      listPaths: string[];
+      listIds: string[];
       sourceAddedAt?: Date;
     }[],
   ): Promise<void> {
@@ -187,7 +187,7 @@ export class ImportSession {
         content: bookmark.content,
         note: bookmark.note,
         tags: bookmark.tags,
-        listPaths: bookmark.listPaths,
+        listIds: bookmark.listIds,
         sourceAddedAt: bookmark.sourceAddedAt,
         status: "pending" as const,
       })),

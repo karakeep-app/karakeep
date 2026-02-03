@@ -540,6 +540,13 @@
       "when": 1768691440519,
       "tag": "0076_add_api_key_last_used_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "6",
+      "when": 1770141423845,
+      "tag": "0077_import_listpaths_to_listids",
+      "breakpoints": true
     }
   ]
 }

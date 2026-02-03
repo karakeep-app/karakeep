@@ -3,11 +3,7 @@ import { Counter, Gauge, Histogram } from "prom-client";
 import { buildImpersonatingTRPCClient } from "trpc";
 
 import { db } from "@karakeep/db";
-import {
-  bookmarkLists,
-  importSessions,
-  importStagingBookmarks,
-} from "@karakeep/db/schema";
+import { importSessions, importStagingBookmarks } from "@karakeep/db/schema";
 import logger from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -224,38 +220,6 @@ export class ImportWorker {
     return results.map((r) => r.staging);
   }
 
-  private async resolveListPath(
-    session: typeof importSessions.$inferSelect,
-    listPath: string,
-  ): Promise<string | null> {
-    const rootListId = session.rootListId;
-    if (!rootListId) {
-      return null;
-    }
-
-    const segments = listPath.split("/").filter(Boolean);
-    let parentId = rootListId;
-
-    for (const segment of segments) {
-      const foundList = await db.query.bookmarkLists.findFirst({
-        columns: { id: true },
-        where: and(
-          eq(bookmarkLists.userId, session.userId),
-          eq(bookmarkLists.parentId, parentId),
-          eq(bookmarkLists.name, segment),
-        ),
-      });
-
-      if (!foundList) {
-        return null;
-      }
-
-      parentId = foundList.id;
-    }
-
-    return parentId;
-  }
-
   private async attachBookmarkToLists(
     caller: Awaited<ReturnType<typeof buildImpersonatingTRPCClient>>,
     session: typeof importSessions.$inferSelect,
@@ -268,16 +232,9 @@ export class ImportWorker {
       listIds.add(session.rootListId);
     }
 
-    if (staged.listPaths && staged.listPaths.length > 0) {
-      for (const listPath of staged.listPaths) {
-        const listId = await this.resolveListPath(session, listPath);
-        if (listId) {
-          listIds.add(listId);
-        } else {
-          logger.warn(
-            `[import] Unable to resolve list path "${listPath}" for session ${session.id}`,
-          );
-        }
+    if (staged.listIds && staged.listIds.length > 0) {
+      for (const listId of staged.listIds) {
+        listIds.add(listId);
       }
     }
 

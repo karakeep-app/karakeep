@@ -30,6 +30,24 @@ describe("Import Worker Tests", () => {
   });
 
   it("should import 15 bookmarks of different types", async () => {
+    // Create lists first (lists require IDs, not paths)
+    const { data: parentList } = await client.POST("/lists", {
+      body: {
+        name: "Import Test List",
+        icon: "folder",
+      },
+    });
+    assert(parentList);
+
+    const { data: nestedList } = await client.POST("/lists", {
+      body: {
+        name: "Nested",
+        icon: "folder",
+        parentId: parentList.id,
+      },
+    });
+    assert(nestedList);
+
     // Create an import session
     const { id: importSessionId } =
       await trpc.importSessions.createImportSession.mutate({
@@ -64,8 +82,8 @@ describe("Import Worker Tests", () => {
       {
         type: "link" as const,
         url: "http://nginx:80/page4.html",
-        title: "Page 4 with List Paths",
-        listPaths: ["Import Test List"],
+        title: "Page 4 with List",
+        listIds: [parentList.id],
       },
       {
         type: "link" as const,
@@ -79,7 +97,7 @@ describe("Import Worker Tests", () => {
         title: "Page 6 Full Metadata",
         note: "Full metadata note",
         tags: ["imported", "full"],
-        listPaths: ["Import Test List/Nested"],
+        listIds: [nestedList.id],
         sourceAddedAt: new Date("2024-02-20T15:45:00Z"),
       },
 
@@ -111,7 +129,7 @@ describe("Import Worker Tests", () => {
         content: "Text bookmark with all metadata fields.",
         note: "Complete text note",
         tags: ["complete", "text"],
-        listPaths: ["Import Test List"],
+        listIds: [parentList.id],
         sourceAddedAt: new Date("2024-03-10T08:00:00Z"),
       },
 
@@ -254,22 +272,6 @@ describe("Import Worker Tests", () => {
     );
     expect(bookmarksWithImportedTag.length).toBeGreaterThanOrEqual(2);
 
-    // Verify lists were created
-    const { data: listsResponse } = await client.GET("/lists", {});
-    assert(listsResponse);
-    const listNames = listsResponse.lists.map((l) => l.name);
-    expect(listNames).toContain("Import Test List");
-
-    // Find the nested list
-    const parentList = listsResponse.lists.find(
-      (l) => l.name === "Import Test List",
-    );
-    assert(parentList);
-    const nestedList = listsResponse.lists.find(
-      (l) => l.name === "Nested" && l.parentId === parentList.id,
-    );
-    assert(nestedList, "Nested list should exist");
-
     // Verify bookmarks are actually in the lists
     const { data: parentListBookmarks } = await client.GET(
       "/lists/{listId}/bookmarks",
@@ -280,7 +282,7 @@ describe("Import Worker Tests", () => {
       },
     );
     assert(parentListBookmarks);
-    // Should have bookmarks with listPaths: ["Import Test List"]
+    // Should have bookmarks with listIds containing parentList.id
     expect(parentListBookmarks.bookmarks.length).toBeGreaterThanOrEqual(2);
 
     // Verify nested list has bookmarks
@@ -293,7 +295,7 @@ describe("Import Worker Tests", () => {
       },
     );
     assert(nestedListBookmarks);
-    // Should have the bookmark with listPaths: ["Import Test List/Nested"]
+    // Should have the bookmark with listIds containing nestedList.id
     expect(nestedListBookmarks.bookmarks.length).toBeGreaterThanOrEqual(1);
   });
 
