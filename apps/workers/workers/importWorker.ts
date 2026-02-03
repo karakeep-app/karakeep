@@ -113,15 +113,31 @@ export class ImportWorker {
       return 0;
     }
 
-    // 2. Get next batch with fair scheduling across users
+    // 2. Get candidate IDs with fair scheduling across users
     const batchLimit = Math.min(this.batchSize, availableCapacity);
-    const batch = await this.getNextBatchFairly(batchLimit);
+    const candidateIds = await this.getNextBatchFairly(batchLimit);
 
+    if (candidateIds.length === 0) return 0;
+
+    // 3. Atomically claim rows - only rows still pending will be claimed
+    // This prevents race conditions where multiple workers select the same rows
+    const batch = await db
+      .update(importStagingBookmarks)
+      .set({ status: "processing", processingStartedAt: new Date() })
+      .where(
+        and(
+          eq(importStagingBookmarks.status, "pending"),
+          inArray(importStagingBookmarks.id, candidateIds),
+        ),
+      )
+      .returning();
+
+    // If no rows were claimed (another worker got them first), skip processing
     if (batch.length === 0) return 0;
 
     const batchTimer = importBatchDurationHistogram.startTimer();
 
-    // 3. Mark session(s) as running
+    // 4. Mark session(s) as running (using claimed rows, not candidates)
     const sessionIds = [...new Set(batch.map((b) => b.importSessionId))];
     await db
       .update(importSessions)
@@ -130,17 +146,6 @@ export class ImportWorker {
         and(
           inArray(importSessions.id, sessionIds),
           eq(importSessions.status, "pending"),
-        ),
-      );
-
-    // 4. Mark items as processing with timestamp (for stale detection)
-    await db
-      .update(importStagingBookmarks)
-      .set({ status: "processing", processingStartedAt: new Date() })
-      .where(
-        inArray(
-          importStagingBookmarks.id,
-          batch.map((b) => b.id),
         ),
       );
 
@@ -208,16 +213,14 @@ export class ImportWorker {
     await this.checkAndCompleteEmptySessions(sessionIds);
   }
 
-  private async getNextBatchFairly(
-    limit: number,
-  ): Promise<(typeof importStagingBookmarks.$inferSelect)[]> {
-    // Query pending items from active sessions, ordered by:
+  private async getNextBatchFairly(limit: number): Promise<string[]> {
+    // Query pending item IDs from active sessions, ordered by:
     // 1. User's last-served timestamp (fairness)
     // 2. Staging item creation time (FIFO within user)
+    // Returns only IDs - actual rows will be fetched atomically during claim
     const results = await db
       .select({
-        staging: importStagingBookmarks,
-        session: importSessions,
+        id: importStagingBookmarks.id,
       })
       .from(importStagingBookmarks)
       .innerJoin(
@@ -233,7 +236,7 @@ export class ImportWorker {
       .orderBy(importSessions.lastProcessedAt, importStagingBookmarks.createdAt)
       .limit(limit);
 
-    return results.map((r) => r.staging);
+    return results.map((r) => r.id);
   }
 
   private async attachBookmarkToLists(
