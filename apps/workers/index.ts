@@ -7,10 +7,10 @@ import {
   AssetPreprocessingQueue,
   BackupQueue,
   FeedQueue,
-  ImportLinkCrawlerQueue,
   initTracing,
   LinkCrawlerQueue,
   loadAllPlugins,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
   prepareQueue,
   RuleEngineQueue,
@@ -29,7 +29,7 @@ import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import {
   CrawlerWorker,
-  ImportCrawlerWorker,
+  LowPriorityCrawlerWorker,
 } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { ImportWorker } from "./workers/importWorker";
@@ -44,9 +44,9 @@ const workerBuilders = {
     await LinkCrawlerQueue.ensureInit();
     return CrawlerWorker.build();
   },
-  importCrawler: async () => {
-    await ImportLinkCrawlerQueue.ensureInit();
-    return ImportCrawlerWorker.build();
+  lowPriorityCrawler: async () => {
+    await LowPriorityCrawlerQueue.ensureInit();
+    return LowPriorityCrawlerWorker.build();
   },
   inference: async () => {
     await OpenAIQueue.ensureInit();
@@ -131,7 +131,7 @@ async function main() {
   let importWorker: ImportWorker | null = null;
   let importWorkerPromise: Promise<void> | null = null;
   if (isWorkerEnabled("import")) {
-    await ImportLinkCrawlerQueue.ensureInit();
+    await LowPriorityCrawlerQueue.ensureInit();
     importWorker = new ImportWorker();
     importWorkerPromise = importWorker.start();
   }

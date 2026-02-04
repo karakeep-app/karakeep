@@ -91,10 +91,10 @@ export const LinkCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
   },
 );
 
-// Separate queue for link crawling coming from imports
-// This prevents import crawling from impacting the parallelism of the main queue
-export const ImportLinkCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
-  "import_link_crawler_queue",
+// Separate queue for low priority link crawling (e.g. imports)
+// This prevents low priority crawling from impacting the parallelism of the main queue
+export const LowPriorityCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
+  "low_priority_crawler_queue",
   {
     defaultJobArgs: {
       numRetries: 5,

@@ -54,8 +54,8 @@ import {
 import {
   AssetPreprocessingQueue,
   getTracer,
-  ImportLinkCrawlerQueue,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
   QuotaService,
   triggerSearchReindex,
@@ -416,16 +416,16 @@ export class CrawlerWorker {
   }
 }
 
-export class ImportCrawlerWorker {
+export class LowPriorityCrawlerWorker {
   static async build() {
     await ensureCrawlerInitialized();
 
-    logger.info("Starting import crawler worker ...");
+    logger.info("Starting low priority crawler worker ...");
     const worker = (await getQueueClient()).createRunner<
       ZCrawlLinkRequest,
       CrawlerRunResult
     >(
-      ImportLinkCrawlerQueue,
+      LowPriorityCrawlerQueue,
       getCrawlerRunnerCallbacks(),
       getCrawlerRunnerOptions(),
     );

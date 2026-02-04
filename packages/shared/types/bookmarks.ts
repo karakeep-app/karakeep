@@ -166,8 +166,6 @@ export const zNewBookmarkRequestSchema = z
     crawlPriority: z.enum(["low", "normal"]).optional(),
     // Deprecated
     importSessionId: z.string().optional(),
-    // When true, enqueue crawling to the import crawler queue instead of the main one.
-    useImportCrawlerQueue: z.boolean().optional(),
     source: zBookmarkSourceSchema.optional(),
   })
   .and(
