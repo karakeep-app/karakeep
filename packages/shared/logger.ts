@@ -14,7 +14,7 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-export function thorttledLogger(periodMs: number) {
+export function throttledLogger(periodMs: number) {
   let lastLogTime = 0;
 
   return (level: string, message: string) => {

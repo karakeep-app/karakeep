@@ -20,7 +20,7 @@ import {
   importStagingBookmarks,
 } from "@karakeep/db/schema";
 import { LinkCrawlerQueue, OpenAIQueue } from "@karakeep/shared-server";
-import logger, { thorttledLogger } from "@karakeep/shared/logger";
+import logger, { throttledLogger } from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 // Prometheus metrics
@@ -57,7 +57,7 @@ const importBatchDurationHistogram = new Histogram({
   buckets: [0.1, 0.5, 1, 2, 5, 10, 30],
 });
 
-const backpressureLogger = thorttledLogger(60_000);
+const backpressureLogger = throttledLogger(60_000);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
