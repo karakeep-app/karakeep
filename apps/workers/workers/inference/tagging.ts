@@ -7,7 +7,7 @@ import type {
   InferenceClient,
   InferenceResponse,
 } from "@karakeep/shared/inference";
-import type { ZTagGranularity, ZTagStyle } from "@karakeep/shared/types/users";
+import type { ZTagStyle } from "@karakeep/shared/types/users";
 import { db } from "@karakeep/db";
 import {
   bookmarks,
@@ -83,7 +83,6 @@ async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
-  tagGranularity: ZTagGranularity,
   curatedTags?: string[],
 ): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
@@ -110,7 +109,6 @@ Description: ${bookmark.link.description ?? ""}
 Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
       tagStyle,
-      tagGranularity,
       curatedTags,
     );
   }
@@ -122,7 +120,6 @@ Content: ${content ?? ""}`,
       bookmark.text.text ?? "",
       serverConfig.inference.contextLength,
       tagStyle,
-      tagGranularity,
       curatedTags,
     );
   }
@@ -137,7 +134,6 @@ async function inferTagsFromImage(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
-  tagGranularity: ZTagGranularity,
   curatedTags?: string[],
 ): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
@@ -163,7 +159,6 @@ async function inferTagsFromImage(
       inferredTagLang,
       await fetchCustomPrompts(bookmark.userId, "images"),
       tagStyle,
-      tagGranularity,
       curatedTags,
     ),
     metadata.contentType,
@@ -236,7 +231,6 @@ async function inferTagsFromPDF(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
-  tagGranularity: ZTagGranularity,
   curatedTags?: string[],
 ) {
   const prompt = await buildTextPrompt(
@@ -245,7 +239,6 @@ async function inferTagsFromPDF(
     `Content: ${bookmark.asset.content}`,
     serverConfig.inference.contextLength,
     tagStyle,
-    tagGranularity,
     curatedTags,
   );
   return inferenceClient.inferFromText(prompt, {
@@ -260,14 +253,12 @@ async function inferTagsFromText(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
-  tagGranularity: ZTagGranularity,
   curatedTags?: string[],
 ) {
   const prompt = await buildPrompt(
     bookmark,
     tagStyle,
     inferredTagLang,
-    tagGranularity,
     curatedTags,
   );
   if (!prompt) {
@@ -286,7 +277,6 @@ async function inferTags(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
-  tagGranularity: ZTagGranularity,
   curatedTags?: string[],
 ) {
   let response: InferenceResponse | null;
@@ -297,7 +287,6 @@ async function inferTags(
       abortSignal,
       tagStyle,
       inferredTagLang,
-      tagGranularity,
       curatedTags,
     );
   } else if (bookmark.asset) {
@@ -310,7 +299,6 @@ async function inferTags(
           abortSignal,
           tagStyle,
           inferredTagLang,
-          tagGranularity,
           curatedTags,
         );
         break;
@@ -322,7 +310,6 @@ async function inferTags(
           abortSignal,
           tagStyle,
           inferredTagLang,
-          tagGranularity,
           curatedTags,
         );
         break;
@@ -500,7 +487,6 @@ export async function runTagging(
     columns: {
       autoTaggingEnabled: true,
       tagStyle: true,
-      tagGranularity: true,
       curatedTagIds: true,
       inferredTagLang: true,
     },
@@ -513,14 +499,9 @@ export async function runTagging(
     return;
   }
 
-  // Resolve curated tag names if using curated mode
+  // Resolve curated tag names if configured
   let curatedTagNames: string[] | undefined;
-  const tagGranularity = userSettings?.tagGranularity ?? "focused";
-  if (
-    tagGranularity === "curated" &&
-    userSettings?.curatedTagIds &&
-    userSettings.curatedTagIds.length > 0
-  ) {
+  if (userSettings?.curatedTagIds && userSettings.curatedTagIds.length > 0) {
     const tags = await db.query.bookmarkTags.findMany({
       where: and(
         eq(bookmarkTags.userId, bookmark.userId),
@@ -542,7 +523,6 @@ export async function runTagging(
     job.abortSignal,
     userSettings?.tagStyle ?? "as-generated",
     userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
-    tagGranularity,
     curatedTagNames,
   );
 

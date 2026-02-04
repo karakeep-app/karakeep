@@ -2874,14 +2874,6 @@
           "autoincrement": false,
           "default": "'titlecase-spaces'"
         },
-        "tagGranularity": {
-          "name": "tagGranularity",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": "'focused'"
-        },
         "curatedTagIds": {
           "name": "curatedTagIds",
           "type": "text",

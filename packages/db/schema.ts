@@ -94,9 +94,6 @@ export const users = sqliteTable("user", {
       "as-generated",
     ],
   }).default("titlecase-spaces"),
-  tagGranularity: text("tagGranularity", {
-    enum: ["comprehensive", "focused", "curated"],
-  }).default("focused"),
   curatedTagIds: text("curatedTagIds", { mode: "json" }).$type<string[]>(),
   inferredTagLang: text("inferredTagLang"),
 });

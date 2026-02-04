@@ -447,7 +447,6 @@ export class User {
         autoTaggingEnabled: true,
         autoSummarizationEnabled: true,
         tagStyle: true,
-        tagGranularity: true,
         curatedTagIds: true,
         inferredTagLang: true,
       },
@@ -473,7 +472,6 @@ export class User {
       autoTaggingEnabled: settings.autoTaggingEnabled,
       autoSummarizationEnabled: settings.autoSummarizationEnabled,
       tagStyle: settings.tagStyle ?? "as-generated",
-      tagGranularity: settings.tagGranularity ?? "focused",
       curatedTagIds: settings.curatedTagIds ?? null,
       inferredTagLang: settings.inferredTagLang,
     };
@@ -504,7 +502,6 @@ export class User {
         autoTaggingEnabled: input.autoTaggingEnabled,
         autoSummarizationEnabled: input.autoSummarizationEnabled,
         tagStyle: input.tagStyle,
-        tagGranularity: input.tagGranularity,
         curatedTagIds: input.curatedTagIds,
         inferredTagLang: input.inferredTagLang,
       })

@@ -343,45 +343,25 @@ export function TagStyleSelector() {
   );
 }
 
-export function TagGranularitySelector() {
+export function CuratedTagsSelector() {
   const api = useTRPC();
   const { t } = useTranslation();
   const settings = useUserSettings();
 
-  const { mutate: updateSettings, isPending: isUpdating } =
-    useUpdateUserSettings({
-      onSuccess: () => {
-        toast({
-          description: t("settings.ai.tag_granularity_updated"),
-        });
-      },
-      onError: () => {
-        toast({
-          description: t("settings.ai.tag_granularity_update_failed"),
-          variant: "destructive",
-        });
-      },
-    });
+  const { mutate: updateSettings } = useUpdateUserSettings({
+    onSuccess: () => {
+      toast({
+        description: t("settings.ai.curated_tags_updated"),
+      });
+    },
+    onError: () => {
+      toast({
+        description: t("settings.ai.curated_tags_update_failed"),
+        variant: "destructive",
+      });
+    },
+  });
 
-  const tagGranularityOptions = [
-    {
-      value: "comprehensive",
-      label: t("settings.ai.comprehensive"),
-      description: t("settings.ai.comprehensive_description"),
-    },
-    {
-      value: "focused",
-      label: t("settings.ai.focused"),
-      description: t("settings.ai.focused_description"),
-    },
-    {
-      value: "curated",
-      label: t("settings.ai.curated"),
-      description: t("settings.ai.curated_description"),
-    },
-  ] as const;
-
-  const selectedGranularity = settings?.tagGranularity ?? "focused";
   const curatedTagIds = settings?.curatedTagIds ?? [];
   const [localCuratedTagIds, setLocalCuratedTagIds] =
     React.useState<string[]>(curatedTagIds);
@@ -419,77 +399,32 @@ export function TagGranularitySelector() {
 
   return (
     <SettingsSection
-      title={t("settings.ai.tag_granularity")}
-      description={t("settings.ai.tag_granularity_description")}
+      title={t("settings.ai.curated_tags")}
+      description={t("settings.ai.curated_tags_description")}
     >
-      <div className="space-y-4">
-        <RadioGroup
-          value={selectedGranularity}
-          onValueChange={(value) => {
-            updateSettings({
-              tagGranularity: value as typeof selectedGranularity,
+      <TagsEditor
+        tags={selectedTags}
+        onAttach={(tag) => {
+          if (tag.tagId) {
+            setLocalCuratedTagIds((prev) => {
+              if (prev.includes(tag.tagId)) {
+                return prev;
+              }
+              const next = [...prev, tag.tagId];
+              handleCuratedTagsChange(next);
+              return next;
             });
-          }}
-          disabled={isUpdating}
-          className="grid gap-3"
-        >
-          {tagGranularityOptions.map((option) => (
-            <FieldLabel
-              key={option.value}
-              htmlFor={`granularity-${option.value}`}
-              className={cn(selectedGranularity === option.value && "ring-1")}
-            >
-              <Field orientation="horizontal">
-                <FieldContent>
-                  <FieldTitle>{option.label}</FieldTitle>
-                  <FieldDescription>{option.description}</FieldDescription>
-                </FieldContent>
-                <RadioGroupItem
-                  value={option.value}
-                  id={`granularity-${option.value}`}
-                />
-              </Field>
-            </FieldLabel>
-          ))}
-        </RadioGroup>
-
-        {selectedGranularity === "curated" && (
-          <div className="rounded-lg border p-4">
-            <p className="mb-3 text-sm font-medium">
-              {t("settings.ai.select_curated_tags")}
-            </p>
-            <TagsEditor
-              tags={selectedTags}
-              onAttach={(tag) => {
-                if (tag.tagId) {
-                  setLocalCuratedTagIds((prev) => {
-                    if (prev.includes(tag.tagId)) {
-                      return prev;
-                    }
-                    const next = [...prev, tag.tagId];
-                    handleCuratedTagsChange(next);
-                    return next;
-                  });
-                }
-              }}
-              onDetach={(tag) => {
-                setLocalCuratedTagIds((prev) => {
-                  const next = prev.filter((id) => id !== tag.tagId);
-                  handleCuratedTagsChange(next);
-                  return next;
-                });
-              }}
-              allowCreation={false}
-            />
-            {localCuratedTagIds.length === 0 && (
-              <div className="mt-3 flex items-start gap-2 rounded-md bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
-                <Info className="size-4 flex-shrink-0" />
-                <p>{t("settings.ai.no_curated_tags_warning")}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+          }
+        }}
+        onDetach={(tag) => {
+          setLocalCuratedTagIds((prev) => {
+            const next = prev.filter((id) => id !== tag.tagId);
+            handleCuratedTagsChange(next);
+            return next;
+          });
+        }}
+        allowCreation={false}
+      />
     </SettingsSection>
   );
 }
@@ -772,14 +707,13 @@ export function PromptDemo() {
   const clientConfig = useClientConfig();
 
   const tagStyle = settings?.tagStyle ?? "as-generated";
-  const tagGranularity = settings?.tagGranularity ?? "focused";
   const curatedTagIds = settings?.curatedTagIds ?? [];
   const inferredTagLang =
     settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
 
   // Resolve curated tag names for preview
   const curatedTagNames =
-    tagGranularity === "curated" && tagsData?.tags
+    curatedTagIds.length > 0 && tagsData?.tags
       ? tagsData.tags
           .filter((tag) => curatedTagIds.includes(tag.id))
           .map((tag) => tag.name)
@@ -805,7 +739,6 @@ export function PromptDemo() {
                 .map((p) => p.text),
               "\n<CONTENT_HERE>\n",
               tagStyle,
-              tagGranularity,
               curatedTagNames,
             ).trim()}
           </code>
@@ -824,7 +757,6 @@ export function PromptDemo() {
                 )
                 .map((p) => p.text),
               tagStyle,
-              tagGranularity,
               curatedTagNames,
             ).trim()}
           </code>
@@ -862,8 +794,8 @@ export default function AISettings() {
       {/* Tag Style */}
       <TagStyleSelector />
 
-      {/* Tag Granularity */}
-      <TagGranularitySelector />
+      {/* Curated Tags */}
+      <CuratedTagsSelector />
 
       {/* Tagging Rules */}
       <TaggingRules />
