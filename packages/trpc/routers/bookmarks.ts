@@ -280,7 +280,7 @@ export const bookmarksAppRouter = router({
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
           // Use a separate queue for imports to avoid impacting main queue parallelism
-          const crawlerQueue = input.importSessionId
+          const crawlerQueue = input.useImportCrawlerQueue
             ? ImportLinkCrawlerQueue
             : LinkCrawlerQueue;
           await crawlerQueue.enqueue(

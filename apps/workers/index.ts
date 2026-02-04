@@ -27,7 +27,10 @@ import { shutdownPromise } from "./exit";
 import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
-import { CrawlerWorker } from "./workers/crawlerWorker";
+import {
+  CrawlerWorker,
+  ImportCrawlerWorker,
+} from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { ImportWorker } from "./workers/importWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
@@ -39,8 +42,11 @@ import { WebhookWorker } from "./workers/webhookWorker";
 const workerBuilders = {
   crawler: async () => {
     await LinkCrawlerQueue.ensureInit();
-    await ImportLinkCrawlerQueue.ensureInit();
     return CrawlerWorker.build();
+  },
+  importCrawler: async () => {
+    await ImportLinkCrawlerQueue.ensureInit();
+    return ImportCrawlerWorker.build();
   },
   inference: async () => {
     await OpenAIQueue.ensureInit();
@@ -125,6 +131,7 @@ async function main() {
   let importWorker: ImportWorker | null = null;
   let importWorkerPromise: Promise<void> | null = null;
   if (isWorkerEnabled("import")) {
+    await ImportLinkCrawlerQueue.ensureInit();
     importWorker = new ImportWorker();
     importWorkerPromise = importWorker.start();
   }

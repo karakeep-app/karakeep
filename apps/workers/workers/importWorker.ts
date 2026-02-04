@@ -19,7 +19,7 @@ import {
   importSessions,
   importStagingBookmarks,
 } from "@karakeep/db/schema";
-import { LinkCrawlerQueue, OpenAIQueue } from "@karakeep/shared-server";
+import { ImportLinkCrawlerQueue, OpenAIQueue } from "@karakeep/shared-server";
 import logger, { throttledLogger } from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -334,6 +334,7 @@ export class ImportWorker {
         note: staged.note ?? undefined,
         createdAt: staged.sourceAddedAt ?? undefined,
         crawlPriority: "low" as const,
+        useImportCrawlerQueue: true,
       };
 
       let bookmarkRequest: CreateBookmarkInput;
@@ -593,7 +594,7 @@ export class ImportWorker {
             ),
           ),
         ),
-      LinkCrawlerQueue.stats(),
+      ImportLinkCrawlerQueue.stats(),
       OpenAIQueue.stats(),
     ]);
 
