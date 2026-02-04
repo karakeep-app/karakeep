@@ -27,7 +27,11 @@ import metascraperTitle from "metascraper-title";
 import metascraperUrl from "metascraper-url";
 import metascraperX from "metascraper-x";
 import metascraperYoutube from "metascraper-youtube";
-import { crawlerStatusCodeCounter, workerStatsCounter } from "metrics";
+import {
+  bookmarkCrawlLatencyHistogram,
+  crawlerStatusCodeCounter,
+  workerStatsCounter,
+} from "metrics";
 import {
   fetchWithProxy,
   getBookmarkDomain,
@@ -1709,6 +1713,8 @@ async function runCrawler(
   const {
     url,
     userId,
+    createdAt,
+    crawledAt,
     screenshotAssetId: oldScreenshotAssetId,
     pdfAssetId: oldPdfAssetId,
     imageAssetId: oldImageAssetId,
@@ -1812,5 +1818,13 @@ async function runCrawler(
     // Do the archival as a separate last step as it has the potential for failure
     await archivalLogic();
   }
+
+  // Record the latency from bookmark creation to crawl completion.
+  // Only for first-time, high-priority crawls (excludes recrawls and imports).
+  if (crawledAt === null && job.priority === 0) {
+    const latencySeconds = (Date.now() - createdAt.getTime()) / 1000;
+    bookmarkCrawlLatencyHistogram.observe(latencySeconds);
+  }
+
   return { status: "completed" };
 }
