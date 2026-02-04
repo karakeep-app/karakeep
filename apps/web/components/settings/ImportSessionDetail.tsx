@@ -188,14 +188,14 @@ function getTypeIcon(type: string) {
   }
 }
 
-function getTypeLabel(type: string) {
+function getTypeLabel(type: string, t: SimpleTFunction) {
   switch (type) {
     case "link":
-      return "Link";
+      return t("common.bookmark_types.link");
     case "text":
-      return "Text";
+      return t("common.bookmark_types.text");
     case "asset":
-      return "Asset";
+      return t("common.bookmark_types.media");
     default:
       return type;
   }
@@ -260,7 +260,7 @@ export default function ImportSessionDetail({
     if (loadMoreInView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [loadMoreInView]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, loadMoreInView]);
 
   if (isStatsLoading) {
     return <FullPageSpinner />;
@@ -548,7 +548,7 @@ export default function ImportSessionDetail({
                         className="flex w-fit items-center gap-1 text-xs"
                       >
                         {getTypeIcon(item.type)}
-                        {getTypeLabel(item.type)}
+                        {getTypeLabel(item.type, t)}
                       </Badge>
                     </TableCell>
                     <TableCell>
