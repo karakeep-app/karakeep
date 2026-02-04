@@ -1,7 +1,7 @@
 import { prometheus } from "@hono/prometheus";
 import { Counter, Registry } from "prom-client";
 
-const registry = new Registry();
+export const registry = new Registry();
 
 export const { printMetrics } = prometheus({
   registry: registry,
