@@ -54,6 +54,23 @@ type FilterType =
   | "skipped_duplicate"
   | "pending";
 
+type SimpleTFunction = (
+  key: string,
+  options?: Record<string, unknown>,
+) => string;
+
+interface ImportSessionResultItem {
+  id: string;
+  title: string | null;
+  url: string | null;
+  content: string | null;
+  type: string;
+  status: string;
+  result: string | null;
+  resultReason: string | null;
+  resultBookmarkId: string | null;
+}
+
 function getStatusColor(status: string) {
   switch (status) {
     case "staging":
@@ -218,7 +235,8 @@ export default function ImportSessionDetail({
 }: {
   sessionId: string;
 }) {
-  const { t } = useTranslation();
+  const { t: tRaw } = useTranslation();
+  const t = tRaw as SimpleTFunction;
   const router = useRouter();
   const [filter, setFilter] = useState<FilterType>("all");
 
@@ -252,7 +270,8 @@ export default function ImportSessionDetail({
     return null;
   }
 
-  const items = resultsData?.pages.flatMap((page) => page.items) ?? [];
+  const items: ImportSessionResultItem[] =
+    resultsData?.pages.flatMap((page) => page.items) ?? [];
 
   const progress =
     stats.totalBookmarks > 0
