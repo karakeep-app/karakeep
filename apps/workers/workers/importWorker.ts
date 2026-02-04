@@ -10,6 +10,7 @@ import {
   or,
 } from "drizzle-orm";
 import { Counter, Gauge, Histogram } from "prom-client";
+import { TRPCError } from "@trpc/server";
 import { buildImpersonatingTRPCClient } from "trpc";
 
 import { db } from "@karakeep/db";
@@ -61,6 +62,30 @@ const backpressureLogger = throttledLogger(60_000);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Extract a safe, user-facing error message from an error.
+ * Avoids leaking internal details like database errors, stack traces, or file paths.
+ */
+function getSafeErrorMessage(error: unknown): string {
+  // TRPCError client errors are designed to be user-facing
+  if (error instanceof TRPCError && error.code !== "INTERNAL_SERVER_ERROR") {
+    return error.message;
+  }
+
+  // Known safe validation errors thrown within the import worker
+  if (error instanceof Error) {
+    const safeMessages = [
+      "URL is required for link bookmarks",
+      "Content is required for text bookmarks",
+    ];
+    if (safeMessages.includes(error.message)) {
+      return error.message;
+    }
+  }
+
+  return "An unexpected error occurred while processing the bookmark";
 }
 
 export class ImportWorker {
@@ -424,7 +449,7 @@ export class ImportWorker {
         .set({
           status: "failed",
           result: "rejected",
-          resultReason: String(error),
+          resultReason: getSafeErrorMessage(error),
           completedAt: new Date(),
         })
         .where(eq(importStagingBookmarks.id, staged.id));
