@@ -2,6 +2,7 @@ import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import {
   and,
   asc,
+  count,
   desc,
   eq,
   gt,
@@ -84,6 +85,13 @@ async function fallbackTitleOnlySearch(
         whereConditions.push(eq(bookmarks.id, filter.value));
       }
     } else if (filter.type === "in" && filter.field === "id") {
+      if (!filter.values?.length) {
+        return {
+          hits: [],
+          totalHits: 0,
+          processingTimeMs: 0,
+        };
+      }
       whereConditions.push(inArray(bookmarks.id, filter.values));
     }
   }
@@ -116,8 +124,8 @@ async function fallbackTitleOnlySearch(
           ? [desc(bookmarks.createdAt)]
           : [desc(scoreExpr), desc(bookmarks.createdAt)];
 
-  const [{ count }] = await ctx.db
-    .select({ count: sql<number>`count(*)` })
+  const [{ count: totalHits }] = await ctx.db
+    .select({ count: count() })
     .from(bookmarks)
     .where(where);
 
@@ -135,7 +143,7 @@ async function fallbackTitleOnlySearch(
 
   return {
     hits: rows.map((r) => ({ id: r.id, score: r.score })),
-    totalHits: count ?? 0,
+    totalHits: totalHits ?? 0,
     processingTimeMs: 0,
   };
 }

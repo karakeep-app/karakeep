@@ -49,14 +49,31 @@ describe("Bookmark Search Fallback", () => {
   }) => {
     const api = apiCallers[0]!;
 
-    await createBookmark(api, "First");
-    await createBookmark(api, "Second");
+    await createBookmark(api, "First", "https://first.example");
+    await createBookmark(api, "Second", "https://second.example");
 
     const res = await api.bookmarks.searchBookmarks({
       text: "",
       limit: 10,
     });
 
-    expect(res.bookmarks.length).toBeGreaterThan(0);
+    expect(res.bookmarks.length).toBe(2);
+  });
+
+  test<CustomTestContext>("searchBookmarks with matcher that yields zero IDs returns empty results", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0]!;
+
+    await createBookmark(api, "First", "https://first.example");
+    await createBookmark(api, "Second", "https://second.example");
+
+    const res = await api.bookmarks.searchBookmarks({
+      text: "tag:does-not-exist",
+      limit: 10,
+    });
+
+    expect(res.bookmarks).toEqual([]);
+    expect(res.nextCursor).toBeNull();
   });
 });
