@@ -181,6 +181,9 @@ RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/init-db-migration \
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
 
+# make /run for group root writable (this is required to start containers with random uid in OpenShift / OKD 4)
+RUN chmod -R g+w /run
+
 ################# The web container ##############
 
 FROM aio_builder AS web
@@ -191,6 +194,9 @@ ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
 
+# make /run for group root writable (this is required to start containers with random uid in OpenShift / OKD 4)
+RUN chmod -R g+w /run
+
 ################# The workers container ##############
 
 FROM aio_builder AS workers
@@ -200,6 +206,9 @@ FROM aio_builder AS workers
 RUN rm /etc/s6-overlay/s6-rc.d/svc-workers/dependencies.d/init-db-migration \
     && touch /etc/s6-overlay/s6-rc.d/user/contents.d/svc-workers
 ENV USING_LEGACY_SEPARATE_CONTAINERS=true
+
+# make /run for group root writable (this is required to start containers with random uid in OpenShift / OKD 4)
+RUN chmod -R g+w /run
 
 ################# The cli ##############
 
@@ -214,6 +223,9 @@ WORKDIR /app/apps/cli
 ARG SERVER_VERSION=nightly
 ENV SERVER_VERSION=${SERVER_VERSION}
 
+# make /run for group root writable (this is required to start containers with random uid in OpenShift / OKD 4)
+RUN chmod -R g+w /run
+
 ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
@@ -225,5 +237,8 @@ WORKDIR /app
 COPY --from=base /app/apps/mcp/dist/index.js apps/mcp/index.js
 
 WORKDIR /app/apps/mcp
+
+# make /run for group root writable (this is required to start containers with random uid in OpenShift / OKD 4)
+RUN chmod -R g+w /run
 
 ENTRYPOINT ["node", "index.js"]
