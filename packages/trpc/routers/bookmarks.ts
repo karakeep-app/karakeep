@@ -7,7 +7,6 @@ import {
   eq,
   gt,
   inArray,
-  like,
   lt,
   or,
   sql,
@@ -77,6 +76,8 @@ async function fallbackTitleOnlySearch(
   const whereConditions = [];
   const trimmedQuery = opts.query.trim();
 
+  const escapeLikePattern = (input: string) => input.replace(/[\\%_]/g, "\\$&");
+
   for (const filter of opts.filter ?? []) {
     if (filter.type === "eq") {
       if (filter.field === "userId") {
@@ -97,7 +98,10 @@ async function fallbackTitleOnlySearch(
   }
 
   if (trimmedQuery.length > 0) {
-    whereConditions.push(like(bookmarks.title, `%${trimmedQuery}%`));
+    const escapedQuery = escapeLikePattern(trimmedQuery);
+    whereConditions.push(
+      sql`${bookmarks.title} LIKE ${`%${escapedQuery}%`} ESCAPE '\\'`,
+    );
   }
 
   const where = whereConditions.length ? and(...whereConditions) : undefined;
@@ -109,8 +113,8 @@ async function fallbackTitleOnlySearch(
         CASE
           WHEN ${bookmarks.title} IS NULL THEN 0
           WHEN lower(${bookmarks.title}) = lower(${trimmedQuery}) THEN 3
-          WHEN ${bookmarks.title} LIKE ${trimmedQuery + "%"} THEN 2
-          WHEN ${bookmarks.title} LIKE ${"%" + trimmedQuery + "%"} THEN 1
+          WHEN ${bookmarks.title} LIKE ${escapeLikePattern(trimmedQuery) + "%"} ESCAPE '\\' THEN 2
+          WHEN ${bookmarks.title} LIKE ${"%" + escapeLikePattern(trimmedQuery) + "%"} ESCAPE '\\' THEN 1
           ELSE 0
         END
       `;

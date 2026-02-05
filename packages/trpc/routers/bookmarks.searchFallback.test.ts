@@ -76,4 +76,30 @@ describe("Bookmark Search Fallback", () => {
     expect(res.bookmarks).toEqual([]);
     expect(res.nextCursor).toBeNull();
   });
+
+  test<CustomTestContext>("fallback search treats LIKE wildcards literally", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0]!;
+
+    const plain = await createBookmark(
+      api,
+      "Hello World",
+      "https://plain.example",
+    );
+    const percent = await createBookmark(
+      api,
+      "100% Coverage",
+      "https://percent.example",
+    );
+
+    const res = await api.bookmarks.searchBookmarks({
+      text: "%",
+      limit: 10,
+    });
+
+    const ids = res.bookmarks.map((b) => b.id);
+    expect(ids).toContain(percent.id);
+    expect(ids).not.toContain(plain.id);
+  });
 });
