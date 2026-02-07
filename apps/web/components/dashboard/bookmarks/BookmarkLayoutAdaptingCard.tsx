@@ -2,10 +2,11 @@
 
 import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
+import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import useBulkActionsStore from "@/lib/bulkActions";
 import {
   bookmarkLayoutSwitch,
@@ -323,10 +324,22 @@ function CompactView({ bookmark, title, footer, className }: Props) {
 export function BookmarkLayoutAdaptingCard(props: Props) {
   const layout = useBookmarkLayout();
 
-  return bookmarkLayoutSwitch(layout, {
-    masonry: <GridView layout={layout} {...props} />,
-    grid: <GridView layout={layout} {...props} />,
-    list: <ListView {...props} />,
-    compact: <CompactView {...props} />,
-  });
+  const handleDragStart = useCallback(
+    (e: React.DragEvent) => {
+      e.dataTransfer.setData(BOOKMARK_DRAG_MIME, props.bookmark.id);
+      e.dataTransfer.effectAllowed = "copy";
+    },
+    [props.bookmark.id],
+  );
+
+  return (
+    <div draggable onDragStart={handleDragStart} className="cursor-grab">
+      {bookmarkLayoutSwitch(layout, {
+        masonry: <GridView layout={layout} {...props} />,
+        grid: <GridView layout={layout} {...props} />,
+        list: <ListView {...props} />,
+        compact: <CompactView {...props} />,
+      })}
+    </div>
+  );
 }

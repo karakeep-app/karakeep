@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SidebarItem from "@/components/shared/sidebar/SidebarItem";
@@ -10,6 +10,8 @@ import {
   CollapsibleContent,
   CollapsibleTriggerTriangle,
 } from "@/components/ui/collapsible";
+import { toast } from "@/components/ui/sonner";
+import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { MoreHorizontal, Plus } from "lucide-react";
@@ -17,6 +19,7 @@ import { MoreHorizontal, Plus } from "lucide-react";
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
   augmentBookmarkListsWithInitialData,
+  useAddBookmarkToList,
   useBookmarkLists,
 } from "@karakeep/shared-react/hooks/lists";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
@@ -25,6 +28,146 @@ import { CollapsibleBookmarkLists } from "../lists/CollapsibleBookmarkLists";
 import { EditListModal } from "../lists/EditListModal";
 import { ListOptions } from "../lists/ListOptions";
 import { InvitationNotificationBadge } from "./InvitationNotificationBadge";
+
+function useDropTarget(listId: string, listName: string) {
+  const { mutateAsync: addToList } = useAddBookmarkToList();
+  const [dropHighlight, setDropHighlight] = useState(false);
+  const dragCounterRef = useRef(0);
+  const { t } = useTranslation();
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME)) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
+  }, []);
+
+  const onDragEnter = useCallback((e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME)) {
+      e.preventDefault();
+      dragCounterRef.current++;
+      setDropHighlight(true);
+    }
+  }, []);
+
+  const onDragLeave = useCallback(() => {
+    dragCounterRef.current--;
+    if (dragCounterRef.current <= 0) {
+      dragCounterRef.current = 0;
+      setDropHighlight(false);
+    }
+  }, []);
+
+  const onDrop = useCallback(
+    async (e: React.DragEvent) => {
+      dragCounterRef.current = 0;
+      setDropHighlight(false);
+      const bookmarkId = e.dataTransfer.getData(BOOKMARK_DRAG_MIME);
+      if (!bookmarkId) return;
+      e.preventDefault();
+      try {
+        await addToList({ bookmarkId, listId });
+        toast({
+          description: t("lists.add_to_list_success", {
+            list: listName,
+            defaultValue: `Added to "${listName}"`,
+          }),
+        });
+      } catch {
+        toast({
+          description: t("common.something_went_wrong", {
+            defaultValue: "Something went wrong",
+          }),
+          variant: "destructive",
+        });
+      }
+    },
+    [addToList, listId, listName, t],
+  );
+
+  return { dropHighlight, onDragOver, onDragEnter, onDragLeave, onDrop };
+}
+
+function DroppableListSidebarItem({
+  node,
+  level,
+  open,
+  numBookmarks,
+  selectedListId,
+  setSelectedListId,
+}: {
+  node: ZBookmarkListTreeNode;
+  level: number;
+  open: boolean;
+  numBookmarks?: number;
+  selectedListId: string | null;
+  setSelectedListId: (id: string | null) => void;
+}) {
+  const canDrop =
+    node.item.type === "manual" &&
+    (node.item.userRole === "owner" || node.item.userRole === "editor");
+  const { dropHighlight, onDragOver, onDragEnter, onDragLeave, onDrop } =
+    useDropTarget(node.item.id, node.item.name);
+
+  return (
+    <SidebarItem
+      collapseButton={
+        node.children.length > 0 && (
+          <CollapsibleTriggerTriangle
+            className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
+            open={open}
+          />
+        )
+      }
+      logo={
+        <span className="flex">
+          <span className="text-lg"> {node.item.icon}</span>
+        </span>
+      }
+      name={node.item.name}
+      path={`/dashboard/lists/${node.item.id}`}
+      className="group px-0.5"
+      right={
+        <ListOptions
+          onOpenChange={(isOpen) => {
+            if (isOpen) {
+              setSelectedListId(node.item.id);
+            } else {
+              setSelectedListId(null);
+            }
+          }}
+          list={node.item}
+        >
+          <Button size="none" variant="ghost" className="relative">
+            <MoreHorizontal
+              className={cn(
+                "absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100",
+                selectedListId == node.item.id ? "opacity-100" : "opacity-0",
+              )}
+            />
+            <span
+              className={cn(
+                "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
+                selectedListId == node.item.id || numBookmarks === undefined
+                  ? "opacity-0"
+                  : "opacity-100",
+              )}
+            >
+              {numBookmarks}
+            </span>
+          </Button>
+        </ListOptions>
+      }
+      linkClassName="py-0.5"
+      style={{ marginLeft: `${level * 1}rem` }}
+      dropHighlight={canDrop && dropHighlight}
+      onDragOver={canDrop ? onDragOver : undefined}
+      onDragEnter={canDrop ? onDragEnter : undefined}
+      onDragLeave={canDrop ? onDragLeave : undefined}
+      onDrop={canDrop ? onDrop : undefined}
+    />
+  );
+}
 
 export default function AllLists({
   initialData,
@@ -107,59 +250,13 @@ export default function AllLists({
         filter={(node) => node.item.userRole === "owner"}
         isOpenFunc={isNodeOpen}
         render={({ node, level, open, numBookmarks }) => (
-          <SidebarItem
-            collapseButton={
-              node.children.length > 0 && (
-                <CollapsibleTriggerTriangle
-                  className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
-                  open={open}
-                />
-              )
-            }
-            logo={
-              <span className="flex">
-                <span className="text-lg"> {node.item.icon}</span>
-              </span>
-            }
-            name={node.item.name}
-            path={`/dashboard/lists/${node.item.id}`}
-            className="group px-0.5"
-            right={
-              <ListOptions
-                onOpenChange={(isOpen) => {
-                  if (isOpen) {
-                    setSelectedListId(node.item.id);
-                  } else {
-                    setSelectedListId(null);
-                  }
-                }}
-                list={node.item}
-              >
-                <Button size="none" variant="ghost" className="relative">
-                  <MoreHorizontal
-                    className={cn(
-                      "absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100",
-                      selectedListId == node.item.id
-                        ? "opacity-100"
-                        : "opacity-0",
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
-                      selectedListId == node.item.id ||
-                        numBookmarks === undefined
-                        ? "opacity-0"
-                        : "opacity-100",
-                    )}
-                  >
-                    {numBookmarks}
-                  </span>
-                </Button>
-              </ListOptions>
-            }
-            linkClassName="py-0.5"
-            style={{ marginLeft: `${level * 1}rem` }}
+          <DroppableListSidebarItem
+            node={node}
+            level={level}
+            open={open}
+            numBookmarks={numBookmarks}
+            selectedListId={selectedListId}
+            setSelectedListId={setSelectedListId}
           />
         )}
       />
@@ -187,59 +284,13 @@ export default function AllLists({
               isOpenFunc={isNodeOpen}
               indentOffset={1}
               render={({ node, level, open, numBookmarks }) => (
-                <SidebarItem
-                  collapseButton={
-                    node.children.length > 0 && (
-                      <CollapsibleTriggerTriangle
-                        className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
-                        open={open}
-                      />
-                    )
-                  }
-                  logo={
-                    <span className="flex">
-                      <span className="text-lg"> {node.item.icon}</span>
-                    </span>
-                  }
-                  name={node.item.name}
-                  path={`/dashboard/lists/${node.item.id}`}
-                  className="group px-0.5"
-                  right={
-                    <ListOptions
-                      onOpenChange={(isOpen) => {
-                        if (isOpen) {
-                          setSelectedListId(node.item.id);
-                        } else {
-                          setSelectedListId(null);
-                        }
-                      }}
-                      list={node.item}
-                    >
-                      <Button size="none" variant="ghost" className="relative">
-                        <MoreHorizontal
-                          className={cn(
-                            "absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100",
-                            selectedListId == node.item.id
-                              ? "opacity-100"
-                              : "opacity-0",
-                          )}
-                        />
-                        <span
-                          className={cn(
-                            "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
-                            selectedListId == node.item.id ||
-                              numBookmarks === undefined
-                              ? "opacity-0"
-                              : "opacity-100",
-                          )}
-                        >
-                          {numBookmarks}
-                        </span>
-                      </Button>
-                    </ListOptions>
-                  }
-                  linkClassName="py-0.5"
-                  style={{ marginLeft: `${level * 1}rem` }}
+                <DroppableListSidebarItem
+                  node={node}
+                  level={level}
+                  open={open}
+                  numBookmarks={numBookmarks}
+                  selectedListId={selectedListId}
+                  setSelectedListId={setSelectedListId}
                 />
               )}
             />
