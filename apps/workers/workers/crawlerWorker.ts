@@ -54,8 +54,6 @@ import {
 import {
   AssetPreprocessingQueue,
   getTracer,
-  LinkCrawlerQueue,
-  LowPriorityCrawlerQueue,
   OpenAIQueue,
   QuotaService,
   triggerSearchReindex,
@@ -82,6 +80,7 @@ import {
   DequeuedJobError,
   EnqueueOptions,
   getQueueClient,
+  Queue,
   QueueRetryAfterError,
 } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
@@ -297,137 +296,115 @@ async function launchBrowser() {
   });
 }
 
-let crawlerInitialized = false;
-
-async function ensureCrawlerInitialized() {
-  if (crawlerInitialized) return;
-  crawlerInitialized = true;
-
-  chromium.use(StealthPlugin());
-  if (serverConfig.crawler.enableAdblocker) {
-    logger.info("[crawler] Loading adblocker ...");
-    const globalBlockerResult = await tryCatch(
-      PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
-        path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
-        read: fs.readFile,
-        write: fs.writeFile,
-      }),
-    );
-    if (globalBlockerResult.error) {
-      logger.error(
-        `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
-      );
-    } else {
-      globalBlocker = globalBlockerResult.data;
-    }
-  }
-  if (!serverConfig.crawler.browserConnectOnDemand) {
-    await launchBrowser();
-  } else {
-    logger.info(
-      "[Crawler] Browser connect on demand is enabled, won't proactively start the browser instance",
-    );
-  }
-  await loadCookiesFromFile();
-}
-
-function getCrawlerRunnerCallbacks() {
-  return {
-    run: withWorkerTracing("crawlerWorker.run", runCrawler),
-    onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
-      workerStatsCounter.labels("crawler", "completed").inc();
-      const jobId = job.id;
-      logger.info(`[Crawler][${jobId}] Completed successfully`);
-      const bookmarkId = job.data.bookmarkId;
-      if (bookmarkId) {
-        await db
-          .update(bookmarkLinks)
-          .set({
-            crawlStatus: "success",
-          })
-          .where(eq(bookmarkLinks.id, bookmarkId));
-      }
-    },
-    onError: async (job: DequeuedJobError<ZCrawlLinkRequest>) => {
-      workerStatsCounter.labels("crawler", "failed").inc();
-      if (job.numRetriesLeft == 0) {
-        workerStatsCounter.labels("crawler", "failed_permanent").inc();
-      }
-      const jobId = job.id;
-      logger.error(
-        `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
-      );
-      const bookmarkId = job.data?.bookmarkId;
-      if (bookmarkId && job.numRetriesLeft == 0) {
-        await db.transaction(async (tx) => {
-          await tx
-            .update(bookmarkLinks)
-            .set({
-              crawlStatus: "failure",
-            })
-            .where(eq(bookmarkLinks.id, bookmarkId));
-          await tx
-            .update(bookmarks)
-            .set({
-              taggingStatus: null,
-            })
-            .where(
-              and(
-                eq(bookmarks.id, bookmarkId),
-                eq(bookmarks.taggingStatus, "pending"),
-              ),
-            );
-          await tx
-            .update(bookmarks)
-            .set({
-              summarizationStatus: null,
-            })
-            .where(
-              and(
-                eq(bookmarks.id, bookmarkId),
-                eq(bookmarks.summarizationStatus, "pending"),
-              ),
-            );
-        });
-      }
-    },
-  };
-}
-
-function getCrawlerRunnerOptions() {
-  return {
-    pollIntervalMs: 1000,
-    timeoutSecs: serverConfig.crawler.jobTimeoutSec,
-    concurrency: serverConfig.crawler.numWorkers,
-  };
-}
-
 export class CrawlerWorker {
-  static async build() {
-    await ensureCrawlerInitialized();
+  private static initialized = false;
+
+  private static async ensureInitialized() {
+    if (CrawlerWorker.initialized) return;
+    CrawlerWorker.initialized = true;
+
+    chromium.use(StealthPlugin());
+    if (serverConfig.crawler.enableAdblocker) {
+      logger.info("[crawler] Loading adblocker ...");
+      const globalBlockerResult = await tryCatch(
+        PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
+          path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
+          read: fs.readFile,
+          write: fs.writeFile,
+        }),
+      );
+      if (globalBlockerResult.error) {
+        logger.error(
+          `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
+        );
+      } else {
+        globalBlocker = globalBlockerResult.data;
+      }
+    }
+    if (!serverConfig.crawler.browserConnectOnDemand) {
+      await launchBrowser();
+    } else {
+      logger.info(
+        "[Crawler] Browser connect on demand is enabled, won't proactively start the browser instance",
+      );
+    }
+    await loadCookiesFromFile();
+  }
+
+  static async build(queue: Queue<ZCrawlLinkRequest>) {
+    await CrawlerWorker.ensureInitialized();
 
     logger.info("Starting crawler worker ...");
     const worker = (await getQueueClient()).createRunner<
       ZCrawlLinkRequest,
       CrawlerRunResult
-    >(LinkCrawlerQueue, getCrawlerRunnerCallbacks(), getCrawlerRunnerOptions());
-
-    return worker;
-  }
-}
-
-export class LowPriorityCrawlerWorker {
-  static async build() {
-    await ensureCrawlerInitialized();
-
-    logger.info("Starting low priority crawler worker ...");
-    const worker = (await getQueueClient()).createRunner<
-      ZCrawlLinkRequest,
-      CrawlerRunResult
     >(
-      LowPriorityCrawlerQueue,
-      getCrawlerRunnerCallbacks(),
-      getCrawlerRunnerOptions(),
+      queue,
+      {
+        run: withWorkerTracing("crawlerWorker.run", runCrawler),
+        onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
+          workerStatsCounter.labels("crawler", "completed").inc();
+          const jobId = job.id;
+          logger.info(`[Crawler][${jobId}] Completed successfully`);
+          const bookmarkId = job.data.bookmarkId;
+          if (bookmarkId) {
+            await db
+              .update(bookmarkLinks)
+              .set({
+                crawlStatus: "success",
+              })
+              .where(eq(bookmarkLinks.id, bookmarkId));
+          }
+        },
+        onError: async (job: DequeuedJobError<ZCrawlLinkRequest>) => {
+          workerStatsCounter.labels("crawler", "failed").inc();
+          if (job.numRetriesLeft == 0) {
+            workerStatsCounter.labels("crawler", "failed_permanent").inc();
+          }
+          const jobId = job.id;
+          logger.error(
+            `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
+          );
+          const bookmarkId = job.data?.bookmarkId;
+          if (bookmarkId && job.numRetriesLeft == 0) {
+            await db.transaction(async (tx) => {
+              await tx
+                .update(bookmarkLinks)
+                .set({
+                  crawlStatus: "failure",
+                })
+                .where(eq(bookmarkLinks.id, bookmarkId));
+              await tx
+                .update(bookmarks)
+                .set({
+                  taggingStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.taggingStatus, "pending"),
+                  ),
+                );
+              await tx
+                .update(bookmarks)
+                .set({
+                  summarizationStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.summarizationStatus, "pending"),
+                  ),
+                );
+            });
+          }
+        },
+      },
+      {
+        pollIntervalMs: 1000,
+        timeoutSecs: serverConfig.crawler.jobTimeoutSec,
+        concurrency: serverConfig.crawler.numWorkers,
+      },
     );
 
     return worker;

@@ -27,10 +27,7 @@ import { shutdownPromise } from "./exit";
 import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
-import {
-  CrawlerWorker,
-  LowPriorityCrawlerWorker,
-} from "./workers/crawlerWorker";
+import { CrawlerWorker } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { ImportWorker } from "./workers/importWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
@@ -42,11 +39,11 @@ import { WebhookWorker } from "./workers/webhookWorker";
 const workerBuilders = {
   crawler: async () => {
     await LinkCrawlerQueue.ensureInit();
-    return CrawlerWorker.build();
+    return CrawlerWorker.build(LinkCrawlerQueue);
   },
   lowPriorityCrawler: async () => {
     await LowPriorityCrawlerQueue.ensureInit();
-    return LowPriorityCrawlerWorker.build();
+    return CrawlerWorker.build(LowPriorityCrawlerQueue);
   },
   inference: async () => {
     await OpenAIQueue.ensureInit();
