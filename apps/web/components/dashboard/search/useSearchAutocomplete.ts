@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  Globe,
   History,
   ListTree,
   RssIcon,
@@ -15,6 +16,7 @@ import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 
@@ -98,10 +100,14 @@ const QUALIFIER_DEFINITIONS = [
     value: "age:",
     descriptionKey: "search.created_within",
   },
+  {
+    value: "source:",
+    descriptionKey: "search.is_from_source",
+  },
 ] satisfies ReadonlyArray<QualifierDefinition>;
 
 export interface AutocompleteSuggestionItem {
-  type: "token" | "tag" | "list" | "feed";
+  type: "token" | "tag" | "list" | "feed" | "source";
   id: string;
   label: string;
   insertText: string;
@@ -398,6 +404,46 @@ const useListSuggestions = (
   return listSuggestions;
 };
 
+const SOURCE_VALUES = zBookmarkSourceSchema.options;
+
+const useSourceSuggestions = (
+  parsed: ParsedSearchState,
+): AutocompleteSuggestionItem[] => {
+  const shouldSuggestSources =
+    parsed.normalizedTokenWithoutMinus.startsWith("source:");
+  const sourceSearchTerm = shouldSuggestSources
+    ? parsed.normalizedTokenWithoutMinus.slice("source:".length)
+    : "";
+
+  const sourceSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
+    if (!shouldSuggestSources) {
+      return [];
+    }
+
+    return SOURCE_VALUES.filter((source) => {
+      if (sourceSearchTerm.length === 0) {
+        return true;
+      }
+      return source.startsWith(sourceSearchTerm);
+    })
+      .slice(0, MAX_DISPLAY_SUGGESTIONS)
+      .map((source) => {
+        const insertText = `${parsed.isTokenNegative ? "-" : ""}source:${source}`;
+        return {
+          type: "source" as const,
+          id: `source-${source}`,
+          label: insertText,
+          insertText,
+          appendSpace: true,
+          description: undefined,
+          Icon: Globe,
+        } satisfies AutocompleteSuggestionItem;
+      });
+  }, [shouldSuggestSources, sourceSearchTerm, parsed.isTokenNegative]);
+
+  return sourceSuggestions;
+};
+
 const useHistorySuggestions = (
   value: string,
   history: string[],
@@ -440,6 +486,7 @@ export const useSearchAutocomplete = ({
   const tagSuggestions = useTagSuggestions(parsedState);
   const listSuggestions = useListSuggestions(parsedState);
   const feedSuggestions = useFeedSuggestions(parsedState);
+  const sourceSuggestions = useSourceSuggestions(parsedState);
   const historyItems = useHistorySuggestions(value, history);
   const { activeToken, getActiveToken } = parsedState;
 
@@ -470,6 +517,14 @@ export const useSearchAutocomplete = ({
       });
     }
 
+    if (sourceSuggestions.length > 0) {
+      groups.push({
+        id: "sources",
+        label: t("search.is_from_source"),
+        items: sourceSuggestions,
+      });
+    }
+
     // Only suggest qualifiers if no other suggestions are available
     if (groups.length === 0 && qualifierSuggestions.length > 0) {
       groups.push({
@@ -493,6 +548,7 @@ export const useSearchAutocomplete = ({
     tagSuggestions,
     listSuggestions,
     feedSuggestions,
+    sourceSuggestions,
     historyItems,
     t,
   ]);
