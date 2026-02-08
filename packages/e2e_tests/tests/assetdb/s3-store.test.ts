@@ -1,7 +1,7 @@
 import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { S3AssetStore } from "@karakeep/shared/assetdb";
+import { S3AssetStore } from "@karakeep/shared-server/assetdb";
 
 import {
   assertAssetExists,

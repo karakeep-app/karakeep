@@ -27,7 +27,7 @@ import {
   triggerSearchReindex,
   triggerWebhook,
 } from "@karakeep/shared-server";
-import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
+import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";

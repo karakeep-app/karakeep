@@ -10,7 +10,7 @@ import {
   deleteAsset,
   newAssetId,
   saveAsset,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";

@@ -18,6 +18,7 @@
     "@aws-sdk/client-s3": "^3.842.0",
     "@karakeep/sdk": "workspace:*",
     "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/shared-server": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
     "@trpc/client": "^11.9.0",
     "superjson": "^2.2.1",

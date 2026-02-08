@@ -23,7 +23,7 @@ import {
   triggerSearchReindex,
   triggerWebhook,
 } from "@karakeep/shared-server";
-import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
+import { ASSET_TYPES, readAsset } from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { buildImagePrompt } from "@karakeep/shared/prompts";

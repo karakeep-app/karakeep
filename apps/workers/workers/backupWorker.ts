@@ -14,7 +14,7 @@ import type { ZBackupRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { assets, AssetTypes, users } from "@karakeep/db/schema";
 import { BackupQueue, QuotaService } from "@karakeep/shared-server";
-import { saveAssetFromFile } from "@karakeep/shared/assetdb";
+import { saveAssetFromFile } from "@karakeep/shared-server/assetdb";
 import { toExportFormat } from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";

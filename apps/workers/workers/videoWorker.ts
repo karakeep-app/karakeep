@@ -20,7 +20,7 @@ import {
   newAssetId,
   saveAssetFromFile,
   silentDeleteAsset,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";

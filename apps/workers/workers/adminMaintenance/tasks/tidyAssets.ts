@@ -7,7 +7,7 @@ import {
   ZTidyAssetsRequest,
   zTidyAssetsRequestSchema,
 } from "@karakeep/shared-server";
-import { deleteAsset, getAllAssets } from "@karakeep/shared/assetdb";
+import { deleteAsset, getAllAssets } from "@karakeep/shared-server/assetdb";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob } from "@karakeep/shared/queueing";
 
