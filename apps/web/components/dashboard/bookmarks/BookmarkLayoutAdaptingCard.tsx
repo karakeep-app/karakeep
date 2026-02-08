@@ -171,6 +171,7 @@ function DragHandle({
   bookmark: ZBookmark;
   className?: string;
 }) {
+  const { isBulkEditEnabled } = useBulkActionsStore();
   const handleDragStart = useCallback(
     (e: React.DragEvent) => {
       e.stopPropagation();
@@ -205,6 +206,8 @@ function DragHandle({
     },
     [bookmark],
   );
+
+  if (isBulkEditEnabled) return null;
 
   return (
     <div
