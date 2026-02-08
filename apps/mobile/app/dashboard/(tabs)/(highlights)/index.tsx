@@ -1,9 +1,6 @@
-import { View } from "react-native";
 import FullPageError from "@/components/FullPageError";
 import HighlightList from "@/components/highlights/HighlightList";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import PageTitle from "@/components/ui/PageTitle";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -42,19 +39,12 @@ export default function Highlights() {
   };
 
   return (
-    <CustomSafeAreaView edges={["top"]}>
-      <HighlightList
-        highlights={data.pages.flatMap((p) => p.highlights)}
-        header={
-          <View className="flex flex-row justify-between">
-            <PageTitle title="Highlights" />
-          </View>
-        }
-        onRefresh={onRefresh}
-        fetchNextPage={fetchNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        isRefreshing={isPending || isPlaceholderData}
-      />
-    </CustomSafeAreaView>
+    <HighlightList
+      highlights={data.pages.flatMap((p) => p.highlights)}
+      onRefresh={onRefresh}
+      fetchNextPage={fetchNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      isRefreshing={isPending || isPlaceholderData}
+    />
   );
 }
