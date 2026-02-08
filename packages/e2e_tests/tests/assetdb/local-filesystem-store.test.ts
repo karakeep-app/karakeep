@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { LocalFileSystemAssetStore } from "@karakeep/shared/assetdb";
+import { LocalFileSystemAssetStore } from "@karakeep/shared-server/assetdb";
 
 import {
   assertAssetNotExists,

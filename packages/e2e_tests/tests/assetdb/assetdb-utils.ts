@@ -15,7 +15,7 @@ import {
   AssetStore,
   LocalFileSystemAssetStore,
   S3AssetStore,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server/assetdb";
 
 export interface TestAssetData {
   userId: string;

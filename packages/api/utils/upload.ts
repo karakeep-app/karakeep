@@ -11,7 +11,7 @@ import {
   newAssetId,
   saveAssetFromFile,
   SUPPORTED_UPLOAD_ASSET_TYPES,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
 

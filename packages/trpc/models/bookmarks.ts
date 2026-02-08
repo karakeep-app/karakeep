@@ -30,7 +30,7 @@ import {
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
 import { SearchIndexingQueue, triggerWebhook } from "@karakeep/shared-server";
-import { deleteAsset, readAsset } from "@karakeep/shared/assetdb";
+import { deleteAsset, readAsset } from "@karakeep/shared-server/assetdb";
 import { getAlignedExpiry } from "@karakeep/shared/signedTokens";
 import {
   BookmarkTypes,

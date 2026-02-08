@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets } from "@karakeep/db/schema";
-import { deleteAsset } from "@karakeep/shared/assetdb";
+import { deleteAsset } from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { createSignedToken } from "@karakeep/shared/signedTokens";
 import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";

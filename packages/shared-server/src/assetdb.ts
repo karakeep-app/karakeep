@@ -14,9 +14,13 @@ import {
 import { Glob } from "glob";
 import { z } from "zod";
 
-import serverConfig from "./config";
-import logger from "./logger";
-import { QuotaApproved } from "./storageQuota";
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+import { QuotaApproved } from "@karakeep/shared/storageQuota";
+
+import { getTracer, withSpan } from "./tracing";
+
+const tracer = getTracer("@karakeep/shared-server/assetdb");
 
 const ROOT_PATH = serverConfig.assetsDir;
 
@@ -605,7 +609,7 @@ export { LocalFileSystemAssetStore, S3AssetStore };
  * Example usage of S3AssetStore:
  *
  * import { S3Client } from "@aws-sdk/client-s3";
- * import { S3AssetStore } from "@karakeep/shared/assetdb";
+ * import { S3AssetStore } from "@karakeep/shared-server/assetdb";
  *
  * const s3Client = new S3Client({
  *   region: "us-east-1",
@@ -639,15 +643,28 @@ export async function saveAsset({
   metadata: z.infer<typeof zAssetMetadataSchema>;
   quotaApproved: QuotaApproved;
 }) {
-  // Verify the quota approval is for the correct user and size
-  if (quotaApproved.userId !== userId) {
-    throw new Error("Quota approval is for a different user");
-  }
-  if (quotaApproved.approvedSize < asset.byteLength) {
-    throw new Error("Asset size exceeds approved quota");
-  }
+  return withSpan(
+    tracer,
+    "assetdb.saveAsset",
+    {
+      attributes: {
+        "user.id": userId,
+        "asset.id": assetId,
+        "asset.size": asset.byteLength,
+      },
+    },
+    async () => {
+      // Verify the quota approval is for the correct user and size
+      if (quotaApproved.userId !== userId) {
+        throw new Error("Quota approval is for a different user");
+      }
+      if (quotaApproved.approvedSize < asset.byteLength) {
+        throw new Error("Asset size exceeds approved quota");
+      }
 
-  return defaultAssetStore.saveAsset({ userId, assetId, asset, metadata });
+      return defaultAssetStore.saveAsset({ userId, assetId, asset, metadata });
+    },
+  );
 }
 
 export async function saveAssetFromFile({
@@ -663,20 +680,32 @@ export async function saveAssetFromFile({
   metadata: z.infer<typeof zAssetMetadataSchema>;
   quotaApproved: QuotaApproved;
 }) {
-  // Verify the quota approval is for the correct user
-  if (quotaApproved.userId !== userId) {
-    throw new Error("Quota approval is for a different user");
-  }
+  return withSpan(
+    tracer,
+    "assetdb.saveAssetFromFile",
+    {
+      attributes: {
+        "user.id": userId,
+        "asset.id": assetId,
+      },
+    },
+    async () => {
+      // Verify the quota approval is for the correct user
+      if (quotaApproved.userId !== userId) {
+        throw new Error("Quota approval is for a different user");
+      }
 
-  // For file-based saves, we'll verify the file size matches the approved size
-  // when the underlying store implementation reads the file
+      // For file-based saves, we'll verify the file size matches the approved size
+      // when the underlying store implementation reads the file
 
-  return defaultAssetStore.saveAssetFromFile({
-    userId,
-    assetId,
-    assetPath,
-    metadata,
-  });
+      return defaultAssetStore.saveAssetFromFile({
+        userId,
+        assetId,
+        assetPath,
+        metadata,
+      });
+    },
+  );
 }
 
 export async function readAsset({

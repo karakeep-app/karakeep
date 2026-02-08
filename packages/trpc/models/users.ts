@@ -18,7 +18,7 @@ import {
   users,
   verificationTokens,
 } from "@karakeep/db/schema";
-import { deleteAsset, deleteUserAssets } from "@karakeep/shared/assetdb";
+import { deleteAsset, deleteUserAssets } from "@karakeep/shared-server/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
   zResetPasswordSchema,

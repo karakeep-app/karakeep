@@ -5,7 +5,7 @@ import {
   createAssetReadStream,
   getAssetSize,
   readAssetMetadata,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server/assetdb";
 
 import { toWebReadableStream } from "./upload";
 
