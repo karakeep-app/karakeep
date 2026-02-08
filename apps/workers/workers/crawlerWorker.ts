@@ -1472,7 +1472,6 @@ async function crawlAndParseUrl(
           // Don't store data URIs as they're not valid URLs and are usually quite large
           imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
           favicon: meta.logo,
-          crawledAt: new Date(),
           crawlStatusCode: statusCode,
           author: meta.author,
           publisher: meta.publisher,
@@ -1547,6 +1546,7 @@ async function crawlAndParseUrl(
         await txn
           .update(bookmarkLinks)
           .set({
+            crawledAt: new Date(),
             htmlContent: inlineHtmlContent,
             contentAssetId:
               htmlContentAssetInfo.result === "stored"
