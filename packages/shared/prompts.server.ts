@@ -49,6 +49,7 @@ export async function buildTextPrompt(
   content: string,
   contextLength: number,
   tagStyle: ZTagStyle,
+  curatedTags?: string[],
 ): Promise<string> {
   content = preprocessContent(content);
   const promptTemplate = constructTextTaggingPrompt(
@@ -56,6 +57,7 @@ export async function buildTextPrompt(
     customPrompts,
     "",
     tagStyle,
+    curatedTags,
   );
   const promptSize = await calculateNumTokens(promptTemplate);
   const truncatedContent = await truncateContent(
@@ -67,6 +69,7 @@ export async function buildTextPrompt(
     customPrompts,
     truncatedContent,
     tagStyle,
+    curatedTags,
   );
 }
 

@@ -1,5 +1,5 @@
 import type { ZTagStyle } from "./types/users";
-import { getTagStylePrompt } from "./utils/tag";
+import { getCuratedTagsPrompt, getTagStylePrompt } from "./utils/tag";
 
 /**
  * Remove duplicate whitespaces to avoid tokenization issues
@@ -12,8 +12,10 @@ export function buildImagePrompt(
   lang: string,
   customPrompts: string[],
   tagStyle: ZTagStyle,
+  curatedTags?: string[],
 ) {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
+  const curatedInstruction = getCuratedTagsPrompt(curatedTags);
 
   return `
 You are an expert whose responsibility is to help with automatic text tagging for a read-it-later/bookmarking app.
@@ -23,6 +25,7 @@ Analyze the attached image and suggest relevant tags that describe its key theme
 - If the tag is not generic enough, don't include it.
 - Aim for 10-15 tags.
 - If there are no good tags, don't emit any.
+${curatedInstruction}
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
 You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
@@ -36,8 +39,10 @@ export function constructTextTaggingPrompt(
   customPrompts: string[],
   content: string,
   tagStyle: ZTagStyle,
+  curatedTags?: string[],
 ): string {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
+  const curatedInstruction = getCuratedTagsPrompt(curatedTags);
 
   return `
 You are an expert whose responsibility is to help with automatic tagging for a read-it-later/bookmarking app.
@@ -50,6 +55,7 @@ Analyze the TEXT_CONTENT below and suggest relevant tags that describe its key t
     - Boilerplate content (cookie consent, login walls, GDPR notices)
 - Aim for 3-5 tags.
 - If there are no good tags, leave the array empty.
+${curatedInstruction}
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
 
@@ -83,12 +89,14 @@ export function buildTextPromptUntruncated(
   customPrompts: string[],
   content: string,
   tagStyle: ZTagStyle,
+  curatedTags?: string[],
 ): string {
   return constructTextTaggingPrompt(
     lang,
     customPrompts,
     preprocessContent(content),
     tagStyle,
+    curatedTags,
   );
 }
 

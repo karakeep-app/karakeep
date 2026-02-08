@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import { TagsEditor } from "@/components/dashboard/bookmarks/TagsEditor";
 import { ActionButton } from "@/components/ui/action-button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -48,6 +50,7 @@ import { Info, Plus, Save, Trash2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
@@ -340,6 +343,93 @@ export function TagStyleSelector() {
   );
 }
 
+export function CuratedTagsSelector() {
+  const api = useTRPC();
+  const { t } = useTranslation();
+  const settings = useUserSettings();
+
+  const { mutate: updateSettings } = useUpdateUserSettings({
+    onSuccess: () => {
+      toast({
+        description: t("settings.ai.curated_tags_updated"),
+      });
+    },
+    onError: () => {
+      toast({
+        description: t("settings.ai.curated_tags_update_failed"),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const curatedTagIds = settings?.curatedTagIds ?? [];
+  const [localCuratedTagIds, setLocalCuratedTagIds] =
+    React.useState<string[]>(curatedTagIds);
+
+  React.useEffect(() => {
+    setLocalCuratedTagIds(curatedTagIds);
+  }, [curatedTagIds]);
+
+  const handleCuratedTagsChange = (tagIds: string[]) => {
+    updateSettings({ curatedTagIds: tagIds.length > 0 ? tagIds : null });
+  };
+
+  // Fetch selected tags to display their names
+  const { data: selectedTagsData } = useQuery(
+    api.tags.list.queryOptions(
+      { ids: localCuratedTagIds },
+      { enabled: localCuratedTagIds.length > 0 },
+    ),
+  );
+
+  const selectedTags: ZBookmarkTags[] = React.useMemo(() => {
+    const tagsMap = new Map(
+      (selectedTagsData?.tags ?? []).map((tag) => [tag.id, tag]),
+    );
+    // Preserve the order from curatedTagIds instead of server sort order
+    return localCuratedTagIds
+      .map((id) => tagsMap.get(id))
+      .filter((tag): tag is NonNullable<typeof tag> => tag != null)
+      .map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        attachedBy: "human" as const,
+      }));
+  }, [selectedTagsData?.tags, localCuratedTagIds]);
+
+  return (
+    <SettingsSection
+      title={t("settings.ai.curated_tags")}
+      description={t("settings.ai.curated_tags_description")}
+    >
+      <TagsEditor
+        tags={selectedTags}
+        onAttach={(tag) => {
+          const tagId = tag.tagId;
+          if (tagId) {
+            setLocalCuratedTagIds((prev) => {
+              if (prev.includes(tagId)) {
+                return prev;
+              }
+              const next = [...prev, tagId];
+              handleCuratedTagsChange(next);
+              return next;
+            });
+          }
+        }}
+        onDetach={(tag) => {
+          setLocalCuratedTagIds((prev) => {
+            const next = prev.filter((id) => id !== tag.tagId);
+            handleCuratedTagsChange(next);
+            return next;
+          });
+        }}
+        allowCreation={false}
+      />
+    </SettingsSection>
+  );
+}
+
 export function PromptEditor() {
   const api = useTRPC();
   const { t } = useTranslation();
@@ -613,12 +703,22 @@ export function PromptDemo() {
   const api = useTRPC();
   const { t } = useTranslation();
   const { data: prompts } = useQuery(api.prompts.list.queryOptions());
+  const { data: tagsData } = useQuery(api.tags.list.queryOptions({}));
   const settings = useUserSettings();
   const clientConfig = useClientConfig();
 
   const tagStyle = settings?.tagStyle ?? "as-generated";
+  const curatedTagIds = settings?.curatedTagIds ?? [];
   const inferredTagLang =
     settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
+
+  // Resolve curated tag names for preview
+  const curatedTagNames =
+    curatedTagIds.length > 0 && tagsData?.tags
+      ? tagsData.tags
+          .filter((tag) => curatedTagIds.includes(tag.id))
+          .map((tag) => tag.name)
+      : undefined;
 
   return (
     <SettingsSection
@@ -640,6 +740,7 @@ export function PromptDemo() {
                 .map((p) => p.text),
               "\n<CONTENT_HERE>\n",
               tagStyle,
+              curatedTagNames,
             ).trim()}
           </code>
         </div>
@@ -657,6 +758,7 @@ export function PromptDemo() {
                 )
                 .map((p) => p.text),
               tagStyle,
+              curatedTagNames,
             ).trim()}
           </code>
         </div>
@@ -692,6 +794,9 @@ export default function AISettings() {
 
       {/* Tag Style */}
       <TagStyleSelector />
+
+      {/* Curated Tags */}
+      <CuratedTagsSelector />
 
       {/* Tagging Rules */}
       <TaggingRules />
