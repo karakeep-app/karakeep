@@ -303,38 +303,40 @@ async function launchBrowser() {
 }
 
 export class CrawlerWorker {
-  private static initialized = false;
+  private static initPromise: Promise<void> | null = null;
 
-  private static async ensureInitialized() {
-    if (CrawlerWorker.initialized) return;
-    CrawlerWorker.initialized = true;
-
-    chromium.use(StealthPlugin());
-    if (serverConfig.crawler.enableAdblocker) {
-      logger.info("[crawler] Loading adblocker ...");
-      const globalBlockerResult = await tryCatch(
-        PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
-          path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
-          read: fs.readFile,
-          write: fs.writeFile,
-        }),
-      );
-      if (globalBlockerResult.error) {
-        logger.error(
-          `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
-        );
-      } else {
-        globalBlocker = globalBlockerResult.data;
-      }
+  private static ensureInitialized() {
+    if (!CrawlerWorker.initPromise) {
+      CrawlerWorker.initPromise = (async () => {
+        chromium.use(StealthPlugin());
+        if (serverConfig.crawler.enableAdblocker) {
+          logger.info("[crawler] Loading adblocker ...");
+          const globalBlockerResult = await tryCatch(
+            PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
+              path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
+              read: fs.readFile,
+              write: fs.writeFile,
+            }),
+          );
+          if (globalBlockerResult.error) {
+            logger.error(
+              `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
+            );
+          } else {
+            globalBlocker = globalBlockerResult.data;
+          }
+        }
+        if (!serverConfig.crawler.browserConnectOnDemand) {
+          await launchBrowser();
+        } else {
+          logger.info(
+            "[Crawler] Browser connect on demand is enabled, won't proactively start the browser instance",
+          );
+        }
+        await loadCookiesFromFile();
+      })();
     }
-    if (!serverConfig.crawler.browserConnectOnDemand) {
-      await launchBrowser();
-    } else {
-      logger.info(
-        "[Crawler] Browser connect on demand is enabled, won't proactively start the browser instance",
-      );
-    }
-    await loadCookiesFromFile();
+    return CrawlerWorker.initPromise;
   }
 
   static async build(queue: Queue<ZCrawlLinkRequest>) {
