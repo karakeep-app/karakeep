@@ -544,8 +544,22 @@
     {
       "idx": 77,
       "version": "6",
-      "when": 1769990267390,
-      "tag": "0077_add_tag_granularity_settings",
+      "when": 1770141423845,
+      "tag": "0077_import_listpaths_to_listids",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "6",
+      "when": 1770142086939,
+      "tag": "0078_add_import_session_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "6",
+      "when": 1770564384451,
+      "tag": "0079_add_tag_granularity_settings",
       "breakpoints": true
     }
   ]

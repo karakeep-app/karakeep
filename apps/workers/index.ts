@@ -10,6 +10,7 @@ import {
   initTracing,
   LinkCrawlerQueue,
   loadAllPlugins,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
   prepareQueue,
   RuleEngineQueue,
@@ -28,6 +29,7 @@ import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
+import { ImportWorker } from "./workers/importWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
 import { RuleEngineWorker } from "./workers/ruleEngineWorker";
 import { SearchIndexingWorker } from "./workers/searchWorker";
@@ -37,7 +39,11 @@ import { WebhookWorker } from "./workers/webhookWorker";
 const workerBuilders = {
   crawler: async () => {
     await LinkCrawlerQueue.ensureInit();
-    return CrawlerWorker.build();
+    return CrawlerWorker.build(LinkCrawlerQueue);
+  },
+  lowPriorityCrawler: async () => {
+    await LowPriorityCrawlerQueue.ensureInit();
+    return CrawlerWorker.build(LowPriorityCrawlerQueue);
   },
   inference: async () => {
     await OpenAIQueue.ensureInit();
@@ -77,7 +83,7 @@ const workerBuilders = {
   },
 } as const;
 
-type WorkerName = keyof typeof workerBuilders;
+type WorkerName = keyof typeof workerBuilders | "import";
 const enabledWorkers = new Set(serverConfig.workers.enabledWorkers);
 const disabledWorkers = new Set(serverConfig.workers.disabledWorkers);
 
@@ -118,10 +124,19 @@ async function main() {
     BackupSchedulingWorker.start();
   }
 
+  // Start import polling worker
+  let importWorker: ImportWorker | null = null;
+  let importWorkerPromise: Promise<void> | null = null;
+  if (isWorkerEnabled("import")) {
+    importWorker = new ImportWorker();
+    importWorkerPromise = importWorker.start();
+  }
+
   await Promise.any([
     Promise.all([
       ...workers.map(({ worker }) => worker.run()),
       httpServer.serve(),
+      ...(importWorkerPromise ? [importWorkerPromise] : []),
     ]),
     shutdownPromise,
   ]);
@@ -135,6 +150,9 @@ async function main() {
   }
   if (workers.some((w) => w.name === "backup")) {
     BackupSchedulingWorker.stop();
+  }
+  if (importWorker) {
+    importWorker.stop();
   }
   for (const { worker } of workers) {
     worker.stop();

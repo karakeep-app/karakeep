@@ -115,12 +115,16 @@ async function handleContextMenuClick(
   } else if (menuItemId === CLEAR_ALL_CACHE_ID) {
     await clearAllCache();
   } else if (menuItemId === ADD_LINK_TO_KARAKEEP_ID) {
+    // Only pass the current page title when the URL being saved is the
+    // page itself. When saving a link or image, the title would
+    // incorrectly be the current page's title instead of the target's.
+    const isCurrentPage = !srcUrl && !linkUrl;
     addLinkToKarakeep({
       selectionText,
       srcUrl,
       linkUrl,
       pageUrl,
-      title: tab?.title,
+      title: isCurrentPage ? tab?.title : undefined,
     });
 
     // NOTE: Firefox only allows opening context menus if it's triggered by a user action.

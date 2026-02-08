@@ -24,6 +24,10 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
+import type { TracingAttributes } from "./tracingTypes";
+
+export type { TracingAttributeKey, TracingAttributes } from "./tracingTypes";
+
 let tracerProvider: NodeTracerProvider | null = null;
 let isInitialized = false;
 
@@ -129,7 +133,7 @@ export async function withSpan<T>(
   spanName: string,
   options: {
     kind?: SpanKind;
-    attributes?: Record<string, string | number | boolean>;
+    attributes?: TracingAttributes;
   },
   fn: (span: Span) => Promise<T>,
 ): Promise<T> {
@@ -168,7 +172,7 @@ export function withSpanSync<T>(
   spanName: string,
   options: {
     kind?: SpanKind;
-    attributes?: Record<string, string | number | boolean>;
+    attributes?: TracingAttributes;
   },
   fn: (span: Span) => T,
 ): T {
@@ -213,9 +217,7 @@ export function addSpanEvent(
 /**
  * Set attributes on the current active span.
  */
-export function setSpanAttributes(
-  attributes: Record<string, string | number | boolean>,
-): void {
+export function setSpanAttributes(attributes: TracingAttributes): void {
   const span = getActiveSpan();
   if (span) {
     span.setAttributes(attributes);

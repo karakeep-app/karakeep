@@ -1,4 +1,3 @@
-import { limitConcurrency } from "../concurrency";
 import { MAX_LIST_NAME_LENGTH } from "../types/lists";
 import { ImportSource, ParsedBookmark, parseImportFile } from "./parsers";
 
@@ -9,28 +8,32 @@ export interface ImportCounts {
   total: number;
 }
 
+export interface StagedBookmark {
+  type: "link" | "text" | "asset";
+  url?: string;
+  title?: string;
+  content?: string;
+  note?: string;
+  tags: string[];
+  listIds: string[];
+  sourceAddedAt?: Date;
+}
+
 export interface ImportDeps {
   createList: (input: {
     name: string;
     icon: string;
     parentId?: string;
   }) => Promise<{ id: string }>;
-  createBookmark: (
-    bookmark: ParsedBookmark,
-    sessionId: string,
-  ) => Promise<{ id: string; alreadyExists?: boolean }>;
-  addBookmarkToLists: (input: {
-    bookmarkId: string;
-    listIds: string[];
-  }) => Promise<void>;
-  updateBookmarkTags: (input: {
-    bookmarkId: string;
-    tags: string[];
+  stageImportedBookmarks: (input: {
+    importSessionId: string;
+    bookmarks: StagedBookmark[];
   }) => Promise<void>;
   createImportSession: (input: {
     name: string;
     rootListId: string;
   }) => Promise<{ id: string }>;
+  finalizeImportStaging: (sessionId: string) => Promise<void>;
 }
 
 export interface ImportOptions {
@@ -62,7 +65,7 @@ export async function importBookmarksFromFile(
   },
   options: ImportOptions = {},
 ): Promise<ImportResult> {
-  const { concurrencyLimit = 20, parsers } = options;
+  const { parsers } = options;
 
   const textContent = await file.text();
   const parsedBookmarks = parsers?.[source]
@@ -120,50 +123,74 @@ export async function importBookmarksFromFile(
     pathMap[pathKey] = folderList.id;
   }
 
-  let done = 0;
-  const importPromises = parsedBookmarks.map((bookmark) => async () => {
-    try {
-      const listIds = bookmark.paths.map(
-        (path) => pathMap[path.join(PATH_DELIMITER)] || rootList.id,
-      );
-      if (listIds.length === 0) listIds.push(rootList.id);
+  // Prepare all bookmarks for staging
+  const bookmarksToStage: StagedBookmark[] = parsedBookmarks.map((bookmark) => {
+    // Convert paths to list IDs using pathMap
+    // If no paths, assign to root list
+    const listIds =
+      bookmark.paths.length === 0
+        ? [rootList.id]
+        : bookmark.paths
+            .map((path) => {
+              if (path.length === 0) {
+                return rootList.id;
+              }
+              const pathKey = path.join(PATH_DELIMITER);
+              return pathMap[pathKey] || rootList.id;
+            })
+            .filter((id, index, arr) => arr.indexOf(id) === index); // dedupe
 
-      const created = await deps.createBookmark(bookmark, session.id);
-      await deps.addBookmarkToLists({ bookmarkId: created.id, listIds });
-      if (bookmark.tags && bookmark.tags.length > 0) {
-        await deps.updateBookmarkTags({
-          bookmarkId: created.id,
-          tags: bookmark.tags,
-        });
+    // Determine type and extract content appropriately
+    let type: "link" | "text" | "asset" = "link";
+    let url: string | undefined;
+    let textContent: string | undefined;
+
+    if (bookmark.content) {
+      if (bookmark.content.type === "link") {
+        type = "link";
+        url = bookmark.content.url;
+      } else if (bookmark.content.type === "text") {
+        type = "text";
+        textContent = bookmark.content.text;
       }
-
-      return created;
-    } finally {
-      done += 1;
-      onProgress?.(done, parsedBookmarks.length);
     }
+
+    return {
+      type,
+      url,
+      title: bookmark.title,
+      content: textContent,
+      note: bookmark.notes,
+      tags: bookmark.tags ?? [],
+      listIds,
+      sourceAddedAt: bookmark.addDate
+        ? new Date(bookmark.addDate * 1000)
+        : undefined,
+    };
   });
 
-  const resultsPromises = limitConcurrency(importPromises, concurrencyLimit);
-  const results = await Promise.allSettled(resultsPromises);
+  // Stage bookmarks in batches of 50
+  const BATCH_SIZE = 50;
+  let staged = 0;
 
-  let successes = 0;
-  let failures = 0;
-  let alreadyExisted = 0;
-
-  for (const r of results) {
-    if (r.status === "fulfilled") {
-      if (r.value.alreadyExists) alreadyExisted++;
-      else successes++;
-    } else {
-      failures++;
-    }
+  for (let i = 0; i < bookmarksToStage.length; i += BATCH_SIZE) {
+    const batch = bookmarksToStage.slice(i, i + BATCH_SIZE);
+    await deps.stageImportedBookmarks({
+      importSessionId: session.id,
+      bookmarks: batch,
+    });
+    staged += batch.length;
+    onProgress?.(staged, parsedBookmarks.length);
   }
+
+  // Finalize staging - marks session as "pending" for worker pickup
+  await deps.finalizeImportStaging(session.id);
+
   return {
     counts: {
-      successes,
-      failures,
-      alreadyExisted,
+      successes: 0,
+      failures: 0,
+      alreadyExisted: 0,
       total: parsedBookmarks.length,
     },
     rootListId: rootList.id,

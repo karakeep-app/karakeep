@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import {
   useDeleteImportSession,
   useImportSessionStats,
+  usePauseImportSession,
+  useResumeImportSession,
 } from "@/lib/hooks/useImportSessions";
 import { useTranslation } from "@/lib/i18n/client";
 import { formatDistanceToNow } from "date-fns";
@@ -19,10 +21,17 @@ import {
   Clock,
   ExternalLink,
   Loader2,
+  Pause,
+  Play,
   Trash2,
+  Upload,
 } from "lucide-react";
 
-import type { ZImportSessionWithStats } from "@karakeep/shared/types/importSessions";
+import type {
+  ZImportSessionStatus,
+  ZImportSessionWithStats,
+} from "@karakeep/shared/types/importSessions";
+import { switchCase } from "@karakeep/shared/utils/switch";
 
 interface ImportSessionCardProps {
   session: ZImportSessionWithStats;
@@ -30,10 +39,14 @@ interface ImportSessionCardProps {
 
 function getStatusColor(status: string) {
   switch (status) {
+    case "staging":
+      return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
     case "pending":
       return "bg-muted text-muted-foreground";
-    case "in_progress":
+    case "running":
       return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+    case "paused":
+      return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
     case "completed":
       return "bg-green-500/10 text-green-700 dark:text-green-400";
     case "failed":
@@ -45,10 +58,14 @@ function getStatusColor(status: string) {
 
 function getStatusIcon(status: string) {
   switch (status) {
+    case "staging":
+      return <Upload className="h-4 w-4" />;
     case "pending":
       return <Clock className="h-4 w-4" />;
-    case "in_progress":
+    case "running":
       return <Loader2 className="h-4 w-4 animate-spin" />;
+    case "paused":
+      return <Pause className="h-4 w-4" />;
     case "completed":
       return <CheckCircle2 className="h-4 w-4" />;
     case "failed":
@@ -62,13 +79,18 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const { t } = useTranslation();
   const { data: liveStats } = useImportSessionStats(session.id);
   const deleteSession = useDeleteImportSession();
+  const pauseSession = usePauseImportSession();
+  const resumeSession = useResumeImportSession();
 
-  const statusLabels: Record<string, string> = {
-    pending: t("settings.import_sessions.status.pending"),
-    in_progress: t("settings.import_sessions.status.in_progress"),
-    completed: t("settings.import_sessions.status.completed"),
-    failed: t("settings.import_sessions.status.failed"),
-  };
+  const statusLabels = (s: ZImportSessionStatus) =>
+    switchCase(s, {
+      staging: t("settings.import_sessions.status.staging"),
+      pending: t("settings.import_sessions.status.pending"),
+      running: t("settings.import_sessions.status.running"),
+      paused: t("settings.import_sessions.status.paused"),
+      completed: t("settings.import_sessions.status.completed"),
+      failed: t("settings.import_sessions.status.failed"),
+    });
 
   // Use live stats if available, otherwise fallback to session stats
   const stats = liveStats || session;
@@ -79,7 +101,14 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
         100
       : 0;
 
-  const canDelete = stats.status !== "in_progress";
+  const canDelete =
+    stats.status === "completed" ||
+    stats.status === "failed" ||
+    stats.status === "paused";
+
+  const canPause = stats.status === "pending" || stats.status === "running";
+
+  const canResume = stats.status === "paused";
 
   return (
     <Card className="transition-all hover:shadow-md">
@@ -101,7 +130,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
             >
               {getStatusIcon(stats.status)}
               <span className="ml-1 capitalize">
-                {statusLabels[stats.status] ?? stats.status.replace("_", " ")}
+                {statusLabels(stats.status)}
               </span>
             </Badge>
           </div>
@@ -213,6 +242,38 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/settings/import/${session.id}`}>
+                  <ExternalLink className="mr-1 h-4 w-4" />
+                  {t("settings.import_sessions.view_details")}
+                </Link>
+              </Button>
+              {canPause && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    pauseSession.mutate({ importSessionId: session.id })
+                  }
+                  disabled={pauseSession.isPending}
+                >
+                  <Pause className="mr-1 h-4 w-4" />
+                  {t("settings.import_sessions.pause_session")}
+                </Button>
+              )}
+              {canResume && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    resumeSession.mutate({ importSessionId: session.id })
+                  }
+                  disabled={resumeSession.isPending}
+                >
+                  <Play className="mr-1 h-4 w-4" />
+                  {t("settings.import_sessions.resume_session")}
+                </Button>
+              )}
               {canDelete && (
                 <ActionConfirmingDialog
                   title={t("settings.import_sessions.delete_dialog_title")}

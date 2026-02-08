@@ -176,13 +176,14 @@ Example JSON file:
 
 ## OCR Configs
 
-Karakeep uses [tesseract.js](https://github.com/naptha/tesseract.js) to extract text from images.
+Karakeep uses [tesseract.js](https://github.com/naptha/tesseract.js) to extract text from images by default. Alternatively, you can use an LLM-based OCR by enabling the `OCR_USE_LLM` flag. LLM-based OCR uses the configured inference model (OpenAI or Ollama) to extract text from images, which can provide better results for complex images but requires a configured inference provider.
 
 | Name                     | Required | Default   | Description                                                                                                                                                                                                                               |
 | ------------------------ | -------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | OCR_CACHE_DIR            | No       | $TEMP_DIR | The dir where tesseract will download its models. By default, those models are not persisted and stored in the OS' temp dir.                                                                                                              |
 | OCR_LANGS                | No       | eng       | Comma separated list of the language codes that you want tesseract to support. You can find the language codes [here](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-different-versions.html). Set to empty string to disable OCR. |
 | OCR_CONFIDENCE_THRESHOLD | No       | 50        | A number between 0 and 100 indicating the minimum acceptable confidence from tessaract. If tessaract's confidence is lower than this value, extracted text won't be stored.                                                               |
+| OCR_USE_LLM              | No       | false     | If set to true, uses the configured inference model (OpenAI or Ollama) for OCR instead of Tesseract. This can provide better results for complex images but requires a configured inference provider (`OPENAI_API_KEY` or `OLLAMA_BASE_URL`). Falls back to Tesseract if no inference provider is configured. |
 
 ## Webhook Configs
 

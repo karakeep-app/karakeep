@@ -405,12 +405,13 @@ export function CuratedTagsSelector() {
       <TagsEditor
         tags={selectedTags}
         onAttach={(tag) => {
-          if (tag.tagId) {
+          const tagId = tag.tagId;
+          if (tagId) {
             setLocalCuratedTagIds((prev) => {
-              if (prev.includes(tag.tagId)) {
+              if (prev.includes(tagId)) {
                 return prev;
               }
-              const next = [...prev, tag.tagId];
+              const next = [...prev, tagId];
               handleCuratedTagsChange(next);
               return next;
             });

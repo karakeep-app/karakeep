@@ -1,7 +1,12 @@
 "use client";
 
 import { toast } from "@/components/ui/sonner";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
@@ -46,7 +51,11 @@ export function useImportSessionStats(importSessionId: string) {
         importSessionId,
       },
       {
-        refetchInterval: 5000, // Refetch every 5 seconds to show progress
+        refetchInterval: (q) =>
+          !q.state.data ||
+          !["completed", "failed"].includes(q.state.data.status)
+            ? 5000
+            : false, // Refetch every 5 seconds to show progress
         enabled: !!importSessionId,
       },
     ),
@@ -75,5 +84,68 @@ export function useDeleteImportSession() {
         });
       },
     }),
+  );
+}
+
+export function usePauseImportSession() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    api.importSessions.pauseImportSession.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          api.importSessions.listImportSessions.pathFilter(),
+        );
+        toast({
+          description: "Import session paused",
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          description: error.message || "Failed to pause import session",
+          variant: "destructive",
+        });
+      },
+    }),
+  );
+}
+
+export function useResumeImportSession() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    api.importSessions.resumeImportSession.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          api.importSessions.listImportSessions.pathFilter(),
+        );
+        toast({
+          description: "Import session resumed",
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          description: error.message || "Failed to resume import session",
+          variant: "destructive",
+        });
+      },
+    }),
+  );
+}
+
+export function useImportSessionResults(
+  importSessionId: string,
+  filter: "all" | "accepted" | "rejected" | "skipped_duplicate" | "pending",
+) {
+  const api = useTRPC();
+  return useInfiniteQuery(
+    api.importSessions.getImportSessionResults.infiniteQueryOptions(
+      { importSessionId, filter, limit: 50 },
+      { getNextPageParam: (lastPage) => lastPage.nextCursor },
+    ),
   );
 }

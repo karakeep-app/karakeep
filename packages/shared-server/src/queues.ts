@@ -11,6 +11,11 @@ import { zRuleEngineEventSchema } from "@karakeep/shared/types/rules";
 
 import { loadAllPlugins } from ".";
 
+export enum QueuePriority {
+  Low = 50,
+  Default = 0,
+}
+
 // Lazy client initialization - plugins are loaded on first access
 // We cache the promise to ensure only one initialization happens even with concurrent calls
 let clientPromise: Promise<QueueClient> | null = null;
@@ -83,6 +88,18 @@ export type ZCrawlLinkRequest = z.input<typeof zCrawlLinkRequestSchema>;
 
 export const LinkCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
   "link_crawler_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 5,
+    },
+    keepFailedJobs: false,
+  },
+);
+
+// Separate queue for low priority link crawling (e.g. imports)
+// This prevents low priority crawling from impacting the parallelism of the main queue
+export const LowPriorityCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
+  "low_priority_crawler_queue",
   {
     defaultJobArgs: {
       numRetries: 5,

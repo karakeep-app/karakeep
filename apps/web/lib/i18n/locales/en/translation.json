@@ -420,11 +420,12 @@
       "created_at": "Created {{time}}",
       "progress": "Progress",
       "status": {
+        "staging": "Staging",
         "pending": "Pending",
-        "in_progress": "In progress",
+        "running": "Running",
+        "paused": "Paused",
         "completed": "Completed",
-        "failed": "Failed",
-        "processing": "Processing"
+        "failed": "Failed"
       },
       "badges": {
         "pending": "{{count}} pending",
@@ -436,7 +437,33 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
-      "delete_session": "Delete Session"
+      "delete_session": "Delete Session",
+      "pause_session": "Pause",
+      "resume_session": "Resume",
+      "view_details": "View Details",
+      "detail": {
+        "page_title": "Import Session Details",
+        "back_to_import": "Back to Import",
+        "filter_all": "All",
+        "filter_accepted": "Accepted",
+        "filter_rejected": "Rejected",
+        "filter_duplicates": "Duplicates",
+        "filter_pending": "Pending",
+        "table_title": "Title / URL",
+        "table_type": "Type",
+        "table_result": "Result",
+        "table_reason": "Reason",
+        "table_bookmark": "Bookmark",
+        "result_accepted": "Accepted",
+        "result_rejected": "Rejected",
+        "result_skipped_duplicate": "Duplicate",
+        "result_pending": "Pending",
+        "result_processing": "Processing",
+        "no_results": "No results found for this filter.",
+        "view_bookmark": "View Bookmark",
+        "load_more": "Load More",
+        "no_title": "No title"
+      }
     },
     "backups": {
       "backups": "Backups",

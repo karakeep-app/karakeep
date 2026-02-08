@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "49a682e5-a215-43da-ac0f-dd1a2ccea538",
-  "prevId": "609c4402-c36e-4efc-9fd0-4f9038f8a164",
+  "id": "eefce4a3-19af-48d5-a588-e8f2a538fa39",
+  "prevId": "4606d370-ba98-401d-af38-646707d73764",
   "tables": {
     "account": {
       "name": "account",
@@ -1558,6 +1558,13 @@
             "userId"
           ],
           "isUnique": false
+        },
+        "importSessions_status_idx": {
+          "name": "importSessions_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -1729,6 +1736,21 @@
           "name": "importStaging_completedAt_idx",
           "columns": [
             "completedAt"
+          ],
+          "isUnique": false
+        },
+        "importStaging_status_idx": {
+          "name": "importStaging_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        },
+        "importStaging_status_processingStartedAt_idx": {
+          "name": "importStaging_status_processingStartedAt_idx",
+          "columns": [
+            "status",
+            "processingStartedAt"
           ],
           "isUnique": false
         }
@@ -3061,6 +3083,13 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'titlecase-spaces'"
+        },
+        "curatedTagIds": {
+          "name": "curatedTagIds",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "inferredTagLang": {
           "name": "inferredTagLang",
