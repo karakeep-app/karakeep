@@ -21,6 +21,7 @@ import {
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
   OpenAIQueue,
+  QueuePriority,
   QuotaService,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
@@ -272,7 +273,10 @@ export const bookmarksAppRouter = router({
 
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
-        priority: input.crawlPriority === "low" ? 50 : 0,
+        priority:
+          input.crawlPriority === "low"
+            ? QueuePriority.Low
+            : QueuePriority.Default,
         groupId: ctx.user.id,
       };
 
@@ -574,6 +578,7 @@ export const bookmarksAppRouter = router({
         },
         {
           groupId: ctx.user.id,
+          priority: QueuePriority.Low,
         },
       );
     }),

@@ -31,6 +31,8 @@ export async function getBookmarkDetails(bookmarkId: string) {
   return {
     url: bookmark.link.url,
     userId: bookmark.userId,
+    createdAt: bookmark.createdAt,
+    crawledAt: bookmark.link.crawledAt,
     screenshotAssetId: bookmark.assets.find(
       (a) => a.assetType == AssetTypes.LINK_SCREENSHOT,
     )?.id,

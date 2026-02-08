@@ -1,7 +1,12 @@
 "use client";
 
 import { toast } from "@/components/ui/sonner";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
@@ -129,5 +134,18 @@ export function useResumeImportSession() {
         });
       },
     }),
+  );
+}
+
+export function useImportSessionResults(
+  importSessionId: string,
+  filter: "all" | "accepted" | "rejected" | "skipped_duplicate" | "pending",
+) {
+  const api = useTRPC();
+  return useInfiniteQuery(
+    api.importSessions.getImportSessionResults.infiniteQueryOptions(
+      { importSessionId, filter, limit: 50 },
+      { getNextPageParam: (lastPage) => lastPage.nextCursor },
+    ),
   );
 }

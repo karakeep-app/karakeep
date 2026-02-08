@@ -242,6 +242,12 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/settings/import/${session.id}`}>
+                  <ExternalLink className="mr-1 h-4 w-4" />
+                  {t("settings.import_sessions.view_details")}
+                </Link>
+              </Button>
               {canPause && (
                 <Button
                   variant="outline"

@@ -11,6 +11,11 @@ import { zRuleEngineEventSchema } from "@karakeep/shared/types/rules";
 
 import { loadAllPlugins } from ".";
 
+export enum QueuePriority {
+  Low = 50,
+  Default = 0,
+}
+
 // Lazy client initialization - plugins are loaded on first access
 // We cache the promise to ensure only one initialization happens even with concurrent calls
 let clientPromise: Promise<QueueClient> | null = null;

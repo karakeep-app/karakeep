@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import {
   and,
   count,
@@ -23,44 +24,76 @@ import { LowPriorityCrawlerQueue, OpenAIQueue } from "@karakeep/shared-server";
 import logger, { throttledLogger } from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import { registry } from "../metrics";
+
 // Prometheus metrics
 const importStagingProcessedCounter = new Counter({
-  name: "import_staging_processed_total",
+  name: "karakeep_import_staging_processed_total",
   help: "Total number of staged items processed",
   labelNames: ["result"],
+  registers: [registry],
 });
 
 const importStagingStaleResetCounter = new Counter({
-  name: "import_staging_stale_reset_total",
+  name: "karakeep_import_staging_stale_reset_total",
   help: "Total number of stale processing items reset to pending",
+  registers: [registry],
 });
 
 const importStagingInFlightGauge = new Gauge({
-  name: "import_staging_in_flight",
+  name: "karakeep_import_staging_in_flight",
   help: "Current number of in-flight items (processing + recently completed)",
+  registers: [registry],
 });
 
 const importSessionsGauge = new Gauge({
-  name: "import_sessions_active",
+  name: "karakeep_import_sessions_active",
   help: "Number of active import sessions by status",
   labelNames: ["status"],
+  registers: [registry],
 });
 
 const importStagingPendingGauge = new Gauge({
-  name: "import_staging_pending_total",
+  name: "karakeep_import_staging_pending_total",
   help: "Total number of pending items in staging table",
+  registers: [registry],
 });
 
 const importBatchDurationHistogram = new Histogram({
-  name: "import_batch_duration_seconds",
+  name: "karakeep_import_batch_duration_seconds",
   help: "Time taken to process a batch of staged items",
   buckets: [0.1, 0.5, 1, 2, 5, 10, 30],
+  registers: [registry],
 });
 
 const backpressureLogger = throttledLogger(60_000);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Extract a safe, user-facing error message from an error.
+ * Avoids leaking internal details like database errors, stack traces, or file paths.
+ */
+function getSafeErrorMessage(error: unknown): string {
+  // TRPCError client errors are designed to be user-facing
+  if (error instanceof TRPCError && error.code !== "INTERNAL_SERVER_ERROR") {
+    return error.message;
+  }
+
+  // Known safe validation errors thrown within the import worker
+  if (error instanceof Error) {
+    const safeMessages = [
+      "URL is required for link bookmarks",
+      "Content is required for text bookmarks",
+    ];
+    if (safeMessages.includes(error.message)) {
+      return error.message;
+    }
+  }
+
+  return "An unexpected error occurred while processing the bookmark";
 }
 
 export class ImportWorker {
@@ -244,7 +277,16 @@ export class ImportWorker {
     const res = await db
       .select({ count: count() })
       .from(importStagingBookmarks)
-      .where(eq(importStagingBookmarks.status, "pending"));
+      .innerJoin(
+        importSessions,
+        eq(importStagingBookmarks.importSessionId, importSessions.id),
+      )
+      .where(
+        and(
+          eq(importStagingBookmarks.status, "pending"),
+          inArray(importSessions.status, ["pending", "running"]),
+        ),
+      );
     return res[0]?.count ?? 0;
   }
 
@@ -424,7 +466,7 @@ export class ImportWorker {
         .set({
           status: "failed",
           result: "rejected",
-          resultReason: String(error),
+          resultReason: getSafeErrorMessage(error),
           completedAt: new Date(),
         })
         .where(eq(importStagingBookmarks.id, staged.id));

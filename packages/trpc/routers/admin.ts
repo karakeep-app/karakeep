@@ -10,6 +10,7 @@ import {
   FeedQueue,
   LinkCrawlerQueue,
   OpenAIQueue,
+  QueuePriority,
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
@@ -226,7 +227,7 @@ export const adminAppRouter = router({
               runInference: input.runInference,
             },
             {
-              priority: 50,
+              priority: QueuePriority.Low,
             },
           ),
         ),
@@ -244,7 +245,7 @@ export const adminAppRouter = router({
     await Promise.all(
       bookmarkIds.map((b) =>
         triggerSearchReindex(b.id, {
-          priority: 50,
+          priority: QueuePriority.Low,
         }),
       ),
     );
@@ -264,7 +265,7 @@ export const adminAppRouter = router({
             fixMode: true,
           },
           {
-            priority: 50,
+            priority: QueuePriority.Low,
           },
         ),
       ),
@@ -299,7 +300,7 @@ export const adminAppRouter = router({
           OpenAIQueue.enqueue(
             { bookmarkId: b.id, type: input.type },
             {
-              priority: 50,
+              priority: QueuePriority.Low,
             },
           ),
         ),
@@ -667,7 +668,7 @@ export const adminAppRouter = router({
           bookmarkId: input.bookmarkId,
         },
         {
-          priority: 50,
+          priority: QueuePriority.Low,
           groupId: "admin",
         },
       );
@@ -688,7 +689,7 @@ export const adminAppRouter = router({
       }
 
       await triggerSearchReindex(input.bookmarkId, {
-        priority: 50,
+        priority: QueuePriority.Low,
         groupId: "admin",
       });
     }),
@@ -713,7 +714,7 @@ export const adminAppRouter = router({
           type: "tag",
         },
         {
-          priority: 50,
+          priority: QueuePriority.Low,
           groupId: "admin",
         },
       );
@@ -746,7 +747,7 @@ export const adminAppRouter = router({
           type: "summarize",
         },
         {
-          priority: 50,
+          priority: QueuePriority.Low,
           groupId: "admin",
         },
       );

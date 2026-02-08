@@ -128,7 +128,6 @@ async function main() {
   let importWorker: ImportWorker | null = null;
   let importWorkerPromise: Promise<void> | null = null;
   if (isWorkerEnabled("import")) {
-    await LowPriorityCrawlerQueue.ensureInit();
     importWorker = new ImportWorker();
     importWorkerPromise = importWorker.start();
   }
