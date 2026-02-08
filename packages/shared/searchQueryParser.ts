@@ -16,7 +16,7 @@ import {
 } from "typescript-parsec";
 import { z } from "zod";
 
-import { BookmarkTypes } from "./types/bookmarks";
+import { BookmarkTypes, zBookmarkSourceSchema } from "./types/bookmarks";
 import { Matcher } from "./types/search";
 import { parseRelativeDate } from "./utils/relativeDateUtils";
 
@@ -42,7 +42,10 @@ const lexerRules: [RegExp, TokenType][] = [
   [/^\s+or/i, TokenType.Or],
 
   [/^#/, TokenType.Hash],
-  [/^(is|url|list|after|before|age|feed|title|tag):/, TokenType.Qualifier],
+  [
+    /^(is|url|list|after|before|age|feed|title|tag|source):/,
+    TokenType.Qualifier,
+  ],
 
   [/^"([^"]+)"/, TokenType.StringLiteral],
 
@@ -230,6 +233,23 @@ MATCHER.setPattern(
                 inverse: !!minus,
               },
             };
+          case "source:": {
+            const parsed = zBookmarkSourceSchema.safeParse(ident);
+            if (!parsed.success) {
+              return {
+                text: (minus?.text ?? "") + qualifier.text + ident,
+                matcher: undefined,
+              };
+            }
+            return {
+              text: "",
+              matcher: {
+                type: "source",
+                source: parsed.data,
+                inverse: !!minus,
+              },
+            };
+          }
           case "after:":
             try {
               return {
