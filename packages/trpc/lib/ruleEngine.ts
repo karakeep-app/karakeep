@@ -72,13 +72,16 @@ export class RuleEngine {
     );
   }
 
-  static async forBookmark(ctx: AuthedContext, bookmarkId: string) {
+  static async forBookmark(
+    ctx: AuthedContext,
+    bookmarkId: string,
+  ): Promise<RuleEngine | null> {
     const [bookmark, rules] = await Promise.all([
       fetchBookmark(ctx.db, bookmarkId),
       RuleEngineRuleModel.getAll(ctx),
     ]);
     if (!bookmark) {
-      throw new Error(`Bookmark ${bookmarkId} not found`);
+      return null;
     }
     return new RuleEngine(
       ctx,
