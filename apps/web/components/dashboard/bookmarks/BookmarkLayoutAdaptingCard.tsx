@@ -27,7 +27,10 @@ import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
+import {
+  getBookmarkTitle,
+  isBookmarkStillTagging,
+} from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import BookmarkActionBar from "./BookmarkActionBar";
@@ -162,25 +165,45 @@ function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
 }
 
 function DragHandle({
-  bookmarkId,
+  bookmark,
   className,
 }: {
-  bookmarkId: string;
+  bookmark: ZBookmark;
   className?: string;
 }) {
   const handleDragStart = useCallback(
     (e: React.DragEvent) => {
       e.stopPropagation();
-      e.dataTransfer.setData(BOOKMARK_DRAG_MIME, bookmarkId);
+      e.dataTransfer.setData(BOOKMARK_DRAG_MIME, bookmark.id);
       e.dataTransfer.effectAllowed = "copy";
-      const card = (e.currentTarget as HTMLElement).closest(
-        "[data-bookmark-card]",
-      ) as HTMLElement | null;
-      if (card) {
-        e.dataTransfer.setDragImage(card, 0, 0);
-      }
+
+      // Create a small pill element as the drag preview
+      const pill = document.createElement("div");
+      const title = getBookmarkTitle(bookmark) ?? "Untitled";
+      pill.textContent =
+        title.length > 40 ? title.substring(0, 40) + "\u2026" : title;
+      Object.assign(pill.style, {
+        position: "fixed",
+        left: "-9999px",
+        top: "-9999px",
+        padding: "6px 12px",
+        borderRadius: "8px",
+        backgroundColor: "hsl(var(--card))",
+        border: "1px solid hsl(var(--border))",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        fontSize: "13px",
+        fontFamily: "inherit",
+        color: "hsl(var(--foreground))",
+        maxWidth: "240px",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      });
+      document.body.appendChild(pill);
+      e.dataTransfer.setDragImage(pill, 0, 0);
+      requestAnimationFrame(() => pill.remove());
     },
-    [bookmarkId],
+    [bookmark],
   );
 
   return (
@@ -215,7 +238,6 @@ function ListView({
 
   return (
     <div
-      data-bookmark-card
       className={cn(
         "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
         className,
@@ -224,7 +246,7 @@ function ListView({
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle
-        bookmarkId={bookmark.id}
+        bookmark={bookmark}
         className="left-1 top-1/2 -translate-y-1/2"
       />
       <div className="flex size-32 items-center justify-center overflow-hidden">
@@ -279,7 +301,6 @@ function GridView({
 
   return (
     <div
-      data-bookmark-card
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
@@ -288,7 +309,7 @@ function GridView({
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
-      <DragHandle bookmarkId={bookmark.id} className="left-2 top-2" />
+      <DragHandle bookmark={bookmark} className="left-2 top-2" />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
@@ -319,7 +340,6 @@ function CompactView({ bookmark, title, footer, className }: Props) {
   const { showTitle } = useBookmarkDisplaySettings();
   return (
     <div
-      data-bookmark-card
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
@@ -329,7 +349,7 @@ function CompactView({ bookmark, title, footer, className }: Props) {
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle
-        bookmarkId={bookmark.id}
+        bookmark={bookmark}
         className="left-0.5 top-1/2 -translate-y-1/2"
       />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
