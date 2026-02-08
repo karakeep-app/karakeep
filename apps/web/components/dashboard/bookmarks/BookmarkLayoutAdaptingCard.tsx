@@ -15,7 +15,12 @@ import {
 } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Image as ImageIcon, NotebookPen } from "lucide-react";
+import {
+  Check,
+  GripVertical,
+  Image as ImageIcon,
+  NotebookPen,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -156,6 +161,42 @@ function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
+function DragHandle({
+  bookmarkId,
+  className,
+}: {
+  bookmarkId: string;
+  className?: string;
+}) {
+  const handleDragStart = useCallback(
+    (e: React.DragEvent) => {
+      e.stopPropagation();
+      e.dataTransfer.setData(BOOKMARK_DRAG_MIME, bookmarkId);
+      e.dataTransfer.effectAllowed = "copy";
+      const card = (e.currentTarget as HTMLElement).closest(
+        "[data-bookmark-card]",
+      ) as HTMLElement | null;
+      if (card) {
+        e.dataTransfer.setDragImage(card, 0, 0);
+      }
+    },
+    [bookmarkId],
+  );
+
+  return (
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      className={cn(
+        "absolute z-40 cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100",
+        className,
+      )}
+    >
+      <GripVertical className="size-4 text-muted-foreground" />
+    </div>
+  );
+}
+
 function ListView({
   bookmark,
   image,
@@ -174,6 +215,7 @@ function ListView({
 
   return (
     <div
+      data-bookmark-card
       className={cn(
         "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
         className,
@@ -181,6 +223,10 @@ function ListView({
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
+      <DragHandle
+        bookmarkId={bookmark.id}
+        className="left-1 top-1/2 -translate-y-1/2"
+      />
       <div className="flex size-32 items-center justify-center overflow-hidden">
         {image("list", cn("size-32 rounded-lg", imgFitClass))}
       </div>
@@ -233,6 +279,7 @@ function GridView({
 
   return (
     <div
+      data-bookmark-card
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
@@ -241,6 +288,7 @@ function GridView({
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
+      <DragHandle bookmarkId={bookmark.id} className="left-2 top-2" />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
@@ -271,6 +319,7 @@ function CompactView({ bookmark, title, footer, className }: Props) {
   const { showTitle } = useBookmarkDisplaySettings();
   return (
     <div
+      data-bookmark-card
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
@@ -279,6 +328,10 @@ function CompactView({ bookmark, title, footer, className }: Props) {
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
+      <DragHandle
+        bookmarkId={bookmark.id}
+        className="left-0.5 top-1/2 -translate-y-1/2"
+      />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
           {bookmark.content.type === BookmarkTypes.LINK &&
@@ -324,22 +377,10 @@ function CompactView({ bookmark, title, footer, className }: Props) {
 export function BookmarkLayoutAdaptingCard(props: Props) {
   const layout = useBookmarkLayout();
 
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      e.dataTransfer.setData(BOOKMARK_DRAG_MIME, props.bookmark.id);
-      e.dataTransfer.effectAllowed = "copy";
-    },
-    [props.bookmark.id],
-  );
-
-  return (
-    <div draggable onDragStart={handleDragStart} className="cursor-grab">
-      {bookmarkLayoutSwitch(layout, {
-        masonry: <GridView layout={layout} {...props} />,
-        grid: <GridView layout={layout} {...props} />,
-        list: <ListView {...props} />,
-        compact: <CompactView {...props} />,
-      })}
-    </div>
-  );
+  return bookmarkLayoutSwitch(layout, {
+    masonry: <GridView layout={layout} {...props} />,
+    grid: <GridView layout={layout} {...props} />,
+    list: <ListView {...props} />,
+    compact: <CompactView {...props} />,
+  });
 }
