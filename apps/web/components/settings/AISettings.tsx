@@ -362,7 +362,10 @@ export function CuratedTagsSelector() {
     },
   });
 
-  const curatedTagIds = settings?.curatedTagIds ?? [];
+  const curatedTagIds = React.useMemo(
+    () => settings?.curatedTagIds ?? [],
+    [settings?.curatedTagIds],
+  );
   const [localCuratedTagIds, setLocalCuratedTagIds] =
     React.useState<string[]>(curatedTagIds);
 
@@ -404,6 +407,7 @@ export function CuratedTagsSelector() {
     >
       <TagsEditor
         tags={selectedTags}
+        placeholder="Select curated tags..."
         onAttach={(tag) => {
           const tagId = tag.tagId;
           if (tagId) {
@@ -703,21 +707,26 @@ export function PromptDemo() {
   const api = useTRPC();
   const { t } = useTranslation();
   const { data: prompts } = useQuery(api.prompts.list.queryOptions());
-  const { data: tagsData } = useQuery(api.tags.list.queryOptions({}));
   const settings = useUserSettings();
   const clientConfig = useClientConfig();
 
   const tagStyle = settings?.tagStyle ?? "as-generated";
   const curatedTagIds = settings?.curatedTagIds ?? [];
+  const { data: tagsData } = useQuery(
+    api.tags.list.queryOptions(
+      { ids: curatedTagIds },
+      { enabled: curatedTagIds.length > 0 },
+    ),
+  );
   const inferredTagLang =
     settings?.inferredTagLang ?? clientConfig.inference.inferredTagLang;
 
   // Resolve curated tag names for preview
   const curatedTagNames =
     curatedTagIds.length > 0 && tagsData?.tags
-      ? tagsData.tags
-          .filter((tag) => curatedTagIds.includes(tag.id))
-          .map((tag) => tag.name)
+      ? curatedTagIds
+          .map((id) => tagsData.tags.find((tag) => tag.id === id)?.name)
+          .filter((name): name is string => Boolean(name))
       : undefined;
 
   return (

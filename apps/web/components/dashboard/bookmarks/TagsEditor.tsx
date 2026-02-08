@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useClientConfig } from "@/lib/clientConfig";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
@@ -27,14 +28,17 @@ export function TagsEditor({
   onDetach,
   disabled,
   allowCreation = true,
+  placeholder,
 }: {
   tags: ZBookmarkTags[];
   onAttach: (tag: { tagName: string; tagId?: string }) => void;
   onDetach: (tag: { tagName: string; tagId: string }) => void;
   disabled?: boolean;
   allowCreation?: boolean;
+  placeholder?: string;
 }) {
   const api = useTRPC();
+  const { t } = useTranslation();
   const demoMode = !!useClientConfig().demoMode;
   const isDisabled = demoMode || disabled;
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -278,6 +282,24 @@ export function TagsEditor({
     }
   };
 
+  const inputPlaceholder =
+    placeholder ??
+    (allowCreation
+      ? t("tags.search_or_create_placeholder", {
+          defaultValue: "Search or create tags...",
+        })
+      : t("tags.search_placeholder", {
+          defaultValue: "Search tags...",
+        }));
+  const visiblePlaceholder =
+    optimisticTags.length === 0 ? inputPlaceholder : undefined;
+  const inputWidth = Math.max(
+    inputValue.length > 0
+      ? inputValue.length
+      : Math.min(visiblePlaceholder?.length ?? 1, 24),
+    1,
+  );
+
   return (
     <div ref={containerRef} className="w-full">
       <Popover open={open && !isDisabled} onOpenChange={handleOpenChange}>
@@ -333,8 +355,9 @@ export function TagsEditor({
                 value={inputValue}
                 onKeyDown={handleKeyDown}
                 onValueChange={(v) => setInputValue(v)}
+                placeholder={visiblePlaceholder}
                 className="bg-transparent outline-none placeholder:text-muted-foreground"
-                style={{ width: `${Math.max(inputValue.length, 1)}ch` }}
+                style={{ width: `${inputWidth}ch` }}
                 disabled={isDisabled}
               />
               {isExistingTagsLoading && (

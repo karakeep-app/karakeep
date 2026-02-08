@@ -60,10 +60,9 @@ export async function buildTextPrompt(
     curatedTags,
   );
   const promptSize = await calculateNumTokens(promptTemplate);
-  const truncatedContent = await truncateContent(
-    content,
-    contextLength - promptSize,
-  );
+  const available = Math.max(0, contextLength - promptSize);
+  const truncatedContent =
+    available === 0 ? "" : await truncateContent(content, available);
   return constructTextTaggingPrompt(
     lang,
     customPrompts,
@@ -82,9 +81,8 @@ export async function buildSummaryPrompt(
   content = preprocessContent(content);
   const promptTemplate = constructSummaryPrompt(lang, customPrompts, "");
   const promptSize = await calculateNumTokens(promptTemplate);
-  const truncatedContent = await truncateContent(
-    content,
-    contextLength - promptSize,
-  );
+  const available = Math.max(0, contextLength - promptSize);
+  const truncatedContent =
+    available === 0 ? "" : await truncateContent(content, available);
   return constructSummaryPrompt(lang, customPrompts, truncatedContent);
 }

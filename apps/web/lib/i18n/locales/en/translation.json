@@ -764,6 +764,8 @@
     "create_tag_description": "Create a new tag without attaching it to any bookmark",
     "tag_name": "Tag Name",
     "enter_tag_name": "Enter tag name",
+    "search_placeholder": "Search tags...",
+    "search_or_create_placeholder": "Search or create tags...",
     "no_custom_tags": "No custom tags yet",
     "no_ai_tags": "No AI tags yet",
     "no_unused_tags": "You don't have any unused tags",
