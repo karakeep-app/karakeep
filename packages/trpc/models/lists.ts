@@ -809,7 +809,7 @@ export abstract class List {
   }
 
   abstract get type(): "manual" | "smart";
-  abstract getBookmarkIds(visitedListNames?: Set<string>): Promise<string[]>;
+  abstract getBookmarkIds(visitedListIds?: Set<string>): Promise<string[]>;
   abstract getSize(): Promise<number>;
   abstract addBookmark(bookmarkId: string): Promise<void>;
   abstract removeBookmark(bookmarkId: string): Promise<void>;
@@ -820,6 +820,8 @@ export abstract class List {
 }
 
 export class SmartList extends List {
+  private static readonly MAX_VISITED_LISTS = 30;
+
   parsedQuery: ReturnType<typeof parseSearchQuery> | null = null;
 
   constructor(ctx: AuthedContext, list: ZBookmarkList & { userId: string }) {
@@ -847,9 +849,18 @@ export class SmartList extends List {
     return this.parsedQuery;
   }
 
-  async getBookmarkIds(
-    visitedListNames = new Set<string>(),
-  ): Promise<string[]> {
+  async getBookmarkIds(visitedListIds = new Set<string>()): Promise<string[]> {
+    if (visitedListIds.size >= SmartList.MAX_VISITED_LISTS) {
+      return [];
+    }
+
+    if (visitedListIds.has(this.list.id)) {
+      return [];
+    }
+
+    const newVisitedListIds = new Set(visitedListIds);
+    newVisitedListIds.add(this.list.id);
+
     const parsedQuery = this.getParsedQuery();
     if (!parsedQuery.matcher) {
       return [];
@@ -857,7 +868,7 @@ export class SmartList extends List {
     return await getBookmarkIdsFromMatcher(
       this.ctx,
       parsedQuery.matcher,
-      visitedListNames,
+      newVisitedListIds,
     );
   }
 
@@ -904,9 +915,7 @@ export class ManualList extends List {
     return this.list.type;
   }
 
-  async getBookmarkIds(
-    _visitedListNames?: Set<string>,
-  ): Promise<string[]> {
+  async getBookmarkIds(_visitedListIds?: Set<string>): Promise<string[]> {
     const results = await this.ctx.db
       .select({ id: bookmarksInLists.bookmarkId })
       .from(bookmarksInLists)

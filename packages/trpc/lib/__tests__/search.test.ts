@@ -240,6 +240,50 @@ describe("getBookmarkIdsFromMatcher", () => {
     expect(result.sort()).toEqual(["b2", "b3", "b4", "b5"]);
   });
 
+  it("should handle listName matcher when multiple lists share the same name", async () => {
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "l5",
+      userId: testUserId,
+      name: "list1",
+      icon: "🚀",
+      type: "manual",
+    });
+    await mockCtx.db.insert(bookmarksInLists).values({
+      bookmarkId: "b2",
+      listId: "l5",
+    });
+
+    const matcher: Matcher = {
+      type: "listName",
+      listName: "list1",
+      inverse: false,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b1", "b2", "b6"]);
+  });
+
+  it("should handle inverse listName matcher when multiple lists share the same name", async () => {
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "l5",
+      userId: testUserId,
+      name: "list1",
+      icon: "🚀",
+      type: "manual",
+    });
+    await mockCtx.db.insert(bookmarksInLists).values({
+      bookmarkId: "b2",
+      listId: "l5",
+    });
+
+    const matcher: Matcher = {
+      type: "listName",
+      listName: "list1",
+      inverse: true,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b3", "b4", "b5"]);
+  });
+
   it("should handle archived matcher", async () => {
     const matcher: Matcher = { type: "archived", archived: true };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);

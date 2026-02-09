@@ -93,7 +93,7 @@ function union(vals: BookmarkQueryReturnType[][]): BookmarkQueryReturnType[] {
 async function getIds(
   ctx: AuthedContext,
   matcher: Matcher,
-  visitedListNames = new Set<string>(),
+  visitedListIds = new Set<string>(),
 ): Promise<BookmarkQueryReturnType[]> {
   const { db } = ctx;
   const userId = ctx.user.id;
@@ -144,16 +144,16 @@ async function getIds(
         );
     }
     case "listName": {
-      // First, look up the list by name to check if it's a smart list
-      const list = await db.query.bookmarkLists.findFirst({
+      // First, look up the list by name
+      const lists = await db.query.bookmarkLists.findMany({
         where: and(
           eq(bookmarkLists.userId, userId),
           eq(bookmarkLists.name, matcher.listName),
         ),
       });
 
-      if (!list) {
-        // List doesn't exist, return empty or all based on inverse
+      if (lists.length === 0) {
+        // No matching lists, return empty or all based on inverse
         if (matcher.inverse) {
           return db
             .selectDistinct({ id: bookmarks.id })
@@ -163,86 +163,41 @@ async function getIds(
         return [];
       }
 
-      if (list.type === "smart" && list.query) {
-        // Handle smart list - check for cycles first
-        if (visitedListNames.has(matcher.listName)) {
-          // Cycle detected - return empty to avoid infinite loop
-          // This prevents list:A -> list:B -> list:A scenarios
-          return [];
-        }
+      // Use List model to resolve list membership (manual and smart)
+      // Import dynamically to avoid circular dependency
+      const { List } = await import("../models/lists");
+      const listBookmarkIds = [
+        ...new Set(
+          (
+            await Promise.all(
+              lists.map(async (list) => {
+                const listModel = await List.fromId(ctx, list.id);
+                return await listModel.getBookmarkIds(visitedListIds);
+              }),
+            )
+          ).flat(),
+        ),
+      ];
 
-        // Mark this list as visited and get bookmark IDs using SmartList
-        const newVisitedListNames = new Set(visitedListNames);
-        newVisitedListNames.add(matcher.listName);
-
-        // Import SmartList dynamically to avoid circular dependency
-        const { SmartList } = await import("../models/lists");
-        const smartList = new SmartList(ctx, {
-          ...list,
-          userRole: "owner",
-          hasCollaborators: false,
-        });
-
-        const smartListBookmarkIds = await smartList.getBookmarkIds(
-          newVisitedListNames,
-        );
-
-        if (smartListBookmarkIds.length === 0) {
-          if (matcher.inverse) {
-            return db
-              .selectDistinct({ id: bookmarks.id })
-              .from(bookmarks)
-              .where(eq(bookmarks.userId, userId));
-          }
-          return [];
-        }
-
+      if (listBookmarkIds.length === 0) {
         if (matcher.inverse) {
           return db
             .selectDistinct({ id: bookmarks.id })
             .from(bookmarks)
-            .where(
-              and(
-                eq(bookmarks.userId, userId),
-                notInArray(bookmarks.id, smartListBookmarkIds),
-              ),
-            );
+            .where(eq(bookmarks.userId, userId));
         }
-        return db
-          .selectDistinct({ id: bookmarks.id })
-          .from(bookmarks)
-          .where(
-            and(
-              eq(bookmarks.userId, userId),
-              inArray(bookmarks.id, smartListBookmarkIds),
-            ),
-          );
+        return [];
       }
 
-      // Manual list - use the original query on bookmarksInLists
-      const comp = matcher.inverse ? notExists : exists;
       return db
         .selectDistinct({ id: bookmarks.id })
         .from(bookmarks)
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(bookmarksInLists)
-                .innerJoin(
-                  bookmarkLists,
-                  eq(bookmarksInLists.listId, bookmarkLists.id),
-                )
-                .where(
-                  and(
-                    eq(bookmarksInLists.bookmarkId, bookmarks.id),
-                    eq(bookmarkLists.userId, userId),
-                    eq(bookmarkLists.name, matcher.listName),
-                  ),
-                ),
-            ),
+            matcher.inverse
+              ? notInArray(bookmarks.id, listBookmarkIds)
+              : inArray(bookmarks.id, listBookmarkIds),
           ),
         );
     }
@@ -472,13 +427,13 @@ async function getIds(
     }
     case "and": {
       const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(ctx, m, visitedListNames)),
+        matcher.matchers.map((m) => getIds(ctx, m, visitedListIds)),
       );
       return intersect(vals);
     }
     case "or": {
       const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(ctx, m, visitedListNames)),
+        matcher.matchers.map((m) => getIds(ctx, m, visitedListIds)),
       );
       return union(vals);
     }
@@ -492,8 +447,8 @@ async function getIds(
 export async function getBookmarkIdsFromMatcher(
   ctx: AuthedContext,
   matcher: Matcher,
-  visitedListNames = new Set<string>(),
+  visitedListIds = new Set<string>(),
 ): Promise<string[]> {
-  const results = await getIds(ctx, matcher, visitedListNames);
+  const results = await getIds(ctx, matcher, visitedListIds);
   return results.map((r) => r.id);
 }

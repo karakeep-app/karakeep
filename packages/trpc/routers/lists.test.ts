@@ -851,6 +851,55 @@ describe("Nested smart lists", () => {
     expect(bookmarksInListA.bookmarks.length).toBe(0);
   });
 
+  test<CustomTestContext>("smart list traversal above max visited lists returns empty", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+
+    const bookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Depth test bookmark",
+    });
+
+    const manualList = await api.lists.create({
+      name: "DepthBaseManual",
+      type: "manual",
+      icon: "📋",
+    });
+    await api.lists.addToList({
+      listId: manualList.id,
+      bookmarkId: bookmark.id,
+    });
+
+    const maxVisitedLists = 30;
+    const overLimitChainLength = maxVisitedLists + 1;
+
+    for (let i = overLimitChainLength; i >= 2; i--) {
+      await api.lists.create({
+        name: `DepthL${i}`,
+        type: "smart",
+        query:
+          i === overLimitChainLength
+            ? "list:DepthBaseManual"
+            : `list:DepthL${i + 1}`,
+        icon: "D",
+      });
+    }
+
+    const depthRoot = await api.lists.create({
+      name: "DepthL1",
+      type: "smart",
+      query: "list:DepthL2",
+      icon: "D",
+    });
+
+    const bookmarksInRoot = await api.bookmarks.getBookmarks({
+      listId: depthRoot.id,
+    });
+
+    expect(bookmarksInRoot.bookmarks.length).toBe(0);
+  });
+
   test<CustomTestContext>("smart list references non-existent list returns empty", async ({
     apiCallers,
   }) => {
