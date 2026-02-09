@@ -5,14 +5,16 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { api } from "@/lib/trpc";
 import { MenuView } from "@react-native-menu/menu";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Ellipsis } from "lucide-react-native";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 export default function ListView() {
   const { slug } = useLocalSearchParams();
+  const api = useTRPC();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
   }
@@ -20,7 +22,7 @@ export default function ListView() {
     data: list,
     error,
     refetch,
-  } = api.lists.get.useQuery({ listId: slug });
+  } = useQuery(api.lists.get.queryOptions({ listId: slug }));
 
   return (
     <CustomSafeAreaView>
@@ -58,17 +60,22 @@ function ListActionsMenu({
   listId: string;
   role: ZBookmarkList["userRole"];
 }) {
-  const { mutate: deleteList } = api.lists.delete.useMutation({
-    onSuccess: () => {
-      router.replace("/dashboard/lists");
-    },
-  });
+  const api = useTRPC();
+  const { mutate: deleteList } = useMutation(
+    api.lists.delete.mutationOptions({
+      onSuccess: () => {
+        router.replace("/dashboard/lists");
+      },
+    }),
+  );
 
-  const { mutate: leaveList } = api.lists.leaveList.useMutation({
-    onSuccess: () => {
-      router.replace("/dashboard/lists");
-    },
-  });
+  const { mutate: leaveList } = useMutation(
+    api.lists.leaveList.mutationOptions({
+      onSuccess: () => {
+        router.replace("/dashboard/lists");
+      },
+    }),
+  );
 
   const handleDelete = () => {
     Alert.alert("Delete List", "Are you sure you want to delete this list?", [

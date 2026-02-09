@@ -16,11 +16,12 @@ import {
 } from "@/components/ui/table";
 import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { formatBytes } from "@/lib/utils";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ExternalLink, Trash2 } from "lucide-react";
 
 import { useDetachBookmarkAsset } from "@karakeep/shared-react/hooks/assets";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import {
   humanFriendlyNameForAssertType,
@@ -28,6 +29,7 @@ import {
 } from "@karakeep/trpc/lib/attachments";
 
 export default function AssetsSettingsPage() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const { mutate: detachAsset, isPending: isDetaching } =
     useDetachBookmarkAsset({
@@ -49,13 +51,15 @@ export default function AssetsSettingsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = api.assets.list.useInfiniteQuery(
-    {
-      limit: 20,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  } = useInfiniteQuery(
+    api.assets.list.infiniteQueryOptions(
+      {
+        limit: 20,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   const assets = data?.pages.flatMap((page) => page.assets) ?? [];

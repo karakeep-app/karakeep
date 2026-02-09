@@ -126,6 +126,7 @@ describe("RuleEngine", () => {
         .values({
           userId,
           type: BookmarkTypes.LINK,
+          title: "Example Bookmark Title",
           favourited: false,
           archived: false,
         })
@@ -171,10 +172,9 @@ describe("RuleEngine", () => {
       expect(engine).toBeInstanceOf(RuleEngine);
     });
 
-    it("should throw an error if bookmark is not found", async () => {
-      await expect(
-        RuleEngine.forBookmark(ctx, "nonexistent-bookmark"),
-      ).rejects.toThrow("Bookmark nonexistent-bookmark not found");
+    it("should return null if bookmark is not found", async () => {
+      const engine = await RuleEngine.forBookmark(ctx, "nonexistent-bookmark");
+      expect(engine).toBeNull();
     });
 
     it("should load rules associated with the bookmark's user", async () => {
@@ -188,7 +188,7 @@ describe("RuleEngine", () => {
         actions: [{ type: "addTag", tagId: tagId2 }],
       });
 
-      const engine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      const engine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
       // @ts-expect-error Accessing private property for test verification
       expect(engine.rules).toHaveLength(1);
       // @ts-expect-error Accessing private property for test verification
@@ -200,7 +200,7 @@ describe("RuleEngine", () => {
     let engine: RuleEngine;
 
     beforeEach(async () => {
-      engine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      engine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
     });
 
     it("should return true for urlContains condition", () => {
@@ -230,6 +230,38 @@ describe("RuleEngine", () => {
     it("should return true for urlDoesNotContain condition when URL does not contain string", () => {
       const condition: RuleEngineCondition = {
         type: "urlDoesNotContain",
+        str: "nonexistent",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
+    it("should return true for titleContains condition", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleContains",
+        str: "Example",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
+    it("should return false for titleContains condition mismatch", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleContains",
+        str: "nonexistent",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return false for titleDoesNotContain condition when title contains string", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleDoesNotContain",
+        str: "Example",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return true for titleDoesNotContain condition when title does not contain string", () => {
+      const condition: RuleEngineCondition = {
+        type: "titleDoesNotContain",
         str: "nonexistent",
       };
       expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
@@ -287,7 +319,7 @@ describe("RuleEngine", () => {
         .update(bookmarks)
         .set({ favourited: true })
         .where(eq(bookmarks.id, bookmarkId));
-      const updatedEngine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      const updatedEngine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
       const condition: RuleEngineCondition = { type: "isFavourited" };
       expect(updatedEngine.doesBookmarkMatchConditions(condition)).toBe(true);
     });
@@ -302,7 +334,7 @@ describe("RuleEngine", () => {
         .update(bookmarks)
         .set({ archived: true })
         .where(eq(bookmarks.id, bookmarkId));
-      const updatedEngine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      const updatedEngine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
       const condition: RuleEngineCondition = { type: "isArchived" };
       expect(updatedEngine.doesBookmarkMatchConditions(condition)).toBe(true);
     });
@@ -370,7 +402,7 @@ describe("RuleEngine", () => {
       } as Omit<RuleEngineRule, "id"> & { userId: string };
       ruleId = await seedRule(tmp);
       testRule = { ...tmp, id: ruleId };
-      engine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      engine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
     });
 
     it("should evaluate rule successfully when event and conditions match", async () => {
@@ -459,7 +491,7 @@ describe("RuleEngine", () => {
     let engine: RuleEngine;
 
     beforeEach(async () => {
-      engine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      engine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
     });
 
     it("should execute addTag action", async () => {
@@ -641,7 +673,7 @@ describe("RuleEngine", () => {
         actions: [{ type: "addToList", listId: listId1 }],
       });
 
-      engine = await RuleEngine.forBookmark(ctx, bookmarkId);
+      engine = (await RuleEngine.forBookmark(ctx, bookmarkId))!;
     });
 
     it("should process event and return only results for matching, enabled rules", async () => {

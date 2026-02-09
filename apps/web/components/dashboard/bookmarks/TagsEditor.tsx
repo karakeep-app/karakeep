@@ -13,25 +13,32 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useClientConfig } from "@/lib/clientConfig";
-import { api } from "@/lib/trpc";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
 import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export function TagsEditor({
   tags: _tags,
   onAttach,
   onDetach,
   disabled,
+  allowCreation = true,
+  placeholder,
 }: {
   tags: ZBookmarkTags[];
   onAttach: (tag: { tagName: string; tagId?: string }) => void;
   onDetach: (tag: { tagName: string; tagId: string }) => void;
   disabled?: boolean;
+  allowCreation?: boolean;
+  placeholder?: string;
 }) {
+  const api = useTRPC();
+  const { t } = useTranslation();
   const demoMode = !!useClientConfig().demoMode;
   const isDisabled = demoMode || disabled;
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -40,6 +47,7 @@ export function TagsEditor({
   const [inputValue, setInputValue] = React.useState("");
   const [optimisticTags, setOptimisticTags] = useState<ZBookmarkTags[]>(_tags);
   const tempIdCounter = React.useRef(0);
+  const hasInitializedRef = React.useRef(_tags.length > 0);
 
   const generateTempId = React.useCallback(() => {
     tempIdCounter.current += 1;
@@ -54,25 +62,42 @@ export function TagsEditor({
   }, []);
 
   React.useEffect(() => {
+    // When allowCreation is false, only sync on initial load
+    // After that, rely on optimistic updates to avoid re-ordering
+    if (!allowCreation) {
+      if (!hasInitializedRef.current && _tags.length > 0) {
+        hasInitializedRef.current = true;
+        setOptimisticTags(_tags);
+      }
+      return;
+    }
+
+    // For allowCreation mode, sync server state with optimistic state
     setOptimisticTags((prev) => {
-      let results = prev;
+      // Start with a copy to avoid mutating the previous state
+      const results = [...prev];
+      let changed = false;
+
       for (const tag of _tags) {
         const idx = results.findIndex((t) => t.name === tag.name);
         if (idx == -1) {
           results.push(tag);
+          changed = true;
           continue;
         }
         if (results[idx].id.startsWith("temp-")) {
           results[idx] = tag;
+          changed = true;
           continue;
         }
       }
-      return results;
-    });
-  }, [_tags]);
 
-  const { data: filteredOptions, isLoading: isExistingTagsLoading } =
-    api.tags.list.useQuery(
+      return changed ? results : prev;
+    });
+  }, [_tags, allowCreation]);
+
+  const { data: filteredOptions, isLoading: isExistingTagsLoading } = useQuery(
+    api.tags.list.queryOptions(
       {
         nameContains: inputValue,
         limit: 50,
@@ -91,7 +116,8 @@ export function TagsEditor({
         placeholderData: keepPreviousData,
         gcTime: inputValue.length > 0 ? 60_000 : 3_600_000,
       },
-    );
+    ),
+  );
 
   const selectedValues = optimisticTags.map((tag) => tag.id);
 
@@ -122,7 +148,7 @@ export function TagsEditor({
       (opt) => opt.name.toLowerCase() === trimmedInputValue.toLowerCase(),
     );
 
-    if (!exactMatch) {
+    if (!exactMatch && allowCreation) {
       return [
         {
           id: "create-new",
@@ -136,7 +162,7 @@ export function TagsEditor({
     }
 
     return baseOptions;
-  }, [filteredOptions, trimmedInputValue]);
+  }, [filteredOptions, trimmedInputValue, allowCreation]);
 
   const onChange = (
     actionMeta:
@@ -256,6 +282,24 @@ export function TagsEditor({
     }
   };
 
+  const inputPlaceholder =
+    placeholder ??
+    (allowCreation
+      ? t("tags.search_or_create_placeholder", {
+          defaultValue: "Search or create tags...",
+        })
+      : t("tags.search_placeholder", {
+          defaultValue: "Search tags...",
+        }));
+  const visiblePlaceholder =
+    optimisticTags.length === 0 ? inputPlaceholder : undefined;
+  const inputWidth = Math.max(
+    inputValue.length > 0
+      ? inputValue.length
+      : Math.min(visiblePlaceholder?.length ?? 1, 24),
+    1,
+  );
+
   return (
     <div ref={containerRef} className="w-full">
       <Popover open={open && !isDisabled} onOpenChange={handleOpenChange}>
@@ -311,8 +355,9 @@ export function TagsEditor({
                 value={inputValue}
                 onKeyDown={handleKeyDown}
                 onValueChange={(v) => setInputValue(v)}
+                placeholder={visiblePlaceholder}
                 className="bg-transparent outline-none placeholder:text-muted-foreground"
-                style={{ width: `${Math.max(inputValue.length, 1)}ch` }}
+                style={{ width: `${inputWidth}ch` }}
                 disabled={isDisabled}
               />
               {isExistingTagsLoading && (
@@ -329,7 +374,7 @@ export function TagsEditor({
             <CommandList className="max-h-64">
               {displayedOptions.length === 0 ? (
                 <CommandEmpty>
-                  {trimmedInputValue ? (
+                  {trimmedInputValue && allowCreation ? (
                     <div className="flex items-center justify-between px-2 py-1.5">
                       <span>Create &quot;{trimmedInputValue}&quot;</span>
                       <Button

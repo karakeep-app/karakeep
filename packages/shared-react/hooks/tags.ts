@@ -1,120 +1,155 @@
-import { keepPreviousData } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { ZTagListResponse } from "@karakeep/shared/types/tags";
 
-import { api } from "../trpc";
+import { useTRPC } from "../trpc";
+
+type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function usePaginatedSearchTags(
-  input: Parameters<typeof api.tags.list.useInfiniteQuery>[0],
+  input: Parameters<TRPCApi["tags"]["list"]["infiniteQueryOptions"]>[0],
 ) {
-  return api.tags.list.useInfiniteQuery(input, {
-    placeholderData: keepPreviousData,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  const api = useTRPC();
+  return useInfiniteQuery({
+    ...api.tags.list.infiniteQueryOptions(input, {
+      placeholderData: keepPreviousData,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      gcTime: 60_000,
+    }),
     select: (data) => ({
       tags: data.pages.flatMap((page) => page.tags),
     }),
-    gcTime: 60_000,
   });
 }
 
-export function useTagAutocomplete<T>(opts: {
+export function useTagAutocomplete<T = ZTagListResponse>(opts: {
   nameContains: string;
-  select?: (tags: ZTagListResponse) => T;
+  select?: (data: ZTagListResponse) => T;
   enabled?: boolean;
 }) {
-  return api.tags.list.useQuery(
-    {
-      nameContains: opts.nameContains,
-      limit: 50,
-      sortBy: opts.nameContains ? "relevance" : "usage",
-    },
-    {
-      select: opts.select,
-      placeholderData: keepPreviousData,
-      gcTime: opts.nameContains?.length > 0 ? 60_000 : 3_600_000,
-      enabled: opts.enabled,
-    },
-  );
+  const api = useTRPC();
+  return useQuery({
+    ...api.tags.list.queryOptions(
+      {
+        nameContains: opts.nameContains,
+        limit: 50,
+        sortBy: opts.nameContains ? "relevance" : "usage",
+      },
+      {
+        placeholderData: keepPreviousData,
+        gcTime: opts.nameContains?.length > 0 ? 60_000 : 3_600_000,
+        enabled: opts.enabled,
+      },
+    ),
+    select: opts.select,
+  });
 }
 
 export function useCreateTag(
-  ...opts: Parameters<typeof api.tags.create.useMutation>
+  opts?: Parameters<TRPCApi["tags"]["create"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  return api.tags.create.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.tags.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  return useMutation(
+    api.tags.create.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.tags.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useUpdateTag(
-  ...opts: Parameters<typeof api.tags.update.useMutation>
+  opts?: Parameters<TRPCApi["tags"]["update"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  return api.tags.update.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.tags.list.invalidate();
-      apiUtils.tags.get.invalidate({ tagId: res.id });
-      apiUtils.bookmarks.getBookmarks.invalidate({ tagId: res.id });
+  return useMutation(
+    api.tags.update.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.tags.list.pathFilter());
+        queryClient.invalidateQueries(
+          api.tags.get.queryFilter({ tagId: res.id }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.queryFilter({ tagId: res.id }),
+        );
 
-      // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
-      apiUtils.bookmarks.getBookmark.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+        // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useMergeTag(
-  ...opts: Parameters<typeof api.tags.merge.useMutation>
+  opts?: Parameters<TRPCApi["tags"]["merge"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  return api.tags.merge.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.tags.list.invalidate();
-      [res.mergedIntoTagId, ...res.deletedTags].forEach((tagId) => {
-        apiUtils.tags.get.invalidate({ tagId });
-        apiUtils.bookmarks.getBookmarks.invalidate({ tagId });
-      });
-      // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
-      apiUtils.bookmarks.getBookmark.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  return useMutation(
+    api.tags.merge.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.tags.list.pathFilter());
+        [res.mergedIntoTagId, ...res.deletedTags].forEach((tagId) => {
+          queryClient.invalidateQueries(api.tags.get.queryFilter({ tagId }));
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.queryFilter({ tagId }),
+          );
+        });
+        // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteTag(
-  ...opts: Parameters<typeof api.tags.delete.useMutation>
+  opts?: Parameters<TRPCApi["tags"]["delete"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  return api.tags.delete.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.tags.list.invalidate();
-      apiUtils.bookmarks.getBookmark.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  return useMutation(
+    api.tags.delete.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.tags.list.pathFilter());
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteUnusedTags(
-  ...opts: Parameters<typeof api.tags.deleteUnused.useMutation>
+  opts?: Parameters<TRPCApi["tags"]["deleteUnused"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  return api.tags.deleteUnused.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.tags.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  return useMutation(
+    api.tags.deleteUnused.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.tags.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }

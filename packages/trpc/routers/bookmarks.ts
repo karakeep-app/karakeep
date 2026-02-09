@@ -14,11 +14,14 @@ import {
   bookmarkTexts,
   customPrompts,
   tagsOnBookmarks,
+  users,
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
+  QueuePriority,
   QuotaService,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
@@ -27,7 +30,7 @@ import {
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
-import { buildSummaryPrompt } from "@karakeep/shared/prompts";
+import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -50,7 +53,6 @@ import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
-import { ImportSession } from "../models/importSessions";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -120,13 +122,6 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
-          if (input.importSessionId) {
-            const session = await ImportSession.fromId(
-              ctx,
-              input.importSessionId,
-            );
-            await session.attachBookmark(alreadyExists.id);
-          }
           return { ...alreadyExists, alreadyExists: true };
         }
       }
@@ -276,21 +271,24 @@ export const bookmarksAppRouter = router({
         },
       );
 
-      if (input.importSessionId) {
-        const session = await ImportSession.fromId(ctx, input.importSessionId);
-        await session.attachBookmark(bookmark.id);
-      }
-
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
-        priority: input.crawlPriority === "low" ? 50 : 0,
+        priority:
+          input.crawlPriority === "low"
+            ? QueuePriority.Low
+            : QueuePriority.Default,
         groupId: ctx.user.id,
       };
 
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
-          await LinkCrawlerQueue.enqueue(
+          // Use a separate queue for low priority crawling to avoid impacting main queue parallelism
+          const crawlerQueue =
+            input.crawlPriority === "low"
+              ? LowPriorityCrawlerQueue
+              : LinkCrawlerQueue;
+          await crawlerQueue.enqueue(
             {
               bookmarkId: bookmark.id,
             },
@@ -320,22 +318,24 @@ export const bookmarksAppRouter = router({
         }
       }
 
-      await triggerRuleEngineOnEvent(
-        bookmark.id,
-        [
-          {
-            type: "bookmarkAdded",
-          },
-        ],
-        enqueueOpts,
-      );
-      await triggerSearchReindex(bookmark.id, enqueueOpts);
-      await triggerWebhook(
-        bookmark.id,
-        "created",
-        /* userId */ undefined,
-        enqueueOpts,
-      );
+      await Promise.all([
+        triggerRuleEngineOnEvent(
+          bookmark.id,
+          [
+            {
+              type: "bookmarkAdded",
+            },
+          ],
+          enqueueOpts,
+        ),
+        triggerSearchReindex(bookmark.id, enqueueOpts),
+        triggerWebhook(
+          bookmark.id,
+          "created",
+          /* userId */ undefined,
+          enqueueOpts,
+        ),
+      ]);
       return bookmark;
     }),
 
@@ -490,13 +490,14 @@ export const bookmarksAppRouter = router({
           })),
         );
       }
-      // Trigger re-indexing and webhooks
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
 
       return updatedBookmark;
     }),
@@ -535,12 +536,14 @@ export const bookmarksAppRouter = router({
             ),
           );
       });
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
     }),
 
   deleteBookmark: authedProcedure
@@ -567,14 +570,7 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db
-        .update(bookmarkLinks)
-        .set({
-          crawlStatus: "pending",
-          crawlStatusCode: null,
-        })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
-      await LinkCrawlerQueue.enqueue(
+      await LowPriorityCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
           archiveFullPage: input.archiveFullPage,
@@ -582,6 +578,7 @@ export const bookmarksAppRouter = router({
         },
         {
           groupId: ctx.user.id,
+          priority: QueuePriority.Low,
         },
       );
     }),
@@ -716,10 +713,10 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      // Helper function to fetch tag IDs from a list of tag identifiers
-      const fetchTagIds = async (
+      // Helper function to fetch tag IDs and their names from a list of tag identifiers
+      const fetchTagIdsWithNames = async (
         tagIdentifiers: { tagId?: string; tagName?: string }[],
-      ): Promise<string[]> => {
+      ): Promise<{ id: string; name: string }[]> => {
         const tagIds = tagIdentifiers.flatMap((t) =>
           t.tagId ? [t.tagId] : [],
         );
@@ -731,7 +728,7 @@ export const bookmarksAppRouter = router({
         const [byIds, byNames] = await Promise.all([
           tagIds.length > 0
             ? ctx.db
-                .select({ id: bookmarkTags.id })
+                .select({ id: bookmarkTags.id, name: bookmarkTags.name })
                 .from(bookmarkTags)
                 .where(
                   and(
@@ -742,7 +739,7 @@ export const bookmarksAppRouter = router({
             : Promise.resolve([]),
           tagNames.length > 0
             ? ctx.db
-                .select({ id: bookmarkTags.id })
+                .select({ id: bookmarkTags.id, name: bookmarkTags.name })
                 .from(bookmarkTags)
                 .where(
                   and(
@@ -753,15 +750,25 @@ export const bookmarksAppRouter = router({
             : Promise.resolve([]),
         ]);
 
-        // Union results and deduplicate tag IDs
-        const results = [...byIds, ...byNames];
-        return [...new Set(results.map((t) => t.id))];
+        // Union results and deduplicate by tag ID
+        const seen = new Set<string>();
+        const results: { id: string; name: string }[] = [];
+
+        for (const tag of [...byIds, ...byNames]) {
+          if (!seen.has(tag.id)) {
+            seen.add(tag.id);
+            results.push({ id: tag.id, name: tag.name });
+          }
+        }
+
+        return results;
       };
 
       // Normalize tag names and create new tags outside transaction to reduce transaction duration
       const normalizedAttachTags = input.attach.map((tag) => ({
         tagId: tag.tagId,
         tagName: tag.tagName ? normalizeTagName(tag.tagName) : undefined,
+        attachedBy: tag.attachedBy,
       }));
 
       {
@@ -781,10 +788,30 @@ export const bookmarksAppRouter = router({
       }
 
       // Fetch tag IDs for attachment/detachment now that we know that they all exist
-      const [allIdsToAttach, idsToRemove] = await Promise.all([
-        fetchTagIds(normalizedAttachTags),
-        fetchTagIds(input.detach),
+      const [attachTagsWithNames, detachTagsWithNames] = await Promise.all([
+        fetchTagIdsWithNames(normalizedAttachTags),
+        fetchTagIdsWithNames(input.detach),
       ]);
+
+      // Build the attachedBy map from the fetched results
+      const tagIdToAttachedBy = new Map<string, "ai" | "human">();
+
+      for (const fetchedTag of attachTagsWithNames) {
+        // Find the corresponding input tag
+        const inputTag = normalizedAttachTags.find(
+          (t) =>
+            (t.tagId && t.tagId === fetchedTag.id) ||
+            (t.tagName && t.tagName === fetchedTag.name),
+        );
+
+        if (inputTag) {
+          tagIdToAttachedBy.set(fetchedTag.id, inputTag.attachedBy);
+        }
+      }
+
+      // Extract just the IDs for the transaction
+      const allIdsToAttach = attachTagsWithNames.map((t) => t.id);
+      const idsToRemove = detachTagsWithNames.map((t) => t.id);
 
       const res = await ctx.db.transaction(async (tx) => {
         // Detaches
@@ -807,7 +834,7 @@ export const bookmarksAppRouter = router({
               allIdsToAttach.map((i) => ({
                 tagId: i,
                 bookmarkId: input.bookmarkId,
-                attachedBy: "human" as const,
+                attachedBy: tagIdToAttachedBy.get(i) ?? "human",
               })),
             )
             .onConflictDoNothing();
@@ -960,8 +987,15 @@ Author: ${bookmark.author ?? ""}
         },
       });
 
+      const userSettings = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+        columns: {
+          inferredTagLang: true,
+        },
+      });
+
       const summaryPrompt = await buildSummaryPrompt(
-        serverConfig.inference.inferredTagLang,
+        userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
         prompts.map((p) => p.text),
         bookmarkDetails,
         serverConfig.inference.contextLength,
@@ -983,12 +1017,14 @@ Author: ${bookmark.author ?? ""}
           summary: summary.response,
         })
         .where(eq(bookmarks.id, input.bookmarkId));
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+          groupId: ctx.user.id,
+        }),
+      ]);
 
       return {
         bookmarkId: input.bookmarkId,

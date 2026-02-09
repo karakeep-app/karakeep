@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { ToastProvider } from "@/components/ui/Toast";
+import { Toaster } from "sonner-native";
 
-import { TRPCProvider } from "@karakeep/shared-react/providers/trpc-provider";
+import { TRPCSettingsProvider } from "@karakeep/shared-react/providers/trpc-provider";
 
 import { ReaderSettingsProvider } from "./readerSettings";
 import useAppSettings from "./settings";
@@ -20,10 +20,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <TRPCProvider settings={settings}>
+    <TRPCSettingsProvider settings={settings}>
       <ReaderSettingsProvider>
-        <ToastProvider>{children}</ToastProvider>
+        {children}
+        <Toaster />
       </ReaderSettingsProvider>
-    </TRPCProvider>
+    </TRPCSettingsProvider>
   );
 }

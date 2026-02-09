@@ -1,37 +1,49 @@
-import { api } from "../trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { useTRPC } from "../trpc";
+
+type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useUpdateUserSettings(
-  ...opts: Parameters<typeof api.users.updateSettings.useMutation>
+  opts?: Parameters<TRPCApi["users"]["updateSettings"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.users.updateSettings.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.users.settings.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.users.updateSettings.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.users.settings.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useUpdateUserAvatar(
-  ...opts: Parameters<typeof api.users.updateAvatar.useMutation>
+  opts?: Parameters<TRPCApi["users"]["updateAvatar"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.users.updateAvatar.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.users.whoami.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.users.updateAvatar.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.users.whoami.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteAccount(
-  ...opts: Parameters<typeof api.users.deleteAccount.useMutation>
+  opts?: Parameters<TRPCApi["users"]["deleteAccount"]["mutationOptions"]>[0],
 ) {
-  return api.users.deleteAccount.useMutation(opts[0]);
+  const api = useTRPC();
+  return useMutation(api.users.deleteAccount.mutationOptions(opts));
 }
 
 export function useWhoAmI() {
-  return api.users.whoami.useQuery();
+  const api = useTRPC();
+  return useQuery(api.users.whoami.queryOptions());
 }

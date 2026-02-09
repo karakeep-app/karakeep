@@ -3,10 +3,19 @@ import KarakeepLogo from "@/components/KarakeepIcon";
 import SignUpForm from "@/components/signup/SignUpForm";
 import { getServerAuthSession } from "@/server/auth";
 
-export default async function SignUpPage() {
+import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
+
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectUrl?: string }>;
+}) {
   const session = await getServerAuthSession();
+  const { redirectUrl: rawRedirectUrl } = await searchParams;
+  const redirectUrl = validateRedirectUrl(rawRedirectUrl) ?? "/";
+
   if (session) {
-    redirect("/");
+    redirect(redirectUrl);
   }
 
   return (
@@ -15,7 +24,7 @@ export default async function SignUpPage() {
         <div className="flex items-center justify-center">
           <KarakeepLogo height={80} />
         </div>
-        <SignUpForm />
+        <SignUpForm redirectUrl={redirectUrl} />
       </div>
     </div>
   );

@@ -59,6 +59,7 @@ const allEnv = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_PROXY_URL: z.string().url().optional(),
+  OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
@@ -81,6 +82,7 @@ const allEnv = z.object({
     .default("eng")
     .transform((val) => val.split(",")),
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().default(50),
+  OCR_USE_LLM: stringBool("false"),
   CRAWLER_HEADLESS_BROWSER: stringBool("true"),
   BROWSER_WEB_URL: z.string().optional(),
   BROWSER_WEBSOCKET_URL: z.string().optional(),
@@ -277,6 +279,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       openAIApiKey: val.OPENAI_API_KEY,
       openAIBaseUrl: val.OPENAI_BASE_URL,
       openAIProxyUrl: val.OPENAI_PROXY_URL,
+      openAIServiceTier: val.OPENAI_SERVICE_TIER,
       ollamaBaseUrl: val.OLLAMA_BASE_URL,
       ollamaKeepAlive: val.OLLAMA_KEEP_ALIVE,
       textModel: val.INFERENCE_TEXT_MODEL,
@@ -335,6 +338,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       langs: val.OCR_LANGS,
       cacheDir: val.OCR_CACHE_DIR,
       confidenceThreshold: val.OCR_CONFIDENCE_THRESHOLD,
+      useLLM: val.OCR_USE_LLM,
     },
     search: {
       numWorkers: val.SEARCH_NUM_WORKERS,

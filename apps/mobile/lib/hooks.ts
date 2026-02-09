@@ -1,10 +1,14 @@
-import { ImageURISource } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 
 import useAppSettings from "./settings";
 import { buildApiHeaders } from "./utils";
 
-export function useAssetUrl(assetId: string): ImageURISource {
+interface AssetSource {
+  uri: string;
+  headers: Record<string, string>;
+}
+
+export function useAssetUrl(assetId: string): AssetSource {
   const { settings } = useAppSettings();
   return {
     uri: `${settings.address}/api/assets/${assetId}`,

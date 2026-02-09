@@ -1,5 +1,15 @@
+################# Monolith Builder ##############
+FROM rust:1-bookworm AS monolith_builder
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        libssl-dev \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/* \
+    && cargo install monolith
+
 ################# Base Builder ##############
-FROM node:24-alpine AS base
+FROM node:24-slim AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -8,8 +18,13 @@ ENV PATH="$PNPM_HOME:$PATH"
 # https://github.com/karakeep-app/karakeep/issues/967
 RUN npm install -g corepack@0.31.0 && corepack enable
 
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat make g++ py3-pip linux-headers
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        make \
+        g++ \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files for dependency installation
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -60,7 +75,7 @@ RUN (cd apps/mcp && pnpm build)
 
 ################# The All-in-one builder ##############
 
-FROM node:24-alpine AS aio_builder
+FROM node:24-slim AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -76,6 +91,14 @@ EXPOSE 3000
 ######################
 ARG S6_OVERLAY_VERSION=3.2.1.0
 ARG TARGETARCH
+
+# Install wget and xz-utils needed for s6-overlay
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        ca-certificates \
+        wget \
+        xz-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
@@ -94,7 +117,25 @@ COPY --chmod=755 ./docker/root/etc/s6-overlay /etc/s6-overlay
 ######################
 # Install runtime deps
 ######################
-RUN apk add --no-cache monolith yt-dlp graphicsmagick ghostscript
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        curl \
+        graphicsmagick \
+        ghostscript \
+        libjemalloc2 \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG TARGETARCH
+RUN case ${TARGETARCH} in \
+        "amd64")  YTDLP_FILE=yt-dlp_linux ;; \
+        "arm64")  YTDLP_FILE=yt-dlp_linux_aarch64 ;; \
+        *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac \
+    && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_FILE} -o /usr/local/bin/yt-dlp \
+    && chmod +x /usr/local/bin/yt-dlp
+
+# Copy monolith binary from builder
+COPY --from=monolith_builder /usr/local/cargo/bin/monolith /usr/local/bin/monolith
 
 ######################
 # Prepare the web app
@@ -103,6 +144,14 @@ RUN apk add --no-cache monolith yt-dlp graphicsmagick ghostscript
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
+
+# Create symlink for jemalloc based on architecture
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        ln -s /usr/lib/aarch64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
+    else \
+        ln -s /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
+    fi
 
 COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=base /app/apps/web/public ./apps/web/public
@@ -154,7 +203,7 @@ ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
 
-FROM node:24-alpine AS cli
+FROM node:24-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -169,7 +218,7 @@ ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
 
-FROM node:24-alpine AS mcp
+FROM node:24-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 

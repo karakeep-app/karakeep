@@ -454,6 +454,22 @@ async function getIds(
           ),
         );
     }
+    case "source": {
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            matcher.inverse
+              ? or(
+                  ne(bookmarks.source, matcher.source),
+                  isNull(bookmarks.source),
+                )
+              : eq(bookmarks.source, matcher.source),
+          ),
+        );
+    }
     case "and": {
       const vals = await Promise.all(
         matcher.matchers.map((m) => getIds(ctx, m, visitedListNames)),

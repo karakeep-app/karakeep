@@ -12,10 +12,11 @@ import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 export default function BookmarkView() {
@@ -25,6 +26,7 @@ export default function BookmarkView() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
+  const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
     settings.defaultBookmarkView,
@@ -38,10 +40,12 @@ export default function BookmarkView() {
     data: bookmark,
     error,
     refetch,
-  } = api.bookmarks.getBookmark.useQuery({
-    bookmarkId: slug,
-    includeContent: false,
-  });
+  } = useQuery(
+    api.bookmarks.getBookmark.queryOptions({
+      bookmarkId: slug,
+      includeContent: false,
+    }),
+  );
 
   if (error) {
     return <FullPageError error={error.message} onRetry={refetch} />;

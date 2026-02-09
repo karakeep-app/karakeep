@@ -1,7 +1,3 @@
-import type {
-  NativeSyntheticEvent,
-  TextInputFocusEventData,
-} from "react-native";
 import * as React from "react";
 import { Pressable, TextInput, View, ViewStyle } from "react-native";
 import Animated, {
@@ -119,7 +115,7 @@ const SearchInput = React.forwardRef<
       onChangeText("");
     }
 
-    function onFocus(e: NativeSyntheticEvent<TextInputFocusEventData>) {
+    function onFocus(e: Parameters<NonNullable<typeof onFocusProp>>[0]) {
       setShowCancel(true);
       onFocusProp?.(e);
     }

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { EditListModal } from "@/components/dashboard/lists/EditListModal";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -10,7 +9,7 @@ import {
   CollapsibleTriggerChevron,
 } from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
@@ -89,12 +88,6 @@ export default function AllListsView({
 
   return (
     <ul>
-      <EditListModal>
-        <Button className="mb-2 flex h-full w-full items-center">
-          <Plus />
-          <span>{t("lists.new_list")}</span>
-        </Button>
-      </EditListModal>
       <ListItem
         collapsible={false}
         name={t("lists.favourites")}

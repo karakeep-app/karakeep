@@ -56,7 +56,11 @@ export class SearchIndexingWorker {
   }
 }
 
-async function runIndex(searchClient: SearchIndexClient, bookmarkId: string) {
+async function runIndex(
+  searchClient: SearchIndexClient,
+  bookmarkId: string,
+  batch: boolean,
+) {
   const bookmark = await db.query.bookmarks.findFirst({
     where: eq(bookmarks.id, bookmarkId),
     with: {
@@ -107,11 +111,15 @@ async function runIndex(searchClient: SearchIndexClient, bookmarkId: string) {
     tags: bookmark.tagsOnBookmarks.map((t) => t.tag.name),
   };
 
-  await searchClient.addDocuments([document]);
+  await searchClient.addDocuments([document], { batch });
 }
 
-async function runDelete(searchClient: SearchIndexClient, bookmarkId: string) {
-  await searchClient.deleteDocuments([bookmarkId]);
+async function runDelete(
+  searchClient: SearchIndexClient,
+  bookmarkId: string,
+  batch: boolean,
+) {
+  await searchClient.deleteDocuments([bookmarkId], { batch });
 }
 
 async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
@@ -133,17 +141,20 @@ async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
   }
 
   const bookmarkId = request.data.bookmarkId;
+  // Disable batching on retries (runNumber > 0) for improved reliability
+  const batch = job.runNumber === 0;
+
   logger.info(
-    `[search][${jobId}] Attempting to index bookmark with id ${bookmarkId} ...`,
+    `[search][${jobId}] Attempting to index bookmark with id ${bookmarkId} (run ${job.runNumber}, batch=${batch}) ...`,
   );
 
   switch (request.data.type) {
     case "index": {
-      await runIndex(searchClient, bookmarkId);
+      await runIndex(searchClient, bookmarkId, batch);
       break;
     }
     case "delete": {
-      await runDelete(searchClient, bookmarkId);
+      await runDelete(searchClient, bookmarkId, batch);
       break;
     }
   }

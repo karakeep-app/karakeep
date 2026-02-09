@@ -1,0 +1,71 @@
+---
+id: delete-a-backup
+title: "Delete a backup"
+description: "Delete backup by its id"
+sidebar_label: "Delete a backup"
+hide_title: true
+hide_table_of_contents: true
+api: eJx9U8Fu2zAM/RWBpw3Q4nbosMG3DO2AbsNQbBl2CHJgbCZWY1uqRLfJDP37QNlNkzarL5bEJ/Hx8bGHkkLhjWNjW8jhkmpiUkssNp1Ty50yHJQpQQPjOkA+h88pFGChIVDRecM7yOc9LAk9+WnHFeTzRVxocOixISYfEiAUFTUIeQ+8cwQ5BPamXYMG2mLjajkyZMp6u1s3D7efPtrt3w/VltkWnyS/4QQZ8l+XEDV4uuuMpxJy9h1paLERyPIRosFIUQ65AmHkKTjbBgrC4v3ZhfyO6/9hVWFbppbVO8XVXokHDKpM2qTEF6fuDsxUa1mtbNdK+vEtwaJztSlQsNltkAsnJLHLWyoYNDhvHXk2A9XClvRSuKihoRBwfSp2pM58eOEJv4jyyZ4rW0IOQ22SWLTKIRvqDln/KGYEabi/f2xn52vIocey9BRCzNCZ7P4cNNyjN7isB+ZjeBBrhV3NkEPF7EKeZex3kw163BC5CToH+pmis4rU+IKyq9SPbyNeDVwgxnjgxF8i6JD50I97dSSz1JFg4pQEAj0uvljfoDD8+meWJDTtysp1qXqgdD45m5wd2HHPZ3pzfZL/9OZaraw/Ji/FRg3OBm4wWWG07jh/OPru+Yv9k6NeG9WhWKYtZ65G00qu1K9+7O98nJEAGvL9uCw0VDawhPt+iYF++zpGOb7ryMuYL57am0xQmiDrEvIV1oFeYfvm5+jGt+p/DMdDbHfJRXUnO9Cwod3hUMdF1FARluQThyE8LQpyfHDxxbyJT/Z+v7z6fjW7Ag14bJBnhkgJTvLq+wExsxtqY9zTZNkLxxj/AVwN0vk=
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete a backup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/backups/{backupId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete backup by its id
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"BackupId"},"required":true,"name":"backupId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content - the backup was deleted"},"404":{"description":"Backup not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -7,14 +7,17 @@ import {
   View,
 } from "react-native";
 import { Redirect, useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import Logo from "@/components/Logo";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { Bug, Edit3 } from "lucide-react-native";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 enum LoginType {
   Password,
@@ -24,7 +27,7 @@ enum LoginType {
 export default function Signin() {
   const { settings, setSettings } = useAppSettings();
   const router = useRouter();
-
+  const api = useTRPC();
   const [error, setError] = useState<string | undefined>();
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
 
@@ -43,37 +46,48 @@ export default function Signin() {
   };
 
   const { mutate: login, isPending: userNamePasswordRequestIsPending } =
-    api.apiKeys.exchange.useMutation({
-      onSuccess: (resp) => {
-        setSettings({ ...settings, apiKey: resp.key, apiKeyId: resp.id });
-      },
-      onError: (e) => {
-        if (e.data?.code === "UNAUTHORIZED") {
-          setError("Wrong username or password");
-        } else {
-          setError(`${e.message}`);
-        }
-      },
-    });
+    useMutation(
+      api.apiKeys.exchange.mutationOptions({
+        onSuccess: (resp) => {
+          setSettings({ ...settings, apiKey: resp.key, apiKeyId: resp.id });
+        },
+        onError: (e) => {
+          if (e.data?.code === "UNAUTHORIZED") {
+            setError("Wrong username or password");
+          } else {
+            setError(`${e.message}`);
+          }
+        },
+      }),
+    );
 
   const { mutate: validateApiKey, isPending: apiKeyValueRequestIsPending } =
-    api.apiKeys.validate.useMutation({
-      onSuccess: () => {
-        const apiKey = apiKeyRef.current;
-        setSettings({ ...settings, apiKey: apiKey });
-      },
-      onError: (e) => {
-        if (e.data?.code === "UNAUTHORIZED") {
-          setError("Invalid API key");
-        } else {
-          setError(`${e.message}`);
-        }
-      },
-    });
+    useMutation(
+      api.apiKeys.validate.mutationOptions({
+        onSuccess: () => {
+          const apiKey = apiKeyRef.current;
+          setSettings({ ...settings, apiKey: apiKey });
+        },
+        onError: (e) => {
+          if (e.data?.code === "UNAUTHORIZED") {
+            setError("Invalid API key");
+          } else {
+            setError(`${e.message}`);
+          }
+        },
+      }),
+    );
 
   if (settings.apiKey) {
     return <Redirect href="dashboard" />;
   }
+
+  const onSignUp = async () => {
+    const serverAddress = settings.address ?? "https://cloud.karakeep.app";
+    const signupUrl = `${serverAddress}/signup?redirectUrl=${encodeURIComponent("karakeep://signin")}`;
+
+    await WebBrowser.openAuthSessionAsync(signupUrl, "karakeep://signin");
+  };
 
   const onSignin = () => {
     if (!settings.address) {
@@ -219,6 +233,12 @@ export default function Signin() {
               {loginType === LoginType.Password
                 ? "Use API key instead?"
                 : "Use password instead?"}
+            </Text>
+          </Pressable>
+          <Pressable onPress={onSignUp}>
+            <Text className="mt-4 text-center text-gray-500">
+              Don&apos;t have an account?{" "}
+              <Text className="text-foreground underline">Sign Up</Text>
             </Text>
           </Pressable>
         </View>

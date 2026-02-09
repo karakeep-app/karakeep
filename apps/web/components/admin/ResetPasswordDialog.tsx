@@ -20,11 +20,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
-import { api } from "@/lib/trpc"; // Adjust the import path as needed
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+import { useTRPC } from "@karakeep/shared-react/trpc"; // Adjust the import path as needed
 
 import { resetPasswordSchema } from "@karakeep/shared/types/admin";
 
@@ -39,6 +41,7 @@ export default function ResetPasswordDialog({
   children,
   userId,
 }: ResetPasswordDialogProps) {
+  const api = useTRPC();
   const [isOpen, onOpenChange] = useState(false);
   const form = useForm<ResetPasswordSchema>({
     resolver: zodResolver(resetPasswordSchema),
@@ -48,27 +51,29 @@ export default function ResetPasswordDialog({
       newPasswordConfirm: "",
     },
   });
-  const { mutate, isPending } = api.admin.resetPassword.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "Password reset successfully",
-      });
-      onOpenChange(false);
-    },
-    onError: (error) => {
-      if (error instanceof TRPCClientError) {
+  const { mutate, isPending } = useMutation(
+    api.admin.resetPassword.mutationOptions({
+      onSuccess: () => {
         toast({
-          variant: "destructive",
-          description: error.message,
+          description: "Password reset successfully",
         });
-      } else {
-        toast({
-          variant: "destructive",
-          description: "Failed to reset password",
-        });
-      }
-    },
-  });
+        onOpenChange(false);
+      },
+      onError: (error) => {
+        if (error instanceof TRPCClientError) {
+          toast({
+            variant: "destructive",
+            description: error.message,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            description: "Failed to reset password",
+          });
+        }
+      },
+    }),
+  );
 
   useEffect(() => {
     if (isOpen) {

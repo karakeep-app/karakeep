@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -18,20 +19,23 @@ import {
   useDeleteBookmark,
   useRecrawlBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function BrokenLinksPage() {
+  const api = useTRPC();
   const { t } = useTranslation();
 
-  const apiUtils = api.useUtils();
-  const { data, isPending } = api.bookmarks.getBrokenLinks.useQuery();
+  const queryClient = useQueryClient();
+  const { data, isPending } = useQuery(
+    api.bookmarks.getBrokenLinks.queryOptions(),
+  );
 
   const { mutate: deleteBookmark, isPending: isDeleting } = useDeleteBookmark({
     onSuccess: () => {
       toast({
         description: t("toasts.bookmarks.deleted"),
       });
-      apiUtils.bookmarks.getBrokenLinks.invalidate();
+      queryClient.invalidateQueries(api.bookmarks.getBrokenLinks.pathFilter());
     },
     onError: () => {
       toast({
@@ -47,7 +51,9 @@ export default function BrokenLinksPage() {
         toast({
           description: t("toasts.bookmarks.refetch"),
         });
-        apiUtils.bookmarks.getBrokenLinks.invalidate();
+        queryClient.invalidateQueries(
+          api.bookmarks.getBrokenLinks.pathFilter(),
+        );
       },
       onError: () => {
         toast({

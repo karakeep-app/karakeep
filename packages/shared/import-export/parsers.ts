@@ -1,5 +1,6 @@
 // Copied from https://gist.github.com/devster31/4e8c6548fd16ffb75c02e6f24e27f9b9
 
+import type { AnyNode } from "domhandler";
 import * as cheerio from "cheerio";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
@@ -15,7 +16,8 @@ export type ImportSource =
   | "karakeep"
   | "linkwarden"
   | "tab-session-manager"
-  | "mymind";
+  | "mymind"
+  | "instapaper";
 
 export interface ParsedBookmark {
   title: string;
@@ -35,43 +37,58 @@ function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
   }
 
   const $ = cheerio.load(textContent);
+  const bookmarks: ParsedBookmark[] = [];
 
-  return $("a")
-    .map(function (_index, a) {
-      const $a = $(a);
-      const addDate = $a.attr("add_date");
-      let tags: string[] = [];
+  // Recursively traverse the bookmark hierarchy top-down
+  function traverseFolder(
+    element: cheerio.Cheerio<AnyNode>,
+    currentPath: string[],
+  ) {
+    element.children().each((_index, child) => {
+      const $child = $(child);
 
-      const tagsStr = $a.attr("tags");
-      try {
-        tags = tagsStr && tagsStr.length > 0 ? tagsStr.split(",") : [];
-      } catch {
-        /* empty */
-      }
-      const url = $a.attr("href");
+      // Check if this is a folder (DT with H3)
+      const h3 = $child.children("h3").first();
+      if (h3.length > 0) {
+        const folderName = h3.text().trim() || "Unnamed";
+        const newPath = [...currentPath, folderName];
 
-      // Build folder path by traversing up the hierarchy
-      const path: string[] = [];
-      let current = $a.parent();
-      while (current && current.length > 0) {
-        const h3 = current.find("> h3").first();
-        if (h3.length > 0) {
-          const folderName = h3.text().trim();
-          // Use "Unnamed" for empty folder names
-          path.unshift(folderName || "Unnamed");
+        // Find the DL that follows this folder and recurse into it
+        const dl = $child.children("dl").first();
+        if (dl.length > 0) {
+          traverseFolder(dl, newPath);
         }
-        current = current.parent();
-      }
+      } else {
+        // Check if this is a bookmark (DT with A)
+        const anchor = $child.children("a").first();
+        if (anchor.length > 0) {
+          const addDate = anchor.attr("add_date");
+          const tagsStr = anchor.attr("tags");
+          const tags = tagsStr && tagsStr.length > 0 ? tagsStr.split(",") : [];
+          const url = anchor.attr("href");
 
-      return {
-        title: $a.text(),
-        content: url ? { type: BookmarkTypes.LINK as const, url } : undefined,
-        tags,
-        addDate: typeof addDate === "undefined" ? undefined : parseInt(addDate),
-        paths: [path],
-      };
-    })
-    .get();
+          bookmarks.push({
+            title: anchor.text(),
+            content: url
+              ? { type: BookmarkTypes.LINK as const, url }
+              : undefined,
+            tags,
+            addDate:
+              typeof addDate === "undefined" ? undefined : parseInt(addDate),
+            paths: [currentPath],
+          });
+        }
+      }
+    });
+  }
+
+  // Start traversal from the root DL element
+  const rootDl = $("dl").first();
+  if (rootDl.length > 0) {
+    traverseFolder(rootDl, []);
+  }
+
+  return bookmarks;
 }
 
 function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -341,6 +358,64 @@ function parseMymindBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
+function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zInstapaperRecordScheme = z.object({
+    URL: z.string(),
+    Title: z.string(),
+    Selection: z.string(),
+    Folder: z.string(),
+    Timestamp: z.string(),
+    Tags: z.string(),
+  });
+
+  const zInstapaperExportScheme = z.array(zInstapaperRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zInstapaperExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid instapaper bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
+    let content: ParsedBookmark["content"];
+    if (record.URL && record.URL.trim().length > 0) {
+      content = { type: BookmarkTypes.LINK as const, url: record.URL.trim() };
+    } else if (record.Selection && record.Selection.trim().length > 0) {
+      content = {
+        type: BookmarkTypes.TEXT as const,
+        text: record.Selection.trim(),
+      };
+    }
+
+    const addDate = parseInt(record.Timestamp);
+
+    let tags: string[] = [];
+    try {
+      const parsedTags = JSON.parse(record.Tags);
+      if (Array.isArray(parsedTags)) {
+        tags = parsedTags.map((tag) => tag.toString().trim());
+      }
+    } catch {
+      tags = [];
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths: [], // TODO
+    };
+  });
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -411,6 +486,9 @@ export function parseImportFile(
       break;
     case "mymind":
       result = parseMymindBookmarkFile(textContent);
+      break;
+    case "instapaper":
+      result = parseInstapaperBookmarkFile(textContent);
       break;
   }
   return deduplicateBookmarks(result);

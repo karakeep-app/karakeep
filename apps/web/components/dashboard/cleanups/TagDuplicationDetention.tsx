@@ -22,12 +22,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { distance } from "fastest-levenshtein";
 import { Check, Combine, X } from "lucide-react";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 interface Suggestion {
   mergeIntoId: string;
@@ -199,12 +200,15 @@ function SuggestionRow({
 }
 
 export function TagDuplicationDetection() {
+  const api = useTRPC();
   const [expanded, setExpanded] = useState(false);
-  let { data: allTags } = api.tags.list.useQuery(
-    {},
-    {
-      refetchOnWindowFocus: false,
-    },
+  let { data: allTags } = useQuery(
+    api.tags.list.queryOptions(
+      {},
+      {
+        refetchOnWindowFocus: false,
+      },
+    ),
   );
 
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =

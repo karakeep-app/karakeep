@@ -67,14 +67,21 @@ async function runRuleEngine(job: DequeuedJob<ZRuleEngineRequest>) {
 
   const bookmark = await getBookmarkUserId(bookmarkId);
   if (!bookmark) {
-    throw new Error(
-      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found`,
+    logger.info(
+      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found, skipping`,
     );
+    return;
   }
   const userId = bookmark.userId;
   const authedCtx = await buildImpersonatingAuthedContext(userId);
 
   const ruleEngine = await RuleEngine.forBookmark(authedCtx, bookmarkId);
+  if (!ruleEngine) {
+    logger.info(
+      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found during rule evaluation, skipping`,
+    );
+    return;
+  }
 
   const results = (
     await Promise.all(events.map((event) => ruleEngine.onEvent(event)))

@@ -7,12 +7,16 @@ import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { keepPreviousData } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 
@@ -29,7 +33,12 @@ export default function Search() {
     removeItem: (k: string) => AsyncStorage.removeItem(k),
   });
 
-  const onRefresh = api.useUtils().bookmarks.searchBookmarks.invalidate;
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  const onRefresh = () => {
+    queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
+  };
 
   const {
     data,
@@ -39,14 +48,16 @@ export default function Search() {
     isFetching,
     fetchNextPage,
     isFetchingNextPage,
-  } = api.bookmarks.searchBookmarks.useInfiniteQuery(
-    { text: query },
-    {
-      placeholderData: keepPreviousData,
-      gcTime: 0,
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  } = useInfiniteQuery(
+    api.bookmarks.searchBookmarks.infiniteQueryOptions(
+      { text: query },
+      {
+        placeholderData: keepPreviousData,
+        gcTime: 0,
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   const filteredHistory = useMemo(() => {

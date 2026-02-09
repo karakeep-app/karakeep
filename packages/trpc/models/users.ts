@@ -61,7 +61,7 @@ export class User {
 
   static async create(
     ctx: Context,
-    input: z.infer<typeof zSignUpSchema>,
+    input: z.infer<typeof zSignUpSchema> & { redirectUrl?: string },
     role?: "user" | "admin",
   ) {
     const salt = generatePasswordSalt();
@@ -76,7 +76,12 @@ export class User {
     if (serverConfig.auth.emailVerificationRequired) {
       const token = await User.genEmailVerificationToken(ctx.db, input.email);
       try {
-        await sendVerificationEmail(input.email, input.name, token);
+        await sendVerificationEmail(
+          input.email,
+          input.name,
+          token,
+          input.redirectUrl,
+        );
       } catch (error) {
         console.error("Failed to send verification email:", error);
       }
@@ -227,6 +232,7 @@ export class User {
   static async resendVerificationEmail(
     ctx: Context,
     email: string,
+    redirectUrl?: string,
   ): Promise<void> {
     if (
       !serverConfig.auth.emailVerificationRequired ||
@@ -255,7 +261,7 @@ export class User {
 
     const token = await User.genEmailVerificationToken(ctx.db, email);
     try {
-      await sendVerificationEmail(email, user.name, token);
+      await sendVerificationEmail(email, user.name, token, redirectUrl);
     } catch (error) {
       console.error("Failed to send verification email:", error);
       throw new TRPCError({
@@ -441,6 +447,7 @@ export class User {
         autoTaggingEnabled: true,
         autoSummarizationEnabled: true,
         tagStyle: true,
+        curatedTagIds: true,
         inferredTagLang: true,
       },
     });
@@ -465,6 +472,7 @@ export class User {
       autoTaggingEnabled: settings.autoTaggingEnabled,
       autoSummarizationEnabled: settings.autoSummarizationEnabled,
       tagStyle: settings.tagStyle ?? "as-generated",
+      curatedTagIds: settings.curatedTagIds ?? null,
       inferredTagLang: settings.inferredTagLang,
     };
   }
@@ -494,6 +502,7 @@ export class User {
         autoTaggingEnabled: input.autoTaggingEnabled,
         autoSummarizationEnabled: input.autoSummarizationEnabled,
         tagStyle: input.tagStyle,
+        curatedTagIds: input.curatedTagIds,
         inferredTagLang: input.inferredTagLang,
       })
       .where(eq(users.id, this.user.id));
@@ -872,12 +881,22 @@ export class User {
   }
 
   async hasWrapped(): Promise<boolean> {
+    // Check for bookmarks created in 2025
+    const yearStart = new Date("2025-01-01T00:00:00Z");
+    const yearEnd = new Date("2025-12-31T23:59:59Z");
+
     const [{ numBookmarks }] = await this.ctx.db
       .select({
         numBookmarks: count(bookmarks.id),
       })
       .from(bookmarks)
-      .where(eq(bookmarks.userId, this.user.id));
+      .where(
+        and(
+          eq(bookmarks.userId, this.user.id),
+          gte(bookmarks.createdAt, yearStart),
+          lte(bookmarks.createdAt, yearEnd),
+        ),
+      );
 
     return numBookmarks >= 20;
   }

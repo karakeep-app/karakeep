@@ -30,6 +30,7 @@ export default function BookmarkList({
     <Animated.FlatList
       ref={flatListRef}
       itemLayoutAnimation={LinearTransition}
+      contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={header}
       contentContainerStyle={{
         gap: 15,

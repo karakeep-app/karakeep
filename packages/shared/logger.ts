@@ -14,4 +14,16 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
+export function throttledLogger(periodMs: number) {
+  let lastLogTime = 0;
+
+  return (level: string, message: string) => {
+    const now = Date.now();
+    if (now - lastLogTime >= periodMs) {
+      lastLogTime = now;
+      logger.log(level, message);
+    }
+  };
+}
+
 export default logger;

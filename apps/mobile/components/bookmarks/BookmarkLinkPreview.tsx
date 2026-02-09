@@ -6,14 +6,16 @@ import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
-import { api } from "@/lib/trpc";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useQuery } from "@tanstack/react-query";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
 import BookmarkAssetImage from "./BookmarkAssetImage";
+import { PDFViewer } from "./PDFViewer";
 
 export function BookmarkLinkBrowserPreview({
   bookmark,
@@ -33,6 +35,30 @@ export function BookmarkLinkBrowserPreview({
   );
 }
 
+export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
+  if (bookmark.content.type !== BookmarkTypes.LINK) {
+    throw new Error("Wrong content type rendered");
+  }
+
+  const asset = bookmark.assets.find((r) => r.assetType == "pdf");
+
+  const assetSource = useAssetUrl(asset?.id ?? "");
+
+  if (!asset) {
+    return (
+      <View className="flex-1 bg-background">
+        <Text>Asset has no PDF</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex flex-1">
+      <PDFViewer source={assetSource.uri ?? ""} headers={assetSource.headers} />
+    </View>
+  );
+}
+
 export function BookmarkLinkReaderPreview({
   bookmark,
 }: {
@@ -40,16 +66,19 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const api = useTRPC();
 
   const {
     data: bookmarkWithContent,
     error,
     isLoading,
     refetch,
-  } = api.bookmarks.getBookmark.useQuery({
-    bookmarkId: bookmark.id,
-    includeContent: true,
-  });
+  } = useQuery(
+    api.bookmarks.getBookmark.queryOptions({
+      bookmarkId: bookmark.id,
+      includeContent: true,
+    }),
+  );
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -199,7 +228,8 @@ export function BookmarkLinkScreenshotPreview({
       <Pressable onPress={() => setImageZoom(true)}>
         <BookmarkAssetImage
           assetId={asset.id}
-          className="h-full w-full object-contain"
+          className="h-full w-full"
+          contentFit="contain"
         />
       </Pressable>
     </View>

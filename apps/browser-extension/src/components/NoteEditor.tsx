@@ -55,6 +55,7 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
   return (
     <div className="flex flex-col gap-2">
       <Textarea
+        autoFocus
         className="h-32 w-full overflow-auto rounded bg-background p-2 text-sm text-gray-400 dark:text-gray-300"
         value={noteValue}
         placeholder="Write some notes ..."

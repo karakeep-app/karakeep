@@ -1,113 +1,155 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
   listsToTree,
   ZBookmarkListRoot,
 } from "@karakeep/shared/utils/listUtils";
 
-import { api } from "../trpc";
+import { useTRPC } from "../trpc";
+
+type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useCreateBookmarkList(
-  ...opts: Parameters<typeof api.lists.create.useMutation>
+  opts?: Parameters<TRPCApi["lists"]["create"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.lists.create.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.lists.list.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.lists.create.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.lists.list.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useEditBookmarkList(
-  ...opts: Parameters<typeof api.lists.edit.useMutation>
+  opts?: Parameters<TRPCApi["lists"]["edit"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.lists.edit.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.lists.list.invalidate();
-      apiUtils.lists.get.invalidate({ listId: req.listId });
-      if (res.type === "smart") {
-        apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.listId });
-      }
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.lists.edit.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.lists.list.pathFilter());
+        queryClient.invalidateQueries(
+          api.lists.get.queryFilter({ listId: req.listId }),
+        );
+        if (res.type === "smart") {
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+          );
+        }
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useMergeLists(
-  ...opts: Parameters<typeof api.lists.merge.useMutation>
+  opts?: Parameters<TRPCApi["lists"]["merge"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.lists.merge.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.lists.list.invalidate();
-      apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.targetId });
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.lists.merge.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.lists.list.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.queryFilter({ listId: req.targetId }),
+        );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useAddBookmarkToList(
-  ...opts: Parameters<typeof api.lists.addToList.useMutation>
+  opts?: Parameters<TRPCApi["lists"]["addToList"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.lists.addToList.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.listId });
-      apiUtils.lists.getListsOfBookmark.invalidate({
-        bookmarkId: req.bookmarkId,
-      });
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.lists.addToList.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+        );
+        queryClient.invalidateQueries(
+          api.lists.getListsOfBookmark.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useRemoveBookmarkFromList(
-  ...opts: Parameters<typeof api.lists.removeFromList.useMutation>
+  opts?: Parameters<TRPCApi["lists"]["removeFromList"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.lists.removeFromList.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.bookmarks.getBookmarks.invalidate({ listId: req.listId });
-      apiUtils.lists.getListsOfBookmark.invalidate({
-        bookmarkId: req.bookmarkId,
-      });
-      apiUtils.lists.stats.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.lists.removeFromList.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+        );
+        queryClient.invalidateQueries(
+          api.lists.getListsOfBookmark.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteBookmarkList(
-  ...opts: Parameters<typeof api.lists.delete.useMutation>
+  opts?: Parameters<TRPCApi["lists"]["delete"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.lists.delete.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.lists.list.invalidate();
-      apiUtils.lists.get.invalidate({ listId: req.listId });
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.lists.delete.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.lists.list.pathFilter());
+        queryClient.invalidateQueries(
+          api.lists.get.queryFilter({ listId: req.listId }),
+        );
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useBookmarkLists(
-  ...opts: Parameters<typeof api.lists.list.useQuery>
+  input?: Parameters<TRPCApi["lists"]["list"]["queryOptions"]>[0],
+  opts?: Parameters<TRPCApi["lists"]["list"]["queryOptions"]>[1],
 ) {
-  return api.lists.list.useQuery(opts[0], {
-    ...opts[1],
-    select: (data) => {
-      return { data: data.lists, ...listsToTree(data.lists) };
-    },
-  });
+  const api = useTRPC();
+  return useQuery(
+    api.lists.list.queryOptions(input, {
+      ...opts,
+      select: (data) => {
+        return { data: data.lists, ...listsToTree(data.lists) };
+      },
+    }),
+  );
 }
 
 export function augmentBookmarkListsWithInitialData(

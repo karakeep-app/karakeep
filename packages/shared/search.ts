@@ -60,9 +60,20 @@ export interface SearchResponse {
   processingTimeMs: number;
 }
 
+export interface IndexingOptions {
+  /**
+   * Whether to batch requests. Defaults to true.
+   * Set to false to bypass batching for improved reliability (e.g., on retries).
+   */
+  batch?: boolean;
+}
+
 export interface SearchIndexClient {
-  addDocuments(documents: BookmarkSearchDocument[]): Promise<void>;
-  deleteDocuments(ids: string[]): Promise<void>;
+  addDocuments(
+    documents: BookmarkSearchDocument[],
+    options?: IndexingOptions,
+  ): Promise<void>;
+  deleteDocuments(ids: string[], options?: IndexingOptions): Promise<void>;
   search(options: SearchOptions): Promise<SearchResponse>;
   clearIndex(): Promise<void>;
 }

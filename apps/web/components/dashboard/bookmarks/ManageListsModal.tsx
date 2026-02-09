@@ -19,8 +19,8 @@ import {
 import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { Archive, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,6 +30,7 @@ import {
   useBookmarkLists,
   useRemoveBookmarkFromList,
 } from "@karakeep/shared-react/hooks/lists";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { BookmarkListSelector } from "../lists/BookmarkListSelector";
 import ArchiveBookmarkButton from "./action-buttons/ArchiveBookmarkButton";
@@ -43,6 +44,7 @@ export default function ManageListsModal({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const formSchema = z.object({
     listId: z.string({
@@ -61,13 +63,14 @@ export default function ManageListsModal({
     { enabled: open },
   );
 
-  const { data: alreadyInList, isPending: isAlreadyInListPending } =
-    api.lists.getListsOfBookmark.useQuery(
+  const { data: alreadyInList, isPending: isAlreadyInListPending } = useQuery(
+    api.lists.getListsOfBookmark.queryOptions(
       {
         bookmarkId,
       },
       { enabled: open },
-    );
+    ),
+  );
 
   const isLoading = isAllListsPending || isAlreadyInListPending;
 

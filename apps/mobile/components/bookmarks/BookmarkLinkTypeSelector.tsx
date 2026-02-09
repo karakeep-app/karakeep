@@ -4,7 +4,12 @@ import { ChevronDown } from "lucide-react-native";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-export type BookmarkLinkType = "browser" | "reader" | "screenshot" | "archive";
+export type BookmarkLinkType =
+  | "browser"
+  | "reader"
+  | "screenshot"
+  | "archive"
+  | "pdf";
 
 function getAvailableViewTypes(bookmark: ZBookmark): BookmarkLinkType[] {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
@@ -25,6 +30,9 @@ function getAvailableViewTypes(bookmark: ZBookmark): BookmarkLinkType[] {
     )
   ) {
     availableTypes.push("archive");
+  }
+  if (bookmark.assets.some((asset) => asset.assetType === "pdf")) {
+    availableTypes.push("pdf");
   }
 
   return availableTypes;
@@ -63,6 +71,11 @@ export default function BookmarkLinkTypeSelector({
       id: "archive" as const,
       title: "Archived Page",
       state: type === "archive" ? ("on" as const) : undefined,
+    },
+    {
+      id: "pdf" as const,
+      title: "PDF",
+      state: type === "pdf" ? ("on" as const) : undefined,
     },
   ];
 
