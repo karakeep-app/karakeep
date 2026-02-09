@@ -332,6 +332,42 @@ describe("Search Query Parser", () => {
         inverse: true,
       },
     });
+    expect(parseSearchQuery("source:rss")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "source",
+        source: "rss",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("-source:rss")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "source",
+        source: "rss",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery("source:web")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "source",
+        source: "web",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("-source:web")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "source",
+        source: "web",
+        inverse: true,
+      },
+    });
   });
   test("! negation alias for -", () => {
     // ! should work exactly like - for negation

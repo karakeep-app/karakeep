@@ -268,7 +268,11 @@
       "camelCase": "camelCase",
       "no_preference": "No preference",
       "inference_language": "Inference Language",
-      "inference_language_description": "Choose language for AI-generated tags and summaries."
+      "inference_language_description": "Choose language for AI-generated tags and summaries.",
+      "curated_tags": "Curated Tags",
+      "curated_tags_description": "Optionally restrict AI tagging to only use tags from this list. When no tags are selected, the AI generates tags freely.",
+      "curated_tags_updated": "Curated tags updated successfully!",
+      "curated_tags_update_failed": "Failed to update curated tags"
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
@@ -305,6 +309,7 @@
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
+      "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
@@ -760,6 +765,8 @@
     "create_tag_description": "Create a new tag without attaching it to any bookmark",
     "tag_name": "Tag Name",
     "enter_tag_name": "Enter tag name",
+    "search_placeholder": "Search tags...",
+    "search_or_create_placeholder": "Search or create tags...",
     "no_custom_tags": "No custom tags yet",
     "no_ai_tags": "No AI tags yet",
     "no_unused_tags": "You don't have any unused tags",
@@ -802,6 +809,8 @@
     "type_is_not": "Type is not",
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
+    "is_from_source": "Source is",
+    "is_not_from_source": "Source is not",
     "is_broken_link": "Has Broken Link",
     "is_not_broken_link": "Has Working Link",
     "and": "And",

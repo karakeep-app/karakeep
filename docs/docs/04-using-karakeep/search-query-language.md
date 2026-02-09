@@ -36,6 +36,7 @@ Here's a comprehensive table of all supported qualifiers:
 | `after:<date>`                   | Bookmarks created on or after date (YYYY-MM-DD)                                                                                                                                                           | `after:2023-01-01`                           |
 | `before:<date>`                  | Bookmarks created on or before date (YYYY-MM-DD)                                                                                                                                                          | `before:2023-12-31`                          |
 | `feed:<name>`                    | Bookmarks imported from a particular rss feed                                                                                                                                                             | `feed:Hackernews`                            |
+| `source:<value>`                 | Match bookmarks from a specific source. Valid values: `api`, `web`, `cli`, `mobile`, `extension`, `singlefile`, `rss`, `import`                                                                          | `source:rss` `-source:web`                   |
 | `age:<time-range>`               | Match bookmarks based on how long ago they were created. Use `<` or `>` to indicate the maximum / minimum age of the bookmarks. Supported units: `d` (days), `w` (weeks), `m` (months), `y` (years). | `age:<1d` `age:>2w` `age:<6m` `age:>3y` |
 
 ### Examples

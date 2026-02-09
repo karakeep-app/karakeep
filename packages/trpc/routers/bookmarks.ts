@@ -570,7 +570,7 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await LinkCrawlerQueue.enqueue(
+      await LowPriorityCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
           archiveFullPage: input.archiveFullPage,

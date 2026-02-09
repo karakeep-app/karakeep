@@ -11,7 +11,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { Glob } from "glob";
+import glob from "glob";
 import { z } from "zod";
 
 import serverConfig from "@karakeep/shared/config";
@@ -287,18 +287,30 @@ class LocalFileSystemAssetStore implements AssetStore {
   }
 
   async *getAllAssets() {
-    const g = new Glob(`/**/**/asset.bin`, {
-      maxDepth: 3,
-      root: this.rootPath,
-      cwd: this.rootPath,
-      absolute: false,
+    const files = await new Promise<string[]>((resolve, reject) => {
+      glob(
+        "*/*/asset.bin",
+        {
+          cwd: this.rootPath,
+          nodir: true,
+        },
+        (err, matches) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(matches);
+        },
+      );
     });
-    for await (const file of g) {
+
+    for (const file of files) {
       const [userId, assetId] = file.split("/").slice(0, 2);
       const [size, metadata] = await Promise.all([
         this.getAssetSize({ userId, assetId }),
         this.readAssetMetadata({ userId, assetId }),
       ]);
+
       yield {
         userId,
         assetId,

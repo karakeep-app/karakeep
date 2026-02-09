@@ -4,6 +4,7 @@ import {
   exists,
   gt,
   gte,
+  inArray,
   isNotNull,
   isNull,
   like,
@@ -11,6 +12,7 @@ import {
   lte,
   ne,
   notExists,
+  notInArray,
   notLike,
   or,
 } from "drizzle-orm";
@@ -89,10 +91,13 @@ function union(vals: BookmarkQueryReturnType[][]): BookmarkQueryReturnType[] {
 }
 
 async function getIds(
-  db: AuthedContext["db"],
-  userId: string,
+  ctx: AuthedContext,
   matcher: Matcher,
+  visitedListIds = new Set<string>(),
 ): Promise<BookmarkQueryReturnType[]> {
+  const { db } = ctx;
+  const userId = ctx.user.id;
+
   switch (matcher.type) {
     case "tagName": {
       const comp = matcher.inverse ? notExists : exists;
@@ -139,29 +144,54 @@ async function getIds(
         );
     }
     case "listName": {
-      const comp = matcher.inverse ? notExists : exists;
+      // First, look up the list by name
+      const lists = await db.query.bookmarkLists.findMany({
+        where: and(
+          eq(bookmarkLists.userId, userId),
+          eq(bookmarkLists.name, matcher.listName),
+        ),
+      });
+
+      if (lists.length === 0) {
+        // No matching lists
+        return [];
+      }
+
+      // Use List model to resolve list membership (manual and smart)
+      // Import dynamically to avoid circular dependency
+      const { List } = await import("../models/lists");
+      const listBookmarkIds = [
+        ...new Set(
+          (
+            await Promise.all(
+              lists.map(async (list) => {
+                const listModel = await List.fromId(ctx, list.id);
+                return await listModel.getBookmarkIds(visitedListIds);
+              }),
+            )
+          ).flat(),
+        ),
+      ];
+
+      if (listBookmarkIds.length === 0) {
+        if (matcher.inverse) {
+          return db
+            .selectDistinct({ id: bookmarks.id })
+            .from(bookmarks)
+            .where(eq(bookmarks.userId, userId));
+        }
+        return [];
+      }
+
       return db
         .selectDistinct({ id: bookmarks.id })
         .from(bookmarks)
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(bookmarksInLists)
-                .innerJoin(
-                  bookmarkLists,
-                  eq(bookmarksInLists.listId, bookmarkLists.id),
-                )
-                .where(
-                  and(
-                    eq(bookmarksInLists.bookmarkId, bookmarks.id),
-                    eq(bookmarkLists.userId, userId),
-                    eq(bookmarkLists.name, matcher.listName),
-                  ),
-                ),
-            ),
+            matcher.inverse
+              ? notInArray(bookmarks.id, listBookmarkIds)
+              : inArray(bookmarks.id, listBookmarkIds),
           ),
         );
     }
@@ -373,15 +403,31 @@ async function getIds(
           ),
         );
     }
+    case "source": {
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            matcher.inverse
+              ? or(
+                  ne(bookmarks.source, matcher.source),
+                  isNull(bookmarks.source),
+                )
+              : eq(bookmarks.source, matcher.source),
+          ),
+        );
+    }
     case "and": {
       const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(db, userId, m)),
+        matcher.matchers.map((m) => getIds(ctx, m, visitedListIds)),
       );
       return intersect(vals);
     }
     case "or": {
       const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(db, userId, m)),
+        matcher.matchers.map((m) => getIds(ctx, m, visitedListIds)),
       );
       return union(vals);
     }
@@ -395,7 +441,8 @@ async function getIds(
 export async function getBookmarkIdsFromMatcher(
   ctx: AuthedContext,
   matcher: Matcher,
+  visitedListIds = new Set<string>(),
 ): Promise<string[]> {
-  const results = await getIds(ctx.db, ctx.user.id, matcher);
+  const results = await getIds(ctx, matcher, visitedListIds);
   return results.map((r) => r.id);
 }

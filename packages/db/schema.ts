@@ -94,6 +94,7 @@ export const users = sqliteTable("user", {
       "as-generated",
     ],
   }).default("titlecase-spaces"),
+  curatedTagIds: text("curatedTagIds", { mode: "json" }).$type<string[]>(),
   inferredTagLang: text("inferredTagLang"),
 });
 

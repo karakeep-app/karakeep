@@ -9,6 +9,7 @@ import {
   AssetPreprocessingQueue,
   FeedQueue,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
   QueuePriority,
   SearchIndexingQueue,
@@ -90,6 +91,7 @@ export const adminAppRouter = router({
       const [
         // Crawls
         queuedCrawls,
+        queuedLowPriorityCrawls,
         [{ value: pendingCrawls }],
         [{ value: failedCrawls }],
 
@@ -118,6 +120,7 @@ export const adminAppRouter = router({
       ] = await Promise.all([
         // Crawls
         LinkCrawlerQueue.stats(),
+        LowPriorityCrawlerQueue.stats(),
         ctx.db
           .select({ value: count() })
           .from(bookmarkLinks)
@@ -169,7 +172,11 @@ export const adminAppRouter = router({
 
       return {
         crawlStats: {
-          queued: queuedCrawls.pending + queuedCrawls.pending_retry,
+          queued:
+            queuedCrawls.pending +
+            queuedCrawls.pending_retry +
+            queuedLowPriorityCrawls.pending +
+            queuedLowPriorityCrawls.pending_retry,
           pending: pendingCrawls,
           failed: failedCrawls,
         },
@@ -221,7 +228,7 @@ export const adminAppRouter = router({
 
       await Promise.all(
         bookmarkIds.map((b) =>
-          LinkCrawlerQueue.enqueue(
+          LowPriorityCrawlerQueue.enqueue(
             {
               bookmarkId: b.id,
               runInference: input.runInference,
@@ -663,7 +670,7 @@ export const adminAppRouter = router({
         });
       }
 
-      await LinkCrawlerQueue.enqueue(
+      await LowPriorityCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
         },

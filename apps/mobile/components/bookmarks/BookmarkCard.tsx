@@ -539,5 +539,12 @@ export default function BookmarkCard({
       break;
   }
 
-  return <View className="overflow-hidden rounded-xl bg-card">{comp}</View>;
+  return (
+    <View
+      className="overflow-hidden rounded-xl bg-card"
+      style={{ borderCurve: "continuous" }}
+    >
+      {comp}
+    </View>
+  );
 }

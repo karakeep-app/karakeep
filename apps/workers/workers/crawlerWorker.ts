@@ -1534,6 +1534,36 @@ async function crawlAndParseUrl(
       ]);
       abortSignal.throwIfAborted();
 
+      const parseDate = (date: string | undefined) => {
+        if (!date) {
+          return null;
+        }
+        try {
+          return new Date(date);
+        } catch {
+          return null;
+        }
+      };
+
+      // Phase 1: Write metadata immediately for fast user feedback.
+      // Content and asset storage happen later and can be slow (banner
+      // image download, screenshot/pdf upload, etc.).
+      await db
+        .update(bookmarkLinks)
+        .set({
+          title: meta.title,
+          description: meta.description,
+          // Don't store data URIs as they're not valid URLs and are usually quite large
+          imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
+          favicon: meta.logo,
+          crawlStatusCode: statusCode,
+          author: meta.author,
+          publisher: meta.publisher,
+          datePublished: parseDate(meta.datePublished),
+          dateModified: parseDate(meta.dateModified),
+        })
+        .where(eq(bookmarkLinks.id, bookmarkId));
+
       let readableContent: { content: string } | null = meta.readableContentHtml
         ? { content: meta.readableContentHtml }
         : null;
@@ -1588,17 +1618,7 @@ async function crawlAndParseUrl(
       }
       abortSignal.throwIfAborted();
 
-      const parseDate = (date: string | undefined) => {
-        if (!date) {
-          return null;
-        }
-        try {
-          return new Date(date);
-        } catch {
-          return null;
-        }
-      };
-
+      // Phase 2: Write content and asset references.
       // TODO(important): Restrict the size of content to store
       const assetDeletionTasks: Promise<void>[] = [];
       const inlineHtmlContent =
@@ -1610,22 +1630,12 @@ async function crawlAndParseUrl(
         await txn
           .update(bookmarkLinks)
           .set({
-            title: meta.title,
-            description: meta.description,
-            // Don't store data URIs as they're not valid URLs and are usually quite large
-            imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
-            favicon: meta.logo,
+            crawledAt: new Date(),
             htmlContent: inlineHtmlContent,
             contentAssetId:
               htmlContentAssetInfo.result === "stored"
                 ? htmlContentAssetInfo.assetId
                 : null,
-            crawledAt: new Date(),
-            crawlStatusCode: statusCode,
-            author: meta.author,
-            publisher: meta.publisher,
-            datePublished: parseDate(meta.datePublished),
-            dateModified: parseDate(meta.dateModified),
           })
           .where(eq(bookmarkLinks.id, bookmarkId));
 
