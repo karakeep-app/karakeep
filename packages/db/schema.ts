@@ -463,6 +463,8 @@ export const bookmarkLists = sqliteTable(
   },
   (bl) => [
     index("bookmarkLists_userId_idx").on(bl.userId),
+    // Helps queries that lookup lists by (userId, name)
+    index("bookmarkLists_userId_name_idx").on(bl.userId, bl.name),
     unique("bookmarkLists_userId_id_idx").on(bl.userId, bl.id),
   ],
 );
