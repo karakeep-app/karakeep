@@ -47,6 +47,7 @@ export const zTagCursorSchema = z.object({
 
 export const zTagListRequestSchema = z.object({
   nameContains: z.string().optional(),
+  ids: z.array(z.string()).optional(),
   attachedBy: z.enum([...zAttachedByEnumSchema.options, "none"]).optional(),
   sortBy: z.enum(["name", "usage", "relevance"]).optional().default("usage"),
   cursor: zTagCursorSchema.nullish().default({ page: 0 }),

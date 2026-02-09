@@ -85,6 +85,7 @@ export class Tag {
     ctx: AuthedContext,
     opts: {
       nameContains?: string;
+      ids?: string[];
       attachedBy?: "ai" | "human" | "none";
       sortBy?: "name" | "usage" | "relevance";
       pagination?: {
@@ -118,6 +119,9 @@ export class Tag {
           eq(bookmarkTags.userId, ctx.user.id),
           opts.nameContains
             ? like(bookmarkTags.name, `%${opts.nameContains}%`)
+            : undefined,
+          opts.ids && opts.ids.length > 0
+            ? inArray(bookmarkTags.id, opts.ids)
             : undefined,
         ),
       )
