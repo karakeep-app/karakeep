@@ -18,6 +18,7 @@
   "dependencies": {
     "@auth/core": "^0.27.0",
     "@karakeep/shared": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "better-sqlite3": "^11.3.0",
     "dotenv": "^16.4.1",

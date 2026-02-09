@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useSession } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
 import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";

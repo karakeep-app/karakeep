@@ -20,11 +20,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const createInviteSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -37,6 +39,8 @@ interface CreateInviteDialogProps {
 export default function CreateInviteDialog({
   children,
 }: CreateInviteDialogProps) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -47,25 +51,26 @@ export default function CreateInviteDialog({
     },
   });
 
-  const invalidateInvitesList = api.useUtils().invites.list.invalidate;
-  const createInviteMutation = api.invites.create.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "Invite sent successfully",
-      });
-      invalidateInvitesList();
-      setOpen(false);
-      form.reset();
-      setErrorMessage("");
-    },
-    onError: (e) => {
-      if (e instanceof TRPCClientError) {
-        setErrorMessage(e.message);
-      } else {
-        setErrorMessage("Failed to send invite");
-      }
-    },
-  });
+  const createInviteMutation = useMutation(
+    api.invites.create.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: "Invite sent successfully",
+        });
+        queryClient.invalidateQueries(api.invites.list.pathFilter());
+        setOpen(false);
+        form.reset();
+        setErrorMessage("");
+      },
+      onError: (e) => {
+        if (e instanceof TRPCClientError) {
+          setErrorMessage(e.message);
+        } else {
+          setErrorMessage("Failed to send invite");
+        }
+      },
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(pnpm typecheck:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm --filter * typecheck:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm --filter * lint:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm --filter * format:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm --filter * test:*)",
     ],
     "deny": []
   }

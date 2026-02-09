@@ -13,8 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
-import { keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
@@ -30,6 +29,8 @@ import {
   Video,
   Webhook,
 } from "lucide-react";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { Button } from "../ui/button";
 import { AdminCard } from "./AdminCard";
@@ -254,88 +255,99 @@ function JobCard({
 }
 
 function useJobActions() {
+  const api = useTRPC();
   const { t } = useTranslation();
 
   const { mutateAsync: recrawlLinks, isPending: isRecrawlPending } =
-    api.admin.recrawlLinks.useMutation({
-      onSuccess: () => {
-        toast({
-          description: "Recrawl enqueued",
-        });
-      },
-      onError: (e) => {
-        toast({
-          variant: "destructive",
-          description: e.message,
-        });
-      },
-    });
+    useMutation(
+      api.admin.recrawlLinks.mutationOptions({
+        onSuccess: () => {
+          toast({
+            description: "Recrawl enqueued",
+          });
+        },
+        onError: (e) => {
+          toast({
+            variant: "destructive",
+            description: e.message,
+          });
+        },
+      }),
+    );
 
   const { mutateAsync: reindexBookmarks, isPending: isReindexPending } =
-    api.admin.reindexAllBookmarks.useMutation({
-      onSuccess: () => {
-        toast({
-          description: "Reindex enqueued",
-        });
-      },
-      onError: (e) => {
-        toast({
-          variant: "destructive",
-          description: e.message,
-        });
-      },
-    });
+    useMutation(
+      api.admin.reindexAllBookmarks.mutationOptions({
+        onSuccess: () => {
+          toast({
+            description: "Reindex enqueued",
+          });
+        },
+        onError: (e) => {
+          toast({
+            variant: "destructive",
+            description: e.message,
+          });
+        },
+      }),
+    );
 
   const {
     mutateAsync: reprocessAssetsFixMode,
     isPending: isReprocessingPending,
-  } = api.admin.reprocessAssetsFixMode.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "Reprocessing enqueued",
-      });
-    },
-    onError: (e) => {
-      toast({
-        variant: "destructive",
-        description: e.message,
-      });
-    },
-  });
+  } = useMutation(
+    api.admin.reprocessAssetsFixMode.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: "Reprocessing enqueued",
+        });
+      },
+      onError: (e) => {
+        toast({
+          variant: "destructive",
+          description: e.message,
+        });
+      },
+    }),
+  );
 
   const {
     mutateAsync: reRunInferenceOnAllBookmarks,
     isPending: isInferencePending,
-  } = api.admin.reRunInferenceOnAllBookmarks.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "Inference jobs enqueued",
-      });
-    },
-    onError: (e) => {
-      toast({
-        variant: "destructive",
-        description: e.message,
-      });
-    },
-  });
+  } = useMutation(
+    api.admin.reRunInferenceOnAllBookmarks.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: "Inference jobs enqueued",
+        });
+      },
+      onError: (e) => {
+        toast({
+          variant: "destructive",
+          description: e.message,
+        });
+      },
+    }),
+  );
 
   const {
     mutateAsync: runAdminMaintenanceTask,
     isPending: isAdminMaintenancePending,
-  } = api.admin.runAdminMaintenanceTask.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "Admin maintenance request has been enqueued!",
-      });
-    },
-    onError: (e) => {
-      toast({
-        variant: "destructive",
-        description: e.message,
-      });
-    },
-  });
+  } = useMutation(
+    api.admin.runAdminMaintenanceTask.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: "Admin maintenance request has been enqueued!",
+        });
+      },
+      onError: (e) => {
+        toast({
+          variant: "destructive",
+          description: e.message,
+        });
+      },
+    }),
+  );
 
   return {
     crawlActions: [
@@ -466,13 +478,13 @@ function useJobActions() {
 }
 
 export default function BackgroundJobs() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: serverStats } = api.admin.backgroundJobsStats.useQuery(
-    undefined,
-    {
+  const { data: serverStats } = useQuery(
+    api.admin.backgroundJobsStats.queryOptions(undefined, {
       refetchInterval: 1000,
       placeholderData: keepPreviousData,
-    },
+    }),
   );
 
   const actions = useJobActions();

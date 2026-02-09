@@ -55,8 +55,12 @@ export const sendVerificationEmail = withTracing(
     email: string,
     name: string,
     token: string,
+    redirectUrl?: string,
   ) => {
-    const verificationUrl = `${serverConfig.publicUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+    let verificationUrl = `${serverConfig.publicUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+    if (redirectUrl) {
+      verificationUrl += `&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+    }
 
     const mailOptions = {
       from: serverConfig.email.smtp!.from,

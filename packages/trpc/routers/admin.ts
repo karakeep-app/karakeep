@@ -9,7 +9,9 @@ import {
   AssetPreprocessingQueue,
   FeedQueue,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
+  QueuePriority,
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
@@ -89,6 +91,7 @@ export const adminAppRouter = router({
       const [
         // Crawls
         queuedCrawls,
+        queuedLowPriorityCrawls,
         [{ value: pendingCrawls }],
         [{ value: failedCrawls }],
 
@@ -117,6 +120,7 @@ export const adminAppRouter = router({
       ] = await Promise.all([
         // Crawls
         LinkCrawlerQueue.stats(),
+        LowPriorityCrawlerQueue.stats(),
         ctx.db
           .select({ value: count() })
           .from(bookmarkLinks)
@@ -168,7 +172,11 @@ export const adminAppRouter = router({
 
       return {
         crawlStats: {
-          queued: queuedCrawls.pending + queuedCrawls.pending_retry,
+          queued:
+            queuedCrawls.pending +
+            queuedCrawls.pending_retry +
+            queuedLowPriorityCrawls.pending +
+            queuedLowPriorityCrawls.pending_retry,
           pending: pendingCrawls,
           failed: failedCrawls,
         },
@@ -220,13 +228,13 @@ export const adminAppRouter = router({
 
       await Promise.all(
         bookmarkIds.map((b) =>
-          LinkCrawlerQueue.enqueue(
+          LowPriorityCrawlerQueue.enqueue(
             {
               bookmarkId: b.id,
               runInference: input.runInference,
             },
             {
-              priority: 50,
+              priority: QueuePriority.Low,
             },
           ),
         ),
@@ -244,7 +252,7 @@ export const adminAppRouter = router({
     await Promise.all(
       bookmarkIds.map((b) =>
         triggerSearchReindex(b.id, {
-          priority: 50,
+          priority: QueuePriority.Low,
         }),
       ),
     );
@@ -264,7 +272,7 @@ export const adminAppRouter = router({
             fixMode: true,
           },
           {
-            priority: 50,
+            priority: QueuePriority.Low,
           },
         ),
       ),
@@ -299,7 +307,7 @@ export const adminAppRouter = router({
           OpenAIQueue.enqueue(
             { bookmarkId: b.id, type: input.type },
             {
-              priority: 50,
+              priority: QueuePriority.Low,
             },
           ),
         ),
@@ -662,9 +670,15 @@ export const adminAppRouter = router({
         });
       }
 
-      await LinkCrawlerQueue.enqueue({
-        bookmarkId: input.bookmarkId,
-      });
+      await LowPriorityCrawlerQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
     }),
   adminReindexBookmark: adminProcedure
     .input(z.object({ bookmarkId: z.string() }))
@@ -681,7 +695,10 @@ export const adminAppRouter = router({
         });
       }
 
-      await triggerSearchReindex(input.bookmarkId);
+      await triggerSearchReindex(input.bookmarkId, {
+        priority: QueuePriority.Low,
+        groupId: "admin",
+      });
     }),
   adminRetagBookmark: adminProcedure
     .input(z.object({ bookmarkId: z.string() }))
@@ -698,10 +715,16 @@ export const adminAppRouter = router({
         });
       }
 
-      await OpenAIQueue.enqueue({
-        bookmarkId: input.bookmarkId,
-        type: "tag",
-      });
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+          type: "tag",
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
     }),
   adminResummarizeBookmark: adminProcedure
     .input(z.object({ bookmarkId: z.string() }))
@@ -725,9 +748,15 @@ export const adminAppRouter = router({
         });
       }
 
-      await OpenAIQueue.enqueue({
-        bookmarkId: input.bookmarkId,
-        type: "summarize",
-      });
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+          type: "summarize",
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
     }),
 });

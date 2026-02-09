@@ -416,11 +416,12 @@
       "created_at": "Created {{time}}",
       "progress": "Progress",
       "status": {
+        "staging": "Staging",
         "pending": "Pending",
-        "in_progress": "In progress",
+        "running": "Running",
+        "paused": "Paused",
         "completed": "Completed",
-        "failed": "Failed",
-        "processing": "Processing"
+        "failed": "Failed"
       },
       "badges": {
         "pending": "{{count}} pending",
@@ -432,7 +433,33 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
-      "delete_session": "Delete Session"
+      "delete_session": "Delete Session",
+      "pause_session": "Pause",
+      "resume_session": "Resume",
+      "view_details": "View Details",
+      "detail": {
+        "page_title": "Import Session Details",
+        "back_to_import": "Back to Import",
+        "filter_all": "All",
+        "filter_accepted": "Accepted",
+        "filter_rejected": "Rejected",
+        "filter_duplicates": "Duplicates",
+        "filter_pending": "Pending",
+        "table_title": "Title / URL",
+        "table_type": "Type",
+        "table_result": "Result",
+        "table_reason": "Reason",
+        "table_bookmark": "Bookmark",
+        "result_accepted": "Accepted",
+        "result_rejected": "Rejected",
+        "result_skipped_duplicate": "Duplicate",
+        "result_pending": "Pending",
+        "result_processing": "Processing",
+        "no_results": "No results found for this filter.",
+        "view_bookmark": "View Bookmark",
+        "load_more": "Load More",
+        "no_title": "No title"
+      }
     },
     "backups": {
       "backups": "Backups",
@@ -775,6 +802,8 @@
     "type_is_not": "Type is not",
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
+    "is_from_source": "Source is",
+    "is_not_from_source": "Source is not",
     "is_broken_link": "Has Broken Link",
     "is_not_broken_link": "Has Working Link",
     "and": "And",
@@ -791,6 +820,8 @@
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
     "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
+    "fetch_error_title": "Content Unavailable",
+    "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
     "tabs": {
       "content": "Content",
       "details": "Details"

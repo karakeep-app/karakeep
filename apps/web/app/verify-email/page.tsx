@@ -11,10 +11,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { api } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
+import {
+  isMobileAppRedirect,
+  validateRedirectUrl,
+} from "@karakeep/shared/utils/redirectUrl";
+
 export default function VerifyEmailPage() {
+  const api = useTRPC();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -24,33 +31,51 @@ export default function VerifyEmailPage() {
 
   const token = searchParams.get("token");
   const email = searchParams.get("email");
+  const redirectUrl =
+    validateRedirectUrl(searchParams.get("redirectUrl")) ?? "/";
 
-  const verifyEmailMutation = api.users.verifyEmail.useMutation({
-    onSuccess: () => {
-      setStatus("success");
-      setMessage(
-        "Your email has been successfully verified! You can now sign in.",
-      );
-    },
-    onError: (error) => {
-      setStatus("error");
-      setMessage(
-        error.message ||
-          "Failed to verify email. The link may be invalid or expired.",
-      );
-    },
-  });
+  const verifyEmailMutation = useMutation(
+    api.users.verifyEmail.mutationOptions({
+      onSuccess: () => {
+        setStatus("success");
+        if (isMobileAppRedirect(redirectUrl)) {
+          setMessage(
+            "Your email has been successfully verified! Redirecting to the app...",
+          );
+          // Redirect to mobile app after a brief delay
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 1500);
+        } else {
+          setMessage(
+            "Your email has been successfully verified! You can now sign in.",
+          );
+        }
+      },
+      onError: (error) => {
+        setStatus("error");
+        setMessage(
+          error.message ||
+            "Failed to verify email. The link may be invalid or expired.",
+        );
+      },
+    }),
+  );
 
-  const resendEmailMutation = api.users.resendVerificationEmail.useMutation({
-    onSuccess: () => {
-      setMessage(
-        "A new verification email has been sent to your email address.",
-      );
-    },
-    onError: (error) => {
-      setMessage(error.message || "Failed to resend verification email.");
-    },
-  });
+  const resendEmailMutation = useMutation(
+    api.users.resendVerificationEmail.mutationOptions({
+      onSuccess: () => {
+        setMessage(
+          "A new verification email has been sent to your email address.",
+        );
+      },
+      onError: (error) => {
+        setMessage(error.message || "Failed to resend verification email.");
+      },
+    }),
+  );
+
+  const isMobileRedirect = isMobileAppRedirect(redirectUrl);
 
   useEffect(() => {
     if (token && email) {
@@ -63,12 +88,18 @@ export default function VerifyEmailPage() {
 
   const handleResendEmail = () => {
     if (email) {
-      resendEmailMutation.mutate({ email });
+      resendEmailMutation.mutate({ email, redirectUrl });
     }
   };
 
   const handleSignIn = () => {
-    router.push("/signin");
+    if (isMobileRedirect) {
+      window.location.href = redirectUrl;
+    } else if (redirectUrl !== "/") {
+      router.push(`/signin?redirectUrl=${encodeURIComponent(redirectUrl)}`);
+    } else {
+      router.push("/signin");
+    }
   };
 
   return (
@@ -102,7 +133,7 @@ export default function VerifyEmailPage() {
                 </AlertDescription>
               </Alert>
               <Button onClick={handleSignIn} className="w-full">
-                Sign In
+                {isMobileRedirect ? "Open App" : "Sign In"}
               </Button>
             </>
           )}

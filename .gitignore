@@ -66,3 +66,4 @@ auth_failures.log
 
 # Local directory for AI agent contexts
 .aicontext/
+.codex

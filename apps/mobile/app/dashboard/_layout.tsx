@@ -70,8 +70,10 @@ export default function Dashboard() {
         options={{
           headerTitle: "New Bookmark",
           headerBackTitle: "Back",
-          headerTransparent: true,
-          presentation: "modal",
+          headerTransparent: false,
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.35, 0.7],
         }}
       />
       <Stack.Screen

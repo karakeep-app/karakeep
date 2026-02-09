@@ -61,7 +61,7 @@ export class User {
 
   static async create(
     ctx: Context,
-    input: z.infer<typeof zSignUpSchema>,
+    input: z.infer<typeof zSignUpSchema> & { redirectUrl?: string },
     role?: "user" | "admin",
   ) {
     const salt = generatePasswordSalt();
@@ -76,7 +76,12 @@ export class User {
     if (serverConfig.auth.emailVerificationRequired) {
       const token = await User.genEmailVerificationToken(ctx.db, input.email);
       try {
-        await sendVerificationEmail(input.email, input.name, token);
+        await sendVerificationEmail(
+          input.email,
+          input.name,
+          token,
+          input.redirectUrl,
+        );
       } catch (error) {
         console.error("Failed to send verification email:", error);
       }
@@ -227,6 +232,7 @@ export class User {
   static async resendVerificationEmail(
     ctx: Context,
     email: string,
+    redirectUrl?: string,
   ): Promise<void> {
     if (
       !serverConfig.auth.emailVerificationRequired ||
@@ -255,7 +261,7 @@ export class User {
 
     const token = await User.genEmailVerificationToken(ctx.db, email);
     try {
-      await sendVerificationEmail(email, user.name, token);
+      await sendVerificationEmail(email, user.name, token, redirectUrl);
     } catch (error) {
       console.error("Failed to send verification email:", error);
       throw new TRPCError({

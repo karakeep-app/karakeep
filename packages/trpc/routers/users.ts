@@ -11,6 +11,7 @@ import {
   zWhoAmIResponseSchema,
   zWrappedStatsResponseSchema,
 } from "@karakeep/shared/types/users";
+import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 import {
   adminProcedure,
@@ -31,7 +32,7 @@ export const usersAppRouter = router({
         maxRequests: 3,
       }),
     )
-    .input(zSignUpSchema)
+    .input(zSignUpSchema.and(z.object({ redirectUrl: z.string().optional() })))
     .output(
       z.object({
         id: z.string(),
@@ -65,7 +66,11 @@ export const usersAppRouter = router({
           });
         }
       }
-      const user = await User.create(ctx, input);
+      const validatedRedirectUrl = validateRedirectUrl(input.redirectUrl);
+      const user = await User.create(ctx, {
+        ...input,
+        redirectUrl: validatedRedirectUrl,
+      });
       return {
         id: user.id,
         name: user.name,
@@ -206,10 +211,16 @@ export const usersAppRouter = router({
     .input(
       z.object({
         email: z.string().email(),
+        redirectUrl: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      await User.resendVerificationEmail(ctx, input.email);
+      const validatedRedirectUrl = validateRedirectUrl(input.redirectUrl);
+      await User.resendVerificationEmail(
+        ctx,
+        input.email,
+        validatedRedirectUrl,
+      );
       return { success: true };
     }),
   forgotPassword: publicProcedure

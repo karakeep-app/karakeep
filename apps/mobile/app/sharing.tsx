@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import { useShareIntentContext } from "expo-share-intent";
 import Animated, {
   Easing,
   FadeIn,
@@ -15,14 +12,18 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { useShareIntentContext } from "expo-share-intent";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
 import { useUploadAsset } from "@/lib/upload";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Archive, Check } from "lucide-react-native";
 import { z } from "zod";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 type Mode =
@@ -32,8 +33,11 @@ type Mode =
   | { type: "error" };
 
 function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
   const onSaved = (d: ZBookmark & { alreadyExists: boolean }) => {
-    invalidateAllBookmarks();
+    queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
     setMode({
       type: d.alreadyExists ? "alreadyExists" : "success",
       bookmarkId: d.id,
@@ -49,9 +53,6 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
       setMode({ type: "error" });
     },
   });
-
-  const invalidateAllBookmarks =
-    api.useUtils().bookmarks.getBookmarks.invalidate;
 
   useEffect(() => {
     if (isLoading) {
@@ -91,12 +92,14 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
     }
   }, [isLoading]);
 
-  const { mutate, isPending } = api.bookmarks.createBookmark.useMutation({
-    onSuccess: onSaved,
-    onError: () => {
-      setMode({ type: "error" });
-    },
-  });
+  const { mutate, isPending } = useMutation(
+    api.bookmarks.createBookmark.mutationOptions({
+      onSuccess: onSaved,
+      onError: () => {
+        setMode({ type: "error" });
+      },
+    }),
+  );
 
   return null;
 }
@@ -258,11 +261,7 @@ function Particle({
 }
 
 // Animated success checkmark with celebration effect
-function SuccessAnimation({
-  isAlreadyExists,
-}: {
-  isAlreadyExists: boolean;
-}) {
+function SuccessAnimation({ isAlreadyExists }: { isAlreadyExists: boolean }) {
   const checkScale = useSharedValue(0);
   const checkOpacity = useSharedValue(0);
   const ringScale = useSharedValue(0.8);

@@ -63,6 +63,7 @@ export interface RunnerOptions<T> {
 
 export interface Queue<T> {
   opts: QueueOptions;
+  ensureInit(): Promise<void>;
   name(): string;
   enqueue(payload: T, options?: EnqueueOptions): Promise<string | undefined>;
   stats(): Promise<{

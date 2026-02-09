@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { getBookmarkDomain } from "network";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
@@ -17,6 +18,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  setSpanAttributes,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
   triggerWebhook,
@@ -24,7 +26,8 @@ import {
 import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
+import { buildImagePrompt } from "@karakeep/shared/prompts";
+import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
@@ -149,6 +152,9 @@ async function inferTagsFromImage(
   }
 
   const base64 = asset.toString("base64");
+  setSpanAttributes({
+    "inference.model": serverConfig.inference.imageModel,
+  });
   return inferenceClient.inferFromImage(
     buildImagePrompt(
       inferredTagLang,
@@ -173,6 +179,10 @@ async function fetchCustomPrompts(
     columns: {
       text: true,
     },
+  });
+
+  setSpanAttributes({
+    "inference.prompt.customCount": prompts.length,
   });
 
   let promptTexts = prompts.map((p) => p.text);
@@ -233,6 +243,12 @@ async function inferTagsFromPDF(
     serverConfig.inference.contextLength,
     tagStyle,
   );
+  setSpanAttributes({
+    "inference.model": serverConfig.inference.textModel,
+  });
+  setSpanAttributes({
+    "inference.prompt.size": Buffer.byteLength(prompt, "utf8"),
+  });
   return inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
     abortSignal,
@@ -250,6 +266,12 @@ async function inferTagsFromText(
   if (!prompt) {
     return null;
   }
+  setSpanAttributes({
+    "inference.model": serverConfig.inference.textModel,
+  });
+  setSpanAttributes({
+    "inference.prompt.size": Buffer.byteLength(prompt, "utf8"),
+  });
   return await inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
     abortSignal,
@@ -264,6 +286,18 @@ async function inferTags(
   tagStyle: ZTagStyle,
   inferredTagLang: string,
 ) {
+  setSpanAttributes({
+    "user.id": bookmark.userId,
+    "bookmark.id": bookmark.id,
+    "bookmark.url": bookmark.link?.url,
+    "bookmark.domain": getBookmarkDomain(bookmark.link?.url),
+    "bookmark.content.type": bookmark.type,
+    "crawler.statusCode": bookmark.link?.crawlStatusCode ?? undefined,
+    "inference.tagging.style": tagStyle,
+    "inference.lang": inferredTagLang,
+    "inference.type": "tagging",
+  });
+
   let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
     response = await inferTagsFromText(
@@ -323,6 +357,10 @@ async function inferTags(
         tag = t.slice(1);
       }
       return tag.trim();
+    });
+    setSpanAttributes({
+      "inference.tagging.numGeneratedTags": tags.length,
+      "inference.totalTokens": response.totalTokens,
     });
 
     return tags;
