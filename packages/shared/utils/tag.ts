@@ -31,7 +31,7 @@ export function getTagStylePrompt(style: TagStyle): string {
 
 export function getCuratedTagsPrompt(curatedTags?: string[]): string {
   if (curatedTags && curatedTags.length > 0) {
-    return `- ONLY use tags from this predefined list: [${curatedTags.join(", ")}]. Do not create any new tags outside this list.`;
+    return `- ONLY use tags from this predefined list: [${curatedTags.join(", ")}]. Do not create any new tags outside this list. If no tags fit, don't emit any.`;
   }
   return "";
 }

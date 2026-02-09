@@ -51,6 +51,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
+import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
@@ -348,19 +349,24 @@ export function CuratedTagsSelector() {
   const { t } = useTranslation();
   const settings = useUserSettings();
 
-  const { mutate: updateSettings } = useUpdateUserSettings({
-    onSuccess: () => {
-      toast({
-        description: t("settings.ai.curated_tags_updated"),
-      });
-    },
-    onError: () => {
-      toast({
-        description: t("settings.ai.curated_tags_update_failed"),
-        variant: "destructive",
-      });
-    },
-  });
+  const { mutate: updateSettings, isPending: isUpdatingCuratedTags } =
+    useUpdateUserSettings({
+      onSuccess: () => {
+        toast({
+          description: t("settings.ai.curated_tags_updated"),
+        });
+      },
+      onError: () => {
+        toast({
+          description: t("settings.ai.curated_tags_update_failed"),
+          variant: "destructive",
+        });
+      },
+    });
+
+  const areTagIdsEqual = React.useCallback((a: string[], b: string[]) => {
+    return a.length === b.length && a.every((id, index) => id === b[index]);
+  }, []);
 
   const curatedTagIds = React.useMemo(
     () => settings?.curatedTagIds ?? [],
@@ -368,14 +374,58 @@ export function CuratedTagsSelector() {
   );
   const [localCuratedTagIds, setLocalCuratedTagIds] =
     React.useState<string[]>(curatedTagIds);
+  const debouncedCuratedTagIds = useDebounce(localCuratedTagIds, 300);
+  const lastServerCuratedTagIdsRef = React.useRef(curatedTagIds);
+  const lastSubmittedCuratedTagIdsRef = React.useRef<string[] | null>(null);
 
   React.useEffect(() => {
-    setLocalCuratedTagIds(curatedTagIds);
-  }, [curatedTagIds]);
+    const hadUnsyncedLocalChanges = !areTagIdsEqual(
+      localCuratedTagIds,
+      lastServerCuratedTagIdsRef.current,
+    );
 
-  const handleCuratedTagsChange = (tagIds: string[]) => {
-    updateSettings({ curatedTagIds: tagIds.length > 0 ? tagIds : null });
-  };
+    if (
+      !hadUnsyncedLocalChanges &&
+      !areTagIdsEqual(localCuratedTagIds, curatedTagIds)
+    ) {
+      setLocalCuratedTagIds(curatedTagIds);
+    }
+
+    lastServerCuratedTagIdsRef.current = curatedTagIds;
+  }, [areTagIdsEqual, curatedTagIds, localCuratedTagIds]);
+
+  React.useEffect(() => {
+    if (isUpdatingCuratedTags) {
+      return;
+    }
+
+    if (areTagIdsEqual(debouncedCuratedTagIds, curatedTagIds)) {
+      lastSubmittedCuratedTagIdsRef.current = null;
+      return;
+    }
+
+    if (
+      lastSubmittedCuratedTagIdsRef.current &&
+      areTagIdsEqual(
+        lastSubmittedCuratedTagIdsRef.current,
+        debouncedCuratedTagIds,
+      )
+    ) {
+      return;
+    }
+
+    lastSubmittedCuratedTagIdsRef.current = debouncedCuratedTagIds;
+    updateSettings({
+      curatedTagIds:
+        debouncedCuratedTagIds.length > 0 ? debouncedCuratedTagIds : null,
+    });
+  }, [
+    areTagIdsEqual,
+    curatedTagIds,
+    debouncedCuratedTagIds,
+    isUpdatingCuratedTags,
+    updateSettings,
+  ]);
 
   // Fetch selected tags to display their names
   const { data: selectedTagsData } = useQuery(
@@ -415,17 +465,13 @@ export function CuratedTagsSelector() {
               if (prev.includes(tagId)) {
                 return prev;
               }
-              const next = [...prev, tagId];
-              handleCuratedTagsChange(next);
-              return next;
+              return [...prev, tagId];
             });
           }
         }}
         onDetach={(tag) => {
           setLocalCuratedTagIds((prev) => {
-            const next = prev.filter((id) => id !== tag.tagId);
-            handleCuratedTagsChange(next);
-            return next;
+            return prev.filter((id) => id !== tag.tagId);
           });
         }}
         allowCreation={false}
