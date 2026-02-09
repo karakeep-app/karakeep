@@ -284,6 +284,17 @@ describe("getBookmarkIdsFromMatcher", () => {
     expect(result.sort()).toEqual(["b3", "b4", "b5"]);
   });
 
+  it("should return empty when inverse listName references a missing list", async () => {
+    const matcher: Matcher = {
+      type: "listName",
+      listName: "does-not-exist",
+      inverse: true,
+    };
+
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result).toEqual([]);
+  });
+
   it("should handle archived matcher", async () => {
     const matcher: Matcher = { type: "archived", archived: true };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);

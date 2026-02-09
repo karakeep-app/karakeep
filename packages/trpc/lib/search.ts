@@ -153,13 +153,7 @@ async function getIds(
       });
 
       if (lists.length === 0) {
-        // No matching lists, return empty or all based on inverse
-        if (matcher.inverse) {
-          return db
-            .selectDistinct({ id: bookmarks.id })
-            .from(bookmarks)
-            .where(eq(bookmarks.userId, userId));
-        }
+        // No matching lists
         return [];
       }
 
