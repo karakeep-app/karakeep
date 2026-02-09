@@ -33,7 +33,7 @@
   "main": "index.ts",
   "exports": {
     ".": "./index.ts",
-    "./assetdb": "./assetdb.ts"
+    "./assetdb": "./src/assetdb.ts"
   },
   "prettier": "@karakeep/prettier-config"
 }
