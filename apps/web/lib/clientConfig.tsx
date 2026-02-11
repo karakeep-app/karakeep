@@ -9,6 +9,7 @@ export const ClientConfigCtx = createContext<ClientConfig>({
   auth: {
     disableSignups: false,
     disablePasswordAuth: false,
+    oauthAutoRedirect: false,
   },
   turnstile: null,
   inference: {

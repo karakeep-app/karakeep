@@ -47,6 +47,7 @@ const allEnv = z.object({
   NEXTAUTH_SECRET: z.string().optional(),
   DISABLE_SIGNUPS: stringBool("false"),
   DISABLE_PASSWORD_AUTH: stringBool("false"),
+  OAUTH_AUTO_REDIRECT: stringBool("false"),
   OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING: stringBool("false"),
   OAUTH_WELLKNOWN_URL: z.string().url().optional(),
   OAUTH_CLIENT_SECRET: z.string().optional(),
@@ -244,6 +245,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       disablePasswordAuth: val.DISABLE_PASSWORD_AUTH,
       emailVerificationRequired: val.EMAIL_VERIFICATION_REQUIRED,
       oauth: {
+        autoRedirect: val.OAUTH_AUTO_REDIRECT,
         allowDangerousEmailAccountLinking:
           val.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING,
         wellKnownUrl: val.OAUTH_WELLKNOWN_URL,
@@ -461,6 +463,7 @@ export const clientConfig = {
   auth: {
     disableSignups: serverConfig.auth.disableSignups,
     disablePasswordAuth: serverConfig.auth.disablePasswordAuth,
+    oauthAutoRedirect: serverConfig.auth.oauth.autoRedirect,
   },
   turnstile:
     serverConfig.auth.turnstile.enabled && serverConfig.auth.turnstile.siteKey
