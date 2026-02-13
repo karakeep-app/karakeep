@@ -4,7 +4,7 @@ export default {
     slug: "hoarder",
     scheme: "karakeep",
     version: "1.8.5",
-    orientation: "default",
+    orientation: "portrait",
     icon: {
       light: "./assets/icon.png",
       tinted: "./assets/icon-tinted.png",
