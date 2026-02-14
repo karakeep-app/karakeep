@@ -1,9 +1,16 @@
 import { NextRequest } from "next/server";
-import { api, createContextFromRequest } from "@/server/api/client";
+import {
+  createContextFromRequest,
+  createTrcpClientFromCtx,
+} from "@/server/api/client";
+import { inArray } from "drizzle-orm";
 import { z } from "zod";
 
+import { db } from "@karakeep/db";
+import { bookmarksInLists } from "@karakeep/db/schema";
 import {
   toExportFormat,
+  toExportListFormat,
   toNetscapeFormat,
   zExportSchema,
 } from "@karakeep/shared/import-export";
@@ -24,11 +31,13 @@ export async function GET(request: NextRequest) {
     includeContent: true,
   };
 
-  let resp = await api.bookmarks.getBookmarks(req);
+  const caller = createTrcpClientFromCtx(() => ctx);
+
+  let resp = await caller.bookmarks.getBookmarks(req);
   let bookmarks = resp.bookmarks;
 
   while (resp.nextCursor) {
-    resp = await api.bookmarks.getBookmarks({
+    resp = await caller.bookmarks.getBookmarks({
       ...req,
       cursor: resp.nextCursor,
     });
@@ -36,11 +45,36 @@ export async function GET(request: NextRequest) {
   }
 
   if (format === "json") {
-    // Default JSON format
+    // Fetch lists and bookmark-to-list memberships
+    const listsResp = await caller.lists.list();
+    const ownedLists = listsResp.lists.filter((l) => l.userRole === "owner");
+
+    const manualLists = ownedLists.filter((l) => l.type === "manual");
+    const manualListIds = manualLists.map((l) => l.id);
+
+    let memberships: { bookmarkId: string; listId: string }[] = [];
+    if (manualListIds.length > 0) {
+      memberships = await db
+        .select({
+          bookmarkId: bookmarksInLists.bookmarkId,
+          listId: bookmarksInLists.listId,
+        })
+        .from(bookmarksInLists)
+        .where(inArray(bookmarksInLists.listId, manualListIds));
+    }
+
+    const bookmarkListMap = new Map<string, string[]>();
+    for (const m of memberships) {
+      const existing = bookmarkListMap.get(m.bookmarkId) ?? [];
+      existing.push(m.listId);
+      bookmarkListMap.set(m.bookmarkId, existing);
+    }
+
     const exportData: z.infer<typeof zExportSchema> = {
       bookmarks: bookmarks
-        .map(toExportFormat)
+        .map((b) => toExportFormat(b, bookmarkListMap.get(b.id) ?? []))
         .filter((b) => b.content !== null),
+      lists: ownedLists.map(toExportListFormat),
     };
 
     return new Response(JSON.stringify(exportData), {

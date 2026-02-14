@@ -6,7 +6,7 @@ import { parse } from "csv-parse/sync";
 import { z } from "zod";
 
 import { BookmarkTypes } from "../types/bookmarks";
-import { zExportSchema } from "./exporters";
+import { zExportListSchema, zExportSchema } from "./exporters";
 
 export type ImportSource =
   | "html"
@@ -161,6 +161,41 @@ function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
+function buildListIdToPathMap(
+  lists: z.infer<typeof zExportListSchema>[],
+): Map<string, string[]> {
+  const listById = new Map(lists.map((l) => [l.id, l]));
+  const pathCache = new Map<string, string[]>();
+
+  function getPath(listId: string, visiting?: Set<string>): string[] {
+    if (pathCache.has(listId)) {
+      return pathCache.get(listId)!;
+    }
+    const list = listById.get(listId);
+    if (!list) {
+      return [];
+    }
+    // Detect cycles in the parentId chain
+    const currentVisiting = visiting ?? new Set<string>();
+    if (currentVisiting.has(listId)) {
+      return [list.name];
+    }
+    currentVisiting.add(listId);
+    const parentPath = list.parentId
+      ? getPath(list.parentId, currentVisiting)
+      : [];
+    const path = [...parentPath, list.name];
+    pathCache.set(listId, path);
+    return path;
+  }
+
+  for (const list of lists) {
+    getPath(list.id);
+  }
+
+  return pathCache;
+}
+
 function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
   const parsed = zExportSchema.safeParse(JSON.parse(textContent));
   if (!parsed.success) {
@@ -168,6 +203,12 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       `The uploaded JSON file contains an invalid bookmark file: ${parsed.error.toString()}`,
     );
   }
+
+  // Build a map from list ID to path (array of list names from root to leaf)
+  const manualLists = (parsed.data.lists ?? []).filter(
+    (l) => l.type === "manual",
+  );
+  const listIdToPath = buildListIdToPathMap(manualLists);
 
   return parsed.data.bookmarks.map((bookmark) => {
     let content = undefined;
@@ -182,6 +223,12 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
         text: bookmark.content.text,
       };
     }
+
+    // Convert list IDs to paths, skipping any that aren't in the map (e.g. smart lists)
+    const paths: string[][] = (bookmark.lists ?? [])
+      .map((listId) => listIdToPath.get(listId))
+      .filter((p): p is string[] => p !== undefined && p.length > 0);
+
     return {
       title: bookmark.title ?? "",
       content,
@@ -189,7 +236,7 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       addDate: bookmark.createdAt,
       notes: bookmark.note ?? undefined,
       archived: bookmark.archived,
-      paths: [], // TODO
+      paths,
     };
   });
 }
