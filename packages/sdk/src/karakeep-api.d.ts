@@ -2376,6 +2376,8 @@ export interface components {
             crawledAt?: string | null;
             /** @enum {string|null} */
             crawlStatus?: "success" | "failure" | "pending" | null;
+            /** @enum {string|null} */
+            contentQuality?: "good" | "poor" | null;
             author?: string | null;
             publisher?: string | null;
             datePublished?: string | null;
