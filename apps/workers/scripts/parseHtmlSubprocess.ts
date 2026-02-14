@@ -1,0 +1,163 @@
+import { Readability } from "@mozilla/readability";
+import DOMPurify from "dompurify";
+import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { JSDOM, VirtualConsole } from "jsdom";
+import metascraper from "metascraper";
+import metascraperAmazon from "metascraper-amazon";
+import metascraperAuthor from "metascraper-author";
+import metascraperDate from "metascraper-date";
+import metascraperDescription from "metascraper-description";
+import metascraperImage from "metascraper-image";
+import metascraperLogo from "metascraper-logo-favicon";
+import metascraperPublisher from "metascraper-publisher";
+import metascraperTitle from "metascraper-title";
+import metascraperUrl from "metascraper-url";
+import metascraperX from "metascraper-x";
+import metascraperYoutube from "metascraper-youtube";
+import { getRandomProxy } from "network";
+import winston from "winston";
+
+import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
+
+import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
+import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+
+// Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
+logger.clear();
+logger.add(new winston.transports.Stream({ stream: process.stderr }));
+
+interface SubprocessInput {
+  htmlContent: string;
+  url: string;
+  jobId: string;
+}
+
+interface SubprocessOutput {
+  metadata: Record<string, unknown>;
+  readableContent: { content: string } | null;
+}
+
+interface SubprocessError {
+  error: string;
+  stack?: string;
+}
+
+const metascraperParser = metascraper([
+  metascraperDate({
+    dateModified: true,
+    datePublished: true,
+  }),
+  metascraperAmazonImproved(),
+  metascraperAmazon(),
+  metascraperYoutube({
+    gotOpts: {
+      agent: {
+        http: serverConfig.proxy.httpProxy
+          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+          : undefined,
+        https: serverConfig.proxy.httpsProxy
+          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+          : undefined,
+      },
+    },
+  }),
+  metascraperReddit(),
+  metascraperAuthor(),
+  metascraperPublisher(),
+  metascraperTitle(),
+  metascraperDescription(),
+  metascraperX(),
+  metascraperImage(),
+  metascraperLogo({
+    gotOpts: {
+      agent: {
+        http: serverConfig.proxy.httpProxy
+          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+          : undefined,
+        https: serverConfig.proxy.httpsProxy
+          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+          : undefined,
+      },
+    },
+  }),
+  metascraperUrl(),
+]);
+
+function extractReadableContent(
+  htmlContent: string,
+  url: string,
+): { content: string } | null {
+  const virtualConsole = new VirtualConsole();
+  const dom = new JSDOM(htmlContent, { url, virtualConsole });
+  try {
+    const readableContent = new Readability(dom.window.document).parse();
+    if (!readableContent || typeof readableContent.content !== "string") {
+      return null;
+    }
+
+    const purifyWindow = new JSDOM("").window;
+    try {
+      const purify = DOMPurify(purifyWindow);
+      const purifiedHTML = purify.sanitize(readableContent.content);
+      return { content: purifiedHTML };
+    } finally {
+      purifyWindow.close();
+    }
+  } finally {
+    dom.window.close();
+  }
+}
+
+async function main() {
+  // Read all of stdin
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk);
+  }
+  const input: SubprocessInput = JSON.parse(Buffer.concat(chunks).toString());
+  const { htmlContent, url } = input;
+
+  logger.info(`[ParseSubprocess] Parsing HTML for "${url}"`);
+
+  // Run metascraper
+  const meta = await metascraperParser({
+    url,
+    html: htmlContent,
+    validateUrl: false,
+  });
+
+  logger.info(`[ParseSubprocess] Metadata extracted for "${url}"`);
+
+  // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
+  let readableContent: { content: string } | null = meta.readableContentHtml
+    ? { content: meta.readableContentHtml }
+    : null;
+
+  if (!readableContent) {
+    readableContent = extractReadableContent(
+      meta.contentHtml ?? htmlContent,
+      url,
+    );
+  }
+
+  logger.info(`[ParseSubprocess] Parsing complete for "${url}"`);
+
+  const output: SubprocessOutput = {
+    metadata: meta,
+    readableContent,
+  };
+
+  // Write the result as JSON to stdout
+  process.stdout.write(JSON.stringify(output));
+}
+
+main().catch((err: Error) => {
+  const errorOutput: SubprocessError = {
+    error: err.message,
+    stack: err.stack,
+  };
+  process.stdout.write(JSON.stringify(errorOutput));
+  process.exit(1);
+});
