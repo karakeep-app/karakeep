@@ -73,11 +73,11 @@ function getDefaultSection(
   }
 
   // Content quality is poor — fall back to the best available alternative
-  if (link.fullPageArchiveAssetId || link.precrawledArchiveAssetId) {
-    return "archive";
-  }
   if (link.screenshotAssetId) {
     return "screenshot";
+  }
+  if (link.fullPageArchiveAssetId || link.precrawledArchiveAssetId) {
+    return "archive";
   }
 
   return "cached";
@@ -193,6 +193,17 @@ export default function LinkContentSection({
           <div className="mx-auto mb-4 max-w-prose rounded-md border border-yellow-500/50 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
             <p>
               {t("preview.poor_quality_hint")}
+              {bookmark.content.screenshotAssetId && (
+                <>
+                  {" "}
+                  <button
+                    className="font-medium underline"
+                    onClick={() => setSection("screenshot")}
+                  >
+                    {t("preview.try_screenshot")}
+                  </button>
+                </>
+              )}
               {(bookmark.content.fullPageArchiveAssetId ||
                 bookmark.content.precrawledArchiveAssetId) && (
                 <>
@@ -202,17 +213,6 @@ export default function LinkContentSection({
                     onClick={() => setSection("archive")}
                   >
                     {t("preview.try_archive")}
-                  </button>
-                </>
-              )}
-              {bookmark.content.screenshotAssetId && (
-                <>
-                  {" "}
-                  <button
-                    className="font-medium underline"
-                    onClick={() => setSection("screenshot")}
-                  >
-                    {t("preview.try_screenshot")}
                   </button>
                 </>
               )}
