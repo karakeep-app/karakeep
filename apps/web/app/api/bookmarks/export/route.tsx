@@ -3,11 +3,14 @@ import {
   createContextFromRequest,
   createTrcpClientFromCtx,
 } from "@/server/api/client";
-import { inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@karakeep/db";
-import { bookmarksInLists } from "@karakeep/db/schema";
+import {
+  bookmarksInLists,
+  bookmarks as bookmarksTable,
+} from "@karakeep/db/schema";
 import {
   toExportFormat,
   toExportListFormat,
@@ -60,7 +63,16 @@ export async function GET(request: NextRequest) {
           listId: bookmarksInLists.listId,
         })
         .from(bookmarksInLists)
-        .where(inArray(bookmarksInLists.listId, manualListIds));
+        .innerJoin(
+          bookmarksTable,
+          eq(bookmarksTable.id, bookmarksInLists.bookmarkId),
+        )
+        .where(
+          and(
+            inArray(bookmarksInLists.listId, manualListIds),
+            eq(bookmarksTable.userId, ctx.user.id),
+          ),
+        );
     }
 
     const bookmarkListMap = new Map<string, string[]>();

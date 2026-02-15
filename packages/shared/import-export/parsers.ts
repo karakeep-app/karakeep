@@ -6,7 +6,7 @@ import { parse } from "csv-parse/sync";
 import { z } from "zod";
 
 import { BookmarkTypes } from "../types/bookmarks";
-import { zExportListSchema, zExportSchema } from "./exporters";
+import { zExportSchema } from "./exporters";
 
 export type ImportSource =
   | "html"
@@ -29,6 +29,20 @@ export interface ParsedBookmark {
   notes?: string;
   archived?: boolean;
   paths: string[][];
+  // Optional list IDs from the source file (used with top-level `lists`).
+  listExternalIds?: string[];
+}
+
+export interface ParsedImportList {
+  externalId: string;
+  name: string;
+  parentExternalId: string | null;
+  type: "manual" | "smart";
+}
+
+export interface ParsedImportFile {
+  bookmarks: ParsedBookmark[];
+  lists: ParsedImportList[];
 }
 
 function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -161,42 +175,7 @@ function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
-function buildListIdToPathMap(
-  lists: z.infer<typeof zExportListSchema>[],
-): Map<string, string[]> {
-  const listById = new Map(lists.map((l) => [l.id, l]));
-  const pathCache = new Map<string, string[]>();
-
-  function getPath(listId: string, visiting?: Set<string>): string[] {
-    if (pathCache.has(listId)) {
-      return pathCache.get(listId)!;
-    }
-    const list = listById.get(listId);
-    if (!list) {
-      return [];
-    }
-    // Detect cycles in the parentId chain
-    const currentVisiting = visiting ?? new Set<string>();
-    if (currentVisiting.has(listId)) {
-      return [list.name];
-    }
-    currentVisiting.add(listId);
-    const parentPath = list.parentId
-      ? getPath(list.parentId, currentVisiting)
-      : [];
-    const path = [...parentPath, list.name];
-    pathCache.set(listId, path);
-    return path;
-  }
-
-  for (const list of lists) {
-    getPath(list.id);
-  }
-
-  return pathCache;
-}
-
-function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
+function parseKarakeepBookmarkFile(textContent: string): ParsedImportFile {
   const parsed = zExportSchema.safeParse(JSON.parse(textContent));
   if (!parsed.success) {
     throw new Error(
@@ -204,13 +183,19 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
-  // Build a map from list ID to path (array of list names from root to leaf)
-  const manualLists = (parsed.data.lists ?? []).filter(
-    (l) => l.type === "manual",
-  );
-  const listIdToPath = buildListIdToPathMap(manualLists);
+  const exportedLists = parsed.data.lists ?? [];
+  const parsedLists: ParsedImportList[] = exportedLists.map((list) => ({
+    externalId: list.id,
+    name: list.name,
+    parentExternalId: list.parentId,
+    type: list.type,
+  }));
 
-  return parsed.data.bookmarks.map((bookmark) => {
+  const manualListIds = new Set(
+    exportedLists.filter((l) => l.type === "manual").map((l) => l.id),
+  );
+
+  const parsedBookmarks = parsed.data.bookmarks.map((bookmark) => {
     let content = undefined;
     if (bookmark.content?.type == BookmarkTypes.LINK) {
       content = {
@@ -224,11 +209,6 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       };
     }
 
-    // Convert list IDs to paths, skipping any that aren't in the map (e.g. smart lists)
-    const paths: string[][] = (bookmark.lists ?? [])
-      .map((listId) => listIdToPath.get(listId))
-      .filter((p): p is string[] => p !== undefined && p.length > 0);
-
     return {
       title: bookmark.title ?? "",
       content,
@@ -236,9 +216,17 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       addDate: bookmark.createdAt,
       notes: bookmark.note ?? undefined,
       archived: bookmark.archived,
-      paths,
+      paths: [],
+      listExternalIds: (bookmark.lists ?? []).filter((listId) =>
+        manualListIds.has(listId),
+      ),
     };
   });
+
+  return {
+    bookmarks: parsedBookmarks,
+    lists: parsedLists,
+  };
 }
 
 function parseOmnivoreBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -476,6 +464,14 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
         existing.tags = [...new Set([...existing.tags, ...bookmark.tags])];
         // Merge paths
         existing.paths = [...existing.paths, ...bookmark.paths];
+        if (existing.listExternalIds || bookmark.listExternalIds) {
+          existing.listExternalIds = [
+            ...new Set([
+              ...(existing.listExternalIds ?? []),
+              ...(bookmark.listExternalIds ?? []),
+            ]),
+          ];
+        }
         const existingDate = existing.addDate ?? Infinity;
         const newDate = bookmark.addDate ?? Infinity;
         if (newDate < existingDate) {
@@ -507,7 +503,15 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
 export function parseImportFile(
   source: ImportSource,
   textContent: string,
-): ParsedBookmark[] {
+): ParsedImportFile {
+  if (source === "karakeep") {
+    const parsed = parseKarakeepBookmarkFile(textContent);
+    return {
+      bookmarks: deduplicateBookmarks(parsed.bookmarks),
+      lists: parsed.lists,
+    };
+  }
+
   let result: ParsedBookmark[];
   switch (source) {
     case "html":
@@ -518,9 +522,6 @@ export function parseImportFile(
       break;
     case "matter":
       result = parseMatterBookmarkFile(textContent);
-      break;
-    case "karakeep":
-      result = parseKarakeepBookmarkFile(textContent);
       break;
     case "omnivore":
       result = parseOmnivoreBookmarkFile(textContent);
@@ -538,5 +539,5 @@ export function parseImportFile(
       result = parseInstapaperBookmarkFile(textContent);
       break;
   }
-  return deduplicateBookmarks(result);
+  return { bookmarks: deduplicateBookmarks(result), lists: [] };
 }

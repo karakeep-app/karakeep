@@ -1,5 +1,5 @@
 import { MAX_LIST_NAME_LENGTH } from "../types/lists";
-import { ImportSource, ParsedBookmark, parseImportFile } from "./parsers";
+import { ImportSource, ParsedImportFile, parseImportFile } from "./parsers";
 
 export interface ImportCounts {
   successes: number;
@@ -39,7 +39,7 @@ export interface ImportDeps {
 export interface ImportOptions {
   concurrencyLimit?: number;
   parsers?: Partial<
-    Record<ImportSource, (textContent: string) => ParsedBookmark[]>
+    Record<ImportSource, (textContent: string) => ParsedImportFile>
   >;
 }
 
@@ -68,9 +68,11 @@ export async function importBookmarksFromFile(
   const { parsers } = options;
 
   const textContent = await file.text();
-  const parsedBookmarks = parsers?.[source]
+  const parsedImport = parsers?.[source]
     ? parsers[source]!(textContent)
     : parseImportFile(source, textContent);
+  const parsedBookmarks = parsedImport.bookmarks;
+  const parsedLists = parsedImport.lists;
   if (parsedBookmarks.length === 0) {
     return {
       counts: { successes: 0, failures: 0, alreadyExisted: 0, total: 0 },
@@ -87,34 +89,92 @@ export async function importBookmarksFromFile(
 
   onProgress?.(0, parsedBookmarks.length);
 
+  const externalListIdToCreatedListId: Record<string, string> = {};
+  if (parsedLists.length > 0) {
+    const unresolvedLists = new Map(
+      parsedLists.map((list) => [list.externalId, list]),
+    );
+
+    while (unresolvedLists.size > 0) {
+      let createdAny = false;
+
+      for (const [externalId, list] of unresolvedLists) {
+        if (
+          list.parentExternalId &&
+          !externalListIdToCreatedListId[list.parentExternalId]
+        ) {
+          continue;
+        }
+
+        const parentId = list.parentExternalId
+          ? externalListIdToCreatedListId[list.parentExternalId]
+          : rootList.id;
+
+        const createdList = await deps.createList({
+          name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
+          parentId,
+          icon: "📁",
+        });
+        externalListIdToCreatedListId[externalId] = createdList.id;
+        unresolvedLists.delete(externalId);
+        createdAny = true;
+      }
+
+      // Break cycles or unresolved parent references by attaching remaining
+      // lists to the import root.
+      if (!createdAny) {
+        for (const [externalId, list] of unresolvedLists) {
+          const createdList = await deps.createList({
+            name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
+            parentId: rootList.id,
+            icon: "📁",
+          });
+          externalListIdToCreatedListId[externalId] = createdList.id;
+        }
+        unresolvedLists.clear();
+      }
+    }
+  }
+
   const PATH_DELIMITER = "$$__$$";
+  const getPathKey = (parts: string[]) => parts.join(PATH_DELIMITER);
+  const bookmarksWithPathMembership = parsedBookmarks.filter(
+    (bookmark) =>
+      !bookmark.listExternalIds || bookmark.listExternalIds.length === 0,
+  );
 
   // Build required paths
-  const allRequiredPaths = new Set<string>();
-  for (const bookmark of parsedBookmarks) {
+  const allRequiredPaths = new Map<string, string>();
+  for (const bookmark of bookmarksWithPathMembership) {
     for (const path of bookmark.paths) {
       if (path && path.length > 0) {
         for (let i = 1; i <= path.length; i++) {
           const subPath = path.slice(0, i);
-          const pathKey = subPath.join(PATH_DELIMITER);
-          allRequiredPaths.add(pathKey);
+          const pathKey = getPathKey(subPath);
+          const folderName = subPath[subPath.length - 1];
+          if (!allRequiredPaths.has(pathKey)) {
+            allRequiredPaths.set(pathKey, folderName);
+          }
         }
       }
     }
   }
 
-  const allRequiredPathsArray = Array.from(allRequiredPaths).sort(
-    (a, b) => a.split(PATH_DELIMITER).length - b.split(PATH_DELIMITER).length,
-  );
+  const allRequiredPathsArray = Array.from(allRequiredPaths.entries())
+    .map(([pathKey, folderName]) => ({ pathKey, folderName }))
+    .sort(
+      (a, b) =>
+        a.pathKey.split(PATH_DELIMITER).length -
+        b.pathKey.split(PATH_DELIMITER).length,
+    );
 
   const pathMap: Record<string, string> = { "": rootList.id };
 
-  for (const pathKey of allRequiredPathsArray) {
+  for (const { pathKey, folderName } of allRequiredPathsArray) {
     const parts = pathKey.split(PATH_DELIMITER);
     const parentKey = parts.slice(0, -1).join(PATH_DELIMITER);
     const parentId = pathMap[parentKey] || rootList.id;
 
-    const folderName = parts[parts.length - 1];
     const folderList = await deps.createList({
       name: folderName.substring(0, MAX_LIST_NAME_LENGTH),
       parentId,
@@ -127,7 +187,7 @@ export async function importBookmarksFromFile(
   const bookmarksToStage: StagedBookmark[] = parsedBookmarks.map((bookmark) => {
     // Convert paths to list IDs using pathMap
     // If no paths, assign to root list
-    const listIds =
+    const listIdsFromPaths =
       bookmark.paths.length === 0
         ? [rootList.id]
         : bookmark.paths
@@ -135,10 +195,25 @@ export async function importBookmarksFromFile(
               if (path.length === 0) {
                 return rootList.id;
               }
-              const pathKey = path.join(PATH_DELIMITER);
+              const pathKey = getPathKey(path);
               return pathMap[pathKey] || rootList.id;
             })
             .filter((id, index, arr) => arr.indexOf(id) === index); // dedupe
+
+    const externalListIds = bookmark.listExternalIds ?? [];
+    const listIdsFromExternalListIds =
+      externalListIds.length > 0
+        ? [
+            ...new Set(
+              externalListIds.map((id) => externalListIdToCreatedListId[id]),
+            ),
+          ].filter((id): id is string => Boolean(id))
+        : [];
+
+    const listIds =
+      listIdsFromExternalListIds.length > 0
+        ? listIdsFromExternalListIds
+        : listIdsFromPaths;
 
     // Determine type and extract content appropriately
     let type: "link" | "text" | "asset" = "link";
