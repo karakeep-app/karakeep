@@ -724,6 +724,7 @@ async function runParseSubprocess(
 ): Promise<{
   metadata: ParseSubprocessOutput["metadata"];
   readableContent: { content: string } | null;
+  contentQuality: "good" | "poor";
 }> {
   return await withSpan(
     tracer,
@@ -805,6 +806,7 @@ async function runParseSubprocess(
       return {
         metadata: output.metadata,
         readableContent: output.readableContent,
+        contentQuality: output.contentQuality,
       };
     },
   );
@@ -1431,8 +1433,11 @@ async function crawlAndParseUrl(
         });
       }
 
-      const { metadata: meta, readableContent: parsedReadableContent } =
-        await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
+      const {
+        metadata: meta,
+        readableContent: parsedReadableContent,
+        contentQuality,
+      } = await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
 
       const parseDate = (date: string | null | undefined) => {
@@ -1524,6 +1529,7 @@ async function crawlAndParseUrl(
               htmlContentAssetInfo.result === "stored"
                 ? htmlContentAssetInfo.assetId
                 : null,
+            contentQuality,
           })
           .where(eq(bookmarkLinks.id, bookmarkId));
 

@@ -216,6 +216,14 @@
                       "pending"
                     ]
                   },
+                  "contentQuality": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "good",
+                      "poor"
+                    ]
+                  },
                   "author": {
                     "type": "string",
                     "nullable": true

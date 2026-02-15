@@ -22,6 +22,7 @@ export const parseSubprocessMetadataSchema = z
 export const parseSubprocessOutputSchema = z.object({
   metadata: parseSubprocessMetadataSchema,
   readableContent: z.object({ content: z.string() }).nullable(),
+  contentQuality: z.enum(["good", "poor"]),
 });
 
 export const parseSubprocessErrorSchema = z.object({

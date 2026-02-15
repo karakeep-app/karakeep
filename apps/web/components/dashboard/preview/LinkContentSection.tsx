@@ -39,9 +39,49 @@ import {
 } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 
-import { contentRendererRegistry } from "./content-renderers";
+import { ContentRenderer, contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
+
+/**
+ * Pick the best default view based on content quality and available views.
+ *
+ * Fallback chain:
+ * 1. Custom renderer match (YouTube, X, etc.) → use it
+ * 2. contentQuality === "good" (or unknown/null for backwards compat) → reader view
+ * 3. Archive available → archive view
+ * 4. Screenshot available → screenshot view
+ * 5. Fallback → reader view
+ */
+function getDefaultSection(
+  bookmark: ZBookmark,
+  availableRenderers: ContentRenderer[],
+): string {
+  if (availableRenderers.length > 0) {
+    return availableRenderers[0].id;
+  }
+
+  if (bookmark.content.type !== BookmarkTypes.LINK) {
+    return "cached";
+  }
+
+  const link = bookmark.content;
+
+  // If content quality is good or hasn't been assessed yet, default to reader view
+  if (link.contentQuality !== "poor") {
+    return "cached";
+  }
+
+  // Content quality is poor — fall back to the best available alternative
+  if (link.screenshotAssetId) {
+    return "screenshot";
+  }
+  if (link.fullPageArchiveAssetId || link.precrawledArchiveAssetId) {
+    return "archive";
+  }
+
+  return "cached";
+}
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
   return (
@@ -123,8 +163,7 @@ export default function LinkContentSection({
   const { t } = useTranslation();
   const { settings } = useReaderSettings();
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
-  const defaultSection =
-    availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
+  const defaultSection = getDefaultSection(bookmark, availableRenderers);
   const [section, setSection] = useQueryState("section", {
     defaultValue: defaultSection,
   });
@@ -147,8 +186,39 @@ export default function LinkContentSection({
       </ErrorBoundary>
     );
   } else if (section === "cached") {
+    const isPoorQuality = bookmark.content.contentQuality === "poor";
     content = (
       <ScrollArea className="h-full">
+        {isPoorQuality && (
+          <div className="mx-auto mb-4 max-w-prose rounded-md border border-yellow-500/50 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200">
+            <p>
+              {t("preview.poor_quality_hint")}
+              {bookmark.content.screenshotAssetId && (
+                <>
+                  {" "}
+                  <button
+                    className="font-medium underline"
+                    onClick={() => setSection("screenshot")}
+                  >
+                    {t("preview.try_screenshot")}
+                  </button>
+                </>
+              )}
+              {(bookmark.content.fullPageArchiveAssetId ||
+                bookmark.content.precrawledArchiveAssetId) && (
+                <>
+                  {" "}
+                  <button
+                    className="font-medium underline"
+                    onClick={() => setSection("archive")}
+                  >
+                    {t("preview.try_archive")}
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+        )}
         <ReaderView
           className="prose mx-auto dark:prose-invert"
           style={{

@@ -832,6 +832,9 @@
     "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
     "fetch_error_title": "Content Unavailable",
     "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
+    "poor_quality_hint": "This page may not be well-suited for reader view.",
+    "try_archive": "Try Archive view",
+    "try_screenshot": "Try Screenshot view",
     "tabs": {
       "content": "Content",
       "details": "Details"
