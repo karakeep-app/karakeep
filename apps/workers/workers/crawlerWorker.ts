@@ -724,6 +724,7 @@ async function runParseSubprocess(
 ): Promise<{
   metadata: ParseSubprocessOutput["metadata"];
   readableContent: { content: string } | null;
+  contentQuality: "good" | "poor";
 }> {
   return await withSpan(
     tracer,
@@ -805,52 +806,10 @@ async function runParseSubprocess(
       return {
         metadata: output.metadata,
         readableContent: output.readableContent,
+        contentQuality: output.contentQuality,
       };
     },
   );
-}
-
-/**
- * Assess the quality of readable content extracted by Readability.
- * Returns "good" if the content looks like a real article, "poor" otherwise.
- */
-function assessContentQuality(
-  readableHtml: string | undefined | null,
-): "good" | "poor" {
-  if (!readableHtml) {
-    return "poor";
-  }
-
-  // Parse the HTML to extract text content
-  const virtualConsole = new VirtualConsole();
-  const dom = new JSDOM(readableHtml, { virtualConsole });
-  try {
-    const doc = dom.window.document;
-    const textContent = doc.body?.textContent ?? "";
-
-    // Word count heuristic: real articles typically have 50+ words
-    const words = textContent.trim().split(/\s+/).filter(Boolean);
-    if (words.length < 50) {
-      return "poor";
-    }
-
-    // Paragraph density: articles should have multiple paragraphs with content
-    const paragraphs = doc.querySelectorAll("p");
-    let substantialParagraphs = 0;
-    for (const p of paragraphs) {
-      const pText = (p.textContent ?? "").trim();
-      if (pText.split(/\s+/).length >= 10) {
-        substantialParagraphs++;
-      }
-    }
-    if (substantialParagraphs < 2) {
-      return "poor";
-    }
-
-    return "good";
-  } finally {
-    dom.window.close();
-  }
 }
 
 async function storeScreenshot(
@@ -1474,8 +1433,11 @@ async function crawlAndParseUrl(
         });
       }
 
-      const { metadata: meta, readableContent: parsedReadableContent } =
-        await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
+      const {
+        metadata: meta,
+        readableContent: parsedReadableContent,
+        contentQuality,
+      } = await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
 
       const parseDate = (date: string | null | undefined) => {
@@ -1552,7 +1514,6 @@ async function crawlAndParseUrl(
       // Phase 2: Write content and asset references.
       // TODO(important): Restrict the size of content to store
       const assetDeletionTasks: Promise<void>[] = [];
-      const contentQuality = assessContentQuality(readableContent?.content);
       const inlineHtmlContent =
         htmlContentAssetInfo.result === "store_inline"
           ? (readableContent?.content ?? null)
