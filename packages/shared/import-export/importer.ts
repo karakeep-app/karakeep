@@ -23,7 +23,10 @@ export interface ImportDeps {
   createList: (input: {
     name: string;
     icon: string;
+    description?: string;
     parentId?: string;
+    type?: "manual" | "smart";
+    query?: string;
   }) => Promise<{ id: string }>;
   stageImportedBookmarks: (input: {
     importSessionId: string;
@@ -113,7 +116,11 @@ export async function importBookmarksFromFile(
         const createdList = await deps.createList({
           name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
           parentId,
-          icon: "📁",
+          icon: list.icon ?? "📁",
+          description: list.description,
+          ...(list.type === "smart" && list.query
+            ? { type: "smart", query: list.query }
+            : {}),
         });
         externalListIdToCreatedListId[externalId] = createdList.id;
         unresolvedLists.delete(externalId);
@@ -127,7 +134,11 @@ export async function importBookmarksFromFile(
           const createdList = await deps.createList({
             name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
             parentId: rootList.id,
-            icon: "📁",
+            icon: list.icon ?? "📁",
+            description: list.description,
+            ...(list.type === "smart" && list.query
+              ? { type: "smart", query: list.query }
+              : {}),
           });
           externalListIdToCreatedListId[externalId] = createdList.id;
         }

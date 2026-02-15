@@ -36,8 +36,11 @@ export interface ParsedBookmark {
 export interface ParsedImportList {
   externalId: string;
   name: string;
+  icon?: string;
+  description?: string;
   parentExternalId: string | null;
   type: "manual" | "smart";
+  query?: string;
 }
 
 export interface ParsedImportFile {
@@ -187,8 +190,11 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedImportFile {
   const parsedLists: ParsedImportList[] = exportedLists.map((list) => ({
     externalId: list.id,
     name: list.name,
+    icon: list.icon,
+    description: list.description ?? undefined,
     parentExternalId: list.parentId,
     type: list.type,
+    query: list.type === "smart" ? (list.query ?? undefined) : undefined,
   }));
 
   const manualListIds = new Set(

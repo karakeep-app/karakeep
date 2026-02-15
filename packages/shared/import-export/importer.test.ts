@@ -486,6 +486,98 @@ describe("importBookmarksFromFile", () => {
     );
   });
 
+  it("creates smart lists with their queries during import", async () => {
+    const parsers = {
+      karakeep: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "Bookmark 1",
+            content: { type: "link", url: "https://example.com/1" },
+            tags: [],
+            addDate: 100,
+            paths: [],
+            listExternalIds: ["manual-list-id"],
+          },
+        ],
+        lists: [
+          {
+            externalId: "manual-list-id",
+            name: "Manual",
+            icon: "⭐",
+            description: "Manual list description",
+            parentExternalId: null,
+            type: "manual",
+          },
+          {
+            externalId: "smart-list-id",
+            name: "Smart",
+            icon: "⚡",
+            description: "Smart list description",
+            parentExternalId: null,
+            type: "smart",
+            query: "tag:read-later",
+          },
+        ],
+      }),
+    };
+
+    const createdLists: {
+      name: string;
+      icon: string;
+      description?: string;
+      parentId?: string;
+      type?: "manual" | "smart";
+      query?: string;
+    }[] = [];
+
+    const createList = vi.fn(
+      async (input: {
+        name: string;
+        icon: string;
+        description?: string;
+        parentId?: string;
+        type?: "manual" | "smart";
+        query?: string;
+      }) => {
+        createdLists.push(input);
+        return {
+          id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
+        };
+      },
+    );
+
+    await importBookmarksFromFile(
+      {
+        file: fakeFile,
+        source: "karakeep",
+        rootListName: "Imported",
+        deps: {
+          createList,
+          stageImportedBookmarks: vi.fn(async () => undefined),
+          finalizeImportStaging: vi.fn(),
+          createImportSession: vi.fn(async () => ({ id: "session-1" })),
+        },
+      },
+      { parsers },
+    );
+
+    expect(createdLists).toContainEqual({
+      name: "Smart",
+      parentId: "Imported",
+      icon: "⚡",
+      description: "Smart list description",
+      type: "smart",
+      query: "tag:read-later",
+    });
+
+    expect(createdLists).toContainEqual({
+      name: "Manual",
+      parentId: "Imported",
+      icon: "⭐",
+      description: "Manual list description",
+    });
+  });
+
   it("handles HTML bookmarks with empty folder names", async () => {
     const htmlContent = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">

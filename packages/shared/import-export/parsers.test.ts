@@ -384,18 +384,24 @@ describe("parseKarakeepBookmarkFile", () => {
       {
         externalId: "parent",
         name: "Projects",
+        icon: "📁",
+        description: undefined,
         parentExternalId: null,
         type: "manual",
       },
       {
         externalId: "child-1",
         name: "Inbox",
+        icon: "📁",
+        description: undefined,
         parentExternalId: "parent",
         type: "manual",
       },
       {
         externalId: "child-2",
         name: "Inbox",
+        icon: "📁",
+        description: undefined,
         parentExternalId: "parent",
         type: "manual",
       },
@@ -404,5 +410,54 @@ describe("parseKarakeepBookmarkFile", () => {
     expect(result.bookmarks).toHaveLength(2);
     expect(result.bookmarks[0].listExternalIds).toEqual(["child-1"]);
     expect(result.bookmarks[1].listExternalIds).toEqual(["child-2"]);
+  });
+
+  it("preserves smart list query metadata", () => {
+    const json = JSON.stringify({
+      lists: [
+        {
+          id: "manual",
+          name: "Manual",
+          description: null,
+          icon: "📁",
+          type: "manual",
+          query: null,
+          parentId: null,
+        },
+        {
+          id: "smart",
+          name: "Smart",
+          description: "Smart list description",
+          icon: "⚡",
+          type: "smart",
+          query: "tag:read-later",
+          parentId: null,
+        },
+      ],
+      bookmarks: [
+        {
+          createdAt: 123,
+          title: "One",
+          tags: [],
+          lists: ["manual", "smart"],
+          content: { type: "link", url: "https://one.example" },
+          note: null,
+          archived: false,
+        },
+      ],
+    });
+
+    const result = parseImportFile("karakeep", json);
+
+    expect(result.lists).toContainEqual({
+      externalId: "smart",
+      name: "Smart",
+      icon: "⚡",
+      description: "Smart list description",
+      parentExternalId: null,
+      type: "smart",
+      query: "tag:read-later",
+    });
+    expect(result.bookmarks[0].listExternalIds).toEqual(["manual"]);
   });
 });
