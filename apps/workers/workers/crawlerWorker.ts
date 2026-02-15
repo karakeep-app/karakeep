@@ -76,6 +76,12 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
+import {
+  parseSubprocessErrorSchema,
+  parseSubprocessOutputSchema,
+} from "./utils/parseHtmlSubprocessIpc";
+
 const tracer = getTracer("@karakeep/workers");
 
 function abortPromise(signal: AbortSignal): Promise<never> {
@@ -713,7 +719,7 @@ async function runParseSubprocess(
   jobId: string,
   abortSignal: AbortSignal,
 ): Promise<{
-  metadata: Record<string, string>;
+  metadata: ParseSubprocessOutput["metadata"];
   readableContent: { content: string } | null;
 }> {
   return await withSpan(
@@ -762,7 +768,9 @@ async function runParseSubprocess(
         // Try to parse structured error from stdout
         if (result.stdout) {
           try {
-            const errorOutput = JSON.parse(result.stdout);
+            const errorOutput = parseSubprocessErrorSchema.parse(
+              JSON.parse(result.stdout),
+            );
             if (errorOutput.error) {
               throw new Error(
                 `[Crawler][${jobId}] Parse subprocess ${reason}: ${errorOutput.error}`,
@@ -782,7 +790,9 @@ async function runParseSubprocess(
         );
       }
 
-      const output = JSON.parse(result.stdout);
+      const output = parseSubprocessOutputSchema.parse(
+        JSON.parse(result.stdout),
+      );
       logger.info(
         `[Crawler][${jobId}] Parse subprocess completed successfully.`,
       );
@@ -1420,7 +1430,7 @@ async function crawlAndParseUrl(
         await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
 
-      const parseDate = (date: string | undefined) => {
+      const parseDate = (date: string | null | undefined) => {
         if (!date) {
           return null;
         }

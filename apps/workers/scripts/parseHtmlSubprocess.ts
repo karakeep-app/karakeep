@@ -23,26 +23,15 @@ import logger from "@karakeep/shared/logger";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import {
+  parseSubprocessErrorSchema,
+  parseSubprocessInputSchema,
+  parseSubprocessOutputSchema,
+} from "../workers/utils/parseHtmlSubprocessIpc";
 
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
 logger.add(new winston.transports.Stream({ stream: process.stderr }));
-
-interface SubprocessInput {
-  htmlContent: string;
-  url: string;
-  jobId: string;
-}
-
-interface SubprocessOutput {
-  metadata: Record<string, unknown>;
-  readableContent: { content: string } | null;
-}
-
-interface SubprocessError {
-  error: string;
-  stack?: string;
-}
 
 const metascraperParser = metascraper([
   metascraperDate({
@@ -116,7 +105,9 @@ async function main() {
   for await (const chunk of process.stdin) {
     chunks.push(chunk);
   }
-  const input: SubprocessInput = JSON.parse(Buffer.concat(chunks).toString());
+  const input = parseSubprocessInputSchema.parse(
+    JSON.parse(Buffer.concat(chunks).toString()),
+  );
   const { htmlContent, url, jobId } = input;
 
   logger.info(
@@ -148,20 +139,20 @@ async function main() {
     logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
   }
 
-  const output: SubprocessOutput = {
+  const output = parseSubprocessOutputSchema.parse({
     metadata: meta,
     readableContent,
-  };
+  });
 
   // Write the result as JSON to stdout
   process.stdout.write(JSON.stringify(output));
 }
 
-main().catch((err: Error) => {
-  const errorOutput: SubprocessError = {
-    error: err.message,
-    stack: err.stack,
-  };
+main().catch((err: unknown) => {
+  const errorOutput = parseSubprocessErrorSchema.parse({
+    error: err instanceof Error ? err.message : String(err),
+    stack: err instanceof Error ? err.stack : undefined,
+  });
   process.stdout.write(JSON.stringify(errorOutput));
   process.exit(1);
 });
