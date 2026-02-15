@@ -146,8 +146,7 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
           } else if (bookmark.content.assetType === "pdf") {
             if (await Sharing.isAvailableAsync()) {
               const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-              const fileName =
-                bookmark.content.fileName || "document.pdf";
+              const fileName = bookmark.content.fileName || "document.pdf";
               const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
               const downloadResult = await FileSystem.downloadAsync(
