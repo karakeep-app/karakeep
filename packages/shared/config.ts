@@ -132,6 +132,10 @@ const allEnv = z.object({
   WEBHOOK_RETRY_TIMES: z.coerce.number().int().min(0).default(3),
   MAX_RSS_FEEDS_PER_USER: z.coerce.number().default(1000),
   MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
+  // Legal
+  TERMS_OF_SERVICE_URL: z.string().url().optional(),
+  PRIVACY_POLICY_URL: z.string().url().optional(),
+
   // Build only flag
   SERVER_VERSION: z.string().optional(),
   CHANGELOG_VERSION: z.string().optional(),
@@ -361,6 +365,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     dataDir: val.DATA_DIR,
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
+    legal: {
+      termsOfServiceUrl: val.TERMS_OF_SERVICE_URL,
+      privacyPolicyUrl: val.PRIVACY_POLICY_URL,
+    },
     serverVersion: val.SERVER_VERSION,
     changelogVersion: val.CHANGELOG_VERSION,
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,
@@ -480,6 +488,10 @@ export const clientConfig = {
     inferredTagLang: serverConfig.inference.inferredTagLang,
     enableAutoTagging: serverConfig.inference.enableAutoTagging,
     enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
+  },
+  legal: {
+    termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
+    privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

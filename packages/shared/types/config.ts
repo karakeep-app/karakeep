@@ -24,6 +24,10 @@ export const zClientConfigSchema = z.object({
     enableAutoTagging: z.boolean(),
     enableAutoSummarization: z.boolean(),
   }),
+  legal: z.object({
+    termsOfServiceUrl: z.string().optional(),
+    privacyPolicyUrl: z.string().optional(),
+  }),
   serverVersion: z.string().optional(),
   disableNewReleaseCheck: z.boolean(),
 });

@@ -18,6 +18,10 @@ export const ClientConfigCtx = createContext<ClientConfig>({
     enableAutoTagging: false,
     enableAutoSummarization: false,
   },
+  legal: {
+    termsOfServiceUrl: undefined,
+    privacyPolicyUrl: undefined,
+  },
   serverVersion: undefined,
   disableNewReleaseCheck: true,
 });

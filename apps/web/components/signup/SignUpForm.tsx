@@ -281,8 +281,40 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
               }
               className="w-full"
             >
-              Create Account
+              Sign up
             </ActionButton>
+
+            {(clientConfig.legal.termsOfServiceUrl ||
+              clientConfig.legal.privacyPolicyUrl) && (
+              <p className="text-center text-xs text-muted-foreground">
+                By clicking on &apos;Sign up&apos; above, you are agreeing to
+                the{" "}
+                {clientConfig.legal.termsOfServiceUrl && (
+                  <Link
+                    href={clientConfig.legal.termsOfServiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    Terms of Service
+                  </Link>
+                )}
+                {clientConfig.legal.termsOfServiceUrl &&
+                  clientConfig.legal.privacyPolicyUrl &&
+                  " and "}
+                {clientConfig.legal.privacyPolicyUrl && (
+                  <Link
+                    href={clientConfig.legal.privacyPolicyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    Privacy Policy
+                  </Link>
+                )}
+                .
+              </p>
+            )}
           </form>
         </Form>
 

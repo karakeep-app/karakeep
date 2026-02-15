@@ -183,10 +183,15 @@ export default function SubscriptionSettings() {
                           {t("settings.subscription.unlock_bigger_quota")}
                         </p>
                         {subscriptionPrice && subscriptionPrice.amount ? (
-                          <p className="mt-2 text-lg font-bold uppercase">
-                            {subscriptionPrice.amount / 100}{" "}
-                            {subscriptionPrice.currency}
-                          </p>
+                          <span className="flex items-baseline gap-2">
+                            <p className="mt-2 text-lg font-bold uppercase">
+                              {subscriptionPrice.amount / 100}{" "}
+                              {subscriptionPrice.currency}
+                            </p>
+                            <span className="text-xs italic text-muted-foreground">
+                              (excl. VAT)
+                            </span>
+                          </span>
                         ) : (
                           <Skeleton className="h-4 w-24" />
                         )}
