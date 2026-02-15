@@ -143,14 +143,37 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
                 throw new Error("Failed to download image");
               }
             }
-          } else {
-            // For PDFs, share the URL
-            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-            await Share.share({
-              url: assetUrl,
-              message:
-                bookmark.title || bookmark.content.fileName || "PDF Document",
-            });
+          } else if (bookmark.content.assetType === "pdf") {
+            if (await Sharing.isAvailableAsync()) {
+              const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+              const fileName =
+                bookmark.content.fileName || "document.pdf";
+              const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+              const downloadResult = await FileSystem.downloadAsync(
+                assetUrl,
+                fileUri,
+                {
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
+                },
+              );
+
+              if (downloadResult.status === 200) {
+                await Sharing.shareAsync(downloadResult.uri, {
+                  mimeType: "application/pdf",
+                  UTI: "com.adobe.pdf",
+                });
+                // Clean up the temporary file
+                await FileSystem.deleteAsync(downloadResult.uri, {
+                  idempotent: true,
+                });
+              } else {
+                throw new Error("Failed to download PDF");
+              }
+            }
           }
           break;
       }
