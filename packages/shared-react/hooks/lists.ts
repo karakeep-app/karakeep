@@ -128,7 +128,7 @@ export function useDeleteBookmarkList(
       ...opts,
       onSuccess: (res, req, meta, context) => {
         queryClient.invalidateQueries(api.lists.list.pathFilter());
-        queryClient.invalidateQueries(
+        queryClient.removeQueries(
           api.lists.get.queryFilter({ listId: req.listId }),
         );
         return opts?.onSuccess?.(res, req, meta, context);

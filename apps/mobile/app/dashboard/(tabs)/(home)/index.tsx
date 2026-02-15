@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Platform, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
@@ -5,22 +6,33 @@ import { router, Stack } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
-import { useToast } from "@/components/ui/Toast";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus, Search } from "lucide-react-native";
+import { toast as sonnerToast } from "sonner-native";
 
 function HeaderRight({
   openNewBookmarkModal,
 }: {
   openNewBookmarkModal: () => void;
 }) {
-  const { toast } = useToast();
   const { settings } = useAppSettings();
+  const uploadToastIdRef = useRef<string | number | null>(null);
   const { uploadAsset } = useUploadAsset(settings, {
+    onSuccess: () => {
+      if (uploadToastIdRef.current !== null) {
+        sonnerToast.success("Image saved!", { id: uploadToastIdRef.current });
+        uploadToastIdRef.current = null;
+      }
+    },
     onError: (e) => {
-      toast({ message: e, variant: "destructive" });
+      if (uploadToastIdRef.current !== null) {
+        sonnerToast.error(e, { id: uploadToastIdRef.current });
+        uploadToastIdRef.current = null;
+      } else {
+        sonnerToast.error(e);
+      }
     },
   });
   return (
@@ -36,6 +48,8 @@ function HeaderRight({
             allowsMultipleSelection: false,
           });
           if (!result.canceled) {
+            uploadToastIdRef.current =
+              sonnerToast.loading("Uploading image...");
             uploadAsset({
               type: result.assets[0].mimeType ?? "",
               name: result.assets[0].fileName ?? "",

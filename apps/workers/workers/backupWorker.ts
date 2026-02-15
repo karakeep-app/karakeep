@@ -5,21 +5,30 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
 import archiver from "archiver";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
 import { withWorkerTracing } from "workerTracing";
 
 import type { ZBackupRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
-import { assets, AssetTypes, users } from "@karakeep/db/schema";
+import {
+  assets,
+  AssetTypes,
+  bookmarksInLists,
+  users,
+} from "@karakeep/db/schema";
 import { BackupQueue, QuotaService } from "@karakeep/shared-server";
 import { saveAssetFromFile } from "@karakeep/shared/assetdb";
-import { toExportFormat } from "@karakeep/shared/import-export";
+import {
+  toExportFormat,
+  toExportListFormat,
+} from "@karakeep/shared/import-export";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { AuthedContext } from "@karakeep/trpc";
 import { Backup } from "@karakeep/trpc/models/backups";
+import { List } from "@karakeep/trpc/models/lists";
 
 import { buildImpersonatingAuthedContext } from "../trpc";
 import { fetchBookmarksInBatches } from "./utils/fetchBookmarks";
@@ -302,6 +311,16 @@ async function streamBookmarksToJsonFile(
   outputPath: string,
   jobId: string,
 ): Promise<number> {
+  // Pre-fetch list definitions (small data set)
+  const allLists = await List.getAllOwned(ctx);
+  const exportedLists = allLists.map((l) =>
+    toExportListFormat(l.asZBookmarkList()),
+  );
+
+  const manualListIds = allLists
+    .filter((l) => l.asZBookmarkList().type === "manual")
+    .map((l) => l.id);
+
   return new Promise((resolve, reject) => {
     const writeStream = createWriteStream(outputPath, { encoding: "utf-8" });
     let bookmarkCount = 0;
@@ -309,14 +328,42 @@ async function streamBookmarksToJsonFile(
 
     writeStream.on("error", reject);
 
-    // Start JSON structure
-    writeStream.write('{"bookmarks":[');
+    // Start JSON structure with lists first, then bookmarks
+    writeStream.write('{"lists":');
+    writeStream.write(JSON.stringify(exportedLists));
+    writeStream.write(',"bookmarks":[');
 
     (async () => {
       try {
         for await (const batch of fetchBookmarksInBatches(ctx, 1000)) {
+          // Fetch memberships for this batch only to keep memory bounded
+          const batchBookmarkIds = batch.map((b) => b.id);
+          const bookmarkListMap = new Map<string, string[]>();
+          if (manualListIds.length > 0 && batchBookmarkIds.length > 0) {
+            const memberships = await ctx.db
+              .select({
+                bookmarkId: bookmarksInLists.bookmarkId,
+                listId: bookmarksInLists.listId,
+              })
+              .from(bookmarksInLists)
+              .where(
+                and(
+                  inArray(bookmarksInLists.listId, manualListIds),
+                  inArray(bookmarksInLists.bookmarkId, batchBookmarkIds),
+                ),
+              );
+            for (const m of memberships) {
+              const existing = bookmarkListMap.get(m.bookmarkId) ?? [];
+              existing.push(m.listId);
+              bookmarkListMap.set(m.bookmarkId, existing);
+            }
+          }
+
           for (const bookmark of batch) {
-            const exported = toExportFormat(bookmark);
+            const exported = toExportFormat(
+              bookmark,
+              bookmarkListMap.get(bookmark.id) ?? [],
+            );
             if (exported.content !== null) {
               // Add comma separator for all items except the first
               if (!isFirst) {

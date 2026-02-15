@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import { Pressable, SectionList, TouchableOpacity, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -17,16 +17,16 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const NEW_TAG_ID = "new-tag";
 
-const ListPickerPage = () => {
+const TagPickerPage = () => {
   const api = useTRPC();
   const { colors } = useColorScheme();
   const { slug: bookmarkId } = useLocalSearchParams();
-
   const [search, setSearch] = React.useState("");
 
   if (typeof bookmarkId !== "string") {
     throw new Error("Unexpected param type");
   }
+
   const { toast } = useToast();
   const onError = () => {
     toast({
@@ -55,6 +55,7 @@ const ListPickerPage = () => {
       },
     ),
   );
+
   const { data: existingTags } = useAutoRefreshingBookmarkQuery({
     bookmarkId,
   });
@@ -62,6 +63,7 @@ const ListPickerPage = () => {
   const [optimisticTags, setOptimisticTags] = React.useState<
     { id: string; name: string; lowered: string }[]
   >([]);
+
   React.useEffect(() => {
     setOptimisticTags(
       existingTags?.tags.map((t) => ({
@@ -77,7 +79,11 @@ const ListPickerPage = () => {
       req.attach.forEach((t) =>
         setOptimisticTags((prev) => [
           ...prev,
-          { id: t.tagId!, name: t.tagName!, lowered: t.tagName!.toLowerCase() },
+          {
+            id: t.tagId!,
+            name: t.tagName!,
+            lowered: t.tagName!.toLowerCase(),
+          },
         ]),
       );
       req.detach.forEach((t) =>
@@ -89,7 +95,6 @@ const ListPickerPage = () => {
 
   const clearAllTags = () => {
     if (optimisticTags.length === 0) return;
-
     updateTags({
       bookmarkId,
       detach: optimisticTags.map((tag) => ({
@@ -104,54 +109,70 @@ const ListPickerPage = () => {
     return new Set(optimisticTags?.map((t) => t.id) ?? []);
   }, [optimisticTags]);
 
-  const filteredTags = useMemo(() => {
+  const { filteredAllTags, filteredOptimisticTags } = useMemo(() => {
     const loweredSearch = search.toLowerCase();
-    let filteredAllTags = allTags?.filter(
-      (t) =>
-        t.lowered.startsWith(loweredSearch) &&
-        !optimisticExistingTagIds.has(t.id),
-    );
-    let addCreateTag = false;
+    let filteredAll =
+      allTags?.filter(
+        (t) =>
+          t.lowered.startsWith(loweredSearch) &&
+          !optimisticExistingTagIds.has(t.id),
+      ) ?? [];
+
     if (allTags && search) {
       const exactMatchExists =
         allTags.some((t) => t.lowered == loweredSearch) ||
         optimisticTags.some((t) => t.lowered == loweredSearch);
-      addCreateTag = !exactMatchExists;
-    }
-    if (filteredAllTags && addCreateTag) {
-      filteredAllTags = [
-        {
-          id: NEW_TAG_ID,
-          name: search,
-          lowered: loweredSearch,
-        },
-        ...filteredAllTags,
-      ];
+      if (!exactMatchExists) {
+        filteredAll = [
+          { id: NEW_TAG_ID, name: search, lowered: loweredSearch },
+          ...filteredAll,
+        ];
+      }
     }
 
-    const filteredOptimisticTags = optimisticTags.filter((t) =>
+    const filteredExisting = optimisticTags.filter((t) =>
       t.lowered.startsWith(loweredSearch),
     );
 
-    return { filteredAllTags, filteredOptimisticTags };
+    return {
+      filteredAllTags: filteredAll,
+      filteredOptimisticTags: filteredExisting,
+    };
   }, [search, allTags, optimisticTags, optimisticExistingTagIds]);
 
-  const ClearButton = () => (
-    <TouchableOpacity
-      onPress={clearAllTags}
-      disabled={optimisticTags.length === 0}
-      className={`mr-4 ${optimisticTags.length === 0 ? "opacity-50" : ""}`}
-    >
-      <Text className="text-base font-medium text-blue-500">Clear</Text>
-    </TouchableOpacity>
-  );
+  const handleTagPress = (
+    tag: { id: string; name: string },
+    action: "attach" | "detach",
+  ) => {
+    updateTags({
+      bookmarkId,
+      attach:
+        action === "attach"
+          ? [
+              {
+                tagId: tag.id === NEW_TAG_ID ? undefined : tag.id,
+                tagName: tag.name,
+              },
+            ]
+          : [],
+      detach:
+        action === "detach"
+          ? [
+              {
+                tagId: tag.id === NEW_TAG_ID ? undefined : tag.id,
+                tagName: tag.name,
+              },
+            ]
+          : [],
+    });
+  };
 
   if (isAllTagsPending) {
     return <FullPageSpinner />;
   }
 
   return (
-    <CustomSafeAreaView>
+    <>
       <Stack.Screen
         options={{
           headerSearchBarOptions: {
@@ -160,75 +181,72 @@ const ListPickerPage = () => {
             autoCapitalize: "none",
             hideWhenScrolling: false,
           },
-          headerRight: () => <ClearButton />,
+          headerRight: () => (
+            <Pressable
+              onPress={clearAllTags}
+              disabled={optimisticTags.length === 0}
+              className={optimisticTags.length === 0 ? "opacity-50" : ""}
+            >
+              <Text className="text-primary">Clear</Text>
+            </Pressable>
+          ),
         }}
       />
-      <SectionList
-        className="h-full px-3"
-        keyboardShouldPersistTaps="handled"
+      <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        keyExtractor={(t) => t.id}
-        contentContainerStyle={{
-          gap: 6,
-        }}
-        SectionSeparatorComponent={() => <View className="h-1" />}
-        sections={[
-          {
-            title: "Existing Tags",
-            data: filteredTags.filteredOptimisticTags ?? [],
-          },
-          {
-            title: "All Tags",
-            data: filteredTags.filteredAllTags ?? [],
-          },
-        ]}
-        renderItem={(t) => (
-          <Pressable
-            key={t.item.id}
-            onPress={() =>
-              updateTags({
-                bookmarkId,
-                detach:
-                  t.section.title == "Existing Tags"
-                    ? [
-                        {
-                          tagId:
-                            t.item.id == NEW_TAG_ID ? undefined : t.item.id,
-                          tagName: t.item.name,
-                        },
-                      ]
-                    : [],
-                attach:
-                  t.section.title == "All Tags"
-                    ? [
-                        {
-                          tagId:
-                            t.item.id == NEW_TAG_ID ? undefined : t.item.id,
-                          tagName: t.item.name,
-                        },
-                      ]
-                    : [],
-              })
-            }
-          >
-            <View className="mx-2 flex flex-row items-center gap-2 rounded-xl bg-card px-4 py-2">
-              {t.section.title == "Existing Tags" && (
-                <Check color={colors.foreground} />
-              )}
-              {t.section.title == "All Tags" && t.item.id == NEW_TAG_ID && (
-                <Plus color={colors.foreground} />
-              )}
-              <Text>
-                {t.item.id == NEW_TAG_ID
-                  ? `Create new tag '${t.item.name}'`
-                  : t.item.name}
-              </Text>
-            </View>
-          </Pressable>
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: 40 }}
+        className="bg-background"
+      >
+        {filteredOptimisticTags.length > 0 && (
+          <GroupedSection header="Attached">
+            {filteredOptimisticTags.map((tag, index) => (
+              <React.Fragment key={tag.id}>
+                {index > 0 && <RowSeparator />}
+                <Pressable
+                  onPress={() => handleTagPress(tag, "detach")}
+                  className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+                >
+                  <Text className="flex-1 pr-3">{tag.name}</Text>
+                  <Check size={20} color={colors.primary} strokeWidth={2.5} />
+                </Pressable>
+              </React.Fragment>
+            ))}
+          </GroupedSection>
         )}
-      />
-    </CustomSafeAreaView>
+        {filteredAllTags.length > 0 && (
+          <GroupedSection header="All Tags">
+            {filteredAllTags.map((tag, index) => (
+              <React.Fragment key={tag.id}>
+                {index > 0 && <RowSeparator />}
+                <Pressable
+                  onPress={() => handleTagPress(tag, "attach")}
+                  className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+                >
+                  {tag.id === NEW_TAG_ID ? (
+                    <>
+                      <Text className="flex-1 pr-3 text-primary">
+                        Create &ldquo;{tag.name}&rdquo;
+                      </Text>
+                      <Plus size={20} color={colors.primary} strokeWidth={2} />
+                    </>
+                  ) : (
+                    <Text className="flex-1 pr-3">{tag.name}</Text>
+                  )}
+                </Pressable>
+              </React.Fragment>
+            ))}
+          </GroupedSection>
+        )}
+        {filteredOptimisticTags.length === 0 &&
+          filteredAllTags.length === 0 && (
+            <View className="items-center py-12">
+              <Text color="tertiary">No tags found</Text>
+            </View>
+          )}
+      </ScrollView>
+    </>
   );
 };
 
-export default ListPickerPage;
+export default TagPickerPage;

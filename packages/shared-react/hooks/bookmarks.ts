@@ -85,7 +85,7 @@ export function useDeleteBookmark(
         queryClient.invalidateQueries(
           api.bookmarks.searchBookmarks.pathFilter(),
         );
-        queryClient.invalidateQueries(
+        queryClient.removeQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
         queryClient.invalidateQueries(api.lists.stats.pathFilter());

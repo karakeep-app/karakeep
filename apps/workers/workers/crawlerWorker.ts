@@ -6,27 +6,10 @@ import * as os from "os";
 import { Transform } from "stream";
 import { pipeline } from "stream/promises";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
-import { Readability } from "@mozilla/readability";
 import { Mutex } from "async-mutex";
-import DOMPurify from "dompurify";
 import { and, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
-import { HttpProxyAgent } from "http-proxy-agent";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import { JSDOM, VirtualConsole } from "jsdom";
-import metascraper from "metascraper";
-import metascraperAmazon from "metascraper-amazon";
-import metascraperAuthor from "metascraper-author";
-import metascraperDate from "metascraper-date";
-import metascraperDescription from "metascraper-description";
-import metascraperImage from "metascraper-image";
-import metascraperLogo from "metascraper-logo-favicon";
-import metascraperPublisher from "metascraper-publisher";
-import metascraperTitle from "metascraper-title";
-import metascraperUrl from "metascraper-url";
-import metascraperX from "metascraper-x";
-import metascraperYoutube from "metascraper-youtube";
 import {
   bookmarkCrawlLatencyHistogram,
   crawlerStatusCodeCounter,
@@ -93,8 +76,14 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
-import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import type {
+  ParseSubprocessError,
+  ParseSubprocessOutput,
+} from "./utils/parseHtmlSubprocessIpc";
+import {
+  parseSubprocessErrorSchema,
+  parseSubprocessOutputSchema,
+} from "./utils/parseHtmlSubprocessIpc";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -133,47 +122,6 @@ function normalizeContentType(header: string | null): string | null {
   }
   return header.split(";", 1)[0]!.trim().toLowerCase();
 }
-
-const metascraperParser = metascraper([
-  metascraperDate({
-    dateModified: true,
-    datePublished: true,
-  }),
-  metascraperAmazonImproved(), // Fix image extraction bug - must come before metascraperAmazon()
-  metascraperAmazon(),
-  metascraperYoutube({
-    gotOpts: {
-      agent: {
-        http: serverConfig.proxy.httpProxy
-          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
-          : undefined,
-        https: serverConfig.proxy.httpsProxy
-          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
-          : undefined,
-      },
-    },
-  }),
-  metascraperReddit(),
-  metascraperAuthor(),
-  metascraperPublisher(),
-  metascraperTitle(),
-  metascraperDescription(),
-  metascraperX(),
-  metascraperImage(),
-  metascraperLogo({
-    gotOpts: {
-      agent: {
-        http: serverConfig.proxy.httpProxy
-          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
-          : undefined,
-        https: serverConfig.proxy.httpsProxy
-          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
-          : undefined,
-      },
-    },
-  }),
-  metascraperUrl(),
-]);
 
 interface Cookie {
   name: string;
@@ -740,48 +688,46 @@ async function crawlPage(
   );
 }
 
-async function extractMetadata(
-  htmlContent: string,
-  url: string,
-  jobId: string,
-) {
-  return await withSpan(
-    tracer,
-    "crawlerWorker.extractMetadata",
-    {
-      attributes: {
-        "bookmark.url": url,
-        "bookmark.domain": getBookmarkDomain(url),
-        "job.id": jobId,
-      },
-    },
-    async () => {
-      logger.info(
-        `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
-      );
-      const meta = await metascraperParser({
-        url,
-        html: htmlContent,
-        // We don't want to validate the URL again as we've already done it by visiting the page.
-        // This was added because URL validation fails if the URL ends with a question mark (e.g. empty query params).
-        validateUrl: false,
-      });
-      logger.info(
-        `[Crawler][${jobId}] Done extracting metadata from the page.`,
-      );
-      return meta;
-    },
-  );
+function getSubprocessScriptPath(): string {
+  const currentUrl = import.meta.url;
+  if (currentUrl.includes("/dist/")) {
+    // Production: running from built output
+    return new URL("./scripts/parseHtmlSubprocess.js", currentUrl).pathname;
+  }
+  // Dev mode: running via tsx
+  return new URL("../scripts/parseHtmlSubprocess.ts", currentUrl).pathname;
 }
 
-async function extractReadableContent(
+function getSubprocessCommand(): { cmd: string; args: string[] } {
+  const scriptPath = getSubprocessScriptPath();
+  const maxOldSpaceSize = serverConfig.crawler.parserMemLimitMb;
+
+  if (scriptPath.endsWith(".ts")) {
+    // Dev mode: use tsx to run TypeScript directly
+    return {
+      cmd: "tsx",
+      args: [`--max-old-space-size=${maxOldSpaceSize}`, scriptPath],
+    };
+  }
+
+  return {
+    cmd: process.execPath,
+    args: [`--max-old-space-size=${maxOldSpaceSize}`, scriptPath],
+  };
+}
+
+async function runParseSubprocess(
   htmlContent: string,
   url: string,
   jobId: string,
-) {
+  abortSignal: AbortSignal,
+): Promise<{
+  metadata: ParseSubprocessOutput["metadata"];
+  readableContent: { content: string } | null;
+}> {
   return await withSpan(
     tracer,
-    "crawlerWorker.extractReadableContent",
+    "crawlerWorker.runParseSubprocess",
     {
       attributes: {
         "bookmark.url": url,
@@ -791,34 +737,75 @@ async function extractReadableContent(
     },
     async () => {
       logger.info(
-        `[Crawler][${jobId}] Will attempt to extract readable content ...`,
+        `[Crawler][${jobId}] Spawning parse subprocess for "${url}" ...`,
       );
-      const virtualConsole = new VirtualConsole();
-      const dom = new JSDOM(htmlContent, { url, virtualConsole });
-      let result: { content: string } | null = null;
-      try {
-        const readableContent = new Readability(dom.window.document).parse();
-        if (!readableContent || typeof readableContent.content !== "string") {
-          return null;
-        }
 
-        const purifyWindow = new JSDOM("").window;
-        try {
-          const purify = DOMPurify(purifyWindow);
-          const purifiedHTML = purify.sanitize(readableContent.content);
+      const { cmd, args } = getSubprocessCommand();
+      const timeoutMs = serverConfig.crawler.parseTimeoutSec * 1000;
 
-          logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
-          result = {
-            content: purifiedHTML,
-          };
-        } finally {
-          purifyWindow.close();
-        }
-      } finally {
-        dom.window.close();
+      const result = await execa({
+        input: JSON.stringify({ htmlContent, url, jobId }),
+        cancelSignal: abortSignal,
+        timeout: timeoutMs,
+        reject: false,
+        stderr: "inherit",
+      })(cmd, args);
+
+      if (result.isCanceled) {
+        throw new Error(
+          `[Crawler][${jobId}] Parse subprocess was cancelled (job aborted)`,
+        );
       }
 
-      return result;
+      if (result.exitCode !== 0) {
+        // Check for OOM: SIGKILL (137) from OS killer, SIGABRT from V8,
+        // or V8's "heap out of memory" fatal error message in stderr
+        const isOom =
+          result.exitCode === 137 ||
+          result.signal === "SIGKILL" ||
+          result.signal === "SIGABRT";
+        const reason = isOom
+          ? `OOM killed (exit code ${result.exitCode}). Consider increasing CRAWLER_PARSER_MEM_LIMIT_MB (currently ${serverConfig.crawler.parserMemLimitMb}MB).`
+          : `exited with code ${result.exitCode}${result.signal ? ` (signal: ${result.signal})` : ""}`;
+
+        // Try to parse structured error from stdout
+        if (result.stdout) {
+          let errorOutput: ParseSubprocessError | null = null;
+          try {
+            errorOutput = parseSubprocessErrorSchema.parse(
+              JSON.parse(result.stdout),
+            );
+          } catch {
+            // stdout wasn't valid JSON error, fall through
+          }
+
+          if (errorOutput?.error) {
+            throw new Error(
+              `[Crawler][${jobId}] Parse subprocess ${reason}: ${errorOutput.error}`,
+            );
+          }
+        }
+
+        throw new Error(`[Crawler][${jobId}] Parse subprocess ${reason}`);
+      }
+
+      if (!result.stdout) {
+        throw new Error(
+          `[Crawler][${jobId}] Parse subprocess produced no output`,
+        );
+      }
+
+      const output = parseSubprocessOutputSchema.parse(
+        JSON.parse(result.stdout),
+      );
+      logger.info(
+        `[Crawler][${jobId}] Parse subprocess completed successfully.`,
+      );
+
+      return {
+        metadata: output.metadata,
+        readableContent: output.readableContent,
+      };
     },
   );
 }
@@ -1487,13 +1474,11 @@ async function crawlAndParseUrl(
         });
       }
 
-      const meta = await Promise.race([
-        extractMetadata(htmlContent, browserUrl, jobId),
-        abortPromise(abortSignal),
-      ]);
+      const { metadata: meta, readableContent: parsedReadableContent } =
+        await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
 
-      const parseDate = (date: string | undefined) => {
+      const parseDate = (date: string | null | undefined) => {
         if (!date) {
           return null;
         }
@@ -1523,20 +1508,7 @@ async function crawlAndParseUrl(
         })
         .where(eq(bookmarkLinks.id, bookmarkId));
 
-      let readableContent: { content: string } | null = meta.readableContentHtml
-        ? { content: meta.readableContentHtml }
-        : null;
-      if (!readableContent) {
-        readableContent = await Promise.race([
-          extractReadableContent(
-            meta.contentHtml ?? htmlContent,
-            browserUrl,
-            jobId,
-          ),
-          abortPromise(abortSignal),
-        ]);
-      }
-      abortSignal.throwIfAborted();
+      let readableContent = parsedReadableContent;
 
       const screenshotAssetInfo = await Promise.race([
         storeScreenshot(screenshot, userId, jobId),
