@@ -80,26 +80,27 @@ export default function Dashboard() {
         name="bookmarks/[slug]/manage_tags"
         options={{
           headerTitle: "Manage Tags",
-          headerBackTitle: "Back",
-          headerTransparent: true,
-          presentation: "modal",
+          headerTransparent: false,
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
         }}
       />
       <Stack.Screen
         name="bookmarks/[slug]/manage_lists"
         options={{
           headerTitle: "Manage Lists",
-          headerBackTitle: "Back",
-          headerTransparent: true,
-          presentation: "modal",
+          headerTransparent: false,
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
         }}
       />
       <Stack.Screen
         name="bookmarks/[slug]/info"
         options={{
-          headerBackTitle: "Back",
-          headerTransparent: true,
-          presentation: "modal",
+          headerTitle: "Info",
+          headerTransparent: false,
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
         }}
       />
       <Stack.Screen

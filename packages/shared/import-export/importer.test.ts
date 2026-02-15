@@ -10,45 +10,51 @@ const fakeFile = {
 describe("importBookmarksFromFile", () => {
   it("creates root list, folders and stages bookmarks with progress", async () => {
     const parsers = {
-      pocket: vi.fn().mockReturnValue([
-        {
-          title: "GitHub Repository",
-          content: { type: "link", url: "https://github.com/example/repo" },
-          tags: ["dev", "github"],
-          addDate: 100,
-          paths: [["Development", "Projects"]],
-        },
-        {
-          title: "My Notes",
-          content: { type: "text", text: "Important notes about the project" },
-          tags: ["notes"],
-          addDate: 200,
-          paths: [["Personal"]],
-          notes: "Additional context",
-          archived: true,
-        },
-        {
-          title: "Blog Post",
-          content: { type: "link", url: "https://example.com/blog" },
-          tags: ["reading", "tech"],
-          addDate: 300,
-          paths: [["Reading", "Tech"]],
-        },
-        {
-          title: "No Category Item",
-          content: { type: "link", url: "https://example.com/misc" },
-          tags: [],
-          addDate: 400,
-          paths: [],
-        },
-        {
-          title: "Duplicate URL Test",
-          content: { type: "link", url: "https://github.com/example/repo" },
-          tags: ["duplicate"],
-          addDate: 50, // Earlier date
-          paths: [["Development", "Duplicates"]],
-        },
-      ]),
+      pocket: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "GitHub Repository",
+            content: { type: "link", url: "https://github.com/example/repo" },
+            tags: ["dev", "github"],
+            addDate: 100,
+            paths: [["Development", "Projects"]],
+          },
+          {
+            title: "My Notes",
+            content: {
+              type: "text",
+              text: "Important notes about the project",
+            },
+            tags: ["notes"],
+            addDate: 200,
+            paths: [["Personal"]],
+            notes: "Additional context",
+            archived: true,
+          },
+          {
+            title: "Blog Post",
+            content: { type: "link", url: "https://example.com/blog" },
+            tags: ["reading", "tech"],
+            addDate: 300,
+            paths: [["Reading", "Tech"]],
+          },
+          {
+            title: "No Category Item",
+            content: { type: "link", url: "https://example.com/misc" },
+            tags: [],
+            addDate: 400,
+            paths: [],
+          },
+          {
+            title: "Duplicate URL Test",
+            content: { type: "link", url: "https://github.com/example/repo" },
+            tags: ["duplicate"],
+            addDate: 50, // Earlier date
+            paths: [["Development", "Duplicates"]],
+          },
+        ],
+        lists: [],
+      }),
     };
 
     const createdLists: { name: string; icon: string; parentId?: string }[] =
@@ -157,7 +163,9 @@ describe("importBookmarksFromFile", () => {
   });
 
   it("returns zero counts and null rootListId when no bookmarks", async () => {
-    const parsers = { html: vi.fn().mockReturnValue([]) };
+    const parsers = {
+      html: vi.fn().mockReturnValue({ bookmarks: [], lists: [] }),
+    };
     const res = await importBookmarksFromFile(
       {
         file: fakeFile,
@@ -181,29 +189,32 @@ describe("importBookmarksFromFile", () => {
 
   it("stages all bookmarks successfully", async () => {
     const parsers = {
-      pocket: vi.fn().mockReturnValue([
-        {
-          title: "Bookmark 1",
-          content: { type: "link", url: "https://example.com/1" },
-          tags: ["tag1"],
-          addDate: 100,
-          paths: [["Category1"]],
-        },
-        {
-          title: "Bookmark 2",
-          content: { type: "link", url: "https://example.com/2" },
-          tags: ["tag2"],
-          addDate: 200,
-          paths: [["Category2"]],
-        },
-        {
-          title: "Bookmark 3",
-          content: { type: "link", url: "https://example.com/3" },
-          tags: ["tag3"],
-          addDate: 300,
-          paths: [["Category1"]],
-        },
-      ]),
+      pocket: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "Bookmark 1",
+            content: { type: "link", url: "https://example.com/1" },
+            tags: ["tag1"],
+            addDate: 100,
+            paths: [["Category1"]],
+          },
+          {
+            title: "Bookmark 2",
+            content: { type: "link", url: "https://example.com/2" },
+            tags: ["tag2"],
+            addDate: 200,
+            paths: [["Category2"]],
+          },
+          {
+            title: "Bookmark 3",
+            content: { type: "link", url: "https://example.com/3" },
+            tags: ["tag3"],
+            addDate: 300,
+            paths: [["Category1"]],
+          },
+        ],
+        lists: [],
+      }),
     };
 
     const createdLists: { name: string; icon: string; parentId?: string }[] =
@@ -281,29 +292,32 @@ describe("importBookmarksFromFile", () => {
 
   it("stages bookmarks with different paths", async () => {
     const parsers = {
-      pocket: vi.fn().mockReturnValue([
-        {
-          title: "Bookmark 1",
-          content: { type: "link", url: "https://example.com/1" },
-          tags: ["tag1"],
-          addDate: 100,
-          paths: [["Path1"]],
-        },
-        {
-          title: "Bookmark 2",
-          content: { type: "link", url: "https://example.com/2" },
-          tags: ["tag2"],
-          addDate: 200,
-          paths: [["Path2"]],
-        },
-        {
-          title: "Bookmark 3",
-          content: { type: "link", url: "https://example.com/3" },
-          tags: ["tag3"],
-          addDate: 300,
-          paths: [["Path2"]],
-        },
-      ]),
+      pocket: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "Bookmark 1",
+            content: { type: "link", url: "https://example.com/1" },
+            tags: ["tag1"],
+            addDate: 100,
+            paths: [["Path1"]],
+          },
+          {
+            title: "Bookmark 2",
+            content: { type: "link", url: "https://example.com/2" },
+            tags: ["tag2"],
+            addDate: 200,
+            paths: [["Path2"]],
+          },
+          {
+            title: "Bookmark 3",
+            content: { type: "link", url: "https://example.com/3" },
+            tags: ["tag3"],
+            addDate: 300,
+            paths: [["Path2"]],
+          },
+        ],
+        lists: [],
+      }),
     };
 
     const createList = vi.fn(
@@ -363,6 +377,205 @@ describe("importBookmarksFromFile", () => {
 
     // Verify finalizeImportStaging was called
     expect(finalizeImportStaging).toHaveBeenCalledWith("session-1");
+  });
+
+  it("preserves separate list memberships when external list IDs differ", async () => {
+    const parsers = {
+      pocket: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "Bookmark 1",
+            content: { type: "link", url: "https://example.com/1" },
+            tags: [],
+            addDate: 100,
+            paths: [],
+            listExternalIds: ["child-1-id"],
+          },
+          {
+            title: "Bookmark 2",
+            content: { type: "link", url: "https://example.com/2" },
+            tags: [],
+            addDate: 200,
+            paths: [],
+            listExternalIds: ["child-2-id"],
+          },
+        ],
+        lists: [
+          {
+            externalId: "parent-id",
+            name: "Projects",
+            parentExternalId: null,
+            type: "manual",
+          },
+          {
+            externalId: "child-1-id",
+            name: "Inbox",
+            parentExternalId: "parent-id",
+            type: "manual",
+          },
+          {
+            externalId: "child-2-id",
+            name: "Inbox",
+            parentExternalId: "parent-id",
+            type: "manual",
+          },
+        ],
+      }),
+    };
+
+    let idCounter = 0;
+    const createdLists: { id: string; name: string; parentId?: string }[] = [];
+    const createList = vi.fn(
+      async (input: { name: string; icon: string; parentId?: string }) => {
+        const id = `list-${idCounter++}`;
+        createdLists.push({ id, name: input.name, parentId: input.parentId });
+        return { id };
+      },
+    );
+
+    const stagedBookmarks: StagedBookmark[] = [];
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
+
+    await importBookmarksFromFile(
+      {
+        file: fakeFile,
+        source: "pocket",
+        rootListName: "Imported",
+        deps: {
+          createList,
+          stageImportedBookmarks,
+          finalizeImportStaging: vi.fn(),
+          createImportSession: vi.fn(async () => ({ id: "session-1" })),
+        },
+      },
+      { parsers },
+    );
+
+    const projectsFolder = createdLists.find(
+      (list) => list.name === "Projects",
+    );
+    expect(projectsFolder).toBeDefined();
+
+    const duplicateFolders = createdLists.filter(
+      (list) => list.name === "Inbox" && list.parentId === projectsFolder?.id,
+    );
+    expect(duplicateFolders).toHaveLength(2);
+
+    const firstBookmark = stagedBookmarks.find(
+      (bookmark) => bookmark.url === "https://example.com/1",
+    );
+    const secondBookmark = stagedBookmarks.find(
+      (bookmark) => bookmark.url === "https://example.com/2",
+    );
+
+    expect(firstBookmark).toBeDefined();
+    expect(secondBookmark).toBeDefined();
+    expect(firstBookmark?.listIds[0]).not.toEqual(secondBookmark?.listIds[0]);
+    expect(duplicateFolders.map((list) => list.id)).toContain(
+      firstBookmark?.listIds[0],
+    );
+    expect(duplicateFolders.map((list) => list.id)).toContain(
+      secondBookmark?.listIds[0],
+    );
+  });
+
+  it("creates smart lists with their queries during import", async () => {
+    const parsers = {
+      karakeep: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "Bookmark 1",
+            content: { type: "link", url: "https://example.com/1" },
+            tags: [],
+            addDate: 100,
+            paths: [],
+            listExternalIds: ["manual-list-id"],
+          },
+        ],
+        lists: [
+          {
+            externalId: "manual-list-id",
+            name: "Manual",
+            icon: "⭐",
+            description: "Manual list description",
+            parentExternalId: null,
+            type: "manual",
+          },
+          {
+            externalId: "smart-list-id",
+            name: "Smart",
+            icon: "⚡",
+            description: "Smart list description",
+            parentExternalId: null,
+            type: "smart",
+            query: "tag:read-later",
+          },
+        ],
+      }),
+    };
+
+    const createdLists: {
+      name: string;
+      icon: string;
+      description?: string;
+      parentId?: string;
+      type?: "manual" | "smart";
+      query?: string;
+    }[] = [];
+
+    const createList = vi.fn(
+      async (input: {
+        name: string;
+        icon: string;
+        description?: string;
+        parentId?: string;
+        type?: "manual" | "smart";
+        query?: string;
+      }) => {
+        createdLists.push(input);
+        return {
+          id: `${input.parentId ? input.parentId + "/" : ""}${input.name}`,
+        };
+      },
+    );
+
+    await importBookmarksFromFile(
+      {
+        file: fakeFile,
+        source: "karakeep",
+        rootListName: "Imported",
+        deps: {
+          createList,
+          stageImportedBookmarks: vi.fn(async () => undefined),
+          finalizeImportStaging: vi.fn(),
+          createImportSession: vi.fn(async () => ({ id: "session-1" })),
+        },
+      },
+      { parsers },
+    );
+
+    expect(createdLists).toContainEqual({
+      name: "Smart",
+      parentId: "Imported",
+      icon: "⚡",
+      description: "Smart list description",
+      type: "smart",
+      query: "tag:read-later",
+    });
+
+    expect(createdLists).toContainEqual({
+      name: "Manual",
+      parentId: "Imported",
+      icon: "⭐",
+      description: "Manual list description",
+    });
   });
 
   it("handles HTML bookmarks with empty folder names", async () => {
