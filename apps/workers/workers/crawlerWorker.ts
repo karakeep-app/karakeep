@@ -76,7 +76,10 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
+import type {
+  ParseSubprocessError,
+  ParseSubprocessOutput,
+} from "./utils/parseHtmlSubprocessIpc";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessOutputSchema,
@@ -767,17 +770,19 @@ async function runParseSubprocess(
 
         // Try to parse structured error from stdout
         if (result.stdout) {
+          let errorOutput: ParseSubprocessError | null = null;
           try {
-            const errorOutput = parseSubprocessErrorSchema.parse(
+            errorOutput = parseSubprocessErrorSchema.parse(
               JSON.parse(result.stdout),
             );
-            if (errorOutput.error) {
-              throw new Error(
-                `[Crawler][${jobId}] Parse subprocess ${reason}: ${errorOutput.error}`,
-              );
-            }
           } catch {
             // stdout wasn't valid JSON error, fall through
+          }
+
+          if (errorOutput?.error) {
+            throw new Error(
+              `[Crawler][${jobId}] Parse subprocess ${reason}: ${errorOutput.error}`,
+            );
           }
         }
 
