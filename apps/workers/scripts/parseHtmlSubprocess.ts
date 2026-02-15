@@ -148,11 +148,16 @@ async function main() {
   process.stdout.write(JSON.stringify(output));
 }
 
-main().catch((err: unknown) => {
+main().catch(async (err: unknown) => {
   const errorOutput = parseSubprocessErrorSchema.parse({
     error: err instanceof Error ? err.message : String(err),
     stack: err instanceof Error ? err.stack : undefined,
   });
-  process.stdout.write(JSON.stringify(errorOutput));
-  process.exit(1);
+
+  const json = JSON.stringify(errorOutput);
+  if (!process.stdout.write(json)) {
+    await new Promise<void>((resolve) => process.stdout.once("drain", resolve));
+  }
+
+  process.exitCode = 1;
 });
