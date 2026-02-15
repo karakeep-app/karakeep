@@ -691,7 +691,7 @@ function getSubprocessScriptPath(): string {
 
 function getSubprocessCommand(): { cmd: string; args: string[] } {
   const scriptPath = getSubprocessScriptPath();
-  const maxOldSpaceSize = serverConfig.crawler.parseMaxOldSpaceSizeMb;
+  const maxOldSpaceSize = serverConfig.crawler.parserMemLimitMb;
 
   if (scriptPath.endsWith(".ts")) {
     // Dev mode: use tsx to run TypeScript directly
@@ -702,7 +702,7 @@ function getSubprocessCommand(): { cmd: string; args: string[] } {
   }
 
   return {
-    cmd: "node",
+    cmd: process.execPath,
     args: [`--max-old-space-size=${maxOldSpaceSize}`, scriptPath],
   };
 }
@@ -739,16 +739,8 @@ async function runParseSubprocess(
         cancelSignal: abortSignal,
         timeout: timeoutMs,
         reject: false,
+        stderr: "inherit",
       })(cmd, args);
-
-      // Log stderr output from the subprocess
-      if (result.stderr) {
-        for (const line of result.stderr.split("\n")) {
-          if (line.trim()) {
-            logger.info(`[Crawler][${jobId}][ParseSubprocess] ${line}`);
-          }
-        }
-      }
 
       if (result.isCanceled) {
         throw new Error(
@@ -762,10 +754,9 @@ async function runParseSubprocess(
         const isOom =
           result.exitCode === 137 ||
           result.signal === "SIGKILL" ||
-          result.signal === "SIGABRT" ||
-          result.stderr?.includes("JavaScript heap out of memory");
+          result.signal === "SIGABRT";
         const reason = isOom
-          ? `OOM killed (exit code ${result.exitCode}). Consider increasing CRAWLER_PARSE_MAX_OLD_SPACE_SIZE_MB (currently ${serverConfig.crawler.parseMaxOldSpaceSizeMb}MB).`
+          ? `OOM killed (exit code ${result.exitCode}). Consider increasing CRAWLER_PARSER_MEM_LIMIT_MB (currently ${serverConfig.crawler.parserMemLimitMb}MB).`
           : `exited with code ${result.exitCode}${result.signal ? ` (signal: ${result.signal})` : ""}`;
 
         // Try to parse structured error from stdout

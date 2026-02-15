@@ -117,9 +117,11 @@ async function main() {
     chunks.push(chunk);
   }
   const input: SubprocessInput = JSON.parse(Buffer.concat(chunks).toString());
-  const { htmlContent, url } = input;
+  const { htmlContent, url, jobId } = input;
 
-  logger.info(`[ParseSubprocess] Parsing HTML for "${url}"`);
+  logger.info(
+    `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
+  );
 
   // Run metascraper
   const meta = await metascraperParser({
@@ -128,7 +130,7 @@ async function main() {
     validateUrl: false,
   });
 
-  logger.info(`[ParseSubprocess] Metadata extracted for "${url}"`);
+  logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
   // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = meta.readableContentHtml
@@ -136,13 +138,15 @@ async function main() {
     : null;
 
   if (!readableContent) {
+    logger.info(
+      `[Crawler][${jobId}] Will attempt to extract readable content ...`,
+    );
     readableContent = extractReadableContent(
       meta.contentHtml ?? htmlContent,
       url,
     );
+    logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
   }
-
-  logger.info(`[ParseSubprocess] Parsing complete for "${url}"`);
 
   const output: SubprocessOutput = {
     metadata: meta,
