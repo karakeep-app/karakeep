@@ -111,6 +111,8 @@ const allEnv = z.object({
     .string()
     .default("")
     .transform((t) => t.split("%%").filter((a) => a)),
+  CRAWLER_PARSER_MEM_LIMIT_MB: z.coerce.number().default(512),
+  CRAWLER_PARSE_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
@@ -319,6 +321,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
+      parserMemLimitMb: val.CRAWLER_PARSER_MEM_LIMIT_MB,
+      parseTimeoutSec: val.CRAWLER_PARSE_TIMEOUT_SEC,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
       ipValidation: {
