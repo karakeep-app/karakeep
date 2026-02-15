@@ -86,3 +86,17 @@ OPENAI_API_KEY=YOUR_API_KEY
 INFERENCE_TEXT_MODEL=YOUR_DEPLOYMENT_NAME
 INFERENCE_IMAGE_MODEL=YOUR_DEPLOYMENT_NAME
 ```
+
+## Cloudflare
+
+Cloudflare supports OpenAI compatible endpoints. You can generate an API Token from the Cloudflare dashboard (Workers AI).
+
+```
+OPENAI_BASE_URL=https://api.cloudflare.com/client/v4/accounts/{your-account-id}/ai/v1
+OPENAI_API_KEY=Your Cloudflare Workers AI Token
+
+# Example models:
+INFERENCE_TEXT_MODEL=@cf/meta/llama-3.1-8b-instruct-fast
+INFERENCE_IMAGE_MODEL=@cf/meta/llama-3.2-11b-vision-instruct
+INFERENCE_OUTPUT_SCHEMA=json
+```
