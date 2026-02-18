@@ -149,7 +149,7 @@ function OneTabImportCard({
       <div className="flex flex-col items-end gap-2">
         <Input
           className="h-8 w-32 text-sm"
-          placeholder="Tag (optional)"
+          placeholder={t("settings.import.tag_optional")}
           value={tag}
           onChange={(e) => setTag(e.target.value)}
         />
