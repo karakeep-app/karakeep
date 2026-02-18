@@ -9,12 +9,18 @@ import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 
+import {
+  useCreateHighlight,
+  useDeleteHighlight,
+  useUpdateHighlight,
+} from "@karakeep/shared-react/hooks/highlights";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import FullPageError from "../FullPageError";
 import FullPageSpinner from "../ui/FullPageSpinner";
 import BookmarkAssetImage from "./BookmarkAssetImage";
+import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
 
 export function BookmarkLinkBrowserPreview({
@@ -80,6 +86,16 @@ export function BookmarkLinkReaderPreview({
     }),
   );
 
+  const { data: highlights } = useQuery(
+    api.highlights.getForBookmark.queryOptions({
+      bookmarkId: bookmark.id,
+    }),
+  );
+
+  const { mutate: createHighlight } = useCreateHighlight();
+  const { mutate: updateHighlight } = useUpdateHighlight();
+  const { mutate: deleteHighlight } = useDeleteHighlight();
+
   if (isLoading) {
     return <FullPageSpinner />;
   }
@@ -92,74 +108,44 @@ export function BookmarkLinkReaderPreview({
     throw new Error("Wrong content type rendered");
   }
 
-  const fontFamily = WEBVIEW_FONT_FAMILIES[readerSettings.fontFamily];
-  const fontSize = readerSettings.fontSize;
-  const lineHeight = readerSettings.lineHeight;
+  const contentStyle: React.CSSProperties = {
+    fontFamily: WEBVIEW_FONT_FAMILIES[readerSettings.fontFamily],
+    fontSize: `${readerSettings.fontSize}px`,
+    lineHeight: String(readerSettings.lineHeight),
+    color: isDark ? "#e5e7eb" : "#374151",
+    padding: "16px",
+    background: isDark ? "#000000" : "#ffffff",
+  };
 
   return (
     <View className="flex-1 bg-background">
-      <WebView
-        originWhitelist={["*"]}
-        source={{
-          html: `
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <style>
-                    body {
-                      font-family: ${fontFamily};
-                      font-size: ${fontSize}px;
-                      line-height: ${lineHeight};
-                      color: ${isDark ? "#e5e7eb" : "#374151"};
-                      margin: 0;
-                      padding: 16px;
-                      background: ${isDark ? "#000000" : "#ffffff"};
-                    }
-                    p { margin: 0 0 1em 0; }
-                    h1, h2, h3, h4, h5, h6 { margin: 1.5em 0 0.5em 0; line-height: 1.2; }
-                    img { max-width: 100%; height: auto; border-radius: 8px; }
-                    a { color: #3b82f6; text-decoration: none; }
-                    a:hover { text-decoration: underline; }
-                    blockquote {
-                      border-left: 4px solid ${isDark ? "#374151" : "#e5e7eb"};
-                      margin: 1em 0;
-                      padding-left: 1em;
-                      color: ${isDark ? "#9ca3af" : "#6b7280"};
-                    }
-                    pre, code {
-                      font-family: ui-monospace, Menlo, Monaco, 'Courier New', monospace;
-                      background: ${isDark ? "#1f2937" : "#f3f4f6"};
-                    }
-                    pre {
-                      padding: 1em;
-                      border-radius: 6px;
-                      overflow-x: auto;
-                    }
-                    code {
-                      padding: 0.2em 0.4em;
-                      border-radius: 3px;
-                      font-size: 0.9em;
-                    }
-                    pre code {
-                      padding: 0;
-                      background: none;
-                    }
-                  </style>
-                </head>
-                <body>
-                  ${bookmarkWithContent.content.htmlContent}
-                </body>
-              </html>
-            `,
-        }}
-        style={{
-          flex: 1,
-          backgroundColor: isDark ? "#000000" : "#ffffff",
-        }}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        decelerationRate={0.998}
+      <BookmarkHtmlHighlighterDom
+        htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
+        contentStyle={contentStyle}
+        highlights={highlights?.highlights ?? []}
+        onHighlight={(h) =>
+          createHighlight({
+            startOffset: h.startOffset,
+            endOffset: h.endOffset,
+            color: h.color,
+            bookmarkId: bookmark.id,
+            text: h.text,
+            note: h.note ?? null,
+          })
+        }
+        onUpdateHighlight={(h) =>
+          updateHighlight({
+            highlightId: h.id,
+            color: h.color,
+            note: h.note,
+          })
+        }
+        onDeleteHighlight={(h) =>
+          deleteHighlight({
+            highlightId: h.id,
+          })
+        }
+        dom={{ scrollEnabled: true }}
       />
     </View>
   );

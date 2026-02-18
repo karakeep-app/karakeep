@@ -7,10 +7,16 @@
   "dependencies": {
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
+    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "5.90.2",
     "@trpc/client": "^11.9.0",
     "@trpc/tanstack-react-query": "^11.9.0",
-    "superjson": "^2.2.1"
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.501.0",
+    "superjson": "^2.2.1",
+    "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
     "@karakeep/prettier-config": "workspace:^0.1.0",
@@ -18,9 +24,13 @@
   },
   "peerDependencies": {
     "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "react-native": "0.79.5"
   },
   "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    },
     "react-native": {
       "optional": true
     }

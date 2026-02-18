@@ -4,6 +4,7 @@ import { useTranslation } from "@/lib/i18n/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 
+import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import {
   useCreateHighlight,
   useDeleteHighlight,
@@ -11,8 +12,6 @@ import {
 } from "@karakeep/shared-react/hooks/highlights";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
-import BookmarkHTMLHighlighter from "./BookmarkHtmlHighlighter";
 
 export default function ReaderView({
   bookmarkId,

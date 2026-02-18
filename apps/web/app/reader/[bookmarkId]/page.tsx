@@ -128,7 +128,6 @@ export default function ReaderViewPage() {
                 <Suspense fallback={<FullPageSpinner />}>
                   <div className="overflow-x-hidden">
                     <ReaderView
-                      className="prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,
