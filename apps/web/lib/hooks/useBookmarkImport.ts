@@ -43,9 +43,11 @@ export function useBookmarkImport() {
     mutationFn: async ({
       file,
       source,
+      extraTags,
     }: {
       file: File;
       source: ImportSource;
+      extraTags?: string[];
     }) => {
       // Clear any previous quota error
       setQuotaError(null);
@@ -82,6 +84,7 @@ export function useBookmarkImport() {
           file,
           source,
           rootListName: t("settings.import.imported_bookmarks"),
+          extraTags,
           deps: {
             createImportSession,
             createList,
