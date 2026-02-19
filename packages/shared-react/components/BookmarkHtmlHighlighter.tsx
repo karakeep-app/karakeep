@@ -5,10 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ActionButton } from "@/components/ui/action-button";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { PopoverAnchor } from "@radix-ui/react-popover";
 import { Check, Trash2 } from "lucide-react";
@@ -19,6 +15,9 @@ import {
 } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
+import { Button } from "./ui/button";
+import { Popover, PopoverContent } from "./ui/popover";
+import { Textarea } from "./ui/textarea";
 
 interface HighlightFormProps {
   position: { x: number; y: number } | null;
@@ -112,15 +111,14 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
             </Button>
           </div>
           {selectedHighlight && onDelete && (
-            <ActionButton
-              loading={false}
+            <Button
               size="sm"
               onClick={onDelete}
               variant="ghost"
               title="Delete highlight"
             >
               <Trash2 className="size-4 text-destructive" />
-            </ActionButton>
+            </Button>
           )}
         </div>
       </PopoverContent>
@@ -410,7 +408,10 @@ const BookmarkHTMLHighlighter = forwardRef<
         ref={contentRef}
         dangerouslySetInnerHTML={{ __html: htmlContent }}
         onPointerUp={handlePointerUp}
-        className={className}
+        className={cn(
+          "prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto",
+          className,
+        )}
         style={style}
       />
       <HighlightForm

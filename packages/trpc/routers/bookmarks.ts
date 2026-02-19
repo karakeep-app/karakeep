@@ -15,11 +15,14 @@ import {
   customPrompts,
   tagsOnBookmarks,
   userReadingProgress,
+  users,
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
+  QueuePriority,
   QuotaService,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
@@ -28,7 +31,7 @@ import {
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
-import { buildSummaryPrompt } from "@karakeep/shared/prompts";
+import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -52,7 +55,6 @@ import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
-import { ImportSession } from "../models/importSessions";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -122,13 +124,6 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
-          if (input.importSessionId) {
-            const session = await ImportSession.fromId(
-              ctx,
-              input.importSessionId,
-            );
-            await session.attachBookmark(alreadyExists.id);
-          }
           return { ...alreadyExists, alreadyExists: true };
         }
       }
@@ -278,21 +273,24 @@ export const bookmarksAppRouter = router({
         },
       );
 
-      if (input.importSessionId) {
-        const session = await ImportSession.fromId(ctx, input.importSessionId);
-        await session.attachBookmark(bookmark.id);
-      }
-
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
-        priority: input.crawlPriority === "low" ? 50 : 0,
+        priority:
+          input.crawlPriority === "low"
+            ? QueuePriority.Low
+            : QueuePriority.Default,
         groupId: ctx.user.id,
       };
 
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
-          await LinkCrawlerQueue.enqueue(
+          // Use a separate queue for low priority crawling to avoid impacting main queue parallelism
+          const crawlerQueue =
+            input.crawlPriority === "low"
+              ? LowPriorityCrawlerQueue
+              : LinkCrawlerQueue;
+          await crawlerQueue.enqueue(
             {
               bookmarkId: bookmark.id,
             },
@@ -574,7 +572,7 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await LinkCrawlerQueue.enqueue(
+      await LowPriorityCrawlerQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
           archiveFullPage: input.archiveFullPage,
@@ -582,6 +580,7 @@ export const bookmarksAppRouter = router({
         },
         {
           groupId: ctx.user.id,
+          priority: QueuePriority.Low,
         },
       );
     }),
@@ -879,9 +878,10 @@ export const bookmarksAppRouter = router({
       const idsToRemove = detachTagsWithNames.map((t) => t.id);
 
       const res = await ctx.db.transaction(async (tx) => {
+        let numChanges = 0;
         // Detaches
         if (idsToRemove.length > 0) {
-          await tx
+          const res = await tx
             .delete(tagsOnBookmarks)
             .where(
               and(
@@ -889,11 +889,12 @@ export const bookmarksAppRouter = router({
                 inArray(tagsOnBookmarks.tagId, idsToRemove),
               ),
             );
+          numChanges += res.changes;
         }
 
         // Attach tags
         if (allIdsToAttach.length > 0) {
-          await tx
+          const res = await tx
             .insert(tagsOnBookmarks)
             .values(
               allIdsToAttach.map((i) => ({
@@ -903,44 +904,50 @@ export const bookmarksAppRouter = router({
               })),
             )
             .onConflictDoNothing();
+          numChanges += res.changes;
         }
 
         // Update bookmark modified timestamp
-        await tx
-          .update(bookmarks)
-          .set({ modifiedAt: new Date() })
-          .where(
-            and(
-              eq(bookmarks.id, input.bookmarkId),
-              eq(bookmarks.userId, ctx.user.id),
-            ),
-          );
+        if (numChanges > 0) {
+          await tx
+            .update(bookmarks)
+            .set({ modifiedAt: new Date() })
+            .where(
+              and(
+                eq(bookmarks.id, input.bookmarkId),
+                eq(bookmarks.userId, ctx.user.id),
+              ),
+            );
+        }
 
         return {
           bookmarkId: input.bookmarkId,
           attached: allIdsToAttach,
           detached: idsToRemove,
+          numChanges,
         };
       });
 
-      await Promise.allSettled([
-        triggerRuleEngineOnEvent(input.bookmarkId, [
-          ...res.detached.map((t) => ({
-            type: "tagRemoved" as const,
-            tagId: t,
-          })),
-          ...res.attached.map((t) => ({
-            type: "tagAdded" as const,
-            tagId: t,
-          })),
-        ]),
-        triggerSearchReindex(input.bookmarkId, {
-          groupId: ctx.user.id,
-        }),
-        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        }),
-      ]);
+      if (res.numChanges > 0) {
+        await Promise.allSettled([
+          triggerRuleEngineOnEvent(input.bookmarkId, [
+            ...res.detached.map((t) => ({
+              type: "tagRemoved" as const,
+              tagId: t,
+            })),
+            ...res.attached.map((t) => ({
+              type: "tagAdded" as const,
+              tagId: t,
+            })),
+          ]),
+          triggerSearchReindex(input.bookmarkId, {
+            groupId: ctx.user.id,
+          }),
+          triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
+            groupId: ctx.user.id,
+          }),
+        ]);
+      }
       return res;
     }),
   getBrokenLinks: authedProcedure
@@ -1052,8 +1059,15 @@ Author: ${bookmark.author ?? ""}
         },
       });
 
+      const userSettings = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+        columns: {
+          inferredTagLang: true,
+        },
+      });
+
       const summaryPrompt = await buildSummaryPrompt(
-        serverConfig.inference.inferredTagLang,
+        userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
         prompts.map((p) => p.text),
         bookmarkDetails,
         serverConfig.inference.contextLength,

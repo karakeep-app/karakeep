@@ -12,7 +12,8 @@ import { authedProcedure, Context, publicProcedure, router } from "../index";
 
 const stripe = serverConfig.stripe.secretKey
   ? new Stripe(serverConfig.stripe.secretKey, {
-      apiVersion: "2025-06-30.basil",
+      // @ts-expect-error overrides the pinned API version
+      apiVersion: "2025-06-30.basil; managed_payments_preview=v1",
     })
   : null;
 
@@ -281,9 +282,9 @@ export const subscriptionsRouter = router({
       }
     }
 
+    // @ts-expect-error managed_payments is a Stripe preview feature not yet in the SDK types
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ["card"],
       line_items: [
         {
           price: priceId,
@@ -296,13 +297,13 @@ export const subscriptionsRouter = router({
       metadata: {
         userId: ctx.user.id,
       },
-      automatic_tax: {
-        enabled: true,
-      },
       customer_update: {
         address: "auto",
       },
       allow_promotion_codes: true,
+      managed_payments: {
+        enabled: true,
+      },
     });
 
     return {

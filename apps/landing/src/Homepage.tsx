@@ -17,6 +17,7 @@ import {
   Users,
   Workflow,
 } from "lucide-react";
+import { Link } from "react-router";
 
 import {
   CLOUD_SIGNUP_LINK,
@@ -266,6 +267,12 @@ function Footer() {
         </a>
       </div>
       <div className="flex items-center gap-6">
+        <Link to="/terms" className="flex justify-center gap-2 text-center">
+          Terms
+        </Link>
+        <Link to="/privacy" className="flex justify-center gap-2 text-center">
+          Privacy
+        </Link>
         <a
           href={DOCS_LINK}
           target="_blank"

@@ -8,9 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
+import { useQueries } from "@tanstack/react-query";
 
 import { useUpdateBookmarkTags } from "@karakeep/shared-react/hooks/bookmarks";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { limitConcurrency } from "@karakeep/shared/concurrency";
 import { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
@@ -25,9 +26,12 @@ export default function BulkTagModal({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const results = api.useQueries((t) =>
-    bookmarkIds.map((id) => t.bookmarks.getBookmark({ bookmarkId: id })),
-  );
+  const api = useTRPC();
+  const results = useQueries({
+    queries: bookmarkIds.map((id) =>
+      api.bookmarks.getBookmark.queryOptions({ bookmarkId: id }),
+    ),
+  });
 
   const bookmarks = results
     .map((r) => r.data)

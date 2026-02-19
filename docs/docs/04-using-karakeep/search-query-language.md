@@ -11,7 +11,7 @@ Karakeep provides a search query language to filter and find bookmarks. Here are
 
 - Use spaces to separate multiple conditions (implicit AND)
 - Use `and`/`or` keywords for explicit boolean logic
-- Prefix qualifiers with `-` to negate them
+- Prefix qualifiers with `-` or `!` to negate them (e.g., `-is:archived` or `!is:archived`)
 - Use parentheses `()` for grouping conditions (note that groups can't be negated)
 
 ## Qualifiers
@@ -29,13 +29,14 @@ Here's a comprehensive table of all supported qualifiers:
 | `url:<value>`                    | Match bookmarks with URL substring                                                                                                                                                                        | `url:example.com`                            |
 | `title:<value>`                  | Match bookmarks with title substring                                                                                                               | `title:example`                              |
 |                                  | Supports quoted strings for titles with spaces                                                                                                   | `title:"my title"`                           |
-| `#<tag>`                         | Match bookmarks with specific tag                                                                                                                                                                         | `#important`                                 |
-|                                  | Supports quoted strings for tags with spaces                                                                                                                                                              | `#"work in progress"`                        |
+| `#<tag>` or `tag:<tag>`          | Match bookmarks with specific tag                                                                                                                                                                         | `#important` or `tag:important`              |
+|                                  | Supports quoted strings for tags with spaces                                                                                                                                                              | `#"work in progress"` or `tag:"work in progress"` |
 | `list:<name>`                    | Match bookmarks in specific list                                                                                                                                                                          | `list:reading`                               |
 |                                  | Supports quoted strings for list names with spaces                                                                                                                                                        | `list:"to review"`                           |
 | `after:<date>`                   | Bookmarks created on or after date (YYYY-MM-DD)                                                                                                                                                           | `after:2023-01-01`                           |
 | `before:<date>`                  | Bookmarks created on or before date (YYYY-MM-DD)                                                                                                                                                          | `before:2023-12-31`                          |
 | `feed:<name>`                    | Bookmarks imported from a particular rss feed                                                                                                                                                             | `feed:Hackernews`                            |
+| `source:<value>`                 | Match bookmarks from a specific source. Valid values: `api`, `web`, `cli`, `mobile`, `extension`, `singlefile`, `rss`, `import`                                                                          | `source:rss` `-source:web`                   |
 | `age:<time-range>`               | Match bookmarks based on how long ago they were created. Use `<` or `>` to indicate the maximum / minimum age of the bookmarks. Supported units: `d` (days), `w` (weeks), `m` (months), `y` (years). | `age:<1d` `age:>2w` `age:<6m` `age:>3y` |
 
 ### Examples
@@ -66,6 +67,12 @@ is:archived and (list:reading or #work)
 
 # Find bookmarks that are not favorited and not archived
 -is:fav -is:archived
+
+# Using ! as an alias for negation
+!is:fav !is:archived
+
+# Using tag: as an alias for #
+tag:important tag:"work in progress"
 ```
 
 ## Text Search

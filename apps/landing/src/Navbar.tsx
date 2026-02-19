@@ -2,7 +2,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router";
 
-import { DEMO_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
+import { CLOUD_SIGNUP_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
 import Logo from "/icons/karakeep-full.svg?url";
 
 export default function NavBar() {
@@ -30,6 +30,17 @@ export default function NavBar() {
           rel="noreferrer"
         >
           Login
+        </a>
+        <a
+          href={CLOUD_SIGNUP_LINK}
+          target="_blank"
+          className={cn(
+            "px-3 py-1.5 text-xs",
+            buttonVariants({ variant: "default", size: "sm" }),
+          )}
+          rel="noreferrer"
+        >
+          Get Started
         </a>
       </div>
 
@@ -66,15 +77,15 @@ export default function NavBar() {
           Login
         </a>
         <a
-          href={DEMO_LINK}
+          href={CLOUD_SIGNUP_LINK}
           target="_blank"
           className={cn(
-            "text flex h-full w-28 gap-2",
+            "text flex h-full w-32 gap-2",
             buttonVariants({ variant: "default" }),
           )}
           rel="noreferrer"
         >
-          Try Demo
+          Get Started
         </a>
       </div>
     </div>

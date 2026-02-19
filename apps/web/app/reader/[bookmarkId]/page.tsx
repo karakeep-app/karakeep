@@ -8,26 +8,32 @@ import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth/client";
 import { useReaderSettings } from "@/lib/readerSettings";
+import { useQuery } from "@tanstack/react-query";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 export default function ReaderViewPage() {
+  const api = useTRPC();
   const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
   const contentRef = useRef<HTMLDivElement>(null);
-  const { data: highlights } = api.highlights.getForBookmark.useQuery({
-    bookmarkId,
-  });
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery({
-    bookmarkId,
-  });
+  const { data: highlights } = useQuery(
+    api.highlights.getForBookmark.queryOptions({
+      bookmarkId,
+    }),
+  );
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions({
+      bookmarkId,
+    }),
+  );
 
   const { data: session } = useSession();
   const router = useRouter();
@@ -148,7 +154,6 @@ export default function ReaderViewPage() {
                   <div className="overflow-x-hidden">
                     <ReaderView
                       ref={contentRef}
-                      className="prose prose-neutral max-w-none break-words dark:prose-invert [&_blockquote]:scroll-mt-16 [&_code]:break-all [&_h1]:scroll-mt-16 [&_h2]:scroll-mt-16 [&_h3]:scroll-mt-16 [&_h4]:scroll-mt-16 [&_h5]:scroll-mt-16 [&_h6]:scroll-mt-16 [&_img]:h-auto [&_img]:max-w-full [&_li]:scroll-mt-16 [&_p]:scroll-mt-16 [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,

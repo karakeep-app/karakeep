@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { View } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui/Button";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
@@ -59,25 +58,23 @@ const NoteEditorPage = () => {
   };
 
   return (
-    <CustomSafeAreaView>
-      <View className="gap-2 px-4">
-        {error && (
-          <Text className="w-full text-center text-red-500">{error}</Text>
-        )}
-        <Input
-          onChangeText={setText}
-          className="bg-card"
-          multiline
-          placeholder="What's on your mind?"
-          autoFocus
-          autoCapitalize={"none"}
-          textAlignVertical="top"
-        />
-        <Button onPress={onSubmit} disabled={isPending}>
-          <Text>Save</Text>
-        </Button>
-      </View>
-    </CustomSafeAreaView>
+    <View className="flex-1 gap-2 px-4 pt-4">
+      {error && (
+        <Text className="w-full text-center text-red-500">{error}</Text>
+      )}
+      <Input
+        onChangeText={setText}
+        className="bg-card"
+        multiline
+        placeholder="What's on your mind?"
+        autoFocus
+        autoCapitalize={"none"}
+        textAlignVertical="top"
+      />
+      <Button onPress={onSubmit} disabled={isPending}>
+        <Text>Save</Text>
+      </Button>
+    </View>
   );
 };
 

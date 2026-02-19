@@ -86,6 +86,15 @@ function isAddressForbidden(address: string): boolean {
   return DISALLOWED_IP_RANGES.has(parsed.range());
 }
 
+export function getBookmarkDomain(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
 export type UrlValidationResult =
   | { ok: true; url: URL }
   | { ok: false; reason: string };

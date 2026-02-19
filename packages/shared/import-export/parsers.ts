@@ -16,7 +16,8 @@ export type ImportSource =
   | "karakeep"
   | "linkwarden"
   | "tab-session-manager"
-  | "mymind";
+  | "mymind"
+  | "instapaper";
 
 export interface ParsedBookmark {
   title: string;
@@ -28,6 +29,23 @@ export interface ParsedBookmark {
   notes?: string;
   archived?: boolean;
   paths: string[][];
+  // Optional list IDs from the source file (used with top-level `lists`).
+  listExternalIds?: string[];
+}
+
+export interface ParsedImportList {
+  externalId: string;
+  name: string;
+  icon?: string;
+  description?: string;
+  parentExternalId: string | null;
+  type: "manual" | "smart";
+  query?: string;
+}
+
+export interface ParsedImportFile {
+  bookmarks: ParsedBookmark[];
+  lists: ParsedImportList[];
 }
 
 function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -160,7 +178,7 @@ function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
-function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
+function parseKarakeepBookmarkFile(textContent: string): ParsedImportFile {
   const parsed = zExportSchema.safeParse(JSON.parse(textContent));
   if (!parsed.success) {
     throw new Error(
@@ -168,7 +186,22 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
-  return parsed.data.bookmarks.map((bookmark) => {
+  const exportedLists = parsed.data.lists ?? [];
+  const parsedLists: ParsedImportList[] = exportedLists.map((list) => ({
+    externalId: list.id,
+    name: list.name,
+    icon: list.icon,
+    description: list.description ?? undefined,
+    parentExternalId: list.parentId,
+    type: list.type,
+    query: list.type === "smart" ? (list.query ?? undefined) : undefined,
+  }));
+
+  const manualListIds = new Set(
+    exportedLists.filter((l) => l.type === "manual").map((l) => l.id),
+  );
+
+  const parsedBookmarks = parsed.data.bookmarks.map((bookmark) => {
     let content = undefined;
     if (bookmark.content?.type == BookmarkTypes.LINK) {
       content = {
@@ -181,6 +214,7 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
         text: bookmark.content.text,
       };
     }
+
     return {
       title: bookmark.title ?? "",
       content,
@@ -188,9 +222,17 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       addDate: bookmark.createdAt,
       notes: bookmark.note ?? undefined,
       archived: bookmark.archived,
-      paths: [], // TODO
+      paths: [],
+      listExternalIds: (bookmark.lists ?? []).filter((listId) =>
+        manualListIds.has(listId),
+      ),
     };
   });
+
+  return {
+    bookmarks: parsedBookmarks,
+    lists: parsedLists,
+  };
 }
 
 function parseOmnivoreBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -357,6 +399,64 @@ function parseMymindBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
+function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zInstapaperRecordScheme = z.object({
+    URL: z.string(),
+    Title: z.string(),
+    Selection: z.string(),
+    Folder: z.string(),
+    Timestamp: z.string(),
+    Tags: z.string(),
+  });
+
+  const zInstapaperExportScheme = z.array(zInstapaperRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zInstapaperExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid instapaper bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
+    let content: ParsedBookmark["content"];
+    if (record.URL && record.URL.trim().length > 0) {
+      content = { type: BookmarkTypes.LINK as const, url: record.URL.trim() };
+    } else if (record.Selection && record.Selection.trim().length > 0) {
+      content = {
+        type: BookmarkTypes.TEXT as const,
+        text: record.Selection.trim(),
+      };
+    }
+
+    const addDate = parseInt(record.Timestamp);
+
+    let tags: string[] = [];
+    try {
+      const parsedTags = JSON.parse(record.Tags);
+      if (Array.isArray(parsedTags)) {
+        tags = parsedTags.map((tag) => tag.toString().trim());
+      }
+    } catch {
+      tags = [];
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths: [], // TODO
+    };
+  });
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -370,6 +470,14 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
         existing.tags = [...new Set([...existing.tags, ...bookmark.tags])];
         // Merge paths
         existing.paths = [...existing.paths, ...bookmark.paths];
+        if (existing.listExternalIds || bookmark.listExternalIds) {
+          existing.listExternalIds = [
+            ...new Set([
+              ...(existing.listExternalIds ?? []),
+              ...(bookmark.listExternalIds ?? []),
+            ]),
+          ];
+        }
         const existingDate = existing.addDate ?? Infinity;
         const newDate = bookmark.addDate ?? Infinity;
         if (newDate < existingDate) {
@@ -401,7 +509,15 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
 export function parseImportFile(
   source: ImportSource,
   textContent: string,
-): ParsedBookmark[] {
+): ParsedImportFile {
+  if (source === "karakeep") {
+    const parsed = parseKarakeepBookmarkFile(textContent);
+    return {
+      bookmarks: deduplicateBookmarks(parsed.bookmarks),
+      lists: parsed.lists,
+    };
+  }
+
   let result: ParsedBookmark[];
   switch (source) {
     case "html":
@@ -412,9 +528,6 @@ export function parseImportFile(
       break;
     case "matter":
       result = parseMatterBookmarkFile(textContent);
-      break;
-    case "karakeep":
-      result = parseKarakeepBookmarkFile(textContent);
       break;
     case "omnivore":
       result = parseOmnivoreBookmarkFile(textContent);
@@ -428,6 +541,9 @@ export function parseImportFile(
     case "mymind":
       result = parseMymindBookmarkFile(textContent);
       break;
+    case "instapaper":
+      result = parseInstapaperBookmarkFile(textContent);
+      break;
   }
-  return deduplicateBookmarks(result);
+  return { bookmarks: deduplicateBookmarks(result), lists: [] };
 }

@@ -13,9 +13,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useSession } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
-import { LogOut, Moon, Paintbrush, Settings, Shield, Sun } from "lucide-react";
-import { useSession } from "next-auth/react";
+import {
+  BookOpen,
+  LogOut,
+  Moon,
+  Paintbrush,
+  Puzzle,
+  Settings,
+  Shield,
+  Sun,
+  Twitter,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
@@ -110,6 +120,25 @@ export default function SidebarProfileOptions() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={toggleTheme}>
           <DarkModeToggle />
+        </DropdownMenuItem>
+        <Separator className="my-2" />
+        <DropdownMenuItem asChild>
+          <a href="https://karakeep.app/apps" target="_blank" rel="noreferrer">
+            <Puzzle className="mr-2 size-4" />
+            {t("options.apps_extensions")}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href="https://docs.karakeep.app" target="_blank" rel="noreferrer">
+            <BookOpen className="mr-2 size-4" />
+            {t("options.documentation")}
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href="https://x.com/karakeep_app" target="_blank" rel="noreferrer">
+            <Twitter className="mr-2 size-4" />
+            {t("options.follow_us_on_x")}
+          </a>
         </DropdownMenuItem>
         <Separator className="my-2" />
         <DropdownMenuItem onClick={() => router.push("/logout")}>

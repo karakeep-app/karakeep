@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 import { SCROLL_THROTTLE_MS } from "@karakeep/shared/utils/reading-progress-core";
@@ -11,7 +12,7 @@ import {
   scrollToReadingPosition,
 } from "@karakeep/shared/utils/reading-progress-dom";
 
-import { api } from "../trpc";
+import { useTRPC } from "../trpc";
 
 // Re-export ReadingPosition type for consumers
 export type { ReadingPosition };
@@ -48,7 +49,8 @@ export function useReadingProgress(
   } = options;
 
   const lastSavedOffset = useRef<number | null>(initialOffset ?? null);
-  const apiUtils = api.useUtils();
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
   // Track whether restoration is complete (or not needed)
   // Ready immediately if: disabled, or no initialOffset to restore
@@ -67,15 +69,16 @@ export function useReadingProgress(
     }
   }, [needsRestoration, bookmarkId]);
 
-  const { mutate: updateProgress } =
-    api.bookmarks.updateReadingProgress.useMutation({
+  const { mutate: updateProgress } = useMutation(
+    api.bookmarks.updateReadingProgress.mutationOptions({
       onSuccess: () => {
-        apiUtils.bookmarks.getBookmark.invalidate({ bookmarkId });
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
       },
-      onError: (error) => {
+      onError: (error: unknown) => {
         console.error("[ReadingProgress] Failed to save progress:", error);
       },
-    });
+    }),
+  );
 
   // Save function stored in a ref for stable access from event handlers.
   // Why this pattern? Effects below subscribe to visibilitychange/beforeunload and

@@ -27,6 +27,10 @@ class RestateQueueWrapper<T> implements Queue<T> {
     public readonly opts: QueueOptions,
   ) {}
 
+  ensureInit(): Promise<void> {
+    return Promise.resolve();
+  }
+
   name(): string {
     return this._name;
   }

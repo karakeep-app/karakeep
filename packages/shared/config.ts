@@ -47,6 +47,7 @@ const allEnv = z.object({
   NEXTAUTH_SECRET: z.string().optional(),
   DISABLE_SIGNUPS: stringBool("false"),
   DISABLE_PASSWORD_AUTH: stringBool("false"),
+  OAUTH_AUTO_REDIRECT: stringBool("false"),
   OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING: stringBool("false"),
   OAUTH_WELLKNOWN_URL: z.string().url().optional(),
   OAUTH_CLIENT_SECRET: z.string().optional(),
@@ -82,6 +83,7 @@ const allEnv = z.object({
     .default("eng")
     .transform((val) => val.split(",")),
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().default(50),
+  OCR_USE_LLM: stringBool("false"),
   CRAWLER_HEADLESS_BROWSER: stringBool("true"),
   BROWSER_WEB_URL: z.string().optional(),
   BROWSER_WEBSOCKET_URL: z.string().optional(),
@@ -110,6 +112,8 @@ const allEnv = z.object({
     .string()
     .default("")
     .transform((t) => t.split("%%").filter((a) => a)),
+  CRAWLER_PARSER_MEM_LIMIT_MB: z.coerce.number().default(512),
+  CRAWLER_PARSE_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
@@ -128,6 +132,10 @@ const allEnv = z.object({
   WEBHOOK_RETRY_TIMES: z.coerce.number().int().min(0).default(3),
   MAX_RSS_FEEDS_PER_USER: z.coerce.number().default(1000),
   MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
+  // Legal
+  TERMS_OF_SERVICE_URL: z.string().url().optional(),
+  PRIVACY_POLICY_URL: z.string().url().optional(),
+
   // Build only flag
   SERVER_VERSION: z.string().optional(),
   CHANGELOG_VERSION: z.string().optional(),
@@ -243,6 +251,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       disablePasswordAuth: val.DISABLE_PASSWORD_AUTH,
       emailVerificationRequired: val.EMAIL_VERIFICATION_REQUIRED,
       oauth: {
+        autoRedirect: val.OAUTH_AUTO_REDIRECT,
         allowDangerousEmailAccountLinking:
           val.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING,
         wellKnownUrl: val.OAUTH_WELLKNOWN_URL,
@@ -318,6 +327,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
+      parserMemLimitMb: val.CRAWLER_PARSER_MEM_LIMIT_MB,
+      parseTimeoutSec: val.CRAWLER_PARSE_TIMEOUT_SEC,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
       ipValidation: {
@@ -337,6 +348,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       langs: val.OCR_LANGS,
       cacheDir: val.OCR_CACHE_DIR,
       confidenceThreshold: val.OCR_CONFIDENCE_THRESHOLD,
+      useLLM: val.OCR_USE_LLM,
     },
     search: {
       numWorkers: val.SEARCH_NUM_WORKERS,
@@ -353,6 +365,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     dataDir: val.DATA_DIR,
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
+    legal: {
+      termsOfServiceUrl: val.TERMS_OF_SERVICE_URL,
+      privacyPolicyUrl: val.PRIVACY_POLICY_URL,
+    },
     serverVersion: val.SERVER_VERSION,
     changelogVersion: val.CHANGELOG_VERSION,
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,
@@ -459,6 +475,7 @@ export const clientConfig = {
   auth: {
     disableSignups: serverConfig.auth.disableSignups,
     disablePasswordAuth: serverConfig.auth.disablePasswordAuth,
+    oauthAutoRedirect: serverConfig.auth.oauth.autoRedirect,
   },
   turnstile:
     serverConfig.auth.turnstile.enabled && serverConfig.auth.turnstile.siteKey
@@ -471,6 +488,10 @@ export const clientConfig = {
     inferredTagLang: serverConfig.inference.inferredTagLang,
     enableAutoTagging: serverConfig.inference.enableAutoTagging,
     enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
+  },
+  legal: {
+    termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
+    privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

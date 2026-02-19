@@ -1,16 +1,18 @@
 import { forwardRef, useEffect } from "react";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
-import { api } from "@/lib/trpc";
+import { useTranslation } from "@/lib/i18n/client";
+import { useQuery } from "@tanstack/react-query";
+import { FileX } from "lucide-react";
 
+import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import {
   useCreateHighlight,
   useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
-import BookmarkHTMLHighlighter from "./BookmarkHtmlHighlighter";
 
 interface ReaderViewProps {
   bookmarkId: string;
@@ -25,11 +27,15 @@ const ReaderView = forwardRef<HTMLDivElement, ReaderViewProps>(
     { bookmarkId, className, style, readOnly, onContentReady },
     ref,
   ) {
-    const { data: highlights } = api.highlights.getForBookmark.useQuery({
-      bookmarkId,
-    });
-    const { data: cachedContent, isPending: isCachedContentLoading } =
-      api.bookmarks.getBookmark.useQuery(
+    const { t } = useTranslation();
+    const api = useTRPC();
+    const { data: highlights } = useQuery(
+      api.highlights.getForBookmark.queryOptions({
+        bookmarkId,
+      }),
+    );
+    const { data: cachedContent, isPending: isCachedContentLoading } = useQuery(
+      api.bookmarks.getBookmark.queryOptions(
         {
           bookmarkId,
           includeContent: true,
@@ -40,7 +46,8 @@ const ReaderView = forwardRef<HTMLDivElement, ReaderViewProps>(
               ? data.content.htmlContent
               : null,
         },
-      );
+      ),
+    );
 
     // Signal to parent when content is ready for reading progress restoration
     useEffect(() => {
@@ -96,7 +103,23 @@ const ReaderView = forwardRef<HTMLDivElement, ReaderViewProps>(
       content = <FullPageSpinner />;
     } else if (!cachedContent) {
       content = (
-        <div className="text-destructive">Failed to fetch link content ...</div>
+        <div className="flex h-full w-full items-center justify-center p-4">
+          <div className="max-w-sm space-y-4 text-center">
+            <div className="flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <FileX className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium text-foreground">
+                {t("preview.fetch_error_title")}
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t("preview.fetch_error_description")}
+              </p>
+            </div>
+          </div>
+        </div>
       );
     } else {
       content = (

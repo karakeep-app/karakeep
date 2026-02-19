@@ -1,7 +1,6 @@
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -11,13 +10,14 @@ import {
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { router, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
 import { buildApiHeaders } from "@/lib/utils";
 import { MenuView } from "@react-native-menu/menu";
+import { useQuery } from "@tanstack/react-query";
 import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -26,6 +26,7 @@ import {
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
@@ -142,14 +143,36 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
                 throw new Error("Failed to download image");
               }
             }
-          } else {
-            // For PDFs, share the URL
-            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-            await Share.share({
-              url: assetUrl,
-              message:
-                bookmark.title || bookmark.content.fileName || "PDF Document",
-            });
+          } else if (bookmark.content.assetType === "pdf") {
+            if (await Sharing.isAvailableAsync()) {
+              const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+              const fileName = bookmark.content.fileName || "document.pdf";
+              const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+              const downloadResult = await FileSystem.downloadAsync(
+                assetUrl,
+                fileUri,
+                {
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
+                },
+              );
+
+              if (downloadResult.status === 200) {
+                await Sharing.shareAsync(downloadResult.uri, {
+                  mimeType: "application/pdf",
+                  UTI: "com.adobe.pdf",
+                });
+                // Clean up the temporary file
+                await FileSystem.deleteAsync(downloadResult.uri, {
+                  idempotent: true,
+                });
+              } else {
+                throw new Error("Failed to download PDF");
+              }
+            }
           }
           break;
       }
@@ -316,30 +339,36 @@ function LinkCard({
   let imageComp;
   if (imageUrl) {
     imageComp = (
-      <Image
-        source={
-          imageUrl.localAsset
-            ? {
-                uri: `${settings.address}${imageUrl.url}`,
-                headers: buildApiHeaders(
-                  settings.apiKey,
-                  settings.customHeaders,
-                ),
-              }
-            : {
-                uri: imageUrl.url,
-              }
-        }
-        className="h-56 min-h-56 w-full object-cover"
-      />
+      <View className="h-56 min-h-56 w-full">
+        <Image
+          source={
+            imageUrl.localAsset
+              ? {
+                  uri: `${settings.address}${imageUrl.url}`,
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
+                }
+              : {
+                  uri: imageUrl.url,
+                }
+          }
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        />
+      </View>
     );
   } else {
     imageComp = (
-      <Image
-        // oxlint-disable-next-line no-require-imports
-        source={require("@/assets/blur.jpeg")}
-        className="h-56 w-full rounded-t-lg"
-      />
+      <View className="h-56 w-full overflow-hidden rounded-t-lg">
+        <Image
+          // oxlint-disable-next-line no-require-imports
+          source={require("@/assets/blur.jpeg")}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        />
+      </View>
     );
   }
 
@@ -443,7 +472,7 @@ function AssetCard({
       <Pressable onPress={onOpenBookmark}>
         <BookmarkAssetImage
           assetId={assetImage}
-          className="h-56 min-h-56 w-full object-cover"
+          className="h-56 min-h-56 w-full"
         />
       </Pressable>
       <View className="flex gap-2 p-2">
@@ -477,20 +506,23 @@ export default function BookmarkCard({
 }: {
   bookmark: ZBookmark;
 }) {
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId: initialData.id,
-    },
-    {
-      initialData,
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        if (!data) {
-          return false;
-        }
-        return getBookmarkRefreshInterval(data);
+  const api = useTRPC();
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: initialData.id,
       },
-    },
+      {
+        initialData,
+        refetchInterval: (query) => {
+          const data = query.state.data;
+          if (!data) {
+            return false;
+          }
+          return getBookmarkRefreshInterval(data);
+        },
+      },
+    ),
   );
 
   const router = useRouter();
@@ -529,5 +561,12 @@ export default function BookmarkCard({
       break;
   }
 
-  return <View className="overflow-hidden rounded-xl bg-card">{comp}</View>;
+  return (
+    <View
+      className="overflow-hidden rounded-xl bg-card"
+      style={{ borderCurve: "continuous" }}
+    >
+      {comp}
+    </View>
+  );
 }

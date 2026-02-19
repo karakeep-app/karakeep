@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
 
 import {
@@ -9,33 +10,36 @@ import {
 
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
-import { api } from "./utils/trpc";
+import { useTRPC } from "./utils/trpc";
 import { MessageType } from "./utils/type";
 import { isHttpUrl } from "./utils/url";
 
 export default function SavePage() {
+  const api = useTRPC();
   const [error, setError] = useState<string | undefined>(undefined);
 
   const {
     data,
     mutate: createBookmark,
     status,
-  } = api.bookmarks.createBookmark.useMutation({
-    onError: (e) => {
-      setError("Something went wrong: " + e.message);
-    },
-    onSuccess: async () => {
-      // After successful creation, update badge cache and notify background
-      const [currentTab] = await chrome.tabs.query({
-        active: true,
-        lastFocusedWindow: true,
-      });
-      await chrome.runtime.sendMessage({
-        type: MessageType.BOOKMARK_REFRESH_BADGE,
-        currentTab: currentTab,
-      });
-    },
-  });
+  } = useMutation(
+    api.bookmarks.createBookmark.mutationOptions({
+      onError: (e) => {
+        setError("Something went wrong: " + e.message);
+      },
+      onSuccess: async () => {
+        // After successful creation, update badge cache and notify background
+        const [currentTab] = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true,
+        });
+        await chrome.runtime.sendMessage({
+          type: MessageType.BOOKMARK_REFRESH_BADGE,
+          currentTab: currentTab,
+        });
+      },
+    }),
+  );
   useEffect(() => {
     async function getNewBookmarkRequestFromBackgroundScriptIfAny(): Promise<ZNewBookmarkRequest | null> {
       const { [NEW_BOOKMARK_REQUEST_KEY_NAME]: req } =

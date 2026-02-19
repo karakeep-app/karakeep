@@ -1,23 +1,30 @@
 import React from "react";
-import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
-import Checkbox from "expo-checkbox";
-import { useLocalSearchParams } from "expo-router";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useColorScheme } from "@/lib/useColorScheme";
+import { useQuery } from "@tanstack/react-query";
+import { Check } from "lucide-react-native";
 
+import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
   useAddBookmarkToList,
   useBookmarkLists,
   useRemoveBookmarkFromList,
 } from "@karakeep/shared-react/hooks/lists";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const ListPickerPage = () => {
+  const api = useTRPC();
   const { slug: bookmarkId } = useLocalSearchParams();
+  const { colors } = useColorScheme();
+
   if (typeof bookmarkId !== "string") {
     throw new Error("Unexpected param type");
   }
+
   const { toast } = useToast();
   const onError = () => {
     toast({
@@ -26,14 +33,17 @@ const ListPickerPage = () => {
       showProgress: false,
     });
   };
-  const { data: existingLists } = api.lists.getListsOfBookmark.useQuery(
-    {
-      bookmarkId,
-    },
-    {
-      select: (data) => new Set(data.lists.map((l) => l.id)),
-    },
+
+  const { data: existingLists } = useQuery(
+    api.lists.getListsOfBookmark.queryOptions(
+      { bookmarkId },
+      {
+        select: (data: { lists: ZBookmarkList[] }) =>
+          new Set(data.lists.map((l) => l.id)),
+      },
+    ),
   );
+
   const { data } = useBookmarkLists();
 
   const {
@@ -43,7 +53,7 @@ const ListPickerPage = () => {
   } = useAddBookmarkToList({
     onSuccess: () => {
       toast({
-        message: `The bookmark has been added to the list!`,
+        message: "Added to list!",
         showProgress: false,
       });
     },
@@ -57,7 +67,7 @@ const ListPickerPage = () => {
   } = useRemoveBookmarkFromList({
     onSuccess: () => {
       toast({
-        message: `The bookmark has been removed from the list!`,
+        message: "Removed from list!",
         showProgress: false,
       });
     },
@@ -65,9 +75,7 @@ const ListPickerPage = () => {
   });
 
   const toggleList = (listId: string) => {
-    if (!existingLists) {
-      return;
-    }
+    if (!existingLists) return;
     if (existingLists.has(listId)) {
       removeToList({ bookmarkId, listId });
     } else {
@@ -83,53 +91,68 @@ const ListPickerPage = () => {
   };
 
   const { allPaths } = data ?? {};
-  // Filter out lists where user is a viewer (can't add/remove bookmarks)
   const filteredPaths = allPaths?.filter(
     (path) => path[path.length - 1].userRole !== "viewer",
   );
-  return (
-    <CustomSafeAreaView>
-      <FlatList
-        className="h-full"
-        contentContainerStyle={{
-          gap: 5,
-        }}
-        renderItem={(l) => {
-          const listId = l.item[l.item.length - 1].id;
-          const isLoading = isListLoading(listId);
-          const isChecked = existingLists && existingLists.has(listId);
 
-          return (
-            <View className="mx-2 flex flex-row items-center rounded-xl border border-input bg-card px-4 py-2">
-              <Pressable
-                key={listId}
-                onPress={() => !isLoading && toggleList(listId)}
-                disabled={isLoading}
-                className="flex w-full flex-row justify-between"
-              >
-                <Text>
-                  {l.item
-                    .map((item) => `${item.icon} ${item.name}`)
-                    .join(" / ")}
-                </Text>
-                {isLoading ? (
-                  <ActivityIndicator size="small" />
-                ) : (
-                  <Checkbox
-                    value={isChecked}
-                    onValueChange={() => {
-                      toggleList(listId);
-                    }}
-                    disabled={isLoading}
-                  />
-                )}
-              </Pressable>
-            </View>
-          );
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerTransparent: false,
+          headerTitle: "Manage Lists",
         }}
-        data={filteredPaths}
       />
-    </CustomSafeAreaView>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        className="bg-background"
+      >
+        {filteredPaths && filteredPaths.length > 0 ? (
+          <View
+            className="overflow-hidden rounded-xl bg-card"
+            style={{ borderCurve: "continuous" }}
+          >
+            {filteredPaths.map((path, index) => {
+              const listId = path[path.length - 1].id;
+              const isLoading = isListLoading(listId);
+              const isChecked = existingLists?.has(listId);
+
+              return (
+                <React.Fragment key={listId}>
+                  {index > 0 && <RowSeparator />}
+                  <Pressable
+                    onPress={() => !isLoading && toggleList(listId)}
+                    disabled={isLoading}
+                    className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+                  >
+                    <Text className="flex-1 pr-3" numberOfLines={1}>
+                      {path
+                        .map((item) => `${item.icon} ${item.name}`)
+                        .join(" / ")}
+                    </Text>
+                    {isLoading ? (
+                      <ActivityIndicator size="small" />
+                    ) : isChecked ? (
+                      <Check
+                        size={20}
+                        color={colors.primary}
+                        strokeWidth={2.5}
+                      />
+                    ) : null}
+                  </Pressable>
+                </React.Fragment>
+              );
+            })}
+          </View>
+        ) : (
+          <View className="items-center py-12">
+            <Text color="tertiary">No lists available</Text>
+          </View>
+        )}
+      </ScrollView>
+    </>
   );
 };
 

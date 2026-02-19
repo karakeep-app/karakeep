@@ -14,17 +14,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zChangePasswordSchema } from "@karakeep/shared/types/users";
 
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 export function ChangePassword() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -38,22 +40,27 @@ export function ChangePassword() {
     },
   });
 
-  const mutator = api.users.changePassword.useMutation({
-    onSuccess: () => {
-      toast({ description: "Password changed successfully" });
-      form.reset();
-    },
-    onError: (e) => {
-      if (e.data?.code == "UNAUTHORIZED") {
-        toast({
-          description: "Your current password is incorrect",
-          variant: "destructive",
-        });
-      } else {
-        toast({ description: "Something went wrong", variant: "destructive" });
-      }
-    },
-  });
+  const mutator = useMutation(
+    api.users.changePassword.mutationOptions({
+      onSuccess: () => {
+        toast({ description: "Password changed successfully" });
+        form.reset();
+      },
+      onError: (e) => {
+        if (e.data?.code == "UNAUTHORIZED") {
+          toast({
+            description: "Your current password is incorrect",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            description: "Something went wrong",
+            variant: "destructive",
+          });
+        }
+      },
+    }),
+  );
 
   async function onSubmit(value: z.infer<typeof zChangePasswordSchema>) {
     mutator.mutate({

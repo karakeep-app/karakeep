@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CreditCard, Loader2 } from "lucide-react";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
@@ -19,24 +21,27 @@ import {
 import { Skeleton } from "../ui/skeleton";
 
 export default function SubscriptionSettings() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const {
     data: subscriptionStatus,
     refetch,
     isLoading: isQueryLoading,
-  } = api.subscriptions.getSubscriptionStatus.useQuery();
+  } = useQuery(api.subscriptions.getSubscriptionStatus.queryOptions());
 
-  const { data: subscriptionPrice } =
-    api.subscriptions.getSubscriptionPrice.useQuery();
+  const { data: subscriptionPrice } = useQuery(
+    api.subscriptions.getSubscriptionPrice.queryOptions(),
+  );
 
-  const { mutate: syncStripeState } =
-    api.subscriptions.syncWithStripe.useMutation({
+  const { mutate: syncStripeState } = useMutation(
+    api.subscriptions.syncWithStripe.mutationOptions({
       onSuccess: () => {
         refetch();
       },
-    });
-  const createCheckoutSession =
-    api.subscriptions.createCheckoutSession.useMutation({
+    }),
+  );
+  const createCheckoutSession = useMutation(
+    api.subscriptions.createCheckoutSession.mutationOptions({
       onSuccess: (resp) => {
         if (resp.url) {
           window.location.href = resp.url;
@@ -48,9 +53,10 @@ export default function SubscriptionSettings() {
           variant: "destructive",
         });
       },
-    });
-  const createPortalSession = api.subscriptions.createPortalSession.useMutation(
-    {
+    }),
+  );
+  const createPortalSession = useMutation(
+    api.subscriptions.createPortalSession.mutationOptions({
       onSuccess: (resp) => {
         if (resp.url) {
           window.location.href = resp.url;
@@ -62,7 +68,7 @@ export default function SubscriptionSettings() {
           variant: "destructive",
         });
       },
-    },
+    }),
   );
 
   const isLoading =
@@ -177,10 +183,15 @@ export default function SubscriptionSettings() {
                           {t("settings.subscription.unlock_bigger_quota")}
                         </p>
                         {subscriptionPrice && subscriptionPrice.amount ? (
-                          <p className="mt-2 text-lg font-bold uppercase">
-                            {subscriptionPrice.amount / 100}{" "}
-                            {subscriptionPrice.currency}
-                          </p>
+                          <span className="flex items-baseline gap-2">
+                            <p className="mt-2 text-lg font-bold uppercase">
+                              {subscriptionPrice.amount / 100}{" "}
+                              {subscriptionPrice.currency}
+                            </p>
+                            <span className="text-xs italic text-muted-foreground">
+                              (excl. VAT)
+                            </span>
+                          </span>
                         ) : (
                           <Skeleton className="h-4 w-24" />
                         )}

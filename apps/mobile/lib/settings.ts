@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { z } from "zod";
 import { create } from "zustand";
@@ -76,6 +77,12 @@ const useSettings = create<AppSettingsState>((set, get) => ({
 
 export default function useAppSettings() {
   const { settings, setSettings, load } = useSettings();
+
+  useEffect(() => {
+    if (settings.isLoading) {
+      load();
+    }
+  }, [load, settings.isLoading]);
 
   return { ...settings, setSettings, load };
 }

@@ -1,16 +1,37 @@
 import { eq } from "drizzle-orm";
-import { assert, beforeEach, describe, expect, test } from "vitest";
+import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   bookmarkLinks,
   bookmarks,
   rssFeedImportsTable,
+  tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
+import * as sharedServer from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { APICallerType, CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
+
+vi.mock("@karakeep/shared-server", async (original) => {
+  const mod = (await original()) as typeof import("@karakeep/shared-server");
+  return {
+    ...mod,
+    LinkCrawlerQueue: {
+      enqueue: vi.fn(),
+    },
+    OpenAIQueue: {
+      enqueue: vi.fn(),
+    },
+    SearchIndexingQueue: {
+      enqueue: vi.fn(),
+    },
+    triggerRuleEngineOnEvent: vi.fn(),
+    triggerSearchReindex: vi.fn(),
+    triggerWebhook: vi.fn(),
+  };
+});
 
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
@@ -453,6 +474,60 @@ describe("Bookmark Routes", () => {
       (t) => t.name === "duplicate-test",
     ).length;
     expect(duplicateTagCount).toEqual(1); // Should only be attached once
+  });
+
+  test<CustomTestContext>("update tags no-op does not retrigger indexing or update modifiedAt", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const triggerSearchReindexMock = vi.mocked(
+      sharedServer.triggerSearchReindex,
+    );
+    triggerSearchReindexMock.mockClear();
+
+    const bookmark = await api.createBookmark({
+      url: "https://bookmark.com",
+      type: BookmarkTypes.LINK,
+    });
+    const tag = await apiCallers[0].tags.create({ name: "stable-tag" });
+    await db.insert(tagsOnBookmarks).values({
+      bookmarkId: bookmark.id,
+      tagId: tag.id,
+      attachedBy: "human",
+    });
+
+    await api.updateTags({
+      bookmarkId: bookmark.id,
+      attach: [],
+      detach: [{ tagId: tag.id }],
+    });
+
+    const [beforeNoopUpdate] = await db
+      .select({ modifiedAt: bookmarks.modifiedAt })
+      .from(bookmarks)
+      .where(eq(bookmarks.id, bookmark.id));
+    assert(beforeNoopUpdate?.modifiedAt);
+
+    triggerSearchReindexMock.mockClear();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    await api.updateTags({
+      bookmarkId: bookmark.id,
+      attach: [],
+      detach: [{ tagId: tag.id }],
+    });
+
+    const [afterNoopUpdate] = await db
+      .select({ modifiedAt: bookmarks.modifiedAt })
+      .from(bookmarks)
+      .where(eq(bookmarks.id, bookmark.id));
+    assert(afterNoopUpdate?.modifiedAt);
+
+    expect(triggerSearchReindexMock).not.toHaveBeenCalled();
+    expect(afterNoopUpdate.modifiedAt.getTime()).toEqual(
+      beforeNoopUpdate.modifiedAt.getTime(),
+    );
   });
 
   test<CustomTestContext>("updateTags with attachedBy field", async ({

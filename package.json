@@ -18,6 +18,7 @@
     "format:fix": "turbo --no-daemon format:fix --continue",
     "lint": "turbo --no-daemon lint --continue",
     "lint:fix": "turbo --no-daemon lint:fix --continue",
+    "test": "turbo --no-daemon test",
     "typecheck": "turbo --no-daemon typecheck",
     "preflight": "turbo run --no-daemon typecheck lint format",
     "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix"

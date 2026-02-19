@@ -12,6 +12,7 @@ import { Info } from "lucide-react";
 import serverConfig from "@karakeep/shared/config";
 
 import CredentialsForm from "./CredentialsForm";
+import OAuthAutoRedirect from "./OAuthAutoRedirect";
 import SignInProviderButton from "./SignInProviderButton";
 
 export default async function SignInForm() {
@@ -26,6 +27,10 @@ export default async function SignInForm() {
 
   return (
     <div className="w-full">
+      {/* Auto-redirect to OAuth provider if configured */}
+      {providerValues && providerValues.length > 0 && (
+        <OAuthAutoRedirect oauthProviderId={providerValues[0].id} />
+      )}
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { BookmarkTagsEditor } from "@/components/dashboard/bookmarks/BookmarkTagsEditor";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -13,12 +12,19 @@ import {
   TooltipPortal,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSession } from "@/lib/auth/client";
 import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
-import { Building, CalendarDays, ExternalLink, User } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Building,
+  CalendarDays,
+  ExternalLink,
+  Globe,
+  User,
+} from "lucide-react";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkRefreshInterval,
@@ -37,11 +43,13 @@ import { NoteEditor } from "./NoteEditor";
 import { TextContentSection } from "./TextContentSection";
 
 function ContentLoading() {
+  const { t } = useTranslation();
   return (
-    <div className="flex w-full flex-col gap-2">
-      <Skeleton className="h-4" />
-      <Skeleton className="h-4" />
-      <Skeleton className="h-4" />
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+      <Globe className="h-12 w-12 animate-bounce text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">
+        {t("preview.crawling_in_progress")}
+      </p>
     </div>
   );
 }
@@ -116,24 +124,27 @@ export default function BookmarkPreview({
   bookmarkId: string;
   initialData?: ZBookmark;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>("content");
   const { data: session } = useSession();
 
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId,
-    },
-    {
-      initialData,
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        if (!data) {
-          return false;
-        }
-        return getBookmarkRefreshInterval(data);
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId,
       },
-    },
+      {
+        initialData,
+        refetchInterval: (query) => {
+          const data = query.state.data;
+          if (!data) {
+            return false;
+          }
+          return getBookmarkRefreshInterval(data);
+        },
+      },
+    ),
   );
 
   if (!bookmark) {

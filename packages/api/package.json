@@ -21,7 +21,7 @@
     "@karakeep/shared": "workspace:*",
     "@karakeep/shared-server": "workspace:*",
     "@karakeep/trpc": "workspace:*",
-    "@trpc/server": "^11.4.3",
+    "@trpc/server": "^11.9.0",
     "drizzle-orm": "^0.44.2",
     "file-type": "^21.2.0",
     "hono": "^4.10.6",
