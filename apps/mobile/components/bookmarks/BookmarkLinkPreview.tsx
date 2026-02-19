@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState, Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
@@ -7,7 +7,7 @@ import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   useCreateHighlight,
@@ -73,6 +73,7 @@ export function BookmarkLinkReaderPreview({
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
   const api = useTRPC();
+  const queryClient = useQueryClient();
 
   const {
     data: bookmarkWithContent,
@@ -95,6 +96,61 @@ export function BookmarkLinkReaderPreview({
   const { mutate: createHighlight } = useCreateHighlight();
   const { mutate: updateHighlight } = useUpdateHighlight();
   const { mutate: deleteHighlight } = useDeleteHighlight();
+
+  // Reading progress
+  const lastPositionRef = useRef<{
+    offset: number;
+    anchor: string;
+    percent: number;
+  } | null>(null);
+  const lastSavedOffsetRef = useRef<number | null>(
+    bookmarkWithContent?.content.type === BookmarkTypes.LINK
+      ? (bookmarkWithContent.content.readingProgressOffset ?? null)
+      : null,
+  );
+
+  const { mutate: updateReadingProgress } = useMutation(
+    api.bookmarks.updateReadingProgress.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+      },
+    }),
+  );
+
+  const saveProgress = useCallback(() => {
+    const position = lastPositionRef.current;
+    if (!position || position.offset <= 0) return;
+    if (lastSavedOffsetRef.current === position.offset) return;
+
+    lastSavedOffsetRef.current = position.offset;
+    updateReadingProgress({
+      bookmarkId: bookmark.id,
+      readingProgressOffset: position.offset,
+      readingProgressAnchor: position.anchor,
+      readingProgressPercent: position.percent,
+    });
+  }, [bookmark.id, updateReadingProgress]);
+
+  const handleScrollProgress = useCallback(
+    (position: { offset: number; anchor: string; percent: number }) => {
+      lastPositionRef.current = position;
+    },
+    [],
+  );
+
+  // Save on AppState change (background/inactive) and unmount
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "background" || nextState === "inactive") {
+        saveProgress();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+      saveProgress();
+    };
+  }, [saveProgress]);
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -123,6 +179,13 @@ export function BookmarkLinkReaderPreview({
         htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
         highlights={highlights?.highlights ?? []}
+        initialReadingProgressOffset={
+          bookmarkWithContent.content.readingProgressOffset
+        }
+        initialReadingProgressAnchor={
+          bookmarkWithContent.content.readingProgressAnchor
+        }
+        onScrollProgress={handleScrollProgress}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,
