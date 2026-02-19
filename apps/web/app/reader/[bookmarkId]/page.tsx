@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
 import ReaderSettingsPopover from "@/components/dashboard/preview/ReaderSettingsPopover";
 import ReaderView from "@/components/dashboard/preview/ReaderView";
+import ReadingProgressBanner from "@/components/dashboard/preview/ReadingProgressBanner";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
@@ -56,13 +57,14 @@ export default function ReaderViewPage() {
       : null;
 
   // Auto-save reading progress on page unload/visibility change
-  const { isReady: isReadingPositionReady } = useReadingProgress({
-    bookmarkId,
-    initialOffset,
-    initialAnchor,
-    containerRef: contentRef,
-    contentReady,
-  });
+  const { hasSavedPosition, scrollToSavedPosition, dismissSavedPosition } =
+    useReadingProgress({
+      bookmarkId,
+      initialOffset,
+      initialAnchor,
+      containerRef: contentRef,
+      contentReady,
+    });
 
   const onClose = () => {
     if (window.history.length > 1) {
@@ -151,6 +153,17 @@ export default function ReaderViewPage() {
 
                 {/* Article Content */}
                 <Suspense fallback={<FullPageSpinner />}>
+                  {hasSavedPosition && (
+                    <ReadingProgressBanner
+                      percent={
+                        bookmark.content.type === BookmarkTypes.LINK
+                          ? bookmark.content.readingProgressPercent
+                          : null
+                      }
+                      onContinue={scrollToSavedPosition}
+                      onDismiss={dismissSavedPosition}
+                    />
+                  )}
                   <div className="overflow-x-hidden">
                     <ReaderView
                       ref={contentRef}
@@ -158,10 +171,6 @@ export default function ReaderViewPage() {
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,
                         lineHeight: settings.lineHeight,
-                        // Hide content until reading position is restored to prevent flicker
-                        visibility: isReadingPositionReady
-                          ? "visible"
-                          : "hidden",
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}

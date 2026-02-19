@@ -45,6 +45,7 @@ import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
+import ReadingProgressBanner from "./ReadingProgressBanner";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
   return (
@@ -152,14 +153,15 @@ export default function LinkContentSection({
   const initialAnchor = bookmark.content.readingProgressAnchor;
 
   // Auto-save reading progress on visibility change/section change
-  const { isReady: isReadingPositionReady } = useReadingProgress({
-    bookmarkId: bookmark.id,
-    initialOffset,
-    initialAnchor,
-    containerRef: contentRef,
-    enabled: section === "cached", // Only track in cached/reader view
-    contentReady,
-  });
+  const { hasSavedPosition, scrollToSavedPosition, dismissSavedPosition } =
+    useReadingProgress({
+      bookmarkId: bookmark.id,
+      initialOffset,
+      initialAnchor,
+      containerRef: contentRef,
+      enabled: section === "cached", // Only track in cached/reader view
+      contentReady,
+    });
 
   let content;
 
@@ -175,6 +177,13 @@ export default function LinkContentSection({
   } else if (section === "cached") {
     content = (
       <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-4">
+        {hasSavedPosition && (
+          <ReadingProgressBanner
+            percent={bookmark.content.readingProgressPercent}
+            onContinue={scrollToSavedPosition}
+            onDismiss={dismissSavedPosition}
+          />
+        )}
         <ReaderView
           ref={contentRef}
           className="mx-auto"
@@ -182,8 +191,6 @@ export default function LinkContentSection({
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
             fontSize: `${settings.fontSize}px`,
             lineHeight: settings.lineHeight,
-            // Hide content until reading position is restored to prevent flicker
-            visibility: isReadingPositionReady ? "visible" : "hidden",
           }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}

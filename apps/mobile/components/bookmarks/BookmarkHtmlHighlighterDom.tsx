@@ -21,8 +21,9 @@ export default function BookmarkHtmlHighlighterDom({
   onHighlight,
   onUpdateHighlight,
   onDeleteHighlight,
-  initialReadingProgressOffset,
-  initialReadingProgressAnchor,
+  readingProgressOffset,
+  readingProgressAnchor,
+  restoreReadingPosition,
   onScrollProgress,
 }: {
   htmlContent: string;
@@ -32,8 +33,9 @@ export default function BookmarkHtmlHighlighterDom({
   onHighlight?: (highlight: Highlight) => void;
   onUpdateHighlight?: (highlight: Highlight) => void;
   onDeleteHighlight?: (highlight: Highlight) => void;
-  initialReadingProgressOffset?: number | null;
-  initialReadingProgressAnchor?: string | null;
+  readingProgressOffset?: number | null;
+  readingProgressAnchor?: string | null;
+  restoreReadingPosition?: boolean;
   onScrollProgress?: (position: {
     offset: number;
     anchor: string;
@@ -47,25 +49,32 @@ export default function BookmarkHtmlHighlighterDom({
     onScrollProgressRef.current = onScrollProgress;
   });
 
-  // Position restoration on mount
+  // Restore position when triggered by native side
+  const hasRestoredRef = useRef(false);
   useEffect(() => {
-    if (!initialReadingProgressOffset || initialReadingProgressOffset <= 0)
+    if (
+      !restoreReadingPosition ||
+      hasRestoredRef.current ||
+      !readingProgressOffset ||
+      readingProgressOffset <= 0
+    )
       return;
 
+    hasRestoredRef.current = true;
     const rafId = requestAnimationFrame(() => {
       const container = contentRef.current;
       if (!container) return;
 
       scrollToReadingPosition(
         container,
-        initialReadingProgressOffset,
-        "instant",
-        initialReadingProgressAnchor,
+        readingProgressOffset,
+        "smooth",
+        readingProgressAnchor,
       );
     });
 
     return () => cancelAnimationFrame(rafId);
-  }, [initialReadingProgressOffset, initialReadingProgressAnchor]);
+  }, [restoreReadingPosition, readingProgressOffset, readingProgressAnchor]);
 
   // Scroll tracking
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState, Pressable, View } from "react-native";
+import { AppState, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
@@ -8,6 +8,7 @@ import { useAssetUrl } from "@/lib/hooks";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BookOpen, X } from "lucide-react-native";
 
 import {
   useCreateHighlight,
@@ -152,6 +153,16 @@ export function BookmarkLinkReaderPreview({
     };
   }, [saveProgress]);
 
+  // Banner state for reading position restoration
+  const [restoreReadingPosition, setRestoreReadingPosition] = useState(false);
+  const hasSavedPosition =
+    !restoreReadingPosition &&
+    bookmarkWithContent?.content.type === BookmarkTypes.LINK &&
+    !!bookmarkWithContent.content.readingProgressOffset &&
+    bookmarkWithContent.content.readingProgressOffset > 0;
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const showBanner = hasSavedPosition && !bannerDismissed;
+
   if (isLoading) {
     return <FullPageSpinner />;
   }
@@ -173,18 +184,42 @@ export function BookmarkLinkReaderPreview({
     background: isDark ? "#000000" : "#ffffff",
   };
 
+  const readingPercent = bookmarkWithContent.content.readingProgressPercent;
+
   return (
     <View className="flex-1 bg-background">
+      {showBanner && (
+        <View className="flex-row items-center gap-2 border-b border-border bg-secondary px-4 py-2">
+          <BookOpen size={16} className="text-muted-foreground" />
+          <Text className="flex-1 text-sm">
+            {readingPercent && readingPercent > 0
+              ? `Continue where you left off (${readingPercent}%)`
+              : "Continue where you left off"}
+          </Text>
+          <TouchableOpacity
+            onPress={() => setRestoreReadingPosition(true)}
+            className="rounded-md bg-primary px-3 py-1"
+          >
+            <Text className="text-xs font-medium text-primary-foreground">
+              Continue
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setBannerDismissed(true)}>
+            <X size={14} className="text-muted-foreground" />
+          </TouchableOpacity>
+        </View>
+      )}
       <BookmarkHtmlHighlighterDom
         htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
         highlights={highlights?.highlights ?? []}
-        initialReadingProgressOffset={
+        readingProgressOffset={
           bookmarkWithContent.content.readingProgressOffset
         }
-        initialReadingProgressAnchor={
+        readingProgressAnchor={
           bookmarkWithContent.content.readingProgressAnchor
         }
+        restoreReadingPosition={restoreReadingPosition}
         onScrollProgress={handleScrollProgress}
         onHighlight={(h) =>
           createHighlight({

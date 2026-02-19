@@ -23,18 +23,23 @@ export interface UseReadingProgressOptions {
   initialAnchor?: string | null;
   containerRef: React.RefObject<HTMLElement | null>;
   enabled?: boolean;
-  /** Signal that content is ready for restoration */
+  /** Signal that content is ready for scroll tracking */
   contentReady?: boolean;
 }
 
 export interface UseReadingProgressResult {
-  /** True when content can be shown (restoration complete or not needed) */
-  isReady: boolean;
+  /** True when there is a saved position the user can scroll to */
+  hasSavedPosition: boolean;
+  /** Scroll to the saved reading position */
+  scrollToSavedPosition: () => void;
+  /** Dismiss the saved position banner without scrolling */
+  dismissSavedPosition: () => void;
 }
 
 /**
  * Tracks and syncs reading progress for a bookmark.
- * Handles scroll tracking, position restoration, and auto-save on visibility change.
+ * Handles scroll tracking and auto-save on visibility change.
+ * Returns banner state for saved position restoration (user-triggered).
  */
 export function useReadingProgress(
   options: UseReadingProgressOptions,
@@ -52,22 +57,32 @@ export function useReadingProgress(
   const api = useTRPC();
   const queryClient = useQueryClient();
 
-  // Track whether restoration is complete (or not needed)
-  // Ready immediately if: disabled, or no initialOffset to restore
-  const needsRestoration = enabled && !!initialOffset;
-  const [isReady, setIsReady] = useState(!needsRestoration);
+  // Track whether the saved position banner has been dismissed or used
+  const [savedPositionDismissed, setSavedPositionDismissed] = useState(false);
+  const hasSavedPosition =
+    enabled && !!initialOffset && initialOffset > 0 && !savedPositionDismissed;
 
-  // Update isReady when needsRestoration changes
-  // - If restoration not needed: immediately ready
-  // - If restoration needed: wait for restoration to complete
+  // Reset dismissed state when bookmark changes
   useEffect(() => {
-    if (!needsRestoration) {
-      setIsReady(true);
-    } else {
-      // Reset when we need restoration again (e.g., switching back to cached section)
-      setIsReady(false);
+    setSavedPositionDismissed(false);
+  }, [bookmarkId]);
+
+  const scrollToSavedPosition = useCallback(() => {
+    const container = containerRef.current;
+    if (container && initialOffset) {
+      scrollToReadingPosition(
+        container,
+        initialOffset,
+        "smooth",
+        initialAnchor,
+      );
     }
-  }, [needsRestoration, bookmarkId]);
+    setSavedPositionDismissed(true);
+  }, [containerRef, initialOffset, initialAnchor]);
+
+  const dismissSavedPosition = useCallback(() => {
+    setSavedPositionDismissed(true);
+  }, []);
 
   const { mutate: updateProgress } = useMutation(
     api.bookmarks.updateReadingProgress.mutationOptions({
@@ -169,54 +184,5 @@ export function useReadingProgress(
     };
   }, [enabled, contentReady, containerRef]);
 
-  // Restore position when content is ready and visible
-  useEffect(() => {
-    if (!enabled || !initialOffset || !contentReady) return;
-
-    const container = containerRef.current;
-    if (!container || !isElementVisible(container)) {
-      setIsReady(true);
-      return;
-    }
-
-    const tryRestore = () => {
-      const scrollParent = findScrollableParent(container);
-      const isWindowScroll = scrollParent === document.documentElement;
-      const isLayoutReady = isWindowScroll
-        ? document.body.scrollHeight > window.innerHeight
-        : scrollParent.scrollHeight > scrollParent.clientHeight;
-
-      if (isLayoutReady) {
-        scrollToReadingPosition(
-          container,
-          initialOffset,
-          "instant",
-          initialAnchor,
-        );
-        return true;
-      }
-      return false;
-    };
-
-    // Try immediately
-    if (tryRestore()) {
-      setIsReady(true);
-      return;
-    }
-
-    // If layout not ready, try once more after paint
-    const rafId = requestAnimationFrame(() => {
-      tryRestore();
-      // Mark ready regardless of success to avoid permanent hidden state
-      setIsReady(true);
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      // Always mark ready on cleanup to prevent stuck hidden state
-      setIsReady(true);
-    };
-  }, [enabled, initialOffset, contentReady, initialAnchor, containerRef]);
-
-  return { isReady };
+  return { hasSavedPosition, scrollToSavedPosition, dismissSavedPosition };
 }
