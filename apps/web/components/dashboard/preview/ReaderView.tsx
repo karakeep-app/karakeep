@@ -48,12 +48,7 @@ function ReaderView({
       {
         select: (data) =>
           data.content.type == BookmarkTypes.LINK
-            ? {
-                htmlContent: data.content.htmlContent,
-                readingProgressOffset: data.content.readingProgressOffset,
-                readingProgressAnchor: data.content.readingProgressAnchor,
-                readingProgressPercent: data.content.readingProgressPercent,
-              }
+            ? { htmlContent: data.content.htmlContent }
             : null,
       },
     ),
@@ -71,9 +66,6 @@ function ReaderView({
     onScroll,
   } = useReadingProgress({
     bookmarkId,
-    readingProgressOffset: bookmark?.readingProgressOffset,
-    readingProgressAnchor: bookmark?.readingProgressAnchor,
-    readingProgressPercent: bookmark?.readingProgressPercent,
   });
 
   const { mutate: createHighlight } = useCreateHighlight({

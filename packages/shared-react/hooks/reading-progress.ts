@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 
@@ -7,15 +7,13 @@ import { useTRPC } from "../trpc";
 
 interface UseReadingProgressOptions {
   bookmarkId: string;
-  readingProgressOffset?: number | null;
-  readingProgressAnchor?: string | null;
-  readingProgressPercent?: number | null;
 }
 
 /**
  * Unified reading progress hook for web and mobile.
  *
  * Handles:
+ * - Fetching reading progress via its own tRPC query
  * - Capturing initial reading position (stable across query re-fetches)
  * - "Continue reading" banner state and auto-dismiss on scroll past 15%
  * - Lazy saving via onScrollProgress (idle, visibility change, unmount)
@@ -23,14 +21,17 @@ interface UseReadingProgressOptions {
  *
  * Pass the returned `onScrollProgress` and `onScroll` to ScrollProgressTracker.
  */
-export function useReadingProgress({
-  bookmarkId,
-  readingProgressOffset,
-  readingProgressAnchor,
-  readingProgressPercent,
-}: UseReadingProgressOptions) {
+export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   const api = useTRPC();
   const queryClient = useQueryClient();
+
+  const { data: progressData } = useQuery(
+    api.bookmarks.getReadingProgress.queryOptions({ bookmarkId }),
+  );
+
+  const readingProgressOffset = progressData?.readingProgressOffset;
+  const readingProgressAnchor = progressData?.readingProgressAnchor;
+  const readingProgressPercent = progressData?.readingProgressPercent;
 
   // Capture initial reading progress on first load — stays stable across re-fetches
   const initialProgressRef = useRef<{
@@ -84,7 +85,9 @@ export function useReadingProgress({
   const { mutate: updateProgress } = useMutation(
     api.bookmarks.updateReadingProgress.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.getReadingProgress.pathFilter(),
+        );
       },
     }),
   );

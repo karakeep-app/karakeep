@@ -625,6 +625,26 @@ export const bookmarksAppRouter = router({
           },
         });
     }),
+  getReadingProgress: authedProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      const progress = await ctx.db.query.userReadingProgress.findFirst({
+        where: and(
+          eq(userReadingProgress.bookmarkId, input.bookmarkId),
+          eq(userReadingProgress.userId, ctx.user.id),
+        ),
+      });
+      return {
+        readingProgressOffset: progress?.readingProgressOffset ?? null,
+        readingProgressAnchor: progress?.readingProgressAnchor ?? null,
+        readingProgressPercent: progress?.readingProgressPercent ?? null,
+      };
+    }),
   getBookmark: authedProcedure
     .input(
       z.object({
@@ -640,25 +660,7 @@ export const bookmarksAppRouter = router({
         input.bookmarkId,
         input.includeContent,
       );
-      const zBookmark = bookmark.asZBookmark();
-
-      // Fetch user's reading progress if this is a link
-      if (zBookmark.content.type === BookmarkTypes.LINK) {
-        const progress = await ctx.db.query.userReadingProgress.findFirst({
-          where: and(
-            eq(userReadingProgress.bookmarkId, input.bookmarkId),
-            eq(userReadingProgress.userId, ctx.user.id),
-          ),
-        });
-        zBookmark.content.readingProgressOffset =
-          progress?.readingProgressOffset ?? null;
-        zBookmark.content.readingProgressAnchor =
-          progress?.readingProgressAnchor ?? null;
-        zBookmark.content.readingProgressPercent =
-          progress?.readingProgressPercent ?? null;
-      }
-
-      return zBookmark;
+      return bookmark.asZBookmark();
     }),
   searchBookmarks: authedProcedure
     .input(zSearchBookmarksRequestSchema)

@@ -1078,7 +1078,7 @@ describe("Bookmark Routes", () => {
   });
 
   describe("Reading Progress", () => {
-    test<CustomTestContext>("saves reading progress and retrieves it with getBookmark", async ({
+    test<CustomTestContext>("saves and retrieves reading progress", async ({
       apiCallers,
     }) => {
       const api = apiCallers[0].bookmarks;
@@ -1096,11 +1096,12 @@ describe("Bookmark Routes", () => {
         readingProgressAnchor: "This is the anchor text for verification",
       });
 
-      // Retrieve and verify progress is included
-      const retrieved = await api.getBookmark({ bookmarkId: bookmark.id });
-      assert(retrieved.content.type === BookmarkTypes.LINK);
-      expect(retrieved.content.readingProgressOffset).toBe(1500);
-      expect(retrieved.content.readingProgressAnchor).toBe(
+      // Retrieve and verify progress via getReadingProgress
+      const progress = await api.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(progress.readingProgressOffset).toBe(1500);
+      expect(progress.readingProgressAnchor).toBe(
         "This is the anchor text for verification",
       );
     });
@@ -1130,10 +1131,11 @@ describe("Bookmark Routes", () => {
       });
 
       // Verify updated values
-      const retrieved = await api.getBookmark({ bookmarkId: bookmark.id });
-      assert(retrieved.content.type === BookmarkTypes.LINK);
-      expect(retrieved.content.readingProgressOffset).toBe(2000);
-      expect(retrieved.content.readingProgressAnchor).toBe("Updated anchor");
+      const progress = await api.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(progress.readingProgressOffset).toBe(2000);
+      expect(progress.readingProgressAnchor).toBe("Updated anchor");
     });
 
     test<CustomTestContext>("two users have independent progress on same bookmark", async ({
@@ -1169,17 +1171,18 @@ describe("Bookmark Routes", () => {
       });
 
       // Verify each user sees their own progress
-      const retrieved1 = await api1.getBookmark({ bookmarkId: bookmark.id });
-      const retrieved2 = await api2.getBookmark({ bookmarkId: bookmark2.id });
+      const progress1 = await api1.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      const progress2 = await api2.getReadingProgress({
+        bookmarkId: bookmark2.id,
+      });
 
-      assert(retrieved1.content.type === BookmarkTypes.LINK);
-      assert(retrieved2.content.type === BookmarkTypes.LINK);
+      expect(progress1.readingProgressOffset).toBe(1000);
+      expect(progress1.readingProgressAnchor).toBe("User 1 anchor");
 
-      expect(retrieved1.content.readingProgressOffset).toBe(1000);
-      expect(retrieved1.content.readingProgressAnchor).toBe("User 1 anchor");
-
-      expect(retrieved2.content.readingProgressOffset).toBe(3000);
-      expect(retrieved2.content.readingProgressAnchor).toBe("User 2 anchor");
+      expect(progress2.readingProgressOffset).toBe(3000);
+      expect(progress2.readingProgressAnchor).toBe("User 2 anchor");
     });
 
     test<CustomTestContext>("rejects reading progress on TEXT bookmark", async ({
@@ -1220,9 +1223,10 @@ describe("Bookmark Routes", () => {
       });
 
       // Verify progress exists
-      const retrieved = await api.getBookmark({ bookmarkId: bookmark.id });
-      assert(retrieved.content.type === BookmarkTypes.LINK);
-      expect(retrieved.content.readingProgressOffset).toBe(500);
+      const progress = await api.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(progress.readingProgressOffset).toBe(500);
 
       // Delete the bookmark
       await api.deleteBookmark({ bookmarkId: bookmark.id });
@@ -1273,22 +1277,21 @@ describe("Bookmark Routes", () => {
         readingProgressAnchor: "Collaborator's position",
       });
 
-      // Collaborator retrieves the bookmark and sees their progress
-      const collaboratorView = await collaboratorApi.bookmarks.getBookmark({
-        bookmarkId: bookmark.id,
-      });
-      assert(collaboratorView.content.type === BookmarkTypes.LINK);
-      expect(collaboratorView.content.readingProgressOffset).toBe(2500);
-      expect(collaboratorView.content.readingProgressAnchor).toBe(
+      // Collaborator retrieves their progress
+      const collaboratorProgress =
+        await collaboratorApi.bookmarks.getReadingProgress({
+          bookmarkId: bookmark.id,
+        });
+      expect(collaboratorProgress.readingProgressOffset).toBe(2500);
+      expect(collaboratorProgress.readingProgressAnchor).toBe(
         "Collaborator's position",
       );
 
       // Owner's progress should be independent (null since owner hasn't set any)
-      const ownerView = await ownerApi.bookmarks.getBookmark({
+      const ownerProgress = await ownerApi.bookmarks.getReadingProgress({
         bookmarkId: bookmark.id,
       });
-      assert(ownerView.content.type === BookmarkTypes.LINK);
-      expect(ownerView.content.readingProgressOffset).toBeNull();
+      expect(ownerProgress.readingProgressOffset).toBeNull();
     });
 
     test<CustomTestContext>("user without shared access cannot save reading progress", async ({
@@ -1360,21 +1363,19 @@ describe("Bookmark Routes", () => {
       });
 
       // Verify each user sees their own progress
-      const ownerView = await ownerApi.bookmarks.getBookmark({
+      const ownerProgress = await ownerApi.bookmarks.getReadingProgress({
         bookmarkId: bookmark.id,
       });
-      const collaboratorView = await collaboratorApi.bookmarks.getBookmark({
-        bookmarkId: bookmark.id,
-      });
+      const collaboratorProgress =
+        await collaboratorApi.bookmarks.getReadingProgress({
+          bookmarkId: bookmark.id,
+        });
 
-      assert(ownerView.content.type === BookmarkTypes.LINK);
-      assert(collaboratorView.content.type === BookmarkTypes.LINK);
+      expect(ownerProgress.readingProgressOffset).toBe(1000);
+      expect(ownerProgress.readingProgressAnchor).toBe("Owner position");
 
-      expect(ownerView.content.readingProgressOffset).toBe(1000);
-      expect(ownerView.content.readingProgressAnchor).toBe("Owner position");
-
-      expect(collaboratorView.content.readingProgressOffset).toBe(5000);
-      expect(collaboratorView.content.readingProgressAnchor).toBe(
+      expect(collaboratorProgress.readingProgressOffset).toBe(5000);
+      expect(collaboratorProgress.readingProgressAnchor).toBe(
         "Collaborator position",
       );
     });

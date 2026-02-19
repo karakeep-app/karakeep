@@ -98,11 +98,6 @@ export function BookmarkLinkReaderPreview({
   const { mutate: updateHighlight } = useUpdateHighlight();
   const { mutate: deleteHighlight } = useDeleteHighlight();
 
-  const linkContent =
-    bookmarkWithContent?.content.type === BookmarkTypes.LINK
-      ? bookmarkWithContent.content
-      : undefined;
-
   const {
     showBanner,
     bannerPercent,
@@ -115,9 +110,6 @@ export function BookmarkLinkReaderPreview({
     onScroll,
   } = useReadingProgress({
     bookmarkId: bookmark.id,
-    readingProgressOffset: linkContent?.readingProgressOffset,
-    readingProgressAnchor: linkContent?.readingProgressAnchor,
-    readingProgressPercent: linkContent?.readingProgressPercent,
   });
 
   if (isLoading) {

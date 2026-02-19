@@ -231,21 +231,6 @@
                   "dateModified": {
                     "type": "string",
                     "nullable": true
-                  },
-                  "readingProgressOffset": {
-                    "type": "integer",
-                    "nullable": true,
-                    "minimum": 0
-                  },
-                  "readingProgressAnchor": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "readingProgressPercent": {
-                    "type": "integer",
-                    "nullable": true,
-                    "minimum": 0,
-                    "maximum": 100
                   }
                 },
                 "required": [
