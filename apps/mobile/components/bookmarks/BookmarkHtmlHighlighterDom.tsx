@@ -18,6 +18,7 @@ export default function BookmarkHtmlHighlighterDom({
   readingProgressAnchor,
   restoreReadingPosition,
   onScrollProgress,
+  onScroll,
 }: {
   htmlContent: string;
   contentStyle?: React.CSSProperties;
@@ -34,12 +35,18 @@ export default function BookmarkHtmlHighlighterDom({
     anchor: string;
     percent: number;
   }) => void;
+  onScroll?: (position: {
+    offset: number;
+    anchor: string;
+    percent: number;
+  }) => void;
   dom?: import("expo/dom").DOMProps;
 }) {
   return (
     <div style={{ maxWidth: "100vw", overflowX: "hidden" }}>
       <ScrollProgressTracker
         onScrollProgress={onScrollProgress}
+        onScroll={onScroll}
         restorePosition={restoreReadingPosition}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}

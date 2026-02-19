@@ -14,8 +14,14 @@ import {
   scrollToReadingPosition,
 } from "@karakeep/shared/utils/reading-progress-dom";
 
+/** Delay after the last scroll event before reporting position (milliseconds) */
+const IDLE_SAVE_DELAY_MS = 5000;
+
 interface ScrollProgressTrackerProps {
+  /** Called lazily on intent signals (idle, visibility change, beforeunload, unmount) */
   onScrollProgress?: (position: ReadingPosition) => void;
+  /** Called on every throttled scroll — use for responsive UI (banner dismissal, etc.) */
+  onScroll?: (position: ReadingPosition) => void;
   /** When set to true, scrolls to the saved reading position */
   restorePosition?: boolean;
   readingProgressOffset?: number | null;
@@ -29,7 +35,7 @@ interface ScrollProgressTrackerProps {
 
 /**
  * Wraps content and tracks scroll progress, reporting position changes
- * on scroll (throttled), visibility change, beforeunload, and unmount.
+ * lazily (idle after scrolling, visibility change, beforeunload, unmount).
  * Can also restore a previously saved reading position.
  */
 const ScrollProgressTracker = forwardRef<
@@ -38,6 +44,7 @@ const ScrollProgressTracker = forwardRef<
 >(function ScrollProgressTracker(
   {
     onScrollProgress,
+    onScroll,
     restorePosition,
     readingProgressOffset,
     readingProgressAnchor,
@@ -50,10 +57,13 @@ const ScrollProgressTracker = forwardRef<
   const containerRef = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => containerRef.current!, []);
   const [scrollPercent, setScrollPercent] = useState(0);
+  const latestPositionRef = useRef<ReadingPosition | null>(null);
 
   const onScrollProgressRef = useRef(onScrollProgress);
+  const onScrollRef = useRef(onScroll);
   useEffect(() => {
     onScrollProgressRef.current = onScrollProgress;
+    onScrollRef.current = onScroll;
   });
 
   // Restore reading position when triggered
@@ -83,12 +93,21 @@ const ScrollProgressTracker = forwardRef<
     return () => cancelAnimationFrame(rafId);
   }, [restorePosition, readingProgressOffset, readingProgressAnchor]);
 
-  // Scroll tracking
+  // Scroll tracking — updates the progress bar on every scroll,
+  // but only reports position lazily via an idle timer.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     let lastScrollTime = 0;
+    let idleTimerId: ReturnType<typeof setTimeout> | null = null;
+
+    const reportLatestPosition = () => {
+      const pos = latestPositionRef.current;
+      if (pos && pos.offset > 0 && onScrollProgressRef.current) {
+        onScrollProgressRef.current(pos);
+      }
+    };
 
     const handleScroll = () => {
       const now = Date.now();
@@ -98,10 +117,15 @@ const ScrollProgressTracker = forwardRef<
       const position = getReadingPosition(container);
       if (position) {
         setScrollPercent(position.percent);
-        if (onScrollProgressRef.current) {
-          onScrollProgressRef.current(position);
+        latestPositionRef.current = position;
+        if (onScrollRef.current) {
+          onScrollRef.current(position);
         }
       }
+
+      // Reset idle timer — report position after scrolling stops
+      if (idleTimerId) clearTimeout(idleTimerId);
+      idleTimerId = setTimeout(reportLatestPosition, IDLE_SAVE_DELAY_MS);
     };
 
     const scrollParent = findScrollableParent(container);
@@ -112,18 +136,16 @@ const ScrollProgressTracker = forwardRef<
 
     return () => {
       target.removeEventListener("scroll", handleScroll);
+      if (idleTimerId) clearTimeout(idleTimerId);
     };
   }, []);
 
   // Report position on visibility change, beforeunload, and unmount
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     const reportPosition = () => {
-      const position = getReadingPosition(container);
-      if (position && position.offset > 0 && onScrollProgressRef.current) {
-        onScrollProgressRef.current(position);
+      const pos = latestPositionRef.current;
+      if (pos && pos.offset > 0 && onScrollProgressRef.current) {
+        onScrollProgressRef.current(pos);
       }
     };
 
@@ -133,17 +155,13 @@ const ScrollProgressTracker = forwardRef<
       }
     };
 
-    const handleBeforeUnload = () => {
-      reportPosition();
-    };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("beforeunload", reportPosition);
 
     return () => {
       reportPosition();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("beforeunload", reportPosition);
     };
   }, []);
 

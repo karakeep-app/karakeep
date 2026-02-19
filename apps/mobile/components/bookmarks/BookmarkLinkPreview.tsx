@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState, Pressable, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
@@ -7,7 +7,7 @@ import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react-native";
 
 import {
@@ -15,6 +15,7 @@ import {
   useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
+import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
@@ -74,7 +75,6 @@ export function BookmarkLinkReaderPreview({
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
   const api = useTRPC();
-  const queryClient = useQueryClient();
 
   const {
     data: bookmarkWithContent,
@@ -98,70 +98,27 @@ export function BookmarkLinkReaderPreview({
   const { mutate: updateHighlight } = useUpdateHighlight();
   const { mutate: deleteHighlight } = useDeleteHighlight();
 
-  // Reading progress
-  const lastPositionRef = useRef<{
-    offset: number;
-    anchor: string;
-    percent: number;
-  } | null>(null);
-  const lastSavedOffsetRef = useRef<number | null>(
+  const linkContent =
     bookmarkWithContent?.content.type === BookmarkTypes.LINK
-      ? (bookmarkWithContent.content.readingProgressOffset ?? null)
-      : null,
-  );
+      ? bookmarkWithContent.content
+      : undefined;
 
-  const { mutate: updateReadingProgress } = useMutation(
-    api.bookmarks.updateReadingProgress.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
-      },
-    }),
-  );
-
-  const saveProgress = useCallback(() => {
-    const position = lastPositionRef.current;
-    if (!position || position.offset <= 0) return;
-    if (lastSavedOffsetRef.current === position.offset) return;
-
-    lastSavedOffsetRef.current = position.offset;
-    updateReadingProgress({
-      bookmarkId: bookmark.id,
-      readingProgressOffset: position.offset,
-      readingProgressAnchor: position.anchor,
-      readingProgressPercent: position.percent,
-    });
-  }, [bookmark.id, updateReadingProgress]);
-
-  const handleScrollProgress = useCallback(
-    (position: { offset: number; anchor: string; percent: number }) => {
-      lastPositionRef.current = position;
-    },
-    [],
-  );
-
-  // Save on AppState change (background/inactive) and unmount
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState === "background" || nextState === "inactive") {
-        saveProgress();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-      saveProgress();
-    };
-  }, [saveProgress]);
-
-  // Banner state for reading position restoration
-  const [restoreReadingPosition, setRestoreReadingPosition] = useState(false);
-  const hasSavedPosition =
-    !restoreReadingPosition &&
-    bookmarkWithContent?.content.type === BookmarkTypes.LINK &&
-    !!bookmarkWithContent.content.readingProgressOffset &&
-    bookmarkWithContent.content.readingProgressOffset > 0;
-  const [bannerDismissed, setBannerDismissed] = useState(false);
-  const showBanner = hasSavedPosition && !bannerDismissed;
+  const {
+    showBanner,
+    bannerPercent,
+    onContinue,
+    onDismiss,
+    restorePosition,
+    readingProgressOffset,
+    readingProgressAnchor,
+    onScrollProgress,
+    onScroll,
+  } = useReadingProgress({
+    bookmarkId: bookmark.id,
+    readingProgressOffset: linkContent?.readingProgressOffset,
+    readingProgressAnchor: linkContent?.readingProgressAnchor,
+    readingProgressPercent: linkContent?.readingProgressPercent,
+  });
 
   if (isLoading) {
     return <FullPageSpinner />;
@@ -184,27 +141,25 @@ export function BookmarkLinkReaderPreview({
     background: isDark ? "#000000" : "#ffffff",
   };
 
-  const readingPercent = bookmarkWithContent.content.readingProgressPercent;
-
   return (
     <View className="flex-1 bg-background">
       {showBanner && (
         <View className="flex-row items-center gap-2 border-b border-border bg-secondary px-4 py-2">
           <BookOpen size={16} className="text-muted-foreground" />
           <Text className="flex-1 text-sm">
-            {readingPercent && readingPercent > 0
-              ? `Continue where you left off (${readingPercent}%)`
+            {bannerPercent && bannerPercent > 0
+              ? `Continue where you left off (${bannerPercent}%)`
               : "Continue where you left off"}
           </Text>
           <TouchableOpacity
-            onPress={() => setRestoreReadingPosition(true)}
+            onPress={onContinue}
             className="rounded-md bg-primary px-3 py-1"
           >
             <Text className="text-xs font-medium text-primary-foreground">
               Continue
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setBannerDismissed(true)}>
+          <TouchableOpacity onPress={onDismiss}>
             <X size={14} className="text-muted-foreground" />
           </TouchableOpacity>
         </View>
@@ -213,14 +168,11 @@ export function BookmarkLinkReaderPreview({
         htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
         highlights={highlights?.highlights ?? []}
-        readingProgressOffset={
-          bookmarkWithContent.content.readingProgressOffset
-        }
-        readingProgressAnchor={
-          bookmarkWithContent.content.readingProgressAnchor
-        }
-        restoreReadingPosition={restoreReadingPosition}
-        onScrollProgress={handleScrollProgress}
+        readingProgressOffset={readingProgressOffset}
+        readingProgressAnchor={readingProgressAnchor}
+        restoreReadingPosition={restorePosition}
+        onScrollProgress={onScrollProgress}
+        onScroll={onScroll}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,

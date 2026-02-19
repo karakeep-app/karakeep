@@ -1,11 +1,9 @@
-import { useCallback, useRef, useState } from "react";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 
-import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
 import {
@@ -13,6 +11,7 @@ import {
   useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
+import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -35,7 +34,6 @@ function ReaderView({
 }: ReaderViewProps) {
   const { t } = useTranslation();
   const api = useTRPC();
-  const queryClient = useQueryClient();
   const { data: highlights } = useQuery(
     api.highlights.getForBookmark.queryOptions({
       bookmarkId,
@@ -61,37 +59,22 @@ function ReaderView({
     ),
   );
 
-  // Reading progress
-  const initialOffset = bookmark?.readingProgressOffset ?? null;
-  const initialAnchor = bookmark?.readingProgressAnchor ?? null;
-
-  const [bannerDismissed, setBannerDismissed] = useState(false);
-  const [restoreRequested, setRestoreRequested] = useState(false);
-  const hasSavedPosition =
-    !!initialOffset && initialOffset > 0 && !bannerDismissed;
-
-  const lastSavedOffset = useRef<number | null>(initialOffset);
-  const { mutate: updateProgress } = useMutation(
-    api.bookmarks.updateReadingProgress.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
-      },
-    }),
-  );
-
-  const handlePositionChange = useCallback(
-    (position: ReadingPosition) => {
-      if (lastSavedOffset.current === position.offset) return;
-      lastSavedOffset.current = position.offset;
-      updateProgress({
-        bookmarkId,
-        readingProgressOffset: position.offset,
-        readingProgressAnchor: position.anchor,
-        readingProgressPercent: position.percent,
-      });
-    },
-    [bookmarkId, updateProgress],
-  );
+  const {
+    showBanner,
+    bannerPercent,
+    onContinue,
+    onDismiss,
+    restorePosition,
+    readingProgressOffset,
+    readingProgressAnchor,
+    onScrollProgress,
+    onScroll,
+  } = useReadingProgress({
+    bookmarkId,
+    readingProgressOffset: bookmark?.readingProgressOffset,
+    readingProgressAnchor: bookmark?.readingProgressAnchor,
+    readingProgressPercent: bookmark?.readingProgressPercent,
+  });
 
   const { mutate: createHighlight } = useCreateHighlight({
     onSuccess: () => {
@@ -161,21 +144,19 @@ function ReaderView({
   } else {
     content = (
       <ScrollProgressTracker
-        onScrollProgress={handlePositionChange}
-        restorePosition={restoreRequested}
-        readingProgressOffset={initialOffset}
-        readingProgressAnchor={initialAnchor}
+        onScrollProgress={onScrollProgress}
+        onScroll={onScroll}
+        restorePosition={restorePosition}
+        readingProgressOffset={readingProgressOffset}
+        readingProgressAnchor={readingProgressAnchor}
         showProgressBar
         progressBarStyle={progressBarStyle}
       >
-        {hasSavedPosition && (
+        {showBanner && (
           <ReadingProgressBanner
-            percent={bookmark?.readingProgressPercent ?? null}
-            onContinue={() => {
-              setRestoreRequested(true);
-              setBannerDismissed(true);
-            }}
-            onDismiss={() => setBannerDismissed(true)}
+            percent={bannerPercent}
+            onContinue={onContinue}
+            onDismiss={onDismiss}
           />
         )}
         <BookmarkHTMLHighlighter

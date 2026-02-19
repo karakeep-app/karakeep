@@ -41,9 +41,6 @@ const SCROLL_BOTTOM_THRESHOLD = 5;
 /** Minimum interval between scroll position updates (milliseconds) */
 export const SCROLL_THROTTLE_MS = 150;
 
-/** Interval for periodic progress saves as a backup (milliseconds) */
-export const PERIODIC_SAVE_INTERVAL_MS = 10000;
-
 /**
  * Scroll position info for determining if user is at bottom of content.
  */

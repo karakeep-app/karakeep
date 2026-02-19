@@ -1,0 +1,137 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
+
+import { useTRPC } from "../trpc";
+
+interface UseReadingProgressOptions {
+  bookmarkId: string;
+  readingProgressOffset?: number | null;
+  readingProgressAnchor?: string | null;
+  readingProgressPercent?: number | null;
+}
+
+/**
+ * Unified reading progress hook for web and mobile.
+ *
+ * Handles:
+ * - Capturing initial reading position (stable across query re-fetches)
+ * - "Continue reading" banner state and auto-dismiss on scroll past 15%
+ * - Lazy saving via onScrollProgress (idle, visibility change, unmount)
+ * - Deduplication of save calls by offset
+ *
+ * Pass the returned `onScrollProgress` and `onScroll` to ScrollProgressTracker.
+ */
+export function useReadingProgress({
+  bookmarkId,
+  readingProgressOffset,
+  readingProgressAnchor,
+  readingProgressPercent,
+}: UseReadingProgressOptions) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  // Capture initial reading progress on first load — stays stable across re-fetches
+  const initialProgressRef = useRef<{
+    offset: number | null;
+    anchor: string | null;
+    percent: number | null;
+  } | null>(null);
+  const previousBookmarkIdRef = useRef<string | null>(null);
+  const lastSavedOffset = useRef<number | null>(null);
+
+  if (previousBookmarkIdRef.current !== bookmarkId) {
+    previousBookmarkIdRef.current = bookmarkId;
+    initialProgressRef.current = null;
+    lastSavedOffset.current = null;
+  }
+
+  // Only capture once data has loaded (offset transitions from undefined to a value)
+  if (!initialProgressRef.current && readingProgressOffset !== undefined) {
+    initialProgressRef.current = {
+      offset: readingProgressOffset ?? null,
+      anchor: readingProgressAnchor ?? null,
+      percent: readingProgressPercent ?? null,
+    };
+  }
+
+  if (
+    lastSavedOffset.current === null &&
+    initialProgressRef.current?.offset != null
+  ) {
+    lastSavedOffset.current = initialProgressRef.current.offset;
+  }
+
+  const initialOffset = initialProgressRef.current?.offset ?? null;
+  const initialAnchor = initialProgressRef.current?.anchor ?? null;
+  const initialPercent = initialProgressRef.current?.percent ?? null;
+
+  // Banner state
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [restoreRequested, setRestoreRequested] = useState(false);
+  const showBanner = !!initialOffset && initialOffset > 0 && !bannerDismissed;
+
+  const bannerVisibleRef = useRef(false);
+  bannerVisibleRef.current = showBanner;
+
+  useEffect(() => {
+    setBannerDismissed(false);
+    setRestoreRequested(false);
+  }, [bookmarkId]);
+
+  // Save mutation
+  const { mutate: updateProgress } = useMutation(
+    api.bookmarks.updateReadingProgress.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+      },
+    }),
+  );
+
+  // Lazy save — called by ScrollProgressTracker on idle/visibility/beforeunload/unmount
+  const onScrollProgress = useCallback(
+    (position: ReadingPosition) => {
+      if (bannerVisibleRef.current) return;
+      if (lastSavedOffset.current === position.offset) return;
+      lastSavedOffset.current = position.offset;
+      updateProgress({
+        bookmarkId,
+        readingProgressOffset: position.offset,
+        readingProgressAnchor: position.anchor,
+        readingProgressPercent: position.percent,
+      });
+    },
+    [bookmarkId, updateProgress],
+  );
+
+  // Responsive — called on every throttled scroll for banner dismissal
+  const onScroll = useCallback((position: ReadingPosition) => {
+    if (bannerVisibleRef.current && position.percent > 15) {
+      setBannerDismissed(true);
+    }
+  }, []);
+
+  const onContinue = useCallback(() => {
+    setRestoreRequested(true);
+    setBannerDismissed(true);
+  }, []);
+
+  const onDismiss = useCallback(() => {
+    setBannerDismissed(true);
+  }, []);
+
+  return {
+    // Banner
+    showBanner,
+    bannerPercent: initialPercent,
+    onContinue,
+    onDismiss,
+    // ScrollProgressTracker props
+    restorePosition: restoreRequested,
+    readingProgressOffset: initialOffset,
+    readingProgressAnchor: initialAnchor,
+    onScrollProgress,
+    onScroll,
+  };
+}
