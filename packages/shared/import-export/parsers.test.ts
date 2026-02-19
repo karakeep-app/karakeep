@@ -487,7 +487,10 @@ https://github.com | GitHub`;
     const { bookmarks } = parseImportFile("onetab", txt);
     expect(bookmarks).toHaveLength(1);
     expect(bookmarks[0].title).toBe("");
-    expect(bookmarks[0].content).toMatchObject({ url: "https://example.com" });
+    expect(bookmarks[0].content).toMatchObject({
+      type: "link",
+      url: "https://example.com",
+    });
   });
 
   it("skips non-URL lines and empty lines", () => {
