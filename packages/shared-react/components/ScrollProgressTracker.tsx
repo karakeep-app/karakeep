@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from "react";
 
 import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
@@ -19,6 +20,10 @@ interface ScrollProgressTrackerProps {
   restorePosition?: boolean;
   readingProgressOffset?: number | null;
   readingProgressAnchor?: string | null;
+  /** Show a Medium-style reading progress bar at the top */
+  showProgressBar?: boolean;
+  /** Custom styles for the progress bar container (e.g. positioning overrides) */
+  progressBarStyle?: React.CSSProperties;
   children: React.ReactNode;
 }
 
@@ -36,12 +41,15 @@ const ScrollProgressTracker = forwardRef<
     restorePosition,
     readingProgressOffset,
     readingProgressAnchor,
+    showProgressBar,
+    progressBarStyle,
     children,
   },
   ref,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => containerRef.current!, []);
+  const [scrollPercent, setScrollPercent] = useState(0);
 
   const onScrollProgressRef = useRef(onScrollProgress);
   useEffect(() => {
@@ -88,8 +96,11 @@ const ScrollProgressTracker = forwardRef<
       lastScrollTime = now;
 
       const position = getReadingPosition(container);
-      if (position && onScrollProgressRef.current) {
-        onScrollProgressRef.current(position);
+      if (position) {
+        setScrollPercent(position.percent);
+        if (onScrollProgressRef.current) {
+          onScrollProgressRef.current(position);
+        }
       }
     };
 
@@ -136,7 +147,34 @@ const ScrollProgressTracker = forwardRef<
     };
   }, []);
 
-  return <div ref={containerRef}>{children}</div>;
+  return (
+    <div ref={containerRef}>
+      {showProgressBar && (
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            zIndex: 50,
+            backgroundColor: "rgba(0,0,0,0.1)",
+            ...progressBarStyle,
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${scrollPercent}%`,
+              backgroundColor: "rgb(249, 115, 22)",
+              transition: "width 150ms ease-out",
+            }}
+          />
+        </div>
+      )}
+      {children}
+    </div>
+  );
 });
 
 export default ScrollProgressTracker;

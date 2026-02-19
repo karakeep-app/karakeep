@@ -23,6 +23,7 @@ interface ReaderViewProps {
   className?: string;
   style?: React.CSSProperties;
   readOnly: boolean;
+  progressBarStyle?: React.CSSProperties;
 }
 
 function ReaderView({
@@ -30,6 +31,7 @@ function ReaderView({
   className,
   style,
   readOnly,
+  progressBarStyle,
 }: ReaderViewProps) {
   const { t } = useTranslation();
   const api = useTRPC();
@@ -163,6 +165,8 @@ function ReaderView({
         restorePosition={restoreRequested}
         readingProgressOffset={initialOffset}
         readingProgressAnchor={initialAnchor}
+        showProgressBar
+        progressBarStyle={progressBarStyle}
       >
         {hasSavedPosition && (
           <ReadingProgressBanner

@@ -135,6 +135,7 @@ export default function ReaderViewPage() {
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}
+                      progressBarStyle={{ position: "fixed", top: "3.5rem" }}
                     />
                   </div>
                 </Suspense>
