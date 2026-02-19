@@ -163,7 +163,10 @@ function OneTabImportCard({
             runUploadBookmarkFile({
               file,
               source: "onetab",
-              extraTags: tag.trim() ? [tag.trim()] : [],
+              extraTags: tag
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean),
             })
           }
         >

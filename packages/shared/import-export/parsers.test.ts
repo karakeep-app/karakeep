@@ -498,7 +498,7 @@ https://github.com | GitHub`;
     expect(bookmarks).toHaveLength(2);
   });
 
-  it("deduplicates repeated URLs and merges tags", () => {
+  it("deduplicates repeated URLs", () => {
     const txt = `https://example.com | Example
 https://example.com | Example`;
     const { bookmarks } = parseImportFile("onetab", txt);
