@@ -136,9 +136,9 @@ export function BookmarkLinkReaderPreview({
   return (
     <View className="flex-1 bg-background">
       {showBanner && (
-        <View className="flex-row items-center gap-2 border-b border-border bg-secondary px-4 py-2">
+        <View className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2">
           <BookOpen size={16} className="text-muted-foreground" />
-          <Text className="flex-1 text-sm">
+          <Text className="flex-1 text-sm text-muted-foreground">
             {bannerPercent && bannerPercent > 0
               ? `Continue where you left off (${bannerPercent}%)`
               : "Continue where you left off"}
@@ -151,7 +151,7 @@ export function BookmarkLinkReaderPreview({
               Continue
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onDismiss}>
+          <TouchableOpacity onPress={onDismiss} className="p-1">
             <X size={14} className="text-muted-foreground" />
           </TouchableOpacity>
         </View>

@@ -17,6 +17,9 @@ import {
 /** Delay after the last scroll event before reporting position (milliseconds) */
 const IDLE_SAVE_DELAY_MS = 5000;
 
+/** Delay after the last scroll event before hiding the progress bar (milliseconds) */
+const PROGRESS_BAR_HIDE_DELAY_MS = 2000;
+
 interface ScrollProgressTrackerProps {
   /** Called lazily on intent signals (idle, visibility change, beforeunload, unmount) — use for persisting position */
   onSavePosition?: (position: ReadingPosition) => void;
@@ -57,6 +60,7 @@ const ScrollProgressTracker = forwardRef<
   const containerRef = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => containerRef.current!, []);
   const [scrollPercent, setScrollPercent] = useState(0);
+  const [progressBarVisible, setProgressBarVisible] = useState(false);
   const latestPositionRef = useRef<ReadingPosition | null>(null);
 
   const onSavePositionRef = useRef(onSavePosition);
@@ -101,6 +105,8 @@ const ScrollProgressTracker = forwardRef<
 
     let lastScrollTime = 0;
     let idleTimerId: ReturnType<typeof setTimeout> | null = null;
+    let hideBarTimerId: ReturnType<typeof setTimeout> | null = null;
+    let trailingTimerId: ReturnType<typeof setTimeout> | null = null;
 
     const reportLatestPosition = () => {
       const pos = latestPositionRef.current;
@@ -109,10 +115,8 @@ const ScrollProgressTracker = forwardRef<
       }
     };
 
-    const handleScroll = () => {
-      const now = Date.now();
-      if (now - lastScrollTime < SCROLL_THROTTLE_MS) return;
-      lastScrollTime = now;
+    const processScroll = () => {
+      lastScrollTime = Date.now();
 
       const position = getReadingPosition(container);
       if (position) {
@@ -123,9 +127,32 @@ const ScrollProgressTracker = forwardRef<
         }
       }
 
+      // Show progress bar on scroll, hide after idle
+      setProgressBarVisible(true);
+      if (hideBarTimerId) clearTimeout(hideBarTimerId);
+      hideBarTimerId = setTimeout(
+        () => setProgressBarVisible(false),
+        PROGRESS_BAR_HIDE_DELAY_MS,
+      );
+
       // Reset idle timer — report position after scrolling stops
       if (idleTimerId) clearTimeout(idleTimerId);
       idleTimerId = setTimeout(reportLatestPosition, IDLE_SAVE_DELAY_MS);
+    };
+
+    const handleScroll = () => {
+      const now = Date.now();
+      if (now - lastScrollTime < SCROLL_THROTTLE_MS) {
+        // Schedule a trailing call so the last scroll event is never lost
+        if (!trailingTimerId) {
+          trailingTimerId = setTimeout(() => {
+            trailingTimerId = null;
+            processScroll();
+          }, SCROLL_THROTTLE_MS);
+        }
+        return;
+      }
+      processScroll();
     };
 
     const scrollParent = findScrollableParent(container);
@@ -137,6 +164,8 @@ const ScrollProgressTracker = forwardRef<
     return () => {
       target.removeEventListener("scroll", handleScroll);
       if (idleTimerId) clearTimeout(idleTimerId);
+      if (hideBarTimerId) clearTimeout(hideBarTimerId);
+      if (trailingTimerId) clearTimeout(trailingTimerId);
     };
   }, []);
 
@@ -176,7 +205,9 @@ const ScrollProgressTracker = forwardRef<
             right: 0,
             height: 3,
             zIndex: 50,
-            backgroundColor: "rgba(0,0,0,0.1)",
+            backgroundColor: "transparent",
+            opacity: progressBarVisible ? 1 : 0,
+            transition: "opacity 300ms ease-out",
             ...progressBarStyle,
           }}
         >

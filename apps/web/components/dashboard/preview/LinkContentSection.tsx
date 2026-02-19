@@ -285,7 +285,7 @@ export default function LinkContentSection({
           </Tooltip>
         )}
       </div>
-      <div className="h-full w-full min-w-0 flex-1">{content}</div>
+      <div className="min-h-0 w-full min-w-0 flex-1">{content}</div>
     </div>
   );
 }

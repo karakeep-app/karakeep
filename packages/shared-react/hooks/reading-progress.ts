@@ -71,7 +71,13 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   // Banner state
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [restoreRequested, setRestoreRequested] = useState(false);
-  const showBanner = !!initialOffset && initialOffset > 0 && !bannerDismissed;
+  const showBanner =
+    !!initialOffset &&
+    initialOffset > 0 &&
+    initialPercent != null &&
+    initialPercent >= 10 &&
+    initialPercent < 100 &&
+    !bannerDismissed;
 
   const bannerVisibleRef = useRef(false);
   bannerVisibleRef.current = showBanner;
