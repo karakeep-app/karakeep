@@ -561,6 +561,13 @@
       "when": 1770564384451,
       "tag": "0079_add_tag_granularity_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "6",
+      "when": 1771481519588,
+      "tag": "0080_user_reading_progress",
+      "breakpoints": true
     }
   ]
 }
