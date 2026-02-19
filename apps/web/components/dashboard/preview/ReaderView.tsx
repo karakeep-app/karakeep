@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 
+import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
+import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
 import {
   useCreateHighlight,
   useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
-import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -30,9 +31,9 @@ function ReaderView({
   style,
   readOnly,
 }: ReaderViewProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const api = useTRPC();
+  const queryClient = useQueryClient();
   const { data: highlights } = useQuery(
     api.highlights.getForBookmark.queryOptions({
       bookmarkId,
@@ -58,29 +59,37 @@ function ReaderView({
     ),
   );
 
-  // Track when content is ready for reading progress restoration
-  const [contentReady, setContentReady] = useState(false);
-
-  // Get initial reading progress from bookmark content
+  // Reading progress
   const initialOffset = bookmark?.readingProgressOffset ?? null;
   const initialAnchor = bookmark?.readingProgressAnchor ?? null;
 
-  // Auto-save reading progress on page unload/visibility change
-  const { hasSavedPosition, scrollToSavedPosition, dismissSavedPosition } =
-    useReadingProgress({
-      bookmarkId,
-      initialOffset,
-      initialAnchor,
-      containerRef: contentRef,
-      contentReady,
-    });
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [restoreRequested, setRestoreRequested] = useState(false);
+  const hasSavedPosition =
+    !!initialOffset && initialOffset > 0 && !bannerDismissed;
 
-  // Signal to parent when content is ready for reading progress restoration
-  useEffect(() => {
-    if (!isCachedContentLoading && bookmark?.htmlContent) {
-      setContentReady(true);
-    }
-  }, [isCachedContentLoading, bookmark?.htmlContent]);
+  const lastSavedOffset = useRef<number | null>(initialOffset);
+  const { mutate: updateProgress } = useMutation(
+    api.bookmarks.updateReadingProgress.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+      },
+    }),
+  );
+
+  const handlePositionChange = useCallback(
+    (position: ReadingPosition) => {
+      if (lastSavedOffset.current === position.offset) return;
+      lastSavedOffset.current = position.offset;
+      updateProgress({
+        bookmarkId,
+        readingProgressOffset: position.offset,
+        readingProgressAnchor: position.anchor,
+        readingProgressPercent: position.percent,
+      });
+    },
+    [bookmarkId, updateProgress],
+  );
 
   const { mutate: createHighlight } = useCreateHighlight({
     onSuccess: () => {
@@ -149,16 +158,23 @@ function ReaderView({
     );
   } else {
     content = (
-      <div>
+      <ScrollProgressTracker
+        onScrollProgress={handlePositionChange}
+        restorePosition={restoreRequested}
+        readingProgressOffset={initialOffset}
+        readingProgressAnchor={initialAnchor}
+      >
         {hasSavedPosition && (
           <ReadingProgressBanner
             percent={bookmark?.readingProgressPercent ?? null}
-            onContinue={scrollToSavedPosition}
-            onDismiss={dismissSavedPosition}
+            onContinue={() => {
+              setRestoreRequested(true);
+              setBannerDismissed(true);
+            }}
+            onDismiss={() => setBannerDismissed(true)}
           />
         )}
         <BookmarkHTMLHighlighter
-          ref={contentRef}
           className={className}
           style={style}
           htmlContent={bookmark?.htmlContent || ""}
@@ -187,7 +203,7 @@ function ReaderView({
             })
           }
         />
-      </div>
+      </ScrollProgressTracker>
     );
   }
   return content;

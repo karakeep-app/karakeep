@@ -166,6 +166,7 @@ const BookmarkHTMLHighlighter = forwardRef<
 
   // Expose the content div ref to parent components
   useImperativeHandle(ref, () => contentRef.current!, []);
+
   const [menuPosition, setMenuPosition] = useState<{
     x: number;
     y: number;
