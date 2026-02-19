@@ -22,14 +22,10 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/html-to-text": "^9.0.4",
     "@types/nodemailer": "^6.4.17",
-    "esbuild": "^0.27.2",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^3.2.4"
   },
   "scripts": {
-    "generate:webview-js": "tsx scripts/build-webview-js.ts",
-    "generate:webview-js:watch": "tsx scripts/build-webview-js.ts --watch",
-    "check:webview-js": "tsx scripts/build-webview-js.ts --check",
     "typecheck": "tsc --noEmit",
     "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
     "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",

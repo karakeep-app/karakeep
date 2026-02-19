@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
-import { SCROLL_THROTTLE_MS } from "@karakeep/shared/utils/reading-progress-core";
 import {
   findScrollableParent,
   getReadingPosition,
   isElementVisible,
+  SCROLL_THROTTLE_MS,
   scrollToReadingPosition,
 } from "@karakeep/shared/utils/reading-progress-dom";
 

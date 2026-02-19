@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { normalizeText, normalizeTextLength } from "./reading-progress-core";
+import { normalizeText, normalizeTextLength } from "./reading-progress-dom";
 
 describe("normalizeText", () => {
   test("collapses multiple spaces to single space", () => {
