@@ -1,11 +1,10 @@
 "use client";
 
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Suspense, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import HighlightCard from "@/components/dashboard/highlights/HighlightCard";
 import ReaderSettingsPopover from "@/components/dashboard/preview/ReaderSettingsPopover";
 import ReaderView from "@/components/dashboard/preview/ReaderView";
-import ReadingProgressBanner from "@/components/dashboard/preview/ReadingProgressBanner";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
@@ -14,7 +13,6 @@ import { useReaderSettings } from "@/lib/readerSettings";
 import { useQuery } from "@tanstack/react-query";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
 
-import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
@@ -24,7 +22,6 @@ export default function ReaderViewPage() {
   const api = useTRPC();
   const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
-  const contentRef = useRef<HTMLDivElement>(null);
   const { data: highlights } = useQuery(
     api.highlights.getForBookmark.queryOptions({
       bookmarkId,
@@ -41,30 +38,6 @@ export default function ReaderViewPage() {
   const { settings } = useReaderSettings();
   const [showHighlights, setShowHighlights] = useState(false);
   const isOwner = session?.user?.id === bookmark?.userId;
-
-  // Track when content is ready for reading progress restoration
-  const [contentReady, setContentReady] = useState(false);
-  const handleContentReady = useCallback(() => setContentReady(true), []);
-
-  // Get initial reading progress from bookmark content
-  const initialOffset =
-    bookmark?.content.type === BookmarkTypes.LINK
-      ? bookmark.content.readingProgressOffset
-      : null;
-  const initialAnchor =
-    bookmark?.content.type === BookmarkTypes.LINK
-      ? bookmark.content.readingProgressAnchor
-      : null;
-
-  // Auto-save reading progress on page unload/visibility change
-  const { hasSavedPosition, scrollToSavedPosition, dismissSavedPosition } =
-    useReadingProgress({
-      bookmarkId,
-      initialOffset,
-      initialAnchor,
-      containerRef: contentRef,
-      contentReady,
-    });
 
   const onClose = () => {
     if (window.history.length > 1) {
@@ -153,20 +126,8 @@ export default function ReaderViewPage() {
 
                 {/* Article Content */}
                 <Suspense fallback={<FullPageSpinner />}>
-                  {hasSavedPosition && (
-                    <ReadingProgressBanner
-                      percent={
-                        bookmark.content.type === BookmarkTypes.LINK
-                          ? bookmark.content.readingProgressPercent
-                          : null
-                      }
-                      onContinue={scrollToSavedPosition}
-                      onDismiss={dismissSavedPosition}
-                    />
-                  )}
                   <div className="overflow-x-hidden">
                     <ReaderView
-                      ref={contentRef}
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,
@@ -174,7 +135,6 @@ export default function ReaderViewPage() {
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}
-                      onContentReady={handleContentReady}
                     />
                   </div>
                 </Suspense>

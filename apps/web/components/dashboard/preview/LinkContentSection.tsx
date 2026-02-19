@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -34,7 +33,6 @@ import {
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
-import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import {
   BookmarkTypes,
   ZBookmark,
@@ -45,7 +43,6 @@ import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
-import ReadingProgressBanner from "./ReadingProgressBanner";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
   return (
@@ -126,7 +123,6 @@ export default function LinkContentSection({
 }) {
   const { t } = useTranslation();
   const { settings } = useReaderSettings();
-  const contentRef = useRef<HTMLDivElement>(null);
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   const defaultSection =
     availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
@@ -136,32 +132,9 @@ export default function LinkContentSection({
   const { data: session } = useSession();
   const isOwner = session?.user?.id === bookmark.userId;
 
-  // Track when content is ready for reading progress restoration
-  const [contentReady, setContentReady] = useState(false);
-
-  // Reset contentReady when section changes
-  useEffect(() => {
-    setContentReady(false);
-  }, [section]);
-
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");
   }
-
-  // Get initial reading progress from bookmark content
-  const initialOffset = bookmark.content.readingProgressOffset;
-  const initialAnchor = bookmark.content.readingProgressAnchor;
-
-  // Auto-save reading progress on visibility change/section change
-  const { hasSavedPosition, scrollToSavedPosition, dismissSavedPosition } =
-    useReadingProgress({
-      bookmarkId: bookmark.id,
-      initialOffset,
-      initialAnchor,
-      containerRef: contentRef,
-      enabled: section === "cached", // Only track in cached/reader view
-      contentReady,
-    });
 
   let content;
 
@@ -177,15 +150,7 @@ export default function LinkContentSection({
   } else if (section === "cached") {
     content = (
       <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-4">
-        {hasSavedPosition && (
-          <ReadingProgressBanner
-            percent={bookmark.content.readingProgressPercent}
-            onContinue={scrollToSavedPosition}
-            onDismiss={dismissSavedPosition}
-          />
-        )}
         <ReaderView
-          ref={contentRef}
           className="mx-auto"
           style={{
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
@@ -194,7 +159,6 @@ export default function LinkContentSection({
           }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
-          onContentReady={() => setContentReady(true)}
         />
       </div>
     );
