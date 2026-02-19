@@ -16,10 +16,10 @@ interface UseReadingProgressOptions {
  * - Fetching reading progress via its own tRPC query
  * - Capturing initial reading position (stable across query re-fetches)
  * - "Continue reading" banner state and auto-dismiss on scroll past 15%
- * - Lazy saving via onScrollProgress (idle, visibility change, unmount)
+ * - Lazy saving via onSavePosition (idle, visibility change, unmount)
  * - Deduplication of save calls by offset
  *
- * Pass the returned `onScrollProgress` and `onScroll` to ScrollProgressTracker.
+ * Pass the returned `onSavePosition` and `onScrollPositionChange` to ScrollProgressTracker.
  */
 export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   const api = useTRPC();
@@ -93,7 +93,7 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   );
 
   // Lazy save — called by ScrollProgressTracker on idle/visibility/beforeunload/unmount
-  const onScrollProgress = useCallback(
+  const onSavePosition = useCallback(
     (position: ReadingPosition) => {
       if (bannerVisibleRef.current) return;
       if (lastSavedOffset.current === position.offset) return;
@@ -109,7 +109,7 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
   );
 
   // Responsive — called on every throttled scroll for banner dismissal
-  const onScroll = useCallback((position: ReadingPosition) => {
+  const onScrollPositionChange = useCallback((position: ReadingPosition) => {
     if (bannerVisibleRef.current && position.percent > 15) {
       setBannerDismissed(true);
     }
@@ -134,7 +134,7 @@ export function useReadingProgress({ bookmarkId }: UseReadingProgressOptions) {
     restorePosition: restoreRequested,
     readingProgressOffset: initialOffset,
     readingProgressAnchor: initialAnchor,
-    onScrollProgress,
-    onScroll,
+    onSavePosition,
+    onScrollPositionChange,
   };
 }

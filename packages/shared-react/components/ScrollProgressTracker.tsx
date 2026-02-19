@@ -18,10 +18,10 @@ import {
 const IDLE_SAVE_DELAY_MS = 5000;
 
 interface ScrollProgressTrackerProps {
-  /** Called lazily on intent signals (idle, visibility change, beforeunload, unmount) */
-  onScrollProgress?: (position: ReadingPosition) => void;
+  /** Called lazily on intent signals (idle, visibility change, beforeunload, unmount) — use for persisting position */
+  onSavePosition?: (position: ReadingPosition) => void;
   /** Called on every throttled scroll — use for responsive UI (banner dismissal, etc.) */
-  onScroll?: (position: ReadingPosition) => void;
+  onScrollPositionChange?: (position: ReadingPosition) => void;
   /** When set to true, scrolls to the saved reading position */
   restorePosition?: boolean;
   readingProgressOffset?: number | null;
@@ -43,8 +43,8 @@ const ScrollProgressTracker = forwardRef<
   ScrollProgressTrackerProps
 >(function ScrollProgressTracker(
   {
-    onScrollProgress,
-    onScroll,
+    onSavePosition,
+    onScrollPositionChange,
     restorePosition,
     readingProgressOffset,
     readingProgressAnchor,
@@ -59,11 +59,11 @@ const ScrollProgressTracker = forwardRef<
   const [scrollPercent, setScrollPercent] = useState(0);
   const latestPositionRef = useRef<ReadingPosition | null>(null);
 
-  const onScrollProgressRef = useRef(onScrollProgress);
-  const onScrollRef = useRef(onScroll);
+  const onSavePositionRef = useRef(onSavePosition);
+  const onScrollPositionChangeRef = useRef(onScrollPositionChange);
   useEffect(() => {
-    onScrollProgressRef.current = onScrollProgress;
-    onScrollRef.current = onScroll;
+    onSavePositionRef.current = onSavePosition;
+    onScrollPositionChangeRef.current = onScrollPositionChange;
   });
 
   // Restore reading position when triggered
@@ -104,8 +104,8 @@ const ScrollProgressTracker = forwardRef<
 
     const reportLatestPosition = () => {
       const pos = latestPositionRef.current;
-      if (pos && pos.offset > 0 && onScrollProgressRef.current) {
-        onScrollProgressRef.current(pos);
+      if (pos && pos.offset > 0 && onSavePositionRef.current) {
+        onSavePositionRef.current(pos);
       }
     };
 
@@ -118,8 +118,8 @@ const ScrollProgressTracker = forwardRef<
       if (position) {
         setScrollPercent(position.percent);
         latestPositionRef.current = position;
-        if (onScrollRef.current) {
-          onScrollRef.current(position);
+        if (onScrollPositionChangeRef.current) {
+          onScrollPositionChangeRef.current(position);
         }
       }
 
@@ -144,8 +144,8 @@ const ScrollProgressTracker = forwardRef<
   useEffect(() => {
     const reportPosition = () => {
       const pos = latestPositionRef.current;
-      if (pos && pos.offset > 0 && onScrollProgressRef.current) {
-        onScrollProgressRef.current(pos);
+      if (pos && pos.offset > 0 && onSavePositionRef.current) {
+        onSavePositionRef.current(pos);
       }
     };
 

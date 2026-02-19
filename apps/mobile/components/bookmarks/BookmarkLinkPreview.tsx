@@ -106,8 +106,8 @@ export function BookmarkLinkReaderPreview({
     restorePosition,
     readingProgressOffset,
     readingProgressAnchor,
-    onScrollProgress,
-    onScroll,
+    onSavePosition,
+    onScrollPositionChange,
   } = useReadingProgress({
     bookmarkId: bookmark.id,
   });
@@ -163,8 +163,8 @@ export function BookmarkLinkReaderPreview({
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
-        onScrollProgress={onScrollProgress}
-        onScroll={onScroll}
+        onSavePosition={onSavePosition}
+        onScrollPositionChange={onScrollPositionChange}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,

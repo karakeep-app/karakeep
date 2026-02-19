@@ -655,12 +655,9 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
-      const bookmark = await Bookmark.fromId(
-        ctx,
-        input.bookmarkId,
-        input.includeContent,
-      );
-      return bookmark.asZBookmark();
+      return (
+        await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
+      ).asZBookmark();
     }),
   searchBookmarks: authedProcedure
     .input(zSearchBookmarksRequestSchema)

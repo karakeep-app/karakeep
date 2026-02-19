@@ -17,21 +17,19 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import ReadingProgressBanner from "./ReadingProgressBanner";
 
-interface ReaderViewProps {
-  bookmarkId: string;
-  className?: string;
-  style?: React.CSSProperties;
-  readOnly: boolean;
-  progressBarStyle?: React.CSSProperties;
-}
-
-function ReaderView({
+export default function ReaderView({
   bookmarkId,
   className,
   style,
   readOnly,
   progressBarStyle,
-}: ReaderViewProps) {
+}: {
+  bookmarkId: string;
+  className?: string;
+  style?: React.CSSProperties;
+  readOnly: boolean;
+  progressBarStyle?: React.CSSProperties;
+}) {
   const { t } = useTranslation();
   const api = useTRPC();
   const { data: highlights } = useQuery(
@@ -39,7 +37,7 @@ function ReaderView({
       bookmarkId,
     }),
   );
-  const { data: bookmark, isPending: isCachedContentLoading } = useQuery(
+  const { data: cachedContent, isPending: isCachedContentLoading } = useQuery(
     api.bookmarks.getBookmark.queryOptions(
       {
         bookmarkId,
@@ -48,7 +46,7 @@ function ReaderView({
       {
         select: (data) =>
           data.content.type == BookmarkTypes.LINK
-            ? { htmlContent: data.content.htmlContent }
+            ? data.content.htmlContent
             : null,
       },
     ),
@@ -62,8 +60,8 @@ function ReaderView({
     restorePosition,
     readingProgressOffset,
     readingProgressAnchor,
-    onScrollProgress,
-    onScroll,
+    onSavePosition,
+    onScrollPositionChange,
   } = useReadingProgress({
     bookmarkId,
   });
@@ -113,7 +111,7 @@ function ReaderView({
   let content;
   if (isCachedContentLoading) {
     content = <FullPageSpinner />;
-  } else if (!bookmark?.htmlContent) {
+  } else if (!cachedContent) {
     content = (
       <div className="flex h-full w-full items-center justify-center p-4">
         <div className="max-w-sm space-y-4 text-center">
@@ -136,8 +134,8 @@ function ReaderView({
   } else {
     content = (
       <ScrollProgressTracker
-        onScrollProgress={onScrollProgress}
-        onScroll={onScroll}
+        onSavePosition={onSavePosition}
+        onScrollPositionChange={onScrollPositionChange}
         restorePosition={restorePosition}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
@@ -154,7 +152,7 @@ function ReaderView({
         <BookmarkHTMLHighlighter
           className={className}
           style={style}
-          htmlContent={bookmark?.htmlContent || ""}
+          htmlContent={cachedContent || ""}
           highlights={highlights?.highlights ?? []}
           readOnly={readOnly}
           onDeleteHighlight={(h) =>
@@ -185,5 +183,3 @@ function ReaderView({
   }
   return content;
 }
-
-export default ReaderView;

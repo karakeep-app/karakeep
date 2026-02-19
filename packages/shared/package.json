@@ -33,5 +33,6 @@
     "lint:fix": "oxlint . --fix",
     "test": "vitest"
   },
+  "main": "index.ts",
   "prettier": "@karakeep/prettier-config"
 }
