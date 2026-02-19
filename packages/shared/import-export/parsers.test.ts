@@ -471,13 +471,15 @@ https://github.com | GitHub`;
     expect(bookmarks[0]).toMatchObject({
       title: "Example Site",
       content: { type: "link", url: "https://example.com" },
-      tags: [],
-      paths: [],
     });
+    expect(bookmarks[0].tags).toEqual([]);
+    expect(bookmarks[0].paths).toEqual([]);
     expect(bookmarks[1]).toMatchObject({
       title: "GitHub",
       content: { type: "link", url: "https://github.com" },
     });
+    expect(bookmarks[1].tags).toEqual([]);
+    expect(bookmarks[1].paths).toEqual([]);
   });
 
   it("parses plain URL lines without a title", () => {
