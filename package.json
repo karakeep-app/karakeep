@@ -13,6 +13,8 @@
     "db:studio": "pnpm --filter @karakeep/db studio",
     "workers": "pnpm --filter @karakeep/workers run start",
     "web": "pnpm --filter @karakeep/web run dev",
+    "android": "pnpm --filter mobile android",
+    "ios": "pnpm --filter mobile ios",
     "prepare": "husky",
     "format": "turbo --no-daemon format --continue",
     "format:fix": "turbo --no-daemon format:fix --continue",
