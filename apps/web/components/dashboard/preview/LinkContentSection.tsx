@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSession } from "@/lib/auth/client";
 import { Trans, useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
 import {
@@ -28,7 +28,6 @@ import {
   Info,
   Video,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -148,9 +147,9 @@ export default function LinkContentSection({
     );
   } else if (section === "cached") {
     content = (
-      <ScrollArea className="h-full">
+      <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-4">
         <ReaderView
-          className="prose mx-auto dark:prose-invert"
+          className="mx-auto"
           style={{
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
             fontSize: `${settings.fontSize}px`,
@@ -159,7 +158,7 @@ export default function LinkContentSection({
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
         />
-      </ScrollArea>
+      </div>
     );
   } else if (section === "archive") {
     content = <FullPageArchiveSection link={bookmark.content} />;
@@ -172,7 +171,7 @@ export default function LinkContentSection({
   }
 
   return (
-    <div className="flex h-full flex-col items-center gap-2">
+    <div className="flex h-full w-full min-w-0 flex-col items-center gap-2 overflow-hidden">
       <div className="flex items-center gap-2">
         <Select onValueChange={setSection} value={section}>
           <SelectTrigger className="w-fit">
@@ -286,7 +285,7 @@ export default function LinkContentSection({
           </Tooltip>
         )}
       </div>
-      {content}
+      <div className="min-h-0 w-full min-w-0 flex-1">{content}</div>
     </div>
   );
 }

@@ -1,11 +1,16 @@
-import { ImageURISource } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
+
 import useAppSettings from "./settings";
-import { api } from "./trpc";
 import { buildApiHeaders } from "./utils";
 
-export function useAssetUrl(assetId: string): ImageURISource {
+interface AssetSource {
+  uri: string;
+  headers: Record<string, string>;
+}
+
+export function useAssetUrl(assetId: string): AssetSource {
   const { settings } = useAppSettings();
   return {
     uri: `${settings.address}/api/assets/${assetId}`,
@@ -40,6 +45,7 @@ export function useServerVersion() {
  * Returns `false` to hide archived bookmarks, or `undefined` to show all bookmarks.
  */
 export function useArchiveFilter(): boolean | undefined {
-  const { data: userSettings } = api.users.settings.useQuery();
+  const api = useTRPC();
+  const { data: userSettings } = useQuery(api.users.settings.queryOptions());
   return userSettings?.archiveDisplayBehaviour === "show" ? undefined : false;
 }

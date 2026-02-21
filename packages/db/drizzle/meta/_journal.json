@@ -533,6 +533,41 @@
       "when": 1767052770526,
       "tag": "0075_change_default_tag_style",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1768691440519,
+      "tag": "0076_add_api_key_last_used_tracking",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "6",
+      "when": 1770141423845,
+      "tag": "0077_import_listpaths_to_listids",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "6",
+      "when": 1770142086939,
+      "tag": "0078_add_import_session_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "6",
+      "when": 1770564384451,
+      "tag": "0079_add_tag_granularity_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "6",
+      "when": 1771481519588,
+      "tag": "0080_user_reading_progress",
+      "breakpoints": true
     }
   ]
 }

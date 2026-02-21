@@ -1,5 +1,6 @@
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -15,20 +16,23 @@ export default function BookmarkCard({
   bookmark: ZBookmark;
   className?: string;
 }) {
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId: initialData.id,
-    },
-    {
-      initialData,
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        if (!data) {
-          return false;
-        }
-        return getBookmarkRefreshInterval(data);
+  const api = useTRPC();
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: initialData.id,
       },
-    },
+      {
+        initialData,
+        refetchInterval: (query) => {
+          const data = query.state.data;
+          if (!data) {
+            return false;
+          }
+          return getBookmarkRefreshInterval(data);
+        },
+      },
+    ),
   );
 
   switch (bookmark.content.type) {

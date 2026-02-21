@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   READER_DEFAULTS,
@@ -16,7 +17,7 @@ import {
   ReaderSettingsPartial,
 } from "@karakeep/shared/types/readers";
 
-import { api } from "../trpc";
+import { useTRPC } from "../trpc";
 
 export interface UseReaderSettingsOptions {
   /**
@@ -39,6 +40,7 @@ export interface UseReaderSettingsOptions {
 }
 
 export function useReaderSettings(options: UseReaderSettingsOptions) {
+  const api = useTRPC();
   const {
     getLocalOverrides,
     saveLocalOverrides,
@@ -52,8 +54,8 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
   const [pendingServerSave, setPendingServerSave] =
     useState<ReaderSettings | null>(null);
 
-  const { data: serverSettings } = api.users.settings.useQuery();
-  const apiUtils = api.useUtils();
+  const { data: serverSettings } = useQuery(api.users.settings.queryOptions());
+  const queryClient = useQueryClient();
 
   // Load local overrides on mount
   useEffect(() => {
@@ -76,30 +78,33 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
     }
   }, [serverSettings, pendingServerSave]);
 
-  const { mutate: updateServerSettings, isPending: isSaving } =
-    api.users.updateSettings.useMutation({
+  const { mutate: updateServerSettings, isPending: isSaving } = useMutation(
+    api.users.updateSettings.mutationOptions({
       onSettled: async () => {
-        await apiUtils.users.settings.refetch();
+        await queryClient.refetchQueries(api.users.settings.pathFilter());
       },
-    });
+    }),
+  );
 
   // Separate mutation for saving defaults (clears local overrides on success)
   const { mutate: saveServerSettings, isPending: isSavingDefaults } =
-    api.users.updateSettings.useMutation({
-      onSuccess: () => {
-        // Clear local and session overrides after successful server save
-        setLocalOverrides({});
-        saveLocalOverrides({});
-        onClearSessionOverrides?.();
-      },
-      onError: () => {
-        // Clear pending state so we don't show values that failed to persist
-        setPendingServerSave(null);
-      },
-      onSettled: async () => {
-        await apiUtils.users.settings.refetch();
-      },
-    });
+    useMutation(
+      api.users.updateSettings.mutationOptions({
+        onSuccess: () => {
+          // Clear local and session overrides after successful server save
+          setLocalOverrides({});
+          saveLocalOverrides({});
+          onClearSessionOverrides?.();
+        },
+        onError: () => {
+          // Clear pending state so we don't show values that failed to persist
+          setPendingServerSave(null);
+        },
+        onSettled: async () => {
+          await queryClient.refetchQueries(api.users.settings.pathFilter());
+        },
+      }),
+    );
 
   // Compute effective settings with precedence: session → local → pendingSave → server → default
   const settings: ReaderSettings = useMemo(

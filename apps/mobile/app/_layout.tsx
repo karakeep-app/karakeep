@@ -2,13 +2,16 @@ import "@/globals.css";
 import "expo-dev-client";
 
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
+import SplashScreenController from "@/components/SplashScreenController";
 import { Providers } from "@/lib/providers";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
@@ -30,9 +33,13 @@ export default function RootLayout() {
   }, [hasShareIntent]);
 
   return (
-    <>
-      <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+    <SafeAreaProvider>
+      <KeyboardProvider
+        statusBarTranslucent={Platform.OS !== "android" ? true : undefined}
+        navigationBarTranslucent={Platform.OS !== "android" ? true : undefined}
+      >
         <NavThemeProvider value={NAV_THEME[colorScheme]}>
+          <SplashScreenController />
           <StyledStack
             layout={(props) => {
               return (
@@ -49,7 +56,9 @@ export default function RootLayout() {
             )}
             screenOptions={{
               headerTitle: "",
-              headerTransparent: true,
+              ...Platform.select({
+                ios: { headerTransparent: true },
+              }),
             }}
           >
             <Stack.Screen name="index" />
@@ -86,6 +95,6 @@ export default function RootLayout() {
         key={`root-status-bar-${isDarkColorScheme ? "light" : "dark"}`}
         style={isDarkColorScheme ? "light" : "dark"}
       />
-    </>
+    </SafeAreaProvider>
   );
 }

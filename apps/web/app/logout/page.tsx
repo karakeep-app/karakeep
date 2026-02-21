@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth/client";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 

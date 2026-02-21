@@ -21,12 +21,12 @@ export default function SidebarLayout({
   modal?: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="sm:fixed sm:inset-0 sm:overflow-hidden">
       <Header />
-      <div className="flex min-h-[calc(100vh-64px)] w-screen flex-col sm:h-[calc(100vh-64px)] sm:flex-row">
+      <div className="flex min-h-[calc(100vh-64px)] w-full flex-col sm:h-[calc(100dvh-64px)] sm:flex-row sm:overflow-hidden">
         <ValidAccountCheck />
         <div className="hidden flex-none sm:flex">{sidebar}</div>
-        <main className="flex-1 bg-muted sm:overflow-y-auto">
+        <main className="flex-1 bg-muted sm:min-h-0 sm:overflow-y-auto">
           {serverConfig.demoMode && <DemoModeBanner />}
           <div className="block w-full sm:hidden">
             {mobileSidebar}

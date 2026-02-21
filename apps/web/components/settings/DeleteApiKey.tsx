@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { Trash } from "lucide-react";
+import { toast } from "sonner";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function DeleteApiKey({
   name,
@@ -16,16 +18,17 @@ export default function DeleteApiKey({
   name: string;
   id: string;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const router = useRouter();
-  const mutator = api.apiKeys.revoke.useMutation({
-    onSuccess: () => {
-      toast({
-        description: "Key was successfully deleted",
-      });
-      router.refresh();
-    },
-  });
+  const mutator = useMutation(
+    api.apiKeys.revoke.mutationOptions({
+      onSuccess: () => {
+        toast.success("Key was successfully deleted");
+        router.refresh();
+      },
+    }),
+  );
 
   return (
     <ActionConfirmingDialog
@@ -49,8 +52,8 @@ export default function DeleteApiKey({
         </ActionButton>
       )}
     >
-      <Button variant="outline">
-        <Trash size={18} color="red" />
+      <Button variant="ghost" title={t("actions.delete")}>
+        <Trash size={18} />
       </Button>
     </ActionConfirmingDialog>
   );

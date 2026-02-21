@@ -71,4 +71,4 @@ During installation, the script created a configuration file for `meilisearch`, 
 
 ## Still Running Hoarder?
 
-There is a way to upgrade. Please see [Hoarder to Karakeep Migration](../administration/hoarder-to-karakeep-migration)
+There is a way to upgrade. Please see [Hoarder to Karakeep Migration](../06-administration/08-hoarder-to-karakeep-migration.md)

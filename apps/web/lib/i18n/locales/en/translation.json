@@ -1,6 +1,7 @@
 {
   "common": {
     "default": "Default",
+    "id": "ID",
     "url": "URL",
     "name": "Name",
     "email": "Email",
@@ -9,6 +10,7 @@
     "actions": "Actions",
     "created_at": "Created At",
     "updated_at": "Updated At",
+    "last_used": "Last Used",
     "key": "Key",
     "role": "Role",
     "type": "Type",
@@ -106,6 +108,7 @@
     "more": "More",
     "replace_banner": "Replace Banner",
     "add_banner": "Add Banner",
+    "download": "Download",
     "sort": {
       "title": "Sort",
       "relevant_first": "Most Relevant First",
@@ -266,7 +269,11 @@
       "camelCase": "camelCase",
       "no_preference": "No preference",
       "inference_language": "Inference Language",
-      "inference_language_description": "Choose language for AI-generated tags and summaries."
+      "inference_language_description": "Choose language for AI-generated tags and summaries.",
+      "curated_tags": "Curated Tags",
+      "curated_tags_description": "Optionally restrict AI tagging to only use tags from this list. When no tags are selected, the AI generates tags freely.",
+      "curated_tags_updated": "Curated tags updated successfully!",
+      "curated_tags_update_failed": "Failed to update curated tags"
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
@@ -303,6 +310,7 @@
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
+      "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
@@ -355,6 +363,8 @@
         "always": "Always",
         "url_contains": "URL Contains",
         "url_does_not_contain": "URL Does Not Contain",
+        "title_contains": "Title Contains",
+        "title_does_not_contain": "Title Does Not Contain",
         "imported_from_feed": "Imported From Feed",
         "bookmark_type_is": "Bookmark Type Is",
         "has_tag": "Has Tag",
@@ -412,11 +422,12 @@
       "created_at": "Created {{time}}",
       "progress": "Progress",
       "status": {
+        "staging": "Staging",
         "pending": "Pending",
-        "in_progress": "In progress",
+        "running": "Running",
+        "paused": "Paused",
         "completed": "Completed",
-        "failed": "Failed",
-        "processing": "Processing"
+        "failed": "Failed"
       },
       "badges": {
         "pending": "{{count}} pending",
@@ -428,7 +439,33 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
-      "delete_session": "Delete Session"
+      "delete_session": "Delete Session",
+      "pause_session": "Pause",
+      "resume_session": "Resume",
+      "view_details": "View Details",
+      "detail": {
+        "page_title": "Import Session Details",
+        "back_to_import": "Back to Import",
+        "filter_all": "All",
+        "filter_accepted": "Accepted",
+        "filter_rejected": "Rejected",
+        "filter_duplicates": "Duplicates",
+        "filter_pending": "Pending",
+        "table_title": "Title / URL",
+        "table_type": "Type",
+        "table_result": "Result",
+        "table_reason": "Reason",
+        "table_bookmark": "Bookmark",
+        "result_accepted": "Accepted",
+        "result_rejected": "Rejected",
+        "result_skipped_duplicate": "Duplicate",
+        "result_pending": "Pending",
+        "result_processing": "Processing",
+        "no_results": "No results found for this filter.",
+        "view_bookmark": "View Bookmark",
+        "load_more": "Load More",
+        "no_title": "No title"
+      }
     },
     "backups": {
       "backups": "Backups",
@@ -555,11 +592,14 @@
         }
       },
       "actions": {
+        "recrawl_pending_links_only": "Recrawl Pending Links Only",
         "recrawl_failed_links_only": "Recrawl Failed Links Only",
         "recrawl_all_links": "Recrawl All Links",
         "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
         "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerate AI Summaries for Pending Bookmarks Only",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",
@@ -580,11 +620,50 @@
       "local_user": "Local User",
       "confirm_password": "Confirm Password",
       "unlimited": "Unlimited"
+    },
+    "admin_tools": {
+      "admin_tools": "Admin Tools",
+      "bookmark_debugger": "Bookmark Debugger",
+      "bookmark_id": "Bookmark ID",
+      "bookmark_id_placeholder": "Enter bookmark ID",
+      "lookup": "Lookup",
+      "debug_info": "Debug Information",
+      "basic_info": "Basic Information",
+      "status": "Status",
+      "content": "Content",
+      "html_preview": "HTML Preview (First 1000 chars)",
+      "summary": "Summary",
+      "url": "URL",
+      "source_url": "Source URL",
+      "asset_type": "Asset Type",
+      "file_name": "File Name",
+      "owner_user_id": "Owner User ID",
+      "tagging_status": "Tagging Status",
+      "summarization_status": "Summarization Status",
+      "crawl_status": "Crawl Status",
+      "crawl_status_code": "HTTP Status Code",
+      "crawled_at": "Crawled At",
+      "recrawl": "Re-crawl",
+      "reindex": "Re-index",
+      "retag": "Re-tag",
+      "resummarize": "Re-summarize",
+      "bookmark_not_found": "Bookmark not found",
+      "action_success": "Action completed successfully",
+      "action_failed": "Action failed",
+      "recrawl_queued": "Re-crawl job has been queued",
+      "reindex_queued": "Re-index job has been queued",
+      "retag_queued": "Re-tag job has been queued",
+      "resummarize_queued": "Re-summarize job has been queued",
+      "view": "View",
+      "fetch_error": "Error fetching bookmark"
     }
   },
   "options": {
     "dark_mode": "Dark Mode",
-    "light_mode": "Light Mode"
+    "light_mode": "Light Mode",
+    "apps_extensions": "Apps & Extensions",
+    "documentation": "Documentation",
+    "follow_us_on_x": "Follow us on X"
   },
   "lists": {
     "all_lists": "All Lists",
@@ -690,6 +769,8 @@
     "create_tag_description": "Create a new tag without attaching it to any bookmark",
     "tag_name": "Tag Name",
     "enter_tag_name": "Enter tag name",
+    "search_placeholder": "Search tags...",
+    "search_or_create_placeholder": "Search or create tags...",
     "no_custom_tags": "No custom tags yet",
     "no_ai_tags": "No AI tags yet",
     "no_unused_tags": "You don't have any unused tags",
@@ -732,6 +813,8 @@
     "type_is_not": "Type is not",
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
+    "is_from_source": "Source is",
+    "is_not_from_source": "Source is not",
     "is_broken_link": "Has Broken Link",
     "is_not_broken_link": "Has Working Link",
     "and": "And",
@@ -748,6 +831,12 @@
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
     "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
+    "fetch_error_title": "Content Unavailable",
+    "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
+    "crawling_in_progress": "Fetching page content…",
+    "continue_reading": "Continue where you left off",
+    "continue_reading_percent": "Continue where you left off ({{percent}}%)",
+    "continue_button": "Continue",
     "tabs": {
       "content": "Content",
       "details": "Details"

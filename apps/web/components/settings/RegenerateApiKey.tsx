@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 import { RefreshCcw } from "lucide-react";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import ApiKeySuccess from "./ApiKeySuccess";
 
@@ -28,25 +30,28 @@ export default function RegenerateApiKey({
   id: string;
   name: string;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const router = useRouter();
 
   const [key, setKey] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
-  const mutator = api.apiKeys.regenerate.useMutation({
-    onSuccess: (resp) => {
-      setKey(resp.key);
-      router.refresh();
-    },
-    onError: () => {
-      toast({
-        description: t("common.something_went_wrong"),
-        variant: "destructive",
-      });
-      setDialogOpen(false);
-    },
-  });
+  const mutator = useMutation(
+    api.apiKeys.regenerate.mutationOptions({
+      onSuccess: (resp) => {
+        setKey(resp.key);
+        router.refresh();
+      },
+      onError: () => {
+        toast({
+          description: t("common.something_went_wrong"),
+          variant: "destructive",
+        });
+        setDialogOpen(false);
+      },
+    }),
+  );
 
   const handleRegenerate = () => {
     mutator.mutate({ id });

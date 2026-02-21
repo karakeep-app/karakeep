@@ -167,6 +167,7 @@ describe("User Routes", () => {
       // AI Settings
       autoSummarizationEnabled: null,
       autoTaggingEnabled: null,
+      curatedTagIds: null,
       inferredTagLang: null,
       tagStyle: "titlecase-spaces",
     });
@@ -208,6 +209,7 @@ describe("User Routes", () => {
       // AI Settings
       autoSummarizationEnabled: true,
       autoTaggingEnabled: true,
+      curatedTagIds: null,
       inferredTagLang: "en",
       tagStyle: "lowercase-underscores",
     });
@@ -1116,6 +1118,7 @@ describe("User Routes", () => {
         "resend@test.com",
         "Test User",
         expect.any(String), // token
+        undefined, // redirectUrl
       );
     });
 

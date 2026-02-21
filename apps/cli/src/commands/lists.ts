@@ -86,15 +86,24 @@ listsCmd
   .command("get")
   .description("gets all the ids of the bookmarks assigned to the list")
   .requiredOption("--list <id>", "the id of the list")
+  .option(
+    "--include-content",
+    "include full bookmark content in results",
+    false,
+  )
   .action(async (opts) => {
     const api = getAPIClient();
     try {
-      let resp = await api.bookmarks.getBookmarks.query({ listId: opts.list });
+      let resp = await api.bookmarks.getBookmarks.query({
+        listId: opts.list,
+        includeContent: opts.includeContent,
+      });
       let results: string[] = resp.bookmarks.map((b) => b.id);
       while (resp.nextCursor) {
         resp = await api.bookmarks.getBookmarks.query({
           listId: opts.list,
           cursor: resp.nextCursor,
+          includeContent: opts.includeContent,
         });
         results = [...results, ...resp.bookmarks.map((b) => b.id)];
       }

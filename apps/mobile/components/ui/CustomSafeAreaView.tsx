@@ -1,5 +1,6 @@
-import { Platform, SafeAreaView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 export default function CustomSafeAreaView({
@@ -9,21 +10,23 @@ export default function CustomSafeAreaView({
   children: React.ReactNode;
   edges?: ("top" | "bottom")[];
 }) {
-  const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
+  const { colors } = useColorScheme();
+
+  // Only add paddingTop on iOS where headers are transparent and don't take up layout space.
+  // On Android, headers are non-transparent and already push content down.
+  const paddingTop =
+    Platform.OS === "ios" && edges.includes("top") && headerHeight > 0
+      ? headerHeight
+      : undefined;
 
   return (
     <SafeAreaView
+      edges={edges}
       style={{
         flex: 1,
-        paddingTop:
-          // Some ugly hacks to make the app look the same on both android and ios
-          Platform.OS == "android" && edges.includes("top")
-            ? headerHeight > 0
-              ? headerHeight
-              : insets.top
-            : undefined,
-        paddingBottom: edges.includes("bottom") ? insets.bottom : undefined,
+        backgroundColor: colors.background,
+        paddingTop,
       }}
     >
       {children}

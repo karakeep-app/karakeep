@@ -56,6 +56,7 @@ export interface OpenAIInferenceConfig {
   apiKey: string;
   baseURL?: string;
   proxyUrl?: string;
+  serviceTier?: typeof serverConfig.inference.openAIServiceTier;
   textModel: string;
   imageModel: string;
   contextLength: number;
@@ -106,6 +107,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       apiKey: serverConfig.inference.openAIApiKey!,
       baseURL: serverConfig.inference.openAIBaseUrl,
       proxyUrl: serverConfig.inference.openAIProxyUrl,
+      serviceTier: serverConfig.inference.openAIServiceTier,
       textModel: serverConfig.inference.textModel,
       imageModel: serverConfig.inference.imageModel,
       contextLength: serverConfig.inference.contextLength,
@@ -127,6 +129,9 @@ export class OpenAIInferenceClient implements InferenceClient {
       {
         messages: [{ role: "user", content: prompt }],
         model: this.config.textModel,
+        ...(this.config.serviceTier
+          ? { service_tier: this.config.serviceTier }
+          : {}),
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
@@ -166,6 +171,9 @@ export class OpenAIInferenceClient implements InferenceClient {
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         model: this.config.imageModel,
+        ...(this.config.serviceTier
+          ? { service_tier: this.config.serviceTier }
+          : {}),
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),

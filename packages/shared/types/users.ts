@@ -202,6 +202,7 @@ export const zUserSettingsSchema = z.object({
   autoTaggingEnabled: z.boolean().nullable(),
   autoSummarizationEnabled: z.boolean().nullable(),
   tagStyle: zTagStyleSchema,
+  curatedTagIds: z.array(z.string()).nullable(),
   inferredTagLang: z.string().nullable(),
 });
 
@@ -220,6 +221,7 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   autoTaggingEnabled: true,
   autoSummarizationEnabled: true,
   tagStyle: true,
+  curatedTagIds: true,
   inferredTagLang: true,
 });
 

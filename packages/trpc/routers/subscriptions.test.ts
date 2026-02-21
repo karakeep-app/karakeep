@@ -189,7 +189,6 @@ describe("Subscription Routes", () => {
 
       expect(mockCheckoutSessionsCreate).toHaveBeenCalledWith({
         customer: "cus_new123",
-        payment_method_types: ["card"],
         line_items: [
           {
             price: "price_123",
@@ -204,13 +203,13 @@ describe("Subscription Routes", () => {
         metadata: {
           userId: user.id,
         },
-        automatic_tax: {
-          enabled: true,
-        },
         customer_update: {
           address: "auto",
         },
         allow_promotion_codes: true,
+        managed_payments: {
+          enabled: true,
+        },
       });
     });
 

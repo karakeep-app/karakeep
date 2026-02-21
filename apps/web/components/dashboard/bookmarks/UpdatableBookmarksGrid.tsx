@@ -3,13 +3,14 @@
 import { useEffect } from "react";
 import UploadDropzone from "@/components/dashboard/UploadDropzone";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
-import { api } from "@/lib/trpc";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 import type {
   ZGetBookmarksRequest,
   ZGetBookmarksResponse,
 } from "@karakeep/shared/types/bookmarks";
 import { BookmarkGridContextProvider } from "@karakeep/shared-react/hooks/bookmark-grid-context";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import BookmarksGrid from "./BookmarksGrid";
 
@@ -23,6 +24,7 @@ export default function UpdatableBookmarksGrid({
   showEditorCard?: boolean;
   itemsPerPage?: number;
 }) {
+  const api = useTRPC();
   let sortOrder = useSortOrderStore((state) => state.sortOrder);
   if (sortOrder === "relevance") {
     // Relevance is not supported in the `getBookmarks` endpoint.
@@ -32,17 +34,19 @@ export default function UpdatableBookmarksGrid({
   const finalQuery = { ...query, sortOrder, includeContent: false };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    api.bookmarks.getBookmarks.useInfiniteQuery(
-      { ...finalQuery, useCursorV2: true },
-      {
-        initialData: () => ({
-          pages: [initialBookmarks],
-          pageParams: [query.cursor],
-        }),
-        initialCursor: null,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        refetchOnMount: true,
-      },
+    useInfiniteQuery(
+      api.bookmarks.getBookmarks.infiniteQueryOptions(
+        { ...finalQuery, useCursorV2: true },
+        {
+          initialData: () => ({
+            pages: [initialBookmarks],
+            pageParams: [query.cursor ?? null],
+          }),
+          initialCursor: null,
+          getNextPageParam: (lastPage) => lastPage.nextCursor,
+          refetchOnMount: true,
+        },
+      ),
     );
 
   useEffect(() => {

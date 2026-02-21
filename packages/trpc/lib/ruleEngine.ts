@@ -22,6 +22,7 @@ async function fetchBookmark(db: AuthedContext["db"], bookmarkId: string) {
       link: {
         columns: {
           url: true,
+          title: true,
         },
       },
       text: true,
@@ -61,13 +62,26 @@ export class RuleEngine {
     private rules: RuleEngineRule[],
   ) {}
 
-  static async forBookmark(ctx: AuthedContext, bookmarkId: string) {
+  private get bookmarkTitle(): string {
+    return (
+      this.bookmark.title ??
+      (this.bookmark.type === BookmarkTypes.LINK
+        ? this.bookmark.link?.title
+        : "") ??
+      ""
+    );
+  }
+
+  static async forBookmark(
+    ctx: AuthedContext,
+    bookmarkId: string,
+  ): Promise<RuleEngine | null> {
     const [bookmark, rules] = await Promise.all([
       fetchBookmark(ctx.db, bookmarkId),
       RuleEngineRuleModel.getAll(ctx),
     ]);
     if (!bookmark) {
-      throw new Error(`Bookmark ${bookmarkId} not found`);
+      return null;
     }
     return new RuleEngine(
       ctx,
@@ -89,6 +103,12 @@ export class RuleEngine {
           this.bookmark.type == BookmarkTypes.LINK &&
           !(this.bookmark.link?.url ?? "").includes(condition.str)
         );
+      }
+      case "titleContains": {
+        return this.bookmarkTitle.includes(condition.str);
+      }
+      case "titleDoesNotContain": {
+        return !this.bookmarkTitle.includes(condition.str);
       }
       case "importedFromFeed": {
         return this.bookmark.rssFeeds.some(

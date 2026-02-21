@@ -1,4 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
+import { getBookmarkDomain } from "network";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 
@@ -17,6 +18,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  setSpanAttributes,
   triggerRuleEngineOnEvent,
   triggerSearchReindex,
   triggerWebhook,
@@ -24,7 +26,8 @@ import {
 import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import { buildImagePrompt, buildTextPrompt } from "@karakeep/shared/prompts";
+import { buildImagePrompt } from "@karakeep/shared/prompts";
+import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
@@ -82,6 +85,7 @@ async function buildPrompt(
   bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  curatedTags?: string[],
 ): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
@@ -107,6 +111,7 @@ Description: ${bookmark.link.description ?? ""}
 Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
       tagStyle,
+      curatedTags,
     );
   }
 
@@ -117,6 +122,7 @@ Content: ${content ?? ""}`,
       bookmark.text.text ?? "",
       serverConfig.inference.contextLength,
       tagStyle,
+      curatedTags,
     );
   }
 
@@ -130,6 +136,7 @@ async function inferTagsFromImage(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  curatedTags?: string[],
 ): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
@@ -149,11 +156,15 @@ async function inferTagsFromImage(
   }
 
   const base64 = asset.toString("base64");
+  setSpanAttributes({
+    "inference.model": serverConfig.inference.imageModel,
+  });
   return inferenceClient.inferFromImage(
     buildImagePrompt(
       inferredTagLang,
       await fetchCustomPrompts(bookmark.userId, "images"),
       tagStyle,
+      curatedTags,
     ),
     metadata.contentType,
     base64,
@@ -173,6 +184,10 @@ async function fetchCustomPrompts(
     columns: {
       text: true,
     },
+  });
+
+  setSpanAttributes({
+    "inference.prompt.customCount": prompts.length,
   });
 
   let promptTexts = prompts.map((p) => p.text);
@@ -225,6 +240,7 @@ async function inferTagsFromPDF(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  curatedTags?: string[],
 ) {
   const prompt = await buildTextPrompt(
     inferredTagLang,
@@ -232,7 +248,14 @@ async function inferTagsFromPDF(
     `Content: ${bookmark.asset.content}`,
     serverConfig.inference.contextLength,
     tagStyle,
+    curatedTags,
   );
+  setSpanAttributes({
+    "inference.model": serverConfig.inference.textModel,
+  });
+  setSpanAttributes({
+    "inference.prompt.size": Buffer.byteLength(prompt, "utf8"),
+  });
   return inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
     abortSignal,
@@ -245,11 +268,23 @@ async function inferTagsFromText(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  curatedTags?: string[],
 ) {
-  const prompt = await buildPrompt(bookmark, tagStyle, inferredTagLang);
+  const prompt = await buildPrompt(
+    bookmark,
+    tagStyle,
+    inferredTagLang,
+    curatedTags,
+  );
   if (!prompt) {
     return null;
   }
+  setSpanAttributes({
+    "inference.model": serverConfig.inference.textModel,
+  });
+  setSpanAttributes({
+    "inference.prompt.size": Buffer.byteLength(prompt, "utf8"),
+  });
   return await inferenceClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
     abortSignal,
@@ -263,7 +298,20 @@ async function inferTags(
   abortSignal: AbortSignal,
   tagStyle: ZTagStyle,
   inferredTagLang: string,
+  curatedTags?: string[],
 ) {
+  setSpanAttributes({
+    "user.id": bookmark.userId,
+    "bookmark.id": bookmark.id,
+    "bookmark.url": bookmark.link?.url,
+    "bookmark.domain": getBookmarkDomain(bookmark.link?.url),
+    "bookmark.content.type": bookmark.type,
+    "crawler.statusCode": bookmark.link?.crawlStatusCode ?? undefined,
+    "inference.tagging.style": tagStyle,
+    "inference.lang": inferredTagLang,
+    "inference.type": "tagging",
+  });
+
   let response: InferenceResponse | null;
   if (bookmark.link || bookmark.text) {
     response = await inferTagsFromText(
@@ -272,6 +320,7 @@ async function inferTags(
       abortSignal,
       tagStyle,
       inferredTagLang,
+      curatedTags,
     );
   } else if (bookmark.asset) {
     switch (bookmark.asset.assetType) {
@@ -283,6 +332,7 @@ async function inferTags(
           abortSignal,
           tagStyle,
           inferredTagLang,
+          curatedTags,
         );
         break;
       case "pdf":
@@ -293,6 +343,7 @@ async function inferTags(
           abortSignal,
           tagStyle,
           inferredTagLang,
+          curatedTags,
         );
         break;
       default:
@@ -323,6 +374,10 @@ async function inferTags(
         tag = t.slice(1);
       }
       return tag.trim();
+    });
+    setSpanAttributes({
+      "inference.tagging.numGeneratedTags": tags.length,
+      "inference.totalTokens": response.totalTokens,
     });
 
     return tags;
@@ -469,6 +524,7 @@ export async function runTagging(
     columns: {
       autoTaggingEnabled: true,
       tagStyle: true,
+      curatedTagIds: true,
       inferredTagLang: true,
     },
   });
@@ -478,6 +534,19 @@ export async function runTagging(
       `[inference][${jobId}] Skipping tagging job for bookmark with id "${bookmarkId}" because user has disabled auto-tagging.`,
     );
     return;
+  }
+
+  // Resolve curated tag names if configured
+  let curatedTagNames: string[] | undefined;
+  if (userSettings?.curatedTagIds && userSettings.curatedTagIds.length > 0) {
+    const tags = await db.query.bookmarkTags.findMany({
+      where: and(
+        eq(bookmarkTags.userId, bookmark.userId),
+        inArray(bookmarkTags.id, userSettings.curatedTagIds),
+      ),
+      columns: { name: true },
+    });
+    curatedTagNames = tags.map((t) => t.name);
   }
 
   logger.info(
@@ -491,6 +560,7 @@ export async function runTagging(
     job.abortSignal,
     userSettings?.tagStyle ?? "as-generated",
     userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
+    curatedTagNames,
   );
 
   if (tags === null) {

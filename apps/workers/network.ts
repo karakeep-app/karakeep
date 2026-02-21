@@ -86,6 +86,15 @@ function isAddressForbidden(address: string): boolean {
   return DISALLOWED_IP_RANGES.has(parsed.range());
 }
 
+export function getBookmarkDomain(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
 export type UrlValidationResult =
   | { ok: true; url: URL }
   | { ok: false; reason: string };
@@ -163,7 +172,7 @@ export async function validateUrl(
     if (isAddressForbidden(hostname)) {
       return {
         ok: false,
-        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()})`,
+        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()}). You can use CRAWLER_ALLOWED_INTERNAL_HOSTNAMES to allowlist specific hostnames for internal access.`,
       } as const;
     }
     return { ok: true, url: parsedUrl } as const;

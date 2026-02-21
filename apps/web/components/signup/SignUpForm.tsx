@@ -23,21 +23,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { signIn } from "@/lib/auth/client";
 import { useClientConfig } from "@/lib/clientConfig";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, UserX } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zSignUpSchema } from "@karakeep/shared/types/users";
+import { isMobileAppRedirect } from "@karakeep/shared/utils/redirectUrl";
 
 const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 
-export default function SignUpForm() {
+interface SignUpFormProps {
+  redirectUrl: string;
+}
+
+export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
+  const api = useTRPC();
   const form = useForm<z.infer<typeof zSignUpSchema>>({
     resolver: zodResolver(zSignUpSchema),
     defaultValues: {
@@ -54,7 +61,7 @@ export default function SignUpForm() {
   const turnstileSiteKey = clientConfig.turnstile?.siteKey;
   const turnstileRef = useRef<TurnstileInstance>(null);
 
-  const createUserMutation = api.users.create.useMutation();
+  const createUserMutation = useMutation(api.users.create.mutationOptions());
 
   if (
     clientConfig.auth.disableSignups ||
@@ -111,7 +118,10 @@ export default function SignUpForm() {
               }
               form.clearErrors("turnstileToken");
               try {
-                await createUserMutation.mutateAsync(value);
+                await createUserMutation.mutateAsync({
+                  ...value,
+                  redirectUrl,
+                });
               } catch (e) {
                 if (e instanceof TRPCClientError) {
                   setErrorMessage(e.message);
@@ -131,7 +141,7 @@ export default function SignUpForm() {
               if (!resp || !resp.ok || resp.error) {
                 if (resp?.error === VERIFY_EMAIL_ERROR) {
                   router.replace(
-                    `/check-email?email=${encodeURIComponent(value.email.trim())}`,
+                    `/check-email?email=${encodeURIComponent(value.email.trim())}&redirectUrl=${encodeURIComponent(redirectUrl)}`,
                   );
                 } else {
                   setErrorMessage(
@@ -145,7 +155,11 @@ export default function SignUpForm() {
                 }
                 return;
               }
-              router.replace("/");
+              if (isMobileAppRedirect(redirectUrl)) {
+                window.location.href = redirectUrl;
+              } else {
+                router.replace(redirectUrl);
+              }
             })}
             className="space-y-4"
           >
@@ -267,8 +281,40 @@ export default function SignUpForm() {
               }
               className="w-full"
             >
-              Create Account
+              Sign up
             </ActionButton>
+
+            {(clientConfig.legal.termsOfServiceUrl ||
+              clientConfig.legal.privacyPolicyUrl) && (
+              <p className="text-center text-xs text-muted-foreground">
+                By clicking on &apos;Sign up&apos; above, you are agreeing to
+                the{" "}
+                {clientConfig.legal.termsOfServiceUrl && (
+                  <Link
+                    href={clientConfig.legal.termsOfServiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    Terms of Service
+                  </Link>
+                )}
+                {clientConfig.legal.termsOfServiceUrl &&
+                  clientConfig.legal.privacyPolicyUrl &&
+                  " and "}
+                {clientConfig.legal.privacyPolicyUrl && (
+                  <Link
+                    href={clientConfig.legal.privacyPolicyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    Privacy Policy
+                  </Link>
+                )}
+                .
+              </p>
+            )}
           </form>
         </Form>
 

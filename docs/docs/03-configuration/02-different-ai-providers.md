@@ -18,6 +18,28 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Ollama is a local LLM provider that you can use to run your own LLM server. You'll need to pass ollama's address to karakeep and you need to ensure that it's accessible from within the karakeep container (e.g. no localhost addresses).
 
+Ollama provides two API endpoints:
+
+1. **OpenAI-compatible API (Recommended)** - Uses the `/v1` chat endpoint which handles message formatting automatically
+2. **Native Ollama API** - Requires manual formatting for some models
+
+### Option 1: OpenAI-compatible API (Recommended)
+
+This approach uses Ollama's OpenAI-compatible endpoint and is more reliable with various models:
+
+```
+OPENAI_API_KEY=ollama
+OPENAI_BASE_URL=http://ollama.mylab.com:11434/v1
+
+# Make sure to pull the models in ollama first. Example models:
+INFERENCE_TEXT_MODEL=gemma3
+INFERENCE_IMAGE_MODEL=llava
+```
+
+### Option 2: Native Ollama API
+
+Alternatively, you can use the native Ollama API:
+
 ```
 # MAKE SURE YOU DON'T HAVE OPENAI_API_KEY set, otherwise it takes precedence.
 
@@ -30,6 +52,10 @@ INFERENCE_IMAGE_MODEL=llava
 # If the model you're using doesn't support structured output, you also need:
 # INFERENCE_OUTPUT_SCHEMA=plain
 ```
+
+:::tip
+If you experience issues with certain models (especially OpenAI's gpt-oss models or other models requiring specific chat formats), try using the OpenAI-compatible API endpoint instead.
+:::
 
 ## Gemini
 
@@ -85,4 +111,18 @@ OPENAI_BASE_URL=https://{your-azure-openai-resource-name}.openai.azure.com/opena
 OPENAI_API_KEY=YOUR_API_KEY
 INFERENCE_TEXT_MODEL=YOUR_DEPLOYMENT_NAME
 INFERENCE_IMAGE_MODEL=YOUR_DEPLOYMENT_NAME
+```
+
+## Cloudflare
+
+Cloudflare supports OpenAI compatible endpoints. You can generate an API Token from the Cloudflare dashboard (Workers AI).
+
+```
+OPENAI_BASE_URL=https://api.cloudflare.com/client/v4/accounts/{your-account-id}/ai/v1
+OPENAI_API_KEY=Your Cloudflare Workers AI Token
+
+# Example models:
+INFERENCE_TEXT_MODEL=@cf/meta/llama-3.1-8b-instruct-fast
+INFERENCE_IMAGE_MODEL=@cf/meta/llama-3.2-11b-vision-instruct
+INFERENCE_OUTPUT_SCHEMA=json
 ```

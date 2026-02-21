@@ -94,6 +94,7 @@ export const users = sqliteTable("user", {
       "as-generated",
     ],
   }).default("titlecase-spaces"),
+  curatedTagIds: text("curatedTagIds", { mode: "json" }).$type<string[]>(),
   inferredTagLang: text("inferredTagLang"),
 });
 
@@ -168,6 +169,7 @@ export const apiKeys = sqliteTable(
       .$defaultFn(() => createId()),
     name: text("name").notNull(),
     createdAt: createdAtField(),
+    lastUsedAt: integer("lastUsedAt", { mode: "timestamp" }),
     keyId: text("keyId").notNull().unique(),
     keyHash: text("keyHash").notNull(),
     userId: text("userId")
@@ -353,6 +355,33 @@ export const highlights = sqliteTable(
   (tb) => [
     index("highlights_bookmarkId_idx").on(tb.bookmarkId),
     index("highlights_userId_idx").on(tb.userId),
+  ],
+);
+
+export const userReadingProgress = sqliteTable(
+  "userReadingProgress",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, {
+        onDelete: "cascade",
+      }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    readingProgressOffset: integer("readingProgressOffset").notNull(),
+    readingProgressAnchor: text("readingProgressAnchor"),
+    readingProgressPercent: integer("readingProgressPercent"),
+    modifiedAt: modifiedAtField(),
+  },
+  (tb) => [
+    unique().on(tb.bookmarkId, tb.userId),
+    index("userReadingProgress_bookmarkId_idx").on(tb.bookmarkId),
+    index("userReadingProgress_userId_idx").on(tb.userId),
   ],
 );
 
@@ -832,10 +861,19 @@ export const importSessions = sqliteTable(
     rootListId: text("rootListId").references(() => bookmarkLists.id, {
       onDelete: "set null",
     }),
+    status: text("status", {
+      enum: ["staging", "pending", "running", "paused", "completed", "failed"],
+    })
+      .notNull()
+      .default("staging"),
+    lastProcessedAt: integer("lastProcessedAt", { mode: "timestamp" }),
     createdAt: createdAtField(),
     modifiedAt: modifiedAtField(),
   },
-  (is) => [index("importSessions_userId_idx").on(is.userId)],
+  (is) => [
+    index("importSessions_userId_idx").on(is.userId),
+    index("importSessions_status_idx").on(is.status),
+  ],
 );
 
 export const importSessionBookmarks = sqliteTable(
@@ -857,6 +895,63 @@ export const importSessionBookmarks = sqliteTable(
     index("importSessionBookmarks_sessionId_idx").on(isb.importSessionId),
     index("importSessionBookmarks_bookmarkId_idx").on(isb.bookmarkId),
     unique().on(isb.importSessionId, isb.bookmarkId),
+  ],
+);
+
+export const importStagingBookmarks = sqliteTable(
+  "importStagingBookmarks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    importSessionId: text("importSessionId")
+      .notNull()
+      .references(() => importSessions.id, { onDelete: "cascade" }),
+
+    // Bookmark data to create
+    type: text("type", { enum: ["link", "text", "asset"] }).notNull(),
+    url: text("url"),
+    title: text("title"),
+    content: text("content"),
+    note: text("note"),
+    tags: text("tags", { mode: "json" }).$type<string[]>(),
+    listIds: text("listIds", { mode: "json" }).$type<string[]>(),
+    sourceAddedAt: integer("sourceAddedAt", { mode: "timestamp" }),
+
+    // Processing state
+    status: text("status", {
+      enum: ["pending", "processing", "completed", "failed"],
+    })
+      .notNull()
+      .default("pending"),
+    processingStartedAt: integer("processingStartedAt", {
+      mode: "timestamp",
+    }),
+
+    // Result (for observability)
+    result: text("result", {
+      enum: ["accepted", "rejected", "skipped_duplicate"],
+    }),
+    resultReason: text("resultReason"),
+    resultBookmarkId: text("resultBookmarkId").references(() => bookmarks.id, {
+      onDelete: "set null",
+    }),
+
+    createdAt: createdAtField(),
+    completedAt: integer("completedAt", { mode: "timestamp" }),
+  },
+  (isb) => [
+    index("importStaging_session_status_idx").on(
+      isb.importSessionId,
+      isb.status,
+    ),
+    index("importStaging_completedAt_idx").on(isb.completedAt),
+    index("importStaging_status_idx").on(isb.status),
+    index("importStaging_status_processingStartedAt_idx").on(
+      isb.status,
+      isb.processingStartedAt,
+    ),
   ],
 );
 
@@ -1106,3 +1201,17 @@ export const backupsRelations = relations(backupsTable, ({ one }) => ({
     references: [assets.id],
   }),
 }));
+
+export const userReadingProgressRelations = relations(
+  userReadingProgress,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [userReadingProgress.bookmarkId],
+      references: [bookmarks.id],
+    }),
+    user: one(users, {
+      fields: [userReadingProgress.userId],
+      references: [users.id],
+    }),
+  }),
+);

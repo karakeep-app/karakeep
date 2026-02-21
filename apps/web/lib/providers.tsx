@@ -1,21 +1,21 @@
 "use client";
 
 import type { UserLocalSettings } from "@/lib/userLocalSettings/types";
-import type { Session } from "next-auth";
 import React, { useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Session, SessionProvider } from "@/lib/auth/client";
 import { UserLocalSettingsCtx } from "@/lib/userLocalSettings/bookmarksLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, loggerLink } from "@trpc/client";
-import { SessionProvider } from "next-auth/react";
+import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
 import superjson from "superjson";
 
 import type { ClientConfig } from "@karakeep/shared/config";
+import type { AppRouter } from "@karakeep/trpc/routers/_app";
+import { TRPCProvider } from "@karakeep/shared-react/trpc";
 
 import { ClientConfigCtx } from "./clientConfig";
 import CustomI18nextProvider from "./i18n/provider";
-import { api } from "./trpc";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -59,7 +59,7 @@ export default function Providers({
   const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
-    api.createClient({
+    createTRPCClient<AppRouter>({
       links: [
         loggerLink({
           enabled: (op) =>
@@ -80,8 +80,8 @@ export default function Providers({
     <ClientConfigCtx.Provider value={clientConfig}>
       <UserLocalSettingsCtx.Provider value={userLocalSettings}>
         <SessionProvider session={session}>
-          <api.Provider client={trpcClient} queryClient={queryClient}>
-            <QueryClientProvider client={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
               <CustomI18nextProvider lang={userLocalSettings.lang}>
                 <ThemeProvider
                   attribute="class"
@@ -94,8 +94,8 @@ export default function Providers({
                   </TooltipProvider>
                 </ThemeProvider>
               </CustomI18nextProvider>
-            </QueryClientProvider>
-          </api.Provider>
+            </TRPCProvider>
+          </QueryClientProvider>
         </SessionProvider>
       </UserLocalSettingsCtx.Provider>
     </ClientConfigCtx.Provider>

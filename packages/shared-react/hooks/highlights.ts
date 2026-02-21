@@ -1,49 +1,68 @@
-import { api } from "../trpc";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { useTRPC } from "../trpc";
+
+type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useCreateHighlight(
-  ...opts: Parameters<typeof api.highlights.create.useMutation>
+  opts?: Parameters<TRPCApi["highlights"]["create"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.highlights.create.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.highlights.getForBookmark.invalidate({
-        bookmarkId: req.bookmarkId,
-      });
-      apiUtils.highlights.getAll.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.highlights.create.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.highlights.getForBookmark.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
+        queryClient.invalidateQueries(api.highlights.getAll.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useUpdateHighlight(
-  ...opts: Parameters<typeof api.highlights.update.useMutation>
+  opts?: Parameters<TRPCApi["highlights"]["update"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.highlights.update.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.highlights.getForBookmark.invalidate({
-        bookmarkId: res.bookmarkId,
-      });
-      apiUtils.highlights.getAll.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.highlights.update.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.highlights.getForBookmark.queryFilter({
+            bookmarkId: res.bookmarkId,
+          }),
+        );
+        queryClient.invalidateQueries(api.highlights.getAll.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }
 
 export function useDeleteHighlight(
-  ...opts: Parameters<typeof api.highlights.delete.useMutation>
+  opts?: Parameters<TRPCApi["highlights"]["delete"]["mutationOptions"]>[0],
 ) {
-  const apiUtils = api.useUtils();
-  return api.highlights.delete.useMutation({
-    ...opts[0],
-    onSuccess: (res, req, meta, context) => {
-      apiUtils.highlights.getForBookmark.invalidate({
-        bookmarkId: res.bookmarkId,
-      });
-      apiUtils.highlights.getAll.invalidate();
-      return opts[0]?.onSuccess?.(res, req, meta, context);
-    },
-  });
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.highlights.delete.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.highlights.getForBookmark.queryFilter({
+            bookmarkId: res.bookmarkId,
+          }),
+        );
+        queryClient.invalidateQueries(api.highlights.getAll.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
 }

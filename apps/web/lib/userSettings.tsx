@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import { useQuery } from "@tanstack/react-query";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZUserSettings } from "@karakeep/shared/types/users";
-
-import { api } from "./trpc";
 
 export const UserSettingsContext = createContext<ZUserSettings>({
   bookmarkClickAction: "open_original_link",
@@ -19,6 +19,7 @@ export const UserSettingsContext = createContext<ZUserSettings>({
   autoTaggingEnabled: null,
   autoSummarizationEnabled: null,
   tagStyle: "as-generated",
+  curatedTagIds: null,
   inferredTagLang: null,
 });
 
@@ -29,9 +30,12 @@ export function UserSettingsContextProvider({
   userSettings: ZUserSettings;
   children: React.ReactNode;
 }) {
-  const { data } = api.users.settings.useQuery(undefined, {
-    initialData: userSettings,
-  });
+  const api = useTRPC();
+  const { data } = useQuery(
+    api.users.settings.queryOptions(undefined, {
+      initialData: userSettings,
+    }),
+  );
 
   return (
     <UserSettingsContext.Provider value={data}>

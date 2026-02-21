@@ -8,24 +8,30 @@ import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth/client";
 import { useReaderSettings } from "@/lib/readerSettings";
+import { useQuery } from "@tanstack/react-query";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
-import { useSession } from "next-auth/react";
 
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 export default function ReaderViewPage() {
+  const api = useTRPC();
   const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
-  const { data: highlights } = api.highlights.getForBookmark.useQuery({
-    bookmarkId,
-  });
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery({
-    bookmarkId,
-  });
+  const { data: highlights } = useQuery(
+    api.highlights.getForBookmark.queryOptions({
+      bookmarkId,
+    }),
+  );
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions({
+      bookmarkId,
+    }),
+  );
 
   const { data: session } = useSession();
   const router = useRouter();
@@ -122,7 +128,6 @@ export default function ReaderViewPage() {
                 <Suspense fallback={<FullPageSpinner />}>
                   <div className="overflow-x-hidden">
                     <ReaderView
-                      className="prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
                       style={{
                         fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                         fontSize: `${settings.fontSize}px`,
@@ -130,6 +135,7 @@ export default function ReaderViewPage() {
                       }}
                       bookmarkId={bookmarkId}
                       readOnly={!isOwner}
+                      progressBarStyle={{ position: "fixed", top: "3.5rem" }}
                     />
                   </div>
                 </Suspense>

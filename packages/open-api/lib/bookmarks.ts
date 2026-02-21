@@ -101,6 +101,34 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: "get",
+  path: "/bookmarks/check-url",
+  description:
+    "Check if a URL is already bookmarked. Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.",
+  summary: "Check if a URL exists in bookmarks",
+  tags: ["Bookmarks"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    query: z.object({
+      url: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description:
+        "Object indicating whether the URL is bookmarked. bookmarkId is null if not found.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            bookmarkId: z.string().nullable(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
   method: "post",
   path: "/bookmarks",
   description: "Create a new bookmark",
