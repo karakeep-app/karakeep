@@ -19,7 +19,7 @@ export default function TagView() {
     error,
     refetch,
   } = useQuery(api.tags.get.queryOptions({ tagId: slug }));
-  const archived = useArchiveFilter();
+  const { archived, isLoading: isSettingsLoading } = useArchiveFilter();
 
   return (
     <>
@@ -31,7 +31,7 @@ export default function TagView() {
       />
       {error ? (
         <FullPageError error={error.message} onRetry={() => refetch()} />
-      ) : tag ? (
+      ) : tag && !isSettingsLoading ? (
         <UpdatingBookmarkList
           query={{
             tagId: tag.id,

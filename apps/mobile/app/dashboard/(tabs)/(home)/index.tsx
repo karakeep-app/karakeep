@@ -5,6 +5,7 @@ import * as ImagePicker from "expo-image-picker";
 import { router, Stack } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import { TailwindResolver } from "@/components/TailwindResolver";
+import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
 import { useArchiveFilter } from "@/lib/hooks";
 import useAppSettings from "@/lib/settings";
@@ -88,7 +89,7 @@ function HeaderRight({
 }
 
 export default function Home() {
-  const archived = useArchiveFilter();
+  const { archived, isLoading } = useArchiveFilter();
 
   return (
     <>
@@ -103,23 +104,27 @@ export default function Home() {
           ),
         }}
       />
-      <UpdatingBookmarkList
-        query={{ archived }}
-        header={
-          <Pressable
-            className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
-            onPress={() => router.push("/dashboard/search")}
-          >
-            <TailwindResolver
-              className="text-muted"
-              comp={(styles) => (
-                <Search size={16} color={styles?.color?.toString()} />
-              )}
-            />
-            <Text className="text-muted">Search</Text>
-          </Pressable>
-        }
-      />
+      {isLoading ? (
+        <FullPageSpinner />
+      ) : (
+        <UpdatingBookmarkList
+          query={{ archived }}
+          header={
+            <Pressable
+              className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
+              onPress={() => router.push("/dashboard/search")}
+            >
+              <TailwindResolver
+                className="text-muted"
+                comp={(styles) => (
+                  <Search size={16} color={styles?.color?.toString()} />
+                )}
+              />
+              <Text className="text-muted">Search</Text>
+            </Pressable>
+          }
+        />
+      )}
     </>
   );
 }

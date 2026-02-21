@@ -23,7 +23,7 @@ export default function ListView() {
     error,
     refetch,
   } = useQuery(api.lists.get.queryOptions({ listId: slug }));
-  const archived = useArchiveFilter();
+  const { archived, isLoading: isSettingsLoading } = useArchiveFilter();
 
   return (
     <>
@@ -38,7 +38,7 @@ export default function ListView() {
       />
       {error ? (
         <FullPageError error={error.message} onRetry={() => refetch()} />
-      ) : list ? (
+      ) : list && !isSettingsLoading ? (
         <UpdatingBookmarkList
           query={{
             listId: list.id,

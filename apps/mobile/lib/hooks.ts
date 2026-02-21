@@ -44,8 +44,17 @@ export function useServerVersion() {
  * Hook to determine the appropriate archived filter value based on user settings.
  * Returns `false` to hide archived bookmarks, or `undefined` to show all bookmarks.
  */
-export function useArchiveFilter(): boolean | undefined {
+export function useArchiveFilter(): {
+  archived: false | undefined;
+  isLoading: boolean;
+} {
   const api = useTRPC();
-  const { data: userSettings } = useQuery(api.users.settings.queryOptions());
-  return userSettings?.archiveDisplayBehaviour === "show" ? undefined : false;
+  const { data: userSettings, isLoading } = useQuery(
+    api.users.settings.queryOptions(),
+  );
+  return {
+    archived:
+      userSettings?.archiveDisplayBehaviour === "show" ? undefined : false,
+    isLoading,
+  };
 }
