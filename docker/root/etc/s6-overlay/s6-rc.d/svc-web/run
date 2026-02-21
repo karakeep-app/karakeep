@@ -7,6 +7,6 @@ if [ "${USE_JEMALLOC:-false}" = "true" ]; then
 fi
 
 # Explicitly set HOSTNAME to override s6-overlay default HOSTNAME environment variable.
-export HOSTNAME="${WEB_HOST}"
+export HOSTNAME="${WEB_HOST:-0.0.0.0}"
 
 exec node server.js;
