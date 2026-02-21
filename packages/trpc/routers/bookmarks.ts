@@ -1,5 +1,16 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  inArray,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
@@ -55,6 +66,95 @@ import { authedProcedure, createRateLimitMiddleware, router } from "../index";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
+
+async function fallbackTitleOnlySearch(
+  ctx: AuthedContext,
+  opts: {
+    query: string;
+    filter?: FilterQuery[];
+    limit: number;
+    offset: number;
+    sortOrder: "asc" | "desc" | "relevance";
+  },
+) {
+  const whereConditions = [];
+  const trimmedQuery = opts.query.trim();
+
+  const escapeLikePattern = (input: string) => input.replace(/[\\%_]/g, "\\$&");
+
+  for (const filter of opts.filter ?? []) {
+    if (filter.type === "eq") {
+      if (filter.field === "userId") {
+        whereConditions.push(eq(bookmarks.userId, filter.value));
+      } else if (filter.field === "id") {
+        whereConditions.push(eq(bookmarks.id, filter.value));
+      }
+    } else if (filter.type === "in" && filter.field === "id") {
+      if (!filter.values?.length) {
+        return {
+          hits: [],
+          totalHits: 0,
+          processingTimeMs: 0,
+        };
+      }
+      whereConditions.push(inArray(bookmarks.id, filter.values));
+    }
+  }
+
+  if (trimmedQuery.length > 0) {
+    const escapedQuery = escapeLikePattern(trimmedQuery);
+    whereConditions.push(
+      sql`${bookmarks.title} LIKE ${`%${escapedQuery}%`} ESCAPE '\\'`,
+    );
+  }
+
+  const where = whereConditions.length ? and(...whereConditions) : undefined;
+
+  const scoreExpr =
+    trimmedQuery.length === 0
+      ? sql<number>`0`
+      : sql<number>`
+        CASE
+          WHEN ${bookmarks.title} IS NULL THEN 0
+          WHEN lower(${bookmarks.title}) = lower(${trimmedQuery}) THEN 3
+          WHEN ${bookmarks.title} LIKE ${escapeLikePattern(trimmedQuery) + "%"} ESCAPE '\\' THEN 2
+          WHEN ${bookmarks.title} LIKE ${"%" + escapeLikePattern(trimmedQuery) + "%"} ESCAPE '\\' THEN 1
+          ELSE 0
+        END
+      `;
+
+  const orderBy =
+    opts.sortOrder === "asc"
+      ? [asc(bookmarks.createdAt)]
+      : opts.sortOrder === "desc"
+        ? [desc(bookmarks.createdAt)]
+        : trimmedQuery.length === 0
+          ? [desc(bookmarks.createdAt)]
+          : [desc(scoreExpr), desc(bookmarks.createdAt)];
+
+  const [{ count: totalHits }] = await ctx.db
+    .select({ count: count() })
+    .from(bookmarks)
+    .where(where);
+
+  const rows = await ctx.db
+    .select({
+      id: bookmarks.id,
+      score: scoreExpr.as("score"),
+      createdAt: bookmarks.createdAt,
+    })
+    .from(bookmarks)
+    .where(where)
+    .orderBy(...orderBy)
+    .limit(opts.limit)
+    .offset(opts.offset);
+
+  return {
+    hits: rows.map((r) => ({ id: r.id, score: r.score })),
+    totalHits: totalHits ?? 0,
+    processingTimeMs: 0,
+  };
+}
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -673,12 +773,6 @@ export const bookmarksAppRouter = router({
       }
       const sortOrder = input.sortOrder || "relevance";
       const client = await getSearchClient();
-      if (!client) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Search functionality is not configured",
-        });
-      }
       const parsedQuery = parseSearchQuery(input.text);
 
       let filter: FilterQuery[];
@@ -700,17 +794,37 @@ export const bookmarksAppRouter = router({
        */
       const createdAtSortOrder = sortOrder === "relevance" ? "desc" : sortOrder;
 
-      const resp = await client.search({
-        query: parsedQuery.text,
-        filter,
-        sort: [{ field: "createdAt", order: createdAtSortOrder }],
-        limit: input.limit,
-        ...(input.cursor
-          ? {
-              offset: input.cursor.offset,
-            }
-          : {}),
-      });
+      const offset = input.cursor?.offset ?? 0;
+
+      const resp = await (async () => {
+        if (!client) {
+          return fallbackTitleOnlySearch(ctx, {
+            query: parsedQuery.text,
+            filter,
+            limit: input.limit!,
+            offset,
+            sortOrder,
+          });
+        }
+
+        try {
+          return await client.search({
+            query: parsedQuery.text,
+            filter,
+            sort: [{ field: "createdAt", order: createdAtSortOrder }],
+            limit: input.limit,
+            offset,
+          });
+        } catch {
+          return fallbackTitleOnlySearch(ctx, {
+            query: parsedQuery.text,
+            filter,
+            limit: input.limit!,
+            offset,
+            sortOrder,
+          });
+        }
+      })();
 
       if (resp.hits.length == 0) {
         return { bookmarks: [], nextCursor: null };
