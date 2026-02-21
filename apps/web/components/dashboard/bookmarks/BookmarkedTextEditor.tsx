@@ -27,7 +27,7 @@ export function BookmarkedTextEditor({
             {isNewBookmark ? "New Note" : "Edit Note"}
           </DialogTitle>
         </DialogHeader>
-        <div className="h-[80vh]">
+        <div className="h-[80vh] min-w-[100%]">
           <BookmarkMarkdownComponent readOnly={false}>
             {bookmark as ZBookmarkTypeText}
           </BookmarkMarkdownComponent>

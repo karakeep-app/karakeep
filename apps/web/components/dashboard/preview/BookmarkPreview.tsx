@@ -232,7 +232,7 @@ export default function BookmarkPreview({
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="flex h-full w-full flex-col overflow-hidden lg:hidden"
+        className="mx-2 my-2 flex h-full w-full flex-col overflow-hidden lg:hidden"
       >
         <TabsList className="sticky top-0 z-10 grid h-auto w-full grid-cols-2">
           <TabsTrigger value="content">{t("preview.tabs.content")}</TabsTrigger>
@@ -240,7 +240,7 @@ export default function BookmarkPreview({
         </TabsList>
         <TabsContent
           value="content"
-          className="h-full flex-1 overflow-hidden overflow-y-auto bg-background p-2 data-[state=inactive]:hidden"
+          className="h-full w-full flex-1 overflow-hidden overflow-y-auto bg-background p-2 data-[state=inactive]:hidden"
         >
           {contentSection}
         </TabsContent>

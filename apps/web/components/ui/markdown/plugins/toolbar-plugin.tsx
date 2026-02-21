@@ -242,7 +242,7 @@ export default function ToolbarPlugin({
   }, [editor, isRawMarkdownMode]);
 
   return (
-    <div className="mb-1 flex items-center justify-between rounded-t-lg p-1">
+    <div className="mb-1 flex min-w-full flex-wrap items-center justify-between rounded-t-lg p-1">
       <div className="flex">
         {formatButtons.map(
           ({ command, format, icon: Icon, isActive, label }) => (
@@ -261,7 +261,7 @@ export default function ToolbarPlugin({
           ),
         )}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-full items-center justify-between gap-4 sm:min-w-fit sm:justify-normal">
         <div className="flex items-center space-x-2">
           <Switch
             id="editor-raw-markdown"
@@ -270,20 +270,22 @@ export default function ToolbarPlugin({
           />
           <Label htmlFor="editor-raw-markdown">Raw Markdown</Label>
         </div>
-        {onSave && (
-          <ActionButton
-            loading={isSaving}
-            className="flex items-center gap-2"
-            size={"sm"}
-            onClick={() => {
-              onSave?.();
-            }}
-          >
-            <Save className="size-4" />
-            Save
-          </ActionButton>
-        )}
-        <MarkdownToolTip />
+        <div className="flex items-center gap-2">
+          {onSave && (
+            <ActionButton
+              loading={isSaving}
+              className="flex items-center gap-2"
+              size={"sm"}
+              onClick={() => {
+                onSave?.();
+              }}
+            >
+              <Save className="size-4" />
+              Save
+            </ActionButton>
+          )}
+          <MarkdownToolTip />
+        </div>
       </div>
     </div>
   );
