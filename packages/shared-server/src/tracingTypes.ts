@@ -29,6 +29,9 @@ export type TracingAttributeKey =
   | "crawler.getContentType.statusCode"
   | "crawler.contentType"
   | "crawler.statusCode"
+  | "crawler.cleanup.hasPage"
+  | "crawler.cleanup.pageClosed"
+  | "crawler.cleanup.contextClosed"
   // Database attributes
   | "db.system"
   | "db.statement"
