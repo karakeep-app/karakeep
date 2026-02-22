@@ -66,13 +66,13 @@ export function buildDispatcherService<T, R>(
           groupId?: string;
         },
       ) => {
-        const id = ctx.rand.uuidv4();
+        const id = ctx.request().id;
         const priority = data.priority ?? 0;
         const logDebug = async (message: string) => {
           await ctx.run(
             "log",
             async () => {
-              logger.debug(message);
+              logger.debug(`[${queue.name()}][${id}] ${message}`);
             },
             {
               maxRetryAttempts: 1,
@@ -124,15 +124,34 @@ export function buildDispatcherService<T, R>(
 
           // Handle RPC-level errors (e.g., runner service unavailable)
           if (res.error) {
+            const errorMessage =
+              res.error instanceof Error
+                ? res.error.message
+                : String(res.error);
             await logDebug(
-              `Dispatcher RPC error for queue ${queue.name()} job ${id}: ${res.error instanceof Error ? res.error.message : String(res.error)}`,
+              `Dispatcher RPC error for queue ${queue.name()} job ${id}: ${errorMessage}`,
             );
             await semaphore.release(leaseId);
             if (res.error instanceof restate.CancelledError) {
               throw res.error;
             }
-            // Retry with backoff
-            await ctx.sleep(1000, "rpc error retry");
+            // Notify the runner of the RPC error
+            await tryCatch(
+              runner.onError({
+                job: jobData,
+                error: {
+                  name:
+                    res.error instanceof Error ? res.error.name : "RPCError",
+                  message: errorMessage,
+                  stack:
+                    res.error instanceof Error ? res.error.stack : undefined,
+                },
+              }),
+            );
+            // Retry with exponential backoff + full jitter
+            const baseMs = Math.min(5000 * 2 ** runNumber, 60000);
+            const delayMs = Math.floor(ctx.rand.random() * baseMs);
+            await ctx.sleep(delayMs, "rpc error retry");
             runNumber++;
             continue;
           }

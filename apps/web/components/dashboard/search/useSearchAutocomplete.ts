@@ -510,7 +510,7 @@ export const useSearchAutocomplete = ({
   const feedSuggestions = useFeedSuggestions(parsedState);
   const sourceSuggestions = useSourceSuggestions(parsedState);
   const historyItems = useHistorySuggestions(value, history);
-  const { activeToken, getActiveToken } = parsedState;
+  const { getActiveToken } = parsedState;
 
   const suggestionGroups = useMemo<SuggestionGroup[]>(() => {
     const groups: SuggestionGroup[] = [];
@@ -576,9 +576,7 @@ export const useSearchAutocomplete = ({
   ]);
 
   const hasSuggestions = suggestionGroups.length > 0;
-  const showEmptyState =
-    isPopoverOpen && !hasSuggestions && activeToken.length > 0;
-  const isPopoverVisible = isPopoverOpen && (hasSuggestions || showEmptyState);
+  const isPopoverVisible = isPopoverOpen && hasSuggestions;
 
   const handleSuggestionSelect = useCallback(
     (item: AutocompleteSuggestionItem) => {
@@ -640,7 +638,6 @@ export const useSearchAutocomplete = ({
   return {
     suggestionGroups,
     hasSuggestions,
-    showEmptyState,
     isPopoverVisible,
     handleSuggestionSelect,
     handleCommandKeyDown,

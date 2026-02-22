@@ -149,7 +149,7 @@ export default function LinkContentSection({
     content = (
       <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-4">
         <ReaderView
-          className="prose prose-neutral mx-auto max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
+          className="mx-auto"
           style={{
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
             fontSize: `${settings.fontSize}px`,
@@ -285,7 +285,7 @@ export default function LinkContentSection({
           </Tooltip>
         )}
       </div>
-      <div className="h-full w-full min-w-0 flex-1">{content}</div>
+      <div className="min-h-0 w-full min-w-0 flex-1">{content}</div>
     </div>
   );
 }

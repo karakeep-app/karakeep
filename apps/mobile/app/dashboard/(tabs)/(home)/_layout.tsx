@@ -1,15 +1,20 @@
+import { Platform } from "react-native";
 import { Stack } from "expo-router/stack";
 
 export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerLargeTitle: true,
-        headerTransparent: true,
-        headerBlurEffect: "systemMaterial",
+        ...Platform.select({
+          ios: {
+            headerLargeTitle: true,
+            headerTransparent: true,
+            headerBlurEffect: "systemMaterial",
+            headerLargeTitleShadowVisible: false,
+            headerLargeStyle: { backgroundColor: "transparent" },
+          },
+        }),
         headerShadowVisible: false,
-        headerLargeTitleShadowVisible: false,
-        headerLargeStyle: { backgroundColor: "transparent" },
       }}
     >
       <Stack.Screen name="index" options={{ title: "Home" }} />

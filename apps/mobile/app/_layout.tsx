@@ -56,7 +56,9 @@ export default function RootLayout() {
             )}
             screenOptions={{
               headerTitle: "",
-              headerTransparent: true,
+              ...Platform.select({
+                ios: { headerTransparent: true },
+              }),
             }}
           >
             <Stack.Screen name="index" />

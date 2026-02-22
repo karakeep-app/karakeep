@@ -4,26 +4,31 @@ import { useTranslation } from "@/lib/i18n/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 
+import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
+import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
 import {
   useCreateHighlight,
   useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
+import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import BookmarkHTMLHighlighter from "./BookmarkHtmlHighlighter";
+import ReadingProgressBanner from "./ReadingProgressBanner";
 
 export default function ReaderView({
   bookmarkId,
   className,
   style,
   readOnly,
+  progressBarStyle,
 }: {
   bookmarkId: string;
   className?: string;
   style?: React.CSSProperties;
   readOnly: boolean;
+  progressBarStyle?: React.CSSProperties;
 }) {
   const { t } = useTranslation();
   const api = useTRPC();
@@ -46,6 +51,20 @@ export default function ReaderView({
       },
     ),
   );
+
+  const {
+    showBanner,
+    bannerPercent,
+    onContinue,
+    onDismiss,
+    restorePosition,
+    readingProgressOffset,
+    readingProgressAnchor,
+    onSavePosition,
+    onScrollPositionChange,
+  } = useReadingProgress({
+    bookmarkId,
+  });
 
   const { mutate: createHighlight } = useCreateHighlight({
     onSuccess: () => {
@@ -114,35 +133,52 @@ export default function ReaderView({
     );
   } else {
     content = (
-      <BookmarkHTMLHighlighter
-        className={className}
-        style={style}
-        htmlContent={cachedContent || ""}
-        highlights={highlights?.highlights ?? []}
-        readOnly={readOnly}
-        onDeleteHighlight={(h) =>
-          deleteHighlight({
-            highlightId: h.id,
-          })
-        }
-        onUpdateHighlight={(h) =>
-          updateHighlight({
-            highlightId: h.id,
-            color: h.color,
-            note: h.note,
-          })
-        }
-        onHighlight={(h) =>
-          createHighlight({
-            startOffset: h.startOffset,
-            endOffset: h.endOffset,
-            color: h.color,
-            bookmarkId,
-            text: h.text,
-            note: h.note ?? null,
-          })
-        }
-      />
+      <ScrollProgressTracker
+        onSavePosition={onSavePosition}
+        onScrollPositionChange={onScrollPositionChange}
+        restorePosition={restorePosition}
+        readingProgressOffset={readingProgressOffset}
+        readingProgressAnchor={readingProgressAnchor}
+        showProgressBar
+        progressBarStyle={progressBarStyle}
+      >
+        {showBanner && (
+          <ReadingProgressBanner
+            percent={bannerPercent}
+            onContinue={onContinue}
+            onDismiss={onDismiss}
+          />
+        )}
+        <BookmarkHTMLHighlighter
+          className={className}
+          style={style}
+          htmlContent={cachedContent || ""}
+          highlights={highlights?.highlights ?? []}
+          readOnly={readOnly}
+          onDeleteHighlight={(h) =>
+            deleteHighlight({
+              highlightId: h.id,
+            })
+          }
+          onUpdateHighlight={(h) =>
+            updateHighlight({
+              highlightId: h.id,
+              color: h.color,
+              note: h.note,
+            })
+          }
+          onHighlight={(h) =>
+            createHighlight({
+              startOffset: h.startOffset,
+              endOffset: h.endOffset,
+              color: h.color,
+              bookmarkId,
+              text: h.text,
+              note: h.note ?? null,
+            })
+          }
+        />
+      </ScrollProgressTracker>
     );
   }
   return content;

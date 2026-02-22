@@ -1,6 +1,6 @@
 services:
   restate:
-    image: docker.restate.dev/restatedev/restate:1.5
+    image: docker.restate.dev/restatedev/restate:1.6.1
     ports:
       - "${RESTATE_INGRESS_PORT:-8080}:8080"
       - "${RESTATE_ADMIN_PORT:-9070}:9070"

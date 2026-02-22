@@ -836,6 +836,9 @@
     "fetch_error_title": "Content Unavailable",
     "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
     "crawling_in_progress": "Fetching page content…",
+    "continue_reading": "Continue where you left off",
+    "continue_reading_percent": "Continue where you left off ({{percent}}%)",
+    "continue_button": "Continue",
     "tabs": {
       "content": "Content",
       "details": "Details"

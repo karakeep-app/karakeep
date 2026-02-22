@@ -1076,4 +1076,308 @@ describe("Bookmark Routes", () => {
       );
     });
   });
+
+  describe("Reading Progress", () => {
+    test<CustomTestContext>("saves and retrieves reading progress", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      // Create a link bookmark
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Save reading progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 1500,
+        readingProgressAnchor: "This is the anchor text for verification",
+      });
+
+      // Retrieve and verify progress via getReadingProgress
+      const progress = await api.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(progress.readingProgressOffset).toBe(1500);
+      expect(progress.readingProgressAnchor).toBe(
+        "This is the anchor text for verification",
+      );
+    });
+
+    test<CustomTestContext>("updates existing progress (upsert behavior)", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Save initial progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 500,
+        readingProgressAnchor: "First anchor",
+      });
+
+      // Update progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 2000,
+        readingProgressAnchor: "Updated anchor",
+      });
+
+      // Verify updated values
+      const progress = await api.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(progress.readingProgressOffset).toBe(2000);
+      expect(progress.readingProgressAnchor).toBe("Updated anchor");
+    });
+
+    test<CustomTestContext>("two users have independent progress on same bookmark", async ({
+      apiCallers,
+    }) => {
+      const api1 = apiCallers[0].bookmarks;
+      const api2 = apiCallers[1].bookmarks;
+
+      // User 1 creates a bookmark
+      const bookmark = await api1.createBookmark({
+        url: "https://example.com/shared-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // User 1 saves progress at position 1000
+      await api1.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 1000,
+        readingProgressAnchor: "User 1 anchor",
+      });
+
+      // User 2 creates the same bookmark (different bookmark ID, same URL)
+      const bookmark2 = await api2.createBookmark({
+        url: "https://example.com/shared-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // User 2 saves progress at position 3000
+      await api2.updateReadingProgress({
+        bookmarkId: bookmark2.id,
+        readingProgressOffset: 3000,
+        readingProgressAnchor: "User 2 anchor",
+      });
+
+      // Verify each user sees their own progress
+      const progress1 = await api1.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      const progress2 = await api2.getReadingProgress({
+        bookmarkId: bookmark2.id,
+      });
+
+      expect(progress1.readingProgressOffset).toBe(1000);
+      expect(progress1.readingProgressAnchor).toBe("User 1 anchor");
+
+      expect(progress2.readingProgressOffset).toBe(3000);
+      expect(progress2.readingProgressAnchor).toBe("User 2 anchor");
+    });
+
+    test<CustomTestContext>("rejects reading progress on TEXT bookmark", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      const bookmark = await api.createBookmark({
+        text: "Some text content",
+        type: BookmarkTypes.TEXT,
+      });
+
+      await expect(() =>
+        api.updateReadingProgress({
+          bookmarkId: bookmark.id,
+          readingProgressOffset: 100,
+        }),
+      ).rejects.toThrow(
+        /Reading progress can only be saved for link bookmarks/,
+      );
+    });
+
+    test<CustomTestContext>("reading progress is deleted when bookmark is deleted", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/to-delete",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Save reading progress
+      await api.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 500,
+        readingProgressAnchor: "Will be deleted",
+      });
+
+      // Verify progress exists
+      const progress = await api.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(progress.readingProgressOffset).toBe(500);
+
+      // Delete the bookmark
+      await api.deleteBookmark({ bookmarkId: bookmark.id });
+
+      // Verify bookmark is gone (and implicitly, the progress cascade deleted)
+      await expect(() =>
+        api.getBookmark({ bookmarkId: bookmark.id }),
+      ).rejects.toThrow(/Bookmark not found/);
+    });
+
+    test<CustomTestContext>("collaborator can save reading progress on shared bookmark", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      // Owner creates a link bookmark
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        url: "https://example.com/shared-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Owner creates a list and adds the bookmark
+      const list = await ownerApi.lists.create({
+        name: "Shared Reading List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Share the list with collaborator
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorUser.email!,
+        role: "viewer",
+      });
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+
+      // Collaborator saves their own reading progress on the shared bookmark
+      await collaboratorApi.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 2500,
+        readingProgressAnchor: "Collaborator's position",
+      });
+
+      // Collaborator retrieves their progress
+      const collaboratorProgress =
+        await collaboratorApi.bookmarks.getReadingProgress({
+          bookmarkId: bookmark.id,
+        });
+      expect(collaboratorProgress.readingProgressOffset).toBe(2500);
+      expect(collaboratorProgress.readingProgressAnchor).toBe(
+        "Collaborator's position",
+      );
+
+      // Owner's progress should be independent (null since owner hasn't set any)
+      const ownerProgress = await ownerApi.bookmarks.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      expect(ownerProgress.readingProgressOffset).toBeNull();
+    });
+
+    test<CustomTestContext>("user without shared access cannot save reading progress", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const unauthorizedApi = apiCallers[1];
+
+      // Owner creates a bookmark (not shared with anyone)
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        url: "https://example.com/private-article",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Unauthorized user tries to save reading progress
+      await expect(() =>
+        unauthorizedApi.bookmarks.updateReadingProgress({
+          bookmarkId: bookmark.id,
+          readingProgressOffset: 1000,
+        }),
+      ).rejects.toThrow(/Bookmark not found/);
+    });
+
+    test<CustomTestContext>("owner and collaborator have independent reading progress on same bookmark", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      // Owner creates a link bookmark
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        url: "https://example.com/shared-reading",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Owner creates a list and adds the bookmark
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+
+      // Share with collaborator
+      const collaboratorUser = await collaboratorApi.users.whoami();
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaboratorUser.email!,
+        role: "viewer",
+      });
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+
+      // Owner saves progress at position 1000
+      await ownerApi.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 1000,
+        readingProgressAnchor: "Owner position",
+      });
+
+      // Collaborator saves progress at position 5000
+      await collaboratorApi.bookmarks.updateReadingProgress({
+        bookmarkId: bookmark.id,
+        readingProgressOffset: 5000,
+        readingProgressAnchor: "Collaborator position",
+      });
+
+      // Verify each user sees their own progress
+      const ownerProgress = await ownerApi.bookmarks.getReadingProgress({
+        bookmarkId: bookmark.id,
+      });
+      const collaboratorProgress =
+        await collaboratorApi.bookmarks.getReadingProgress({
+          bookmarkId: bookmark.id,
+        });
+
+      expect(ownerProgress.readingProgressOffset).toBe(1000);
+      expect(ownerProgress.readingProgressAnchor).toBe("Owner position");
+
+      expect(collaboratorProgress.readingProgressOffset).toBe(5000);
+      expect(collaboratorProgress.readingProgressAnchor).toBe(
+        "Collaborator position",
+      );
+    });
+  });
 });

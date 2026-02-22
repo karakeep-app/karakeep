@@ -1,8 +1,6 @@
-import { View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useQuery } from "@tanstack/react-query";
 
@@ -22,28 +20,24 @@ export default function TagView() {
   } = useQuery(api.tags.get.queryOptions({ tagId: slug }));
 
   return (
-    <CustomSafeAreaView>
+    <>
       <Stack.Screen
         options={{
           headerTitle: tag?.name ?? "",
           headerBackTitle: "Back",
-          headerTransparent: true,
-          headerLargeTitle: true,
         }}
       />
       {error ? (
         <FullPageError error={error.message} onRetry={() => refetch()} />
       ) : tag ? (
-        <View>
-          <UpdatingBookmarkList
-            query={{
-              tagId: tag.id,
-            }}
-          />
-        </View>
+        <UpdatingBookmarkList
+          query={{
+            tagId: tag.id,
+          }}
+        />
       ) : (
         <FullPageSpinner />
       )}
-    </CustomSafeAreaView>
+    </>
   );
 }

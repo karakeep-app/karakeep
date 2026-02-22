@@ -1,9 +1,8 @@
-import { Alert, Platform, View } from "react-native";
+import { Alert, Platform } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { MenuView } from "@react-native-menu/menu";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -25,12 +24,11 @@ export default function ListView() {
   } = useQuery(api.lists.get.queryOptions({ listId: slug }));
 
   return (
-    <CustomSafeAreaView>
+    <>
       <Stack.Screen
         options={{
           headerTitle: list ? `${list.icon} ${list.name}` : "",
           headerBackTitle: "Back",
-          headerLargeTitle: true,
           headerRight: () => (
             <ListActionsMenu listId={slug} role={list?.userRole ?? "viewer"} />
           ),
@@ -39,17 +37,15 @@ export default function ListView() {
       {error ? (
         <FullPageError error={error.message} onRetry={() => refetch()} />
       ) : list ? (
-        <View>
-          <UpdatingBookmarkList
-            query={{
-              listId: list.id,
-            }}
-          />
-        </View>
+        <UpdatingBookmarkList
+          query={{
+            listId: list.id,
+          }}
+        />
       ) : (
         <FullPageSpinner />
       )}
-    </CustomSafeAreaView>
+    </>
   );
 }
 
