@@ -213,41 +213,54 @@ function startContextReaper() {
   const maxContextAgeMs =
     (serverConfig.crawler.jobTimeoutSec + 30) * 1000 +
     60_000 * 5; /* 5 minutes buffer */
-  setInterval(() => {
-    const now = Date.now();
-    for (const [id, entry] of activeContexts) {
-      if (now - entry.createdAt > maxContextAgeMs) {
-        logger.warn(
-          `[Crawler] Reaping stale browser context for job ${id} (age: ${Math.round((now - entry.createdAt) / 1000)}s)`,
-        );
-        void Promise.race([
-          entry.context
-            .close()
-            .then(() => true)
-            .catch((e: unknown) => {
+  const intervalId = setInterval(() => {
+    try {
+      const now = Date.now();
+      for (const [id, entry] of activeContexts) {
+        if (now - entry.createdAt > maxContextAgeMs) {
+          logger.warn(
+            `[Crawler] Reaping stale browser context for job ${id} (age: ${Math.round((now - entry.createdAt) / 1000)}s)`,
+          );
+          void Promise.race([
+            entry.context
+              .close()
+              .then(() => true)
+              .catch((e: unknown) => {
+                logger.warn(
+                  `[Crawler] Failed to close stale context for job ${id}: ${e}`,
+                );
+                return true;
+              }),
+            new Promise<false>((r) =>
+              setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
+            ),
+          ]).then((contextClosed) => {
+            // Protect against deleting a newer context if the job id gets reused.
+            if (!contextClosed) {
               logger.warn(
-                `[Crawler] Failed to close stale context for job ${id}: ${e}`,
+                `[Crawler] Timed out closing stale context for job ${id} — keeping in active set for retry`,
               );
-              return true;
-            }),
-          new Promise<false>((r) =>
-            setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
-          ),
-        ]).then((contextClosed) => {
-          // Protect against deleting a newer context if the job id gets reused.
-          if (!contextClosed) {
-            logger.warn(
-              `[Crawler] Timed out closing stale context for job ${id} — keeping in active set for retry`,
-            );
-            return;
-          }
-          if (activeContexts.get(id) === entry) {
-            activeContexts.delete(id);
-          }
-        });
+              return;
+            }
+            if (activeContexts.get(id) === entry) {
+              activeContexts.delete(id);
+            }
+          });
+        }
       }
+    } catch (e) {
+      logger.error(
+        `[Crawler] caught an unexpected error while reaping stale browser contexts: ${e}`,
+      );
     }
   }, 60_000 * 5);
+  exitAbortController.signal.addEventListener(
+    "abort",
+    () => clearInterval(intervalId),
+    {
+      once: true,
+    },
+  );
 }
 
 async function startBrowserInstance() {
@@ -967,9 +980,7 @@ async function crawlPage(
               "crawler.cleanup.contextClosed": contextClosed,
             });
 
-            if (contextClosed || serverConfig.crawler.browserConnectOnDemand) {
-              // Always remove for on-demand browsers since the browser itself
-              // is about to be torn down — there's nothing for the reaper to close.
+            if (contextClosed) {
               activeContexts.delete(jobId);
             } else {
               logger.warn(
@@ -984,11 +995,16 @@ async function crawlPage(
                 "crawlerWorker.crawlPage.cleanup.closeBrowser",
                 { attributes: { "job.id": jobId } },
                 async () =>
-                  browser.close().catch((e: unknown) => {
-                    logger.warn(
-                      `[Crawler][${jobId}] browser.close() failed: ${e}`,
-                    );
-                  }),
+                  browser
+                    .close()
+                    .then(() => {
+                      activeContexts.delete(jobId);
+                    })
+                    .catch((e: unknown) => {
+                      logger.warn(
+                        `[Crawler][${jobId}] browser.close() failed: ${e}`,
+                      );
+                    }),
               );
             }
           },
