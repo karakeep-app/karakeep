@@ -5,9 +5,7 @@ import * as ImagePicker from "expo-image-picker";
 import { router, Stack } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import { TailwindResolver } from "@/components/TailwindResolver";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
-import { useArchiveFilter } from "@/lib/hooks";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { MenuView } from "@react-native-menu/menu";
@@ -89,8 +87,6 @@ function HeaderRight({
 }
 
 export default function Home() {
-  const { archived, isLoading } = useArchiveFilter();
-
   return (
     <>
       <Stack.Screen
@@ -104,27 +100,23 @@ export default function Home() {
           ),
         }}
       />
-      {isLoading ? (
-        <FullPageSpinner />
-      ) : (
-        <UpdatingBookmarkList
-          query={{ archived }}
-          header={
-            <Pressable
-              className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
-              onPress={() => router.push("/dashboard/search")}
-            >
-              <TailwindResolver
-                className="text-muted"
-                comp={(styles) => (
-                  <Search size={16} color={styles?.color?.toString()} />
-                )}
-              />
-              <Text className="text-muted">Search</Text>
-            </Pressable>
-          }
-        />
-      )}
+      <UpdatingBookmarkList
+        query={{ archived: false }}
+        header={
+          <Pressable
+            className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
+            onPress={() => router.push("/dashboard/search")}
+          >
+            <TailwindResolver
+              className="text-muted"
+              comp={(styles) => (
+                <Search size={16} color={styles?.color?.toString()} />
+              )}
+            />
+            <Text className="text-muted">Search</Text>
+          </Pressable>
+        }
+      />
     </>
   );
 }
