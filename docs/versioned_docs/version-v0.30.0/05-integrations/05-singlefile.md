@@ -11,7 +11,7 @@ Karakeep supports being a destination for the [SingleFile extension](https://git
 5. In the `authorization token` field, paste an API key that you can get from your karakeep settings.
 6. Set `data field name` to `file`.
 7. Set `URL field name` to `url`.
-8. (Optional) Add `?ifexists=MODE` to the URL where MODE is one of `skip`, `overwrite`, `overwrite-recrawl`, `append`, or `append-recrawl`. See "Handling Existing Bookmarks" section below for details.
+8. (Optional) Add `&ifexists=MODE` to the URL where MODE is one of `skip`, `overwrite`, `overwrite-recrawl`, `append`, or `append-recrawl`. See "Handling Existing Bookmarks" section below for details.
 
 Now, go to any page and click the singlefile extension icon. Once it's done with the upload, the bookmark should show up in your karakeep instance. Note that the singlefile extension doesn't show any progress on the upload. Given that archives are typically large, it might take 30+ seconds until the upload is done and starts showing up in Karakeep.
 
