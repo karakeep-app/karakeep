@@ -127,11 +127,7 @@ export default function RuleList({
                     </ActionButton>
                   )}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-600"
-                  >
+                  <Button variant="ghostDestructive" size="icon">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </ActionConfirmingDialog>

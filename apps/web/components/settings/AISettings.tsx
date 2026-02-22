@@ -5,13 +5,6 @@ import { TagsEditor } from "@/components/dashboard/bookmarks/TagsEditor";
 import { ActionButton } from "@/components/ui/action-button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Field,
   FieldContent,
   FieldDescription,
@@ -66,26 +59,7 @@ import {
 } from "@karakeep/shared/types/prompts";
 import { zUpdateUserSettingsSchema } from "@karakeep/shared/types/users";
 
-function SettingsSection({
-  title,
-  description,
-  children,
-}: {
-  title?: string;
-  description?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        {title && <CardTitle>{title}</CardTitle>}
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  );
-}
+import { SettingsPage, SettingsSection } from "./SettingsPage";
 
 export function AIPreferences() {
   const { t } = useTranslation();
@@ -839,25 +813,12 @@ export function PromptDemo() {
 export default function AISettings() {
   const { t } = useTranslation();
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight">
-        {t("settings.ai.ai_settings")}
-      </h2>
-
-      {/* AI Preferences */}
+    <SettingsPage title={t("settings.ai.ai_settings")}>
       <AIPreferences />
-
-      {/* Tag Style */}
       <TagStyleSelector />
-
-      {/* Curated Tags */}
       <CuratedTagsSelector />
-
-      {/* Tagging Rules */}
       <TaggingRules />
-
-      {/* Prompt Preview */}
       <PromptDemo />
-    </div>
+    </SettingsPage>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { SettingsPage } from "@/components/settings/SettingsPage";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -185,16 +186,10 @@ export default function StatsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {t("settings.stats.usage_statistics")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("settings.stats.insights_description")}
-          </p>
-        </div>
-
+      <SettingsPage
+        title={t("settings.stats.usage_statistics")}
+        description={t("settings.stats.insights_description")}
+      >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Card key={i}>
@@ -208,7 +203,7 @@ export default function StatsPage() {
             </Card>
           ))}
         </div>
-      </div>
+      </SettingsPage>
     );
   }
 
@@ -223,22 +218,10 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {t("settings.stats.usage_statistics")}
-          </h1>
-          <p className="text-muted-foreground">
-            Insights into your bookmarking habits and collection
-            {userSettings?.timezone && userSettings.timezone !== "UTC" && (
-              <span className="block text-sm">
-                Times shown in {userSettings.timezone} timezone
-              </span>
-            )}
-          </p>
-        </div>
-      </div>
+    <SettingsPage
+      title={t("settings.stats.usage_statistics")}
+      description="Insights into your bookmarking habits and collection"
+    >
       {/* Overview Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -620,6 +603,6 @@ export default function StatsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </SettingsPage>
   );
 }

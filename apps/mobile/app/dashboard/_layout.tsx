@@ -80,7 +80,10 @@ export default function Dashboard() {
           headerBackTitle: "Back",
           headerTransparent: false,
           headerLargeTitle: false,
-          presentation: "formSheet",
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
           sheetGrabberVisible: true,
           sheetAllowedDetents: [0.35, 0.7],
         }}
@@ -91,7 +94,10 @@ export default function Dashboard() {
           headerTitle: "Manage Tags",
           headerTransparent: false,
           headerLargeTitle: false,
-          presentation: "formSheet",
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
           sheetGrabberVisible: true,
         }}
       />
@@ -101,17 +107,23 @@ export default function Dashboard() {
           headerTitle: "Manage Lists",
           headerTransparent: false,
           headerLargeTitle: false,
-          presentation: "formSheet",
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
           sheetGrabberVisible: true,
         }}
       />
       <Stack.Screen
         name="bookmarks/[slug]/info"
         options={{
-          headerTitle: "Info",
+          headerTitle: "Edit Bookmark",
           headerTransparent: false,
           headerLargeTitle: false,
-          presentation: "formSheet",
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
           sheetGrabberVisible: true,
         }}
       />

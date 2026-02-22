@@ -300,7 +300,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   )}
                 >
                   <Button
-                    variant="destructive"
+                    variant="destructiveOutline"
                     size="sm"
                     disabled={deleteSession.isPending}
                   >

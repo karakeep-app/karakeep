@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
 import { ActionButton } from "@/components/ui/action-button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
@@ -64,16 +68,11 @@ export default function BrokenLinksPage() {
     });
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex items-center justify-between">
-        <div className="mb-2 text-lg font-medium">
-          {t("settings.broken_links.broken_links")}
-        </div>
-      </div>
-      <div className="mt-2">
+    <SettingsPage title={t("settings.broken_links.broken_links")}>
+      <SettingsSection>
         {isPending && <FullPageSpinner />}
         {!isPending && data && data.bookmarks.length == 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             No broken links found
           </p>
         )}
@@ -116,13 +115,12 @@ export default function BrokenLinksPage() {
                       {t("actions.recrawl")}
                     </ActionButton>
                     <ActionButton
-                      variant="destructive"
+                      variant="ghostDestructive"
                       onClick={() => deleteBookmark({ bookmarkId: b.id })}
                       loading={isDeleting}
                       className="flex items-center gap-2"
                     >
                       <Trash2 className="size-4" />
-                      {t("actions.delete")}
                     </ActionButton>
                   </TableCell>
                 </TableRow>
@@ -131,7 +129,7 @@ export default function BrokenLinksPage() {
             </TableBody>
           </Table>
         )}
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

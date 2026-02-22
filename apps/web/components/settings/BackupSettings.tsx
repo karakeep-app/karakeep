@@ -55,6 +55,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { SettingsSection } from "./SettingsPage";
 
 function BackupConfigurationForm() {
   const { t } = useTranslation();
@@ -87,10 +88,7 @@ function BackupConfigurationForm() {
   });
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <h3 className="mb-4 text-lg font-medium">
-        {t("settings.backups.configuration.title")}
-      </h3>
+    <SettingsSection title={t("settings.backups.configuration.title")}>
       <Form {...form}>
         <form
           className="space-y-4"
@@ -203,7 +201,7 @@ function BackupConfigurationForm() {
           </ActionButton>
         </form>
       </Form>
-    </div>
+    </SettingsSection>
   );
 }
 
@@ -323,7 +321,7 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
             </ActionButton>
           )}
         >
-          <Button variant="ghost" disabled={isDeleting}>
+          <Button variant="ghostDestructive" disabled={isDeleting}>
             <Trash2 className="size-4" />
           </Button>
         </ActionConfirmingDialog>
@@ -366,65 +364,59 @@ function BackupsList() {
   );
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-medium">
-            {t("settings.backups.list.title")}
-          </span>
-          <ActionButton
-            onClick={() => triggerBackup()}
-            loading={isTriggering}
-            variant="default"
-            className="items-center"
-          >
-            <Play className="mr-2 size-4" />
-            {t("settings.backups.list.create_backup_now")}
-          </ActionButton>
-        </div>
+    <SettingsSection
+      title={t("settings.backups.list.title")}
+      action={
+        <ActionButton
+          onClick={() => triggerBackup()}
+          loading={isTriggering}
+          variant="default"
+          className="items-center"
+        >
+          <Play className="mr-2 size-4" />
+          {t("settings.backups.list.create_backup_now")}
+        </ActionButton>
+      }
+    >
+      {isLoading && <FullPageSpinner />}
 
-        {isLoading && <FullPageSpinner />}
+      {backups && backups.backups.length === 0 && (
+        <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
+          {t("settings.backups.list.no_backups")}
+        </p>
+      )}
 
-        {backups && backups.backups.length === 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-            {t("settings.backups.list.no_backups")}
-          </p>
-        )}
-
-        {backups && backups.backups.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>
-                  {t("settings.backups.list.table.created_at")}
-                </TableHead>
-                <TableHead>
-                  {t("settings.backups.list.table.bookmarks")}
-                </TableHead>
-                <TableHead>{t("settings.backups.list.table.size")}</TableHead>
-                <TableHead>{t("settings.backups.list.table.status")}</TableHead>
-                <TableHead>
-                  {t("settings.backups.list.table.actions")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {backups.backups.map((backup) => (
-                <BackupRow key={backup.id} backup={backup} />
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-    </div>
+      {backups && backups.backups.length > 0 && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                {t("settings.backups.list.table.created_at")}
+              </TableHead>
+              <TableHead>
+                {t("settings.backups.list.table.bookmarks")}
+              </TableHead>
+              <TableHead>{t("settings.backups.list.table.size")}</TableHead>
+              <TableHead>{t("settings.backups.list.table.status")}</TableHead>
+              <TableHead>{t("settings.backups.list.table.actions")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {backups.backups.map((backup) => (
+              <BackupRow key={backup.id} backup={backup} />
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </SettingsSection>
   );
 }
 
 export default function BackupSettings() {
   return (
-    <div className="space-y-6">
+    <>
       <BackupConfigurationForm />
       <BackupsList />
-    </div>
+    </>
   );
 }

@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
@@ -69,13 +73,10 @@ export default function AssetsSettingsPage() {
   }
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="mb-2 text-lg font-medium">
-          {t("settings.manage_assets.manage_assets")}
-        </div>
+    <SettingsPage title={t("settings.manage_assets.manage_assets")}>
+      <SettingsSection>
         {assets.length === 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             {t("settings.manage_assets.no_assets")}
           </p>
         )}
@@ -182,7 +183,7 @@ export default function AssetsSettingsPage() {
             </ActionButton>
           </div>
         )}
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

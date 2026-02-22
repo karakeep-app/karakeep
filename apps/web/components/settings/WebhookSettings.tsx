@@ -54,6 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { SettingsPage, SettingsSection } from "./SettingsPage";
 import { WebhookEventSelector } from "./WebhookEventSelector";
 
 export function WebhooksEditorDialog() {
@@ -494,20 +495,15 @@ export default function WebhookSettings() {
     api.webhooks.list.queryOptions(),
   );
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-lg font-medium">
-            {t("settings.webhooks.webhooks")}
-          </span>
-          <WebhooksEditorDialog />
-        </div>
-        <p className="text-sm italic text-muted-foreground">
-          {t("settings.webhooks.description")}
-        </p>
+    <SettingsPage
+      title={t("settings.webhooks.webhooks")}
+      description={t("settings.webhooks.description")}
+      action={<WebhooksEditorDialog />}
+    >
+      <SettingsSection>
         {isLoading && <FullPageSpinner />}
         {webhooks && webhooks.webhooks.length == 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             You don&apos;t have any webhooks configured yet.
           </p>
         )}
@@ -528,7 +524,7 @@ export default function WebhookSettings() {
             </TableBody>
           </Table>
         )}
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }
