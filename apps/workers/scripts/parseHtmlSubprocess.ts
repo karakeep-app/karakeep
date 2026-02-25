@@ -22,6 +22,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
+import metascraperBilibili from "../metascraper-plugins/metascraper-bilibili";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import {
   parseSubprocessErrorSchema,
@@ -52,6 +53,7 @@ const metascraperParser = metascraper([
       },
     },
   }),
+  metascraperBilibili(),
   metascraperReddit(),
   metascraperAuthor(),
   metascraperPublisher(),
