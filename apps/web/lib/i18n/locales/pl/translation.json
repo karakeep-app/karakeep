@@ -41,7 +41,9 @@
     "bookmarks": "Zakładki",
     "storage": "Miejsce na dane",
     "pdf": "Zarchiwizowane PDF",
-    "default": "Domyślne"
+    "default": "Domyślne",
+    "id": "ID",
+    "last_used": "Ostatnio używane"
   },
   "actions": {
     "remove_from_list": "Usuń z listy",
@@ -88,7 +90,15 @@
     "load_more": "Załaduj więcej",
     "edit_notes": "Edytuj notatki",
     "preserve_as_pdf": "Zachowaj jako PDF",
-    "offline_copies": "Kopie offline"
+    "offline_copies": "Kopie offline",
+    "preserve_offline_archive": "Zachowaj archiwum offline",
+    "download_full_page_archive_file": "Pobierz plik archiwum",
+    "download_pdf_file": "Pobierz plik PDF",
+    "remove": "Usuń",
+    "more": "Więcej",
+    "replace_banner": "Zastąp baner",
+    "add_banner": "Dodaj baner",
+    "download": "Pobierz"
   },
   "settings": {
     "info": {
@@ -169,7 +179,8 @@
       "imported_bookmarks": "Zaimportowane zakładki",
       "import_bookmarks_from_linkwarden_export": "Importuj zakładki z eksportu Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importuj zakładki z Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importuj zakładki z eksportu mymind"
+      "import_bookmarks_from_mymind_export": "Importuj zakładki z eksportu mymind",
+      "import_bookmarks_from_instapaper_export": "Importuj zakładki z eksportu Instapaper"
     },
     "back_to_app": "Powrót do aplikacji",
     "user_settings": "Ustawienia użytkownika",
@@ -198,7 +209,12 @@
       "tag_style_description": "Wybierz, jak powinny być formatowane autogenerowane tagi.",
       "auto_tagging_description": "Automatycznie generuj tagi dla zakładek za pomocą AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatyczne podsumowywanie"
+      "auto_summarization": "Automatyczne podsumowywanie",
+      "no_preference": "Brak preferencji",
+      "curated_tags": "Wybrane tagi",
+      "curated_tags_description": "Opcjonalnie ogranicz oznaczanie przez SI, aby używać tylko tagów z tej listy. Jeśli nie wybrano żadnych tagów, SI generuje tagi swobodnie.",
+      "curated_tags_updated": "Wybrane tagi zostały pomyślnie zaktualizowane!",
+      "curated_tags_update_failed": "Nie udało się zaktualizować wybranych tagów"
     },
     "feeds": {
       "rss_subscriptions": "Subskrypcje RSS",
@@ -278,7 +294,10 @@
         "is_favourited": "Jest ulubiona",
         "is_archived": "Zarchiwizowany",
         "and": "Wszystkie z poniższych są prawdziwe",
-        "or": "Którekolwiek z poniższych są prawdziwe"
+        "or": "Którekolwiek z poniższych są prawdziwe",
+        "url_does_not_contain": "Adres URL nie zawiera",
+        "title_contains": "Tytuł zawiera",
+        "title_does_not_contain": "Tytuł nie zawiera"
       },
       "actions_types": {
         "add_tag": "Dodaj tag",
@@ -387,7 +406,10 @@
         "in_progress": "W toku",
         "completed": "Ukończone",
         "failed": "Niepowodzenie",
-        "processing": "Przetwarzanie"
+        "processing": "Przetwarzanie",
+        "staging": "Wersja testowa",
+        "running": "Uruchomiony",
+        "paused": "Wstrzymane"
       },
       "badges": {
         "pending": "{{count}} oczekujących",
@@ -399,7 +421,33 @@
       "view_list": "Wyświetl listę",
       "delete_dialog_title": "Usuń sesję importu",
       "delete_dialog_description": "Czy na pewno chcesz usunąć \"{{name}}\"? Tej czynności nie można cofnąć. Same zakładki nie zostaną usunięte.",
-      "delete_session": "Usuń sesję"
+      "delete_session": "Usuń sesję",
+      "pause_session": "Wstrzymaj",
+      "resume_session": "Wznów",
+      "view_details": "Pokaż szczegóły",
+      "detail": {
+        "page_title": "Szczegóły sesji importu",
+        "back_to_import": "Powrót do importu",
+        "filter_all": "Wszystkie",
+        "filter_accepted": "Zaakceptowane",
+        "filter_rejected": "Odrzucone",
+        "filter_duplicates": "Duplikaty",
+        "filter_pending": "Oczekujące",
+        "table_title": "Tytuł / URL",
+        "table_type": "Typ",
+        "table_result": "Wynik",
+        "table_reason": "Powód",
+        "table_bookmark": "Zakładka",
+        "result_accepted": "Zaakceptowane",
+        "result_rejected": "Odrzucone",
+        "result_skipped_duplicate": "Duplikat",
+        "result_pending": "Oczekujące",
+        "result_processing": "Przetwarzanie",
+        "no_results": "Nie znaleziono wyników dla tego filtra.",
+        "view_bookmark": "Pokaż zakładkę",
+        "load_more": "Załaduj więcej",
+        "no_title": "Brak tytułu"
+      }
     },
     "backups": {
       "backups": "Kopie zapasowe",
@@ -553,7 +601,10 @@
         "reindex_all_bookmarks": "Zreindeksuj wszystkie zakładki",
         "clean_assets": "Wyczyść wiszące zasoby i ponownie zsynchronizuj metadane",
         "reprocess_assets_fix_mode": "Ponownie przetwarzaj nieprzetworzone zasoby",
-        "migrate_large_link_html_content": "Przenieś dużą zawartość HTML inline do zasobów."
+        "migrate_large_link_html_content": "Przenieś dużą zawartość HTML inline do zasobów.",
+        "recrawl_pending_links_only": "Tylko ponowne przeszukiwanie oczekujących linków",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Tylko ponowne generowanie tagów AI dla oczekujących zakładek",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Tylko ponowne generowanie podsumowań AI dla oczekujących zakładek"
       }
     },
     "actions": {
@@ -579,6 +630,42 @@
         "connected": "Połączono",
         "disconnected": "Odłączono"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Narzędzia administratora",
+      "bookmark_debugger": "Debuger zakładek",
+      "bookmark_id": "ID zakładki",
+      "bookmark_id_placeholder": "Wprowadź ID zakładki",
+      "lookup": "Wyszukaj",
+      "debug_info": "Informacje debugowania",
+      "basic_info": "Podstawowe informacje",
+      "status": "Status",
+      "content": "Zawartość",
+      "html_preview": "Podgląd HTML (pierwsze 1000 znaków)",
+      "summary": "Podsumowanie",
+      "url": "URL",
+      "source_url": "URL źródłowy",
+      "asset_type": "Typ zasobu",
+      "file_name": "Nazwa pliku",
+      "owner_user_id": "ID użytkownika będącego właścicielem",
+      "tagging_status": "Status tagowania",
+      "summarization_status": "Status podsumowania",
+      "crawl_status": "Status indeksowania",
+      "crawl_status_code": "Kod HTTP",
+      "crawled_at": "Zindeksowano",
+      "recrawl": "Ponowne indeksowanie",
+      "reindex": "Ponowne indeksowanie",
+      "retag": "Otaguj ponownie",
+      "resummarize": "Ponowne podsumowanie",
+      "bookmark_not_found": "Nie znaleziono zakładki",
+      "action_success": "Akcja zakończona pomyślnie",
+      "action_failed": "Akcja nie powiodła się",
+      "recrawl_queued": "Zadanie ponownego indeksowania zostało dodane do kolejki",
+      "reindex_queued": "Zadanie ponownego indeksowania zostało dodane do kolejki",
+      "retag_queued": "Zadanie ponownego tagowania zostało dodane do kolejki",
+      "resummarize_queued": "Zadanie ponownego podsumowania zostało dodane do kolejki",
+      "view": "Wyświetl",
+      "fetch_error": "Błąd podczas pobierania zakładki"
     }
   },
   "tags": {
@@ -603,7 +690,9 @@
     "no_ai_tags": "Jeszcze brak tagów AI",
     "no_unused_tags": "Nie masz nieużywanych tagów",
     "no_unused_tags_match_your_search": "Żadne nieużywane tagi nie pasują do wyszukiwania",
-    "no_tags_match_your_search": "Żadne tagi nie pasują do wyszukiwania"
+    "no_tags_match_your_search": "Żadne tagi nie pasują do wyszukiwania",
+    "search_placeholder": "Szukaj tagów...",
+    "search_or_create_placeholder": "Szukaj lub twórz tagi..."
   },
   "editor": {
     "text_toolbar": {
@@ -685,7 +774,9 @@
       "full_page_archive": "Tworzenie pełnego archiwum strony zostało rozpoczęte",
       "delete_from_list": "Zakładka została usunięta z listy",
       "clipboard_copied": "Link został skopiowany do schowka!",
-      "preserve_pdf": "Zapis PDF został uruchomiony"
+      "preserve_pdf": "Zapis PDF został uruchomiony",
+      "update_banner": "Baner został zaktualizowany!",
+      "uploading_banner": "Przesyłanie banera..."
     },
     "tags": {
       "created": "Etykieta została utworzona!",
@@ -700,7 +791,10 @@
   },
   "options": {
     "dark_mode": "Tryb ciemny",
-    "light_mode": "Tryb jasny"
+    "light_mode": "Tryb jasny",
+    "apps_extensions": "Aplikacje i rozszerzenia",
+    "documentation": "Dokumentacja",
+    "follow_us_on_x": "Obserwuj nas na X"
   },
   "lists": {
     "all_lists": "Wszystkie listy",
@@ -796,7 +890,13 @@
       "content": "Treść",
       "details": "Szczegóły"
     },
-    "archive_info": "Archiwa mogą się nie wyświetlać poprawnie w wierszu, jeśli wymagają Javascript. Dla najlepszych rezultatów, <1>pobierz i otwórz w przeglądarce</1>."
+    "archive_info": "Archiwa mogą się nie wyświetlać poprawnie w wierszu, jeśli wymagają Javascript. Dla najlepszych rezultatów, <1>pobierz i otwórz w przeglądarce</1>.",
+    "fetch_error_title": "Zawartość niedostępna",
+    "fetch_error_description": "Nie udało się pobrać zawartości dla tego linku. Strona może być chroniona, wymagać uwierzytelnienia, lub być tymczasowo niedostępna.",
+    "crawling_in_progress": "Pobieranie zawartości strony…",
+    "continue_reading": "Kontynuuj, gdzie skończyłeś",
+    "continue_reading_percent": "Kontynuuj tam, gdzie skończyłeś ({{percent}}%)",
+    "continue_button": "Kontynuuj"
   },
   "highlights": {
     "no_highlights": "Nie masz jeszcze żadnych wyróżnień."
@@ -846,7 +946,9 @@
     "filters": "Filtry",
     "is_not_broken_link": "Ma Działający Link",
     "lists": "Listy",
-    "feeds": "Kanały"
+    "feeds": "Kanały",
+    "is_from_source": "Źródło to",
+    "is_not_from_source": "To nie jest źródło"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Dla tej wersji nie opublikowano żadnych informacji o wydaniu.",
     "release_notes_synced": "Informacje o wydaniu są synchronizowane z GitHub.",
     "view_on_github": "Wyświetl na GitHub"
+  },
+  "wrapped": {
+    "title": "Podsumowanie {{year}}",
+    "subtitle": "Rok w Karakeep",
+    "banner": {
+      "title": "Twoje podsumowanie 2025 jest gotowe!",
+      "description": "Zobacz swój rok w zakładkach",
+      "view_now": "Wyświetl teraz"
+    },
+    "button": "Podsumowanie 2025",
+    "loading": "Ładowanie twojego podsumowania...",
+    "failed_to_load": "Nie udało się załadować statystyk podsumowania",
+    "sections": {
+      "total_saves": {
+        "prefix": "Zapisałeś",
+        "suffix": "rzeczy w tym roku",
+        "suffix_singular": "rzecz w tym roku"
+      },
+      "first_bookmark": {
+        "title": "Twoja podróż się zaczęła",
+        "description": "Pierwszy zapis w roku {{year}}:"
+      },
+      "top_domains": "Twoje najpopularniejsze strony internetowe",
+      "top_tags": "Twoje najpopularniejsze tagi",
+      "monthly_activity": "Twój rok w zapisach",
+      "most_active_day": "Twój najbardziej aktywny dzień",
+      "peak_times": {
+        "title": "Kiedy zapisujesz",
+        "peak_hour": "Godzina szczytu",
+        "peak_day": "Dzień szczytu"
+      },
+      "how_you_save": "Jak zapisujesz",
+      "what_you_saved": "Co zapisałeś",
+      "summary": {
+        "favorites": "Ulubione",
+        "tags_created": "Utworzone tagi",
+        "highlights": "Najważniejsze informacje"
+      },
+      "types": {
+        "links": "Linki",
+        "notes": "Notatki",
+        "assets": "Zasoby"
+      }
+    },
+    "footer": "Stworzone z Karakeep",
+    "share": "Udostępnij",
+    "download": "Pobierz",
+    "close": "Zamknij",
+    "generating": "Generowanie..."
   }
 }

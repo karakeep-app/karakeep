@@ -1,0 +1,71 @@
+---
+id: get-a-single-list
+title: "Get a single list"
+description: "Get list by its id"
+sidebar_label: "Get a single list"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVUFv2zoM/isGTxtgJNmwhzf4Vjy8Dd0GbNg67BD4wFhMrFaWNIlukxn67wNlN01ab9hhp8jiJ/Ij+ZEZQFFsgvasnYUK3hIXRkcuNodCcyy0ghIYdxGqNXzQkSPUJURq+qD5ANV6gA1hoHDRcwvVuk51CR4DdsQUYgbEpqUOoRqAD56ggshB2x2UQHvsvJErTVqZ/WHX3V2//tftf/zT7pld81qia84QiX6pIJUQ6HuvAymoOPRUgsVOAGYElKAlE4/cgrAJFL2zkaIweLlayc950h8319Rwcae5HZNXyLiAEhpnmSzLC/Te6AblxfI6yrOZxFx2BCX44DwF1mNQrZ4mn+5pzxjO2D2tmu2NwY3URNJPJehmDphyI8hKTf7EywiYaZLtO+l+h7ZHAyXEDgOLDBRtsTcM1b0tlfC9p3D4o3i+3xjdnEA3zhlCK15ajP85wbuA7EKcR/WRwmdnfsva3VkK8q00OzncarrLN1P8Op0pag1Z8rk3U2VP6nh8NUPxhE99rlpISYK8Wr16qj2xF9ZxsXW9VX9Pc41T8+LqKEbczdke1SF7eMDXacyiI26dggp2lKPKmFWwlLmJy2GcwSQqoXB7vwH6YKCCAZUKFGNaotfL2xfSDAxaRJEpT+axRvfKapl9rJZLDofFDQa8IfIL9B4ejQlctVRMHgq3Lbil4v2EL0Yu0oaT5fVFKjlGPl1hx7JIZMkjw0R4GQTldHjjQofC8N23q1w7bbdOnkvWI6UXi9VidbLBjnwuPl3O8r/4dFlsXTgnL8nKuLjIHWYNTPtOdjUWUdudoby3HvscHsT0i8U+Zsq056U3qMepkmYNU2PXeauKuKtpvdYltC6ymIZhg5G+BpOSXE+jv64f+pq7r3SUs4JqiybSb0g++zzp73nxK3bTJdpDlo/p5QtKuKHDw19AqmWHECoKmcFovGga8nzy7Ml8iTyO+n77/xWUgOeieCSC7H2W0jCMiCt3QzalI0OWbyGY0k9EOoyc
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a single list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/lists/{listId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get list by its id
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"ListId"},"required":true,"name":"listId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Object with list data.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}}},"404":{"description":"List not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

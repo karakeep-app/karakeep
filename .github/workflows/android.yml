@@ -34,6 +34,8 @@ jobs:
       - name: Build Android app
         working-directory: apps/mobile
         run: eas build --platform android --local --output ${{ github.workspace }}/app-release.aab
+        env:
+          EAS_SKIP_AUTO_FINGERPRINT: "1"
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4

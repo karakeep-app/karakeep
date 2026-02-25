@@ -41,7 +41,9 @@
     "bookmarks": "Favoritos",
     "storage": "Armazenamento",
     "pdf": "PDF arquivado",
-    "default": "Padrão"
+    "default": "Padrão",
+    "id": "ID",
+    "last_used": "Usado recentemente"
   },
   "actions": {
     "close": "Fechar",
@@ -88,7 +90,15 @@
     "load_more": "Carregar mais",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Preservar como PDF",
-    "offline_copies": "Cópias offline"
+    "offline_copies": "Cópias offline",
+    "preserve_offline_archive": "Preservar Arquivos Offline",
+    "download_full_page_archive_file": "Baixar Arquivo Compactado",
+    "download_pdf_file": "Baixar Arquivo PDF",
+    "remove": "Remover",
+    "more": "Mais",
+    "replace_banner": "Substituir Banner",
+    "add_banner": "Adicionar Banner",
+    "download": "Baixar"
   },
   "settings": {
     "webhooks": {
@@ -121,7 +131,8 @@
       "export_links_and_notes": "Exportar Links e Notas",
       "imported_bookmarks": "Favoritos importados",
       "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importar favoritos da exportação do mymind"
+      "import_bookmarks_from_mymind_export": "Importar favoritos da exportação do mymind",
+      "import_bookmarks_from_instapaper_export": "Importar os favoritos da exportação do Instapaper"
     },
     "info": {
       "interface_lang": "Idioma da Interface",
@@ -214,7 +225,12 @@
       "tag_style_description": "Escolha como as suas etiquetas geradas automaticamente devem ser formatadas.",
       "auto_tagging_description": "Gerar automaticamente tags para seus favoritos usando IA.",
       "camelCase": "camelCase",
-      "auto_summarization": "Resumo automático"
+      "auto_summarization": "Resumo automático",
+      "no_preference": "Sem preferência",
+      "curated_tags": "Tags selecionadas",
+      "curated_tags_description": "Opcionalmente, restrinja a marcação de IA para usar apenas tags desta lista. Quando nenhuma tag é selecionada, a IA gera tags livremente.",
+      "curated_tags_updated": "Tags selecionadas atualizadas com sucesso!",
+      "curated_tags_update_failed": "Falha ao atualizar as tags selecionadas"
     },
     "api_keys": {
       "new_api_key": "Nova chave da API",
@@ -264,7 +280,10 @@
         "has_tag": "Tem tag",
         "is_favourited": "Está favoritado",
         "is_archived": "Arquivado",
-        "and": "Tudo o que se segue é verdade"
+        "and": "Tudo o que se segue é verdade",
+        "url_does_not_contain": "URL não Contém",
+        "title_contains": "Título Contém",
+        "title_does_not_contain": "Título Não Contém"
       },
       "actions_types": {
         "add_tag": "Adicionar etiqueta",
@@ -387,7 +406,10 @@
         "in_progress": "Em andamento",
         "completed": "Concluído",
         "failed": "Falhou",
-        "processing": "Processando"
+        "processing": "Processando",
+        "staging": "Teste",
+        "running": "Em execução",
+        "paused": "Pausado"
       },
       "badges": {
         "pending": "{{count}} pendente",
@@ -399,7 +421,33 @@
       "view_list": "Ver lista",
       "delete_dialog_title": "Excluir sessão de importação",
       "delete_dialog_description": "Tem certeza de que deseja excluir \"{{name}}\"? Esta ação não pode ser desfeita. Os favoritos em si não serão excluídos.",
-      "delete_session": "Excluir sessão"
+      "delete_session": "Excluir sessão",
+      "pause_session": "Pausar",
+      "resume_session": "Retomar",
+      "view_details": "Ver Detalhes",
+      "detail": {
+        "page_title": "Detalhes da Sessão de Importação",
+        "back_to_import": "Voltar para Importar",
+        "filter_all": "Tudo",
+        "filter_accepted": "Aceito",
+        "filter_rejected": "Rejeitado",
+        "filter_duplicates": "Duplicados",
+        "filter_pending": "Pendente",
+        "table_title": "Título / URL",
+        "table_type": "Tipo",
+        "table_result": "Resultado",
+        "table_reason": "Razão",
+        "table_bookmark": "Favorito",
+        "result_accepted": "Aceito",
+        "result_rejected": "Rejeitado",
+        "result_skipped_duplicate": "Duplicado",
+        "result_pending": "Pendente",
+        "result_processing": "Processando",
+        "no_results": "Nenhum resultado encontrado para este filtro.",
+        "view_bookmark": "Ver Favorito",
+        "load_more": "Carregar mais",
+        "no_title": "Sem título"
+      }
     },
     "backups": {
       "backups": "Backups",
@@ -533,7 +581,10 @@
         "reindex_all_bookmarks": "Reindexar todos os favoritos",
         "clean_assets": "Limpar ativos soltos e resincronizar metadados",
         "reprocess_assets_fix_mode": "Reprocessar ativos não processados",
-        "migrate_large_link_html_content": "Mover Conteúdo HTML Grande Embutido para Ativos"
+        "migrate_large_link_html_content": "Mover Conteúdo HTML Grande Embutido para Ativos",
+        "recrawl_pending_links_only": "Rastrear Novamente Apenas Links Pendentes",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerar Tags de IA Apenas para Favoritos Pendentes",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerar Resumos de IA Apenas para Favoritos Pendentes"
       }
     },
     "actions": {
@@ -579,11 +630,50 @@
         "connected": "Conectado",
         "disconnected": "Desconectado"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Ferramentas de Administrador",
+      "bookmark_debugger": "Depurador de Marcadores",
+      "bookmark_id": "ID do Marcador",
+      "bookmark_id_placeholder": "Insira o ID do marcador",
+      "lookup": "Pesquisar",
+      "debug_info": "Informação de Depuração",
+      "basic_info": "Informação Básica",
+      "status": "Estado",
+      "content": "Conteúdo",
+      "html_preview": "Pré-visualização HTML (Primeiros 1000 caracteres)",
+      "summary": "Resumo",
+      "url": "URL",
+      "source_url": "URL de Origem",
+      "asset_type": "Tipo de Recurso",
+      "file_name": "Nome do Ficheiro",
+      "owner_user_id": "ID do Utilizador Proprietário",
+      "tagging_status": "Estado da Etiquetagem",
+      "summarization_status": "Estado da Sumarização",
+      "crawl_status": "Estado da Indexação",
+      "crawl_status_code": "Código de status HTTP",
+      "crawled_at": "Rastreamento em",
+      "recrawl": "Rastrear novamente",
+      "reindex": "Reindexar",
+      "retag": "Retaguar",
+      "resummarize": "Resumir novamente",
+      "bookmark_not_found": "Marcador não encontrado",
+      "action_success": "Ação concluída com sucesso",
+      "action_failed": "Ação falhou",
+      "recrawl_queued": "O trabalho de rastreamento foi enfileirado",
+      "reindex_queued": "O trabalho de reindexação foi enfileirado",
+      "retag_queued": "O trabalho de marcação foi enfileirado",
+      "resummarize_queued": "O trabalho de resumo foi enfileirado",
+      "view": "Ver",
+      "fetch_error": "Erro ao buscar marcador"
     }
   },
   "options": {
     "dark_mode": "Modo escuro",
-    "light_mode": "Modo claro"
+    "light_mode": "Modo claro",
+    "apps_extensions": "Apps e extensões",
+    "documentation": "Documentação",
+    "follow_us_on_x": "Segue-nos no X"
   },
   "lists": {
     "new_nested_list": "Nova Lista Aninhada",
@@ -693,7 +783,9 @@
     "no_ai_tags": "Ainda não há tags de IA",
     "no_unused_tags": "Você não tem nenhuma tag não usada",
     "no_unused_tags_match_your_search": "Nenhuma tag não utilizada corresponde à sua pesquisa",
-    "no_tags_match_your_search": "Nenhuma tag corresponde à sua pesquisa"
+    "no_tags_match_your_search": "Nenhuma tag corresponde à sua pesquisa",
+    "search_placeholder": "Pesquisar tags...",
+    "search_or_create_placeholder": "Pesquisar ou criar tags..."
   },
   "search": {
     "full_text_search": "Pesquisa de Texto Completo",
@@ -740,7 +832,9 @@
     "filters": "Filtros",
     "is_not_broken_link": "Tem link funcionando",
     "lists": "Listas",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "is_from_source": "Fonte é",
+    "is_not_from_source": "Fonte não é"
   },
   "preview": {
     "cached_content": "Conteúdo em cache",
@@ -750,7 +844,13 @@
       "content": "Conteúdo",
       "details": "Detalhes"
     },
-    "archive_info": "Os arquivos podem não ser renderizados corretamente embutidos se exigirem Javascript. Para obter melhores resultados, <1>baixe-o e abra-o no seu navegador</1>."
+    "archive_info": "Os arquivos podem não ser renderizados corretamente embutidos se exigirem Javascript. Para obter melhores resultados, <1>baixe-o e abra-o no seu navegador</1>.",
+    "fetch_error_title": "Conteúdo Indisponível",
+    "fetch_error_description": "Não foi possível obter o conteúdo para este link. É possível que a página esteja protegida, precise de autenticação ou esteja temporariamente indisponível.",
+    "crawling_in_progress": "Buscando conteúdo da página…",
+    "continue_reading": "Continue de onde parou",
+    "continue_reading_percent": "Continue de onde parou ({{percent}}%)",
+    "continue_button": "Continuar"
   },
   "editor": {
     "new_item": "NOVO ITEM",
@@ -819,7 +919,9 @@
       "updated": "O marcador foi atualizado!",
       "deleted": "O marcador foi excluído!",
       "refetch": "A nova busca foi enfileirada!",
-      "preserve_pdf": "A preservação em PDF foi acionada"
+      "preserve_pdf": "A preservação em PDF foi acionada",
+      "update_banner": "O banner foi atualizado!",
+      "uploading_banner": "Enviando banner..."
     },
     "lists": {
       "updated": "A lista foi atualizada!",
@@ -891,5 +993,54 @@
     "no_release_notes": "Nenhuma nota de lançamento foi publicada para esta versão.",
     "release_notes_synced": "As notas de lançamento são sincronizadas do GitHub.",
     "view_on_github": "Ver no GitHub"
+  },
+  "wrapped": {
+    "title": "Seu Resumo de {{year}}",
+    "subtitle": "Um Ano em Karakeep",
+    "banner": {
+      "title": "Seu Resumo de 2025 está pronto!",
+      "description": "Veja seu ano em favoritos",
+      "view_now": "Ver Agora"
+    },
+    "button": "Resumo de 2025",
+    "loading": "Carregando seu Resumo...",
+    "failed_to_load": "Falha ao carregar suas estatísticas do Resumo",
+    "sections": {
+      "total_saves": {
+        "prefix": "Você salvou",
+        "suffix": "itens este ano",
+        "suffix_singular": "item este ano"
+      },
+      "first_bookmark": {
+        "title": "Sua jornada começou",
+        "description": "Primeiro salvamento de {{year}}:"
+      },
+      "top_domains": "Seus principais sites",
+      "top_tags": "Suas principais tags",
+      "monthly_activity": "Seu ano em salvamentos",
+      "most_active_day": "Seu dia mais ativo",
+      "peak_times": {
+        "title": "Quando você salva",
+        "peak_hour": "Hora de pico",
+        "peak_day": "Dia de pico"
+      },
+      "how_you_save": "Como você salva",
+      "what_you_saved": "O que você salvou",
+      "summary": {
+        "favorites": "Favoritos",
+        "tags_created": "Tags criadas",
+        "highlights": "Destaques"
+      },
+      "types": {
+        "links": "Links",
+        "notes": "Notas",
+        "assets": "Ativos"
+      }
+    },
+    "footer": "Feito com Karakeep",
+    "share": "Compartilhar",
+    "download": "Baixar",
+    "close": "Fechar",
+    "generating": "Gerando..."
   }
 }

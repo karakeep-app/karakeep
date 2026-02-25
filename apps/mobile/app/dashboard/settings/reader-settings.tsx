@@ -6,7 +6,6 @@ import {
   ReaderPreview,
   ReaderPreviewRef,
 } from "@/components/reader/ReaderPreview";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { MOBILE_FONT_FAMILIES, useReaderSettings } from "@/lib/readerSettings";
@@ -142,160 +141,159 @@ export default function ReaderSettingsPage() {
   const fontFamilyOptions: ZReaderFontFamily[] = ["serif", "sans", "mono"];
 
   return (
-    <CustomSafeAreaView>
-      <ScrollView
-        className="w-full"
-        contentContainerClassName="items-center gap-4 px-4 py-2"
-      >
-        {/* Font Family Selection */}
-        <View className="w-full">
-          <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
-            Font Family
-            {localOverrides.fontFamily !== undefined && (
-              <Text className="text-blue-500"> (local)</Text>
-            )}
-          </Text>
-          <View className="w-full rounded-lg bg-card px-4 py-2">
-            {fontFamilyOptions.map((fontFamily, index) => {
-              const isChecked = effectiveFontFamily === fontFamily;
-              return (
-                <View key={fontFamily}>
-                  <Pressable
-                    onPress={() => handleFontFamilyChange(fontFamily)}
-                    className="flex flex-row items-center justify-between py-2"
+    <ScrollView
+      className="w-full"
+      contentContainerClassName="items-center gap-4 px-4 py-2"
+      contentInsetAdjustmentBehavior="automatic"
+    >
+      {/* Font Family Selection */}
+      <View className="w-full">
+        <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
+          Font Family
+          {localOverrides.fontFamily !== undefined && (
+            <Text className="text-blue-500"> (local)</Text>
+          )}
+        </Text>
+        <View className="w-full rounded-lg bg-card px-4 py-2">
+          {fontFamilyOptions.map((fontFamily, index) => {
+            const isChecked = effectiveFontFamily === fontFamily;
+            return (
+              <View key={fontFamily}>
+                <Pressable
+                  onPress={() => handleFontFamilyChange(fontFamily)}
+                  className="flex flex-row items-center justify-between py-2"
+                >
+                  <Text
+                    style={{
+                      fontFamily: MOBILE_FONT_FAMILIES[fontFamily],
+                    }}
                   >
-                    <Text
-                      style={{
-                        fontFamily: MOBILE_FONT_FAMILIES[fontFamily],
-                      }}
-                    >
-                      {formatFontFamily(fontFamily)}
-                    </Text>
-                    {isChecked && <Check color="rgb(0, 122, 255)" />}
-                  </Pressable>
-                  {index < fontFamilyOptions.length - 1 && (
-                    <Divider orientation="horizontal" className="h-0.5" />
-                  )}
-                </View>
-              );
-            })}
-          </View>
+                    {formatFontFamily(fontFamily)}
+                  </Text>
+                  {isChecked && <Check color="rgb(0, 122, 255)" />}
+                </Pressable>
+                {index < fontFamilyOptions.length - 1 && (
+                  <Divider orientation="horizontal" className="h-0.5" />
+                )}
+              </View>
+            );
+          })}
         </View>
+      </View>
 
-        {/* Font Size */}
-        <View className="w-full">
-          <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
-            Font Size ({formatFontSize(displayFontSize)})
-            {localOverrides.fontSize !== undefined && (
-              <Text className="text-blue-500"> (local)</Text>
-            )}
+      {/* Font Size */}
+      <View className="w-full">
+        <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
+          Font Size ({formatFontSize(displayFontSize)})
+          {localOverrides.fontSize !== undefined && (
+            <Text className="text-blue-500"> (local)</Text>
+          )}
+        </Text>
+        <View className="flex w-full flex-row items-center gap-3 rounded-lg bg-card px-4 py-3">
+          <Text className="text-muted-foreground">
+            {READER_SETTING_CONSTRAINTS.fontSize.min}
           </Text>
-          <View className="flex w-full flex-row items-center gap-3 rounded-lg bg-card px-4 py-3">
-            <Text className="text-muted-foreground">
-              {READER_SETTING_CONSTRAINTS.fontSize.min}
-            </Text>
-            <View className="flex-1">
-              <Slider
-                progress={fontSizeProgress}
-                minimumValue={fontSizeMin}
-                maximumValue={fontSizeMax}
-                renderBubble={() => null}
-                onValueChange={(value) => {
-                  "worklet";
-                  runOnJS(updatePreviewFontSize)(Math.round(value));
-                }}
-                onSlidingComplete={(value) =>
-                  handleFontSizeChange(Math.round(value))
-                }
-              />
-            </View>
-            <Text className="text-muted-foreground">
-              {READER_SETTING_CONSTRAINTS.fontSize.max}
-            </Text>
+          <View className="flex-1">
+            <Slider
+              progress={fontSizeProgress}
+              minimumValue={fontSizeMin}
+              maximumValue={fontSizeMax}
+              renderBubble={() => null}
+              onValueChange={(value) => {
+                "worklet";
+                runOnJS(updatePreviewFontSize)(Math.round(value));
+              }}
+              onSlidingComplete={(value) =>
+                handleFontSizeChange(Math.round(value))
+              }
+            />
           </View>
-        </View>
-
-        {/* Line Height */}
-        <View className="w-full">
-          <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
-            Line Height ({formatLineHeight(displayLineHeight)})
-            {localOverrides.lineHeight !== undefined && (
-              <Text className="text-blue-500"> (local)</Text>
-            )}
+          <Text className="text-muted-foreground">
+            {READER_SETTING_CONSTRAINTS.fontSize.max}
           </Text>
-          <View className="flex w-full flex-row items-center gap-3 rounded-lg bg-card px-4 py-3">
-            <Text className="text-muted-foreground">
-              {READER_SETTING_CONSTRAINTS.lineHeight.min}
-            </Text>
-            <View className="flex-1">
-              <Slider
-                progress={lineHeightProgress}
-                minimumValue={lineHeightMin}
-                maximumValue={lineHeightMax}
-                renderBubble={() => null}
-                onValueChange={(value) => {
-                  "worklet";
-                  runOnJS(updatePreviewLineHeight)(Math.round(value * 10) / 10);
-                }}
-                onSlidingComplete={handleLineHeightChange}
-              />
-            </View>
-            <Text className="text-muted-foreground">
-              {READER_SETTING_CONSTRAINTS.lineHeight.max}
-            </Text>
+        </View>
+      </View>
+
+      {/* Line Height */}
+      <View className="w-full">
+        <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
+          Line Height ({formatLineHeight(displayLineHeight)})
+          {localOverrides.lineHeight !== undefined && (
+            <Text className="text-blue-500"> (local)</Text>
+          )}
+        </Text>
+        <View className="flex w-full flex-row items-center gap-3 rounded-lg bg-card px-4 py-3">
+          <Text className="text-muted-foreground">
+            {READER_SETTING_CONSTRAINTS.lineHeight.min}
+          </Text>
+          <View className="flex-1">
+            <Slider
+              progress={lineHeightProgress}
+              minimumValue={lineHeightMin}
+              maximumValue={lineHeightMax}
+              renderBubble={() => null}
+              onValueChange={(value) => {
+                "worklet";
+                runOnJS(updatePreviewLineHeight)(Math.round(value * 10) / 10);
+              }}
+              onSlidingComplete={handleLineHeightChange}
+            />
           </View>
-        </View>
-
-        {/* Preview */}
-        <View className="w-full">
-          <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
-            Preview
+          <Text className="text-muted-foreground">
+            {READER_SETTING_CONSTRAINTS.lineHeight.max}
           </Text>
-          <ReaderPreview
-            ref={previewRef}
-            initialFontFamily={effectiveFontFamily}
-            initialFontSize={effectiveFontSize}
-            initialLineHeight={effectiveLineHeight}
-          />
         </View>
+      </View>
 
-        <Divider orientation="horizontal" className="my-2 w-full" />
+      {/* Preview */}
+      <View className="w-full">
+        <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
+          Preview
+        </Text>
+        <ReaderPreview
+          ref={previewRef}
+          initialFontFamily={effectiveFontFamily}
+          initialFontSize={effectiveFontSize}
+          initialLineHeight={effectiveLineHeight}
+        />
+      </View>
 
-        {/* Save as Default */}
-        <Pressable
-          onPress={handleSaveAsDefault}
-          disabled={!hasLocalOverrides}
-          className="w-full rounded-lg bg-card px-4 py-3"
+      <Divider orientation="horizontal" className="my-2 w-full" />
+
+      {/* Save as Default */}
+      <Pressable
+        onPress={handleSaveAsDefault}
+        disabled={!hasLocalOverrides}
+        className="w-full rounded-lg bg-card px-4 py-3"
+      >
+        <Text
+          className={`text-center ${hasLocalOverrides ? "text-blue-500" : "text-muted-foreground"}`}
         >
-          <Text
-            className={`text-center ${hasLocalOverrides ? "text-blue-500" : "text-muted-foreground"}`}
-          >
-            Save as Default (All Devices)
-          </Text>
+          Save as Default (All Devices)
+        </Text>
+      </Pressable>
+
+      {/* Clear Local */}
+      {hasLocalOverrides && (
+        <Pressable
+          onPress={handleClearLocalOverrides}
+          className="flex w-full flex-row items-center justify-center gap-2 rounded-lg bg-card px-4 py-3"
+        >
+          <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
+          <Text className="text-muted-foreground">Clear Local Overrides</Text>
         </Pressable>
+      )}
 
-        {/* Clear Local */}
-        {hasLocalOverrides && (
-          <Pressable
-            onPress={handleClearLocalOverrides}
-            className="flex w-full flex-row items-center justify-center gap-2 rounded-lg bg-card px-4 py-3"
-          >
-            <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-            <Text className="text-muted-foreground">Clear Local Overrides</Text>
-          </Pressable>
-        )}
-
-        {/* Clear Server */}
-        {hasServerDefaults && (
-          <Pressable
-            onPress={handleClearServerDefaults}
-            className="flex w-full flex-row items-center justify-center gap-2 rounded-lg bg-card px-4 py-3"
-          >
-            <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-            <Text className="text-muted-foreground">Clear Server Defaults</Text>
-          </Pressable>
-        )}
-      </ScrollView>
-    </CustomSafeAreaView>
+      {/* Clear Server */}
+      {hasServerDefaults && (
+        <Pressable
+          onPress={handleClearServerDefaults}
+          className="flex w-full flex-row items-center justify-center gap-2 rounded-lg bg-card px-4 py-3"
+        >
+          <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
+          <Text className="text-muted-foreground">Clear Server Defaults</Text>
+        </Pressable>
+      )}
+    </ScrollView>
   );
 }

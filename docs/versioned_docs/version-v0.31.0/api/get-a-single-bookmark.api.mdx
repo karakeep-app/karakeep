@@ -1,0 +1,71 @@
+---
+id: get-a-single-bookmark
+title: "Get a single bookmark"
+description: "Get bookmark by its id"
+sidebar_label: "Get a single bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNWF9v2zYQ/yrCvWwDhDgdOqzwW1psXTasDZYUewj8cBJPFmOKVEnKiWPouxdHyZKcyImcBtieoph3x9/9v+MWBLnUytJLo2EOH8lHiTGrAu0qSjaR9C6SAmLwuHQwv4b37aGDRQyO0spKv4H59RYSQkv2rPI5zK8X9SKGEi0W5Mm6QODSnAqE+Rb8piSYg/NW6iXEQHdYlIp/kiSFutssi9ubd7+au/tf8jvvTfqOEUgfSHYIzgXUMVj6WklLAubeVhSDxoKJkp4oBsmalehzqOMRGIkxilBDDIIyrJTfydo3zXkWOfKRN1E47cz0g4tSoz1pH91KpaKEIqlTVQkSkdSRzymy5EqjHZ1En4ynOPK57JlS1Myj0C4pyoyNnCmok+5O9rXMULn/D7TO3q3YDw3jzuZfK7Ib4FDYXePY7j+fnvKffR0+JzeUMk6f9xEo0CPf0gJiLixLJVNkrtmNY9YRl5ogDGIorSnJetlcLMXj6KtjSC2hJ3HmR08LI2Qmx49j0JVSmHBgsunrLkwnUKJNc7kmMRKKdQwZrg0n16Fzj8ul1MtLj75yz98XA+mq4Ax2VZqSc8BXSFVZYjORFsy1qGNwVVGglffBxK8vXhs/zTwNjs00WlPZdILYHiaWEmK4pYSjS/F3YRKpKFQjT9pxVMbgpF4qypoDG9SSRWmsD7pUjuz5eEw19bI7QGtxw8yeCvfiQG2SbeQAvcc0J/F+1FydzqxmXhWoYVHvVZVrCEU+yN+TFugG2Wc0fc5CNX9ageb0MBQl9aoxoVXj9pucRntlZAK9LHBJX8auPUR85hz5MT+PRWJqibTLjT+GqxTZMeRZpdQFA2sqyFE3WUot3ioSL2BeS0HmKKC4lulEv+S+UB/6SHuWvo3KY+DsNJ94AVO/fgHEyufGTnNWlSjpcppGLdDTRcsxzR7M8Xfb3iYwPCgZgbrJ4AUPVt9XETzdNUU1fIyVhKbIT8vccai7O74XK3LMNc7kr6tnyEMRgZDlPdOBvsGt5tNomT/Y9qbWMifvh2J1VSRkn8isF5u5N0qv6ytYvdIrbW5HeldgWNSdaV+/8U5yM/e0PwZFbNgMWu+3ki6HvyeoNdnzNkYelHZoiy7TtUNxKHgwUsmhGUi+lMqgIO7nuEaP7OLedEdF2NiM0JtiUY8S9NP03uw8mHf3htuHk+z4ANrNWu1k1Qdp5/PF4xUR6gDx7enbx/vGjibSxkeZqbR4vT0jNWJ8TivIOfbz47MHlgwSeno2dR34fW4EzGHZhADvtHOYdRvZbNsvvjWbkux6t36HSQu2KIQl5+oZlnK2fsMBhlay0wP09rixV7sNQ+596eazmbebkxVaXBGVJ1iW8HARvcopaiVEJgsL5l8tfdRgYZcMXg4u2aLNzcP3g848fHNIJCbjBSgQcTaEj9+NLZAR/vnvVbCh1Jlhdta6gfTm5PTkdPB80OE5uzgfxX92cR523T3wrCw3ZOM8j8/z7W7x5QcTjJo1odtbH8rd9oH1xAtLozH3qFmpUIYtrx2PG0dfdzWAE2A+eONYxJAb55lku03QcU+oa/65WcHZ/0I69vKBN4QhxP/wOWHUCCvajD0xrFFVTBweGHZBfKSqP/7TJt1P0aHbd41Eb4Z37lANnBAaUE4oeF673rYEZ2lK5RDuo8LC8LvE/vjbFTQz4nDt34/64f61D2u7bSiuzIp0XXcoPf/PAOv6G9QU5oo=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a single bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/bookmarks/{bookmarkId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get bookmark by its id
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"},{"schema":{"type":"boolean","default":true,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."},"required":false,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.","name":"includeContent","in":"query"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Object with bookmark data.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"createdAt":{"type":"string"},"modifiedAt":{"type":"string","nullable":true},"title":{"type":"string","nullable":true},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"taggingStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"summarizationStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"note":{"type":"string","nullable":true},"summary":{"type":"string","nullable":true},"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"userId":{"type":"string"},"tags":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"attachedBy":{"type":"string","enum":["ai","human"]}},"required":["id","name","attachedBy"]}},"content":{"oneOf":[{"type":"object","properties":{"type":{"type":"string","enum":["link"]},"url":{"type":"string"},"title":{"type":"string","nullable":true},"description":{"type":"string","nullable":true},"imageUrl":{"type":"string","nullable":true},"imageAssetId":{"type":"string","nullable":true},"screenshotAssetId":{"type":"string","nullable":true},"pdfAssetId":{"type":"string","nullable":true},"fullPageArchiveAssetId":{"type":"string","nullable":true},"precrawledArchiveAssetId":{"type":"string","nullable":true},"videoAssetId":{"type":"string","nullable":true},"favicon":{"type":"string","nullable":true},"htmlContent":{"type":"string","nullable":true},"contentAssetId":{"type":"string","nullable":true},"crawledAt":{"type":"string","nullable":true},"crawlStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"author":{"type":"string","nullable":true},"publisher":{"type":"string","nullable":true},"datePublished":{"type":"string","nullable":true},"dateModified":{"type":"string","nullable":true}},"required":["type","url"]},{"type":"object","properties":{"type":{"type":"string","enum":["text"]},"text":{"type":"string"},"sourceUrl":{"type":"string","nullable":true}},"required":["type","text"]},{"type":"object","properties":{"type":{"type":"string","enum":["asset"]},"assetType":{"type":"string","enum":["image","pdf"]},"assetId":{"type":"string"},"fileName":{"type":"string","nullable":true},"sourceUrl":{"type":"string","nullable":true},"size":{"type":"number","nullable":true},"content":{"type":"string","nullable":true}},"required":["type","assetType","assetId"]},{"type":"object","properties":{"type":{"type":"string","enum":["unknown"]}},"required":["type"]}]},"assets":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"assetType":{"type":"string","enum":["linkHtmlContent","screenshot","pdf","assetScreenshot","bannerImage","fullPageArchive","video","bookmarkAsset","precrawledArchive","userUploaded","avatar","unknown"]},"fileName":{"type":"string","nullable":true}},"required":["id","assetType"]}}},"required":["id","createdAt","modifiedAt","archived","favourited","taggingStatus","summarizationStatus","userId","tags","content","assets"],"title":"Bookmark"}}}},"404":{"description":"Bookmark not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

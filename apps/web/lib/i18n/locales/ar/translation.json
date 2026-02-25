@@ -41,7 +41,9 @@
     "bookmarks": "الإشارات المرجعية",
     "storage": "تخزين",
     "pdf": "نسخة PDF مؤرشفة",
-    "default": "افتراضي"
+    "default": "افتراضي",
+    "id": "معرف",
+    "last_used": "آخر استخدام"
   },
   "layouts": {
     "masonry": "متعدد الأعمدة",
@@ -94,7 +96,15 @@
     "load_more": "المزيد",
     "edit_notes": "تحرير الملاحظات",
     "preserve_as_pdf": "حفظ كملف PDF",
-    "offline_copies": "نسخ غير متصلة بالإنترنت"
+    "offline_copies": "نسخ غير متصلة بالإنترنت",
+    "preserve_offline_archive": "احتفظ بالأرشيفات غير المتصلة بالإنترنت",
+    "download_full_page_archive_file": "تنزيل ملف الأرشيف",
+    "download_pdf_file": "تنزيل ملف PDF",
+    "remove": "إزالة",
+    "more": "المزيد",
+    "replace_banner": "استبدال البانر",
+    "add_banner": "إضافة بانر",
+    "download": "تنزيل"
   },
   "highlights": {
     "no_highlights": "ليس لديك أي تمييزات بعد."
@@ -193,7 +203,12 @@
       "tag_style_description": "اختر كيف ينبغي تنسيق علاماتك التي تم إنشاؤها تلقائيًا.",
       "auto_tagging_description": "إنشاء علامات تلقائيًا لعلاماتك المرجعية باستخدام الذكاء الاصطناعي.",
       "camelCase": "camelCase",
-      "auto_summarization": "التلخيص التلقائي"
+      "auto_summarization": "التلخيص التلقائي",
+      "no_preference": "لا يوجد تفضيل",
+      "curated_tags": "العلامات المنسقة",
+      "curated_tags_description": "بشكل اختياري، قم بتقييد وضع علامات الذكاء الاصطناعي لاستخدام العلامات من هذه القائمة فقط. عندما لا يتم تحديد أي علامات، يقوم الذكاء الاصطناعي بإنشاء علامات بحرية.",
+      "curated_tags_updated": "تم تحديث العلامات المنسقة بنجاح!",
+      "curated_tags_update_failed": "فشل تحديث العلامات المنسقة"
     },
     "feeds": {
       "rss_subscriptions": "اشتراكات RSS",
@@ -231,7 +246,8 @@
       "export_links_and_notes": "تصدير الروابط والملاحظات",
       "imported_bookmarks": "الإشارات المرجعية المستوردة",
       "import_bookmarks_from_tab_session_manager_export": "استيراد الإشارات المرجعية من مدير جلسة علامات التبويب",
-      "import_bookmarks_from_mymind_export": "استيراد الإشارات المرجعية من تصدير mymind"
+      "import_bookmarks_from_mymind_export": "استيراد الإشارات المرجعية من تصدير mymind",
+      "import_bookmarks_from_instapaper_export": "استيراد الإشارات المرجعية من ملف تصدير Instapaper"
     },
     "api_keys": {
       "api_keys": "مفاتيح API",
@@ -271,7 +287,10 @@
         "has_tag": "يحتوي على وسم",
         "is_favourited": "مفضل",
         "is_archived": "مؤرشف",
-        "and": "كل ما يلي صحيح"
+        "and": "كل ما يلي صحيح",
+        "url_does_not_contain": "عنوان URL لا يحتوي على",
+        "title_contains": "العنوان يتضمن",
+        "title_does_not_contain": "العنوان لا يتضمن"
       },
       "actions_types": {
         "add_tag": "إضافة علامة",
@@ -396,7 +415,10 @@
         "in_progress": "قيد التقدّم",
         "completed": "اكتمل",
         "failed": "فشل",
-        "processing": "جارٍ المعالجة"
+        "processing": "جارٍ المعالجة",
+        "staging": "التجهيز",
+        "running": "قيد التشغيل",
+        "paused": "متوقف مؤقتًا"
       },
       "badges": {
         "pending": "{{count}} معلّق",
@@ -408,7 +430,33 @@
       "view_list": "عرض اللائحة",
       "delete_dialog_title": "حذف جلسة الاستيراد",
       "delete_dialog_description": "هل أنت متأكد أنك تريد حذف \" {{name}} \"؟ لا يمكن التراجع عن هذا الإجراء. لن يتم حذف الإشارات المرجعية نفسها.",
-      "delete_session": "حذف الجلسة"
+      "delete_session": "حذف الجلسة",
+      "pause_session": "إيقاف مؤقت",
+      "resume_session": "استئناف التشغيل",
+      "view_details": "عرض التفاصيل",
+      "detail": {
+        "page_title": "استيراد تفاصيل الجلسة",
+        "back_to_import": "العودة إلى الاستيراد",
+        "filter_all": "الكل",
+        "filter_accepted": "مقبولة",
+        "filter_rejected": "مرفوضة",
+        "filter_duplicates": "مكررات",
+        "filter_pending": "قيد الانتظار",
+        "table_title": "العنوان / URL",
+        "table_type": "النوع",
+        "table_result": "النتيجة",
+        "table_reason": "السبب",
+        "table_bookmark": "إشارة مرجعية",
+        "result_accepted": "مقبولة",
+        "result_rejected": "مرفوضة",
+        "result_skipped_duplicate": "مكرر",
+        "result_pending": "قيد الانتظار",
+        "result_processing": "معالجة",
+        "no_results": "لم يتم العثور على نتائج لهذا الفلتر.",
+        "view_bookmark": "عرض الإشارة المرجعية",
+        "load_more": "تحميل المزيد",
+        "no_title": "لا يوجد عنوان"
+      }
     },
     "backups": {
       "backups": "النُسخ الاحتياطية",
@@ -549,7 +597,10 @@
         "reindex_all_bookmarks": "إعادة فهرسة جميع الإشارات المرجعية",
         "clean_assets": "تنظيف الأصول المتدلية وإعادة مزامنة البيانات الوصفية",
         "reprocess_assets_fix_mode": "إعادة معالجة الأصول غير المعالجة",
-        "migrate_large_link_html_content": "نقل محتوى HTML كبير مضمّن إلى الأصول"
+        "migrate_large_link_html_content": "نقل محتوى HTML كبير مضمّن إلى الأصول",
+        "recrawl_pending_links_only": "إعادة فهرسة الروابط المعلّقة فقط",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "إعادة إنشاء وسوم الذكاء الاصطناعي للإشارات المرجعية المعلّقة فقط",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "إعادة إنشاء ملخصات الذكاء الاصطناعي للإشارات المرجعية المعلّقة فقط"
       }
     },
     "actions": {
@@ -588,11 +639,50 @@
         "connected": "متصل",
         "disconnected": "قطع الاتصال"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "أدوات المشرف",
+      "bookmark_debugger": "تصحيح أخطاء الإشارات المرجعية",
+      "bookmark_id": "معرف الإشارة المرجعية",
+      "bookmark_id_placeholder": "أدخل معرف الإشارة المرجعية",
+      "lookup": "بحث",
+      "debug_info": "معلومات التصحيح",
+      "basic_info": "معلومات أساسية",
+      "status": "الحالة",
+      "content": "المحتوى",
+      "html_preview": "معاينة HTML (أول 1000 حرف)",
+      "summary": "ملخص",
+      "url": "عنوان URL",
+      "source_url": "عنوان URL للمصدر",
+      "asset_type": "نوع الأصل",
+      "file_name": "اسم الملف",
+      "owner_user_id": "معرف المستخدم المالك",
+      "tagging_status": "حالة وضع العلامات",
+      "summarization_status": "حالة التلخيص",
+      "crawl_status": "حالة الزحف",
+      "crawl_status_code": "رمز حالة HTTP",
+      "crawled_at": "تمت الزحف في",
+      "recrawl": "إعادة الزحف",
+      "reindex": "إعادة الفهرسة",
+      "retag": "إعادة الوسم",
+      "resummarize": "إعادة التلخيص",
+      "bookmark_not_found": "لم يتم العثور على إشارة مرجعية",
+      "action_success": "اكتمل الإجراء بنجاح",
+      "action_failed": "فشل الإجراء",
+      "recrawl_queued": "تمت إضافة مهمة إعادة الزحف إلى قائمة الانتظار",
+      "reindex_queued": "تمت إضافة مهمة إعادة الفهرسة إلى قائمة الانتظار",
+      "retag_queued": "تمت إضافة مهمة إعادة وضع العلامات إلى قائمة الانتظار",
+      "resummarize_queued": "تمت إضافة مهمة إعادة التلخيص إلى قائمة الانتظار",
+      "view": "عرض",
+      "fetch_error": "خطأ في جلب الإشارة المرجعية"
     }
   },
   "options": {
     "dark_mode": "الوضع الداكن",
-    "light_mode": "الوضع الفاتح"
+    "light_mode": "الوضع الفاتح",
+    "apps_extensions": "التطبيقات والإضافات",
+    "documentation": "الوثائق",
+    "follow_us_on_x": "تابعنا على X"
   },
   "lists": {
     "all_lists": "جميع القوائم",
@@ -702,7 +792,9 @@
     "no_ai_tags": "لا توجد علامات ذكاء اصطناعي حتى الآن",
     "no_unused_tags": "ليس لديك أية علامات غير مستخدمة",
     "no_unused_tags_match_your_search": "لا توجد علامات غير مستخدمة تطابق بحثك",
-    "no_tags_match_your_search": "لا توجد علامات تطابق بحثك"
+    "no_tags_match_your_search": "لا توجد علامات تطابق بحثك",
+    "search_placeholder": "البحث عن العلامات...",
+    "search_or_create_placeholder": "البحث عن العلامات أو إنشائها..."
   },
   "search": {
     "is_favorited": "في المفضلة",
@@ -749,7 +841,9 @@
     "filters": "الفلاتر",
     "is_not_broken_link": "لديه رابط صالح",
     "lists": "القوائم",
-    "feeds": "خلاصات الأخبار"
+    "feeds": "خلاصات الأخبار",
+    "is_from_source": "المصدر هو",
+    "is_not_from_source": "المصدر ليس"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",
@@ -759,7 +853,13 @@
       "content": "المحتوى",
       "details": "التفاصيل"
     },
-    "archive_info": "قد لا يتم عرض الأرشيفات بشكل صحيح في السطر إذا كانت تتطلب Javascript. للحصول على أفضل النتائج، <1>قم بتنزيلها وافتحها في متصفحك</1>."
+    "archive_info": "قد لا يتم عرض الأرشيفات بشكل صحيح في السطر إذا كانت تتطلب Javascript. للحصول على أفضل النتائج، <1>قم بتنزيلها وافتحها في متصفحك</1>.",
+    "fetch_error_title": "المحتوى غير متوفر",
+    "fetch_error_description": "تعذر علينا جلب المحتوى لهذا الرابط. قد تكون الصفحة محمية أو تتطلب مصادقة أو قد تكون غير متاحة مؤقتًا.",
+    "crawling_in_progress": "جاري جلب محتوى الصفحة…",
+    "continue_reading": "استمر من حيث توقفت",
+    "continue_reading_percent": "استمر من حيث توقفت ({{percent}}%)",
+    "continue_button": "استمر"
   },
   "editor": {
     "quickly_focus": "يمكنك التركيز سريعاً على هذا الحقل بالضغط على ⌘ + E",
@@ -834,7 +934,9 @@
       "full_page_archive": "تم بدء إنشاء أرشيف الصفحة الكامل",
       "delete_from_list": "تم حذف الإشارة المرجعية من القائمة",
       "clipboard_copied": "تم نسخ الرابط إلى الحافظة!",
-      "preserve_pdf": "تم تشغيل حفظ PDF"
+      "preserve_pdf": "تم تشغيل حفظ PDF",
+      "update_banner": "تم تحديث البانر!",
+      "uploading_banner": "جاري رفع البانر..."
     },
     "lists": {
       "created": "تم إنشاء القائمة!",
@@ -891,5 +993,54 @@
     "no_release_notes": "لم يتم نشر ملاحظات إصدار لهذا الإصدار.",
     "release_notes_synced": "تتم مزامنة ملاحظات الإصدار من GitHub.",
     "view_on_github": "عرض على GitHub"
+  },
+  "wrapped": {
+    "title": "ملخص {{year}} الخاص بك",
+    "subtitle": "عام في Karakeep",
+    "banner": {
+      "title": "ملخص 2025 الخاص بك جاهز!",
+      "description": "اطلع على عامك في الإشارات المرجعية",
+      "view_now": "اعرض الآن"
+    },
+    "button": "ملخص 2025",
+    "loading": "جارٍ تحميل الملخص الخاص بك...",
+    "failed_to_load": "فشل تحميل إحصائيات الملخص الخاص بك",
+    "sections": {
+      "total_saves": {
+        "prefix": "لقد حفظت",
+        "suffix": "العناصر لهذه السنة",
+        "suffix_singular": "عنصر هذه السنة"
+      },
+      "first_bookmark": {
+        "title": "رحلتك بدأت",
+        "description": "أول حفظ لـ {{year}}:"
+      },
+      "top_domains": "أهم مواقعك",
+      "top_tags": "أهم علاماتك",
+      "monthly_activity": "عامك في عمليات الحفظ",
+      "most_active_day": "اليوم الأكثر نشاطًا لك",
+      "peak_times": {
+        "title": "متى تحفظ",
+        "peak_hour": "ساعة الذروة",
+        "peak_day": "يوم الذروة"
+      },
+      "how_you_save": "كيف تحفظ",
+      "what_you_saved": "ماذا حفظت",
+      "summary": {
+        "favorites": "المفضلة",
+        "tags_created": "العلامات التي تم إنشاؤها",
+        "highlights": "أبرز النقاط"
+      },
+      "types": {
+        "links": "الروابط",
+        "notes": "الملاحظات",
+        "assets": "الأصول"
+      }
+    },
+    "footer": "صُنع بواسطة Karakeep",
+    "share": "شارك",
+    "download": "تنزيل",
+    "close": "إغلاق",
+    "generating": "جارٍ الإنشاء..."
   }
 }

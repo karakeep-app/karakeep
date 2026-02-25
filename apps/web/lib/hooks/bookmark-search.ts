@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 
@@ -11,9 +11,22 @@ import { useInSearchPageStore } from "../store/useInSearchPageStore";
 function useSearchQuery() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
+  const pathname = usePathname();
+  const lastQuery = useRef(searchQuery);
 
-  const parsed = useMemo(() => parseSearchQuery(searchQuery), [searchQuery]);
-  return { searchQuery, parsedSearchQuery: parsed };
+  // Only update the effective search query when on the search page.
+  // This prevents the query from resetting when intercepting routes
+  // change the URL (e.g., opening a bookmark preview dialog).
+  if (pathname.startsWith("/dashboard/search")) {
+    lastQuery.current = searchQuery;
+  }
+
+  const effectiveQuery = lastQuery.current;
+  const parsed = useMemo(
+    () => parseSearchQuery(effectiveQuery),
+    [effectiveQuery],
+  );
+  return { searchQuery: effectiveQuery, parsedSearchQuery: parsed };
 }
 
 export function useDoBookmarkSearch() {

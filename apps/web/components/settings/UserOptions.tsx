@@ -8,7 +8,7 @@ import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
 import { updateInterfaceLang } from "@/lib/userLocalSettings/userLocalSettings";
 import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Archive, Bookmark, Clock, Globe } from "lucide-react";
+import { Archive, Bookmark, Clock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,7 +19,6 @@ import {
   zUserSettingsSchema,
 } from "@karakeep/shared/types/users";
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Form, FormField } from "../ui/form";
 import { Label } from "../ui/label";
 import {
@@ -29,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { SettingsSection } from "./SettingsPage";
 
 const LanguageSelect = () => {
   const lang = useInterfaceLang();
@@ -139,142 +139,132 @@ export default function UserOptions() {
 
   return (
     <Form {...form}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2  text-xl">
-            <Globe className="h-5 w-5" />
-            {t("settings.info.options")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              {t("settings.info.interface_lang")}
-            </Label>
-            <LanguageSelect />
-          </div>
+      <SettingsSection title={t("settings.info.options")}>
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            {t("settings.info.interface_lang")}
+          </Label>
+          <LanguageSelect />
+        </div>
 
+        <FormField
+          control={form.control}
+          name="timezone"
+          render={({ field }) => (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Clock className="h-4 w-4" />
+                Timezone
+              </Label>
+              <Select
+                disabled={!!clientConfig.demoMode || timezones === null}
+                value={field.value}
+                onValueChange={(value) => {
+                  mutate({
+                    timezone: value,
+                  });
+                }}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue>
+                    {timezones?.find(
+                      (tz: { value: string; label: string }) =>
+                        tz.value === field.value,
+                    )?.label || field.value}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {timezones?.map((tz: { value: string; label: string }) => (
+                    <SelectItem key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        />
+
+        <div className="grid grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="timezone"
+            name="bookmarkClickAction"
             render={({ field }) => (
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-sm font-medium">
-                  <Clock className="h-4 w-4" />
-                  Timezone
+                  <Bookmark className="h-4 w-4" />
+                  {t("settings.info.user_settings.bookmark_click_action.title")}
                 </Label>
                 <Select
-                  disabled={!!clientConfig.demoMode || timezones === null}
+                  disabled={!!clientConfig.demoMode}
                   value={field.value}
                   onValueChange={(value) => {
                     mutate({
-                      timezone: value,
+                      bookmarkClickAction:
+                        value as ZUserSettings["bookmarkClickAction"],
                     });
                   }}
                 >
                   <SelectTrigger className="h-11">
                     <SelectValue>
-                      {timezones?.find(
-                        (tz: { value: string; label: string }) =>
-                          tz.value === field.value,
-                      )?.label || field.value}
+                      {bookmarkClickActionTranslation[field.value]}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {timezones?.map((tz: { value: string; label: string }) => (
-                      <SelectItem key={tz.value} value={tz.value}>
-                        {tz.label}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(bookmarkClickActionTranslation).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             )}
           />
 
-          <div className="grid grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="bookmarkClickAction"
-              render={({ field }) => (
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-sm font-medium">
-                    <Bookmark className="h-4 w-4" />
-                    {t(
-                      "settings.info.user_settings.bookmark_click_action.title",
+          <FormField
+            control={form.control}
+            name="archiveDisplayBehaviour"
+            render={({ field }) => (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-sm font-medium">
+                  <Archive className="h-4 w-4" />
+                  {t(
+                    "settings.info.user_settings.archive_display_behaviour.title",
+                  )}
+                </Label>
+                <Select
+                  disabled={!!clientConfig.demoMode}
+                  value={field.value}
+                  onValueChange={(value) => {
+                    mutate({
+                      archiveDisplayBehaviour:
+                        value as ZUserSettings["archiveDisplayBehaviour"],
+                    });
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue>
+                      {archiveDisplayBehaviourTranslation[field.value]}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(archiveDisplayBehaviourTranslation).map(
+                      ([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ),
                     )}
-                  </Label>
-                  <Select
-                    disabled={!!clientConfig.demoMode}
-                    value={field.value}
-                    onValueChange={(value) => {
-                      mutate({
-                        bookmarkClickAction:
-                          value as ZUserSettings["bookmarkClickAction"],
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue>
-                        {bookmarkClickActionTranslation[field.value]}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(bookmarkClickActionTranslation).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="archiveDisplayBehaviour"
-              render={({ field }) => (
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 text-sm font-medium">
-                    <Archive className="h-4 w-4" />
-                    {t(
-                      "settings.info.user_settings.archive_display_behaviour.title",
-                    )}
-                  </Label>
-                  <Select
-                    disabled={!!clientConfig.demoMode}
-                    value={field.value}
-                    onValueChange={(value) => {
-                      mutate({
-                        archiveDisplayBehaviour:
-                          value as ZUserSettings["archiveDisplayBehaviour"],
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue>
-                        {archiveDisplayBehaviourTranslation[field.value]}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(archiveDisplayBehaviourTranslation).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ),
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            />
-          </div>
-        </CardContent>
-      </Card>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          />
+        </div>
+      </SettingsSection>
     </Form>
   );
 }

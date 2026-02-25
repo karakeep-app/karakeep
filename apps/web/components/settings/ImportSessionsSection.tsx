@@ -7,6 +7,7 @@ import { Package } from "lucide-react";
 
 import { FullPageSpinner } from "../ui/full-page-spinner";
 import { ImportSessionCard } from "./ImportSessionCard";
+import { SettingsSection } from "./SettingsPage";
 
 export function ImportSessionsSection() {
   const { t } = useTranslation();
@@ -14,25 +15,21 @@ export function ImportSessionsSection() {
 
   if (isLoading) {
     return (
-      <div className="flex w-full flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">
-            {t("settings.import_sessions.title")}
-          </h3>
-        </div>
+      <SettingsSection
+        title={t("settings.import_sessions.title")}
+        description={t("settings.import_sessions.description")}
+      >
         <FullPageSpinner />
-      </div>
+      </SettingsSection>
     );
   }
 
   if (error) {
     return (
-      <div className="flex w-full flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">
-            {t("settings.import_sessions.title")}
-          </h3>
-        </div>
+      <SettingsSection
+        title={t("settings.import_sessions.title")}
+        description={t("settings.import_sessions.description")}
+      >
         <Card>
           <CardContent className="flex items-center justify-center py-8">
             <p className="text-gray-600">
@@ -40,21 +37,15 @@ export function ImportSessionsSection() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </SettingsSection>
     );
   }
 
   return (
-    <div className="flex w-full flex-col gap-4">
-      <div>
-        <h3 className="text-lg font-medium">
-          {t("settings.import_sessions.title")}
-        </h3>
-        <p className="mt-1 text-sm text-accent-foreground">
-          {t("settings.import_sessions.description")}
-        </p>
-      </div>
-
+    <SettingsSection
+      title={t("settings.import_sessions.title")}
+      description={t("settings.import_sessions.description")}
+    >
       {sessions && sessions.length > 0 ? (
         <div className="space-y-4">
           {sessions.map((session) => (
@@ -74,6 +65,6 @@ export function ImportSessionsSection() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </SettingsSection>
   );
 }

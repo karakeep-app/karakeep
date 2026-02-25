@@ -101,7 +101,10 @@
         "reindex_all_bookmarks": "Ponovno indeksiraj sve oznake",
         "clean_assets": "Očisti viseću imovinu i ponovno sinkroniziraj metapodatke",
         "reprocess_assets_fix_mode": "Ponovno obradi neobrađenu imovinu",
-        "migrate_large_link_html_content": "Premjesti veliki Inline HTML sadržaj u resurse"
+        "migrate_large_link_html_content": "Premjesti veliki Inline HTML sadržaj u resurse",
+        "recrawl_pending_links_only": "Ponovno indeksiraj samo poveznice na čekanju",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Generiraj AI oznake samo za knjižne oznake na čekanju",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generiraj AI sažetke samo za knjižne oznake na čekanju"
       }
     },
     "actions": {
@@ -127,6 +130,42 @@
         "connected": "Spojeno",
         "disconnected": "Odspojeno"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Admin Alati",
+      "bookmark_debugger": "Ispravljač pogrešaka oznake",
+      "bookmark_id": "ID oznake",
+      "bookmark_id_placeholder": "Unesi ID oznake",
+      "lookup": "Traži",
+      "debug_info": "Informacije za ispravljanje pogrešaka",
+      "basic_info": "Osnovne informacije",
+      "status": "Status",
+      "content": "Sadržaj",
+      "html_preview": "HTML Pregled (Prvih 1000 znakova)",
+      "summary": "Sažetak",
+      "url": "URL",
+      "source_url": "Izvorni URL",
+      "asset_type": "Vrsta Imovine",
+      "file_name": "Naziv datoteke",
+      "owner_user_id": "ID korisnika vlasnika",
+      "tagging_status": "Status označavanja",
+      "summarization_status": "Status sažimanja",
+      "crawl_status": "Status indeksiranja",
+      "crawl_status_code": "HTTP status kod",
+      "crawled_at": "Puzano u",
+      "recrawl": "Ponovno puzanje",
+      "reindex": "Ponovna indeksacija",
+      "retag": "Ponovno označavanje",
+      "resummarize": "Ponovno sažimanje",
+      "bookmark_not_found": "Oznaka nije pronađena",
+      "action_success": "Radnja je uspješno dovršena",
+      "action_failed": "Radnja nije uspjela",
+      "recrawl_queued": "Posao ponovnog puzanja je u redu čekanja",
+      "reindex_queued": "Posao ponovne indeksacije je u redu čekanja",
+      "retag_queued": "Posao ponovnog označavanja je u redu čekanja",
+      "resummarize_queued": "Posao ponovnog sažimanja je u redu čekanja",
+      "view": "Prikaži",
+      "fetch_error": "Greška pri dohvaćanju oznake"
     }
   },
   "layouts": {
@@ -177,7 +216,9 @@
     "bookmarks": "Oznake",
     "storage": "Pohrana",
     "pdf": "Arhivirani PDF",
-    "default": "Zadano"
+    "default": "Zadano",
+    "id": "ID",
+    "last_used": "Zadnje korišteno"
   },
   "settings": {
     "ai": {
@@ -205,7 +246,12 @@
       "tag_style_description": "Odaberi kako će tvoje automatski generirane oznake biti formatirane.",
       "auto_tagging_description": "Automatski generiraj oznake za svoje knjižne oznake pomoću AI-ja.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatsko sažimanje"
+      "auto_summarization": "Automatsko sažimanje",
+      "no_preference": "Bez preferencija",
+      "curated_tags": "Odabrane oznake",
+      "curated_tags_description": "Po želji ograniči AI označavanje samo na upotrebu oznaka s ovog popisa. Kada nema odabranih oznaka, AI slobodno generira oznake.",
+      "curated_tags_updated": "Odabrane oznake su uspješno ažurirane!",
+      "curated_tags_update_failed": "Nije uspjelo ažuriranje odabranih oznaka"
     },
     "import": {
       "import_bookmarks_from_html_file": "Import knjižnih oznaka iz HTML datoteke",
@@ -219,7 +265,8 @@
       "imported_bookmarks": "Importirane oznake",
       "import_bookmarks_from_omnivore_export": "Import oznaka iz Omnivore exporta",
       "import_bookmarks_from_tab_session_manager_export": "Uvezi oznake iz Tab Session Managera",
-      "import_bookmarks_from_mymind_export": "Uvezi oznake iz mymind izvoza"
+      "import_bookmarks_from_mymind_export": "Uvezi oznake iz mymind izvoza",
+      "import_bookmarks_from_instapaper_export": "Uvezi oznake iz eksporta Instapaper računa"
     },
     "back_to_app": "Povratak u aplikaciju",
     "user_settings": "Postavke korisnika",
@@ -351,7 +398,10 @@
         "imported_from_feed": "Uvezeno iz feeda",
         "bookmark_type_is": "Vrsta bookmaka je",
         "has_tag": "Ima oznaku",
-        "is_favourited": "Je li označeno kao omiljeno"
+        "is_favourited": "Je li označeno kao omiljeno",
+        "url_does_not_contain": "URL ne sadrži",
+        "title_contains": "Naslov sadrži",
+        "title_does_not_contain": "Naslov ne sadrži"
       },
       "actions_types": {
         "add_tag": "Dodaj oznaku",
@@ -476,7 +526,10 @@
         "in_progress": "U tijeku",
         "completed": "Završeno",
         "failed": "Neuspjelo",
-        "processing": "Obrada"
+        "processing": "Obrada",
+        "staging": "Priprema",
+        "running": "U tijeku",
+        "paused": "Pauzirano"
       },
       "badges": {
         "pending": "{{count}} na čekanju",
@@ -488,7 +541,33 @@
       "view_list": "Vidite popis",
       "delete_dialog_title": "Izbriši sesiju uvoza",
       "delete_dialog_description": "Jesi li ziher da želiš izbrisati \"{{name}}\"? Ne možeš to poništiti. Same oznake neće biti izbrisane.",
-      "delete_session": "Izbriši sesiju"
+      "delete_session": "Izbriši sesiju",
+      "pause_session": "Pauziraj",
+      "resume_session": "Nastavi",
+      "view_details": "Pogledaj detalje",
+      "detail": {
+        "page_title": "Detalji sesije uvoza",
+        "back_to_import": "Natrag na uvoz",
+        "filter_all": "Sve",
+        "filter_accepted": "Prihvaćeno",
+        "filter_rejected": "Odbijeno",
+        "filter_duplicates": "Duplikati",
+        "filter_pending": "Na čekanju",
+        "table_title": "Naslov / URL",
+        "table_type": "Vrsta",
+        "table_result": "Rezultat",
+        "table_reason": "Razlog",
+        "table_bookmark": "Oznaka",
+        "result_accepted": "Prihvaćeno",
+        "result_rejected": "Odbijeno",
+        "result_skipped_duplicate": "Duplikat",
+        "result_pending": "Na čekanju",
+        "result_processing": "Obrada",
+        "no_results": "Nema rezultata za ovaj filtar.",
+        "view_bookmark": "Pogledaj oznaku",
+        "load_more": "Učitaj više",
+        "no_title": "Bez naslova"
+      }
     },
     "backups": {
       "backups": "Sigurnosne kopije",
@@ -585,14 +664,25 @@
     "load_more": "Učitaj više",
     "edit_notes": "Uredi bilješke",
     "preserve_as_pdf": "Spremi kao PDF",
-    "offline_copies": "Izvanmrežne kopije"
+    "offline_copies": "Izvanmrežne kopije",
+    "preserve_offline_archive": "Spremi izvanmrežnu arhivu",
+    "download_full_page_archive_file": "Preuzmi arhivsku datoteku",
+    "download_pdf_file": "Preuzmi PDF datoteku",
+    "remove": "Ukloni",
+    "more": "Više",
+    "replace_banner": "Zamijeni banner",
+    "add_banner": "Dodaj banner",
+    "download": "Preuzmi"
   },
   "highlights": {
     "no_highlights": "Još nemate nijednu istaknutu stavku."
   },
   "options": {
     "dark_mode": "Dark Mode",
-    "light_mode": "Light Mode"
+    "light_mode": "Light Mode",
+    "apps_extensions": "Aplikacije i proširenja",
+    "documentation": "Dokumentacija",
+    "follow_us_on_x": "Prati nas na X-u"
   },
   "lists": {
     "all_lists": "Svi popisi",
@@ -702,7 +792,9 @@
     "no_ai_tags": "Još nema AI oznaka",
     "no_unused_tags": "Nemaš neiskorištenih oznaka",
     "no_unused_tags_match_your_search": "Nijedna neiskorištena oznaka ne odgovara pretrazi",
-    "no_tags_match_your_search": "Nijedna oznaka ne odgovara pretrazi"
+    "no_tags_match_your_search": "Nijedna oznaka ne odgovara pretrazi",
+    "search_placeholder": "Pretraži oznake...",
+    "search_or_create_placeholder": "Pretraži ili stvori oznake..."
   },
   "preview": {
     "view_original": "Pogledaj orginal",
@@ -712,7 +804,13 @@
       "content": "Sadržaj",
       "details": "Detalji"
     },
-    "archive_info": "Arhive se možda neće ispravno prikazati inline ako zahtijevaju Javascript. Za najbolje rezultate, <1>preuzmite ih i otvorite u svom pregledniku</1>."
+    "archive_info": "Arhive se možda neće ispravno prikazati inline ako zahtijevaju Javascript. Za najbolje rezultate, <1>preuzmite ih i otvorite u svom pregledniku</1>.",
+    "fetch_error_title": "Sadržaj nije dostupan",
+    "fetch_error_description": "Nismo uspjeli dohvatiti sadržaj za ovu poveznicu. Stranica je možda zaštićena, zahtijeva autentifikaciju ili je privremeno nedostupna.",
+    "crawling_in_progress": "Dohvaćam sadržaj stranice…",
+    "continue_reading": "Nastavi gdje si stao",
+    "continue_reading_percent": "Nastavi gdje si stao ({{percent}}%)",
+    "continue_button": "Nastavi"
   },
   "editor": {
     "quickly_focus": "Možete brzo fokusirati ovo polje pritiskanjem ⌘ + E",
@@ -781,7 +879,9 @@
       "full_page_archive": "Pokrenuto je stvaranje potpune arhive stranice",
       "delete_from_list": "Oznaka je izbrisana s popisa",
       "clipboard_copied": "Veza je dodana u vaš međuspremnik!",
-      "preserve_pdf": "Spremanje u PDF formatu je pokrenuto"
+      "preserve_pdf": "Spremanje u PDF formatu je pokrenuto",
+      "update_banner": "Banner je ažuriran!",
+      "uploading_banner": "Učitavanje bannera..."
     },
     "lists": {
       "created": "Popis je kreiran!",
@@ -846,7 +946,9 @@
     "filters": "Filtri",
     "is_not_broken_link": "Ima radni link",
     "lists": "Popisi",
-    "feeds": "Kanali"
+    "feeds": "Kanali",
+    "is_from_source": "Izvor je",
+    "is_not_from_source": "Izvor nije"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Za ovu verziju nisu objavljene bilješke o izdanju.",
     "release_notes_synced": "Bilješke o izdanju sinkronizirane su s GitHuba.",
     "view_on_github": "Pogledaj na GitHubu"
+  },
+  "wrapped": {
+    "title": "Tvoj {{year}} sažetak",
+    "subtitle": "Godina u Karakeepu",
+    "banner": {
+      "title": "Tvoj 2025 sažetak je spreman!",
+      "description": "Pogledajte svoju godinu u oznakama",
+      "view_now": "Pogledaj sada"
+    },
+    "button": "2025 Sažetak",
+    "loading": "Učitavanje tvog sažetka...",
+    "failed_to_load": "Nije uspjelo učitavanje statistike tvog sažetka",
+    "sections": {
+      "total_saves": {
+        "prefix": "Spremio si",
+        "suffix": "artikala ove godine",
+        "suffix_singular": "artikl ove godine"
+      },
+      "first_bookmark": {
+        "title": "Tvoje putovanje je počelo",
+        "description": "Prvo spremanje {{year}}.:"
+      },
+      "top_domains": "Tvoje najjače stranice",
+      "top_tags": "Tvoje najjače oznake",
+      "monthly_activity": "Tvoja godina spremanja",
+      "most_active_day": "Tvoj najaktivniji dan",
+      "peak_times": {
+        "title": "Kada spremaš",
+        "peak_hour": "Vrhunac sata",
+        "peak_day": "Vrhunac dana"
+      },
+      "how_you_save": "Kako spremaš",
+      "what_you_saved": "Što si spremio",
+      "summary": {
+        "favorites": "Favoriti",
+        "tags_created": "Kreirane oznake",
+        "highlights": "Najbitnije"
+      },
+      "types": {
+        "links": "Linkovi",
+        "notes": "Bilješke",
+        "assets": "Sredstva"
+      }
+    },
+    "footer": "Napravljeno s Karakeepom",
+    "share": "Podijeli",
+    "download": "Preuzmi",
+    "close": "Zatvori",
+    "generating": "Generiram..."
   }
 }

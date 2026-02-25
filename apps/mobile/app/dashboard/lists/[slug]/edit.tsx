@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Button } from "@/components/ui/Button";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
@@ -83,7 +82,7 @@ const EditListPage = () => {
   const isPending = fetchIsPending || editIsPending;
 
   return (
-    <CustomSafeAreaView>
+    <>
       {isPending ? (
         <FullPageSpinner />
       ) : (
@@ -149,7 +148,7 @@ const EditListPage = () => {
           </Button>
         </View>
       )}
-    </CustomSafeAreaView>
+    </>
   );
 };
 

@@ -1,0 +1,71 @@
+---
+id: update-a-list
+title: "Update a list"
+description: "Update list by its id"
+sidebar_label: "Update a list"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVk1v4zYQ/SvEnFqAtZ1iF13o5gYtmnaBBqkXPRg6jMWxxUQitSQVWxX03xdDyZYdK1kUiA+GSI7m4817Q7WgyGdOV0FbAwl8qRQGEoX2QWwaoYMXWoGEgDsPyRo+ax88pBI8ZbXToYFk3cKG0JFb1iGHZJ12qYQKHZYUyPlo4LOcSoSkhdBUBAn44LTZgQQ6YFkVvKVJq+LQ7Mr946df7OG/j/khBJt94ug6RBOOfqegk+Doa60dKUiCq0mCwZINit5AguZiKgw5cDZsTT78alXDOVyWvMpJKAwoghV1LH8m/jZFI0JOYqupUF40thZ7NGG0EYZI8XJDonL2WStSM5CQWRPIBA6DVVXoDDnM/NFzrAkg7OaRsgASKmcrckGT59O+nmu4Sm0+k9kx0DcSSjycVotFJy8ru37b1EWBG4ayR+3M2+LC28foTWdTbrrYXTIM9HdjdBK+1uSa79XCTutNobMzw421BaGBLv64i76yxvcA/bxYTLeyb4+KFH6/fuiJWjv5Spv+byPeDereYEJkpi5ZvSWaGguQ4Et0gWWsaIt1ESA5nr3VsKt4r7dMQo7+1rK9dRis89NWtSf3YIs3s7Z7Q47XSgfLD8+a9nFniJ92FxNhDXFkxd4MyJ7heHprIsWzfNLLqQM9BT8sPlyzjs+FsUFsbW3U+3Eus2qaXCV5j7upsxc4RA+jfToIqaSQW9UPyCyP4LAIYc6a8fO2n6Id84Tc83GG166ABFpUypH33RwrPX++4Xag00yLmPRw3KN05FYeQuWT+Ty4ZvaEDp+IqhlWFcgJAQ8ehN3GCfzXYC/6XLgRZ9fPP4xlH/n8EjoBw5G5jmjG1ItGIIeH360rkTP8899VRI979DDeFr8db6fjRB7ZeZn4absX8rge9TvuDQI7Mxp0dBwGZms5JEPfu7+ZLWaLs4vwBMry/m4SxOX9ndhad4kgI86qtT6UaM6KGm59PA7NF9PrxOfXPw96tAMdwrwqUPfaZsK0A7nW8W5miSXDJZ1KyK0PfNS2G/T0xRVdx9sDPut05FZkoNKenxUkWyw8vZHnDw+DCn4Ur2U3bKJpIoWLmlcg4Yma8UOiS3mSESpyMYP+8LaP89OKXYwvX2m9k8c3lllGVXjTNj3T5f1ydfsHk3T4YCnjJACHe5DxP2ZqY+GR+3GvhQLNro6TAXqnTGm8VMQLBcSyJrFo295iZZ/IdN0JmsBrRqbrvgEFSoAx
+sidebar_class_name: "patch api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update a list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/lists/{listId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Update list by its id
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"ListId"},"required":true,"name":"listId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The data to update. Only the fields you want to update need to be provided.","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":100},"description":{"type":"string","nullable":true,"minLength":0,"maxLength":500},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"query":{"type":"string","minLength":1},"public":{"type":"boolean"}}}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The updated list","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}}},"404":{"description":"List not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

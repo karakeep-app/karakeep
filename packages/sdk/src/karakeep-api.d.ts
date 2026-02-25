@@ -189,6 +189,49 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/bookmarks/check-url": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Check if a URL exists in bookmarks
+     * @description Check if a URL is already bookmarked. Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.
+     */
+    get: {
+      parameters: {
+        query: {
+          url: string;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Object indicating whether the URL is bookmarked. bookmarkId is null if not found. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              bookmarkId: string | null;
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/bookmarks/{bookmarkId}": {
     parameters: {
       query?: never;
@@ -470,6 +513,11 @@ export interface paths {
             tags: {
               tagId?: string;
               tagName?: string;
+              /**
+               * @default human
+               * @enum {string}
+               */
+              attachedBy?: "ai" | "human";
             }[];
           };
         };
@@ -520,6 +568,11 @@ export interface paths {
             tags: {
               tagId?: string;
               tagName?: string;
+              /**
+               * @default human
+               * @enum {string}
+               */
+              attachedBy?: "ai" | "human";
             }[];
           };
         };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { SettingsPage } from "@/components/settings/SettingsPage";
 import SubscriptionSettings from "@/components/settings/SubscriptionSettings";
 import { QuotaProgress } from "@/components/subscription/QuotaProgress";
 import { useTranslation } from "@/lib/i18n/server";
@@ -19,10 +20,13 @@ export default async function SubscriptionPage() {
     redirect("/settings");
   }
 
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
+
   return (
-    <div className="flex flex-col gap-4">
+    <SettingsPage title={t("settings.subscription.subscription")}>
       <SubscriptionSettings />
       <QuotaProgress />
-    </div>
+    </SettingsPage>
   );
 }

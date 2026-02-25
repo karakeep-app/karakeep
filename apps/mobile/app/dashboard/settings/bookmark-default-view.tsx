@@ -1,6 +1,5 @@
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
@@ -56,12 +55,11 @@ export default function BookmarkDefaultViewSettings() {
   options.pop();
 
   return (
-    <CustomSafeAreaView>
-      <View className="flex h-full w-full items-center px-4 py-2">
-        <View className="w-full rounded-lg bg-card bg-card px-4 py-2">
-          {options}
-        </View>
-      </View>
-    </CustomSafeAreaView>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="flex w-full items-center px-4 py-2"
+    >
+      <View className="w-full rounded-lg bg-card px-4 py-2">{options}</View>
+    </ScrollView>
   );
 }

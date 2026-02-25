@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
@@ -25,6 +25,8 @@ jobs:
       - name: Build iOS app
         working-directory: apps/mobile
         run: eas build --platform ios --local --non-interactive --output ${{ github.workspace }}/app-release.ipa
+        env:
+          EAS_SKIP_AUTO_FINGERPRINT: "1"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4

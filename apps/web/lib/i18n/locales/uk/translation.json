@@ -41,7 +41,9 @@
     "bookmarks": "Закладки",
     "storage": "Сховище",
     "pdf": "Архівні PDF",
-    "default": "За замовчуванням"
+    "default": "За замовчуванням",
+    "id": "ID",
+    "last_used": "Востаннє використано"
   },
   "actions": {
     "sign_out": "Вийти",
@@ -88,7 +90,15 @@
     "load_more": "Завантажити більше",
     "edit_notes": "Редагувати примітки",
     "preserve_as_pdf": "Зберегти як PDF",
-    "offline_copies": "Офлайн копії"
+    "offline_copies": "Офлайн копії",
+    "preserve_offline_archive": "Зберегти офлайн-архів",
+    "download_full_page_archive_file": "Завантажити файл архіву",
+    "download_pdf_file": "Завантажити PDF-файл",
+    "remove": "Видалити",
+    "more": "Більше",
+    "replace_banner": "Замінити банер",
+    "add_banner": "Додати банер",
+    "download": "Завантажити"
   },
   "settings": {
     "webhooks": {
@@ -202,7 +212,12 @@
       "tag_style_description": "Обери, як форматуватимуться твої автоматично створені теги.",
       "auto_tagging_description": "Автоматично генеруйте теги для своїх закладок за допомогою штучного інтелекту.",
       "camelCase": "camelCase",
-      "auto_summarization": "Автоматичне підсумовування"
+      "auto_summarization": "Автоматичне підсумовування",
+      "no_preference": "Без переваг",
+      "curated_tags": "Підібрані теги",
+      "curated_tags_description": "За бажанням, обмежте AI-тегування, щоб використовувати лише теги зі списку. Коли не вибрано жодного тегу, AI генерує теги вільно.",
+      "curated_tags_updated": "Підібрані теги успішно оновлено!",
+      "curated_tags_update_failed": "Не вдалося оновити підібрані теги"
     },
     "feeds": {
       "rss_subscriptions": "RSS-підписки",
@@ -222,7 +237,8 @@
       "export_links_and_notes": "Експорт посилань і нотаток",
       "imported_bookmarks": "Імпортовані закладки",
       "import_bookmarks_from_tab_session_manager_export": "Імпортувати закладки з Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Імпортувати закладки з експорту mymind"
+      "import_bookmarks_from_mymind_export": "Імпортувати закладки з експорту mymind",
+      "import_bookmarks_from_instapaper_export": "Імпортувати закладки з експорту Instapaper"
     },
     "api_keys": {
       "api_keys": "Ключі API",
@@ -261,7 +277,10 @@
         "is_favourited": "В обраних",
         "is_archived": "В архіві",
         "and": "Усі наступні умови є істинними",
-        "or": "Будь-яке з наступного є правдою"
+        "or": "Будь-яке з наступного є правдою",
+        "url_does_not_contain": "URL не містить",
+        "title_contains": "Назва містить",
+        "title_does_not_contain": "Назва не містить"
       },
       "enter_rule_name": "Введіть назву правила",
       "rules": "Механізм правил",
@@ -387,7 +406,10 @@
         "in_progress": "В процесі виконання",
         "completed": "Завершено",
         "failed": "Не вдалося",
-        "processing": "Обробка"
+        "processing": "Обробка",
+        "staging": "Підготовка",
+        "running": "Працює",
+        "paused": "Призупинено"
       },
       "badges": {
         "pending": "{{count}} в очікуванні",
@@ -399,7 +421,33 @@
       "view_list": "Перегляд списку",
       "delete_dialog_title": "Видалити сеанс імпорту",
       "delete_dialog_description": "Ви впевнені, що хочете видалити \"{{name}}\"? Цю дію неможливо скасувати. Самі закладки не буде видалено.",
-      "delete_session": "Видалити сесію"
+      "delete_session": "Видалити сесію",
+      "pause_session": "Призупинити",
+      "resume_session": "Відновити",
+      "view_details": "Перегляд деталей",
+      "detail": {
+        "page_title": "Деталі сеансу імпорту",
+        "back_to_import": "Назад до імпорту",
+        "filter_all": "Усі",
+        "filter_accepted": "Прийнято",
+        "filter_rejected": "Відхилено",
+        "filter_duplicates": "Дублікати",
+        "filter_pending": "В очікуванні",
+        "table_title": "Заголовок / URL",
+        "table_type": "Тип",
+        "table_result": "Результат",
+        "table_reason": "Причина",
+        "table_bookmark": "Закладка",
+        "result_accepted": "Прийнято",
+        "result_rejected": "Відхилено",
+        "result_skipped_duplicate": "Дублікат",
+        "result_pending": "В очікуванні",
+        "result_processing": "Обробка",
+        "no_results": "За цим фільтром нічого не знайдено.",
+        "view_bookmark": "Переглянути закладку",
+        "load_more": "Завантажити ще",
+        "no_title": "Без назви"
+      }
     },
     "backups": {
       "backups": "Резервні копії",
@@ -496,7 +544,9 @@
     "filters": "Фільтри",
     "is_not_broken_link": "Має дійсне посилання",
     "lists": "Списки",
-    "feeds": "Стрічки новин"
+    "feeds": "Стрічки новин",
+    "is_from_source": "Джерелом є",
+    "is_not_from_source": "Джерелом не є"
   },
   "preview": {
     "cached_content": "Кешований вміст",
@@ -506,7 +556,13 @@
       "details": "Деталі",
       "content": "Вміст"
     },
-    "archive_info": "Архіви можуть неправильно відображатися вбудовано, якщо їм потрібен Javascript. Для кращого результату, <1>завантажте їх і відкрийте у своєму браузері</1>."
+    "archive_info": "Архіви можуть неправильно відображатися вбудовано, якщо їм потрібен Javascript. Для кращого результату, <1>завантажте їх і відкрийте у своєму браузері</1>.",
+    "fetch_error_title": "Вміст недоступний",
+    "fetch_error_description": "Не вдалося отримати вміст за цим посиланням. Можливо, сторінка захищена, вимагає автентифікації або тимчасово недоступна.",
+    "crawling_in_progress": "Отримую вміст сторінки…",
+    "continue_reading": "Продовжити з місця, де зупинилися",
+    "continue_reading_percent": "Продовжити з місця, де зупинились ({{percent}}%)",
+    "continue_button": "Продовжити"
   },
   "layouts": {
     "masonry": "Кам'яна кладка",
@@ -606,7 +662,10 @@
         "reindex_all_bookmarks": "Переіндексувати всі закладки",
         "clean_assets": "Очистити завислі активи та повторно синхронізувати метадані",
         "reprocess_assets_fix_mode": "Повторно обробити необроблені активи",
-        "migrate_large_link_html_content": "Перемістіть великий вбудований HTML-вміст до ресурсів"
+        "migrate_large_link_html_content": "Перемістіть великий вбудований HTML-вміст до ресурсів",
+        "recrawl_pending_links_only": "Повторно сканувати лише відкладені посилання",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Згенерувати теги ШІ лише для відкладених закладок",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Згенерувати зведення ШІ лише для відкладених закладок"
       }
     },
     "actions": {
@@ -645,6 +704,42 @@
         "connected": "Підключено",
         "disconnected": "Відключено"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Інструменти адміністратора",
+      "bookmark_debugger": "Налагоджувач закладок",
+      "bookmark_id": "ID закладки",
+      "bookmark_id_placeholder": "Введіть ID закладки",
+      "lookup": "Пошук",
+      "debug_info": "Інформація для налагодження",
+      "basic_info": "Основна інформація",
+      "status": "Статус",
+      "content": "Вміст",
+      "html_preview": "Попередній перегляд HTML (перші 1000 символів)",
+      "summary": "Короткий зміст",
+      "url": "URL",
+      "source_url": "Вихідний URL",
+      "asset_type": "Тип активу",
+      "file_name": "Ім'я файлу",
+      "owner_user_id": "ID користувача-власника",
+      "tagging_status": "Статус тегування",
+      "summarization_status": "Статус підсумовування",
+      "crawl_status": "Статус сканування",
+      "crawl_status_code": "Код стану HTTP",
+      "crawled_at": "Проскановано",
+      "recrawl": "Повторне сканування",
+      "reindex": "Повторна індексація",
+      "retag": "Повторне позначення теґами",
+      "resummarize": "Повторне підсумовування",
+      "bookmark_not_found": "Закладку не знайдено",
+      "action_success": "Дію успішно завершено",
+      "action_failed": "Помилка дії",
+      "recrawl_queued": "Завдання повторного сканування додано до черги",
+      "reindex_queued": "Завдання повторної індексації додано до черги",
+      "retag_queued": "Завдання повторного позначення теґами додано до черги",
+      "resummarize_queued": "Завдання повторного підсумовування додано до черги",
+      "view": "Перегляд",
+      "fetch_error": "Помилка отримання закладки"
     }
   },
   "lists": {
@@ -755,7 +850,9 @@
     "no_ai_tags": "Ще немає теґів AI",
     "no_unused_tags": "У вас немає невикористаних теґів",
     "no_unused_tags_match_your_search": "Жоден з невикористаних теґів не відповідає вашому пошуку",
-    "no_tags_match_your_search": "Жоден теґ не відповідає вашому пошуку"
+    "no_tags_match_your_search": "Жоден теґ не відповідає вашому пошуку",
+    "search_placeholder": "Пошук тегів...",
+    "search_or_create_placeholder": "Шукайте або створюйте теги..."
   },
   "editor": {
     "multiple_urls_dialog_title": "Імпортувати URL-адреси як окремі закладки?",
@@ -824,7 +921,10 @@
   },
   "options": {
     "dark_mode": "Темний режим",
-    "light_mode": "Світлий режим"
+    "light_mode": "Світлий режим",
+    "apps_extensions": "Застосунки та розширення",
+    "documentation": "Документація",
+    "follow_us_on_x": "Слідкуйте за нами в X"
   },
   "toasts": {
     "bookmarks": {
@@ -834,7 +934,9 @@
       "clipboard_copied": "Посилання додано до вашого буфера обміну!",
       "updated": "Закладку оновлено!",
       "deleted": "Закладку видалено!",
-      "preserve_pdf": "Збереження PDF ініційовано"
+      "preserve_pdf": "Збереження PDF ініційовано",
+      "update_banner": "Банер оновлено!",
+      "uploading_banner": "Завантаження банера..."
     },
     "lists": {
       "created": "Список створено!",
@@ -891,5 +993,54 @@
     "no_release_notes": "Для цієї версії не було опубліковано жодних нотаток до випуску.",
     "release_notes_synced": "Нотатки до випуску синхронізовані з GitHub.",
     "view_on_github": "Переглянути на GitHub"
+  },
+  "wrapped": {
+    "title": "Твій підсумок за {{year}} рік",
+    "subtitle": "Рік у Karakeep",
+    "banner": {
+      "title": "Твій підсумок за 2025 рік готовий!",
+      "description": "Подивись свій рік у закладках",
+      "view_now": "Подивитись зараз"
+    },
+    "button": "Підсумок 2025",
+    "loading": "Завантаження підсумку...",
+    "failed_to_load": "Не вдалося завантажити статистику підсумку",
+    "sections": {
+      "total_saves": {
+        "prefix": "Ти зберіг",
+        "suffix": "штук цього року",
+        "suffix_singular": "штука цього року"
+      },
+      "first_bookmark": {
+        "title": "Твоя подорож почалася",
+        "description": "Перше збереження за {{year}}:"
+      },
+      "top_domains": "Топ твоїх сайтів",
+      "top_tags": "Твої головні теґи",
+      "monthly_activity": "Твій рік у збереженнях",
+      "most_active_day": "Твій найактивніший день",
+      "peak_times": {
+        "title": "Коли ти зберігаєш",
+        "peak_hour": "Година пік",
+        "peak_day": "День пік"
+      },
+      "how_you_save": "Як ти зберігаєш",
+      "what_you_saved": "Що ти зберігав",
+      "summary": {
+        "favorites": "Улюблене",
+        "tags_created": "Створено теґів",
+        "highlights": "Основні моменти"
+      },
+      "types": {
+        "links": "Посилання",
+        "notes": "Нотатки",
+        "assets": "Активи"
+      }
+    },
+    "footer": "Зроблено з допомогою Karakeep",
+    "share": "Поділитися",
+    "download": "Завантажити",
+    "close": "Закрити",
+    "generating": "Генерую..."
   }
 }

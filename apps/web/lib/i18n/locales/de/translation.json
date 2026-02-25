@@ -41,7 +41,9 @@
     "bookmarks": "Lesezeichen",
     "storage": "Speicher",
     "pdf": "Archivierte PDF-Datei",
-    "default": "Standard"
+    "default": "Standard",
+    "id": "ID",
+    "last_used": "Zuletzt verwendet"
   },
   "layouts": {
     "masonry": "Verschachtelt",
@@ -94,7 +96,15 @@
     "load_more": "Mehr laden",
     "edit_notes": "Notizen bearbeiten",
     "preserve_as_pdf": "Als PDF speichern",
-    "offline_copies": "Offline-Kopien"
+    "offline_copies": "Offline-Kopien",
+    "preserve_offline_archive": "Offline-Archiv behalten",
+    "download_full_page_archive_file": "Archivdatei herunterladen",
+    "download_pdf_file": "PDF-Datei herunterladen",
+    "remove": "Entfernen",
+    "more": "Mehr",
+    "replace_banner": "Banner ersetzen",
+    "add_banner": "Banner hinzufügen",
+    "download": "Herunterladen"
   },
   "settings": {
     "back_to_app": "Zurück zur App",
@@ -190,7 +200,12 @@
       "tag_style_description": "Wähle, wie deine automatisch generierten Tags formatiert werden sollen.",
       "auto_tagging_description": "Automatische Tag-Generierung für deine Lesezeichen mithilfe von KI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatische Zusammenfassung"
+      "auto_summarization": "Automatische Zusammenfassung",
+      "no_preference": "Keine Präferenz",
+      "curated_tags": "Ausgewählte Tags",
+      "curated_tags_description": "Beschränke die KI-Tag-Vergabe optional auf die Verwendung von Tags aus dieser Liste. Wenn keine Tags ausgewählt sind, generiert die KI Tags frei.",
+      "curated_tags_updated": "Ausgewählte Tags erfolgreich aktualisiert!",
+      "curated_tags_update_failed": "Ausgewählte Tags konnten nicht aktualisiert werden"
     },
     "feeds": {
       "rss_subscriptions": "RSS-Abonnements",
@@ -210,7 +225,8 @@
       "imported_bookmarks": "Importierte Lesezeichen",
       "import_bookmarks_from_linkwarden_export": "Importieren Sie Lesezeichen aus dem Linkwarden-Export",
       "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren",
-      "import_bookmarks_from_mymind_export": "Lesezeichen aus meinem mymind-Export importieren"
+      "import_bookmarks_from_mymind_export": "Lesezeichen aus meinem mymind-Export importieren",
+      "import_bookmarks_from_instapaper_export": "Lesezeichen aus Instapaper-Export importieren"
     },
     "api_keys": {
       "api_keys": "API-Schlüssel",
@@ -267,7 +283,10 @@
         "bookmark_type_is": "Lesezeichen-Typ ist",
         "has_tag": "Hat Tag",
         "is_favourited": "Ist Favorit",
-        "is_archived": "Ist archiviert"
+        "is_archived": "Ist archiviert",
+        "url_does_not_contain": "URL Enthält nicht",
+        "title_contains": "Titel enthält",
+        "title_does_not_contain": "Titel enthält nicht"
       },
       "rule_name": "Regelname",
       "rules": "Regel-Engine",
@@ -393,7 +412,10 @@
         "in_progress": "In Bearbeitung",
         "completed": "Abgeschlossen",
         "failed": "Fehlgeschlagen",
-        "processing": "Wird verarbeitet"
+        "processing": "Wird verarbeitet",
+        "staging": "Wird vorbereitet",
+        "running": "Läuft",
+        "paused": "Pausiert"
       },
       "badges": {
         "pending": "{{count}} ausstehend",
@@ -405,7 +427,33 @@
       "view_list": "Liste ansehen",
       "delete_dialog_title": "Import-Sitzung löschen",
       "delete_dialog_description": "Bist du sicher, dass du »{{name}}« löschen willst? Diese Aktion kann nicht rückgängig gemacht werden. Die Lesezeichen selbst werden nicht gelöscht.",
-      "delete_session": "Sitzung löschen"
+      "delete_session": "Sitzung löschen",
+      "pause_session": "Pausieren",
+      "resume_session": "Fortsetzen",
+      "view_details": "Details anzeigen",
+      "detail": {
+        "page_title": "Details der Importsitzung",
+        "back_to_import": "Zurück zum Import",
+        "filter_all": "Alle",
+        "filter_accepted": "Akzeptiert",
+        "filter_rejected": "Abgelehnt",
+        "filter_duplicates": "Duplikate",
+        "filter_pending": "Ausstehend",
+        "table_title": "Titel / URL",
+        "table_type": "Typ",
+        "table_result": "Ergebnis",
+        "table_reason": "Grund",
+        "table_bookmark": "Lesezeichen",
+        "result_accepted": "Akzeptiert",
+        "result_rejected": "Abgelehnt",
+        "result_skipped_duplicate": "Duplikat",
+        "result_pending": "Ausstehend",
+        "result_processing": "Wird verarbeitet",
+        "no_results": "Für diesen Filter wurden keine Ergebnisse gefunden.",
+        "view_bookmark": "Lesezeichen anzeigen",
+        "load_more": "Mehr laden",
+        "no_title": "Kein Titel"
+      }
     },
     "backups": {
       "backups": "Backups",
@@ -546,7 +594,10 @@
         "reindex_all_bookmarks": "Alle Lesezeichen neu indizieren",
         "clean_assets": "Verwaiste Assets bereinigen & Metadaten erneut synchronisieren",
         "reprocess_assets_fix_mode": "Unverarbeitete Assets neu verarbeiten",
-        "migrate_large_link_html_content": "Große Inline-HTML-Inhalte in Assets verschieben"
+        "migrate_large_link_html_content": "Große Inline-HTML-Inhalte in Assets verschieben",
+        "recrawl_pending_links_only": "Nur ausstehende Links neu crawlen",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "KI-Tags nur für ausstehende Bookmarks neu generieren",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "KI-Zusammenfassungen nur für ausstehende Bookmarks neu generieren"
       }
     },
     "actions": {
@@ -585,11 +636,50 @@
         "connected": "Verbunden",
         "disconnected": "Getrennt"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Admin Tools",
+      "bookmark_debugger": "Bookmark Debugger",
+      "bookmark_id": "Bookmark-ID",
+      "bookmark_id_placeholder": "Bookmark-ID eingeben",
+      "lookup": "Nachschlagen",
+      "debug_info": "Debug-Informationen",
+      "basic_info": "Basisinformationen",
+      "status": "Status",
+      "content": "Inhalt",
+      "html_preview": "HTML-Vorschau (Erste 1000 Zeichen)",
+      "summary": "Zusammenfassung",
+      "url": "URL",
+      "source_url": "Quell-URL",
+      "asset_type": "Asset-Typ",
+      "file_name": "Dateiname",
+      "owner_user_id": "Benutzer-ID des Eigentümers",
+      "tagging_status": "Tagging-Status",
+      "summarization_status": "Zusammenfassungsstatus",
+      "crawl_status": "Crawler-Status",
+      "crawl_status_code": "HTTP-Statuscode",
+      "crawled_at": "Gecrawlt am",
+      "recrawl": "Erneutes Crawlen",
+      "reindex": "Neu indizieren",
+      "retag": "Neu verschlagworten",
+      "resummarize": "Neu zusammenfassen",
+      "bookmark_not_found": "Lesezeichen nicht gefunden",
+      "action_success": "Aktion erfolgreich abgeschlossen",
+      "action_failed": "Aktion fehlgeschlagen",
+      "recrawl_queued": "Job für erneutes Crawlen wurde in die Warteschlange gestellt",
+      "reindex_queued": "Job zum Neuindizieren wurde in die Warteschlange gestellt",
+      "retag_queued": "Job zum Neuverschlagworten wurde in die Warteschlange gestellt",
+      "resummarize_queued": "Job zum Neuzusammenfassen wurde in die Warteschlange gestellt",
+      "view": "Anzeigen",
+      "fetch_error": "Fehler beim Abrufen des Lesezeichens"
     }
   },
   "options": {
     "dark_mode": "Dunkelmodus",
-    "light_mode": "Hellmodus"
+    "light_mode": "Hellmodus",
+    "apps_extensions": "Apps & Erweiterungen",
+    "documentation": "Dokumentation",
+    "follow_us_on_x": "Folge uns auf X"
   },
   "lists": {
     "all_lists": "Alle Listen",
@@ -699,7 +789,9 @@
     "no_ai_tags": "Noch keine KI-Tags",
     "no_unused_tags": "Du hast keine unbenutzten Tags",
     "no_unused_tags_match_your_search": "Keine unbenutzten Tags entsprechen deiner Suche",
-    "no_tags_match_your_search": "Keine Tags entsprechen deiner Suche"
+    "no_tags_match_your_search": "Keine Tags entsprechen deiner Suche",
+    "search_placeholder": "Tags suchen...",
+    "search_or_create_placeholder": "Tags suchen oder erstellen..."
   },
   "preview": {
     "view_original": "Original anzeigen",
@@ -709,7 +801,13 @@
       "content": "Inhalt",
       "details": "Details"
     },
-    "archive_info": "Archive werden möglicherweise nicht korrekt inline dargestellt, wenn sie Javascript benötigen. Die besten Ergebnisse erzielst du, wenn du sie <1>herunterlädst und in deinem Browser öffnest</1>."
+    "archive_info": "Archive werden möglicherweise nicht korrekt inline dargestellt, wenn sie Javascript benötigen. Die besten Ergebnisse erzielst du, wenn du sie <1>herunterlädst und in deinem Browser öffnest</1>.",
+    "fetch_error_title": "Inhalte nicht verfügbar",
+    "fetch_error_description": "Wir konnten die Inhalte für diesen Link nicht abrufen. Die Seite ist möglicherweise geschützt, erfordert eine Authentifizierung oder ist vorübergehend nicht verfügbar.",
+    "crawling_in_progress": "Seiteninhalt wird abgerufen …",
+    "continue_reading": "Da weitermachen, wo du aufgehört hast",
+    "continue_reading_percent": "Da weitermachen, wo du aufgehört hast ({{percent}}%)",
+    "continue_button": "Weiter"
   },
   "editor": {
     "quickly_focus": "Sie können schnell auf dieses Feld fokussieren, indem Sie ⌘ + E drücken",
@@ -778,7 +876,9 @@
       "full_page_archive": "Erstellung des vollständigen Seitenarchivs wurde ausgelöst",
       "delete_from_list": "Das Lesezeichen wurde aus der Liste gelöscht",
       "clipboard_copied": "Link wurde in Ihre Zwischenablage kopiert!",
-      "preserve_pdf": "Die PDF-Speicherung wurde ausgelöst"
+      "preserve_pdf": "Die PDF-Speicherung wurde ausgelöst",
+      "update_banner": "Banner wurde aktualisiert!",
+      "uploading_banner": "Banner wird hochgeladen ..."
     },
     "lists": {
       "created": "Liste wurde erstellt!",
@@ -852,7 +952,9 @@
     "filters": "Filter",
     "is_not_broken_link": "Hat funktionierenden Link",
     "lists": "Listen",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "is_from_source": "Quelle ist",
+    "is_not_from_source": "Quelle ist nicht"
   },
   "bookmark_editor": {
     "subtitle": "Ändere die Details des Lesezeichens. Klicke auf Speichern, wenn du fertig bist.",
@@ -891,5 +993,54 @@
     "no_release_notes": "Für diese Version wurden keine Versionshinweise veröffentlicht.",
     "release_notes_synced": "Versionshinweise werden von GitHub synchronisiert.",
     "view_on_github": "Auf GitHub ansehen"
+  },
+  "wrapped": {
+    "title": "Dein {{year}} Jahresrückblick",
+    "subtitle": "Ein Jahr in Karakeep",
+    "banner": {
+      "title": "Dein Jahresrückblick 2025 ist fertig!",
+      "description": "Dein Jahr in Lesezeichen ansehen",
+      "view_now": "Jetzt ansehen"
+    },
+    "button": "Jahresrückblick 2025",
+    "loading": "Dein Jahresrückblick wird geladen ...",
+    "failed_to_load": "Das Laden deiner Jahresrückblick-Statistiken ist fehlgeschlagen",
+    "sections": {
+      "total_saves": {
+        "prefix": "Du hast gespeichert",
+        "suffix": "Dinge dieses Jahr",
+        "suffix_singular": "Ding dieses Jahr"
+      },
+      "first_bookmark": {
+        "title": "Deine Reise hat begonnen",
+        "description": "Erste Speicherung von {{year}}:"
+      },
+      "top_domains": "Deine Top-Websites",
+      "top_tags": "Deine Top-Tags",
+      "monthly_activity": "Dein Sparjahr",
+      "most_active_day": "Dein aktivster Tag",
+      "peak_times": {
+        "title": "Wann du speicherst",
+        "peak_hour": "Stoßzeit",
+        "peak_day": "Stärkster Tag"
+      },
+      "how_you_save": "Wie du speicherst",
+      "what_you_saved": "Was du gespeichert hast",
+      "summary": {
+        "favorites": "Favoriten",
+        "tags_created": "Erstellte Tags",
+        "highlights": "Highlights"
+      },
+      "types": {
+        "links": "Links",
+        "notes": "Notizen",
+        "assets": "Assets"
+      }
+    },
+    "footer": "Gemacht mit Karakeep",
+    "share": "Teilen",
+    "download": "Herunterladen",
+    "close": "Schließen",
+    "generating": "Wird erstellt …"
   }
 }

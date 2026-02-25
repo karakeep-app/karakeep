@@ -5,13 +5,7 @@ import { toast } from "@/components/ui/sonner";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
-import {
-  AlertTriangle,
-  BookOpen,
-  ChevronDown,
-  Laptop,
-  RotateCcw,
-} from "lucide-react";
+import { AlertTriangle, ChevronDown, Laptop, RotateCcw } from "lucide-react";
 
 import {
   formatFontSize,
@@ -111,8 +105,7 @@ export default function ReaderSettings() {
         <CardHeader>
           <CollapsibleTrigger className="flex w-full items-center justify-between [&[data-state=open]>svg]:rotate-180">
             <div className="flex flex-col items-start gap-1 text-left">
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <BookOpen className="h-5 w-5" />
+              <CardTitle className="text-lg">
                 {t("settings.info.reader_settings.title")}
               </CardTitle>
               <CardDescription>

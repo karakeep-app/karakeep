@@ -398,7 +398,7 @@ const ViewBookmarkPage = () => {
         options={{
           headerShown: true,
           headerTransparent: false,
-          headerTitle: "Info",
+          headerTitle: "Edit Bookmark",
           headerRight: () => (
             <Pressable onPress={onDone} disabled={isEditPending}>
               {isEditPending ? (

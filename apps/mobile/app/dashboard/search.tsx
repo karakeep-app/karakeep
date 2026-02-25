@@ -1,9 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Pressable, TextInput, View } from "react-native";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
@@ -106,12 +105,7 @@ export default function Search() {
   };
 
   return (
-    <CustomSafeAreaView>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-        }}
-      />
+    <>
       <SearchInput
         containerClassName="m-3"
         ref={inputRef}
@@ -165,6 +159,6 @@ export default function Search() {
       ) : (
         <View />
       )}
-    </CustomSafeAreaView>
+    </>
   );
 }

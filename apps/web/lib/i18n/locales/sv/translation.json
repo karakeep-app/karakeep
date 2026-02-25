@@ -41,7 +41,9 @@
     "bookmarks": "Bokmärken",
     "storage": "Lagring",
     "pdf": "Arkiverad PDF",
-    "default": "Standard"
+    "default": "Standard",
+    "id": "ID",
+    "last_used": "Senast använt"
   },
   "layouts": {
     "grid": "Rutnät",
@@ -94,7 +96,15 @@
     "load_more": "Ladda mer",
     "edit_notes": "Redigera anteckningar",
     "preserve_as_pdf": "Spara som PDF",
-    "offline_copies": "Offlinelagrade kopior"
+    "offline_copies": "Offlinelagrade kopior",
+    "preserve_offline_archive": "Spara offline-arkiv",
+    "download_full_page_archive_file": "Ladda ner arkivfil",
+    "download_pdf_file": "Ladda ner PDF-fil",
+    "remove": "Ta bort",
+    "more": "Mer",
+    "replace_banner": "Ersätt banderoll",
+    "add_banner": "Lägg till banderoll",
+    "download": "Ladda ner"
   },
   "settings": {
     "back_to_app": "Tillbaka till app",
@@ -195,7 +205,12 @@
       "tag_style_description": "Välj hur dina automatiskt genererade taggar ska formateras.",
       "auto_tagging_description": "Generera automatiskt taggar för dina bokmärken genom att använda AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatisk sammanfattning"
+      "auto_summarization": "Automatisk sammanfattning",
+      "no_preference": "Ingen preferens",
+      "curated_tags": "Kurerade taggar",
+      "curated_tags_description": "Begränsa eventuellt AI-taggning till att endast använda taggar från den här listan. När inga taggar är valda genererar AI:n taggar fritt.",
+      "curated_tags_updated": "Kurerade taggar har uppdaterats!",
+      "curated_tags_update_failed": "Det gick inte att uppdatera kurerade taggar"
     },
     "import": {
       "import_export": "Importera / exportera",
@@ -209,7 +224,8 @@
       "export_links_and_notes": "Exportera länkar och anteckningar",
       "import_bookmarks_from_linkwarden_export": "Importera bokmärken från Linkwarden-export",
       "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importera bokmärken från min mymind-export"
+      "import_bookmarks_from_mymind_export": "Importera bokmärken från min mymind-export",
+      "import_bookmarks_from_instapaper_export": "Importera bokmärken från Instapaper-export"
     },
     "api_keys": {
       "api_keys": "API-nycklar",
@@ -284,7 +300,10 @@
         "is_favourited": "Är favoriterad",
         "is_archived": "Är Arkiverad",
         "and": "Allt följande är sant",
-        "or": "Något av följande är sant"
+        "or": "Något av följande är sant",
+        "url_does_not_contain": "URL:en innehåller inte",
+        "title_contains": "Titeln innehåller",
+        "title_does_not_contain": "Titeln innehåller inte"
       },
       "actions_types": {
         "add_tag": "Lägg till tagg",
@@ -393,7 +412,10 @@
         "in_progress": "Pågår",
         "completed": "Slutförd",
         "failed": "Misslyckades",
-        "processing": "Bearbetar"
+        "processing": "Bearbetar",
+        "staging": "Mellanlagring",
+        "running": "Kör",
+        "paused": "Pausad"
       },
       "badges": {
         "pending": "{{count}} väntar",
@@ -405,7 +427,33 @@
       "view_list": "Visa lista",
       "delete_dialog_title": "Ta bort importsession",
       "delete_dialog_description": "Är du säker på att du vill ta bort \"{{name}}\"? Åtgärden kan inte ångras. Själva bokmärkena kommer inte att tas bort.",
-      "delete_session": "Ta bort session"
+      "delete_session": "Ta bort session",
+      "pause_session": "Pausa",
+      "resume_session": "Återuppta",
+      "view_details": "Visa detaljer",
+      "detail": {
+        "page_title": "Visa detaljer för importsession",
+        "back_to_import": "Tillbaka till import",
+        "filter_all": "Alla",
+        "filter_accepted": "Godkända",
+        "filter_rejected": "Avvisade",
+        "filter_duplicates": "Dubbletter",
+        "filter_pending": "Väntar",
+        "table_title": "Titel/URL",
+        "table_type": "Typ",
+        "table_result": "Resultat",
+        "table_reason": "Anledning",
+        "table_bookmark": "Bokmärke",
+        "result_accepted": "Godkända",
+        "result_rejected": "Avvisade",
+        "result_skipped_duplicate": "Dublett",
+        "result_pending": "Väntar",
+        "result_processing": "Bearbetar",
+        "no_results": "Inga resultat hittades för detta filter.",
+        "view_bookmark": "Visa bokmärke",
+        "load_more": "Ladda mer",
+        "no_title": "Ingen titel"
+      }
     },
     "backups": {
       "backups": "Säkerhetskopior",
@@ -546,7 +594,10 @@
         "reindex_all_bookmarks": "Indexera om alla bokmärken",
         "clean_assets": "Rensa hängande tillgångar och synkronisera om metadata",
         "reprocess_assets_fix_mode": "Behandla om obehandlade tillgångar",
-        "migrate_large_link_html_content": "Flytta stort HTML-innehåll i text till resurser"
+        "migrate_large_link_html_content": "Flytta stort HTML-innehåll i text till resurser",
+        "recrawl_pending_links_only": "Kryp bara om väntande länkar",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Generera AI-taggar bara för väntande bokmärken",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generera AI-sammanfattningar bara för väntande bokmärken"
       }
     },
     "actions": {
@@ -585,11 +636,50 @@
         "connected": "Ansluten",
         "disconnected": "Frånkopplad"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Adminverktyg",
+      "bookmark_debugger": "Bokmärkesfelsökare",
+      "bookmark_id": "Bokmärkes-ID",
+      "bookmark_id_placeholder": "Ange bokmärkes-ID",
+      "lookup": "Slå upp",
+      "debug_info": "Felsökningsinformation",
+      "basic_info": "Grundläggande information",
+      "status": "Status",
+      "content": "Innehåll",
+      "html_preview": "HTML-förhandsvisning (första 1000 tecknen)",
+      "summary": "Sammanfattning",
+      "url": "URL",
+      "source_url": "Käll-URL",
+      "asset_type": "Tillgångstyp",
+      "file_name": "Filnamn",
+      "owner_user_id": "Ägar-ID",
+      "tagging_status": "Taggstatus",
+      "summarization_status": "Summeringsstatus",
+      "crawl_status": "Crawlningsstatus",
+      "crawl_status_code": "HTTP-statuskod",
+      "crawled_at": "Genomsöktes",
+      "recrawl": "Genomsök igen",
+      "reindex": "Indexera om",
+      "retag": "Tagga om",
+      "resummarize": "Sammanfatta om",
+      "bookmark_not_found": "Bokmärket hittades inte",
+      "action_success": "Åtgärden slutfördes",
+      "action_failed": "Åtgärden misslyckades",
+      "recrawl_queued": "Jobbet för att genomsöka igen har köats",
+      "reindex_queued": "Jobbet för att indexera om har köats",
+      "retag_queued": "Jobbet för att tagga om har köats",
+      "resummarize_queued": "Jobbet för att sammanfatta om har köats",
+      "view": "Visa",
+      "fetch_error": "Fel vid hämtning av bokmärke"
     }
   },
   "options": {
     "light_mode": "Ljust läge",
-    "dark_mode": "Mörkt läge"
+    "dark_mode": "Mörkt läge",
+    "apps_extensions": "Appar och tillägg",
+    "documentation": "Dokumentation",
+    "follow_us_on_x": "Följ oss på X"
   },
   "lists": {
     "new_nested_list": "Ny nästlad lista",
@@ -699,7 +789,9 @@
     "no_ai_tags": "Inga AI-taggar ännu",
     "no_unused_tags": "Du har inga oanvända taggar",
     "no_unused_tags_match_your_search": "Inga oanvända taggar matchar din sökning",
-    "no_tags_match_your_search": "Inga taggar matchar din sökning"
+    "no_tags_match_your_search": "Inga taggar matchar din sökning",
+    "search_placeholder": "Sök taggar...",
+    "search_or_create_placeholder": "Sök eller skapa taggar..."
   },
   "editor": {
     "import_as_separate_bookmarks": "Importera som separata bokmärken",
@@ -768,7 +860,9 @@
       "delete_from_list": "Bokmärket har raderats från listan",
       "clipboard_copied": "Länken har lags till i ditt urklipp!",
       "refetch": "Hämtning har köats!",
-      "preserve_pdf": "PDF-sparande har triggats"
+      "preserve_pdf": "PDF-sparande har triggats",
+      "update_banner": "Banderollen har uppdaterats!",
+      "uploading_banner": "Laddar upp banderoll..."
     },
     "lists": {
       "created": "Listan har skapats!",
@@ -796,7 +890,13 @@
       "content": "Innehåll",
       "details": "Detaljer"
     },
-    "archive_info": "Arkiv kanske inte återges korrekt inbäddade om de kräver Javascript. För bästa resultat, <1>ladda ner den och öppna den i din webbläsare</1>."
+    "archive_info": "Arkiv kanske inte återges korrekt inbäddade om de kräver Javascript. För bästa resultat, <1>ladda ner den och öppna den i din webbläsare</1>.",
+    "fetch_error_title": "Innehållet är inte tillgängligt",
+    "fetch_error_description": "Vi kunde inte hämta innehållet för den här länken. Sidan kan vara skyddad, kräva autentisering eller vara tillfälligt otillgänglig.",
+    "crawling_in_progress": "Hämtar sidans innehåll …",
+    "continue_reading": "Fortsätt där du slutade",
+    "continue_reading_percent": "Fortsätt där du slutade ({{percent}} %)",
+    "continue_button": "Fortsätt"
   },
   "dialogs": {
     "bookmarks": {
@@ -849,7 +949,9 @@
     "filters": "Filter",
     "is_not_broken_link": "Har fungerande länk",
     "lists": "Listor",
-    "feeds": "Feeds"
+    "feeds": "Feeds",
+    "is_from_source": "Källa är",
+    "is_not_from_source": "Källa är inte"
   },
   "highlights": {
     "no_highlights": "Du har inga markeringar ännu."
@@ -891,5 +993,54 @@
     "no_release_notes": "Inga versionsanmärkningar publicerades för den här versionen.",
     "release_notes_synced": "Versionsanmärkningar synkroniseras från GitHub.",
     "view_on_github": "Visa på GitHub"
+  },
+  "wrapped": {
+    "title": "Din sammanfattning för {{year}}",
+    "subtitle": "Ett år i Karakeep",
+    "banner": {
+      "title": "Din sammanfattning för 2025 är klar!",
+      "description": "Se ditt år i bokmärken",
+      "view_now": "Visa nu"
+    },
+    "button": "Sammanfattning för 2025",
+    "loading": "Läser in din sammanfattning...",
+    "failed_to_load": "Det gick inte att läsa in din sammanfattningsstatistik",
+    "sections": {
+      "total_saves": {
+        "prefix": "Du sparade",
+        "suffix": "Saker detta år",
+        "suffix_singular": "Sak detta år"
+      },
+      "first_bookmark": {
+        "title": "Din resa började",
+        "description": "Första sparningen under {{year}}:"
+      },
+      "top_domains": "Dina populäraste webbplatser",
+      "top_tags": "Dina populäraste taggar",
+      "monthly_activity": "Ditt sparår",
+      "most_active_day": "Din mest aktiva dag",
+      "peak_times": {
+        "title": "När du sparar",
+        "peak_hour": "Topptimme",
+        "peak_day": "Toppdag"
+      },
+      "how_you_save": "Så här sparar du",
+      "what_you_saved": "Det här har du sparat",
+      "summary": {
+        "favorites": "Favoriter",
+        "tags_created": "Taggar som skapats",
+        "highlights": "Höjdpunkter"
+      },
+      "types": {
+        "links": "Länkar",
+        "notes": "Anteckningar",
+        "assets": "Tillgångar"
+      }
+    },
+    "footer": "Gjord med Karakeep",
+    "share": "Dela",
+    "download": "Ladda ner",
+    "close": "Stäng",
+    "generating": "Genererar..."
   }
 }

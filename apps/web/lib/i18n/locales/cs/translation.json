@@ -41,7 +41,9 @@
     "bookmarks": "Záložky",
     "storage": "Úložiště",
     "pdf": "Archivovaný PDF",
-    "default": "Výchozí"
+    "default": "Výchozí",
+    "id": "ID",
+    "last_used": "Použito naposledy"
   },
   "actions": {
     "close": "Zavřít",
@@ -88,7 +90,15 @@
     "load_more": "Načíst další",
     "edit_notes": "Upravit poznámky",
     "preserve_as_pdf": "Uložit jako PDF",
-    "offline_copies": "Offline kopie"
+    "offline_copies": "Offline kopie",
+    "preserve_offline_archive": "Zachovat archiv offline",
+    "download_full_page_archive_file": "Stáhnout archivní soubor",
+    "download_pdf_file": "Stáhnout soubor PDF",
+    "remove": "Odebrat",
+    "more": "Více",
+    "replace_banner": "Nahradit banner",
+    "add_banner": "Přidat banner",
+    "download": "Stáhnout"
   },
   "settings": {
     "ai": {
@@ -116,7 +126,12 @@
       "tag_style_description": "Vyber si, jakým způsobem se mají automaticky generované štítky formátovat.",
       "auto_tagging_description": "Automaticky generovat štítky pro tvoje záložky pomocí umělý inteligence.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatický shrnutí"
+      "auto_summarization": "Automatický shrnutí",
+      "no_preference": "Bez preference",
+      "curated_tags": "Vybrané štítky",
+      "curated_tags_description": "Volitelně omezte označování pomocí AI tak, aby používala pouze štítky z tohoto seznamu. Pokud nejsou vybrány žádné štítky, umělá inteligence generuje štítky volně.",
+      "curated_tags_updated": "Vybrané štítky byly úspěšně aktualizovány!",
+      "curated_tags_update_failed": "Nepodařilo se aktualizovat vybrané štítky"
     },
     "webhooks": {
       "webhooks": "Webhooky",
@@ -184,7 +199,10 @@
         "is_favourited": "Je oblíbené",
         "is_archived": "Je archivováno",
         "and": "Platí všechno z následujícího",
-        "or": "Platí alespoň jedna z následujících možností"
+        "or": "Platí alespoň jedna z následujících možností",
+        "url_does_not_contain": "Adresa URL Neobsahuje",
+        "title_contains": "Název obsahuje",
+        "title_does_not_contain": "Název neobsahuje"
       },
       "actions_types": {
         "add_tag": "Přidat štítek",
@@ -291,7 +309,8 @@
       "import_bookmarks_from_tab_session_manager_export": "Importovat záložky ze správce relací panelů",
       "export_links_and_notes": "Exportovat odkazy a poznámky",
       "imported_bookmarks": "Importované záložky",
-      "import_bookmarks_from_mymind_export": "Importovat záložky z exportu mymind"
+      "import_bookmarks_from_mymind_export": "Importovat záložky z exportu mymind",
+      "import_bookmarks_from_instapaper_export": "Importovat záložky z exportu Instapaper"
     },
     "broken_links": {
       "broken_links": "Nefunkční odkazy",
@@ -387,7 +406,10 @@
         "in_progress": "Probíhá",
         "completed": "Dokončeno",
         "failed": "Selhalo",
-        "processing": "Zpracovává se"
+        "processing": "Zpracovává se",
+        "staging": "Příprava",
+        "running": "Běží",
+        "paused": "Pozastaveno"
       },
       "badges": {
         "pending": "{{count}} čeká na vyřízení",
@@ -399,7 +421,33 @@
       "view_list": "Zobrazit seznam",
       "delete_dialog_title": "Smazat import relaci",
       "delete_dialog_description": "Určitě chceš smazat \"{{name}}\"? Tahle akce nemůže být vrácena zpátky. Samotný záložky smazaný nebudou.",
-      "delete_session": "Smazat relaci"
+      "delete_session": "Smazat relaci",
+      "pause_session": "Pauza",
+      "resume_session": "Obnovit",
+      "view_details": "Zobrazit podrobnosti",
+      "detail": {
+        "page_title": "Podrobnosti importu relace",
+        "back_to_import": "Zpět na Import",
+        "filter_all": "Vše",
+        "filter_accepted": "Přijato",
+        "filter_rejected": "Odmítnuto",
+        "filter_duplicates": "Duplikáty",
+        "filter_pending": "Čeká na vyřízení",
+        "table_title": "Název / URL",
+        "table_type": "Typ",
+        "table_result": "Výsledek",
+        "table_reason": "Důvod",
+        "table_bookmark": "Záložka",
+        "result_accepted": "Přijato",
+        "result_rejected": "Odmítnuto",
+        "result_skipped_duplicate": "Duplikát",
+        "result_pending": "Čeká na vyřízení",
+        "result_processing": "Zpracovávání",
+        "no_results": "Pro tento filtr nebyly nalezeny žádné výsledky.",
+        "view_bookmark": "Zobrazit záložku",
+        "load_more": "Načíst další",
+        "no_title": "Bez názvu"
+      }
     },
     "backups": {
       "backups": "Zálohy",
@@ -559,7 +607,9 @@
     "no_ai_tags": "Zatím žádné AI štítky",
     "no_unused_tags": "Nemáte žádné nepoužité štítky",
     "no_unused_tags_match_your_search": "Žádné nepoužité štítky neodpovídají vašemu hledání",
-    "no_tags_match_your_search": "Žádné štítky neodpovídají vašemu hledání"
+    "no_tags_match_your_search": "Žádné štítky neodpovídají vašemu hledání",
+    "search_placeholder": "Hledat štítky...",
+    "search_or_create_placeholder": "Hledat nebo vytvořit štítky..."
   },
   "search": {
     "is_favorited": "Je oblíbené",
@@ -606,7 +656,9 @@
     "filters": "Filtry",
     "is_not_broken_link": "Má funkční odkaz",
     "lists": "Seznamy",
-    "feeds": "Kanály"
+    "feeds": "Kanály",
+    "is_from_source": "Zdroj je",
+    "is_not_from_source": "Zdroj není"
   },
   "editor": {
     "disabled_submissions": "Odesílání příspěvků je zakázáno",
@@ -675,7 +727,9 @@
       "full_page_archive": "Vytváření archivu celé stránky bylo spuštěno",
       "delete_from_list": "Záložka byla ze seznamu smazána",
       "clipboard_copied": "Odkaz byl přidán do schránky!",
-      "preserve_pdf": "Ukládání do PDF spuštěno"
+      "preserve_pdf": "Ukládání do PDF spuštěno",
+      "update_banner": "Banner byl aktualizován!",
+      "uploading_banner": "Nahrávání banneru..."
     },
     "lists": {
       "created": "Seznam byl vytvořen!",
@@ -776,7 +830,10 @@
         "reindex_all_bookmarks": "Znovu indexovat všechny záložky",
         "clean_assets": "Vyčistit ztracené zdroje a znovu synchronizovat metadata",
         "reprocess_assets_fix_mode": "Znovu zpracovat nezpracované zdroje",
-        "migrate_large_link_html_content": "Přesun velkého vloženého HTML obsahu do assetů"
+        "migrate_large_link_html_content": "Přesun velkého vloženého HTML obsahu do assetů",
+        "recrawl_pending_links_only": "Znovu projít pouze čekající odkazy",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Znovu vygenerovat AI tagy pouze pro čekající záložky",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Znovu vygenerovat AI souhrny pouze pro čekající záložky"
       }
     },
     "admin_settings": "Nastavení správce",
@@ -816,6 +873,42 @@
         "connected": "Připojeno",
         "disconnected": "Odpojeno"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Nástroje správce",
+      "bookmark_debugger": "Ladička záložek",
+      "bookmark_id": "ID záložky",
+      "bookmark_id_placeholder": "Zadej ID záložky",
+      "lookup": "Vyhledat",
+      "debug_info": "Informace pro ladění",
+      "basic_info": "Základní informace",
+      "status": "Stav",
+      "content": "Obsah",
+      "html_preview": "Náhled HTML (první 1000 znaků)",
+      "summary": "Shrnutí",
+      "url": "URL",
+      "source_url": "Zdrojová URL",
+      "asset_type": "Typ zdroje",
+      "file_name": "Název souboru",
+      "owner_user_id": "ID vlastníka",
+      "tagging_status": "Stav označování štítky",
+      "summarization_status": "Stav sumarizace",
+      "crawl_status": "Stav procházení",
+      "crawl_status_code": "Stavový kód HTTP",
+      "crawled_at": "Prolezl v",
+      "recrawl": "Znovu prolézt",
+      "reindex": "Znovu indexovat",
+      "retag": "Znovu označit",
+      "resummarize": "Znovu shrnout",
+      "bookmark_not_found": "Záložka nebyla nalezena",
+      "action_success": "Akce byla úspěšně dokončena",
+      "action_failed": "Akce selhala",
+      "recrawl_queued": "Úloha pro opětovné prolezení byla zařazena do fronty",
+      "reindex_queued": "Úloha pro opětovné indexování byla zařazena do fronty",
+      "retag_queued": "Úloha pro opětovné označení byla zařazena do fronty",
+      "resummarize_queued": "Úloha pro opětovné shrnutí byla zařazena do fronty",
+      "view": "Zobrazit",
+      "fetch_error": "Chyba při načítání záložky"
     }
   },
   "bookmark_editor": {
@@ -839,7 +932,10 @@
   },
   "options": {
     "dark_mode": "Tmavý režim",
-    "light_mode": "Světlý režim"
+    "light_mode": "Světlý režim",
+    "apps_extensions": "Aplikace a rozšíření",
+    "documentation": "Dokumentace",
+    "follow_us_on_x": "Sleduj nás na Xku"
   },
   "preview": {
     "view_original": "Zobrazit originál",
@@ -849,7 +945,13 @@
       "content": "Obsah",
       "details": "Podrobnosti"
     },
-    "archive_info": "Archivy se nemusí vykreslovat správně inline, pokud vyžadují Javascript. Pro nejlepší výsledky si <1>stáhněte a otevřete v prohlížeči</1>."
+    "archive_info": "Archivy se nemusí vykreslovat správně inline, pokud vyžadují Javascript. Pro nejlepší výsledky si <1>stáhněte a otevřete v prohlížeči</1>.",
+    "fetch_error_title": "Obsah není k dispozici",
+    "fetch_error_description": "Nepodařilo se nám načíst obsah pro tento odkaz. Stránka může být chráněná, vyžadovat ověření nebo být dočasně nedostupná.",
+    "crawling_in_progress": "Načítám obsah stránky…",
+    "continue_reading": "Pokračuj tam, kde jsi skončil",
+    "continue_reading_percent": "Pokračuj tam, kde jsi skončil ({{percent}} %)",
+    "continue_button": "Pokračovat"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Pro tuto verzi nebyly publikovány žádné poznámky k vydání.",
     "release_notes_synced": "Poznámky k vydání se synchronizují z GitHubu.",
     "view_on_github": "Zobrazit na GitHubu"
+  },
+  "wrapped": {
+    "title": "Tvůj {{year}} Wrapped",
+    "subtitle": "Rok v Karakeepu",
+    "banner": {
+      "title": "Tvůj 2025 Wrapped je připraven!",
+      "description": "Podívej se na svůj rok v záložkách",
+      "view_now": "Zobrazit nyní"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Načítání tvého Wrapped...",
+    "failed_to_load": "Nepodařilo se načíst tvé statistiky Wrapped",
+    "sections": {
+      "total_saves": {
+        "prefix": "Uložil(a) jsi",
+        "suffix": "položek tento rok",
+        "suffix_singular": "položka tento rok"
+      },
+      "first_bookmark": {
+        "title": "Tvoje cesta začala",
+        "description": "První uložení v roce {{year}}:"
+      },
+      "top_domains": "Tvoje nejlepší weby",
+      "top_tags": "Tvoje nejlepší štítky",
+      "monthly_activity": "Tvůj rok v uložených položkách",
+      "most_active_day": "Tvůj nejaktivnější den",
+      "peak_times": {
+        "title": "Kdy ukládáš",
+        "peak_hour": "Špička",
+        "peak_day": "Nejlepší den"
+      },
+      "how_you_save": "Jak ukládáš",
+      "what_you_saved": "Co jsi uložil(a)",
+      "summary": {
+        "favorites": "Oblíbené",
+        "tags_created": "Vytvořené štítky",
+        "highlights": "To nejdůležitější"
+      },
+      "types": {
+        "links": "Odkazy",
+        "notes": "Poznámky",
+        "assets": "Aktiva"
+      }
+    },
+    "footer": "Vyrobeno s Karakeep",
+    "share": "Sdílet",
+    "download": "Stáhnout",
+    "close": "Zavřít",
+    "generating": "Generuji..."
   }
 }

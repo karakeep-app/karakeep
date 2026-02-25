@@ -24,7 +24,8 @@
       "import_export": "Uvoz / Izvoz",
       "import_bookmarks_from_html_file": "Uvozi zaznamke iz datoteke HTML",
       "import_bookmarks_from_tab_session_manager_export": "Uvozi zaznamke iz upravitelja zavihkov",
-      "import_bookmarks_from_mymind_export": "Uvozi zaznamke iz izvoza mymind"
+      "import_bookmarks_from_mymind_export": "Uvozi zaznamke iz izvoza mymind",
+      "import_bookmarks_from_instapaper_export": "Uvozi zaznamke iz izvoza Instapaper"
     },
     "info": {
       "options": "Možnosti",
@@ -117,7 +118,12 @@
       "tag_style_description": "Izberi obliko samodejno ustvarjenih oznak.",
       "auto_tagging_description": "Samodejno ustvari oznake za tvoje zaznamke z uporabo UI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Samodejno povzemanje"
+      "auto_summarization": "Samodejno povzemanje",
+      "no_preference": "Ni mi pomembno",
+      "curated_tags": "Izbrane oznake",
+      "curated_tags_description": "Po želji omejite označevanje z umetno inteligenco, da uporablja samo oznake s tega seznama. Če ni izbranih oznak, umetna inteligenca prosto ustvarja oznake.",
+      "curated_tags_updated": "Uspešno posodobljene izbrane oznake!",
+      "curated_tags_update_failed": "Posodobitev izbranih oznak ni uspela"
     },
     "back_to_app": "Nazaj v aplikacijo",
     "webhooks": {
@@ -171,7 +177,10 @@
         "is_favourited": "Je med priljubljenimi",
         "is_archived": "Je arhivirano",
         "and": "Vse od naslednjega je resnično",
-        "or": "Katero koli od naslednjega je resnično"
+        "or": "Katero koli od naslednjega je resnično",
+        "url_does_not_contain": "URL naslov ne vsebuje",
+        "title_contains": "Naslov vsebuje",
+        "title_does_not_contain": "Naslov ne vsebuje"
       },
       "rules": "Mehanizem pravil",
       "rule_name": "Ime pravila",
@@ -296,7 +305,10 @@
         "in_progress": "V teku",
         "completed": "Končano",
         "failed": "Neuspešno",
-        "processing": "Obdelava"
+        "processing": "Obdelava",
+        "staging": "Priprava",
+        "running": "Izvajanje",
+        "paused": "Začasno ustavljeno"
       },
       "badges": {
         "pending": "{{count}} čaka",
@@ -308,7 +320,33 @@
       "view_list": "Pokaži seznam",
       "delete_dialog_title": "Izbriši sejo uvoza",
       "delete_dialog_description": "Ste prepričani, da želite izbrisati »{{name}}«? Tega dejanja ni mogoče razveljaviti. Zaznamki sami ne bodo izbrisani.",
-      "delete_session": "Izbriši sejo"
+      "delete_session": "Izbriši sejo",
+      "pause_session": "Premor",
+      "resume_session": "Nadaljuj",
+      "view_details": "Prikaži podrobnosti",
+      "detail": {
+        "page_title": "Prikaži podrobnosti uvozne seje",
+        "back_to_import": "Nazaj na uvoz",
+        "filter_all": "Vse",
+        "filter_accepted": "Sprejeto",
+        "filter_rejected": "Zavrnjeno",
+        "filter_duplicates": "Podvojeno",
+        "filter_pending": "V teku",
+        "table_title": "Naslov / URL",
+        "table_type": "Vrsta",
+        "table_result": "Rezultat",
+        "table_reason": "Razlog",
+        "table_bookmark": "Zaznamek",
+        "result_accepted": "Sprejeto",
+        "result_rejected": "Zavrnjeno",
+        "result_skipped_duplicate": "Podvojeno",
+        "result_pending": "V teku",
+        "result_processing": "Obdelava",
+        "no_results": "Za ta filter ni bilo najdenih rezultatov.",
+        "view_bookmark": "Prikaži zaznamek",
+        "load_more": "Naloži več",
+        "no_title": "Brez naslova"
+      }
     },
     "backups": {
       "backups": "Varnostne kopije",
@@ -461,7 +499,10 @@
         "reindex_all_bookmarks": "Ponovno indeksiraj vse zaznamke",
         "clean_assets": "Očisti viseča sredstva in ponovno sinhroniziraj metapodatke",
         "reprocess_assets_fix_mode": "Ponovno obdelaj nepredelana sredstva",
-        "migrate_large_link_html_content": "Premakni veliko vdelano HTML-ovo kodo v sredstva."
+        "migrate_large_link_html_content": "Premakni veliko vdelano HTML-ovo kodo v sredstva.",
+        "recrawl_pending_links_only": "Ponovno indeksiraj samo povezave, ki čakajo na obdelavo",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Zgolj za zaznamke, ki čakajo na obdelavo, ponovno ustvari oznake, ustvarjene z umetno inteligenco",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Zgolj za zaznamke, ki čakajo na obdelavo, ponovno ustvari povzetke, ustvarjene z umetno inteligenco"
       }
     },
     "admin_settings": "Administratorske nastavitve",
@@ -488,6 +529,42 @@
         "connected": "Povezano",
         "disconnected": "Odklopljeno"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Admin orodja",
+      "bookmark_debugger": "Razhroščevalnik zaznamkov",
+      "bookmark_id": "ID zaznamka",
+      "bookmark_id_placeholder": "Vnesi ID zaznamka",
+      "lookup": "Poišči",
+      "debug_info": "Podatki za razhroščevanje",
+      "basic_info": "Osnovni podatki",
+      "status": "Stanje",
+      "content": "Vsebina",
+      "html_preview": "Predogled HTML (prvih 1000 znakov)",
+      "summary": "Povzetek",
+      "url": "URL",
+      "source_url": "Izvor URL-ja",
+      "asset_type": "Vrsta sredstva",
+      "file_name": "Ime datoteke",
+      "owner_user_id": "ID uporabnika lastnika",
+      "tagging_status": "Stanje označevanja",
+      "summarization_status": "Stanje povzemanja",
+      "crawl_status": "Stanje indeksiranja",
+      "crawl_status_code": "Koda HTTP stanja",
+      "crawled_at": "Prebrano ob",
+      "recrawl": "Ponovno preberi",
+      "reindex": "Ponovno indeksiraj",
+      "retag": "Ponovno označi",
+      "resummarize": "Ponovno povzemi",
+      "bookmark_not_found": "Zaznamek ni najden",
+      "action_success": "Dejanje je bilo uspešno zaključeno",
+      "action_failed": "Dejanje je spodletelo",
+      "recrawl_queued": "Ponovno prebiranje je bilo dodano v čakalno vrsto",
+      "reindex_queued": "Ponovno indeksiranje je bilo dodano v čakalno vrsto",
+      "retag_queued": "Ponovno označevanje je bilo dodano v čakalno vrsto",
+      "resummarize_queued": "Ponovno povzemanje je bilo dodano v čakalno vrsto",
+      "view": "Poglej",
+      "fetch_error": "Napaka pri pridobivanju zaznamka"
     }
   },
   "search": {
@@ -535,7 +612,9 @@
     "filters": "Filtri",
     "is_not_broken_link": "Ima delujočo povezavo",
     "lists": "Seznami",
-    "feeds": "Viri"
+    "feeds": "Viri",
+    "is_from_source": "Vir je",
+    "is_not_from_source": "Vir ni"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",
@@ -559,7 +638,9 @@
     "no_ai_tags": "Še ni oznak AI",
     "no_unused_tags": "Nimaš neuporabljenih oznak",
     "no_unused_tags_match_your_search": "Nobena neuporabljena oznaka ne ustreza tvojemu iskanju",
-    "no_tags_match_your_search": "Nobena oznaka ne ustreza tvojemu iskanju"
+    "no_tags_match_your_search": "Nobena oznaka ne ustreza tvojemu iskanju",
+    "search_placeholder": "Iskanje oznak ...",
+    "search_or_create_placeholder": "Poiščite ali ustvarite oznake ..."
   },
   "common": {
     "archive": "Arhiv",
@@ -603,7 +684,9 @@
     "bookmarks": "Zaznamki",
     "storage": "Shranjevanje",
     "pdf": "Arhiviran PDF",
-    "default": "Privzeto"
+    "default": "Privzeto",
+    "id": "ID",
+    "last_used": "Zadnja uporaba"
   },
   "actions": {
     "close_bulk_edit": "Zapri množično urejanje",
@@ -650,7 +733,15 @@
     "load_more": "Naloži več",
     "edit_notes": "Uredi opombe",
     "preserve_as_pdf": "Shrani kot PDF",
-    "offline_copies": "Kopije brez povezave"
+    "offline_copies": "Kopije brez povezave",
+    "preserve_offline_archive": "Ohrani brezžično arhiviranje",
+    "download_full_page_archive_file": "Prenesi datoteko arhiva",
+    "download_pdf_file": "Prenesi datoteko PDF",
+    "remove": "Odstrani",
+    "more": "Več",
+    "replace_banner": "Zamenjaj pasico",
+    "add_banner": "Dodaj pasico",
+    "download": "Prenesi"
   },
   "layouts": {
     "compact": "Kompaktno",
@@ -746,7 +837,10 @@
   },
   "options": {
     "dark_mode": "Temni način",
-    "light_mode": "Svetli način"
+    "light_mode": "Svetli način",
+    "apps_extensions": "Aplikacije in razširitve",
+    "documentation": "Dokumentacija",
+    "follow_us_on_x": "Sledi nam na X"
   },
   "editor": {
     "text_toolbar": {
@@ -815,7 +909,9 @@
       "updated": "Zaznamek je bil posodobljen!",
       "refetch": "Ponovno pridobivanje je bilo dodano v čakalno vrsto!",
       "full_page_archive": "Ustvarjanje arhiva celotne strani je bilo sproženo",
-      "preserve_pdf": "Ohranjanje PDF je bilo sproženo"
+      "preserve_pdf": "Ohranjanje PDF je bilo sproženo",
+      "update_banner": "Pasica je bila posodobljena!",
+      "uploading_banner": "Nalaganje pasice ..."
     },
     "lists": {
       "created": "Seznam je bil ustvarjen!",
@@ -849,7 +945,13 @@
       "content": "Vsebina",
       "details": "Podrobnosti"
     },
-    "archive_info": "Arhivi se morda ne bodo pravilno izrisali v vrstici, če zahtevajo Javascript. Za najboljše rezultate <1>jih prenesi in odpri v brskalniku</1>."
+    "archive_info": "Arhivi se morda ne bodo pravilno izrisali v vrstici, če zahtevajo Javascript. Za najboljše rezultate <1>jih prenesi in odpri v brskalniku</1>.",
+    "fetch_error_title": "Vsebina ni na voljo",
+    "fetch_error_description": "Ne moremo pridobiti vsebine za to povezavo. Stran je morda zaščitena, zahteva overjanje ali pa je začasno nedosegljiva.",
+    "crawling_in_progress": "Pridobivam vsebino strani …",
+    "continue_reading": "Nadaljuj, kjer si končal",
+    "continue_reading_percent": "Nadaljuj, kjer si končal ({{percent}} %)",
+    "continue_button": "Nadaljuj"
   },
   "highlights": {
     "no_highlights": "Še nimaš nobenih poudarkov."
@@ -891,5 +993,54 @@
     "no_release_notes": "Za to različico niso bile objavljene nobene opombe ob izdaji.",
     "release_notes_synced": "Opombe ob izdaji so sinhronizirane iz GitHub.",
     "view_on_github": "Poglej si na GitHubu"
+  },
+  "wrapped": {
+    "title": "Tvoj zavitek {{year}}",
+    "subtitle": "Leto v Karakeepu",
+    "banner": {
+      "title": "Tvoj zavitek 2025 je pripravljen!",
+      "description": "Oglej si svoje leto v zaznamkih",
+      "view_now": "Poglej zdaj"
+    },
+    "button": "Zavitek 2025",
+    "loading": "Nalaganje tvojega zavitka ...",
+    "failed_to_load": "Ni uspelo naložiti tvoje zavite statistike",
+    "sections": {
+      "total_saves": {
+        "prefix": "Shranil si",
+        "suffix": "število elementov letos",
+        "suffix_singular": "element letos"
+      },
+      "first_bookmark": {
+        "title": "Tvoja pot se je začela",
+        "description": "Tvoj prvi shranek v letu {{year}}:"
+      },
+      "top_domains": "Tvoje najboljše spletne strani",
+      "top_tags": "Tvoje najboljše oznake",
+      "monthly_activity": "Tvoje leto v shranjenih elementih",
+      "most_active_day": "Tvoj najbolj aktiven dan",
+      "peak_times": {
+        "title": "Kdaj shranjuješ",
+        "peak_hour": "Ura, ko si najbolj aktiven",
+        "peak_day": "Najbolj aktiven dan"
+      },
+      "how_you_save": "Kako shranjuješ",
+      "what_you_saved": "Kaj si shranil",
+      "summary": {
+        "favorites": "Priljubljene",
+        "tags_created": "Ustvarjene oznake",
+        "highlights": "Poudarki"
+      },
+      "types": {
+        "links": "Povezave",
+        "notes": "Opombe",
+        "assets": "Sredstva"
+      }
+    },
+    "footer": "Izdelano s programom Karakeep",
+    "share": "Deli",
+    "download": "Prenesi",
+    "close": "Zapri",
+    "generating": "Ustvarjam ..."
   }
 }

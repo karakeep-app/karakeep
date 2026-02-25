@@ -44,7 +44,15 @@
     "load_more": "もっと読み込む",
     "edit_notes": "注釈を編集",
     "preserve_as_pdf": "PDFとして保存する",
-    "offline_copies": "オフラインコピー"
+    "offline_copies": "オフラインコピー",
+    "preserve_offline_archive": "オフラインアーカイブを保存",
+    "download_full_page_archive_file": "アーカイブファイルをダウンロード",
+    "download_pdf_file": "PDF ファイルをダウンロード",
+    "remove": "削除",
+    "more": "もっと見る",
+    "replace_banner": "バナーを置き換える",
+    "add_banner": "バナーを追加",
+    "download": "ダウンロード"
   },
   "admin": {
     "actions": {
@@ -146,7 +154,10 @@
         "reindex_all_bookmarks": "すべてのブックマークを再インデックス",
         "clean_assets": "宙ぶらりんのアセットをクリーンアップしてメタデータを再同期",
         "reprocess_assets_fix_mode": "未処理のアセットを再処理",
-        "migrate_large_link_html_content": "大規模なインラインHTMLコンテンツをアセットに移動"
+        "migrate_large_link_html_content": "大規模なインラインHTMLコンテンツをアセットに移動",
+        "recrawl_pending_links_only": "保留中のリンクのみを再クロールする",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "保留中のブックマークのみを対象にAIタグを再生成する",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "保留中のブックマークのみを対象にAI要約を再生成する"
       }
     },
     "admin_settings": "管理者設定",
@@ -174,6 +185,42 @@
         "connected": "接続済み",
         "disconnected": "切断されました"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "管理ツール",
+      "bookmark_debugger": "ブックマークデバッガー",
+      "bookmark_id": "ブックマークID",
+      "bookmark_id_placeholder": "ブックマークIDを入力してや",
+      "lookup": "検索",
+      "debug_info": "デバッグ情報",
+      "basic_info": "基本情報",
+      "status": "ステータス",
+      "content": "コンテンツ",
+      "html_preview": "HTMLプレビュー（最初の1000文字）",
+      "summary": "サマリー",
+      "url": "URL",
+      "source_url": "ソースURL",
+      "asset_type": "アセットタイプ",
+      "file_name": "ファイル名",
+      "owner_user_id": "オーナーユーザーID",
+      "tagging_status": "タギングステータス",
+      "summarization_status": "要約ステータス",
+      "crawl_status": "クロールステータス",
+      "crawl_status_code": "HTTPステータスコード",
+      "crawled_at": "クロール日時",
+      "recrawl": "再クロール",
+      "reindex": "再インデックス",
+      "retag": "再タグ付け",
+      "resummarize": "再要約",
+      "bookmark_not_found": "ブックマークが見つかりません",
+      "action_success": "アクションは正常に完了しました",
+      "action_failed": "アクション失敗",
+      "recrawl_queued": "再クロールジョブをキューに追加しました",
+      "reindex_queued": "再インデックスジョブをキューに追加しました",
+      "retag_queued": "再タグ付けジョブをキューに追加しました",
+      "resummarize_queued": "再要約ジョブをキューに追加しました",
+      "view": "表示",
+      "fetch_error": "ブックマークの取得エラー"
     }
   },
   "settings": {
@@ -268,7 +315,12 @@
       "tag_style_description": "自動生成されるタグの書式を選んでくれ。",
       "auto_tagging_description": "AIを使ってブックマークのタグを自動生成する。",
       "camelCase": "camelCase",
-      "auto_summarization": "自動要約"
+      "auto_summarization": "自動要約",
+      "no_preference": "指定なし",
+      "curated_tags": "厳選されたタグ",
+      "curated_tags_description": "必要に応じて、AI タグ付けをこのリストのタグのみを使用するように制限します。タグが選択されていない場合、AI は自由にタグを生成します。",
+      "curated_tags_updated": "厳選されたタグが正常に更新されました。",
+      "curated_tags_update_failed": "厳選されたタグの更新に失敗しました"
     },
     "import": {
       "import_export_bookmarks": "ブックマークのインポート/エクスポート",
@@ -282,7 +334,8 @@
       "import_export": "インポート/エクスポート",
       "import_bookmarks_from_linkwarden_export": "Linkwardenのエクスポートからブックマークをインポート",
       "import_bookmarks_from_tab_session_manager_export": "Tab Session Managerからブックマークをインポート",
-      "import_bookmarks_from_mymind_export": "mymind エクスポートからブックマークをインポート"
+      "import_bookmarks_from_mymind_export": "mymind エクスポートからブックマークをインポート",
+      "import_bookmarks_from_instapaper_export": "Instapaperのエクスポートからブックマークをインポートする"
     },
     "api_keys": {
       "key_success_please_copy": "キーをコピーして安全な場所に保管してください。ダイアログを閉じると、再度アクセスできなくなります。",
@@ -364,7 +417,10 @@
         "is_favourited": "お気に入り登録されている",
         "is_archived": "アーカイブ済み",
         "and": "次の条件がすべて当てはまる",
-        "or": "次のいずれかが当てはまる場合"
+        "or": "次のいずれかが当てはまる場合",
+        "url_does_not_contain": "URL に含まれていない",
+        "title_contains": "タイトルに含む",
+        "title_does_not_contain": "タイトルに含まない"
       },
       "actions_types": {
         "add_tag": "タグを追加",
@@ -473,7 +529,10 @@
         "in_progress": "進行中",
         "completed": "完了",
         "failed": "失敗",
-        "processing": "処理中"
+        "processing": "処理中",
+        "staging": "ステージング",
+        "running": "実行中",
+        "paused": "一時停止"
       },
       "badges": {
         "pending": "{{count}} 件が保留中です",
@@ -485,7 +544,33 @@
       "view_list": "リスト表示",
       "delete_dialog_title": "インポートセッションを削除する",
       "delete_dialog_description": "「{{name}}」を削除してもいい？　これは取り消せない操作だよ。ブックマーク自体は削除されないから安心して。",
-      "delete_session": "セッションを削除"
+      "delete_session": "セッションを削除",
+      "pause_session": "一時停止",
+      "resume_session": "再開",
+      "view_details": "詳細を見る",
+      "detail": {
+        "page_title": "インポートセッションの詳細",
+        "back_to_import": "インポートに戻る",
+        "filter_all": "すべて",
+        "filter_accepted": "承認済",
+        "filter_rejected": "拒否済",
+        "filter_duplicates": "重複",
+        "filter_pending": "保留中",
+        "table_title": "タイトル/URL",
+        "table_type": "種類",
+        "table_result": "結果",
+        "table_reason": "理由",
+        "table_bookmark": "ブックマーク",
+        "result_accepted": "承認済",
+        "result_rejected": "拒否済",
+        "result_skipped_duplicate": "重複",
+        "result_pending": "保留中",
+        "result_processing": "処理中",
+        "no_results": "このフィルターに該当する結果はありません。",
+        "view_bookmark": "ブックマークを見る",
+        "load_more": "もっと読み込む",
+        "no_title": "タイトルなし"
+      }
     },
     "backups": {
       "backups": "バックアップ",
@@ -579,7 +664,9 @@
     "bookmarks": "ブックマーク",
     "storage": "ストレージ",
     "pdf": "PDFをアーカイブしたよ",
-    "default": "既定"
+    "default": "既定",
+    "id": "ID",
+    "last_used": "最後に使用"
   },
   "layouts": {
     "grid": "グリッド",
@@ -675,7 +762,10 @@
   },
   "options": {
     "dark_mode": "ダークモード",
-    "light_mode": "ライトモード"
+    "light_mode": "ライトモード",
+    "apps_extensions": "アプリと拡張機能",
+    "documentation": "ドキュメンテーション",
+    "follow_us_on_x": "Xでフォローしてね"
   },
   "tags": {
     "drag_and_drop_merging": "ドラッグ＆ドロップマージ",
@@ -699,7 +789,9 @@
     "no_ai_tags": "AIタグはまだありません",
     "no_unused_tags": "未使用のタグはありません",
     "no_unused_tags_match_your_search": "検索に一致する未使用のタグはありません",
-    "no_tags_match_your_search": "検索に一致するタグはありません"
+    "no_tags_match_your_search": "検索に一致するタグはありません",
+    "search_placeholder": "タグを検索...",
+    "search_or_create_placeholder": "タグを検索または作成..."
   },
   "search": {
     "created_on_or_after": "作成日以降",
@@ -746,7 +838,9 @@
     "filters": "フィルター",
     "is_not_broken_link": "リンクは有効です",
     "lists": "リスト",
-    "feeds": "フィード"
+    "feeds": "フィード",
+    "is_from_source": "ソースは",
+    "is_not_from_source": "ソースじゃない"
   },
   "preview": {
     "cached_content": "キャッシュされたコンテンツ",
@@ -756,7 +850,13 @@
       "content": "コンテンツ",
       "details": "詳細"
     },
-    "archive_info": "アーカイブは Javascript を必要とする場合、インラインで正しく表示されないことがあります。最良の結果を得るには、<1>ダウンロードしてブラウザで開いてください</1>。"
+    "archive_info": "アーカイブは Javascript を必要とする場合、インラインで正しく表示されないことがあります。最良の結果を得るには、<1>ダウンロードしてブラウザで開いてください</1>。",
+    "fetch_error_title": "コンテンツが利用できません",
+    "fetch_error_description": "このリンクのコンテンツを取得できませんでした。ページが保護されているか、認証が必要であるか、または一時的に利用できない可能性があります。",
+    "crawling_in_progress": "ページコンテンツを取得中…",
+    "continue_reading": "続きから再開",
+    "continue_reading_percent": "続きから再開（{{percent}}%）",
+    "continue_button": "続ける"
   },
   "editor": {
     "quickly_focus": "⌘ + E を押すと、このフィールドにすばやくフォーカスできます",
@@ -831,7 +931,9 @@
       "delete_from_list": "ブックマークがリストから削除されました",
       "deleted": "ブックマークが削除されたよ！",
       "refetch": "再取得をエンキューしたぞ！",
-      "preserve_pdf": "PDF保存が開始されたよ"
+      "preserve_pdf": "PDF保存が開始されたよ",
+      "update_banner": "バナーが更新されました！",
+      "uploading_banner": "バナーをアップロード中..."
     },
     "lists": {
       "created": "リストが作成されました！",
@@ -891,5 +993,54 @@
     "no_release_notes": "このバージョンに関するリリースノートは公開されていません。",
     "release_notes_synced": "リリースノートは GitHub から同期されています。",
     "view_on_github": "GitHub で表示"
+  },
+  "wrapped": {
+    "title": "あなたの {{year}} を振り返る",
+    "subtitle": "カラキープでの一年",
+    "banner": {
+      "title": "2025 年の振り返りができました！",
+      "description": "ブックマークで一年を振り返る",
+      "view_now": "今すぐ見る"
+    },
+    "button": "2025年を振り返る",
+    "loading": "Wrappedを読み込んでいます...",
+    "failed_to_load": "Wrappedの統計の読み込みに失敗しました",
+    "sections": {
+      "total_saves": {
+        "prefix": "保存しました",
+        "suffix": "今年のアイテム数",
+        "suffix_singular": "今年のアイテム"
+      },
+      "first_bookmark": {
+        "title": "旅の始まり",
+        "description": "{{year}}の最初の保存："
+      },
+      "top_domains": "人気のサイト",
+      "top_tags": "人気のタグ",
+      "monthly_activity": "保存の記録",
+      "most_active_day": "最もアクティブだった日",
+      "peak_times": {
+        "title": "いつ保存したか",
+        "peak_hour": "ピーク時間",
+        "peak_day": "ピーク日"
+      },
+      "how_you_save": "保存方法",
+      "what_you_saved": "何を保存したか",
+      "summary": {
+        "favorites": "お気に入り",
+        "tags_created": "作成したタグ",
+        "highlights": "ハイライト"
+      },
+      "types": {
+        "links": "リンク",
+        "notes": "メモ",
+        "assets": "アセット"
+      }
+    },
+    "footer": "Karakeep製",
+    "share": "共有",
+    "download": "ダウンロード",
+    "close": "閉じる",
+    "generating": "作成中..."
   }
 }

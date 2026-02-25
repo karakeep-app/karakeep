@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
+
 import useAppSettings from "./settings";
 import { buildApiHeaders } from "./utils";
 
@@ -36,4 +38,23 @@ export function useServerVersion() {
     enabled: !!settings.address,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
+}
+
+/**
+ * Hook to determine the appropriate archived filter value based on user settings.
+ * Returns `false` to hide archived bookmarks, or `undefined` to show all bookmarks.
+ */
+export function useArchiveFilter(): {
+  archived: false | undefined;
+  isLoading: boolean;
+} {
+  const api = useTRPC();
+  const { data: userSettings, isLoading } = useQuery(
+    api.users.settings.queryOptions(),
+  );
+  return {
+    archived:
+      userSettings?.archiveDisplayBehaviour === "show" ? undefined : false,
+    isLoading,
+  };
 }

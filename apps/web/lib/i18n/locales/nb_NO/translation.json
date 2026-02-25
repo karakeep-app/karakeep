@@ -41,7 +41,9 @@
     "bookmarks": "Bokmerker",
     "storage": "Lagring",
     "pdf": "Arkivert PDF",
-    "default": "Standard"
+    "default": "Standard",
+    "id": "ID",
+    "last_used": "Sist brukt"
   },
   "admin": {
     "users_list": {
@@ -144,7 +146,10 @@
         "reindex_all_bookmarks": "Reindekser alle bokmerker",
         "clean_assets": "Fjern løse filer og synkroniser metadata på nytt",
         "reprocess_assets_fix_mode": "Behandle aktiva som ikke er behandlet, på nytt",
-        "migrate_large_link_html_content": "Flytt stort HTML-innhold på nettet til aktiva"
+        "migrate_large_link_html_content": "Flytt stort HTML-innhold på nettet til aktiva",
+        "recrawl_pending_links_only": "Bare skann ventende lenker på nytt",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Bare gjenopprett AI-tagger for ventende bokmerker",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Bare gjenopprett AI-sammendrag for ventende bokmerker"
       }
     },
     "actions": {
@@ -171,6 +176,42 @@
         "connected": "Tilkoblet",
         "disconnected": "Frakoblet"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Admin-verktøy",
+      "bookmark_debugger": "Feilsøking av bokmerker",
+      "bookmark_id": "Bokmerke-ID",
+      "bookmark_id_placeholder": "Skriv inn bokmerke-ID",
+      "lookup": "Slå opp",
+      "debug_info": "Feilsøkings-informasjon",
+      "basic_info": "Grunnleggende informasjon",
+      "status": "Status",
+      "content": "Innhold",
+      "html_preview": "HTML-forhåndsvisning (første 1000 tegn)",
+      "summary": "Sammendrag",
+      "url": "URL",
+      "source_url": "Kilde-URL",
+      "asset_type": "Ressurstype",
+      "file_name": "Filnavn",
+      "owner_user_id": "Eier-bruker-ID",
+      "tagging_status": "Merkestatus",
+      "summarization_status": "Oppsummeringsstatus",
+      "crawl_status": "Gjennomsøkingsstatus",
+      "crawl_status_code": "HTTP-statuskode",
+      "crawled_at": "Crawlet på",
+      "recrawl": "Recrawl",
+      "reindex": "Reindekser",
+      "retag": "Retagg",
+      "resummarize": "Oppsummer på nytt",
+      "bookmark_not_found": "Fant ikke bokmerke",
+      "action_success": "Handling fullført",
+      "action_failed": "Handling feilet",
+      "recrawl_queued": "Recrawl-jobb er lagt i kø",
+      "reindex_queued": "Reindekseringsjobb er lagt i kø",
+      "retag_queued": "Retaggingsjobb er lagt i kø",
+      "resummarize_queued": "Oppsummeringsjobb er lagt i kø",
+      "view": "Visning",
+      "fetch_error": "Feil ved henting av bokmerke"
     }
   },
   "actions": {
@@ -218,7 +259,15 @@
     "load_more": "Last inn mer",
     "edit_notes": "Rediger notater",
     "preserve_as_pdf": "Bevar som PDF",
-    "offline_copies": "Offline kopier"
+    "offline_copies": "Offline kopier",
+    "preserve_offline_archive": "Bevar offline-arkiv",
+    "download_full_page_archive_file": "Last ned arkivfil",
+    "download_pdf_file": "Last ned PDF-fil",
+    "remove": "Fjern",
+    "more": "Mer",
+    "replace_banner": "Erstatt banner",
+    "add_banner": "Legg til banner",
+    "download": "Last ned"
   },
   "settings": {
     "info": {
@@ -312,7 +361,12 @@
       "tag_style_description": "Velg hvordan de automatisk genererte merkelappene dine skal formateres.",
       "auto_tagging_description": "Generer automatisk tagger for bokmerkene dine ved hjelp av AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatisk oppsummering"
+      "auto_summarization": "Automatisk oppsummering",
+      "no_preference": "Ingen preferanse",
+      "curated_tags": "Kurerte tagger",
+      "curated_tags_description": "Du kan eventuelt begrense AI-taggingen til å bare bruke tagger fra denne listen. Når ingen tagger er valgt vil AI-en generere tagger fritt.",
+      "curated_tags_updated": "Kurerte tagger oppdatert!",
+      "curated_tags_update_failed": "Klarte ikke å oppdatere kurerte tagger"
     },
     "import": {
       "import_bookmarks_from_omnivore_export": "Importer bokmerker fra Omnivore-eksport",
@@ -326,7 +380,8 @@
       "export_links_and_notes": "Eksporter lenker og notater",
       "imported_bookmarks": "Importerte bokmerker",
       "import_bookmarks_from_tab_session_manager_export": "Importer bokmerker fra Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksporten min"
+      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksporten min",
+      "import_bookmarks_from_instapaper_export": "Importer bokmerker fra Instapaper-eksport"
     },
     "api_keys": {
       "new_api_key": "Ny API-nøkkel",
@@ -394,7 +449,10 @@
         "and": "Alle de følgende er sanne",
         "or": "Noe av det følgende er sant",
         "bookmark_type_is": "Bokmerketype er",
-        "has_tag": "Har tagg"
+        "has_tag": "Har tagg",
+        "url_does_not_contain": "URL-en inneholder ikke",
+        "title_contains": "Tittelen inneholder",
+        "title_does_not_contain": "Tittelen inneholder ikke"
       },
       "if": "Hvis ...",
       "enter_rule_name": "Skriv inn regelnavn",
@@ -517,7 +575,10 @@
         "in_progress": "Pågår",
         "completed": "Fullført",
         "failed": "Mislyktes",
-        "processing": "Behandler"
+        "processing": "Behandler",
+        "staging": "Staging",
+        "running": "Kjører",
+        "paused": "Pause"
       },
       "badges": {
         "pending": "{{count}} venter",
@@ -529,7 +590,33 @@
       "view_list": "Vis liste",
       "delete_dialog_title": "Slett importsesjon",
       "delete_dialog_description": "Er du sikker på at du vil slette «{{name}}»? Denne handlingen kan ikke angres. Selve bokmerkene blir ikke slettet.",
-      "delete_session": "Slett økt"
+      "delete_session": "Slett økt",
+      "pause_session": "Pause",
+      "resume_session": "Gjenoppta",
+      "view_details": "Vis detaljer",
+      "detail": {
+        "page_title": "Importer sesjonsdetaljer",
+        "back_to_import": "Tilbake til import",
+        "filter_all": "Alle",
+        "filter_accepted": "Akseptert",
+        "filter_rejected": "Avvist",
+        "filter_duplicates": "Duplikater",
+        "filter_pending": "Venter",
+        "table_title": "Tittel / URL",
+        "table_type": "Type",
+        "table_result": "Resultat",
+        "table_reason": "Årsak",
+        "table_bookmark": "Bokmerke",
+        "result_accepted": "Akseptert",
+        "result_rejected": "Avvist",
+        "result_skipped_duplicate": "Duplikat",
+        "result_pending": "Venter",
+        "result_processing": "Behandler",
+        "no_results": "Fant ingen resultater for dette filteret.",
+        "view_bookmark": "Vis bokmerke",
+        "load_more": "Last mer",
+        "no_title": "Ingen tittel"
+      }
     },
     "backups": {
       "backups": "Sikkerhetskopieringer",
@@ -583,7 +670,10 @@
   },
   "options": {
     "dark_mode": "Mørk modus",
-    "light_mode": "Lys modus"
+    "light_mode": "Lys modus",
+    "apps_extensions": "Apper og utvidelser",
+    "documentation": "Dokumentasjon",
+    "follow_us_on_x": "Følg oss på X"
   },
   "lists": {
     "all_lists": "Alle lister",
@@ -693,7 +783,9 @@
     "no_ai_tags": "Ingen AI-tagger ennå",
     "no_unused_tags": "Du har ingen ubrukte tagger",
     "no_unused_tags_match_your_search": "Ingen ubrukte tagger passer søket ditt",
-    "no_tags_match_your_search": "Ingen tagger samsvarer med søket ditt"
+    "no_tags_match_your_search": "Ingen tagger samsvarer med søket ditt",
+    "search_placeholder": "Søk etter tagger …",
+    "search_or_create_placeholder": "Søk eller lag tagger …"
   },
   "search": {
     "is_not_favorited": "Er ikke favorittmerket",
@@ -740,7 +832,9 @@
     "filters": "Filtere",
     "is_not_broken_link": "Har fungerende lenke",
     "lists": "Lister",
-    "feeds": "Feeder"
+    "feeds": "Feeder",
+    "is_from_source": "Kilden er",
+    "is_not_from_source": "Kilden er ikke"
   },
   "editor": {
     "text_toolbar": {
@@ -809,7 +903,9 @@
       "clipboard_copied": "Lenken er lagt til utklippstavlen din!",
       "updated": "Bokmerket er oppdatert!",
       "deleted": "Bokmerket er slettet!",
-      "preserve_pdf": "PDF-bevaring er trigget"
+      "preserve_pdf": "PDF-bevaring er trigget",
+      "update_banner": "Banneret er oppdatert!",
+      "uploading_banner": "Laster opp banner..."
     },
     "lists": {
       "created": "Liste er opprettet!",
@@ -846,7 +942,13 @@
       "content": "Innhold",
       "details": "Detaljer"
     },
-    "archive_info": "Det kan hende at arkiver ikke gjengis riktig direkte hvis de krever Javascript. For best resultat, <1>last ned og åpne i nettleseren din</1>."
+    "archive_info": "Det kan hende at arkiver ikke gjengis riktig direkte hvis de krever Javascript. For best resultat, <1>last ned og åpne i nettleseren din</1>.",
+    "fetch_error_title": "Innhold utilgjengelig",
+    "fetch_error_description": "Vi kunne ikke hente innholdet for denne lenken. Siden kan være beskyttet, kreve autentisering eller være midlertidig utilgjengelig.",
+    "crawling_in_progress": "Henter sideinnhold …",
+    "continue_reading": "Fortsett der du slapp",
+    "continue_reading_percent": "Fortsett der du slapp ({{percent}} %)",
+    "continue_button": "Fortsett"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Ingen versjonsmerknader ble publisert for denne versjonen.",
     "release_notes_synced": "Versjonsmerknadene er synkronisert fra GitHub.",
     "view_on_github": "Vis på GitHub"
+  },
+  "wrapped": {
+    "title": "Din samlede oppsummering for {{year}}",
+    "subtitle": "Et år i Karakeep",
+    "banner": {
+      "title": "Oppsummeringen din for 2025 er klar!",
+      "description": "Se året ditt i bokmerker",
+      "view_now": "Vis nå"
+    },
+    "button": "Oppsummering for 2025",
+    "loading": "Laster inn oppsummeringen din...",
+    "failed_to_load": "Kunne ikke laste inn oppsummeringsstatistikken din",
+    "sections": {
+      "total_saves": {
+        "prefix": "Du lagret",
+        "suffix": "ting i år",
+        "suffix_singular": "ting i år"
+      },
+      "first_bookmark": {
+        "title": "Reisen din har begynt",
+        "description": "Første lagring i {{year}}:"
+      },
+      "top_domains": "Dine mest populære nettsteder",
+      "top_tags": "Dine mest populære emneknagger",
+      "monthly_activity": "Ditt år i lagringer",
+      "most_active_day": "Din mest aktive dag",
+      "peak_times": {
+        "title": "Når du lagrer",
+        "peak_hour": "Høysesong",
+        "peak_day": "Toppdag"
+      },
+      "how_you_save": "Hvordan du lagrer",
+      "what_you_saved": "Hva du har lagret",
+      "summary": {
+        "favorites": "Favoritter",
+        "tags_created": "Opprettede emneknagger",
+        "highlights": "Høydepunkter"
+      },
+      "types": {
+        "links": "Lenker",
+        "notes": "Notater",
+        "assets": "Ressurser"
+      }
+    },
+    "footer": "Laget med Karakeep",
+    "share": "Del",
+    "download": "Last ned",
+    "close": "Lukk",
+    "generating": "Genererer…"
   }
 }

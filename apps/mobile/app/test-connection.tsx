@@ -2,7 +2,6 @@ import React from "react";
 import { Platform, ScrollView, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Button } from "@/components/ui/Button";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { buildApiHeaders, cn } from "@/lib/utils";
@@ -79,57 +78,58 @@ export default function TestConnection() {
   }, [settings.address, randomId]);
 
   return (
-    <CustomSafeAreaView>
-      <View className="m-4 flex flex-1 flex-col gap-2 p-2">
-        <Button
-          className="w-full"
-          onPress={async () => {
-            await Clipboard.setStringAsync(text);
-          }}
-        >
-          <Text>Copy Diagnostics Result</Text>
-        </Button>
-        <Button
-          className="w-full"
-          variant="secondary"
-          onPress={() => {
-            setText("");
-            setRandomId(Math.random());
-          }}
-        >
-          <Text>Retry</Text>
-        </Button>
-        <View
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="m-4 flex flex-1 flex-col gap-2"
+    >
+      <Button
+        className="w-full"
+        onPress={async () => {
+          await Clipboard.setStringAsync(text);
+        }}
+      >
+        <Text>Copy Diagnostics Result</Text>
+      </Button>
+      <Button
+        className="w-full"
+        variant="secondary"
+        onPress={() => {
+          setText("");
+          setRandomId(Math.random());
+        }}
+      >
+        <Text>Retry</Text>
+      </Button>
+      <View
+        className={cn(
+          "w-full rounded-md p-2",
+          status === "running" && "bg-primary/50",
+          status === "success" && "bg-green-500",
+          status === "error" && "bg-red-500",
+        )}
+      >
+        <Text
           className={cn(
-            "w-full rounded-md p-2",
-            status === "running" && "bg-primary/50",
-            status === "success" && "bg-green-500",
-            status === "error" && "bg-red-500",
+            "w-full text-center",
+            status === "running" && "text-primary-foreground",
+            status === "success" && "text-white",
+            status === "error" && "text-white",
           )}
         >
-          <Text
-            className={cn(
-              "w-full text-center",
-              status === "running" && "text-primary-foreground",
-              status === "success" && "text-white",
-              status === "error" && "text-white",
-            )}
-          >
-            {status === "running" && "Running connection test ..."}
-            {status === "success" && "Connection test successful"}
-            {status === "error" && "Connection test failed"}
-          </Text>
-        </View>
-        <ScrollView className="border-1 border-md h-64 flex-1 border-border bg-input p-2 leading-6">
-          <Text
-            style={{
-              fontFamily: Platform.OS === "ios" ? "Courier New" : "monospace",
-            }}
-          >
-            {text}
-          </Text>
-        </ScrollView>
+          {status === "running" && "Running connection test ..."}
+          {status === "success" && "Connection test successful"}
+          {status === "error" && "Connection test failed"}
+        </Text>
       </View>
-    </CustomSafeAreaView>
+      <ScrollView className="border-1 border-md h-64 flex-1 border-border bg-input p-2 leading-6">
+        <Text
+          style={{
+            fontFamily: Platform.OS === "ios" ? "Courier New" : "monospace",
+          }}
+        >
+          {text}
+        </Text>
+      </ScrollView>
+    </ScrollView>
   );
 }

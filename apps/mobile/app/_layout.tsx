@@ -55,13 +55,24 @@ export default function RootLayout() {
               colorScheme == "dark" ? "dark" : "light",
             )}
             screenOptions={{
-              headerTitle: "",
               ...Platform.select({
-                ios: { headerTransparent: true },
+                ios: {
+                  headerTransparent: true,
+                  headerBlurEffect: "systemMaterial",
+                  headerLargeTitle: true,
+                  headerLargeTitleShadowVisible: false,
+                  headerLargeStyle: { backgroundColor: "transparent" },
+                },
               }),
+              headerShadowVisible: false,
             }}
           >
-            <Stack.Screen name="index" />
+            <Stack.Screen
+              name="index"
+              options={{
+                headerShown: false,
+              }}
+            />
             <Stack.Screen
               name="signin"
               options={{
@@ -71,13 +82,29 @@ export default function RootLayout() {
                 title: "",
               }}
             />
-            <Stack.Screen name="sharing" />
+            <Stack.Screen
+              name="sharing"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="+not-found"
+              options={{
+                headerShown: false,
+              }}
+            />
             <Stack.Screen
               name="server-address"
               options={{
                 title: "Server Address",
                 headerShown: true,
-                presentation: "modal",
+                headerTransparent: false,
+                headerLargeTitle: false,
+                presentation: Platform.select({
+                  ios: "formSheet" as const,
+                  default: "modal" as const,
+                }),
               }}
             />
             <Stack.Screen
@@ -85,7 +112,12 @@ export default function RootLayout() {
               options={{
                 title: "Test Connection",
                 headerShown: true,
-                presentation: "modal",
+                headerTransparent: false,
+                headerLargeTitle: false,
+                presentation: Platform.select({
+                  ios: "formSheet" as const,
+                  default: "modal" as const,
+                }),
               }}
             />
           </StyledStack>

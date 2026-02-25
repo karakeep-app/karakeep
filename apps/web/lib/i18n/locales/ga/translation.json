@@ -41,7 +41,9 @@
     "bookmarks": "Leabhair mharcála",
     "storage": "Stóráil",
     "pdf": "PDF Cartlainne",
-    "default": "Réamhshocrú"
+    "default": "Réamhshocrú",
+    "id": "ID",
+    "last_used": "Úsáidte Deireanach"
   },
   "actions": {
     "close": "Dún",
@@ -88,7 +90,15 @@
     "load_more": "Luchtaigh Níos Mó",
     "edit_notes": "Nótaí a Chur in Eagar",
     "preserve_as_pdf": "Caomhnaigh mar PDF",
-    "offline_copies": "Cóipeanna As Líne"
+    "offline_copies": "Cóipeanna As Líne",
+    "preserve_offline_archive": "Cartlann As Líne a Chaomhnú",
+    "download_full_page_archive_file": "Íoslódáil Comhad Cartlainne",
+    "download_pdf_file": "Íoslódáil Comhad PDF",
+    "remove": "Bain",
+    "more": "Tuilleadh",
+    "replace_banner": "Athsholáthar Meirge",
+    "add_banner": "Cuir Meirge Leis",
+    "download": "Íoslódáil"
   },
   "settings": {
     "ai": {
@@ -104,7 +114,7 @@
       "image_tagging": "Clibeáil Íomhá",
       "summarization": "Achoimre",
       "tag_style": "Stíl Clibe",
-      "auto_summarization_description": "Achoimrí a ghiniúint go huathoibríoch do do leabharmharcanna ag úsáid AI.",
+      "auto_summarization_description": "Achoimrí a ghiniúint go huathoibríoch le do leabharmharcanna ag úsáid AI.",
       "auto_tagging": "Uathchlibeáil",
       "titlecase_spaces": "Cás teidil le spásanna",
       "lowercase_underscores": "Cás íseal le fostríocaí",
@@ -114,9 +124,14 @@
       "lowercase_spaces": "Cás íseal le spásanna",
       "inference_language_description": "Roghnaigh teanga do chlibeanna agus achoimrí arna nginiúint ag AI.",
       "tag_style_description": "Roghnaigh conas ar cheart do chlibeanna uathghinte a bheith formáidithe.",
-      "auto_tagging_description": "Clibeanna a ghiniúint go huathoibríoch do do leabharmharcanna ag úsáid AI.",
-      "camelCase": "camelCase",
-      "auto_summarization": "Uathachoimriú"
+      "auto_tagging_description": "Gin clibeanna go huathoibríoch le do leabharmharcanna ag baint úsáide as hintleacht shaorga.",
+      "camelCase": "Cás camel",
+      "auto_summarization": "Uathachoimriú",
+      "no_preference": "Gan aon rogha",
+      "curated_tags": "Clibeanna Coimeádta",
+      "curated_tags_description": "Roghnaigh go gcuirfear srian le clibeáil AI chun clibeanna ón liosta seo a úsáid amháin. Nuair nach roghnaítear aon chlibeanna, gineann an AI clibeanna faoi shaoirse.",
+      "curated_tags_updated": "Clibeanna coimeádta nuashonraithe go rathúil!",
+      "curated_tags_update_failed": "Theip ar chlibeanna coimeádta a nuashonrú"
     },
     "webhooks": {
       "webhooks": "Crúcaí Gréasáin",
@@ -193,7 +208,10 @@
         "is_favourited": "An bhfuil sé i bhfabhar",
         "is_archived": "Archived atá ann",
         "and": "Tá gach ceann díobh seo a leanas fíor",
-        "or": "Tá aon cheann díobh seo a leanas fíor"
+        "or": "Tá aon cheann díobh seo a leanas fíor",
+        "url_does_not_contain": "Níl an URL san Áireamh",
+        "title_contains": "Tá Teideal Isteach Ann",
+        "title_does_not_contain": "Níl Sa Teideal"
       },
       "actions_types": {
         "add_tag": "Cuir Clib leis",
@@ -291,7 +309,8 @@
       "import_bookmarks_from_tab_session_manager_export": "Iompórtáil Leabhair Mharcála ó Bhainisteoir Seisiúin Cluaisíní",
       "export_links_and_notes": "Easpórtáil Naisc agus Nótaí",
       "imported_bookmarks": "Leabharmharcanna Allmhairithe",
-      "import_bookmarks_from_mymind_export": "Iompórtáil Leabharmharcanna ó onnmhairiú mymind"
+      "import_bookmarks_from_mymind_export": "Iompórtáil Leabharmharcanna ó onnmhairiú mymind",
+      "import_bookmarks_from_instapaper_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Instapaper"
     },
     "broken_links": {
       "broken_links": "Naisc Bhriste",
@@ -386,7 +405,10 @@
         "in_progress": "Ar siúl",
         "completed": "Críochnaithe",
         "failed": "Theip air",
-        "processing": "Próiseáil"
+        "processing": "Próiseáil",
+        "staging": "Stáitsiú",
+        "running": "Ag rith",
+        "paused": "Ar sos"
       },
       "badges": {
         "pending": "{{count}} ar feitheamh",
@@ -399,7 +421,33 @@
       "delete_dialog_title": "Scrios Seisiún Iompórtála",
       "delete_dialog_description": "An bhfuil tú cinnte gur mian leat \"{{name}}\" a scriosadh? Ní féidir an gníomh seo a chealú. Ní scriosfar na leabharmharcanna féin.",
       "delete_session": "Scrios Seisiún",
-      "description": "Féach ar do sheisiúin allmhairithe mórchóir agus bainistigh iad. Cruthaítear seisiúin go huathoibríoch nuair a allmhairíonn tú leabharmharcanna."
+      "description": "Féach ar do sheisiúin allmhairithe mórchóir agus bainistigh iad. Cruthaítear seisiúin go huathoibríoch nuair a allmhairíonn tú leabharmharcanna.",
+      "pause_session": "Sos",
+      "resume_session": "Lean ort",
+      "view_details": "Féach ar Shonraí",
+      "detail": {
+        "page_title": "Sonraí Seisiúin Iompórtála",
+        "back_to_import": "Ar ais chuig an Iompórtáil",
+        "filter_all": "Gach",
+        "filter_accepted": "Glactha",
+        "filter_rejected": "Diúltaithe",
+        "filter_duplicates": "Dúblaigh",
+        "filter_pending": "Ar feitheamh",
+        "table_title": "Teideal / URL",
+        "table_type": "Cineál",
+        "table_result": "Toradh",
+        "table_reason": "Cúis",
+        "table_bookmark": "Leabharmharc",
+        "result_accepted": "Glactha",
+        "result_rejected": "Diúltaithe",
+        "result_skipped_duplicate": "Dúblach",
+        "result_pending": "Ar feitheamh",
+        "result_processing": "Próiseáil",
+        "no_results": "Níor aimsíodh aon torthaí don scagaire seo.",
+        "view_bookmark": "Féach ar Leabharmharc",
+        "load_more": "Luchtaigh Tuilleadh",
+        "no_title": "Gan teideal"
+      }
     },
     "backups": {
       "backups": "Cúltaca",
@@ -559,7 +607,9 @@
     "no_ai_tags": "Níl aon chlibeanna AI agat fós",
     "no_unused_tags": "Níl aon chlibeanna neamhúsáidte agat",
     "no_unused_tags_match_your_search": "Ní fhreagraíonn aon chlibeanna neamhúsáidte d’inneall cuardaigh duit",
-    "no_tags_match_your_search": "Ní fhreagraíonn aon chlibeanna d’inneall cuardaigh duit"
+    "no_tags_match_your_search": "Ní fhreagraíonn aon chlibeanna d’inneall cuardaigh duit",
+    "search_placeholder": "Cuardaigh clibeanna...",
+    "search_or_create_placeholder": "Cuardaigh nó cruthaigh clibeanna..."
   },
   "search": {
     "is_favorited": "Is Fearr",
@@ -606,7 +656,9 @@
     "filters": "Scagairí",
     "is_not_broken_link": "Tá Nasc Oibre Ann",
     "lists": "Liostaí",
-    "feeds": "Fothaí"
+    "feeds": "Fothaí",
+    "is_from_source": "Ní foinse é foinse",
+    "is_not_from_source": "Ní foinse é foinse ní"
   },
   "editor": {
     "disabled_submissions": "Tá aighneachtaí díchumasaithe",
@@ -675,7 +727,9 @@
       "full_page_archive": "Tá cruthú Cartlainne Leathanach Iomlán tosaithe",
       "delete_from_list": "Scriosadh an leabharmharc ón liosta",
       "clipboard_copied": "Tá an nasc curtha le do ghearrthaisce!",
-      "preserve_pdf": "Tá caomhnú PDF tosaithe"
+      "preserve_pdf": "Tá caomhnú PDF tosaithe",
+      "update_banner": "Tá an meirge nuashonraithe!",
+      "uploading_banner": "Ag uaslódáil meirge..."
     },
     "lists": {
       "created": "Cruthaíodh liosta!",
@@ -776,7 +830,10 @@
         "reindex_all_bookmarks": "Gach leabharmharc a athinnéacsú",
         "clean_assets": "Sócmhainní crochta a ghlanadh & Meiteashonraí a athshioncronú",
         "reprocess_assets_fix_mode": "Sócmhainní neamhphróiseáilte a athphróiseáil",
-        "migrate_large_link_html_content": "Bog an HTML Mór Inlíne go Sócmhainní"
+        "migrate_large_link_html_content": "Bog an HTML Mór Inlíne go Sócmhainní",
+        "recrawl_pending_links_only": "Ath-rianasca na Naisc atá ar Feitheamh Amháin",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Athghin Clibeanna AI le haghaidh Leabharmharcanna atá ar Feitheamh Amháin",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Athghin Achoimrí AI le haghaidh Leabharmharcanna atá ar Feitheamh Amháin"
       }
     },
     "admin_settings": "Socruithe Riaracháin",
@@ -816,6 +873,42 @@
         "connected": "Ceangailte",
         "disconnected": "Dícheangailte"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Uirlisí Riaracháin",
+      "bookmark_debugger": "Dífhabhtóir Leabharmharcanna",
+      "bookmark_id": "ID an Leabharmharc",
+      "bookmark_id_placeholder": "Iontráil ID an leabharmhairc",
+      "lookup": "Cuardaigh",
+      "debug_info": "Faisnéis Dhífhabhtaithe",
+      "basic_info": "Buneolas",
+      "status": "Stádas",
+      "content": "Ábhar",
+      "html_preview": "Réamhamharc HTML (Na chéad 1000 carachtar)",
+      "summary": "Achoimre",
+      "url": "URL",
+      "source_url": "URL Foinse",
+      "asset_type": "Cineál Sócmhainne",
+      "file_name": "Ainm Comhaid",
+      "owner_user_id": "ID Úsáideora an Úinéara",
+      "tagging_status": "Stádas Clibeála",
+      "summarization_status": "Stádas Achoimrithe",
+      "crawl_status": "Stádas Crawl",
+      "crawl_status_code": "Cód Stádais HTTP",
+      "crawled_at": "Crawlta Ag",
+      "recrawl": "Ath-crawl",
+      "reindex": "Ath-innéacsú",
+      "retag": "Ath-chlibeáil",
+      "resummarize": "Ath-achoimriú",
+      "bookmark_not_found": "Leabharmharc ar iarraidh",
+      "action_success": "D'éirigh leis an ngníomh",
+      "action_failed": "Theip ar an ngníomh",
+      "recrawl_queued": "Cuireadh post ath-crawl i scuaine",
+      "reindex_queued": "Cuireadh post ath-innéacsaithe i scuaine",
+      "retag_queued": "Cuireadh post ath-chlibeála i scuaine",
+      "resummarize_queued": "Cuireadh post ath-achoimrithe i scuaine",
+      "view": "Féach",
+      "fetch_error": "Earráid agus leabharmharc á fháil"
     }
   },
   "bookmark_editor": {
@@ -839,7 +932,10 @@
   },
   "options": {
     "dark_mode": "Mód Dorcha",
-    "light_mode": "Mód Solais"
+    "light_mode": "Mód Solais",
+    "apps_extensions": "Aipeanna & Eisínteachtaí",
+    "documentation": "Doiciméadú",
+    "follow_us_on_x": "Lean muid ar X"
   },
   "preview": {
     "view_original": "Féach ar an mBunleagan",
@@ -849,7 +945,13 @@
       "content": "Ábhar",
       "details": "Sonraí"
     },
-    "archive_info": "Seans nach ndéanfaidh cartlanna rindreáil i gceart inline má tá Javascript ag teastáil uathu. Chun na torthaí is fearr a fháil, <1>íoslódáil é agus oscail i do bhrabhsálaí</1>."
+    "archive_info": "Seans nach ndéanfaidh cartlanna rindreáil i gceart inline má tá Javascript ag teastáil uathu. Chun na torthaí is fearr a fháil, <1>íoslódáil é agus oscail i do bhrabhsálaí</1>.",
+    "fetch_error_title": "Ní féidir Ábhar a Fháil",
+    "fetch_error_description": "Níorbh fhéidir linn ábhar an nasc seo a thabhairt chun solais. B'fhéidir go bhfuil an leathanach cosanta, go bhfuil gá le fíordheimhniú, nó go bhfuil sé ar fáil go sealadach.",
+    "crawling_in_progress": "Ag fáil ábhar an leathanaigh…",
+    "continue_reading": "Lean ar aghaidh san áit ar fágadh thú",
+    "continue_reading_percent": "Lean ar aghaidh san áit ar fágadh thú ({{percent}}%)",
+    "continue_button": "Lean ar aghaidh"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Níor foilsíodh aon nótaí scaoilte don leagan seo.",
     "release_notes_synced": "Déantar nótaí scaoilte a shioncronú ó GitHub.",
     "view_on_github": "Féach ar GitHub"
+  },
+  "wrapped": {
+    "title": "{{year}} Fillte agat",
+    "subtitle": "Bliain i gKarakeep",
+    "banner": {
+      "title": "Tá do Fillte 2025 réidh!",
+      "description": "Féach ar do bhliain i leabharmharcanna",
+      "view_now": "Féach Anois"
+    },
+    "button": "Fillte 2025",
+    "loading": "Ag lódáil do chuid Fillte...",
+    "failed_to_load": "Theip ort do staitisticí Fillte a lódáil",
+    "sections": {
+      "total_saves": {
+        "prefix": "Shábháil tú",
+        "suffix": "Míreanna i mbliana",
+        "suffix_singular": "Mír i mbliana"
+      },
+      "first_bookmark": {
+        "title": "Thosaigh do Thuras",
+        "description": "An chéad sábháil agat in {{year}}:"
+      },
+      "top_domains": "Na Suímh is Fearr Agat",
+      "top_tags": "Na Clibeanna is Fearr Agat",
+      "monthly_activity": "Do Bhliain i Sábhála",
+      "most_active_day": "An Lá is Gnóthaí Agat",
+      "peak_times": {
+        "title": "Cathain a Shábhálann Tú",
+        "peak_hour": "Buaicuaire",
+        "peak_day": "Buaiclá"
+      },
+      "how_you_save": "Conas a Shábhálann Tú",
+      "what_you_saved": "Cad a Shábháil Tú",
+      "summary": {
+        "favorites": "Rudaí is Ansa leat",
+        "tags_created": "Clibeanna Cruthaithe",
+        "highlights": "Buaicphointí"
+      },
+      "types": {
+        "links": "Naisc",
+        "notes": "Nótaí",
+        "assets": "Sócmhainní"
+      }
+    },
+    "footer": "Déanta le Karakeep",
+    "share": "Comhroinn",
+    "download": "Íoslódáil",
+    "close": "Dún",
+    "generating": "Ag giniúint..."
   }
 }

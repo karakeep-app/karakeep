@@ -44,7 +44,15 @@
     "load_more": "Carica altro",
     "edit_notes": "Modifica note",
     "preserve_as_pdf": "Salva come PDF",
-    "offline_copies": "Copie offline"
+    "offline_copies": "Copie offline",
+    "preserve_offline_archive": "Conserva l'archivio offline",
+    "download_full_page_archive_file": "Scarica il file di archivio",
+    "download_pdf_file": "Scarica il file PDF",
+    "remove": "Rimuovi",
+    "more": "Altro",
+    "replace_banner": "Sostituisci il banner",
+    "add_banner": "Aggiungi un banner",
+    "download": "Scarica"
   },
   "common": {
     "attachments": "Allegati",
@@ -88,7 +96,9 @@
     "bookmarks": "Segnalibri",
     "storage": "Archiviazione",
     "pdf": "PDF archiviato",
-    "default": "Predefinito"
+    "default": "Predefinito",
+    "id": "ID",
+    "last_used": "Ultimo utilizzo"
   },
   "settings": {
     "broken_links": {
@@ -190,7 +200,12 @@
       "tag_style_description": "Scegli come formattare le etichette generate automaticamente.",
       "auto_tagging_description": "Genera automaticamente i tag per i tuoi segnalibri usando l'AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Riassunto automatico"
+      "auto_summarization": "Riassunto automatico",
+      "no_preference": "Nessuna preferenza",
+      "curated_tags": "Tag curati",
+      "curated_tags_description": "Limita facoltativamente l'assegnazione di tag AI all'uso esclusivo di tag provenienti da questo elenco. Quando non sono selezionati tag, l'AI genera tag liberamente.",
+      "curated_tags_updated": "Tag curati aggiornati con successo!",
+      "curated_tags_update_failed": "Impossibile aggiornare i tag curati"
     },
     "feeds": {
       "rss_subscriptions": "Iscrizione RSS",
@@ -210,7 +225,8 @@
       "import_bookmarks_from_omnivore_export": "Importa segnalibri da esportazione Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importa i segnalibri dall'esportazione di Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importa i segnalibri da Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importa i segnalibri dall'esportazione di mymind"
+      "import_bookmarks_from_mymind_export": "Importa i segnalibri dall'esportazione di mymind",
+      "import_bookmarks_from_instapaper_export": "Importa i segnalibri dall'esportazione di Instapaper"
     },
     "api_keys": {
       "api_keys": "Chiavi API",
@@ -261,7 +277,10 @@
         "is_favourited": "È tra i preferiti",
         "is_archived": "Archiviato",
         "and": "Tutte le seguenti sono vere",
-        "or": "Se una qualsiasi delle seguenti condizioni è vera"
+        "or": "Se una qualsiasi delle seguenti condizioni è vera",
+        "url_does_not_contain": "L'URL non contiene",
+        "title_contains": "Il titolo contiene",
+        "title_does_not_contain": "Il titolo non contiene"
       },
       "events_types": {
         "tag_removed": "Questo tag viene rimosso da un segnalibro",
@@ -387,7 +406,10 @@
         "in_progress": "In corso",
         "completed": "Completato",
         "failed": "Fallito",
-        "processing": "Elaborazione"
+        "processing": "Elaborazione",
+        "staging": "In preparazione",
+        "running": "In esecuzione",
+        "paused": "In pausa"
       },
       "badges": {
         "pending": "{{count}} in sospeso",
@@ -399,7 +421,33 @@
       "view_list": "Visualizza elenco",
       "delete_dialog_title": "Elimina sessione di importazione",
       "delete_dialog_description": "Sei sicuro di voler eliminare \"{{name}}\"? Questa azione non può essere annullata. I segnalibri stessi non verranno eliminati.",
-      "delete_session": "Elimina sessione"
+      "delete_session": "Elimina sessione",
+      "pause_session": "Pausa",
+      "resume_session": "Riprendi",
+      "view_details": "Visualizza dettagli",
+      "detail": {
+        "page_title": "Dettagli sessione di importazione",
+        "back_to_import": "Torna a Importa",
+        "filter_all": "Tutto",
+        "filter_accepted": "Accettato",
+        "filter_rejected": "Rifiutato",
+        "filter_duplicates": "Duplicati",
+        "filter_pending": "In attesa",
+        "table_title": "Titolo/URL",
+        "table_type": "Tipo",
+        "table_result": "Risultato",
+        "table_reason": "Motivo",
+        "table_bookmark": "Segnalibro",
+        "result_accepted": "Accettato",
+        "result_rejected": "Rifiutato",
+        "result_skipped_duplicate": "Duplicato",
+        "result_pending": "In attesa",
+        "result_processing": "In elaborazione",
+        "no_results": "Nessun risultato trovato per questo filtro.",
+        "view_bookmark": "Visualizza segnalibro",
+        "load_more": "Carica altro",
+        "no_title": "Nessun titolo"
+      }
     },
     "backups": {
       "backups": "Backup",
@@ -605,7 +653,10 @@
         "reindex_all_bookmarks": "Reindicizza tutti i segnalibri",
         "clean_assets": "Pulisci le risorse orfane e risincronizza i metadati",
         "reprocess_assets_fix_mode": "Rielabora le risorse non elaborate",
-        "migrate_large_link_html_content": "Sposta grandi contenuti HTML incorporati negli asset"
+        "migrate_large_link_html_content": "Sposta grandi contenuti HTML incorporati negli asset",
+        "recrawl_pending_links_only": "Nuova scansione solo dei link in sospeso",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Rigenera i tag AI solo per i segnalibri in sospeso",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Rigenera i riassunti AI solo per i segnalibri in sospeso"
       }
     },
     "actions": {
@@ -644,11 +695,50 @@
         "connected": "Connesso",
         "disconnected": "Disconnesso"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Strumenti di amministrazione",
+      "bookmark_debugger": "Debugger segnalibro",
+      "bookmark_id": "ID segnalibro",
+      "bookmark_id_placeholder": "Inserisci ID segnalibro",
+      "lookup": "Ricerca",
+      "debug_info": "Informazioni di debug",
+      "basic_info": "Informazioni di base",
+      "status": "Stato",
+      "content": "Contenuto",
+      "html_preview": "Anteprima HTML (primi 1000 caratteri)",
+      "summary": "Riepilogo",
+      "url": "URL",
+      "source_url": "URL di origine",
+      "asset_type": "Tipo di risorsa",
+      "file_name": "Nome file",
+      "owner_user_id": "ID utente proprietario",
+      "tagging_status": "Stato dell'etichettatura",
+      "summarization_status": "Stato di riepilogo",
+      "crawl_status": "Stato della scansione",
+      "crawl_status_code": "Codice di stato HTTP",
+      "crawled_at": "Scansionato il",
+      "recrawl": "Ri-scansiona",
+      "reindex": "Ri-indicizza",
+      "retag": "Ri-etichetta",
+      "resummarize": "Ri-sommarizza",
+      "bookmark_not_found": "Segnalibro non trovato",
+      "action_success": "Azione completata con successo",
+      "action_failed": "Azione fallita",
+      "recrawl_queued": "Il processo di ri-scansione è stato accodato",
+      "reindex_queued": "Il processo di ri-indicizzazione è stato accodato",
+      "retag_queued": "Il processo di ri-etichettatura è stato accodato",
+      "resummarize_queued": "Il processo di ri-sommarizzazione è stato accodato",
+      "view": "Visualizza",
+      "fetch_error": "Errore durante il recupero del segnalibro"
     }
   },
   "options": {
     "dark_mode": "Modalità scura",
-    "light_mode": "Modalità chiara"
+    "light_mode": "Modalità chiara",
+    "apps_extensions": "App e estensioni",
+    "documentation": "Documentazione",
+    "follow_us_on_x": "Seguici su X"
   },
   "lists": {
     "all_lists": "Tutte le liste",
@@ -758,7 +848,9 @@
     "no_ai_tags": "Ancora nessun tag IA",
     "no_unused_tags": "Non hai tag inutilizzati",
     "no_unused_tags_match_your_search": "Nessun tag inutilizzato corrisponde alla tua ricerca",
-    "no_tags_match_your_search": "Nessun tag corrisponde alla tua ricerca"
+    "no_tags_match_your_search": "Nessun tag corrisponde alla tua ricerca",
+    "search_placeholder": "Cerca tag...",
+    "search_or_create_placeholder": "Cerca o crea tag..."
   },
   "preview": {
     "view_original": "Vedi originale",
@@ -768,7 +860,13 @@
       "content": "Contenuto",
       "details": "Dettagli"
     },
-    "archive_info": "Gli archivi potrebbero non essere visualizzati correttamente in linea se richiedono Javascript. Per risultati ottimali, <1>scaricalo e aprilo nel tuo browser</1>."
+    "archive_info": "Gli archivi potrebbero non essere visualizzati correttamente in linea se richiedono Javascript. Per risultati ottimali, <1>scaricalo e aprilo nel tuo browser</1>.",
+    "fetch_error_title": "Contenuto non disponibile",
+    "fetch_error_description": "Impossibile ottenere il contenuto per questo link. La pagina potrebbe essere protetta, richiedere l'autenticazione o essere temporaneamente non disponibile.",
+    "crawling_in_progress": "Recupero del contenuto della pagina…",
+    "continue_reading": "Continua da dove hai lasciato",
+    "continue_reading_percent": "Continua da dove hai lasciato ({{percent}}%)",
+    "continue_button": "Continua"
   },
   "toasts": {
     "bookmarks": {
@@ -778,7 +876,9 @@
       "full_page_archive": "L'archivio della pagina completa è stato attivato",
       "delete_from_list": "Il segnalibro è stato eliminato dalla lista",
       "clipboard_copied": "Il link è stato copiato!",
-      "preserve_pdf": "È stato attivato il salvataggio in PDF"
+      "preserve_pdf": "È stato attivato il salvataggio in PDF",
+      "update_banner": "Banner aggiornato!",
+      "uploading_banner": "Caricamento del banner..."
     },
     "lists": {
       "created": "Lista creata!",
@@ -843,7 +943,9 @@
     "filters": "Filtri",
     "is_not_broken_link": "Ha Link Funzionante",
     "lists": "Elenchi",
-    "feeds": "Feed"
+    "feeds": "Feed",
+    "is_from_source": "L'origine è",
+    "is_not_from_source": "L'origine non è"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Nessuna nota di rilascio è stata pubblicata per questa versione.",
     "release_notes_synced": "Le note di rilascio sono sincronizzate da GitHub.",
     "view_on_github": "Visualizza su GitHub"
+  },
+  "wrapped": {
+    "title": "Il tuo riepilogo {{year}}",
+    "subtitle": "Un anno su Karakeep",
+    "banner": {
+      "title": "Il tuo riepilogo 2025 è pronto!",
+      "description": "Guarda il tuo anno in segnalibri",
+      "view_now": "Visualizza ora"
+    },
+    "button": "Riepilogo 2025",
+    "loading": "Caricamento del tuo riepilogo...",
+    "failed_to_load": "Impossibile caricare le statistiche del riepilogo",
+    "sections": {
+      "total_saves": {
+        "prefix": "Hai salvato",
+        "suffix": "elementi quest'anno",
+        "suffix_singular": "elemento quest'anno"
+      },
+      "first_bookmark": {
+        "title": "Il tuo viaggio è iniziato",
+        "description": "Primo salvataggio del {{year}}:"
+      },
+      "top_domains": "I tuoi siti principali",
+      "top_tags": "I tuoi tag principali",
+      "monthly_activity": "Il tuo anno di salvataggi",
+      "most_active_day": "Il tuo giorno più attivo",
+      "peak_times": {
+        "title": "Quando salvi",
+        "peak_hour": "Ora di picco",
+        "peak_day": "Giorno di picco"
+      },
+      "how_you_save": "Come salvi",
+      "what_you_saved": "Cosa hai salvato",
+      "summary": {
+        "favorites": "Preferiti",
+        "tags_created": "Tag creati",
+        "highlights": "In evidenza"
+      },
+      "types": {
+        "links": "Link",
+        "notes": "Note",
+        "assets": "Risorse"
+      }
+    },
+    "footer": "Realizzato con Karakeep",
+    "share": "Condividi",
+    "download": "Scarica",
+    "close": "Chiudi",
+    "generating": "Generazione in corso..."
   }
 }

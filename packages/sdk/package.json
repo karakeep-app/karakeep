@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@karakeep/sdk",
-  "version": "0.30.0",
+  "version": "0.31.0",
   "description": "Typescript SDK for Karakeep",
   "license": "GNU Affero General Public License version 3",
   "keywords": [

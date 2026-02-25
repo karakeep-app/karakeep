@@ -22,7 +22,12 @@ import {
   matchesNoProxy,
   validateUrl,
 } from "network";
-import { Browser, BrowserContextOptions } from "playwright";
+import {
+  Browser,
+  BrowserContext,
+  BrowserContextOptions,
+  Page,
+} from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { withWorkerTracing } from "workerTracing";
@@ -191,6 +196,73 @@ let globalCookies: Cookie[] = [];
 // This is needed given that most of the browser APIs are async.
 const browserMutex = new Mutex();
 
+// Tracks active browser contexts so we can reap leaked ones.
+const activeContexts = new Map<
+  string,
+  { context: BrowserContext; createdAt: number }
+>();
+
+const CONTEXT_CLOSE_TIMEOUT_MS = 10_000;
+const PAGE_CLOSE_TIMEOUT_MS = 5_000;
+
+/**
+ * Reaps browser contexts that have been open longer than the max job timeout.
+ * This is a safety net for cases where context.close() hangs or is never called.
+ */
+function startContextReaper() {
+  const maxContextAgeMs =
+    (serverConfig.crawler.jobTimeoutSec + 30) * 1000 +
+    60_000 * 5; /* 5 minutes buffer */
+  const intervalId = setInterval(() => {
+    try {
+      const now = Date.now();
+      for (const [id, entry] of activeContexts) {
+        if (now - entry.createdAt > maxContextAgeMs) {
+          logger.warn(
+            `[Crawler] Reaping stale browser context for job ${id} (age: ${Math.round((now - entry.createdAt) / 1000)}s)`,
+          );
+          void Promise.race([
+            entry.context
+              .close()
+              .then(() => true)
+              .catch((e: unknown) => {
+                logger.warn(
+                  `[Crawler] Failed to close stale context for job ${id}: ${e}`,
+                );
+                return true;
+              }),
+            new Promise<false>((r) =>
+              setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
+            ),
+          ]).then((contextClosed) => {
+            // Protect against deleting a newer context if the job id gets reused.
+            if (!contextClosed) {
+              logger.warn(
+                `[Crawler] Timed out closing stale context for job ${id} — keeping in active set for retry`,
+              );
+              return;
+            }
+            if (activeContexts.get(id) === entry) {
+              activeContexts.delete(id);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      logger.error(
+        `[Crawler] caught an unexpected error while reaping stale browser contexts: ${e}`,
+      );
+    }
+  }, 60_000 * 5);
+  exitAbortController.signal.addEventListener(
+    "abort",
+    () => clearInterval(intervalId),
+    {
+      once: true,
+    },
+  );
+}
+
 async function startBrowserInstance() {
   if (serverConfig.crawler.browserWebSocketUrl) {
     logger.info(
@@ -289,6 +361,7 @@ export class CrawlerWorker {
           );
         }
         await loadCookiesFromFile();
+        startContextReaper();
       })();
     }
     return CrawlerWorker.initPromise;
@@ -519,6 +592,8 @@ async function crawlPage(
           }),
       );
 
+      activeContexts.set(jobId, { context, createdAt: Date.now() });
+      let page: Page | undefined;
       try {
         if (globalCookies.length > 0) {
           await context.addCookies(globalCookies);
@@ -527,7 +602,7 @@ async function crawlPage(
           );
         }
 
-        const page = await withSpan(
+        page = await withSpan(
           tracer,
           "crawlerWorker.crawlPage.setupPage",
           {
@@ -598,9 +673,26 @@ async function crawlPage(
               // Continue with other requests
               await route.continue();
             });
+
+            // On abort, immediately stop intercepting requests so that
+            // in-flight route handlers don't block page/context closure.
+            abortSignal.addEventListener(
+              "abort",
+              () => {
+                nextPage.unrouteAll({ behavior: "ignoreErrors" }).catch(() => {
+                  // Ignore errors — the page may already be closed.
+                });
+              },
+              { once: true },
+            );
+
             return nextPage;
           },
         );
+
+        // page is guaranteed to be assigned here; alias to a const for
+        // TypeScript narrowing so the rest of the try block sees `Page`.
+        const activePage = page;
 
         // Navigate to the target URL
         const navigationValidation = await withSpan(
@@ -634,7 +726,7 @@ async function crawlPage(
           },
           async () =>
             Promise.race([
-              page.goto(targetUrl, {
+              activePage.goto(targetUrl, {
                 timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
                 waitUntil: "domcontentloaded",
               }),
@@ -662,7 +754,7 @@ async function crawlPage(
           },
           async () => {
             await Promise.race([
-              page
+              activePage
                 .waitForLoadState("networkidle", { timeout: 5000 })
                 .catch(() => ({})),
               new Promise((resolve) => setTimeout(resolve, 5000)),
@@ -695,7 +787,7 @@ async function crawlPage(
                 },
               },
               async () => {
-                const content = await page.content();
+                const content = await activePage.content();
                 abortSignal.throwIfAborted();
                 logger.info(
                   `[Crawler][${jobId}] Successfully fetched the page content.`,
@@ -719,7 +811,7 @@ async function crawlPage(
                     const { data: screenshotData, error: screenshotError } =
                       await tryCatch(
                         Promise.race<Buffer>([
-                          page.screenshot({
+                          activePage.screenshot({
                             // If you change this, you need to change the asset type in the store function.
                             type: "jpeg",
                             fullPage: serverConfig.crawler.fullPageScreenshot,
@@ -769,7 +861,7 @@ async function crawlPage(
                     async () => {
                       const { data: pdfData, error: pdfError } = await tryCatch(
                         Promise.race<Buffer>([
-                          page.pdf({
+                          activePage.pdf({
                             format: "A4",
                             printBackground: true,
                           }),
@@ -818,14 +910,105 @@ async function crawlPage(
           statusCode: response?.status() ?? 0,
           screenshot,
           pdf,
-          url: page.url(),
+          url: activePage.url(),
         };
       } finally {
-        await context.close();
-        // Only close the browser if it was created on demand
-        if (serverConfig.crawler.browserConnectOnDemand) {
-          await browser.close();
-        }
+        await withSpan(
+          tracer,
+          "crawlerWorker.crawlPage.cleanup",
+          {
+            attributes: {
+              "job.id": jobId,
+              "crawler.cleanup.hasPage": !!page,
+            },
+          },
+          async () => {
+            // Explicitly close the page first (with timeout) to release resources
+            // even if context.close() later hangs.
+            if (page) {
+              const pageToClose = page;
+              const pageClosed = await withSpan(
+                tracer,
+                "crawlerWorker.crawlPage.cleanup.closePage",
+                { attributes: { "job.id": jobId } },
+                async () =>
+                  Promise.race([
+                    pageToClose
+                      .close()
+                      .then(() => true)
+                      .catch((e: unknown) => {
+                        logger.warn(
+                          `[Crawler][${jobId}] page.close() failed: ${e}`,
+                        );
+                        return true;
+                      }),
+                    new Promise<false>((r) =>
+                      setTimeout(() => r(false), PAGE_CLOSE_TIMEOUT_MS),
+                    ),
+                  ]),
+              );
+              setSpanAttributes({ "crawler.cleanup.pageClosed": pageClosed });
+              if (!pageClosed) {
+                logger.warn(`[Crawler][${jobId}] page.close() timed out`);
+              }
+            }
+
+            // Close the context (with timeout) to avoid hanging on in-flight ops.
+            // Only remove from tracking if close actually succeeded; otherwise
+            // the reaper will retry the close later.
+            const contextClosed = await withSpan(
+              tracer,
+              "crawlerWorker.crawlPage.cleanup.closeContext",
+              { attributes: { "job.id": jobId } },
+              async () =>
+                Promise.race([
+                  context
+                    .close()
+                    .then(() => true)
+                    .catch((e: unknown) => {
+                      logger.warn(
+                        `[Crawler][${jobId}] context.close() failed: ${e}`,
+                      );
+                      return true; // Error means it's likely already closed
+                    }),
+                  new Promise<false>((r) =>
+                    setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
+                  ),
+                ]),
+            );
+            setSpanAttributes({
+              "crawler.cleanup.contextClosed": contextClosed,
+            });
+
+            if (contextClosed) {
+              activeContexts.delete(jobId);
+            } else {
+              logger.warn(
+                `[Crawler][${jobId}] context.close() timed out — leaving in active set for reaper`,
+              );
+            }
+
+            // Only close the browser if it was created on demand
+            if (serverConfig.crawler.browserConnectOnDemand) {
+              await withSpan(
+                tracer,
+                "crawlerWorker.crawlPage.cleanup.closeBrowser",
+                { attributes: { "job.id": jobId } },
+                async () =>
+                  browser
+                    .close()
+                    .then(() => {
+                      activeContexts.delete(jobId);
+                    })
+                    .catch((e: unknown) => {
+                      logger.warn(
+                        `[Crawler][${jobId}] browser.close() failed: ${e}`,
+                      );
+                    }),
+              );
+            }
+          },
+        );
       }
     },
   );

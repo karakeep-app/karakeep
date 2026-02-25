@@ -41,7 +41,9 @@
     "bookmarks": "Σελιδοδείκτες",
     "storage": "Αποθήκευση",
     "pdf": "Αρχειοθετημένο PDF",
-    "default": "Προεπιλογή"
+    "default": "Προεπιλογή",
+    "id": "ID",
+    "last_used": "Τελευταία Χρήση"
   },
   "layouts": {
     "masonry": "Πλινθοδομή",
@@ -94,7 +96,15 @@
     "load_more": "Φόρτωσε περισσότερα",
     "edit_notes": "Επεξεργασία σημειώσεων",
     "preserve_as_pdf": "Διατήρηση ως PDF",
-    "offline_copies": "Αντίγραφα εκτός σύνδεσης"
+    "offline_copies": "Αντίγραφα εκτός σύνδεσης",
+    "preserve_offline_archive": "Διατήρηση αρχείου εκτός σύνδεσης",
+    "download_full_page_archive_file": "Λήψη αρχείου",
+    "download_pdf_file": "Λήψη αρχείου PDF",
+    "remove": "Κατάργηση",
+    "more": "Περισσότερα",
+    "replace_banner": "Αντικατάσταση Banner",
+    "add_banner": "Προσθήκη Banner",
+    "download": "Λήψη"
   },
   "highlights": {
     "no_highlights": "Δεν έχετε ακόμα επιλογές."
@@ -193,7 +203,12 @@
       "tag_style_description": "Διάλεξε πώς να μορφοποιηθούν οι αυτόματα δημιουργημένες ετικέτες σου.",
       "auto_tagging_description": "Δημιουργήστε αυτόματα ετικέτες για τους σελιδοδείκτες σας χρησιμοποιώντας AI.",
       "camelCase": "camelCase",
-      "auto_summarization": "Αυτόματη δημιουργία περιλήψεων"
+      "auto_summarization": "Αυτόματη δημιουργία περιλήψεων",
+      "no_preference": "Καμία προτίμηση",
+      "curated_tags": "Επιλεγμένες ετικέτες",
+      "curated_tags_description": "Προαιρετικά, περιορίστε την προσθήκη ετικετών AI ώστε να χρησιμοποιεί μόνο ετικέτες από αυτήν τη λίστα. Όταν δεν επιλέγονται ετικέτες, η AI δημιουργεί ελεύθερα ετικέτες.",
+      "curated_tags_updated": "Οι επιλεγμένες ετικέτες ενημερώθηκαν με επιτυχία!",
+      "curated_tags_update_failed": "Αποτυχία ενημέρωσης επιλεγμένων ετικετών"
     },
     "feeds": {
       "rss_subscriptions": "Συνδρομές RSS",
@@ -231,7 +246,8 @@
       "import_bookmarks_from_tab_session_manager_export": "Εισαγωγή Σελιδοδεικτών από Tab Session Manager",
       "export_links_and_notes": "Εξαγωγή Συνδέσμων και Σημειώσεων",
       "imported_bookmarks": "Εισαγόμενοι Σελιδοδείκτες",
-      "import_bookmarks_from_mymind_export": "Εισαγωγή σελιδοδεικτών από την εξαγωγή mymind"
+      "import_bookmarks_from_mymind_export": "Εισαγωγή σελιδοδεικτών από την εξαγωγή mymind",
+      "import_bookmarks_from_instapaper_export": "Εισαγωγή σελιδοδεικτών από την εξαγωγή του Instapaper"
     },
     "api_keys": {
       "api_keys": "Κλειδιά API",
@@ -287,7 +303,10 @@
         "is_favourited": "Είναι Αγαπημένο",
         "is_archived": "Είναι Αρχειοθετημένο",
         "and": "Όλα τα παρακάτω είναι αληθή",
-        "or": "Οποιοδήποτε από τα παρακάτω είναι αληθές"
+        "or": "Οποιοδήποτε από τα παρακάτω είναι αληθές",
+        "url_does_not_contain": "Το URL δεν περιέχει",
+        "title_contains": "Ο τίτλος περιέχει",
+        "title_does_not_contain": "Ο τίτλος δεν περιέχει"
       },
       "actions_types": {
         "add_tag": "Προσθήκη Ετικέτας",
@@ -396,7 +415,10 @@
         "in_progress": "Σε εξέλιξη",
         "completed": "Ολοκληρώθηκε",
         "failed": "Αποτυχία",
-        "processing": "Επεξεργασία"
+        "processing": "Επεξεργασία",
+        "staging": "Στάδιο",
+        "running": "Εκτέλεση",
+        "paused": "Σε παύση"
       },
       "badges": {
         "pending": "{{count}} σε εκκρεμότητα",
@@ -408,7 +430,33 @@
       "view_list": "Προβολή Λίστας",
       "delete_dialog_title": "Διαγραφή Συνεδρίας Εισαγωγής",
       "delete_dialog_description": "Είστε σίγουρος ότι θέλετε να διαγράψετε το \"{{name}}\"; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Οι ίδιοι οι σελιδοδείκτες δεν θα διαγραφούν.",
-      "delete_session": "Διαγραφή συνεδρίας"
+      "delete_session": "Διαγραφή συνεδρίας",
+      "pause_session": "Παύση",
+      "resume_session": "Επαναφορά",
+      "view_details": "Προβολή λεπτομερειών",
+      "detail": {
+        "page_title": "Εισαγωγή λεπτομερειών συνεδρίας",
+        "back_to_import": "Επιστροφή στην εισαγωγή",
+        "filter_all": "Όλα",
+        "filter_accepted": "Αποδεκτά",
+        "filter_rejected": "Απορριφθέντα",
+        "filter_duplicates": "Διπλότυπα",
+        "filter_pending": "Σε εκκρεμότητα",
+        "table_title": "Τίτλος / URL",
+        "table_type": "Τύπος",
+        "table_result": "Αποτέλεσμα",
+        "table_reason": "Λόγος",
+        "table_bookmark": "Σελιδοδείκτης",
+        "result_accepted": "Αποδεκτά",
+        "result_rejected": "Απορριφθέντα",
+        "result_skipped_duplicate": "Διπλότυπο",
+        "result_pending": "Σε εκκρεμότητα",
+        "result_processing": "Επεξεργασία",
+        "no_results": "Δεν βρέθηκαν αποτελέσματα για αυτό το φίλτρο.",
+        "view_bookmark": "Προβολή σελιδοδείκτη",
+        "load_more": "Φόρτωσε κι άλλα",
+        "no_title": "Κανένας τίτλος"
+      }
     },
     "backups": {
       "backups": "Αντίγραφα ασφαλείας",
@@ -549,7 +597,10 @@
         "reindex_all_bookmarks": "Επανευρετηρίαση όλων των σελιδοδεικτών",
         "clean_assets": "Εκκαθάριση εκκρεμών στοιχείων και επανασυγχρονισμός μεταδεδομένων",
         "reprocess_assets_fix_mode": "Επανεξεργασία μη επεξεργασμένων στοιχείων",
-        "migrate_large_link_html_content": "Μετακινήστε Μεγάλο Ενσωματωμένο Περιεχόμενο HTML σε Στοιχεία"
+        "migrate_large_link_html_content": "Μετακινήστε Μεγάλο Ενσωματωμένο Περιεχόμενο HTML σε Στοιχεία",
+        "recrawl_pending_links_only": "Επανέλεγξε Μόνο τις Εκκρεμείς Συνδέσεις",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Αναδημιούργησε τις Ετικέτες AI Μόνο για τους Εκκρεμείς Σελιδοδείκτες",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Αναδημιούργησε τις Περιλήψεις AI Μόνο για τους Εκκρεμείς Σελιδοδείκτες"
       }
     },
     "actions": {
@@ -588,11 +639,50 @@
         "connected": "Συνδέθηκε",
         "disconnected": "Αποσυνδέθηκε"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Εργαλεία διαχειριστή",
+      "bookmark_debugger": "Εργαλείο εντοπισμού σφαλμάτων σελιδοδεικτών",
+      "bookmark_id": "Αναγνωριστικό σελιδοδείκτη",
+      "bookmark_id_placeholder": "Εισαγάγετε το αναγνωριστικό σελιδοδείκτη",
+      "lookup": "Αναζήτηση",
+      "debug_info": "Πληροφορίες εντοπισμού σφαλμάτων",
+      "basic_info": "Βασικές πληροφορίες",
+      "status": "Κατάσταση",
+      "content": "Περιεχόμενο",
+      "html_preview": "Προεπισκόπηση HTML (Πρώτοι 1000 χαρακτήρες)",
+      "summary": "Περίληψη",
+      "url": "URL",
+      "source_url": "URL προέλευσης",
+      "asset_type": "Τύπος στοιχείου",
+      "file_name": "Όνομα αρχείου",
+      "owner_user_id": "Αναγνωριστικό χρήστη κατόχου",
+      "tagging_status": "Κατάσταση προσθήκης ετικετών",
+      "summarization_status": "Κατάσταση συνοπτικής παρουσίασης",
+      "crawl_status": "Κατάσταση ανίχνευσης",
+      "crawl_status_code": "Κωδικός κατάστασης HTTP",
+      "crawled_at": "Έγινε ανίχνευση στις",
+      "recrawl": "Επανέλεγχος",
+      "reindex": "Επανευρετηρίαση",
+      "retag": "Επανασήμανση",
+      "resummarize": "Επανάληψη σύνοψης",
+      "resummarize_queued": "Η εργασία επανάληψης σύνοψης έχει μπει στην ουρά",
+      "view": "Προβολή",
+      "bookmark_not_found": "Δεν βρέθηκε ο σελιδοδείκτης",
+      "action_success": "Η ενέργεια ολοκληρώθηκε με επιτυχία",
+      "action_failed": "Η ενέργεια απέτυχε",
+      "recrawl_queued": "Η εργασία επανελέγχου έχει μπει στην ουρά",
+      "reindex_queued": "Η εργασία επανευρετηρίασης έχει μπει στην ουρά",
+      "retag_queued": "Η εργασία επανασήμανσης έχει μπει στην ουρά",
+      "fetch_error": "Σφάλμα κατά τη λήψη του σελιδοδείκτη"
     }
   },
   "options": {
     "dark_mode": "Σκοτεινή Λειτουργία",
-    "light_mode": "Ανοιχτή Λειτουργία"
+    "light_mode": "Ανοιχτή Λειτουργία",
+    "apps_extensions": "Εφαρμογές & Επεκτάσεις",
+    "documentation": "Τεκμηρίωση",
+    "follow_us_on_x": "Ακολουθήστε μας στο X"
   },
   "lists": {
     "all_lists": "Όλες οι Λίστες",
@@ -702,7 +792,9 @@
     "no_ai_tags": "Δεν υπάρχουν ακόμα ετικέτες τεχνητής νοημοσύνης",
     "no_unused_tags": "Δεν έχεις καμία αχρησιμοποίητη ετικέτα",
     "no_unused_tags_match_your_search": "Δεν υπάρχουν αχρησιμοποίητες ετικέτες που να ταιριάζουν με την αναζήτησή σου",
-    "no_tags_match_your_search": "Καμία ετικέτα δεν ταιριάζει με την αναζήτησή σου"
+    "no_tags_match_your_search": "Καμία ετικέτα δεν ταιριάζει με την αναζήτησή σου",
+    "search_placeholder": "Αναζήτηση ετικετών...",
+    "search_or_create_placeholder": "Αναζητήστε ή δημιουργήστε ετικέτες..."
   },
   "search": {
     "is_favorited": "Είναι Αγαπημένο",
@@ -749,7 +841,9 @@
     "filters": "Φίλτρα",
     "is_not_broken_link": "Έχει σύνδεσμο που λειτουργεί",
     "lists": "Λίστες",
-    "feeds": "Ροές"
+    "feeds": "Ροές",
+    "is_from_source": "Η πηγή είναι",
+    "is_not_from_source": "Η πηγή δεν είναι"
   },
   "preview": {
     "view_original": "Προβολή Πρωτότυπου",
@@ -759,7 +853,13 @@
       "content": "Περιεχόμενο",
       "details": "Λεπτομέρειες"
     },
-    "archive_info": "Τα αρχεία ενδέχεται να μην αποδίδονται σωστά ενσωματωμένα, εάν απαιτούν Javascript. Για καλύτερα αποτελέσματα, <1>κατεβάστε το και ανοίξτε το στο πρόγραμμα περιήγησής σας</1>."
+    "archive_info": "Τα αρχεία ενδέχεται να μην αποδίδονται σωστά ενσωματωμένα, εάν απαιτούν Javascript. Για καλύτερα αποτελέσματα, <1>κατεβάστε το και ανοίξτε το στο πρόγραμμα περιήγησής σας</1>.",
+    "fetch_error_title": "Δεν είναι δυνατή η πρόσβαση στο περιεχόμενο",
+    "fetch_error_description": "Δεν μπορέσαμε να λάβουμε το περιεχόμενο για αυτόν τον σύνδεσμο. Η σελίδα ενδέχεται να είναι προστατευμένη, να απαιτεί έλεγχο ταυτότητας ή να είναι προσωρινά μη διαθέσιμη.",
+    "crawling_in_progress": "Λήψη περιεχομένου σελίδας…",
+    "continue_reading": "Συνέχισε από εκεί που σταμάτησες",
+    "continue_reading_percent": "Συνέχισε από εκεί που σταμάτησες ({{percent}}%)",
+    "continue_button": "Συνέχισε"
   },
   "editor": {
     "quickly_focus": "Μπορείτε να εστιάσετε γρήγορα σε αυτό το πεδίο πατώντας ⌘ + E",
@@ -834,7 +934,9 @@
       "full_page_archive": "Η δημιουργία Πλήρους Αρχείου Σελίδας ενεργοποιήθηκε",
       "delete_from_list": "Ο σελιδοδείκτης διαγράφηκε από τη λίστα",
       "clipboard_copied": "Ο σύνδεσμος προστέθηκε στο πρόχειρό σας!",
-      "preserve_pdf": "Η διατήρηση PDF έχει ενεργοποιηθεί"
+      "preserve_pdf": "Η διατήρηση PDF έχει ενεργοποιηθεί",
+      "update_banner": "Το banner ενημερώθηκε!",
+      "uploading_banner": "Μεταφόρτωση banner..."
     },
     "lists": {
       "created": "Η λίστα δημιουργήθηκε!",
@@ -891,5 +993,54 @@
     "no_release_notes": "Δεν δημοσιεύτηκαν σημειώσεις έκδοσης για αυτήν την έκδοση.",
     "release_notes_synced": "Οι σημειώσεις έκδοσης συγχρονίζονται από το GitHub.",
     "view_on_github": "Προβολή στο GitHub"
+  },
+  "wrapped": {
+    "title": "Το {{year}} σου σε περιτύλιγμα",
+    "subtitle": "Μια χρονιά στο Karakeep",
+    "banner": {
+      "title": "Το δικό σου 2025 Wrapped είναι έτοιμο!",
+      "description": "Δείτε τη χρονιά σας σε σελιδοδείκτες",
+      "view_now": "Προβολή τώρα"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Φόρτωση του Wrapped σου...",
+    "failed_to_load": "Αποτυχία φόρτωσης των στατιστικών σου Wrapped",
+    "sections": {
+      "total_saves": {
+        "prefix": "Έχεις αποθηκεύσει",
+        "suffix": "αντικείμενα φέτος",
+        "suffix_singular": "αντικείμενο φέτος"
+      },
+      "first_bookmark": {
+        "title": "Το Ταξίδι σου Ξεκίνησε",
+        "description": "Η πρώτη σου αποθήκευση του {{year}}:"
+      },
+      "top_domains": "Οι Κορυφαίες σελίδες σου",
+      "top_tags": "Οι Κορυφαίες ετικέτες σου",
+      "monthly_activity": "Η Χρονιά σου σε Αποθηκεύσεις",
+      "most_active_day": "Η πιο δραστήρια σου μέρα",
+      "peak_times": {
+        "title": "Πότε Αποθηκεύεις",
+        "peak_hour": "Ώρα Αιχμής",
+        "peak_day": "Μέρα Αιχμής"
+      },
+      "how_you_save": "Πώς Αποθηκεύεις",
+      "what_you_saved": "Τι Αποθήκευσες",
+      "summary": {
+        "favorites": "Αγαπημένα",
+        "tags_created": "Ετικέτες που Δημιουργήθηκαν",
+        "highlights": "Στιγμιότυπα"
+      },
+      "types": {
+        "links": "Σύνδεσμοι",
+        "notes": "Σημειώσεις",
+        "assets": "Περιουσιακά στοιχεία"
+      }
+    },
+    "footer": "Δημιουργήθηκε με το Karakeep",
+    "share": "Κοινή χρήση",
+    "download": "Λήψη",
+    "close": "Κλείσιμο",
+    "generating": "Δημιουργία..."
   }
 }

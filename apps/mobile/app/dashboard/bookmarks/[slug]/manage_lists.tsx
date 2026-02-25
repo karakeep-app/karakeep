@@ -91,9 +91,9 @@ const ListPickerPage = () => {
   };
 
   const { allPaths } = data ?? {};
-  const filteredPaths = allPaths?.filter(
-    (path) => path[path.length - 1].userRole !== "viewer",
-  );
+  const filteredPaths = allPaths
+    ?.filter((path) => path[path.length - 1].userRole !== "viewer")
+    .filter((path) => path[path.length - 1].type !== "smart");
 
   return (
     <>

@@ -4,6 +4,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { useArchiveFilter } from "@/lib/hooks";
 import { MenuView } from "@react-native-menu/menu";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Ellipsis } from "lucide-react-native";
@@ -22,6 +23,7 @@ export default function ListView() {
     error,
     refetch,
   } = useQuery(api.lists.get.queryOptions({ listId: slug }));
+  const { archived, isLoading: isSettingsLoading } = useArchiveFilter();
 
   return (
     <>
@@ -36,10 +38,11 @@ export default function ListView() {
       />
       {error ? (
         <FullPageError error={error.message} onRetry={() => refetch()} />
-      ) : list ? (
+      ) : list && !isSettingsLoading ? (
         <UpdatingBookmarkList
           query={{
             listId: list.id,
+            archived,
           }}
         />
       ) : (

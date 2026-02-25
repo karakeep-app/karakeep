@@ -1380,4 +1380,93 @@ describe("Bookmark Routes", () => {
       );
     });
   });
+
+  describe("checkUrl", () => {
+    test<CustomTestContext>("returns null for non-existent URL", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const result = await api.checkUrl({
+        url: "https://nonexistent.example.com",
+      });
+      expect(result.bookmarkId).toBeNull();
+    });
+
+    test<CustomTestContext>("returns bookmark id for exact URL match", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/page",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/page",
+      });
+      expect(result.bookmarkId).toEqual(bookmark.id);
+    });
+
+    test<CustomTestContext>("matches URL ignoring trailing slash", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/page/",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/page",
+      });
+      expect(result.bookmarkId).toEqual(bookmark.id);
+    });
+
+    test<CustomTestContext>("matches URL ignoring hash fragment", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/page",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/page#section",
+      });
+      expect(result.bookmarkId).toEqual(bookmark.id);
+    });
+
+    test<CustomTestContext>("does not match different URLs on same domain", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      await api.createBookmark({
+        url: "https://example.com/page-one",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/page-two",
+      });
+      expect(result.bookmarkId).toBeNull();
+    });
+
+    test<CustomTestContext>("does not return bookmarks from other users", async ({
+      apiCallers,
+    }) => {
+      const api1 = apiCallers[0].bookmarks;
+      const api2 = apiCallers[1].bookmarks;
+
+      await api1.createBookmark({
+        url: "https://example.com/private",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api2.checkUrl({
+        url: "https://example.com/private",
+      });
+      expect(result.bookmarkId).toBeNull();
+    });
+  });
 });

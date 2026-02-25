@@ -370,6 +370,7 @@ export function TagsEditor({
           <PopoverContent
             className="w-[--radix-popover-trigger-width] p-0"
             align="start"
+            onWheel={(e) => e.stopPropagation()}
           >
             <CommandList className="max-h-64">
               {displayedOptions.length === 0 ? (

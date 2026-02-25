@@ -1,0 +1,71 @@
+---
+id: summarize-a-bookmark
+title: "Summarize a bookmark"
+description: "Attaches a summary to the bookmark and returns the updated record."
+sidebar_label: "Summarize a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVU2P2zYQ/SvCnFKAsJ0iRQLd3EOBbQ9ddLfIwfBhLI0triWSIYdeOwL/ezCUP3eVdg97skwOZ948vnnsoaZQee1YWwMlzJmxaigUWITYdegPBduCGypW1m479NsCTV144uhNyBvR1cgka5X19QQUMG4ClAv4/XgkwFJBoCp6zQcoFz2sCD35eeQGysUyLRU49NgRkw85IFQNdQhlD3xwBCUE9tpsQAHtsXOtLGnSdbs/bLrnpy+f7f77b82e2VZfBIHmHHJCcFdDUuDpW9SeaijZR1JgsJOg1SVIgRYWHHIDgspTcNYECoLk19lMfm4Je7xi4EzRs+bmxB8oqKxhMiyH0blWVyiHp09BMoz0aldPVDEocN468qyH+rp+zUdSUHmS6nMe3e1srdd6fFuBiW2LK6FKGEln4t4Qib5q9I6uMa2sbQmNlF3jzsp1/2yfcbPRZvPAyDH8fz0FZGInmgqxqigEkBK6jZ6EJjK1nFomBQPr+num+P3TG8tvo+d0+2+KtdFXb0h7gYlOg4JnWom6Wvnu7Eq3lOeDyQQRp4Kgzaal9bDhc1u6c9Zz7iUG8ndjmroZlYXo7lplN5q60sHNpb+84fGLOWNYpiRVP80+vZ6w0wwXxnKxttHU7zdSla1HeJexoRBwM7b3gpyc4RKfG8nnubG1WIkNuaw4SgnTk0WEaX+xnTQ9kSOpAvndyQajb6GEHuvaUwhpik5Pdx9BwQ69FmHkLo7bA3VrjC1DCQ2zC+V0yv4w2aLHLZGboHOgRhzsmKGw62zpfx3jiwELpJSuHPxByB0qX/v4mSmpLH3kMBn7HATq+PGH9R0Kwj+/PmY6tVlbOS5dD5A+TmaT2ZWNn/HM7+9G8c/v74q19bfgpdmk8g10mGVxNPyHE9sFnj37Zdr+IrF3ehQHcpj2PHUt6myD+X77ozoW55dIJqO8eZYuAlkqaERT5QL6foWB/vVtSrL8LZIYzmJ5kUcWUa2DfNdQrrEN9B+NfvjnqOxfip8hPi6iOWQVtlH+gYItHW6f0iQW0xDW5DOKIWBeVeT46uir6RWlnafn/u+HR/GYW4G9EFROP4qr74eIR7slk9IZJst/QZjSD3WCHTs=
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Summarize a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bookmarks/{bookmarkId}/summarize"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Attaches a summary to the bookmark and returns the updated record.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The updated bookmark with summary","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"createdAt":{"type":"string"},"modifiedAt":{"type":"string","nullable":true},"title":{"type":"string","nullable":true},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"taggingStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"summarizationStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"note":{"type":"string","nullable":true},"summary":{"type":"string","nullable":true},"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"userId":{"type":"string"}},"required":["id","createdAt","modifiedAt","archived","favourited","taggingStatus","summarizationStatus","userId"]}}}},"404":{"description":"Bookmark not found","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}},"required":["code","message"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

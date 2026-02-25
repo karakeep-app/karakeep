@@ -41,7 +41,9 @@
     "bookmarks": "Закладки",
     "storage": "Хранилище",
     "pdf": "Архивированный PDF",
-    "default": "По умолчанию"
+    "default": "По умолчанию",
+    "id": "ID",
+    "last_used": "Последнее использование"
   },
   "lists": {
     "new_list": "Новый список",
@@ -209,7 +211,8 @@
       "export_links_and_notes": "Экспортировать ссылки и заметки",
       "import_bookmarks_from_linkwarden_export": "Импортировать закладки из экспорта Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Импортировать закладки из Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Импортировать закладки из экспорта mymind"
+      "import_bookmarks_from_mymind_export": "Импортировать закладки из экспорта mymind",
+      "import_bookmarks_from_instapaper_export": "Импортировать закладки из экспорта Instapaper"
     },
     "api_keys": {
       "key_success": "Ключ был успешно создан",
@@ -248,7 +251,12 @@
       "tag_style_description": "Выбери, как форматировать автосгенерированные теги.",
       "auto_tagging_description": "Автоматически генерируйте теги для ваших закладок с помощью ИИ.",
       "camelCase": "camelCase",
-      "auto_summarization": "Автоматическое создание сводок"
+      "auto_summarization": "Автоматическое создание сводок",
+      "no_preference": "Без предпочтений",
+      "curated_tags": "Подобранные теги",
+      "curated_tags_description": "При необходимости ограничьте добавление тегов ИИ только тегами из этого списка. Если теги не выбраны, ИИ генерирует теги свободно.",
+      "curated_tags_updated": "Подобранные теги успешно обновлены!",
+      "curated_tags_update_failed": "Не удалось обновить подобранные теги"
     },
     "feeds": {
       "rss_subscriptions": "RSS подписки",
@@ -317,7 +325,10 @@
         "is_favourited": "В избранном",
         "is_archived": "В архиве",
         "and": "Все следующие утверждения верны",
-        "or": "Если что-то из этого правда"
+        "or": "Если что-то из этого правда",
+        "url_does_not_contain": "URL не содержит",
+        "title_contains": "Заголовок содержит",
+        "title_does_not_contain": "Заголовок не содержит"
       },
       "actions_types": {
         "add_tag": "Добавить тег",
@@ -426,7 +437,10 @@
         "in_progress": "В процессе",
         "completed": "Завершено",
         "failed": "Ошибка",
-        "processing": "Обработка"
+        "processing": "Обработка",
+        "staging": "Подготовка к релизу",
+        "running": "Запущено",
+        "paused": "Приостановлено"
       },
       "badges": {
         "pending": "{{count}} в ожидании",
@@ -438,7 +452,33 @@
       "view_list": "Смотреть список",
       "delete_dialog_title": "Удалить сессию импорта",
       "delete_dialog_description": "Ты уверен, что хочешь удалить \"{{name}}\"? Это действие нельзя отменить. Сами закладки не будут удалены.",
-      "delete_session": "Удалить сессию"
+      "delete_session": "Удалить сессию",
+      "pause_session": "Приостановить",
+      "resume_session": "Возобновить",
+      "view_details": "Посмотреть детали",
+      "detail": {
+        "page_title": "Детали сессии импорта",
+        "back_to_import": "Вернуться к импорту",
+        "filter_all": "Все",
+        "filter_accepted": "Принято",
+        "filter_rejected": "Отклонено",
+        "filter_duplicates": "Дубликаты",
+        "filter_pending": "Ожидает обработки",
+        "table_title": "Название / URL",
+        "table_type": "Тип",
+        "table_result": "Результат",
+        "table_reason": "Причина",
+        "table_bookmark": "Закладка",
+        "result_accepted": "Принято",
+        "result_rejected": "Отклонено",
+        "result_skipped_duplicate": "Дубликат",
+        "result_pending": "Ожидает обработки",
+        "result_processing": "В обработке",
+        "no_results": "По этому фильтру ничего не найдено.",
+        "view_bookmark": "Посмотреть закладку",
+        "load_more": "Загрузить еще",
+        "no_title": "Без названия"
+      }
     },
     "backups": {
       "backups": "Резервные копии",
@@ -535,7 +575,15 @@
     "load_more": "Загрузить еще",
     "edit_notes": "Редактировать заметки",
     "preserve_as_pdf": "Сохранить как PDF",
-    "offline_copies": "Автономные копии"
+    "offline_copies": "Автономные копии",
+    "preserve_offline_archive": "Сохранить оффлайн архив",
+    "download_full_page_archive_file": "Скачать файл архива",
+    "download_pdf_file": "Скачать PDF-файл",
+    "remove": "Удалить",
+    "more": "Больше",
+    "replace_banner": "Заменить баннер",
+    "add_banner": "Добавить баннер",
+    "download": "Скачать"
   },
   "editor": {
     "text_toolbar": {
@@ -641,7 +689,10 @@
         "regenerate_ai_tags_for_all_bookmarks": "Заново создать AI-теги для всех закладок",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Заново сгенерировать AI-сводки только для закладок с ошибками",
         "regenerate_ai_summaries_for_all_bookmarks": "Заново сгенерировать AI-сводки для всех закладок",
-        "migrate_large_link_html_content": "Переместите Большой Встроенный HTML-контент в Ресурсы"
+        "migrate_large_link_html_content": "Переместите Большой Встроенный HTML-контент в Ресурсы",
+        "recrawl_pending_links_only": "Переиндексировать только отложенные ссылки",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Заново сгенерировать AI-теги только для отложенных закладок",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Заново сгенерировать AI-резюме только для отложенных закладок"
       },
       "jobs": {
         "crawler": {
@@ -724,6 +775,42 @@
         "connected": "Подключено",
         "disconnected": "Отключено"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Инструменты админа",
+      "bookmark_debugger": "Отладчик закладок",
+      "bookmark_id": "ID закладки",
+      "bookmark_id_placeholder": "Введи ID закладки",
+      "lookup": "Поиск",
+      "debug_info": "Отладочная инфа",
+      "basic_info": "Основная инфа",
+      "status": "Статус",
+      "content": "Контент",
+      "html_preview": "Предпросмотр HTML (первые 1000 символов)",
+      "summary": "Сводка",
+      "url": "URL",
+      "source_url": "Исходный URL",
+      "asset_type": "Тип актива",
+      "file_name": "Имя файла",
+      "owner_user_id": "ID пользователя-владельца",
+      "tagging_status": "Статус тегов",
+      "summarization_status": "Статус суммирования",
+      "crawl_status": "Статус сканирования",
+      "crawl_status_code": "Код статуса HTTP",
+      "crawled_at": "Просканировано",
+      "recrawl": "Перепроверить",
+      "reindex": "Переиндексировать",
+      "retag": "Переметить тегами",
+      "resummarize": "Перефразировать",
+      "bookmark_not_found": "Закладка не найдена",
+      "action_success": "Действие выполнено успешно",
+      "action_failed": "Действие не выполнено",
+      "recrawl_queued": "Задача перепроверки поставлена в очередь",
+      "reindex_queued": "Задача переиндексации поставлена в очередь",
+      "retag_queued": "Задача переметки тегами поставлена в очередь",
+      "resummarize_queued": "Задача перефразировки поставлена в очередь",
+      "view": "Вид",
+      "fetch_error": "Ошибка при получении закладки"
     }
   },
   "layouts": {
@@ -734,7 +821,10 @@
   },
   "options": {
     "dark_mode": "Тёмный режим",
-    "light_mode": "Светлый режим"
+    "light_mode": "Светлый режим",
+    "apps_extensions": "Приложения и расширения",
+    "documentation": "Документация",
+    "follow_us_on_x": "Читай нас в X"
   },
   "tags": {
     "your_tags_info": "Метки, которые вами были хоть раз прикреплены",
@@ -758,7 +848,9 @@
     "no_ai_tags": "Пока нет тегов ИИ",
     "no_unused_tags": "У вас нет неиспользуемых тегов",
     "no_unused_tags_match_your_search": "Нет неиспользуемых тегов, соответствующих вашему поиску",
-    "no_tags_match_your_search": "Нет тегов, соответствующих вашему поиску"
+    "no_tags_match_your_search": "Нет тегов, соответствующих вашему поиску",
+    "search_placeholder": "Поиск тегов...",
+    "search_or_create_placeholder": "Поиск или создание тегов…"
   },
   "preview": {
     "view_original": "Посмотреть оригинал",
@@ -768,7 +860,13 @@
       "content": "Содержание",
       "details": "Подробности"
     },
-    "archive_info": "Архивы могут неправильно отображаться во встроенном режиме, если для них требуется Javascript. Для достижения наилучших результатов <1>загрузите их и откройте в браузере</1>."
+    "archive_info": "Архивы могут неправильно отображаться во встроенном режиме, если для них требуется Javascript. Для достижения наилучших результатов <1>загрузите их и откройте в браузере</1>.",
+    "fetch_error_title": "Контент недоступен",
+    "fetch_error_description": "Не удалось получить контент по этой ссылке. Страница может быть защищена, требовать аутентификации или быть временно недоступна.",
+    "crawling_in_progress": "Получаю содержимое страницы…",
+    "continue_reading": "Продолжить с места, где остановились",
+    "continue_reading_percent": "Продолжить с места, где остановились ({{percent}}%)",
+    "continue_button": "Продолжить"
   },
   "toasts": {
     "bookmarks": {
@@ -778,7 +876,9 @@
       "clipboard_copied": "Ссылка была скопирована в буфер обмена!",
       "deleted": "Закладка была удалена!",
       "updated": "Закладка была обновлена!",
-      "preserve_pdf": "Сохранение в формате PDF было запущено"
+      "preserve_pdf": "Сохранение в формате PDF было запущено",
+      "update_banner": "Баннер обновлён!",
+      "uploading_banner": "Загрузка баннера..."
     },
     "lists": {
       "created": "Список был создан!",
@@ -843,7 +943,9 @@
     "filters": "Фильтры",
     "is_not_broken_link": "Рабочие ссылки",
     "lists": "Списки",
-    "feeds": "Ленты"
+    "feeds": "Ленты",
+    "is_from_source": "Источник:",
+    "is_not_from_source": "Источника нет"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Примечания к выпуску для этой версии не публиковались.",
     "release_notes_synced": "Примечания к выпуску синхронизируются с GitHub.",
     "view_on_github": "Посмотреть на GitHub"
+  },
+  "wrapped": {
+    "title": "Твой {{year}} Wrapped",
+    "subtitle": "Год в Karakeep",
+    "banner": {
+      "title": "Твой 2025 Wrapped готов!",
+      "description": "Посмотри свой год в закладках",
+      "view_now": "Посмотреть сейчас"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Загружаем твой Wrapped...",
+    "failed_to_load": "Не удалось загрузить твою статистику Wrapped",
+    "sections": {
+      "total_saves": {
+        "prefix": "Ты сохранил",
+        "suffix": "штук в этом году",
+        "suffix_singular": "штука в этом году"
+      },
+      "first_bookmark": {
+        "title": "Твоё путешествие началось",
+        "description": "Первое сохранение в {{year}}:"
+      },
+      "top_domains": "Твои топовые сайты",
+      "top_tags": "Твои топовые теги",
+      "monthly_activity": "Твой год в сохранениях",
+      "most_active_day": "Твой самый активный день",
+      "peak_times": {
+        "title": "Когда ты сохраняешь",
+        "peak_hour": "Час пик",
+        "peak_day": "День пик"
+      },
+      "how_you_save": "Как ты сохраняешь",
+      "what_you_saved": "Что ты сохранил",
+      "summary": {
+        "favorites": "Избранное",
+        "tags_created": "Создано тегов",
+        "highlights": "Главное"
+      },
+      "types": {
+        "links": "Ссылки",
+        "notes": "Заметки",
+        "assets": "Ресурсы"
+      }
+    },
+    "footer": "Сделано с помощью Karakeep",
+    "share": "Поделиться",
+    "download": "Скачать",
+    "close": "Закрыть",
+    "generating": "Генерирую..."
   }
 }

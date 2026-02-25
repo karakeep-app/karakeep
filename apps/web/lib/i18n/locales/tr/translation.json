@@ -41,7 +41,9 @@
     "bookmarks": "Yer İmleri",
     "storage": "Depolama",
     "pdf": "Arşivlenmiş PDF",
-    "default": "Varsayılan"
+    "default": "Varsayılan",
+    "id": "Kimlik",
+    "last_used": "Son Kullanılan"
   },
   "layouts": {
     "masonry": "Döşeme",
@@ -94,7 +96,15 @@
     "load_more": "Daha Fazla Yükle",
     "edit_notes": "Notları Düzenle",
     "preserve_as_pdf": "PDF olarak sakla",
-    "offline_copies": "Çevrimdışı Kopyalar"
+    "offline_copies": "Çevrimdışı Kopyalar",
+    "preserve_offline_archive": "Çevrimdışı Arşivi Koru",
+    "download_full_page_archive_file": "Arşiv Dosyasını İndir",
+    "download_pdf_file": "PDF Dosyasını İndir",
+    "remove": "Kaldır",
+    "more": "Daha fazla",
+    "replace_banner": "Başlığı Değiştir",
+    "add_banner": "Başlık Ekle",
+    "download": "İndir"
   },
   "highlights": {
     "no_highlights": "Henüz hiçbir öne çıkarılmış içeriğiniz yok."
@@ -193,7 +203,12 @@
       "tag_style_description": "Otomatik oluşturulan etiketlerinin nasıl biçimlendirileceğini seç.",
       "auto_tagging_description": "Yapay zeka kullanarak yer işaretlerin için otomatik olarak etiket oluştur.",
       "camelCase": "camelCase",
-      "auto_summarization": "Otomatik özetleme"
+      "auto_summarization": "Otomatik özetleme",
+      "no_preference": "Tercih Yok",
+      "curated_tags": "Seçilmiş Etiketler",
+      "curated_tags_description": "İsteğe bağlı olarak, AI etiketlemesini yalnızca bu listedeki etiketleri kullanacak şekilde kısıtlayın. Hiçbir etiket seçilmediğinde, AI etiketleri serbestçe oluşturur.",
+      "curated_tags_updated": "Seçilmiş etiketler başarıyla güncellendi!",
+      "curated_tags_update_failed": "Seçilmiş etiketler güncellenemedi"
     },
     "feeds": {
       "rss_subscriptions": "RSS Abonelikleri",
@@ -213,7 +228,8 @@
       "imported_bookmarks": "İçe Aktarılan Yer İşaretleri",
       "import_bookmarks_from_linkwarden_export": "Linkwarden dışa aktarımından Yer İşaretlerini İçe Aktar",
       "import_bookmarks_from_tab_session_manager_export": "Sekme Oturum Yöneticisi'nden Yer İşaretlerini İçe Aktar",
-      "import_bookmarks_from_mymind_export": "Mymind dışa aktarımından Yer İşaretlerini İçe Aktar"
+      "import_bookmarks_from_mymind_export": "Mymind dışa aktarımından Yer İşaretlerini İçe Aktar",
+      "import_bookmarks_from_instapaper_export": "Instapaper dışa aktarımından Yer İşaretlerini İçe Aktar"
     },
     "api_keys": {
       "api_keys": "API Anahtarları",
@@ -271,7 +287,10 @@
         "has_tag": "Etikete Sahip",
         "is_favourited": "Favorilere Eklendi",
         "and": "Aşağıdakilerin hepsi doğru",
-        "or": "Aşağıdakilerden herhangi biri doğruysa"
+        "or": "Aşağıdakilerden herhangi biri doğruysa",
+        "url_does_not_contain": "URL İçermiyor",
+        "title_contains": "Başlık İçeriyor",
+        "title_does_not_contain": "Başlık İçermiyor"
       },
       "actions_types": {
         "add_tag": "Etiket Ekle",
@@ -396,7 +415,10 @@
         "in_progress": "Devam ediyor",
         "completed": "Tamamlandı",
         "failed": "Başarısız",
-        "processing": "İşleniyor"
+        "processing": "İşleniyor",
+        "staging": "Hazırlanıyor",
+        "running": "Çalışıyor",
+        "paused": "Durduruldu"
       },
       "badges": {
         "pending": "{{count}} beklemede",
@@ -408,7 +430,33 @@
       "view_list": "Listeyi Görüntüle",
       "delete_dialog_title": "İçe Aktarma Oturumunu Sil",
       "delete_dialog_description": "\"{{name}}\" öğesini silmek istediğinden emin misin? Bu işlem geri alınamaz. Yer imlerinin kendileri silinmeyecektir.",
-      "delete_session": "Oturumu Sil"
+      "delete_session": "Oturumu Sil",
+      "pause_session": "Durdur",
+      "resume_session": "Devam Et",
+      "view_details": "Ayrıntıları Görüntüle",
+      "detail": {
+        "page_title": "İçe Aktarma Oturumu Ayrıntıları",
+        "back_to_import": "İçe Aktarmaya Geri Dön",
+        "filter_all": "Tümü",
+        "filter_accepted": "Kabul Edilenler",
+        "filter_rejected": "Reddedilenler",
+        "filter_duplicates": "Yinelenenler",
+        "filter_pending": "Bekleyen",
+        "table_title": "Başlık / URL",
+        "table_type": "Tür",
+        "table_result": "Sonuç",
+        "table_reason": "Gerekçe",
+        "table_bookmark": "Yer İşareti",
+        "result_accepted": "Kabul Edilenler",
+        "result_rejected": "Reddedilenler",
+        "result_skipped_duplicate": "Yinelenen",
+        "result_pending": "Bekleyen",
+        "result_processing": "İşleniyor",
+        "no_results": "Bu filtre için sonuç bulunamadı.",
+        "view_bookmark": "Yer işaretini görüntüle",
+        "load_more": "Daha Fazla Yükle",
+        "no_title": "Başlık yok"
+      }
     },
     "backups": {
       "backups": "Yedeklemeler",
@@ -549,7 +597,10 @@
         "reindex_all_bookmarks": "Tüm Yer İmlerini Yeniden İndeksle",
         "clean_assets": "Sallanan Varlıkları Temizle ve Meta Verileri Yeniden Eşitle",
         "reprocess_assets_fix_mode": "İşlenmemiş Varlıkları Yeniden İşle",
-        "migrate_large_link_html_content": "Büyük Satır İçi HTML İçeriğini Varlıklara Taşı"
+        "migrate_large_link_html_content": "Büyük Satır İçi HTML İçeriğini Varlıklara Taşı",
+        "recrawl_pending_links_only": "Sadece Bekleyen Bağlantıları Yeniden Tara",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Sadece Bekleyen Yer İşaretleri için Yapay Zeka Etiketlerini Yeniden Oluştur",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Sadece Bekleyen Yer İşaretleri için Yapay Zeka Özetlerini Yeniden Oluştur"
       }
     },
     "actions": {
@@ -588,11 +639,50 @@
         "connected": "Bağlı",
         "disconnected": "Bağlantı Kesildi"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Yönetici Araçları",
+      "bookmark_debugger": "Yer İmi Hata Ayıklayıcısı",
+      "bookmark_id": "Yer İmi Kimliği",
+      "bookmark_id_placeholder": "Yer imi kimliğini girin",
+      "lookup": "Arama",
+      "debug_info": "Hata Ayıklama Bilgileri",
+      "basic_info": "Temel Bilgiler",
+      "status": "Durum",
+      "content": "İçerik",
+      "html_preview": "HTML Önizlemesi (İlk 1000 karakter)",
+      "summary": "Özet",
+      "url": "URL",
+      "source_url": "Kaynak URL'si",
+      "asset_type": "Varlık Türü",
+      "file_name": "Dosya Adı",
+      "owner_user_id": "Sahip Kullanıcı Kimliği",
+      "tagging_status": "Etiketleme Durumu",
+      "summarization_status": "Özetleme Durumu",
+      "crawl_status": "Tarama Durumu",
+      "crawl_status_code": "HTTP Durum Kodu",
+      "crawled_at": "Taranma Zamanı",
+      "recrawl": "Yeniden tarama",
+      "reindex": "Yeniden indeksleme",
+      "retag": "Yeniden etiketleme",
+      "resummarize": "Yeniden özetleme",
+      "bookmark_not_found": "Yer işareti bulunamadı",
+      "action_success": "İşlem başarıyla tamamlandı",
+      "action_failed": "İşlem başarısız oldu",
+      "recrawl_queued": "Yeniden tarama işi sıraya alındı",
+      "reindex_queued": "Yeniden indeksleme işi sıraya alındı",
+      "retag_queued": "Yeniden etiketleme işi sıraya alındı",
+      "resummarize_queued": "Yeniden özetleme işi sıraya alındı",
+      "view": "Görüntüle",
+      "fetch_error": "Yer işareti alınırken hata oluştu"
     }
   },
   "options": {
     "dark_mode": "Koyu Mod",
-    "light_mode": "Açık Mod"
+    "light_mode": "Açık Mod",
+    "apps_extensions": "Uygulamalar & Uzantılar",
+    "documentation": "Belgeleme",
+    "follow_us_on_x": "Bizi X'te takip edin"
   },
   "lists": {
     "all_lists": "Tüm Listeler",
@@ -702,7 +792,9 @@
     "no_ai_tags": "Henüz yapay zeka etiketi yok",
     "no_unused_tags": "Kullanılmayan etiketiniz yok",
     "no_unused_tags_match_your_search": "Aramanızla eşleşen kullanılmayan etiket yok",
-    "no_tags_match_your_search": "Aramanızla eşleşen etiket yok"
+    "no_tags_match_your_search": "Aramanızla eşleşen etiket yok",
+    "search_placeholder": "Etiketleri ara...",
+    "search_or_create_placeholder": "Etiket ara veya oluştur..."
   },
   "preview": {
     "view_original": "Orijinali Görüntüle",
@@ -712,7 +804,13 @@
       "content": "İçerik",
       "details": "Ayrıntılar"
     },
-    "archive_info": "Arşivler Javascript gerektiriyorsa satır içi olarak doğru şekilde işlenmeyebilir. En iyi sonuçlar için, <1>indirin ve tarayıcınızda açın</1>."
+    "archive_info": "Arşivler Javascript gerektiriyorsa satır içi olarak doğru şekilde işlenmeyebilir. En iyi sonuçlar için, <1>indirin ve tarayıcınızda açın</1>.",
+    "fetch_error_title": "İçerik Kullanılamıyor",
+    "fetch_error_description": "Bu bağlantı için içerik alınamadı. Sayfa korumalı olabilir, kimlik doğrulaması gerektirebilir veya geçici olarak kullanılamıyor olabilir.",
+    "crawling_in_progress": "Sayfa içeriği getiriliyor…",
+    "continue_reading": "Kaldığın yerden devam et",
+    "continue_reading_percent": "Kaldığınız yerden devam edin ({{percent}}%)",
+    "continue_button": "Devam et"
   },
   "editor": {
     "quickly_focus": "Bu alana hızlıca odaklanmak için ⌘ + E tuşlarına basabilirsiniz",
@@ -781,7 +879,9 @@
       "full_page_archive": "Tüm Sayfa Arşivi oluşturma başlatıldı",
       "delete_from_list": "Yer işareti listeden silindi",
       "clipboard_copied": "Bağlantı panonuza eklendi!",
-      "preserve_pdf": "PDF olarak saklama tetiklendi"
+      "preserve_pdf": "PDF olarak saklama tetiklendi",
+      "update_banner": "Başlık güncellendi!",
+      "uploading_banner": "Başlık yükleniyor..."
     },
     "lists": {
       "created": "Liste oluşturuldu!",
@@ -846,7 +946,9 @@
     "filters": "Filtreler",
     "is_not_broken_link": "Çalışan Bağlantısı Var",
     "lists": "Listeler",
-    "feeds": "Akışlar"
+    "feeds": "Akışlar",
+    "is_from_source": "Kaynak",
+    "is_not_from_source": "Kaynak değil"
   },
   "dialogs": {
     "bookmarks": {
@@ -891,5 +993,54 @@
     "no_release_notes": "Bu sürüm için yayınlanmış sürüm notu yok.",
     "release_notes_synced": "Sürüm notları GitHub'dan senkronize edilir.",
     "view_on_github": "GitHub'da görüntüle"
+  },
+  "wrapped": {
+    "title": "{{year}} Özetin",
+    "subtitle": "Karakeep'te Bir Yıl",
+    "banner": {
+      "title": "2025 Özetin hazır!",
+      "description": "Yılını yer işaretlerinde gör",
+      "view_now": "Şimdi Görüntüle"
+    },
+    "button": "2025 Özeti",
+    "loading": "Özetin yükleniyor...",
+    "failed_to_load": "Özet istatistiklerini yükleme başarısız oldu",
+    "sections": {
+      "total_saves": {
+        "prefix": "Kaydettiğin",
+        "suffix": "bu yılki öğeler",
+        "suffix_singular": "bu yılki öğe"
+      },
+      "first_bookmark": {
+        "title": "Yolculuğun Başladı",
+        "description": "{{year}} yılının ilk kaydı:"
+      },
+      "top_domains": "En Popüler Sitelerin",
+      "top_tags": "En Popüler Etiketlerin",
+      "monthly_activity": "Kaydettiklerinle Geçen Yılın",
+      "most_active_day": "En Aktif Günün",
+      "peak_times": {
+        "title": "Ne Zaman Kaydediyorsun",
+        "peak_hour": "En Yoğun Saat",
+        "peak_day": "En Yoğun Gün"
+      },
+      "how_you_save": "Nasıl Kaydediyorsun",
+      "what_you_saved": "Neler Kaydettin",
+      "summary": {
+        "favorites": "Favoriler",
+        "tags_created": "Oluşturulan Etiketler",
+        "highlights": "Öne Çıkanlar"
+      },
+      "types": {
+        "links": "Bağlantılar",
+        "notes": "Notlar",
+        "assets": "Varlıklar"
+      }
+    },
+    "footer": "Karakeep ile yapıldı",
+    "share": "Paylaş",
+    "download": "İndir",
+    "close": "Kapat",
+    "generating": "Oluşturuluyor..."
   }
 }

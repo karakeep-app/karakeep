@@ -1,0 +1,63 @@
+---
+id: get-all-lists
+title: "Get all lists"
+description: "Get all lists"
+sidebar_label: "Get all lists"
+hide_title: true
+hide_table_of_contents: true
+api: eJyNVMFu2zAM/RWDZyHJdvQtGLai24AVW4YdghwYm6nVyJIq0e0CQ/8+UHYSJw22nSxLj+QjH8keaopV0J61s1DCHXGBxhRGR46ggPExQrmGr/l/oyBS1QXNByjXPWwJA4Vlxw2U603aKAgUvbORIpQ9vF8s5HMZ4dv2iSouXjU350hFjYwzUFA5y2RZzNB7oysUs/lTFNseYtVQi3LigycowWVvoMAH5ymwHiIP9M8wDAEPoEAztfHf5rqeYCIHbR8hKbDY0s2Hiwyv3xXYzhjcGoKSQ0dJga5uAZMCj4Es398If8PLAHgLJNu1olmLtkMDCmKLgUW8mnbYGYby+JYUPHcUDv8Vz3dbo6sJdOucIbTipcH4wQneBWQX4m1UFyl8d+avrN2rpSD/tWYnhxdNr/lmjL9JSfrsudOBarHQNYzajJWd1PFkdYPihM9GAWsWYrnTIV3HGBpqk1J+aYkbV0MJj5SbB2UAYH4cmkjhhaQG6x66YKCEHus6UIxpjl7PX95JWhi0lDeXanwepuWoUcPsYzmfczjM9hhwT+Rn6D1cNRysGipGD4XbFdxQ8WXEFwMXSWgyvD9kjIbI0xE+iSKRJY8MEwkzCNR4+ORCi8Lw868VSD203Tkxl6wHSu9mi9kCzlU98Vk+3N/kv3y4L3YuXJKXZKXxXOQW88QMI/hmTV0N4GmLvN1nQ4JMv3nuDeqhLUWjfpTxpLWCxkWWi77fYqSfwaQk1+PErDdnEfP6U9AQ1hSy7ns6QAnLqiLPWW3T5UV0vdREllM73X1cgQK8FOOq+Nn7ca3Zw8R33w+IlduTTQnUSILlH5I07x+0owYu
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all lists"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/lists"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get all lists
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Object with all lists data.","content":{"application/json":{"schema":{"type":"object","properties":{"lists":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}},"required":["lists"]}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

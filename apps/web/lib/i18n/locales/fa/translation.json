@@ -41,7 +41,9 @@
     },
     "quota": "سهمیه",
     "pdf": "پی‌دی‌اف بایگانی‌شده",
-    "default": "پیش‌فرض"
+    "default": "پیش‌فرض",
+    "id": "شناسه",
+    "last_used": "آخرین استفاده"
   },
   "layouts": {
     "grid": "شبکه‌ای",
@@ -94,7 +96,15 @@
     "load_more": "بارگذاری بیشتر",
     "edit_notes": "ویرایش یادداشت‌ها",
     "preserve_as_pdf": "به عنوان پی‌دی‌اف نگهداری‌اش کن",
-    "offline_copies": "نسخه‌های آفلاین"
+    "offline_copies": "نسخه‌های آفلاین",
+    "preserve_offline_archive": "بایگانی آفلاین را حفظ کن",
+    "download_full_page_archive_file": "دانلود فایل بایگانی",
+    "download_pdf_file": "دانلود فایل PDF",
+    "remove": "حذف",
+    "more": "بیشتر",
+    "replace_banner": "جایگزینی بنر",
+    "add_banner": "اضافه کردن بنر",
+    "download": "دانلود"
   },
   "settings": {
     "stats": {
@@ -244,7 +254,12 @@
       "tag_style_description": "انتخاب کنید که برچسب‌های تولیدشده خودکار شما چگونه قالب‌بندی شوند.",
       "auto_tagging_description": "به‌طور خودکار با استفاده از هوش مصنوعی برای نشانک‌هایت برچسب تولید کن.",
       "camelCase": "camelCase",
-      "auto_summarization": "خلاصه‌سازی خودکار"
+      "auto_summarization": "خلاصه‌سازی خودکار",
+      "no_preference": "بدون ترجیح",
+      "curated_tags": "برچسب‌های انتخاب‌شده",
+      "curated_tags_description": "به‌صورت اختیاری، برچسب‌گذاری هوش مصنوعی را محدود کنید تا فقط از برچسب‌های این فهرست استفاده کند. هنگامی که هیچ برچسبی انتخاب نشود، هوش مصنوعی برچسب‌ها را آزادانه تولید می‌کند.",
+      "curated_tags_updated": "برچسب‌های انتخاب‌شده با موفقیت به‌روز شدند!",
+      "curated_tags_update_failed": "به‌روزرسانی برچسب‌های انتخاب‌شده با خطا مواجه شد"
     },
     "feeds": {
       "feed_enabled": "خوراک RSS فعال شد",
@@ -282,7 +297,8 @@
       "export_links_and_notes": "برون‌بری لینک‌ها و یادداشت‌ها",
       "import_bookmarks_from_karakeep_export": "درون‌ریزی نشانک‌ها از خروجی Karakeep",
       "imported_bookmarks": "نشانک‌های درون‌ریزی‌شده",
-      "import_bookmarks_from_mymind_export": "وارد کردن نشانک ها از خروجی mymind"
+      "import_bookmarks_from_mymind_export": "وارد کردن نشانک ها از خروجی mymind",
+      "import_bookmarks_from_instapaper_export": "درون‌ریزی نشانک‌ها از خروجی Instapaper"
     },
     "api_keys": {
       "new_api_key": "کلید API جدید",
@@ -332,7 +348,10 @@
         "bookmark_type_is": "نوع نشانک باشد",
         "is_favourited": "به علاقه‌مندی‌ها افزوده شده باشد",
         "is_archived": "بایگانی شده باشد",
-        "or": "هر یک از موارد زیر برقرار باشد"
+        "or": "هر یک از موارد زیر برقرار باشد",
+        "url_does_not_contain": "آدرس اینترنتی شامل نمی‌شود",
+        "title_contains": "عنوان شامل شود",
+        "title_does_not_contain": "عنوان شامل نشود"
       },
       "describe_what_this_rule_does": "توضیح دهید این قاعده چه می‌کند",
       "rule_has_been_deleted": "قاعده حذف شد!",
@@ -393,7 +412,10 @@
         "in_progress": "در حال انجام",
         "completed": "تکمیل‌شده",
         "failed": "ناموفق",
-        "processing": "در حال پردازش"
+        "processing": "در حال پردازش",
+        "staging": "در حال آماده سازی",
+        "running": "در حال اجرا",
+        "paused": "متوقف شده"
       },
       "badges": {
         "pending": "{{count}} مورد در انتظار",
@@ -405,7 +427,33 @@
       "view_list": "مشاهدهٔ فهرست",
       "delete_dialog_title": "حذف نشست درون‌ریزی",
       "delete_dialog_description": "آیا مطمئنید می‌خواهید «{{name}}» را حذف کنید؟ این عمل قابل بازگشت نیست. خود نشانک‌ها حذف نخواهند شد.",
-      "delete_session": "حذف جلسه"
+      "delete_session": "حذف جلسه",
+      "pause_session": "توقف",
+      "resume_session": "ادامه",
+      "view_details": "مشاهده جزئیات",
+      "detail": {
+        "page_title": "جزئیات جلسه وارد کردن",
+        "back_to_import": "بازگشت به وارد کردن",
+        "filter_all": "همه",
+        "filter_accepted": "پذیرفته شده",
+        "filter_rejected": "رد شده",
+        "filter_duplicates": "تکراری‌ها",
+        "filter_pending": "در انتظار",
+        "table_title": "عنوان / آدرس اینترنتی",
+        "table_type": "نوع",
+        "table_result": "نتیجه",
+        "table_reason": "علت",
+        "table_bookmark": "نشانک",
+        "result_accepted": "پذیرفته شده",
+        "result_rejected": "رد شده",
+        "result_skipped_duplicate": "تکراری",
+        "result_pending": "در انتظار",
+        "result_processing": "در حال پردازش",
+        "no_results": "هیچ نتیجه‌ای برای این فیلتر یافت نشد.",
+        "view_bookmark": "مشاهده‌ی نشانک",
+        "load_more": "بیشتر بار کن",
+        "no_title": "بدون عنوان"
+      }
     },
     "backups": {
       "backups": "پشتیبان‌گیری‌ها",
@@ -548,7 +596,10 @@
         "recrawl_all_links": "دوباره خزیدن همه لینک‌ها",
         "clean_assets": "پاکسازی دارایی‌های معلق و همگام‌سازی دوباره فراداده‌ها",
         "reprocess_assets_fix_mode": "پردازش مجدد دارایی‌های پردازش نشده",
-        "migrate_large_link_html_content": "انتقال محتوای بزرگ HTML درون‌خطی به دارایی‌ها"
+        "migrate_large_link_html_content": "انتقال محتوای بزرگ HTML درون‌خطی به دارایی‌ها",
+        "recrawl_pending_links_only": "فقط لینک‌های در انتظار بازخزش شوند",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "فقط تگ‌های هوش مصنوعی برای نشانک‌های در انتظار دوباره ساخته شوند",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "فقط خلاصه‌های هوش مصنوعی برای نشانک‌های در انتظار دوباره ساخته شوند"
       },
       "available_actions": "اقدامات موجود"
     },
@@ -564,11 +615,50 @@
       "unlimited": "نامحدود",
       "users_list": "لیست کاربران",
       "create_user": "ایجاد کاربر"
+    },
+    "admin_tools": {
+      "admin_tools": "ابزارهای ادمین",
+      "bookmark_debugger": "اشکال‌زدای نشانک",
+      "bookmark_id": "شناسه نشانک",
+      "bookmark_id_placeholder": "شناسه نشانک را وارد کنید",
+      "lookup": "جستجو",
+      "debug_info": "اطلاعات اشکال‌زدایی",
+      "basic_info": "اطلاعات پایه",
+      "status": "وضعیت",
+      "content": "محتوا",
+      "html_preview": "پیش‌نمایش HTML (۱۰۰۰ کاراکتر اول)",
+      "summary": "خلاصه",
+      "url": "آدرس",
+      "source_url": "آدرس منبع",
+      "asset_type": "نوع دارایی",
+      "file_name": "نام فایل",
+      "owner_user_id": "شناسه کاربر صاحب",
+      "tagging_status": "وضعیت برچسب‌گذاری",
+      "summarization_status": "وضعیت خلاصه‌سازی",
+      "crawl_status": "وضعیت خزیدن",
+      "crawl_status_code": "کد وضعیت HTTP",
+      "crawled_at": "خزش شده در",
+      "recrawl": "خزش مجدد",
+      "reindex": "نمایه‌سازی مجدد",
+      "retag": "برچسب‌گذاری مجدد",
+      "resummarize": "خلاصه‌سازی مجدد",
+      "bookmark_not_found": "نشانک پیدا نشد",
+      "action_success": "عملیات با موفقیت به پایان رسید",
+      "action_failed": "عملیات ناموفق بود",
+      "recrawl_queued": "وظیفه خزیدن مجدد در صف قرار گرفته است",
+      "reindex_queued": "وظیفه فهرست‌بندی مجدد در صف قرار گرفته است",
+      "retag_queued": "وظیفه برچسب‌گذاری مجدد در صف قرار گرفته است",
+      "resummarize_queued": "وظیفه خلاصه‌سازی مجدد در صف قرار گرفته است",
+      "view": "مشاهده",
+      "fetch_error": "خطا در دریافت نشانک"
     }
   },
   "options": {
     "dark_mode": "حالت تیره",
-    "light_mode": "حالت روشن"
+    "light_mode": "حالت روشن",
+    "apps_extensions": "برنامه‌ها و افزونه‌ها",
+    "documentation": "مستندات",
+    "follow_us_on_x": "ما را در X دنبال کنید"
   },
   "lists": {
     "all_lists": "تمام فهرست‌ها",
@@ -678,7 +768,9 @@
     "no_ai_tags": "هنوز هیچ برچسب هوش مصنوعی وجود ندارد",
     "no_unused_tags": "شما هیچ برچسب استفاده نشده ندارید",
     "no_unused_tags_match_your_search": "هیچ برچسب استفاده نشده ای با جستجوی شما مطابقت ندارد",
-    "no_tags_match_your_search": "هیچ برچسبی با جستجوی شما مطابقت نداره"
+    "no_tags_match_your_search": "هیچ برچسبی با جستجوی شما مطابقت نداره",
+    "search_placeholder": "جستجوی برچسب‌ها...",
+    "search_or_create_placeholder": "جستجو یا ایجاد برچسب‌ها..."
   },
   "search": {
     "is_favorited": "مورد علاقه‌س",
@@ -725,7 +817,9 @@
     "filters": "فیلترها",
     "is_not_broken_link": "لینک درست دارد",
     "lists": "فهرست‌ها",
-    "feeds": "فیدها"
+    "feeds": "فیدها",
+    "is_from_source": "منبع هست",
+    "is_not_from_source": "منبع نیست"
   },
   "preview": {
     "view_original": "مشاهده‌ی اصلی",
@@ -735,7 +829,13 @@
       "content": "محتوا",
       "details": "جزئیات"
     },
-    "archive_info": "ممکنه آرشیوها اگه نیاز به جاوااسکریپت داشته باشن، درست نشون داده نشن. برای بهترین نتیجه، <1>اونو دانلود و تو مرورگر بازش کن</1>."
+    "archive_info": "ممکنه آرشیوها اگه نیاز به جاوااسکریپت داشته باشن، درست نشون داده نشن. برای بهترین نتیجه، <1>اونو دانلود و تو مرورگر بازش کن</1>.",
+    "fetch_error_title": "محتوا در دسترس نیست",
+    "fetch_error_description": "نتونستیم محتوای این لینک رو پیدا کنیم. ممکنه صفحه محافظت شده باشه، نیاز به احراز هویت داشته باشه یا موقتا در دسترس نباشه.",
+    "crawling_in_progress": "درحال دریافت محتوای صفحه…",
+    "continue_reading": "همون‌جایی که ولش کردی ادامه بده",
+    "continue_reading_percent": "همون‌جایی که ولش کردی ادامه بده ({{percent}}%)",
+    "continue_button": "ادامه بده"
   },
   "editor": {
     "quickly_focus": "با فشردن ⌘ + E می‌توانید به سرعت روی این فیلد تمرکز کنید",
@@ -810,7 +910,9 @@
       "full_page_archive": "ایجاد بایگانی کامل صفحه آغاز شد",
       "delete_from_list": "نشانک از فهرست حذف شد",
       "clipboard_copied": "لینک به کلیپ‌بورد شما اضافه شد!",
-      "preserve_pdf": "نگهداری پی‌دی‌اف فعال شده‌است"
+      "preserve_pdf": "نگهداری پی‌دی‌اف فعال شده‌است",
+      "update_banner": "بنر به روز شد!",
+      "uploading_banner": "بارگذاری بنر..."
     },
     "lists": {
       "created": "فهرست درست شد!",
@@ -867,5 +969,54 @@
     "no_release_notes": "واسه این نسخه، اطلاعیه انتشاری منتشر نشده.",
     "release_notes_synced": "اطلاعیه‌های انتشار از گیتهاب سینک می‌شن.",
     "view_on_github": "دیدن تو گیتهاب"
+  },
+  "wrapped": {
+    "title": "رپ‌شده‌ی {{year}} شما",
+    "subtitle": "یک سال در کاراکیپ",
+    "banner": {
+      "title": "رپ‌شده‌ی سال ۲۰۲۵ شما آماده است!",
+      "description": "سال خود را در نشانک‌ها ببینید",
+      "view_now": "همین حالا ببینید"
+    },
+    "button": "رپ‌شده ۲۰۲۵",
+    "loading": "درحال بارگذاری رپ‌شده‌ی شما...",
+    "failed_to_load": "بارگیری آمار رپ‌شده‌ی شما با مشکل مواجه شد",
+    "sections": {
+      "total_saves": {
+        "prefix": "ذخیره کردید",
+        "suffix": "اقلام امسال",
+        "suffix_singular": "قلم امسال"
+      },
+      "first_bookmark": {
+        "title": "سفر شما آغاز شد",
+        "description": "اولین ذخیره از {{year}}:"
+      },
+      "top_domains": "سایت‌های برتر شما",
+      "top_tags": "برچسب‌های برتر شما",
+      "monthly_activity": "سال شما در ذخیره‌ها",
+      "most_active_day": "فعال‌ترین روز شما",
+      "peak_times": {
+        "title": "چه زمانی ذخیره می‌کنید",
+        "peak_hour": "ساعت اوج",
+        "peak_day": "روز اوج"
+      },
+      "how_you_save": "نحوه ذخیره شما",
+      "what_you_saved": "آنچه شما ذخیره کردید",
+      "summary": {
+        "favorites": "مورد علاقه‌ها",
+        "tags_created": "برچسب‌های ایجاد شده",
+        "highlights": "نکات برجسته"
+      },
+      "types": {
+        "links": "لینک‌ها",
+        "notes": "یادداشت‌ها",
+        "assets": "دارایی‌ها"
+      }
+    },
+    "footer": "ساخته شده با Karakeep",
+    "share": "اشتراک‌گذاری",
+    "download": "بارگیری",
+    "close": "بستن",
+    "generating": "درحال تولید..."
   }
 }

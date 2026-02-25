@@ -90,6 +90,23 @@ const app = new Hono()
       );
     },
   )
+
+  // GET /bookmarks/check-url
+  .get(
+    "/check-url",
+    zValidator(
+      "query",
+      z.object({
+        url: z.string(),
+      }),
+    ),
+    async (c) => {
+      const { url } = c.req.valid("query");
+      const result = await c.var.api.bookmarks.checkUrl({ url });
+      return c.json(result, 200);
+    },
+  )
+
   .post(
     "/singlefile",
     zValidator(
