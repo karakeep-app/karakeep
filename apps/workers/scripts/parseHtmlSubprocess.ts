@@ -34,6 +34,11 @@ import {
 logger.clear();
 logger.add(new winston.transports.Stream({ stream: process.stderr }));
 
+const PURIFY_OPTIONS = {
+  // Preserve image referrer policy for hotlink-protected media (e.g. Bilibili).
+  ADD_ATTR: ["referrerpolicy"],
+};
+
 const metascraperParser = metascraper([
   metascraperDate({
     dateModified: true,
@@ -91,7 +96,10 @@ function extractReadableContent(
     const purifyWindow = new JSDOM("").window;
     try {
       const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
+      const purifiedHTML = purify.sanitize(
+        readableContent.content,
+        PURIFY_OPTIONS,
+      );
       return { content: purifiedHTML };
     } finally {
       purifyWindow.close();
@@ -133,7 +141,10 @@ async function main() {
     const purifyWindow = new JSDOM("").window;
     try {
       const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(meta.readableContentHtml);
+      const purifiedHTML = purify.sanitize(
+        meta.readableContentHtml,
+        PURIFY_OPTIONS,
+      );
       readableContent = { content: purifiedHTML };
     } finally {
       purifyWindow.close();
