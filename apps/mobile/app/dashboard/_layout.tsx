@@ -39,11 +39,7 @@ export default function Dashboard() {
             headerLargeTitleShadowVisible: false,
             headerLargeStyle: { backgroundColor: "transparent" },
           },
-          android: {
-            headerStyle: {
-              backgroundColor: "transparent",
-            },
-          },
+          android: {},
         }),
         headerShadowVisible: false,
       }}

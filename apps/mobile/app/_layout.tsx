@@ -1,6 +1,7 @@
 import "@/globals.css";
 import "expo-dev-client";
 
+import type React from "react";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -18,6 +19,22 @@ import { cn } from "@/lib/utils";
 import { NAV_THEME } from "@/theme";
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 
+// On Android, KeyboardProvider's EdgeToEdgeReactViewGroup intercepts window insets at
+// the root view level, zeroing out the status bar top inset. This prevents the native
+// navigation toolbar (react-native-screens' CustomToolbar) from receiving the correct
+// system bar insets, resulting in headers appearing cramped against the status bar.
+// We skip KeyboardProvider on Android entirely to let the toolbar handle its own insets.
+function RootKeyboardProvider({ children }: { children: React.ReactNode }) {
+  if (Platform.OS === "android") {
+    return children;
+  }
+  return (
+    <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+      {children}
+    </KeyboardProvider>
+  );
+}
+
 export default function RootLayout() {
   useInitialAndroidBarSync();
   const router = useRouter();
@@ -34,10 +51,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <KeyboardProvider
-        statusBarTranslucent={Platform.OS !== "android" ? true : undefined}
-        navigationBarTranslucent={Platform.OS !== "android" ? true : undefined}
-      >
+      <RootKeyboardProvider>
         <NavThemeProvider value={NAV_THEME[colorScheme]}>
           <SplashScreenController />
           <StyledStack
@@ -128,7 +142,7 @@ export default function RootLayout() {
             />
           </StyledStack>
         </NavThemeProvider>
-      </KeyboardProvider>
+      </RootKeyboardProvider>
       <StatusBar
         key={`root-status-bar-${isDarkColorScheme ? "light" : "dark"}`}
         style={isDarkColorScheme ? "light" : "dark"}
