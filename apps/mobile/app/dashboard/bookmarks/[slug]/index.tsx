@@ -51,6 +51,7 @@ export default function BookmarkView() {
   // Animate footer translateY
   const footerHeight = useSharedValue(0);
   const footerTranslateY = useSharedValue(0);
+  const [footerLayoutHeight, setFooterLayoutHeight] = useState(0);
 
   useEffect(() => {
     footerTranslateY.value = withTiming(
@@ -71,6 +72,7 @@ export default function BookmarkView() {
   const onFooterLayout = useCallback(
     (e: { nativeEvent: { layout: { height: number } } }) => {
       footerHeight.value = e.nativeEvent.layout.height;
+      setFooterLayoutHeight(e.nativeEvent.layout.height);
     },
     [footerHeight],
   );
@@ -102,6 +104,7 @@ export default function BookmarkView() {
   // so scrollable children need top padding equal to the header height.
   // Applied via contentInset so the background extends edge-to-edge.
   const contentInsetTop = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
+  const contentInsetBottom = isIOS26 ? footerLayoutHeight : 0;
 
   let comp;
   let title = null;
@@ -115,6 +118,7 @@ export default function BookmarkView() {
           onScrollOffsetChange={onScrollOffsetChange}
           barsVisible={barsVisible}
           contentInsetTop={contentInsetTop}
+          contentInsetBottom={contentInsetBottom}
         />
       );
       break;
@@ -125,6 +129,7 @@ export default function BookmarkView() {
           bookmark={bookmark}
           onScrollOffsetChange={onScrollOffsetChange}
           contentInsetTop={contentInsetTop}
+          contentInsetBottom={contentInsetBottom}
         />
       );
       break;

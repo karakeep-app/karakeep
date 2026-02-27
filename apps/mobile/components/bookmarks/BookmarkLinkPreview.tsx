@@ -38,10 +38,12 @@ export function BookmarkLinkBrowserPreview({
   bookmark,
   onScrollOffsetChange,
   contentInsetTop = 0,
+  contentInsetBottom = 0,
 }: {
   bookmark: ZBookmark;
   onScrollOffsetChange?: (y: number) => void;
   contentInsetTop?: number;
+  contentInsetBottom?: number;
 }) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -54,7 +56,7 @@ export function BookmarkLinkBrowserPreview({
       source={{ uri: bookmark.content.url }}
       onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
       automaticallyAdjustContentInsets={false}
-      contentInset={{ top: contentInsetTop }}
+      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
     />
   );
 }
@@ -87,10 +89,12 @@ export function BookmarkLinkReaderPreview({
   bookmark,
   onScrollOffsetChange,
   barsVisible = true,
+  contentInsetBottom = 0,
 }: {
   bookmark: ZBookmark;
   onScrollOffsetChange?: (y: number) => void;
   barsVisible?: boolean;
+  contentInsetBottom?: number;
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
@@ -166,6 +170,7 @@ export function BookmarkLinkReaderPreview({
     lineHeight: String(readerSettings.lineHeight),
     color: isDark ? "#e5e7eb" : "#374151",
     paddingTop: `${insets.top + NAV_BAR_HEIGHT + (showBanner ? BANNER_HEIGHT : 0)}px`,
+    paddingBottom: `${contentInsetBottom}px`,
     paddingLeft: "16px",
     paddingRight: "16px",
     background: isDark ? "#000000" : "#ffffff",
@@ -245,10 +250,12 @@ export function BookmarkLinkArchivePreview({
   bookmark,
   onScrollOffsetChange,
   contentInsetTop = 0,
+  contentInsetBottom = 0,
 }: {
   bookmark: ZBookmark;
   onScrollOffsetChange?: (y: number) => void;
   contentInsetTop?: number;
+  contentInsetBottom?: number;
 }) {
   const asset =
     bookmark.assets.find((r) => r.assetType == "precrawledArchive") ??
@@ -276,7 +283,7 @@ export function BookmarkLinkArchivePreview({
       decelerationRate={0.998}
       onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
       automaticallyAdjustContentInsets={false}
-      contentInset={{ top: contentInsetTop }}
+      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
     />
   );
 }

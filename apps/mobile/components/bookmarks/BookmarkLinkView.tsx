@@ -16,6 +16,7 @@ interface BookmarkLinkViewProps {
   onScrollOffsetChange?: (y: number) => void;
   barsVisible?: boolean;
   contentInsetTop?: number;
+  contentInsetBottom?: number;
 }
 
 export default function BookmarkLinkView({
@@ -24,6 +25,7 @@ export default function BookmarkLinkView({
   onScrollOffsetChange,
   barsVisible,
   contentInsetTop,
+  contentInsetBottom,
 }: BookmarkLinkViewProps) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -36,6 +38,7 @@ export default function BookmarkLinkView({
           bookmark={bookmark}
           onScrollOffsetChange={onScrollOffsetChange}
           contentInsetTop={contentInsetTop}
+          contentInsetBottom={contentInsetBottom}
         />
       );
     case "reader":
@@ -44,6 +47,7 @@ export default function BookmarkLinkView({
           bookmark={bookmark}
           onScrollOffsetChange={onScrollOffsetChange}
           barsVisible={barsVisible}
+          contentInsetBottom={contentInsetBottom}
         />
       );
     case "screenshot":
@@ -54,6 +58,7 @@ export default function BookmarkLinkView({
           bookmark={bookmark}
           onScrollOffsetChange={onScrollOffsetChange}
           contentInsetTop={contentInsetTop}
+          contentInsetBottom={contentInsetBottom}
         />
       );
     case "pdf":
