@@ -19,7 +19,7 @@ const NAV_THEME = {
     colors: {
       background: COLORS.dark.background,
       border: COLORS.dark.grey5,
-      card: COLORS.dark.card,
+      card: COLORS.dark.grey6,
       notification: COLORS.dark.destructive,
       primary: COLORS.dark.primary,
       text: COLORS.white,
