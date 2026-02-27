@@ -60,9 +60,13 @@ export default function BookmarkView() {
     );
   }, [barsVisible, footerTranslateY, footerHeight, insets.bottom]);
 
-  // Toggle native header visibility
+  // Only toggle the native header on iOS 26 where it's transparent and
+  // doesn't participate in layout. On older iOS / Android the opaque header
+  // causes a layout reflow that makes the footer icons jump and flicker.
   useEffect(() => {
-    navigation.setOptions({ headerShown: barsVisible });
+    if (isIOS26) {
+      navigation.setOptions({ headerShown: barsVisible });
+    }
   }, [barsVisible, navigation]);
 
   const footerAnimatedStyle = useAnimatedStyle(() => ({
@@ -71,8 +75,9 @@ export default function BookmarkView() {
 
   const onFooterLayout = useCallback(
     (e: { nativeEvent: { layout: { height: number } } }) => {
-      footerHeight.value = e.nativeEvent.layout.height;
-      setFooterLayoutHeight(e.nativeEvent.layout.height);
+      const h = e.nativeEvent.layout.height;
+      footerHeight.value = h;
+      setFooterLayoutHeight((prev) => (Math.abs(prev - h) > 1 ? h : prev));
     },
     [footerHeight],
   );
@@ -104,7 +109,9 @@ export default function BookmarkView() {
   // so scrollable children need top padding equal to the header height.
   // Applied via contentInset so the background extends edge-to-edge.
   const contentInsetTop = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
-  const contentInsetBottom = isIOS26 ? footerLayoutHeight : 0;
+  // Footer is absolutely positioned on all platforms, so content always
+  // needs bottom inset to avoid being hidden behind it.
+  const contentInsetBottom = footerLayoutHeight;
 
   let comp;
   let title = null;
@@ -181,7 +188,7 @@ export default function BookmarkView() {
         onLayout={onFooterLayout}
         style={[
           footerAnimatedStyle,
-          isIOS26 && {
+          {
             position: "absolute",
             left: 0,
             right: 0,

@@ -224,7 +224,7 @@ export function BookmarkLinkReaderPreview({
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
-        showProgressBar={barsVisible}
+        showProgressBar={isIOS26 ? barsVisible : true}
         progressBarTop={headerOffset + bannerGap}
         onScrollPositionChange={(position) => {
           onScrollPositionChange?.(position);

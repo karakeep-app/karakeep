@@ -356,6 +356,7 @@ function ToolbarContainer({
 
   return (
     <View
+      className="bg-background"
       style={{
         flexDirection: "row",
         alignItems: "center",
