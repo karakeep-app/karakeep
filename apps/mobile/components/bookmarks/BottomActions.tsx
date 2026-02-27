@@ -320,6 +320,7 @@ function useToolbarActions(bookmark: ZBookmark) {
       onClick: () => {
         Haptics.selectionAsync();
         favouriteBookmark({
+          bookmarkId: bookmark.id,
           favourited: !isFavourited,
         });
       },
@@ -376,7 +377,7 @@ function useToolbarActions(bookmark: ZBookmark) {
   return { barActions, overflowActions, allActions };
 }
 
-const useGlassPill = isIOS26 && isGlassEffectAPIAvailable();
+const shouldUseGlassPill = isIOS26 && isGlassEffectAPIAvailable();
 
 function ToolbarContainer({
   children,
@@ -385,7 +386,7 @@ function ToolbarContainer({
   children: React.ReactNode;
   bottomMargin: number;
 }) {
-  if (useGlassPill) {
+  if (shouldUseGlassPill) {
     return (
       <GlassView
         glassEffectStyle="regular"
@@ -423,7 +424,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
   const router = useRouter();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
 
-  const bottomMargin = useGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
+  const bottomMargin = shouldUseGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
 
   // Build native menu actions for the overflow ellipsis
   const menuActions = overflowActions
