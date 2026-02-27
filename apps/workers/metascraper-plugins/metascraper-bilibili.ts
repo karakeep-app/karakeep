@@ -61,6 +61,8 @@ const BILIBILI_DEFAULT_VIDEO_TITLE = "Video - Bilibili";
 const BILIBILI_DEFAULT_ARTICLE_TITLE = "Article - Bilibili";
 const BILIBILI_DEFAULT_DYNAMIC_TITLE = "Dynamics - Bilibili";
 const BILIBILI_DYNAMIC_FALLBACK_TITLE_TEXT_LIMIT = 38;
+const BILIBILI_DYNAMIC_ARTICLE_FALLBACK_IMAGE =
+  "https://upload.wikimedia.org/wikipedia/zh/thumb/b/bd/Bilibili_Logo_Blue.svg/1920px-Bilibili_Logo_Blue.svg.png";
 
 const BILIBILI_HEADERS = {
   "user-agent":
@@ -544,6 +546,21 @@ function getDefaultTitleForTarget(url: string): string | undefined {
     return BILIBILI_DEFAULT_ARTICLE_TITLE;
   }
   return BILIBILI_DEFAULT_DYNAMIC_TITLE;
+}
+
+// Use a deterministic cover fallback for non-video pages to avoid ad-like DOM
+// images from generic extractors when source payload has no reliable cover.
+function getDefaultImageForTarget(url: string): string | undefined {
+  const target = parseBilibiliTarget(url);
+  if (!target) {
+    return undefined;
+  }
+
+  if (target.kind === "dynamic" || target.kind === "article") {
+    return BILIBILI_DYNAMIC_ARTICLE_FALLBACK_IMAGE;
+  }
+
+  return undefined;
 }
 
 // Build dynamic fallback title when explicit post title is absent.
@@ -2865,7 +2882,17 @@ const metascraperBilibili = () => {
     }) as unknown as RulesOptions,
     image: (async ({ url }: { url: string }) => {
       const metadata = await getBilibiliMetadata(url);
-      return metadata?.image;
+      if (metadata?.image?.trim()) {
+        return metadata.image;
+      }
+
+      const fallbackImage = getDefaultImageForTarget(url);
+      if (fallbackImage) {
+        logger.info(
+          `[MetascraperBilibili] Image fallback to default for ${url}`,
+        );
+      }
+      return fallbackImage;
     }) as unknown as RulesOptions,
     author: (async ({ url }: { url: string }) => {
       const metadata = await getBilibiliMetadata(url);
