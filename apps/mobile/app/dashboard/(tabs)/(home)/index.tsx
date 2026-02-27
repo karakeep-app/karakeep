@@ -45,6 +45,9 @@ function HeaderRight({
           openNewBookmarkModal();
         } else if (nativeEvent.event === "library") {
           try {
+            uploadToastIdRef.current = sonnerToast.loading(
+              "Opening photo library...",
+            );
             const result = await ImagePicker.launchImageLibraryAsync({
               mediaTypes: ["images"],
               quality: settings.imageQuality,
@@ -52,14 +55,22 @@ function HeaderRight({
             });
             if (!result.canceled) {
               const asset = result.assets[0];
-              if (!asset) return;
-              uploadToastIdRef.current =
-                sonnerToast.loading("Uploading image...");
+              if (!asset) {
+                sonnerToast.dismiss(uploadToastIdRef.current);
+                uploadToastIdRef.current = null;
+                return;
+              }
+              sonnerToast.loading("Uploading image...", {
+                id: uploadToastIdRef.current,
+              });
               uploadAsset({
                 type: asset.mimeType ?? "",
                 name: asset.fileName ?? "",
                 uri: asset.uri,
               });
+            } else {
+              sonnerToast.dismiss(uploadToastIdRef.current);
+              uploadToastIdRef.current = null;
             }
           } catch {
             if (uploadToastIdRef.current !== null) {
