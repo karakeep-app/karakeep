@@ -320,8 +320,7 @@ function useToolbarActions(bookmark: ZBookmark) {
       onClick: () => {
         Haptics.selectionAsync();
         favouriteBookmark({
-          bookmarkId: bookmark.id,
-          favourited: !bookmark.favourited,
+          favourited: !isFavourited,
         });
       },
       disabled: false,
