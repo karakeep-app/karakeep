@@ -437,6 +437,22 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
   return trimmed;
 }
 
+// Dynamic fallback payloads can include avatar URLs in image-like fields.
+// Treat `*.hdslb.com/bfs/face/*` as avatar image and exclude it from cover.
+function isBilibiliAvatarImage(url: string | undefined): boolean {
+  if (!url) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(normalizeImageUrl(url) ?? url);
+    const hostname = parsed.hostname.toLowerCase();
+    return hostname.endsWith(".hdslb.com") && parsed.pathname.startsWith("/bfs/face/");
+  } catch {
+    return false;
+  }
+}
+
 // Normalize link URLs for generated HTML; unlike image URLs we preserve `http`
 // when explicitly provided to avoid rewriting third-party hosts unexpectedly.
 function normalizeLinkUrl(url: string | undefined): string | undefined {
@@ -3145,8 +3161,9 @@ const metascraperBilibili = () => {
     }) as unknown as RulesOptions,
     image: (async ({ url }: { url: string }) => {
       const metadata = await getBilibiliMetadata(url);
-      if (metadata?.image?.trim()) {
-        return metadata.image;
+      const resolvedImage = metadata?.image?.trim();
+      if (resolvedImage && !isBilibiliAvatarImage(resolvedImage)) {
+        return resolvedImage;
       }
 
       const fallbackImage = getDefaultImageForTarget(url);
