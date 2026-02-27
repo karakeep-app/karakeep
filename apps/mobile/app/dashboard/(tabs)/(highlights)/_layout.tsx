@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { Stack } from "expo-router/stack";
+import { isIOS26 } from "@/lib/ios";
 
 export default function Layout() {
   return (
@@ -9,7 +10,7 @@ export default function Layout() {
           ios: {
             headerLargeTitle: true,
             headerTransparent: true,
-            headerBlurEffect: "systemMaterial",
+            headerBlurEffect: isIOS26 ? undefined : "systemMaterial",
             headerLargeTitleShadowVisible: false,
             headerLargeStyle: { backgroundColor: "transparent" },
           },

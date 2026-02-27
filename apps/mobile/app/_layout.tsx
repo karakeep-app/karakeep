@@ -12,6 +12,7 @@ import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
+import { isIOS26 } from "@/lib/ios";
 import { Providers } from "@/lib/providers";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
@@ -58,7 +59,7 @@ export default function RootLayout() {
               ...Platform.select({
                 ios: {
                   headerTransparent: true,
-                  headerBlurEffect: "systemMaterial",
+                  headerBlurEffect: isIOS26 ? undefined : "systemMaterial",
                   headerLargeTitle: true,
                   headerLargeTitleShadowVisible: false,
                   headerLargeStyle: { backgroundColor: "transparent" },
