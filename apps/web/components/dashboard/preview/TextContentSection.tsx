@@ -21,6 +21,7 @@ export function TextContentSection({ bookmark }: { bookmark: ZBookmark }) {
           <Image
             alt="banner"
             src={getAssetUrl(banner.id)}
+            className="rounded-md"
             width={0}
             height={0}
             layout="fill"
