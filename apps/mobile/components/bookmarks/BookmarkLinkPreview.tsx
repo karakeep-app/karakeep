@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { Text } from "@/components/ui/Text";
@@ -27,8 +33,10 @@ import { PDFViewer } from "./PDFViewer";
 
 export function BookmarkLinkBrowserPreview({
   bookmark,
+  onScrollOffsetChange,
 }: {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
 }) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -39,6 +47,8 @@ export function BookmarkLinkBrowserPreview({
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
       source={{ uri: bookmark.content.url }}
+      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+      automaticallyAdjustContentInsets={false}
     />
   );
 }
@@ -69,11 +79,16 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
 
 export function BookmarkLinkReaderPreview({
   bookmark,
+  onScrollOffsetChange,
+  barsVisible = true,
 }: {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
+  barsVisible?: boolean;
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const insets = useSafeAreaInsets();
   const api = useTRPC();
 
   const {
@@ -112,6 +127,16 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
+  const bannerTop = useSharedValue(insets.top + 44);
+  useEffect(() => {
+    bannerTop.value = withTiming(barsVisible ? insets.top + 44 : insets.top, {
+      duration: 250,
+    });
+  }, [barsVisible, bannerTop, insets.top]);
+  const bannerAnimatedStyle = useAnimatedStyle(() => ({
+    top: bannerTop.value,
+  }));
+
   if (isLoading) {
     return <FullPageSpinner />;
   }
@@ -124,19 +149,29 @@ export function BookmarkLinkReaderPreview({
     throw new Error("Wrong content type rendered");
   }
 
+  const BANNER_HEIGHT = 40;
+
   const contentStyle: React.CSSProperties = {
     fontFamily: WEBVIEW_FONT_FAMILIES[readerSettings.fontFamily],
     fontSize: `${readerSettings.fontSize}px`,
     lineHeight: String(readerSettings.lineHeight),
     color: isDark ? "#e5e7eb" : "#374151",
-    padding: "16px",
+    paddingTop: `${insets.top + 44 + (showBanner ? BANNER_HEIGHT : 0)}px`,
+    paddingLeft: "16px",
+    paddingRight: "16px",
     background: isDark ? "#000000" : "#ffffff",
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#ffffff" }}>
       {showBanner && (
-        <View className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2">
+        <Animated.View
+          className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2"
+          style={[
+            { position: "absolute", left: 0, right: 0, zIndex: 10 },
+            bannerAnimatedStyle,
+          ]}
+        >
           <BookOpen size={16} className="text-muted-foreground" />
           <Text className="flex-1 text-sm text-muted-foreground">
             {bannerPercent && bannerPercent > 0
@@ -154,7 +189,7 @@ export function BookmarkLinkReaderPreview({
           <TouchableOpacity onPress={onDismiss} className="p-1">
             <X size={14} className="text-muted-foreground" />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       )}
       <BookmarkHtmlHighlighterDom
         htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
@@ -164,7 +199,11 @@ export function BookmarkLinkReaderPreview({
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
-        onScrollPositionChange={onScrollPositionChange}
+        showProgressBar={barsVisible}
+        onScrollPositionChange={(position) => {
+          onScrollPositionChange?.(position);
+          onScrollOffsetChange?.(position.offset);
+        }}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,
@@ -187,7 +226,7 @@ export function BookmarkLinkReaderPreview({
             highlightId: h.id,
           })
         }
-        dom={{ scrollEnabled: true }}
+        dom={{ scrollEnabled: true, contentInsetAdjustmentBehavior: "never" }}
       />
     </View>
   );
@@ -195,8 +234,10 @@ export function BookmarkLinkReaderPreview({
 
 export function BookmarkLinkArchivePreview({
   bookmark,
+  onScrollOffsetChange,
 }: {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
 }) {
   const asset =
     bookmark.assets.find((r) => r.assetType == "precrawledArchive") ??
@@ -222,6 +263,8 @@ export function BookmarkLinkArchivePreview({
       mediaPlaybackRequiresUserAction={true}
       source={webViewUri}
       decelerationRate={0.998}
+      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+      automaticallyAdjustContentInsets={false}
     />
   );
 }

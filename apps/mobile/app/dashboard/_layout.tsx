@@ -6,6 +6,9 @@ import { Stack } from "expo-router/stack";
 import { useIsLoggedIn } from "@/lib/session";
 import { focusManager } from "@tanstack/react-query";
 
+const isIOS26 =
+  Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
+
 function onAppStateChange(status: AppStateStatus) {
   if (Platform.OS !== "web") {
     focusManager.setFocused(status === "active");
@@ -34,7 +37,7 @@ export default function Dashboard() {
         ...Platform.select({
           ios: {
             headerTransparent: true,
-            headerBlurEffect: "systemMaterial",
+            headerBlurEffect: isIOS26 ? undefined : "systemMaterial",
             headerLargeTitle: true,
             headerLargeTitleShadowVisible: false,
             headerLargeStyle: { backgroundColor: "transparent" },
@@ -189,6 +192,14 @@ export default function Dashboard() {
         options={{
           title: "Reader Settings",
           headerTitle: "Reader Settings",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
+        name="settings/toolbar-settings"
+        options={{
+          title: "Toolbar Buttons",
+          headerTitle: "Toolbar Buttons",
           headerBackTitle: "Back",
         }}
       />
