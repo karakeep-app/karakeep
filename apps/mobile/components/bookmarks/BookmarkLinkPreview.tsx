@@ -137,10 +137,11 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  const bannerTop = useSharedValue(insets.top + NAV_BAR_HEIGHT);
+  const BANNER_GAP = 8;
+  const bannerTop = useSharedValue(insets.top + NAV_BAR_HEIGHT + BANNER_GAP);
   useEffect(() => {
     bannerTop.value = withTiming(
-      barsVisible ? insets.top + NAV_BAR_HEIGHT : insets.top,
+      barsVisible ? insets.top + NAV_BAR_HEIGHT + BANNER_GAP : insets.top,
       {
         duration: 250,
       },
@@ -214,9 +215,13 @@ export function BookmarkLinkReaderPreview({
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
         showProgressBar={barsVisible}
+        progressBarTop={insets.top + NAV_BAR_HEIGHT + BANNER_GAP}
         onScrollPositionChange={(position) => {
           onScrollPositionChange?.(position);
-          onScrollOffsetChange?.(position.offset);
+          // Use percent (0-100) scaled to a synthetic pixel range for scroll
+          // direction detection. position.offset is a text character count and
+          // would cause useScrollDirection to immediately hide the bars.
+          onScrollOffsetChange?.(position.percent * 10);
         }}
         onHighlight={(h) =>
           createHighlight({
