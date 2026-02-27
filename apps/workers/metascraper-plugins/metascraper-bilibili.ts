@@ -306,6 +306,7 @@ interface ApiRequestOptions {
   withWbi2?: boolean;
   useDesktopCookie?: boolean;
   retryAttempts?: number;
+  traceLabel?: string;
 }
 
 interface TextAndHtml {
@@ -530,6 +531,30 @@ function isBilibiliRiskCaptchaPage(htmlDom: CheerioAPI): boolean {
   }
 
   return false;
+}
+
+function isRiskOrCaptchaText(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return /(captcha|verification|验证码|风控|risk)/i.test(value);
+}
+
+function isRiskOrCaptchaSignal(input: {
+  code?: number;
+  status?: number;
+  message?: string;
+}): boolean {
+  if (typeof input.code === "number" && RETRYABLE_API_CODES.has(input.code)) {
+    return true;
+  }
+
+  if (input.status === 403 || input.status === 412 || input.status === 429) {
+    return true;
+  }
+
+  return isRiskOrCaptchaText(input.message);
 }
 
 // Return generic fallback title by parsed target type when metadata is missing.
@@ -924,9 +949,15 @@ async function requestBilibiliApi(
   options: ApiRequestOptions = {},
 ): Promise<ApiEnvelope | undefined> {
   const attempts = Math.max(1, options.retryAttempts ?? 1);
+  const traceLabel = options.traceLabel ? `[${options.traceLabel}]` : "";
+  const logPrefix = `[MetascraperBilibili][api${traceLabel}]`;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
+      logger.info(
+        `${logPrefix} Request path=${path} attempt=${attempt + 1}/${attempts} withWbi=${options.withWbi ? "yes" : "no"} withWbi2=${options.withWbi2 ? "yes" : "no"} desktopCookie=${options.useDesktopCookie ? "yes" : "no"}`,
+      );
+
       // Keep query deterministic and drop optional undefined fields.
       let requestParams = normalizeParams(params);
 
@@ -943,8 +974,15 @@ async function requestBilibiliApi(
         // On retries, force-refresh is enabled by passing `attempt > 0`.
         const mixinKey = await getWbiMixinKey(attempt > 0);
         if (!mixinKey) {
+          logger.warn(
+            `${logPrefix} WBI mixin key unavailable path=${path} attempt=${attempt + 1}/${attempts}`,
+          );
           if (attempt < attempts - 1) {
-            await sleep(backoffDelay(attempt));
+            const delay = backoffDelay(attempt);
+            logger.warn(
+              `${logPrefix} Retrying path=${path} after=${delay}ms due to missing WBI key`,
+            );
+            await sleep(delay);
             continue;
           }
           return undefined;
@@ -974,16 +1012,45 @@ async function requestBilibiliApi(
       const status = response.status;
 
       if (!parsed) {
+        const riskOrCaptcha = isRiskOrCaptchaSignal({ status });
+        const parserMessage = `${logPrefix} Invalid API envelope path=${path} status=${status} attempt=${attempt + 1}/${attempts}`;
+        if (riskOrCaptcha) {
+          logger.warn(`${parserMessage} (risk/captcha suspected)`);
+        } else {
+          logger.info(parserMessage);
+        }
+
         // Some upstream failures return HTML or malformed JSON.
         if (status >= 500 && attempt < attempts - 1) {
-          await sleep(backoffDelay(attempt));
+          const delay = backoffDelay(attempt);
+          logger.info(
+            `${logPrefix} Retrying path=${path} after=${delay}ms due to malformed envelope`,
+          );
+          await sleep(delay);
           continue;
         }
         return undefined;
       }
 
       if (parsed.code === 0) {
+        logger.info(
+          `${logPrefix} Response ok path=${path} status=${status} code=0 attempt=${attempt + 1}/${attempts}`,
+        );
         return parsed;
+      }
+
+      const riskOrCaptcha = isRiskOrCaptchaSignal({
+        code: parsed.code,
+        status,
+        message: parsed.message,
+      });
+      const responseMessage =
+        `${logPrefix} Response non-zero path=${path} status=${status} code=${parsed.code} attempt=${attempt + 1}/${attempts}` +
+        (parsed.message ? ` message="${parsed.message}"` : "");
+      if (riskOrCaptcha) {
+        logger.warn(`${responseMessage} (risk/captcha)`);
+      } else {
+        logger.info(responseMessage);
       }
 
       const shouldRetry =
@@ -998,20 +1065,37 @@ async function requestBilibiliApi(
       if (parsed.code === -403 && options.withWbi) {
         // Force a new mixin key next attempt when signed requests are rejected.
         invalidateWbiMixinKey();
+        logger.warn(
+          `${logPrefix} Signed request rejected with -403, invalidated WBI mixin key`,
+        );
       }
 
-      await sleep(backoffDelay(attempt));
+      const delay = backoffDelay(attempt);
+      if (riskOrCaptcha) {
+        logger.warn(
+          `${logPrefix} Retrying path=${path} after=${delay}ms due to risk/captcha response`,
+        );
+      } else {
+        logger.info(
+          `${logPrefix} Retrying path=${path} after=${delay}ms due to retriable response`,
+        );
+      }
+      await sleep(delay);
     } catch (error) {
       // Network-level errors (timeouts, proxy failures, etc.) share the same
       // bounded retry policy.
       if (attempt >= attempts - 1) {
         logger.warn(
-          `[MetascraperBilibili] API request failed for ${path}`,
+          `${logPrefix} API request failed path=${path}`,
           error,
         );
         return undefined;
       }
-      await sleep(backoffDelay(attempt));
+      const delay = backoffDelay(attempt);
+      logger.warn(
+        `${logPrefix} API request threw, retrying path=${path} after=${delay}ms (attempt=${attempt + 1}/${attempts})`,
+      );
+      await sleep(delay);
     }
   }
 
@@ -2155,6 +2239,7 @@ function extractLegacyDynamicStats(
 async function resolveLegacyDynamicMetadata(
   dynamicId: string,
 ): Promise<BilibiliMetadata | undefined> {
+  const logPrefix = `[MetascraperBilibili][dynamic:${dynamicId}][legacy]`;
   const url = `${BILIBILI_LEGACY_API_BASE}/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?${new URLSearchParams(
     {
       dynamic_id: dynamicId,
@@ -2164,6 +2249,9 @@ async function resolveLegacyDynamicMetadata(
   const attempts = 2;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
+      logger.info(
+        `${logPrefix} Requesting legacy endpoint attempt=${attempt + 1}/${attempts}`,
+      );
       const response = await fetchWithProxy(url, {
         headers: BILIBILI_HEADERS,
         signal: AbortSignal.timeout(BILIBILI_API_REQUEST_TIMEOUT_MS),
@@ -2175,18 +2263,45 @@ async function resolveLegacyDynamicMetadata(
 
       const parsed = legacyDynamicDetailResponseSchema.safeParse(payload);
       if (!parsed.success) {
+        const riskOrCaptcha = isRiskOrCaptchaSignal({ status: response.status });
+        if (riskOrCaptcha) {
+          logger.warn(
+            `${logPrefix} Legacy response schema mismatch (status=${response.status}) (risk/captcha suspected)`,
+          );
+        } else {
+          logger.info(
+            `${logPrefix} Legacy response schema mismatch (status=${response.status})`,
+          );
+        }
         if (response.status >= 500 && attempt < attempts - 1) {
-          await sleep(backoffDelay(attempt));
+          const delay = backoffDelay(attempt);
+          logger.info(`${logPrefix} Retrying legacy endpoint after=${delay}ms`);
+          await sleep(delay);
           continue;
         }
         return undefined;
       }
 
       if (parsed.data.code !== 0) {
+        const riskOrCaptcha = isRiskOrCaptchaSignal({
+          code: parsed.data.code,
+          status: response.status,
+          message: parsed.data.message,
+        });
+        const message =
+          `${logPrefix} Legacy endpoint returned code=${parsed.data.code} status=${response.status}` +
+          (parsed.data.message ? ` message="${parsed.data.message}"` : "");
+        if (riskOrCaptcha) {
+          logger.warn(`${message} (risk/captcha)`);
+        } else {
+          logger.info(message);
+        }
         const shouldRetry =
           response.status >= 500 || RETRYABLE_API_CODES.has(parsed.data.code);
         if (shouldRetry && attempt < attempts - 1) {
-          await sleep(backoffDelay(attempt));
+          const delay = backoffDelay(attempt);
+          logger.info(`${logPrefix} Retrying legacy endpoint after=${delay}ms`);
+          await sleep(delay);
           continue;
         }
         return undefined;
@@ -2210,6 +2325,7 @@ async function resolveLegacyDynamicMetadata(
           : undefined;
       const statsText = extractLegacyDynamicStats(descRecord);
       if (!author && !description && !image) {
+        logger.warn(`${logPrefix} Legacy payload missing author/description/image`);
         return undefined;
       }
       const title = buildDynamicFallbackTitle(author, description);
@@ -2236,7 +2352,7 @@ async function resolveLegacyDynamicMetadata(
         statsText,
       });
 
-      return metadataWithDefaults({
+      const metadata = metadataWithDefaults({
         title,
         description,
         image,
@@ -2244,11 +2360,18 @@ async function resolveLegacyDynamicMetadata(
         datePublished,
         readableContentHtml,
       });
+      logger.info(
+        `${logPrefix} Legacy metadata resolved image=${image ? "yes" : "no"} author=${author ? "yes" : "no"}`,
+      );
+      return metadata;
     } catch {
       if (attempt >= attempts - 1) {
+        logger.warn(`${logPrefix} Legacy request failed after retries`);
         return undefined;
       }
-      await sleep(backoffDelay(attempt));
+      const delay = backoffDelay(attempt);
+      logger.info(`${logPrefix} Legacy request threw, retrying after=${delay}ms`);
+      await sleep(delay);
     }
   }
 
@@ -2395,7 +2518,14 @@ function buildDynamicMetadataFromParseResult(
 async function resolveVideoIdentifiers(
   target: Extract<BilibiliTarget, { kind: "video" }>,
 ): Promise<{ bvid?: string; aid?: string } | undefined> {
+  const traceId =
+    target.bvid ?? target.aid ?? target.epId ?? target.seasonId ?? "unknown";
+  const logPrefix = `[MetascraperBilibili][video-identifiers:${traceId}]`;
+
   if (target.bvid || target.aid) {
+    logger.info(
+      `${logPrefix} Using direct identifiers bvid=${target.bvid ?? "n/a"} aid=${target.aid ?? "n/a"}`,
+    );
     return {
       bvid: target.bvid,
       aid: target.aid,
@@ -2404,8 +2534,13 @@ async function resolveVideoIdentifiers(
 
   // Some bangumi links only contain ep/ss IDs and need an extra resolution step.
   if (!target.epId && !target.seasonId) {
+    logger.info(`${logPrefix} No epId/seasonId found, cannot resolve video IDs`);
     return undefined;
   }
+
+  logger.info(
+    `${logPrefix} Resolving via /pgc/view/web/season epId=${target.epId ?? "n/a"} seasonId=${target.seasonId ?? "n/a"}`,
+  );
 
   const seasonResponse = await requestBilibiliApi(
     "/pgc/view/web/season",
@@ -2413,21 +2548,45 @@ async function resolveVideoIdentifiers(
       ep_id: target.epId,
       season_id: target.seasonId,
     },
-    { retryAttempts: 2 },
+    {
+      retryAttempts: 2,
+      traceLabel: `video:${traceId}:season`,
+    },
   );
 
-  if (!seasonResponse || seasonResponse.code !== 0) {
+  if (!seasonResponse) {
+    logger.warn(`${logPrefix} season API returned no envelope`);
+    return undefined;
+  }
+
+  if (seasonResponse.code !== 0) {
+    const riskOrCaptcha = isRiskOrCaptchaSignal({
+      code: seasonResponse.code,
+      message: seasonResponse.message,
+    });
+    const logMessage =
+      `${logPrefix} season API returned code=${seasonResponse.code}` +
+      (seasonResponse.message ? ` message="${seasonResponse.message}"` : "");
+    if (riskOrCaptcha) {
+      logger.warn(`${logMessage} (risk/captcha)`);
+    } else {
+      logger.info(logMessage);
+    }
     return undefined;
   }
 
   const parsed = seasonResponseSchema.safeParse(seasonResponse);
   if (!parsed.success || parsed.data.code !== 0) {
+    logger.warn(
+      `${logPrefix} season API schema mismatch or non-zero envelope code`,
+    );
     return undefined;
   }
 
   const episodes = parsed.data.result?.episodes ?? [];
 
   if (episodes.length === 0) {
+    logger.warn(`${logPrefix} season API returned zero episodes`);
     return undefined;
   }
 
@@ -2445,21 +2604,35 @@ async function resolveVideoIdentifiers(
     }
   }
 
-  return {
+  const resolved = {
     bvid: selectedEpisode.bvid,
     aid: toNumericString(selectedEpisode.aid),
   };
+  logger.info(
+    `${logPrefix} Resolved identifiers bvid=${resolved.bvid ?? "n/a"} aid=${resolved.aid ?? "n/a"}`,
+  );
+  return resolved;
 }
 
 // Resolve regular video pages from `/x/web-interface/view`.
 async function resolveVideoMetadata(
   target: Extract<BilibiliTarget, { kind: "video" }>,
 ): Promise<BilibiliMetadata | undefined> {
+  const traceId =
+    target.bvid ?? target.aid ?? target.epId ?? target.seasonId ?? "unknown";
+  const logPrefix = `[MetascraperBilibili][video:${traceId}]`;
+  logger.info(`${logPrefix} Start resolving video metadata`);
+
   const identifiers = await resolveVideoIdentifiers(target);
 
   if (!identifiers?.bvid && !identifiers?.aid) {
+    logger.warn(`${logPrefix} No resolved identifiers, abort video metadata`);
     return undefined;
   }
+
+  logger.info(
+    `${logPrefix} Requesting /x/web-interface/view with bvid=${identifiers.bvid ?? "n/a"} aid=${identifiers.aid ?? "n/a"}`,
+  );
 
   const viewResponse = await requestBilibiliApi(
     "/x/web-interface/view",
@@ -2467,15 +2640,38 @@ async function resolveVideoMetadata(
       bvid: identifiers.bvid,
       aid: identifiers.aid,
     },
-    { retryAttempts: 2 },
+    {
+      retryAttempts: 2,
+      traceLabel: `video:${traceId}:view`,
+    },
   );
 
-  if (!viewResponse || viewResponse.code !== 0) {
+  if (!viewResponse) {
+    logger.warn(`${logPrefix} view API returned no envelope`);
+    return undefined;
+  }
+
+  if (viewResponse.code !== 0) {
+    const riskOrCaptcha = isRiskOrCaptchaSignal({
+      code: viewResponse.code,
+      message: viewResponse.message,
+    });
+    const logMessage =
+      `${logPrefix} view API returned code=${viewResponse.code}` +
+      (viewResponse.message ? ` message="${viewResponse.message}"` : "");
+    if (riskOrCaptcha) {
+      logger.warn(`${logMessage} (risk/captcha)`);
+    } else {
+      logger.info(logMessage);
+    }
     return undefined;
   }
 
   const parsed = videoViewResponseSchema.safeParse(viewResponse);
   if (!parsed.success || parsed.data.code !== 0 || !parsed.data.data) {
+    logger.warn(
+      `${logPrefix} view API schema mismatch or missing data payload`,
+    );
     return undefined;
   }
 
@@ -2483,6 +2679,7 @@ async function resolveVideoMetadata(
 
   const title = videoData.title?.trim();
   if (!title) {
+    logger.warn(`${logPrefix} Missing title from view payload`);
     return undefined;
   }
 
@@ -2502,7 +2699,7 @@ async function resolveVideoMetadata(
     stats: videoData.stat,
   });
 
-  return metadataWithDefaults({
+  const metadata = metadataWithDefaults({
     title,
     description,
     image,
@@ -2510,24 +2707,54 @@ async function resolveVideoMetadata(
     datePublished,
     readableContentHtml,
   });
+  logger.info(
+    `${logPrefix} Video metadata resolved title="${title}" image=${image ? "yes" : "no"}`,
+  );
+  return metadata;
 }
 
 // Resolve article/column pages from `/x/article/view`.
 async function resolveArticleById(
   cvid: string,
 ): Promise<BilibiliMetadata | undefined> {
+  const logPrefix = `[MetascraperBilibili][article:${cvid}]`;
+  logger.info(`${logPrefix} Start resolving article metadata`);
+
   const articleResponse = await requestBilibiliApi(
     "/x/article/view",
     { id: cvid },
-    { retryAttempts: 2 },
+    {
+      retryAttempts: 2,
+      traceLabel: `article:${cvid}:view`,
+    },
   );
 
-  if (!articleResponse || articleResponse.code !== 0) {
+  if (!articleResponse) {
+    logger.warn(`${logPrefix} article API returned no envelope`);
+    return undefined;
+  }
+
+  if (articleResponse.code !== 0) {
+    const riskOrCaptcha = isRiskOrCaptchaSignal({
+      code: articleResponse.code,
+      message: articleResponse.message,
+    });
+    const logMessage =
+      `${logPrefix} article API returned code=${articleResponse.code}` +
+      (articleResponse.message ? ` message="${articleResponse.message}"` : "");
+    if (riskOrCaptcha) {
+      logger.warn(`${logMessage} (risk/captcha)`);
+    } else {
+      logger.info(logMessage);
+    }
     return undefined;
   }
 
   const parsed = articleViewResponseSchema.safeParse(articleResponse);
   if (!parsed.success || parsed.data.code !== 0 || !parsed.data.data) {
+    logger.warn(
+      `${logPrefix} article API schema mismatch or missing data payload`,
+    );
     return undefined;
   }
 
@@ -2535,6 +2762,7 @@ async function resolveArticleById(
 
   const title = articleData.title?.trim();
   if (!title) {
+    logger.warn(`${logPrefix} Missing title from article payload`);
     return undefined;
   }
 
@@ -2571,7 +2799,7 @@ async function resolveArticleById(
     bodyHtml,
   });
 
-  return metadataWithDefaults({
+  const metadata = metadataWithDefaults({
     title,
     description,
     image,
@@ -2580,6 +2808,10 @@ async function resolveArticleById(
     dateModified,
     readableContentHtml,
   });
+  logger.info(
+    `${logPrefix} Article metadata resolved title="${title}" image=${image ? "yes" : "no"}`,
+  );
+  return metadata;
 }
 
 // Opus detail can point to article content (`comment_type=12` or fallback type=2).
@@ -2617,6 +2849,7 @@ async function resolveDynamicMetadata(
   target: Extract<BilibiliTarget, { kind: "dynamic" }>,
 ): Promise<BilibiliMetadata | undefined> {
   const logPrefix = `[MetascraperBilibili][dynamic:${target.dynamicId}]`;
+  logger.info(`${logPrefix} Start resolving dynamic metadata chain`);
 
   // Preferred path: opus/detail with WBI2 + WBI.
   logger.info(`${logPrefix} Trying opus/detail`);
@@ -2631,6 +2864,7 @@ async function resolveDynamicMetadata(
       withWbi: true,
       withWbi2: true,
       retryAttempts: 3,
+      traceLabel: `dynamic:${target.dynamicId}:opus-detail`,
     },
   );
 
@@ -2712,6 +2946,7 @@ async function resolveDynamicMetadata(
       withWbi: true,
       withWbi2: true,
       retryAttempts: 3,
+      traceLabel: `dynamic:${target.dynamicId}:web-detail`,
     },
   );
 
@@ -2745,6 +2980,7 @@ async function resolveDynamicMetadata(
     {
       useDesktopCookie: true,
       retryAttempts: 2,
+      traceLabel: `dynamic:${target.dynamicId}:desktop-detail`,
     },
   );
 
@@ -2799,7 +3035,22 @@ async function resolveBilibiliMetadata(
 ): Promise<BilibiliMetadata | undefined> {
   const target = parseBilibiliTarget(url);
   if (!target) {
+    logger.info(`[MetascraperBilibili] Unsupported bilibili target for ${url}`);
     return undefined;
+  }
+
+  if (target.kind === "video") {
+    logger.info(
+      `[MetascraperBilibili] Route target kind=video bvid=${target.bvid ?? "n/a"} aid=${target.aid ?? "n/a"} epId=${target.epId ?? "n/a"} seasonId=${target.seasonId ?? "n/a"}`,
+    );
+  } else if (target.kind === "article") {
+    logger.info(
+      `[MetascraperBilibili] Route target kind=article cvid=${target.cvid}`,
+    );
+  } else {
+    logger.info(
+      `[MetascraperBilibili] Route target kind=dynamic dynamicId=${target.dynamicId}`,
+    );
   }
 
   switch (target.kind) {
@@ -2824,6 +3075,7 @@ async function getBilibiliMetadata(
   // Promise-level memoization avoids duplicate API requests across rule fields.
   const cached = metadataCache.get(url);
   if (cached && cached.expiresAt > now) {
+    logger.info(`[MetascraperBilibili] Metadata cache hit for ${url}`);
     return cached.promise;
   }
 
@@ -2860,6 +3112,11 @@ const metascraperBilibili = () => {
       if (metadata?.title?.trim()) {
         return metadata.title;
       }
+      if (isCaptchaPage) {
+        logger.warn(
+          `[MetascraperBilibili] Captcha/risk page detected for ${url}, skipping HTML title fallback`,
+        );
+      }
       // Avoid storing risk-page "验证码" titles when the page is a captcha challenge.
       if (!isCaptchaPage) {
         const fallbackFromHtml = extractTitleFromHtmlDom(htmlDom);
@@ -2871,9 +3128,15 @@ const metascraperBilibili = () => {
         }
       }
       const defaultTitle = getDefaultTitleForTarget(url);
-      logger.info(
-        `[MetascraperBilibili] Title fallback to default for ${url}: "${defaultTitle ?? ""}" (captchaPage=${isCaptchaPage ? "yes" : "no"})`,
-      );
+      if (isCaptchaPage) {
+        logger.warn(
+          `[MetascraperBilibili] Title fallback to default due to captcha/risk page for ${url}: "${defaultTitle ?? ""}"`,
+        );
+      } else {
+        logger.info(
+          `[MetascraperBilibili] Title fallback to default for ${url}: "${defaultTitle ?? ""}"`,
+        );
+      }
       return defaultTitle;
     }) as unknown as RulesOptions,
     description: (async ({ url }: { url: string }) => {
