@@ -39,10 +39,28 @@ import logger from "@karakeep/shared/logger";
  * - Phase 2 custom renderer path on top of this data layer.
  */
 const BILIBILI_API_BASE = "https://api.bilibili.com";
+const BILIBILI_LEGACY_API_BASE = "https://api.vc.bilibili.com";
 const BILIBILI_PUBLISHER = "Bilibili";
 const BILIBILI_FAVICON = "https://www.bilibili.com/favicon.ico";
+// `desktop/v1/detail` currently expects this known desktop build marker.
 const BILIBILI_DESKTOP_BUILD = "11605";
 const BILIBILI_API_REQUEST_TIMEOUT_MS = 7000;
+// Feature flags used by the opus/detail endpoint to expose richer modules.
+const BILIBILI_DYNAMIC_OPUS_FEATURES =
+  "itemOpusStyle,onlyfansVote,onlyfansAssetsV2,decorationCard,htmlNewStyle,ugcDelete,editable,opusPrivateVisible";
+// Feature flags for `web-dynamic/v1/detail` fallback requests.
+const BILIBILI_DYNAMIC_WEB_FEATURES =
+  "itemOpusStyle,opusBigCover,onlyfansVote,endFooterHidden,decorationCard,onlyfansAssetsV2,ugcDelete";
+// `web_location` value commonly used by Bilibili web clients.
+const BILIBILI_DYNAMIC_WEB_LOCATION = "333.1368";
+// Serialized query payload for `x-bili-device-req-json`.
+const BILIBILI_DYNAMIC_DEVICE_REQ_JSON = '{"platform":"web","device":"pc"}';
+// Serialized query payload for `x-bili-web-req-json` (web request context).
+const BILIBILI_DYNAMIC_WEB_REQ_JSON = '{"spm_id":"333.1368"}';
+const BILIBILI_DEFAULT_VIDEO_TITLE = "Video - Bilibili";
+const BILIBILI_DEFAULT_ARTICLE_TITLE = "Article - Bilibili";
+const BILIBILI_DEFAULT_DYNAMIC_TITLE = "Dynamics - Bilibili";
+const BILIBILI_DYNAMIC_FALLBACK_TITLE_TEXT_LIMIT = 38;
 
 const BILIBILI_HEADERS = {
   "user-agent":
@@ -52,8 +70,26 @@ const BILIBILI_HEADERS = {
 
 const METADATA_CACHE_TTL_MS = 60 * 1000;
 const WBI_MIXIN_KEY_TTL_MS = 10 * 60 * 1000;
+// Forwarded dynamic payloads can be deeply nested (`module_dynamic -> dyn_forward -> item -> modules ...`).
+// Keep this bounded, but high enough to retain source text for multi-level forwards.
+const DYNAMIC_COLLECT_MAX_DEPTH = 12;
 
 const RETRYABLE_API_CODES = new Set([-352, -403]);
+const DYNAMIC_STAT_LABELS = {
+  repost: "转发 (Reposts)",
+  comment: "评论 (Comments)",
+  like: "点赞 (Likes)",
+} as const;
+
+const VIDEO_STAT_LABELS = {
+  view: "播放 (Views)",
+  danmaku: "弹幕 (Danmaku)",
+  reply: "评论 (Comments)",
+  like: "点赞 (Likes)",
+  favorite: "收藏 (Favorites)",
+  coin: "投币 (Coins)",
+  share: "分享 (Shares)",
+} as const;
 
 const WBI_MIXIN_KEY_INDEX_TABLE = [
   46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49,
@@ -62,16 +98,19 @@ const WBI_MIXIN_KEY_INDEX_TABLE = [
   20, 34, 44, 52,
 ] as const;
 
-const apiEnvelopeSchema = z.object({
-  code: z.number(),
-  message: z.string().optional(),
-  data: z.unknown().optional(),
-  result: z.unknown().optional(),
-});
+const apiEnvelopeSchema = z
+  .object({
+    code: z.number(),
+    message: z.string().optional(),
+    data: z.unknown().optional(),
+    result: z.unknown().optional(),
+  })
+  .passthrough();
 
 const navResponseSchema = z.object({
   code: z.number(),
   data: z.object({
+    // `wbi_img` provides two rolling asset filenames used to derive mixin key.
     wbi_img: z.object({
       img_url: z.string(),
       sub_url: z.string(),
@@ -182,33 +221,43 @@ const opusDetailResponseSchema = z.object({
     .optional(),
 });
 
-const desktopDynamicResponseSchema = z.object({
+const legacyDynamicDetailResponseSchema = z.object({
   code: z.number(),
   message: z.string().optional(),
   data: z
     .object({
-      item: z
+      card: z
         .object({
-          type: z.string().optional(),
-          basic: z
+          desc: z
             .object({
-              rid_str: z.union([z.string(), z.number()]).optional(),
-              rtype: z.number().optional(),
+              timestamp: z.number().optional(),
+              repost: z.number().optional(),
+              comment: z.number().optional(),
+              like: z.number().optional(),
+              user_profile: z
+                .object({
+                  info: z
+                    .object({
+                      uname: z.string().optional(),
+                    })
+                    .optional(),
+                })
+                .optional(),
             })
+            .passthrough()
             .optional(),
-          modules: z.array(z.record(z.unknown())).optional(),
+          card: z.string().optional(),
         })
+        .passthrough()
         .optional(),
     })
+    .passthrough()
     .optional(),
 });
 
 type ApiEnvelope = z.infer<typeof apiEnvelopeSchema>;
 type OpusItem = NonNullable<
   NonNullable<z.infer<typeof opusDetailResponseSchema>["data"]>["item"]
->;
-type DesktopDynamicItem = NonNullable<
-  NonNullable<z.infer<typeof desktopDynamicResponseSchema>["data"]>["item"]
 >;
 
 type BilibiliTarget =
@@ -235,6 +284,7 @@ interface BilibiliMetadata {
   author?: string;
   publisher?: string;
   datePublished?: string;
+  dateModified?: string;
   readableContentHtml?: string;
   logo?: string;
 }
@@ -284,6 +334,7 @@ interface DesktopCollector {
   images: string[];
   imageSet: Set<string>;
   cards: DesktopCard[];
+  cardSet: Set<string>;
 }
 
 interface DesktopParseResult {
@@ -296,21 +347,30 @@ interface DesktopParseResult {
   statsText?: string;
 }
 
+// Promise-level metadata cache keyed by final URL.
+// metascraper evaluates each rule field independently; without this cache we
+// would repeat the same network requests for title/description/image/author/etc.
 const metadataCache = new Map<string, CacheEntry>();
+
+// WBI signing key cache shared by all requests in this worker process.
+// When Bilibili returns risk responses (e.g. -403), the key is invalidated.
 let wbiMixinKeyCache: WbiMixinKeyCache | undefined;
 
+// Awaitable sleep helper used by retry backoff logic.
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
 
+// Bounded exponential backoff with jitter to avoid bursty retries.
 function backoffDelay(attempt: number): number {
   const base = 250;
   const jitter = Math.floor(Math.random() * 150);
   return Math.min(base * 2 ** attempt + jitter, 4000);
 }
 
+// Keep the in-memory cache bounded over long-running worker lifetime.
 function purgeExpiredMetadataCache(now: number): void {
   for (const [key, entry] of metadataCache.entries()) {
     if (entry.expiresAt <= now) {
@@ -319,6 +379,8 @@ function purgeExpiredMetadataCache(now: number): void {
   }
 }
 
+// Convert numeric-like IDs from heterogeneous payload shapes into a stable
+// decimal string format used by URL builders and API params.
 function toNumericString(
   value: string | number | undefined,
 ): string | undefined {
@@ -334,6 +396,8 @@ function toNumericString(
   return undefined;
 }
 
+// Bilibili timestamps are usually seconds; normalize to ISO for Karakeep link
+// metadata fields (`datePublished` / `dateModified`).
 function toIsoDateFromSeconds(
   timestamp: number | undefined,
 ): string | undefined {
@@ -347,6 +411,8 @@ function toIsoDateFromSeconds(
   return date.toISOString();
 }
 
+// Normalize image URLs into absolute HTTPS links so they can be stored directly
+// in bookmark metadata and rendered by Reader/mobile cards consistently.
 function normalizeImageUrl(url: string | undefined): string | undefined {
   if (!url) {
     return undefined;
@@ -368,6 +434,8 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
   return trimmed;
 }
 
+// Normalize link URLs for generated HTML; unlike image URLs we preserve `http`
+// when explicitly provided to avoid rewriting third-party hosts unexpectedly.
 function normalizeLinkUrl(url: string | undefined): string | undefined {
   if (!url) {
     return undefined;
@@ -385,6 +453,7 @@ function normalizeLinkUrl(url: string | undefined): string | undefined {
   return trimmed;
 }
 
+// Escape unsafe characters before embedding text into generated HTML.
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -394,6 +463,7 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
+// Normalize and cap long text fields for metadata-friendly summaries.
 function truncateText(
   value: string | undefined,
   maxLength: number,
@@ -411,6 +481,7 @@ function truncateText(
   return `${normalized.slice(0, maxLength)}...`;
 }
 
+// Strip site suffixes and normalize spacing in `<title>` / og:title strings.
 function normalizeBilibiliPageTitle(
   rawTitle: string | undefined,
 ): string | undefined {
@@ -424,14 +495,15 @@ function normalizeBilibiliPageTitle(
   }
 
   normalized = normalized
-    .replace(/\s*[_-]\s*哔哩哔哩(?:_bilibili)?$/i, "")
-    .replace(/\s*\|\s*哔哩哔哩(?:_bilibili)?$/i, "")
-    .replace(/\s*-\s*哔哩哔哩(?:_bilibili)?$/i, "")
+    .replace(/\s*[_-]\s*哔哩哔哩(?:\s*_bilibili)?$/i, "")
+    .replace(/\s*\|\s*哔哩哔哩(?:\s*_bilibili)?$/i, "")
+    .replace(/\s*-\s*哔哩哔哩(?:\s*_bilibili)?$/i, "")
     .trim();
 
   return normalized || undefined;
 }
 
+// Detect common captcha placeholder titles returned by risk pages.
 function isCaptchaLikeTitle(title: string | undefined): boolean {
   if (!title) {
     return false;
@@ -439,6 +511,7 @@ function isCaptchaLikeTitle(title: string | undefined): boolean {
   return /^(验证码|verification code|captcha)$/i.test(title.trim());
 }
 
+// Detect whether the fetched HTML is a Bilibili risk/captcha challenge page.
 function isBilibiliRiskCaptchaPage(htmlDom: CheerioAPI): boolean {
   const title = normalizeBilibiliPageTitle(htmlDom("title").first().text());
   if (isCaptchaLikeTitle(title)) {
@@ -457,6 +530,7 @@ function isBilibiliRiskCaptchaPage(htmlDom: CheerioAPI): boolean {
   return false;
 }
 
+// Return generic fallback title by parsed target type when metadata is missing.
 function getDefaultTitleForTarget(url: string): string | undefined {
   const target = parseBilibiliTarget(url);
   if (!target) {
@@ -464,14 +538,36 @@ function getDefaultTitleForTarget(url: string): string | undefined {
   }
 
   if (target.kind === "video") {
-    return "Bilibili 视频";
+    return BILIBILI_DEFAULT_VIDEO_TITLE;
   }
   if (target.kind === "article") {
-    return "Bilibili 专栏";
+    return BILIBILI_DEFAULT_ARTICLE_TITLE;
   }
-  return "Bilibili 动态";
+  return BILIBILI_DEFAULT_DYNAMIC_TITLE;
 }
 
+// Build dynamic fallback title when explicit post title is absent.
+function buildDynamicFallbackTitle(
+  author: string | undefined,
+  description?: string,
+): string {
+  const normalizedAuthor = author?.trim();
+  if (normalizedAuthor) {
+    return `${normalizedAuthor}的动态 - 哔哩哔哩`;
+  }
+
+  const normalizedDescription = truncateText(
+    description,
+    BILIBILI_DYNAMIC_FALLBACK_TITLE_TEXT_LIMIT,
+  );
+  if (normalizedDescription) {
+    return `${normalizedDescription} - 哔哩哔哩`;
+  }
+
+  return BILIBILI_DEFAULT_DYNAMIC_TITLE;
+}
+
+// Extract best-effort title from HTML metadata while filtering captcha titles.
 function extractTitleFromHtmlDom(htmlDom: CheerioAPI): string | undefined {
   const ogTitle = htmlDom('meta[property="og:title"]').first().attr("content");
   const normalizedOgTitle = normalizeBilibiliPageTitle(ogTitle);
@@ -487,6 +583,7 @@ function extractTitleFromHtmlDom(htmlDom: CheerioAPI): string | undefined {
   return normalizedTitle;
 }
 
+// Format metric counters for display in metadata/reader sections.
 function formatCount(value: number | undefined): string | undefined {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return undefined;
@@ -494,6 +591,7 @@ function formatCount(value: number | undefined): string | undefined {
   return value.toLocaleString("en-US");
 }
 
+// Validate whether a hostname belongs to supported Bilibili domains.
 function isBilibiliHost(hostname: string): boolean {
   const normalizedHost = hostname.toLowerCase();
   return (
@@ -505,6 +603,7 @@ function isBilibiliHost(hostname: string): boolean {
   );
 }
 
+// Extract first capture group from pathname using a helper regex.
 function extractFirstMatch(
   pathname: string,
   regex: RegExp,
@@ -521,6 +620,8 @@ function extractFirstMatch(
  *   redirection before metascraper receives the final URL.
  * - opus links may eventually resolve to either dynamic content or article
  *   content (handled later via API fallback fields).
+ * - matching order is intentional: article/mobile paths are resolved before
+ *   opus and dynamic patterns to avoid ambiguity.
  */
 function parseBilibiliTarget(url: string): BilibiliTarget | null {
   try {
@@ -531,11 +632,14 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
 
     const pathname = parsedUrl.pathname;
 
+    // Article: canonical column URL, e.g. /read/cv123456.
+    // Captures numeric cvid after "cv".
     const cvFromRead = extractFirstMatch(pathname, /\/read\/cv(\d+)/i);
     if (cvFromRead) {
       return { kind: "article", cvid: cvFromRead };
     }
 
+    // Article: mobile path variant, e.g. /read/mobile/123456.
     const cvFromMobilePath = extractFirstMatch(
       pathname,
       /\/read\/mobile\/(\d+)/i,
@@ -544,6 +648,8 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
       return { kind: "article", cvid: cvFromMobilePath };
     }
 
+    // Article: mobile query variant, e.g. /read/mobile?id=123456.
+    // Here cvid comes from query param instead of path capture.
     if (pathname.startsWith("/read/mobile")) {
       const cvid = toNumericString(
         parsedUrl.searchParams.get("id") ?? undefined,
@@ -553,11 +659,13 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
       }
     }
 
+    // Dynamic: opus URL, e.g. /opus/1168746307370614788.
     const opusId = extractFirstMatch(pathname, /\/opus\/(\d+)/i);
     if (opusId) {
       return { kind: "dynamic", dynamicId: opusId };
     }
 
+    // Dynamic: H5 detail URL, e.g. /h5/dynamic/detail/1168746307370614788.
     const h5DynamicId = extractFirstMatch(
       pathname,
       /\/h5\/dynamic\/detail\/(\d+)/i,
@@ -566,6 +674,8 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
       return { kind: "dynamic", dynamicId: h5DynamicId };
     }
 
+    // Dynamic: t.bilibili short detail URL, e.g. t.bilibili.com/1168....
+    // Captures leading numeric segment from root path.
     if (parsedUrl.hostname.toLowerCase() === "t.bilibili.com") {
       const tDynamicId = extractFirstMatch(pathname, /^\/(\d+)/);
       if (tDynamicId) {
@@ -573,6 +683,8 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
       }
     }
 
+    // Video: BV identifier URL, e.g. /video/BV1xx411c7mD.
+    // BV id format is "BV" + 10 alphanumeric chars.
     const bvidFromVideo = extractFirstMatch(
       pathname,
       /\/video\/(BV[0-9A-Za-z]{10})/i,
@@ -581,11 +693,15 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
       return { kind: "video", bvid: bvidFromVideo };
     }
 
+    // Video: legacy av identifier URL, e.g. /video/av170001.
     const aidFromVideo = extractFirstMatch(pathname, /\/video\/av(\d+)/i);
     if (aidFromVideo) {
       return { kind: "video", aid: aidFromVideo };
     }
 
+    // Video: bangumi play URL, e.g. /bangumi/play/ep123 or /bangumi/play/ss456.
+    // - ep => episode id
+    // - ss => season id
     const bangumiMatch = pathname.match(/\/bangumi\/play\/(ep|ss)(\d+)/i);
     if (bangumiMatch) {
       const [, prefix, id] = bangumiMatch;
@@ -595,6 +711,7 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
       return { kind: "video", seasonId: id };
     }
 
+    // Video: festival page sometimes carries bvid in query, e.g. /festival?...&bvid=BV...
     if (pathname.startsWith("/festival")) {
       const bvid = parsedUrl.searchParams.get("bvid") ?? undefined;
       if (bvid && /^BV[0-9A-Za-z]{10}$/.test(bvid)) {
@@ -608,6 +725,8 @@ function parseBilibiliTarget(url: string): BilibiliTarget | null {
   }
 }
 
+// Drop undefined values and convert booleans to 0/1, matching Bilibili's query
+// conventions for many web APIs.
 function normalizeParams(
   params: Record<string, string | number | boolean | undefined>,
 ): Record<string, string | number> {
@@ -671,6 +790,8 @@ function applyWbiSignature(
   };
 }
 
+// Build API URL from base + query. Keeping this centralized makes it easier
+// to instrument/log requests consistently later.
 function buildApiUrl(
   path: string,
   params: Record<string, string | number>,
@@ -681,6 +802,8 @@ function buildApiUrl(
   return `${BILIBILI_API_BASE}${path}?${query.toString()}`;
 }
 
+// Parse only the envelope that this plugin needs (`code`, optional payload);
+// route-specific parsing is performed by dedicated zod schemas later.
 function parseApiEnvelope(payload: unknown): ApiEnvelope | undefined {
   const parsed = apiEnvelopeSchema.safeParse(payload);
   if (!parsed.success) {
@@ -689,6 +812,7 @@ function parseApiEnvelope(payload: unknown): ApiEnvelope | undefined {
   return parsed.data;
 }
 
+// Extract basename without extension from nav image URLs for mixin key inputs.
 function getFilenameWithoutExtension(url: string): string {
   const fileName = url.split("/").pop() ?? "";
   const dotIndex = fileName.indexOf(".");
@@ -698,6 +822,8 @@ function getFilenameWithoutExtension(url: string): string {
   return fileName.slice(0, dotIndex);
 }
 
+// Called when signed requests are rejected so next retry can recalculate
+// WBI parameters from `/x/web-interface/nav`.
 function invalidateWbiMixinKey(): void {
   wbiMixinKeyCache = undefined;
 }
@@ -729,11 +855,18 @@ async function getWbiMixinKey(
     const payload = await response.json();
     const parsed = navResponseSchema.safeParse(payload);
 
-    if (!parsed.success || parsed.data.code !== 0) {
+    // `nav` may return non-zero code for anonymous users (e.g. -101),
+    // but still includes a valid `data.wbi_img` used for WBI signing.
+    if (!parsed.success) {
       logger.warn(
         "[MetascraperBilibili] Failed to parse nav response for WBI key",
       );
       return undefined;
+    }
+    if (parsed.data.code !== 0) {
+      logger.info(
+        `[MetascraperBilibili] nav returned code=${parsed.data.code} but includes wbi_img; continuing`,
+      );
     }
 
     const { img_url: imgUrl, sub_url: subUrl } = parsed.data.data.wbi_img;
@@ -777,9 +910,12 @@ async function requestBilibiliApi(
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
+      // Keep query deterministic and drop optional undefined fields.
       let requestParams = normalizeParams(params);
 
       if (options.withWbi2) {
+        // Dynamic endpoints often require these fingerprint fields even for
+        // read-only/public resources.
         requestParams = {
           ...requestParams,
           ...buildWbi2Params(),
@@ -787,6 +923,7 @@ async function requestBilibiliApi(
       }
 
       if (options.withWbi) {
+        // On retries, force-refresh is enabled by passing `attempt > 0`.
         const mixinKey = await getWbiMixinKey(attempt > 0);
         if (!mixinKey) {
           if (attempt < attempts - 1) {
@@ -820,6 +957,7 @@ async function requestBilibiliApi(
       const status = response.status;
 
       if (!parsed) {
+        // Some upstream failures return HTML or malformed JSON.
         if (status >= 500 && attempt < attempts - 1) {
           await sleep(backoffDelay(attempt));
           continue;
@@ -847,6 +985,8 @@ async function requestBilibiliApi(
 
       await sleep(backoffDelay(attempt));
     } catch (error) {
+      // Network-level errors (timeouts, proxy failures, etc.) share the same
+      // bounded retry policy.
       if (attempt >= attempts - 1) {
         logger.warn(
           `[MetascraperBilibili] API request failed for ${path}`,
@@ -861,6 +1001,8 @@ async function requestBilibiliApi(
   return undefined;
 }
 
+// Convert plain text blocks into simple paragraph HTML that Reader can render
+// without requiring site-specific CSS or JS.
 function htmlParagraphsFromPlainText(text: string | undefined): string {
   if (!text) {
     return "";
@@ -885,6 +1027,7 @@ function htmlParagraphsFromPlainText(text: string | undefined): string {
     .join("\n");
 }
 
+// Helper for generating metadata descriptions from HTML payloads.
 function toPlainTextFromHtml(html: string): string {
   const dom = new JSDOM(`<body>${html}</body>`);
   try {
@@ -896,6 +1039,9 @@ function toPlainTextFromHtml(html: string): string {
   }
 }
 
+// Bilibili article HTML can contain scripting/layout-specific nodes that are
+// not useful in Reader. This function keeps content-focused markup only and
+// normalizes media/link attributes before final sanitizer runs upstream.
 function normalizeArticleContentHtml(content: string | undefined): string {
   if (!content) {
     return "";
@@ -927,6 +1073,7 @@ function normalizeArticleContentHtml(content: string | undefined): string {
       if (resolved) {
         image.setAttribute("src", resolved);
       }
+      image.setAttribute("referrerpolicy", "no-referrer");
       image.removeAttribute("data-src");
       image.removeAttribute("srcset");
       image.removeAttribute("loading");
@@ -945,6 +1092,8 @@ function normalizeArticleContentHtml(content: string | undefined): string {
   }
 }
 
+// Shared HTML shell used by video/dynamic/article renderers so metadata header
+// and content structure stay consistent across content types.
 function createReaderArticleWrapper(
   className: string,
   title: string,
@@ -980,7 +1129,7 @@ function createReaderArticleWrapper(
   const coverHtml = coverImage
     ? `<figure class="kk-bili-cover"><img src="${escapeHtml(
         coverImage,
-      )}" alt="${escapeHtml(title)}" loading="lazy" /></figure>`
+      )}" alt="${escapeHtml(title)}" loading="lazy" referrerpolicy="no-referrer" /></figure>`
     : "";
 
   const extra = extraMetaHtml
@@ -1000,6 +1149,9 @@ function createReaderArticleWrapper(
   ].join("\n");
 }
 
+// Parse Bilibili rich-text node arrays into:
+// - `text`: plain text used for description fallback
+// - `html`: reader-friendly inline markup (links/emoji/text)
 function extractTextAndHtmlFromOpusNodes(nodes: unknown): TextAndHtml {
   if (!Array.isArray(nodes)) {
     return { text: "", html: "" };
@@ -1061,7 +1213,7 @@ function extractTextAndHtmlFromOpusNodes(nodes: unknown): TextAndHtml {
       htmlParts.push(
         `<img src="${escapeHtml(emojiIcon)}" alt="${escapeHtml(
           altText,
-        )}" class="kk-bili-emoji" />`,
+        )}" class="kk-bili-emoji" referrerpolicy="no-referrer" />`,
       );
       continue;
     }
@@ -1088,6 +1240,7 @@ function extractTextAndHtmlFromOpusNodes(nodes: unknown): TextAndHtml {
   };
 }
 
+// Format opus stat module counters into a short Reader metadata line.
 function extractOpusStats(moduleStat: unknown): string | undefined {
   if (!moduleStat || typeof moduleStat !== "object") {
     return undefined;
@@ -1118,22 +1271,24 @@ function extractOpusStats(moduleStat: unknown): string | undefined {
 
   const forward = getCount("forward");
   if (forward) {
-    items.push(`转发 ${forward}`);
+    items.push(`${DYNAMIC_STAT_LABELS.repost} ${forward}`);
   }
 
   const comment = getCount("comment");
   if (comment) {
-    items.push(`评论 ${comment}`);
+    items.push(`${DYNAMIC_STAT_LABELS.comment} ${comment}`);
   }
 
   const like = getCount("like");
   if (like) {
-    items.push(`点赞 ${like}`);
+    items.push(`${DYNAMIC_STAT_LABELS.like} ${like}`);
   }
 
   return items.length > 0 ? items.join(" · ") : undefined;
 }
 
+// Parse the canonical opus/detail payload into metadata + rendered body.
+// This is the highest-quality dynamic path because structure is explicit.
 function parseOpusItem(
   item: OpusItem | undefined,
 ): OpusParseResult | undefined {
@@ -1260,7 +1415,7 @@ function parseOpusItem(
             imageHtmlParts.push(
               `<figure><img src="${escapeHtml(
                 normalized,
-              )}" alt="bilibili image" loading="lazy" /></figure>`,
+              )}" alt="bilibili image" loading="lazy" referrerpolicy="no-referrer" /></figure>`,
             );
           }
 
@@ -1324,6 +1479,8 @@ function parseOpusItem(
   };
 }
 
+// Collector used by fallback dynamic parsers where payload shape can drift.
+// We intentionally deduplicate text/images to reduce noisy repeated blocks.
 function createDesktopCollector(): DesktopCollector {
   return {
     texts: [],
@@ -1331,9 +1488,11 @@ function createDesktopCollector(): DesktopCollector {
     images: [],
     imageSet: new Set<string>(),
     cards: [],
+    cardSet: new Set<string>(),
   };
 }
 
+// Add a normalized text fragment into the fallback collector with deduplication.
 function addDesktopText(
   collector: DesktopCollector,
   text: string | undefined,
@@ -1355,6 +1514,7 @@ function addDesktopText(
   collector.texts.push(normalized);
 }
 
+// Heuristic key matcher for image-like fields in loosely typed payloads.
 function isLikelyImageFieldName(key: string): boolean {
   return (
     key === "src" ||
@@ -1365,6 +1525,7 @@ function isLikelyImageFieldName(key: string): boolean {
   );
 }
 
+// Add an image candidate into collector only when key/value looks valid.
 function addDesktopImage(
   collector: DesktopCollector,
   key: string,
@@ -1387,6 +1548,7 @@ function addDesktopImage(
   collector.images.push(normalized);
 }
 
+// Card extraction is intentionally conservative: require at least a title.
 function addDesktopCard(
   collector: DesktopCollector,
   title: string | undefined,
@@ -1399,21 +1561,37 @@ function addDesktopCard(
     return;
   }
 
+  const normalizedUrl = normalizeLinkUrl(jumpUrl);
+  const normalizedCover = normalizeImageUrl(cover);
+  const normalizedDescription = description?.trim() || undefined;
+  const dedupeKey = [
+    normalizedTitle,
+    normalizedUrl ?? "",
+    normalizedCover ?? "",
+    normalizedDescription ?? "",
+  ].join("\u001f");
+  if (collector.cardSet.has(dedupeKey)) {
+    return;
+  }
+  collector.cardSet.add(dedupeKey);
+
   collector.cards.push({
     title: normalizedTitle,
-    url: normalizeLinkUrl(jumpUrl),
-    cover: normalizeImageUrl(cover),
-    description: description?.trim() || undefined,
+    url: normalizedUrl,
+    cover: normalizedCover,
+    description: normalizedDescription,
   });
 }
 
+// Generic recursive collector for web/desktop dynamic fallback payloads.
+// The goal is robustness against API schema changes, not perfect semantics.
 function collectDesktopDynamic(
   collector: DesktopCollector,
   value: unknown,
   depth = 0,
 ): void {
   // Guard against unusually deep nested payloads.
-  if (depth > 6) {
+  if (depth > DYNAMIC_COLLECT_MAX_DEPTH) {
     return;
   }
 
@@ -1478,14 +1656,11 @@ function collectDesktopDynamic(
 
     addDesktopCard(collector, maybeTitle, maybeJumpUrl, maybeCover, maybeDesc);
 
-    if ("modules" in field && Array.isArray(field.modules)) {
-      collectDesktopDynamic(collector, field.modules, depth + 1);
-    }
-
     collectDesktopDynamic(collector, field, depth + 1);
   }
 }
 
+// Format desktop fallback stat payloads into a concise stats string.
 function extractDesktopStats(moduleStat: unknown): string | undefined {
   if (!moduleStat || typeof moduleStat !== "object") {
     return undefined;
@@ -1516,30 +1691,96 @@ function extractDesktopStats(moduleStat: unknown): string | undefined {
 
   const forward = getCount("forward");
   if (forward) {
-    parts.push(`转发 ${forward}`);
+    parts.push(`${DYNAMIC_STAT_LABELS.repost} ${forward}`);
   }
 
   const comment = getCount("comment");
   if (comment) {
-    parts.push(`评论 ${comment}`);
+    parts.push(`${DYNAMIC_STAT_LABELS.comment} ${comment}`);
   }
 
   const like = getCount("like");
   if (like) {
-    parts.push(`点赞 ${like}`);
+    parts.push(`${DYNAMIC_STAT_LABELS.like} ${like}`);
   }
 
   return parts.length > 0 ? parts.join(" · ") : undefined;
 }
 
+// Small runtime guard used repeatedly to avoid unsafe property access.
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+// Some endpoints return `modules` as array; others return object map.
+function normalizeDynamicModules(modules: unknown): Record<string, unknown>[] {
+  if (Array.isArray(modules)) {
+    return modules.filter(
+      (module): module is Record<string, unknown> =>
+        !!module && typeof module === "object",
+    );
+  }
+
+  const modulesRecord = asRecord(modules);
+  if (!modulesRecord) {
+    return [];
+  }
+
+  return Object.values(modulesRecord).filter(
+    (module): module is Record<string, unknown> =>
+      !!module && typeof module === "object",
+  );
+}
+
+// Dynamic endpoints may return payload under different nesting paths.
+// This helper extracts the likely "item-like" object consistently.
+function extractDynamicItemFromEnvelope(
+  envelope: ApiEnvelope | undefined,
+): unknown | undefined {
+  if (!envelope || envelope.code !== 0) {
+    return undefined;
+  }
+
+  const data = asRecord(envelope.data);
+  if (!data) {
+    const envelopeRecord = asRecord(envelope);
+    if (!envelopeRecord) {
+      return undefined;
+    }
+
+    const topLevelItem = asRecord(envelopeRecord.item);
+    if (topLevelItem) {
+      return topLevelItem;
+    }
+
+    const fallbackItem = { ...envelopeRecord };
+    delete fallbackItem.code;
+    delete fallbackItem.message;
+    delete fallbackItem.data;
+    delete fallbackItem.result;
+
+    return Object.keys(fallbackItem).length > 0 ? fallbackItem : undefined;
+  }
+
+  return asRecord(data.item) ?? data;
+}
+
+// Fallback parser for dynamic detail payloads (web/desktop).
+// Title handling is strict to avoid regressing into "first card title" bugs.
 function parseDesktopDynamicItem(
-  item: DesktopDynamicItem | undefined,
+  item: unknown,
 ): DesktopParseResult | undefined {
-  if (!item) {
+  const itemRecord = asRecord(item);
+  if (!itemRecord) {
     return undefined;
   }
 
   const collector = createDesktopCollector();
+  const modules = normalizeDynamicModules(itemRecord.modules);
 
   let author: string | undefined;
   let datePublished: string | undefined;
@@ -1547,7 +1788,7 @@ function parseDesktopDynamicItem(
   let explicitTitle: string | undefined;
   let explicitDescription: string | undefined;
 
-  for (const module of item.modules ?? []) {
+  for (const module of modules) {
     if ("module_title" in module) {
       const moduleTitle = module.module_title;
       if (
@@ -1601,13 +1842,49 @@ function parseDesktopDynamicItem(
       }
     }
 
-    if ("module_dynamic" in module) {
-      collectDesktopDynamic(collector, module.module_dynamic);
-    }
-
     if ("module_stat" in module) {
       statsText = extractDesktopStats(module.module_stat) ?? statsText;
     }
+  }
+
+  // Collect plain text/images/cards from the whole payload to tolerate
+  // endpoint shape drift (modules object/array/flat fields).
+  collectDesktopDynamic(collector, itemRecord);
+
+  if (!explicitTitle && typeof itemRecord.title === "string") {
+    explicitTitle = itemRecord.title.trim() || undefined;
+  }
+
+  if (!author) {
+    const rootAuthor = asRecord(itemRecord.author);
+    if (rootAuthor && typeof rootAuthor.name === "string") {
+      author = rootAuthor.name.trim() || undefined;
+    }
+  }
+
+  if (!datePublished) {
+    const rootPubTs =
+      typeof itemRecord.pub_ts === "number"
+        ? itemRecord.pub_ts
+        : typeof itemRecord.pubdate === "number"
+          ? itemRecord.pubdate
+          : typeof itemRecord.publish_time === "number"
+            ? itemRecord.publish_time
+            : typeof itemRecord.ctime === "number"
+              ? itemRecord.ctime
+              : undefined;
+    datePublished = toIsoDateFromSeconds(rootPubTs) ?? datePublished;
+  }
+
+  if (!explicitDescription && typeof itemRecord.text === "string") {
+    explicitDescription = itemRecord.text;
+  }
+
+  if (!statsText) {
+    statsText =
+      extractDesktopStats(itemRecord.module_stat) ??
+      extractDesktopStats(itemRecord.stats) ??
+      statsText;
   }
 
   const description =
@@ -1620,22 +1897,40 @@ function parseDesktopDynamicItem(
 
   const image = collector.images[0];
 
+  const cardCoverSet = new Set(
+    collector.cards
+      .map((card) => card.cover)
+      .filter((cover): cover is string => typeof cover === "string"),
+  );
+  const cardTextSet = new Set(
+    collector.cards.flatMap((card) =>
+      [card.title, card.description]
+        .filter((value): value is string => typeof value === "string")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
+  const nonCardTexts = collector.texts.filter((text) => !cardTextSet.has(text));
+  const nonCardImages = collector.images.filter(
+    (imageUrl) => !cardCoverSet.has(imageUrl),
+  );
+
   const blocks: string[] = [];
-  if (collector.texts.length > 0) {
+  if (nonCardTexts.length > 0) {
     blocks.push(
-      ...collector.texts.map(
+      ...nonCardTexts.map(
         (text) => `<p>${escapeHtml(text).replace(/\n/g, "<br />")}</p>`,
       ),
     );
   }
 
-  if (collector.images.length > 0) {
+  if (nonCardImages.length > 0) {
     blocks.push(
-      ...collector.images.map(
+      ...nonCardImages.map(
         (imageUrl) =>
           `<figure><img src="${escapeHtml(
             imageUrl,
-          )}" alt="bilibili image" loading="lazy" /></figure>`,
+          )}" alt="bilibili image" loading="lazy" referrerpolicy="no-referrer" /></figure>`,
       ),
     );
   }
@@ -1649,7 +1944,7 @@ function parseDesktopDynamicItem(
           parts.push(
             `<img src="${escapeHtml(card.cover)}" alt="${escapeHtml(
               card.title,
-            )}" loading="lazy" />`,
+            )}" loading="lazy" referrerpolicy="no-referrer" />`,
           );
         }
         parts.push(`<strong>${escapeHtml(card.title)}</strong>`);
@@ -1670,17 +1965,280 @@ function parseDesktopDynamicItem(
     blocks.push(`<section class="kk-bili-cards">${cardHtml}</section>`);
   }
 
+  const bodyHtml =
+    blocks.join("\n") || htmlParagraphsFromPlainText(description);
+  if (!title && !description && !image && !bodyHtml) {
+    return undefined;
+  }
+
   return {
     title,
     author,
     datePublished,
     description,
     image,
-    bodyHtml: blocks.join("\n") || htmlParagraphsFromPlainText(description),
+    bodyHtml,
     statsText,
   };
 }
 
+// Parse a JSON string field into a plain object record.
+function parseJsonRecord(value: string | undefined): Record<string, unknown> {
+  if (!value) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return asRecord(parsed) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+// Normalize text extracted from legacy dynamic payload fields.
+function normalizeLegacyDynamicText(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized || normalized === "转发动态") {
+    return undefined;
+  }
+  return normalized;
+}
+
+// Pick the first non-empty description candidate from legacy card payload.
+function extractLegacyDynamicDescription(
+  legacyCardRecord: Record<string, unknown>,
+): string | undefined {
+  const item = asRecord(legacyCardRecord.item);
+  const originRecord = parseJsonRecord(
+    typeof legacyCardRecord.origin === "string"
+      ? legacyCardRecord.origin
+      : undefined,
+  );
+  const originItem = asRecord(originRecord.item);
+
+  const candidates = [
+    item?.description,
+    item?.content,
+    legacyCardRecord.dynamic,
+    legacyCardRecord.desc,
+    legacyCardRecord.title,
+    originItem?.description,
+    originItem?.content,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeLegacyDynamicText(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return undefined;
+}
+
+// Extract the first usable image URL from legacy card payload.
+function extractLegacyDynamicImage(
+  legacyCardRecord: Record<string, unknown>,
+): string | undefined {
+  const pickImageFromPictures = (pictures: unknown): string | undefined => {
+    if (!Array.isArray(pictures)) {
+      return undefined;
+    }
+
+    for (const picture of pictures) {
+      const pictureRecord = asRecord(picture);
+      if (!pictureRecord) {
+        continue;
+      }
+
+      const imageCandidate =
+        (typeof pictureRecord.img_src === "string"
+          ? pictureRecord.img_src
+          : undefined) ??
+        (typeof pictureRecord.src === "string"
+          ? pictureRecord.src
+          : undefined) ??
+        (typeof pictureRecord.img_url === "string"
+          ? pictureRecord.img_url
+          : undefined) ??
+        (typeof pictureRecord.url === "string" ? pictureRecord.url : undefined);
+
+      const normalized = normalizeImageUrl(imageCandidate);
+      if (normalized) {
+        return normalized;
+      }
+    }
+
+    return undefined;
+  };
+
+  const item = asRecord(legacyCardRecord.item);
+  const originRecord = parseJsonRecord(
+    typeof legacyCardRecord.origin === "string"
+      ? legacyCardRecord.origin
+      : undefined,
+  );
+  const originItem = asRecord(originRecord.item);
+
+  return (
+    normalizeImageUrl(
+      typeof legacyCardRecord.pic === "string"
+        ? legacyCardRecord.pic
+        : undefined,
+    ) ??
+    pickImageFromPictures(item?.pictures) ??
+    pickImageFromPictures(originItem?.pictures) ??
+    normalizeImageUrl(
+      typeof originItem?.pic === "string" ? originItem.pic : undefined,
+    )
+  );
+}
+
+// Extract compact stats line from legacy dynamic desc payload.
+function extractLegacyDynamicStats(
+  descRecord: Record<string, unknown> | undefined,
+): string | undefined {
+  if (!descRecord) {
+    return undefined;
+  }
+
+  const getCount = (key: string): string | undefined => {
+    const value =
+      typeof descRecord[key] === "number"
+        ? (descRecord[key] as number)
+        : undefined;
+    return formatCount(value);
+  };
+
+  const parts: string[] = [];
+  const repost = getCount("repost");
+  if (repost) {
+    parts.push(`${DYNAMIC_STAT_LABELS.repost} ${repost}`);
+  }
+
+  const comment = getCount("comment");
+  if (comment) {
+    parts.push(`${DYNAMIC_STAT_LABELS.comment} ${comment}`);
+  }
+
+  const like = getCount("like");
+  if (like) {
+    parts.push(`${DYNAMIC_STAT_LABELS.like} ${like}`);
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : undefined;
+}
+
+// Last-resort dynamic fallback from legacy `dynamic_svr` detail endpoint.
+async function resolveLegacyDynamicMetadata(
+  dynamicId: string,
+): Promise<BilibiliMetadata | undefined> {
+  const url = `${BILIBILI_LEGACY_API_BASE}/dynamic_svr/v1/dynamic_svr/get_dynamic_detail?${new URLSearchParams(
+    {
+      dynamic_id: dynamicId,
+    },
+  ).toString()}`;
+
+  const attempts = 2;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const response = await fetchWithProxy(url, {
+        headers: BILIBILI_HEADERS,
+        signal: AbortSignal.timeout(BILIBILI_API_REQUEST_TIMEOUT_MS),
+      });
+
+      const payload = await response
+        .json()
+        .catch(() => ({ code: -1, message: "invalid json" }));
+
+      const parsed = legacyDynamicDetailResponseSchema.safeParse(payload);
+      if (!parsed.success) {
+        if (response.status >= 500 && attempt < attempts - 1) {
+          await sleep(backoffDelay(attempt));
+          continue;
+        }
+        return undefined;
+      }
+
+      if (parsed.data.code !== 0) {
+        const shouldRetry =
+          response.status >= 500 || RETRYABLE_API_CODES.has(parsed.data.code);
+        if (shouldRetry && attempt < attempts - 1) {
+          await sleep(backoffDelay(attempt));
+          continue;
+        }
+        return undefined;
+      }
+
+      const desc = parsed.data.data?.card?.desc;
+      const descRecord = asRecord(desc);
+      const legacyCardRecord = parseJsonRecord(parsed.data.data?.card?.card);
+      const userProfile = asRecord(descRecord?.user_profile);
+      const userInfo = asRecord(userProfile?.info);
+      const cardUser = asRecord(legacyCardRecord.user);
+
+      const author =
+        (typeof userInfo?.uname === "string" ? userInfo.uname : undefined) ??
+        (typeof cardUser?.name === "string" ? cardUser.name : undefined);
+      const description = extractLegacyDynamicDescription(legacyCardRecord);
+      const image = extractLegacyDynamicImage(legacyCardRecord);
+      const datePublished =
+        desc && typeof desc.timestamp === "number"
+          ? toIsoDateFromSeconds(desc.timestamp)
+          : undefined;
+      const statsText = extractLegacyDynamicStats(descRecord);
+      if (!author && !description && !image) {
+        return undefined;
+      }
+      const title = buildDynamicFallbackTitle(author, description);
+
+      const bodyParts: string[] = [];
+      const paragraphHtml = htmlParagraphsFromPlainText(description);
+      if (paragraphHtml) {
+        bodyParts.push(paragraphHtml);
+      }
+      if (image) {
+        bodyParts.push(
+          `<figure><img src="${escapeHtml(
+            image,
+          )}" alt="bilibili image" loading="lazy" referrerpolicy="no-referrer" /></figure>`,
+        );
+      }
+
+      const readableContentHtml = renderDynamicHtml({
+        title,
+        author,
+        datePublished,
+        image,
+        bodyHtml: bodyParts.join("\n"),
+        statsText,
+      });
+
+      return metadataWithDefaults({
+        title,
+        description,
+        image,
+        author,
+        datePublished,
+        readableContentHtml,
+      });
+    } catch {
+      if (attempt >= attempts - 1) {
+        return undefined;
+      }
+      await sleep(backoffDelay(attempt));
+    }
+  }
+
+  return undefined;
+}
+
+// Ensure common metadata defaults are always present for downstream consumers.
 function metadataWithDefaults(
   metadata: BilibiliMetadata | undefined,
 ): BilibiliMetadata | undefined {
@@ -1695,6 +2253,7 @@ function metadataWithDefaults(
   };
 }
 
+// Render video metadata into Reader article structure.
 function renderVideoHtml(input: {
   title: string;
   author?: string;
@@ -1715,13 +2274,13 @@ function renderVideoHtml(input: {
 
   if (input.stats) {
     const statMapping: [string, number | undefined][] = [
-      ["播放", input.stats.view],
-      ["弹幕", input.stats.danmaku],
-      ["评论", input.stats.reply],
-      ["点赞", input.stats.like],
-      ["收藏", input.stats.favorite],
-      ["投币", input.stats.coin],
-      ["分享", input.stats.share],
+      [VIDEO_STAT_LABELS.view, input.stats.view],
+      [VIDEO_STAT_LABELS.danmaku, input.stats.danmaku],
+      [VIDEO_STAT_LABELS.reply, input.stats.reply],
+      [VIDEO_STAT_LABELS.like, input.stats.like],
+      [VIDEO_STAT_LABELS.favorite, input.stats.favorite],
+      [VIDEO_STAT_LABELS.coin, input.stats.coin],
+      [VIDEO_STAT_LABELS.share, input.stats.share],
     ];
 
     for (const [label, value] of statMapping) {
@@ -1749,6 +2308,7 @@ function renderVideoHtml(input: {
   );
 }
 
+// Render dynamic metadata into Reader article structure.
 function renderDynamicHtml(input: {
   title: string;
   author?: string;
@@ -1768,6 +2328,7 @@ function renderDynamicHtml(input: {
   );
 }
 
+// Render article metadata into Reader article structure.
 function renderArticleHtml(input: {
   title: string;
   author?: string;
@@ -1785,6 +2346,35 @@ function renderArticleHtml(input: {
   );
 }
 
+// Convert parsed dynamic payload into final metadata + Reader HTML fields.
+function buildDynamicMetadataFromParseResult(
+  parsed: DesktopParseResult,
+): BilibiliMetadata {
+  const resolvedTitle =
+    parsed.title?.trim() ||
+    buildDynamicFallbackTitle(parsed.author, parsed.description);
+  const readableContentHtml = renderDynamicHtml({
+    title: resolvedTitle,
+    author: parsed.author,
+    datePublished: parsed.datePublished,
+    image: parsed.image,
+    bodyHtml: parsed.bodyHtml,
+    statsText: parsed.statsText,
+  });
+
+  const metadata = metadataWithDefaults({
+    title: resolvedTitle,
+    description: parsed.description,
+    image: parsed.image,
+    author: parsed.author,
+    datePublished: parsed.datePublished,
+    readableContentHtml,
+  });
+
+  return metadata ?? { readableContentHtml, publisher: BILIBILI_PUBLISHER };
+}
+
+// Resolve playable video identifiers when URL only carries bangumi ep/ss IDs.
 async function resolveVideoIdentifiers(
   target: Extract<BilibiliTarget, { kind: "video" }>,
 ): Promise<{ bvid?: string; aid?: string } | undefined> {
@@ -1844,6 +2434,7 @@ async function resolveVideoIdentifiers(
   };
 }
 
+// Resolve regular video pages from `/x/web-interface/view`.
 async function resolveVideoMetadata(
   target: Extract<BilibiliTarget, { kind: "video" }>,
 ): Promise<BilibiliMetadata | undefined> {
@@ -1904,6 +2495,7 @@ async function resolveVideoMetadata(
   });
 }
 
+// Resolve article/column pages from `/x/article/view`.
 async function resolveArticleById(
   cvid: string,
 ): Promise<BilibiliMetadata | undefined> {
@@ -1941,6 +2533,7 @@ async function resolveArticleById(
   const datePublished =
     toIsoDateFromSeconds(articleData.publish_time) ??
     toIsoDateFromSeconds(articleData.ctime);
+  const dateModified = toIsoDateFromSeconds(articleData.mtime);
 
   const normalizedContentHtml = normalizeArticleContentHtml(
     articleData.content,
@@ -1967,10 +2560,12 @@ async function resolveArticleById(
     image,
     author,
     datePublished,
+    dateModified,
     readableContentHtml,
   });
 }
 
+// Opus detail can point to article content (`comment_type=12` or fallback type=2).
 function extractArticleIdFromOpusPayload(
   payload: z.infer<typeof opusDetailResponseSchema>,
 ): string | undefined {
@@ -1996,17 +2591,24 @@ function extractArticleIdFromOpusPayload(
   return undefined;
 }
 
+// Resolve dynamic/opus content using a public-endpoint fallback chain:
+// 1) `v1/opus/detail` (best structure)
+// 2) `v1/detail` (parameterized web detail)
+// 3) `desktop/v1/detail` (cookie-assisted fallback)
+// 4) article retry if payload indicates article target
 async function resolveDynamicMetadata(
   target: Extract<BilibiliTarget, { kind: "dynamic" }>,
 ): Promise<BilibiliMetadata | undefined> {
+  const logPrefix = `[MetascraperBilibili][dynamic:${target.dynamicId}]`;
+
   // Preferred path: opus/detail with WBI2 + WBI.
+  logger.info(`${logPrefix} Trying opus/detail`);
   const opusResponseEnvelope = await requestBilibiliApi(
     "/x/polymer/web-dynamic/v1/opus/detail",
     {
       id: target.dynamicId,
       timezone_offset: -480,
-      features:
-        "itemOpusStyle,onlyfansVote,onlyfansAssetsV2,decorationCard,htmlNewStyle,ugcDelete,editable,opusPrivateVisible",
+      features: BILIBILI_DYNAMIC_OPUS_FEATURES,
     },
     {
       withWbi: true,
@@ -2018,21 +2620,33 @@ async function resolveDynamicMetadata(
   const opusParsed = opusDetailResponseSchema.safeParse(opusResponseEnvelope);
 
   if (opusParsed.success && opusParsed.data.code === 0) {
+    logger.info(`${logPrefix} opus/detail responded with code=0`);
     const articleId = extractArticleIdFromOpusPayload(opusParsed.data);
     if (articleId) {
+      logger.info(
+        `${logPrefix} opus/detail points to article id=${articleId}, trying article/view`,
+      );
       const articleMetadata = await resolveArticleById(articleId);
       if (articleMetadata) {
+        logger.info(`${logPrefix} Resolved via opus->article/view`);
         return articleMetadata;
       }
+      logger.info(
+        `${logPrefix} opus->article/view did not return metadata, continue dynamic chain`,
+      );
     }
 
     const opusParseResult = parseOpusItem(opusParsed.data.data?.item);
     if (opusParseResult) {
-      const metadataTitle = opusParseResult.title?.trim() || undefined;
-      const contentTitle = metadataTitle ?? "Bilibili 动态";
+      const resolvedTitle =
+        opusParseResult.title?.trim() ||
+        buildDynamicFallbackTitle(
+          opusParseResult.author,
+          opusParseResult.description,
+        );
 
       const readableContentHtml = renderDynamicHtml({
-        title: contentTitle,
+        title: resolvedTitle,
         author: opusParseResult.author,
         datePublished: opusParseResult.datePublished,
         image: opusParseResult.image,
@@ -2041,7 +2655,7 @@ async function resolveDynamicMetadata(
       });
 
       return metadataWithDefaults({
-        title: metadataTitle,
+        title: resolvedTitle,
         description: opusParseResult.description,
         image: opusParseResult.image,
         author: opusParseResult.author,
@@ -2049,9 +2663,62 @@ async function resolveDynamicMetadata(
         readableContentHtml,
       });
     }
+
+    logger.info(
+      `${logPrefix} opus/detail success but parser produced no readable item, continue fallback`,
+    );
+  } else {
+    const apiCode =
+      opusResponseEnvelope && "code" in opusResponseEnvelope
+        ? String(opusResponseEnvelope.code)
+        : "n/a";
+    logger.info(
+      `${logPrefix} opus/detail unavailable (schema=${opusParsed.success ? "ok" : "invalid"}, code=${apiCode}), continue fallback`,
+    );
   }
 
-  // Fallback path: desktop dynamic detail with lightweight cookie identity.
+  // Secondary path: web dynamic detail with parameterized request shape.
+  logger.info(`${logPrefix} Trying web-dynamic v1/detail`);
+  const webDynamicResponseEnvelope = await requestBilibiliApi(
+    "/x/polymer/web-dynamic/v1/detail",
+    {
+      id: target.dynamicId,
+      timezone_offset: -480,
+      platform: "web",
+      gaia_source: "main_web",
+      features: BILIBILI_DYNAMIC_WEB_FEATURES,
+      web_location: BILIBILI_DYNAMIC_WEB_LOCATION,
+      "x-bili-device-req-json": BILIBILI_DYNAMIC_DEVICE_REQ_JSON,
+      "x-bili-web-req-json": BILIBILI_DYNAMIC_WEB_REQ_JSON,
+    },
+    {
+      withWbi: true,
+      withWbi2: true,
+      retryAttempts: 3,
+    },
+  );
+
+  const webDynamicItem = extractDynamicItemFromEnvelope(
+    webDynamicResponseEnvelope,
+  );
+  const webDynamicResult = parseDesktopDynamicItem(webDynamicItem);
+  if (webDynamicResult) {
+    logger.info(
+      `${logPrefix} Resolved via v1/detail (explicitTitle=${webDynamicResult.title ? "yes" : "no"})`,
+    );
+    return buildDynamicMetadataFromParseResult(webDynamicResult);
+  }
+
+  const webDynamicCode =
+    webDynamicResponseEnvelope && "code" in webDynamicResponseEnvelope
+      ? String(webDynamicResponseEnvelope.code)
+      : "n/a";
+  logger.info(
+    `${logPrefix} v1/detail did not produce parseable item (code=${webDynamicCode}), trying desktop fallback`,
+  );
+
+  // Final metadata fallback path: desktop dynamic detail with lightweight cookie identity.
+  logger.info(`${logPrefix} Trying desktop/v1/detail`);
   const desktopResponseEnvelope = await requestBilibiliApi(
     "/x/polymer/web-dynamic/desktop/v1/detail",
     {
@@ -2064,47 +2731,52 @@ async function resolveDynamicMetadata(
     },
   );
 
-  const desktopParsed = desktopDynamicResponseSchema.safeParse(
+  const desktopDynamicItem = extractDynamicItemFromEnvelope(
     desktopResponseEnvelope,
   );
-
-  if (desktopParsed.success && desktopParsed.data.code === 0) {
-    const desktopResult = parseDesktopDynamicItem(
-      desktopParsed.data.data?.item,
+  const desktopResult = parseDesktopDynamicItem(desktopDynamicItem);
+  if (desktopResult) {
+    logger.info(
+      `${logPrefix} Resolved via desktop/v1/detail (explicitTitle=${desktopResult.title ? "yes" : "no"})`,
     );
-    if (desktopResult) {
-      const titleForContent = desktopResult.title ?? "Bilibili 动态";
-      const readableContentHtml = renderDynamicHtml({
-        title: titleForContent,
-        author: desktopResult.author,
-        datePublished: desktopResult.datePublished,
-        image: desktopResult.image,
-        bodyHtml: desktopResult.bodyHtml,
-        statsText: desktopResult.statsText,
-      });
+    return buildDynamicMetadataFromParseResult(desktopResult);
+  }
 
-      return metadataWithDefaults({
-        title: desktopResult.title,
-        description: desktopResult.description,
-        image: desktopResult.image,
-        author: desktopResult.author,
-        datePublished: desktopResult.datePublished,
-        readableContentHtml,
-      });
-    }
+  const desktopCode =
+    desktopResponseEnvelope && "code" in desktopResponseEnvelope
+      ? String(desktopResponseEnvelope.code)
+      : "n/a";
+  logger.info(
+    `${logPrefix} desktop/v1/detail did not produce parseable item (code=${desktopCode})`,
+  );
+
+  // Last path before giving up: legacy dynamic_svr endpoint can still expose
+  // basic author/text on some high-risk pages where modern endpoints fail.
+  logger.info(`${logPrefix} Trying legacy dynamic_svr/detail fallback`);
+  const legacyMetadata = await resolveLegacyDynamicMetadata(target.dynamicId);
+  if (legacyMetadata) {
+    logger.info(
+      `${logPrefix} Resolved via legacy dynamic_svr/detail fallback (author=${legacyMetadata.author ? "yes" : "no"})`,
+    );
+    return legacyMetadata;
   }
 
   // Final fallback: if opus payload points to an article, retry as article.
   if (opusParsed.success && opusParsed.data.code === 0) {
     const articleId = extractArticleIdFromOpusPayload(opusParsed.data);
     if (articleId) {
+      logger.info(
+        `${logPrefix} Final fallback via article/view id=${articleId}`,
+      );
       return resolveArticleById(articleId);
     }
   }
 
+  logger.info(`${logPrefix} No dynamic metadata resolved`);
   return undefined;
 }
 
+// Main dispatcher: route URL target type to specific resolver.
 async function resolveBilibiliMetadata(
   url: string,
 ): Promise<BilibiliMetadata | undefined> {
@@ -2125,6 +2797,7 @@ async function resolveBilibiliMetadata(
   }
 }
 
+// Shared metadata entrypoint for rule resolvers with short TTL memoization.
 async function getBilibiliMetadata(
   url: string,
 ): Promise<BilibiliMetadata | undefined> {
@@ -2137,6 +2810,7 @@ async function getBilibiliMetadata(
     return cached.promise;
   }
 
+  logger.info(`[MetascraperBilibili] Resolving metadata for ${url}`);
   const promise = resolveBilibiliMetadata(url).catch((error) => {
     logger.warn(
       `[MetascraperBilibili] Failed to resolve metadata for ${url}`,
@@ -2153,9 +2827,12 @@ async function getBilibiliMetadata(
   return promise;
 }
 
+// metascraper route gate: run this plugin only for recognized Bilibili URLs.
 const test = ({ url }: { url: string }): boolean =>
   parseBilibiliTarget(url) !== null;
 
+// metascraper plugin interface:
+// each rule reads from the same cached resolver result to avoid duplicate API calls.
 const metascraperBilibili = () => {
   const rules: Rules = {
     pkgName: "metascraper-bilibili",
@@ -2170,10 +2847,17 @@ const metascraperBilibili = () => {
       if (!isCaptchaPage) {
         const fallbackFromHtml = extractTitleFromHtmlDom(htmlDom);
         if (fallbackFromHtml) {
+          logger.info(
+            `[MetascraperBilibili] Title fallback from HTML for ${url}: "${fallbackFromHtml}"`,
+          );
           return fallbackFromHtml;
         }
       }
-      return getDefaultTitleForTarget(url);
+      const defaultTitle = getDefaultTitleForTarget(url);
+      logger.info(
+        `[MetascraperBilibili] Title fallback to default for ${url}: "${defaultTitle ?? ""}" (captchaPage=${isCaptchaPage ? "yes" : "no"})`,
+      );
+      return defaultTitle;
     }) as unknown as RulesOptions,
     description: (async ({ url }: { url: string }) => {
       const metadata = await getBilibiliMetadata(url);
@@ -2194,6 +2878,10 @@ const metascraperBilibili = () => {
     datePublished: (async ({ url }: { url: string }) => {
       const metadata = await getBilibiliMetadata(url);
       return metadata?.datePublished;
+    }) as unknown as RulesOptions,
+    dateModified: (async ({ url }: { url: string }) => {
+      const metadata = await getBilibiliMetadata(url);
+      return metadata?.dateModified;
     }) as unknown as RulesOptions,
     readableContentHtml: (async ({ url }: { url: string }) => {
       const metadata = await getBilibiliMetadata(url);
