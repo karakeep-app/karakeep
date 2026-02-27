@@ -39,6 +39,39 @@ const PURIFY_OPTIONS = {
   ADD_ATTR: ["referrerpolicy"],
 };
 
+const ALLOWED_REFERRER_POLICIES = new Set([
+  "no-referrer",
+  "same-origin",
+]);
+
+function sanitizeReadableHtml(html: string): string {
+  const purifyWindow = new JSDOM("").window;
+  try {
+    const purify = DOMPurify(purifyWindow);
+    const purifiedHTML = purify.sanitize(html, PURIFY_OPTIONS);
+
+    const documentWindow = new JSDOM(`<body>${purifiedHTML}</body>`).window;
+    try {
+      const document = documentWindow.document;
+      for (const element of document.querySelectorAll("[referrerpolicy]")) {
+        const value = element
+          .getAttribute("referrerpolicy")
+          ?.toLowerCase()
+          .trim();
+        if (!value || !ALLOWED_REFERRER_POLICIES.has(value)) {
+          element.setAttribute("referrerpolicy", "no-referrer");
+        }
+      }
+
+      return document.body.innerHTML;
+    } finally {
+      documentWindow.close();
+    }
+  } finally {
+    purifyWindow.close();
+  }
+}
+
 const metascraperParser = metascraper([
   metascraperDate({
     dateModified: true,
@@ -93,17 +126,8 @@ function extractReadableContent(
       return null;
     }
 
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(
-        readableContent.content,
-        PURIFY_OPTIONS,
-      );
-      return { content: purifiedHTML };
-    } finally {
-      purifyWindow.close();
-    }
+    const purifiedHTML = sanitizeReadableHtml(readableContent.content);
+    return { content: purifiedHTML };
   } finally {
     dom.window.close();
   }
@@ -138,17 +162,8 @@ async function main() {
   if (meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(
-        meta.readableContentHtml,
-        PURIFY_OPTIONS,
-      );
-      readableContent = { content: purifiedHTML };
-    } finally {
-      purifyWindow.close();
-    }
+    const purifiedHTML = sanitizeReadableHtml(meta.readableContentHtml);
+    readableContent = { content: purifiedHTML };
   }
 
   if (!readableContent) {
