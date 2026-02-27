@@ -44,19 +44,32 @@ function HeaderRight({
         if (nativeEvent.event === "new") {
           openNewBookmarkModal();
         } else if (nativeEvent.event === "library") {
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: settings.imageQuality,
-            allowsMultipleSelection: false,
-          });
-          if (!result.canceled) {
-            uploadToastIdRef.current =
-              sonnerToast.loading("Uploading image...");
-            uploadAsset({
-              type: result.assets[0].mimeType ?? "",
-              name: result.assets[0].fileName ?? "",
-              uri: result.assets[0].uri,
+          try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ["images"],
+              quality: settings.imageQuality,
+              allowsMultipleSelection: false,
             });
+            if (!result.canceled) {
+              const asset = result.assets[0];
+              if (!asset) return;
+              uploadToastIdRef.current =
+                sonnerToast.loading("Uploading image...");
+              uploadAsset({
+                type: asset.mimeType ?? "",
+                name: asset.fileName ?? "",
+                uri: asset.uri,
+              });
+            }
+          } catch {
+            if (uploadToastIdRef.current !== null) {
+              sonnerToast.error("Failed to open photo library", {
+                id: uploadToastIdRef.current,
+              });
+              uploadToastIdRef.current = null;
+            } else {
+              sonnerToast.error("Failed to open photo library");
+            }
           }
         }
       }}
