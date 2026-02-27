@@ -29,6 +29,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 const isIOS26 =
   Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
 
+// Standard iOS navigation bar height (points)
+const NAV_BAR_HEIGHT = 44;
+
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -95,11 +98,10 @@ export default function BookmarkView() {
     return <FullPageSpinner />;
   }
 
-  // On iOS 26 the content extends behind the transparent header/footer,
-  // so each scrollable child needs top/bottom padding to avoid those areas.
-  // The padding is applied inside the scrollable content (CSS/contentInset)
-  // so the background color extends edge-to-edge behind the header/footer.
-  const contentInsetTop = isIOS26 ? insets.top + 44 : 0;
+  // On iOS 26 the header is transparent and content extends behind it,
+  // so scrollable children need top padding equal to the header height.
+  // Applied via contentInset so the background extends edge-to-edge.
+  const contentInsetTop = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
 
   let comp;
   let title = null;
@@ -112,6 +114,7 @@ export default function BookmarkView() {
           bookmarkPreviewType={bookmarkLinkType}
           onScrollOffsetChange={onScrollOffsetChange}
           barsVisible={barsVisible}
+          contentInsetTop={contentInsetTop}
         />
       );
       break;
@@ -131,27 +134,12 @@ export default function BookmarkView() {
       break;
   }
 
-  // iOS 26: transparent header with no blur — content extends edge-to-edge
-  // and the header/footer float above the content.
-  // Pre-iOS-26 / Android: solid opaque header background.
-  const headerPlatformOptions = Platform.select({
-    ios: isIOS26
-      ? {
-          headerTransparent: true as const,
-        }
-      : {
-          headerTransparent: false as const,
-          headerStyle: {
-            backgroundColor: isDark ? "#000" : "#fff",
-          },
-        },
-    default: {
-      headerTransparent: false as const,
-      headerStyle: {
-        backgroundColor: isDark ? "#000" : "#fff",
-      },
-    },
-  });
+  const headerPlatformOptions = isIOS26
+    ? { headerTransparent: true as const }
+    : {
+        headerTransparent: false as const,
+        headerStyle: { backgroundColor: isDark ? "#000" : "#fff" },
+      };
 
   return (
     <View style={{ flex: 1 }}>

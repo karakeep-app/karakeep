@@ -107,6 +107,19 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       return;
     }
 
+    // Ensure any new action IDs (added in future updates) appear in overflow
+    const knownIds = new Set([
+      ...parsed.data.toolbarActions,
+      ...parsed.data.overflowActions,
+    ]);
+    const missing = zToolbarActionId.options.filter((id) => !knownIds.has(id));
+    if (missing.length > 0) {
+      parsed.data.overflowActions = [
+        ...parsed.data.overflowActions,
+        ...missing,
+      ];
+    }
+
     set((_state) => ({
       settings: { isLoading: false, settings: parsed.data },
     }));

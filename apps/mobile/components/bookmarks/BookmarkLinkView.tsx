@@ -15,6 +15,7 @@ interface BookmarkLinkViewProps {
   bookmarkPreviewType: BookmarkLinkType;
   onScrollOffsetChange?: (y: number) => void;
   barsVisible?: boolean;
+  contentInsetTop?: number;
 }
 
 export default function BookmarkLinkView({
@@ -22,6 +23,7 @@ export default function BookmarkLinkView({
   bookmarkPreviewType,
   onScrollOffsetChange,
   barsVisible,
+  contentInsetTop,
 }: BookmarkLinkViewProps) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -33,6 +35,7 @@ export default function BookmarkLinkView({
         <BookmarkLinkBrowserPreview
           bookmark={bookmark}
           onScrollOffsetChange={onScrollOffsetChange}
+          contentInsetTop={contentInsetTop}
         />
       );
     case "reader":
@@ -50,6 +53,7 @@ export default function BookmarkLinkView({
         <BookmarkLinkArchivePreview
           bookmark={bookmark}
           onScrollOffsetChange={onScrollOffsetChange}
+          contentInsetTop={contentInsetTop}
         />
       );
     case "pdf":

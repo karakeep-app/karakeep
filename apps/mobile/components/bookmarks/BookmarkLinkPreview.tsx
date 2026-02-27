@@ -31,12 +31,17 @@ import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
 
+// Standard iOS navigation bar height (points)
+const NAV_BAR_HEIGHT = 44;
+
 export function BookmarkLinkBrowserPreview({
   bookmark,
   onScrollOffsetChange,
+  contentInsetTop = 0,
 }: {
   bookmark: ZBookmark;
   onScrollOffsetChange?: (y: number) => void;
+  contentInsetTop?: number;
 }) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -49,6 +54,7 @@ export function BookmarkLinkBrowserPreview({
       source={{ uri: bookmark.content.url }}
       onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
       automaticallyAdjustContentInsets={false}
+      contentInset={{ top: contentInsetTop }}
     />
   );
 }
@@ -127,11 +133,14 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  const bannerTop = useSharedValue(insets.top + 44);
+  const bannerTop = useSharedValue(insets.top + NAV_BAR_HEIGHT);
   useEffect(() => {
-    bannerTop.value = withTiming(barsVisible ? insets.top + 44 : insets.top, {
-      duration: 250,
-    });
+    bannerTop.value = withTiming(
+      barsVisible ? insets.top + NAV_BAR_HEIGHT : insets.top,
+      {
+        duration: 250,
+      },
+    );
   }, [barsVisible, bannerTop, insets.top]);
   const bannerAnimatedStyle = useAnimatedStyle(() => ({
     top: bannerTop.value,
@@ -156,7 +165,7 @@ export function BookmarkLinkReaderPreview({
     fontSize: `${readerSettings.fontSize}px`,
     lineHeight: String(readerSettings.lineHeight),
     color: isDark ? "#e5e7eb" : "#374151",
-    paddingTop: `${insets.top + 44 + (showBanner ? BANNER_HEIGHT : 0)}px`,
+    paddingTop: `${insets.top + NAV_BAR_HEIGHT + (showBanner ? BANNER_HEIGHT : 0)}px`,
     paddingLeft: "16px",
     paddingRight: "16px",
     background: isDark ? "#000000" : "#ffffff",
@@ -235,9 +244,11 @@ export function BookmarkLinkReaderPreview({
 export function BookmarkLinkArchivePreview({
   bookmark,
   onScrollOffsetChange,
+  contentInsetTop = 0,
 }: {
   bookmark: ZBookmark;
   onScrollOffsetChange?: (y: number) => void;
+  contentInsetTop?: number;
 }) {
   const asset =
     bookmark.assets.find((r) => r.assetType == "precrawledArchive") ??
@@ -265,6 +276,7 @@ export function BookmarkLinkArchivePreview({
       decelerationRate={0.998}
       onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
       automaticallyAdjustContentInsets={false}
+      contentInset={{ top: contentInsetTop }}
     />
   );
 }

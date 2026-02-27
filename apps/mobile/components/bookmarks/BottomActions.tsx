@@ -36,11 +36,15 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 const isIOS26 =
   Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
 
+function triggerHaptic() {
+  Haptics.selectionAsync().catch(() => {
+    // Ignore — haptics unavailable (e.g. simulator)
+  });
+}
+
 interface ToolbarActionMeta {
   label: string;
   Icon: LucideIcon;
-  ownerOnly: boolean;
-  linkOnly: boolean;
   sfSymbol: string;
 }
 
@@ -48,62 +52,14 @@ export const TOOLBAR_ACTION_REGISTRY: Record<
   ToolbarActionId,
   ToolbarActionMeta
 > = {
-  lists: {
-    label: "Lists",
-    Icon: ClipboardList,
-    ownerOnly: true,
-    linkOnly: false,
-    sfSymbol: "list.bullet",
-  },
-  tags: {
-    label: "Tags",
-    Icon: Tag,
-    ownerOnly: true,
-    linkOnly: false,
-    sfSymbol: "tag",
-  },
-  info: {
-    label: "Info",
-    Icon: Info,
-    ownerOnly: false,
-    linkOnly: false,
-    sfSymbol: "info.circle",
-  },
-  favourite: {
-    label: "Favourite",
-    Icon: Star,
-    ownerOnly: true,
-    linkOnly: false,
-    sfSymbol: "star",
-  },
-  archive: {
-    label: "Archive",
-    Icon: Archive,
-    ownerOnly: true,
-    linkOnly: false,
-    sfSymbol: "archivebox",
-  },
-  browser: {
-    label: "Open in Browser",
-    Icon: Globe,
-    ownerOnly: false,
-    linkOnly: true,
-    sfSymbol: "safari",
-  },
-  share: {
-    label: "Share",
-    Icon: ShareIcon,
-    ownerOnly: false,
-    linkOnly: false,
-    sfSymbol: "square.and.arrow.up",
-  },
-  delete: {
-    label: "Delete",
-    Icon: Trash2,
-    ownerOnly: true,
-    linkOnly: false,
-    sfSymbol: "trash",
-  },
+  lists: { label: "Lists", Icon: ClipboardList, sfSymbol: "list.bullet" },
+  tags: { label: "Tags", Icon: Tag, sfSymbol: "tag" },
+  info: { label: "Info", Icon: Info, sfSymbol: "info.circle" },
+  favourite: { label: "Favourite", Icon: Star, sfSymbol: "star" },
+  archive: { label: "Archive", Icon: Archive, sfSymbol: "archivebox" },
+  browser: { label: "Open in Browser", Icon: Globe, sfSymbol: "safari" },
+  share: { label: "Share", Icon: ShareIcon, sfSymbol: "square.and.arrow.up" },
+  delete: { label: "Delete", Icon: Trash2, sfSymbol: "trash" },
 };
 
 interface ToolbarAction {
@@ -200,61 +156,51 @@ function useToolbarActions(bookmark: ZBookmark) {
           });
           break;
 
-        case BookmarkTypes.ASSET:
-          if (
-            bookmark.content.assetType === "image" &&
-            (await Sharing.isAvailableAsync())
-          ) {
-            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-            const fileUri = `${FileSystem.documentDirectory}temp_image.jpg`;
-            const downloadResult = await FileSystem.downloadAsync(
-              assetUrl,
-              fileUri,
-              {
-                headers: buildApiHeaders(
-                  settings.apiKey,
-                  settings.customHeaders,
-                ),
-              },
+        case BookmarkTypes.ASSET: {
+          const canShare = await Sharing.isAvailableAsync();
+          const isShareable =
+            canShare &&
+            (bookmark.content.assetType === "image" ||
+              bookmark.content.assetType === "pdf");
+
+          if (!isShareable) {
+            toast({
+              message: "Sharing is not available for this file type",
+              variant: "destructive",
+              showProgress: false,
+            });
+            break;
+          }
+
+          const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+          const fileUri =
+            bookmark.content.assetType === "pdf"
+              ? `${FileSystem.documentDirectory}${bookmark.content.fileName || "document.pdf"}`
+              : `${FileSystem.documentDirectory}temp_image.jpg`;
+          const downloadResult = await FileSystem.downloadAsync(
+            assetUrl,
+            fileUri,
+            {
+              headers: buildApiHeaders(settings.apiKey, settings.customHeaders),
+            },
+          );
+          if (downloadResult.status !== 200) {
+            throw new Error("Failed to download file");
+          }
+          try {
+            await Sharing.shareAsync(
+              downloadResult.uri,
+              bookmark.content.assetType === "pdf"
+                ? { mimeType: "application/pdf", UTI: "com.adobe.pdf" }
+                : undefined,
             );
-            if (downloadResult.status === 200) {
-              await Sharing.shareAsync(downloadResult.uri);
-              await FileSystem.deleteAsync(downloadResult.uri, {
-                idempotent: true,
-              });
-            } else {
-              throw new Error("Failed to download image");
-            }
-          } else if (
-            bookmark.content.assetType === "pdf" &&
-            (await Sharing.isAvailableAsync())
-          ) {
-            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-            const fileName = bookmark.content.fileName || "document.pdf";
-            const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-            const downloadResult = await FileSystem.downloadAsync(
-              assetUrl,
-              fileUri,
-              {
-                headers: buildApiHeaders(
-                  settings.apiKey,
-                  settings.customHeaders,
-                ),
-              },
-            );
-            if (downloadResult.status === 200) {
-              await Sharing.shareAsync(downloadResult.uri, {
-                mimeType: "application/pdf",
-                UTI: "com.adobe.pdf",
-              });
-              await FileSystem.deleteAsync(downloadResult.uri, {
-                idempotent: true,
-              });
-            } else {
-              throw new Error("Failed to download PDF");
-            }
+          } finally {
+            await FileSystem.deleteAsync(downloadResult.uri, {
+              idempotent: true,
+            });
           }
           break;
+        }
       }
     } catch (error) {
       console.error("Share error:", error);
@@ -318,7 +264,7 @@ function useToolbarActions(bookmark: ZBookmark) {
         : makeIcon(Star),
       shouldRender: isOwner,
       onClick: () => {
-        Haptics.selectionAsync();
+        triggerHaptic();
         favouriteBookmark({
           bookmarkId: bookmark.id,
           favourited: !isFavourited,
@@ -352,7 +298,7 @@ function useToolbarActions(bookmark: ZBookmark) {
       icon: makeIcon(ShareIcon),
       shouldRender: true,
       onClick: () => {
-        Haptics.selectionAsync();
+        triggerHaptic();
         handleShare();
       },
       disabled: false,
@@ -475,6 +421,8 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
     const action = allActions[event as ToolbarActionId];
     if (action) {
       action.onClick();
+    } else {
+      console.warn(`Unknown menu action: "${event}"`);
     }
   };
 
@@ -496,13 +444,13 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
         )}
         <MenuView
           onPressAction={({ nativeEvent }) => {
-            Haptics.selectionAsync();
+            triggerHaptic();
             handleMenuAction(nativeEvent.event);
           }}
           actions={menuActionsWithEdit}
           shouldOpenOnLongPress={false}
         >
-          <Pressable onPress={() => Haptics.selectionAsync()}>
+          <Pressable onPress={() => triggerHaptic()}>
             <TailwindResolver
               className="text-foreground"
               comp={(styles) => (
