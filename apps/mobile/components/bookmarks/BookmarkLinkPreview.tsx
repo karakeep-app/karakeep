@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, TouchableOpacity, View } from "react-native";
+import { Platform, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import Animated, {
   useAnimatedStyle,
@@ -96,10 +96,18 @@ export function BookmarkLinkReaderPreview({
   barsVisible?: boolean;
   contentInsetBottom?: number;
 }) {
+  const isIOS26 =
+    Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
+
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
   const insets = useSafeAreaInsets();
   const api = useTRPC();
+
+  // On iOS 26 the header is transparent, so content extends behind it and we
+  // need to offset by the safe-area top + nav-bar height. On Android / older
+  // iOS the header is opaque — content already starts below it.
+  const headerOffset = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
 
   const {
     data: bookmarkWithContent,
@@ -137,16 +145,18 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  const BANNER_GAP = 8;
-  const bannerTop = useSharedValue(insets.top + NAV_BAR_HEIGHT + BANNER_GAP);
+  // Small gap between the transparent header and the banner on iOS 26;
+  // on other platforms the opaque header already provides separation.
+  const bannerGap = isIOS26 ? 8 : 0;
+  const bannerTop = useSharedValue(headerOffset + bannerGap);
   useEffect(() => {
     bannerTop.value = withTiming(
-      barsVisible ? insets.top + NAV_BAR_HEIGHT + BANNER_GAP : insets.top,
+      barsVisible ? headerOffset + bannerGap : -bannerGap,
       {
         duration: 250,
       },
     );
-  }, [barsVisible, bannerTop, insets.top]);
+  }, [barsVisible, bannerTop, headerOffset, bannerGap]);
   const bannerAnimatedStyle = useAnimatedStyle(() => ({
     top: bannerTop.value,
   }));
@@ -170,7 +180,7 @@ export function BookmarkLinkReaderPreview({
     fontSize: `${readerSettings.fontSize}px`,
     lineHeight: String(readerSettings.lineHeight),
     color: isDark ? "#e5e7eb" : "#374151",
-    paddingTop: `${insets.top + NAV_BAR_HEIGHT + (showBanner ? BANNER_HEIGHT : 0)}px`,
+    paddingTop: `${headerOffset + (showBanner ? BANNER_HEIGHT : 0)}px`,
     paddingBottom: `${contentInsetBottom}px`,
     paddingLeft: "16px",
     paddingRight: "16px",
@@ -215,7 +225,7 @@ export function BookmarkLinkReaderPreview({
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
         showProgressBar={barsVisible}
-        progressBarTop={insets.top + NAV_BAR_HEIGHT + BANNER_GAP}
+        progressBarTop={headerOffset + bannerGap}
         onScrollPositionChange={(position) => {
           onScrollPositionChange?.(position);
           // Use percent (0-100) scaled to a synthetic pixel range for scroll

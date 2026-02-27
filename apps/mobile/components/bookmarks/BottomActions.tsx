@@ -328,9 +328,11 @@ const shouldUseGlassPill = isIOS26 && isGlassEffectAPIAvailable();
 function ToolbarContainer({
   children,
   bottomMargin,
+  bottomInset,
 }: {
   children: React.ReactNode;
   bottomMargin: number;
+  bottomInset: number;
 }) {
   if (shouldUseGlassPill) {
     return (
@@ -353,7 +355,16 @@ function ToolbarContainer({
   }
 
   return (
-    <View className="flex flex-row items-center justify-between px-10 pb-2 pt-4">
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 40,
+        paddingTop: 16,
+        paddingBottom: bottomInset + 16,
+      }}
+    >
       {children}
     </View>
   );
@@ -390,28 +401,36 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
       };
     });
 
-  // Add separator + "Edit Toolbar..." at the bottom
-  const menuActionsWithEdit = [
-    ...(menuActions.length > 0
+  // Add separator + "Edit Toolbar..." at the bottom.
+  // On iOS, `displayInline` with `subactions` creates a visual separator
+  // between overflow items and the edit action. On Android the same structure
+  // renders as a nested submenu requiring an extra tap, so we flatten it.
+  const editToolbarAction = {
+    id: "edit-toolbar",
+    title: "Edit Toolbar...",
+    image: Platform.select({
+      ios: "slider.horizontal.3",
+      default: undefined,
+    }),
+    imageColor: menuIconColor,
+  };
+
+  const menuActionsWithEdit =
+    Platform.OS === "ios"
       ? [
-          {
-            id: "overflow-group",
-            title: "",
-            displayInline: true as const,
-            subactions: menuActions,
-          },
+          ...(menuActions.length > 0
+            ? [
+                {
+                  id: "overflow-group",
+                  title: "",
+                  displayInline: true as const,
+                  subactions: menuActions,
+                },
+              ]
+            : []),
+          editToolbarAction,
         ]
-      : []),
-    {
-      id: "edit-toolbar",
-      title: "Edit Toolbar...",
-      image: Platform.select({
-        ios: "slider.horizontal.3",
-        default: undefined,
-      }),
-      imageColor: menuIconColor,
-    },
-  ];
+      : [...menuActions, editToolbarAction];
 
   const handleMenuAction = (event: string) => {
     if (event === "edit-toolbar") {
@@ -428,7 +447,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
 
   return (
     <View>
-      <ToolbarContainer bottomMargin={bottomMargin}>
+      <ToolbarContainer bottomMargin={bottomMargin} bottomInset={insets.bottom}>
         {barActions.map(
           (a) =>
             a.shouldRender && (
