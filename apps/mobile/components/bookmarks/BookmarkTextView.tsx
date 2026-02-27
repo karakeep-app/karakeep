@@ -103,7 +103,7 @@ export default function BookmarkTextView({
 
   return (
     <ScrollView
-      className="m-4 flex-1 rounded-lg border border-border bg-card p-2"
+      className="flex-1 rounded-lg border border-border bg-card p-2"
       contentInset={{ top: contentInsetTop }}
       contentOffset={{ x: 0, y: -contentInsetTop }}
       scrollEventThrottle={16}
