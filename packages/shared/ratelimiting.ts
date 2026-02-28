@@ -27,12 +27,12 @@ export interface RateLimitClient {
    * @param config Rate limit configuration
    * @param key Unique rate limiting key
    */
-  reset(config: RateLimitConfig, key: string): void;
+  reset(config: RateLimitConfig, key: string): void | Promise<void>;
 
   /**
    * Clear all rate limit entries
    */
-  clear(): void;
+  clear(): void | Promise<void>;
 }
 
 export async function getRateLimitClient(): Promise<RateLimitClient | null> {

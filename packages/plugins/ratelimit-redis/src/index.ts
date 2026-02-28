@@ -7,6 +7,8 @@ import type {
 } from "@karakeep/shared/ratelimiting";
 import { PluginProvider } from "@karakeep/shared/plugins";
 
+const KEY_PREFIX = "ratelimit:v1";
+
 export class RedisRateLimiter implements RateLimitClient {
   private redis: Redis;
 
@@ -22,7 +24,7 @@ export class RedisRateLimiter implements RateLimitClient {
       return { allowed: true };
     }
 
-    const rateLimitKey = `ratelimit:${config.name}:${key}`;
+    const rateLimitKey = `${KEY_PREFIX}:${config.name}:${key}`;
     const now = Date.now();
 
     try {
@@ -86,25 +88,24 @@ export class RedisRateLimiter implements RateLimitClient {
     }
   }
 
-  reset(config: RateLimitConfig, key: string) {
-    const rateLimitKey = `ratelimit:${config.name}:${key}`;
-    this.redis.del(rateLimitKey).catch((error) => {
+  async reset(config: RateLimitConfig, key: string) {
+    const rateLimitKey = `${KEY_PREFIX}:${config.name}:${key}`;
+    try {
+      await this.redis.del(rateLimitKey);
+    } catch (error) {
       console.error("Redis rate limit reset error:", error);
-    });
+    }
   }
 
-  clear() {
-    // Clear all rate limit keys
-    this.redis
-      .keys("ratelimit:*")
-      .then((keys) => {
-        if (keys.length > 0) {
-          return this.redis.del(...keys);
-        }
-      })
-      .catch((error) => {
-        console.error("Redis rate limit clear error:", error);
-      });
+  async clear() {
+    try {
+      const keys = await this.redis.keys(`${KEY_PREFIX}:*`);
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
+      }
+    } catch (error) {
+      console.error("Redis rate limit clear error:", error);
+    }
   }
 
   async disconnect() {
