@@ -1,5 +1,13 @@
 import assert from "assert";
-import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  inject,
+  it,
+} from "vitest";
 
 import { RedisRateLimiter, RedisRateLimitProvider } from "../index";
 
@@ -15,6 +23,10 @@ describe("RedisRateLimiter", () => {
     const client = await provider.getClient();
     assert(client, "Failed to connect to Redis");
     rateLimiter = client as RedisRateLimiter;
+  });
+
+  beforeEach(async () => {
+    await rateLimiter.clear();
   });
 
   afterAll(async () => {

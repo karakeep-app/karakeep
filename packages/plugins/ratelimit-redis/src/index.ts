@@ -25,6 +25,7 @@ export class RedisRateLimiter implements RateLimitClient {
     }
 
     const rateLimitKey = `${KEY_PREFIX}:${config.name}:${key}`;
+    const rateLimitSequenceKey = `${rateLimitKey}:seq`;
     const now = Date.now();
 
     try {
@@ -36,6 +37,7 @@ export class RedisRateLimiter implements RateLimitClient {
       // 4. Sets expiration on the key
       const luaScript = `
         local key = KEYS[1]
+        local sequenceKey = KEYS[2]
         local now = tonumber(ARGV[1])
         local window = tonumber(ARGV[2])
         local maxRequests = tonumber(ARGV[3])
@@ -49,9 +51,11 @@ export class RedisRateLimiter implements RateLimitClient {
 
         if current < maxRequests then
           -- Add new request
-          redis.call('ZADD', key, now, now .. ':' .. math.random())
+          local seq = redis.call('INCR', sequenceKey)
+          redis.call('ZADD', key, now, now .. ':' .. seq)
           -- Set expiration (window in milliseconds converted to seconds, plus 1 for safety)
           redis.call('EXPIRE', key, math.ceil(window / 1000) + 1)
+          redis.call('EXPIRE', sequenceKey, math.ceil(window / 1000) + 1)
           return {1, 0} -- allowed, resetInSeconds
         else
           -- Get the oldest entry to calculate reset time
@@ -64,8 +68,9 @@ export class RedisRateLimiter implements RateLimitClient {
 
       const result = (await this.redis.eval(
         luaScript,
-        1,
+        2,
         rateLimitKey,
+        rateLimitSequenceKey,
         now.toString(),
         config.windowMs.toString(),
         config.maxRequests.toString(),
@@ -99,10 +104,20 @@ export class RedisRateLimiter implements RateLimitClient {
 
   async clear() {
     try {
-      const keys = await this.redis.keys(`${KEY_PREFIX}:*`);
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-      }
+      let cursor = "0";
+      do {
+        const [nextCursor, keys] = await this.redis.scan(
+          cursor,
+          "MATCH",
+          `${KEY_PREFIX}:*`,
+          "COUNT",
+          100,
+        );
+        cursor = nextCursor;
+        if (keys.length > 0) {
+          await this.redis.del(...keys);
+        }
+      } while (cursor !== "0");
     } catch (error) {
       console.error("Redis rate limit clear error:", error);
     }
@@ -126,8 +141,11 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
   private client: RedisRateLimiter | null = null;
   private clientInitPromise: Promise<RedisRateLimiter | null> | null = null;
   private nextRetryAt = 0;
+  private consecutiveFailures = 0;
   private options: RedisRateLimiterOptions;
-  private static readonly RETRY_BACKOFF_MS = 5_000;
+  private static readonly RETRY_BASE_BACKOFF_MS = 1_000;
+  private static readonly RETRY_MAX_BACKOFF_MS = 60_000;
+  private static readonly RETRY_JITTER_FACTOR = 0.2;
 
   constructor(options: RedisRateLimiterOptions = {}) {
     this.options = options;
@@ -175,14 +193,37 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
       await redis.ping();
 
       this.nextRetryAt = 0;
+      this.consecutiveFailures = 0;
       console.log("Redis rate limiter connected successfully");
       return new RedisRateLimiter(redis);
     } catch (error) {
-      this.nextRetryAt = Date.now() + RedisRateLimitProvider.RETRY_BACKOFF_MS;
+      this.consecutiveFailures += 1;
+      const delayMs = this.getRetryDelayMs();
+      this.nextRetryAt = Date.now() + delayMs;
       redis.disconnect();
-      console.error("Failed to connect to Redis for rate limiting:", error);
+      console.error(
+        `Failed to connect to Redis for rate limiting (attempt ${this.consecutiveFailures}). Retrying in ${Math.round(delayMs / 1000)}s:`,
+        error,
+      );
       return null;
     }
+  }
+
+  private getRetryDelayMs(): number {
+    const exponent = Math.max(0, this.consecutiveFailures - 1);
+    const exponentialDelay =
+      RedisRateLimitProvider.RETRY_BASE_BACKOFF_MS * 2 ** exponent;
+    const cappedDelay = Math.min(
+      exponentialDelay,
+      RedisRateLimitProvider.RETRY_MAX_BACKOFF_MS,
+    );
+    const jitterRange =
+      cappedDelay * RedisRateLimitProvider.RETRY_JITTER_FACTOR;
+    const jitter = (Math.random() * 2 - 1) * jitterRange;
+    return Math.max(
+      RedisRateLimitProvider.RETRY_BASE_BACKOFF_MS,
+      Math.round(cappedDelay + jitter),
+    );
   }
 
   async getClient(): Promise<RateLimitClient | null> {

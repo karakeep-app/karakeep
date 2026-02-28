@@ -43,14 +43,31 @@ export default async function ({ provide }: GlobalSetupContext) {
   const redisPort = await getRandomPort();
 
   console.log(`Starting Redis on port ${redisPort}...`);
-  execSync(`docker compose up -d`, {
-    cwd: path.join(__dirname, ".."),
-    stdio: "ignore",
-    env: {
-      ...process.env,
-      REDIS_PORT: redisPort.toString(),
-    },
-  });
+  try {
+    execSync(`docker compose up -d`, {
+      cwd: path.join(__dirname, ".."),
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        REDIS_PORT: redisPort.toString(),
+      },
+    });
+  } catch (error) {
+    const execError = error as {
+      stdout?: Buffer;
+      stderr?: Buffer;
+      message?: string;
+    };
+    console.error("Failed to start Redis container");
+    if (execError.stdout) {
+      console.error(execError.stdout.toString());
+    }
+    if (execError.stderr) {
+      console.error(execError.stderr.toString());
+    }
+    console.error(execError.message ?? error);
+    throw error;
+  }
 
   console.log("Waiting for Redis to become healthy...");
   await waitForHealthy(redisPort);
@@ -63,7 +80,6 @@ export default async function ({ provide }: GlobalSetupContext) {
       cwd: path.join(__dirname, ".."),
       stdio: "ignore",
     });
-    return Promise.resolve();
   };
 }
 
