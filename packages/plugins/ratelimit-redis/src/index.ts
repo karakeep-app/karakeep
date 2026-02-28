@@ -141,11 +141,8 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
   private client: RedisRateLimiter | null = null;
   private clientInitPromise: Promise<RedisRateLimiter | null> | null = null;
   private nextRetryAt = 0;
-  private consecutiveFailures = 0;
   private options: RedisRateLimiterOptions;
-  private static readonly RETRY_BASE_BACKOFF_MS = 1_000;
-  private static readonly RETRY_MAX_BACKOFF_MS = 60_000;
-  private static readonly RETRY_JITTER_FACTOR = 0.2;
+  private static readonly RETRY_BACKOFF_MS = 5_000;
 
   constructor(options: RedisRateLimiterOptions = {}) {
     this.options = options;
@@ -157,12 +154,7 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
       return new Redis(this.options.url, {
         lazyConnect: true,
         maxRetriesPerRequest: 3,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            return null; // Stop retrying
-          }
-          return Math.min(times * 100, 3000); // Exponential backoff
-        },
+        retryStrategy: () => 3_000,
       });
     }
 
@@ -175,12 +167,7 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
       tls: this.options.tls ? {} : undefined,
       lazyConnect: true,
       maxRetriesPerRequest: 3,
-      retryStrategy: (times) => {
-        if (times > 3) {
-          return null; // Stop retrying
-        }
-        return Math.min(times * 100, 3000); // Exponential backoff
-      },
+      retryStrategy: () => 3_000,
     });
   }
 
@@ -193,37 +180,14 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
       await redis.ping();
 
       this.nextRetryAt = 0;
-      this.consecutiveFailures = 0;
       console.log("Redis rate limiter connected successfully");
       return new RedisRateLimiter(redis);
     } catch (error) {
-      this.consecutiveFailures += 1;
-      const delayMs = this.getRetryDelayMs();
-      this.nextRetryAt = Date.now() + delayMs;
+      this.nextRetryAt = Date.now() + RedisRateLimitProvider.RETRY_BACKOFF_MS;
       redis.disconnect();
-      console.error(
-        `Failed to connect to Redis for rate limiting (attempt ${this.consecutiveFailures}). Retrying in ${Math.round(delayMs / 1000)}s:`,
-        error,
-      );
+      console.error("Failed to connect to Redis for rate limiting:", error);
       return null;
     }
-  }
-
-  private getRetryDelayMs(): number {
-    const exponent = Math.max(0, this.consecutiveFailures - 1);
-    const exponentialDelay =
-      RedisRateLimitProvider.RETRY_BASE_BACKOFF_MS * 2 ** exponent;
-    const cappedDelay = Math.min(
-      exponentialDelay,
-      RedisRateLimitProvider.RETRY_MAX_BACKOFF_MS,
-    );
-    const jitterRange =
-      cappedDelay * RedisRateLimitProvider.RETRY_JITTER_FACTOR;
-    const jitter = (Math.random() * 2 - 1) * jitterRange;
-    return Math.max(
-      RedisRateLimitProvider.RETRY_BASE_BACKOFF_MS,
-      Math.round(cappedDelay + jitter),
-    );
   }
 
   async getClient(): Promise<RateLimitClient | null> {
