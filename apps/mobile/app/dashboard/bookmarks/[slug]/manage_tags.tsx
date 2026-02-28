@@ -185,7 +185,7 @@ const TagPickerPage = () => {
             <Pressable
               onPress={clearAllTags}
               disabled={optimisticTags.length === 0}
-              className={optimisticTags.length === 0 ? "opacity-50" : ""}
+              className={`px-2 ${optimisticTags.length === 0 ? "opacity-50" : ""}`}
             >
               <Text className="text-primary">Clear</Text>
             </Pressable>

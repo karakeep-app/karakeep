@@ -400,7 +400,11 @@ const ViewBookmarkPage = () => {
           headerTransparent: false,
           headerTitle: "Edit Bookmark",
           headerRight: () => (
-            <Pressable onPress={onDone} disabled={isEditPending}>
+            <Pressable
+              onPress={onDone}
+              disabled={isEditPending}
+              className="px-2"
+            >
               {isEditPending ? (
                 <ActivityIndicator size="small" />
               ) : (
