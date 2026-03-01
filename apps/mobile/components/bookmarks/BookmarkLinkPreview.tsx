@@ -12,6 +12,7 @@ import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import { BlurView } from "expo-blur";
 import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
+import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { isIOS26 } from "@/lib/ios";
@@ -117,22 +118,30 @@ function ContinueReadingPill({
   onDismiss: () => void;
 }) {
   const pillContent = (
-    <>
-      <Pressable
-        onPress={onContinue}
-        style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-      >
-        <BookOpen size={14} className="text-muted-foreground" />
-        <Text className="text-sm text-muted-foreground">
-          {bannerPercent && bannerPercent > 0
-            ? `Continue reading (${bannerPercent}%)`
-            : "Continue reading"}
-        </Text>
-      </Pressable>
-      <Pressable onPress={onDismiss} hitSlop={8} style={{ padding: 4 }}>
-        <X size={14} className="text-muted-foreground" />
-      </Pressable>
-    </>
+    <TailwindResolver
+      className="text-muted-foreground"
+      comp={(styles) => {
+        const color = styles?.color?.toString();
+        return (
+          <>
+            <Pressable
+              onPress={onContinue}
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <BookOpen size={14} color={color} />
+              <Text style={{ fontSize: 14, color }}>
+                {bannerPercent && bannerPercent > 0
+                  ? `Continue reading (${bannerPercent}%)`
+                  : "Continue reading"}
+              </Text>
+            </Pressable>
+            <Pressable onPress={onDismiss} hitSlop={8} style={{ padding: 4 }}>
+              <X size={14} color={color} />
+            </Pressable>
+          </>
+        );
+      }}
+    />
   );
 
   if (shouldUseGlassPill) {
