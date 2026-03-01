@@ -22,7 +22,7 @@ export default function RootLayout() {
   useInitialAndroidBarSync();
   const router = useRouter();
   const { hasShareIntent } = useShareIntent();
-  const { colorScheme, isDarkColorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
 
   useEffect(() => {
     if (hasShareIntent) {
@@ -129,10 +129,7 @@ export default function RootLayout() {
           </StyledStack>
         </NavThemeProvider>
       </KeyboardProvider>
-      <StatusBar
-        key={`root-status-bar-${isDarkColorScheme ? "light" : "dark"}`}
-        style={isDarkColorScheme ? "light" : "dark"}
-      />
+      <StatusBar style="auto" />
     </SafeAreaProvider>
   );
 }
