@@ -58,8 +58,8 @@ export default function TabLayout() {
 
       <NativeTabs.Trigger
         name="(search)"
-        role={isIOS26 ? "search" : undefined}
         hidden={Platform.OS === "android"}
+        role={isIOS26 ? "search" : undefined}
       >
         <Icon
           sf="magnifyingglass"

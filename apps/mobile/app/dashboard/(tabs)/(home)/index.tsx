@@ -1,20 +1,19 @@
-import { useRef } from "react";
-import { Platform, Pressable, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRef, useState } from "react";
+import { Platform, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { router, Stack } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
+import InlineSearch from "@/components/search/InlineSearch";
 import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
-import { TailwindResolver } from "@/components/TailwindResolver";
+import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
 import { FAB } from "@/components/ui/FAB";
-import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
-import { Plus, Search } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import { toast as sonnerToast } from "sonner-native";
 
 function useNewBookmarkActions(openNewBookmarkModal: () => void) {
@@ -106,43 +105,16 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
   return { onPressAction, actions };
 }
 
-function AndroidSearchBar() {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <View
-      style={{
-        paddingTop: insets.top + 8,
-        paddingLeft: insets.left + 16,
-        paddingRight: insets.right + 16,
-        paddingBottom: 8,
-      }}
-    >
-      <Pressable
-        className="flex flex-row items-center rounded-full bg-card px-4 py-3"
-        style={{ borderCurve: "continuous" }}
-        onPress={() => router.push("/dashboard/search")}
-      >
-        <TailwindResolver
-          className="text-muted-foreground"
-          comp={(styles) => (
-            <Search size={20} color={styles?.color?.toString()} />
-          )}
-        />
-        <Text className="ml-3 flex-1 text-muted-foreground">
-          Search bookmarks
-        </Text>
-        <ProfileAvatarButton />
-      </Pressable>
-    </View>
-  );
-}
-
 export default function Home() {
   const { colors } = useColorScheme();
+  const [searchActive, setSearchActive] = useState(false);
   const { onPressAction, actions } = useNewBookmarkActions(() =>
     router.push("/dashboard/bookmarks/new"),
   );
+
+  if (Platform.OS === "android" && searchActive) {
+    return <InlineSearch onClose={() => setSearchActive(false)} />;
+  }
 
   return (
     <>
@@ -151,12 +123,16 @@ export default function Home() {
           ios: {
             headerRight: () => <ProfileAvatarButton />,
           },
-          android: {
-            header: () => <AndroidSearchBar />,
-          },
           default: {},
         })}
       />
+      {Platform.OS === "android" && (
+        <AndroidSearchBar
+          label="Search bookmarks..."
+          onPress={() => setSearchActive(true)}
+          rightElement={<ProfileAvatarButton />}
+        />
+      )}
       <UpdatingBookmarkList query={{ archived: false }} />
       <FAB>
         <MenuView

@@ -1,14 +1,16 @@
-import { Platform, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState } from "react";
+import { Platform } from "react-native";
 import FullPageError from "@/components/FullPageError";
 import HighlightList from "@/components/highlights/HighlightList";
+import InlineSearch from "@/components/search/InlineSearch";
+import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function Highlights() {
-  const insets = useSafeAreaInsets();
+  const [searchActive, setSearchActive] = useState(false);
   const api = useTRPC();
   const queryClient = useQueryClient();
   const {
@@ -29,6 +31,10 @@ export default function Highlights() {
     ),
   );
 
+  if (Platform.OS === "android" && searchActive) {
+    return <InlineSearch onClose={() => setSearchActive(false)} />;
+  }
+
   if (error) {
     return <FullPageError error={error.message} onRetry={() => refetch()} />;
   }
@@ -42,12 +48,13 @@ export default function Highlights() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        ...(Platform.OS === "android" && { paddingTop: insets.top }),
-      }}
-    >
+    <>
+      {Platform.OS === "android" && (
+        <AndroidSearchBar
+          label="Search bookmarks..."
+          onPress={() => setSearchActive(true)}
+        />
+      )}
       <HighlightList
         highlights={data.pages.flatMap((p) => p.highlights)}
         onRefresh={onRefresh}
@@ -55,6 +62,6 @@ export default function Highlights() {
         isFetchingNextPage={isFetchingNextPage}
         isRefreshing={isPending || isPlaceholderData}
       />
-    </View>
+    </>
   );
 }
