@@ -353,37 +353,25 @@ function ToolbarContainer({
     );
   }
 
+  const fallbackStyle = {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    paddingHorizontal: 40,
+    paddingTop: 16,
+    paddingBottom: bottomInset + 16,
+  };
+
   if (Platform.OS === "ios") {
     return (
-      <BlurView
-        tint="systemMaterial"
-        intensity={80}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 40,
-          paddingTop: 16,
-          paddingBottom: bottomInset + 16,
-        }}
-      >
+      <BlurView tint="systemMaterial" intensity={80} style={fallbackStyle}>
         {children}
       </BlurView>
     );
   }
 
   return (
-    <View
-      className="bg-background"
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 40,
-        paddingTop: 16,
-        paddingBottom: bottomInset + 16,
-      }}
-    >
+    <View className="bg-background" style={fallbackStyle}>
       {children}
     </View>
   );
