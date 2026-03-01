@@ -1,3 +1,5 @@
+import { Platform, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FullPageError from "@/components/FullPageError";
 import HighlightList from "@/components/highlights/HighlightList";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
@@ -6,6 +8,7 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function Highlights() {
+  const insets = useSafeAreaInsets();
   const api = useTRPC();
   const queryClient = useQueryClient();
   const {
@@ -39,12 +42,19 @@ export default function Highlights() {
   };
 
   return (
-    <HighlightList
-      highlights={data.pages.flatMap((p) => p.highlights)}
-      onRefresh={onRefresh}
-      fetchNextPage={fetchNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isRefreshing={isPending || isPlaceholderData}
-    />
+    <View
+      style={{
+        flex: 1,
+        ...(Platform.OS === "android" && { paddingTop: insets.top }),
+      }}
+    >
+      <HighlightList
+        highlights={data.pages.flatMap((p) => p.highlights)}
+        onRefresh={onRefresh}
+        fetchNextPage={fetchNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        isRefreshing={isPending || isPlaceholderData}
+      />
+    </View>
   );
 }

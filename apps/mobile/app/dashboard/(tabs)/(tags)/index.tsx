@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, Platform, Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import FullPageError from "@/components/FullPageError";
 import ChevronRight from "@/components/ui/ChevronRight";
@@ -22,6 +23,7 @@ interface TagItem {
 }
 
 export default function Tags() {
+  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const api = useTRPC();
@@ -79,16 +81,33 @@ export default function Tags() {
       className="h-full"
       contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={
-        <SearchInput
-          containerClassName="mx-2 mb-2"
-          placeholder="Search tags..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        Platform.OS === "android" ? (
+          <View
+            style={{
+              paddingLeft: insets.left,
+              paddingRight: insets.right,
+              paddingBottom: 8,
+            }}
+          >
+            <SearchInput
+              placeholder="Search tags..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        ) : (
+          <SearchInput
+            containerClassName="mx-2 mb-2"
+            placeholder="Search tags..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        )
       }
       contentContainerStyle={{
         gap: 6,
         paddingBottom: 20,
+        ...(Platform.OS === "android" && { paddingTop: insets.top }),
       }}
       renderItem={(item) => (
         <View

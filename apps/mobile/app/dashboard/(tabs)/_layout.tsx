@@ -1,17 +1,23 @@
 import React from "react";
+import { Platform } from "react-native";
 import {
   Icon,
   Label,
   NativeTabs,
   VectorIcon,
 } from "expo-router/unstable-native-tabs";
+import { isIOS26 } from "@/lib/ios";
 import { useColorScheme } from "@/lib/useColorScheme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function TabLayout() {
   const { colors } = useColorScheme();
   return (
-    <NativeTabs backgroundColor={colors.grey6} minimizeBehavior="onScrollDown">
+    <NativeTabs
+      backgroundColor={colors.grey6}
+      minimizeBehavior="onScrollDown"
+      labelVisibilityMode={Platform.select({ android: "labeled" })}
+    >
       <NativeTabs.Trigger name="(home)">
         <Icon
           sf="house.fill"
@@ -50,12 +56,18 @@ export default function TabLayout() {
         <Label>Highlights</Label>
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="(settings)">
+      <NativeTabs.Trigger
+        name="(search)"
+        role={isIOS26 ? "search" : undefined}
+        hidden={Platform.OS === "android"}
+      >
         <Icon
-          sf="gearshape.fill"
-          androidSrc={<VectorIcon family={MaterialCommunityIcons} name="cog" />}
+          sf="magnifyingglass"
+          androidSrc={
+            <VectorIcon family={MaterialCommunityIcons} name="magnify" />
+          }
         />
-        <Label>Settings</Label>
+        <Label>Search</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

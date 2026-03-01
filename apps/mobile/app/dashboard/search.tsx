@@ -1,17 +1,26 @@
 import { useMemo, useRef, useState } from "react";
-import { FlatList, Keyboard, Pressable, TextInput, View } from "react-native";
-import { router } from "expo-router";
+import {
+  FlatList,
+  Keyboard,
+  Platform,
+  Pressable,
+  TextInput,
+  View,
+} from "react-native";
+import { router, Stack } from "expo-router";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
+import { useColorScheme } from "@/lib/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   keepPreviousData,
   useInfiniteQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { X } from "lucide-react-native";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
@@ -34,6 +43,7 @@ export default function Search() {
 
   const api = useTRPC();
   const queryClient = useQueryClient();
+  const { colors } = useColorScheme();
 
   const onRefresh = () => {
     queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
@@ -97,23 +107,40 @@ export default function Search() {
     }
   };
 
+  const searchInput = (
+    <SearchInput
+      containerClassName={Platform.select({ android: "m-3" })}
+      ref={inputRef}
+      placeholder="Search"
+      className="flex-1"
+      value={search}
+      onChangeText={setSearch}
+      onFocus={handleOnFocus}
+      onBlur={handleOnBlur}
+      onSubmitEditing={() => handleSearchSubmit(search)}
+      returnKeyType="search"
+      autoFocus
+      autoCapitalize="none"
+      onCancel={Platform.select({ android: () => router.back() })}
+    />
+  );
+
   return (
     <>
-      <SearchInput
-        containerClassName="m-3"
-        ref={inputRef}
-        placeholder="Search"
-        className="flex-1"
-        value={search}
-        onChangeText={setSearch}
-        onFocus={handleOnFocus}
-        onBlur={handleOnBlur}
-        onSubmitEditing={() => handleSearchSubmit(search)}
-        returnKeyType="search"
-        autoFocus
-        autoCapitalize="none"
-        onCancel={router.back}
-      />
+      {Platform.OS === "ios" ? (
+        <Stack.Screen
+          options={{
+            headerTitle: () => searchInput,
+            headerRight: () => (
+              <Pressable onPress={() => router.back()}>
+                <X size={22} color={colors.foreground} />
+              </Pressable>
+            ),
+          }}
+        />
+      ) : (
+        searchInput
+      )}
 
       {isInputFocused && search.trim().length === 0 ? (
         <FlatList

@@ -15,9 +15,7 @@ export default function Layout() {
             headerLargeStyle: { backgroundColor: "transparent" },
           },
           android: {
-            headerStyle: {
-              backgroundColor: "transparent",
-            },
+            headerShown: false,
             contentStyle: {
               // Manual padding to avoid the native tabbar until expo fixes this in sdk 55.
               paddingBottom: 100,
