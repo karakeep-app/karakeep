@@ -89,6 +89,10 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
+// Gap below the transparent header, used for positioning both the
+// continue-reading pill and the progress bar.
+const BANNER_GAP = 8;
+
 const pillStyle = {
   flexDirection: "row" as const,
   alignItems: "center" as const,
@@ -222,18 +226,16 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  // Gap between the header and the pill.
-  const bannerGap = 8;
-  const bannerTopHidden = isIOS26 ? insets.top + bannerGap : 0;
-  const bannerTop = useSharedValue(headerOffset + bannerGap);
+  const bannerTopHidden = isIOS26 ? insets.top + BANNER_GAP : 0;
+  const bannerTop = useSharedValue(headerOffset + BANNER_GAP);
   useEffect(() => {
     bannerTop.value = withTiming(
-      barsVisible ? headerOffset + bannerGap : bannerTopHidden,
+      barsVisible ? headerOffset + BANNER_GAP : bannerTopHidden,
       {
         duration: 250,
       },
     );
-  }, [barsVisible, bannerTop, headerOffset, bannerGap, bannerTopHidden]);
+  }, [barsVisible, bannerTop, headerOffset, bannerTopHidden]);
 
   // Keep the pill mounted during fade-out so it doesn't vanish abruptly.
   const [bannerMounted, setBannerMounted] = useState(showBanner);
@@ -247,7 +249,7 @@ export function BookmarkLinkReaderPreview({
         runOnJS(setBannerMounted)(false);
       });
     }
-  }, [showBanner]);
+  }, [showBanner, bannerOpacity]);
 
   const bannerAnimatedStyle = useAnimatedStyle(() => ({
     top: bannerTop.value,
@@ -289,7 +291,7 @@ export function BookmarkLinkReaderPreview({
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
         showProgressBar={isIOS26 ? barsVisible : true}
-        progressBarTop={headerOffset + (isIOS26 ? bannerGap : 0)}
+        progressBarTop={headerOffset + (isIOS26 ? BANNER_GAP : 0)}
         onScrollPositionChange={(position) => {
           onScrollPositionChange?.(position);
           // Use percent (0-100) scaled to a synthetic pixel range for scroll

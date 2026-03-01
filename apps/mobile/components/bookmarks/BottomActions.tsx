@@ -327,9 +327,11 @@ const shouldUseGlassPill = isIOS26 && isGlassEffectAPIAvailable();
 function ToolbarContainer({
   children,
   bottomMargin,
+  bottomInset,
 }: {
   children: React.ReactNode;
   bottomMargin: number;
+  bottomInset: number;
 }) {
   if (shouldUseGlassPill) {
     return (
@@ -351,27 +353,25 @@ function ToolbarContainer({
     );
   }
 
+  const fallbackStyle = {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    justifyContent: "space-between" as const,
+    paddingHorizontal: 40,
+    paddingTop: 16,
+    paddingBottom: bottomInset + 16,
+  };
+
   if (Platform.OS === "ios") {
     return (
-      <BlurView
-        tint="systemMaterial"
-        intensity={80}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: 40,
-          paddingTop: 16,
-          paddingBottom: bottomInset + 16,
-        }}
-      >
+      <BlurView tint="systemMaterial" intensity={80} style={fallbackStyle}>
         {children}
       </BlurView>
     );
   }
 
   return (
-    <View className="flex flex-row items-center justify-between px-10 pb-2 pt-4">
+    <View className="bg-background" style={fallbackStyle}>
       {children}
     </View>
   );
@@ -446,7 +446,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
 
   return (
     <View>
-      <ToolbarContainer bottomMargin={bottomMargin}>
+      <ToolbarContainer bottomMargin={bottomMargin} bottomInset={insets.bottom}>
         {barActions.map(
           (a) =>
             a.shouldRender && (
