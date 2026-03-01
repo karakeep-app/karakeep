@@ -363,7 +363,7 @@ importers:
         specifier: ~54.0.31
         version: 54.0.31(@babel/core@7.26.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.21)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       expo-blur:
-        specifier: ^55.0.8
+        specifier: ~55.0.8
         version: 55.0.8(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       expo-build-properties:
         specifier: ~1.0.10
