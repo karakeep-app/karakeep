@@ -13,7 +13,10 @@ import {
   unique,
 } from "drizzle-orm/sqlite-core";
 
-import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import {
+  BookmarkAssetTypes,
+  BookmarkTypes,
+} from "@karakeep/shared/types/bookmarks";
 
 function createdAtField() {
   return integer("createdAt", { mode: "timestamp" })
@@ -401,7 +404,7 @@ export const bookmarkAssets = sqliteTable("bookmarkAssets", {
     .primaryKey()
     .$defaultFn(() => createId())
     .references(() => bookmarks.id, { onDelete: "cascade" }),
-  assetType: text("assetType", { enum: ["image", "pdf"] }).notNull(),
+  assetType: text("assetType", { enum: [...BookmarkAssetTypes] }).notNull(),
   assetId: text("assetId").notNull(),
   content: text("content"),
   metadata: text("metadata"),

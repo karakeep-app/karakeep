@@ -26,6 +26,7 @@ dist
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # local env files
 .env*.local
@@ -62,9 +63,9 @@ data
 # VS-Code
 .vscode
 auth_failures.log
-.claude/settings.local.json
 
 # Local directory for AI agent contexts
+.claude/settings.local.json
 .aicontext/
 .codex
 .claude/worktrees

@@ -27,7 +27,10 @@ import {
   updateUserSchema,
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
-import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import {
+  BookmarkAssetTypes,
+  BookmarkTypes,
+} from "@karakeep/shared/types/bookmarks";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { adminProcedure, router } from "../index";
@@ -619,7 +622,7 @@ export const adminAppRouter = router({
           .nullable(),
         assetInfo: z
           .object({
-            assetType: z.enum(["image", "pdf"]),
+            assetType: z.enum(BookmarkAssetTypes),
             hasContent: z.boolean(),
             fileName: z.string().nullable(),
           })

@@ -820,7 +820,8 @@ export class Bookmark extends BareBookmark {
           switch (content.assetType) {
             case "image":
               return `${getPublicSignedAssetUrl(content.assetId)}`;
-            case "pdf": {
+            case "pdf":
+            case "video": {
               const screenshotAssetId = this.bookmark.assets.find(
                 (r) => r.assetType === "assetScreenshot",
               )?.id;

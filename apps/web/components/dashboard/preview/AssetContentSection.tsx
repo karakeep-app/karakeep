@@ -102,6 +102,22 @@ function ImageContentSection({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
+function VideoContentSection({ bookmark }: { bookmark: ZBookmark }) {
+  if (bookmark.content.type != BookmarkTypes.ASSET) {
+    throw new Error("Invalid content type");
+  }
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      <div className="absolute inset-0 h-full w-full">
+        {/* eslint-disable-next-line jsx-a11y/media-has-caption -- captions not available */}
+        <video className="m-auto max-h-full max-w-full" controls>
+          <source src={getAssetUrl(bookmark.content.assetId)} />
+        </video>
+      </div>
+    </div>
+  );
+}
+
 export function AssetContentSection({ bookmark }: { bookmark: ZBookmark }) {
   if (bookmark.content.type != BookmarkTypes.ASSET) {
     throw new Error("Invalid content type");
@@ -111,6 +127,8 @@ export function AssetContentSection({ bookmark }: { bookmark: ZBookmark }) {
       return <ImageContentSection bookmark={bookmark} />;
     case "pdf":
       return <PDFContentSection bookmark={bookmark} />;
+    case "video":
+      return <VideoContentSection bookmark={bookmark} />;
     default:
       return <div>Unsupported asset type</div>;
   }
