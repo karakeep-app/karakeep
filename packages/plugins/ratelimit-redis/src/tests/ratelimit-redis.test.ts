@@ -17,8 +17,7 @@ describe("RedisRateLimiter", () => {
   beforeAll(async () => {
     const redisPort = inject("redisPort");
     const provider = new RedisRateLimitProvider({
-      host: "localhost",
-      port: redisPort,
+      url: `redis://localhost:${redisPort}`,
     });
     const client = await provider.getClient();
     assert(client, "Failed to connect to Redis");

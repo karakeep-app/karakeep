@@ -95,8 +95,9 @@ export class RedisRateLimiter implements RateLimitClient {
 
   async reset(config: RateLimitConfig, key: string) {
     const rateLimitKey = `${KEY_PREFIX}:${config.name}:${key}`;
+    const rateLimitSequenceKey = `${rateLimitKey}:seq`;
     try {
-      await this.redis.del(rateLimitKey);
+      await this.redis.del(rateLimitKey, rateLimitSequenceKey);
     } catch (error) {
       console.error("Redis rate limit reset error:", error);
     }
@@ -129,12 +130,7 @@ export class RedisRateLimiter implements RateLimitClient {
 }
 
 export interface RedisRateLimiterOptions {
-  host?: string;
-  port?: number;
-  password?: string;
-  db?: number;
-  tls?: boolean;
-  url?: string;
+  url: string;
 }
 
 export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
@@ -144,29 +140,14 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
   private options: RedisRateLimiterOptions;
   private static readonly RETRY_BACKOFF_MS = 5_000;
 
-  constructor(options: RedisRateLimiterOptions = {}) {
+  constructor(options: RedisRateLimiterOptions) {
     this.options = options;
   }
 
   private createRedisClient(): Redis {
-    if (this.options.url) {
-      // Use connection URL if provided
-      return new Redis(this.options.url, {
-        lazyConnect: true,
-        maxRetriesPerRequest: 3,
-        retryStrategy: () => 3_000,
-      });
-    }
-
-    // Use individual options
-    return new Redis({
-      host: this.options.host || "localhost",
-      port: this.options.port || 6379,
-      password: this.options.password,
-      db: this.options.db || 0,
-      tls: this.options.tls ? {} : undefined,
+    return new Redis(this.options.url, {
       lazyConnect: true,
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: 0,
       retryStrategy: () => 3_000,
     });
   }
@@ -203,11 +184,17 @@ export class RedisRateLimitProvider implements PluginProvider<RateLimitClient> {
       return null;
     }
 
-    this.clientInitPromise = this.initializeClient().finally(() => {
-      this.clientInitPromise = null;
-    });
+    const initPromise = this.initializeClient();
+    this.clientInitPromise = initPromise;
 
-    this.client = await this.clientInitPromise;
-    return this.client;
+    try {
+      const client = await initPromise;
+      this.client = client;
+      return client;
+    } finally {
+      if (this.clientInitPromise === initPromise) {
+        this.clientInitPromise = null;
+      }
+    }
   }
 }
