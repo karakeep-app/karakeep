@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Platform, Pressable, TouchableOpacity, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -9,8 +10,11 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import { BlurView } from "expo-blur";
+import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
+import { isIOS26 } from "@/lib/ios";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
@@ -85,6 +89,80 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
+const pillStyle = {
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  borderRadius: 22,
+  paddingVertical: 8,
+  paddingLeft: 14,
+  paddingRight: 8,
+  gap: 8,
+};
+
+function ContinueReadingPill({
+  shouldUseGlassPill,
+  isDark,
+  bannerPercent,
+  onContinue,
+  onDismiss,
+}: {
+  shouldUseGlassPill: boolean;
+  isDark: boolean;
+  bannerPercent: number | null;
+  onContinue: () => void;
+  onDismiss: () => void;
+}) {
+  const pillContent = (
+    <>
+      <Pressable
+        onPress={onContinue}
+        style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+      >
+        <BookOpen size={14} className="text-muted-foreground" />
+        <Text className="text-sm text-muted-foreground">
+          {bannerPercent && bannerPercent > 0
+            ? `Continue reading (${bannerPercent}%)`
+            : "Continue reading"}
+        </Text>
+      </Pressable>
+      <Pressable onPress={onDismiss} hitSlop={8} style={{ padding: 4 }}>
+        <X size={14} className="text-muted-foreground" />
+      </Pressable>
+    </>
+  );
+
+  if (shouldUseGlassPill) {
+    return (
+      <GlassView glassEffectStyle="regular" style={pillStyle}>
+        {pillContent}
+      </GlassView>
+    );
+  }
+
+  if (Platform.OS === "ios") {
+    return (
+      <BlurView
+        tint="systemMaterial"
+        intensity={80}
+        style={{ ...pillStyle, overflow: "hidden" }}
+      >
+        {pillContent}
+      </BlurView>
+    );
+  }
+
+  return (
+    <View
+      style={{
+        ...pillStyle,
+        backgroundColor: isDark ? "#1c1c1e" : "#f2f2f7",
+      }}
+    >
+      {pillContent}
+    </View>
+  );
+}
+
 export function BookmarkLinkReaderPreview({
   bookmark,
   onScrollOffsetChange,
@@ -96,8 +174,7 @@ export function BookmarkLinkReaderPreview({
   barsVisible?: boolean;
   contentInsetBottom?: number;
 }) {
-  const isIOS26 =
-    Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
+  const shouldUseGlassPill = isIOS26 && isGlassEffectAPIAvailable();
 
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
@@ -145,20 +222,36 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  // Small gap between the transparent header and the banner on iOS 26;
-  // on other platforms the opaque header already provides separation.
-  const bannerGap = isIOS26 ? 8 : 0;
+  // Gap between the header and the pill.
+  const bannerGap = 8;
+  const bannerTopHidden = isIOS26 ? insets.top + bannerGap : 0;
   const bannerTop = useSharedValue(headerOffset + bannerGap);
   useEffect(() => {
     bannerTop.value = withTiming(
-      barsVisible ? headerOffset + bannerGap : -bannerGap,
+      barsVisible ? headerOffset + bannerGap : bannerTopHidden,
       {
         duration: 250,
       },
     );
-  }, [barsVisible, bannerTop, headerOffset, bannerGap]);
+  }, [barsVisible, bannerTop, headerOffset, bannerGap, bannerTopHidden]);
+
+  // Keep the pill mounted during fade-out so it doesn't vanish abruptly.
+  const [bannerMounted, setBannerMounted] = useState(showBanner);
+  const bannerOpacity = useSharedValue(showBanner ? 1 : 0);
+  useEffect(() => {
+    if (showBanner) {
+      setBannerMounted(true);
+      bannerOpacity.value = withTiming(1, { duration: 200 });
+    } else {
+      bannerOpacity.value = withTiming(0, { duration: 200 }, () => {
+        runOnJS(setBannerMounted)(false);
+      });
+    }
+  }, [showBanner]);
+
   const bannerAnimatedStyle = useAnimatedStyle(() => ({
     top: bannerTop.value,
+    opacity: bannerOpacity.value,
   }));
 
   if (isLoading) {
@@ -173,14 +266,12 @@ export function BookmarkLinkReaderPreview({
     throw new Error("Wrong content type rendered");
   }
 
-  const BANNER_HEIGHT = 40;
-
   const contentStyle: React.CSSProperties = {
     fontFamily: WEBVIEW_FONT_FAMILIES[readerSettings.fontFamily],
     fontSize: `${readerSettings.fontSize}px`,
     lineHeight: String(readerSettings.lineHeight),
     color: isDark ? "#e5e7eb" : "#374151",
-    paddingTop: `${headerOffset + (showBanner ? BANNER_HEIGHT : 0)}px`,
+    paddingTop: `${headerOffset}px`,
     paddingBottom: `${contentInsetBottom}px`,
     paddingLeft: "16px",
     paddingRight: "16px",
@@ -189,33 +280,6 @@ export function BookmarkLinkReaderPreview({
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#ffffff" }}>
-      {showBanner && (
-        <Animated.View
-          className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2"
-          style={[
-            { position: "absolute", left: 0, right: 0, zIndex: 10 },
-            bannerAnimatedStyle,
-          ]}
-        >
-          <BookOpen size={16} className="text-muted-foreground" />
-          <Text className="flex-1 text-sm text-muted-foreground">
-            {bannerPercent && bannerPercent > 0
-              ? `Continue where you left off (${bannerPercent}%)`
-              : "Continue where you left off"}
-          </Text>
-          <TouchableOpacity
-            onPress={onContinue}
-            className="rounded-md bg-primary px-3 py-1"
-          >
-            <Text className="text-xs font-medium text-primary-foreground">
-              Continue
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onDismiss} className="p-1">
-            <X size={14} className="text-muted-foreground" />
-          </TouchableOpacity>
-        </Animated.View>
-      )}
       <BookmarkHtmlHighlighterDom
         htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
@@ -225,7 +289,7 @@ export function BookmarkLinkReaderPreview({
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
         showProgressBar={isIOS26 ? barsVisible : true}
-        progressBarTop={headerOffset + bannerGap}
+        progressBarTop={headerOffset + (isIOS26 ? bannerGap : 0)}
         onScrollPositionChange={(position) => {
           onScrollPositionChange?.(position);
           // Use percent (0-100) scaled to a synthetic pixel range for scroll
@@ -257,6 +321,29 @@ export function BookmarkLinkReaderPreview({
         }
         dom={{ scrollEnabled: true, contentInsetAdjustmentBehavior: "never" }}
       />
+      {bannerMounted && (
+        <Animated.View
+          pointerEvents={showBanner ? "auto" : "none"}
+          style={[
+            {
+              position: "absolute",
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              alignItems: "center",
+            },
+            bannerAnimatedStyle,
+          ]}
+        >
+          <ContinueReadingPill
+            shouldUseGlassPill={shouldUseGlassPill}
+            isDark={isDark}
+            bannerPercent={bannerPercent}
+            onContinue={onContinue}
+            onDismiss={onDismiss}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }

@@ -2,6 +2,7 @@ import type { ToolbarActionId } from "@/lib/settings";
 import type { LucideIcon } from "lucide-react-native";
 import { Alert, Linking, Platform, Pressable, Share, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "expo-blur";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
@@ -10,6 +11,7 @@ import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { useToast } from "@/components/ui/Toast";
+import { isIOS26 } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { buildApiHeaders } from "@/lib/utils";
@@ -32,9 +34,6 @@ import {
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
-
-const isIOS26 =
-  Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
 
 function triggerHaptic() {
   Haptics.selectionAsync().catch(() => {
@@ -351,6 +350,25 @@ function ToolbarContainer({
       >
         {children}
       </GlassView>
+    );
+  }
+
+  if (Platform.OS === "ios") {
+    return (
+      <BlurView
+        tint="systemMaterial"
+        intensity={80}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 40,
+          paddingTop: 16,
+          paddingBottom: bottomInset + 16,
+        }}
+      >
+        {children}
+      </BlurView>
     );
   }
 
