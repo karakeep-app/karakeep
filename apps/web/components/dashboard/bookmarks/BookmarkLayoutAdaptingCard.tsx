@@ -101,7 +101,7 @@ function SourceIndicator({ bookmark }: { bookmark: ZBookmark }) {
     return (
       <div
         className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-        title={t("common.bookmark_sources.web")}
+        title={t(`common.bookmark_sources.${bookmark.source}`)}
       >
         <MousePointer2 size={12} />
       </div>
