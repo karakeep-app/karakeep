@@ -1557,6 +1557,7 @@ async function handleAsAssetBookmark(
     },
     async () => {
       let downloadedAssetId: string | undefined;
+      let assetPersisted = false;
       try {
         const downloaded = await downloadAndStoreFile(
           url,
@@ -1599,6 +1600,7 @@ async function handleAsAssetBookmark(
             .where(eq(bookmarks.id, bookmarkId));
           await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
         });
+        assetPersisted = true;
         await AssetPreprocessingQueue.enqueue(
           {
             bookmarkId,
@@ -1609,7 +1611,7 @@ async function handleAsAssetBookmark(
           },
         );
       } catch (error) {
-        if (downloadedAssetId) {
+        if (downloadedAssetId && !assetPersisted) {
           logger.error(
             `[Crawler][${jobId}] handleAsAssetBookmark encountered an error, cleaning up new asset ${downloadedAssetId}: ${error}`,
           );
@@ -1735,6 +1737,7 @@ async function crawlAndParseUrl(
     },
     async () => {
       const newAssetIds: string[] = [];
+      let transactionCommitted = false;
       try {
         let result: {
           htmlContent: string;
@@ -1884,7 +1887,7 @@ async function crawlAndParseUrl(
 
         // Phase 2: Write content and asset references.
         // TODO(important): Restrict the size of content to store
-        const assetDeletionTasks: Promise<void>[] = [];
+        const assetDeletionTasks: (() => Promise<void>)[] = [];
         const inlineHtmlContent =
           htmlContentAssetInfo.result === "store_inline"
             ? (readableContent?.content ?? null)
@@ -1917,9 +1920,11 @@ async function crawlAndParseUrl(
               },
               txn,
             );
-            assetDeletionTasks.push(
-              silentDeleteAsset(userId, oldScreenshotAssetId),
-            );
+            if (oldScreenshotAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldScreenshotAssetId),
+              );
+            }
           }
           if (pdfAssetInfo) {
             await updateAsset(
@@ -1935,11 +1940,19 @@ async function crawlAndParseUrl(
               },
               txn,
             );
-            assetDeletionTasks.push(silentDeleteAsset(userId, oldPdfAssetId));
+            if (oldPdfAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldPdfAssetId),
+              );
+            }
           }
           if (imageAssetInfo) {
             await updateAsset(oldImageAssetId, imageAssetInfo, txn);
-            assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
+            if (oldImageAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldImageAssetId),
+              );
+            }
           }
           if (htmlContentAssetInfo.result === "stored") {
             await updateAsset(
@@ -1955,20 +1968,24 @@ async function crawlAndParseUrl(
               },
               txn,
             );
-            assetDeletionTasks.push(
-              silentDeleteAsset(userId, oldContentAssetId),
-            );
+            if (oldContentAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldContentAssetId),
+              );
+            }
           } else if (oldContentAssetId) {
             // Unlink the old content asset
             await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
-            assetDeletionTasks.push(
+            assetDeletionTasks.push(() =>
               silentDeleteAsset(userId, oldContentAssetId),
             );
           }
         });
 
+        transactionCommitted = true;
+
         // Delete the old assets if any
-        await Promise.all(assetDeletionTasks);
+        await Promise.all(assetDeletionTasks.map((t) => t()));
 
         return async () => {
           if (
@@ -2012,13 +2029,15 @@ async function crawlAndParseUrl(
           }
         };
       } catch (error) {
-        logger.error(
-          `[Crawler][${jobId}] crawlAndParseUrl encountered an error, cleaning up new assets: ${error}`,
-        );
-        // Clean up any assets that were created during this attempt but not committed
-        await Promise.all(
-          newAssetIds.map((assetId) => silentDeleteAsset(userId, assetId)),
-        );
+        if (!transactionCommitted) {
+          logger.error(
+            `[Crawler][${jobId}] crawlAndParseUrl encountered an error, cleaning up new assets: ${error}`,
+          );
+          // Clean up any assets that were created during this attempt but not committed
+          await Promise.all(
+            newAssetIds.map((assetId) => silentDeleteAsset(userId, assetId)),
+          );
+        }
         throw error;
       }
     },
