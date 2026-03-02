@@ -18,6 +18,7 @@ import {
   Archive,
   ChevronDown,
   ChevronRight,
+  Database,
   FileType,
   Heading,
   Link,
@@ -75,6 +76,9 @@ export function ConditionBuilder({
       case "bookmarkTypeIs":
         onChange({ type: "bookmarkTypeIs", bookmarkType: "link" });
         break;
+      case "bookmarkSourceIs":
+        onChange({ type: "bookmarkSourceIs", source: "web" });
+        break;
       case "hasTag":
         onChange({ type: "hasTag", tagId: "" });
         break;
@@ -112,6 +116,8 @@ export function ConditionBuilder({
         return <Rss className="h-4 w-4" />;
       case "bookmarkTypeIs":
         return <FileType className="h-4 w-4" />;
+      case "bookmarkSourceIs":
+        return <Database className="h-4 w-4" />;
       case "hasTag":
         return <Tag className="h-4 w-4" />;
       case "isFavourited":
@@ -208,6 +214,51 @@ export function ConditionBuilder({
                 </SelectItem>
                 <SelectItem value="asset">
                   {t("common.bookmark_types.media")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+
+      case "bookmarkSourceIs":
+        return (
+          <div className="mt-2">
+            <Select
+              value={value.source}
+              onValueChange={(source) =>
+                onChange({
+                  ...value,
+                  source: source as any,
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select bookmark source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="web">
+                  {t("common.bookmark_sources.web")}
+                </SelectItem>
+                <SelectItem value="extension">
+                  {t("common.bookmark_sources.extension")}
+                </SelectItem>
+                <SelectItem value="mobile">
+                  {t("common.bookmark_sources.mobile")}
+                </SelectItem>
+                <SelectItem value="rss">
+                  {t("common.bookmark_sources.rss")}
+                </SelectItem>
+                <SelectItem value="api">
+                  {t("common.bookmark_sources.api")}
+                </SelectItem>
+                <SelectItem value="cli">
+                  {t("common.bookmark_sources.cli")}
+                </SelectItem>
+                <SelectItem value="singlefile">
+                  {t("common.bookmark_sources.singlefile")}
+                </SelectItem>
+                <SelectItem value="import">
+                  {t("common.bookmark_sources.import")}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -313,6 +364,9 @@ export function ConditionBuilder({
         </SelectItem>
         <SelectItem value="bookmarkTypeIs">
           {t("settings.rules.conditions_types.bookmark_type_is")}
+        </SelectItem>
+        <SelectItem value="bookmarkSourceIs">
+          {t("settings.rules.conditions_types.bookmark_source_is")}
         </SelectItem>
         <SelectItem value="hasTag">
           {t("settings.rules.conditions_types.has_tag")}

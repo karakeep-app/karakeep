@@ -21,7 +21,10 @@ import {
   Check,
   GripVertical,
   Image as ImageIcon,
+  MousePointer2,
   NotebookPen,
+  Plus,
+  Rss,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -76,6 +79,36 @@ function BottomRow({
       <BookmarkActionBar bookmark={bookmark} />
     </div>
   );
+}
+
+function SourceIndicator({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
+  if (bookmark.source === "rss") {
+    return (
+      <div
+        className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+        title={t("common.bookmark_sources.rss")}
+      >
+        <Rss size={12} />
+      </div>
+    );
+  }
+
+  // Show a "manual" indicator for everything else except API/Import maybe?
+  // For now let's just show it for web/extension/mobile/cli
+  const manualSources = ["web", "extension", "mobile", "cli"];
+  if (manualSources.includes(bookmark.source)) {
+    return (
+      <div
+        className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+        title={t("common.bookmark_sources.web")}
+      >
+        <MousePointer2 size={12} />
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
@@ -313,6 +346,9 @@ function ListView({
         className="left-1 top-1/2 -translate-y-1/2"
       />
       <HoverActionBar bookmark={bookmark} />
+      <div className="absolute left-2 top-2 z-40">
+        <SourceIndicator bookmark={bookmark} />
+      </div>
       <div className="flex size-32 items-center justify-center overflow-hidden">
         {image("list", cn("size-32 rounded-lg", imgFitClass))}
       </div>
@@ -375,6 +411,9 @@ function GridView({
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle bookmark={bookmark} className="left-2 top-2" />
       <HoverActionBar bookmark={bookmark} />
+      <div className="absolute right-2 top-2 z-40">
+        <SourceIndicator bookmark={bookmark} />
+      </div>
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
@@ -415,6 +454,7 @@ function CompactView({ bookmark, title, footer, className }: Props) {
       <OwnerIndicator bookmark={bookmark} />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
+          <SourceIndicator bookmark={bookmark} />
           {bookmark.content.type === BookmarkTypes.LINK &&
             bookmark.content.favicon && (
               <Image

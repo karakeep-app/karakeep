@@ -41,6 +41,16 @@
       "text": "Text",
       "media": "Media"
     },
+    "bookmark_sources": {
+      "api": "API",
+      "web": "Web",
+      "extension": "Browser Extension",
+      "cli": "CLI",
+      "mobile": "Mobile",
+      "singlefile": "SingleFile",
+      "rss": "RSS Feed",
+      "import": "Import"
+    },
     "quota": "Quota",
     "bookmarks": "Bookmarks",
     "storage": "Storage"
@@ -370,8 +380,8 @@
         "has_tag": "Has Tag",
         "is_favourited": "Is Favourited",
         "is_archived": "Is Archived",
-        "and": "All of the following are true",
-        "or": "Any of the following are true"
+        "bookmark_source_is": "Bookmark Source Is",
+        "and": "All of the following are true",        "or": "Any of the following are true"
       },
       "actions_types": {
         "add_tag": "Add Tag",

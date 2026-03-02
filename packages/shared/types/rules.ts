@@ -79,6 +79,20 @@ const zBookmarkTypeIsCondition = z.object({
   bookmarkType: z.enum(["link", "text", "asset"]),
 });
 
+const zBookmarkSourceIsCondition = z.object({
+  type: z.literal("bookmarkSourceIs"),
+  source: z.enum([
+    "api",
+    "web",
+    "cli",
+    "mobile",
+    "extension",
+    "singlefile",
+    "rss",
+    "import",
+  ]),
+});
+
 const zHasTagCondition = z.object({
   type: z.literal("hasTag"),
   tagId: z.string(),
@@ -100,6 +114,7 @@ const nonRecursiveCondition = z.discriminatedUnion("type", [
   zTitleDoesNotContainCondition,
   zImportedFromFeedCondition,
   zBookmarkTypeIsCondition,
+  zBookmarkSourceIsCondition,
   zHasTagCondition,
   zIsFavouritedCondition,
   zIsArchivedCondition,
@@ -121,6 +136,7 @@ export const zRuleEngineConditionSchema: z.ZodType<RuleEngineCondition> =
       zTitleDoesNotContainCondition,
       zImportedFromFeedCondition,
       zBookmarkTypeIsCondition,
+      zBookmarkSourceIsCondition,
       zHasTagCondition,
       zIsFavouritedCondition,
       zIsArchivedCondition,
@@ -244,6 +260,7 @@ const ruleValidaitorFn = (
     switch (condition.type) {
       case "alwaysTrue":
       case "bookmarkTypeIs":
+      case "bookmarkSourceIs":
       case "isFavourited":
       case "isArchived":
         return true;
