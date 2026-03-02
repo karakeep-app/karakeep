@@ -1983,6 +1983,7 @@ async function crawlAndParseUrl(
         });
 
         transactionCommitted = true;
+        newAssetIds.length = 0;
 
         // Delete the old assets if any
         await Promise.all(assetDeletionTasks.map((t) => t()));
@@ -2022,6 +2023,7 @@ async function crawlAndParseUrl(
                   txn,
                 );
               });
+              newAssetIds.length = 0;
               if (oldFullPageArchiveAssetId) {
                 await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
               }
