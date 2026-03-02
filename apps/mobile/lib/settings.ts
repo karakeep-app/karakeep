@@ -14,7 +14,7 @@ const zSettingsSchema = z.object({
   imageQuality: z.number().optional().default(0.2),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   defaultBookmarkView: z
-    .enum(["reader", "browser"])
+    .enum(["reader", "browser", "externalBrowser"])
     .optional()
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
