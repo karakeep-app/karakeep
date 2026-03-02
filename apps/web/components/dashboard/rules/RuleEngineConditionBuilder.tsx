@@ -228,7 +228,7 @@ export function ConditionBuilder({
               onValueChange={(source) =>
                 onChange({
                   ...value,
-                  source: source as any,
+                  source: source as "api" | "web" | "cli" | "mobile" | "extension" | "singlefile" | "rss" | "import",
                 })
               }
             >
