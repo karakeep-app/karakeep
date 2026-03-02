@@ -118,6 +118,9 @@ export class RuleEngine {
       case "bookmarkTypeIs": {
         return this.bookmark.type === condition.bookmarkType;
       }
+      case "bookmarkSourceIs": {
+        return this.bookmark.source === condition.source;
+      }
       case "hasTag": {
         return this.bookmark.tagsOnBookmarks.some(
           (t) => t.tagId === condition.tagId,
