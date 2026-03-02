@@ -545,13 +545,22 @@ export default function BookmarkCard({
 
   const router = useRouter();
   const { settings } = useAppSettings();
+  const { toast } = useToast();
 
   const onOpenBookmark = (bookmark: ZBookmark) => {
     if (
       bookmark.content.type === BookmarkTypes.LINK &&
       settings.defaultBookmarkView === "externalBrowser"
     ) {
-      void Linking.openURL(bookmark.content.url);
+      void Linking.openURL(bookmark.content.url).catch(() => {
+        toast({
+          message: "Failed to open link",
+          variant: "destructive",
+          showProgress: false,
+        });
+
+        router.push(`/dashboard/bookmarks/${bookmark.id}`);
+      });
       return;
     }
 
