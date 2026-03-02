@@ -125,7 +125,6 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
             variant: "destructive",
             showProgress: false,
           });
-          router.push(`/dashboard/bookmarks/${bookmark.id}`);
         }
       },
       disabled: false,
