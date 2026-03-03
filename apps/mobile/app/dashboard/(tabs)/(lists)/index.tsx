@@ -247,7 +247,7 @@ export default function Lists() {
                   }));
                 }}
               >
-                <Text>
+                <Text className="mr-2 flex-1" numberOfLines={1}>
                   {l.item.logo} {l.item.name}
                 </Text>
               </Pressable>

@@ -121,7 +121,9 @@ export default function Home() {
                 <Search size={16} color={styles?.color?.toString()} />
               )}
             />
-            <Text className="text-muted">Search</Text>
+            <Text className="flex-1 text-muted" numberOfLines={1}>
+              Search
+            </Text>
           </Pressable>
         }
       />
