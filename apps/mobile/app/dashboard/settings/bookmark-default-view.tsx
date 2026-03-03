@@ -38,10 +38,12 @@ export default function BookmarkDefaultViewSettings() {
       return [
         <Pressable
           onPress={() => handleUpdate(mode)}
-          className="flex flex-row justify-between"
+          className="flex flex-row items-center justify-between"
           key={mode}
         >
-          <Text>{{ browser: "Browser", reader: "Reader" }[mode]}</Text>
+          <Text className="mr-2 flex-1" numberOfLines={1}>
+            {{ browser: "Browser", reader: "Reader" }[mode]}
+          </Text>
           {isChecked && <Check color="rgb(0, 122, 255)" />}
         </Pressable>,
         <Divider

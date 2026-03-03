@@ -125,18 +125,18 @@ export default function Settings() {
       >
         <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
           <Link asChild href="/dashboard/settings/theme" className="flex-1">
-            <Pressable className="flex flex-row justify-between">
-              <Text>Theme</Text>
-              <View className="flex flex-row items-center gap-2">
-                <Text className="text-muted-foreground">
-                  {
-                    { light: "Light", dark: "Dark", system: "System" }[
-                      settings.theme
-                    ]
-                  }
-                </Text>
-                <ChevronRight />
-              </View>
+            <Pressable className="flex flex-row items-center">
+              <Text className="mr-2 flex-1" numberOfLines={1}>
+                Theme
+              </Text>
+              <Text className="mr-1 text-muted-foreground" numberOfLines={1}>
+                {
+                  { light: "Light", dark: "Dark", system: "System" }[
+                    settings.theme
+                  ]
+                }
+              </Text>
+              <ChevronRight />
             </Pressable>
           </Link>
         </View>
@@ -147,20 +147,20 @@ export default function Settings() {
             href="/dashboard/settings/bookmark-default-view"
             className="flex-1"
           >
-            <Pressable className="flex flex-row justify-between">
-              <Text>Default Bookmark View</Text>
-              <View className="flex flex-row items-center gap-2">
-                {isSettingsLoading ? (
-                  <ActivityIndicator size="small" />
-                ) : (
-                  <Text className="text-muted-foreground">
-                    {settings.defaultBookmarkView === "reader"
-                      ? "Reader"
-                      : "Browser"}
-                  </Text>
-                )}
-                <ChevronRight />
-              </View>
+            <Pressable className="flex flex-row items-center">
+              <Text className="mr-2 flex-1" numberOfLines={1}>
+                Default Bookmark View
+              </Text>
+              {isSettingsLoading ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <Text className="mr-1 text-muted-foreground" numberOfLines={1}>
+                  {settings.defaultBookmarkView === "reader"
+                    ? "Reader"
+                    : "Browser"}
+                </Text>
+              )}
+              <ChevronRight />
             </Pressable>
           </Link>
         </View>
@@ -177,8 +177,10 @@ export default function Settings() {
             href="/dashboard/settings/reader-settings"
             className="flex-1"
           >
-            <Pressable className="flex flex-row justify-between">
-              <Text>Reader Text Settings</Text>
+            <Pressable className="flex flex-row items-center">
+              <Text className="mr-2 flex-1" numberOfLines={1}>
+                Reader Text Settings
+              </Text>
               <ChevronRight />
             </Pressable>
           </Link>
@@ -315,22 +317,31 @@ export default function Settings() {
         style={{ borderCurve: "continuous" }}
       >
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="text-muted-foreground">Server</Text>
-          <Text className="text-sm text-muted-foreground">
+          <Text className="shrink-0 text-muted-foreground">Server</Text>
+          <Text
+            className="flex-1 text-right text-sm text-muted-foreground"
+            numberOfLines={1}
+          >
             {isSettingsLoading ? "Loading..." : settings.address}
           </Text>
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="text-muted-foreground">App Version</Text>
-          <Text className="text-sm text-muted-foreground">
+          <Text className="shrink-0 text-muted-foreground">App Version</Text>
+          <Text
+            className="flex-1 text-right text-sm text-muted-foreground"
+            numberOfLines={1}
+          >
             {Constants.expoConfig?.version ?? "unknown"}
           </Text>
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="text-muted-foreground">Server Version</Text>
-          <Text className="text-sm text-muted-foreground">
+          <Text className="shrink-0 text-muted-foreground">Server Version</Text>
+          <Text
+            className="flex-1 text-right text-sm text-muted-foreground"
+            numberOfLines={1}
+          >
             {isServerVersionLoading
               ? "Loading..."
               : serverVersionError
