@@ -1808,11 +1808,8 @@ async function crawlAndParseUrl(
           if (!date) {
             return null;
           }
-          try {
-            return new Date(date);
-          } catch {
-            return null;
-          }
+          const parsed = new Date(date);
+          return Number.isNaN(parsed.getTime()) ? null : parsed;
         };
 
         // Phase 1: Write metadata immediately for fast user feedback.
@@ -1836,19 +1833,18 @@ async function crawlAndParseUrl(
 
         let readableContent = parsedReadableContent;
 
-        const screenshotAssetInfo = await Promise.race([
-          storeScreenshot(screenshot, userId, jobId),
-          abortPromise(abortSignal),
-        ]);
+        abortSignal.throwIfAborted();
+        const screenshotAssetInfo = await storeScreenshot(
+          screenshot,
+          userId,
+          jobId,
+        );
         if (screenshotAssetInfo) {
           newAssetIds.push(screenshotAssetInfo.assetId);
         }
         abortSignal.throwIfAborted();
 
-        const pdfAssetInfo = await Promise.race([
-          storePdf(pdf, userId, jobId),
-          abortPromise(abortSignal),
-        ]);
+        const pdfAssetInfo = await storePdf(pdf, userId, jobId);
         if (pdfAssetInfo) {
           newAssetIds.push(pdfAssetInfo.assetId);
         }
@@ -2008,21 +2004,26 @@ async function crawlAndParseUrl(
                 contentType,
               } = archiveResult;
 
-              await db.transaction(async (txn) => {
-                await updateAsset(
-                  oldFullPageArchiveAssetId,
-                  {
-                    id: fullPageArchiveAssetId,
-                    bookmarkId,
-                    userId,
-                    assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-                    contentType,
-                    size,
-                    fileName: null,
-                  },
-                  txn,
-                );
-              });
+              try {
+                await db.transaction(async (txn) => {
+                  await updateAsset(
+                    oldFullPageArchiveAssetId,
+                    {
+                      id: fullPageArchiveAssetId,
+                      bookmarkId,
+                      userId,
+                      assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+                      contentType,
+                      size,
+                      fileName: null,
+                    },
+                    txn,
+                  );
+                });
+              } catch (e) {
+                await silentDeleteAsset(userId, fullPageArchiveAssetId);
+                throw e;
+              }
               newAssetIds.length = 0;
               if (oldFullPageArchiveAssetId) {
                 await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
