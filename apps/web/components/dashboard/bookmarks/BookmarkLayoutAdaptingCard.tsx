@@ -23,7 +23,6 @@ import {
   Image as ImageIcon,
   MousePointer2,
   NotebookPen,
-  Plus,
   Rss,
 } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -411,7 +410,7 @@ function GridView({
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle bookmark={bookmark} className="left-2 top-2" />
       <HoverActionBar bookmark={bookmark} />
-      <div className="absolute right-2 top-2 z-40">
+      <div className="absolute right-10 top-2 z-40">
         <SourceIndicator bookmark={bookmark} />
       </div>
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
