@@ -1601,15 +1601,22 @@ async function handleAsAssetBookmark(
           await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
         });
         assetPersisted = true;
-        await AssetPreprocessingQueue.enqueue(
-          {
-            bookmarkId,
-            fixMode: false,
-          },
-          {
-            groupId: userId,
-          },
-        );
+        try {
+          await AssetPreprocessingQueue.enqueue(
+            {
+              bookmarkId,
+              fixMode: false,
+            },
+            {
+              groupId: userId,
+            },
+          );
+        } catch (enqueueError) {
+          logger.error(
+            `[Crawler][${jobId}] Asset bookmark ${downloadedAssetId} persisted, but preprocessing enqueue failed: ${enqueueError}`,
+          );
+          return;
+        }
       } catch (error) {
         if (downloadedAssetId && !assetPersisted) {
           logger.error(
