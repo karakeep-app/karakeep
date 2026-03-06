@@ -59,7 +59,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@types/archiver": "^7.0.0",
     "@types/jsdom": "^21.1.6",
     "@types/node-cron": "^3.0.11",
@@ -72,9 +71,8 @@
     "build:watch": "tsdown --watch",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --ignore-path ../../.prettierignore --write",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "typecheck": "tsc --noEmit"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

@@ -1,10 +1,11 @@
-import { Alert, Platform } from "react-native";
+import { Alert, Platform, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useArchiveFilter } from "@/lib/hooks";
+import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Ellipsis } from "lucide-react-native";
@@ -60,6 +61,7 @@ function ListActionsMenu({
   role: ZBookmarkList["userRole"];
 }) {
   const api = useTRPC();
+  const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const { mutate: deleteList } = useMutation(
     api.lists.delete.mutationOptions({
       onSuccess: () => {
@@ -118,9 +120,15 @@ function ListActionsMenu({
           attributes: {
             hidden: role !== "owner",
           },
+          image: Platform.select({
+            ios: "square.and.pencil",
+          }),
+          imageColor: Platform.select({
+            ios: menuIconColor,
+          }),
         },
         {
-          id: "delete",
+          id: "delete_list",
           title: "Delete List",
           attributes: {
             destructive: true,
@@ -128,6 +136,9 @@ function ListActionsMenu({
           },
           image: Platform.select({
             ios: "trash",
+          }),
+          imageColor: Platform.select({
+            ios: destructiveMenuIconColor,
           }),
         },
         {
@@ -137,10 +148,16 @@ function ListActionsMenu({
             destructive: true,
             hidden: role === "owner",
           },
+          image: Platform.select({
+            ios: "arrowshape.turn.up.left",
+          }),
+          imageColor: Platform.select({
+            ios: destructiveMenuIconColor,
+          }),
         },
       ]}
       onPressAction={({ nativeEvent }) => {
-        if (nativeEvent.event === "delete") {
+        if (nativeEvent.event === "delete_list") {
           handleDelete();
         } else if (nativeEvent.event === "leave") {
           handleLeave();
@@ -150,7 +167,9 @@ function ListActionsMenu({
       }}
       shouldOpenOnLongPress={false}
     >
-      <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+      <View className="my-auto px-4">
+        <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+      </View>
     </MenuView>
   );
 }

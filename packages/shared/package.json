@@ -18,7 +18,6 @@
     "zod-to-json-schema": "^3.24.3"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/html-to-text": "^9.0.4",
     "@types/nodemailer": "^6.4.17",
@@ -27,12 +26,11 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "test": "vitest"
   },
-  "main": "index.ts",
-  "prettier": "@karakeep/prettier-config"
+  "main": "index.ts"
 }

@@ -46,12 +46,7 @@ function AISummary({
     <div className="w-full p-1">
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
-        className={`
-          relative overflow-hidden rounded-lg p-4
-          transition-all duration-300 ease-in-out
-          ${isExpanded ? "h-auto" : "cursor-pointer"}
-          bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 p-[2px]
-        `}
+        className={`relative overflow-hidden rounded-lg p-4 transition-all duration-300 ease-in-out ${isExpanded ? "h-auto" : "cursor-pointer"} border border-muted-foreground/20 p-[2px]`}
         onClick={() => !isExpanded && setIsExpanded(true)}
       >
         <div className="h-full rounded-lg bg-accent p-2">
@@ -142,18 +137,13 @@ export default function SummarizeBookmarkArea({
       <div className="flex w-full items-center gap-4">
         <ActionButton
           onClick={() => mutate({ bookmarkId: bookmark.id })}
+          variant="secondary"
           className={cn(
-            `relative w-full overflow-hidden bg-opacity-30 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 text-gray-50 transition-all duration-300`,
+            `w-full text-muted-foreground transition-all duration-300 hover:text-foreground`,
           )}
           loading={isPending}
         >
-          {isPending && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-full w-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500"></div>
-              <LoadingSpinner className="absolute h-5 w-5 text-white" />
-            </div>
-          )}
-          <span className="relative z-10 flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5">
             {t("actions.summarize_with_ai")}
             <Sparkles className="size-4" />
           </span>

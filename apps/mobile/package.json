@@ -8,8 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "format": "prettier . --cache --check",
-    "format:fix": "prettier . --cache --write",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit"
@@ -76,15 +76,12 @@
   },
   "devDependencies": {
     "@babel/core": "~7.26.0",
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/react": "^19.2.14",
     "ajv": "latest",
-    "prettier": "^3.4.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9"
   },
-  "private": true,
-  "prettier": "@karakeep/prettier-config"
+  "private": true
 }

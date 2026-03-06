@@ -1,9 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Modal,
   Pressable,
   ScrollView,
   Switch,
+  TextInput,
   View,
 } from "react-native";
 import { Slider } from "react-native-awesome-slider";
@@ -17,7 +20,7 @@ import { Text } from "@/components/ui/Text";
 import { useServerVersion } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
 import useAppSettings from "@/lib/settings";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
@@ -52,6 +55,53 @@ export default function Settings() {
     isLoading: isServerVersionLoading,
     error: serverVersionError,
   } = useServerVersion();
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState("");
+
+  const { mutate: deleteAccount, isPending: isDeleting } = useMutation(
+    api.users.deleteAccount.mutationOptions({
+      onSuccess: () => {
+        setShowPasswordModal(false);
+        setPassword("");
+        Alert.alert(
+          "Account Deleted",
+          "Your account has been successfully deleted.",
+          [{ text: "OK", onPress: logout }],
+        );
+      },
+      onError: (e) => {
+        if (e.data?.code === "UNAUTHORIZED") {
+          Alert.alert("Error", "Invalid password. Please try again.");
+        } else {
+          Alert.alert("Error", "Failed to delete account. Please try again.");
+        }
+      },
+    }),
+  );
+
+  const isLocalUser = data?.localUser ?? false;
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? All your bookmarks, lists, tags, highlights, and other data will be permanently deleted. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            if (isLocalUser) {
+              setShowPasswordModal(true);
+            } else {
+              deleteAccount({});
+            }
+          },
+        },
+      ],
+    );
+  };
 
   if (error?.data?.code === "UNAUTHORIZED") {
     logout();
@@ -188,7 +238,76 @@ export default function Settings() {
         >
           <Text className="text-destructive">Log Out</Text>
         </Pressable>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <Pressable
+          className="flex flex-row items-center px-4 py-1"
+          onPress={handleDeleteAccount}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Text className="text-destructive">Delete Account</Text>
+          )}
+        </Pressable>
       </View>
+
+      <Modal
+        visible={showPasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowPasswordModal(false);
+          setPassword("");
+        }}
+      >
+        <Pressable
+          className="flex-1 items-center justify-center bg-black/50"
+          onPress={() => {
+            setShowPasswordModal(false);
+            setPassword("");
+          }}
+        >
+          <Pressable className="mx-8 w-full max-w-sm rounded-2xl bg-card p-6">
+            <Text className="mb-2 text-lg font-bold">Enter Password</Text>
+            <Text className="mb-4 text-sm text-muted-foreground">
+              Please enter your password to confirm account deletion.
+            </Text>
+            <TextInput
+              className="mb-4 rounded-lg border border-input bg-background px-3 py-2 text-foreground"
+              placeholder="Password"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              autoFocus
+            />
+            <View className="flex flex-row justify-end gap-3">
+              <Pressable
+                className="rounded-lg px-4 py-2"
+                onPress={() => {
+                  setShowPasswordModal(false);
+                  setPassword("");
+                }}
+              >
+                <Text className="text-muted-foreground">Cancel</Text>
+              </Pressable>
+              <Pressable
+                className="rounded-lg bg-destructive px-4 py-2"
+                onPress={() => deleteAccount({ password })}
+                disabled={isDeleting || !password}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="font-medium text-destructive-foreground">
+                    Delete
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <SectionHeader title="About" />
       <View

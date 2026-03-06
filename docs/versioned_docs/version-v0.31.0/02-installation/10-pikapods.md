@@ -14,7 +14,7 @@ for less technical users. As of Nov 2024, running Karakeep there will cost you ~
 
 ### 1. Choose app
 
-Choose _Karakeep_ from their [list of apps](https://www.pikapods.com/apps) or use this [direct link](https://www.pikapods.com/pods?run=hoarder). This will either
+Choose _Karakeep_ from their [list of apps](https://www.pikapods.com/apps) or use this [direct link](https://www.pikapods.com/pods?run=karakeep). This will either
 open a new dialog to add a new _Karakeep_ pod or ask you to log in.
 
 ### 2. Add settings

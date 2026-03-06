@@ -461,17 +461,20 @@ async function connectTags(
     const allTagIds = new Set([...matchedTagIds, ...newTagIds]);
 
     // Attach new ones
-    const attachedTags = await tx
-      .insert(tagsOnBookmarks)
-      .values(
-        [...allTagIds].map((tagId) => ({
-          tagId,
-          bookmarkId,
-          attachedBy: "ai" as const,
-        })),
-      )
-      .onConflictDoNothing()
-      .returning();
+    let attachedTags: { tagId: string; bookmarkId: string }[] = [];
+    if (allTagIds.size > 0) {
+      attachedTags = await tx
+        .insert(tagsOnBookmarks)
+        .values(
+          [...allTagIds].map((tagId) => ({
+            tagId,
+            bookmarkId,
+            attachedBy: "ai" as const,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning();
+    }
 
     return { detachedTags, attachedTags };
   });

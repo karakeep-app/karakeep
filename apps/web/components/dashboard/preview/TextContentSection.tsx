@@ -28,9 +28,11 @@ export function TextContentSection({ bookmark }: { bookmark: ZBookmark }) {
           />
         </div>
       )}
-      <BookmarkMarkdownComponent>
-        {bookmark as ZBookmarkTypeText}
-      </BookmarkMarkdownComponent>
+      <div className="mx-auto max-w-3xl px-4 py-4">
+        <BookmarkMarkdownComponent>
+          {bookmark as ZBookmarkTypeText}
+        </BookmarkMarkdownComponent>
+      </div>
     </ScrollArea>
   );
 }

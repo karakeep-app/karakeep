@@ -8,6 +8,7 @@ import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
+import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus, Search } from "lucide-react-native";
 import { toast as sonnerToast } from "sonner-native";
@@ -18,6 +19,7 @@ function HeaderRight({
   openNewBookmarkModal: () => void;
 }) {
   const { settings } = useAppSettings();
+  const { menuIconColor } = useMenuIconColors();
   const uploadToastIdRef = useRef<string | number | null>(null);
   const { uploadAsset } = useUploadAsset(settings, {
     onSuccess: () => {
@@ -63,7 +65,10 @@ function HeaderRight({
           id: "new",
           title: "New Bookmark",
           image: Platform.select({
-            ios: "note.text",
+            ios: "square.and.pencil",
+          }),
+          imageColor: Platform.select({
+            ios: menuIconColor,
           }),
         },
         {
@@ -71,6 +76,9 @@ function HeaderRight({
           title: "Photo Library",
           image: Platform.select({
             ios: "photo",
+          }),
+          imageColor: Platform.select({
+            ios: menuIconColor,
           }),
         },
       ]}

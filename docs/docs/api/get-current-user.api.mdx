@@ -1,0 +1,63 @@
+---
+id: get-current-user
+title: "Get current user info"
+description: "Retrieve profile information for the currently authenticated user, including their name, email, and avatar."
+sidebar_label: "Get current user info"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VcGO20YM/RWCObQ1tPam6EmHAk7bBGlyCJJdFMVmAdMSLU08mpnMUN51DQH9iH5hv6TgSOu1sznk1JOEGQ75SD4+HtAHjiTGu9c1ltiw/NLHyE6uE0cssOZURRPUAEt8zxIN7xhC9BtjGYzb+Njl97DxEaRlqEYHdg/US8tOTEXCNfSJYwHGVbavjWvU1kRw1HEB3JGxBZCrgXYkFOdYoFCTsLxBhZLwtsDEVR+N7LG8OeCaKXJc9tJieXM73BYYOQXvEicsD/jj5aV+zvFfPcLLcL5LX8tEY1feCTtRFxSC1RSMd4tPSf0cMFUtd6R/sg+MJfr1J64ECwxRKypmRGHqE5sk0bgGhwI16acXBbreWlpbxlJiz0OBuS7fZGk6ar7Np/UV2dzeR+u195bJ4TBoGT/3JnKtpTc1nj64HQa1+Ony+dPaXjttt4/mL67h37//yVx4kZsE4rfswCToTErGNUqDHVlTF+Aj8H3QeF+UXfheFsGS+XrBj/nxPXVB0ztDgMMItWNp/cRs7Q4pXXChzU+LjlFJFXfKL+VUHy2WeKC6jpzSsKBgFrvnWOCOotEi5qZO12MJNtRbwRJbkZDKxULifr6lSFvmMKcQnsyQcnDyAH6Tq/RmsocRi2I/YfsHTX2MfMr5YyU0suaRzbSX2QiL6edlpjWW+PsfV7m/ynR9rlmPkJ7PL+eXOnBGciGPeJbvXj/Bf7w0CQgS281F65NodWDt/bajuNXx1lmOTPWFkQtLwjFnZyqew1VrkvoGstbfJdj7HsRDR46aRyepAGuSpAJUCApoTdNa07R6Qilx/roa1lRt+5AnuYnU6QxXZO1+/tF9dM+ewfJRhYx3eri0FtjVwRsnCSa+A52zNWiMGozLLVotJ2plJytomWqOc/jT91CRg4ad6igDuZzZlvewib477+8dr+H6NfSu5giz2QcWMa5J8HN+84b3aTZ7gP2OGuOOkN+aJCeYUx+Cj6Jilny8WJNCDccXsDMEq/FylYu0sqYzsoLPPcc9BIrUsXBM2gyGB+Wc1Jm1syvH97oMsouNYTtOtZYFjAClsS4PQY4utZMblqrN9+pEgfEclrBSLVrBjmzPeV2cxTCuzpsiO9Z+RAbnofMxA+ytpIfavJgoAlf7wEkPH05S7saawTsexysyg05KKj+6C5jNrHHb2SznsoTr92+PfIM7Iy34zHOyUEW6s1xDx0I1Cc3H5ypLx+dZnkCPwHnhySST88HGQR+sp5pryHvm+yzUKnvvfn35w1y3QfBJOsoyNy4GfMVytqfydvpyEg+Pavl/L+ZReE4UeihG7TxMCnuDWWFRBVg3tyqEnh4OStXraIdBjzMbdX0/Kmxe5gWO85VFect7LHFZVRwkS7HtNfqTtayaeZT7V79dYYF0rpRfKGP2Pl2R25/4PhxGiytVgmHAYgKRlQEHXYP/ATixQLA=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get current user info"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/users/me"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve profile information for the currently authenticated user, including their name, email, and avatar.
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The current user's profile information.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string","nullable":true},"email":{"type":"string","nullable":true},"image":{"type":"string","nullable":true},"localUser":{"type":"boolean"}},"required":["id","localUser"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

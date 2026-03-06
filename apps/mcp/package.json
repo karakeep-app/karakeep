@@ -14,7 +14,6 @@
     "karakeep-mcp": "dist/index.js"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/turndown": "^5.0.5",
@@ -27,8 +26,8 @@
     "run": "tsx src/index.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
@@ -36,7 +35,6 @@
     "url": "git+https://github.com/karakeep-app/karakeep.git",
     "directory": "apps/mcp"
   },
-  "prettier": "@karakeep/prettier-config",
   "dependencies": {
     "@karakeep/sdk": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.9.0",

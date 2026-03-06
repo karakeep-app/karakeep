@@ -11,8 +11,8 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit"
@@ -25,10 +25,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "prettier": "^3.4.2",
     "typescript": "^5.9"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

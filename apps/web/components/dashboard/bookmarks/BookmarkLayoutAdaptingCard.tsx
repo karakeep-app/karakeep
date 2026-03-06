@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
 import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import useBulkActionsStore from "@/lib/bulkActions";
+import { useClientConfig } from "@/lib/clientConfig";
+import { useTranslation } from "@/lib/i18n/client";
 import {
   bookmarkLayoutSwitch,
   useBookmarkDisplaySettings,
@@ -22,9 +24,11 @@ import {
   NotebookPen,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
+import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
@@ -36,6 +40,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 import BookmarkActionBar from "./BookmarkActionBar";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
 import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
+import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
 import { NotePreview } from "./NotePreview";
 import TagList from "./TagList";
 
@@ -214,11 +219,66 @@ function DragHandle({
       draggable
       onDragStart={handleDragStart}
       className={cn(
-        "absolute z-40 cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100",
+        "absolute z-40 hidden cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100 [@media(pointer:fine)]:block",
         className,
       )}
     >
       <GripVertical className="size-4 text-muted-foreground" />
+    </div>
+  );
+}
+
+function HoverActionBar({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
+  const { isBulkEditEnabled } = useBulkActionsStore();
+  const { data: session } = useSession();
+  const demoMode = !!useClientConfig().demoMode;
+  const updateBookmarkMutator = useUpdateBookmark({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.updated"));
+    },
+    onError: () => {
+      toast.error(t("common.something_went_wrong"));
+    },
+  });
+
+  const isOwner = session?.user?.id === bookmark.userId;
+  if (!isOwner || isBulkEditEnabled || demoMode) return null;
+
+  return (
+    <div className="pointer-events-none absolute right-2 top-2 z-30 hidden gap-1 rounded bg-white/50 p-1 opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 dark:bg-black/50 [@media(pointer:fine)]:pointer-events-auto [@media(pointer:fine)]:flex">
+      <button
+        title={
+          bookmark.favourited ? t("actions.unfavorite") : t("actions.favorite")
+        }
+        className="rounded p-0.5 hover:bg-background/50"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          updateBookmarkMutator.mutate({
+            bookmarkId: bookmark.id,
+            favourited: !bookmark.favourited,
+          });
+        }}
+      >
+        <FavouritedActionIcon favourited={bookmark.favourited} size={16} />
+      </button>
+      <button
+        title={
+          bookmark.archived ? t("actions.unarchive") : t("actions.archive")
+        }
+        className="rounded p-0.5 hover:bg-background/50"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          updateBookmarkMutator.mutate({
+            bookmarkId: bookmark.id,
+            archived: !bookmark.archived,
+          });
+        }}
+      >
+        <ArchivedActionIcon archived={bookmark.archived} size={16} />
+      </button>
     </div>
   );
 }
@@ -252,6 +312,7 @@ function ListView({
         bookmark={bookmark}
         className="left-1 top-1/2 -translate-y-1/2"
       />
+      <HoverActionBar bookmark={bookmark} />
       <div className="flex size-32 items-center justify-center overflow-hidden">
         {image("list", cn("size-32 rounded-lg", imgFitClass))}
       </div>
@@ -313,6 +374,7 @@ function GridView({
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle bookmark={bookmark} className="left-2 top-2" />
+      <HoverActionBar bookmark={bookmark} />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
       <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
@@ -351,10 +413,6 @@ function CompactView({ bookmark, title, footer, className }: Props) {
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
-      <DragHandle
-        bookmark={bookmark}
-        className="left-0.5 top-1/2 -translate-y-1/2"
-      />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
           {bookmark.content.type === BookmarkTypes.LINK &&

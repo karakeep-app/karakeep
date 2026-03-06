@@ -1,0 +1,54 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "sortTailwindcss": {
+    "config": "tooling/tailwind/web.ts",
+    "functions": [
+      "cn",
+      "cva"
+    ]
+  },
+  "importOrder": [
+    "<TYPES>",
+    "^(react/(.*)$)|^(react$)|^(react-native(.*)$)",
+    "^(next/(.*)$)|^(next$)",
+    "^(expo(.*)$)|^(expo$)",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "<TYPES>^@karakeep",
+    "^@karakeep/(.*)$",
+    "",
+    "<TYPES>^[.|..|~]",
+    "^~/",
+    "^[../]",
+    "^[./]"
+  ],
+  "importOrderParserPlugins": [
+    "typescript",
+    "jsx",
+    "decorators-legacy"
+  ],
+  "importOrderTypeScriptVersion": "4.4.0",
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    ".next",
+    "build",
+    "coverage",
+    ".vscode*",
+    "node_modules",
+    "dist",
+    "*.md",
+    "*.json",
+    ".env",
+    ".env.*",
+    "**/migrations/**",
+    "packages/open-api/karakeep-openapi-spec.json",
+    "apps/web/public/workbox-*.js",
+    "pnpm-lock.yaml",
+    "package-lock.json",
+    "yarn.lock",
+    "**/.expo/**",
+    "apps/mobile/android",
+    "apps/mobile/ios"
+  ]
+}

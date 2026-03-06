@@ -109,24 +109,18 @@ export function buildRunnerService<T, R>(
         ctx: restate.Context,
         data: { job: RunnerJobData<T>; result: R },
       ): Promise<void> => {
-        await ctx.run(
-          "onComplete",
-          async () => {
-            await funcs.onComplete?.(
-              {
-                id: data.job.id,
-                data: data.job.data,
-                priority: data.job.priority,
-                runNumber: data.job.runNumber,
-                abortSignal: AbortSignal.timeout(data.job.timeoutSecs * 1000),
-              },
-              data.result,
-            );
-          },
-          {
-            maxRetryAttempts: 1,
-          },
-        );
+        await ctx.run("onComplete", async () => {
+          await funcs.onComplete?.(
+            {
+              id: data.job.id,
+              data: data.job.data,
+              priority: data.job.priority,
+              runNumber: data.job.runNumber,
+              abortSignal: AbortSignal.timeout(data.job.timeoutSecs * 1000),
+            },
+            data.result,
+          );
+        });
       },
 
       onError: async (
@@ -142,22 +136,16 @@ export function buildRunnerService<T, R>(
           },
         );
 
-        await ctx.run(
-          "onError",
-          async () => {
-            await funcs.onError?.({
-              id: data.job.id,
-              data: data.job.data,
-              priority: data.job.priority,
-              runNumber: data.job.runNumber,
-              numRetriesLeft: data.job.numRetriesLeft,
-              error: reconstructedError,
-            });
-          },
-          {
-            maxRetryAttempts: 1,
-          },
-        );
+        await ctx.run("onError", async () => {
+          await funcs.onError?.({
+            id: data.job.id,
+            data: data.job.data,
+            priority: data.job.priority,
+            runNumber: data.job.runNumber,
+            numRetriesLeft: data.job.numRetriesLeft,
+            error: reconstructedError,
+          });
+        });
       },
     },
   });

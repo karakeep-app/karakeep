@@ -15,6 +15,7 @@ import { router, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
+import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { buildApiHeaders } from "@/lib/utils";
 import { MenuView } from "@react-native-menu/menu";
 import { useQuery } from "@tanstack/react-query";
@@ -46,6 +47,7 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
   const { toast } = useToast();
   const { settings } = useAppSettings();
   const { data: currentUser } = useWhoAmI();
+  const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
 
   // Check if the current user owns this bookmark
   const isOwner = currentUser?.id === bookmark.userId;
@@ -196,12 +198,18 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         image: Platform.select({
           ios: "pencil",
         }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
+        }),
       },
       {
         id: "manage_list",
         title: "Manage Lists",
         image: Platform.select({
           ios: "list.bullet",
+        }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
         }),
       },
       {
@@ -210,12 +218,18 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         image: Platform.select({
           ios: "tag",
         }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
+        }),
       },
       {
         id: "archive",
         title: bookmark.archived ? "Un-archive" : "Archive",
         image: Platform.select({
           ios: "folder",
+        }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
         }),
       },
       {
@@ -226,6 +240,9 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         },
         image: Platform.select({
           ios: "trash",
+        }),
+        imageColor: Platform.select({
+          ios: destructiveMenuIconColor,
         }),
       },
     );

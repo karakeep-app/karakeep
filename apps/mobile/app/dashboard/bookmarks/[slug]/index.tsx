@@ -93,7 +93,7 @@ export default function BookmarkView() {
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
-              <View className="flex-row items-center gap-3">
+              <View className="flex-row items-center gap-3 px-4">
                 {bookmarkLinkType === "reader" && (
                   <Pressable
                     onPress={() =>

@@ -1,8 +1,9 @@
 import { useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
-import { Text } from "@/components/ui/Text";
+import EmptyState from "@/components/ui/EmptyState";
 import { useScrollToTop } from "@react-navigation/native";
+import { Bookmark } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
@@ -39,9 +40,11 @@ export default function BookmarkList({
       }}
       renderItem={(b) => <BookmarkCard bookmark={b.item} />}
       ListEmptyComponent={
-        <View className="items-center justify-center pt-4">
-          <Text variant="title3">No Bookmarks</Text>
-        </View>
+        <EmptyState
+          icon={Bookmark}
+          title="No Bookmarks"
+          subtitle="Your saved bookmarks will appear here"
+        />
       }
       data={bookmarks}
       refreshing={isRefreshing}

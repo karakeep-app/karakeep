@@ -118,6 +118,24 @@ function abortPromise(signal: AbortSignal): Promise<never> {
 }
 
 /**
+ * Redact sensitive query parameters (e.g., tokens) from a URL for safe logging.
+ */
+function redactUrlCredentials(url: string): string {
+  try {
+    const parsed = new URL(url);
+    for (const key of parsed.searchParams.keys()) {
+      parsed.searchParams.set(key, "REDACTED");
+    }
+    if (parsed.password) {
+      parsed.password = "REDACTED";
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Normalize a Content-Type header by stripping parameters (e.g., charset)
  * and lowercasing the media type, so comparisons against supported types work.
  */
@@ -266,28 +284,24 @@ function startContextReaper() {
 async function startBrowserInstance() {
   if (serverConfig.crawler.browserWebSocketUrl) {
     logger.info(
-      `[Crawler] Connecting to existing browser websocket address: ${serverConfig.crawler.browserWebSocketUrl}`,
+      `[Crawler] Connecting to existing browser websocket address: ${redactUrlCredentials(serverConfig.crawler.browserWebSocketUrl)}`,
     );
     return await chromium.connect(serverConfig.crawler.browserWebSocketUrl, {
-      // Important: using slowMo to ensure stability with remote browser
-      slowMo: 100,
       timeout: 5000,
     });
   } else if (serverConfig.crawler.browserWebUrl) {
     logger.info(
-      `[Crawler] Connecting to existing browser instance: ${serverConfig.crawler.browserWebUrl}`,
+      `[Crawler] Connecting to existing browser instance: ${redactUrlCredentials(serverConfig.crawler.browserWebUrl)}`,
     );
 
     const webUrl = new URL(serverConfig.crawler.browserWebUrl);
     const { address } = await dns.promises.lookup(webUrl.hostname);
     webUrl.hostname = address;
     logger.info(
-      `[Crawler] Successfully resolved IP address, new address: ${webUrl.toString()}`,
+      `[Crawler] Successfully resolved IP address, new address: ${redactUrlCredentials(webUrl.toString())}`,
     );
 
     return await chromium.connectOverCDP(webUrl.toString(), {
-      // Important: using slowMo to ensure stability with remote browser
-      slowMo: 100,
       timeout: 5000,
     });
   } else {
@@ -2001,7 +2015,7 @@ async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
       }
 
       const hostname = new URL(url).hostname;
-      const rateLimitResult = rateLimitClient.checkRateLimit(
+      const rateLimitResult = await rateLimitClient.checkRateLimit(
         {
           name: "domain-ratelimit",
           maxRequests: crawlerDomainRateLimitConfig.maxRequests,

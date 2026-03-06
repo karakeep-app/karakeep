@@ -70,6 +70,7 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
       <PopoverContent
         side={isMobile ? "bottom" : "top"}
         className="w-80 space-y-3 p-3"
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div>
           <label className="mb-2 block text-sm font-medium">Color</label>

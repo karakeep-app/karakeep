@@ -13,8 +13,8 @@
     "lint:fix": "oxlint . --fix",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --cache --check . --ignore-path ../../.gitignore",
-    "format:fix": "prettier --cache --write . --ignore-path ../../.gitignore"
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt ."
   },
   "dependencies": {
     "@auth/drizzle-adapter": "~1.5.0",
@@ -77,7 +77,6 @@
     "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
     "nuqs": "^2.4.3",
-    "prettier": "^3.4.2",
     "react": "^19.2.1",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.2.1",
@@ -104,7 +103,6 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@next/bundle-analyzer": "15.3.8",
@@ -119,6 +117,5 @@
     "tailwindcss": "^3.4.1",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^3.2.4"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

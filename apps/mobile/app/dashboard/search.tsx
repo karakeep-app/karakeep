@@ -39,25 +39,18 @@ export default function Search() {
     queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
   };
 
-  const {
-    data,
-    error,
-    refetch,
-    isPending,
-    isFetching,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery(
-    api.bookmarks.searchBookmarks.infiniteQueryOptions(
-      { text: query },
-      {
-        placeholderData: keepPreviousData,
-        gcTime: 0,
-        initialCursor: null,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      },
-    ),
-  );
+  const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery(
+      api.bookmarks.searchBookmarks.infiniteQueryOptions(
+        { text: query },
+        {
+          placeholderData: keepPreviousData,
+          gcTime: 0,
+          initialCursor: null,
+          getNextPageParam: (lastPage) => lastPage.nextCursor,
+        },
+      ),
+    );
 
   const filteredHistory = useMemo(() => {
     if (search.trim().length === 0) {
@@ -122,7 +115,7 @@ export default function Search() {
         onCancel={router.back}
       />
 
-      {isInputFocused ? (
+      {isInputFocused && search.trim().length === 0 ? (
         <FlatList
           data={filteredHistory}
           renderItem={renderHistoryItem}
@@ -146,7 +139,7 @@ export default function Search() {
           }
           keyboardShouldPersistTaps="handled"
         />
-      ) : isFetching && query.length > 0 ? (
+      ) : isPending && query.length > 0 ? (
         <FullPageSpinner />
       ) : data && query.length > 0 ? (
         <BookmarkList
