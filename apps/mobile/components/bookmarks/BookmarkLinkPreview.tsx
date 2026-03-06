@@ -1,10 +1,21 @@
-import { useState } from "react";
-import { Pressable, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Platform, Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import { BlurView } from "expo-blur";
+import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
+import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
+import { isIOS26 } from "@/lib/ios";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
@@ -25,10 +36,19 @@ import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
 
+// Standard iOS navigation bar height (points)
+const NAV_BAR_HEIGHT = 44;
+
 export function BookmarkLinkBrowserPreview({
   bookmark,
+  onScrollOffsetChange,
+  contentInsetTop = 0,
+  contentInsetBottom = 0,
 }: {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
+  contentInsetTop?: number;
+  contentInsetBottom?: number;
 }) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -39,6 +59,9 @@ export function BookmarkLinkBrowserPreview({
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
       source={{ uri: bookmark.content.url }}
+      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+      automaticallyAdjustContentInsets={false}
+      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
     />
   );
 }
@@ -67,14 +90,114 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
+// Gap below the transparent header, used for positioning both the
+// continue-reading pill and the progress bar.
+const BANNER_GAP = 8;
+
+const pillStyle = {
+  flexDirection: "row" as const,
+  alignItems: "center" as const,
+  borderRadius: 22,
+  paddingVertical: 8,
+  paddingLeft: 14,
+  paddingRight: 8,
+  gap: 8,
+};
+
+function ContinueReadingPill({
+  shouldUseGlassPill,
+  isDark,
+  bannerPercent,
+  onContinue,
+  onDismiss,
+}: {
+  shouldUseGlassPill: boolean;
+  isDark: boolean;
+  bannerPercent: number | null;
+  onContinue: () => void;
+  onDismiss: () => void;
+}) {
+  const pillContent = (
+    <TailwindResolver
+      className="text-muted-foreground"
+      comp={(styles) => {
+        const color = styles?.color?.toString();
+        return (
+          <>
+            <Pressable
+              onPress={onContinue}
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <BookOpen size={14} color={color} />
+              <Text style={{ fontSize: 14, color }}>
+                {bannerPercent && bannerPercent > 0
+                  ? `Continue reading (${bannerPercent}%)`
+                  : "Continue reading"}
+              </Text>
+            </Pressable>
+            <Pressable onPress={onDismiss} hitSlop={8} style={{ padding: 4 }}>
+              <X size={14} color={color} />
+            </Pressable>
+          </>
+        );
+      }}
+    />
+  );
+
+  if (shouldUseGlassPill) {
+    return (
+      <GlassView glassEffectStyle="regular" style={pillStyle}>
+        {pillContent}
+      </GlassView>
+    );
+  }
+
+  if (Platform.OS === "ios") {
+    return (
+      <BlurView
+        tint="systemMaterial"
+        intensity={80}
+        style={{ ...pillStyle, overflow: "hidden" }}
+      >
+        {pillContent}
+      </BlurView>
+    );
+  }
+
+  return (
+    <View
+      style={{
+        ...pillStyle,
+        backgroundColor: isDark ? "#1c1c1e" : "#f2f2f7",
+      }}
+    >
+      {pillContent}
+    </View>
+  );
+}
+
 export function BookmarkLinkReaderPreview({
   bookmark,
+  onScrollOffsetChange,
+  barsVisible = true,
+  contentInsetBottom = 0,
 }: {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
+  barsVisible?: boolean;
+  contentInsetBottom?: number;
 }) {
+  const shouldUseGlassPill = isIOS26 && isGlassEffectAPIAvailable();
+
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const insets = useSafeAreaInsets();
   const api = useTRPC();
+
+  // On iOS 26 the header is transparent, so content extends behind it and we
+  // need to offset by the safe-area top + nav-bar height. On Android / older
+  // iOS the header is opaque — content already starts below it.
+  const headerOffset = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
 
   const {
     data: bookmarkWithContent,
@@ -112,6 +235,36 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
+  const bannerTopHidden = isIOS26 ? insets.top + BANNER_GAP : 0;
+  const bannerTop = useSharedValue(headerOffset + BANNER_GAP);
+  useEffect(() => {
+    bannerTop.value = withTiming(
+      barsVisible ? headerOffset + BANNER_GAP : bannerTopHidden,
+      {
+        duration: 250,
+      },
+    );
+  }, [barsVisible, bannerTop, headerOffset, bannerTopHidden]);
+
+  // Keep the pill mounted during fade-out so it doesn't vanish abruptly.
+  const [bannerMounted, setBannerMounted] = useState(showBanner);
+  const bannerOpacity = useSharedValue(showBanner ? 1 : 0);
+  useEffect(() => {
+    if (showBanner) {
+      setBannerMounted(true);
+      bannerOpacity.value = withTiming(1, { duration: 200 });
+    } else {
+      bannerOpacity.value = withTiming(0, { duration: 200 }, () => {
+        runOnJS(setBannerMounted)(false);
+      });
+    }
+  }, [showBanner, bannerOpacity]);
+
+  const bannerAnimatedStyle = useAnimatedStyle(() => ({
+    top: bannerTop.value,
+    opacity: bannerOpacity.value,
+  }));
+
   if (isLoading) {
     return <FullPageSpinner />;
   }
@@ -129,33 +282,15 @@ export function BookmarkLinkReaderPreview({
     fontSize: `${readerSettings.fontSize}px`,
     lineHeight: String(readerSettings.lineHeight),
     color: isDark ? "#e5e7eb" : "#374151",
-    padding: "16px",
+    paddingTop: `${headerOffset}px`,
+    paddingBottom: `${contentInsetBottom}px`,
+    paddingLeft: "16px",
+    paddingRight: "16px",
     background: isDark ? "#000000" : "#ffffff",
   };
 
   return (
-    <View className="flex-1 bg-background">
-      {showBanner && (
-        <View className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2">
-          <BookOpen size={16} className="text-muted-foreground" />
-          <Text className="flex-1 text-sm text-muted-foreground">
-            {bannerPercent && bannerPercent > 0
-              ? `Continue where you left off (${bannerPercent}%)`
-              : "Continue where you left off"}
-          </Text>
-          <TouchableOpacity
-            onPress={onContinue}
-            className="rounded-md bg-primary px-3 py-1"
-          >
-            <Text className="text-xs font-medium text-primary-foreground">
-              Continue
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onDismiss} className="p-1">
-            <X size={14} className="text-muted-foreground" />
-          </TouchableOpacity>
-        </View>
-      )}
+    <View style={{ flex: 1, backgroundColor: isDark ? "#000000" : "#ffffff" }}>
       <BookmarkHtmlHighlighterDom
         htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
@@ -164,7 +299,15 @@ export function BookmarkLinkReaderPreview({
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
-        onScrollPositionChange={onScrollPositionChange}
+        showProgressBar={isIOS26 ? barsVisible : true}
+        progressBarTop={headerOffset + (isIOS26 ? BANNER_GAP : 0)}
+        onScrollPositionChange={(position) => {
+          onScrollPositionChange?.(position);
+          // Use percent (0-100) scaled to a synthetic pixel range for scroll
+          // direction detection. position.offset is a text character count and
+          // would cause useScrollDirection to immediately hide the bars.
+          onScrollOffsetChange?.(position.percent * 10);
+        }}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,
@@ -187,16 +330,45 @@ export function BookmarkLinkReaderPreview({
             highlightId: h.id,
           })
         }
-        dom={{ scrollEnabled: true }}
+        dom={{ scrollEnabled: true, contentInsetAdjustmentBehavior: "never" }}
       />
+      {bannerMounted && (
+        <Animated.View
+          pointerEvents={showBanner ? "auto" : "none"}
+          style={[
+            {
+              position: "absolute",
+              left: 0,
+              right: 0,
+              zIndex: 10,
+              alignItems: "center",
+            },
+            bannerAnimatedStyle,
+          ]}
+        >
+          <ContinueReadingPill
+            shouldUseGlassPill={shouldUseGlassPill}
+            isDark={isDark}
+            bannerPercent={bannerPercent}
+            onContinue={onContinue}
+            onDismiss={onDismiss}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }
 
 export function BookmarkLinkArchivePreview({
   bookmark,
+  onScrollOffsetChange,
+  contentInsetTop = 0,
+  contentInsetBottom = 0,
 }: {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
+  contentInsetTop?: number;
+  contentInsetBottom?: number;
 }) {
   const asset =
     bookmark.assets.find((r) => r.assetType == "precrawledArchive") ??
@@ -222,6 +394,9 @@ export function BookmarkLinkArchivePreview({
       mediaPlaybackRequiresUserAction={true}
       source={webViewUri}
       decelerationRate={0.998}
+      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+      automaticallyAdjustContentInsets={false}
+      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
     />
   );
 }
