@@ -5,7 +5,7 @@
 For the fastest way to get started with development, use the one-command setup script:
 
 ```bash
-./start-dev.sh
+dotenv ./start-dev.sh
 ```
 
 This script will automatically:
@@ -38,6 +38,11 @@ Verify node version using this command:
 ```
 $ node --version
 v24.14.0
+```
+
+Install dotenv:
+```
+$ npm install -g dotenv-cli
 ```
 
 Karakeep also makes use of `corepack`[^2]. If you have `node` installed, then `corepack` should already be
