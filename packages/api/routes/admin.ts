@@ -54,9 +54,7 @@ const app = new Hono()
       "json",
       z.object({
         type: z.enum(["tag", "summarize"]),
-        status: z
-          .enum(["success", "failure", "pending", "all"])
-          .default("all"),
+        status: z.enum(["success", "failure", "pending", "all"]).default("all"),
       }),
     ),
     async (c) => {
