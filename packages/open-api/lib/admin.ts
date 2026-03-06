@@ -143,6 +143,14 @@ registry.registerPath({
         },
       },
     },
+    400: {
+      description: "Bad request — invalid input data.",
+      content: {
+        "application/json": {
+          schema: ErrorSchema,
+        },
+      },
+    },
     401: UnauthorizedResponse,
     403: adminForbiddenResponse,
   },
@@ -185,6 +193,7 @@ registry.registerPath({
   request: {
     body: {
       description: "Options for the inference job.",
+      required: true,
       content: {
         "application/json": {
           schema: z

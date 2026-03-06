@@ -4045,6 +4045,16 @@
               }
             }
           },
+          "400": {
+            "description": "Bad request — invalid input data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
             "content": {
@@ -4141,6 +4151,7 @@
         ],
         "requestBody": {
           "description": "Options for the inference job.",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
