@@ -26,9 +26,9 @@ function AISummary({
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { mutate: resummarize, isPending: isResummarizing } =
     useSummarizeBookmark({
-      onError: () => {
+      onError: (e) => {
         toast({
-          description: "Something went wrong",
+          description: e.message ?? "Something went wrong",
           variant: "destructive",
         });
       },
