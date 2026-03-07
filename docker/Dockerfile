@@ -48,7 +48,7 @@ COPY tooling/tailwind/package.json ./tooling/tailwind/
 COPY tooling/typescript/package.json ./tooling/typescript/
 COPY ./patches ./patches
 
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
@@ -142,7 +142,7 @@ COPY --from=monolith_builder /usr/local/cargo/bin/monolith /usr/local/bin/monoli
 ######################
 
 ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
 
 # Create symlink for jemalloc based on architecture
