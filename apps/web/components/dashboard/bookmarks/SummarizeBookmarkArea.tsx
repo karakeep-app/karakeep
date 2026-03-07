@@ -109,9 +109,9 @@ export default function SummarizeBookmarkArea({
 }) {
   const { t } = useTranslation();
   const { mutate, isPending } = useSummarizeBookmark({
-    onError: () => {
+    onError: (e) => {
       toast({
-        description: "Something went wrong",
+        description: e.message ?? "Something went wrong",
         variant: "destructive",
       });
     },
