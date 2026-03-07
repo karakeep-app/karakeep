@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -26,6 +26,7 @@ import {
   ExpandIcon,
   FileText,
   Info,
+  RefreshCw,
   Video,
 } from "lucide-react";
 import { useQueryState } from "nuqs";
@@ -37,6 +38,8 @@ import {
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
+
+import { useRecrawlBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
@@ -129,6 +132,7 @@ export default function LinkContentSection({
   });
   const { data: session } = useSession();
   const isOwner = session?.user?.id === bookmark.userId;
+  const recrawlMutation = useRecrawlBookmark();
 
   if (bookmark.content.type != BookmarkTypes.LINK) {
     throw new Error("Invalid content type");
@@ -240,6 +244,27 @@ export default function LinkContentSection({
             </SelectGroup>
           </SelectContent>
         </Select>
+        {isOwner && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  recrawlMutation.mutate({ bookmarkId: bookmark.id })
+                }
+                disabled={recrawlMutation.isPending}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${recrawlMutation.isPending ? "animate-spin" : ""}`}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {t("actions.recrawl")}
+            </TooltipContent>
+          </Tooltip>
+        )}
         {section === "cached" && (
           <>
             <ReaderSettingsPopover />
