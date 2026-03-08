@@ -317,7 +317,9 @@ export default function Settings() {
         style={{ borderCurve: "continuous" }}
       >
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="flex-1 text-muted-foreground">Server</Text>
+          <Text className="text-muted-foreground" numberOfLines={1}>
+            Server
+          </Text>
           <Text
             className="flex-1 text-right text-sm text-muted-foreground"
             numberOfLines={1}
@@ -327,7 +329,9 @@ export default function Settings() {
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="flex-1 text-muted-foreground">App Version</Text>
+          <Text className="w-fit text-muted-foreground" numberOfLines={1}>
+            App Version
+          </Text>
           <Text
             className="flex-1 text-right text-sm text-muted-foreground"
             numberOfLines={1}
@@ -337,7 +341,9 @@ export default function Settings() {
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="flex-1 text-muted-foreground">Server Version</Text>
+          <Text className="text-muted-foreground" numberOfLines={1}>
+            Server Version
+          </Text>
           <Text
             className="flex-1 text-right text-sm text-muted-foreground"
             numberOfLines={1}
