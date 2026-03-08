@@ -51,13 +51,13 @@ function getTRPCClient(settings: Settings) {
 
           // Forward any existing abort signal from tRPC / React Query
           const externalSignal = options?.signal as AbortSignal | undefined;
+          let onAbort: (() => void) | undefined;
           if (externalSignal) {
             if (externalSignal.aborted) {
               controller.abort(externalSignal.reason);
             } else {
-              externalSignal.addEventListener("abort", () =>
-                controller.abort(externalSignal.reason),
-              );
+              onAbort = () => controller.abort(externalSignal.reason);
+              externalSignal.addEventListener("abort", onAbort);
             }
           }
 
@@ -67,10 +67,14 @@ function getTRPCClient(settings: Settings) {
           }).then(
             (response) => {
               clearTimeout(timeout);
+              if (onAbort)
+                externalSignal!.removeEventListener("abort", onAbort);
               return response;
             },
             (error) => {
               clearTimeout(timeout);
+              if (onAbort)
+                externalSignal!.removeEventListener("abort", onAbort);
               throw error;
             },
           );
