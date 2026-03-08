@@ -238,7 +238,7 @@ export default function Settings() {
           className="flex flex-row items-center px-4 py-1"
           onPress={logout}
         >
-          <Text className="text-destructive">Log Out</Text>
+          <Text className="flex-1 text-destructive">Log Out</Text>
         </Pressable>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <Pressable
@@ -249,7 +249,7 @@ export default function Settings() {
           {isDeleting ? (
             <ActivityIndicator size="small" />
           ) : (
-            <Text className="text-destructive">Delete Account</Text>
+            <Text className="flex-1 text-destructive">Delete Account</Text>
           )}
         </Pressable>
       </View>
@@ -317,7 +317,7 @@ export default function Settings() {
         style={{ borderCurve: "continuous" }}
       >
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="shrink-0 text-muted-foreground">Server</Text>
+          <Text className="flex-1 text-muted-foreground">Server</Text>
           <Text
             className="flex-1 text-right text-sm text-muted-foreground"
             numberOfLines={1}
@@ -327,7 +327,7 @@ export default function Settings() {
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="shrink-0 text-muted-foreground">App Version</Text>
+          <Text className="flex-1 text-muted-foreground">App Version</Text>
           <Text
             className="flex-1 text-right text-sm text-muted-foreground"
             numberOfLines={1}
@@ -337,7 +337,7 @@ export default function Settings() {
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="shrink-0 text-muted-foreground">Server Version</Text>
+          <Text className="flex-1 text-muted-foreground">Server Version</Text>
           <Text
             className="flex-1 text-right text-sm text-muted-foreground"
             numberOfLines={1}
