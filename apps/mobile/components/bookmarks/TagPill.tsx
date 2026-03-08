@@ -16,11 +16,17 @@ export default function TagPill({
       className="rounded-full border border-input px-2.5 py-0.5 text-xs font-semibold"
     >
       {clickable ? (
-        <Link className="text-foreground" href={`dashboard/tags/${tag.id}`}>
+        <Link
+          className="text-foreground"
+          numberOfLines={1}
+          href={`dashboard/tags/${tag.id}`}
+        >
           {tag.name}
         </Link>
       ) : (
-        <Text className="text-foreground">{tag.name}</Text>
+        <Text className="text-foreground" numberOfLines={1}>
+          {tag.name}
+        </Text>
       )}
     </View>
   );
