@@ -65,14 +65,13 @@ function HeaderRight({
               });
             }
           } catch {
-            if (uploadToastIdRef.current !== null) {
-              sonnerToast.error("Failed to open photo library", {
-                id: uploadToastIdRef.current,
-              });
-              uploadToastIdRef.current = null;
-            } else {
-              sonnerToast.error("Failed to open photo library");
-            }
+            sonnerToast.error("Failed to open photo library", {
+              id:
+                uploadToastIdRef.current !== null
+                  ? uploadToastIdRef.current
+                  : undefined,
+            });
+            uploadToastIdRef.current = null;
           }
         }
       }}
