@@ -59,7 +59,7 @@ If you experience issues with certain models (especially OpenAI's gpt-oss models
 
 ## Gemini
 
-Gemini has an OpenAI-compatible API. You need to get an api key from Google AI Studio.
+Gemini has an OpenAI-compatible API. You need to get an api key from Google AI Studio. You also need to set up a billing account, even if using the free tier.
 
 ```
 
@@ -67,8 +67,8 @@ OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 OPENAI_API_KEY=YOUR_API_KEY
 
 # Example models:
-INFERENCE_TEXT_MODEL=gemini-2.0-flash
-INFERENCE_IMAGE_MODEL=gemini-2.0-flash
+INFERENCE_TEXT_MODEL=gemini-2.5-flash-lite
+INFERENCE_IMAGE_MODEL=gemini-2.5-flash-lite
 ```
 
 ## OpenRouter

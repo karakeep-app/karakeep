@@ -319,7 +319,7 @@ export function TagsEditor({
                       className={cn(
                         "flex min-h-8 space-x-1 rounded px-2",
                         tag.attachedBy == "ai"
-                          ? "bg-gradient-to-tr from-purple-500 to-purple-400 text-white"
+                          ? "bg-purple-500 text-white"
                           : "bg-accent",
                       )}
                     >

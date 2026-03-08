@@ -13,6 +13,8 @@
     "db:studio": "pnpm --filter @karakeep/db studio",
     "workers": "pnpm --filter @karakeep/workers run start",
     "web": "pnpm --filter @karakeep/web run dev",
+    "android": "pnpm --filter @karakeep/mobile android",
+    "ios": "pnpm --filter @karakeep/mobile ios",
     "prepare": "husky",
     "format": "turbo --no-daemon format --continue",
     "format:fix": "turbo --no-daemon format:fix --continue",
@@ -36,7 +38,8 @@
   "packageManager": "pnpm@9.15.9",
   "pnpm": {
     "patchedDependencies": {
-      "xcode@3.0.1": "patches/xcode@3.0.1.patch"
+      "xcode@3.0.1": "patches/xcode@3.0.1.patch",
+      "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch"
     }
   }
 }

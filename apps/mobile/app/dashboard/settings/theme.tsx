@@ -13,10 +13,10 @@ export default function ThemePage() {
       return [
         <Pressable
           onPress={() => setSettings({ ...settings, theme })}
-          className="flex flex-row justify-between"
+          className="flex flex-row items-center justify-between"
           key={theme}
         >
-          <Text>
+          <Text className="mr-2 flex-1" numberOfLines={1}>
             {
               { light: "Light Mode", dark: "Dark Mode", system: "System" }[
                 theme

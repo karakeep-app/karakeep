@@ -446,7 +446,7 @@ const ViewBookmarkPage = () => {
               disabled={isDeletionPending}
               className="items-center px-4 py-3 active:opacity-70"
             >
-              <Text className="text-destructive">
+              <Text className="text-destructive" numberOfLines={1}>
                 {isDeletionPending ? "Deleting..." : "Delete Bookmark"}
               </Text>
             </Pressable>

@@ -40,10 +40,10 @@ export default function BookmarkDefaultViewSettings() {
       return [
         <Pressable
           onPress={() => handleUpdate(mode)}
-          className="flex flex-row justify-between"
+          className="flex flex-row items-center justify-between"
           key={mode}
         >
-          <Text>
+          <Text className="mr-2 flex-1" numberOfLines={1}>
             {
               {
                 browser: "Browser",

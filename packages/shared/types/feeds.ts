@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const MAX_FEED_URL_LENGTH = 500;
+const MAX_FEED_URL_LENGTH = 2000;
 const MAX_FEED_NAME_LENGTH = 100;
 
 export const zAppliesToEnumSchema = z.enum(["all", "text", "images"]);

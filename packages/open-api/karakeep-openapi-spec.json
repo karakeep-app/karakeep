@@ -3980,6 +3980,268 @@
         }
       }
     },
+    "/admin/jobs/trigger/recrawl": {
+      "post": {
+        "operationId": "adminTriggerRecrawl",
+        "description": "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones). Optionally run AI inference after crawling. Requires admin role.",
+        "summary": "Trigger recrawl of links (admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Options for the recrawl job.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "crawlStatus": {
+                    "type": "string",
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending",
+                      "all"
+                    ],
+                    "default": "all",
+                    "description": "Filter bookmarks by their crawl status. Use 'failure' to retry only failed crawls."
+                  },
+                  "runInference": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to run AI inference after crawling."
+                  }
+                },
+                "example": {
+                  "crawlStatus": "failure",
+                  "runInference": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recrawl jobs triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the job was triggered successfully."
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid input data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — admin access required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/jobs/trigger/reindex": {
+      "post": {
+        "operationId": "adminTriggerReindex",
+        "description": "Trigger a reindex of all bookmarks in the search engine. This clears the existing index and re-queues all bookmarks for indexing. Requires admin role.",
+        "summary": "Trigger reindex of all bookmarks (admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reindex jobs triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the job was triggered successfully."
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — admin access required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/jobs/trigger/inference": {
+      "post": {
+        "operationId": "adminTriggerInference",
+        "description": "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status to target specific bookmarks (e.g., only failed ones). Requires admin role.",
+        "summary": "Trigger AI inference on bookmarks (admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Options for the inference job.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "tag",
+                      "summarize"
+                    ],
+                    "description": "The type of inference to run: 'tag' for AI tagging, 'summarize' for AI summarization."
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending",
+                      "all"
+                    ],
+                    "default": "all",
+                    "description": "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones."
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "example": {
+                  "type": "tag",
+                  "status": "failure"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inference jobs triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the job was triggered successfully."
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid input data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — admin access required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/backups": {
       "get": {
         "operationId": "listBackups",

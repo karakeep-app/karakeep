@@ -129,6 +129,7 @@ describe("RuleEngine", () => {
           title: "Example Bookmark Title",
           favourited: false,
           archived: false,
+          source: "rss",
         })
         .returning({ id: bookmarks.id })
     ).map((b) => b.id);
@@ -295,6 +296,22 @@ describe("RuleEngine", () => {
       const condition: RuleEngineCondition = {
         type: "bookmarkTypeIs",
         bookmarkType: BookmarkTypes.TEXT,
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return true for bookmarkSourceIs condition", () => {
+      const condition: RuleEngineCondition = {
+        type: "bookmarkSourceIs",
+        source: "rss",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
+    it("should return false for bookmarkSourceIs condition mismatch", () => {
+      const condition: RuleEngineCondition = {
+        type: "bookmarkSourceIs",
+        source: "web",
       };
       expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
     });

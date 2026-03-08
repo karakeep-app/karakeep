@@ -33,6 +33,7 @@ import type {
   RuleEngineCondition,
   RuleEngineEvent,
 } from "@karakeep/shared/types/rules";
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 
 import { FeedSelector } from "../feeds/FeedSelector";
 import { TagAutocomplete } from "../tags/TagAutocomplete";
@@ -75,6 +76,9 @@ export function ConditionBuilder({
       case "bookmarkTypeIs":
         onChange({ type: "bookmarkTypeIs", bookmarkType: "link" });
         break;
+      case "bookmarkSourceIs":
+        onChange({ type: "bookmarkSourceIs", source: "rss" });
+        break;
       case "hasTag":
         onChange({ type: "hasTag", tagId: "" });
         break;
@@ -112,6 +116,8 @@ export function ConditionBuilder({
         return <Rss className="h-4 w-4" />;
       case "bookmarkTypeIs":
         return <FileType className="h-4 w-4" />;
+      case "bookmarkSourceIs":
+        return <Rss className="h-4 w-4" />;
       case "hasTag":
         return <Tag className="h-4 w-4" />;
       case "isFavourited":
@@ -209,6 +215,33 @@ export function ConditionBuilder({
                 <SelectItem value="asset">
                   {t("common.bookmark_types.media")}
                 </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+
+      case "bookmarkSourceIs":
+        return (
+          <div className="mt-2">
+            <Select
+              value={value.source}
+              onValueChange={(source) =>
+                onChange({
+                  ...value,
+                  source:
+                    source as (typeof zBookmarkSourceSchema.options)[number],
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select bookmark source" />
+              </SelectTrigger>
+              <SelectContent>
+                {zBookmarkSourceSchema.options.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -313,6 +346,9 @@ export function ConditionBuilder({
         </SelectItem>
         <SelectItem value="bookmarkTypeIs">
           {t("settings.rules.conditions_types.bookmark_type_is")}
+        </SelectItem>
+        <SelectItem value="bookmarkSourceIs">
+          {t("settings.rules.conditions_types.bookmark_source_is")}
         </SelectItem>
         <SelectItem value="hasTag">
           {t("settings.rules.conditions_types.has_tag")}

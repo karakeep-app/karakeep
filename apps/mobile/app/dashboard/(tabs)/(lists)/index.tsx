@@ -247,7 +247,7 @@ export default function Lists() {
                   }));
                 }}
               >
-                <Text>
+                <Text className="mr-2 flex-1" numberOfLines={1}>
                   {l.item.logo} {l.item.name}
                 </Text>
               </Pressable>
@@ -259,7 +259,7 @@ export default function Lists() {
                 className="flex-1"
               >
                 <Pressable className="flex flex-row items-center justify-between">
-                  <Text className="shrink">
+                  <Text className="mr-2 flex-1" numberOfLines={1}>
                     {l.item.logo} {l.item.name}
                   </Text>
                   <View className="flex flex-row items-center">
