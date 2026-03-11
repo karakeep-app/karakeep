@@ -1,0 +1,71 @@
+---
+id: list-highlights
+title: "Get all highlights"
+description: "Retrieve a paginated list of all highlights across all bookmarks for the authenticated user."
+sidebar_label: "Get all highlights"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1V1GP2zYM/iuE9rIFvtx12FMeBqTb2nXtsKK9wzBcA4SxmViNLKmUnLssMLAfsV+4XzJQdhznklu7FXvKQZbIj+THj7ydcp4Yo3b2RaEmyugQf9Sr0uhVGYPKVEEhZ+3lgpqoNxRZ04YAweNKW4xUgLwBtwQ0Bsr+LWDOLoR0unBuXSGvAywdQywJsI4l2ajzZKEOxGOVqYiroCa3aoBglqlAec06btXkdqcWhEw8rWOpJrezZpYpj4wVReKQLoS8pArVZKfi1pOaKFtXC+KTUH7Ge13VFbSfBb+OVAWIDphizRY8sURJY9VkiulDrZkKNVmiCfQ51jJlsaKU7EpHlSktFj7UxFvVZGciCJG1XZ1E8F3NwTEs2VVSD6aNdnUApuCdDSS+lxTzMiXc0n3s/UcdDfUWPiG8/+6qCzVvPR3HOhO/rYUg4X59dSU/x66nZ5h2YJm4yJ2NZKM8Re+NcEo7e/k+yPsz6XSL95RL3j0L+aNuvR+MDu4iM24FtlTz4zb2RJdeeli+JlMhIsdflstA8ZSgTabIFv/wNXfG8TlakK0raZstGePulGS1UJlaMZFVmVqYmqSPClpibaKa7C82mYp0H8+ZtLUxuBCSRK6pyZR1kT7poj4furT4I1nJmaS60zNAmiNq3g7ze5zNYe66qDrMCVHvf+htdmiEXnCSRyFw1xofjfixTul0ru+FDByDPAW9BOugckzSP7UREj+MsxxK8ADOAPLrfVcMxLJpxNA3V09O2+jGiuQ61r9TAX/98WdC9zSJKUS3Jgs6QKVD0HaVgbYbNLpIoOneC6wHnSYpvvQG9fkeO3DzHiufAA8RJKRNpiqKpZO5s0p18yiyri6Pwg/Em72412zURO2wKJhCaC7R68vNE5WpDbKWoqQu7D63SdhzvozRh8nlZeTteI2MayI/Ru9PZPVaxlNrQbRG8vSyuw8tFkE/mEtvJfiu/wfTqc+FeJY40jU16S5JY6Y/njmuUBD+9Ot1IoK2SyfPJeoW0pPx1fhqoNs9nunrFyf4+486AEIgs7woXYiSnX4Qa7sCtAUwYXGh44XBSJyi0zmN4brUQWzL8HZ3AbauFomv0OLqYCRkSZBDBjK3s4EqZ4AhUPq1BSwwX9c+gGe3YqwqlLFvzHb8zr6zX3wB08MuoJ2Vw6kxQLbwTtsoUyY1BuAxX734KEDbVKL5tCNXMjKHkrAgHsNvroYcLazIyp5DgDZFtqZtO86O6ntHC7h5AbUtiGE0eksxarsK8G1685K2YTTaw+4asIP8SkbTAXOovXccoZ17FwsUqL5/ARuNMG8/zlOS5mkZmEMajXDYaaQYdBi02uamLkgqOz/owhyWmkzb15IW0BEwtHnZO+lNPjasYQpzEag5bNDUlCTsyIe2RdrXkmGpB9OJknW5edpRBK63noIcPu1XQKnGgsBZatuLiUA6JUze2QsYjYy269EoxTKFmzever7BnY4luMRzNJAz3hkqoKKIBUYct89FmPrnSaBAjkCGQXclkXN/x0LtjcOCClhqQ/ClroTkjuH198++SrufdyFWmISuW2eeU3yw7j5sw91BLP/3rbmVmYEiy7wVpdx1ino0UGaZEj2Q091OiHnDpmnkuF3LRGcLHUQvHlkHh7H9u8X3LNQ1bQfLcCKfmqi0Cn86js9Yhh/H1G+tB1Czw6xJ/4BkqlWalLb21TTPyQ9DOdlKxUo/+p7/cK0yhccz48GMSNb3K6ndDmzvdu2Na9HEplF76EkjVTNrmuZvOTne2g==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all highlights"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/highlights"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve a paginated list of all highlights across all bookmarks for the authenticated user.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"number","description":"Maximum number of items to return per page."},"required":false,"description":"Maximum number of items to return per page.","name":"limit","in":"query"},{"schema":{"type":"string","description":"Cursor from a previous response to fetch the next page.","title":"Cursor"},"required":false,"description":"Cursor from a previous response to fetch the next page.","name":"cursor","in":"query"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"A paginated list of highlights.","content":{"application/json":{"schema":{"type":"object","properties":{"highlights":{"type":"array","items":{"type":"object","properties":{"bookmarkId":{"type":"string"},"startOffset":{"type":"number"},"endOffset":{"type":"number"},"color":{"type":"string","enum":["yellow","red","green","blue"],"default":"yellow"},"text":{"type":"string","nullable":true},"note":{"type":"string","nullable":true},"id":{"type":"string"},"userId":{"type":"string"},"createdAt":{"type":"string"}},"required":["bookmarkId","startOffset","endOffset","text","note","id","userId","createdAt"],"title":"Highlight"}},"nextCursor":{"type":"string","nullable":true,"description":"Cursor for the next page, or null if no more results."}},"required":["highlights","nextCursor"],"title":"PaginatedHighlights"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

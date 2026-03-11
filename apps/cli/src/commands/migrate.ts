@@ -790,7 +790,10 @@ async function migrateBookmarks(
         if (b.tags.length > 0) {
           await dest.bookmarks.updateTags.mutate({
             bookmarkId: createdId!,
-            attach: b.tags.map((t) => ({ tagName: t.name })),
+            attach: b.tags.map((t) => ({
+              tagName: t.name,
+              attachedBy: t.attachedBy,
+            })),
             detach: [],
           });
         }

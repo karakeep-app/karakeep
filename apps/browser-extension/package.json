@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "format": "prettier . --cache --check",
-    "format:fix": "prettier . --cache --write",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "preview": "vite preview",
@@ -42,7 +42,6 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.2.0",
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/chrome": "^0.0.260",
@@ -54,6 +53,5 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9",
     "vite": "^7.0.6"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

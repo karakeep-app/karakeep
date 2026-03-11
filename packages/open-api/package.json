@@ -10,7 +10,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "tsx": "^4.8.1"
   },
@@ -18,11 +17,10 @@
     "typecheck": "tsc --noEmit",
     "check": "tsx index.ts check",
     "generate": "tsx index.ts",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix"
   },
-  "main": "index.ts",
-  "prettier": "@karakeep/prettier-config"
+  "main": "index.ts"
 }

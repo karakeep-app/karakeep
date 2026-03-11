@@ -42,7 +42,7 @@ export function useDragAndDrop(
       const dragTargetId = findTargetId(target as HTMLElement);
 
       if (dragTargetId) {
-        /*          As Draggable tries to setState when the 
+        /*          As Draggable tries to setState when the
           component is unmounted, it is needed to
           push onCombine to the event loop queue.
           onCombine would be run after setState on

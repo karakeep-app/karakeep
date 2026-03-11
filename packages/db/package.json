@@ -10,8 +10,8 @@
     "migrate": "tsx migrate.ts",
     "generate": "drizzle-kit generate",
     "studio": "drizzle-kit studio",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix"
   },
@@ -27,11 +27,9 @@
     "tsx": "^4.8.1"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/better-sqlite3": "^7.6.11",
     "@vercel/ncc": "^0.38.4"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

@@ -3,10 +3,12 @@ import { FlatList, Pressable, View } from "react-native";
 import { Link } from "expo-router";
 import FullPageError from "@/components/FullPageError";
 import ChevronRight from "@/components/ui/ChevronRight";
+import EmptyState from "@/components/ui/EmptyState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
 import { useQueryClient } from "@tanstack/react-query";
+import { Tag } from "lucide-react-native";
 
 import { usePaginatedSearchTags } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
@@ -128,11 +130,11 @@ export default function Tags() {
       }
       ListEmptyComponent={
         !isPending ? (
-          <View className="py-8">
-            <Text className="text-center text-muted-foreground">
-              No tags yet
-            </Text>
-          </View>
+          <EmptyState
+            icon={Tag}
+            title="No Tags"
+            subtitle="Tags will appear as you organize your bookmarks"
+          />
         ) : null
       }
     />

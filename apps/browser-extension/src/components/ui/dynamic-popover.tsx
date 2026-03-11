@@ -3,8 +3,9 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 import { cn } from "../../utils/css";
 
-interface DynamicPopoverContentProps
-  extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> {
+interface DynamicPopoverContentProps extends React.ComponentPropsWithoutRef<
+  typeof PopoverPrimitive.Content
+> {
   /**
    * Whether to enable dynamic height adjustment
    * If true, use max-h when content can fit the viewport, otherwise use fixed height

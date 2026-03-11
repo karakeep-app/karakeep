@@ -12,7 +12,14 @@ import { toast } from "@/components/ui/sonner";
 import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
-import { ChevronsDownUp, Download, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ChevronsDownUp,
+  Download,
+  ImagePlus,
+  Paperclip,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import {
   useAttachBookmarkAsset,
@@ -91,19 +98,83 @@ export default function AttachmentBox({
 
   bookmark.assets.sort((a, b) => a.assetType.localeCompare(b.assetType));
 
+  const hasAssets = bookmark.assets.length > 0;
+
   return (
-    <Collapsible>
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-sm text-gray-400">
+    <Collapsible defaultOpen={true}>
+      <div className="flex w-full items-center justify-between gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t("common.attachments")}
-        <ChevronsDownUp className="size-4" />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="flex flex-col gap-1 py-2 text-sm">
+        <div className="flex items-center gap-1">
+          {!readOnly && (
+            <>
+              {!bookmark.assets.some(
+                (asset) => asset.assetType == "bannerImage",
+              ) &&
+                bookmark.content.type != BookmarkTypes.ASSET && (
+                  <FilePickerButton
+                    title="Attach a Banner"
+                    loading={isAttaching}
+                    accept=".jgp,.JPG,.jpeg,.png,.webp"
+                    multiple={false}
+                    variant="none"
+                    size="none"
+                    className="rounded-md p-1 hover:text-foreground"
+                    onFileSelect={(file) =>
+                      uploadAsset(file, {
+                        onSuccess: (resp) => {
+                          attachAsset({
+                            bookmarkId: bookmark.id,
+                            asset: {
+                              id: resp.assetId,
+                              assetType: "bannerImage",
+                            },
+                          });
+                        },
+                      })
+                    }
+                  >
+                    <ImagePlus className="size-3.5" strokeWidth={1.5} />
+                  </FilePickerButton>
+                )}
+              <FilePickerButton
+                title="Upload File"
+                loading={isAttaching}
+                multiple={false}
+                variant="none"
+                size="none"
+                className="rounded-md p-1 hover:text-foreground"
+                onFileSelect={(file) =>
+                  uploadAsset(file, {
+                    onSuccess: (resp) => {
+                      attachAsset({
+                        bookmarkId: bookmark.id,
+                        asset: {
+                          id: resp.assetId,
+                          assetType: "userUploaded",
+                        },
+                      });
+                    },
+                  })
+                }
+              >
+                <Paperclip className="size-3.5" strokeWidth={1.5} />
+              </FilePickerButton>
+            </>
+          )}
+          {hasAssets && (
+            <CollapsibleTrigger>
+              <ChevronsDownUp className="size-4" />
+            </CollapsibleTrigger>
+          )}
+        </div>
+      </div>
+      <CollapsibleContent className="flex flex-col gap-1 py-3 text-sm">
         {bookmark.assets.map((asset) => (
           <div key={asset.id} className="flex items-center justify-between">
             <Link
               target="_blank"
               href={getAssetUrl(asset.id)}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
               prefetch={false}
             >
               {ASSET_TYPE_TO_ICON[asset.assetType]}
@@ -113,12 +184,12 @@ export default function AttachmentBox({
                   : humanFriendlyNameForAssertType(asset.assetType)}
               </p>
             </Link>
-            <div className="flex gap-2">
+            <div className="flex gap-1 text-muted-foreground">
               <Link
                 title="Download"
                 target="_blank"
                 href={getAssetUrl(asset.id)}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 rounded-md p-1 hover:text-foreground"
                 download={
                   asset.assetType === "userUploaded" && asset.fileName
                     ? asset.fileName
@@ -126,7 +197,7 @@ export default function AttachmentBox({
                 }
                 prefetch={false}
               >
-                <Download className="size-4" />
+                <Download className="size-3.5" strokeWidth={1.5} />
               </Link>
               {!readOnly &&
                 isAllowedToAttachAsset(asset.assetType) &&
@@ -138,7 +209,7 @@ export default function AttachmentBox({
                     multiple={false}
                     variant="none"
                     size="none"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-md p-1 hover:text-foreground"
                     onFileSelect={(file) =>
                       uploadAsset(file, {
                         onSuccess: (resp) => {
@@ -151,7 +222,7 @@ export default function AttachmentBox({
                       })
                     }
                   >
-                    <Pencil className="size-4" />
+                    <Pencil className="size-3.5" strokeWidth={1.5} />
                   </FilePickerButton>
                 )}
               {!readOnly && isAllowedToDetachAsset(asset.assetType) && (
@@ -174,68 +245,26 @@ export default function AttachmentBox({
                     </ActionButton>
                   )}
                 >
-                  <Button variant="none" size="none" title="Delete">
-                    <Trash2 className="size-4" />
+                  <Button
+                    variant="none"
+                    size="none"
+                    title="Delete"
+                    className="rounded-md p-1 hover:text-foreground"
+                  >
+                    <Trash2 className="size-3.5" strokeWidth={1.5} />
                   </Button>
                 </ActionConfirmingDialog>
               )}
             </div>
           </div>
         ))}
-        {!readOnly &&
-          !bookmark.assets.some((asset) => asset.assetType == "bannerImage") &&
-          bookmark.content.type != BookmarkTypes.ASSET && (
-            <FilePickerButton
-              title="Attach a Banner"
-              loading={isAttaching}
-              accept=".jgp,.JPG,.jpeg,.png,.webp"
-              multiple={false}
-              variant="ghost"
-              size="none"
-              className="flex w-full items-center justify-center gap-2"
-              onFileSelect={(file) =>
-                uploadAsset(file, {
-                  onSuccess: (resp) => {
-                    attachAsset({
-                      bookmarkId: bookmark.id,
-                      asset: {
-                        id: resp.assetId,
-                        assetType: "bannerImage",
-                      },
-                    });
-                  },
-                })
-              }
-            >
-              <Plus className="size-4" />
-              Attach a Banner
-            </FilePickerButton>
-          )}
-        {!readOnly && (
-          <FilePickerButton
-            title="Upload File"
-            loading={isAttaching}
-            multiple={false}
-            variant="ghost"
-            size="none"
-            className="flex w-full items-center justify-center gap-2"
-            onFileSelect={(file) =>
-              uploadAsset(file, {
-                onSuccess: (resp) => {
-                  attachAsset({
-                    bookmarkId: bookmark.id,
-                    asset: {
-                      id: resp.assetId,
-                      assetType: "userUploaded",
-                    },
-                  });
-                },
-              })
-            }
-          >
-            <Plus className="size-4" />
-            Upload File
-          </FilePickerButton>
+        {!hasAssets && readOnly && (
+          <p className="py-1 text-xs text-muted-foreground">No attachments</p>
+        )}
+        {!hasAssets && !readOnly && (
+          <p className="py-1 text-xs text-muted-foreground">
+            No attachments yet
+          </p>
         )}
       </CollapsibleContent>
     </Collapsible>

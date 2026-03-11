@@ -12,7 +12,7 @@ import {
 
 import { BookmarkIdSchema } from "./bookmarks";
 import { BearerAuth } from "./common";
-import { ErrorSchema } from "./errors";
+import { ErrorSchema, UnauthorizedResponse } from "./errors";
 import {
   IncludeContentSearchParamSchema,
   PaginatedBookmarksSchema,
@@ -30,21 +30,24 @@ export const ListIdSchema = registry.registerParameter(
       name: "listId",
       in: "path",
     },
+    description: "The unique identifier of the list.",
     example: "ieidlxygmwj87oxz5hxttoc8",
   }),
 );
 
 registry.registerPath({
+  operationId: "listLists",
   method: "get",
   path: "/lists",
-  description: "Get all lists",
+  description:
+    "Retrieve all bookmark lists for the authenticated user, including both manual and smart lists.",
   summary: "Get all lists",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
   request: {},
   responses: {
     200: {
-      description: "Object with all lists data.",
+      description: "All lists owned by or shared with the current user.",
       content: {
         "application/json": {
           schema: z.object({
@@ -53,19 +56,23 @@ registry.registerPath({
         },
       },
     },
+    401: UnauthorizedResponse,
   },
 });
 
 registry.registerPath({
+  operationId: "createList",
   method: "post",
   path: "/lists",
-  description: "Create a new list",
+  description:
+    "Create a new bookmark list. Lists can be manual (bookmarks are added explicitly) or smart (bookmarks are matched automatically by a search query).",
   summary: "Create a new list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
   request: {
     body: {
-      description: "The list to create",
+      description:
+        "The list to create. For smart lists, a `query` field is required. For manual lists, `query` must not be set.",
       content: {
         "application/json": {
           schema: zNewBookmarkListSchema,
@@ -75,7 +82,7 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: "The created list",
+      description: "The created list.",
       content: {
         "application/json": {
           schema: ListSchema,
@@ -83,19 +90,23 @@ registry.registerPath({
       },
     },
     400: {
-      description: "Bad request",
+      description:
+        "Bad request — invalid input data (e.g., smart list missing query, or manual list with a query).",
       content: {
         "application/json": {
           schema: ErrorSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
   },
 });
+
 registry.registerPath({
+  operationId: "getList",
   method: "get",
   path: "/lists/{listId}",
-  description: "Get list by its id",
+  description: "Retrieve a single list by its ID.",
   summary: "Get a single list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
@@ -104,15 +115,16 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "Object with list data.",
+      description: "The requested list.",
       content: {
         "application/json": {
           schema: ListSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "List not found",
+      description: "List not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -123,9 +135,11 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "deleteList",
   method: "delete",
   path: "/lists/{listId}",
-  description: "Delete list by its id",
+  description:
+    "Delete a list. This removes the list only — bookmarks within it are not deleted.",
   summary: "Delete a list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
@@ -134,10 +148,11 @@ registry.registerPath({
   },
   responses: {
     204: {
-      description: "No content - the bookmark was deleted",
+      description: "No content — the list was deleted successfully.",
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "List not found",
+      description: "List not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -148,9 +163,11 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "updateList",
   method: "patch",
   path: "/lists/{listId}",
-  description: "Update list by its id",
+  description:
+    "Partially update a list. Only the fields provided in the request body will be updated.",
   summary: "Update a list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
@@ -158,7 +175,7 @@ registry.registerPath({
     params: z.object({ listId: ListIdSchema }),
     body: {
       description:
-        "The data to update. Only the fields you want to update need to be provided.",
+        "The fields to update. Only the fields you want to change need to be provided.",
       content: {
         "application/json": {
           schema: zEditBookmarkListSchema.omit({ listId: true }),
@@ -168,15 +185,16 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "The updated list",
+      description: "The updated list.",
       content: {
         "application/json": {
           schema: ListSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "List not found",
+      description: "List not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -187,10 +205,12 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "getListBookmarks",
   method: "get",
   path: "/lists/{listId}/bookmarks",
-  description: "Get bookmarks in the list",
-  summary: "Get bookmarks in the list",
+  description:
+    "Retrieve a paginated list of bookmarks within the specified list. For smart lists, bookmarks are computed from the list's query.",
+  summary: "Get bookmarks in a list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
   request: {
@@ -200,22 +220,24 @@ registry.registerPath({
         sortOrder: zSortOrder
           .exclude(["relevance"])
           .optional()
-          .default(zSortOrder.Enum.desc),
+          .default(zSortOrder.Enum.desc)
+          .describe("Sort order by creation date. Defaults to 'desc'."),
       })
       .merge(PaginationSchema)
       .merge(IncludeContentSearchParamSchema),
   },
   responses: {
     200: {
-      description: "Object with list data.",
+      description: "A paginated list of bookmarks in the specified list.",
       content: {
         "application/json": {
           schema: PaginatedBookmarksSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "List not found",
+      description: "List not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -226,9 +248,11 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "addBookmarkToList",
   method: "put",
   path: "/lists/{listId}/bookmarks/{bookmarkId}",
-  description: "Add the bookmarks to a list",
+  description:
+    "Add a bookmark to a manual list. This operation is idempotent — adding an already-present bookmark has no effect.",
   summary: "Add a bookmark to a list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
@@ -237,10 +261,12 @@ registry.registerPath({
   },
   responses: {
     204: {
-      description: "No content - the bookmark was added",
+      description:
+        "No content — the bookmark was added to the list successfully.",
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "List or bookmark not found",
+      description: "List or bookmark not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -251,9 +277,10 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "removeBookmarkFromList",
   method: "delete",
   path: "/lists/{listId}/bookmarks/{bookmarkId}",
-  description: "Remove the bookmarks from a list",
+  description: "Remove a bookmark from a manual list.",
   summary: "Remove a bookmark from a list",
   tags: ["Lists"],
   security: [{ [BearerAuth.name]: [] }],
@@ -262,18 +289,20 @@ registry.registerPath({
   },
   responses: {
     204: {
-      description: "No content - the bookmark was added",
+      description:
+        "No content — the bookmark was removed from the list successfully.",
     },
     400: {
-      description: "Bookmark already not in list",
+      description: "Bookmark is not in the list.",
       content: {
         "application/json": {
           schema: ErrorSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "List or bookmark not found",
+      description: "List or bookmark not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,

@@ -3,18 +3,24 @@ import KarakeepLogo from "@/components/KarakeepIcon";
 import SignUpForm from "@/components/signup/SignUpForm";
 import { getServerAuthSession } from "@/server/auth";
 
-import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
+import {
+  isMobileAppRedirect,
+  validateRedirectUrl,
+} from "@karakeep/shared/utils/redirectUrl";
 
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirectUrl?: string }>;
+  searchParams: Promise<{ redirectUrl?: string; skipSessionRedirect?: string }>;
 }) {
   const session = await getServerAuthSession();
-  const { redirectUrl: rawRedirectUrl } = await searchParams;
+  const { redirectUrl: rawRedirectUrl, skipSessionRedirect } =
+    await searchParams;
   const redirectUrl = validateRedirectUrl(rawRedirectUrl) ?? "/";
+  const shouldSkipSessionRedirect =
+    isMobileAppRedirect(redirectUrl) && skipSessionRedirect === "1";
 
-  if (session) {
+  if (session && !shouldSkipSessionRedirect) {
     redirect(redirectUrl);
   }
 

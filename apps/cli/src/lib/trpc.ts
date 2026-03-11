@@ -3,6 +3,7 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
+import { TRPC_MAX_URL_LENGTH_INTERNAL } from "@karakeep/shared/trpc";
 
 export function getAPIClient() {
   const globals = getGlobalOptions();
@@ -10,7 +11,7 @@ export function getAPIClient() {
     links: [
       httpBatchLink({
         url: `${globals.serverAddr}/api/trpc`,
-        maxURLLength: 14000,
+        maxURLLength: TRPC_MAX_URL_LENGTH_INTERNAL,
         transformer: superjson,
         headers() {
           return {
@@ -27,7 +28,7 @@ export function getAPIClientFor(opts: { serverAddr: string; apiKey: string }) {
     links: [
       httpBatchLink({
         url: `${opts.serverAddr}/api/trpc`,
-        maxURLLength: 14000,
+        maxURLLength: TRPC_MAX_URL_LENGTH_INTERNAL,
         transformer: superjson,
         headers() {
           return {

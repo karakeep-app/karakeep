@@ -19,6 +19,8 @@ function trpcCodeToHttpCode(code: TRPCError["code"]) {
       return 408;
     case "PAYLOAD_TOO_LARGE":
       return 413;
+    case "TOO_MANY_REQUESTS":
+      return 429;
     case "INTERNAL_SERVER_ERROR":
       return 500;
     default:

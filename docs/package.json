@@ -47,7 +47,6 @@
       "last 5 safari version"
     ]
   },
-  "prettier": "@karakeep/prettier-config",
   "engines": {
     "node": ">=18.0"
   }

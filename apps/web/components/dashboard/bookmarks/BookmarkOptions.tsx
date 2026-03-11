@@ -311,9 +311,9 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           (withinListContext &&
             (withinListContext.userRole === "editor" ||
               withinListContext.userRole === "owner"))) &&
-          !!listId &&
-          !!withinListContext &&
-          withinListContext.type === "manual",
+        !!listId &&
+        !!withinListContext &&
+        withinListContext.type === "manual",
       ),
       disabled: demoMode,
       onClick: () =>

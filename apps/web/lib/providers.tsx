@@ -12,7 +12,10 @@ import superjson from "superjson";
 
 import type { ClientConfig } from "@karakeep/shared/config";
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
-import { TRPCProvider } from "@karakeep/shared-react/trpc";
+import {
+  TRPC_MAX_URL_LENGTH_INTERNAL,
+  TRPCProvider,
+} from "@karakeep/shared-react/trpc";
 
 import { ClientConfigCtx } from "./clientConfig";
 import CustomI18nextProvider from "./i18n/provider";
@@ -69,7 +72,7 @@ export default function Providers({
         httpBatchLink({
           // TODO: Change this to be a full URL exposed as a client side setting
           url: `/api/trpc`,
-          maxURLLength: 14000,
+          maxURLLength: TRPC_MAX_URL_LENGTH_INTERNAL,
           transformer: superjson,
         }),
       ],

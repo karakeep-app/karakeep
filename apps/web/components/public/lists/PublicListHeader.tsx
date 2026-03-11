@@ -17,7 +17,7 @@ export default function PublicListHeader({
 }) {
   const rssLink = `/api/v1/rss/lists/${list.id}`;
   return (
-    <div className="rounded-lg border bg-gradient-to-br from-purple-50/50 via-purple-100/30 to-purple-200/40 p-6 transition-all duration-300  dark:from-purple-950/20 dark:via-purple-900/15 dark:to-purple-800/20">
+    <div className="rounded-lg border bg-gradient-to-br from-purple-50/50 via-purple-100/30 to-purple-200/40 p-6 transition-all duration-300 dark:from-purple-950/20 dark:via-purple-900/15 dark:to-purple-800/20">
       <div className="space-y-4">
         <KarakeepLogo height={38} />
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">

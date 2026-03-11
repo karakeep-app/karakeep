@@ -34,7 +34,7 @@ export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
 
     // Build the rate limiting key from IP and path
     const key = `${ip}:${opts.path}`;
-    const result = client.checkRateLimit(config, key);
+    const result = await client.checkRateLimit(config, key);
 
     if (!result.allowed) {
       throw new TRPCError({

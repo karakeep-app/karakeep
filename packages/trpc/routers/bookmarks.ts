@@ -33,6 +33,7 @@ import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
+import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
@@ -107,6 +108,36 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
   return (
     await Bookmark.fromId(ctx, result[0].id, /* includeContent: */ false)
   ).asZBookmark();
+}
+
+const highBookmarkCreationRateLimitConfig = {
+  name: "bookmarks.createBookmark.highVolume",
+  windowMs: 5 * 60 * 1000,
+  maxRequests: 30,
+} as const;
+
+async function shouldUseLowPriorityQueues(
+  ctx: AuthedContext,
+): Promise<boolean> {
+  if (!serverConfig.rateLimiting.enabled) {
+    return false;
+  }
+
+  const rateLimitClient = await getRateLimitClient();
+  if (!rateLimitClient) {
+    return false;
+  }
+
+  try {
+    const result = await rateLimitClient.checkRateLimit(
+      highBookmarkCreationRateLimitConfig,
+      ctx.user.id,
+    );
+    return !result.allowed;
+  } catch {
+    // Don't block bookmark creation if rate limiting is unavailable.
+    return false;
+  }
 }
 
 export const bookmarksAppRouter = router({
@@ -223,7 +254,7 @@ export const bookmarksAppRouter = router({
                   content: null,
                   metadata: null,
                   fileName: input.fileName ?? null,
-                  sourceUrl: null,
+                  sourceUrl: input.sourceUrl ?? null,
                 })
                 .returning();
               const uploadedAsset = await Asset.fromId(ctx, input.assetId);
@@ -255,6 +286,8 @@ export const bookmarksAppRouter = router({
                 type: BookmarkTypes.ASSET,
                 assetType: asset.assetType,
                 assetId: asset.assetId,
+                fileName: asset.fileName,
+                sourceUrl: asset.sourceUrl,
               };
               break;
             }
@@ -273,12 +306,15 @@ export const bookmarksAppRouter = router({
         },
       );
 
+      const forceLowPriority = await shouldUseLowPriorityQueues(ctx);
+      const shouldUseLowPriority =
+        input.crawlPriority === "low" || forceLowPriority;
+
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
-        priority:
-          input.crawlPriority === "low"
-            ? QueuePriority.Low
-            : QueuePriority.Default,
+        priority: shouldUseLowPriority
+          ? QueuePriority.Low
+          : QueuePriority.Default,
         groupId: ctx.user.id,
       };
 
@@ -286,10 +322,9 @@ export const bookmarksAppRouter = router({
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
           // Use a separate queue for low priority crawling to avoid impacting main queue parallelism
-          const crawlerQueue =
-            input.crawlPriority === "low"
-              ? LowPriorityCrawlerQueue
-              : LinkCrawlerQueue;
+          const crawlerQueue = shouldUseLowPriority
+            ? LowPriorityCrawlerQueue
+            : LinkCrawlerQueue;
           await crawlerQueue.enqueue(
             {
               bookmarkId: bookmark.id,

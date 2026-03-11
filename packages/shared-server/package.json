@@ -16,13 +16,12 @@
     "@opentelemetry/semantic-conventions": "^1.38.0"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "test": "vitest"
@@ -30,6 +29,5 @@
   "main": "index.ts",
   "exports": {
     ".": "./index.ts"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

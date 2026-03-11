@@ -147,7 +147,7 @@ const SearchInput = React.forwardRef<
             placeholder={placeholder}
             className={cn(
               !showCancel && "active:bg-muted/5 dark:active:bg-muted/20",
-              "flex-1 rounded-lg py-2 pl-8 pr-1  text-[17px] text-foreground",
+              "flex-1 rounded-lg py-2 pl-8 pr-1 text-[17px] text-foreground",
               className,
             )}
             value={value}
