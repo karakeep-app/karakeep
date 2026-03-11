@@ -2076,7 +2076,14 @@ async function runCrawler(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
 
-  const contentType = await getContentType(url, jobId, job.abortSignal);
+  if (precrawledArchiveAssetId) {
+    logger.info(
+      `[Crawler][${jobId}] Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
+    );
+  }
+  const contentType = precrawledArchiveAssetId 
+    ? ASSET_TYPES.TEXT_HTML 
+    : await getContentType(url, jobId, job.abortSignal);
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
