@@ -1,4 +1,5 @@
 import React from "react";
+import { Platform } from "react-native";
 import {
   Icon,
   Label,
@@ -11,7 +12,16 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 export default function TabLayout() {
   const { colors } = useColorScheme();
   return (
-    <NativeTabs backgroundColor={colors.grey6} minimizeBehavior="onScrollDown">
+    <NativeTabs
+      backgroundColor={Platform.OS === "ios" ? null : colors.grey6}
+      blurEffect={
+        Platform.OS === "ios" && parseInt(Platform.Version as string, 10) < 26
+          ? "systemMaterial"
+          : undefined
+      }
+      iconColor={{ default: colors.grey, selected: colors.primary }}
+      minimizeBehavior="onScrollDown"
+    >
       <NativeTabs.Trigger name="(home)">
         <Icon
           sf="house.fill"
