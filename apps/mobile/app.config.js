@@ -72,10 +72,17 @@ export default {
     plugins: [
       "./plugins/trust-local-certs.js",
       "./plugins/camera-not-required.js",
+      [
+        "./plugins/android-share-intent.js",
+        {
+          intentFilters: ["text/*", "image/*", "application/pdf"],
+        },
+      ],
       "expo-router",
       [
         "expo-share-intent",
         {
+          // iOS-only: Share Extension activation rules
           iosActivationRules: {
             NSExtensionActivationSupportsWebURLWithMaxCount: 1,
             NSExtensionActivationSupportsWebPageWithMaxCount: 1,
@@ -86,7 +93,8 @@ export default {
             NSExtensionActivationRule:
               'SUBQUERY (extensionItems, $extensionItem, SUBQUERY ($extensionItem.attachments, $attachment, SUBQUERY ($attachment.registeredTypeIdentifiers, $uti, $uti UTI-CONFORMS-TO "com.adobe.pdf" || $uti UTI-CONFORMS-TO "public.image" || $uti UTI-CONFORMS-TO "public.url" || $uti UTI-CONFORMS-TO "public.plain-text").@count >= 1).@count >= 1).@count >= 1',
           },
-          androidIntentFilters: ["text/*", "image/*", "application/pdf"],
+          // Android intent filters are handled by our custom plugin above.
+          // Do NOT set androidIntentFilters here to avoid duplicate manifest entries.
         },
       ],
       "expo-secure-store",
