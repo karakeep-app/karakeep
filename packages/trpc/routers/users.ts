@@ -108,6 +108,14 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (serverConfig.auth.disablePasswordAuth) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Password authentication is disabled in server config. Use OAuth instead.",
+        });
+      }
+
       const user = await User.fromCtx(ctx);
       await user.changePassword(input.currentPassword, input.newPassword);
     }),
