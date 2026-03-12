@@ -73,10 +73,12 @@ export function constructSummaryPrompt(
   customPrompts: string[],
   content: string,
 ): string {
+  const today = new Date().toISOString().split("T")[0];
   return `
 Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
 - Summary must be in 3-4 sentences.
 - The summary must be in ${lang}.
+- Today's date is ${today}. Do NOT flag or question dates that are in the past relative to today.
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
     ${content}`;
 }
