@@ -1556,55 +1556,76 @@ async function handleAsAssetBookmark(
       },
     },
     async () => {
-      const downloaded = await downloadAndStoreFile(
-        url,
-        userId,
-        jobId,
-        assetType,
-        abortSignal,
-      );
-      if (!downloaded) {
-        return;
-      }
-      const fileName = path.basename(new URL(url).pathname);
-      await db.transaction(async (trx) => {
-        await updateAsset(
-          undefined,
-          {
-            id: downloaded.assetId,
-            bookmarkId,
-            userId,
-            assetType: AssetTypes.BOOKMARK_ASSET,
-            contentType: downloaded.contentType,
-            size: downloaded.size,
-            fileName,
-          },
-          trx,
-        );
-        await trx.insert(bookmarkAssets).values({
-          id: bookmarkId,
+      let downloadedAssetId: string | undefined;
+      let assetPersisted = false;
+      try {
+        const downloaded = await downloadAndStoreFile(
+          url,
+          userId,
+          jobId,
           assetType,
-          assetId: downloaded.assetId,
-          content: null,
-          fileName,
-          sourceUrl: url,
+          abortSignal,
+        );
+        if (!downloaded) {
+          return;
+        }
+        downloadedAssetId = downloaded.assetId;
+        const fileName = path.basename(new URL(url).pathname);
+        await db.transaction(async (trx) => {
+          await updateAsset(
+            undefined,
+            {
+              id: downloaded.assetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.BOOKMARK_ASSET,
+              contentType: downloaded.contentType,
+              size: downloaded.size,
+              fileName,
+            },
+            trx,
+          );
+          await trx.insert(bookmarkAssets).values({
+            id: bookmarkId,
+            assetType,
+            assetId: downloaded.assetId,
+            content: null,
+            fileName,
+            sourceUrl: url,
+          });
+          // Switch the type of the bookmark from LINK to ASSET
+          await trx
+            .update(bookmarks)
+            .set({ type: BookmarkTypes.ASSET })
+            .where(eq(bookmarks.id, bookmarkId));
+          await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
         });
-        // Switch the type of the bookmark from LINK to ASSET
-        await trx
-          .update(bookmarks)
-          .set({ type: BookmarkTypes.ASSET })
-          .where(eq(bookmarks.id, bookmarkId));
-        await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
-      });
-      await AssetPreprocessingQueue.enqueue(
-        {
-          bookmarkId,
-          fixMode: false,
-        },
-        {
-          groupId: userId,
-        },
-      );
+        assetPersisted = true;
+        try {
+          await AssetPreprocessingQueue.enqueue(
+            {
+              bookmarkId,
+              fixMode: false,
+            },
+            {
+              groupId: userId,
+            },
+          );
+        } catch (enqueueError) {
+          logger.error(
+            `[Crawler][${jobId}] Asset bookmark ${downloadedAssetId} persisted, but preprocessing enqueue failed: ${enqueueError}`,
+          );
+          return;
+        }
+      } catch (error) {
+        if (downloadedAssetId && !assetPersisted) {
+          logger.error(
+            `[Crawler][${jobId}] handleAsAssetBookmark encountered an error, cleaning up new asset ${downloadedAssetId}: ${error}`,
+          );
+          await silentDeleteAsset(userId, downloadedAssetId);
+        }
+        throw error;
+      }
     },
   );
 }
@@ -1722,267 +1743,313 @@ async function crawlAndParseUrl(
       },
     },
     async () => {
-      let result: {
-        htmlContent: string;
-        screenshot: Buffer | undefined;
-        pdf: Buffer | undefined;
-        statusCode: number | null;
-        url: string;
-      };
-
-      if (precrawledArchiveAssetId) {
-        logger.info(
-          `[Crawler][${jobId}] The page has been precrawled. Will use the precrawled archive instead.`,
-        );
-        const asset = await readAsset({
-          userId,
-          assetId: precrawledArchiveAssetId,
-        });
-        result = {
-          htmlContent: asset.asset.toString(),
-          screenshot: undefined,
-          pdf: undefined,
-          statusCode: 200,
-          url,
+      const newAssetIds: string[] = [];
+      let transactionCommitted = false;
+      try {
+        let result: {
+          htmlContent: string;
+          screenshot: Buffer | undefined;
+          pdf: Buffer | undefined;
+          statusCode: number | null;
+          url: string;
         };
-      } else {
-        result = await crawlPage(
-          jobId,
-          url,
-          userId,
-          forceStorePdf,
-          abortSignal,
-        );
-      }
-      abortSignal.throwIfAborted();
 
-      const {
-        htmlContent,
-        screenshot,
-        pdf,
-        statusCode,
-        url: browserUrl,
-      } = result;
-
-      // Track status code in Prometheus
-      if (statusCode !== null) {
-        crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
-        setSpanAttributes({
-          "crawler.statusCode": statusCode,
-        });
-      }
-
-      if (shouldRetryCrawlStatusCode(statusCode)) {
-        if (numRetriesLeft > 0) {
-          throw new Error(
-            `[Crawler][${jobId}] Received status code ${statusCode}. Will retry crawl. Retries left: ${numRetriesLeft}`,
+        if (precrawledArchiveAssetId) {
+          logger.info(
+            `[Crawler][${jobId}] The page has been precrawled. Will use the precrawled archive instead.`,
+          );
+          const asset = await readAsset({
+            userId,
+            assetId: precrawledArchiveAssetId,
+          });
+          result = {
+            htmlContent: asset.asset.toString(),
+            screenshot: undefined,
+            pdf: undefined,
+            statusCode: 200,
+            url,
+          };
+        } else {
+          result = await crawlPage(
+            jobId,
+            url,
+            userId,
+            forceStorePdf,
+            abortSignal,
           );
         }
-        logger.info(
-          `[Crawler][${jobId}] Received status code ${statusCode} on latest retry attempt. Proceeding without retry.`,
-        );
-      }
+        abortSignal.throwIfAborted();
 
-      const { metadata: meta, readableContent: parsedReadableContent } =
-        await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
-      abortSignal.throwIfAborted();
+        const {
+          htmlContent,
+          screenshot,
+          pdf,
+          statusCode,
+          url: browserUrl,
+        } = result;
 
-      const parseDate = (date: string | null | undefined) => {
-        if (!date) {
-          return null;
+        // Track status code in Prometheus
+        if (statusCode !== null) {
+          crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+          setSpanAttributes({
+            "crawler.statusCode": statusCode,
+          });
         }
-        try {
-          return new Date(date);
-        } catch {
-          return null;
+
+        if (shouldRetryCrawlStatusCode(statusCode)) {
+          if (numRetriesLeft > 0) {
+            throw new Error(
+              `[Crawler][${jobId}] Received status code ${statusCode}. Will retry crawl. Retries left: ${numRetriesLeft}`,
+            );
+          }
+          logger.info(
+            `[Crawler][${jobId}] Received status code ${statusCode} on latest retry attempt. Proceeding without retry.`,
+          );
         }
-      };
 
-      // Phase 1: Write metadata immediately for fast user feedback.
-      // Content and asset storage happen later and can be slow (banner
-      // image download, screenshot/pdf upload, etc.).
-      await db
-        .update(bookmarkLinks)
-        .set({
-          title: meta.title,
-          description: meta.description,
-          // Don't store data URIs as they're not valid URLs and are usually quite large
-          imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
-          favicon: meta.logo,
-          crawlStatusCode: statusCode,
-          author: meta.author,
-          publisher: meta.publisher,
-          datePublished: parseDate(meta.datePublished),
-          dateModified: parseDate(meta.dateModified),
-        })
-        .where(eq(bookmarkLinks.id, bookmarkId));
+        const { metadata: meta, readableContent: parsedReadableContent } =
+          await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
+        abortSignal.throwIfAborted();
 
-      let readableContent = parsedReadableContent;
+        const parseDate = (date: string | null | undefined) => {
+          if (!date) {
+            return null;
+          }
+          const parsed = new Date(date);
+          return Number.isNaN(parsed.getTime()) ? null : parsed;
+        };
 
-      const screenshotAssetInfo = await Promise.race([
-        storeScreenshot(screenshot, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
-      abortSignal.throwIfAborted();
-
-      const pdfAssetInfo = await Promise.race([
-        storePdf(pdf, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
-      abortSignal.throwIfAborted();
-
-      const htmlContentAssetInfo = await storeHtmlContent(
-        readableContent?.content,
-        userId,
-        jobId,
-      );
-      abortSignal.throwIfAborted();
-      let imageAssetInfo: DBAssetType | null = null;
-      if (meta.image) {
-        const downloaded = await downloadAndStoreImage(
-          meta.image,
-          userId,
-          jobId,
-          abortSignal,
-        );
-        if (downloaded) {
-          imageAssetInfo = {
-            id: downloaded.assetId,
-            bookmarkId,
-            userId,
-            assetType: AssetTypes.LINK_BANNER_IMAGE,
-            contentType: downloaded.contentType,
-            size: downloaded.size,
-          };
-        }
-      }
-      abortSignal.throwIfAborted();
-
-      // Phase 2: Write content and asset references.
-      // TODO(important): Restrict the size of content to store
-      const assetDeletionTasks: Promise<void>[] = [];
-      const inlineHtmlContent =
-        htmlContentAssetInfo.result === "store_inline"
-          ? (readableContent?.content ?? null)
-          : null;
-      readableContent = null;
-      await db.transaction(async (txn) => {
-        await txn
+        // Phase 1: Write metadata immediately for fast user feedback.
+        // Content and asset storage happen later and can be slow (banner
+        // image download, screenshot/pdf upload, etc.).
+        await db
           .update(bookmarkLinks)
           .set({
-            crawledAt: new Date(),
-            htmlContent: inlineHtmlContent,
-            contentAssetId:
-              htmlContentAssetInfo.result === "stored"
-                ? htmlContentAssetInfo.assetId
-                : null,
+            title: meta.title,
+            description: meta.description,
+            // Don't store data URIs as they're not valid URLs and are usually quite large
+            imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
+            favicon: meta.logo,
+            crawlStatusCode: statusCode,
+            author: meta.author,
+            publisher: meta.publisher,
+            datePublished: parseDate(meta.datePublished),
+            dateModified: parseDate(meta.dateModified),
           })
           .where(eq(bookmarkLinks.id, bookmarkId));
 
+        let readableContent = parsedReadableContent;
+
+        abortSignal.throwIfAborted();
+        const screenshotAssetInfo = await storeScreenshot(
+          screenshot,
+          userId,
+          jobId,
+        );
         if (screenshotAssetInfo) {
-          await updateAsset(
-            oldScreenshotAssetId,
-            {
-              id: screenshotAssetInfo.assetId,
-              bookmarkId,
-              userId,
-              assetType: AssetTypes.LINK_SCREENSHOT,
-              contentType: screenshotAssetInfo.contentType,
-              size: screenshotAssetInfo.size,
-              fileName: screenshotAssetInfo.fileName,
-            },
-            txn,
-          );
-          assetDeletionTasks.push(
-            silentDeleteAsset(userId, oldScreenshotAssetId),
-          );
+          newAssetIds.push(screenshotAssetInfo.assetId);
         }
+        abortSignal.throwIfAborted();
+
+        const pdfAssetInfo = await storePdf(pdf, userId, jobId);
         if (pdfAssetInfo) {
-          await updateAsset(
-            oldPdfAssetId,
-            {
-              id: pdfAssetInfo.assetId,
-              bookmarkId,
-              userId,
-              assetType: AssetTypes.LINK_PDF,
-              contentType: pdfAssetInfo.contentType,
-              size: pdfAssetInfo.size,
-              fileName: pdfAssetInfo.fileName,
-            },
-            txn,
-          );
-          assetDeletionTasks.push(silentDeleteAsset(userId, oldPdfAssetId));
+          newAssetIds.push(pdfAssetInfo.assetId);
         }
-        if (imageAssetInfo) {
-          await updateAsset(oldImageAssetId, imageAssetInfo, txn);
-          assetDeletionTasks.push(silentDeleteAsset(userId, oldImageAssetId));
-        }
+        abortSignal.throwIfAborted();
+
+        const htmlContentAssetInfo = await storeHtmlContent(
+          readableContent?.content,
+          userId,
+          jobId,
+        );
         if (htmlContentAssetInfo.result === "stored") {
-          await updateAsset(
-            oldContentAssetId,
-            {
-              id: htmlContentAssetInfo.assetId,
-              bookmarkId,
-              userId,
-              assetType: AssetTypes.LINK_HTML_CONTENT,
-              contentType: ASSET_TYPES.TEXT_HTML,
-              size: htmlContentAssetInfo.size,
-              fileName: null,
-            },
-            txn,
-          );
-          assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
-        } else if (oldContentAssetId) {
-          // Unlink the old content asset
-          await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
-          assetDeletionTasks.push(silentDeleteAsset(userId, oldContentAssetId));
+          newAssetIds.push(htmlContentAssetInfo.assetId);
         }
-      });
-
-      // Delete the old assets if any
-      await Promise.all(assetDeletionTasks);
-
-      return async () => {
-        if (
-          !precrawledArchiveAssetId &&
-          (serverConfig.crawler.fullPageArchive || archiveFullPage)
-        ) {
-          const archiveResult = await archiveWebpage(
-            htmlContent,
-            browserUrl,
+        abortSignal.throwIfAborted();
+        let imageAssetInfo: DBAssetType | null = null;
+        if (meta.image) {
+          const downloaded = await downloadAndStoreImage(
+            meta.image,
             userId,
             jobId,
             abortSignal,
           );
-
-          if (archiveResult) {
-            const {
-              assetId: fullPageArchiveAssetId,
-              size,
-              contentType,
-            } = archiveResult;
-
-            await db.transaction(async (txn) => {
-              await updateAsset(
-                oldFullPageArchiveAssetId,
-                {
-                  id: fullPageArchiveAssetId,
-                  bookmarkId,
-                  userId,
-                  assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-                  contentType,
-                  size,
-                  fileName: null,
-                },
-                txn,
-              );
-            });
-            if (oldFullPageArchiveAssetId) {
-              await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
-            }
+          if (downloaded) {
+            newAssetIds.push(downloaded.assetId);
+            imageAssetInfo = {
+              id: downloaded.assetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.LINK_BANNER_IMAGE,
+              contentType: downloaded.contentType,
+              size: downloaded.size,
+            };
           }
         }
-      };
+        abortSignal.throwIfAborted();
+
+        // Phase 2: Write content and asset references.
+        // TODO(important): Restrict the size of content to store
+        const assetDeletionTasks: (() => Promise<void>)[] = [];
+        const inlineHtmlContent =
+          htmlContentAssetInfo.result === "store_inline"
+            ? (readableContent?.content ?? null)
+            : null;
+        readableContent = null;
+        await db.transaction(async (txn) => {
+          await txn
+            .update(bookmarkLinks)
+            .set({
+              crawledAt: new Date(),
+              htmlContent: inlineHtmlContent,
+              contentAssetId:
+                htmlContentAssetInfo.result === "stored"
+                  ? htmlContentAssetInfo.assetId
+                  : null,
+            })
+            .where(eq(bookmarkLinks.id, bookmarkId));
+
+          if (screenshotAssetInfo) {
+            await updateAsset(
+              oldScreenshotAssetId,
+              {
+                id: screenshotAssetInfo.assetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_SCREENSHOT,
+                contentType: screenshotAssetInfo.contentType,
+                size: screenshotAssetInfo.size,
+                fileName: screenshotAssetInfo.fileName,
+              },
+              txn,
+            );
+            if (oldScreenshotAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldScreenshotAssetId),
+              );
+            }
+          }
+          if (pdfAssetInfo) {
+            await updateAsset(
+              oldPdfAssetId,
+              {
+                id: pdfAssetInfo.assetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_PDF,
+                contentType: pdfAssetInfo.contentType,
+                size: pdfAssetInfo.size,
+                fileName: pdfAssetInfo.fileName,
+              },
+              txn,
+            );
+            if (oldPdfAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldPdfAssetId),
+              );
+            }
+          }
+          if (imageAssetInfo) {
+            await updateAsset(oldImageAssetId, imageAssetInfo, txn);
+            if (oldImageAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldImageAssetId),
+              );
+            }
+          }
+          if (htmlContentAssetInfo.result === "stored") {
+            await updateAsset(
+              oldContentAssetId,
+              {
+                id: htmlContentAssetInfo.assetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_HTML_CONTENT,
+                contentType: ASSET_TYPES.TEXT_HTML,
+                size: htmlContentAssetInfo.size,
+                fileName: null,
+              },
+              txn,
+            );
+            if (oldContentAssetId) {
+              assetDeletionTasks.push(() =>
+                silentDeleteAsset(userId, oldContentAssetId),
+              );
+            }
+          } else if (oldContentAssetId) {
+            // Unlink the old content asset
+            await txn.delete(assets).where(eq(assets.id, oldContentAssetId));
+            assetDeletionTasks.push(() =>
+              silentDeleteAsset(userId, oldContentAssetId),
+            );
+          }
+        });
+
+        transactionCommitted = true;
+        newAssetIds.length = 0;
+
+        // Delete the old assets if any
+        await Promise.all(assetDeletionTasks.map((t) => t()));
+
+        return async () => {
+          if (
+            !precrawledArchiveAssetId &&
+            (serverConfig.crawler.fullPageArchive || archiveFullPage)
+          ) {
+            const archiveResult = await archiveWebpage(
+              htmlContent,
+              browserUrl,
+              userId,
+              jobId,
+              abortSignal,
+            );
+
+            if (archiveResult) {
+              const {
+                assetId: fullPageArchiveAssetId,
+                size,
+                contentType,
+              } = archiveResult;
+
+              try {
+                await db.transaction(async (txn) => {
+                  await updateAsset(
+                    oldFullPageArchiveAssetId,
+                    {
+                      id: fullPageArchiveAssetId,
+                      bookmarkId,
+                      userId,
+                      assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+                      contentType,
+                      size,
+                      fileName: null,
+                    },
+                    txn,
+                  );
+                });
+              } catch (e) {
+                await silentDeleteAsset(userId, fullPageArchiveAssetId);
+                throw e;
+              }
+              newAssetIds.length = 0;
+              if (oldFullPageArchiveAssetId) {
+                await silentDeleteAsset(userId, oldFullPageArchiveAssetId);
+              }
+            }
+          }
+        };
+      } catch (error) {
+        if (!transactionCommitted) {
+          logger.error(
+            `[Crawler][${jobId}] crawlAndParseUrl encountered an error, cleaning up new assets: ${error}`,
+          );
+          // Clean up any assets that were created during this attempt but not committed
+          await Promise.all(
+            newAssetIds.map((assetId) => silentDeleteAsset(userId, assetId)),
+          );
+        }
+        throw error;
+      }
     },
   );
 }
