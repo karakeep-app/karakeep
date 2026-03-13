@@ -568,6 +568,13 @@
       "when": 1771481519588,
       "tag": "0080_user_reading_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "6",
+      "when": 1771832693055,
+      "tag": "0081_add_last_saved_at",
+      "breakpoints": true
     }
   ]
 }
