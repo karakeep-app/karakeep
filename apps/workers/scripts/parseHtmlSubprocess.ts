@@ -22,6 +22,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
+import metascraperBilibili from "../metascraper-plugins/metascraper-bilibili";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import {
   parseSubprocessErrorSchema,
@@ -32,6 +33,44 @@ import {
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
 logger.add(new winston.transports.Stream({ stream: process.stderr }));
+
+const PURIFY_OPTIONS = {
+  // Preserve image referrer policy for hotlink-protected media (e.g. Bilibili).
+  ADD_ATTR: ["referrerpolicy"],
+};
+
+const ALLOWED_REFERRER_POLICIES = new Set([
+  "no-referrer",
+  "same-origin",
+]);
+
+function sanitizeReadableHtml(html: string): string {
+  const purifyWindow = new JSDOM("").window;
+  try {
+    const purify = DOMPurify(purifyWindow);
+    const purifiedHTML = purify.sanitize(html, PURIFY_OPTIONS);
+
+    const documentWindow = new JSDOM(`<body>${purifiedHTML}</body>`).window;
+    try {
+      const document = documentWindow.document;
+      for (const element of document.querySelectorAll("[referrerpolicy]")) {
+        const value = element
+          .getAttribute("referrerpolicy")
+          ?.toLowerCase()
+          .trim();
+        if (!value || !ALLOWED_REFERRER_POLICIES.has(value)) {
+          element.setAttribute("referrerpolicy", "no-referrer");
+        }
+      }
+
+      return document.body.innerHTML;
+    } finally {
+      documentWindow.close();
+    }
+  } finally {
+    purifyWindow.close();
+  }
+}
 
 const metascraperParser = metascraper([
   metascraperDate({
@@ -52,6 +91,7 @@ const metascraperParser = metascraper([
       },
     },
   }),
+  metascraperBilibili(),
   metascraperReddit(),
   metascraperAuthor(),
   metascraperPublisher(),
@@ -133,14 +173,8 @@ function extractReadableContent(
       return null;
     }
 
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
-      return { content: purifiedHTML };
-    } finally {
-      purifyWindow.close();
-    }
+    const purifiedHTML = sanitizeReadableHtml(readableContent.content);
+    return { content: purifiedHTML };
   } finally {
     dom.window.close();
   }
@@ -175,14 +209,8 @@ async function main() {
   if (meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(meta.readableContentHtml);
-      readableContent = { content: purifiedHTML };
-    } finally {
-      purifyWindow.close();
-    }
+    const purifiedHTML = sanitizeReadableHtml(meta.readableContentHtml);
+    readableContent = { content: purifiedHTML };
   }
 
   if (!readableContent) {
