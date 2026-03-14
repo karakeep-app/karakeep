@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import FilePickerButton from "@/components/ui/file-picker-button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -128,6 +129,52 @@ function ExportButton() {
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+function OneTabImportCard({
+  runUploadBookmarkFile,
+}: {
+  runUploadBookmarkFile: ReturnType<
+    typeof useBookmarkImport
+  >["runUploadBookmarkFile"];
+}) {
+  const { t } = useTranslation();
+  const [tag, setTag] = useState("");
+
+  return (
+    <ImportCard
+      text="OneTab"
+      description={t("settings.import.import_bookmarks_from_onetab_export")}
+    >
+      <div className="flex flex-col items-end gap-2">
+        <Input
+          className="h-8 w-32 text-sm"
+          placeholder={t("settings.import.tag_optional")}
+          value={tag}
+          onChange={(e) => setTag(e.target.value)}
+        />
+        <FilePickerButton
+          size={"sm"}
+          loading={false}
+          accept=".txt"
+          multiple={false}
+          className="flex items-center gap-2"
+          onFileSelect={(file) =>
+            runUploadBookmarkFile({
+              file,
+              source: "onetab",
+              extraTags: tag
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean),
+            })
+          }
+        >
+          <p>Import</p>
+        </FilePickerButton>
+      </div>
+    </ImportCard>
   );
 }
 
@@ -309,6 +356,7 @@ export function ImportExportRow() {
             <p>Import</p>
           </FilePickerButton>
         </ImportCard>
+        <OneTabImportCard runUploadBookmarkFile={runUploadBookmarkFile} />
         <ExportButton />
       </div>
       {importProgress && (

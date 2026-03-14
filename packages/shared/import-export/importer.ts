@@ -57,12 +57,14 @@ export async function importBookmarksFromFile(
     file,
     source,
     rootListName,
+    extraTags,
     deps,
     onProgress,
   }: {
     file: { text: () => Promise<string> };
     source: ImportSource;
     rootListName: string;
+    extraTags?: string[];
     deps: ImportDeps;
     onProgress?: (done: number, total: number) => void;
   },
@@ -247,7 +249,7 @@ export async function importBookmarksFromFile(
       title: bookmark.title,
       content: textContent,
       note: bookmark.notes,
-      tags: bookmark.tags ?? [],
+      tags: [...new Set([...(bookmark.tags ?? []), ...(extraTags ?? [])])],
       listIds,
       sourceAddedAt: bookmark.addDate
         ? new Date(bookmark.addDate * 1000)

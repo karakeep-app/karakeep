@@ -461,3 +461,52 @@ describe("parseKarakeepBookmarkFile", () => {
     expect(result.bookmarks[0].listExternalIds).toEqual(["manual"]);
   });
 });
+
+describe("parseOneTabFile", () => {
+  it("parses URL | Title lines", () => {
+    const txt = `https://example.com | Example Site
+https://github.com | GitHub`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(2);
+    expect(bookmarks[0]).toMatchObject({
+      title: "Example Site",
+      content: { type: "link", url: "https://example.com" },
+    });
+    expect(bookmarks[0].tags).toEqual([]);
+    expect(bookmarks[0].paths).toEqual([]);
+    expect(bookmarks[1]).toMatchObject({
+      title: "GitHub",
+      content: { type: "link", url: "https://github.com" },
+    });
+    expect(bookmarks[1].tags).toEqual([]);
+    expect(bookmarks[1].paths).toEqual([]);
+  });
+
+  it("parses plain URL lines without a title", () => {
+    const txt = `https://example.com`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(1);
+    expect(bookmarks[0].title).toBe("");
+    expect(bookmarks[0].content).toMatchObject({
+      type: "link",
+      url: "https://example.com",
+    });
+  });
+
+  it("skips non-URL lines and empty lines", () => {
+    const txt = `Sat Feb 18 2023 10:30:00 GMT+0000
+https://example.com | Example
+
+not a url at all
+https://github.com | GitHub`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(2);
+  });
+
+  it("deduplicates repeated URLs", () => {
+    const txt = `https://example.com | Example
+https://example.com | Example`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(1);
+  });
+});
