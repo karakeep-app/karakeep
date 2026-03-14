@@ -18,13 +18,26 @@ export default function EmptyState({
   return (
     <Animated.View
       entering={FadeIn.duration(400)}
-      className="items-center justify-center py-12"
+      style={{
+        width: "100%",
+        paddingHorizontal: 16,
+        paddingVertical: 48,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
     >
       <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-primary/10">
         <Icon size={36} color={colors.primary} />
       </View>
-      <Text variant="title3">{title}</Text>
-      <Text className="mt-1 text-center text-muted-foreground">{subtitle}</Text>
+      <Text variant="title3" style={{ textAlign: "center", width: "100%" }}>
+        {title}
+      </Text>
+      <Text
+        style={{ textAlign: "center", width: "100%", marginTop: 4 }}
+        className="text-muted-foreground"
+      >
+        {subtitle}
+      </Text>
     </Animated.View>
   );
 }

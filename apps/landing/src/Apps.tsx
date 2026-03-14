@@ -1,8 +1,10 @@
 import NavBar from "./Navbar";
-import appStoreBadge from "/app-store-badge.png?url";
-import chromeExtensionBadge from "/chrome-extension-badge.png?url";
-import firefoxAddonBadge from "/firefox-addon.png?url";
-import playStoreBadge from "/google-play-badge.webp?url";
+import appleIcon from "/apple-icon.svg?url";
+import chromeIcon from "/chrome-icon.svg?url";
+import firefoxIcon from "/firefox-icon.svg?url";
+import googlePlayIcon from "/google-play-icon.svg?url";
+import obsidianIcon from "/obsidian-icon.svg?url";
+import raycastIcon from "/raycast-icon.svg?url";
 
 interface Listing {
   name: string;
@@ -16,13 +18,13 @@ const mobileApps: Listing[] = [
     name: "iOS App",
     description: "Save links and notes from your iPhone and iPad.",
     url: "https://apps.apple.com/us/app/karakeep-app/id6479258022",
-    badge: appStoreBadge,
+    badge: appleIcon,
   },
   {
     name: "Android App",
     description: "Capture and organize content on Android devices.",
     url: "https://play.google.com/store/apps/details?id=app.hoarder.hoardermobile&pcampaignid=web_share",
-    badge: playStoreBadge,
+    badge: googlePlayIcon,
   },
 ];
 
@@ -31,13 +33,28 @@ const browserExtensions: Listing[] = [
     name: "Chrome Extension",
     description: "One-click saving from Chrome.",
     url: "https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje",
-    badge: chromeExtensionBadge,
+    badge: chromeIcon,
   },
   {
     name: "Firefox Add-on",
     description: "Save pages directly from Firefox.",
     url: "https://addons.mozilla.org/en-US/firefox/addon/karakeep/",
-    badge: firefoxAddonBadge,
+    badge: firefoxIcon,
+  },
+];
+
+const communityProjects: Listing[] = [
+  {
+    name: "Raycast Extension",
+    description: "Manage your Karakeep bookmarks directly from Raycast.",
+    url: "https://www.raycast.com/luolei/karakeep",
+    badge: raycastIcon,
+  },
+  {
+    name: "Obsidian Plugin",
+    description: "Sync your Karakeep bookmarks to Obsidian as markdown notes.",
+    url: "https://obsidian.md/plugins?id=hoarder-sync",
+    badge: obsidianIcon,
   },
 ];
 
@@ -61,18 +78,18 @@ function ListingSection({
             href={item.url}
             target="_blank"
             rel="noreferrer"
-            className="flex flex-col gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:border-gray-300"
+            className="flex flex-row items-center gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:border-gray-300"
           >
-            <div>
-              <h3 className="font-semibold text-gray-900">{item.name}</h3>
-              <p className="mt-1 text-sm text-gray-600">{item.description}</p>
-            </div>
-            <div className="h-12 w-fit">
+            <div className="h-10 w-10 shrink-0">
               <img
-                className="h-full w-auto object-contain"
+                className="h-full w-full object-contain"
                 alt={item.name}
                 src={item.badge}
               />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">{item.name}</h3>
+              <p className="mt-1 text-sm text-gray-600">{item.description}</p>
             </div>
           </a>
         ))}
@@ -103,6 +120,11 @@ export default function Apps() {
               title="Browser Extensions"
               description="Save content from your browser in one click."
               items={browserExtensions}
+            />
+            <ListingSection
+              title="Community Projects"
+              description="Integrations built by the Karakeep community."
+              items={communityProjects}
             />
           </div>
         </main>

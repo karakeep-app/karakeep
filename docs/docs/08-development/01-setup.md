@@ -121,7 +121,7 @@ The worker app will automatically start headless chrome on startup for crawling 
 To build and run the mobile app locally, you'll need:
 
 - **For iOS development**: 
-  - macOS computer
+  - macOS
   - Xcode installed from the App Store
   - iOS Simulator (comes with Xcode)
 
@@ -132,27 +132,45 @@ To build and run the mobile app locally, you'll need:
 
 For detailed setup instructions, refer to the [Expo documentation](https://docs.expo.dev/guides/local-app-development/).
 
-#### Running the app
+#### Updating from an Older Version
 
-- `cd apps/mobile`
-- `pnpm exec expo prebuild --no-install` to build the app.
+If you are returning to mobile development after a significant update to the source (e.g. Expo version bump or major dependency changes), the build may fail with stale artifacts in workspace `node_modules`. Run a clean wipe before reinstalling:
 
-**For iOS:**
-- `pnpm exec expo run:ios`
-- The app will be installed and started in the simulator.
-
-**Troubleshooting iOS Setup:**
-If you encounter an error like `xcrun: error: SDK "iphoneos" cannot be located`, you may need to set the correct Xcode developer directory:
 ```bash
-sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+pnpm run clean:workspaces
+pnpm install
+pnpm --filter @karakeep/mobile clean:prebuild
 ```
 
-**For Android:**
-- Start the Android emulator or connect a physical device.
-- `pnpm exec expo run:android`
-- The app will be installed and started on the emulator/device.
+Then continue with the prebuild and run steps below.
 
-Changing the code will hot reload the app. However, installing new packages requires restarting the expo server.
+#### Quick Start
+
+```sh
+# ios
+pnpm ios
+
+# android
+pnpm android
+```
+
+More details below if you want to understand what's going on.
+
+
+#### Details
+
+The app has three variants: development, preview, and release.
+
+| Variant | Description | Expo Dev Tools | Command (iOS) | Command (Android) |
+|---------|-------------|----------------|---------------|--------------------|
+| Development (default) | Requires the expo devserver to be running. Uses a separate bundle ID so it can be installed alongside the production app. | Yes | `pnpm ios` | `pnpm android` |
+| Preview | Standalone app that doesn't require the expo devserver. Uses its own bundle ID. | No | `pnpm --filter @karakeep/mobile ios:preview` | `pnpm --filter @karakeep/mobile android:preview` |
+| Release | Standalone app using the production bundle ID. Closest to a production build. | No | `pnpm --filter @karakeep/mobile ios:release` | `pnpm --filter @karakeep/mobile android:release` |
+
+In 90% of the cases, you'll want to use the development variant.
+
+Note: Changing the code will hot reload the app. However, installing new packages requires restarting the expo server.
+
 
 ### Browser Extension
 

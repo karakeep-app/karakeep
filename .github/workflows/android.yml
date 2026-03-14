@@ -36,6 +36,7 @@ jobs:
         run: eas build --platform android --local --output ${{ github.workspace }}/app-release.aab
         env:
           EAS_SKIP_AUTO_FINGERPRINT: "1"
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4

@@ -49,7 +49,8 @@ function getOpenApiDocumentation() {
         "Bookmarks can be one of three types:\n" +
         "- **link** — A URL bookmark with optional crawled metadata.\n" +
         "- **text** — A plain text note.\n" +
-        "- **asset** — An uploaded file (image or PDF).",
+        "- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. " +
+        "If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying.",
     },
     tags: [
       {

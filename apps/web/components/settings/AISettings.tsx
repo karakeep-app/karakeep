@@ -723,6 +723,42 @@ export function TaggingRules() {
   );
 }
 
+/**
+ * Expand $tags / $aiTags / $userTags placeholders in custom prompt texts so
+ * that the preview panel shows exactly what will be sent to the AI.
+ *
+ * The logic mirrors apps/workers/workers/inference/tagging.ts
+ * `replaceTagsPlaceholders` to keep the preview accurate.
+ */
+function expandTagPlaceholders(
+  texts: string[],
+  tags: { name: string; numBookmarksByAttachedType: Record<string, number> }[],
+): string[] {
+  const tagsStr = `[${tags.map((t) => t.name).join(", ")}]`;
+  const aiTagsStr = `[${tags
+    .filter((t) => t.numBookmarksByAttachedType["human"] ?? true)
+    .map((t) => t.name)
+    .join(", ")}]`;
+  const userTagsStr = `[${tags
+    .filter((t) => t.numBookmarksByAttachedType["human"] ?? false)
+    .map((t) => t.name)
+    .join(", ")}]`;
+
+  return texts.map((text) =>
+    text
+      .replaceAll("$tags", tagsStr)
+      .replaceAll("$aiTags", aiTagsStr)
+      .replaceAll("$userTags", userTagsStr),
+  );
+}
+
+function hasTagPlaceholder(texts: string[]): boolean {
+  return texts.some(
+    (t) =>
+      t.includes("$tags") || t.includes("$aiTags") || t.includes("$userTags"),
+  );
+}
+
 export function PromptDemo() {
   const api = useTRPC();
   const { t } = useTranslation();
@@ -749,6 +785,25 @@ export function PromptDemo() {
           .filter((name): name is string => Boolean(name))
       : undefined;
 
+  // Detect whether any prompt uses a tag-list placeholder ($tags / $aiTags / $userTags)
+  const allPromptTexts = (prompts ?? []).map((p) => p.text);
+  const needsTagExpansion = hasTagPlaceholder(allPromptTexts);
+
+  // Fetch all tags only when a placeholder is actually used (avoids an
+  // unnecessary round-trip for users who don't use this feature).
+  const { data: allTagsData } = useQuery(
+    api.tags.list.queryOptions({}, { enabled: needsTagExpansion }),
+  );
+
+  // Build a function that expands placeholders in a list of prompt texts.
+  const withTagsExpanded = React.useCallback(
+    (texts: string[]): string[] => {
+      if (!needsTagExpansion || !allTagsData?.tags) return texts;
+      return expandTagPlaceholders(texts, allTagsData.tags);
+    },
+    [needsTagExpansion, allTagsData],
+  );
+
   return (
     <SettingsSection
       title={t("settings.ai.prompt_preview")}
@@ -762,11 +817,14 @@ export function PromptDemo() {
           <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
             {buildTextPromptUntruncated(
               inferredTagLang,
-              (prompts ?? [])
-                .filter(
-                  (p) => p.appliesTo == "text" || p.appliesTo == "all_tagging",
-                )
-                .map((p) => p.text),
+              withTagsExpanded(
+                (prompts ?? [])
+                  .filter(
+                    (p) =>
+                      p.appliesTo == "text" || p.appliesTo == "all_tagging",
+                  )
+                  .map((p) => p.text),
+              ),
               "\n<CONTENT_HERE>\n",
               tagStyle,
               curatedTagNames,
@@ -780,12 +838,14 @@ export function PromptDemo() {
           <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
             {buildImagePrompt(
               inferredTagLang,
-              (prompts ?? [])
-                .filter(
-                  (p) =>
-                    p.appliesTo == "images" || p.appliesTo == "all_tagging",
-                )
-                .map((p) => p.text),
+              withTagsExpanded(
+                (prompts ?? [])
+                  .filter(
+                    (p) =>
+                      p.appliesTo == "images" || p.appliesTo == "all_tagging",
+                  )
+                  .map((p) => p.text),
+              ),
               tagStyle,
               curatedTagNames,
             ).trim()}
@@ -798,9 +858,11 @@ export function PromptDemo() {
           <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
             {buildSummaryPromptUntruncated(
               inferredTagLang,
-              (prompts ?? [])
-                .filter((p) => p.appliesTo == "summary")
-                .map((p) => p.text),
+              withTagsExpanded(
+                (prompts ?? [])
+                  .filter((p) => p.appliesTo == "summary")
+                  .map((p) => p.text),
+              ),
               "\n<CONTENT_HERE>\n",
             ).trim()}
           </code>

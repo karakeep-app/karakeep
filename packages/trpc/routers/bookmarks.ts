@@ -254,7 +254,7 @@ export const bookmarksAppRouter = router({
                   content: null,
                   metadata: null,
                   fileName: input.fileName ?? null,
-                  sourceUrl: null,
+                  sourceUrl: input.sourceUrl ?? null,
                 })
                 .returning();
               const uploadedAsset = await Asset.fromId(ctx, input.assetId);
@@ -286,6 +286,8 @@ export const bookmarksAppRouter = router({
                 type: BookmarkTypes.ASSET,
                 assetType: asset.assetType,
                 assetId: asset.assetId,
+                fileName: asset.fileName,
+                sourceUrl: asset.sourceUrl,
               };
               break;
             }

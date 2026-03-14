@@ -30,80 +30,84 @@ export function buildRunnerService<T, R>(
       inactivityTimeout: {
         seconds: opts.timeoutSecs * 2,
       },
-      // No retries at runner level - dispatcher handles retry logic
-      retryPolicy: {
-        maxAttempts: 1,
-      },
       journalRetention: {
         days: 3,
       },
     },
     handlers: {
-      run: async (
-        ctx: restate.Context,
-        jobData: RunnerJobData<T>,
-      ): Promise<RunnerResult<R>> => {
-        // Validate payload if validator provided
-        let payload = jobData.data;
-        if (opts.validator) {
-          const res = opts.validator.safeParse(jobData.data);
-          if (!res.success) {
+      run: restate.handlers.handler(
+        {
+          // No retries at runner level - dispatcher handles retry logic
+          retryPolicy: {
+            maxAttempts: 1,
+          },
+        },
+        async (
+          ctx: restate.Context,
+          jobData: RunnerJobData<T>,
+        ): Promise<RunnerResult<R>> => {
+          // Validate payload if validator provided
+          let payload = jobData.data;
+          if (opts.validator) {
+            const res = opts.validator.safeParse(jobData.data);
+            if (!res.success) {
+              return {
+                type: "error",
+                error: {
+                  name: "ValidationError",
+                  message: res.error.message,
+                },
+              };
+            }
+            payload = res.data;
+          }
+
+          const res = await tryCatch(
+            ctx
+              .run(
+                "main logic",
+                async () => {
+                  const result = await tryCatch(
+                    funcs.run({
+                      id: jobData.id,
+                      data: payload,
+                      priority: jobData.priority,
+                      runNumber: jobData.runNumber,
+                      abortSignal: AbortSignal.timeout(
+                        jobData.timeoutSecs * 1000,
+                      ),
+                    }),
+                  );
+                  if (result.error) {
+                    if (result.error instanceof QueueRetryAfterError) {
+                      return {
+                        type: "rate_limit" as const,
+                        delayMs: result.error.delayMs,
+                      };
+                    }
+                    throw result.error;
+                  }
+                  return { type: "success" as const, value: result.data };
+                },
+                {
+                  maxRetryAttempts: 1,
+                },
+              )
+              .orTimeout({
+                seconds: jobData.timeoutSecs * 1.1,
+              }),
+          );
+
+          if (res.error) {
             return {
               type: "error",
-              error: {
-                name: "ValidationError",
-                message: res.error.message,
-              },
+              error: serializeError(res.error),
             };
           }
-          payload = res.data;
-        }
 
-        const res = await tryCatch(
-          ctx
-            .run(
-              "main logic",
-              async () => {
-                const result = await tryCatch(
-                  funcs.run({
-                    id: jobData.id,
-                    data: payload,
-                    priority: jobData.priority,
-                    runNumber: jobData.runNumber,
-                    abortSignal: AbortSignal.timeout(
-                      jobData.timeoutSecs * 1000,
-                    ),
-                  }),
-                );
-                if (result.error) {
-                  if (result.error instanceof QueueRetryAfterError) {
-                    return {
-                      type: "rate_limit" as const,
-                      delayMs: result.error.delayMs,
-                    };
-                  }
-                  throw result.error;
-                }
-                return { type: "success" as const, value: result.data };
-              },
-              {
-                maxRetryAttempts: 1,
-              },
-            )
-            .orTimeout({
-              seconds: jobData.timeoutSecs * 1.1,
-            }),
-        );
-
-        if (res.error) {
-          return {
-            type: "error",
-            error: serializeError(res.error),
-          };
-        }
-
-        return res.data as RunnerResult<R>;
-      },
+          return res.data as RunnerResult<R>;
+        },
+      ),
 
       onCompleted: async (
         ctx: restate.Context,

@@ -29,7 +29,9 @@ export default function BookmarkView() {
   const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
-    settings.defaultBookmarkView,
+    settings.defaultBookmarkView === "externalBrowser"
+      ? "browser"
+      : settings.defaultBookmarkView,
   );
 
   if (typeof slug !== "string") {

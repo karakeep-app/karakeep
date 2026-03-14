@@ -44,19 +44,34 @@ function HeaderRight({
         if (nativeEvent.event === "new") {
           openNewBookmarkModal();
         } else if (nativeEvent.event === "library") {
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: settings.imageQuality,
-            allowsMultipleSelection: false,
-          });
-          if (!result.canceled) {
-            uploadToastIdRef.current =
-              sonnerToast.loading("Uploading image...");
-            uploadAsset({
-              type: result.assets[0].mimeType ?? "",
-              name: result.assets[0].fileName ?? "",
-              uri: result.assets[0].uri,
+          try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ["images"],
+              quality: settings.imageQuality,
+              allowsMultipleSelection: false,
             });
+            if (!result.canceled) {
+              const asset = result.assets[0];
+              if (!asset) {
+                uploadToastIdRef.current = null;
+                return;
+              }
+              uploadToastIdRef.current =
+                sonnerToast.loading("Uploading image...");
+              uploadAsset({
+                type: asset.mimeType ?? "",
+                name: asset.fileName ?? "",
+                uri: asset.uri,
+              });
+            }
+          } catch {
+            sonnerToast.error("Failed to open photo library", {
+              id:
+                uploadToastIdRef.current !== null
+                  ? uploadToastIdRef.current
+                  : undefined,
+            });
+            uploadToastIdRef.current = null;
           }
         }
       }}
@@ -121,7 +136,9 @@ export default function Home() {
                 <Search size={16} color={styles?.color?.toString()} />
               )}
             />
-            <Text className="text-muted">Search</Text>
+            <Text className="flex-1 text-muted" numberOfLines={1}>
+              Search
+            </Text>
           </Pressable>
         }
       />
