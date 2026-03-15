@@ -16,13 +16,13 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 function createdAtField() {
-  return integer("createdAt", { mode: "timestamp" })
+  return integer("createdAt", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date());
 }
 
 function modifiedAtField() {
-  return integer("modifiedAt", { mode: "timestamp" })
+  return integer("modifiedAt", { mode: "timestamp_ms" })
     .$defaultFn(() => new Date())
     .$onUpdate(() => new Date());
 }
