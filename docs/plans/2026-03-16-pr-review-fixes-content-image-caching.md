@@ -35,6 +35,6 @@ The `hiddenAssetType` intermediate variable with `ZAssetType` annotation is unne
 
 ### Task 2: Verify acceptance criteria
 
-- [ ] Run full test suite: `pnpm test`
-- [ ] Run linter: `pnpm lint`
-- [ ] Run typecheck: `pnpm typecheck`
+- [x] Run full test suite: `pnpm test`
+- [x] Run linter: `pnpm lint`
+- [x] Run typecheck: `pnpm typecheck`
