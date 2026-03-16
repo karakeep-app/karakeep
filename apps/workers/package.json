@@ -62,7 +62,8 @@
     "@types/archiver": "^7.0.0",
     "@types/jsdom": "^21.1.6",
     "@types/node-cron": "^3.0.11",
-    "tsdown": "^0.12.9"
+    "tsdown": "^0.12.9",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "start": "tsx watch index.ts",
@@ -73,6 +74,8 @@
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   }
 }
