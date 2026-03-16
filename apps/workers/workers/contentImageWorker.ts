@@ -88,16 +88,26 @@ export async function resolveHtmlContent(
   }
 
   if (link.contentAssetId) {
-    const { asset } = await readAsset({
-      userId,
-      assetId: link.contentAssetId,
-    });
-    return {
-      htmlContent: asset.toString("utf8"),
-      source: "asset",
-      contentAssetId: link.contentAssetId,
-    };
-  } else if (link.htmlContent) {
+    try {
+      const { asset } = await readAsset({
+        userId,
+        assetId: link.contentAssetId,
+      });
+      return {
+        htmlContent: asset.toString("utf8"),
+        source: "asset",
+        contentAssetId: link.contentAssetId,
+      };
+    } catch (e) {
+      // Asset file missing on disk (orphaned reference) — fall through to
+      // inline HTML if available, otherwise return null.
+      logger.warn(
+        `Failed to read content asset "${link.contentAssetId}" for bookmark "${bookmarkId}", falling back to inline HTML: ${e}`,
+      );
+    }
+  }
+
+  if (link.htmlContent) {
     return {
       htmlContent: link.htmlContent,
       source: "inline",
@@ -108,9 +118,10 @@ export async function resolveHtmlContent(
   return null;
 }
 
-// Exported for testing
-export function extractExternalImageUrls(htmlContent: string): string[] {
-  const dom = new JSDOM(htmlContent);
+// Exported for testing. Accepts raw HTML or a pre-parsed JSDOM instance to
+// avoid redundant parsing when the same DOM is reused by rewriteImageUrls.
+export function extractExternalImageUrls(input: string | JSDOM): string[] {
+  const dom = typeof input === "string" ? new JSDOM(input) : input;
   const images = dom.window.document.querySelectorAll("img[src]");
   const urls = new Set<string>();
 
@@ -209,12 +220,13 @@ export async function downloadImage(
   }
 }
 
-// Exported for testing
+// Exported for testing. Accepts raw HTML or a pre-parsed JSDOM instance to
+// avoid redundant parsing when the same DOM was already used by extractExternalImageUrls.
 export function rewriteImageUrls(
-  htmlContent: string,
+  input: string | JSDOM,
   urlToAssetId: Map<string, string>,
 ): string {
-  const dom = new JSDOM(htmlContent);
+  const dom = typeof input === "string" ? new JSDOM(input) : input;
   const images = dom.window.document.querySelectorAll("img[src]");
 
   for (const img of images) {
@@ -226,7 +238,11 @@ export function rewriteImageUrls(
     }
   }
 
-  return dom.window.document.body?.innerHTML ?? htmlContent;
+  // JSDOM always creates a body, so this fallback is defensive.
+  // When a raw string was passed we can preserve the original; for a shared
+  // JSDOM instance the caller owns the input so empty string is acceptable.
+  const fallback = typeof input === "string" ? input : "";
+  return dom.window.document.body?.innerHTML ?? fallback;
 }
 
 // Exported for testing
@@ -278,8 +294,11 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
     return;
   }
 
+  // Parse HTML once and reuse the DOM for both extraction and rewriting
+  const dom = new JSDOM(resolved.htmlContent);
+
   // Extract external image URLs
-  const imageUrls = extractExternalImageUrls(resolved.htmlContent);
+  const imageUrls = extractExternalImageUrls(dom);
   if (imageUrls.length === 0) {
     logger.info(`[contentImage][${jobId}] No external images found in content`);
     return;
@@ -360,8 +379,8 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
     `[contentImage][${jobId}] Successfully cached ${urlToAssetId.size} images, rewriting HTML`,
   );
 
-  // Rewrite HTML with asset URLs
-  const rewrittenHtml = rewriteImageUrls(resolved.htmlContent, urlToAssetId);
+  // Rewrite HTML with asset URLs (reuses the already-parsed DOM)
+  const rewrittenHtml = rewriteImageUrls(dom, urlToAssetId);
 
   // Store updated HTML — wrap in try/catch so a quota error at this stage
   // doesn't fail the entire job (the images are already saved).

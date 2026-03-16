@@ -26,7 +26,11 @@ import {
   useDetachBookmarkAsset,
   useReplaceBookmarkAsset,
 } from "@karakeep/shared-react/hooks/assets";
-import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import {
+  BookmarkTypes,
+  ZAssetType,
+  ZBookmark,
+} from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import {
   humanFriendlyNameForAssertType,
@@ -96,8 +100,10 @@ export default function AttachmentBox({
     },
   });
 
+  // Content images are embedded in reader HTML and shouldn't appear as standalone attachments
+  const hiddenAssetType: ZAssetType = "contentImage";
   const displayAssets = bookmark.assets
-    .filter((a) => a.assetType !== "contentImage")
+    .filter((a) => a.assetType !== hiddenAssetType)
     .sort((a, b) => a.assetType.localeCompare(b.assetType));
 
   const hasAssets = displayAssets.length > 0;

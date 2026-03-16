@@ -69,3 +69,6 @@ auth_failures.log
 .codex
 .claude/worktrees
 jean.json
+
+# ralphex progress logs
+progress*.txt

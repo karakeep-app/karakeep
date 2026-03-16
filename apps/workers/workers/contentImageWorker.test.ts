@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   downloadImage,
   extractExternalImageUrls,
+  resolveHtmlContent,
   rewriteImageUrls,
   run,
 } from "./contentImageWorker";
@@ -61,6 +62,15 @@ vi.mock("@karakeep/shared-server", () => ({
   },
   StorageQuotaError: class StorageQuotaError extends Error {
     name = "StorageQuotaError";
+    constructor(
+      public used: number,
+      public limit: number,
+      public requested: number,
+    ) {
+      super(
+        `Storage quota exceeded: used ${used}, limit ${limit}, requested ${requested}`,
+      );
+    }
   },
 }));
 
@@ -254,6 +264,116 @@ describe("rewriteImageUrls", () => {
     const html = `<img src="https://example.com/photo.jpg" />`;
     const result = rewriteImageUrls(html, new Map());
     expect(result).toContain("https://example.com/photo.jpg");
+  });
+});
+
+describe("resolveHtmlContent", () => {
+  let mockDb: MockDb;
+  let mockAssetDb: { readAsset: MockFn };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockDb = (await import("@karakeep/db")).db as unknown as MockDb;
+    mockAssetDb =
+      (await import("@karakeep/shared/assetdb")) as unknown as typeof mockAssetDb;
+  });
+
+  test("returns null when no bookmarkLink exists", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue(undefined);
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result).toBeNull();
+  });
+
+  test("returns inline HTML when htmlContent is present", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: "<p>Hello</p>",
+      contentAssetId: null,
+    });
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result).toEqual({
+      htmlContent: "<p>Hello</p>",
+      source: "inline",
+      contentAssetId: null,
+    });
+  });
+
+  test("returns asset-based HTML when contentAssetId is present", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: null,
+      contentAssetId: "asset-123",
+    });
+    mockAssetDb.readAsset.mockResolvedValue({
+      asset: Buffer.from("<p>From asset</p>", "utf8"),
+      metadata: { contentType: "text/html", fileName: null },
+    });
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result).toEqual({
+      htmlContent: "<p>From asset</p>",
+      source: "asset",
+      contentAssetId: "asset-123",
+    });
+    expect(mockAssetDb.readAsset).toHaveBeenCalledWith({
+      userId: "user-1",
+      assetId: "asset-123",
+    });
+  });
+
+  test("prefers contentAssetId over htmlContent when both present", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: "<p>Inline</p>",
+      contentAssetId: "asset-456",
+    });
+    mockAssetDb.readAsset.mockResolvedValue({
+      asset: Buffer.from("<p>Asset wins</p>", "utf8"),
+      metadata: { contentType: "text/html", fileName: null },
+    });
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result!.source).toBe("asset");
+    expect(result!.htmlContent).toBe("<p>Asset wins</p>");
+  });
+
+  test("returns null when link has neither htmlContent nor contentAssetId", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: null,
+      contentAssetId: null,
+    });
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result).toBeNull();
+  });
+
+  test("falls back to inline HTML when asset read fails (orphaned reference)", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: "<p>Fallback</p>",
+      contentAssetId: "missing-asset",
+    });
+    mockAssetDb.readAsset.mockRejectedValue(
+      new Error("ENOENT: file not found"),
+    );
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result).toEqual({
+      htmlContent: "<p>Fallback</p>",
+      source: "inline",
+      contentAssetId: null,
+    });
+  });
+
+  test("returns null when asset read fails and no inline HTML exists", async () => {
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: null,
+      contentAssetId: "missing-asset",
+    });
+    mockAssetDb.readAsset.mockRejectedValue(
+      new Error("ENOENT: file not found"),
+    );
+
+    const result = await resolveHtmlContent("bm-1", "user-1");
+    expect(result).toBeNull();
   });
 });
 
@@ -586,6 +706,92 @@ describe("run", () => {
 
     // Only 2 images should be downloaded (maxCount = 2), not 3
     expect(mockValidateUrl).toHaveBeenCalledTimes(2);
+  });
+
+  test("continues processing remaining images when saveAsset throws a non-quota error", async () => {
+    const htmlContent = `
+      <img src="https://a.com/1.jpg" />
+      <img src="https://b.com/2.jpg" />`;
+
+    mockDb.query.bookmarks.findFirst.mockResolvedValue({
+      id: "bm-1",
+      userId: "user-1",
+    });
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent,
+      contentAssetId: null,
+    });
+
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    mockFetchWithProxy.mockResolvedValue(
+      mockResponse(new ArrayBuffer(50), "image/jpeg"),
+    );
+    mockAssetDb.newAssetId
+      .mockReturnValueOnce("asset-1")
+      .mockReturnValueOnce("asset-2");
+    mockQuotaService.checkStorageQuota.mockResolvedValue({
+      quotaApproved: true,
+    });
+
+    // First saveAsset fails with a generic error, second succeeds
+    mockAssetDb.saveAsset
+      .mockRejectedValueOnce(new Error("disk I/O error"))
+      .mockResolvedValueOnce(undefined);
+    mockDb.insert.mockReturnValue({ values: vi.fn() });
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn() }),
+    });
+
+    await run(makeJob("bm-1"));
+
+    // saveAsset called for both images (not short-circuited like quota errors)
+    expect(mockAssetDb.saveAsset).toHaveBeenCalledTimes(2);
+    // DB insert only for the second (successful) image
+    expect(mockDb.insert).toHaveBeenCalledTimes(1);
+  });
+
+  test("caches images but tolerates quota error when saving rewritten HTML (asset path)", async () => {
+    const { StorageQuotaError } = await import("@karakeep/shared-server");
+    const htmlContent = '<img src="https://example.com/photo.jpg" />';
+
+    mockDb.query.bookmarks.findFirst.mockResolvedValue({
+      id: "bm-1",
+      userId: "user-1",
+    });
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent: null,
+      contentAssetId: "content-asset-1",
+    });
+
+    // readAsset returns the HTML content from asset storage
+    mockAssetDb.readAsset.mockResolvedValue({
+      asset: Buffer.from(htmlContent, "utf8"),
+      metadata: { contentType: "text/html", fileName: null },
+    });
+
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    mockFetchWithProxy.mockResolvedValue(
+      mockResponse(new ArrayBuffer(50), "image/jpeg"),
+    );
+    mockAssetDb.newAssetId.mockReturnValue("new-asset-1");
+
+    // Image save quota check passes, but the HTML rewrite quota check fails
+    mockQuotaService.checkStorageQuota
+      .mockResolvedValueOnce({ quotaApproved: true }) // image save
+      .mockRejectedValueOnce(new StorageQuotaError(900, 1000, 200)); // HTML rewrite
+    mockAssetDb.saveAsset.mockResolvedValue(undefined);
+    mockDb.insert.mockReturnValue({ values: vi.fn() });
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn() }),
+    });
+
+    // Should NOT throw — quota error during HTML save is tolerated
+    await run(makeJob("bm-1"));
+
+    // Image was saved successfully (saveAsset called once for the image only,
+    // not for the HTML rewrite since quota check threw before reaching saveAsset)
+    expect(mockAssetDb.saveAsset).toHaveBeenCalledTimes(1);
+    expect(mockDb.insert).toHaveBeenCalledTimes(1);
   });
 
   test("processes asset-based HTML content", async () => {
