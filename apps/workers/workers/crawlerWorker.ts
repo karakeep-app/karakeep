@@ -46,6 +46,7 @@ import {
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  ContentImageQueue,
   getTracer,
   OpenAIQueue,
   QuotaService,
@@ -2148,6 +2149,15 @@ async function runCrawler(
 
     // Update the search index
     await triggerSearchReindex(bookmarkId, enqueueOpts);
+
+    if (serverConfig.crawler.storeContentImages) {
+      await ContentImageQueue.enqueue(
+        {
+          bookmarkId,
+        },
+        enqueueOpts,
+      );
+    }
 
     if (serverConfig.crawler.downloadVideo) {
       // Trigger a potential download of a video from the URL
