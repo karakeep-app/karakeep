@@ -64,6 +64,10 @@ jobs:
         working-directory: packages/trpc
         run: pnpm test
 
+      - name: Workers Tests
+        working-directory: apps/workers
+        run: pnpm test
+
       - name: E2E Tests
         working-directory: packages/e2e_tests
         run: pnpm test

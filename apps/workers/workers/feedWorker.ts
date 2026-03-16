@@ -13,7 +13,7 @@ import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import { parseFeedItems } from "./feedParser";
+import { parseFeedItems } from "./utils/feedParser";
 
 /**
  * Deterministically maps a feed ID to a minute offset within the hour (0-59).
