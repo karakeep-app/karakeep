@@ -12997,6 +12997,7 @@ packages:
   prebuild-install@7.1.3:
     resolution: {integrity: sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==}
     engines: {node: '>=10'}
+    deprecated: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
     hasBin: true
 
   prettier-plugin-tailwindcss@0.5.14:
@@ -17854,7 +17855,7 @@ snapshots:
       '@babel/parser': 7.27.5
       '@babel/template': 7.27.2
       '@babel/types': 7.27.6
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -23727,8 +23728,8 @@ snapshots:
 
   babel-plugin-jest-hoist@29.6.3:
     dependencies:
-      '@babel/template': 7.27.2
-      '@babel/types': 7.28.5
+      '@babel/template': 7.28.6
+      '@babel/types': 7.29.0
       '@types/babel__core': 7.20.5
       '@types/babel__traverse': 7.20.7
 
@@ -25387,7 +25388,7 @@ snapshots:
 
   esbuild-register@3.6.0(esbuild@0.25.6):
     dependencies:
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       esbuild: 0.25.6
     transitivePeerDependencies:
       - supports-color
@@ -25916,7 +25917,7 @@ snapshots:
       content-type: 1.0.5
       cookie: 0.7.2
       cookie-signature: 1.2.2
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -26676,7 +26677,7 @@ snapshots:
 
   history@4.10.1:
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.28.6
       loose-envify: 1.4.0
       resolve-pathname: 3.0.0
       tiny-invariant: 1.3.3
@@ -27237,7 +27238,7 @@ snapshots:
   istanbul-lib-instrument@5.2.1:
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/parser': 7.28.5
+      '@babel/parser': 7.29.0
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
       semver: 6.3.1
@@ -27290,7 +27291,7 @@ snapshots:
 
   jest-message-util@29.7.0:
     dependencies:
-      '@babel/code-frame': 7.27.1
+      '@babel/code-frame': 7.29.0
       '@jest/types': 29.6.3
       '@types/stack-utils': 2.0.3
       chalk: 4.1.2
@@ -28603,8 +28604,8 @@ snapshots:
   metro-transform-plugins@0.82.5:
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/generator': 7.28.5
-      '@babel/template': 7.27.2
+      '@babel/generator': 7.29.1
+      '@babel/template': 7.28.6
       '@babel/traverse': 7.28.5
       flow-enums-runtime: 0.0.6
       nullthrows: 1.1.1
@@ -28625,9 +28626,9 @@ snapshots:
   metro-transform-worker@0.82.5:
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/generator': 7.28.5
-      '@babel/parser': 7.28.5
-      '@babel/types': 7.28.5
+      '@babel/generator': 7.29.1
+      '@babel/parser': 7.29.0
+      '@babel/types': 7.29.0
       flow-enums-runtime: 0.0.6
       metro: 0.82.5
       metro-babel-transformer: 0.82.5
@@ -30901,7 +30902,7 @@ snapshots:
 
   puppeteer-extra-plugin-user-preferences@2.4.1(playwright-extra@4.3.6(patch_hash=7nc6rwxl5vjub4hxnqupqavqpi)(playwright-core@1.58.2)(playwright@1.58.2)):
     dependencies:
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       deepmerge: 4.3.1
       puppeteer-extra-plugin: 3.2.3(playwright-extra@4.3.6(patch_hash=7nc6rwxl5vjub4hxnqupqavqpi)(playwright-core@1.58.2)(playwright@1.58.2))
       puppeteer-extra-plugin-user-data-dir: 2.4.1(playwright-extra@4.3.6(patch_hash=7nc6rwxl5vjub4hxnqupqavqpi)(playwright-core@1.58.2)(playwright@1.58.2))
@@ -30913,7 +30914,7 @@ snapshots:
   puppeteer-extra-plugin@3.2.3(playwright-extra@4.3.6(patch_hash=7nc6rwxl5vjub4hxnqupqavqpi)(playwright-core@1.58.2)(playwright@1.58.2)):
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       merge-deep: 3.0.3
     optionalDependencies:
       playwright-extra: 4.3.6(patch_hash=7nc6rwxl5vjub4hxnqupqavqpi)(playwright-core@1.58.2)(playwright@1.58.2)
@@ -32002,7 +32003,7 @@ snapshots:
       '@babel/types': 7.28.1
       ast-kit: 2.1.1
       birpc: 2.5.0
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       dts-resolver: 2.1.1
       get-tsconfig: 4.10.1
       rolldown: 1.0.0-beta.28
@@ -33722,7 +33723,7 @@ snapshots:
   vite-node@3.2.4(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.1(supports-color@10.0.0)
+      debug: 4.4.3
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)

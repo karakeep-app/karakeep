@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { parseImportFile } from "./parsers";
@@ -320,6 +322,69 @@ describe("parseNetscapeBookmarkFile", () => {
 
     expect(() => parseImportFile("html", html)).toThrow(
       "The uploaded html file does not seem to be a bookmark file",
+    );
+  });
+});
+
+describe("parseLinkwardenBookmarkFile", () => {
+  const fixture = fs.readFileSync(
+    path.join(__dirname, "fixtures/linkwarden-export.json"),
+    "utf-8",
+  );
+
+  it("parses collections with nested hierarchy into paths", () => {
+    const result = parseImportFile("linkwarden", fixture);
+
+    // 6 links total, but example.com appears in two collections so deduped to 5
+    expect(result.bookmarks).toHaveLength(5);
+
+    // Root-level collection
+    expect(result.bookmarks[0]).toMatchObject({
+      title: "GitHub",
+      content: { type: "link", url: "https://github.com" },
+      tags: ["dev"],
+      addDate: new Date("2025-01-01T00:00:00.000Z").getTime() / 1000,
+      paths: [["Tech"]],
+    });
+
+    // Nested one level deep
+    expect(result.bookmarks[1]).toMatchObject({
+      title: "React",
+      content: { type: "link", url: "https://react.dev" },
+      tags: ["js", "ui"],
+      paths: [["Tech", "Frontend"]],
+    });
+
+    // Nested two levels deep
+    expect(result.bookmarks[2]).toMatchObject({
+      title: "Next.js",
+      content: { type: "link", url: "https://nextjs.org" },
+      tags: [],
+      paths: [["Tech", "Frontend", "Frameworks"]],
+    });
+
+    // Another root-level collection
+    expect(result.bookmarks[3]).toMatchObject({
+      title: "Hacker News",
+      content: { type: "link", url: "https://news.ycombinator.com" },
+      tags: ["news"],
+      paths: [["News"]],
+    });
+  });
+
+  it("deduplicates bookmarks across collections and merges metadata", () => {
+    const result = parseImportFile("linkwarden", fixture);
+
+    // example.com appears in both "Work" and "Personal" collections
+    const example = result.bookmarks.find(
+      (b) =>
+        b.content?.type === "link" && b.content.url === "https://example.com",
+    )!;
+    expect(example.tags).toEqual(["work", "personal"]);
+    expect(example.paths).toEqual([["Work"], ["Personal"]]);
+    // Should keep the earlier date
+    expect(example.addDate).toEqual(
+      new Date("2025-01-01T00:00:00.000Z").getTime() / 1000,
     );
   });
 });

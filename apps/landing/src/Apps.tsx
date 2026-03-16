@@ -1,4 +1,5 @@
 import NavBar from "./Navbar";
+import SEO from "./SEO";
 import appleIcon from "/apple-icon.svg?url";
 import chromeIcon from "/chrome-icon.svg?url";
 import firefoxIcon from "/firefox-icon.svg?url";
@@ -101,6 +102,11 @@ function ListingSection({
 export default function Apps() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="Apps & Extensions"
+        description="Download Karakeep for iOS, Android, Chrome, and Firefox. Save bookmarks from any device with our mobile apps and browser extensions."
+        path="/apps"
+      />
       <div className="container mx-auto pb-16">
         <NavBar />
         <main className="px-4 py-8 sm:px-6 sm:py-14">

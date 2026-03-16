@@ -26,6 +26,7 @@ import {
   GITHUB_LINK,
 } from "./constants";
 import NavBar from "./Navbar";
+import SEO from "./SEO";
 import appStoreBadge from "/app-store-badge.png?url";
 import chromeExtensionBadge from "/chrome-extension-badge.png?url";
 import firefoxAddonBadge from "/firefox-addon.png?url";
@@ -297,7 +298,10 @@ function Footer() {
 function Screenshots() {
   return (
     <div className="mx-auto mt-6 w-10/12">
-      <img alt="screenshot" src={screenshot} />
+      <img
+        alt="Karakeep bookmark manager dashboard showing saved links, notes and images"
+        src={screenshot}
+      />
     </div>
   );
 }
@@ -305,6 +309,7 @@ function Screenshots() {
 export default function Homepage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <SEO path="/" />
       <Banner />
       <div className="container flex flex-col pb-10">
         <NavBar />

@@ -1,39 +1,110 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Karakeep</title>
+    <meta charset="UTF-8" />
+    <title>
+      Karakeep - The Bookmark Everything App | Save, Organize & Tag with AI
+    </title>
     <meta
       name="description"
-      content="The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI."
+      content="Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI. Self-hostable, with apps for iOS, Android, Chrome, and Firefox."
     />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta property="og:title" content="Karakeep" />
+    <link rel="canonical" href="https://karakeep.app/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#7c3aed" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Karakeep" />
+    <meta property="og:url" content="https://karakeep.app/" />
+    <meta
+      property="og:title"
+      content="Karakeep - The Bookmark Everything App"
+    />
     <meta
       property="og:description"
-      content="The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI."
+      content="Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI."
+    />
+    <meta
+      property="og:image"
+      content="https://karakeep.app/opengraph-image.png"
     />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="3624" />
     <meta property="og:image:height" content="1956" />
     <meta
-      property="og:image"
-      content="https://karakeep.app/opengraph-image.png"
+      property="og:image:alt"
+      content="Karakeep bookmark manager app screenshot"
     />
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Karakeep" />
+    <meta
+      name="twitter:title"
+      content="Karakeep - The Bookmark Everything App"
+    />
     <meta
       name="twitter:description"
-      content="The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI."
+      content="Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI."
     />
-    <meta name="twitter:image:type" content="image/png" />
-    <meta name="twitter:image:width" content="3624" />
-    <meta name="twitter:image:height" content="1956" />
     <meta
       name="twitter:image"
       content="https://karakeep.app/twitter-image.png"
     />
+    <meta
+      name="twitter:image:alt"
+      content="Karakeep bookmark manager app screenshot"
+    />
+
     <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-icon.png" />
     <link href="/src/styles.css" rel="stylesheet" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Karakeep",
+        "url": "https://karakeep.app",
+        "description": "Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI.",
+        "applicationCategory": "Productivity",
+        "operatingSystem": "Web, iOS, Android",
+        "offers": [
+          {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free plan with 10 bookmarks and 20MB storage"
+          },
+          {
+            "@type": "Offer",
+            "price": "4",
+            "priceCurrency": "USD",
+            "billingIncrement": "P1M",
+            "description": "Pro plan with 50,000 bookmarks, 50GB storage, and AI-powered tagging"
+          }
+        ],
+        "featureList": [
+          "AI-powered bookmark tagging",
+          "Full text search",
+          "Collaborative lists",
+          "RSS feed integration",
+          "Browser extensions",
+          "Self-hosting support",
+          "REST API and webhooks",
+          "Dark mode"
+        ],
+        "screenshot": "https://karakeep.app/hero.webp",
+        "softwareVersion": "latest",
+        "author": {
+          "@type": "Organization",
+          "name": "Localhost Labs Ltd",
+          "url": "https://localhostlabs.co.uk"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

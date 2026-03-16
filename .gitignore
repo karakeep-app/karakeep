@@ -68,3 +68,4 @@ auth_failures.log
 .aicontext/
 .codex
 .claude/worktrees
+jean.json

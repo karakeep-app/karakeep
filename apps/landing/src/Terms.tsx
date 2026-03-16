@@ -1,6 +1,13 @@
+import SEO from "./SEO";
+
 export default function Terms() {
   return (
     <div className="mx-auto max-w-3xl p-4">
+      <SEO
+        title="Terms of Service"
+        description="Karakeep Terms of Service. Read our terms governing the use of Karakeep Cloud, operated by Localhost Labs Ltd."
+        path="/terms"
+      />
       <main className="space-y-6">
         <h1 className="text-3xl font-bold text-gray-900">
           Karakeep – Terms of Service

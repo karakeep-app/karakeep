@@ -1,6 +1,13 @@
+import SEO from "./SEO";
+
 export default function PrivacyPolicy() {
   return (
     <div className="mx-auto max-w-3xl p-4">
+      <SEO
+        title="Privacy Policy"
+        description="Karakeep Privacy Policy. Learn how we collect, use, and protect your data. We store primary data in Europe and do not sell personal data."
+        path="/privacy"
+      />
       <main className="space-y-6">
         <h1 className="text-3xl font-bold text-gray-900">
           Karakeep - Privacy Policy

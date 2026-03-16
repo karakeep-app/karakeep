@@ -1,7 +1,12 @@
 // Inspired from https://github.com/restatedev/examples/blob/main/typescript/patterns-use-cases/src/priorityqueue/queue.ts
 
 import * as restate from "@restatedev/restate-sdk";
-import { Context, object, ObjectContext } from "@restatedev/restate-sdk";
+import {
+  Context,
+  object,
+  ObjectContext,
+  ObjectSharedContext,
+} from "@restatedev/restate-sdk";
 
 interface QueueItem {
   awakeable: string;
@@ -128,6 +133,39 @@ export const semaphore = object({
         const state = await getState(ctx);
         await tick(ctx, state, 1);
         setState(ctx, state);
+      },
+    ),
+    queueSize: restate.handlers.object.shared(
+      {},
+      async (
+        ctx: ObjectSharedContext<LegacyQueueState>,
+      ): Promise<{
+        pending: number;
+        running: number;
+      }> => {
+        const groups = (await ctx.get("itemsv2")) as Record<
+          string,
+          GroupState
+        > | null;
+        const leases = (await ctx.get("leases")) as Record<
+          string,
+          number
+        > | null;
+
+        let pending = 0;
+        for (const group of Object.values(groups ?? {})) {
+          pending += group.items.length;
+        }
+
+        const now = Date.now();
+        let running = 0;
+        for (const expiry of Object.values(leases ?? {})) {
+          if (expiry > now) {
+            running++;
+          }
+        }
+
+        return { pending, running };
       },
     ),
   },

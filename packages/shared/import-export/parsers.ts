@@ -269,6 +269,9 @@ function parseLinkwardenBookmarkFile(textContent: string): ParsedBookmark[] {
   const zLinkwardenExportSchema = z.object({
     collections: z.array(
       z.object({
+        id: z.number(),
+        name: z.string(),
+        parentId: z.number().nullable(),
         links: z.array(
           z.object({
             name: z.string(),
@@ -288,13 +291,32 @@ function parseLinkwardenBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
+  // Build a map of collection id -> collection for path resolution
+  const collectionsById = new Map(
+    parsed.data.collections.map((c) => [c.id, c]),
+  );
+
+  // Resolve the full path for a collection by walking up the parent chain
+  function getCollectionPath(collectionId: number): string[] {
+    const path: string[] = [];
+    let currentId: number | null = collectionId;
+    while (currentId !== null) {
+      const collection = collectionsById.get(currentId);
+      if (!collection) break;
+      path.unshift(collection.name);
+      currentId = collection.parentId;
+    }
+    return path;
+  }
+
   return parsed.data.collections.flatMap((collection) => {
+    const collectionPath = getCollectionPath(collection.id);
     return collection.links.map((bookmark) => ({
       title: bookmark.name ?? "",
       content: { type: BookmarkTypes.LINK as const, url: bookmark.url },
       tags: bookmark.tags.map((tag) => tag.name),
       addDate: bookmark.createdAt.getTime() / 1000,
-      paths: [], // TODO
+      paths: [collectionPath],
     }));
   });
 }
