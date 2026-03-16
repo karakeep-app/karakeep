@@ -14,8 +14,13 @@ const categorySchema = z.union([
   }),
 ]);
 
+const optionalStringSchema = z.preprocess(
+  (value) => (typeof value === "string" ? value : undefined),
+  z.string().optional(),
+);
+
 const feedItemSchema = z.object({
-  id: z.coerce.string().optional(),
+  id: optionalStringSchema,
   link: z.string().optional(),
   guid: z.string().optional(),
   title: z.string().optional(),
