@@ -474,9 +474,16 @@ function useJobActions() {
     contentImageActions: [
       {
         label: t(
+          "admin.background_jobs.actions.recache_failed_content_images_only",
+        ),
+        onClick: () => recacheContentImages({ contentImageStatus: "failure" }),
+        loading: isRecacheContentImagesPending,
+      },
+      {
+        label: t(
           "admin.background_jobs.actions.cache_content_images_for_all_links",
         ),
-        onClick: () => recacheContentImages(),
+        onClick: () => recacheContentImages({ contentImageStatus: "all" }),
         loading: isRecacheContentImagesPending,
       },
     ],

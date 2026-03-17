@@ -342,30 +342,41 @@ export const adminAppRouter = router({
         ),
       );
     }),
-  recacheContentImages: adminProcedure.mutation(async ({ ctx }) => {
-    const linkBookmarks = await ctx.db.query.bookmarkLinks.findMany({
-      columns: {
-        id: true,
-      },
-    });
-
-    await Promise.all(
-      linkBookmarks.map(async (b) => {
-        await ctx.db
-          .update(bookmarkLinks)
-          .set({ contentImageStatus: "pending" })
-          .where(eq(bookmarkLinks.id, b.id));
-        await ContentImageQueue.enqueue(
-          {
-            bookmarkId: b.id,
-          },
-          {
-            priority: QueuePriority.Low,
-          },
-        );
+  recacheContentImages: adminProcedure
+    .input(
+      z.object({
+        contentImageStatus: z.enum(["failure", "all"]),
       }),
-    );
-  }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const linkBookmarks = await ctx.db.query.bookmarkLinks.findMany({
+        columns: {
+          id: true,
+        },
+        ...(input.contentImageStatus === "failure"
+          ? {
+              where: eq(bookmarkLinks.contentImageStatus, "failure"),
+            }
+          : {}),
+      });
+
+      await Promise.all(
+        linkBookmarks.map(async (b) => {
+          await ctx.db
+            .update(bookmarkLinks)
+            .set({ contentImageStatus: "pending" })
+            .where(eq(bookmarkLinks.id, b.id));
+          await ContentImageQueue.enqueue(
+            {
+              bookmarkId: b.id,
+            },
+            {
+              priority: QueuePriority.Low,
+            },
+          );
+        }),
+      );
+    }),
   runAdminMaintenanceTask: adminProcedure
     .input(zAdminMaintenanceTaskSchema)
     .mutation(async ({ input }) => {

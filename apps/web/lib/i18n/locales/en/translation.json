@@ -611,6 +611,7 @@
         "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
         "migrate_large_link_html_content": "Move Large Inline HTML Content to Assets",
         "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets",
+        "recache_failed_content_images_only": "Recache Failed Links Only",
         "cache_content_images_for_all_links": "Cache Content Images for All Links"
       }
     },
