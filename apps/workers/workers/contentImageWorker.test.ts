@@ -455,6 +455,25 @@ describe("downloadImage", () => {
     expect(result).toBeNull();
   });
 
+  test.each(["image/svg+xml", "image/avif", "image/apng"])(
+    "accepts %s content type",
+    async (contentType) => {
+      mockValidateUrl.mockResolvedValue({ ok: true });
+      mockFetchWithProxy.mockResolvedValue(
+        mockResponse(new ArrayBuffer(100), contentType),
+      );
+
+      const result = await downloadImage(
+        "https://example.com/image",
+        "test-asset-id",
+        "job-1",
+        10 * 1024 * 1024,
+      );
+      expect(result).not.toBeNull();
+      expect(result!.contentType).toBe(contentType);
+    },
+  );
+
   test("returns null when content-length exceeds max size", async () => {
     mockValidateUrl.mockResolvedValue({ ok: true });
     mockFetchWithProxy.mockResolvedValue(

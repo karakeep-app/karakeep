@@ -36,6 +36,13 @@ const BROWSER_USER_AGENT =
 const IMAGE_ACCEPT =
   "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
 
+const CONTENT_IMAGE_ASSET_TYPES = new Set<string>([
+  ...IMAGE_ASSET_TYPES,
+  "image/svg+xml",
+  "image/avif",
+  "image/apng",
+]);
+
 export class ContentImageWorker {
   static async build() {
     logger.info("Starting content image worker ...");
@@ -241,7 +248,7 @@ export async function downloadImage(
         .get("content-type")
         ?.split(";")[0]
         ?.trim();
-      if (!contentType || !IMAGE_ASSET_TYPES.has(contentType)) {
+      if (!contentType || !CONTENT_IMAGE_ASSET_TYPES.has(contentType)) {
         logger.debug(
           `[contentImage][${jobId}] Unsupported content type "${contentType}" for: ${src}`,
         );
