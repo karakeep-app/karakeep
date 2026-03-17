@@ -1,4 +1,6 @@
-import { eq, and } from "drizzle-orm";
+import { createHash } from "crypto";
+
+import { eq, and, inArray } from "drizzle-orm";
 import { JSDOM } from "jsdom";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy, validateUrl } from "network";
@@ -19,16 +21,20 @@ import {
 } from "@karakeep/shared-server";
 import {
   IMAGE_ASSET_TYPES,
-  newAssetId,
   readAsset,
   saveAsset,
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
-import { limitConcurrency } from "@karakeep/shared/concurrency";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
-const IMAGE_DOWNLOAD_CONCURRENCY = 5;
+const MAX_RETRIES = 10;
+const INITIAL_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 30000;
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+const IMAGE_ACCEPT =
+  "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
 
 export class ContentImageWorker {
   static async build() {
@@ -74,10 +80,12 @@ export async function resolveHtmlContent(
   htmlContent: string;
   source: "inline" | "asset";
   contentAssetId: string | null;
+  url: string | null;
 } | null> {
   const link = await db.query.bookmarkLinks.findFirst({
     where: eq(bookmarkLinks.id, bookmarkId),
     columns: {
+      url: true,
       htmlContent: true,
       contentAssetId: true,
     },
@@ -97,6 +105,7 @@ export async function resolveHtmlContent(
         htmlContent: asset.toString("utf8"),
         source: "asset",
         contentAssetId: link.contentAssetId,
+        url: link.url,
       };
     } catch (e) {
       // Asset file missing on disk (orphaned reference) — fall through to
@@ -112,6 +121,7 @@ export async function resolveHtmlContent(
       htmlContent: link.htmlContent,
       source: "inline",
       contentAssetId: null,
+      url: link.url,
     };
   }
 
@@ -148,76 +158,135 @@ interface DownloadedImage {
   contentType: string;
 }
 
+function isRetryableStatus(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Exported for testing. Produces a deterministic asset ID from bookmark + source URL
+// so that retries reuse the same ID and can skip already-downloaded images.
+export function contentImageAssetId(
+  bookmarkId: string,
+  sourceUrl: string,
+): string {
+  return createHash("sha256")
+    .update(`${bookmarkId}:${sourceUrl}`)
+    .digest("hex")
+    .slice(0, 32);
+}
+
 // Exported for testing
 export async function downloadImage(
   src: string,
+  assetId: string,
   jobId: string,
   maxSizeBytes: number,
+  referer?: string | null,
   abortSignal?: AbortSignal,
 ): Promise<DownloadedImage | null> {
-  try {
-    // Validate the URL first
-    const validation = await validateUrl(src, false);
-    if (!validation.ok) {
-      logger.debug(`[contentImage][${jobId}] Skipping invalid URL: ${src}`);
-      return null;
-    }
-
-    const signals = [AbortSignal.timeout(30_000)];
-    if (abortSignal) signals.push(abortSignal);
-
-    const response = await fetchWithProxy(src, {
-      signal: AbortSignal.any(signals),
-    });
-
-    if (!response.ok) {
-      logger.debug(
-        `[contentImage][${jobId}] Failed to fetch image (status ${response.status}): ${src}`,
-      );
-      return null;
-    }
-
-    const contentType = response.headers
-      .get("content-type")
-      ?.split(";")[0]
-      ?.trim();
-    if (!contentType || !IMAGE_ASSET_TYPES.has(contentType)) {
-      logger.debug(
-        `[contentImage][${jobId}] Unsupported content type "${contentType}" for: ${src}`,
-      );
-      return null;
-    }
-
-    // Check content-length header if available
-    const contentLength = response.headers.get("content-length");
-    if (contentLength && parseInt(contentLength, 10) > maxSizeBytes) {
-      logger.debug(
-        `[contentImage][${jobId}] Image too large (${contentLength} bytes): ${src}`,
-      );
-      return null;
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    if (buffer.byteLength > maxSizeBytes) {
-      logger.debug(
-        `[contentImage][${jobId}] Image too large (${buffer.byteLength} bytes): ${src}`,
-      );
-      return null;
-    }
-
-    return {
-      src,
-      assetId: newAssetId(),
-      buffer,
-      contentType,
-    };
-  } catch (e) {
-    logger.debug(
-      `[contentImage][${jobId}] Error downloading image: ${src}: ${e}`,
-    );
+  // Validate the URL first (no point retrying an invalid URL)
+  const validation = await validateUrl(src, false);
+  if (!validation.ok) {
+    logger.debug(`[contentImage][${jobId}] Skipping invalid URL: ${src}`);
     return null;
   }
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      const backoffMs = Math.min(
+        INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1),
+        MAX_BACKOFF_MS,
+      );
+      logger.debug(
+        `[contentImage][${jobId}] Retry ${attempt}/${MAX_RETRIES} for ${src} after ${backoffMs}ms`,
+      );
+      await sleep(backoffMs);
+    }
+
+    try {
+      const signals = [AbortSignal.timeout(30_000)];
+      if (abortSignal) signals.push(abortSignal);
+
+      const headers: Record<string, string> = {
+        "User-Agent": BROWSER_USER_AGENT,
+        Accept: IMAGE_ACCEPT,
+        "Accept-Language": "en-US,en;q=0.9",
+      };
+      if (referer) {
+        headers["Referer"] = referer;
+      }
+
+      const response = await fetchWithProxy(src, {
+        signal: AbortSignal.any(signals),
+        headers,
+      });
+
+      if (!response.ok) {
+        if (isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
+          logger.debug(
+            `[contentImage][${jobId}] Retryable status ${response.status} for: ${src}`,
+          );
+          continue;
+        }
+        logger.debug(
+          `[contentImage][${jobId}] Failed to fetch image (status ${response.status}): ${src}`,
+        );
+        return null;
+      }
+
+      const contentType = response.headers
+        .get("content-type")
+        ?.split(";")[0]
+        ?.trim();
+      if (!contentType || !IMAGE_ASSET_TYPES.has(contentType)) {
+        logger.debug(
+          `[contentImage][${jobId}] Unsupported content type "${contentType}" for: ${src}`,
+        );
+        return null;
+      }
+
+      // Check content-length header if available
+      const contentLength = response.headers.get("content-length");
+      if (contentLength && parseInt(contentLength, 10) > maxSizeBytes) {
+        logger.debug(
+          `[contentImage][${jobId}] Image too large (${contentLength} bytes): ${src}`,
+        );
+        return null;
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+
+      if (buffer.byteLength > maxSizeBytes) {
+        logger.debug(
+          `[contentImage][${jobId}] Image too large (${buffer.byteLength} bytes): ${src}`,
+        );
+        return null;
+      }
+
+      return {
+        src,
+        assetId,
+        buffer,
+        contentType,
+      };
+    } catch (e) {
+      if (attempt < MAX_RETRIES) {
+        logger.debug(
+          `[contentImage][${jobId}] Error downloading image (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${src}: ${e}`,
+        );
+        continue;
+      }
+      logger.debug(
+        `[contentImage][${jobId}] Error downloading image after ${MAX_RETRIES + 1} attempts: ${src}: ${e}`,
+      );
+      return null;
+    }
+  }
+
+  return null;
 }
 
 // Exported for testing. Accepts raw HTML or a pre-parsed JSDOM instance to
@@ -274,17 +343,6 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
 
   const userId = bookmark.userId;
 
-  // Delete old content image assets for this bookmark (clean slate on re-crawl)
-  // Physical files are orphaned and will be cleaned up by tidy_assets maintenance
-  await db
-    .delete(assets)
-    .where(
-      and(
-        eq(assets.bookmarkId, bookmarkId),
-        eq(assets.assetType, AssetTypes.CONTENT_IMAGE),
-      ),
-    );
-
   // Resolve HTML content
   const resolved = await resolveHtmlContent(bookmarkId, userId);
   if (!resolved) {
@@ -308,24 +366,54 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
   const maxSizeBytes = serverConfig.crawler.contentImageMaxSizeMb * 1024 * 1024;
   const urlsToProcess = imageUrls.slice(0, maxCount);
 
+  // Compute deterministic asset IDs and check which are already downloaded
+  const urlAssetPairs = urlsToProcess.map((url) => ({
+    url,
+    assetId: contentImageAssetId(bookmarkId, url),
+  }));
+
+  const allAssetIds = urlAssetPairs.map((p) => p.assetId);
+  const existingAssets = await db.query.assets.findMany({
+    where: and(
+      inArray(assets.id, allAssetIds),
+      eq(assets.bookmarkId, bookmarkId),
+      eq(assets.assetType, AssetTypes.CONTENT_IMAGE),
+    ),
+    columns: { id: true },
+  });
+  const existingAssetIds = new Set(existingAssets.map((a) => a.id));
+
+  const urlsToDownload = urlAssetPairs.filter(
+    (p) => !existingAssetIds.has(p.assetId),
+  );
+
   logger.info(
-    `[contentImage][${jobId}] Found ${imageUrls.length} external images, processing up to ${urlsToProcess.length}`,
+    `[contentImage][${jobId}] Found ${imageUrls.length} external images, ${existingAssetIds.size} already cached, downloading ${urlsToDownload.length}`,
   );
 
-  // Download images with bounded concurrency
-  const downloadTasks = urlsToProcess.map(
-    (url) => () => downloadImage(url, jobId, maxSizeBytes, job.abortSignal),
-  );
-  const downloadResults = await Promise.all(
-    limitConcurrency(downloadTasks, IMAGE_DOWNLOAD_CONCURRENCY),
-  );
-
-  // Save successful downloads as assets
+  // Build the mapping for already-cached images
   const urlToAssetId = new Map<string, string>();
+  for (const p of urlAssetPairs) {
+    if (existingAssetIds.has(p.assetId)) {
+      urlToAssetId.set(p.url, p.assetId);
+    }
+  }
+
+  // Download and save new images sequentially to avoid rate limiting
   let quotaExceeded = false;
 
-  for (const result of downloadResults) {
-    if (!result || quotaExceeded) continue;
+  for (const { url, assetId } of urlsToDownload) {
+    if (quotaExceeded) break;
+
+    const result = await downloadImage(
+      url,
+      assetId,
+      jobId,
+      maxSizeBytes,
+      resolved.url,
+      job.abortSignal,
+    );
+    if (!result) continue;
 
     try {
       const quotaApproved = await QuotaService.checkStorageQuota(
@@ -345,15 +433,26 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
         quotaApproved,
       });
 
-      await db.insert(assets).values({
-        id: result.assetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.CONTENT_IMAGE,
-        contentType: result.contentType,
-        size: result.buffer.byteLength,
-        fileName: null,
-      });
+      // Upsert: the asset ID is deterministic, so on re-crawl with the same
+      // image URL we overwrite the existing row rather than conflicting.
+      await db
+        .insert(assets)
+        .values({
+          id: result.assetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.CONTENT_IMAGE,
+          contentType: result.contentType,
+          size: result.buffer.byteLength,
+          fileName: null,
+        })
+        .onConflictDoUpdate({
+          target: assets.id,
+          set: {
+            contentType: result.contentType,
+            size: result.buffer.byteLength,
+          },
+        });
 
       urlToAssetId.set(result.src, result.assetId);
     } catch (e) {

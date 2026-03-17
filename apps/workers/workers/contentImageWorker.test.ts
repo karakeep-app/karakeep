@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+  contentImageAssetId,
   downloadImage,
   extractExternalImageUrls,
   resolveHtmlContent,
@@ -15,9 +16,13 @@ vi.mock("@karakeep/db", () => ({
     query: {
       bookmarks: { findFirst: vi.fn() },
       bookmarkLinks: { findFirst: vi.fn() },
-      assets: { findMany: vi.fn() },
+      assets: { findMany: vi.fn().mockResolvedValue([]) },
     },
-    insert: vi.fn().mockReturnValue({ values: vi.fn() }),
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        onConflictDoUpdate: vi.fn(),
+      }),
+    }),
     delete: vi.fn().mockReturnValue({ where: vi.fn() }),
     update: vi
       .fn()
@@ -39,7 +44,6 @@ vi.mock("@karakeep/shared/assetdb", () => ({
     "image/gif",
     "image/webp",
   ]),
-  newAssetId: vi.fn(() => "mock-asset-id"),
   readAsset: vi.fn(),
   saveAsset: vi.fn(),
 }));
@@ -72,11 +76,6 @@ vi.mock("@karakeep/shared-server", () => ({
       );
     }
   },
-}));
-
-vi.mock("@karakeep/shared/concurrency", () => ({
-  limitConcurrency: <T>(tasks: (() => Promise<T>)[], _concurrency: number) =>
-    tasks.map((t) => t()),
 }));
 
 vi.mock("@karakeep/shared/queueing", () => ({
@@ -143,6 +142,7 @@ interface MockDb {
   query: {
     bookmarks: { findFirst: MockFn };
     bookmarkLinks: { findFirst: MockFn };
+    assets: { findMany: MockFn };
   };
   insert: MockFn;
   delete: MockFn;
@@ -152,7 +152,7 @@ interface MockDb {
 // Retrieve mocked modules once for use in run() tests.
 // vi.mock hoists above imports, so these are the mocked versions.
 let mockDb: MockDb;
-let mockAssetDb: { newAssetId: MockFn; saveAsset: MockFn; readAsset: MockFn };
+let mockAssetDb: { saveAsset: MockFn; readAsset: MockFn };
 let mockConfig: {
   crawler: {
     storeContentImages: boolean;
@@ -287,6 +287,7 @@ describe("resolveHtmlContent", () => {
 
   test("returns inline HTML when htmlContent is present", async () => {
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      url: "https://example.com/page",
       htmlContent: "<p>Hello</p>",
       contentAssetId: null,
     });
@@ -296,11 +297,13 @@ describe("resolveHtmlContent", () => {
       htmlContent: "<p>Hello</p>",
       source: "inline",
       contentAssetId: null,
+      url: "https://example.com/page",
     });
   });
 
   test("returns asset-based HTML when contentAssetId is present", async () => {
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      url: "https://example.com/page",
       htmlContent: null,
       contentAssetId: "asset-123",
     });
@@ -314,6 +317,7 @@ describe("resolveHtmlContent", () => {
       htmlContent: "<p>From asset</p>",
       source: "asset",
       contentAssetId: "asset-123",
+      url: "https://example.com/page",
     });
     expect(mockAssetDb.readAsset).toHaveBeenCalledWith({
       userId: "user-1",
@@ -323,6 +327,7 @@ describe("resolveHtmlContent", () => {
 
   test("prefers contentAssetId over htmlContent when both present", async () => {
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      url: "https://example.com/page",
       htmlContent: "<p>Inline</p>",
       contentAssetId: "asset-456",
     });
@@ -338,6 +343,7 @@ describe("resolveHtmlContent", () => {
 
   test("returns null when link has neither htmlContent nor contentAssetId", async () => {
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      url: "https://example.com/page",
       htmlContent: null,
       contentAssetId: null,
     });
@@ -348,6 +354,7 @@ describe("resolveHtmlContent", () => {
 
   test("falls back to inline HTML when asset read fails (orphaned reference)", async () => {
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      url: "https://example.com/page",
       htmlContent: "<p>Fallback</p>",
       contentAssetId: "missing-asset",
     });
@@ -360,11 +367,13 @@ describe("resolveHtmlContent", () => {
       htmlContent: "<p>Fallback</p>",
       source: "inline",
       contentAssetId: null,
+      url: "https://example.com/page",
     });
   });
 
   test("returns null when asset read fails and no inline HTML exists", async () => {
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      url: "https://example.com/page",
       htmlContent: null,
       contentAssetId: "missing-asset",
     });
@@ -391,6 +400,7 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://example.com/img.png",
+      "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
     );
@@ -399,7 +409,7 @@ describe("downloadImage", () => {
     expect(result!.src).toBe("https://example.com/img.png");
     expect(result!.contentType).toBe("image/png");
     expect(result!.buffer).toBeInstanceOf(Buffer);
-    expect(result!.assetId).toBe("mock-asset-id");
+    expect(result!.assetId).toBe("test-asset-id");
   });
 
   test("returns null for invalid URL", async () => {
@@ -407,6 +417,7 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://evil.com/img.png",
+      "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
     );
@@ -422,6 +433,7 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://example.com/gone.png",
+      "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
     );
@@ -436,6 +448,7 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://example.com/doc.pdf",
+      "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
     );
@@ -450,6 +463,7 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://example.com/huge.jpg",
+      "test-asset-id",
       "job-1",
       1024,
     );
@@ -463,22 +477,60 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://example.com/big.jpg",
+      "test-asset-id",
       "job-1",
       1024,
     );
     expect(result).toBeNull();
   });
 
-  test("returns null on network error", async () => {
+  test("returns null on network error after retries", async () => {
     mockValidateUrl.mockResolvedValue({ ok: true });
     mockFetchWithProxy.mockRejectedValue(new Error("ECONNRESET"));
 
     const result = await downloadImage(
       "https://example.com/fail.jpg",
+      "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
     );
     expect(result).toBeNull();
+    // 1 initial attempt + 3 retries = 4 total fetch calls
+    expect(mockFetchWithProxy).toHaveBeenCalledTimes(4);
+  }, 15_000);
+
+  test("retries on 429 and succeeds", async () => {
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    const imageBuffer = new ArrayBuffer(4);
+    mockFetchWithProxy
+      .mockResolvedValueOnce(mockResponse(new ArrayBuffer(0), "", 429))
+      .mockResolvedValueOnce(mockResponse(imageBuffer, "image/png"));
+
+    const result = await downloadImage(
+      "https://example.com/rate-limited.png",
+      "test-asset-id",
+      "job-1",
+      10 * 1024 * 1024,
+    );
+    expect(result).not.toBeNull();
+    expect(result!.contentType).toBe("image/png");
+    expect(mockFetchWithProxy).toHaveBeenCalledTimes(2);
+  }, 10_000);
+
+  test("does not retry on non-retryable status like 404", async () => {
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    mockFetchWithProxy.mockResolvedValue(
+      mockResponse(new ArrayBuffer(0), "", 404),
+    );
+
+    const result = await downloadImage(
+      "https://example.com/missing.jpg",
+      "test-asset-id",
+      "job-1",
+      10 * 1024 * 1024,
+    );
+    expect(result).toBeNull();
+    expect(mockFetchWithProxy).toHaveBeenCalledTimes(1);
   });
 
   test("strips content-type parameters (charset, boundary)", async () => {
@@ -490,6 +542,7 @@ describe("downloadImage", () => {
 
     const result = await downloadImage(
       "https://example.com/img.jpg",
+      "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
     );
@@ -565,7 +618,10 @@ describe("run", () => {
     const htmlContent =
       '<div><img src="https://example.com/photo.jpg" /></div>';
     const imageBuffer = new ArrayBuffer(100);
-    const mockValues = vi.fn();
+    const mockOnConflict = vi.fn();
+    const mockValues = vi
+      .fn()
+      .mockReturnValue({ onConflictDoUpdate: mockOnConflict });
     const mockWhere = vi.fn();
 
     mockDb.query.bookmarks.findFirst.mockResolvedValue({
@@ -576,13 +632,15 @@ describe("run", () => {
       htmlContent,
       contentAssetId: null,
     });
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([]);
 
     mockValidateUrl.mockResolvedValue({ ok: true });
     mockFetchWithProxy.mockResolvedValue(
       mockResponse(imageBuffer, "image/jpeg"),
     );
 
-    mockAssetDb.newAssetId.mockReturnValue("new-asset-1");
     mockQuotaService.checkStorageQuota.mockResolvedValue({
       quotaApproved: true,
     });
@@ -596,45 +654,44 @@ describe("run", () => {
 
     // Verify image was saved as asset
     expect(mockAssetDb.saveAsset).toHaveBeenCalled();
-    // Verify asset DB record was inserted
+    // Verify asset DB record was upserted
     expect(mockDb.insert).toHaveBeenCalled();
+    expect(mockOnConflict).toHaveBeenCalled();
     // Verify HTML was updated (inline path uses db.update on bookmarkLinks)
     expect(mockDb.update).toHaveBeenCalled();
   });
 
-  test("always runs delete for old content images", async () => {
-    const htmlContent = '<img src="https://example.com/new.jpg" />';
-    const mockDeleteWhere = vi.fn();
+  test("skips already-downloaded images", async () => {
+    const htmlContent = '<img src="https://example.com/cached.jpg" />';
+    const expectedAssetId = contentImageAssetId(
+      "bm-1",
+      "https://example.com/cached.jpg",
+    );
 
     mockDb.query.bookmarks.findFirst.mockResolvedValue({
       id: "bm-1",
       userId: "user-1",
     });
-    mockDb.delete.mockReturnValue({ where: mockDeleteWhere });
     mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
       htmlContent,
       contentAssetId: null,
     });
+    // Simulate the image already being cached
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([{ id: expectedAssetId }]);
 
-    mockValidateUrl.mockResolvedValue({ ok: true });
-    mockFetchWithProxy.mockResolvedValue(
-      mockResponse(new ArrayBuffer(50), "image/png"),
-    );
-    mockAssetDb.newAssetId.mockReturnValue("new-asset-1");
-    mockQuotaService.checkStorageQuota.mockResolvedValue({
-      quotaApproved: true,
-    });
-    mockAssetDb.saveAsset.mockResolvedValue(undefined);
-    mockDb.insert.mockReturnValue({ values: vi.fn() });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn() }),
     });
 
     await run(makeJob("bm-1"));
 
-    // Delete runs unconditionally (clean slate)
-    expect(mockDb.delete).toHaveBeenCalled();
-    expect(mockDeleteWhere).toHaveBeenCalled();
+    // Should not attempt to download since it's already cached
+    expect(mockValidateUrl).not.toHaveBeenCalled();
+    expect(mockFetchWithProxy).not.toHaveBeenCalled();
+    // Should still rewrite HTML with the cached asset URL
+    expect(mockDb.update).toHaveBeenCalled();
   });
 
   test("stops saving when storage quota is exceeded", async () => {
@@ -651,14 +708,14 @@ describe("run", () => {
       htmlContent,
       contentAssetId: null,
     });
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([]);
 
     mockValidateUrl.mockResolvedValue({ ok: true });
     mockFetchWithProxy.mockResolvedValue(
       mockResponse(new ArrayBuffer(50), "image/jpeg"),
     );
-    mockAssetDb.newAssetId
-      .mockReturnValueOnce("asset-1")
-      .mockReturnValueOnce("asset-2");
 
     // First image: checkStorageQuota throws when quota is exceeded
     mockQuotaService.checkStorageQuota.mockRejectedValueOnce(
@@ -688,6 +745,9 @@ describe("run", () => {
       htmlContent,
       contentAssetId: null,
     });
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([]);
 
     mockValidateUrl.mockResolvedValue({ ok: true });
     mockFetchWithProxy.mockResolvedValue(
@@ -697,7 +757,9 @@ describe("run", () => {
       quotaApproved: true,
     });
     mockAssetDb.saveAsset.mockResolvedValue(undefined);
-    mockDb.insert.mockReturnValue({ values: vi.fn() });
+    mockDb.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn() }),
+    });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn() }),
     });
@@ -721,14 +783,14 @@ describe("run", () => {
       htmlContent,
       contentAssetId: null,
     });
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([]);
 
     mockValidateUrl.mockResolvedValue({ ok: true });
     mockFetchWithProxy.mockResolvedValue(
       mockResponse(new ArrayBuffer(50), "image/jpeg"),
     );
-    mockAssetDb.newAssetId
-      .mockReturnValueOnce("asset-1")
-      .mockReturnValueOnce("asset-2");
     mockQuotaService.checkStorageQuota.mockResolvedValue({
       quotaApproved: true,
     });
@@ -737,7 +799,9 @@ describe("run", () => {
     mockAssetDb.saveAsset
       .mockRejectedValueOnce(new Error("disk I/O error"))
       .mockResolvedValueOnce(undefined);
-    mockDb.insert.mockReturnValue({ values: vi.fn() });
+    mockDb.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn() }),
+    });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn() }),
     });
@@ -762,6 +826,9 @@ describe("run", () => {
       htmlContent: null,
       contentAssetId: "content-asset-1",
     });
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([]);
 
     // readAsset returns the HTML content from asset storage
     mockAssetDb.readAsset.mockResolvedValue({
@@ -773,14 +840,15 @@ describe("run", () => {
     mockFetchWithProxy.mockResolvedValue(
       mockResponse(new ArrayBuffer(50), "image/jpeg"),
     );
-    mockAssetDb.newAssetId.mockReturnValue("new-asset-1");
 
     // Image save quota check passes, but the HTML rewrite quota check fails
     mockQuotaService.checkStorageQuota
       .mockResolvedValueOnce({ quotaApproved: true }) // image save
       .mockRejectedValueOnce(new StorageQuotaError(900, 1000, 200)); // HTML rewrite
     mockAssetDb.saveAsset.mockResolvedValue(undefined);
-    mockDb.insert.mockReturnValue({ values: vi.fn() });
+    mockDb.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn() }),
+    });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({ where: vi.fn() }),
     });
@@ -806,6 +874,9 @@ describe("run", () => {
       htmlContent: null,
       contentAssetId: "content-asset-1",
     });
+    (
+      mockDb.query as unknown as MockDb["query"]
+    ).assets.findMany.mockResolvedValue([]);
 
     // readAsset returns the HTML content from asset storage
     mockAssetDb.readAsset.mockResolvedValue({
@@ -817,12 +888,13 @@ describe("run", () => {
     mockFetchWithProxy.mockResolvedValue(
       mockResponse(new ArrayBuffer(50), "image/png"),
     );
-    mockAssetDb.newAssetId.mockReturnValue("img-asset-1");
     mockQuotaService.checkStorageQuota.mockResolvedValue({
       quotaApproved: true,
     });
     mockAssetDb.saveAsset.mockResolvedValue(undefined);
-    mockDb.insert.mockReturnValue({ values: vi.fn() });
+    mockDb.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn() }),
+    });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({ where: mockSetWhere }),
     });
