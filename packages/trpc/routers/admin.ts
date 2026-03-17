@@ -88,6 +88,7 @@ export const adminAppRouter = router({
         }),
         contentImageStats: z.object({
           queued: z.number(),
+          enabled: z.boolean(),
         }),
       }),
     )
@@ -219,6 +220,7 @@ export const adminAppRouter = router({
         },
         contentImageStats: {
           queued: queuedContentImage.pending + queuedContentImage.pending_retry,
+          enabled: serverConfig.crawler.storeContentImages,
         },
       };
     }),

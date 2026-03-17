@@ -543,13 +543,19 @@ export default function BackgroundJobs() {
       description: t("admin.background_jobs.jobs.crawler.description"),
       actions: actions.crawlActions,
     },
-    {
-      title: t("admin.background_jobs.jobs.content_image.title"),
-      icon: ImageDown,
-      stats: { queued: serverStats.contentImageStats.queued },
-      description: t("admin.background_jobs.jobs.content_image.description"),
-      actions: actions.contentImageActions,
-    },
+    ...(serverStats.contentImageStats.enabled
+      ? [
+          {
+            title: t("admin.background_jobs.jobs.content_image.title"),
+            icon: ImageDown,
+            stats: { queued: serverStats.contentImageStats.queued },
+            description: t(
+              "admin.background_jobs.jobs.content_image.description",
+            ),
+            actions: actions.contentImageActions,
+          },
+        ]
+      : []),
     {
       title: t("admin.background_jobs.jobs.inference.title"),
       icon: Sparkle,
