@@ -43,6 +43,49 @@ const CONTENT_IMAGE_ASSET_TYPES = new Set<string>([
   "image/apng",
 ]);
 
+// Magic byte signatures for common image formats.
+// Used as a fallback when the server returns a wrong Content-Type header.
+const MAGIC_SIGNATURES: [Buffer, string][] = [
+  [Buffer.from([0xff, 0xd8, 0xff]), "image/jpeg"],
+  [Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), "image/png"],
+  [Buffer.from("GIF87a"), "image/gif"],
+  [Buffer.from("GIF89a"), "image/gif"],
+  [Buffer.from("RIFF"), "image/webp"], // WebP starts with RIFF....WEBP
+  [Buffer.from("<svg"), "image/svg+xml"],
+];
+
+export function detectImageType(buffer: Buffer): string | null {
+  for (const [signature, mimeType] of MAGIC_SIGNATURES) {
+    if (
+      buffer.length >= signature.length &&
+      buffer.subarray(0, signature.length).equals(signature)
+    ) {
+      // Extra check for WebP: bytes 8-11 must be "WEBP"
+      if (mimeType === "image/webp") {
+        if (
+          buffer.length >= 12 &&
+          buffer.subarray(8, 12).toString("ascii") === "WEBP"
+        ) {
+          return mimeType;
+        }
+        continue;
+      }
+      return mimeType;
+    }
+  }
+  // AVIF: starts with a ftyp box containing "avif" or "avis" brand
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(4, 8).toString("ascii") === "ftyp"
+  ) {
+    const brand = buffer.subarray(8, 12).toString("ascii");
+    if (brand === "avif" || brand === "avis") {
+      return "image/avif";
+    }
+  }
+  return null;
+}
+
 export class ContentImageWorker {
   static async build() {
     logger.info("Starting content image worker ...");
@@ -254,17 +297,6 @@ export async function downloadImage(
         return null;
       }
 
-      const contentType = response.headers
-        .get("content-type")
-        ?.split(";")[0]
-        ?.trim();
-      if (!contentType || !CONTENT_IMAGE_ASSET_TYPES.has(contentType)) {
-        logger.debug(
-          `[contentImage][${jobId}] Unsupported content type "${contentType}" for: ${src}`,
-        );
-        return null;
-      }
-
       // Check content-length header if available
       const contentLength = response.headers.get("content-length");
       if (contentLength && parseInt(contentLength, 10) > maxSizeBytes) {
@@ -274,8 +306,28 @@ export async function downloadImage(
         return null;
       }
 
-      const buffer = Buffer.from(await response.arrayBuffer());
+      const headerContentType = response.headers
+        .get("content-type")
+        ?.split(";")[0]
+        ?.trim();
 
+      // Trust the Content-Type header if it's a known image type
+      if (
+        headerContentType &&
+        CONTENT_IMAGE_ASSET_TYPES.has(headerContentType)
+      ) {
+        const buffer = Buffer.from(await response.arrayBuffer());
+        if (buffer.byteLength > maxSizeBytes) {
+          logger.debug(
+            `[contentImage][${jobId}] Image too large (${buffer.byteLength} bytes): ${src}`,
+          );
+          return null;
+        }
+        return { src, assetId, buffer, contentType: headerContentType };
+      }
+
+      // Fallback: read the buffer and detect image type from magic bytes
+      const buffer = Buffer.from(await response.arrayBuffer());
       if (buffer.byteLength > maxSizeBytes) {
         logger.debug(
           `[contentImage][${jobId}] Image too large (${buffer.byteLength} bytes): ${src}`,
@@ -283,12 +335,18 @@ export async function downloadImage(
         return null;
       }
 
-      return {
-        src,
-        assetId,
-        buffer,
-        contentType,
-      };
+      const detectedType = detectImageType(buffer);
+      if (detectedType && CONTENT_IMAGE_ASSET_TYPES.has(detectedType)) {
+        logger.debug(
+          `[contentImage][${jobId}] Detected ${detectedType} from magic bytes (server sent "${headerContentType}"): ${src}`,
+        );
+        return { src, assetId, buffer, contentType: detectedType };
+      }
+
+      logger.debug(
+        `[contentImage][${jobId}] Unsupported content type "${headerContentType}" for: ${src}`,
+      );
+      return null;
     } catch (e) {
       if (attempt < MAX_RETRIES) {
         logger.debug(

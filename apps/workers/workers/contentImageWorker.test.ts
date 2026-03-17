@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   contentImageAssetId,
+  detectImageType,
   downloadImage,
   extractExternalImageUrls,
   resolveHtmlContent,
@@ -225,6 +226,76 @@ describe("extractExternalImageUrls", () => {
       "https://example.com/photo.jpg",
       "https://other.com/img.png",
     ]);
+  });
+});
+
+describe("detectImageType", () => {
+  test("detects JPEG", () => {
+    const buf = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+    expect(detectImageType(buf)).toBe("image/jpeg");
+  });
+
+  test("detects PNG", () => {
+    const buf = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00,
+    ]);
+    expect(detectImageType(buf)).toBe("image/png");
+  });
+
+  test("detects GIF87a", () => {
+    const buf = Buffer.from("GIF87a...", "ascii");
+    expect(detectImageType(buf)).toBe("image/gif");
+  });
+
+  test("detects GIF89a", () => {
+    const buf = Buffer.from("GIF89a...", "ascii");
+    expect(detectImageType(buf)).toBe("image/gif");
+  });
+
+  test("detects WebP", () => {
+    const buf = Buffer.alloc(16);
+    buf.write("RIFF", 0, "ascii");
+    buf.writeUInt32LE(1000, 4); // file size
+    buf.write("WEBP", 8, "ascii");
+    expect(detectImageType(buf)).toBe("image/webp");
+  });
+
+  test("rejects RIFF without WEBP brand", () => {
+    const buf = Buffer.alloc(16);
+    buf.write("RIFF", 0, "ascii");
+    buf.writeUInt32LE(1000, 4);
+    buf.write("AVI ", 8, "ascii");
+    expect(detectImageType(buf)).toBeNull();
+  });
+
+  test("detects SVG", () => {
+    const buf = Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'>");
+    expect(detectImageType(buf)).toBe("image/svg+xml");
+  });
+
+  test("detects AVIF", () => {
+    const buf = Buffer.alloc(16);
+    buf.writeUInt32BE(32, 0); // box size
+    buf.write("ftyp", 4, "ascii");
+    buf.write("avif", 8, "ascii");
+    expect(detectImageType(buf)).toBe("image/avif");
+  });
+
+  test("detects AVIF with avis brand", () => {
+    const buf = Buffer.alloc(16);
+    buf.writeUInt32BE(32, 0);
+    buf.write("ftyp", 4, "ascii");
+    buf.write("avis", 8, "ascii");
+    expect(detectImageType(buf)).toBe("image/avif");
+  });
+
+  test("returns null for unknown data", () => {
+    const buf = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05]);
+    expect(detectImageType(buf)).toBeNull();
+  });
+
+  test("returns null for empty buffer", () => {
+    expect(detectImageType(Buffer.alloc(0))).toBeNull();
   });
 });
 
@@ -473,6 +544,41 @@ describe("downloadImage", () => {
       expect(result!.contentType).toBe(contentType);
     },
   );
+
+  test("falls back to magic bytes when Content-Type is wrong", async () => {
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    // JPEG magic bytes but server says text/html
+    const jpegBuffer = new ArrayBuffer(10);
+    const view = new Uint8Array(jpegBuffer);
+    view[0] = 0xff;
+    view[1] = 0xd8;
+    view[2] = 0xff;
+    mockFetchWithProxy.mockResolvedValue(mockResponse(jpegBuffer, "text/html"));
+
+    const result = await downloadImage(
+      "https://example.com/image.jpg",
+      "test-asset-id",
+      "job-1",
+      10 * 1024 * 1024,
+    );
+    expect(result).not.toBeNull();
+    expect(result!.contentType).toBe("image/jpeg");
+  });
+
+  test("returns null when Content-Type is wrong and magic bytes don't match", async () => {
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    mockFetchWithProxy.mockResolvedValue(
+      mockResponse(new ArrayBuffer(10), "text/html"),
+    );
+
+    const result = await downloadImage(
+      "https://example.com/page",
+      "test-asset-id",
+      "job-1",
+      10 * 1024 * 1024,
+    );
+    expect(result).toBeNull();
+  });
 
   test("returns null when content-length exceeds max size", async () => {
     mockValidateUrl.mockResolvedValue({ ok: true });
