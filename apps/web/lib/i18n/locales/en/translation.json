@@ -571,6 +571,10 @@
         "feed": {
           "title": "RSS Feed Jobs",
           "description": "RSS feed processing and content updates"
+        },
+        "content_image": {
+          "title": "Content Image Jobs",
+          "description": "Download and cache images from reader content for offline access"
         }
       },
       "background_jobs": "Background Jobs",
@@ -606,7 +610,8 @@
         "reindex_all_bookmarks": "Reindex All Bookmarks",
         "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
         "migrate_large_link_html_content": "Move Large Inline HTML Content to Assets",
-        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
+        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets",
+        "cache_content_images_for_all_links": "Cache Content Images for All Links"
       }
     },
     "users_list": {

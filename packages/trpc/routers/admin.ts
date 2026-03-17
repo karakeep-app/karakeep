@@ -7,6 +7,7 @@ import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
+  ContentImageQueue,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -85,6 +86,9 @@ export const adminAppRouter = router({
         feedStats: z.object({
           queued: z.number(),
         }),
+        contentImageStats: z.object({
+          queued: z.number(),
+        }),
       }),
     )
     .query(async ({ ctx }) => {
@@ -117,6 +121,9 @@ export const adminAppRouter = router({
 
         // Feed
         queuedFeed,
+
+        // Content Image
+        queuedContentImage,
       ] = await Promise.all([
         // Crawls
         LinkCrawlerQueue.stats(),
@@ -168,6 +175,9 @@ export const adminAppRouter = router({
 
         // Feed
         FeedQueue.stats(),
+
+        // Content Image
+        ContentImageQueue.stats(),
       ]);
 
       return {
@@ -206,6 +216,9 @@ export const adminAppRouter = router({
         },
         feedStats: {
           queued: queuedFeed.pending + queuedFeed.pending_retry,
+        },
+        contentImageStats: {
+          queued: queuedContentImage.pending + queuedContentImage.pending_retry,
         },
       };
     }),
@@ -313,6 +326,26 @@ export const adminAppRouter = router({
         ),
       );
     }),
+  recacheContentImages: adminProcedure.mutation(async ({ ctx }) => {
+    const linkBookmarks = await ctx.db.query.bookmarkLinks.findMany({
+      columns: {
+        id: true,
+      },
+    });
+
+    await Promise.all(
+      linkBookmarks.map((b) =>
+        ContentImageQueue.enqueue(
+          {
+            bookmarkId: b.id,
+          },
+          {
+            priority: QueuePriority.Low,
+          },
+        ),
+      ),
+    );
+  }),
   runAdminMaintenanceTask: adminProcedure
     .input(zAdminMaintenanceTaskSchema)
     .mutation(async ({ input }) => {
