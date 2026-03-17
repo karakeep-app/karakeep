@@ -54,7 +54,11 @@ export class ContentImageWorker {
           workerStatsCounter.labels("contentImage", "completed").inc();
           const jobId = job.id;
           logger.info(`[contentImage][${jobId}] Completed successfully`);
-          return Promise.resolve();
+          const bookmarkId = job.data.bookmarkId;
+          await db
+            .update(bookmarkLinks)
+            .set({ contentImageStatus: "success" })
+            .where(eq(bookmarkLinks.id, bookmarkId));
         },
         onError: async (job) => {
           workerStatsCounter.labels("contentImage", "failed").inc();
@@ -65,7 +69,13 @@ export class ContentImageWorker {
           logger.error(
             `[contentImage][${jobId}] Content image processing failed: ${job.error}\n${job.error.stack}`,
           );
-          return Promise.resolve();
+          const bookmarkId = job.data?.bookmarkId;
+          if (bookmarkId && job.numRetriesLeft == 0) {
+            await db
+              .update(bookmarkLinks)
+              .set({ contentImageStatus: "failure" })
+              .where(eq(bookmarkLinks.id, bookmarkId));
+          }
         },
       },
       {

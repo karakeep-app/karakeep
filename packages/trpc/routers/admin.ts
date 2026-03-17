@@ -88,6 +88,8 @@ export const adminAppRouter = router({
         }),
         contentImageStats: z.object({
           queued: z.number(),
+          pending: z.number(),
+          failed: z.number(),
           enabled: z.boolean(),
         }),
       }),
@@ -125,6 +127,8 @@ export const adminAppRouter = router({
 
         // Content Image
         queuedContentImage,
+        [{ value: pendingContentImage }],
+        [{ value: failedContentImage }],
       ] = await Promise.all([
         // Crawls
         LinkCrawlerQueue.stats(),
@@ -179,6 +183,14 @@ export const adminAppRouter = router({
 
         // Content Image
         ContentImageQueue.stats(),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarkLinks)
+          .where(eq(bookmarkLinks.contentImageStatus, "pending")),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarkLinks)
+          .where(eq(bookmarkLinks.contentImageStatus, "failure")),
       ]);
 
       return {
@@ -220,6 +232,8 @@ export const adminAppRouter = router({
         },
         contentImageStats: {
           queued: queuedContentImage.pending + queuedContentImage.pending_retry,
+          pending: pendingContentImage,
+          failed: failedContentImage,
           enabled: serverConfig.crawler.storeContentImages,
         },
       };
@@ -336,16 +350,20 @@ export const adminAppRouter = router({
     });
 
     await Promise.all(
-      linkBookmarks.map((b) =>
-        ContentImageQueue.enqueue(
+      linkBookmarks.map(async (b) => {
+        await ctx.db
+          .update(bookmarkLinks)
+          .set({ contentImageStatus: "pending" })
+          .where(eq(bookmarkLinks.id, b.id));
+        await ContentImageQueue.enqueue(
           {
             bookmarkId: b.id,
           },
           {
             priority: QueuePriority.Low,
           },
-        ),
-      ),
+        );
+      }),
     );
   }),
   runAdminMaintenanceTask: adminProcedure

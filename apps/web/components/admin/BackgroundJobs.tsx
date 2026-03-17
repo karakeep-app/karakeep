@@ -548,7 +548,11 @@ export default function BackgroundJobs() {
           {
             title: t("admin.background_jobs.jobs.content_image.title"),
             icon: ImageDown,
-            stats: { queued: serverStats.contentImageStats.queued },
+            stats: {
+              queued: serverStats.contentImageStats.queued,
+              pending: serverStats.contentImageStats.pending,
+              failed: serverStats.contentImageStats.failed,
+            },
             description: t(
               "admin.background_jobs.jobs.content_image.description",
             ),

@@ -2151,6 +2151,10 @@ async function runCrawler(
     await triggerSearchReindex(bookmarkId, enqueueOpts);
 
     if (serverConfig.crawler.storeContentImages) {
+      await db
+        .update(bookmarkLinks)
+        .set({ contentImageStatus: "pending" })
+        .where(eq(bookmarkLinks.id, bookmarkId));
       await ContentImageQueue.enqueue(
         {
           bookmarkId,
