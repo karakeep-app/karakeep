@@ -45,6 +45,7 @@ vi.mock("@karakeep/shared/assetdb", () => ({
     "image/gif",
     "image/webp",
   ]),
+  deleteAsset: vi.fn(),
   readAsset: vi.fn(),
   saveAsset: vi.fn(),
 }));
@@ -153,7 +154,7 @@ interface MockDb {
 // Retrieve mocked modules once for use in run() tests.
 // vi.mock hoists above imports, so these are the mocked versions.
 let mockDb: MockDb;
-let mockAssetDb: { saveAsset: MockFn; readAsset: MockFn };
+let mockAssetDb: { deleteAsset: MockFn; saveAsset: MockFn; readAsset: MockFn };
 let mockConfig: {
   crawler: {
     storeContentImages: boolean;
@@ -1029,5 +1030,91 @@ describe("run", () => {
     // Should save the rewritten HTML back via saveAsset (asset path)
     // saveAsset called twice: once for the image, once for the rewritten HTML
     expect(mockAssetDb.saveAsset).toHaveBeenCalledTimes(2);
+  });
+
+  test("deletes stale content images after successful re-crawl", async () => {
+    // HTML now only has image B; image A was in a previous crawl and is stale
+    const htmlContent = '<img src="https://example.com/b.jpg" />';
+    const staleAssetId = "stale-asset-from-previous-crawl";
+
+    mockDb.query.bookmarks.findFirst.mockResolvedValue({
+      id: "bm-1",
+      userId: "user-1",
+    });
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent,
+      contentAssetId: null,
+    });
+
+    // First findMany call: check existing assets (none cached yet for image B)
+    // Second findMany call: query stale assets (returns the old image A)
+    (mockDb.query as unknown as MockDb["query"]).assets.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: staleAssetId }]);
+
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    mockFetchWithProxy.mockResolvedValue(
+      mockResponse(new ArrayBuffer(50), "image/jpeg"),
+    );
+    mockQuotaService.checkStorageQuota.mockResolvedValue({
+      quotaApproved: true,
+    });
+    mockAssetDb.saveAsset.mockResolvedValue(undefined);
+    mockAssetDb.deleteAsset.mockResolvedValue(undefined);
+    mockDb.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn() }),
+    });
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn() }),
+    });
+    mockDb.delete.mockReturnValue({ where: vi.fn() });
+
+    await run(makeJob("bm-1"));
+
+    // Verify stale asset was deleted from storage and DB
+    expect(mockAssetDb.deleteAsset).toHaveBeenCalledWith({
+      userId: "user-1",
+      assetId: staleAssetId,
+    });
+    expect(mockDb.delete).toHaveBeenCalled();
+  });
+
+  test("tolerates errors when deleting stale assets", async () => {
+    const htmlContent = '<img src="https://example.com/new.jpg" />';
+
+    mockDb.query.bookmarks.findFirst.mockResolvedValue({
+      id: "bm-1",
+      userId: "user-1",
+    });
+    mockDb.query.bookmarkLinks.findFirst.mockResolvedValue({
+      htmlContent,
+      contentAssetId: null,
+    });
+
+    // First findMany: no existing assets; Second: one stale asset
+    (mockDb.query as unknown as MockDb["query"]).assets.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: "stale-1" }]);
+
+    mockValidateUrl.mockResolvedValue({ ok: true });
+    mockFetchWithProxy.mockResolvedValue(
+      mockResponse(new ArrayBuffer(50), "image/jpeg"),
+    );
+    mockQuotaService.checkStorageQuota.mockResolvedValue({
+      quotaApproved: true,
+    });
+    mockAssetDb.saveAsset.mockResolvedValue(undefined);
+    // deleteAsset throws — should be caught and not fail the job
+    mockAssetDb.deleteAsset.mockRejectedValue(new Error("disk error"));
+    mockDb.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn() }),
+    });
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn() }),
+    });
+    mockDb.delete.mockReturnValue({ where: vi.fn() });
+
+    // Should not throw despite deleteAsset failing
+    await expect(run(makeJob("bm-1"))).resolves.toBeUndefined();
   });
 });

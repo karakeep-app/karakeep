@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, notInArray } from "drizzle-orm";
 import { JSDOM } from "jsdom";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy, validateUrl } from "network";
@@ -21,6 +21,7 @@ import {
 } from "@karakeep/shared-server";
 import {
   IMAGE_ASSET_TYPES,
+  deleteAsset,
   readAsset,
   saveAsset,
 } from "@karakeep/shared/assetdb";
@@ -595,6 +596,34 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
       );
     } else {
       throw e;
+    }
+  }
+
+  // Clean up stale content images that are no longer in the current HTML.
+  // We only do this after the new images are saved and HTML is rewritten,
+  // so a partial failure earlier won't cause working images to be deleted.
+  const staleAssets = await db.query.assets.findMany({
+    where: and(
+      eq(assets.bookmarkId, bookmarkId),
+      eq(assets.assetType, AssetTypes.CONTENT_IMAGE),
+      notInArray(assets.id, allAssetIds),
+    ),
+    columns: { id: true },
+  });
+
+  if (staleAssets.length > 0) {
+    logger.info(
+      `[contentImage][${jobId}] Deleting ${staleAssets.length} stale content image(s)`,
+    );
+    for (const stale of staleAssets) {
+      try {
+        await deleteAsset({ userId, assetId: stale.id });
+        await db.delete(assets).where(eq(assets.id, stale.id));
+      } catch (e) {
+        logger.warn(
+          `[contentImage][${jobId}] Failed to delete stale asset ${stale.id}: ${e}`,
+        );
+      }
     }
   }
 
