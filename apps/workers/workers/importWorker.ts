@@ -115,7 +115,7 @@ export class ImportWorker {
   private staleThresholdMs = 60 * 60 * 1000; // 1 hour
 
   // Stall detection: sessions with items stuck in downstream processing
-  private stallThresholdMs = 5 * 60 * 1000; // 5 minutes
+  private stallThresholdMs = 10 * 60 * 1000; // 10 minutes
   private stallMinItems = 3; // min stuck items to consider a session stalled
 
   async start() {
