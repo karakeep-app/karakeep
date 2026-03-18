@@ -8,6 +8,7 @@ import {
   isNotNull,
   isNull,
   lt,
+  notInArray,
   or,
 } from "drizzle-orm";
 import { Counter, Gauge, Histogram } from "prom-client";
@@ -61,6 +62,12 @@ const importStagingPendingGauge = new Gauge({
   registers: [registry],
 });
 
+const importStagingStalledSessionsGauge = new Gauge({
+  name: "karakeep_import_staging_stalled_sessions",
+  help: "Number of import sessions currently stalled waiting for downstream processing",
+  registers: [registry],
+});
+
 const importBatchDurationHistogram = new Histogram({
   name: "karakeep_import_batch_duration_seconds",
   help: "Time taken to process a batch of staged items",
@@ -106,6 +113,10 @@ export class ImportWorker {
   private maxInFlight = 50;
   private batchSize = 10;
   private staleThresholdMs = 60 * 60 * 1000; // 1 hour
+
+  // Stall detection: sessions with items stuck in downstream processing
+  private stallThresholdMs = 5 * 60 * 1000; // 5 minutes
+  private stallMinItems = 3; // min stuck items to consider a session stalled
 
   async start() {
     this.running = true;
@@ -153,8 +164,19 @@ export class ImportWorker {
       return 0;
     }
 
-    // 1. Check backpressure - inflight items + queue sizes
-    const availableCapacity = await this.getAvailableCapacity();
+    // 1. Detect stalled sessions (computed once, used by capacity + scheduling)
+    const stalledSessionIds = await this.getStalledSessionIds();
+    importStagingStalledSessionsGauge.set(stalledSessionIds.length);
+    if (stalledSessionIds.length > 0) {
+      backpressureLogger(
+        "info",
+        `[import] ${stalledSessionIds.length} session(s) stalled waiting for downstream processing: [${stalledSessionIds.join(", ")}]. Their items are excluded from capacity and scheduling.`,
+      );
+    }
+
+    // 2. Check backpressure - inflight items + queue sizes
+    const availableCapacity =
+      await this.getAvailableCapacity(stalledSessionIds);
 
     if (availableCapacity <= 0) {
       // At capacity, wait before trying again
@@ -169,13 +191,16 @@ export class ImportWorker {
       `[import] ${countPendingItems} pending items, available capacity: ${availableCapacity}`,
     );
 
-    // 2. Get candidate IDs with fair scheduling across users
+    // 3. Get candidate IDs with fair scheduling across users
     const batchLimit = Math.min(this.batchSize, availableCapacity);
-    const candidateIds = await this.getNextBatchFairly(batchLimit);
+    const candidateIds = await this.getNextBatchFairly(
+      batchLimit,
+      stalledSessionIds,
+    );
 
     if (candidateIds.length === 0) return 0;
 
-    // 3. Atomically claim rows - only rows still pending will be claimed
+    // 4. Atomically claim rows - only rows still pending will be claimed
     // This prevents race conditions where multiple workers select the same rows
     const batch = await db
       .update(importStagingBookmarks)
@@ -193,7 +218,7 @@ export class ImportWorker {
 
     const batchTimer = importBatchDurationHistogram.startTimer();
 
-    // 4. Mark session(s) as running (using claimed rows, not candidates)
+    // 5. Mark session(s) as running (using claimed rows, not candidates)
     const sessionIds = [...new Set(batch.map((b) => b.importSessionId))];
     logger.info(
       `[import] Claimed batch of ${batch.length} items from ${sessionIds.length} session(s): [${sessionIds.join(", ")}]`,
@@ -208,7 +233,7 @@ export class ImportWorker {
         ),
       );
 
-    // 5. Process in parallel
+    // 6. Process in parallel
     const results = await Promise.allSettled(
       batch.map((staged) => this.processOneBookmark(staged)),
     );
@@ -224,7 +249,7 @@ export class ImportWorker {
         .join(", ")}`,
     );
 
-    // 6. Check if any sessions are now complete
+    // 7. Check if any sessions are now complete
     await this.checkAndCompleteEmptySessions(sessionIds);
 
     batchTimer(); // Record batch duration
@@ -292,11 +317,27 @@ export class ImportWorker {
     return res[0]?.count ?? 0;
   }
 
-  private async getNextBatchFairly(limit: number): Promise<string[]> {
+  private async getNextBatchFairly(
+    limit: number,
+    stalledSessionIds: string[],
+  ): Promise<string[]> {
     // Query pending item IDs from active sessions, ordered by:
     // 1. User's last-served timestamp (fairness)
     // 2. Staging item creation time (FIFO within user)
     // Returns only IDs - actual rows will be fetched atomically during claim
+    const conditions = [
+      eq(importStagingBookmarks.status, "pending"),
+      inArray(importSessions.status, ["pending", "running"]),
+    ];
+
+    // Don't pick items from stalled sessions - their downstream pipeline
+    // isn't draining, so adding more items would just increase the stall
+    if (stalledSessionIds.length > 0) {
+      conditions.push(
+        notInArray(importStagingBookmarks.importSessionId, stalledSessionIds),
+      );
+    }
+
     const results = await db
       .select({
         id: importStagingBookmarks.id,
@@ -306,12 +347,7 @@ export class ImportWorker {
         importSessions,
         eq(importStagingBookmarks.importSessionId, importSessions.id),
       )
-      .where(
-        and(
-          eq(importStagingBookmarks.status, "pending"),
-          inArray(importSessions.status, ["pending", "running"]),
-        ),
-      )
+      .where(and(...conditions))
       .orderBy(importSessions.lastProcessedAt, importStagingBookmarks.createdAt)
       .limit(limit);
 
@@ -626,25 +662,67 @@ export class ImportWorker {
 
   /**
    * Backpressure: Calculate available capacity based on number of items currently processing.
+   * Items from stalled sessions are excluded from the count so they don't block
+   * capacity for sessions that can make progress.
    */
-  private async getAvailableCapacity(): Promise<number> {
+  private async getAvailableCapacity(
+    stalledSessionIds: string[],
+  ): Promise<number> {
+    const conditions = [
+      eq(importStagingBookmarks.status, "processing"),
+      gt(
+        importStagingBookmarks.processingStartedAt,
+        new Date(Date.now() - this.staleThresholdMs),
+      ),
+    ];
+
+    if (stalledSessionIds.length > 0) {
+      conditions.push(
+        notInArray(importStagingBookmarks.importSessionId, stalledSessionIds),
+      );
+    }
+
     const processingCount = await db
       .select({ count: count() })
       .from(importStagingBookmarks)
-      .where(
-        and(
-          eq(importStagingBookmarks.status, "processing"),
-          gt(
-            importStagingBookmarks.processingStartedAt,
-            new Date(Date.now() - this.staleThresholdMs),
-          ),
-        ),
-      );
+      .where(and(...conditions));
 
     const inFlight = processingCount[0]?.count ?? 0;
     importStagingInFlightGauge.set(inFlight);
 
     return this.maxInFlight - inFlight;
+  }
+
+  /**
+   * Detect sessions that are stalled waiting for downstream processing.
+   * A session is stalled if it has >= stallMinItems items in "processing" state
+   * with a bookmark created (resultBookmarkId set) but downstream work not
+   * completing (processingStartedAt older than stallThresholdMs).
+   *
+   * Stalled sessions' items are excluded from capacity counting and no new
+   * items are picked from them, so other sessions can make progress.
+   */
+  private async getStalledSessionIds(): Promise<string[]> {
+    const stallThreshold = new Date(Date.now() - this.stallThresholdMs);
+
+    const stalledSessions = await db
+      .select({
+        sessionId: importStagingBookmarks.importSessionId,
+        stalledCount: count(),
+      })
+      .from(importStagingBookmarks)
+      .where(
+        and(
+          eq(importStagingBookmarks.status, "processing"),
+          isNotNull(importStagingBookmarks.resultBookmarkId),
+          lt(importStagingBookmarks.processingStartedAt, stallThreshold),
+        ),
+      )
+      .groupBy(importStagingBookmarks.importSessionId);
+
+    return stalledSessions
+      .filter((s) => s.stalledCount >= this.stallMinItems)
+      .map((s) => s.sessionId);
   }
 
   /**
