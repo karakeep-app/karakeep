@@ -593,58 +593,8 @@ export class ImportWorker {
         ),
       );
 
-    // Also find items that have been waiting for downstream too long.
-    // This handles cases where crawl/tag jobs were lost (worker crash, queue loss)
-    // and crawlStatus/taggingStatus will never update.
-    const downstreamTimeout = new Date(Date.now() - this.staleThresholdMs);
-    const timedOutItems = await db
-      .select({
-        id: importStagingBookmarks.id,
-        importSessionId: importStagingBookmarks.importSessionId,
-      })
-      .from(importStagingBookmarks)
-      .where(
-        and(
-          eq(importStagingBookmarks.status, "processing"),
-          isNotNull(importStagingBookmarks.resultBookmarkId),
-          lt(importStagingBookmarks.processingStartedAt, downstreamTimeout),
-        ),
-      );
-
-    if (timedOutItems.length > 0) {
-      logger.warn(
-        `[import] ${timedOutItems.length} item(s) timed out waiting for downstream processing, marking as failed`,
-      );
-
-      await db
-        .update(importStagingBookmarks)
-        .set({
-          status: "failed",
-          result: "rejected",
-          resultReason: "Downstream processing (crawl/tag) timed out",
-          completedAt: new Date(),
-        })
-        .where(
-          inArray(
-            importStagingBookmarks.id,
-            timedOutItems.map((i) => i.id),
-          ),
-        );
-
-      importStagingProcessedCounter.inc(
-        { result: "rejected" },
-        timedOutItems.length,
-      );
-
-      // Check if any sessions are now complete
-      const timedOutSessionIds = [
-        ...new Set(timedOutItems.map((i) => i.importSessionId)),
-      ];
-      await this.checkAndCompleteEmptySessions(timedOutSessionIds);
-    }
-
     if (completedItems.length === 0) {
-      return completedItems.length + timedOutItems.length;
+      return 0;
     }
 
     const succeededItems = completedItems.filter(
@@ -707,7 +657,7 @@ export class ImportWorker {
     ];
     await this.checkAndCompleteEmptySessions(sessionIds);
 
-    return completedItems.length + timedOutItems.length;
+    return completedItems.length;
   }
 
   /**
