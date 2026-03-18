@@ -600,8 +600,8 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
   }
 
   // Clean up stale content images that are no longer in the current HTML.
-  // We only do this after the new images are saved and HTML is rewritten,
-  // so a partial failure earlier won't cause working images to be deleted.
+  // Only runs after at least one image was successfully cached, so a
+  // re-crawl where all downloads fail won't delete previously-working images.
   const staleAssets = await db.query.assets.findMany({
     where: and(
       eq(assets.bookmarkId, bookmarkId),
