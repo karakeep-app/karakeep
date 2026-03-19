@@ -21,6 +21,7 @@ import {
 } from "@karakeep/shared-server";
 import {
   IMAGE_ASSET_TYPES,
+  SUPPORTED_CONTENT_IMAGE_TYPES,
   deleteAsset,
   readAsset,
   saveAsset,
@@ -671,6 +672,7 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
           fileName: null,
         },
         quotaApproved,
+        supportedTypes: SUPPORTED_CONTENT_IMAGE_TYPES,
       });
 
       // Upsert: the asset ID is deterministic, so on re-crawl with the same
