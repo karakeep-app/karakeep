@@ -189,23 +189,121 @@ export async function resolveHtmlContent(
   return null;
 }
 
+function isExternalUrl(url: string): boolean {
+  if (url.startsWith("data:")) return false;
+  if (url.includes("/api/assets/")) return false;
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
+// Common lazy-loading attributes used by various platforms/libraries.
+// Superset of the list in parseHtmlSubprocess.ts normalizeLazyLoadImages() —
+// that preprocessor only runs for Readability-extracted content, so plugin
+// paths (e.g. Reddit) bypass it and rely on this worker to catch lazy attrs.
+const LAZY_SRC_ATTRS = [
+  "data-src",
+  "data-actualsrc",
+  "data-srv",
+  "data-original",
+  "data-lazy",
+  "data-lazy-src",
+  "data-lazyload",
+  "data-img-src",
+  "data-url",
+  // High-res variants — lower priority, checked after common lazy attrs
+  "data-hi-res-src",
+  "data-highres",
+  "data-full-src",
+];
+
+// Attributes that use the srcset format ("url1 300w, url2 600w").
+// We extract the largest candidate URL from each.
+const SRCSET_ATTRS = ["srcset", "data-srcset", "data-lazy-srcset"];
+
+// Parses a srcset attribute value and returns the candidate with the largest
+// width (or pixel density). Returns null when no valid external URL is found.
+// Format: "url1 300w, url2 600w" or "url1 1x, url2 2x"
+export function pickLargestSrcsetUrl(srcset: string): string | null {
+  let bestUrl: string | null = null;
+  let bestSize = -1;
+
+  for (const candidate of srcset.split(",")) {
+    const parts = candidate.trim().split(/\s+/);
+    if (parts.length === 0) continue;
+
+    const url = parts[0]!;
+    if (!isExternalUrl(url)) continue;
+
+    // Parse the optional descriptor (e.g. "300w" or "2x"). Treat bare URLs as 1.
+    let size = 1;
+    if (parts.length >= 2) {
+      const descriptor = parts[1]!;
+      const parsed = parseFloat(descriptor);
+      if (!isNaN(parsed) && parsed > 0) {
+        size = parsed;
+      }
+    }
+
+    if (size > bestSize) {
+      bestSize = size;
+      bestUrl = url;
+    }
+  }
+
+  return bestUrl;
+}
+
 // Exported for testing. Accepts raw HTML or a pre-parsed JSDOM instance to
 // avoid redundant parsing when the same DOM is reused by rewriteImageUrls.
 export function extractExternalImageUrls(input: string | JSDOM): string[] {
   const dom = typeof input === "string" ? new JSDOM(input) : input;
-  const images = dom.window.document.querySelectorAll("img[src]");
+  const doc = dom.window.document;
   const urls = new Set<string>();
 
+  // ── <img> elements ──
+  const images = doc.querySelectorAll("img");
   for (const img of images) {
-    const src = img.getAttribute("src");
-    if (!src) continue;
-    // Skip data URIs
-    if (src.startsWith("data:")) continue;
-    // Skip already-rewritten asset URLs
-    if (src.includes("/api/assets/")) continue;
-    // Only process absolute HTTP(S) URLs
-    if (src.startsWith("http://") || src.startsWith("https://")) {
-      urls.add(src);
+    // Prefer lazy-loading attributes over src (src may be a placeholder)
+    let url: string | null = null;
+    for (const attr of LAZY_SRC_ATTRS) {
+      const val = img.getAttribute(attr);
+      if (val && isExternalUrl(val)) {
+        url = val;
+        break;
+      }
+    }
+    // Fall back to src
+    if (!url) {
+      const src = img.getAttribute("src");
+      if (src && isExternalUrl(src)) {
+        url = src;
+      }
+    }
+    // Fall back to srcset-format attributes — pick the largest candidate
+    if (!url) {
+      for (const attr of SRCSET_ATTRS) {
+        const val = img.getAttribute(attr);
+        if (val) {
+          const picked = pickLargestSrcsetUrl(val);
+          if (picked) {
+            url = picked;
+            break;
+          }
+        }
+      }
+    }
+    if (url) {
+      urls.add(url);
+    }
+  }
+
+  // ── SVG <image> elements (href / xlink:href) ──
+  const svgImages = doc.querySelectorAll("image");
+  for (const img of svgImages) {
+    const href =
+      img.getAttribute("href") ??
+      img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    if (href && isExternalUrl(href)) {
+      urls.add(href);
     }
   }
 
@@ -239,15 +337,24 @@ export function contentImageAssetId(
     .slice(0, 32);
 }
 
+export interface DownloadImageOptions {
+  referer?: string | null;
+  abortSignal?: AbortSignal;
+  maxRetries?: number;
+}
+
 // Exported for testing
 export async function downloadImage(
   src: string,
   assetId: string,
   jobId: string,
   maxSizeBytes: number,
-  referer?: string | null,
-  abortSignal?: AbortSignal,
+  options?: DownloadImageOptions,
 ): Promise<DownloadedImage | null> {
+  const referer = options?.referer;
+  const abortSignal = options?.abortSignal;
+  const maxRetries = options?.maxRetries ?? MAX_RETRIES;
+
   // Validate the URL first (no point retrying an invalid URL)
   const validation = await validateUrl(src, false);
   if (!validation.ok) {
@@ -255,14 +362,14 @@ export async function downloadImage(
     return null;
   }
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     if (attempt > 0) {
       const backoffMs = Math.min(
         INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1),
         MAX_BACKOFF_MS,
       );
       logger.debug(
-        `[contentImage][${jobId}] Retry ${attempt}/${MAX_RETRIES} for ${src} after ${backoffMs}ms`,
+        `[contentImage][${jobId}] Retry ${attempt}/${maxRetries} for ${src} after ${backoffMs}ms`,
       );
       await sleep(backoffMs);
     }
@@ -286,7 +393,7 @@ export async function downloadImage(
       });
 
       if (!response.ok) {
-        if (isRetryableStatus(response.status) && attempt < MAX_RETRIES) {
+        if (isRetryableStatus(response.status) && attempt < maxRetries) {
           logger.debug(
             `[contentImage][${jobId}] Retryable status ${response.status} for: ${src}`,
           );
@@ -349,14 +456,14 @@ export async function downloadImage(
       );
       return null;
     } catch (e) {
-      if (attempt < MAX_RETRIES) {
+      if (attempt < maxRetries) {
         logger.debug(
-          `[contentImage][${jobId}] Error downloading image (attempt ${attempt + 1}/${MAX_RETRIES + 1}): ${src}: ${e}`,
+          `[contentImage][${jobId}] Error downloading image (attempt ${attempt + 1}/${maxRetries + 1}): ${src}: ${e}`,
         );
         continue;
       }
       logger.debug(
-        `[contentImage][${jobId}] Error downloading image after ${MAX_RETRIES + 1} attempts: ${src}: ${e}`,
+        `[contentImage][${jobId}] Error downloading image after ${maxRetries + 1} attempts: ${src}: ${e}`,
       );
       return null;
     }
@@ -372,22 +479,83 @@ export function rewriteImageUrls(
   urlToAssetId: Map<string, string>,
 ): string {
   const dom = typeof input === "string" ? new JSDOM(input) : input;
-  const images = dom.window.document.querySelectorAll("img[src]");
+  const doc = dom.window.document;
+  const images = doc.querySelectorAll("img");
 
   for (const img of images) {
-    const src = img.getAttribute("src");
-    if (!src) continue;
-    const assetId = urlToAssetId.get(src);
-    if (assetId) {
+    // Check lazy-loading attributes first (mirrors extraction order)
+    let matchedUrl: string | null = null;
+    for (const attr of LAZY_SRC_ATTRS) {
+      const val = img.getAttribute(attr);
+      if (val && urlToAssetId.has(val)) {
+        matchedUrl = val;
+        img.removeAttribute(attr);
+        break;
+      }
+    }
+    // Fall back to src
+    if (!matchedUrl) {
+      const src = img.getAttribute("src");
+      if (src && urlToAssetId.has(src)) {
+        matchedUrl = src;
+      }
+    }
+    // Fall back to srcset-format attributes
+    if (!matchedUrl) {
+      for (const attr of SRCSET_ATTRS) {
+        const val = img.getAttribute(attr);
+        if (val) {
+          const picked = pickLargestSrcsetUrl(val);
+          if (picked && urlToAssetId.has(picked)) {
+            matchedUrl = picked;
+            break;
+          }
+        }
+      }
+    }
+
+    if (matchedUrl) {
+      const assetId = urlToAssetId.get(matchedUrl)!;
       img.setAttribute("src", `/api/assets/${assetId}`);
     }
+
+    // Strip all srcset-format attributes so the browser uses our cached src
+    for (const attr of SRCSET_ATTRS) {
+      img.removeAttribute(attr);
+    }
+
+    // Clean up remaining lazy-loading attributes
+    for (const attr of LAZY_SRC_ATTRS) {
+      img.removeAttribute(attr);
+    }
+  }
+
+  // ── SVG <image> elements ──
+  const svgImages = doc.querySelectorAll("image");
+  for (const img of svgImages) {
+    const href =
+      img.getAttribute("href") ??
+      img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    if (href && urlToAssetId.has(href)) {
+      const assetId = urlToAssetId.get(href)!;
+      const cachedUrl = `/api/assets/${assetId}`;
+      // Set both href and xlink:href for broad SVG renderer compatibility
+      img.setAttribute("href", cachedUrl);
+      img.removeAttributeNS("http://www.w3.org/1999/xlink", "href");
+    }
+  }
+
+  // Strip <source> elements inside <picture> to prevent external srcset loading
+  const sources = doc.querySelectorAll("picture > source");
+  for (const source of sources) {
+    source.remove();
   }
 
   // JSDOM always creates a body, so this fallback is defensive.
   // When a raw string was passed we can preserve the original; for a shared
   // JSDOM instance the caller owns the input so empty string is acceptable.
   const fallback = typeof input === "string" ? input : "";
-  return dom.window.document.body?.innerHTML ?? fallback;
+  return doc.body?.innerHTML ?? fallback;
 }
 
 // Exported for testing
@@ -481,14 +649,10 @@ export async function run(job: DequeuedJob<ZContentImageRequest>) {
   for (const { url, assetId } of urlsToDownload) {
     if (quotaExceeded) break;
 
-    const result = await downloadImage(
-      url,
-      assetId,
-      jobId,
-      maxSizeBytes,
-      resolved.url,
-      job.abortSignal,
-    );
+    const result = await downloadImage(url, assetId, jobId, maxSizeBytes, {
+      referer: resolved.url,
+      abortSignal: job.abortSignal,
+    });
     if (!result) continue;
 
     try {

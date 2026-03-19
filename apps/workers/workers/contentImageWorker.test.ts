@@ -5,6 +5,7 @@ import {
   detectImageType,
   downloadImage,
   extractExternalImageUrls,
+  pickLargestSrcsetUrl,
   resolveHtmlContent,
   rewriteImageUrls,
   run,
@@ -228,6 +229,169 @@ describe("extractExternalImageUrls", () => {
       "https://other.com/img.png",
     ]);
   });
+
+  test("extracts data-src for lazy-loaded images", () => {
+    const html = `<img data-src="https://example.com/lazy.jpg" src="data:image/gif;base64,placeholder" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://example.com/lazy.jpg",
+    ]);
+  });
+
+  test("prefers data-src over src when both are external", () => {
+    const html = `<img data-src="https://example.com/real.jpg" src="https://example.com/thumb.jpg" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://example.com/real.jpg",
+    ]);
+  });
+
+  test("extracts data-lazy-src and data-original", () => {
+    const html = `
+      <img data-lazy-src="https://a.com/lazy.jpg" />
+      <img data-original="https://b.com/orig.jpg" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://a.com/lazy.jpg",
+      "https://b.com/orig.jpg",
+    ]);
+  });
+
+  test("extracts all supported lazy-loading attributes", () => {
+    const html = `
+      <img data-actualsrc="https://a.com/actualsrc.jpg" />
+      <img data-srv="https://a.com/srv.jpg" />
+      <img data-lazy="https://a.com/lazy.jpg" />
+      <img data-lazyload="https://a.com/lazyload.jpg" />
+      <img data-img-src="https://a.com/imgsrc.jpg" />
+      <img data-url="https://a.com/url.jpg" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://a.com/actualsrc.jpg",
+      "https://a.com/srv.jpg",
+      "https://a.com/lazy.jpg",
+      "https://a.com/lazyload.jpg",
+      "https://a.com/imgsrc.jpg",
+      "https://a.com/url.jpg",
+    ]);
+  });
+
+  test("falls back to src when data-src is not external", () => {
+    const html = `<img data-src="/local/path.jpg" src="https://example.com/photo.jpg" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://example.com/photo.jpg",
+    ]);
+  });
+
+  test("extracts from img without src but with data-src", () => {
+    const html = `<img data-src="https://example.com/nosrc.jpg" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://example.com/nosrc.jpg",
+    ]);
+  });
+
+  test("extracts high-res lazy attributes", () => {
+    const html = `
+      <img data-hi-res-src="https://a.com/hires.jpg" />
+      <img data-highres="https://b.com/highres.jpg" />
+      <img data-full-src="https://c.com/full.jpg" />`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://a.com/hires.jpg",
+      "https://b.com/highres.jpg",
+      "https://c.com/full.jpg",
+    ]);
+  });
+
+  test("falls back to srcset when no src or data-* attrs", () => {
+    const html = `<img srcset="https://a.com/sm.jpg 300w, https://a.com/lg.jpg 800w" />`;
+    expect(extractExternalImageUrls(html)).toEqual(["https://a.com/lg.jpg"]);
+  });
+
+  test("falls back to data-srcset when no src or data-* attrs", () => {
+    const html = `<img data-srcset="https://a.com/sm.jpg 1x, https://a.com/lg.jpg 2x" />`;
+    expect(extractExternalImageUrls(html)).toEqual(["https://a.com/lg.jpg"]);
+  });
+
+  test("falls back to data-lazy-srcset", () => {
+    const html = `<img data-lazy-srcset="https://a.com/only.jpg 400w" />`;
+    expect(extractExternalImageUrls(html)).toEqual(["https://a.com/only.jpg"]);
+  });
+
+  test("prefers data-src over srcset", () => {
+    const html = `<img data-src="https://a.com/lazy.jpg" srcset="https://a.com/lg.jpg 800w" />`;
+    expect(extractExternalImageUrls(html)).toEqual(["https://a.com/lazy.jpg"]);
+  });
+
+  test("prefers src over srcset", () => {
+    const html = `<img src="https://a.com/src.jpg" srcset="https://a.com/lg.jpg 800w" />`;
+    expect(extractExternalImageUrls(html)).toEqual(["https://a.com/src.jpg"]);
+  });
+
+  test("extracts SVG image href", () => {
+    const html = `<svg><image href="https://a.com/diagram.jpg" width="400" height="300" /></svg>`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://a.com/diagram.jpg",
+    ]);
+  });
+
+  test("extracts SVG image xlink:href", () => {
+    const html = `<svg><image xlink:href="https://a.com/diagram.jpg" width="400" height="300" /></svg>`;
+    expect(extractExternalImageUrls(html)).toEqual([
+      "https://a.com/diagram.jpg",
+    ]);
+  });
+
+  test("skips SVG image with non-external href", () => {
+    const html = `<svg><image href="data:image/png;base64,abc" /></svg>`;
+    expect(extractExternalImageUrls(html)).toEqual([]);
+  });
+
+  test("deduplicates across img and SVG image", () => {
+    const html = `
+      <img src="https://a.com/photo.jpg" />
+      <svg><image href="https://a.com/photo.jpg" /></svg>`;
+    expect(extractExternalImageUrls(html)).toEqual(["https://a.com/photo.jpg"]);
+  });
+});
+
+describe("pickLargestSrcsetUrl", () => {
+  test("picks largest width descriptor", () => {
+    expect(
+      pickLargestSrcsetUrl(
+        "https://a.com/sm.jpg 300w, https://a.com/md.jpg 600w, https://a.com/lg.jpg 1200w",
+      ),
+    ).toBe("https://a.com/lg.jpg");
+  });
+
+  test("picks largest pixel density descriptor", () => {
+    expect(
+      pickLargestSrcsetUrl("https://a.com/1x.jpg 1x, https://a.com/2x.jpg 2x"),
+    ).toBe("https://a.com/2x.jpg");
+  });
+
+  test("handles single candidate", () => {
+    expect(pickLargestSrcsetUrl("https://a.com/only.jpg 400w")).toBe(
+      "https://a.com/only.jpg",
+    );
+  });
+
+  test("handles bare URL without descriptor", () => {
+    expect(pickLargestSrcsetUrl("https://a.com/bare.jpg")).toBe(
+      "https://a.com/bare.jpg",
+    );
+  });
+
+  test("skips non-external URLs", () => {
+    expect(
+      pickLargestSrcsetUrl("/local/img.jpg 300w, https://a.com/ext.jpg 600w"),
+    ).toBe("https://a.com/ext.jpg");
+  });
+
+  test("returns null for empty srcset", () => {
+    expect(pickLargestSrcsetUrl("")).toBeNull();
+  });
+
+  test("returns null when all URLs are non-external", () => {
+    expect(
+      pickLargestSrcsetUrl("/a.jpg 300w, data:image/gif;base64,R0l 600w"),
+    ).toBeNull();
+  });
 });
 
 describe("detectImageType", () => {
@@ -336,6 +500,97 @@ describe("rewriteImageUrls", () => {
     const html = `<img src="https://example.com/photo.jpg" />`;
     const result = rewriteImageUrls(html, new Map());
     expect(result).toContain("https://example.com/photo.jpg");
+  });
+
+  test("strips srcset from img elements", () => {
+    const html = `<img src="https://example.com/photo.jpg" srcset="https://example.com/photo-2x.jpg 2x" />`;
+    const map = new Map([["https://example.com/photo.jpg", "asset-1"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).toContain('src="/api/assets/asset-1"');
+    expect(result).not.toContain("srcset");
+  });
+
+  test("strips srcset even when src is not cached", () => {
+    const html = `<img src="https://example.com/photo.jpg" srcset="https://example.com/photo-2x.jpg 2x" />`;
+    const result = rewriteImageUrls(html, new Map());
+    expect(result).not.toContain("srcset");
+  });
+
+  test("rewrites data-src and removes the attribute", () => {
+    const html = `<img data-src="https://example.com/lazy.jpg" src="data:image/gif;base64,placeholder" />`;
+    const map = new Map([["https://example.com/lazy.jpg", "asset-1"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).toContain('src="/api/assets/asset-1"');
+    expect(result).not.toContain("data-src");
+  });
+
+  test("removes source elements inside picture", () => {
+    const html = `
+      <picture>
+        <source srcset="https://example.com/photo.webp" type="image/webp" />
+        <img src="https://example.com/photo.jpg" />
+      </picture>`;
+    const map = new Map([["https://example.com/photo.jpg", "asset-1"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).not.toContain("<source");
+    expect(result).toContain('src="/api/assets/asset-1"');
+  });
+
+  test("cleans up all lazy-loading attributes", () => {
+    const html = `<img data-src="https://a.com/1.jpg" data-lazy-src="https://a.com/2.jpg" data-original="https://a.com/3.jpg" data-actualsrc="https://a.com/4.jpg" data-srv="https://a.com/5.jpg" data-lazy="https://a.com/6.jpg" data-lazyload="https://a.com/7.jpg" data-img-src="https://a.com/8.jpg" data-url="https://a.com/9.jpg" data-hi-res-src="https://a.com/10.jpg" data-highres="https://a.com/11.jpg" data-full-src="https://a.com/12.jpg" src="https://a.com/1.jpg" />`;
+    const map = new Map([["https://a.com/1.jpg", "asset-1"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).not.toContain("data-src");
+    expect(result).not.toContain("data-lazy-src");
+    expect(result).not.toContain("data-original");
+    expect(result).not.toContain("data-actualsrc");
+    expect(result).not.toContain("data-srv");
+    expect(result).not.toContain("data-lazy");
+    expect(result).not.toContain("data-lazyload");
+    expect(result).not.toContain("data-img-src");
+    expect(result).not.toContain("data-url");
+    expect(result).not.toContain("data-hi-res-src");
+    expect(result).not.toContain("data-highres");
+    expect(result).not.toContain("data-full-src");
+  });
+
+  test("rewrites from srcset when no src or data-* attrs", () => {
+    const html = `<img srcset="https://a.com/sm.jpg 300w, https://a.com/lg.jpg 800w" />`;
+    const map = new Map([["https://a.com/lg.jpg", "asset-lg"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).toContain('src="/api/assets/asset-lg"');
+    expect(result).not.toContain("srcset");
+  });
+
+  test("rewrites from data-srcset", () => {
+    const html = `<img data-srcset="https://a.com/img.jpg 1x, https://a.com/img2x.jpg 2x" />`;
+    const map = new Map([["https://a.com/img2x.jpg", "asset-2x"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).toContain('src="/api/assets/asset-2x"');
+    expect(result).not.toContain("data-srcset");
+  });
+
+  test("strips data-srcset and data-lazy-srcset even when not cached", () => {
+    const html = `<img src="https://a.com/photo.jpg" data-srcset="https://a.com/lg.jpg 800w" data-lazy-srcset="https://a.com/xl.jpg 1200w" />`;
+    const map = new Map([["https://a.com/photo.jpg", "asset-1"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).toContain('src="/api/assets/asset-1"');
+    expect(result).not.toContain("data-srcset");
+    expect(result).not.toContain("data-lazy-srcset");
+  });
+
+  test("rewrites SVG image href", () => {
+    const html = `<svg><image href="https://a.com/diagram.jpg" width="400" height="300" /></svg>`;
+    const map = new Map([["https://a.com/diagram.jpg", "asset-svg"]]);
+    const result = rewriteImageUrls(html, map);
+    expect(result).toContain('href="/api/assets/asset-svg"');
+    expect(result).not.toContain("https://a.com/diagram.jpg");
+  });
+
+  test("leaves SVG image unchanged when not in cache map", () => {
+    const html = `<svg><image href="https://a.com/diagram.jpg" width="400" /></svg>`;
+    const result = rewriteImageUrls(html, new Map());
+    expect(result).toContain("https://a.com/diagram.jpg");
   });
 });
 
@@ -619,11 +874,12 @@ describe("downloadImage", () => {
       "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
+      { maxRetries: 2 },
     );
     expect(result).toBeNull();
-    // 1 initial attempt + 3 retries = 4 total fetch calls
-    expect(mockFetchWithProxy).toHaveBeenCalledTimes(4);
-  }, 15_000);
+    // 1 initial attempt + 2 retries = 3 total fetch calls
+    expect(mockFetchWithProxy).toHaveBeenCalledTimes(3);
+  });
 
   test("retries on 429 and succeeds", async () => {
     mockValidateUrl.mockResolvedValue({ ok: true });
@@ -637,11 +893,12 @@ describe("downloadImage", () => {
       "test-asset-id",
       "job-1",
       10 * 1024 * 1024,
+      { maxRetries: 3 },
     );
     expect(result).not.toBeNull();
     expect(result!.contentType).toBe("image/png");
     expect(mockFetchWithProxy).toHaveBeenCalledTimes(2);
-  }, 10_000);
+  });
 
   test("does not retry on non-retryable status like 404", async () => {
     mockValidateUrl.mockResolvedValue({ ok: true });
