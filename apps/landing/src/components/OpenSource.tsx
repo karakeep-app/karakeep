@@ -17,7 +17,7 @@ export default function OpenSource() {
           keep full control of your data, and contribute to the project.
         </p>
 
-        <div className="mt-8 flex items-center justify-center gap-4">
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
             href={GITHUB_LINK}
             target="_blank"
