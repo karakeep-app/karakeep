@@ -323,6 +323,7 @@ export class Bookmark extends BareBookmark {
         crawlStatus: bookmark.link.crawlStatus ?? "pending",
         crawlStatusCode: bookmark.link.crawlStatusCode,
         crawledAt: bookmark.link.crawledAt,
+        contentImageStatus: bookmark.link.contentImageStatus,
         hasHtmlContent: !!bookmark.link.htmlContent,
         hasContentAsset: !!bookmark.link.contentAssetId,
         htmlContentPreview,

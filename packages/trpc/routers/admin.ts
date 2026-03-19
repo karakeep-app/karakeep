@@ -670,6 +670,9 @@ export const adminAppRouter = router({
             crawlStatus: z.enum(["pending", "failure", "success"]),
             crawlStatusCode: z.number().nullable(),
             crawledAt: z.date().nullable(),
+            contentImageStatus: z
+              .enum(["pending", "failure", "success"])
+              .nullable(),
             hasHtmlContent: z.boolean(),
             hasContentAsset: z.boolean(),
             htmlContentPreview: z.string().nullable(),

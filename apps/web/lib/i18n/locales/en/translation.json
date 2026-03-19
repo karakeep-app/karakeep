@@ -648,6 +648,7 @@
       "tagging_status": "Tagging Status",
       "summarization_status": "Summarization Status",
       "crawl_status": "Crawl Status",
+      "content_image_status": "Image Crawl Status",
       "crawl_status_code": "HTTP Status Code",
       "crawled_at": "Crawled At",
       "recrawl": "Re-crawl",

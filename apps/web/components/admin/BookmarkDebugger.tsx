@@ -402,6 +402,17 @@ export default function BookmarkDebugger() {
                           </span>
                         </div>
                       )}
+                      {debugInfo.linkInfo.contentImageStatus && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            {t("admin.admin_tools.content_image_status")}
+                          </span>
+                          {getStatusBadge(
+                            debugInfo.linkInfo.contentImageStatus,
+                          )}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
