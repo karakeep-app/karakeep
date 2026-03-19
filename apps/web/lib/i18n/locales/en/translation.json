@@ -661,6 +661,8 @@
       "reindex_queued": "Re-index job has been queued",
       "retag_queued": "Re-tag job has been queued",
       "resummarize_queued": "Re-summarize job has been queued",
+      "recache_content_images": "Re-cache images",
+      "recache_content_images_queued": "Content image re-cache job has been queued",
       "view": "View",
       "fetch_error": "Error fetching bookmark"
     }

@@ -823,4 +823,40 @@ export const adminAppRouter = router({
         },
       );
     }),
+  adminRecacheContentImagesBookmark: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      if (bookmark.type !== BookmarkTypes.LINK) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only link bookmarks can have content images recached",
+        });
+      }
+
+      await ctx.db
+        .update(bookmarkLinks)
+        .set({ contentImageStatus: "pending" })
+        .where(eq(bookmarkLinks.id, input.bookmarkId));
+
+      await ContentImageQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
+    }),
 });
