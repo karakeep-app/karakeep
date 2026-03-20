@@ -44,6 +44,14 @@ export interface ImportOptions {
   parsers?: Partial<
     Record<ImportSource, (textContent: string) => ParsedImportFile>
   >;
+  /**
+   * When true, lists whose parent is the root of the export (i.e. they had no
+   * parent in the source) are recreated at the top level of the user's list
+   * space rather than being nested under the import-session root list.  This
+   * produces a faithful state-restoration when round-tripping a karakeep
+   * export back into a (possibly different) karakeep instance.
+   */
+  restoreTopLevelLists?: boolean;
 }
 
 export interface ImportResult {
@@ -68,7 +76,7 @@ export async function importBookmarksFromFile(
   },
   options: ImportOptions = {},
 ): Promise<ImportResult> {
-  const { parsers } = options;
+  const { parsers, restoreTopLevelLists } = options;
 
   const textContent = await file.text();
   const parsedImport = parsers?.[source]
@@ -111,7 +119,9 @@ export async function importBookmarksFromFile(
 
         const parentId = list.parentExternalId
           ? externalListIdToCreatedListId[list.parentExternalId]
-          : rootList.id;
+          : restoreTopLevelLists
+            ? undefined
+            : rootList.id;
 
         const createdList = await deps.createList({
           name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
@@ -128,12 +138,12 @@ export async function importBookmarksFromFile(
       }
 
       // Break cycles or unresolved parent references by attaching remaining
-      // lists to the import root.
+      // lists to the import root (or top level when restoring).
       if (!createdAny) {
         for (const [externalId, list] of unresolvedLists) {
           const createdList = await deps.createList({
             name: list.name.substring(0, MAX_LIST_NAME_LENGTH),
-            parentId: rootList.id,
+            ...(restoreTopLevelLists ? {} : { parentId: rootList.id }),
             icon: list.icon ?? "📁",
             description: list.description,
             ...(list.type === "smart" && list.query

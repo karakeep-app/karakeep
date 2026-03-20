@@ -578,6 +578,112 @@ describe("importBookmarksFromFile", () => {
     });
   });
 
+  it("restores top-level lists without a parent when restoreTopLevelLists is true", async () => {
+    const parsers = {
+      karakeep: vi.fn().mockReturnValue({
+        bookmarks: [
+          {
+            title: "Bookmark 1",
+            content: { type: "link", url: "https://example.com/1" },
+            tags: [],
+            addDate: 100,
+            paths: [],
+            listExternalIds: ["child-id"],
+          },
+          {
+            title: "Unassigned Bookmark",
+            content: { type: "link", url: "https://example.com/unassigned" },
+            tags: [],
+            addDate: 200,
+            paths: [],
+          },
+        ],
+        lists: [
+          {
+            externalId: "root-list-id",
+            name: "Work",
+            icon: "💼",
+            parentExternalId: null,
+            type: "manual",
+          },
+          {
+            externalId: "child-id",
+            name: "Projects",
+            icon: "📁",
+            parentExternalId: "root-list-id",
+            type: "manual",
+          },
+        ],
+      }),
+    };
+
+    let idCounter = 0;
+    const createdLists: {
+      id: string;
+      name: string;
+      parentId?: string;
+      icon: string;
+    }[] = [];
+    const createList = vi.fn(
+      async (input: { name: string; icon: string; parentId?: string }) => {
+        const id = `list-${idCounter++}`;
+        createdLists.push({ id, name: input.name, parentId: input.parentId, icon: input.icon });
+        return { id };
+      },
+    );
+
+    const stagedBookmarks: StagedBookmark[] = [];
+    const stageImportedBookmarks = vi.fn(
+      async (input: {
+        importSessionId: string;
+        bookmarks: StagedBookmark[];
+      }) => {
+        stagedBookmarks.push(...input.bookmarks);
+      },
+    );
+
+    await importBookmarksFromFile(
+      {
+        file: fakeFile,
+        source: "karakeep",
+        rootListName: "Import Root",
+        deps: {
+          createList,
+          stageImportedBookmarks,
+          finalizeImportStaging: vi.fn(),
+          createImportSession: vi.fn(async () => ({ id: "session-1" })),
+        },
+      },
+      { parsers, restoreTopLevelLists: true },
+    );
+
+    // Import root list is still created for tracking / unassigned bookmarks
+    const importRoot = createdLists.find((l) => l.name === "Import Root");
+    expect(importRoot).toBeDefined();
+
+    // "Work" is a top-level exported list → must be created WITHOUT a parent
+    const workList = createdLists.find((l) => l.name === "Work");
+    expect(workList).toBeDefined();
+    expect(workList!.parentId).toBeUndefined();
+
+    // "Projects" is a child of "Work" → must be created under the new "Work" id
+    const projectsList = createdLists.find((l) => l.name === "Projects");
+    expect(projectsList).toBeDefined();
+    expect(projectsList!.parentId).toBe(workList!.id);
+
+    // Bookmark with listExternalIds is placed in "Projects" (not under import root)
+    const assigned = stagedBookmarks.find(
+      (b) => b.url === "https://example.com/1",
+    );
+    expect(assigned!.listIds).toEqual([projectsList!.id]);
+
+    // Bookmark with no list assignment falls back to the import root
+    const unassigned = stagedBookmarks.find(
+      (b) => b.url === "https://example.com/unassigned",
+    );
+    expect(unassigned!.listIds).toEqual([importRoot!.id]);
+  });
+
   it("handles HTML bookmarks with empty folder names", async () => {
     const htmlContent = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">

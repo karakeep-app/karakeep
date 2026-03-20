@@ -93,6 +93,9 @@ export function useBookmarkImport() {
           onProgress: (done, total) => setImportProgress({ done, total }),
         },
         {
+          // Karakeep imports restore the original list hierarchy at the top
+          // level so that the imported state matches the exported state.
+          restoreTopLevelLists: source === "karakeep",
           // Use a custom parser to avoid re-parsing the file
           parsers: {
             [source]: () => parsedImport,
