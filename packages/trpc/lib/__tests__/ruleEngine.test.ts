@@ -15,7 +15,7 @@ import {
   tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
-import { LinkCrawlerQueue } from "@karakeep/shared-server";
+import { LinkCrawlerQueue, RuleEngineQueue } from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
@@ -28,13 +28,29 @@ import { AuthedContext } from "../..";
 import { TestDB } from "../../testUtils";
 import { RuleEngine } from "../ruleEngine";
 
+// Module-level ref so the @karakeep/db mock can delegate to the current in-memory DB
+let currentDb: TestDB;
+
 // Mock the queue
 vi.mock("@karakeep/shared-server", () => ({
   LinkCrawlerQueue: {
     enqueue: vi.fn(),
   },
-  triggerRuleEngineOnEvent: vi.fn(),
+  RuleEngineQueue: {
+    enqueue: vi.fn(),
+  },
 }));
+
+// Mock the global db so that RuleEngine.triggerOnEvent (which uses globalDb) hits the test DB
+vi.mock("@karakeep/db", async (importOriginal) => {
+  const mod = (await importOriginal()) as typeof import("@karakeep/db");
+  return {
+    ...mod,
+    get db() {
+      return currentDb;
+    },
+  };
+});
 
 describe("RuleEngine", () => {
   let db: TestDB;
@@ -77,6 +93,7 @@ describe("RuleEngine", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     db = getInMemoryDB(/* runMigrations */ true);
+    currentDb = db;
 
     // Seed User
     [userId] = (
@@ -729,6 +746,278 @@ describe("RuleEngine", () => {
       const event: RuleEngineEvent = { type: "tagAdded", tagId: "some-tag" }; // Event that matches no rules
       const results = await engine.onEvent(event);
       expect(results).toEqual([]);
+    });
+  });
+
+  describe("matchesAnyRule", () => {
+    it("should return false when no rules exist", async () => {
+      const result = await RuleEngine.matchesAnyRule(
+        userId,
+        [{ type: "bookmarkAdded" }],
+        db,
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should return false for empty events array", async () => {
+      const result = await RuleEngine.matchesAnyRule(userId, [], db);
+      expect(result).toBe(false);
+    });
+
+    it("should return true when an enabled rule matches the event", async () => {
+      await seedRule({
+        userId,
+        name: "Match Rule",
+        description: "",
+        enabled: true,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      const result = await RuleEngine.matchesAnyRule(
+        userId,
+        [{ type: "bookmarkAdded" }],
+        db,
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should return false when rule exists but event type does not match", async () => {
+      await seedRule({
+        userId,
+        name: "Favourited Rule",
+        description: "",
+        enabled: true,
+        event: { type: "favourited" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "archiveBookmark" }],
+      });
+
+      const result = await RuleEngine.matchesAnyRule(
+        userId,
+        [{ type: "bookmarkAdded" }],
+        db,
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should return false when rule is disabled", async () => {
+      await seedRule({
+        userId,
+        name: "Disabled Rule",
+        description: "",
+        enabled: false,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      const result = await RuleEngine.matchesAnyRule(
+        userId,
+        [{ type: "bookmarkAdded" }],
+        db,
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should match tagAdded event with correct tagId", async () => {
+      await seedRule({
+        userId,
+        name: "Tag Added Rule",
+        description: "",
+        enabled: true,
+        event: { type: "tagAdded", tagId: tagId1 },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      expect(
+        await RuleEngine.matchesAnyRule(
+          userId,
+          [{ type: "tagAdded", tagId: tagId1 }],
+          db,
+        ),
+      ).toBe(true);
+
+      expect(
+        await RuleEngine.matchesAnyRule(
+          userId,
+          [{ type: "tagAdded", tagId: tagId2 }],
+          db,
+        ),
+      ).toBe(false);
+    });
+
+    it("should match addedToList event with correct listId", async () => {
+      await seedRule({
+        userId,
+        name: "Added to List Rule",
+        description: "",
+        enabled: true,
+        event: { type: "addedToList", listId: listId1 },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      expect(
+        await RuleEngine.matchesAnyRule(
+          userId,
+          [{ type: "addedToList", listId: listId1 }],
+          db,
+        ),
+      ).toBe(true);
+
+      expect(
+        await RuleEngine.matchesAnyRule(
+          userId,
+          [{ type: "addedToList", listId: "other-list" }],
+          db,
+        ),
+      ).toBe(false);
+    });
+
+    it("should match when any of multiple events matches a rule", async () => {
+      await seedRule({
+        userId,
+        name: "Favourited Rule",
+        description: "",
+        enabled: true,
+        event: { type: "favourited" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "archiveBookmark" }],
+      });
+
+      const result = await RuleEngine.matchesAnyRule(
+        userId,
+        [{ type: "bookmarkAdded" }, { type: "favourited" }],
+        db,
+      );
+      expect(result).toBe(true);
+    });
+
+    it("should not match rules from a different user", async () => {
+      const [otherUserId] = (
+        await db
+          .insert(users)
+          .values({ name: "Other User", email: "other@test.com" })
+          .returning({ id: users.id })
+      ).map((u) => u.id);
+
+      await seedRule({
+        userId: otherUserId,
+        name: "Other User Rule",
+        description: "",
+        enabled: true,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      const result = await RuleEngine.matchesAnyRule(
+        userId,
+        [{ type: "bookmarkAdded" }],
+        db,
+      );
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("triggerOnEvent", () => {
+    it("should not enqueue when no rules match", async () => {
+      await RuleEngine.triggerOnEvent(userId, bookmarkId, [
+        { type: "bookmarkAdded" },
+      ]);
+
+      expect(RuleEngineQueue.enqueue).not.toHaveBeenCalled();
+    });
+
+    it("should enqueue when a matching rule exists", async () => {
+      await seedRule({
+        userId,
+        name: "Match Rule",
+        description: "",
+        enabled: true,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      await RuleEngine.triggerOnEvent(userId, bookmarkId, [
+        { type: "bookmarkAdded" },
+      ]);
+
+      expect(RuleEngineQueue.enqueue).toHaveBeenCalledWith(
+        {
+          bookmarkId,
+          events: [{ type: "bookmarkAdded" }],
+        },
+        undefined,
+      );
+    });
+
+    it("should not enqueue when rule exists but is disabled", async () => {
+      await seedRule({
+        userId,
+        name: "Disabled Rule",
+        description: "",
+        enabled: false,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      await RuleEngine.triggerOnEvent(userId, bookmarkId, [
+        { type: "bookmarkAdded" },
+      ]);
+
+      expect(RuleEngineQueue.enqueue).not.toHaveBeenCalled();
+    });
+
+    it("should not enqueue when rule event does not match", async () => {
+      await seedRule({
+        userId,
+        name: "Favourited Rule",
+        description: "",
+        enabled: true,
+        event: { type: "favourited" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "archiveBookmark" }],
+      });
+
+      await RuleEngine.triggerOnEvent(userId, bookmarkId, [
+        { type: "bookmarkAdded" },
+      ]);
+
+      expect(RuleEngineQueue.enqueue).not.toHaveBeenCalled();
+    });
+
+    it("should pass enqueue options through", async () => {
+      await seedRule({
+        userId,
+        name: "Match Rule",
+        description: "",
+        enabled: true,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      const opts = { groupId: userId, priority: 10 };
+      await RuleEngine.triggerOnEvent(
+        userId,
+        bookmarkId,
+        [{ type: "bookmarkAdded" }],
+        opts,
+      );
+
+      expect(RuleEngineQueue.enqueue).toHaveBeenCalledWith(
+        {
+          bookmarkId,
+          events: [{ type: "bookmarkAdded" }],
+        },
+        opts,
+      );
     });
   });
 });

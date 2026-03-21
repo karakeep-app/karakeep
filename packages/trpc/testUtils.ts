@@ -95,7 +95,9 @@ export function defaultBeforeEach(seedDB = true) {
         SearchIndexingQueue: {
           enqueue: vi.fn(),
         },
-        triggerRuleEngineOnEvent: vi.fn(),
+        RuleEngineQueue: {
+          enqueue: vi.fn(),
+        },
         triggerSearchReindex: vi.fn(),
       };
     });

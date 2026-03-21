@@ -1,16 +1,13 @@
 import deepEql from "deep-equal";
 import { and, eq } from "drizzle-orm";
 
-import { db as globalDb } from "@karakeep/db";
+import { db as globalDb, DB } from "@karakeep/db";
 import {
   bookmarks,
   ruleEngineRulesTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import {
-  LinkCrawlerQueue,
-  triggerRuleEngineOnEvent,
-} from "@karakeep/shared-server";
+import { LinkCrawlerQueue, RuleEngineQueue } from "@karakeep/shared-server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
@@ -89,12 +86,13 @@ export class RuleEngine {
   static async matchesAnyRule(
     userId: string,
     events: RuleEngineEvent[],
+    db: DB = globalDb,
   ): Promise<boolean> {
     if (events.length === 0) {
       return false;
     }
 
-    const enabledRules = await globalDb.query.ruleEngineRulesTable.findMany({
+    const enabledRules = await db.query.ruleEngineRulesTable.findMany({
       where: and(
         eq(ruleEngineRulesTable.userId, userId),
         eq(ruleEngineRulesTable.enabled, true),
@@ -131,7 +129,7 @@ export class RuleEngine {
       return;
     }
 
-    await triggerRuleEngineOnEvent(bookmarkId, events, opts);
+    await RuleEngineQueue.enqueue({ bookmarkId, events }, opts);
   }
 
   static async forBookmark(

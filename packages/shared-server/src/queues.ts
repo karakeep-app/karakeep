@@ -273,19 +273,6 @@ export const RuleEngineQueue = createDeferredQueue<ZRuleEngineRequest>(
   },
 );
 
-export async function triggerRuleEngineOnEvent(
-  bookmarkId: string,
-  events: z.infer<typeof zRuleEngineEventSchema>[],
-  opts?: EnqueueOptions,
-) {
-  await RuleEngineQueue.enqueue(
-    {
-      events,
-      bookmarkId,
-    },
-    opts,
-  );
-}
 
 // Backup worker
 export const zBackupRequestSchema = z.object({
