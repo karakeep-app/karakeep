@@ -1,14 +1,24 @@
 import deepEql from "deep-equal";
 import { and, eq } from "drizzle-orm";
 
-import { bookmarks, tagsOnBookmarks } from "@karakeep/db/schema";
-import { LinkCrawlerQueue } from "@karakeep/shared-server";
+import { db as globalDb } from "@karakeep/db";
+import {
+  bookmarks,
+  ruleEngineRulesTable,
+  tagsOnBookmarks,
+} from "@karakeep/db/schema";
+import {
+  LinkCrawlerQueue,
+  triggerRuleEngineOnEvent,
+} from "@karakeep/shared-server";
+import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
   RuleEngineCondition,
   RuleEngineEvent,
   RuleEngineRule,
+  zRuleEngineEventSchema,
 } from "@karakeep/shared/types/rules";
 
 import { AuthedContext } from "..";
@@ -70,6 +80,58 @@ export class RuleEngine {
         : "") ??
       ""
     );
+  }
+
+  /**
+   * Checks whether any enabled rule for the given user matches any of the events.
+   * Only fetches the minimal data needed (rule events, no actions or bookmark data).
+   */
+  static async matchesAnyRule(
+    userId: string,
+    events: RuleEngineEvent[],
+  ): Promise<boolean> {
+    if (events.length === 0) {
+      return false;
+    }
+
+    const enabledRules = await globalDb.query.ruleEngineRulesTable.findMany({
+      where: and(
+        eq(ruleEngineRulesTable.userId, userId),
+        eq(ruleEngineRulesTable.enabled, true),
+      ),
+      columns: {
+        event: true,
+      },
+    });
+
+    return enabledRules.some((rule) => {
+      const ruleEvent = zRuleEngineEventSchema.safeParse(
+        JSON.parse(rule.event),
+      );
+      if (!ruleEvent.success) {
+        return false;
+      }
+      return events.some((event) =>
+        deepEql(ruleEvent.data, event, { strict: true }),
+      );
+    });
+  }
+
+  /**
+   * Checks whether any enabled rule for the given user matches any of the events,
+   * and only then enqueues the job to the rule engine queue.
+   */
+  static async triggerOnEvent(
+    userId: string,
+    bookmarkId: string,
+    events: RuleEngineEvent[],
+    opts?: EnqueueOptions,
+  ): Promise<void> {
+    if (!(await this.matchesAnyRule(userId, events))) {
+      return;
+    }
+
+    await triggerRuleEngineOnEvent(bookmarkId, events, opts);
   }
 
   static async forBookmark(

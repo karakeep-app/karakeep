@@ -24,7 +24,6 @@ import {
   OpenAIQueue,
   QueuePriority,
   QuotaService,
-  triggerRuleEngineOnEvent,
   triggerSearchReindex,
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
@@ -52,6 +51,7 @@ import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
@@ -363,7 +363,8 @@ export const bookmarksAppRouter = router({
       }
 
       await Promise.all([
-        triggerRuleEngineOnEvent(
+        RuleEngine.triggerOnEvent(
+          ctx.user.id,
           bookmark.id,
           [
             {
@@ -524,7 +525,8 @@ export const bookmarksAppRouter = router({
       ).asZBookmark();
 
       if (input.favourited === true || input.archived === true) {
-        await triggerRuleEngineOnEvent(
+        await RuleEngine.triggerOnEvent(
+          ctx.user.id,
           input.bookmarkId,
           [
             ...(input.favourited === true ? ["favourited" as const] : []),
@@ -1029,16 +1031,20 @@ export const bookmarksAppRouter = router({
 
       if (res.numChanges > 0) {
         await Promise.allSettled([
-          triggerRuleEngineOnEvent(input.bookmarkId, [
-            ...res.detached.map((t) => ({
-              type: "tagRemoved" as const,
-              tagId: t,
-            })),
-            ...res.attached.map((t) => ({
-              type: "tagAdded" as const,
-              tagId: t,
-            })),
-          ]),
+          RuleEngine.triggerOnEvent(
+            ctx.user.id,
+            input.bookmarkId,
+            [
+              ...res.detached.map((t) => ({
+                type: "tagRemoved" as const,
+                tagId: t,
+              })),
+              ...res.attached.map((t) => ({
+                type: "tagAdded" as const,
+                tagId: t,
+              })),
+            ],
+          ),
           triggerSearchReindex(input.bookmarkId, {
             groupId: ctx.user.id,
           }),

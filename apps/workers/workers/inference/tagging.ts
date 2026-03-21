@@ -19,7 +19,6 @@ import {
 } from "@karakeep/db/schema";
 import {
   setSpanAttributes,
-  triggerRuleEngineOnEvent,
   triggerSearchReindex,
 } from "@karakeep/shared-server";
 import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
@@ -28,6 +27,7 @@ import logger from "@karakeep/shared/logger";
 import { buildImagePrompt } from "@karakeep/shared/prompts";
 import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
+import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
@@ -479,16 +479,20 @@ async function connectTags(
     return { detachedTags, attachedTags };
   });
 
-  await triggerRuleEngineOnEvent(bookmarkId, [
-    ...res.detachedTags.map((t) => ({
-      type: "tagRemoved" as const,
-      tagId: t.tagId,
-    })),
-    ...res.attachedTags.map((t) => ({
-      type: "tagAdded" as const,
-      tagId: t.tagId,
-    })),
-  ]);
+  await RuleEngine.triggerOnEvent(
+    userId,
+    bookmarkId,
+    [
+      ...res.detachedTags.map((t) => ({
+        type: "tagRemoved" as const,
+        tagId: t.tagId,
+      })),
+      ...res.attachedTags.map((t) => ({
+        type: "tagAdded" as const,
+        tagId: t.tagId,
+      })),
+    ],
+  );
 }
 
 async function fetchBookmark(linkId: string) {

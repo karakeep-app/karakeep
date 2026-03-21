@@ -11,7 +11,6 @@ import {
   listCollaborators,
   users,
 } from "@karakeep/db/schema";
-import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
@@ -24,6 +23,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
+import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { ListInvitation } from "./listInvitations";
@@ -940,12 +940,16 @@ export class ManualList extends List {
         bookmarkId,
         listMembershipId: this.collaboratorEntry?.membershipId,
       });
-      await triggerRuleEngineOnEvent(bookmarkId, [
-        {
-          type: "addedToList",
-          listId: this.list.id,
-        },
-      ]);
+      await RuleEngine.triggerOnEvent(
+        this.ctx.user.id,
+        bookmarkId,
+        [
+          {
+            type: "addedToList",
+            listId: this.list.id,
+          },
+        ],
+      );
     } catch (e) {
       if (e instanceof SqliteError) {
         if (e.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
@@ -978,12 +982,16 @@ export class ManualList extends List {
         message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
       });
     }
-    await triggerRuleEngineOnEvent(bookmarkId, [
-      {
-        type: "removedFromList",
-        listId: this.list.id,
-      },
-    ]);
+    await RuleEngine.triggerOnEvent(
+      this.ctx.user.id,
+      bookmarkId,
+      [
+        {
+          type: "removedFromList",
+          listId: this.list.id,
+        },
+      ],
+    );
   }
 
   async update(input: z.infer<typeof zEditBookmarkListSchemaWithValidation>) {
