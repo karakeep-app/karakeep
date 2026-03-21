@@ -17,6 +17,7 @@ export type ImportSource =
   | "linkwarden"
   | "tab-session-manager"
   | "mymind"
+  | "readwise-reader"
   | "instapaper";
 
 export interface ParsedBookmark {
@@ -493,6 +494,69 @@ function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
+function parseReadwiseReaderBookmarkFile(
+  textContent: string,
+): ParsedBookmark[] {
+  const zReadwiseReaderRecordScheme = z.object({
+    Title: z.string(),
+    Url: z.string(),
+    Id: z.string(),
+    DocumentTags: z.string(),
+    SavedDate: z.string(),
+    ReadingProgress: z.string(),
+    Location: z.string(),
+    Seen: z.string(),
+  });
+
+  const zReadwiseReaderExportScheme = z.array(zReadwiseReaderRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zReadwiseReaderExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid Readwise Reader bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  //Feed (RSS) articles are included automatically, so filter them.
+  const feedFilteredArticles = parsed.data.filter(
+    (record) => record.Location !== "feed",
+  );
+
+  return feedFilteredArticles.map((record) => {
+    let content: ParsedBookmark["content"];
+    if (record.Url && record.Url.trim().length > 0) {
+      content = { type: BookmarkTypes.LINK as const, url: record.Url.trim() };
+    }
+
+    const addDate = parseInt(record.SavedDate);
+
+    let tags: string[] = [];
+    try {
+      const parsedTags = JSON.parse(record.DocumentTags);
+      if (Array.isArray(parsedTags)) {
+        tags = parsedTags.map((tag) => tag.toString().trim());
+      }
+    } catch {
+      tags = [];
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths: [], // TODO
+      archived: record.Location === "archive",
+    };
+  });
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -579,6 +643,9 @@ export function parseImportFile(
       break;
     case "instapaper":
       result = parseInstapaperBookmarkFile(textContent);
+      break;
+    case "readwise-reader":
+      result = parseReadwiseReaderBookmarkFile(textContent);
       break;
   }
   return { bookmarks: deduplicateBookmarks(result), lists: [] };

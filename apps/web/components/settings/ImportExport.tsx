@@ -309,6 +309,25 @@ export function ImportExportRow() {
             <p>Import</p>
           </FilePickerButton>
         </ImportCard>
+        <ImportCard
+          text="Readwise Reader"
+          description={t(
+            "settings.import.import_bookmarks_from_readwise_reader_export",
+          )}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".csv"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "readwise-reader" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
         <ExportButton />
       </div>
       {importProgress && (
