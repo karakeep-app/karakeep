@@ -1,8 +1,6 @@
 import { experimental_trpcMiddleware } from "@trpc/server";
-import { and, eq, gt } from "drizzle-orm";
 import { z } from "zod";
 
-import { importStagingBookmarks } from "@karakeep/db/schema";
 import {
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
@@ -14,20 +12,22 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
-import { ImportSession } from "../models/importSessions";
+import { ImportSessionsService } from "../models/importSessions.service";
 
 const ensureImportSessionAccess = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: { importSessionId: string };
 }>().create(async (opts) => {
-  const importSession = await ImportSession.fromId(
-    opts.ctx,
+  const service = new ImportSessionsService(opts.ctx.db);
+  const session = await service.get(
     opts.input.importSessionId,
+    opts.ctx.user.id,
   );
+
   return opts.next({
     ctx: {
       ...opts.ctx,
-      importSession,
+      importSession: session,
     },
   });
 });
@@ -37,23 +37,25 @@ export const importSessionsRouter = router({
     .input(zCreateImportSessionRequestSchema)
     .output(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const session = await ImportSession.create(ctx, input);
-      return { id: session.session.id };
+      const service = new ImportSessionsService(ctx.db);
+      const session = await service.create(ctx.user.id, input);
+      return { id: session.id };
     }),
 
   getImportSessionStats: authedProcedure
     .input(zGetImportSessionStatsRequestSchema)
     .output(zImportSessionWithStatsSchema)
     .query(async ({ input, ctx }) => {
-      const session = await ImportSession.fromId(ctx, input.importSessionId);
-      return await session.getWithStats();
+      const service = new ImportSessionsService(ctx.db);
+      return await service.getWithStats(input.importSessionId, ctx.user.id);
     }),
 
   listImportSessions: authedProcedure
     .input(zListImportSessionsRequestSchema)
     .output(zListImportSessionsResponseSchema)
     .query(async ({ ctx }) => {
-      const sessions = await ImportSession.getAllWithStats(ctx);
+      const service = new ImportSessionsService(ctx.db);
+      const sessions = await service.listWithStats(ctx.user.id);
       return { sessions };
     }),
 
@@ -61,8 +63,8 @@ export const importSessionsRouter = router({
     .input(zDeleteImportSessionRequestSchema)
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      const session = await ImportSession.fromId(ctx, input.importSessionId);
-      await session.delete();
+      const service = new ImportSessionsService(ctx.db);
+      await service.delete(input.importSessionId, ctx.user.id);
       return { success: true };
     }),
 
@@ -88,28 +90,32 @@ export const importSessionsRouter = router({
     )
     .use(ensureImportSessionAccess)
     .mutation(async ({ input, ctx }) => {
-      await ctx.importSession.stageBookmarks(input.bookmarks);
+      const service = new ImportSessionsService(ctx.db);
+      await service.stageBookmarks(ctx.importSession, input.bookmarks);
     }),
 
   finalizeImportStaging: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
     .use(ensureImportSessionAccess)
     .mutation(async ({ ctx }) => {
-      await ctx.importSession.finalize();
+      const service = new ImportSessionsService(ctx.db);
+      await service.finalize(ctx.importSession);
     }),
 
   pauseImportSession: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
     .use(ensureImportSessionAccess)
     .mutation(async ({ ctx }) => {
-      await ctx.importSession.pause();
+      const service = new ImportSessionsService(ctx.db);
+      await service.pause(ctx.importSession);
     }),
 
   resumeImportSession: authedProcedure
     .input(z.object({ importSessionId: z.string() }))
     .use(ensureImportSessionAccess)
     .mutation(async ({ ctx }) => {
-      await ctx.importSession.resume();
+      const service = new ImportSessionsService(ctx.db);
+      await service.resume(ctx.importSession);
     }),
 
   getImportSessionResults: authedProcedure
@@ -125,33 +131,12 @@ export const importSessionsRouter = router({
     )
     .use(ensureImportSessionAccess)
     .query(async ({ ctx, input }) => {
-      const results = await ctx.db
-        .select()
-        .from(importStagingBookmarks)
-        .where(
-          and(
-            eq(
-              importStagingBookmarks.importSessionId,
-              ctx.importSession.session.id,
-            ),
-            input.filter && input.filter !== "all"
-              ? input.filter === "pending"
-                ? eq(importStagingBookmarks.status, "pending")
-                : eq(importStagingBookmarks.result, input.filter)
-              : undefined,
-            input.cursor
-              ? gt(importStagingBookmarks.id, input.cursor)
-              : undefined,
-          ),
-        )
-        .orderBy(importStagingBookmarks.id)
-        .limit(input.limit + 1);
-
-      // Return with pagination info
-      const hasMore = results.length > input.limit;
-      return {
-        items: results.slice(0, input.limit),
-        nextCursor: hasMore ? results[input.limit - 1].id : null,
-      };
+      const service = new ImportSessionsService(ctx.db);
+      return await service.getStagingBookmarks(
+        ctx.importSession.id,
+        input.filter,
+        input.cursor,
+        input.limit,
+      );
     }),
 });
