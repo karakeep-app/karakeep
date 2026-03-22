@@ -647,15 +647,14 @@ describe("parseReadwiseReaderBookmarkFile", () => {
     expect(result[0].tags).toEqual([]);
   });
 
-  it("handles missing URL", () => {
+  it("handles empty URL", () => {
     const csv = `Title,Url,Id,Document Tags,Saved Date,Reading Progress,Location,Seen
 "No URL","","id1",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
 
     const parsed = parseImportFile("readwise-reader", csv);
     const result = parsed.bookmarks;
 
-    expect(result).toHaveLength(1);
-    expect(result[0].content).toBeUndefined();
+    expect(result).toHaveLength(0);
   });
 
   it("throws error for invalid Readwise Reader CSV", () => {

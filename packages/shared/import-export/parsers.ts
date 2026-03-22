@@ -514,7 +514,7 @@ function parseReadwiseReaderBookmarkFile(
     columns: true,
     skip_empty_lines: true,
     cast: function (value, context) {
-      //Replace for json parsing.
+      //Replace for json parsing; original comes with \' instead of \" so it's not json parsable.
       if (context.index === 3) {
         return value.replace(/'/g, '"');
       }
@@ -530,16 +530,19 @@ function parseReadwiseReaderBookmarkFile(
     );
   }
 
-  //Feed (RSS) articles are included automatically, so filter them.
+  //Feed (RSS) articles are included automatically, so filter them. Only include actively added links.
   const feedFilteredArticles = parsed.data.filter(
     (record) => record.Location !== "feed",
   );
+  const emptyFilteredArticles = feedFilteredArticles.filter(
+    (record) => record.Url && record.Url.trim().length > 0,
+  );
 
-  return feedFilteredArticles.map((record) => {
-    let content: ParsedBookmark["content"];
-    if (record.Url && record.Url.trim().length > 0) {
-      content = { type: BookmarkTypes.LINK as const, url: record.Url.trim() };
-    }
+  return emptyFilteredArticles.map((record) => {
+    let content: ParsedBookmark["content"] = {
+      type: BookmarkTypes.LINK as const,
+      url: record.Url.trim(),
+    };
 
     const addDate = new Date(record["Saved Date"]).getTime() / 1000;
 
