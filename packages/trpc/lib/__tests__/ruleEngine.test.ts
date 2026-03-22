@@ -33,7 +33,9 @@ vi.mock("@karakeep/shared-server", () => ({
   LinkCrawlerQueue: {
     enqueue: vi.fn(),
   },
-  triggerRuleEngineOnEvent: vi.fn(),
+  RuleEngineQueue: {
+    enqueue: vi.fn(),
+  },
 }));
 
 describe("RuleEngine", () => {

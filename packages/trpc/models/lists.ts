@@ -946,12 +946,18 @@ export class ManualList extends List {
         columns: { userId: true },
       });
       if (bookmark) {
-        await RuleEngine.triggerOnEvent(bookmark.userId, bookmarkId, [
-          {
-            type: "addedToList",
-            listId: this.list.id,
-          },
-        ]);
+        await RuleEngine.triggerOnEvent(
+          bookmark.userId,
+          bookmarkId,
+          [
+            {
+              type: "addedToList",
+              listId: this.list.id,
+            },
+          ],
+          undefined,
+          this.ctx.db,
+        );
       }
     } catch (e) {
       if (e instanceof SqliteError) {
@@ -990,12 +996,18 @@ export class ManualList extends List {
       columns: { userId: true },
     });
     if (bookmark) {
-      await RuleEngine.triggerOnEvent(bookmark.userId, bookmarkId, [
-        {
-          type: "removedFromList",
-          listId: this.list.id,
-        },
-      ]);
+      await RuleEngine.triggerOnEvent(
+        bookmark.userId,
+        bookmarkId,
+        [
+          {
+            type: "removedFromList",
+            listId: this.list.id,
+          },
+        ],
+        undefined,
+        this.ctx.db,
+      );
     }
   }
 

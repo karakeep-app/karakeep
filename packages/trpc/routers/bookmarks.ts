@@ -372,6 +372,7 @@ export const bookmarksAppRouter = router({
             },
           ],
           enqueueOpts,
+          ctx.db,
         ),
         triggerSearchReindex(bookmark.id, enqueueOpts),
         new WebhooksService(ctx.db).triggerWebhook(
@@ -534,6 +535,8 @@ export const bookmarksAppRouter = router({
           ].map((t) => ({
             type: t,
           })),
+          undefined,
+          ctx.db,
         );
       }
       await Promise.all([
@@ -1031,16 +1034,22 @@ export const bookmarksAppRouter = router({
 
       if (res.numChanges > 0) {
         await Promise.allSettled([
-          RuleEngine.triggerOnEvent(ctx.bookmark.userId, input.bookmarkId, [
-            ...res.detached.map((t) => ({
-              type: "tagRemoved" as const,
-              tagId: t,
-            })),
-            ...res.attached.map((t) => ({
-              type: "tagAdded" as const,
-              tagId: t,
-            })),
-          ]),
+          RuleEngine.triggerOnEvent(
+            ctx.bookmark.userId,
+            input.bookmarkId,
+            [
+              ...res.detached.map((t) => ({
+                type: "tagRemoved" as const,
+                tagId: t,
+              })),
+              ...res.attached.map((t) => ({
+                type: "tagAdded" as const,
+                tagId: t,
+              })),
+            ],
+            undefined,
+            ctx.db,
+          ),
           triggerSearchReindex(input.bookmarkId, {
             groupId: ctx.user.id,
           }),

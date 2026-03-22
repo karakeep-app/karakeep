@@ -103,9 +103,13 @@ export class RuleEngine {
     });
 
     return enabledRules.some((rule) => {
-      const ruleEvent = zRuleEngineEventSchema.safeParse(
-        JSON.parse(rule.event),
-      );
+      let parsedEvent: unknown;
+      try {
+        parsedEvent = JSON.parse(rule.event);
+      } catch {
+        return false;
+      }
+      const ruleEvent = zRuleEngineEventSchema.safeParse(parsedEvent);
       if (!ruleEvent.success) {
         return false;
       }
@@ -124,8 +128,9 @@ export class RuleEngine {
     bookmarkId: string,
     events: RuleEngineEvent[],
     opts?: EnqueueOptions,
+    db: DB = globalDb,
   ): Promise<void> {
-    if (!(await this.matchesAnyRule(userId, events))) {
+    if (!(await this.matchesAnyRule(userId, events, db))) {
       return;
     }
 
