@@ -501,9 +501,9 @@ function parseReadwiseReaderBookmarkFile(
     Title: z.string(),
     Url: z.string(),
     Id: z.string(),
-    DocumentTags: z.string(),
-    SavedDate: z.string(),
-    ReadingProgress: z.string(),
+    "Document Tags": z.string(),
+    "Saved Date": z.string(),
+    "Reading Progress": z.string(),
     Location: z.string(),
     Seen: z.string(),
   });
@@ -534,13 +534,16 @@ function parseReadwiseReaderBookmarkFile(
       content = { type: BookmarkTypes.LINK as const, url: record.Url.trim() };
     }
 
-    const addDate = parseInt(record.SavedDate);
+    const addDate = new Date(record["Saved Date"]).getTime() / 1000;
 
     let tags: string[] = [];
     try {
-      const parsedTags = JSON.parse(record.DocumentTags);
-      if (Array.isArray(parsedTags)) {
-        tags = parsedTags.map((tag) => tag.toString().trim());
+      const documentTags = record["Document Tags"];
+      if (documentTags) {
+        const parsedTags = JSON.parse(documentTags);
+        if (Array.isArray(parsedTags)) {
+          tags = parsedTags.map((tag) => tag.toString().trim());
+        }
       }
     } catch {
       tags = [];
