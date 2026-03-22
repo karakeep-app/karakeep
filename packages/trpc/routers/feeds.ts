@@ -2,7 +2,6 @@ import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { FeedQueue } from "@karakeep/shared-server";
-import serverConfig from "@karakeep/shared/config";
 import {
   zFeedSchema,
   zNewFeedSchema,
@@ -11,21 +10,14 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
-import { FeedsRepo } from "../models/feeds.repo";
+import { FeedsService } from "../models/feeds.service";
 
 const ensureFeedOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: { feedId: string };
 }>().create(async (opts) => {
-  const repo = new FeedsRepo(opts.ctx.db);
-  const feed = await repo.get(opts.input.feedId);
-
-  if (!feed) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Feed not found",
-    });
-  }
+  const service = new FeedsService(opts.ctx.db);
+  const feed = await service.get(opts.input.feedId);
 
   if (feed.userId !== opts.ctx.user.id) {
     throw new TRPCError({
@@ -47,30 +39,16 @@ export const feedsAppRouter = router({
     .input(zNewFeedSchema)
     .output(zFeedSchema)
     .mutation(async ({ input, ctx }) => {
-      const repo = new FeedsRepo(ctx.db);
-
-      const feedCount = await repo.countByUser(ctx.user.id);
-      const maxFeeds = serverConfig.feeds.maxRssFeedsPerUser;
-      if (feedCount >= maxFeeds) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Maximum number of RSS feeds (${maxFeeds}) reached`,
-        });
-      }
-
-      return await repo.create(ctx.user.id, input);
+      const service = new FeedsService(ctx.db);
+      return await service.create(ctx.user.id, input);
     }),
   update: authedProcedure
     .input(zUpdateFeedSchema)
     .output(zFeedSchema)
     .use(ensureFeedOwnership)
     .mutation(async ({ input, ctx }) => {
-      const repo = new FeedsRepo(ctx.db);
-      const updated = await repo.update(ctx.feed.id, input);
-      if (!updated) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      return updated;
+      const service = new FeedsService(ctx.db);
+      return await service.update(ctx.feed.id, input);
     }),
   get: authedProcedure
     .input(z.object({ feedId: z.string() }))
@@ -82,19 +60,16 @@ export const feedsAppRouter = router({
   list: authedProcedure
     .output(z.object({ feeds: z.array(zFeedSchema) }))
     .query(async ({ ctx }) => {
-      const repo = new FeedsRepo(ctx.db);
-      const feeds = await repo.getAll(ctx.user.id);
+      const service = new FeedsService(ctx.db);
+      const feeds = await service.getAll(ctx.user.id);
       return { feeds };
     }),
   delete: authedProcedure
     .input(z.object({ feedId: z.string() }))
     .use(ensureFeedOwnership)
     .mutation(async ({ ctx }) => {
-      const repo = new FeedsRepo(ctx.db);
-      const deleted = await repo.delete(ctx.feed.id);
-      if (!deleted) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
+      const service = new FeedsService(ctx.db);
+      await service.delete(ctx.feed.id);
     }),
   fetchNow: authedProcedure
     .input(z.object({ feedId: z.string() }))

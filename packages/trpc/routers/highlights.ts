@@ -12,22 +12,15 @@ import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
-import { HighlightsRepo } from "../models/highlights.repo";
+import { HighlightsService } from "../models/highlights.service";
 import { ensureBookmarkAccess, ensureBookmarkOwnership } from "./bookmarks";
 
 const ensureHighlightOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: { highlightId: string };
 }>().create(async (opts) => {
-  const repo = new HighlightsRepo(opts.ctx.db);
-  const highlight = await repo.get(opts.input.highlightId);
-
-  if (!highlight) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Highlight not found",
-    });
-  }
+  const service = new HighlightsService(opts.ctx.db);
+  const highlight = await service.get(opts.input.highlightId);
 
   if (highlight.userId !== opts.ctx.user.id) {
     throw new TRPCError({
@@ -50,16 +43,16 @@ export const highlightsAppRouter = router({
     .output(zHighlightSchema)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      const repo = new HighlightsRepo(ctx.db);
-      return await repo.create(ctx.user.id, input);
+      const service = new HighlightsService(ctx.db);
+      return await service.create(ctx.user.id, input);
     }),
   getForBookmark: authedProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .output(z.object({ highlights: z.array(zHighlightSchema) }))
     .use(ensureBookmarkAccess)
     .query(async ({ ctx }) => {
-      const repo = new HighlightsRepo(ctx.db);
-      const highlights = await repo.getForBookmark(ctx.bookmark.id);
+      const service = new HighlightsService(ctx.db);
+      const highlights = await service.getForBookmark(ctx.bookmark.id);
       return { highlights };
     }),
   get: authedProcedure
@@ -78,8 +71,8 @@ export const highlightsAppRouter = router({
     )
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
-      const repo = new HighlightsRepo(ctx.db);
-      return await repo.getAll(ctx.user.id, input.cursor, input.limit);
+      const service = new HighlightsService(ctx.db);
+      return await service.getAll(ctx.user.id, input.cursor, input.limit);
     }),
   search: authedProcedure
     .input(
@@ -91,8 +84,8 @@ export const highlightsAppRouter = router({
     )
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
-      const repo = new HighlightsRepo(ctx.db);
-      return await repo.search(
+      const service = new HighlightsService(ctx.db);
+      return await service.search(
         ctx.user.id,
         input.text,
         input.cursor,
@@ -104,23 +97,15 @@ export const highlightsAppRouter = router({
     .output(zHighlightSchema)
     .use(ensureHighlightOwnership)
     .mutation(async ({ ctx }) => {
-      const repo = new HighlightsRepo(ctx.db);
-      const deleted = await repo.delete(ctx.highlight.id);
-      if (!deleted) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      return deleted;
+      const service = new HighlightsService(ctx.db);
+      return await service.delete(ctx.highlight.id);
     }),
   update: authedProcedure
     .input(zUpdateHighlightSchema)
     .output(zHighlightSchema)
     .use(ensureHighlightOwnership)
     .mutation(async ({ input, ctx }) => {
-      const repo = new HighlightsRepo(ctx.db);
-      const updated = await repo.update(ctx.highlight.id, input);
-      if (!updated) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      return updated;
+      const service = new HighlightsService(ctx.db);
+      return await service.update(ctx.highlight.id, input);
     }),
 });
