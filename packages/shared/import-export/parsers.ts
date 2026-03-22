@@ -513,6 +513,13 @@ function parseReadwiseReaderBookmarkFile(
   const record = parse(textContent, {
     columns: true,
     skip_empty_lines: true,
+    cast: function (value, context) {
+      //Replace for json parsing.
+      if (context.index === 3) {
+        return value.replace(/'/g, '"');
+      }
+      return value;
+    },
   });
 
   const parsed = zReadwiseReaderExportScheme.safeParse(record);
