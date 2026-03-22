@@ -162,7 +162,18 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
-          return { ...alreadyExists, alreadyExists: true };
+          // Unarchive and bump lastSavedAt so the bookmark re-appears at the top
+          const now = new Date();
+          await ctx.db
+            .update(bookmarks)
+            .set({ archived: false, lastSavedAt: now })
+            .where(eq(bookmarks.id, alreadyExists.id));
+          return {
+            ...alreadyExists,
+            archived: false,
+            lastSavedAt: now,
+            alreadyExists: true,
+          };
         }
       }
 
@@ -773,10 +784,14 @@ export const bookmarksAppRouter = router({
           results.sort((a, b) => idToRank[b.id] - idToRank[a.id]);
           break;
         case sortOrder === "desc":
-          results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          results.sort(
+            (a, b) => b.lastSavedAt.getTime() - a.lastSavedAt.getTime(),
+          );
           break;
         case sortOrder === "asc":
-          results.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+          results.sort(
+            (a, b) => a.lastSavedAt.getTime() - b.lastSavedAt.getTime(),
+          );
           break;
       }
 

@@ -219,6 +219,9 @@ export const bookmarks = sqliteTable(
         "import",
       ],
     }),
+    lastSavedAt: integer("lastSavedAt", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   (b) => [
     index("bookmarks_userId_idx").on(b.userId),
@@ -235,6 +238,23 @@ export const bookmarks = sqliteTable(
       b.userId,
       b.favourited,
       b.createdAt,
+      b.id,
+    ),
+    index("bookmarks_userId_lastSavedAt_id_idx").on(
+      b.userId,
+      b.lastSavedAt,
+      b.id,
+    ),
+    index("bookmarks_userId_archived_lastSavedAt_id_idx").on(
+      b.userId,
+      b.archived,
+      b.lastSavedAt,
+      b.id,
+    ),
+    index("bookmarks_userId_favourited_lastSavedAt_id_idx").on(
+      b.userId,
+      b.favourited,
+      b.lastSavedAt,
       b.id,
     ),
   ],
