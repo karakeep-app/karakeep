@@ -13,13 +13,29 @@ import { authedProcedure, router } from "../index";
 import { actorFromContext } from "../lib/actor";
 import { FeedsService } from "../models/feeds.service";
 
+const feedsProcedure = authedProcedure.use((opts) => {
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      actor: actorFromContext(opts.ctx),
+      feedsService: new FeedsService(opts.ctx.db),
+    },
+  });
+});
+
+type FeedsContext = AuthedContext & {
+  actor: ReturnType<typeof actorFromContext>;
+  feedsService: FeedsService;
+};
+
 const ensureFeedOwnership = experimental_trpcMiddleware<{
-  ctx: AuthedContext;
+  ctx: FeedsContext;
   input: { feedId: string };
 }>().create(async (opts) => {
-  const service = new FeedsService(opts.ctx.db);
-  const actor = actorFromContext(opts.ctx);
-  const feed = await service.get(actor, opts.input.feedId);
+  const feed = await opts.ctx.feedsService.get(
+    opts.ctx.actor,
+    opts.input.feedId,
+  );
 
   return opts.next({
     ctx: {
@@ -30,45 +46,39 @@ const ensureFeedOwnership = experimental_trpcMiddleware<{
 });
 
 export const feedsAppRouter = router({
-  create: authedProcedure
+  create: feedsProcedure
     .input(zNewFeedSchema)
     .output(zFeedSchema)
     .mutation(async ({ input, ctx }) => {
-      const service = new FeedsService(ctx.db);
-      const actor = actorFromContext(ctx);
-      return await service.create(actor, input);
+      return await ctx.feedsService.create(ctx.actor, input);
     }),
-  update: authedProcedure
+  update: feedsProcedure
     .input(zUpdateFeedSchema)
     .output(zFeedSchema)
     .use(ensureFeedOwnership)
     .mutation(async ({ input, ctx }) => {
-      const service = new FeedsService(ctx.db);
-      return await service.update(ctx.feed, input);
+      return await ctx.feedsService.update(ctx.feed, input);
     }),
-  get: authedProcedure
+  get: feedsProcedure
     .input(z.object({ feedId: z.string() }))
     .output(zFeedSchema)
     .use(ensureFeedOwnership)
     .query(({ ctx }) => {
       return ctx.feed;
     }),
-  list: authedProcedure
+  list: feedsProcedure
     .output(z.object({ feeds: z.array(zFeedSchema) }))
     .query(async ({ ctx }) => {
-      const service = new FeedsService(ctx.db);
-      const actor = actorFromContext(ctx);
-      const feeds = await service.getAll(actor);
+      const feeds = await ctx.feedsService.getAll(ctx.actor);
       return { feeds };
     }),
-  delete: authedProcedure
+  delete: feedsProcedure
     .input(z.object({ feedId: z.string() }))
     .use(ensureFeedOwnership)
     .mutation(async ({ ctx }) => {
-      const service = new FeedsService(ctx.db);
-      await service.delete(ctx.feed);
+      await ctx.feedsService.delete(ctx.feed);
     }),
-  fetchNow: authedProcedure
+  fetchNow: feedsProcedure
     .input(z.object({ feedId: z.string() }))
     .use(ensureFeedOwnership)
     .mutation(async ({ ctx }) => {
