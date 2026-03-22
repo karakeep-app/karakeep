@@ -47,6 +47,7 @@ import {
   getBookmarkTitle,
 } from "@karakeep/shared/utils/bookmarkUtils";
 import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
+import logger from "@karakeep/shared/logger";
 
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
@@ -76,6 +77,56 @@ async function dummyDrizzleReturnType() {
 type BookmarkQueryReturnType = Awaited<
   ReturnType<typeof dummyDrizzleReturnType>
 >;
+
+const ASSET_URL_PATTERN = /\/api\/assets\/([a-f0-9-]+)/g;
+
+/**
+ * Replace /api/assets/{id} URLs in HTML with inline data URIs.
+ * Used for API clients (e.g. mobile app) that can't resolve relative
+ * asset URLs or attach auth headers to <img> requests.
+ */
+async function inlineContentImageDataUris(
+  html: string,
+  userId: string,
+): Promise<string> {
+  const matches = [...html.matchAll(ASSET_URL_PATTERN)];
+  if (matches.length === 0) {
+    return html;
+  }
+
+  // Deduplicate asset IDs
+  const uniqueAssetIds = [...new Set(matches.map((m) => m[1]))];
+
+  // Read all assets in parallel
+  const assetResults = await Promise.allSettled(
+    uniqueAssetIds.map(async (assetId) => {
+      const { asset, metadata } = await readAsset({ userId, assetId });
+      const base64 = asset.toString("base64");
+      return {
+        assetId,
+        dataUri: `data:${metadata.contentType};base64,${base64}`,
+      };
+    }),
+  );
+
+  // Build replacement map from successful reads
+  const replacements = new Map<string, string>();
+  for (const result of assetResults) {
+    if (result.status === "fulfilled") {
+      replacements.set(result.value.assetId, result.value.dataUri);
+    } else {
+      logger.warn(`Failed to inline content image asset: ${result.reason}`);
+    }
+  }
+
+  if (replacements.size === 0) {
+    return html;
+  }
+
+  return html.replace(ASSET_URL_PATTERN, (match, assetId: string) => {
+    return replacements.get(assetId) ?? match;
+  });
+}
 
 export class BareBookmark {
   protected constructor(
@@ -145,6 +196,7 @@ export class Bookmark extends BareBookmark {
   private static async toZodSchema(
     bookmark: BookmarkQueryReturnType,
     includeContent: boolean,
+    inlineImages?: boolean,
   ): Promise<ZBookmark> {
     const { tagsOnBookmarks, link, text, asset, assets, ...rest } = bookmark;
 
@@ -175,7 +227,16 @@ export class Bookmark extends BareBookmark {
         imageUrl: link.imageUrl,
         favicon: link.favicon,
         htmlContent: includeContent
-          ? await Bookmark.getBookmarkHtmlContent(link, bookmark.userId)
+          ? await (async () => {
+              const html = await Bookmark.getBookmarkHtmlContent(
+                link,
+                bookmark.userId,
+              );
+              if (html && inlineImages) {
+                return inlineContentImageDataUris(html, bookmark.userId);
+              }
+              return html;
+            })()
           : null,
         crawledAt: link.crawledAt,
         crawlStatus: link.crawlStatus,
@@ -259,7 +320,11 @@ export class Bookmark extends BareBookmark {
     }
     return Bookmark.fromData(
       ctx,
-      await Bookmark.toZodSchema(bookmark, includeContent),
+      await Bookmark.toZodSchema(
+        bookmark,
+        includeContent,
+        includeContent && ctx.apiAuth,
+      ),
     );
   }
 
@@ -323,6 +388,7 @@ export class Bookmark extends BareBookmark {
         crawlStatus: bookmark.link.crawlStatus ?? "pending",
         crawlStatusCode: bookmark.link.crawlStatusCode,
         crawledAt: bookmark.link.crawledAt,
+        contentImageStatus: bookmark.link.contentImageStatus,
         hasHtmlContent: !!bookmark.link.htmlContent,
         hasContentAsset: !!bookmark.link.contentAssetId,
         htmlContentPreview,

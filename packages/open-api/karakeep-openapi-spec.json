@@ -379,6 +379,7 @@
                     "bookmarkAsset",
                     "precrawledArchive",
                     "userUploaded",
+                    "contentImage",
                     "avatar",
                     "unknown"
                   ]
@@ -1945,6 +1946,7 @@
                       "bookmarkAsset",
                       "precrawledArchive",
                       "userUploaded",
+                      "contentImage",
                       "avatar",
                       "unknown"
                     ],
@@ -1983,6 +1985,7 @@
                         "bookmarkAsset",
                         "precrawledArchive",
                         "userUploaded",
+                        "contentImage",
                         "avatar",
                         "unknown"
                       ]

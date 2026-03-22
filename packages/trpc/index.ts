@@ -26,6 +26,7 @@ export interface Context {
   req: {
     ip: string | null;
   };
+  apiAuth?: boolean;
 }
 
 export interface AuthedContext {
@@ -34,6 +35,7 @@ export interface AuthedContext {
   req: {
     ip: string | null;
   };
+  apiAuth?: boolean;
 }
 
 // Avoid exporting the entire t-object

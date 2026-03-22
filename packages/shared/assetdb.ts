@@ -69,6 +69,14 @@ export const SUPPORTED_ASSET_TYPES: Set<string> = new Set<string>([
   ASSET_TYPES.APPLICATION_ZIP,
 ]);
 
+// Extended image types for content image caching (served with sandbox CSP)
+export const SUPPORTED_CONTENT_IMAGE_TYPES: Set<string> = new Set<string>([
+  ...SUPPORTED_ASSET_TYPES,
+  "image/svg+xml",
+  "image/avif",
+  "image/apng",
+]);
+
 export const zAssetMetadataSchema = z.object({
   contentType: z.string(),
   fileName: z.string().nullish(),
@@ -90,6 +98,7 @@ export interface AssetStore {
     assetId: string;
     asset: Buffer;
     metadata: AssetMetadata;
+    supportedTypes?: Set<string>;
   }): Promise<void>;
 
   saveAssetFromFile(params: {
@@ -97,6 +106,7 @@ export interface AssetStore {
     assetId: string;
     assetPath: string;
     metadata: AssetMetadata;
+    supportedTypes?: Set<string>;
   }): Promise<void>;
 
   readAsset(params: {
@@ -152,13 +162,15 @@ class LocalFileSystemAssetStore implements AssetStore {
     assetId,
     asset,
     metadata,
+    supportedTypes = SUPPORTED_ASSET_TYPES,
   }: {
     userId: string;
     assetId: string;
     asset: Buffer;
     metadata: AssetMetadata;
+    supportedTypes?: Set<string>;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (!supportedTypes.has(metadata.contentType)) {
       throw new Error("Unsupported asset type");
     }
     const assetDir = this.getAssetDir(userId, assetId);
@@ -181,13 +193,15 @@ class LocalFileSystemAssetStore implements AssetStore {
     assetId,
     assetPath,
     metadata,
+    supportedTypes = SUPPORTED_ASSET_TYPES,
   }: {
     userId: string;
     assetId: string;
     assetPath: string;
     metadata: AssetMetadata;
+    supportedTypes?: Set<string>;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (!supportedTypes.has(metadata.contentType)) {
       throw new Error("Unsupported asset type");
     }
     const assetDir = this.getAssetDir(userId, assetId);
@@ -347,13 +361,15 @@ class S3AssetStore implements AssetStore {
     assetId,
     asset,
     metadata,
+    supportedTypes = SUPPORTED_ASSET_TYPES,
   }: {
     userId: string;
     assetId: string;
     asset: Buffer;
     metadata: AssetMetadata;
+    supportedTypes?: Set<string>;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (!supportedTypes.has(metadata.contentType)) {
       throw new Error("Unsupported asset type");
     }
 
@@ -373,13 +389,15 @@ class S3AssetStore implements AssetStore {
     assetId,
     assetPath,
     metadata,
+    supportedTypes = SUPPORTED_ASSET_TYPES,
   }: {
     userId: string;
     assetId: string;
     assetPath: string;
     metadata: AssetMetadata;
+    supportedTypes?: Set<string>;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (!supportedTypes.has(metadata.contentType)) {
       throw new Error("Unsupported asset type");
     }
 
@@ -632,12 +650,14 @@ export async function saveAsset({
   asset,
   metadata,
   quotaApproved,
+  supportedTypes,
 }: {
   userId: string;
   assetId: string;
   asset: Buffer;
   metadata: z.infer<typeof zAssetMetadataSchema>;
   quotaApproved: QuotaApproved;
+  supportedTypes?: Set<string>;
 }) {
   // Verify the quota approval is for the correct user and size
   if (quotaApproved.userId !== userId) {
@@ -647,7 +667,13 @@ export async function saveAsset({
     throw new Error("Asset size exceeds approved quota");
   }
 
-  return defaultAssetStore.saveAsset({ userId, assetId, asset, metadata });
+  return defaultAssetStore.saveAsset({
+    userId,
+    assetId,
+    asset,
+    metadata,
+    supportedTypes,
+  });
 }
 
 export async function saveAssetFromFile({

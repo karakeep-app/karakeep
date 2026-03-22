@@ -266,6 +266,9 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+    contentImageStatus: text("contentImageStatus", {
+      enum: ["pending", "failure", "success"],
+    }),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );
@@ -282,6 +285,7 @@ export const enum AssetTypes {
   BOOKMARK_ASSET = "bookmarkAsset",
   USER_UPLOADED = "userUploaded",
   AVATAR = "avatar",
+  CONTENT_IMAGE = "contentImage",
   BACKUP = "backup",
   UNKNOWN = "unknown",
 }
@@ -303,6 +307,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_HTML_CONTENT,
         AssetTypes.BOOKMARK_ASSET,
         AssetTypes.USER_UPLOADED,
+        AssetTypes.CONTENT_IMAGE,
         AssetTypes.AVATAR,
         AssetTypes.BACKUP,
         AssetTypes.UNKNOWN,

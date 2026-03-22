@@ -6,6 +6,7 @@ import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   BackupQueue,
+  ContentImageQueue,
   FeedQueue,
   initTracing,
   LinkCrawlerQueue,
@@ -27,6 +28,7 @@ import { shutdownPromise } from "./exit";
 import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
+import { ContentImageWorker } from "./workers/contentImageWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { ImportWorker } from "./workers/importWorker";
@@ -68,6 +70,10 @@ const workerBuilders = {
   assetPreprocessing: async () => {
     await AssetPreprocessingQueue.ensureInit();
     return AssetPreprocessingWorker.build();
+  },
+  contentImage: async () => {
+    await ContentImageQueue.ensureInit();
+    return ContentImageWorker.build();
   },
   webhook: async () => {
     await WebhookQueue.ensureInit();

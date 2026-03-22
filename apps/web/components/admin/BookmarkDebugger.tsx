@@ -131,6 +131,21 @@ export default function BookmarkDebugger() {
     }),
   );
 
+  const recacheContentImagesMutation = useMutation(
+    api.admin.adminRecacheContentImagesBookmark.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("admin.admin_tools.action_success"), {
+          description: t("admin.admin_tools.recache_content_images_queued"),
+        });
+      },
+      onError: (error) => {
+        toast.error(t("admin.admin_tools.action_failed"), {
+          description: error.message,
+        });
+      },
+    }),
+  );
+
   const handleRecrawl = () => {
     if (bookmarkId) {
       recrawlMutation.mutate({ bookmarkId });
@@ -152,6 +167,12 @@ export default function BookmarkDebugger() {
   const handleResummarize = () => {
     if (bookmarkId) {
       resummarizeMutation.mutate({ bookmarkId });
+    }
+  };
+
+  const handleRecacheContentImages = () => {
+    if (bookmarkId) {
+      recacheContentImagesMutation.mutate({ bookmarkId });
     }
   };
 
@@ -379,6 +400,17 @@ export default function BookmarkDebugger() {
                               },
                             )}
                           </span>
+                        </div>
+                      )}
+                      {debugInfo.linkInfo.contentImageStatus && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1.5 text-muted-foreground">
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            {t("admin.admin_tools.content_image_status")}
+                          </span>
+                          {getStatusBadge(
+                            debugInfo.linkInfo.contentImageStatus,
+                          )}
                         </div>
                       )}
                     </>
@@ -650,6 +682,22 @@ export default function BookmarkDebugger() {
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
                   {t("admin.admin_tools.resummarize")}
+                </Button>
+                <Button
+                  onClick={handleRecacheContentImages}
+                  disabled={
+                    debugInfo.type !== BookmarkTypes.LINK ||
+                    recacheContentImagesMutation.isPending
+                  }
+                  size="sm"
+                  variant="outline"
+                >
+                  {recacheContentImagesMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                  )}
+                  {t("admin.admin_tools.recache_content_images")}
                 </Button>
               </div>
             </div>

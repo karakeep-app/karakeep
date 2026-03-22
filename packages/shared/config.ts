@@ -107,6 +107,11 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
+  CRAWLER_STORE_CONTENT_IMAGES: stringBool("false"),
+  CRAWLER_CONTENT_IMAGE_MAX_COUNT: z.coerce.number().default(50),
+  CRAWLER_CONTENT_IMAGE_MAX_SIZE_MB: z.coerce.number().default(5),
+  CONTENT_IMAGE_NUM_WORKERS: z.coerce.number().default(1),
+  CONTENT_IMAGE_JOB_TIMEOUT_SEC: z.coerce.number().default(120),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
     .string()
@@ -325,6 +330,9 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       fullPageScreenshot: val.CRAWLER_FULL_PAGE_SCREENSHOT,
       storePdf: val.CRAWLER_STORE_PDF,
       fullPageArchive: val.CRAWLER_FULL_PAGE_ARCHIVE,
+      storeContentImages: val.CRAWLER_STORE_CONTENT_IMAGES,
+      contentImageMaxCount: val.CRAWLER_CONTENT_IMAGE_MAX_COUNT,
+      contentImageMaxSizeMb: val.CRAWLER_CONTENT_IMAGE_MAX_SIZE_MB,
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
@@ -394,6 +402,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
       jobTimeoutSec: val.ASSET_PREPROCESSING_JOB_TIMEOUT_SEC,
+    },
+    contentImage: {
+      numWorkers: val.CONTENT_IMAGE_NUM_WORKERS,
+      jobTimeoutSec: val.CONTENT_IMAGE_JOB_TIMEOUT_SEC,
     },
     ruleEngine: {
       numWorkers: val.RULE_ENGINE_NUM_WORKERS,

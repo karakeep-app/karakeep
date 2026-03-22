@@ -7,6 +7,7 @@ import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
+  ContentImageQueue,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -85,6 +86,12 @@ export const adminAppRouter = router({
         feedStats: z.object({
           queued: z.number(),
         }),
+        contentImageStats: z.object({
+          queued: z.number(),
+          pending: z.number(),
+          failed: z.number(),
+          enabled: z.boolean(),
+        }),
       }),
     )
     .query(async ({ ctx }) => {
@@ -117,6 +124,11 @@ export const adminAppRouter = router({
 
         // Feed
         queuedFeed,
+
+        // Content Image
+        queuedContentImage,
+        [{ value: pendingContentImage }],
+        [{ value: failedContentImage }],
       ] = await Promise.all([
         // Crawls
         LinkCrawlerQueue.stats(),
@@ -168,6 +180,17 @@ export const adminAppRouter = router({
 
         // Feed
         FeedQueue.stats(),
+
+        // Content Image
+        ContentImageQueue.stats(),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarkLinks)
+          .where(eq(bookmarkLinks.contentImageStatus, "pending")),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarkLinks)
+          .where(eq(bookmarkLinks.contentImageStatus, "failure")),
       ]);
 
       return {
@@ -206,6 +229,12 @@ export const adminAppRouter = router({
         },
         feedStats: {
           queued: queuedFeed.pending + queuedFeed.pending_retry,
+        },
+        contentImageStats: {
+          queued: queuedContentImage.pending + queuedContentImage.pending_retry,
+          pending: pendingContentImage,
+          failed: failedContentImage,
+          enabled: serverConfig.crawler.storeContentImages,
         },
       };
     }),
@@ -311,6 +340,41 @@ export const adminAppRouter = router({
             },
           ),
         ),
+      );
+    }),
+  recacheContentImages: adminProcedure
+    .input(
+      z.object({
+        contentImageStatus: z.enum(["failure", "all"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const linkBookmarks = await ctx.db.query.bookmarkLinks.findMany({
+        columns: {
+          id: true,
+        },
+        ...(input.contentImageStatus === "failure"
+          ? {
+              where: eq(bookmarkLinks.contentImageStatus, "failure"),
+            }
+          : {}),
+      });
+
+      await Promise.all(
+        linkBookmarks.map(async (b) => {
+          await ctx.db
+            .update(bookmarkLinks)
+            .set({ contentImageStatus: "pending" })
+            .where(eq(bookmarkLinks.id, b.id));
+          await ContentImageQueue.enqueue(
+            {
+              bookmarkId: b.id,
+            },
+            {
+              priority: QueuePriority.Low,
+            },
+          );
+        }),
       );
     }),
   runAdminMaintenanceTask: adminProcedure
@@ -606,6 +670,9 @@ export const adminAppRouter = router({
             crawlStatus: z.enum(["pending", "failure", "success"]),
             crawlStatusCode: z.number().nullable(),
             crawledAt: z.date().nullable(),
+            contentImageStatus: z
+              .enum(["pending", "failure", "success"])
+              .nullable(),
             hasHtmlContent: z.boolean(),
             hasContentAsset: z.boolean(),
             htmlContentPreview: z.string().nullable(),
@@ -752,6 +819,42 @@ export const adminAppRouter = router({
         {
           bookmarkId: input.bookmarkId,
           type: "summarize",
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
+    }),
+  adminRecacheContentImagesBookmark: adminProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      if (bookmark.type !== BookmarkTypes.LINK) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only link bookmarks can have content images recached",
+        });
+      }
+
+      await ctx.db
+        .update(bookmarkLinks)
+        .set({ contentImageStatus: "pending" })
+        .where(eq(bookmarkLinks.id, input.bookmarkId));
+
+      await ContentImageQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
         },
         {
           priority: QueuePriority.Low,

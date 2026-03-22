@@ -22,6 +22,7 @@ import {
   Globe,
   HelpCircle,
   Image,
+  ImageDown,
   RefreshCw,
   Rss,
   Search,
@@ -331,6 +332,25 @@ function useJobActions() {
   );
 
   const {
+    mutateAsync: recacheContentImages,
+    isPending: isRecacheContentImagesPending,
+  } = useMutation(
+    api.admin.recacheContentImages.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: "Content image caching enqueued",
+        });
+      },
+      onError: (e) => {
+        toast({
+          variant: "destructive",
+          description: e.message,
+        });
+      },
+    }),
+  );
+
+  const {
     mutateAsync: runAdminMaintenanceTask,
     isPending: isAdminMaintenancePending,
   } = useMutation(
@@ -451,6 +471,22 @@ function useJobActions() {
         loading: isReprocessingPending,
       },
     ],
+    contentImageActions: [
+      {
+        label: t(
+          "admin.background_jobs.actions.recache_failed_content_images_only",
+        ),
+        onClick: () => recacheContentImages({ contentImageStatus: "failure" }),
+        loading: isRecacheContentImagesPending,
+      },
+      {
+        label: t(
+          "admin.background_jobs.actions.cache_content_images_for_all_links",
+        ),
+        onClick: () => recacheContentImages({ contentImageStatus: "all" }),
+        loading: isRecacheContentImagesPending,
+      },
+    ],
     adminMaintenanceActions: [
       {
         label: t("admin.background_jobs.actions.clean_assets"),
@@ -514,6 +550,23 @@ export default function BackgroundJobs() {
       description: t("admin.background_jobs.jobs.crawler.description"),
       actions: actions.crawlActions,
     },
+    ...(serverStats.contentImageStats.enabled
+      ? [
+          {
+            title: t("admin.background_jobs.jobs.content_image.title"),
+            icon: ImageDown,
+            stats: {
+              queued: serverStats.contentImageStats.queued,
+              pending: serverStats.contentImageStats.pending,
+              failed: serverStats.contentImageStats.failed,
+            },
+            description: t(
+              "admin.background_jobs.jobs.content_image.description",
+            ),
+            actions: actions.contentImageActions,
+          },
+        ]
+      : []),
     {
       title: t("admin.background_jobs.jobs.inference.title"),
       icon: Sparkle,

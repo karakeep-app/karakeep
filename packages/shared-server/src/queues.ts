@@ -303,6 +303,22 @@ export async function triggerRuleEngineOnEvent(
   );
 }
 
+// Content Image Worker
+export const zContentImageRequestSchema = z.object({
+  bookmarkId: z.string(),
+});
+export type ZContentImageRequest = z.infer<typeof zContentImageRequestSchema>;
+
+export const ContentImageQueue = createDeferredQueue<ZContentImageRequest>(
+  "content_image_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 2,
+    },
+    keepFailedJobs: false,
+  },
+);
+
 // Backup worker
 export const zBackupRequestSchema = z.object({
   userId: z.string(),

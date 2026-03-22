@@ -756,6 +756,7 @@
       "tagging_status": "Tagging Status",
       "summarization_status": "Summarization Status",
       "crawl_status": "Crawl Status",
+      "content_image_status": "Image Crawl Status",
       "crawl_status_code": "HTTP Status Code",
       "crawled_at": "Crawled At",
       "recrawl": "Re-crawl",
@@ -769,6 +770,8 @@
       "reindex_queued": "Re-index job has been queued",
       "retag_queued": "Re-tag job has been queued",
       "resummarize_queued": "Re-summarize job has been queued",
+      "recache_content_images": "Re-cache images",
+      "recache_content_images_queued": "Content image re-cache job has been queued",
       "view": "View",
       "fetch_error": "Error fetching bookmark"
     }

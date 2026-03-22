@@ -1,0 +1,1 @@
+ALTER TABLE `bookmarkLinks` ADD `contentImageStatus` text;

@@ -571,6 +571,10 @@
         "feed": {
           "title": "RSS Feed Jobs",
           "description": "RSS feed processing and content updates"
+        },
+        "content_image": {
+          "title": "Content Image Jobs",
+          "description": "Download and cache images from reader content for offline access"
         }
       },
       "background_jobs": "Background Jobs",
@@ -606,7 +610,9 @@
         "reindex_all_bookmarks": "Reindex All Bookmarks",
         "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
         "migrate_large_link_html_content": "Move Large Inline HTML Content to Assets",
-        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
+        "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets",
+        "recache_failed_content_images_only": "Recache Failed Links Only",
+        "cache_content_images_for_all_links": "Cache Content Images for All Links"
       }
     },
     "users_list": {
@@ -642,6 +648,7 @@
       "tagging_status": "Tagging Status",
       "summarization_status": "Summarization Status",
       "crawl_status": "Crawl Status",
+      "content_image_status": "Image Crawl Status",
       "crawl_status_code": "HTTP Status Code",
       "crawled_at": "Crawled At",
       "recrawl": "Re-crawl",
@@ -655,6 +662,8 @@
       "reindex_queued": "Re-index job has been queued",
       "retag_queued": "Re-tag job has been queued",
       "resummarize_queued": "Re-summarize job has been queued",
+      "recache_content_images": "Re-cache images",
+      "recache_content_images_queued": "Content image re-cache job has been queued",
       "view": "View",
       "fetch_error": "Error fetching bookmark"
     }
