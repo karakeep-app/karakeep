@@ -273,7 +273,6 @@ export const RuleEngineQueue = createDeferredQueue<ZRuleEngineRequest>(
   },
 );
 
-
 // Backup worker
 export const zBackupRequestSchema = z.object({
   userId: z.string(),

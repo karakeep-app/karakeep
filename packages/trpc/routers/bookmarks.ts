@@ -364,7 +364,7 @@ export const bookmarksAppRouter = router({
 
       await Promise.all([
         RuleEngine.triggerOnEvent(
-          ctx.user.id,
+          bookmark.userId,
           bookmark.id,
           [
             {
@@ -526,7 +526,7 @@ export const bookmarksAppRouter = router({
 
       if (input.favourited === true || input.archived === true) {
         await RuleEngine.triggerOnEvent(
-          ctx.user.id,
+          updatedBookmark.userId,
           input.bookmarkId,
           [
             ...(input.favourited === true ? ["favourited" as const] : []),
@@ -1031,20 +1031,16 @@ export const bookmarksAppRouter = router({
 
       if (res.numChanges > 0) {
         await Promise.allSettled([
-          RuleEngine.triggerOnEvent(
-            ctx.user.id,
-            input.bookmarkId,
-            [
-              ...res.detached.map((t) => ({
-                type: "tagRemoved" as const,
-                tagId: t,
-              })),
-              ...res.attached.map((t) => ({
-                type: "tagAdded" as const,
-                tagId: t,
-              })),
-            ],
-          ),
+          RuleEngine.triggerOnEvent(ctx.bookmark.userId, input.bookmarkId, [
+            ...res.detached.map((t) => ({
+              type: "tagRemoved" as const,
+              tagId: t,
+            })),
+            ...res.attached.map((t) => ({
+              type: "tagAdded" as const,
+              tagId: t,
+            })),
+          ]),
           triggerSearchReindex(input.bookmarkId, {
             groupId: ctx.user.id,
           }),

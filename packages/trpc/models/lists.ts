@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SqliteError } from "@karakeep/db";
 import {
   bookmarkLists,
+  bookmarks,
   bookmarksInLists,
   listCollaborators,
   users,
@@ -940,16 +941,18 @@ export class ManualList extends List {
         bookmarkId,
         listMembershipId: this.collaboratorEntry?.membershipId,
       });
-      await RuleEngine.triggerOnEvent(
-        this.ctx.user.id,
-        bookmarkId,
-        [
+      const bookmark = await this.ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, bookmarkId),
+        columns: { userId: true },
+      });
+      if (bookmark) {
+        await RuleEngine.triggerOnEvent(bookmark.userId, bookmarkId, [
           {
             type: "addedToList",
             listId: this.list.id,
           },
-        ],
-      );
+        ]);
+      }
     } catch (e) {
       if (e instanceof SqliteError) {
         if (e.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
@@ -982,16 +985,18 @@ export class ManualList extends List {
         message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
       });
     }
-    await RuleEngine.triggerOnEvent(
-      this.ctx.user.id,
-      bookmarkId,
-      [
+    const bookmark = await this.ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+      columns: { userId: true },
+    });
+    if (bookmark) {
+      await RuleEngine.triggerOnEvent(bookmark.userId, bookmarkId, [
         {
           type: "removedFromList",
           listId: this.list.id,
         },
-      ],
-    );
+      ]);
+    }
   }
 
   async update(input: z.infer<typeof zEditBookmarkListSchemaWithValidation>) {

@@ -479,20 +479,16 @@ async function connectTags(
     return { detachedTags, attachedTags };
   });
 
-  await RuleEngine.triggerOnEvent(
-    userId,
-    bookmarkId,
-    [
-      ...res.detachedTags.map((t) => ({
-        type: "tagRemoved" as const,
-        tagId: t.tagId,
-      })),
-      ...res.attachedTags.map((t) => ({
-        type: "tagAdded" as const,
-        tagId: t.tagId,
-      })),
-    ],
-  );
+  await RuleEngine.triggerOnEvent(userId, bookmarkId, [
+    ...res.detachedTags.map((t) => ({
+      type: "tagRemoved" as const,
+      tagId: t.tagId,
+    })),
+    ...res.attachedTags.map((t) => ({
+      type: "tagAdded" as const,
+      tagId: t.tagId,
+    })),
+  ]);
 }
 
 async function fetchBookmark(linkId: string) {
