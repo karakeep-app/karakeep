@@ -9,6 +9,8 @@ import {
 } from "@karakeep/shared/types/highlights";
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
+import type { Actor, Authorized } from "../lib/actor";
+import { actorUserId, assertOwnership, authorize } from "../lib/actor";
 import { HighlightsRepo } from "./highlights.repo";
 
 type Highlight = z.infer<typeof zHighlightSchema>;
@@ -20,7 +22,7 @@ export class HighlightsService {
     this.repo = new HighlightsRepo(db);
   }
 
-  async get(id: string): Promise<Highlight> {
+  async get(actor: Actor, id: string): Promise<Authorized<Highlight>> {
     const highlight = await this.repo.get(id);
     if (!highlight) {
       throw new TRPCError({
@@ -28,14 +30,14 @@ export class HighlightsService {
         message: "Highlight not found",
       });
     }
-    return highlight;
+    return authorize(highlight, () => assertOwnership(actor, highlight.userId));
   }
 
   async create(
-    userId: string,
+    actor: Actor,
     input: z.infer<typeof zNewHighlightSchema>,
   ): Promise<Highlight> {
-    return await this.repo.create(userId, input);
+    return await this.repo.create(actorUserId(actor), input);
   }
 
   async getForBookmark(bookmarkId: string): Promise<Highlight[]> {
@@ -43,18 +45,18 @@ export class HighlightsService {
   }
 
   async getAll(
-    userId: string,
+    actor: Actor,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
   ): Promise<{
     highlights: Highlight[];
     nextCursor: z.infer<typeof zCursorV2> | null;
   }> {
-    return await this.repo.getAll(userId, cursor, limit);
+    return await this.repo.getAll(actorUserId(actor), cursor, limit);
   }
 
   async search(
-    userId: string,
+    actor: Actor,
     searchText: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
@@ -62,11 +64,16 @@ export class HighlightsService {
     highlights: Highlight[];
     nextCursor: z.infer<typeof zCursorV2> | null;
   }> {
-    return await this.repo.search(userId, searchText, cursor, limit);
+    return await this.repo.search(
+      actorUserId(actor),
+      searchText,
+      cursor,
+      limit,
+    );
   }
 
-  async delete(id: string): Promise<Highlight> {
-    const deleted = await this.repo.delete(id);
+  async delete(highlight: Authorized<Highlight>): Promise<Highlight> {
+    const deleted = await this.repo.delete(highlight.id);
     if (!deleted) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
@@ -74,10 +81,10 @@ export class HighlightsService {
   }
 
   async update(
-    id: string,
+    highlight: Authorized<Highlight>,
     input: z.infer<typeof zUpdateHighlightSchema>,
   ): Promise<Highlight> {
-    const updated = await this.repo.update(id, input);
+    const updated = await this.repo.update(highlight.id, input);
     if (!updated) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }

@@ -9,6 +9,8 @@ import {
   zUpdateWebhookSchema,
 } from "@karakeep/shared/types/webhooks";
 
+import type { Actor, Authorized } from "../lib/actor";
+import { actorUserId, assertOwnership, authorize } from "../lib/actor";
 import { WebhooksRepo } from "./webhooks.repo";
 
 type Webhook = typeof webhooksTable.$inferSelect;
@@ -20,7 +22,7 @@ export class WebhooksService {
     this.repo = new WebhooksRepo(db);
   }
 
-  async get(id: string): Promise<Webhook> {
+  async get(actor: Actor, id: string): Promise<Authorized<Webhook>> {
     const webhook = await this.repo.get(id);
     if (!webhook) {
       throw new TRPCError({
@@ -28,13 +30,14 @@ export class WebhooksService {
         message: "Webhook not found",
       });
     }
-    return webhook;
+    return authorize(webhook, () => assertOwnership(actor, webhook.userId));
   }
 
   async create(
-    userId: string,
+    actor: Actor,
     input: z.infer<typeof zNewWebhookSchema>,
   ): Promise<Webhook> {
+    const userId = actorUserId(actor);
     const webhookCount = await this.repo.countByUser(userId);
     const maxWebhooks = serverConfig.webhook.maxWebhooksPerUser;
     if (webhookCount >= maxWebhooks) {
@@ -48,22 +51,22 @@ export class WebhooksService {
   }
 
   async update(
-    id: string,
+    webhook: Authorized<Webhook>,
     input: z.infer<typeof zUpdateWebhookSchema>,
   ): Promise<Webhook> {
-    const updated = await this.repo.update(id, input);
+    const updated = await this.repo.update(webhook.id, input);
     if (!updated) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
     return updated;
   }
 
-  async getAll(userId: string): Promise<Webhook[]> {
-    return await this.repo.getAll(userId);
+  async getAll(actor: Actor): Promise<Webhook[]> {
+    return await this.repo.getAll(actorUserId(actor));
   }
 
-  async delete(id: string): Promise<void> {
-    const deleted = await this.repo.delete(id);
+  async delete(webhook: Authorized<Webhook>): Promise<void> {
+    const deleted = await this.repo.delete(webhook.id);
     if (!deleted) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }

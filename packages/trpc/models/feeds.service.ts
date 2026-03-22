@@ -9,6 +9,8 @@ import {
   zUpdateFeedSchema,
 } from "@karakeep/shared/types/feeds";
 
+import type { Actor, Authorized } from "../lib/actor";
+import { actorUserId, assertOwnership, authorize } from "../lib/actor";
 import { FeedsRepo } from "./feeds.repo";
 
 type Feed = typeof rssFeedsTable.$inferSelect;
@@ -20,7 +22,7 @@ export class FeedsService {
     this.repo = new FeedsRepo(db);
   }
 
-  async get(id: string): Promise<Feed> {
+  async get(actor: Actor, id: string): Promise<Authorized<Feed>> {
     const feed = await this.repo.get(id);
     if (!feed) {
       throw new TRPCError({
@@ -28,13 +30,14 @@ export class FeedsService {
         message: "Feed not found",
       });
     }
-    return feed;
+    return authorize(feed, () => assertOwnership(actor, feed.userId));
   }
 
   async create(
-    userId: string,
+    actor: Actor,
     input: z.infer<typeof zNewFeedSchema>,
   ): Promise<Feed> {
+    const userId = actorUserId(actor);
     const feedCount = await this.repo.countByUser(userId);
     const maxFeeds = serverConfig.feeds.maxRssFeedsPerUser;
     if (feedCount >= maxFeeds) {
@@ -48,22 +51,22 @@ export class FeedsService {
   }
 
   async update(
-    id: string,
+    feed: Authorized<Feed>,
     input: z.infer<typeof zUpdateFeedSchema>,
   ): Promise<Feed> {
-    const updated = await this.repo.update(id, input);
+    const updated = await this.repo.update(feed.id, input);
     if (!updated) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
     return updated;
   }
 
-  async getAll(userId: string): Promise<Feed[]> {
-    return await this.repo.getAll(userId);
+  async getAll(actor: Actor): Promise<Feed[]> {
+    return await this.repo.getAll(actorUserId(actor));
   }
 
-  async delete(id: string): Promise<void> {
-    const deleted = await this.repo.delete(id);
+  async delete(feed: Authorized<Feed>): Promise<void> {
+    const deleted = await this.repo.delete(feed.id);
     if (!deleted) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }

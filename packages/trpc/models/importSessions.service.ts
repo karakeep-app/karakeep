@@ -8,6 +8,8 @@ import {
   ZImportSessionWithStats,
 } from "@karakeep/shared/types/importSessions";
 
+import type { Actor, Authorized } from "../lib/actor";
+import { actorUserId, assertOwnership, authorize } from "../lib/actor";
 import { ImportSessionsRepo } from "./importSessions.repo";
 
 type ImportSessionRow = typeof importSessions.$inferSelect;
@@ -20,13 +22,16 @@ export class ImportSessionsService {
   }
 
   async create(
-    userId: string,
+    actor: Actor,
     input: z.infer<typeof zCreateImportSessionRequestSchema>,
   ): Promise<ImportSessionRow> {
-    return await this.repo.create(userId, input);
+    return await this.repo.create(actorUserId(actor), input);
   }
 
-  async get(sessionId: string): Promise<ImportSessionRow> {
+  async get(
+    actor: Actor,
+    sessionId: string,
+  ): Promise<Authorized<ImportSessionRow>> {
     const session = await this.repo.get(sessionId);
     if (!session) {
       throw new TRPCError({
@@ -34,23 +39,29 @@ export class ImportSessionsService {
         message: "Import session not found",
       });
     }
-    return session;
+    return authorize(session, () =>
+      assertOwnership(actor, session.userId, {
+        notFoundOnDeny: true,
+        notFoundMessage: "Import session not found",
+      }),
+    );
   }
 
-  async getWithStats(sessionId: string): Promise<ZImportSessionWithStats> {
-    const session = await this.get(sessionId);
+  async getWithStats(
+    session: Authorized<ImportSessionRow>,
+  ): Promise<ZImportSessionWithStats> {
     return await this.buildStats(session);
   }
 
-  async listWithStats(userId: string): Promise<ZImportSessionWithStats[]> {
-    const sessions = await this.repo.getAll(userId);
+  async listWithStats(actor: Actor): Promise<ZImportSessionWithStats[]> {
+    const sessions = await this.repo.getAll(actorUserId(actor));
     return await Promise.all(
       sessions.map((session) => this.buildStats(session)),
     );
   }
 
-  async delete(sessionId: string): Promise<void> {
-    const deleted = await this.repo.delete(sessionId);
+  async delete(session: Authorized<ImportSessionRow>): Promise<void> {
+    const deleted = await this.repo.delete(session.id);
 
     if (!deleted) {
       throw new TRPCError({
@@ -61,7 +72,7 @@ export class ImportSessionsService {
   }
 
   async stageBookmarks(
-    session: ImportSessionRow,
+    session: Authorized<ImportSessionRow>,
     bookmarks: {
       type: "link" | "text" | "asset";
       url?: string;
@@ -107,7 +118,7 @@ export class ImportSessionsService {
     );
   }
 
-  async finalize(session: ImportSessionRow): Promise<void> {
+  async finalize(session: Authorized<ImportSessionRow>): Promise<void> {
     if (session.status !== "staging") {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -118,7 +129,7 @@ export class ImportSessionsService {
     await this.repo.updateStatus(session.id, "pending");
   }
 
-  async pause(session: ImportSessionRow): Promise<void> {
+  async pause(session: Authorized<ImportSessionRow>): Promise<void> {
     if (!["pending", "running"].includes(session.status)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -129,7 +140,7 @@ export class ImportSessionsService {
     await this.repo.updateStatus(session.id, "paused");
   }
 
-  async resume(session: ImportSessionRow): Promise<void> {
+  async resume(session: Authorized<ImportSessionRow>): Promise<void> {
     if (session.status !== "paused") {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -141,13 +152,13 @@ export class ImportSessionsService {
   }
 
   async getStagingBookmarks(
-    sessionId: string,
+    session: Authorized<ImportSessionRow>,
     filter?: "all" | "accepted" | "rejected" | "skipped_duplicate" | "pending",
     cursor?: string,
     limit = 50,
   ) {
     return await this.repo.getStagingBookmarks(
-      sessionId,
+      session.id,
       filter,
       cursor,
       limit,

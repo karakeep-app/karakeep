@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -12,6 +12,7 @@ import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
+import { actorFromContext } from "../lib/actor";
 import { HighlightsService } from "../models/highlights.service";
 import { ensureBookmarkAccess, ensureBookmarkOwnership } from "./bookmarks";
 
@@ -20,14 +21,8 @@ const ensureHighlightOwnership = experimental_trpcMiddleware<{
   input: { highlightId: string };
 }>().create(async (opts) => {
   const service = new HighlightsService(opts.ctx.db);
-  const highlight = await service.get(opts.input.highlightId);
-
-  if (highlight.userId !== opts.ctx.user.id) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not allowed to access resource",
-    });
-  }
+  const actor = actorFromContext(opts.ctx);
+  const highlight = await service.get(actor, opts.input.highlightId);
 
   return opts.next({
     ctx: {
@@ -44,7 +39,8 @@ export const highlightsAppRouter = router({
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       const service = new HighlightsService(ctx.db);
-      return await service.create(ctx.user.id, input);
+      const actor = actorFromContext(ctx);
+      return await service.create(actor, input);
     }),
   getForBookmark: authedProcedure
     .input(z.object({ bookmarkId: z.string() }))
@@ -72,7 +68,8 @@ export const highlightsAppRouter = router({
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
       const service = new HighlightsService(ctx.db);
-      return await service.getAll(ctx.user.id, input.cursor, input.limit);
+      const actor = actorFromContext(ctx);
+      return await service.getAll(actor, input.cursor, input.limit);
     }),
   search: authedProcedure
     .input(
@@ -85,12 +82,8 @@ export const highlightsAppRouter = router({
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
       const service = new HighlightsService(ctx.db);
-      return await service.search(
-        ctx.user.id,
-        input.text,
-        input.cursor,
-        input.limit,
-      );
+      const actor = actorFromContext(ctx);
+      return await service.search(actor, input.text, input.cursor, input.limit);
     }),
   delete: authedProcedure
     .input(z.object({ highlightId: z.string() }))
@@ -98,7 +91,7 @@ export const highlightsAppRouter = router({
     .use(ensureHighlightOwnership)
     .mutation(async ({ ctx }) => {
       const service = new HighlightsService(ctx.db);
-      return await service.delete(ctx.highlight.id);
+      return await service.delete(ctx.highlight);
     }),
   update: authedProcedure
     .input(zUpdateHighlightSchema)
@@ -106,6 +99,6 @@ export const highlightsAppRouter = router({
     .use(ensureHighlightOwnership)
     .mutation(async ({ input, ctx }) => {
       const service = new HighlightsService(ctx.db);
-      return await service.update(ctx.highlight.id, input);
+      return await service.update(ctx.highlight, input);
     }),
 });

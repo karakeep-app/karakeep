@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
 import { webhooksTable } from "@karakeep/db/schema";
@@ -10,6 +10,7 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
+import { actorFromContext } from "../lib/actor";
 import { WebhooksService } from "../models/webhooks.service";
 
 function toPublicWebhook(webhook: typeof webhooksTable.$inferSelect) {
@@ -25,14 +26,8 @@ const ensureWebhookOwnership = experimental_trpcMiddleware<{
   input: { webhookId: string };
 }>().create(async (opts) => {
   const service = new WebhooksService(opts.ctx.db);
-  const webhook = await service.get(opts.input.webhookId);
-
-  if (webhook.userId !== opts.ctx.user.id) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not allowed to access resource",
-    });
-  }
+  const actor = actorFromContext(opts.ctx);
+  const webhook = await service.get(actor, opts.input.webhookId);
 
   return opts.next({
     ctx: {
@@ -48,7 +43,8 @@ export const webhooksAppRouter = router({
     .output(zWebhookSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new WebhooksService(ctx.db);
-      const webhook = await service.create(ctx.user.id, input);
+      const actor = actorFromContext(ctx);
+      const webhook = await service.create(actor, input);
       return toPublicWebhook(webhook);
     }),
   update: authedProcedure
@@ -57,14 +53,15 @@ export const webhooksAppRouter = router({
     .use(ensureWebhookOwnership)
     .mutation(async ({ input, ctx }) => {
       const service = new WebhooksService(ctx.db);
-      const updated = await service.update(ctx.webhook.id, input);
+      const updated = await service.update(ctx.webhook, input);
       return toPublicWebhook(updated);
     }),
   list: authedProcedure
     .output(z.object({ webhooks: z.array(zWebhookSchema) }))
     .query(async ({ ctx }) => {
       const service = new WebhooksService(ctx.db);
-      const webhooks = await service.getAll(ctx.user.id);
+      const actor = actorFromContext(ctx);
+      const webhooks = await service.getAll(actor);
       return { webhooks: webhooks.map(toPublicWebhook) };
     }),
   delete: authedProcedure
@@ -72,6 +69,6 @@ export const webhooksAppRouter = router({
     .use(ensureWebhookOwnership)
     .mutation(async ({ ctx }) => {
       const service = new WebhooksService(ctx.db);
-      await service.delete(ctx.webhook.id);
+      await service.delete(ctx.webhook);
     }),
 });

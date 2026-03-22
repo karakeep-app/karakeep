@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
 import { FeedQueue } from "@karakeep/shared-server";
@@ -10,6 +10,7 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
+import { actorFromContext } from "../lib/actor";
 import { FeedsService } from "../models/feeds.service";
 
 const ensureFeedOwnership = experimental_trpcMiddleware<{
@@ -17,14 +18,8 @@ const ensureFeedOwnership = experimental_trpcMiddleware<{
   input: { feedId: string };
 }>().create(async (opts) => {
   const service = new FeedsService(opts.ctx.db);
-  const feed = await service.get(opts.input.feedId);
-
-  if (feed.userId !== opts.ctx.user.id) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "User is not allowed to access resource",
-    });
-  }
+  const actor = actorFromContext(opts.ctx);
+  const feed = await service.get(actor, opts.input.feedId);
 
   return opts.next({
     ctx: {
@@ -40,7 +35,8 @@ export const feedsAppRouter = router({
     .output(zFeedSchema)
     .mutation(async ({ input, ctx }) => {
       const service = new FeedsService(ctx.db);
-      return await service.create(ctx.user.id, input);
+      const actor = actorFromContext(ctx);
+      return await service.create(actor, input);
     }),
   update: authedProcedure
     .input(zUpdateFeedSchema)
@@ -48,7 +44,7 @@ export const feedsAppRouter = router({
     .use(ensureFeedOwnership)
     .mutation(async ({ input, ctx }) => {
       const service = new FeedsService(ctx.db);
-      return await service.update(ctx.feed.id, input);
+      return await service.update(ctx.feed, input);
     }),
   get: authedProcedure
     .input(z.object({ feedId: z.string() }))
@@ -61,7 +57,8 @@ export const feedsAppRouter = router({
     .output(z.object({ feeds: z.array(zFeedSchema) }))
     .query(async ({ ctx }) => {
       const service = new FeedsService(ctx.db);
-      const feeds = await service.getAll(ctx.user.id);
+      const actor = actorFromContext(ctx);
+      const feeds = await service.getAll(actor);
       return { feeds };
     }),
   delete: authedProcedure
@@ -69,7 +66,7 @@ export const feedsAppRouter = router({
     .use(ensureFeedOwnership)
     .mutation(async ({ ctx }) => {
       const service = new FeedsService(ctx.db);
-      await service.delete(ctx.feed.id);
+      await service.delete(ctx.feed);
     }),
   fetchNow: authedProcedure
     .input(z.object({ feedId: z.string() }))
