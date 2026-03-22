@@ -58,10 +58,10 @@ export class ImportSessionsRepo {
       .groupBy(importStagingBookmarks.status);
   }
 
-  async delete(id: string, userId: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     const result = await this.db
       .delete(importSessions)
-      .where(and(eq(importSessions.id, id), eq(importSessions.userId, userId)));
+      .where(eq(importSessions.id, id));
     return result.changes > 0;
   }
 

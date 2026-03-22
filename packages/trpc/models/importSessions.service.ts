@@ -26,24 +26,19 @@ export class ImportSessionsService {
     return await this.repo.create(userId, input);
   }
 
-  async get(sessionId: string, userId: string): Promise<ImportSessionRow> {
+  async get(sessionId: string): Promise<ImportSessionRow> {
     const session = await this.repo.get(sessionId);
-
-    if (!session || session.userId !== userId) {
+    if (!session) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Import session not found",
       });
     }
-
     return session;
   }
 
-  async getWithStats(
-    sessionId: string,
-    userId: string,
-  ): Promise<ZImportSessionWithStats> {
-    const session = await this.get(sessionId, userId);
+  async getWithStats(sessionId: string): Promise<ZImportSessionWithStats> {
+    const session = await this.get(sessionId);
     return await this.buildStats(session);
   }
 
@@ -54,8 +49,8 @@ export class ImportSessionsService {
     );
   }
 
-  async delete(sessionId: string, userId: string): Promise<void> {
-    const deleted = await this.repo.delete(sessionId, userId);
+  async delete(sessionId: string): Promise<void> {
+    const deleted = await this.repo.delete(sessionId);
 
     if (!deleted) {
       throw new TRPCError({

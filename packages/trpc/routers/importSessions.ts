@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware } from "@trpc/server";
+import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -19,10 +19,21 @@ const ensureImportSessionAccess = experimental_trpcMiddleware<{
   input: { importSessionId: string };
 }>().create(async (opts) => {
   const service = new ImportSessionsService(opts.ctx.db);
-  const session = await service.get(
-    opts.input.importSessionId,
-    opts.ctx.user.id,
-  );
+  const session = await service.get(opts.input.importSessionId);
+
+  if (!session) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Import session not found",
+    });
+  }
+
+  if (session.userId !== opts.ctx.user.id) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Import session not found",
+    });
+  }
 
   return opts.next({
     ctx: {
@@ -45,9 +56,10 @@ export const importSessionsRouter = router({
   getImportSessionStats: authedProcedure
     .input(zGetImportSessionStatsRequestSchema)
     .output(zImportSessionWithStatsSchema)
+    .use(ensureImportSessionAccess)
     .query(async ({ input, ctx }) => {
       const service = new ImportSessionsService(ctx.db);
-      return await service.getWithStats(input.importSessionId, ctx.user.id);
+      return await service.getWithStats(input.importSessionId);
     }),
 
   listImportSessions: authedProcedure
@@ -62,9 +74,10 @@ export const importSessionsRouter = router({
   deleteImportSession: authedProcedure
     .input(zDeleteImportSessionRequestSchema)
     .output(z.object({ success: z.boolean() }))
+    .use(ensureImportSessionAccess)
     .mutation(async ({ input, ctx }) => {
       const service = new ImportSessionsService(ctx.db);
-      await service.delete(input.importSessionId, ctx.user.id);
+      await service.delete(input.importSessionId);
       return { success: true };
     }),
 
