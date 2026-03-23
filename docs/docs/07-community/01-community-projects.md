@@ -85,3 +85,11 @@ _By [@sli-cka](https://github.com/sli-cka)_
 A custom integration that brings Karakeep data into Home Assistant. It exposes your Karakeep statistics data (like lists, bookmarks, tag, etc.) as Home Assistant entities, enabling dashboards, automations, and notifications based on your Karakeep data.
 
 Get it [here](https://github.com/sli-cka/karakeep-homeassistant)
+
+### karaclean
+
+_By [@lmgarret](https://github.com/lmgarret)_
+
+ A Docker sidecar that automatically cleans up Karakeep bookmarks based on declarative YAML rules.
+
+Get it [here](https://github.com/lmgarret/karaclean)
