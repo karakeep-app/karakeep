@@ -6,9 +6,11 @@
   "scripts": {
     "eval": "vitest run --config vitest.config.ts",
     "eval:watch": "vitest --config vitest.config.ts",
+    "snapshot": "tsx src/snapshot.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@karakeep/sdk": "workspace:^",
     "@karakeep/shared": "workspace:^",
     "zod": "^3.24.2"
   },

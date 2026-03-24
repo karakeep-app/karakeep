@@ -1566,6 +1566,9 @@ importers:
 
   tools/evals:
     dependencies:
+      '@karakeep/sdk':
+        specifier: workspace:^
+        version: link:../../packages/sdk
       '@karakeep/shared':
         specifier: workspace:^
         version: link:../../packages/shared

@@ -4,6 +4,7 @@ import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { z } from "zod";
 
 import type { EvalFixture } from "./dataset";
+import { config } from "./config";
 import type { ScoreResult } from "./scorers";
 import {
   scoreCurated,
@@ -13,7 +14,6 @@ import {
   scoreRelevance,
   scoreStyle,
 } from "./scorers";
-import { config } from "./config";
 
 const openAIResponseSchema = z.object({
   tags: z.array(z.string()),
@@ -40,6 +40,9 @@ export async function runEvalCase(
   tagClient: InferenceClient,
   judgeClient: InferenceClient,
 ): Promise<EvalCaseResult> {
+  // Use per-fixture contextLength override, or fall back to global config
+  const contextLength = fixture.contextLength ?? config.EVAL_CONTEXT_LENGTH;
+
   // 1. Build prompt using the real prompt functions
   let prompt: string;
   if (fixture.content.length > 0) {
@@ -47,7 +50,7 @@ export async function runEvalCase(
       fixture.lang,
       fixture.customPrompts,
       fixture.content,
-      config.EVAL_CONTEXT_LENGTH,
+      contextLength,
       fixture.tagStyle,
       fixture.curatedTags,
     );

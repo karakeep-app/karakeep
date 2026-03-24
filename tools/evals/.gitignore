@@ -1,0 +1,5 @@
+# Eval results (generated at runtime)
+results/
+
+# Environment file
+.env
