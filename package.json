@@ -23,7 +23,8 @@
     "test": "turbo --no-daemon test",
     "typecheck": "turbo --no-daemon typecheck",
     "preflight": "turbo run --no-daemon typecheck lint format",
-    "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix"
+    "preflight:fix": "turbo run --no-daemon typecheck lint:fix format:fix",
+    "eval:tagging": "pnpm --filter @karakeep/evals run eval"
   },
   "dependencies": {
     "husky": "^9.0.11"

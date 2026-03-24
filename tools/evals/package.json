@@ -1,0 +1,23 @@
+{
+  "name": "@karakeep/evals",
+  "version": "0.1.0",
+  "description": "Automated evaluations for tagging prompts and models",
+  "private": true,
+  "scripts": {
+    "eval": "vitest run --config vitest.config.ts",
+    "eval:watch": "vitest --config vitest.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@karakeep/shared": "workspace:^",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@karakeep/tsconfig": "workspace:^",
+    "@types/node": "^24",
+    "tsx": "^4.8.1",
+    "typescript": "^5.9",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^3.2.1"
+  }
+}
