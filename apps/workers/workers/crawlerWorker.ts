@@ -92,6 +92,7 @@ import {
 
 const tracer = getTracer("@karakeep/workers");
 
+/** Returns a promise that rejects when the given AbortSignal fires. */
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
     const p = Promise.reject(signal.reason ?? new Error("AbortError"));
@@ -146,6 +147,7 @@ function normalizeContentType(header: string | null): string | null {
   return header.split(";", 1)[0]!.trim().toLowerCase();
 }
 
+/** Determines if a crawl should be retried based on the HTTP status code. */
 function shouldRetryCrawlStatusCode(statusCode: number | null): boolean {
   if (statusCode === null) {
     return false;
@@ -181,6 +183,7 @@ interface CrawlerRunResult {
   status: "completed";
 }
 
+/** Builds the Playwright proxy configuration from server config and environment. */
 function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
   const { proxy } = serverConfig;
 
@@ -281,6 +284,7 @@ function startContextReaper() {
   );
 }
 
+/** Starts a Playwright browser instance, reusing the global one if available. */
 async function startBrowserInstance() {
   if (serverConfig.crawler.browserWebSocketUrl) {
     logger.info(
@@ -310,6 +314,7 @@ async function startBrowserInstance() {
   }
 }
 
+/** Launches a new Playwright browser with configured proxy and arguments. */
 async function launchBrowser() {
   globalBrowser = undefined;
   await browserMutex.runExclusive(async () => {
@@ -463,6 +468,7 @@ export class CrawlerWorker {
   }
 }
 
+/** Loads browser cookies from a JSON file for authenticated crawling. */
 async function loadCookiesFromFile(): Promise<void> {
   try {
     const path = serverConfig.crawler.browserCookiePath;
@@ -488,6 +494,7 @@ async function loadCookiesFromFile(): Promise<void> {
 
 type DBAssetType = typeof assets.$inferInsert;
 
+/** Crawls a page using a headless HTTP fetch (no browser) for simple HTML retrieval. */
 async function browserlessCrawlPage(
   jobId: string,
   url: string,
@@ -524,6 +531,7 @@ async function browserlessCrawlPage(
   );
 }
 
+/** Crawls a page using a full Playwright browser with screenshot, PDF, and HTML capture. */
 async function crawlPage(
   jobId: string,
   url: string,
@@ -1028,6 +1036,7 @@ async function crawlPage(
   );
 }
 
+/** Returns the filesystem path to the HTML parsing subprocess script. */
 function getSubprocessScriptPath(): string {
   const currentUrl = import.meta.url;
   if (currentUrl.includes("/dist/")) {
@@ -1038,6 +1047,7 @@ function getSubprocessScriptPath(): string {
   return new URL("../scripts/parseHtmlSubprocess.ts", currentUrl).pathname;
 }
 
+/** Builds the command and args for launching the HTML parse subprocess. */
 function getSubprocessCommand(): { cmd: string; args: string[] } {
   const scriptPath = getSubprocessScriptPath();
   const maxOldSpaceSize = serverConfig.crawler.parserMemLimitMb;
@@ -1056,6 +1066,7 @@ function getSubprocessCommand(): { cmd: string; args: string[] } {
   };
 }
 
+/** Runs the HTML parser in a child process and updates bookmark metadata in the DB. */
 async function runParseSubprocess(
   htmlContent: string,
   url: string,
@@ -1150,6 +1161,7 @@ async function runParseSubprocess(
   );
 }
 
+/** Uploads a JPEG screenshot buffer to asset storage and returns the asset info. */
 async function storeScreenshot(
   screenshot: Buffer | undefined,
   userId: string,
@@ -1209,6 +1221,7 @@ async function storeScreenshot(
   );
 }
 
+/** Uploads a PDF buffer to asset storage and returns the asset info. */
 async function storePdf(
   pdf: Buffer | undefined,
   userId: string,
@@ -1262,6 +1275,7 @@ async function storePdf(
   );
 }
 
+/** Downloads a file from a URL and stores it as a bookmark asset. */
 async function downloadAndStoreFile(
   url: string,
   userId: string,
@@ -1371,6 +1385,7 @@ async function downloadAndStoreFile(
   );
 }
 
+/** Downloads an image from a URL and stores it as a banner image asset. */
 async function downloadAndStoreImage(
   url: string,
   userId: string,
@@ -1386,6 +1401,7 @@ async function downloadAndStoreImage(
   return downloadAndStoreFile(url, userId, jobId, "image", abortSignal);
 }
 
+/** Creates a full-page archive (monolith) of the crawled HTML and stores it as an asset. */
 async function archiveWebpage(
   html: string,
   url: string,
@@ -1480,6 +1496,7 @@ async function archiveWebpage(
   );
 }
 
+/** Resolves the Content-Type of a URL via HEAD request, following redirects. */
 async function getContentType(
   url: string,
   jobId: string,
@@ -1635,6 +1652,7 @@ type StoreHtmlResult =
   | { result: "store_inline" }
   | { result: "not_stored" };
 
+/** Stores the raw HTML content of a crawled page as a text asset. */
 async function storeHtmlContent(
   htmlContent: string | undefined,
   userId: string,
@@ -1711,6 +1729,7 @@ async function storeHtmlContent(
   );
 }
 
+/** Orchestrates the full crawl-and-parse pipeline: fetch page, extract metadata, store assets. */
 async function crawlAndParseUrl(
   url: string,
   userId: string,
@@ -2108,6 +2127,7 @@ async function checkDomainRateLimit(url: string, jobId: string): Promise<void> {
   );
 }
 
+/** Entry point for the crawler worker: dequeues jobs, crawls URLs, and handles retries. */
 async function runCrawler(
   job: DequeuedJob<ZCrawlLinkRequest>,
   maxRetries: number,
