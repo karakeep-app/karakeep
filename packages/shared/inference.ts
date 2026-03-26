@@ -63,6 +63,7 @@ export interface OpenAIInferenceConfig {
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
   outputSchema: "structured" | "json" | "plain";
+  ttl?: number;
 }
 
 export class InferenceClientFactory {
@@ -114,6 +115,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       maxOutputTokens: serverConfig.inference.maxOutputTokens,
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
+      ttl: serverConfig.inference.ttl,
     });
   }
 
@@ -145,6 +147,8 @@ export class OpenAIInferenceClient implements InferenceClient {
           },
           this.config.outputSchema,
         ),
+        // @ts-ignore
+        ttl: this.config.ttl,
       },
       {
         signal: optsWithDefaults.abortSignal,
@@ -187,6 +191,8 @@ export class OpenAIInferenceClient implements InferenceClient {
           },
           this.config.outputSchema,
         ),
+        // @ts-ignore
+        ttl: this.config.ttl,
         messages: [
           {
             role: "user",

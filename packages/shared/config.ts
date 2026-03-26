@@ -77,6 +77,7 @@ const allEnv = z.object({
     .default("structured"),
   INFERENCE_ENABLE_AUTO_TAGGING: stringBool("true"),
   INFERENCE_ENABLE_AUTO_SUMMARIZATION: stringBool("false"),
+  INFERENCE_TTL: z.coerce.number().optional(),
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
@@ -307,6 +308,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           : val.INFERENCE_OUTPUT_SCHEMA,
       enableAutoTagging: val.INFERENCE_ENABLE_AUTO_TAGGING,
       enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
+      ttl: val.INFERENCE_TTL,
     },
     embedding: {
       textModel: val.EMBEDDING_TEXT_MODEL,
