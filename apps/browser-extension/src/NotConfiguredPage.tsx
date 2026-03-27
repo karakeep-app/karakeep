@@ -38,17 +38,29 @@ export default function NotConfiguredPage() {
       return;
     }
 
-    // Normalize the address by stripping /api/v1 or /api suffixes
-    const normalizedAddress = normalizeServerAddress(input);
+    // Normalize the address with error handling
+    let normalizedAddress: string;
+    try {
+      normalizedAddress = normalizeServerAddress(input);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid server address");
+      return;
+    }
 
     // Show a warning if the address was normalized
+    // Instead of navigating away, update the input and show warning
+    // so the user can review the correction before confirming
     if (normalizedAddress !== input) {
       setWarning(
         `Address was automatically corrected from "${input}" to "${normalizedAddress}". ` +
           `The server address should be the base URL without /api/v1 or /api suffix.`,
       );
+      setServerAddress(normalizedAddress);
+      return;
     }
 
+    // Clear any previous warning and navigate
+    setWarning("");
     setSettings((s) => ({ ...s, address: normalizedAddress }));
     navigate("/signin");
   };
