@@ -823,15 +823,9 @@ importers:
       '@karakeep/trpc':
         specifier: workspace:^0.1.0
         version: link:../../packages/trpc
-      '@karakeep/tsconfig':
-        specifier: workspace:^0.1.0
-        version: link:../../tooling/typescript
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
-      '@tsconfig/node22':
-        specifier: ^22.0.0
-        version: 22.0.2
       archiver:
         specifier: ^7.0.1
         version: 7.0.1
@@ -949,16 +943,16 @@ importers:
       tesseract.js:
         specifier: ^7.0.0
         version: 7.0.0(encoding@0.1.13)
-      tsx:
-        specifier: ^4.8.1
-        version: 4.20.3
-      typescript:
-        specifier: ^5.9
-        version: 5.9.3
       zod:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
+      '@karakeep/tsconfig':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/typescript
+      '@tsconfig/node22':
+        specifier: ^22.0.0
+        version: 22.0.2
       '@types/archiver':
         specifier: ^7.0.0
         version: 7.0.0
@@ -971,6 +965,12 @@ importers:
       tsdown:
         specifier: ^0.12.9
         version: 0.12.9(typescript@5.9.3)
+      tsx:
+        specifier: ^4.8.1
+        version: 4.20.3
+      typescript:
+        specifier: ^5.9
+        version: 5.9.3
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.3)(happy-dom@20.3.9)(jiti@2.4.2)(jsdom@24.1.3)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.0)
@@ -2603,10 +2603,6 @@ packages:
 
   '@babel/runtime@7.28.4':
     resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/runtime@7.28.6':
-    resolution: {integrity: sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==}
     engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.29.2':
@@ -17803,8 +17799,6 @@ snapshots:
 
   '@babel/runtime@7.28.4': {}
 
-  '@babel/runtime@7.28.6': {}
-
   '@babel/runtime@7.29.2': {}
 
   '@babel/template@7.27.2':
@@ -26616,7 +26610,7 @@ snapshots:
 
   history@4.10.1:
     dependencies:
-      '@babel/runtime': 7.28.6
+      '@babel/runtime': 7.29.2
       loose-envify: 1.4.0
       resolve-pathname: 3.0.0
       tiny-invariant: 1.3.3
@@ -28523,7 +28517,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.26.0
       '@babel/generator': 7.29.1
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
       flow-enums-runtime: 0.0.6
       metro: 0.82.5
