@@ -53,7 +53,8 @@ export default function ManageListsModal({
 
   const isLoading = isAllListsPending || isAlreadyInListPending;
 
-  const { mutate: addToList } = useAddBookmarkToList({
+  const { mutate: addToList, isPending: isAddingToListPending } =
+    useAddBookmarkToList({
     onSuccess: () => {
       toast({
         description: t("toasts.lists.updated"),
@@ -139,12 +140,15 @@ export default function ManageListsModal({
           <BookmarkListSelector
             hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
             onChange={(listId) => {
-              addToList({
-                bookmarkId: bookmarkId,
-                listId: listId,
-              });
+              if (!isAddingToListPending) {
+                addToList({
+                  bookmarkId: bookmarkId,
+                  listId: listId,
+                });
+              }
             }}
             listTypes={["manual"]}
+            disabled={isAddingToListPending}
           />
         </div>
         <DialogFooter className="sm:justify-end">
