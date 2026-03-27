@@ -82,16 +82,13 @@ RUN cd apps/web && pnpm exec next build --experimental-build-mode compile
 FROM base AS workers_builder
 
 COPY packages/shared ./packages/shared
-COPY packages/shared-react ./packages/shared-react
 COPY packages/shared-server ./packages/shared-server
 COPY packages/db ./packages/db
 COPY packages/trpc ./packages/trpc
-COPY packages/api ./packages/api
-COPY packages/open-api ./packages/open-api
-COPY packages/plugins ./packages/plugins
-COPY packages/sdk ./packages/sdk
 COPY tooling ./tooling
 COPY apps/workers ./apps/workers
+
+ARG KEEP_TESSERACT_WASM_FALLBACK=false
 
 RUN cd apps/workers && pnpm build
 RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/workers \
@@ -103,21 +100,27 @@ RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/w
     # Strip re2 build artifacts and vendor sources (keeps only .node binary)
     && rm -rf /prod/workers/node_modules/.pnpm/re2@*/node_modules/re2/vendor \
     && rm -rf /prod/workers/node_modules/.pnpm/re2@*/node_modules/re2/build/Release/obj.target \
-    # Strip tesseract.js WASM variants — keep only simd (default for modern Node)
-    && find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-lstm*" -delete \
-    && find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-relaxedsimd*" -delete \
-    && find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-simd-lstm*" -delete \
-    && find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core.wasm*" -delete \
-    # Strip native binary debug symbols
-    && find /prod/workers/node_modules -name "*.node" -exec strip --strip-debug {} \; 2>/dev/null || true \
-    # Remove unnecessary files
-    && find /prod/workers/node_modules -name "*.md" -o -name "*.map" -o -name "CHANGELOG*" -o -name "LICENSE*" | head -5000 | xargs rm -f 2>/dev/null || true
+    # Strip the non-SIMD tesseract.js WASM variants by default. Build with
+    # KEEP_TESSERACT_WASM_FALLBACK=true to retain the fallback files for
+    # runtimes without WASM SIMD support.
+    && if [ "$KEEP_TESSERACT_WASM_FALLBACK" != "true" ]; then \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-lstm*" -delete; \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-relaxedsimd*" -delete; \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-simd-lstm*" -delete; \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core.wasm*" -delete; \
+    fi \
+    # Strip native binary debug symbols (best-effort).
+    && (find /prod/workers/node_modules -name "*.node" -exec strip --strip-debug {} \; 2>/dev/null || true) \
+    # Remove unnecessary files (best-effort).
+    && (find /prod/workers/node_modules \( -name "*.md" -o -name "*.map" -o -name "CHANGELOG*" -o -name "LICENSE*" \) -type f -delete 2>/dev/null || true)
 
 ################# CLI Builder ##############
 FROM base AS cli_builder
 
 COPY packages/shared ./packages/shared
-COPY packages/sdk ./packages/sdk
+COPY packages/shared-server ./packages/shared-server
+COPY packages/db ./packages/db
+COPY packages/trpc ./packages/trpc
 COPY tooling ./tooling
 COPY apps/cli ./apps/cli
 
