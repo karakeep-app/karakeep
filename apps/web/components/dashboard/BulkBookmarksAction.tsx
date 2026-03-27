@@ -12,6 +12,7 @@ import useBulkActionsStore from "@/lib/bulkActions";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   CheckCheck,
+  ExternalLink,
   FileDown,
   Hash,
   Link,
@@ -159,6 +160,59 @@ export default function BulkBookmarksAction() {
     toast({
       description: `Added ${selectedBookmarks.length} bookmark links into the clipboard!`,
     });
+  };
+
+  const openLinks = () => {
+    const links = selectedBookmarks.filter(
+      (item) => item.content.type === BookmarkTypes.LINK,
+    );
+
+    if (links.length === 0) {
+      toast({
+        description: "No links selected",
+      });
+      return;
+    }
+
+    // Limit maximum number of links
+    if (links.length > 10) {
+      toast({
+        variant: "destructive",
+        description: `Cannot open more than 10 links at once. You selected ${links.length}.`,
+      });
+      return;
+    }
+
+    let opened = 0;
+    let blocked = 0;
+
+    links.forEach((item) => {
+      const url = item.content.url;
+      try {
+        const parsed = new URL(url);
+        if (["http:", "https:"].includes(parsed.protocol)) {
+          const win = window.open(url, "_blank", "noopener,noreferrer");
+          if (win) {
+            opened++;
+          } else {
+            blocked++;
+          }
+        }
+      } catch {
+        // Ignore invalid URLs
+      }
+    });
+
+    if (blocked > 0) {
+      toast({
+        variant: "destructive",
+        description: `Opened ${opened} links. ${blocked} were blocked by popup blocker.`,
+      });
+    } else {
+      toast({
+        description: `Opened ${opened} links in new tabs.`,
+      });
+    }
   };
 
   const updateBookmarks = async ({
