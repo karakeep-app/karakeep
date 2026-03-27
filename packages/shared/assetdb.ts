@@ -46,7 +46,6 @@ export const IMAGE_ASSET_TYPES: Set<string> = new Set<string>([
   ASSET_TYPES.IMAGE_JPEG,
   ASSET_TYPES.IMAGE_PNG,
   ASSET_TYPES.IMAGE_WEBP,
-  ASSET_TYPES.IMAGE_SVG,
 ]);
 
 // The assets that we allow the users to upload

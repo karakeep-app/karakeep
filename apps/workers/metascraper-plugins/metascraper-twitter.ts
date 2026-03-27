@@ -17,6 +17,24 @@ const escapeHtml = (text: string): string =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
+const sanitizeUrl = (url: string, baseUrl = "https://x.com"): string | null => {
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  try {
+    const parsed =
+      trimmed.startsWith("/") && !trimmed.startsWith("//")
+        ? new URL(trimmed, baseUrl)
+        : new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+};
+
 function getTopLevelTweetEls($: CheerioAPI) {
   // Collect all top-level tweet elements (skip nested/quoted tweets and
   // the pre-scroll main tweet injected by the crawler for metadata).
@@ -209,7 +227,7 @@ const extractSingleTweet = (
       const href = $(linkEl).attr("href") ?? "";
       // Match links like /username/status/12345 (with optional query params)
       if (!tweetUrl && /^\/\w+\/status\/\d+/.test(href)) {
-        tweetUrl = `https://x.com${href}`;
+        tweetUrl = sanitizeUrl(href, "https://x.com");
       }
     });
   } else if (authorHandle) {
@@ -268,7 +286,9 @@ const buildTweetHtml = (tweet: ExtractedTweet): string => {
   if (tweet.timestamp) {
     const formatted = formatTimestamp(tweet.timestamp);
     if (tweet.tweetUrl) {
-      authorParts.push(`<a href="${tweet.tweetUrl}">${formatted}</a>`);
+      authorParts.push(
+        `<a href="${escapeHtml(tweet.tweetUrl)}">${formatted}</a>`,
+      );
     } else {
       authorParts.push(formatted);
     }
@@ -284,7 +304,10 @@ const buildTweetHtml = (tweet: ExtractedTweet): string => {
 
   // Images
   for (const src of tweet.images) {
-    parts.push(`<img src="${src}" />`);
+    const safeSrc = sanitizeUrl(src);
+    if (safeSrc) {
+      parts.push(`<img src="${escapeHtml(safeSrc)}" />`);
+    }
   }
 
   // Video placeholder
@@ -300,10 +323,12 @@ const buildTweetHtml = (tweet: ExtractedTweet): string => {
  * Build HTML for an inline video poster linking back to X.
  */
 const buildVideoHtml = (poster: string, pageUrl?: string): string => {
-  const linkUrl = pageUrl ? escapeHtml(pageUrl) : "#";
+  const linkUrl = pageUrl ? (sanitizeUrl(pageUrl) ?? "#") : "#";
+  const posterUrl = sanitizeUrl(poster);
+  if (!posterUrl) return "";
   return (
-    `<a href="${linkUrl}" rel="noopener noreferrer" target="_blank">` +
-    `<video poster="${poster}" controls preload="none"></video>` +
+    `<a href="${escapeHtml(linkUrl)}" rel="noopener noreferrer" target="_blank">` +
+    `<video poster="${escapeHtml(posterUrl)}" controls preload="none"></video>` +
     `</a>`
   );
 };
@@ -352,7 +377,7 @@ const extractArticleFromDom = (
   if (titleEl.length > 0) {
     const titleText = titleEl.text().trim();
     if (titleText) {
-      parts.push(`<h1>${titleText}</h1>`);
+      parts.push(`<h1>${escapeHtml(titleText)}</h1>`);
     }
   }
 
@@ -378,8 +403,9 @@ const extractArticleFromDom = (
   }
   if (firstPhoto.length > 0) {
     const src = firstPhoto.attr("src");
-    if (src) {
-      parts.push(`<img src="${src}" />`);
+    const safeSrc = src ? sanitizeUrl(src) : null;
+    if (safeSrc) {
+      parts.push(`<img src="${escapeHtml(safeSrc)}" />`);
     }
   }
 
@@ -420,7 +446,10 @@ const extractArticleFromDom = (
           });
         const poster = $(el).find("video").attr("poster");
         if (poster) {
-          parts.push(buildVideoHtml(poster, pageUrl));
+          const videoHtml = buildVideoHtml(poster, pageUrl);
+          if (videoHtml) {
+            parts.push(videoHtml);
+          }
         }
         return;
       }
@@ -490,8 +519,11 @@ const extractArticleFromDom = (
           if ($(child).is("a")) {
             const href = $(child).attr("href") ?? "";
             const linkText = $(child).text().trim();
-            if (href && linkText) {
-              blockParts.push(`<a href="${href}">${linkText}</a>`);
+            const safeHref = sanitizeUrl(href);
+            if (safeHref && linkText) {
+              blockParts.push(
+                `<a href="${escapeHtml(safeHref)}">${escapeHtml(linkText)}</a>`,
+              );
             }
           } else if ($(child).is("span")) {
             // Skip spans inside <a> tags — already handled above
@@ -503,7 +535,7 @@ const extractArticleFromDom = (
             ) {
               const text = $(child).text();
               if (text) {
-                blockParts.push(text);
+                blockParts.push(escapeHtml(text));
               }
             }
           }
@@ -520,7 +552,7 @@ const extractArticleFromDom = (
           const lang = codeBlockMatch[1]!;
           const code = codeBlockMatch[2]!;
           parts.push(
-            `<pre><code class="language-${escapeHtml(lang)}">${escapeHtml(code)}</code></pre>`,
+            `<pre><code class="language-${escapeHtml(lang)}">${code}</code></pre>`,
           );
         } else {
           parts.push(`<p>${blockHtml}</p>`);
@@ -538,8 +570,9 @@ const extractArticleFromDom = (
       // Skip the banner image we already extracted
       const img = $(el).find("img").first();
       const src = img.attr("src") ?? "";
-      if (src && src !== firstPhoto.attr("src")) {
-        parts.push(`<img src="${src}" />`);
+      const safeSrc = sanitizeUrl(src);
+      if (safeSrc && src !== firstPhoto.attr("src")) {
+        parts.push(`<img src="${escapeHtml(safeSrc)}" />`);
       }
     } else if (testId === "tweet" || testId === "simpleTweet") {
       seen.add(el);
@@ -554,7 +587,7 @@ const extractArticleFromDom = (
       const tweetTexts = $(el).find('[data-testid="tweetText"]');
       const statusLink = $(el).find('a[href*="/status/"]').first();
       const href = statusLink.attr("href") ?? "";
-      const tweetUrl = href ? `https://x.com${href.split("?")[0]}` : "";
+      const tweetUrl = href ? (sanitizeUrl(href.split("?")[0]) ?? "") : "";
 
       const mainText = tweetTexts.eq(0).text().trim();
       const quoteText =
@@ -571,19 +604,24 @@ const extractArticleFromDom = (
       if (mainText || tweetUrl) {
         const contentParts: string[] = [];
         if (mainText) {
-          contentParts.push(`<p>${mainText}</p>`);
+          contentParts.push(`<p>${escapeHtml(mainText)}</p>`);
         }
         if (quoteText) {
-          contentParts.push(`<blockquote><p>${quoteText}</p></blockquote>`);
+          contentParts.push(
+            `<blockquote><p>${escapeHtml(quoteText)}</p></blockquote>`,
+          );
         }
-        if (cardHref) {
+        const safeCardHref = sanitizeUrl(cardHref);
+        if (safeCardHref) {
           const display = cardTitle || cardHref;
           contentParts.push(
-            `<p><a href="${cardHref}">${escapeHtml(display)}</a></p>`,
+            `<p><a href="${escapeHtml(safeCardHref)}">${escapeHtml(display)}</a></p>`,
           );
         }
         if (tweetUrl) {
-          contentParts.push(`<p><a href="${tweetUrl}">${tweetUrl}</a></p>`);
+          contentParts.push(
+            `<p><a href="${escapeHtml(tweetUrl)}">${escapeHtml(tweetUrl)}</a></p>`,
+          );
         }
         parts.push(`<blockquote>${contentParts.join("\n")}</blockquote>`);
       }
@@ -596,7 +634,10 @@ const extractArticleFromDom = (
         });
       const poster = $(el).find("video").attr("poster");
       if (poster) {
-        parts.push(buildVideoHtml(poster, pageUrl));
+        const videoHtml = buildVideoHtml(poster, pageUrl);
+        if (videoHtml) {
+          parts.push(videoHtml);
+        }
       }
     } else if (testId === "card.wrapper") {
       seen.add(el);
@@ -612,10 +653,11 @@ const extractArticleFromDom = (
         .find('[data-testid="card.layoutSmall.detail"]')
         .text()
         .trim();
-      if (cardHref) {
+      const safeCardHref = sanitizeUrl(cardHref);
+      if (safeCardHref) {
         const displayText = cardDetail || cardHref;
         parts.push(
-          `<p><a href="${cardHref}">${escapeHtml(displayText)}</a></p>`,
+          `<p><a href="${escapeHtml(safeCardHref)}">${escapeHtml(displayText)}</a></p>`,
         );
       }
     }
@@ -876,7 +918,10 @@ const extractFromMetaTags = (
 
   // Image (skip the default X/Twitter OG image)
   if (ogImage && !ogImage.includes("/og/image.png")) {
-    parts.push(`<img src="${ogImage}" />`);
+    const safeOgImage = sanitizeUrl(ogImage);
+    if (safeOgImage) {
+      parts.push(`<img src="${escapeHtml(safeOgImage)}" />`);
+    }
   }
 
   return parts.length > 0 ? parts.join("\n") : undefined;
@@ -1104,6 +1149,11 @@ const extractAuthorFromMeta = ($: CheerioAPI): string | undefined => {
 };
 
 const metascraperTwitter = () => {
+  type TwitterRuleOption = (opts: {
+    htmlDom: CheerioAPI;
+    url: string;
+  }) => string | undefined;
+
   const rules: Rules = {
     pkgName: "metascraper-twitter",
     test,
@@ -1125,7 +1175,7 @@ const metascraperTwitter = () => {
       if (domTitle) return domTitle;
       // Fallback to og:title parsing
       return extractTitleFromMeta(htmlDom);
-    }) as unknown as RulesOptions,
+    }) as TwitterRuleOption as RulesOptions,
     image: (({ htmlDom, url }: { htmlDom: CheerioAPI; url: string }) => {
       // For article pages: find the banner image — the first tweetPhoto
       // NOT inside the article rich text view (those are content images).
@@ -1164,7 +1214,7 @@ const metascraperTwitter = () => {
       if (domImage) return domImage;
       // Fallback to og:image (skips default X placeholder)
       return extractImageFromMeta(htmlDom);
-    }) as unknown as RulesOptions,
+    }) as TwitterRuleOption as RulesOptions,
     author: (({ htmlDom, url }: { htmlDom: CheerioAPI; url: string }) => {
       // Use the main tweet element for author extraction — works for
       // both regular tweets and articles on /status/ pages.
@@ -1172,7 +1222,7 @@ const metascraperTwitter = () => {
       if (domAuthor) return domAuthor;
       // Fallback to og:title parsing
       return extractAuthorFromMeta(htmlDom);
-    }) as unknown as RulesOptions,
+    }) as TwitterRuleOption as RulesOptions,
     readableContentHtml: (({
       htmlDom,
       url,
@@ -1184,7 +1234,7 @@ const metascraperTwitter = () => {
       // authenticated X/Twitter pages. Keep the metascraper rule lightweight
       // so it only provides the unauthenticated og: meta-tag fallback.
       return extractFromMetaTags(htmlDom, url);
-    }) as unknown as RulesOptions,
+    }) as TwitterRuleOption as RulesOptions,
   };
 
   return rules;

@@ -181,7 +181,13 @@ async function main() {
   // so we call the extraction functions directly here.
   let readableContent: { content: string } | null = null;
   {
-    const isXUrl = /^https?:\/\/(x|twitter)\.com\//.test(url);
+    let isXUrl = false;
+    try {
+      const hostname = new URL(url).hostname
+        .replace(/^www\./, "")
+        .toLowerCase();
+      isXUrl = hostname === "x.com" || hostname === "twitter.com";
+    } catch {}
     if (isXUrl) {
       const htmlDom = cheerioLoad(htmlContent);
       const articleContent = twitterPrivate.extractArticleWithReplies(

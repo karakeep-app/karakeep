@@ -470,6 +470,37 @@ describe("extractArticleWithReplies", () => {
     expect(content).not.toContain("Replies");
   });
 
+  test("escapes article text and sanitizes links", () => {
+    const html = `
+      <div data-testid="twitter-article-title">My &lt;Title&gt;</div>
+      <div data-testid="twitterArticleRichTextView">
+        <div data-block="true">
+          <span>Paragraph with </span>
+          <a href="/author/status/100">relative link</a>
+        </div>
+        <div data-block="true">
+          <a href="javascript:alert(1)">unsafe link</a>
+        </div>
+      </div>
+      <div data-testid="tweet">
+        <a role="link" href="/author">Author</a>
+        <a role="link" href="/author">@author</a>
+        <a href="/author/status/100">Mar 1</a>
+        <time datetime="2026-03-22T10:00:00.000Z"></time>
+        <div data-testid="tweetText">Check out my article</div>
+      </div>
+    `;
+
+    const content = __private.extractArticleWithReplies(
+      load(html),
+      "https://x.com/author/status/100",
+    );
+
+    expect(content).toContain("<h1>My &lt;Title&gt;</h1>");
+    expect(content).toContain('href="https://x.com/author/status/100"');
+    expect(content).not.toContain("javascript:alert(1)");
+  });
+
   test("extracts code blocks from flattened text (headless Chrome rendering)", () => {
     const html = `
       <div data-testid="twitter-article-title">Code Article</div>

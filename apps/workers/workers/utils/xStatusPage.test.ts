@@ -23,5 +23,6 @@ describe("extractXStatusId", () => {
     expect(extractXStatusId("https://x.com/user/article/123")).toBeNull();
     expect(extractXStatusId("https://example.com")).toBeNull();
     expect(extractXStatusId("https://example.com/user/status/123")).toBeNull();
+    expect(extractXStatusId("//example.com/user/status/123")).toBeNull();
   });
 });

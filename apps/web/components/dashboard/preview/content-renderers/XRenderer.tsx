@@ -54,28 +54,46 @@ function ArticleTweetEmbed({
   const { data, error, isLoading } = useTweet(tweetId);
 
   if (isLoading) return <TweetSkeleton />;
-  if (error || !data) return <TweetNotFound error={error} />;
+
+  const articleBody = (
+    <div className="px-4 pb-3">
+      {segments.map((segment, i) =>
+        segment.type === "html" ? (
+          <div
+            key={i}
+            className="prose max-w-none text-sm dark:prose-invert prose-headings:my-3 prose-p:my-2 prose-blockquote:border-l-muted-foreground/30 prose-blockquote:pl-4 prose-blockquote:not-italic prose-img:my-3 prose-img:rounded prose-hr:my-4"
+            dangerouslySetInnerHTML={{ __html: segment.content }}
+          />
+        ) : (
+          <div key={i} className="my-3 flex justify-center">
+            <Tweet id={segment.id} />
+          </div>
+        ),
+      )}
+    </div>
+  );
+
+  if (error || !data) {
+    if (segments.length === 0) {
+      return <TweetNotFound error={error} />;
+    }
+
+    return (
+      <TweetContainer>
+        <div className="px-4 pt-3 text-sm text-muted-foreground">
+          Tweet unavailable. Showing saved article content.
+        </div>
+        {articleBody}
+      </TweetContainer>
+    );
+  }
 
   const tweet = enrichTweet(data);
 
   return (
     <TweetContainer>
       <TweetHeader tweet={tweet} />
-      <div className="px-4 pb-3">
-        {segments.map((segment, i) =>
-          segment.type === "html" ? (
-            <div
-              key={i}
-              className="prose max-w-none text-sm dark:prose-invert prose-headings:my-3 prose-p:my-2 prose-blockquote:border-l-muted-foreground/30 prose-blockquote:pl-4 prose-blockquote:not-italic prose-img:my-3 prose-img:rounded prose-hr:my-4"
-              dangerouslySetInnerHTML={{ __html: segment.content }}
-            />
-          ) : (
-            <div key={i} className="my-3 flex justify-center">
-              <Tweet id={segment.id} />
-            </div>
-          ),
-        )}
-      </div>
+      {articleBody}
       <TweetInfo tweet={tweet} />
       <TweetActions tweet={tweet} />
     </TweetContainer>

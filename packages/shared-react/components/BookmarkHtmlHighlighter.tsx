@@ -194,7 +194,18 @@ const BookmarkHTMLHighlighter = forwardRef<
     // Emoji sizing
     html = html.replace(
       /<img([^>]*src="[^"]*emoji[^"]*"[^>]*)>/gi,
-      '<img$1 style="display:inline;height:1.2em;width:1.2em;margin:0;vertical-align:text-bottom">',
+      (match, attrs: string) => {
+        const emojiStyle =
+          "display:inline;height:1.2em;width:1.2em;margin:0;vertical-align:text-bottom";
+        if (/style\s*=/i.test(attrs)) {
+          return match.replace(
+            /style\s*=\s*"([^"]*)"/i,
+            (_, style: string) =>
+              `style="${style ? `${style};` : ""}${emojiStyle}"`,
+          );
+        }
+        return `<img${attrs} style="${emojiStyle}">`;
+      },
     );
     // Convert newlines to <br> inside leaf Twitter text spans (class names
     // starting with r- or css-). Limit this to spans without child tags so a

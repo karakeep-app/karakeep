@@ -1477,6 +1477,7 @@ async function storeScreenshot(
   screenshot: Buffer | undefined,
   userId: string,
   jobId: string,
+  abortSignal: AbortSignal,
 ) {
   return await withSpan(
     tracer,
@@ -1489,6 +1490,7 @@ async function storeScreenshot(
       },
     },
     async () => {
+      abortSignal.throwIfAborted();
       if (!serverConfig.crawler.storeScreenshot) {
         logger.info(
           `[Crawler][${jobId}] Skipping storing the screenshot as per the config.`,
@@ -1517,6 +1519,7 @@ async function storeScreenshot(
         return null;
       }
 
+      abortSignal.throwIfAborted();
       await saveAsset({
         userId,
         assetId,
@@ -1524,6 +1527,13 @@ async function storeScreenshot(
         asset: screenshot,
         quotaApproved,
       });
+      if (abortSignal.aborted) {
+        logger.info(
+          `[Crawler][${jobId}] Aborted after storing screenshot asset ${assetId}; deleting orphaned asset.`,
+        );
+        await silentDeleteAsset(userId, assetId);
+        return null;
+      }
       logger.info(
         `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId} (${screenshot.byteLength} bytes)`,
       );
@@ -1536,6 +1546,7 @@ async function storePdf(
   pdf: Buffer | undefined,
   userId: string,
   jobId: string,
+  abortSignal: AbortSignal,
 ) {
   return await withSpan(
     tracer,
@@ -1548,6 +1559,7 @@ async function storePdf(
       },
     },
     async () => {
+      abortSignal.throwIfAborted();
       if (!pdf) {
         logger.info(
           `[Crawler][${jobId}] Skipping storing the PDF as it's empty.`,
@@ -1570,6 +1582,7 @@ async function storePdf(
         return null;
       }
 
+      abortSignal.throwIfAborted();
       await saveAsset({
         userId,
         assetId,
@@ -1577,6 +1590,13 @@ async function storePdf(
         asset: pdf,
         quotaApproved,
       });
+      if (abortSignal.aborted) {
+        logger.info(
+          `[Crawler][${jobId}] Aborted after storing PDF asset ${assetId}; deleting orphaned asset.`,
+        );
+        await silentDeleteAsset(userId, assetId);
+        return null;
+      }
       logger.info(
         `[Crawler][${jobId}] Stored the PDF as assetId: ${assetId} (${pdf.byteLength} bytes)`,
       );
@@ -1702,6 +1722,23 @@ const BANNER_IMAGE_BLOCKLIST = [
   /rweb\/ssr\/default\/v2\/og\/image\.png/, // Twitter default OG image
 ];
 
+function isBlockedBannerImageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    const isXAssetHost =
+      hostname === "abs.twimg.com" || hostname.endsWith(".twimg.com");
+    if (!isXAssetHost) {
+      return false;
+    }
+
+    const candidate = `${hostname}${parsed.pathname}`;
+    return BANNER_IMAGE_BLOCKLIST.some((re) => re.test(candidate));
+  } catch {
+    return false;
+  }
+}
+
 async function downloadAndStoreImage(
   url: string,
   userId: string,
@@ -1714,7 +1751,7 @@ async function downloadAndStoreImage(
     );
     return null;
   }
-  if (BANNER_IMAGE_BLOCKLIST.some((re) => re.test(url))) {
+  if (isBlockedBannerImageUrl(url)) {
     logger.info(`[Crawler][${jobId}] Skipping blocked image URL: "${url}"`);
     return null;
   }
@@ -2182,8 +2219,8 @@ async function crawlAndParseUrl(
 
       const [screenshotAssetInfo, pdfAssetInfo] = await raceWithAbort(
         Promise.all([
-          storeScreenshot(screenshot, userId, jobId),
-          storePdf(pdf, userId, jobId),
+          storeScreenshot(screenshot, userId, jobId, abortSignal),
+          storePdf(pdf, userId, jobId, abortSignal),
         ]),
         abortSignal,
       );
