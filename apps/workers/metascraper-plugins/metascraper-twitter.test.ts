@@ -311,6 +311,38 @@ describe("pre-scroll main tweet injection", () => {
     // The "Replies" heading should appear (both self-reply and other reply are after main)
     expect(content).toContain("Replies");
   });
+
+  test("deduplicates the post-scroll main tweet when a pre-scroll copy is injected", () => {
+    const html = `
+      <div data-testid="tweet">
+        <a role="link" href="/kyle">@kyle</a>
+        <time datetime="2026-03-01T10:00:00.000Z"></time>
+        <div data-testid="tweetText">Main tweet text</div>
+      </div>
+      <div data-testid="tweet">
+        <a role="link" href="/reply">@reply</a>
+        <a href="/reply/status/300">Mar 2</a>
+        <time datetime="2026-03-02T10:00:00.000Z"></time>
+        <div data-testid="tweetText">Reply from someone else</div>
+      </div>
+      <div data-karakeep-main-tweet="pre-scroll" style="display:none">
+        <div data-testid="tweet">
+          <a role="link" href="/kyle">@kyle</a>
+          <a href="/kyle/status/200">Mar 1</a>
+          <time datetime="2026-03-01T10:00:00.000Z"></time>
+          <div data-testid="tweetText">Main tweet text</div>
+        </div>
+      </div>
+    `;
+
+    const content = __private.extractFromDom(
+      load(html),
+      "https://x.com/kyle/status/200",
+    );
+
+    expect(content?.match(/Main tweet text/g)).toHaveLength(1);
+    expect(content).toContain("Reply from someone else");
+  });
 });
 
 describe("fallback chain integration", () => {
@@ -355,6 +387,24 @@ describe("fallback chain integration", () => {
     expect(__private.extractTitleFromMeta($)).toBeUndefined();
     expect(__private.extractImageFromMeta($)).toBeUndefined();
     expect(__private.extractAuthorFromMeta($)).toBeUndefined();
+  });
+
+  test("does not emit a broken canonical tweet URL when authorHandle is missing", () => {
+    const html = `
+      <div data-testid="tweet">
+        <a href="/user/status/100">Mar 1</a>
+        <time datetime="2026-03-01T10:00:00.000Z"></time>
+        <div data-testid="tweetText">Main tweet text</div>
+      </div>
+    `;
+
+    const content = __private.extractFromDom(
+      load(html),
+      "https://x.com/user/status/100",
+    );
+
+    expect(content).toContain("Main tweet text");
+    expect(content).not.toContain('href="https://x.com/status/100"');
   });
 });
 

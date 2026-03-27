@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest";
 
-import { extractReplyTweetIds, parseArticleSegments } from "./xArticleSegments";
+import {
+  extractReplyTweetIds,
+  isArticleContent,
+  parseArticleSegments,
+} from "./xArticleSegments";
 
 describe("parseArticleSegments", () => {
   test("keeps nested quote-tweet embeds intact", () => {
@@ -43,5 +47,17 @@ describe("extractReplyTweetIds", () => {
     `;
 
     expect(extractReplyTweetIds(html)).toEqual(["1", "2"]);
+  });
+});
+
+describe("isArticleContent", () => {
+  test("only treats content starting with an h1 as an article", () => {
+    expect(isArticleContent("<h1>Article title</h1><p>Body</p>")).toBe(true);
+    expect(isArticleContent("\n  <h1>Article title</h1><p>Body</p>")).toBe(
+      true,
+    );
+    expect(isArticleContent("<p>Tweet header</p><h1>Quoted heading</h1>")).toBe(
+      false,
+    );
   });
 });

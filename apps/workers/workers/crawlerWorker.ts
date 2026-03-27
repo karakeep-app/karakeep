@@ -856,6 +856,15 @@ async function crawlPage(
                     const tweets = Array.from(
                       document.querySelectorAll<HTMLElement>(SELECTOR),
                     ).filter((t) => !t.parentElement?.closest(SELECTOR));
+                    const getDirectStatusLinks = (tweetEl: HTMLElement) =>
+                      Array.from(
+                        tweetEl.querySelectorAll<HTMLAnchorElement>(
+                          'a[href*="/status/"]',
+                        ),
+                      ).filter((a) => {
+                        const owningTweet = a.closest(SELECTOR);
+                        return !owningTweet || owningTweet === tweetEl;
+                      });
 
                     // Check if we hit the "Discover more" boundary
                     const headings = Array.from(
@@ -870,6 +879,12 @@ async function crawlPage(
                     const collected: { key: string; html: string }[] = [];
                     let hitDiscover = false;
                     for (const t of tweets) {
+                      const directStatusLinks = getDirectStatusLinks(t);
+                      const directStatusLink = directStatusLinks.find((a) => {
+                        return /^\/\w+\/status\/\d+/.test(
+                          a.getAttribute("href") ?? "",
+                        );
+                      });
                       if (
                         discoverEl &&
                         t.compareDocumentPosition(discoverEl) &
@@ -882,7 +897,7 @@ async function crawlPage(
                       // Skip the main tweet
                       if (
                         sid &&
-                        Array.from(t.querySelectorAll("a[href]")).some((a) =>
+                        directStatusLinks.some((a) =>
                           (a.getAttribute("href") ?? "").endsWith(
                             `/status/${sid}`,
                           ),
@@ -890,15 +905,8 @@ async function crawlPage(
                       ) {
                         continue;
                       }
-                      const statusLink = Array.from(
-                        t.querySelectorAll('a[href*="/status/"]'),
-                      ).find((a) =>
-                        /^\/\w+\/status\/\d+/.test(
-                          a.getAttribute("href") ?? "",
-                        ),
-                      );
-                      const key = statusLink
-                        ? (statusLink.getAttribute("href") ?? "")
+                      const key = directStatusLink
+                        ? (directStatusLink.getAttribute("href") ?? "")
                         : `__pos_${collected.length}`;
                       collected.push({ key, html: t.outerHTML });
                     }
@@ -909,7 +917,7 @@ async function crawlPage(
                       replyCount = tweets.length > 1 ? tweets.length - 1 : 0;
                     } else {
                       const mainIdx = tweets.findIndex((t2) =>
-                        Array.from(t2.querySelectorAll("a[href]")).some((a) =>
+                        getDirectStatusLinks(t2).some((a) =>
                           (a.getAttribute("href") ?? "").includes(
                             `/status/${sid}`,
                           ),
@@ -1041,7 +1049,8 @@ async function crawlPage(
                                   reject(
                                     "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
                                   ),
-                                serverConfig.crawler.screenshotTimeoutSec * 1000,
+                                serverConfig.crawler.screenshotTimeoutSec *
+                                  1000,
                               ),
                             ),
                           ]),
@@ -1091,7 +1100,8 @@ async function crawlPage(
                                   reject(
                                     "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
                                   ),
-                                serverConfig.crawler.screenshotTimeoutSec * 1000,
+                                serverConfig.crawler.screenshotTimeoutSec *
+                                  1000,
                               ),
                             ),
                           ]),

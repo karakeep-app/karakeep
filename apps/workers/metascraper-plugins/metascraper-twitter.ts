@@ -212,7 +212,7 @@ const extractSingleTweet = (
         tweetUrl = `https://x.com${href}`;
       }
     });
-  } else {
+  } else if (authorHandle) {
     tweetUrl = `https://x.com${authorHandle.replace("@", "/")}${mainTweetId ? `/status/${mainTweetId}` : ""}`;
   }
 
@@ -429,12 +429,9 @@ const extractArticleFromDom = (
       // or (in some Chromium versions) as flattened text where the language
       // label is concatenated with the code content.
       {
-        const codeBlockEl = $(el).find(
-          '[data-testid="markdown-code-block"]',
-        );
-        const preEl = codeBlockEl.length > 0
-          ? codeBlockEl.find("pre")
-          : $(el).find("pre");
+        const codeBlockEl = $(el).find('[data-testid="markdown-code-block"]');
+        const preEl =
+          codeBlockEl.length > 0 ? codeBlockEl.find("pre") : $(el).find("pre");
         if (preEl.length > 0) {
           $(el)
             .find("*")
@@ -442,8 +439,7 @@ const extractArticleFromDom = (
               seen.add(descendant);
             });
           const codeEl = preEl.find("code");
-          const codeText =
-            codeEl.length > 0 ? codeEl.text() : preEl.text();
+          const codeText = codeEl.length > 0 ? codeEl.text() : preEl.text();
           if (codeText) {
             // Language label: first child div before the <pre> (inside
             // markdown-code-block or directly in the data-block section).
@@ -712,6 +708,16 @@ const resolveMainTweet = (
       const preMain = extractSingleTweet(preEl, $, tweetId);
       if (preMain) {
         preMain.isMainTweet = true;
+        const duplicateIdx = tweets.findIndex(
+          (tweet) =>
+            (preMain.tweetUrl && tweet.tweetUrl === preMain.tweetUrl) ||
+            (tweet.authorHandle === preMain.authorHandle &&
+              tweet.timestamp === preMain.timestamp &&
+              tweet.textHtml === preMain.textHtml),
+        );
+        if (duplicateIdx !== -1) {
+          tweets.splice(duplicateIdx, 1);
+        }
         tweets.unshift(preMain);
         return;
       }
@@ -1169,38 +1175,10 @@ const metascraperTwitter = () => {
       htmlDom: CheerioAPI;
       url: string;
     }) => {
-      // Direct /article/ URL — extract article body only (no replies on that page)
-      if (isArticleUrl(url)) {
-        const articleContent = extractArticleFromDom(htmlDom, url);
-        if (articleContent) {
-          return articleContent;
-        }
-        // Fall through to other extraction methods
-      }
-
-      // /status/ page with inline article — extract article body + replies
-      if (hasArticleDom(htmlDom)) {
-        const articleContent = extractArticleWithReplies(htmlDom, url);
-        if (articleContent) {
-          return articleContent;
-        }
-        // Fall through to other extraction methods
-      }
-
-      // Try full DOM extraction first (authenticated path)
-      const domContent = extractFromDom(htmlDom, url);
-      if (domContent) {
-        return domContent;
-      }
-
-      // Fallback to og: meta tags (unauthenticated path)
-      const metaContent = extractFromMetaTags(htmlDom, url);
-      if (metaContent) {
-        return metaContent;
-      }
-
-      // Let Readability try as last resort
-      return undefined;
+      // parseHtmlSubprocess runs the heavier DOM extraction path directly for
+      // authenticated X/Twitter pages. Keep the metascraper rule lightweight
+      // so it only provides the unauthenticated og: meta-tag fallback.
+      return extractFromMetaTags(htmlDom, url);
     }) as unknown as RulesOptions,
   };
 

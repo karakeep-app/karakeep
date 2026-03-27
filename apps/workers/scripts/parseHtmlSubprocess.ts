@@ -220,8 +220,9 @@ async function main() {
     }
   }
 
-  // Legacy: check metascraper's readableContentHtml (not currently used by any plugin,
-  // but kept for backward compatibility in case future plugins provide it).
+  // Fallback to plugin-provided readableContentHtml when a metascraper plugin
+  // can provide lighter-weight extracted HTML, such as the X/Twitter
+  // unauthenticated meta-tag fallback.
   if (!readableContent && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).

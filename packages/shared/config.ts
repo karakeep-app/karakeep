@@ -91,6 +91,8 @@ const allEnv = z.object({
   BROWSER_COOKIE_PATH: z.string().optional(),
   CRAWLER_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_NAVIGATE_TIMEOUT_SEC: z.coerce.number().default(30),
+  // X/Twitter /status/ crawls may consume this budget more than once:
+  // for initial load, DOM stabilization, and reply scrolling.
   CRAWLER_LOAD_WAIT_SEC: z.coerce.number().default(5),
   CRAWLER_NUM_WORKERS: z.coerce.number().default(1),
   INFERENCE_NUM_WORKERS: z.coerce.number().default(1),

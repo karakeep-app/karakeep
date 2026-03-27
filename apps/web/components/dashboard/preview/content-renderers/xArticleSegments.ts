@@ -17,22 +17,20 @@ export function extractReplyTweetIds(html: string): string[] {
   }
 
   const repliesSection = html.slice(repliesIdx);
-  const ids: string[] = [];
+  const ids = new Set<string>();
   const linkPattern =
     /href="https?:\/\/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)"/g;
 
   let match: RegExpExecArray | null;
   while ((match = linkPattern.exec(repliesSection)) !== null) {
-    if (!ids.includes(match[1])) {
-      ids.push(match[1]);
-    }
+    ids.add(match[1]);
   }
 
-  return ids;
+  return Array.from(ids);
 }
 
 export function isArticleContent(html: string): boolean {
-  return html.includes("<h1>");
+  return html.trimStart().startsWith("<h1>");
 }
 
 function findMatchingBlockquoteEnd(

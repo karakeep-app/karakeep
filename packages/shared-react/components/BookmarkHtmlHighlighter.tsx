@@ -196,16 +196,13 @@ const BookmarkHTMLHighlighter = forwardRef<
       /<img([^>]*src="[^"]*emoji[^"]*"[^>]*)>/gi,
       '<img$1 style="display:inline;height:1.2em;width:1.2em;margin:0;vertical-align:text-bottom">',
     );
-    // Convert newlines to <br> inside Twitter text spans (class names starting with r- or css-)
-    // that contain bare newlines from the original white-space:pre-wrap rendering
+    // Convert newlines to <br> inside leaf Twitter text spans (class names
+    // starting with r- or css-). Limit this to spans without child tags so a
+    // nested </span> can't terminate the match early and corrupt the HTML.
     html = html.replace(
-      /(<span[^>]*class="[^"]*(?:css-|r-)[^"]*"[^>]*>)([\s\S]*?)(<\/span>)/g,
-      (match, open: string, content: string, close: string) => {
-        if (content.includes("\n")) {
-          return open + content.replace(/\n/g, "<br>") + close;
-        }
-        return match;
-      },
+      /(<span[^>]*class="[^"]*(?:css-|r-)[^"]*"[^>]*>)([^<]*\n[^<]*)(<\/span>)/g,
+      (_, open: string, content: string, close: string) =>
+        open + content.replace(/\n/g, "<br>") + close,
     );
     return html;
   }, [htmlContent]);
