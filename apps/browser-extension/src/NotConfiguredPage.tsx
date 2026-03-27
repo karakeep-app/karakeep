@@ -5,7 +5,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
 import usePluginSettings from "./utils/settings";
-import { isHttpUrl } from "./utils/url";
+import { isHttpUrl, normalizeServerAddress } from "./utils/url";
 
 export default function NotConfiguredPage() {
   const navigate = useNavigate();
@@ -13,11 +13,17 @@ export default function NotConfiguredPage() {
   const { settings, setSettings } = usePluginSettings();
 
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
   const [serverAddress, setServerAddress] = useState(settings.address);
 
   useEffect(() => {
     setServerAddress(settings.address);
   }, [settings.address]);
+
+  // Clear warning when address changes
+  useEffect(() => {
+    setWarning("");
+  }, [serverAddress]);
 
   const onSave = () => {
     const input = serverAddress.trim();
@@ -32,7 +38,18 @@ export default function NotConfiguredPage() {
       return;
     }
 
-    setSettings((s) => ({ ...s, address: input.replace(/\/$/, "") }));
+    // Normalize the address by stripping /api/v1 or /api suffixes
+    const normalizedAddress = normalizeServerAddress(input);
+
+    // Show a warning if the address was normalized
+    if (normalizedAddress !== input) {
+      setWarning(
+        `Address was automatically corrected from "${input}" to "${normalizedAddress}". ` +
+          `The server address should be the base URL without /api/v1 or /api suffix.`,
+      );
+    }
+
+    setSettings((s) => ({ ...s, address: normalizedAddress }));
     navigate("/signin");
   };
 
@@ -43,6 +60,11 @@ export default function NotConfiguredPage() {
         To use the plugin, you need to configure it first.
       </span>
       <p className="text-red-500">{error}</p>
+      {warning && (
+        <p className="text-yellow-600 text-sm bg-yellow-50 p-2 rounded border border-yellow-200">
+          {warning}
+        </p>
+      )}
       <div className="flex gap-2">
         <label className="my-auto">Server Address</label>
         <Input
@@ -52,6 +74,9 @@ export default function NotConfiguredPage() {
           onChange={(e) => setServerAddress(e.target.value)}
         />
       </div>
+      <p className="text-xs text-muted-foreground">
+        Example: https://cloud.karakeep.app or http://localhost:3000
+      </p>
       <div className="flex justify-start">
         <button
           type="button"

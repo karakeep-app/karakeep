@@ -9,6 +9,33 @@ export function isHttpUrl(url: string) {
 }
 
 /**
+ * Normalize the server address by stripping common API path suffixes.
+ * Users often mistakenly include /api/v1 or /api in their server address,
+ * but the tRPC client already appends /api/trpc to the base address.
+ * @param address The server address to normalize.
+ * @returns Normalized server address without API path suffixes.
+ */
+export function normalizeServerAddress(address: string): string {
+  let normalized = address.trim();
+
+  // Remove trailing slash
+  normalized = normalized.replace(/\/+$/, "");
+
+  // Strip common API path suffixes that users might mistakenly include
+  // The tRPC client appends /api/trpc, so we need the base URL
+  const apiSuffixPatterns = [
+    /\/api\/v\d+$/i, // /api/v1, /api/v2, etc.
+    /\/api$/i, // /api
+  ];
+
+  for (const pattern of apiSuffixPatterns) {
+    normalized = normalized.replace(pattern, "");
+  }
+
+  return normalized;
+}
+
+/**
  * Normalize a URL by removing the hash and trailing slash.
  * @param url The URL to process.
  * @param base Optional base URL for relative URLs.

@@ -18,7 +18,7 @@ import usePluginSettings, {
   DEFAULT_BADGE_CACHE_EXPIRE_MS,
 } from "./utils/settings";
 import { useTheme } from "./utils/ThemeProvider";
-import { useTRPC } from "./utils/trpc";
+import { useTRPC, getErrorMessage } from "./utils/trpc";
 
 export default function OptionsPage() {
   const api = useTRPC();
@@ -50,9 +50,8 @@ export default function OptionsPage() {
     if (whoAmIError.data?.code == "UNAUTHORIZED") {
       loggedInMessage = <span>Not logged in</span>;
     } else {
-      loggedInMessage = (
-        <span>Something went wrong: {whoAmIError.message}</span>
-      );
+      // Use the improved error message handler
+      loggedInMessage = <span>Something went wrong: {getErrorMessage(whoAmIError)}</span>;
     }
   } else if (whoami) {
     loggedInMessage = <span>{whoami.email}</span>;
