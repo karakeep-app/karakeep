@@ -55,25 +55,25 @@ export default function ManageListsModal({
 
   const { mutate: addToList, isPending: isAddingToListPending } =
     useAddBookmarkToList({
-    onSuccess: () => {
-      toast({
-        description: t("toasts.lists.updated"),
-      });
-    },
-    onError: (e) => {
-      if (e.data?.code == "BAD_REQUEST") {
+      onSuccess: () => {
         toast({
-          variant: "destructive",
-          description: e.message,
+          description: t("toasts.lists.updated"),
         });
-      } else {
-        toast({
-          variant: "destructive",
-          title: t("common.something_went_wrong"),
-        });
-      }
-    },
-  });
+      },
+      onError: (e) => {
+        if (e.data?.code == "BAD_REQUEST") {
+          toast({
+            variant: "destructive",
+            description: e.message,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: t("common.something_went_wrong"),
+          });
+        }
+      },
+    });
 
   const { mutate: deleteFromList, isPending: isDeleteFromListPending } =
     useRemoveBookmarkFromList({
