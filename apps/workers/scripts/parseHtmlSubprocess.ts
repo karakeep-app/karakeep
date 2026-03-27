@@ -188,33 +188,33 @@ async function main() {
         htmlDom,
         url,
       );
-      if (articleContent) {
+      // For articles, also extract reply tweets via DOM extraction
+      // and append only the replies section (after <h3>Replies</h3>)
+      // to avoid duplicating the main tweet content.
+      const domContent = twitterPrivate.extractFromDom(htmlDom, url);
+      let repliesOnly: string | undefined;
+      if (articleContent && domContent) {
+        const repliesIdx = domContent.indexOf("<h3>Replies</h3>");
+        if (repliesIdx >= 0) {
+          repliesOnly = domContent.slice(repliesIdx);
+        }
+      }
+
+      const combined = articleContent
+        ? articleContent + (repliesOnly ? `\n<hr />\n${repliesOnly}` : "")
+        : domContent;
+
+      if (combined) {
         const purifyWindow = new JSDOM("").window;
         try {
           const purify = DOMPurify(purifyWindow);
-          const purifiedHTML = purify.sanitize(articleContent);
+          const purifiedHTML = purify.sanitize(combined);
           readableContent = { content: purifiedHTML };
           logger.info(
-            `[Crawler][${jobId}] Used X article extraction (${purifiedHTML.length} bytes)`,
+            `[Crawler][${jobId}] Used X ${articleContent ? "article" : "DOM"} extraction (${purifiedHTML.length} bytes)`,
           );
         } finally {
           purifyWindow.close();
-        }
-      }
-      if (!readableContent) {
-        const domContent = twitterPrivate.extractFromDom(htmlDom, url);
-        if (domContent) {
-          const purifyWindow = new JSDOM("").window;
-          try {
-            const purify = DOMPurify(purifyWindow);
-            const purifiedHTML = purify.sanitize(domContent);
-            readableContent = { content: purifiedHTML };
-            logger.info(
-              `[Crawler][${jobId}] Used X DOM extraction (${purifiedHTML.length} bytes)`,
-            );
-          } finally {
-            purifyWindow.close();
-          }
         }
       }
     }

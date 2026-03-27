@@ -750,6 +750,11 @@ const extractArticleWithReplies = (
   $: CheerioAPI,
   url: string,
 ): string | undefined => {
+  // Only attempt article extraction if the DOM actually contains
+  // article-specific elements — otherwise extractArticleFromDom may
+  // return a banner image from a regular tweet as "article content".
+  if (!isArticleUrl(url) && !hasArticleDom($)) return undefined;
+
   const articleHtml = extractArticleFromDom($, url);
   if (!articleHtml) return undefined;
 
