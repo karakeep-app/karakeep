@@ -84,6 +84,7 @@
     "select_all": "Select All",
     "unselect_all": "Unselect All",
     "copy_link": "Copy Link",
+    "open_links": "Open Links",
     "close_bulk_edit": "Close Bulk Edit",
     "bulk_edit": "Bulk Edit",
     "manage_lists": "Manage Lists",

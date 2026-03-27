@@ -243,6 +243,13 @@ export default function BulkBookmarksAction() {
       hidden: !isBulkEditEnabled,
     },
     {
+      name: t("actions.open_links"),
+      icon: <ExternalLink size={18} />,
+      action: () => openLinks(),
+      isPending: false,
+      hidden: !isBulkEditEnabled,
+    },
+    {
       name: t("actions.remove_from_list"),
       icon: <ListMinus size={18} />,
       action: () => setIsRemoveFromListDialogOpen(true),
