@@ -1,13 +1,22 @@
 import React from "react";
 import { z } from "zod";
 
+import { isHttpUrl } from "./url";
+
 export const DEFAULT_BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
 export const DEFAULT_SHOW_COUNT_BADGE = false;
 
 const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
-  address: z.string().optional().default("https://cloud.karakeep.app"),
+  address: z
+    .string()
+    .refine(
+      (val) => isHttpUrl(val),
+      "Server address must be a valid HTTP or HTTPS URL",
+    )
+    .optional()
+    .default("https://cloud.karakeep.app"),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
   useBadgeCache: z.boolean().default(true),

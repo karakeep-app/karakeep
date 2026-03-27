@@ -12,8 +12,10 @@ export function isHttpUrl(url: string) {
  * Normalize the server address by stripping common API path suffixes.
  * Users often mistakenly include /api/v1 or /api in their server address,
  * but the tRPC client already appends /api/trpc to the base address.
+ * Also validates that the address is a valid HTTP or HTTPS URL.
  * @param address The server address to normalize.
  * @returns Normalized server address without API path suffixes.
+ * @throws Error if the address is not a valid HTTP or HTTPS URL.
  */
 export function normalizeServerAddress(address: string): string {
   let normalized = address.trim();
@@ -30,6 +32,21 @@ export function normalizeServerAddress(address: string): string {
 
   for (const pattern of apiSuffixPatterns) {
     normalized = normalized.replace(pattern, "");
+  }
+
+  // Validate URL scheme
+  if (
+    !normalized.startsWith("http://") &&
+    !normalized.startsWith("https://")
+  ) {
+    throw new Error("Server address must be a valid HTTP or HTTPS URL");
+  }
+
+  // Validate URL format
+  try {
+    new URL(normalized);
+  } catch {
+    throw new Error("Invalid URL format");
   }
 
   return normalized;
