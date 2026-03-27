@@ -1,3 +1,4 @@
+import { load as cheerioLoad } from "cheerio";
 import * as dns from "dns";
 import { promises as fs } from "fs";
 import * as fsSync from "fs";
@@ -89,32 +90,34 @@ import {
   parseSubprocessErrorSchema,
   parseSubprocessOutputSchema,
 } from "./utils/parseHtmlSubprocessIpc";
+import { extractXStatusId } from "./utils/xStatusPage";
 
 const tracer = getTracer("@karakeep/workers");
 
-function abortPromise(signal: AbortSignal): Promise<never> {
+/**
+ * Race a promise against an AbortSignal, cleaning up the listener
+ * once the work settles so it doesn't pin memory on the signal.
+ */
+async function raceWithAbort<T>(
+  work: Promise<T>,
+  signal: AbortSignal,
+): Promise<T> {
   if (signal.aborted) {
-    const p = Promise.reject(signal.reason ?? new Error("AbortError"));
-    p.catch(() => {
-      /* empty */
-    }); // suppress unhandledRejection if not awaited
-    return p;
+    throw signal.reason ?? new Error("AbortError");
   }
-
-  const p = new Promise<never>((_, reject) => {
-    signal.addEventListener(
-      "abort",
-      () => {
-        reject(signal.reason ?? new Error("AbortError"));
-      },
-      { once: true },
-    );
+  let onAbort: (() => void) | undefined;
+  const abortP = new Promise<never>((_, reject) => {
+    onAbort = () => reject(signal.reason ?? new Error("AbortError"));
+    signal.addEventListener("abort", onAbort, { once: true });
   });
-
-  p.catch(() => {
-    /* empty */
+  abortP.catch(() => {
+    /* empty — suppress unhandledRejection */
   });
-  return p;
+  try {
+    return await Promise.race([work, abortP]);
+  } finally {
+    if (onAbort) signal.removeEventListener("abort", onAbort);
+  }
 }
 
 /**
@@ -739,13 +742,13 @@ async function crawlPage(
             },
           },
           async () =>
-            Promise.race([
+            raceWithAbort(
               activePage.goto(targetUrl, {
                 timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
                 waitUntil: "domcontentloaded",
               }),
-              abortPromise(abortSignal).then(() => null),
-            ]),
+              abortSignal,
+            ),
         );
         setSpanAttributes({
           "crawler.statusCode": response?.status() ?? 0,
@@ -767,13 +770,18 @@ async function crawlPage(
             },
           },
           async () => {
-            await Promise.race([
-              activePage
-                .waitForLoadState("networkidle", { timeout: 5000 })
-                .catch(() => ({})),
-              new Promise((resolve) => setTimeout(resolve, 5000)),
-              abortPromise(abortSignal),
-            ]);
+            const loadWaitMs = serverConfig.crawler.loadWaitSec * 1000;
+            await raceWithAbort(
+              Promise.all([
+                activePage
+                  .waitForLoadState("networkidle", {
+                    timeout: loadWaitMs,
+                  })
+                  .catch(() => ({})),
+                new Promise((resolve) => setTimeout(resolve, loadWaitMs)),
+              ]),
+              abortSignal,
+            );
           },
         );
 
@@ -782,6 +790,201 @@ async function crawlPage(
         logger.info(
           `[Crawler][${jobId}] Finished waiting for the page to load.`,
         );
+
+        // For X/Twitter /status/ pages:
+        // 1. Wait for content to stabilize (articles render progressively)
+        // 2. Snapshot HTML (before scrolling destroys article DOM)
+        // 3. Scroll to bottom to load reply tweets
+        // 4. Scroll back to top to restore article DOM
+        let preScrollHtml: string | null = null;
+        let collectedTweets = new Map<string, string>();
+        {
+          const currentUrl = activePage.url();
+          const statusId = extractXStatusId(currentUrl);
+          if (statusId) {
+            const loadWaitMs = serverConfig.crawler.loadWaitSec * 1000;
+
+            // Step 1: Wait for the page content to stabilize.
+            // X's SPA renders tweet/article DOM progressively after
+            // networkidle fires. Poll until DOM element count is stable
+            // for 2 consecutive checks (articles may take a moment to
+            // start rendering after the tweet shell appears).
+            {
+              let prevCount = 0;
+              let stableCount = 0;
+              const stabilizeStart = Date.now();
+              while (Date.now() - stabilizeStart < loadWaitMs) {
+                abortSignal.throwIfAborted();
+                const count = await activePage.evaluate(() => {
+                  const SELECTOR =
+                    '[data-testid="tweet"], [data-testid="simpleTweet"], [data-testid="twitterArticleRichTextView"], [data-block="true"]';
+                  return document.querySelectorAll(SELECTOR).length;
+                });
+                if (count > 0 && count === prevCount) {
+                  stableCount++;
+                  if (stableCount >= 2) break;
+                } else {
+                  stableCount = 0;
+                }
+                prevCount = count;
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+              }
+            }
+
+            // Snapshot the page HTML before scrolling — X virtualizes
+            // article content when scrolled past, so this pre-scroll
+            // snapshot preserves the article DOM for extraction.
+            preScrollHtml = await activePage.content();
+
+            // Step 2: Scroll incrementally and collect reply tweet HTML.
+            // X virtualizes the DOM during scroll, so each viewport
+            // position only has a subset of tweets.  We scroll step
+            // by step, collecting tweet HTML from every position,
+            // deduped by status URL, to capture the full reply list.
+            collectedTweets = new Map<string, string>();
+            {
+              const scrollStart = Date.now();
+              let foundReplies = false;
+              let scrollY = 0;
+              while (Date.now() - scrollStart < loadWaitMs) {
+                abortSignal.throwIfAborted();
+                const result = await activePage.evaluate(
+                  ({ sid, targetY }) => {
+                    window.scrollTo(0, targetY);
+                    const SELECTOR =
+                      '[data-testid="tweet"], [data-testid="simpleTweet"]';
+                    const tweets = Array.from(
+                      document.querySelectorAll<HTMLElement>(SELECTOR),
+                    ).filter((t) => !t.parentElement?.closest(SELECTOR));
+
+                    // Check if we hit the "Discover more" boundary
+                    const headings = Array.from(
+                      document.querySelectorAll('[role="heading"]'),
+                    );
+                    const discoverEl = headings.find((h) =>
+                      (h.textContent ?? "").trim().startsWith("Discover more"),
+                    );
+
+                    // Collect each tweet's outer HTML, keyed by its
+                    // status link (or index as fallback for dedup).
+                    const collected: { key: string; html: string }[] = [];
+                    let hitDiscover = false;
+                    for (const t of tweets) {
+                      if (
+                        discoverEl &&
+                        t.compareDocumentPosition(discoverEl) &
+                          Node.DOCUMENT_POSITION_PRECEDING
+                      ) {
+                        hitDiscover = true;
+                        continue;
+                      }
+                      if (hitDiscover) continue;
+                      // Skip the main tweet
+                      if (
+                        sid &&
+                        Array.from(t.querySelectorAll("a[href]")).some((a) =>
+                          (a.getAttribute("href") ?? "").endsWith(
+                            `/status/${sid}`,
+                          ),
+                        )
+                      ) {
+                        continue;
+                      }
+                      const statusLink = Array.from(
+                        t.querySelectorAll('a[href*="/status/"]'),
+                      ).find((a) =>
+                        /^\/\w+\/status\/\d+/.test(
+                          a.getAttribute("href") ?? "",
+                        ),
+                      );
+                      const key = statusLink
+                        ? (statusLink.getAttribute("href") ?? "")
+                        : `__pos_${collected.length}`;
+                      collected.push({ key, html: t.outerHTML });
+                    }
+
+                    // Reply count for the break condition
+                    let replyCount: number;
+                    if (!sid) {
+                      replyCount = tweets.length > 1 ? tweets.length - 1 : 0;
+                    } else {
+                      const mainIdx = tweets.findIndex((t2) =>
+                        Array.from(t2.querySelectorAll("a[href]")).some((a) =>
+                          (a.getAttribute("href") ?? "").includes(
+                            `/status/${sid}`,
+                          ),
+                        ),
+                      );
+                      replyCount =
+                        mainIdx >= 0
+                          ? tweets.length - mainIdx - 1
+                          : tweets.length > 1
+                            ? tweets.length - 1
+                            : 0;
+                    }
+
+                    return {
+                      collected,
+                      replyCount,
+                      scrollHeight: document.body.scrollHeight,
+                    };
+                  },
+                  { sid: statusId, targetY: scrollY },
+                );
+
+                // Accumulate tweets across scroll positions
+                for (const { key, html } of result.collected) {
+                  if (!collectedTweets.has(key)) {
+                    collectedTweets.set(key, html);
+                  }
+                }
+
+                if (!foundReplies && result.replyCount > 0) {
+                  foundReplies = true;
+                  logger.info(
+                    `[Crawler][${jobId}] Found ${result.replyCount} reply tweets after scrolling.`,
+                  );
+                }
+
+                // Advance scroll position.  Use a large step to cover
+                // the page quickly within the time budget, but not so
+                // large that we skip viewport-sized chunks of tweets.
+                scrollY += Math.max(result.scrollHeight / 10, 1000);
+                if (scrollY >= result.scrollHeight) break;
+
+                await new Promise((resolve) => setTimeout(resolve, 400));
+              }
+              if (collectedTweets.size > 0) {
+                logger.info(
+                  `[Crawler][${jobId}] Collected ${collectedTweets.size} unique reply tweets across scroll positions.`,
+                );
+              }
+            }
+
+            // Step 3: Scroll back to top so X re-renders article content
+            // that may have been virtualized during the reply scroll.
+            // Wait until article DOM elements reappear (or timeout).
+            await activePage.evaluate(() => window.scrollTo(0, 0));
+            {
+              const restoreStart = Date.now();
+              while (Date.now() - restoreStart < 5000) {
+                const hasContent = await activePage.evaluate(() => {
+                  const blocks = document.querySelectorAll(
+                    '[data-block="true"]',
+                  ).length;
+                  const tweets = document.querySelectorAll(
+                    '[data-testid="tweet"]',
+                  ).length;
+                  return blocks > 0 || tweets > 0;
+                });
+                if (hasContent) break;
+                await new Promise((resolve) => setTimeout(resolve, 500));
+              }
+            }
+          }
+        }
+
+        abortSignal.throwIfAborted();
 
         const [htmlContent, screenshot, pdf] = await withSpan(
           tracer,
@@ -824,24 +1027,26 @@ async function crawlPage(
                   async () => {
                     const { data: screenshotData, error: screenshotError } =
                       await tryCatch(
-                        Promise.race<Buffer>([
-                          activePage.screenshot({
-                            // If you change this, you need to change the asset type in the store function.
-                            type: "jpeg",
-                            fullPage: serverConfig.crawler.fullPageScreenshot,
-                            quality: 80,
-                          }),
-                          new Promise((_, reject) =>
-                            setTimeout(
-                              () =>
-                                reject(
-                                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                                ),
-                              serverConfig.crawler.screenshotTimeoutSec * 1000,
+                        raceWithAbort(
+                          Promise.race<Buffer>([
+                            activePage.screenshot({
+                              // If you change this, you need to change the asset type in the store function.
+                              type: "jpeg",
+                              fullPage: serverConfig.crawler.fullPageScreenshot,
+                              quality: 80,
+                            }),
+                            new Promise((_, reject) =>
+                              setTimeout(
+                                () =>
+                                  reject(
+                                    "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                                  ),
+                                serverConfig.crawler.screenshotTimeoutSec * 1000,
+                              ),
                             ),
-                          ),
-                          abortPromise(abortSignal).then(() => Buffer.from("")),
-                        ]),
+                          ]),
+                          abortSignal,
+                        ),
                       );
                     abortSignal.throwIfAborted();
                     if (screenshotError) {
@@ -874,22 +1079,24 @@ async function crawlPage(
                     },
                     async () => {
                       const { data: pdfData, error: pdfError } = await tryCatch(
-                        Promise.race<Buffer>([
-                          activePage.pdf({
-                            format: "A4",
-                            printBackground: true,
-                          }),
-                          new Promise((_, reject) =>
-                            setTimeout(
-                              () =>
-                                reject(
-                                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                                ),
-                              serverConfig.crawler.screenshotTimeoutSec * 1000,
+                        raceWithAbort(
+                          Promise.race<Buffer>([
+                            activePage.pdf({
+                              format: "A4",
+                              printBackground: true,
+                            }),
+                            new Promise((_, reject) =>
+                              setTimeout(
+                                () =>
+                                  reject(
+                                    "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                                  ),
+                                serverConfig.crawler.screenshotTimeoutSec * 1000,
+                              ),
                             ),
-                          ),
-                          abortPromise(abortSignal).then(() => Buffer.from("")),
-                        ]),
+                          ]),
+                          abortSignal,
+                        ),
                       );
                       abortSignal.throwIfAborted();
                       if (pdfError) {
@@ -919,8 +1126,114 @@ async function crawlPage(
           },
         );
 
+        // X virtualizes article DOM when scrolled past, but reply tweets
+        // only appear after scrolling.  If the post-scroll HTML lost
+        // article content, use Cheerio to extract article elements from
+        // the pre-scroll snapshot and inject them into the post-scroll
+        // HTML, preserving both article body and reply tweets.
+        let finalHtml = htmlContent;
+        // Check for actual article content (data-block elements), not just
+        // the container — X may leave an empty twitterArticleRichTextView
+        // shell in the post-scroll DOM after virtualizing its contents.
+        const preHasArticleContent =
+          preScrollHtml &&
+          preScrollHtml.includes("twitterArticleRichTextView") &&
+          preScrollHtml.includes('data-block="true"');
+        const postHasArticleContent =
+          htmlContent.includes("twitterArticleRichTextView") &&
+          htmlContent.includes('data-block="true"');
+
+        // Parse the pre-scroll HTML once for both article and main tweet injection.
+        const pre$ = preScrollHtml ? cheerioLoad(preScrollHtml) : null;
+
+        if (preHasArticleContent && !postHasArticleContent && pre$) {
+          const parts: string[] = [];
+
+          // Article title
+          const titleEl = pre$('[data-testid="twitter-article-title"]');
+          if (titleEl.length) {
+            parts.push(pre$.html(titleEl) ?? "");
+          }
+
+          // Banner image (first tweetPhoto NOT inside article rich text)
+          pre$('[data-testid="tweetPhoto"]').each((_, el) => {
+            if (parts.some((p) => p.includes("tweetPhoto"))) return;
+            if (
+              pre$(el).closest('[data-testid="twitterArticleRichTextView"]')
+                .length > 0
+            )
+              return;
+            parts.push(pre$.html(pre$(el)) ?? "");
+          });
+
+          // Full article read view (all data-block elements, embedded tweets, images)
+          const readView = pre$('[data-testid="twitterArticleReadView"]');
+          if (readView.length) {
+            parts.push(pre$.html(readView) ?? "");
+          }
+
+          if (parts.length > 0) {
+            finalHtml = htmlContent.replace(
+              "</body>",
+              `<div data-karakeep-article="pre-scroll">${parts.join("")}</div></body>`,
+            );
+            logger.info(
+              `[Crawler][${jobId}] Injected pre-scroll article DOM (${parts.join("").length} bytes) into post-scroll HTML.`,
+            );
+          }
+        }
+
+        // Inject the pre-scroll main tweet into the final HTML so the
+        // metascraper plugin can use it for reliable metadata extraction
+        // (title, image, author).  After scrolling, X may virtualize or
+        // alter the main tweet's DOM (removing status links, changing
+        // structure), which causes findMainTweetEl heuristics to fail.
+        if (pre$) {
+          const pageUrl = activePage.url();
+          const statusId = extractXStatusId(pageUrl);
+          if (statusId) {
+            const tweetSelector =
+              '[data-testid="tweet"], [data-testid="simpleTweet"]';
+            let mainTweetHtml: string | null = null;
+            pre$(tweetSelector)
+              .filter((_, el) => pre$(el).parents(tweetSelector).length === 0)
+              .each((_, el) => {
+                if (mainTweetHtml) return;
+                if (
+                  pre$(el).find(`a[href*="/status/${statusId}"]`).length > 0
+                ) {
+                  mainTweetHtml = pre$.html(pre$(el)) ?? null;
+                }
+              });
+            if (mainTweetHtml) {
+              finalHtml = finalHtml.replace(
+                "</body>",
+                `<div data-karakeep-main-tweet="pre-scroll" style="display:none">${mainTweetHtml}</div></body>`,
+              );
+              logger.info(
+                `[Crawler][${jobId}] Injected pre-scroll main tweet for metadata extraction.`,
+              );
+            }
+          }
+        }
+
+        // Inject reply tweets collected during scrolling.  The main
+        // tweet and Discover More recommendations were already excluded
+        // during collection.  These tweets may not be in the post-scroll
+        // DOM because X virtualizes elements outside the viewport.
+        if (collectedTweets.size > 0) {
+          const replyHtml = Array.from(collectedTweets.values()).join("");
+          finalHtml = finalHtml.replace(
+            "</body>",
+            `<div data-karakeep-replies="scroll-collected" style="display:none">${replyHtml}</div></body>`,
+          );
+          logger.info(
+            `[Crawler][${jobId}] Injected ${collectedTweets.size} reply tweets collected during scrolling.`,
+          );
+        }
+
         return {
-          htmlContent,
+          htmlContent: finalHtml,
           statusCode: response?.status() ?? 0,
           screenshot,
           pdf,
@@ -1371,6 +1684,14 @@ async function downloadAndStoreFile(
   );
 }
 
+/** URLs that should never be used as banner images. */
+const BANNER_IMAGE_BLOCKLIST = [
+  /\/emoji\//, // Twitter emoji SVGs
+  /\/twemoji\//, // Twemoji CDN
+  /abs-0\.twimg\.com\/emoji\//,
+  /rweb\/ssr\/default\/v2\/og\/image\.png/, // Twitter default OG image
+];
+
 async function downloadAndStoreImage(
   url: string,
   userId: string,
@@ -1381,6 +1702,10 @@ async function downloadAndStoreImage(
     logger.info(
       `[Crawler][${jobId}] Skipping downloading the image as per the config.`,
     );
+    return null;
+  }
+  if (BANNER_IMAGE_BLOCKLIST.some((re) => re.test(url))) {
+    logger.info(`[Crawler][${jobId}] Skipping blocked image URL: "${url}"`);
     return null;
   }
   return downloadAndStoreFile(url, userId, jobId, "image", abortSignal);
@@ -1770,7 +2095,7 @@ async function crawlAndParseUrl(
       }
       abortSignal.throwIfAborted();
 
-      const {
+      let {
         htmlContent,
         screenshot,
         pdf,
@@ -1800,6 +2125,18 @@ async function crawlAndParseUrl(
       const { metadata: meta, readableContent: parsedReadableContent } =
         await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
+
+      // Strip injected containers from the HTML now that parsing is done.
+      // These containers (pre-scroll main tweet, collected replies,
+      // article DOM) were needed for metascraper extraction but should
+      // not appear in the stored cached HTML or full-page archive.
+      {
+        const strip$ = cheerioLoad(htmlContent);
+        strip$("[data-karakeep-main-tweet]").remove();
+        strip$("[data-karakeep-replies]").remove();
+        strip$("[data-karakeep-article]").remove();
+        htmlContent = strip$.html();
+      }
 
       const parseDate = (date: string | null | undefined) => {
         if (!date) {
@@ -1833,16 +2170,13 @@ async function crawlAndParseUrl(
 
       let readableContent = parsedReadableContent;
 
-      const screenshotAssetInfo = await Promise.race([
-        storeScreenshot(screenshot, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
-      abortSignal.throwIfAborted();
-
-      const pdfAssetInfo = await Promise.race([
-        storePdf(pdf, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
+      const [screenshotAssetInfo, pdfAssetInfo] = await raceWithAbort(
+        Promise.all([
+          storeScreenshot(screenshot, userId, jobId),
+          storePdf(pdf, userId, jobId),
+        ]),
+        abortSignal,
+      );
       abortSignal.throwIfAborted();
 
       const htmlContentAssetInfo = await storeHtmlContent(

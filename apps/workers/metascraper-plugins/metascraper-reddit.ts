@@ -6,6 +6,8 @@ import { z } from "zod";
 
 import logger from "@karakeep/shared/logger";
 
+import { domainFromUrl } from "./utils";
+
 /**
  * This is a metascraper plugin to select a better
  * 'image' attribute for Reddit links, specifically
@@ -291,33 +293,6 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
   });
 
   return promise;
-};
-
-const domainFromUrl = (url: string): string => {
-  /**
-   * First-party metascraper plugins import metascraper-helpers,
-   * which exposes a parseUrl function from the tldtr package.
-   * This function does similar to the 'domainWithoutSuffix'
-   * field from the tldtr package, without requiring any
-   * additional packages.
-   **/
-  try {
-    // Create a URL instance to parse the hostname
-    const hostname = new URL(url).hostname;
-    const parts = hostname.split(".");
-    // Return the part before the TLD (assuming at least two segments)
-    // For example, "www.example.com" -> ["www", "example", "com"]
-    if (parts.length >= 2) {
-      return parts[parts.length - 2];
-    }
-    return hostname;
-  } catch (error) {
-    logger.error(
-      "[MetascraperReddit] Test>domainFromUrl received an invalid URL:",
-      error,
-    );
-    return "";
-  }
 };
 
 const test = ({ url }: { url: string }): boolean =>

@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -183,6 +184,31 @@ const BookmarkHTMLHighlighter = forwardRef<
       typeof window !== "undefined" &&
       window.matchMedia("(pointer: coarse)").matches,
   )[0];
+
+  // Post-process cached HTML for better rendering:
+  // 1. Constrain emoji SVG images (e.g. Twitter twemoji) to inline text size
+  // 2. Convert newlines in Twitter text spans to <br> (Twitter uses white-space:
+  //    pre-wrap which we don't have, so bare \n characters collapse)
+  const processedHtml = useMemo(() => {
+    let html = htmlContent;
+    // Emoji sizing
+    html = html.replace(
+      /<img([^>]*src="[^"]*emoji[^"]*"[^>]*)>/gi,
+      '<img$1 style="display:inline;height:1.2em;width:1.2em;margin:0;vertical-align:text-bottom">',
+    );
+    // Convert newlines to <br> inside Twitter text spans (class names starting with r- or css-)
+    // that contain bare newlines from the original white-space:pre-wrap rendering
+    html = html.replace(
+      /(<span[^>]*class="[^"]*(?:css-|r-)[^"]*"[^>]*>)([\s\S]*?)(<\/span>)/g,
+      (match, open: string, content: string, close: string) => {
+        if (content.includes("\n")) {
+          return open + content.replace(/\n/g, "<br>") + close;
+        }
+        return match;
+      },
+    );
+    return html;
+  }, [htmlContent]);
 
   // Apply existing highlights when component mounts or highlights change
   useEffect(() => {
@@ -408,7 +434,7 @@ const BookmarkHTMLHighlighter = forwardRef<
       <div
         role="presentation"
         ref={contentRef}
-        dangerouslySetInnerHTML={{ __html: htmlContent }}
+        dangerouslySetInnerHTML={{ __html: processedHtml }}
         onPointerUp={handlePointerUp}
         className={cn(
           "prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto",

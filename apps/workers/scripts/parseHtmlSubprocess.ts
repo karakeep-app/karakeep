@@ -21,8 +21,13 @@ import winston from "winston";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
+import { load as cheerioLoad } from "cheerio";
+
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import metascraperTwitter, {
+  __private as twitterPrivate,
+} from "../metascraper-plugins/metascraper-twitter";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -53,6 +58,7 @@ const metascraperParser = metascraper([
     },
   }),
   metascraperReddit(),
+  metascraperTwitter(),
   metascraperAuthor(),
   metascraperPublisher(),
   metascraperTitle(),
@@ -170,9 +176,53 @@ async function main() {
 
   logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
-  // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
+  // Check for X/Twitter article content using our custom extraction.
+  // metascraper doesn't support custom fields like readableContentHtml,
+  // so we call the extraction functions directly here.
   let readableContent: { content: string } | null = null;
-  if (meta.readableContentHtml) {
+  {
+    const isXUrl = /^https?:\/\/(x|twitter)\.com\//.test(url);
+    if (isXUrl) {
+      const htmlDom = cheerioLoad(htmlContent);
+      const articleContent = twitterPrivate.extractArticleWithReplies(
+        htmlDom,
+        url,
+      );
+      if (articleContent) {
+        const purifyWindow = new JSDOM("").window;
+        try {
+          const purify = DOMPurify(purifyWindow);
+          const purifiedHTML = purify.sanitize(articleContent);
+          readableContent = { content: purifiedHTML };
+          logger.info(
+            `[Crawler][${jobId}] Used X article extraction (${purifiedHTML.length} bytes)`,
+          );
+        } finally {
+          purifyWindow.close();
+        }
+      }
+      if (!readableContent) {
+        const domContent = twitterPrivate.extractFromDom(htmlDom, url);
+        if (domContent) {
+          const purifyWindow = new JSDOM("").window;
+          try {
+            const purify = DOMPurify(purifyWindow);
+            const purifiedHTML = purify.sanitize(domContent);
+            readableContent = { content: purifiedHTML };
+            logger.info(
+              `[Crawler][${jobId}] Used X DOM extraction (${purifiedHTML.length} bytes)`,
+            );
+          } finally {
+            purifyWindow.close();
+          }
+        }
+      }
+    }
+  }
+
+  // Legacy: check metascraper's readableContentHtml (not currently used by any plugin,
+  // but kept for backward compatibility in case future plugins provide it).
+  if (!readableContent && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
     const purifyWindow = new JSDOM("").window;
