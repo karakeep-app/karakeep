@@ -114,10 +114,12 @@ export default function ManageListsModal({
                   className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
                 >
                   <p>
-                    {allLists
-                      .getPathById(list.id)!
-                      .map((l) => `${l.icon} ${l.name}`)
-                      .join(" / ")}
+                    {(() => {
+                      const path = allLists.getPathById(list.id);
+                      return path
+                        ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
+                        : list.name;
+                    })()}
                   </p>
                   <ActionButton
                     type="button"
@@ -140,15 +142,13 @@ export default function ManageListsModal({
           <BookmarkListSelector
             hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
             onChange={(listId) => {
-              if (!isAddingToListPending) {
-                addToList({
-                  bookmarkId: bookmarkId,
-                  listId: listId,
-                });
-              }
+              addToList({
+                bookmarkId: bookmarkId,
+                listId: listId,
+              });
             }}
             listTypes={["manual"]}
-            disabled={isAddingToListPending}
+            disabled={isLoading || isAddingToListPending}
           />
         </div>
         <DialogFooter className="sm:justify-end">
