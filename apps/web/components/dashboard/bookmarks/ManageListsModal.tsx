@@ -142,10 +142,12 @@ export default function ManageListsModal({
           <BookmarkListSelector
             hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
             onChange={(listId) => {
-              addToList({
-                bookmarkId: bookmarkId,
-                listId: listId,
-              });
+              if (!isLoading && !isAddingToListPending) {
+                addToList({
+                  bookmarkId: bookmarkId,
+                  listId: listId,
+                });
+              }
             }}
             listTypes={["manual"]}
             disabled={isLoading || isAddingToListPending}
