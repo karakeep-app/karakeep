@@ -3,7 +3,7 @@
   "info": {
     "version": "1.0.0",
     "title": "Karakeep API",
-    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying."
+    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, feeds, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying."
   },
   "tags": [
     {
@@ -37,6 +37,10 @@
     {
       "name": "Backups",
       "description": "Create and manage full account backups as downloadable zip archives."
+    },
+    {
+      "name": "Feeds",
+      "description": "Manage RSS feed subscriptions. Create, update, delete, and trigger fetches for RSS feeds that automatically import bookmarks."
     }
   ],
   "servers": [
@@ -87,6 +91,11 @@
       "BackupId": {
         "type": "string",
         "description": "The unique identifier of the backup.",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "FeedId": {
+        "type": "string",
+        "description": "The unique identifier of the feed.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
       "Bookmark": {
@@ -637,7 +646,54 @@
           "fileName"
         ]
       },
-      "File to be uploaded": {}
+      "File to be uploaded": {},
+      "Feed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "importTags": {
+            "type": "boolean"
+          },
+          "lastFetchedStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending"
+            ]
+          },
+          "lastFetchedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 timestamp of the last fetch attempt, or null if never fetched.",
+            "example": "2025-01-15T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "enabled",
+          "importTags",
+          "lastFetchedStatus",
+          "lastFetchedAt"
+        ]
+      }
     },
     "parameters": {
       "BookmarkId": {
@@ -686,6 +742,14 @@
         },
         "required": true,
         "name": "backupId",
+        "in": "path"
+      },
+      "FeedId": {
+        "schema": {
+          "$ref": "#/components/schemas/FeedId"
+        },
+        "required": true,
+        "name": "feedId",
         "in": "path"
       }
     }
@@ -4590,6 +4654,357 @@
           },
           "404": {
             "description": "Backup not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds": {
+      "get": {
+        "operationId": "listFeeds",
+        "description": "Retrieve all RSS feed subscriptions for the authenticated user.",
+        "summary": "Get all feeds",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of all feeds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "feeds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Feed"
+                      }
+                    }
+                  },
+                  "required": [
+                    "feeds"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createFeed",
+        "description": "Create a new RSS feed subscription. The feed will be periodically fetched and matching items will be imported as bookmarks.",
+        "summary": "Create a new feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The feed to create.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "format": "uri"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "importTags": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — e.g. the maximum number of RSS feeds per user has been reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feedId}": {
+      "get": {
+        "operationId": "getFeed",
+        "description": "Retrieve a single RSS feed subscription by its ID.",
+        "summary": "Get a single feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateFeed",
+        "description": "Update an RSS feed subscription. Only provided fields will be changed.",
+        "summary": "Update a feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "requestBody": {
+          "description": "The fields to update.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "format": "uri"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "importTags": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteFeed",
+        "description": "Delete an RSS feed subscription. Previously imported bookmarks are not affected.",
+        "summary": "Delete a feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content — the feed was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feedId}/fetch": {
+      "put": {
+        "operationId": "fetchFeedNow",
+        "description": "Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.",
+        "summary": "Trigger a feed fetch",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content — the fetch has been enqueued."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
             "content": {
               "application/json": {
                 "schema": {
