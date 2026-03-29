@@ -101,7 +101,7 @@ export default function ManageListsModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Manage Lists</DialogTitle>
+          <DialogTitle>{t("actions.manage_lists")}</DialogTitle>
         </DialogHeader>
         {isLoading ? (
           <LoadingSpinner className="my-4" />
