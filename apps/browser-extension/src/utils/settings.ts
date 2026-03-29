@@ -12,11 +12,16 @@ const zSettingsSchema = z.object({
   address: z
     .string()
     .transform((val) => {
-      // Validate and normalize the address; fallback to default if invalid
+      // Validate and normalize the address to just the origin (protocol + host + port)
       if (!val || !isHttpUrl(val)) {
         return "https://cloud.karakeep.app";
       }
-      return val;
+      try {
+        const url = new URL(val);
+        return url.origin;
+      } catch {
+        return "https://cloud.karakeep.app";
+      }
     })
     .default("https://cloud.karakeep.app"),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
