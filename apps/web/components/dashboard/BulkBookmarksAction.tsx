@@ -38,6 +38,7 @@ import BulkTagModal from "./bookmarks/BulkTagModal";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./bookmarks/icons";
 
 const MAX_CONCURRENT_BULK_ACTIONS = 50;
+const MAX_OPEN_LINKS = 10;
 
 export default function BulkBookmarksAction() {
   const { t } = useTranslation();
@@ -169,22 +170,26 @@ export default function BulkBookmarksAction() {
 
     if (links.length === 0) {
       toast({
-        description: "No links selected",
+        description: t("toasts.bookmarks.no_links_selected"),
       });
       return;
     }
 
     // Limit maximum number of links
-    if (links.length > 10) {
+    if (links.length > MAX_OPEN_LINKS) {
       toast({
         variant: "destructive",
-        description: `Cannot open more than 10 links at once. You selected ${links.length}.`,
+        description: t("toasts.bookmarks.too_many_links", {
+          max: MAX_OPEN_LINKS,
+          count: links.length,
+        }),
       });
       return;
     }
 
     let opened = 0;
     let blocked = 0;
+    let skipped = 0;
 
     links.forEach((item) => {
       const url = item.content.url;
@@ -197,20 +202,44 @@ export default function BulkBookmarksAction() {
           } else {
             blocked++;
           }
+        } else {
+          skipped++;
         }
       } catch {
-        // Ignore invalid URLs
+        skipped++;
       }
     });
 
-    if (blocked > 0) {
+    // Build toast message based on results
+    if (skipped > 0 && blocked > 0) {
       toast({
         variant: "destructive",
-        description: `Opened ${opened} links. ${blocked} were blocked by popup blocker.`,
+        description: t("toasts.bookmarks.links_opened_blocked_skipped", {
+          opened,
+          blocked,
+          skipped,
+        }),
+      });
+    } else if (blocked > 0) {
+      toast({
+        variant: "destructive",
+        description: t("toasts.bookmarks.links_opened_blocked", {
+          opened,
+          blocked,
+        }),
+      });
+    } else if (skipped > 0) {
+      toast({
+        description: t("toasts.bookmarks.links_opened_skipped", {
+          opened,
+          skipped,
+        }),
       });
     } else {
       toast({
-        description: `Opened ${opened} links in new tabs.`,
+        description: t("toasts.bookmarks.links_opened", {
+          count: opened,
+        }),
       });
     }
   };
