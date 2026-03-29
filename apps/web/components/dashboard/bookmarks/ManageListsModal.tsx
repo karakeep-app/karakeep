@@ -106,20 +106,18 @@ export default function ManageListsModal({
         {isLoading ? (
           <LoadingSpinner className="my-4" />
         ) : (
-          allLists && (
-            <ul className="flex flex-col gap-2 pb-2 pt-4">
-              {alreadyInList?.lists.map((list) => (
+          <ul className="flex flex-col gap-2 pb-2 pt-4">
+            {alreadyInList?.lists.map((list) => {
+              const path = allLists?.getPathById(list.id);
+              return (
                 <li
                   key={list.id}
                   className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
                 >
                   <p>
-                    {(() => {
-                      const path = allLists.getPathById(list.id);
-                      return path
-                        ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
-                        : list.name;
-                    })()}
+                    {path
+                      ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
+                      : list.name}
                   </p>
                   <ActionButton
                     type="button"
@@ -129,13 +127,14 @@ export default function ManageListsModal({
                     onClick={() =>
                       deleteFromList({ bookmarkId, listId: list.id })
                     }
+                    aria-label={t("actions.remove_bookmark")}
                   >
                     <X className="size-4" />
                   </ActionButton>
                 </li>
-              ))}
-            </ul>
-          )
+              );
+            })}
+          </ul>
         )}
 
         <div className="pb-4">
