@@ -30,10 +30,12 @@ async function customFetch(
   const response = await fetch(url, options);
 
   // Check if the response is not JSON by checking content-type header
+  // Normalize to lowercase for consistent detection
   const contentType = response.headers.get("content-type");
+  const normalizedContentType = contentType ? contentType.toLowerCase() : "";
   if (
     !response.ok &&
-    (!contentType || !contentType.includes("application/json"))
+    !normalizedContentType.includes("application/json")
   ) {
     // Try to get the response text to see what was returned
     const text = await response.text();
@@ -46,12 +48,10 @@ async function customFetch(
       preview.trim().startsWith("<");
 
     if (isHtml) {
-      throw new Error(
-        `Server returned an HTML error page instead of JSON. ${SERVER_ADDRESS_ERROR_MESSAGE}`,
-      );
+      throw new Error(SERVER_ADDRESS_ERROR_MESSAGE);
     } else {
       throw new Error(
-        `Server returned an unexpected response: "${preview}...". ${SERVER_ADDRESS_ERROR_MESSAGE}`,
+        `Server returned an unexpected response. ${SERVER_ADDRESS_ERROR_MESSAGE}`,
       );
     }
   }

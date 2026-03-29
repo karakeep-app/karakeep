@@ -34,10 +34,11 @@ export function normalizeServerAddress(address: string): string {
     normalized = normalized.replace(pattern, "");
   }
 
-  // Validate URL scheme
+  // Validate URL scheme (case-insensitive, consistent with isHttpUrl)
+  const lowerNormalized = normalized.toLowerCase();
   if (
-    !normalized.startsWith("http://") &&
-    !normalized.startsWith("https://")
+    !lowerNormalized.startsWith("http://") &&
+    !lowerNormalized.startsWith("https://")
   ) {
     throw new Error("Server address must be a valid HTTP or HTTPS URL");
   }

@@ -11,11 +11,13 @@ const zSettingsSchema = z.object({
   apiKeyId: z.string().optional(),
   address: z
     .string()
-    .refine(
-      (val) => isHttpUrl(val),
-      "Server address must be a valid HTTP or HTTPS URL",
-    )
-    .optional()
+    .transform((val) => {
+      // Validate and normalize the address; fallback to default if invalid
+      if (!val || !isHttpUrl(val)) {
+        return "https://cloud.karakeep.app";
+      }
+      return val;
+    })
     .default("https://cloud.karakeep.app"),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
