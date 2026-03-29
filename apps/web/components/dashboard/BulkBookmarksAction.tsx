@@ -168,20 +168,31 @@ export default function BulkBookmarksAction() {
       (item) => item.content.type === BookmarkTypes.LINK,
     );
 
-    if (links.length === 0) {
+    // First filter for valid HTTP(S) URLs that can actually be opened
+    const openableLinks = links.filter((item) => {
+      const url = item.content.url;
+      try {
+        const parsed = new URL(url);
+        return ["http:", "https:"].includes(parsed.protocol);
+      } catch {
+        return false;
+      }
+    });
+
+    if (openableLinks.length === 0) {
       toast({
         description: t("toasts.bookmarks.no_links_selected"),
       });
       return;
     }
 
-    // Limit maximum number of links
-    if (links.length > MAX_OPEN_LINKS) {
+    // Limit maximum number of openable links
+    if (openableLinks.length > MAX_OPEN_LINKS) {
       toast({
         variant: "destructive",
         description: t("toasts.bookmarks.too_many_links", {
           max: MAX_OPEN_LINKS,
-          count: links.length,
+          count: openableLinks.length,
         }),
       });
       return;
@@ -189,24 +200,14 @@ export default function BulkBookmarksAction() {
 
     let opened = 0;
     let blocked = 0;
-    let skipped = 0;
+    const skipped = links.length - openableLinks.length;
 
-    links.forEach((item) => {
-      const url = item.content.url;
-      try {
-        const parsed = new URL(url);
-        if (["http:", "https:"].includes(parsed.protocol)) {
-          const win = window.open(url, "_blank", "noopener,noreferrer");
-          if (win) {
-            opened++;
-          } else {
-            blocked++;
-          }
-        } else {
-          skipped++;
-        }
-      } catch {
-        skipped++;
+    openableLinks.forEach((item) => {
+      const win = window.open(item.content.url, "_blank", "noopener,noreferrer");
+      if (win) {
+        opened++;
+      } else {
+        blocked++;
       }
     });
 
