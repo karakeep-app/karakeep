@@ -18,8 +18,9 @@ import {
 import {
   fetchWithProxy,
   getBookmarkDomain,
-  getRandomProxy,
   matchesNoProxy,
+  type RunProxyConfig,
+  selectRunProxies,
   validateUrl,
 } from "network";
 import {
@@ -181,28 +182,19 @@ interface CrawlerRunResult {
   status: "completed";
 }
 
-function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
-  const { proxy } = serverConfig;
-
-  if (!proxy.httpProxy && !proxy.httpsProxy) {
+function getPlaywrightProxyConfig(runProxy: RunProxyConfig): BrowserContextOptions["proxy"] {
+  const proxyUrl = runProxy.httpsProxy || runProxy.httpProxy;
+  if (!proxyUrl) {
     return undefined;
   }
 
-  // Use HTTPS proxy if available, otherwise fall back to HTTP proxy
-  const proxyList = proxy.httpsProxy || proxy.httpProxy;
-  if (!proxyList) {
-    // Unreachable, but TypeScript doesn't know that
-    return undefined;
-  }
-
-  const proxyUrl = getRandomProxy(proxyList);
   const parsed = new URL(proxyUrl);
 
   return {
     server: proxyUrl,
     username: parsed.username,
     password: parsed.password,
-    bypass: proxy.noProxy?.join(","),
+    bypass: runProxy.noProxy?.join(","),
   };
 }
 
@@ -492,6 +484,7 @@ async function browserlessCrawlPage(
   jobId: string,
   url: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -509,7 +502,7 @@ async function browserlessCrawlPage(
       );
       const response = await fetchWithProxy(url, {
         signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-      });
+      }, runProxy);
       logger.info(
         `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
       );
@@ -530,6 +523,7 @@ async function crawlPage(
   userId: string,
   forceStorePdf: boolean,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ): Promise<{
   htmlContent: string;
   screenshot: Buffer | undefined;
@@ -562,7 +556,7 @@ async function crawlPage(
       const browserCrawlingEnabled = userData.browserCrawlingEnabled;
 
       if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
-        return browserlessCrawlPage(jobId, url, abortSignal);
+        return browserlessCrawlPage(jobId, url, abortSignal, runProxy);
       }
 
       let browser: Browser | undefined;
@@ -582,10 +576,10 @@ async function crawlPage(
         },
       );
       if (!browser) {
-        return browserlessCrawlPage(jobId, url, abortSignal);
+        return browserlessCrawlPage(jobId, url, abortSignal, runProxy);
       }
 
-      const proxyConfig = getPlaywrightProxyConfig();
+      const proxyConfig = getPlaywrightProxyConfig(runProxy);
       const isRunningInProxyContext =
         proxyConfig !== undefined &&
         !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
@@ -1268,6 +1262,7 @@ async function downloadAndStoreFile(
   jobId: string,
   fileType: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1289,7 +1284,7 @@ async function downloadAndStoreFile(
         );
         const response = await fetchWithProxy(url, {
           signal: abortSignal,
-        });
+        }, runProxy);
         if (!response.ok || response.body == null) {
           throw new Error(`Failed to download ${fileType}: ${response.status}`);
         }
@@ -1376,6 +1371,7 @@ async function downloadAndStoreImage(
   userId: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   if (!serverConfig.crawler.downloadBannerImage) {
     logger.info(
@@ -1383,7 +1379,7 @@ async function downloadAndStoreImage(
     );
     return null;
   }
-  return downloadAndStoreFile(url, userId, jobId, "image", abortSignal);
+  return downloadAndStoreFile(url, userId, jobId, "image", abortSignal, runProxy);
 }
 
 async function archiveWebpage(
@@ -1392,6 +1388,7 @@ async function archiveWebpage(
   userId: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1427,13 +1424,9 @@ async function archiveWebpage(
         input: html,
         cancelSignal: abortSignal,
         env: {
-          https_proxy: serverConfig.proxy.httpsProxy
-            ? getRandomProxy(serverConfig.proxy.httpsProxy)
-            : undefined,
-          http_proxy: serverConfig.proxy.httpProxy
-            ? getRandomProxy(serverConfig.proxy.httpProxy)
-            : undefined,
-          no_proxy: serverConfig.proxy.noProxy?.join(","),
+          https_proxy: runProxy.httpsProxy,
+          http_proxy: runProxy.httpProxy,
+          no_proxy: runProxy.noProxy?.join(","),
         },
       })("monolith", [
         "-",
@@ -1508,6 +1501,7 @@ async function getContentType(
   url: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ): Promise<string | null> {
   return await withSpan(
     tracer,
@@ -1527,7 +1521,7 @@ async function getContentType(
         const response = await fetchWithProxy(url, {
           method: "GET",
           signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-        });
+        }, runProxy);
         setSpanAttributes({
           "crawler.getContentType.statusCode": response.status,
         });
@@ -1565,6 +1559,7 @@ async function handleAsAssetBookmark(
   jobId: string,
   bookmarkId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1586,6 +1581,7 @@ async function handleAsAssetBookmark(
         jobId,
         assetType,
         abortSignal,
+        runProxy,
       );
       if (!downloaded) {
         return;
@@ -1729,6 +1725,7 @@ async function crawlAndParseUrl(
   forceStorePdf: boolean,
   numRetriesLeft: number,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1776,6 +1773,7 @@ async function crawlAndParseUrl(
           userId,
           forceStorePdf,
           abortSignal,
+          runProxy,
         );
       }
       abortSignal.throwIfAborted();
@@ -1868,6 +1866,7 @@ async function crawlAndParseUrl(
           userId,
           jobId,
           abortSignal,
+          runProxy,
         );
         if (downloaded) {
           imageAssetInfo = {
@@ -1977,6 +1976,7 @@ async function crawlAndParseUrl(
             userId,
             jobId,
             abortSignal,
+            runProxy,
           );
 
           if (archiveResult) {
@@ -2096,11 +2096,14 @@ async function runCrawler(
 
   await checkDomainRateLimit(url, jobId);
 
+  // Select proxy URLs once for the entire run so all requests use the same proxy.
+  const runProxy = selectRunProxies();
+
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
 
-  const contentType = await getContentType(url, jobId, job.abortSignal);
+  const contentType = await getContentType(url, jobId, job.abortSignal, runProxy);
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
@@ -2114,6 +2117,7 @@ async function runCrawler(
       jobId,
       bookmarkId,
       job.abortSignal,
+      runProxy,
     );
   } else if (
     contentType &&
@@ -2127,6 +2131,7 @@ async function runCrawler(
       jobId,
       bookmarkId,
       job.abortSignal,
+      runProxy,
     );
   } else {
     const archivalLogic = await crawlAndParseUrl(
@@ -2144,6 +2149,7 @@ async function runCrawler(
       storePdf ?? false,
       numRetriesLeft,
       job.abortSignal,
+      runProxy,
     );
 
     // Propagate priority to child jobs
