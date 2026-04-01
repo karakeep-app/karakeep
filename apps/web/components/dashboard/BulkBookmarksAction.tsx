@@ -38,7 +38,7 @@ import BulkTagModal from "./bookmarks/BulkTagModal";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./bookmarks/icons";
 
 const MAX_CONCURRENT_BULK_ACTIONS = 50;
-const MAX_OPEN_LINKS = 10;
+const MAX_OPEN_LINKS_WARNING = 10; // Warning threshold, not a hard limit
 
 export default function BulkBookmarksAction() {
   const { t } = useTranslation();
@@ -62,6 +62,11 @@ export default function BulkBookmarksAction() {
     useState(false);
   const [manageListsModal, setManageListsModalOpen] = useState(false);
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);
+  const [isTooManyLinksDialogOpen, setIsTooManyLinksDialogOpen] =
+    useState(false);
+  const [pendingOpenableLinks, setPendingOpenableLinks] = useState<
+    typeof selectedBookmarks
+  >([]);
   const pathname = usePathname();
   const [currentPathname, setCurrentPathname] = useState("");
 
@@ -163,7 +168,7 @@ export default function BulkBookmarksAction() {
     });
   };
 
-  const openLinks = () => {
+  const openLinks = (linksToOpen?: typeof selectedBookmarks) => {
     const links = selectedBookmarks.filter(
       (item) => item.content.type === BookmarkTypes.LINK,
     );
@@ -186,15 +191,14 @@ export default function BulkBookmarksAction() {
       return;
     }
 
-    // Limit maximum number of openable links
-    if (openableLinks.length > MAX_OPEN_LINKS) {
-      toast({
-        variant: "destructive",
-        description: t("toasts.bookmarks.too_many_links", {
-          max: MAX_OPEN_LINKS,
-          count: openableLinks.length,
-        }),
-      });
+    // If provided links to open (from confirmation dialog), use those
+    const targetLinks = linksToOpen ?? openableLinks;
+
+    // Show warning dialog if trying to open more than threshold
+    // (unless we're already in the confirmed path)
+    if (!linksToOpen && targetLinks.length > MAX_OPEN_LINKS_WARNING) {
+      setPendingOpenableLinks(targetLinks);
+      setIsTooManyLinksDialogOpen(true);
       return;
     }
 
@@ -202,7 +206,7 @@ export default function BulkBookmarksAction() {
     let blocked = 0;
     const skipped = links.length - openableLinks.length;
 
-    openableLinks.forEach((item) => {
+    targetLinks.forEach((item) => {
       const win = window.open(item.content.url, "_blank", "noopener,noreferrer");
       if (win) {
         opened++;
@@ -243,6 +247,12 @@ export default function BulkBookmarksAction() {
         }),
       });
     }
+  };
+
+  const confirmOpenManyLinks = () => {
+    setIsTooManyLinksDialogOpen(false);
+    openLinks(pendingOpenableLinks);
+    setPendingOpenableLinks([]);
   };
 
   const updateBookmarks = async ({
@@ -459,6 +469,26 @@ export default function BulkBookmarksAction() {
             onClick={() => removeBookmarksFromList()}
           >
             {t("actions.remove")}
+          </ActionButton>
+        )}
+      />
+      <ActionConfirmingDialog
+        open={isTooManyLinksDialogOpen}
+        setOpen={setIsTooManyLinksDialogOpen}
+        title={"Open Many Links"}
+        description={
+          <p>
+            You are trying to open {pendingOpenableLinks.length} links at once.
+            This may trigger your browser&apos;s popup blocker. Continue anyway?
+          </p>
+        }
+        actionButton={() => (
+          <ActionButton
+            type="button"
+            variant="default"
+            onClick={() => confirmOpenManyLinks()}
+          >
+            {t("actions.open_links")}
           </ActionButton>
         )}
       />
