@@ -112,7 +112,7 @@
     "smart_list": "Automatický zoznam",
     "search_query": "Vyhľadávací reťazec",
     "no_parent": "Žiadny nadradený zoznam",
-    "search_query_help": "Zistite viac o syntaxi vyhľadávacích reťazcov.",
+    "search_query_help": "Zisti viac o syntaxi vyhľadávacích reťazcov.",
     "merge_list": "Zlúčiť zoznam",
     "destination_list": "Cieľový zoznam",
     "delete_after_merge": "Po zlúčení odstrániť pôvodný zoznam",
@@ -142,8 +142,8 @@
       "collaborators": "Spolupracovníci",
       "add": "Pridať spolupracovníka",
       "current": "Súčasní spolupracovníci",
-      "enter_email": "Zadajte e-mailovú adresu",
-      "please_enter_email": "Zadajte e-mailovú adresu",
+      "enter_email": "Zadaj e-mailovú adresu",
+      "please_enter_email": "Zadaj e-mailovú adresu",
       "added_successfully": "Spolupracovník úspešne pridaný",
       "failed_to_add": "Nepodarilo sa pridať spolupracovníka",
       "removed": "Spolupracovník odstránený",
@@ -158,7 +158,7 @@
       "no_collaborators": "Zatiaľ žiadni spolupracovníci. Ak chceš začať spolupracovať, niekoho pridaj!",
       "no_collaborators_readonly": "Pre tento zoznam žiadni spolupracovníci.",
       "people_with_access": "Ľudia, ktorí majú prístup k tomuto zoznamu",
-      "add_or_remove": "Pridajte alebo odstráňte ľudí, ktorí majú prístup k tomuto zoznamu",
+      "add_or_remove": "Pridaj alebo odstráň ľudí, ktorí majú prístup k tomuto zoznamu",
       "invitation_sent": "Pozvánka úspešne odoslaná",
       "invitation_revoked": "Pozvánka zrušená",
       "failed_to_revoke": "Nepodarilo sa zrušiť pozvánku",
@@ -229,7 +229,7 @@
       "reader_settings": {
         "local_overrides_title": "Sú aktívne nastavenia špecifické pre zariadenie",
         "using_default": "Používa sa predvolené nastavenie pre klienta",
-        "clear_override_hint": "Vymažte prepísanie zariadenia a použite globálne nastavenie ({{value}})",
+        "clear_override_hint": "Vymaž prepísanie zariadenia a použi globálne nastavenie ({{value}})",
         "font_size": "Veľkosť písma",
         "font_family": "Rodina písma",
         "preview_inline": "(Náhľad)",
@@ -251,12 +251,12 @@
         "clear_defaults": "Vymazať všetky predvolené",
         "description": "Konfigurácia predvolených nastavení textu pre zobrazenie čítačky. Tieto nastavenia sa synchronizujú medzi všetkými tvojimi zariadeniami.",
         "defaults_cleared": "Predvolené nastavenia čítačky boli vymazané",
-        "save_hint": "Uložte nastavenia iba pre toto zariadenie alebo ich synchronizujte na všetkých zariadeniach",
+        "save_hint": "Ulož nastavenia iba pre toto zariadenie alebo ich synchronizuj na všetkých zariadeniach",
         "save_as_default": "Uložiť ako predvolené",
         "save_to_device": "Toto zariadenie",
         "sans": "Bez pätiek",
         "tooltip_preview_and_local": "Neuložené zmeny ukážky; nastavenia zariadenia sa líšia od globálnych",
-        "adjust_hint": "Upravte nastavenia vyššie, aby ste si prezreli zmeny"
+        "adjust_hint": "Uprav nastavenia vyššie, aby si si prezrel zmeny"
       },
       "avatar": {
         "upload": "Nahrať avatara",
@@ -273,7 +273,7 @@
     "ai": {
       "ai_settings": "Nastavenia AI",
       "tagging_rules": "Pravidlá označovania",
-      "tagging_rule_description": "Výzvy, ktoré tu pridáte, budú zahrnuté ako pravidlá pre model počas generovania značiek. Konečné výzvy si môžete pozrieť v sekcii ukážky výziev.",
+      "tagging_rule_description": "Výzvy, ktoré tu pridáš, budú zahrnuté ako pravidlá pre model počas generovania značiek. Konečné výzvy si môžeš pozrieť v sekcii ukážky výziev.",
       "prompt_preview": "Náhľad výzvy",
       "text_prompt": "Textová výzva",
       "all_tagging": "Všetko označené",
@@ -283,7 +283,7 @@
       "images_prompt": "Výzva obrázka",
       "summarization_prompt": "Výzva na sumarizáciu",
       "tag_style": "Štýl tagov",
-      "auto_summarization_description": "Automaticky generujte zhrnutia pre vaše záložky pomocou AI.",
+      "auto_summarization_description": "Automaticky generuj zhrnutia pre tvoje záložky pomocou AI.",
       "auto_tagging": "Automatické označovanie štítkami",
       "titlecase_spaces": "Veľké začiatočné písmená s medzerami",
       "lowercase_underscores": "Malé písmená s podčiarkovníkmi",
@@ -293,7 +293,7 @@
       "lowercase_spaces": "Malé písmená s medzerami",
       "inference_language_description": "Vyber jazyk pre tagy a súhrny generované AI.",
       "tag_style_description": "Vyber si, ako majú byť formátované automaticky generované tagy.",
-      "auto_tagging_description": "Automaticky generujte štítky pre vaše záložky pomocou AI.",
+      "auto_tagging_description": "Automaticky generuj štítky pre tvoje záložky pomocou AI.",
       "camelCase": "camelCase",
       "auto_summarization": "Automatické zhrnutie",
       "no_preference": "Žiadna preferencia",
@@ -310,7 +310,7 @@
       "webhook_url": "URL webhooku",
       "auth_token": "Autorizačný token",
       "create_webhook": "Vytvoriť webhook",
-      "delete_webhook_confirmation": "Naozaj chcete odstrániť tento webhook?",
+      "delete_webhook_confirmation": "Naozaj chceš odstrániť tento webhook?",
       "description": "Webhooks môžeš použiť na spustenie akcií, keď sú záložky vytvorené, zmenené alebo prehľadané.",
       "webhooks": "Webhooks",
       "events": {
@@ -323,13 +323,13 @@
     "api_keys": {
       "api_keys": "API kľúče",
       "new_api_key": "Nový API kľúč",
-      "key_success_please_copy": "Prosím, skopírujte si kľúč a uložte ho na bezpečné miesto. Keď zatvoríte dialógové okno, už k nemu nebudete mať prístup.",
+      "key_success_please_copy": "Prosím, skopíruj si kľúč a ulož ho na bezpečné miesto. Keď zatvoríš dialógové okno, už k nemu nebudeš mať prístup.",
       "new_api_key_desc": "Daj svojmu API kľúču jedinečný názov",
       "key_success": "Kľúč bol úspešne vytvorený",
       "regenerate_api_key": "Obnoviť API kľúč",
       "key_regenerated": "Kľúč bol úspešne obnovený",
-      "key_regenerated_please_copy": "Prosím, skopírujte si nový kľúč a uložte ho na bezpečné miesto. Starý kľúč bol zrušený a už nebude fungovať.",
-      "regenerate_warning": "Ste si istý, že chcete obnoviť API kľúč „{{name}}“?",
+      "key_regenerated_please_copy": "Prosím, skopíruj si nový kľúč a ulož ho na bezpečné miesto. Starý kľúč bol zrušený a už nebude fungovať.",
+      "regenerate_warning": "Si si istý, že chceš obnoviť API kľúč „{{name}}“?",
       "regenerate_confirmation": "Toto zruší aktuálny kľúč a vygeneruje nový. Všetky aplikácie, ktoré používajú aktuálny kľúč, prestanú fungovať."
     },
     "manage_assets": {
@@ -354,7 +354,7 @@
       "crawling_failed": "Prehľadávanie zlyhalo"
     },
     "rules": {
-      "enter_rule_name": "Zadajte názov pravidla",
+      "enter_rule_name": "Zadaj názov pravidla",
       "describe_what_this_rule_does": "Popíš, čo toto pravidlo robí",
       "rule_has_been_created": "Pravidlo bolo vytvorené!",
       "conditions_types": {
@@ -719,7 +719,7 @@
           "description": "Administratívne čistenie a údržba aktív"
         }
       },
-      "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a systémové úlohy spracovania",
+      "monitor_and_manage": "Monitoruj a spravuj fronty úloh na pozadí a systémové úlohy spracovania",
       "active": "Aktívne",
       "available_actions": "Dostupné akcie",
       "status": {
@@ -730,7 +730,7 @@
         },
         "unprocessed": {
           "title": "Nespracované",
-          "description": "Záložky, ktoré ešte neboli spracované. S najväčšou pravdepodobnosťou sú už zaradené do frontu na spracovanie, ak nie, možno ich budete musieť znova zaradiť do frontu manuálne."
+          "description": "Záložky, ktoré ešte neboli spracované. S najväčšou pravdepodobnosťou sú už zaradené do frontu na spracovanie, ak nie, možno ich budeš musieť znova zaradiť do frontu manuálne."
         },
         "failed": {
           "title": "Neúspešné",
@@ -818,12 +818,12 @@
   },
   "tags": {
     "all_tags": "Všetky značky",
-    "your_tags": "Vaše značky",
+    "your_tags": "Tvoje značky",
     "ai_tags": "AI značky",
     "your_tags_info": "Značky priradené aspoň raz aj vami",
     "unused_tags": "Nepoužité značky",
     "drag_and_drop_merging": "Zlúčenie potiahnutím",
-    "drag_and_drop_merging_info": "Potiahnite značku na inú značku pre ich zlúčenie",
+    "drag_and_drop_merging_info": "Potiahni značku na inú značku pre ich zlúčenie",
     "sort_by_name": "Zoradiť podľa názvu",
     "delete_all_unused_tags": "Odstrániť všetky nepoužité značky",
     "unused_tags_info": "Značky nepriradené k žiadnym záložkám",
@@ -831,23 +831,23 @@
     "create_tag": "Vytvoriť značku",
     "create_tag_description": "Vytvoriť novú značku bez pripojenia k žiadnej záložke",
     "tag_name": "Názov značky",
-    "enter_tag_name": "Zadajte názov značky",
+    "enter_tag_name": "Zadaj názov značky",
     "sort_by_usage": "Zoradiť podľa používania",
     "sort_by_relevance": "Zoradiť podľa relevantnosti",
     "no_custom_tags": "Zatiaľ žiadne vlastné štítky",
     "no_ai_tags": "Zatiaľ žiadne štítky AI",
-    "no_unused_tags": "Nemáte žiadne nepoužité štítky",
-    "no_unused_tags_match_your_search": "Žiadne nepoužité štítky nezodpovedajú vášmu vyhľadávaniu",
-    "no_tags_match_your_search": "Žiadne štítky nezodpovedajú vášmu vyhľadávaniu",
+    "no_unused_tags": "Nemáš žiadne nepoužité štítky",
+    "no_unused_tags_match_your_search": "Žiadne nepoužité štítky nezodpovedajú tvojmu vyhľadávaniu",
+    "no_tags_match_your_search": "Žiadne štítky nezodpovedajú tvojmu vyhľadávaniu",
     "search_placeholder": "Hľadať štítky…",
     "search_or_create_placeholder": "Hľadať alebo vytvoriť štítky…"
   },
   "editor": {
-    "quickly_focus": "Na rýchle presunutie na toto pole môžete použiť skratku CTRL + E",
+    "quickly_focus": "Na rýchle presunutie na toto pole môžeš použiť skratku CTRL + E",
     "multiple_urls_dialog_title": "Importovať zadané URL ako samostatné záložky?",
     "import_as_text": "Importovať ako textovú záložku",
     "import_as_separate_bookmarks": "Importovať ako samostatné záložky",
-    "placeholder": "Vložte odkaz, napíšte poznámku alebo sem vložte či potiahnite obrázok…",
+    "placeholder": "Vlož odkaz, napíš poznámku alebo sem vlož či potiahni obrázok…",
     "new_item": "NOVÁ POLOŽKA",
     "text_toolbar": {
       "italic": "Šikmé",
@@ -897,9 +897,9 @@
       "undo": "Späť",
       "redo": "Znova"
     },
-    "multiple_urls_dialog_desc": "Vstup obsahuje viaceré URL na samostatných riadkoch. Chcete ich importovať ako samostatné záložky?",
+    "multiple_urls_dialog_desc": "Vstup obsahuje viaceré URL na samostatných riadkoch. Chceš ich importovať ako samostatné záložky?",
     "disabled_submissions": "Odosielanie je vypnuté",
-    "placeholder_v2": "Vložte odkaz, napíšte poznámku alebo presuňte obrázok…"
+    "placeholder_v2": "Vlož odkaz, napíš poznámku alebo presuň obrázok…"
   },
   "preview": {
     "view_original": "Zobraziť originál",
@@ -913,8 +913,8 @@
     "fetch_error_title": "Obsah nie je k dispozícii",
     "fetch_error_description": "Nepodarilo sa nám získať obsah pre tento odkaz. Stránka môže byť chránená, vyžadovať autentifikáciu alebo byť dočasne nedostupná.",
     "crawling_in_progress": "Načítava sa obsah stránky…",
-    "continue_reading": "Pokračovať tam, kde ste prestali",
-    "continue_reading_percent": "Pokračovať tam, kde ste prestali ({{percent}} %)",
+    "continue_reading": "Pokračovať tam, kde si prestal",
+    "continue_reading_percent": "Pokračovať tam, kde si prestal ({{percent}} %)",
     "continue_button": "Pokračovať"
   },
   "toasts": {
@@ -989,7 +989,7 @@
     "whats_new_title": "Čo je nové vo verzii {{version}}",
     "release_notes_description": "Tu sú najnovšie aktualizácie prevzaté z poznámok k verzii na GitHub.",
     "loading_release_notes": "Načítavajú sa poznámky k verzii…",
-    "unable_to_load_release_notes": "Momentálne sa nedarí načítať poznámky k verzii. Skúste to neskôr.",
+    "unable_to_load_release_notes": "Momentálne sa nedarí načítať poznámky k verzii. Skús to neskôr.",
     "no_release_notes": "Pre túto verziu neboli publikované žiadne poznámky k vydaniu.",
     "release_notes_synced": "Poznámky k verzii sú synchronizované zo služby GitHub.",
     "view_on_github": "Zobraziť na GitHub"

@@ -98,7 +98,7 @@
         "save_to_device": "Este dispositivo",
         "sans": "Sin gracias",
         "tooltip_preview_and_local": "Cambios de la vista previa sin guardar; los ajustes del dispositivo difieren de los globales",
-        "adjust_hint": "Just the tip: ajusta la configuración de arriba para previsualizar los cambios"
+        "adjust_hint": "Ajusta la configuración de arriba para previsualizar los cambios"
       },
       "avatar": {
         "upload": "Subir avatar",
@@ -989,7 +989,7 @@
     "whats_new_title": "¿Qué hay de nuevo en la v{{version}}?",
     "release_notes_description": "Aquí están las últimas actualizaciones obtenidas de las notas de la versión de GitHub.",
     "loading_release_notes": "Cargando las notas de la versión…",
-    "unable_to_load_release_notes": "No se pueden cargar las notas de la versión ahora mismo. Por favor, inténtelo de nuevo más tarde.",
+    "unable_to_load_release_notes": "No se pueden cargar las notas de la versión ahora mismo. Por favor, inténtalo de nuevo más tarde.",
     "no_release_notes": "No se publicaron notas de la versión para esta versión.",
     "release_notes_synced": "Las notas de la versión están sincronizadas desde GitHub.",
     "view_on_github": "Ver en GitHub"

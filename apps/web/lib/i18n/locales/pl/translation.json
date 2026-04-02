@@ -156,12 +156,12 @@
         "adjust_hint": "Dostosuj powyższe ustawienia, aby wyświetlić zmiany w podglądzie"
       },
       "avatar": {
-        "upload": "Wrzuć awatar",
+        "upload": "Prześlij awatar",
         "change": "Zmień awatar",
         "remove_confirm_title": "Usunąć awatar?",
         "updated": "Awatar zaktualizowany",
         "removed": "Awatar usunięty",
-        "description": "Wrzuć kwadratowy obrazek, który będzie Twoim awatarem.",
+        "description": "Prześlij kwadratowy obrazek, który będzie Twoim awatarem.",
         "remove_confirm_description": "To wyczyści Twoje aktualne zdjęcie profilowe.",
         "title": "Zdjęcie profilowe",
         "remove": "Usuń awatar"
@@ -407,7 +407,7 @@
         "completed": "Ukończone",
         "failed": "Niepowodzenie",
         "processing": "Przetwarzanie",
-        "staging": "Wersja testowa",
+        "staging": "Przygotowywanie",
         "running": "Uruchomiony",
         "paused": "Wstrzymane"
       },

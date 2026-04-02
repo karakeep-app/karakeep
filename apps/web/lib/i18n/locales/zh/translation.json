@@ -497,7 +497,7 @@
       },
       "dialogs": {
         "delete_backup_title": "删除备份？",
-        "delete_backup_description": "你确定要删除这个备份吗？这个操作没法撤销哦。"
+        "delete_backup_description": "你确定要删除这个备份吗？此操作无法撤销。"
       },
       "toasts": {
         "backup_queued": "备份任务已加入队列！很快就会处理。",

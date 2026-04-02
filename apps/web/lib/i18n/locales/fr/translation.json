@@ -458,11 +458,11 @@
     "backups": {
       "backups": "Sauvegardes",
       "page_title": "Sauvegardes",
-      "page_description": "Crée et gère automatiquement les sauvegardes de tes marque-pages. Les sauvegardes sont compressées et stockées de manière sécurisée.",
+      "page_description": "Créez et gérez automatiquement les sauvegardes de vos marque-pages. Les sauvegardes sont compressées et stockées de manière sécurisée.",
       "configuration": {
         "title": "Configuration des sauvegardes",
         "enable_automatic_backups": "Activer les sauvegardes automatiques",
-        "enable_automatic_backups_description": "Crée automatiquement des sauvegardes de tes marque-pages",
+        "enable_automatic_backups_description": "Créez automatiquement des sauvegardes de vos marque-pages",
         "backup_frequency": "Fréquence des sauvegardes",
         "backup_frequency_description": "À quelle fréquence les sauvegardes doivent être créées",
         "retention_period": "Période de rétention (jours)",
@@ -475,9 +475,9 @@
         "save_settings": "Enregistrer les paramètres"
       },
       "list": {
-        "title": "Tes sauvegardes",
+        "title": "Vos sauvegardes",
         "create_backup_now": "Créer une sauvegarde maintenant",
-        "no_backups": "Tu n'as pas encore de sauvegardes. Active les sauvegardes automatiques ou crées-en une manuellement.",
+        "no_backups": "Vous n'avez pas encore de sauvegardes. Activez les sauvegardes automatiques ou créez-en une manuellement.",
         "table": {
           "created_at": "Créé à",
           "bookmarks": "Marque-pages",
@@ -805,8 +805,8 @@
     "fetch_error_title": "Contenu non disponible",
     "fetch_error_description": "Impossible de récupérer le contenu de ce lien. La page est peut-être protégée, nécessite une authentification ou est temporairement indisponible.",
     "crawling_in_progress": "Récupération du contenu de la page…",
-    "continue_reading": "Continue là où vous vous êtes arrêté",
-    "continue_reading_percent": "Continue là où vous vous êtes arrêté ({{percent}} %)",
+    "continue_reading": "Continuez là où vous vous êtes arrêté",
+    "continue_reading_percent": "Continuez là où vous vous êtes arrêté ({{percent}} %)",
     "continue_button": "Continuer"
   },
   "editor": {
@@ -950,7 +950,7 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Supprimer le signet ?",
-      "delete_confirmation_description": "T'es sûr de vouloir supprimer ce marque-page ?"
+      "delete_confirmation_description": "Êtes-vous sûr de vouloir supprimer ce marque-page ?"
     }
   },
   "highlights": {
@@ -995,19 +995,19 @@
     "view_on_github": "Voir sur GitHub"
   },
   "wrapped": {
-    "title": "Ton récap de {{year}}",
+    "title": "Votre récap de {{year}}",
     "subtitle": "Une année dans Karakeep",
     "banner": {
-      "title": "Ton récap 2025 est prêt!",
-      "description": "Consulte ton année en signets",
+      "title": "Votre récap 2025 est prêt !",
+      "description": "Consultez votre année en signets",
       "view_now": "Afficher maintenant"
     },
     "button": "Récap 2025",
-    "loading": "Chargement de ton récapitulatif…",
-    "failed_to_load": "Échec du chargement de tes infos récapitulatives",
+    "loading": "Chargement de votre récapitulatif…",
+    "failed_to_load": "Échec du chargement de vos infos récapitulatives",
     "sections": {
       "total_saves": {
-        "prefix": "Tu as enregistré",
+        "prefix": "Vous avez enregistré",
         "suffix": "éléments cette année",
         "suffix_singular": "élément cette année"
       },
