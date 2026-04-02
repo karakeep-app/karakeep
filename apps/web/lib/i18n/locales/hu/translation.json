@@ -114,7 +114,7 @@
         "save_to_device": "Ez az eszköz",
         "sans": "Sans Serif",
         "tooltip_preview_and_local": "El nem mentett előnézeti módosítások; az eszköz beállításai eltérnek a globálistól",
-        "adjust_hint": "A módosítások előnézetéhez állítsa be a fenti beállításokat"
+        "adjust_hint": "A módosítások előnézetéhez állítsd be a fenti beállításokat"
       },
       "avatar": {
         "upload": "Avatár feltöltése",
@@ -554,7 +554,7 @@
     "quickly_focus": "A ⌘ + E megnyomásával gyorsan erre a mezőre fókuszálhatsz",
     "multiple_urls_dialog_title": "Az URL címeket külön könyvjelzőként importálod?",
     "import_as_separate_bookmarks": "Importálás külön könyvjelzőkként",
-    "new_item": "ÚJ TÁRGY",
+    "new_item": "ÚJ ELEM",
     "disabled_submissions": "A beküldések le vannak tiltva",
     "placeholder_v2": "Illessz be egy linket, írj egy jegyzetet vagy húzz ide egy képet…"
   },
