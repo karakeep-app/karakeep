@@ -231,7 +231,7 @@
       "api_keys": "API-nycklar",
       "new_api_key": "Ny API-nyckel",
       "new_api_key_desc": "Ge din API-nyckel ett unikt namn",
-      "key_success_please_copy": "Kopiera nyckeln och lagra den på en saker plats. Efter att du stängt denna dialogruta kommer su inte att kunna nå den igen.",
+      "key_success_please_copy": "Kopiera nyckeln och lagra den på en säker plats. När du stänger dialogrutan kommer du inte att kunna nå den igen.",
       "key_success": "Nyckeln skapades utan problem",
       "regenerate_api_key": "Återskapa API-nyckel",
       "key_regenerated": "Nyckeln har återskapats",
@@ -268,7 +268,7 @@
       "asset_type": "Tillgångstyp"
     },
     "broken_links": {
-      "crawling_status": "Krypstatus",
+      "crawling_status": "Genomsökningsstatus",
       "crawling_failed": "Crawling misslyckades",
       "broken_links": "Trasiga länkar",
       "last_crawled_at": "Senaste genomsökning"
