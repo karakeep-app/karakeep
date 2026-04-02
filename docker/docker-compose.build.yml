@@ -22,7 +22,7 @@ services:
       - --remote-debugging-port=9222
       - --hide-scrollbars
   meilisearch:
-    image: getmeili/meilisearch:v1.37.0
+    image: getmeili/meilisearch:v1.41.0
     restart: unless-stopped
     environment:
       MEILI_NO_ANALYTICS: "true"
