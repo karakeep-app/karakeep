@@ -29,14 +29,19 @@ export default function SavePage() {
       },
       onSuccess: async () => {
         // After successful creation, update badge cache and notify background
-        const [currentTab] = await chrome.tabs.query({
-          active: true,
-          lastFocusedWindow: true,
-        });
-        await chrome.runtime.sendMessage({
-          type: MessageType.BOOKMARK_REFRESH_BADGE,
-          currentTab: currentTab,
-        });
+        try {
+          const [currentTab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true,
+          });
+          await chrome.runtime.sendMessage({
+            type: MessageType.BOOKMARK_REFRESH_BADGE,
+            currentTab: currentTab,
+          });
+        } catch {
+          // Badge refresh is best-effort — on Firefox Android the background
+          // script may not be reachable from the popup context.
+        }
       },
     }),
   );
