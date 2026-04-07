@@ -17,9 +17,9 @@ export default function Logout() {
     signOut({
       redirect: false,
       callbackUrl: "/",
-    }).then((d) => {
+    }).then(() => {
       clearHistory();
-      router.push(d.url);
+      router.push("/");
     });
   }, []);
   return <span />;
