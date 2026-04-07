@@ -1435,7 +1435,7 @@ async function archiveWebpage(
             : undefined,
           no_proxy: serverConfig.proxy.noProxy?.join(","),
         },
-      })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
+      })("monolith", ["-", "-Ie", "-t", "5", "-b", url, "-o", assetPath]);
 
       if (res.isCanceled) {
         logger.error(
