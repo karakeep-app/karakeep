@@ -76,6 +76,7 @@ export class ImportSessionsRepo {
       tags: string[];
       listIds: string[];
       sourceAddedAt?: Date;
+      archived?: boolean;
       status: "pending";
     }[],
   ): Promise<void> {

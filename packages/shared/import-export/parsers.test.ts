@@ -526,3 +526,16 @@ describe("parseKarakeepBookmarkFile", () => {
     expect(result.bookmarks[0].listExternalIds).toEqual(["manual"]);
   });
 });
+
+describe("parsePocketBookmarkFile", () => {
+  it("sets archived true for items with status archive", () => {
+    const csv = `title,url,time_added,tags,status\nTest,https://example.com,1234567890,,archive`;
+    const result = parseImportFile("pocket", csv);
+    expect(result.bookmarks[0].archived).toBe(true);
+  });
+  it("sets archived false for items with status unread", () => {
+    const csv = `title,url,time_added,tags,status\nTest,https://example.com,1234567890,,unread`;
+    const result = parseImportFile("pocket", csv);
+    expect(result.bookmarks[0].archived).toBeFalsy();
+  });
+});

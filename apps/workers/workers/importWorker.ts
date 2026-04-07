@@ -382,6 +382,7 @@ export class ImportWorker {
         note: staged.note ?? undefined,
         createdAt: staged.sourceAddedAt ?? undefined,
         crawlPriority: "low" as const,
+        archived: staged.archived ?? false,
       };
 
       let bookmarkRequest: CreateBookmarkInput;

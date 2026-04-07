@@ -96,6 +96,7 @@ export const importSessionsRouter = router({
               tags: z.array(z.string()).default([]),
               listIds: z.array(z.string()).default([]),
               sourceAddedAt: z.date().optional(),
+              archived: z.boolean().optional(),
             }),
           )
           .max(50),
