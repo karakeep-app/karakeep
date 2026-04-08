@@ -120,6 +120,22 @@ function normalizeLazyLoadImages(document: Document): void {
   }
 }
 
+function stripTwitterReplies(document: Document, url: string): void {
+  try {
+    const hostname = new URL(url).hostname;
+    if (!hostname.includes("twitter.com") && !hostname.includes("x.com")) {
+      return;
+    }
+  } catch {
+    return;
+  }
+  // Keep only the first tweet article element; remove all replies that follow
+  const articles = document.querySelectorAll('article[data-testid="tweet"]');
+  for (let i = 1; i < articles.length; i++) {
+    articles[i].remove();
+  }
+}
+
 function extractReadableContent(
   htmlContent: string,
   url: string,
@@ -128,6 +144,7 @@ function extractReadableContent(
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
   try {
     normalizeLazyLoadImages(dom.window.document);
+    stripTwitterReplies(dom.window.document, url);
     const readableContent = new Readability(dom.window.document).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
       return null;
