@@ -1435,7 +1435,17 @@ async function archiveWebpage(
             : undefined,
           no_proxy: serverConfig.proxy.noProxy?.join(","),
         },
-      })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
+      })("monolith", [
+        "-",
+        "-Ije",
+        "-t",
+        String(serverConfig.crawler.monolithTimeoutSec),
+        ...serverConfig.crawler.monolithArguments,
+        "-b",
+        url,
+        "-o",
+        assetPath,
+      ]);
 
       if (res.isCanceled) {
         logger.error(

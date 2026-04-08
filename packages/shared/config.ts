@@ -112,6 +112,11 @@ const allEnv = z.object({
     .string()
     .default("")
     .transform((t) => t.split("%%").filter((a) => a)),
+  CRAWLER_MONOLITH_TIMEOUT_SEC: z.coerce.number().default(5),
+  CRAWLER_MONOLITH_ARGS: z
+    .string()
+    .default("")
+    .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_PARSER_MEM_LIMIT_MB: z.coerce.number().default(512),
   CRAWLER_PARSE_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
@@ -331,6 +336,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
+      monolithTimeoutSec: val.CRAWLER_MONOLITH_TIMEOUT_SEC,
+      monolithArguments: val.CRAWLER_MONOLITH_ARGS,
       parserMemLimitMb: val.CRAWLER_PARSER_MEM_LIMIT_MB,
       parseTimeoutSec: val.CRAWLER_PARSE_TIMEOUT_SEC,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
