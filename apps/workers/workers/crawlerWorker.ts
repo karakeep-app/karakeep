@@ -19,10 +19,10 @@ import {
   fetchWithProxy,
   getBookmarkDomain,
   matchesNoProxy,
-  type RunProxyConfig,
   selectRunProxies,
   validateUrl,
 } from "network";
+import type { RunProxyConfig } from "network";
 import {
   Browser,
   BrowserContext,
@@ -182,7 +182,9 @@ interface CrawlerRunResult {
   status: "completed";
 }
 
-function getPlaywrightProxyConfig(runProxy: RunProxyConfig): BrowserContextOptions["proxy"] {
+function getPlaywrightProxyConfig(
+  runProxy: RunProxyConfig,
+): BrowserContextOptions["proxy"] {
   const proxyUrl = runProxy.httpsProxy || runProxy.httpProxy;
   if (!proxyUrl) {
     return undefined;
@@ -500,9 +502,13 @@ async function browserlessCrawlPage(
       logger.info(
         `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
       );
-      const response = await fetchWithProxy(url, {
-        signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-      }, runProxy);
+      const response = await fetchWithProxy(
+        url,
+        {
+          signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+        },
+        runProxy,
+      );
       logger.info(
         `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
       );
@@ -1282,9 +1288,13 @@ async function downloadAndStoreFile(
         logger.info(
           `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
         );
-        const response = await fetchWithProxy(url, {
-          signal: abortSignal,
-        }, runProxy);
+        const response = await fetchWithProxy(
+          url,
+          {
+            signal: abortSignal,
+          },
+          runProxy,
+        );
         if (!response.ok || response.body == null) {
           throw new Error(`Failed to download ${fileType}: ${response.status}`);
         }
@@ -1379,7 +1389,14 @@ async function downloadAndStoreImage(
     );
     return null;
   }
-  return downloadAndStoreFile(url, userId, jobId, "image", abortSignal, runProxy);
+  return downloadAndStoreFile(
+    url,
+    userId,
+    jobId,
+    "image",
+    abortSignal,
+    runProxy,
+  );
 }
 
 async function archiveWebpage(
@@ -1518,10 +1535,14 @@ async function getContentType(
         logger.info(
           `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
         );
-        const response = await fetchWithProxy(url, {
-          method: "GET",
-          signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-        }, runProxy);
+        const response = await fetchWithProxy(
+          url,
+          {
+            method: "GET",
+            signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+          },
+          runProxy,
+        );
         setSpanAttributes({
           "crawler.getContentType.statusCode": response.status,
         });
@@ -1788,9 +1809,15 @@ async function crawlAndParseUrl(
 
       // Track status code in Prometheus
       if (statusCode !== null) {
-        crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+        crawlerStatusCodeCounter
+          .labels(
+            statusCode.toString(),
+            runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+          )
+          .inc();
         setSpanAttributes({
           "crawler.statusCode": statusCode,
+          "crawler.proxy": runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
         });
       }
 
@@ -2103,7 +2130,12 @@ async function runCrawler(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
 
-  const contentType = await getContentType(url, jobId, job.abortSignal, runProxy);
+  const contentType = await getContentType(
+    url,
+    jobId,
+    job.abortSignal,
+    runProxy,
+  );
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage

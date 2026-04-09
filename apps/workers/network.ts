@@ -253,19 +253,23 @@ export interface RunProxyConfig {
 export function selectRunProxies(): RunProxyConfig {
   const { proxy } = serverConfig;
   return {
-    httpProxy: proxy.httpProxy
-      ? getRandomProxy(proxy.httpProxy)
-      : undefined,
-    httpsProxy: proxy.httpsProxy
-      ? getRandomProxy(proxy.httpsProxy)
-      : undefined,
+    httpProxy: proxy.httpProxy ? getRandomProxy(proxy.httpProxy) : undefined,
+    httpsProxy: proxy.httpsProxy ? getRandomProxy(proxy.httpsProxy) : undefined,
     noProxy: proxy.noProxy,
   };
 }
 
 export function getProxyAgent(url: string, runProxy?: RunProxyConfig) {
-  const httpProxy = runProxy ? runProxy.httpProxy : (serverConfig.proxy.httpProxy ? getRandomProxy(serverConfig.proxy.httpProxy) : undefined);
-  const httpsProxy = runProxy ? runProxy.httpsProxy : (serverConfig.proxy.httpsProxy ? getRandomProxy(serverConfig.proxy.httpsProxy) : undefined);
+  const httpProxy = runProxy
+    ? runProxy.httpProxy
+    : serverConfig.proxy.httpProxy
+      ? getRandomProxy(serverConfig.proxy.httpProxy)
+      : undefined;
+  const httpsProxy = runProxy
+    ? runProxy.httpsProxy
+    : serverConfig.proxy.httpsProxy
+      ? getRandomProxy(serverConfig.proxy.httpsProxy)
+      : undefined;
   const noProxy = runProxy ? runProxy.noProxy : serverConfig.proxy.noProxy;
 
   if (!httpProxy && !httpsProxy) {
