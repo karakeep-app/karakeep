@@ -1,6 +1,7 @@
 import { adminCmd } from "@/commands/admin";
 import { bookmarkCmd } from "@/commands/bookmarks";
 import { dumpCmd } from "@/commands/dump";
+import { highlightsCmd } from "@/commands/highlights";
 import { listsCmd } from "@/commands/lists";
 import { migrateCmd } from "@/commands/migrate";
 import { tagsCmd } from "@/commands/tags";
@@ -34,6 +35,7 @@ const program = new Command()
 
 program.addCommand(adminCmd);
 program.addCommand(bookmarkCmd);
+program.addCommand(highlightsCmd);
 program.addCommand(listsCmd);
 program.addCommand(tagsCmd);
 program.addCommand(whoamiCmd);

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { Slider } from "react-native-awesome-slider";
-import { runOnJS, useSharedValue } from "react-native-reanimated";
+import Slider from "@react-native-community/slider";
 import {
   ReaderPreview,
   ReaderPreviewRef,
@@ -40,23 +39,6 @@ export default function ReaderSettingsPage() {
     fontFamily: effectiveFontFamily,
   } = settings;
 
-  // Shared values for sliders
-  const fontSizeProgress = useSharedValue<number>(effectiveFontSize);
-  const fontSizeMin = useSharedValue<number>(
-    READER_SETTING_CONSTRAINTS.fontSize.min,
-  );
-  const fontSizeMax = useSharedValue<number>(
-    READER_SETTING_CONSTRAINTS.fontSize.max,
-  );
-
-  const lineHeightProgress = useSharedValue<number>(effectiveLineHeight);
-  const lineHeightMin = useSharedValue<number>(
-    READER_SETTING_CONSTRAINTS.lineHeight.min,
-  );
-  const lineHeightMax = useSharedValue<number>(
-    READER_SETTING_CONSTRAINTS.lineHeight.max,
-  );
-
   // Display values for showing rounded values while dragging
   const [displayFontSize, setDisplayFontSize] = useState(effectiveFontSize);
   const [displayLineHeight, setDisplayLineHeight] =
@@ -71,7 +53,7 @@ export default function ReaderSettingsPage() {
   // Ref for the WebView preview component
   const previewRef = useRef<ReaderPreviewRef>(null);
 
-  // Functions to update preview styles via IPC (called from worklets via runOnJS)
+  // Functions to update preview styles
   const updatePreviewFontSize = useCallback(
     (fontSize: number) => {
       setDisplayFontSize(fontSize);
@@ -96,14 +78,12 @@ export default function ReaderSettingsPage() {
     [effectiveFontFamily],
   );
 
-  // Sync slider progress and display values with effective settings
+  // Sync display values with effective settings
   useEffect(() => {
-    fontSizeProgress.value = effectiveFontSize;
     setDisplayFontSize(effectiveFontSize);
   }, [effectiveFontSize]);
 
   useEffect(() => {
-    lineHeightProgress.value = effectiveLineHeight;
     setDisplayLineHeight(effectiveLineHeight);
   }, [effectiveLineHeight]);
 
@@ -193,21 +173,16 @@ export default function ReaderSettingsPage() {
           <Text className="text-muted-foreground">
             {READER_SETTING_CONSTRAINTS.fontSize.min}
           </Text>
-          <View className="flex-1">
-            <Slider
-              progress={fontSizeProgress}
-              minimumValue={fontSizeMin}
-              maximumValue={fontSizeMax}
-              renderBubble={() => null}
-              onValueChange={(value) => {
-                "worklet";
-                runOnJS(updatePreviewFontSize)(Math.round(value));
-              }}
-              onSlidingComplete={(value) =>
-                handleFontSizeChange(Math.round(value))
-              }
-            />
-          </View>
+          <Slider
+            style={{ height: 40, flex: 1 }}
+            value={displayFontSize}
+            minimumValue={READER_SETTING_CONSTRAINTS.fontSize.min}
+            maximumValue={READER_SETTING_CONSTRAINTS.fontSize.max}
+            onValueChange={(value) => updatePreviewFontSize(Math.round(value))}
+            onSlidingComplete={(value) =>
+              handleFontSizeChange(Math.round(value))
+            }
+          />
           <Text className="text-muted-foreground">
             {READER_SETTING_CONSTRAINTS.fontSize.max}
           </Text>
@@ -226,19 +201,16 @@ export default function ReaderSettingsPage() {
           <Text className="text-muted-foreground">
             {READER_SETTING_CONSTRAINTS.lineHeight.min}
           </Text>
-          <View className="flex-1">
-            <Slider
-              progress={lineHeightProgress}
-              minimumValue={lineHeightMin}
-              maximumValue={lineHeightMax}
-              renderBubble={() => null}
-              onValueChange={(value) => {
-                "worklet";
-                runOnJS(updatePreviewLineHeight)(Math.round(value * 10) / 10);
-              }}
-              onSlidingComplete={handleLineHeightChange}
-            />
-          </View>
+          <Slider
+            style={{ height: 40, flex: 1 }}
+            value={displayLineHeight}
+            minimumValue={READER_SETTING_CONSTRAINTS.lineHeight.min}
+            maximumValue={READER_SETTING_CONSTRAINTS.lineHeight.max}
+            onValueChange={(value) =>
+              updatePreviewLineHeight(Math.round(value * 10) / 10)
+            }
+            onSlidingComplete={handleLineHeightChange}
+          />
           <Text className="text-muted-foreground">
             {READER_SETTING_CONSTRAINTS.lineHeight.max}
           </Text>

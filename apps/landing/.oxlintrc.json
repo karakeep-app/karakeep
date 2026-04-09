@@ -24,6 +24,7 @@
     "**/*.config.cjs",
     "**/.eslintrc.cjs",
     ".next",
+    ".astro",
     "dist",
     "build",
     "pnpm-lock.yaml"

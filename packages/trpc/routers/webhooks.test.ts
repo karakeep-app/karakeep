@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { WebhooksRepo } from "../models/webhooks.repo";
 import type { CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
 
@@ -94,6 +95,26 @@ describe("Webhook Routes", () => {
         events: ["created"],
       }),
     ).rejects.toThrow(/Webhook not found/);
+  });
+
+  test<CustomTestContext>("delete webhook returns not found when the row disappears after ownership check", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].webhooks;
+    const createdWebhook = await api.create({
+      url: "https://example.com/webhook",
+      events: ["created"],
+    });
+
+    const deleteSpy = vi
+      .spyOn(WebhooksRepo.prototype, "delete")
+      .mockResolvedValueOnce(false);
+
+    await expect(() =>
+      api.delete({ webhookId: createdWebhook.id }),
+    ).rejects.toThrow(/NOT_FOUND/);
+
+    deleteSpy.mockRestore();
   });
 
   test<CustomTestContext>("privacy for webhooks", async ({ apiCallers }) => {

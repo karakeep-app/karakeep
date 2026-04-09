@@ -1,16 +1,16 @@
 {
   "settings": {
     "api_keys": {
-      "key_success_please_copy": "Prosimo, kopirajte ključ in ga shranite na varno mesto. Ko zaprete pogovorno okno, ključa ne boste mogli več dostopati.",
+      "key_success_please_copy": "Kopiraj ključ in ga shrani na varno mesto. Ko zapreš pogovorno okno, do ključa ne boš mogel več dostopati.",
       "new_api_key": "Nov API ključ",
-      "new_api_key_desc": "Izberite edinstveno ime za svoj API ključ",
+      "new_api_key_desc": "Izberi edinstveno ime za svoj API ključ",
       "api_keys": "API Ključi",
       "key_success": "Ključ je bil uspešno ustvarjen",
       "regenerate_api_key": "Osveži API ključ",
       "key_regenerated": "Ključ je bil uspešno osvežen",
-      "key_regenerated_please_copy": "Prosimo, da kopirate nov ključ in ga shranite na varnem mestu. Stari ključ je bil preklican in ne bo več deloval.",
-      "regenerate_warning": "Ali ste prepričani, da želite ponovno ustvariti API ključ \"{{name}}\"?",
-      "regenerate_confirmation": "S tem boste preklicali trenutni ključ in ustvarili novega. Vse aplikacije, ki uporabljajo trenutni ključ, bodo prenehale delovati."
+      "key_regenerated_please_copy": "Kopiraj nov ključ in ga shrani na varnem mestu. Stari ključ je bil preklican in ne bo več deloval.",
+      "regenerate_warning": "Ali si prepričan/a, da želiš ponovno ustvariti API ključ \"{{name}}\"?",
+      "regenerate_confirmation": "S tem boš preklical trenutni ključ in ustvaril novega. Vse aplikacije, ki uporabljajo trenutni ključ, bodo prenehale delovati."
     },
     "import": {
       "import_bookmarks_from_karakeep_export": "Uvozi zaznamke iz Karakeep izvoza",
@@ -33,7 +33,7 @@
       "basic_details": "Osnovni podatki",
       "change_password": "Spremeni geslo",
       "new_password": "Novo geslo",
-      "confirm_new_password": "Potrdite novo geslo",
+      "confirm_new_password": "Potrdi novo geslo",
       "interface_lang": "Jezik vmesnika",
       "user_info": "Informacije o uporabniku",
       "user_settings": {
@@ -70,16 +70,16 @@
         "clear_local_overrides": "Počisti nastavitve naprave",
         "preview_text": "Rjava lisica skoči čez lenega psa. Tako bo videti vaše besedilo v pogledu bralnika.",
         "local_overrides_cleared": "Nastavitve, specifične za napravo, so bile počiscene",
-        "local_overrides_description": "Ta naprava ima nastavitve bralnika, ki se razlikujejo od vaših splošnih privzetih nastavitev:",
+        "local_overrides_description": "Ta naprava ima nastavitve bralnika, ki se razlikujejo od tvojih splošnih privzetih nastavitev:",
         "clear_defaults": "Počisti vse privzete nastavitve",
-        "description": "Nastavite privzete nastavitve besedila za pogled bralnika. Te nastavitve se sinhronizirajo v vseh vaših napravah.",
+        "description": "Nastavi privzete nastavitve besedila za pogled bralnika. Te nastavitve se sinhronizirajo v vseh tvojih napravah.",
         "defaults_cleared": "Privzeti bralnik je bil počiščen",
         "save_hint": "Shrani nastavitve samo za to napravo ali sinhroniziraj med vsemi napravami",
         "save_as_default": "Shrani kot privzeto",
         "save_to_device": "Ta naprava",
         "sans": "Sans Serif",
         "tooltip_preview_and_local": "Neshranjene spremembe predogleda; nastavitve naprave se razlikujejo od globalnih",
-        "adjust_hint": "Prilagodite nastavitve zgoraj za predogled sprememb"
+        "adjust_hint": "Prilagodi nastavitve zgoraj za predogled sprememb"
       },
       "avatar": {
         "upload": "Naloži avatar",
@@ -121,7 +121,7 @@
       "auto_summarization": "Samodejno povzemanje",
       "no_preference": "Ni mi pomembno",
       "curated_tags": "Izbrane oznake",
-      "curated_tags_description": "Po želji omejite označevanje z umetno inteligenco, da uporablja samo oznake s tega seznama. Če ni izbranih oznak, umetna inteligenca prosto ustvarja oznake.",
+      "curated_tags_description": "Po želji omeji označevanje z umetno inteligenco, da uporablja samo oznake s tega seznama. Če ni izbranih oznak, umetna inteligenca prosto ustvarja oznake.",
       "curated_tags_updated": "Uspešno posodobljene izbrane oznake!",
       "curated_tags_update_failed": "Posodobitev izbranih oznak ni uspela"
     },
@@ -142,7 +142,7 @@
       "edit_webhook": "Uredi spletno kljuko",
       "webhook_url": "URL spletne kljuke",
       "delete_webhook": "Izbriši spletno kljuko",
-      "delete_webhook_confirmation": "Ali ste prepričani, da želite izbrisati to spletno kljuko?"
+      "delete_webhook_confirmation": "Ali si prepričan/a, da želiš izbrisati to spletno kljuko?"
     },
     "feeds": {
       "add_a_subscription": "Dodaj naročnino",
@@ -192,7 +192,7 @@
       "delete_rule_confirmation": "Si prepričan, da želiš izbrisati to pravilo?",
       "whenever": "Kadar ...",
       "if": "Če ...",
-      "enter_rule_name": "Vnesite ime pravila",
+      "enter_rule_name": "Vnesi ime pravila",
       "describe_what_this_rule_does": "Opiši, kaj to pravilo počne",
       "rule_has_been_created": "Pravilo je bilo ustvarjeno!",
       "rule_has_been_updated": "Pravilo je bilo posodobljeno!",
@@ -294,10 +294,10 @@
     },
     "import_sessions": {
       "title": "Uvozi seje",
-      "description": "Ogled in upravljanje vaših sej za množični uvoz. Seje se samodejno ustvarijo, ko uvozite zaznamke.",
+      "description": "Ogled in upravljanje tvojih sej za množični uvoz. Seje se samodejno ustvarijo, ko uvoziš zaznamke.",
       "load_error": "Uvoz sej se ni naložil",
       "no_sessions": "Še ni uvoznih sej",
-      "no_sessions_detail": "Uvozne seje bodo tukaj samodejno prikazane, ko uvozite zaznamke",
+      "no_sessions_detail": "Uvozne seje bodo tukaj samodejno prikazane, ko uvoziš zaznamke",
       "created_at": "Ustvarjeno {{time}}",
       "progress": "Napredek",
       "status": {
@@ -319,7 +319,7 @@
       "imported_to": "Uvoženo v:",
       "view_list": "Pokaži seznam",
       "delete_dialog_title": "Izbriši sejo uvoza",
-      "delete_dialog_description": "Ste prepričani, da želite izbrisati »{{name}}«? Tega dejanja ni mogoče razveljaviti. Zaznamki sami ne bodo izbrisani.",
+      "delete_dialog_description": "Si prepričan/a, da želiš izbrisati »{{name}}«? Tega dejanja ni mogoče razveljaviti. Zaznamki sami ne bodo izbrisani.",
       "delete_session": "Izbriši sejo",
       "pause_session": "Premor",
       "resume_session": "Nadaljuj",
@@ -390,7 +390,7 @@
       },
       "dialogs": {
         "delete_backup_title": "Izbrišem varnostno kopijo?",
-        "delete_backup_description": "Ali ste prepričani, da želite izbrisati to varnostno kopijo? Tega dejanja ni mogoče razveljaviti."
+        "delete_backup_description": "Ali si prepričan/a, da želiš izbrisati to varnostno kopijo? Tega dejanja ni mogoče razveljaviti."
       },
       "toasts": {
         "backup_queued": "Opravilo varnostne kopije je bilo dodano v čakalno vrsto! Kmalu bo obdelano.",
@@ -407,7 +407,7 @@
     },
     "users_list": {
       "users_list": "Seznam uporabnikov",
-      "confirm_password": "Potrdite geslo",
+      "confirm_password": "Potrdi geslo",
       "reset_password": "Ponastavi geslo",
       "create_user": "Ustvari uporabnika",
       "local_user": "Lokalni uporabnik",
@@ -470,7 +470,7 @@
           "description": "Administrativno čiščenje in vzdrževanje sredstev"
         }
       },
-      "monitor_and_manage": "Spremljajte in upravljajte čakalne vrste opravil v ozadju ter sistemske naloge obdelave",
+      "monitor_and_manage": "Spremljaj in upravljaj čakalne vrste opravil v ozadju ter sistemske naloge obdelave",
       "active": "Aktivno",
       "available_actions": "Razpoložljiva dejanja",
       "status": {
@@ -481,7 +481,7 @@
         },
         "unprocessed": {
           "title": "Nepredelano",
-          "description": "Zaznamki, ki še niso bili obdelani. Najverjetneje so že v čakalni vrsti za obdelavo, če ne, jih boste morda morali ročno znova uvrstiti v čakalno vrsto."
+          "description": "Zaznamki, ki še niso bili obdelani. Najverjetneje so že v čakalni vrsti za obdelavo, če ne, jih boš morda moral/a ročno znova uvrstiti v čakalno vrsto."
         },
         "failed": {
           "title": "Neuspešno",
@@ -627,7 +627,7 @@
     "your_tags": "Tvoje oznake",
     "unused_tags": "Nsuporabljene oznake",
     "delete_all_unused_tags": "Izbriši vse neuporabljene oznake",
-    "drag_and_drop_merging_info": "Povlecite in spustite oznake drug na drugo, da jih združite",
+    "drag_and_drop_merging_info": "Povleci in spusti oznake drug na drugo, da jih združiš",
     "create_tag": "Ustvari oznako",
     "create_tag_description": "Ustvari novo oznako brez pripenjanja na zaznamek",
     "tag_name": "Ime oznake",
@@ -640,7 +640,7 @@
     "no_unused_tags_match_your_search": "Nobena neuporabljena oznaka ne ustreza tvojemu iskanju",
     "no_tags_match_your_search": "Nobena oznaka ne ustreza tvojemu iskanju",
     "search_placeholder": "Iskanje oznak ...",
-    "search_or_create_placeholder": "Poiščite ali ustvarite oznake ..."
+    "search_or_create_placeholder": "Poišči ali ustvari oznake ..."
   },
   "common": {
     "archive": "Arhiv",
@@ -824,7 +824,7 @@
     },
     "invitations": {
       "pending": "Povabila na čakanju",
-      "description": "Preglejte in se odzovite na povabila za sodelovanje na seznamu",
+      "description": "Preglej in se odzovi na povabila za sodelovanje na seznamu",
       "invited_by": "Povabil:",
       "accept": "Sprejmi",
       "decline": "Zavrni",
@@ -898,8 +898,8 @@
     "import_as_text": "Uvozi kot besedilni zaznamek",
     "disabled_submissions": "Oddaje so onemogočene",
     "quickly_focus": "Na to polje se lahko hitro osredotočiš s pritiskom na ⌘ + E",
-    "multiple_urls_dialog_desc": "Vnos vsebuje več URL-jev v ločenih vrsticah. Ali jih želite uvoziti kot ločene zaznamke?",
-    "placeholder_v2": "Prilepite povezavo, napišite opombo ali spustite sliko …"
+    "multiple_urls_dialog_desc": "Vnos vsebuje več URL-jev v ločenih vrsticah. Ali jih želiš uvoziti kot ločene zaznamke?",
+    "placeholder_v2": "Prilepi povezavo, napiši opombo ali spusti sliko …"
   },
   "toasts": {
     "bookmarks": {
@@ -989,7 +989,7 @@
     "whats_new_title": "Kaj je novega v različici v{{version}}",
     "release_notes_description": "Tukaj so najnovejše posodobitve, pridobljene iz opomb ob izdaji GitHub.",
     "loading_release_notes": "Nalaganje opomb ob izdaji …",
-    "unable_to_load_release_notes": "Opomb ob izdaji trenutno ni mogoče naložiti. Poskusite znova pozneje.",
+    "unable_to_load_release_notes": "Opomb ob izdaji trenutno ni mogoče naložiti. Poskusi znova pozneje.",
     "no_release_notes": "Za to različico niso bile objavljene nobene opombe ob izdaji.",
     "release_notes_synced": "Opombe ob izdaji so sinhronizirane iz GitHub.",
     "view_on_github": "Poglej si na GitHubu"

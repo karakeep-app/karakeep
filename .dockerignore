@@ -26,3 +26,4 @@ packages/benchmarks
 # next.js
 .next/
 out/
+.claude/worktrees

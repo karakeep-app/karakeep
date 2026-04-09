@@ -29,6 +29,7 @@ export type TracingAttributeKey =
   | "crawler.getContentType.statusCode"
   | "crawler.contentType"
   | "crawler.statusCode"
+  | "crawler.proxy"
   | "crawler.cleanup.hasPage"
   | "crawler.cleanup.pageClosed"
   | "crawler.cleanup.contextClosed"

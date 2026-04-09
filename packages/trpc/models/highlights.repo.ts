@@ -1,7 +1,7 @@
-import { TRPCError } from "@trpc/server";
 import { and, desc, eq, like, lt, lte, or } from "drizzle-orm";
 import { z } from "zod";
 
+import type { DB } from "@karakeep/db";
 import { highlights } from "@karakeep/db/schema";
 import {
   zHighlightSchema,
@@ -10,43 +10,23 @@ import {
 } from "@karakeep/shared/types/highlights";
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
-import { AuthedContext } from "..";
-import { BareBookmark } from "./bookmarks";
+type Highlight = z.infer<typeof zHighlightSchema>;
 
-export class Highlight {
-  constructor(
-    protected ctx: AuthedContext,
-    private highlight: typeof highlights.$inferSelect,
-  ) {}
+export class HighlightsRepo {
+  constructor(private db: DB) {}
 
-  static async fromId(ctx: AuthedContext, id: string): Promise<Highlight> {
-    const highlight = await ctx.db.query.highlights.findFirst({
+  async get(id: string): Promise<Highlight | null> {
+    const highlight = await this.db.query.highlights.findFirst({
       where: eq(highlights.id, id),
     });
-
-    if (!highlight) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Highlight not found",
-      });
-    }
-
-    // If it exists but belongs to another user, throw forbidden error
-    if (highlight.userId !== ctx.user.id) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "User is not allowed to access resource",
-      });
-    }
-
-    return new Highlight(ctx, highlight);
+    return highlight ?? null;
   }
 
-  static async create(
-    ctx: AuthedContext,
+  async create(
+    userId: string,
     input: z.infer<typeof zNewHighlightSchema>,
   ): Promise<Highlight> {
-    const [result] = await ctx.db
+    const [result] = await this.db
       .insert(highlights)
       .values({
         bookmarkId: input.bookmarkId,
@@ -55,36 +35,31 @@ export class Highlight {
         color: input.color,
         text: input.text,
         note: input.note,
-        userId: ctx.user.id,
+        userId,
       })
       .returning();
 
-    return new Highlight(ctx, result);
+    return result;
   }
 
-  static async getForBookmark(
-    ctx: AuthedContext,
-    bookmark: BareBookmark,
-  ): Promise<Highlight[]> {
-    const results = await ctx.db.query.highlights.findMany({
-      where: eq(highlights.bookmarkId, bookmark.id),
+  async getForBookmark(bookmarkId: string): Promise<Highlight[]> {
+    return await this.db.query.highlights.findMany({
+      where: eq(highlights.bookmarkId, bookmarkId),
       orderBy: [desc(highlights.createdAt), desc(highlights.id)],
     });
-
-    return results.map((h) => new Highlight(ctx, h));
   }
 
-  static async getAll(
-    ctx: AuthedContext,
+  async getAll(
+    userId: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
   ): Promise<{
     highlights: Highlight[];
     nextCursor: z.infer<typeof zCursorV2> | null;
   }> {
-    const results = await ctx.db.query.highlights.findMany({
+    const results = await this.db.query.highlights.findMany({
       where: and(
-        eq(highlights.userId, ctx.user.id),
+        eq(highlights.userId, userId),
         cursor
           ? or(
               lt(highlights.createdAt, cursor.createdAt),
@@ -108,14 +83,11 @@ export class Highlight {
       };
     }
 
-    return {
-      highlights: results.map((h) => new Highlight(ctx, h)),
-      nextCursor,
-    };
+    return { highlights: results, nextCursor };
   }
 
-  static async search(
-    ctx: AuthedContext,
+  async search(
+    userId: string,
     searchText: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
@@ -124,9 +96,9 @@ export class Highlight {
     nextCursor: z.infer<typeof zCursorV2> | null;
   }> {
     const searchPattern = `%${searchText}%`;
-    const results = await ctx.db.query.highlights.findMany({
+    const results = await this.db.query.highlights.findMany({
       where: and(
-        eq(highlights.userId, ctx.user.id),
+        eq(highlights.userId, userId),
         or(
           like(highlights.text, searchPattern),
           like(highlights.note, searchPattern),
@@ -154,53 +126,31 @@ export class Highlight {
       };
     }
 
-    return {
-      highlights: results.map((h) => new Highlight(ctx, h)),
-      nextCursor,
-    };
+    return { highlights: results, nextCursor };
   }
 
-  async delete(): Promise<z.infer<typeof zHighlightSchema>> {
-    const result = await this.ctx.db
+  async delete(id: string): Promise<Highlight | null> {
+    const result = await this.db
       .delete(highlights)
-      .where(
-        and(
-          eq(highlights.id, this.highlight.id),
-          eq(highlights.userId, this.ctx.user.id),
-        ),
-      )
+      .where(eq(highlights.id, id))
       .returning();
 
-    if (result.length === 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    return result[0];
+    return result[0] ?? null;
   }
 
-  async update(input: z.infer<typeof zUpdateHighlightSchema>): Promise<void> {
-    const result = await this.ctx.db
+  async update(
+    id: string,
+    input: z.infer<typeof zUpdateHighlightSchema>,
+  ): Promise<Highlight | null> {
+    const result = await this.db
       .update(highlights)
       .set({
         color: input.color,
         note: input.note,
       })
-      .where(
-        and(
-          eq(highlights.id, this.highlight.id),
-          eq(highlights.userId, this.ctx.user.id),
-        ),
-      )
+      .where(eq(highlights.id, id))
       .returning();
 
-    if (result.length === 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    this.highlight = result[0];
-  }
-
-  asPublicHighlight(): z.infer<typeof zHighlightSchema> {
-    return this.highlight;
+    return result[0] ?? null;
   }
 }

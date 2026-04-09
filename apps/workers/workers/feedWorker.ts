@@ -2,10 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
 import cron from "node-cron";
-import Parser from "rss-parser";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { withWorkerTracing } from "workerTracing";
-import { z } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -14,6 +12,8 @@ import { FeedQueue, QuotaService } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
+import { parseFeedItems } from "./utils/feedParser";
 
 /**
  * Deterministically maps a feed ID to a minute offset within the hour (0-59).
@@ -178,26 +178,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
     `[feed][${jobId}] Successfully fetched feed "${feed.name}" (${feed.id}) ...`,
   );
 
-  const parser = new Parser({
-    customFields: {
-      item: ["id"],
-    },
-  });
-  const unparseFeedData = await parser.parseString(xmlData);
-
-  // Apparently, we can't trust the output of the xml parser. So let's do our own type
-  // validation.
-  const feedItemsSchema = z.object({
-    id: z.coerce.string(),
-    link: z.string().optional(),
-    guid: z.string().optional(),
-    title: z.string().optional(),
-    categories: z.array(z.string()).optional(),
-  });
-
-  const feedItems = unparseFeedData.items
-    .map((i) => feedItemsSchema.safeParse(i))
-    .flatMap((i) => (i.success ? [i.data] : []));
+  const feedItems = await parseFeedItems(xmlData);
 
   logger.info(
     `[feed][${jobId}] Found ${feedItems.length} entries in feed "${feed.name}" (${feed.id}) ...`,
@@ -207,11 +188,6 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
     logger.info(`[feed][${jobId}] No entries found.`);
     return;
   }
-
-  // For feeds that don't have guids, use the link as the id
-  feedItems.forEach((item) => {
-    item.guid = item.guid ?? item.id ?? item.link;
-  });
 
   const exitingEntries = await db.query.rssFeedImportsTable.findMany({
     where: and(

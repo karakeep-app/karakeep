@@ -231,13 +231,13 @@
       "api_keys": "API-nycklar",
       "new_api_key": "Ny API-nyckel",
       "new_api_key_desc": "Ge din API-nyckel ett unikt namn",
-      "key_success_please_copy": "Kopiera nyckeln och lagra den på en saker plats. Efter att du stängt denna dialogruta kommer su inte att kunna nå den igen.",
+      "key_success_please_copy": "Kopiera nyckeln och lagra den på en säker plats. När du stänger dialogrutan kommer du inte att kunna nå den igen.",
       "key_success": "Nyckeln skapades utan problem",
       "regenerate_api_key": "Återskapa API-nyckel",
       "key_regenerated": "Nyckeln har återskapats",
-      "key_regenerated_please_copy": "Kopiera den nya nyckeln och spara den på ett säkert ställe. Den gamla nyckeln har återkallats och kommer inte längre att funka.",
+      "key_regenerated_please_copy": "Kopiera den nya nyckeln och spara den på ett säkert ställe. Den gamla nyckeln har återkallats och kommer inte längre att fungera.",
       "regenerate_warning": "Är du säker på att du vill återskapa API-nyckeln \"{{name}}\"?",
-      "regenerate_confirmation": "Detta kommer att återkalla den nuvarande nyckeln och skapa en ny. Alla applikationer som använder den nuvarande nyckeln kommer sluta funka."
+      "regenerate_confirmation": "Detta kommer att återkalla den nuvarande nyckeln och skapa en ny. Alla applikationer som använder den nuvarande nyckeln kommer sluta fungera."
     },
     "user_settings": "Användarinställningar",
     "webhooks": {
@@ -268,7 +268,7 @@
       "asset_type": "Tillgångstyp"
     },
     "broken_links": {
-      "crawling_status": "Krypstatus",
+      "crawling_status": "Genomsökningsstatus",
       "crawling_failed": "Crawling misslyckades",
       "broken_links": "Trasiga länkar",
       "last_crawled_at": "Senaste genomsökning"
@@ -389,7 +389,7 @@
       "manage_billing": "Hantera fakturering",
       "subscription_canceled": "Din prenumeration har avbrutits och kommer att avslutas den {{date}}. Du kan prenumerera igen när som helst.",
       "usage_quotas": "Användning och kvoter",
-      "track_usage": "Kolla din nuvarande användning jämfört med dina gränser",
+      "track_usage": "Se din nuvarande användning jämfört med dina gränser",
       "total_bookmarks_saved": "Totalt antal sparade bokmärken",
       "assets_file_storage": "Tillgångar och fillagring",
       "unlimited_usage": "Obegränsad användning",

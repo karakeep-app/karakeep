@@ -85,20 +85,16 @@ export class OpenAIInferenceClient implements InferenceClient {
   constructor(config: OpenAIInferenceConfig) {
     this.config = config;
 
-    const fetchOptions = config.proxyUrl
-      ? {
-          dispatcher: new undici.ProxyAgent(config.proxyUrl),
-        }
-      : undefined;
-
     this.openAI = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
-      ...(fetchOptions ? { fetchOptions } : {}),
       defaultHeaders: {
         "X-Title": "Karakeep",
         "HTTP-Referer": "https://karakeep.app",
       },
+      fetchOptions: config.proxyUrl
+        ? { dispatcher: new undici.ProxyAgent(config.proxyUrl) }
+        : undefined,
     });
   }
 

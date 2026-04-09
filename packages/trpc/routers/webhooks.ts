@@ -1,6 +1,7 @@
 import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
+import { webhooksTable } from "@karakeep/db/schema";
 import {
   zNewWebhookSchema,
   zUpdateWebhookSchema,
@@ -9,13 +10,41 @@ import {
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
-import { Webhook } from "../models/webhooks";
+import { actorFromContext } from "../lib/actor";
+import { WebhooksService } from "../models/webhooks.service";
 
-export const ensureWebhookOwnership = experimental_trpcMiddleware<{
-  ctx: AuthedContext;
+function toPublicWebhook(webhook: typeof webhooksTable.$inferSelect) {
+  const { token, ...rest } = webhook;
+  return {
+    ...rest,
+    hasToken: token !== null,
+  };
+}
+
+const webhooksProcedure = authedProcedure.use((opts) => {
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      actor: actorFromContext(opts.ctx),
+      webhooksService: new WebhooksService(opts.ctx.db),
+    },
+  });
+});
+
+type WebhooksContext = AuthedContext & {
+  actor: ReturnType<typeof actorFromContext>;
+  webhooksService: WebhooksService;
+};
+
+const ensureWebhookOwnership = experimental_trpcMiddleware<{
+  ctx: WebhooksContext;
   input: { webhookId: string };
 }>().create(async (opts) => {
-  const webhook = await Webhook.fromId(opts.ctx, opts.input.webhookId);
+  const webhook = await opts.ctx.webhooksService.get(
+    opts.ctx.actor,
+    opts.input.webhookId,
+  );
+
   return opts.next({
     ctx: {
       ...opts.ctx,
@@ -25,35 +54,31 @@ export const ensureWebhookOwnership = experimental_trpcMiddleware<{
 });
 
 export const webhooksAppRouter = router({
-  create: authedProcedure
+  create: webhooksProcedure
     .input(zNewWebhookSchema)
     .output(zWebhookSchema)
     .mutation(async ({ input, ctx }) => {
-      const webhook = await Webhook.create(ctx, input);
-      return webhook.asPublicWebhook();
+      const webhook = await ctx.webhooksService.create(ctx.actor, input);
+      return toPublicWebhook(webhook);
     }),
-  update: authedProcedure
+  update: webhooksProcedure
     .input(zUpdateWebhookSchema)
     .output(zWebhookSchema)
     .use(ensureWebhookOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.webhook.update(input);
-      return ctx.webhook.asPublicWebhook();
+      const updated = await ctx.webhooksService.update(ctx.webhook, input);
+      return toPublicWebhook(updated);
     }),
-  list: authedProcedure
+  list: webhooksProcedure
     .output(z.object({ webhooks: z.array(zWebhookSchema) }))
     .query(async ({ ctx }) => {
-      const webhooks = await Webhook.getAll(ctx);
-      return { webhooks: webhooks.map((w) => w.asPublicWebhook()) };
+      const webhooks = await ctx.webhooksService.getAll(ctx.actor);
+      return { webhooks: webhooks.map(toPublicWebhook) };
     }),
-  delete: authedProcedure
-    .input(
-      z.object({
-        webhookId: z.string(),
-      }),
-    )
+  delete: webhooksProcedure
+    .input(z.object({ webhookId: z.string() }))
     .use(ensureWebhookOwnership)
     .mutation(async ({ ctx }) => {
-      await ctx.webhook.delete();
+      await ctx.webhooksService.delete(ctx.webhook);
     }),
 });
