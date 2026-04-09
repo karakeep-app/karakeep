@@ -3,3 +3,4 @@ results/
 
 # Environment file
 .env
+fixtures

@@ -1,7 +1,9 @@
+import "dotenv/config";
+
 import { z } from "zod";
 
 const envSchema = z.object({
-  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_API_KEY: z.string().min(1),
   OPENAI_BASE_URL: z.string().url().optional(),
   EVAL_TEXT_MODEL: z.string().default("gpt-4.1-mini"),
   EVAL_JUDGE_MODEL: z.string().default("gpt-4.1-mini"),

@@ -8,6 +8,7 @@
  * Optionally set SNAPSHOT_LIMIT to control how many bookmarks to fetch (default: 20).
  */
 import { createKarakeepClient } from "@karakeep/sdk";
+import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
@@ -79,7 +80,7 @@ async function fetchBookmarks(): Promise<SnapshotBookmark[]> {
         title: b.title || c.title || null,
         url: c.url ?? null,
         description: c.description ?? null,
-        content: c.htmlContent ?? null,
+        content: c.htmlContent ? htmlToPlainText(c.htmlContent) : null,
         existingAiTags: (b.tags || [])
           .filter((t) => t.attachedBy === "ai")
           .map((t) => t.name),

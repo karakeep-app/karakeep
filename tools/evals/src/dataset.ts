@@ -21,8 +21,6 @@ export interface EvalFixture {
   tagStyle: ZTagStyle;
   customPrompts: string[];
   curatedTags?: string[];
-  /** Broad topics the tags should relate to (used by LLM judge) */
-  expectedTopics: string[];
   /** Whether we expect the tags array to be empty */
   expectEmpty: boolean;
   minTags?: number;
@@ -50,11 +48,6 @@ function bookmarkToContent(b: SnapshotBookmark): string {
   return parts.join("\n");
 }
 
-function bookmarkExpectedTopics(b: SnapshotBookmark): string[] {
-  // Use existing AI + human tags as the expected topics baseline
-  return [...new Set([...b.existingAiTags, ...b.existingHumanTags])];
-}
-
 // ── Build fixtures from snapshots ───────────────────────────────────────
 
 function buildSnapshotFixtures(): EvalFixture[] {
@@ -70,7 +63,7 @@ function buildSnapshotFixtures(): EvalFixture[] {
     lang: "english",
     tagStyle: "as-generated" as const,
     customPrompts: [],
-    expectedTopics: bookmarkExpectedTopics(b),
+
     expectEmpty: false,
     minTags: 3,
     maxTags: 5,
@@ -99,7 +92,6 @@ function buildTruncationFixtures(): EvalFixture[] {
 
   for (const b of testBookmarks) {
     const content = bookmarkToContent(b);
-    const expectedTopics = bookmarkExpectedTopics(b);
     const slug = slugify(b.title || b.id);
 
     for (const ctxLen of contextLengths) {
@@ -110,7 +102,7 @@ function buildTruncationFixtures(): EvalFixture[] {
         lang: "english",
         tagStyle: "as-generated",
         customPrompts: [],
-        expectedTopics,
+    
         expectEmpty: false,
         contextLength: ctxLen,
         minTags: 1,
@@ -122,215 +114,37 @@ function buildTruncationFixtures(): EvalFixture[] {
   return fixtures;
 }
 
-// ── Synthetic fixtures (style, curated, language, edge cases) ───────────
+// ── Synthetic fixtures ──────────────────────────────────────────────────
 
 const syntheticFixtures: EvalFixture[] = [
-  // ── Tag style compliance ──────────────────────────────────────────────
   {
-    id: "style-lowercase-hyphens",
-    description: "Tags should use lowercase-hyphens style",
+    id: "reject-403-forbidden",
+    description: "403 Forbidden page should produce empty tags",
     content: `
-      Title: Introduction to Machine Learning with Python
-      Content: Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-      Popular libraries include scikit-learn, TensorFlow, and PyTorch. Supervised learning tasks include
-      classification and regression. Deep learning uses neural networks with multiple layers.
-    `,
-    lang: "english",
-    tagStyle: "lowercase-hyphens",
-    customPrompts: [],
-    expectedTopics: ["machine learning", "Python", "AI"],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-  {
-    id: "style-lowercase-spaces",
-    description: "Tags should use lowercase-spaces style",
-    content: `
-      Title: Introduction to Machine Learning with Python
-      Content: Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-      Popular libraries include scikit-learn, TensorFlow, and PyTorch. Supervised learning tasks include
-      classification and regression. Deep learning uses neural networks with multiple layers.
-    `,
-    lang: "english",
-    tagStyle: "lowercase-spaces",
-    customPrompts: [],
-    expectedTopics: ["machine learning", "Python", "AI"],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-  {
-    id: "style-lowercase-underscores",
-    description: "Tags should use lowercase-underscores style",
-    content: `
-      Title: Introduction to Machine Learning with Python
-      Content: Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-      Popular libraries include scikit-learn, TensorFlow, and PyTorch. Supervised learning tasks include
-      classification and regression. Deep learning uses neural networks with multiple layers.
-    `,
-    lang: "english",
-    tagStyle: "lowercase-underscores",
-    customPrompts: [],
-    expectedTopics: ["machine learning", "Python", "AI"],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-  {
-    id: "style-titlecase-spaces",
-    description: "Tags should use titlecase-spaces style",
-    content: `
-      Title: Introduction to Machine Learning with Python
-      Content: Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-      Popular libraries include scikit-learn, TensorFlow, and PyTorch. Supervised learning tasks include
-      classification and regression. Deep learning uses neural networks with multiple layers.
-    `,
-    lang: "english",
-    tagStyle: "titlecase-spaces",
-    customPrompts: [],
-    expectedTopics: ["machine learning", "Python", "AI"],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-  {
-    id: "style-titlecase-hyphens",
-    description: "Tags should use titlecase-hyphens style",
-    content: `
-      Title: Introduction to Machine Learning with Python
-      Content: Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-      Popular libraries include scikit-learn, TensorFlow, and PyTorch. Supervised learning tasks include
-      classification and regression. Deep learning uses neural networks with multiple layers.
-    `,
-    lang: "english",
-    tagStyle: "titlecase-hyphens",
-    customPrompts: [],
-    expectedTopics: ["machine learning", "Python", "AI"],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-  {
-    id: "style-camelcase",
-    description: "Tags should use camelCase style",
-    content: `
-      Title: Introduction to Machine Learning with Python
-      Content: Machine learning is a subset of artificial intelligence that enables systems to learn from data.
-      Popular libraries include scikit-learn, TensorFlow, and PyTorch. Supervised learning tasks include
-      classification and regression. Deep learning uses neural networks with multiple layers.
-    `,
-    lang: "english",
-    tagStyle: "camelCase",
-    customPrompts: [],
-    expectedTopics: ["machine learning", "Python", "AI"],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-
-  // ── Curated tags constraint ───────────────────────────────────────────
-  {
-    id: "curated-matching",
-    description: "Tags should only come from the curated list",
-    content: `
-      Title: How React Server Components Change Web Development
-      Content: React Server Components allow rendering components on the server, reducing client-side JavaScript
-      bundle sizes. Combined with Next.js App Router, they enable streaming HTML and progressive enhancement.
-      Data fetching happens directly in components without useEffect or client-side state management.
+      403 Forbidden
+      You don't have permission to access this resource.
+      Please contact the server administrator if you think this is an error.
     `,
     lang: "english",
     tagStyle: "as-generated",
     customPrompts: [],
-    curatedTags: [
-      "react",
-      "javascript",
-      "web-development",
-      "frontend",
-      "backend",
-      "devops",
-      "databases",
-      "mobile",
-      "security",
-      "cloud",
-    ],
-    expectedTopics: ["react", "javascript", "web-development", "frontend"],
-    expectEmpty: false,
-    minTags: 1,
-    maxTags: 5,
-  },
-  {
-    id: "curated-no-match",
-    description: "Should produce empty tags when no curated tags fit",
-    content: `
-      Title: How React Server Components Change Web Development
-      Content: React Server Components allow rendering components on the server, reducing client-side JavaScript
-      bundle sizes. Combined with Next.js App Router, they enable streaming HTML and progressive enhancement.
-    `,
-    lang: "english",
-    tagStyle: "as-generated",
-    customPrompts: [],
-    curatedTags: [
-      "gardening",
-      "pottery",
-      "knitting",
-      "woodworking",
-      "ceramics",
-    ],
-    expectedTopics: [],
     expectEmpty: true,
   },
-
-  // ── Language compliance ───────────────────────────────────────────────
   {
-    id: "lang-french",
-    description: "Tags should be in French",
+    id: "reject-503-unavailable",
+    description: "503 Service Unavailable page should produce empty tags",
     content: `
-      Title: The Future of Electric Vehicles
-      Content: Electric vehicles are rapidly transforming the automotive industry. Battery technology improvements
-      have extended range beyond 300 miles. Charging infrastructure is expanding globally. Major automakers
-      plan to phase out internal combustion engines by 2035.
+      503 Service Unavailable
+      The server is temporarily unable to handle the request. Please try again later.
     `,
-    lang: "french",
+    lang: "english",
     tagStyle: "as-generated",
     customPrompts: [],
-    expectedTopics: [
-      "electric vehicles",
-      "automotive",
-      "technology",
-      "environment",
-    ],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
+    expectEmpty: true,
   },
   {
-    id: "lang-spanish",
-    description: "Tags should be in Spanish",
-    content: `
-      Title: The Future of Electric Vehicles
-      Content: Electric vehicles are rapidly transforming the automotive industry. Battery technology improvements
-      have extended range beyond 300 miles. Charging infrastructure is expanding globally. Major automakers
-      plan to phase out internal combustion engines by 2035.
-    `,
-    lang: "spanish",
-    tagStyle: "as-generated",
-    customPrompts: [],
-    expectedTopics: [
-      "electric vehicles",
-      "automotive",
-      "technology",
-      "environment",
-    ],
-    expectEmpty: false,
-    minTags: 3,
-    maxTags: 5,
-  },
-
-  // ── Edge cases ────────────────────────────────────────────────────────
-  {
-    id: "edge-error-page",
-    description: "404 error page content should produce empty tags",
+    id: "reject-404-not-found",
+    description: "404 Not Found page should produce empty tags",
     content: `
       404 Not Found
       The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
@@ -339,32 +153,41 @@ const syntheticFixtures: EvalFixture[] = [
     lang: "english",
     tagStyle: "as-generated",
     customPrompts: [],
-    expectedTopics: [],
     expectEmpty: true,
   },
   {
-    id: "edge-short-content",
-    description: "Very short content should still produce some tags",
+    id: "reject-401-unauthorized",
+    description: "401 Unauthorized page should produce empty tags",
     content: `
-      Title: Rust Programming Language
-      Content: Rust is a systems programming language focused on safety and performance.
+      401 Unauthorized
+      Authentication is required to access this resource. Please log in and try again.
     `,
     lang: "english",
     tagStyle: "as-generated",
     customPrompts: [],
-    expectedTopics: ["Rust", "programming", "systems programming"],
-    expectEmpty: false,
-    minTags: 1,
-    maxTags: 5,
+    expectEmpty: true,
   },
   {
-    id: "edge-empty-content",
-    description: "Empty content should produce empty or minimal tags",
+    id: "reject-cloudflare-challenge",
+    description: "Cloudflare challenge page should produce empty tags",
+    content: `
+      Attention Required! | Cloudflare
+      Please complete the security check to access the website.
+      Ray ID: 7a8b9c0d1e2f3a4b
+      Performance & security by Cloudflare
+    `,
+    lang: "english",
+    tagStyle: "as-generated",
+    customPrompts: [],
+    expectEmpty: true,
+  },
+  {
+    id: "reject-empty-content",
+    description: "Empty content should produce empty tags",
     content: "",
     lang: "english",
     tagStyle: "as-generated",
     customPrompts: [],
-    expectedTopics: [],
     expectEmpty: true,
   },
 ];

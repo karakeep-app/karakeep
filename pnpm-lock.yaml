@@ -1572,8 +1572,11 @@ importers:
       '@karakeep/shared':
         specifier: workspace:^
         version: link:../../packages/shared
+      dotenv:
+        specifier: ^16.4.1
+        version: 16.4.5
       zod:
-        specifier: ^3.24.2
+        specifier: ^3.24.4
         version: 3.25.76
     devDependencies:
       '@karakeep/tsconfig':
@@ -1589,10 +1592,10 @@ importers:
         specifier: ^5.9
         version: 5.9.3
       vite-tsconfig-paths:
-        specifier: ^4.3.2
-        version: 4.3.2(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
       vitest:
-        specifier: ^3.2.1
+        specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.3)(happy-dom@20.3.9)(jiti@2.4.2)(jsdom@27.4.0(@noble/hashes@1.8.0))(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)
 
 packages:
@@ -16306,14 +16309,6 @@ packages:
     resolution: {integrity: sha512-Jy9qLB2/PyWklpYy0xk0UU3TlU0t2UMpJXZvf+hWII1lAmRHrOUKi11Uw8N3rxoNk7atZNYO3pR3vI1f7oi+6w==}
     peerDependencies:
       vite: '>=2.6.0'
-
-  vite-tsconfig-paths@4.3.2:
-    resolution: {integrity: sha512-0Vd/a6po6Q+86rPlntHye7F31zA2URZMbH8M3saAZ/xR9QoGN/L21bxEGfXdWmFdNkqPpRdxFT7nmNe12e9/uA==}
-    peerDependencies:
-      vite: '*'
-    peerDependenciesMeta:
-      vite:
-        optional: true
 
   vite-tsconfig-paths@6.1.1:
     resolution: {integrity: sha512-2cihq7zliibCCZ8P9cKJrQBkfgdvcFkOOc3Y02o3GWUDLgqjWsZudaoiuOwO/gzTzy17cS5F7ZPo4bsnS4DGkg==}
@@ -35549,17 +35544,6 @@ snapshots:
       vite: 7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)
     transitivePeerDependencies:
       - rollup
-      - supports-color
-      - typescript
-
-  vite-tsconfig-paths@4.3.2(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)):
-    dependencies:
-      debug: 4.4.3
-      globrex: 0.1.2
-      tsconfck: 3.1.6(typescript@5.9.3)
-    optionalDependencies:
-      vite: 7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)
-    transitivePeerDependencies:
       - supports-color
       - typescript
 

@@ -11,6 +11,7 @@ import {
   scoreEmpty,
   scoreFormat,
   scoreLanguage,
+  scoreQuality,
   scoreRelevance,
   scoreStyle,
 } from "./scorers";
@@ -24,6 +25,7 @@ export interface EvalCaseScores {
   style: ScoreResult;
   curated: ScoreResult | null;
   relevance: ScoreResult;
+  quality: ScoreResult;
   language: ScoreResult | null;
 }
 
@@ -93,7 +95,11 @@ export async function runEvalCase(
 
   const relevanceScore = fixture.expectEmpty
     ? scoreEmpty(cleanedTags)
-    : await scoreRelevance(judgeClient, fixture, cleanedTags);
+    : await scoreRelevance(judgeClient, fixture.content, cleanedTags);
+
+  const qualityScore = fixture.expectEmpty
+    ? scoreEmpty(cleanedTags)
+    : await scoreQuality(judgeClient, fixture.content, cleanedTags);
 
   const languageScore =
     fixture.lang.toLowerCase() !== "english"
@@ -109,6 +115,7 @@ export async function runEvalCase(
       style: styleScore,
       curated: curatedScore,
       relevance: relevanceScore,
+      quality: qualityScore,
       language: languageScore,
     },
     totalTokens: response.totalTokens,

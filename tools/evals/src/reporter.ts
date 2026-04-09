@@ -1,3 +1,7 @@
+import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
+
 import type { EvalCaseResult } from "./runner";
 import type { ScoreResult } from "./scorers";
 
@@ -11,6 +15,7 @@ export interface EvalSummary {
     style: { mean: number; min: number };
     curated: { mean: number; min: number };
     relevance: { mean: number; min: number };
+    quality: { mean: number; min: number };
     language: { mean: number; min: number };
   };
 }
@@ -41,6 +46,7 @@ export function buildSummary(
       scores.style.passed &&
       (!scores.curated || scores.curated.passed) &&
       scores.relevance.passed &&
+      scores.quality.passed &&
       (!scores.language || scores.language.passed)
     );
   });
@@ -56,6 +62,7 @@ export function buildSummary(
         s.style.passed &&
         (!s.curated || s.curated.passed) &&
         s.relevance.passed &&
+        s.quality.passed &&
         (!s.language || s.language.passed)
       );
     }).length,
@@ -64,6 +71,7 @@ export function buildSummary(
       style: aggregateScores(results.map((r) => r.scores.style)),
       curated: aggregateScores(results.map((r) => r.scores.curated)),
       relevance: aggregateScores(results.map((r) => r.scores.relevance)),
+      quality: aggregateScores(results.map((r) => r.scores.quality)),
       language: aggregateScores(results.map((r) => r.scores.language)),
     },
   };
@@ -91,6 +99,11 @@ export function printSummary(summary: EvalSummary): void {
       fmt(summary.scores.relevance.min),
     ],
     [
+      "Quality",
+      fmt(summary.scores.quality.mean),
+      fmt(summary.scores.quality.min),
+    ],
+    [
       "Language",
       fmt(summary.scores.language.mean),
       fmt(summary.scores.language.min),
@@ -112,13 +125,14 @@ export function printCaseResult(result: EvalCaseResult): void {
     scores.style.passed &&
     (!scores.curated || scores.curated.passed) &&
     scores.relevance.passed &&
+    scores.quality.passed &&
     (!scores.language || scores.language.passed);
 
   const status = allPassed ? "PASS" : "FAIL";
   console.log(`  [${status}] ${fixture.id}: ${fixture.description}`);
   console.log(`         Tags: [${tags.join(", ")}]`);
   console.log(
-    `         Format: ${fmt(scores.format.score)}  Style: ${fmt(scores.style.score)}  Relevance: ${fmt(scores.relevance.score)}`,
+    `         Format: ${fmt(scores.format.score)}  Style: ${fmt(scores.style.score)}  Relevance: ${fmt(scores.relevance.score)}  Quality: ${fmt(scores.quality.score)}`,
   );
 
   if (scores.curated) {
@@ -139,6 +153,7 @@ export function printCaseResult(result: EvalCaseResult): void {
         !scores.curated.passed &&
         `Curated: ${scores.curated.explanation}`,
       !scores.relevance.passed && `Relevance: ${scores.relevance.explanation}`,
+      !scores.quality.passed && `Quality: ${scores.quality.explanation}`,
       scores.language &&
         !scores.language.passed &&
         `Language: ${scores.language.explanation}`,
@@ -147,6 +162,34 @@ export function printCaseResult(result: EvalCaseResult): void {
       console.log(`         !! ${msg}`);
     }
   }
+}
+
+/**
+ * Save full eval results to results/<model>/<runId>.json
+ */
+export function saveResults(
+  results: EvalCaseResult[],
+  summary: EvalSummary,
+): string {
+  const runId = `${summary.timestamp.replace(/[:.]/g, "-")}_${crypto.randomBytes(4).toString("hex")}`;
+  const modelSlug = summary.model.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const dir = path.join(__dirname, "..", "results", modelSlug);
+  fs.mkdirSync(dir, { recursive: true });
+
+  const payload = {
+    summary,
+    cases: results.map((r) => ({
+      id: r.fixture.id,
+      description: r.fixture.description,
+      tags: r.tags,
+      scores: r.scores,
+      totalTokens: r.totalTokens,
+    })),
+  };
+
+  const filePath = path.join(dir, `${runId}.json`);
+  fs.writeFileSync(filePath, JSON.stringify(payload, null, 2) + "\n");
+  return filePath;
 }
 
 function fmt(n: number): string {

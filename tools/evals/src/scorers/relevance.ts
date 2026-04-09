@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import type { InferenceClient } from "@karakeep/shared/inference";
 
-import type { EvalFixture } from "../dataset";
 import type { ScoreResult } from "./index";
 
 const judgeResponseSchema = z.object({
@@ -15,7 +14,7 @@ const judgeResponseSchema = z.object({
  */
 export async function scoreRelevance(
   judgeClient: InferenceClient,
-  fixture: EvalFixture,
+  content: string,
   tags: string[],
 ): Promise<ScoreResult> {
   if (tags.length === 0) {
@@ -26,12 +25,9 @@ export async function scoreRelevance(
     };
   }
 
-  const contentSnippet = fixture.content.substring(0, 500);
   const prompt = `You are evaluating the quality of auto-generated tags for a bookmarking app.
 
-Content: ${contentSnippet}
-
-Expected topics: ${fixture.expectedTopics.join(", ")}
+Content: ${content}
 
 Generated tags: ${tags.join(", ")}
 

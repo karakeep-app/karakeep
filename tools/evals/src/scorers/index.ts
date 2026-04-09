@@ -10,5 +10,6 @@ export interface ScoreResult {
 export { scoreCurated } from "./curated";
 export { scoreFormat } from "./format";
 export { scoreLanguage } from "./language";
+export { scoreQuality } from "./quality";
 export { scoreEmpty, scoreRelevance } from "./relevance";
 export { scoreStyle } from "./style";

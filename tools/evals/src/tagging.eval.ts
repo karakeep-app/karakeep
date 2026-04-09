@@ -5,7 +5,12 @@ import type { InferenceClient } from "@karakeep/shared/inference";
 import { createJudgeClient, createTagClient } from "./client";
 import { config } from "./config";
 import { dataset } from "./dataset";
-import { buildSummary, printCaseResult, printSummary } from "./reporter";
+import {
+  buildSummary,
+  printCaseResult,
+  printSummary,
+  saveResults,
+} from "./reporter";
 import type { EvalCaseResult } from "./runner";
 import { runEvalCase } from "./runner";
 
@@ -15,12 +20,6 @@ const results: EvalCaseResult[] = [];
 
 describe("Tagging Eval", () => {
   beforeAll(() => {
-    if (!config.OPENAI_API_KEY) {
-      console.log(
-        "Skipping tagging evals: OPENAI_API_KEY not set. Set it in tools/evals/.env or environment.",
-      );
-      return;
-    }
     tagClient = createTagClient();
     judgeClient = createJudgeClient();
   });
@@ -29,15 +28,13 @@ describe("Tagging Eval", () => {
     if (results.length > 0) {
       const summary = buildSummary(results, config.EVAL_TEXT_MODEL);
       printSummary(summary);
+      const filePath = saveResults(results, summary);
+      console.log(`  Results saved to ${filePath}\n`);
     }
   });
 
   for (const fixture of dataset) {
-    it(`[${fixture.id}] ${fixture.description}`, async () => {
-      if (!config.OPENAI_API_KEY) {
-        return; // skip silently — message already printed in beforeAll
-      }
-
+    it.concurrent(`[${fixture.id}] ${fixture.description}`, async () => {
       const result = await runEvalCase(fixture, tagClient, judgeClient);
       results.push(result);
       printCaseResult(result);
@@ -63,6 +60,11 @@ describe("Tagging Eval", () => {
       expect(
         result.scores.relevance.score,
         `Relevance: ${result.scores.relevance.explanation}`,
+      ).toBeGreaterThanOrEqual(0.6);
+
+      expect(
+        result.scores.quality.score,
+        `Quality: ${result.scores.quality.explanation}`,
       ).toBeGreaterThanOrEqual(0.6);
 
       if (result.scores.language) {
