@@ -79,7 +79,7 @@ function printTable(results: StoredResult[]): void {
     { label: "Model", width: 20 },
     { label: "Timestamp", width: 20 },
     { label: "Pass", width: 8 },
-    ...scorers.map((s) => ({ label: s, width: 12 })),
+    ...scorers.map((s) => ({ label: `${s} (avg/min)`, width: 16 })),
   ];
 
   const header = cols.map((c) => c.label.padEnd(c.width)).join("  ");
@@ -97,10 +97,10 @@ function printTable(results: StoredResult[]): void {
       `${s.passedCases}/${s.totalCases}`.padEnd(8),
       ...scorers.map((scorer) => {
         const score = s.scores[scorer];
-        if (!score) return "—".padEnd(12);
+        if (!score) return "—".padEnd(16);
         const mean = (score.mean * 100).toFixed(0) + "%";
         const min = (score.min * 100).toFixed(0) + "%";
-        return `${mean}/${min}`.padEnd(12);
+        return `${mean} / ${min}`.padEnd(16);
       }),
     ];
     console.log(row.join("  "));
