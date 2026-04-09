@@ -1,6 +1,5 @@
 import { Ollama } from "ollama";
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
 import * as undici from "undici";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -134,7 +133,14 @@ export class OpenAIInferenceClient implements InferenceClient {
         response_format: mapInferenceOutputSchema(
           {
             structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
+              ? {
+                  type: "json_schema",
+                  json_schema: {
+                    name: "schema",
+                    strict: true,
+                    schema: zodToJsonSchema(optsWithDefaults.schema),
+                  },
+                }
               : undefined,
             json: { type: "json_object" },
             plain: undefined,
@@ -176,7 +182,14 @@ export class OpenAIInferenceClient implements InferenceClient {
         response_format: mapInferenceOutputSchema(
           {
             structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
+              ? {
+                  type: "json_schema",
+                  json_schema: {
+                    name: "schema",
+                    strict: true,
+                    schema: zodToJsonSchema(optsWithDefaults.schema),
+                  },
+                }
               : undefined,
             json: { type: "json_object" },
             plain: undefined,
