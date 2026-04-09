@@ -52,26 +52,89 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
-COPY . .
+################# DB Migrations Builder ##############
+FROM base AS db_builder
 
-# Build the db migration script
+COPY tooling ./tooling
+COPY packages/shared ./packages/shared
+COPY packages/db ./packages/db
 RUN cd packages/db && \
     pnpm exec ncc build migrate.ts -o /db_migrations && \
     cp -R drizzle /db_migrations
 
+################# Web Builder ##############
+FROM base AS web_builder
 
-# Compile the web app
-RUN (cd apps/web && pnpm exec next build --experimental-build-mode compile)
+COPY packages/shared ./packages/shared
+COPY packages/shared-react ./packages/shared-react
+COPY packages/shared-server ./packages/shared-server
+COPY packages/db ./packages/db
+COPY packages/trpc ./packages/trpc
+COPY packages/api ./packages/api
+COPY packages/open-api ./packages/open-api
+COPY packages/plugins ./packages/plugins
+COPY tooling ./tooling
+COPY apps/web ./apps/web
 
-# Build the worker code
-RUN (cd apps/workers && pnpm build)
-RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/workers
+RUN cd apps/web && pnpm exec next build --experimental-build-mode compile
 
-# Build the cli
-RUN (cd apps/cli && pnpm build)
+################# Workers Builder ##############
+FROM base AS workers_builder
 
-# Build the mcp server
-RUN (cd apps/mcp && pnpm build)
+COPY packages/shared ./packages/shared
+COPY packages/shared-server ./packages/shared-server
+COPY packages/db ./packages/db
+COPY packages/trpc ./packages/trpc
+COPY tooling ./tooling
+COPY apps/workers ./apps/workers
+
+ARG KEEP_TESSERACT_WASM_FALLBACK=false
+
+RUN cd apps/workers && pnpm build
+RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/workers \
+    # Remove build-only and wrong-platform packages
+    && rm -rf /prod/workers/node_modules/.pnpm/@napi-rs+canvas-linux-x64-musl* \
+    && rm -rf /prod/workers/node_modules/.pnpm/@esbuild* \
+    && rm -rf /prod/workers/node_modules/.pnpm/esbuild@* \
+    && rm -rf /prod/workers/node_modules/.pnpm/typescript@* \
+    # Strip re2 build artifacts and vendor sources (keeps only .node binary)
+    && rm -rf /prod/workers/node_modules/.pnpm/re2@*/node_modules/re2/vendor \
+    && rm -rf /prod/workers/node_modules/.pnpm/re2@*/node_modules/re2/build/Release/obj.target \
+    # Strip the non-SIMD tesseract.js WASM variants by default. Build with
+    # KEEP_TESSERACT_WASM_FALLBACK=true to retain the fallback files for
+    # runtimes without WASM SIMD support.
+    && if [ "$KEEP_TESSERACT_WASM_FALLBACK" != "true" ]; then \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-lstm*" -delete; \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-relaxedsimd*" -delete; \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core-simd-lstm*" -delete; \
+        find /prod/workers/node_modules/.pnpm/tesseract.js-core@*/ -name "tesseract-core.wasm*" -delete; \
+    fi \
+    # Strip native binary debug symbols (best-effort).
+    && (find /prod/workers/node_modules -name "*.node" -exec strip --strip-debug {} \; 2>/dev/null || true) \
+    # Remove unnecessary files (best-effort).
+    && (find /prod/workers/node_modules \( -name "*.md" -o -name "*.map" -o -name "CHANGELOG*" -o -name "LICENSE*" \) -type f -delete 2>/dev/null || true)
+
+################# CLI Builder ##############
+FROM base AS cli_builder
+
+COPY packages/shared ./packages/shared
+COPY packages/shared-server ./packages/shared-server
+COPY packages/db ./packages/db
+COPY packages/trpc ./packages/trpc
+COPY tooling ./tooling
+COPY apps/cli ./apps/cli
+
+RUN cd apps/cli && pnpm build
+
+################# MCP Builder ##############
+FROM base AS mcp_builder
+
+COPY packages/shared ./packages/shared
+COPY packages/sdk ./packages/sdk
+COPY tooling ./tooling
+COPY apps/mcp ./apps/mcp
+
+RUN cd apps/mcp && pnpm build
 
 ################# The All-in-one builder ##############
 
@@ -153,21 +216,21 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
         ln -s /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
     fi
 
-COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
-COPY --from=base /app/apps/web/public ./apps/web/public
-COPY --from=base /db_migrations /db_migrations
+COPY --from=web_builder --chown=node:node /app/apps/web/.next/standalone ./
+COPY --from=web_builder /app/apps/web/public ./apps/web/public
+COPY --from=db_builder /db_migrations /db_migrations
 
 # Set the correct permission for prerender cache
 RUN mkdir -p ./apps/web/.next && chown node:node ./apps/web/.next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=base --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=web_builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
 
 ######################
 # Prepare the workers app
 ######################
-COPY --from=base /prod/workers /app/apps/workers
+COPY --from=workers_builder /prod/workers /app/apps/workers
 
 ENTRYPOINT ["/init"]
 
@@ -207,7 +270,7 @@ FROM node:24-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
-COPY --from=base /app/apps/cli/dist/index.mjs apps/cli/index.mjs
+COPY --from=cli_builder /app/apps/cli/dist/index.mjs apps/cli/index.mjs
 
 WORKDIR /app/apps/cli
 
@@ -222,7 +285,7 @@ FROM node:24-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
-COPY --from=base /app/apps/mcp/dist/index.js apps/mcp/index.js
+COPY --from=mcp_builder /app/apps/mcp/dist/index.js apps/mcp/index.js
 
 WORKDIR /app/apps/mcp
 
