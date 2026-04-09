@@ -21,8 +21,13 @@ import winston from "winston";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
+import { load as cheerioLoad } from "cheerio";
+
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import metascraperTwitter, {
+  __private as twitterPrivate,
+} from "../metascraper-plugins/metascraper-twitter";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -53,6 +58,7 @@ const metascraperParser = metascraper([
     },
   }),
   metascraperReddit(),
+  metascraperTwitter(),
   metascraperAuthor(),
   metascraperPublisher(),
   metascraperTitle(),
@@ -170,9 +176,60 @@ async function main() {
 
   logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
-  // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
+  // Check for X/Twitter article content using our custom extraction.
+  // metascraper doesn't support custom fields like readableContentHtml,
+  // so we call the extraction functions directly here.
   let readableContent: { content: string } | null = null;
-  if (meta.readableContentHtml) {
+  {
+    let isXUrl = false;
+    try {
+      const hostname = new URL(url).hostname
+        .replace(/^www\./, "")
+        .toLowerCase();
+      isXUrl = hostname === "x.com" || hostname === "twitter.com";
+    } catch {}
+    if (isXUrl) {
+      const htmlDom = cheerioLoad(htmlContent);
+      const articleContent = twitterPrivate.extractArticleWithReplies(
+        htmlDom,
+        url,
+      );
+      // For articles, also extract reply tweets via DOM extraction
+      // and append only the replies section (after <h3>Replies</h3>)
+      // to avoid duplicating the main tweet content.
+      const domContent = twitterPrivate.extractFromDom(htmlDom, url);
+      let repliesOnly: string | undefined;
+      if (articleContent && domContent) {
+        const repliesIdx = domContent.indexOf("<h3>Replies</h3>");
+        if (repliesIdx >= 0) {
+          repliesOnly = domContent.slice(repliesIdx);
+        }
+      }
+
+      const combined = articleContent
+        ? articleContent + (repliesOnly ? `\n<hr />\n${repliesOnly}` : "")
+        : domContent;
+
+      if (combined) {
+        const purifyWindow = new JSDOM("").window;
+        try {
+          const purify = DOMPurify(purifyWindow);
+          const purifiedHTML = purify.sanitize(combined);
+          readableContent = { content: purifiedHTML };
+          logger.info(
+            `[Crawler][${jobId}] Used X ${articleContent ? "article" : "DOM"} extraction (${purifiedHTML.length} bytes)`,
+          );
+        } finally {
+          purifyWindow.close();
+        }
+      }
+    }
+  }
+
+  // Fallback to plugin-provided readableContentHtml when a metascraper plugin
+  // can provide lighter-weight extracted HTML, such as the X/Twitter
+  // unauthenticated meta-tag fallback.
+  if (!readableContent && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
     const purifyWindow = new JSDOM("").window;

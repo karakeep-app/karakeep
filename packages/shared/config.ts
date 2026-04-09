@@ -91,6 +91,9 @@ const allEnv = z.object({
   BROWSER_COOKIE_PATH: z.string().optional(),
   CRAWLER_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_NAVIGATE_TIMEOUT_SEC: z.coerce.number().default(30),
+  // X/Twitter /status/ crawls may consume this budget more than once:
+  // for initial load, DOM stabilization, and reply scrolling.
+  CRAWLER_LOAD_WAIT_SEC: z.coerce.number().default(5),
   CRAWLER_NUM_WORKERS: z.coerce.number().default(1),
   INFERENCE_NUM_WORKERS: z.coerce.number().default(1),
   SEARCH_NUM_WORKERS: z.coerce.number().default(1),
@@ -326,6 +329,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       browserCookiePath: val.BROWSER_COOKIE_PATH,
       jobTimeoutSec: val.CRAWLER_JOB_TIMEOUT_SEC,
       navigateTimeoutSec: val.CRAWLER_NAVIGATE_TIMEOUT_SEC,
+      loadWaitSec: val.CRAWLER_LOAD_WAIT_SEC,
       downloadBannerImage: val.CRAWLER_DOWNLOAD_BANNER_IMAGE,
       storeScreenshot: val.CRAWLER_STORE_SCREENSHOT,
       fullPageScreenshot: val.CRAWLER_FULL_PAGE_SCREENSHOT,
