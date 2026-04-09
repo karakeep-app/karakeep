@@ -3,4 +3,6 @@ results/
 
 # Environment file
 .env
-fixtures
+
+# Snapshot fixtures (contain user data)
+fixtures/snapshot/

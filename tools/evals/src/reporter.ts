@@ -18,6 +18,7 @@ export interface EvalSummary {
     quality: { mean: number; min: number };
     language: { mean: number; min: number };
   };
+  latencyMs: { mean: number; min: number; max: number; p50: number };
 }
 
 function aggregateScores(scores: (ScoreResult | null)[]): {
@@ -32,6 +33,21 @@ function aggregateScores(scores: (ScoreResult | null)[]): {
   return {
     mean: values.reduce((a, b) => a + b, 0) / values.length,
     min: Math.min(...values),
+  };
+}
+
+function aggregateLatency(
+  values: number[],
+): { mean: number; min: number; max: number; p50: number } {
+  if (values.length === 0) {
+    return { mean: 0, min: 0, max: 0, p50: 0 };
+  }
+  const sorted = [...values].sort((a, b) => a - b);
+  return {
+    mean: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    p50: sorted[Math.floor(sorted.length / 2)],
   };
 }
 
@@ -74,6 +90,7 @@ export function buildSummary(
       quality: aggregateScores(results.map((r) => r.scores.quality)),
       language: aggregateScores(results.map((r) => r.scores.language)),
     },
+    latencyMs: aggregateLatency(results.map((r) => r.latencyMs)),
   };
 }
 
@@ -115,6 +132,11 @@ export function printSummary(summary: EvalSummary): void {
       `  ${label.padEnd(12)} ${mean.padStart(6)}  ${min.padStart(6)}`,
     );
   }
+
+  const lat = summary.latencyMs;
+  console.log(
+    `\n  Inference latency: mean ${lat.mean}ms  p50 ${lat.p50}ms  min ${lat.min}ms  max ${lat.max}ms`,
+  );
   console.log("=".repeat(70) + "\n");
 }
 
@@ -132,7 +154,7 @@ export function printCaseResult(result: EvalCaseResult): void {
   console.log(`  [${status}] ${fixture.id}: ${fixture.description}`);
   console.log(`         Tags: [${tags.join(", ")}]`);
   console.log(
-    `         Format: ${fmt(scores.format.score)}  Style: ${fmt(scores.style.score)}  Relevance: ${fmt(scores.relevance.score)}  Quality: ${fmt(scores.quality.score)}`,
+    `         Format: ${fmt(scores.format.score)}  Style: ${fmt(scores.style.score)}  Relevance: ${fmt(scores.relevance.score)}  Quality: ${fmt(scores.quality.score)}  Latency: ${result.latencyMs}ms`,
   );
 
   if (scores.curated) {
@@ -184,6 +206,7 @@ export function saveResults(
       tags: r.tags,
       scores: r.scores,
       totalTokens: r.totalTokens,
+      latencyMs: r.latencyMs,
     })),
   };
 

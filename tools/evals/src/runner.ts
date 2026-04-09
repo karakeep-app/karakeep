@@ -35,6 +35,8 @@ export interface EvalCaseResult {
   tags: string[];
   scores: EvalCaseScores;
   totalTokens: number | undefined;
+  /** Inference latency in milliseconds */
+  latencyMs: number;
 }
 
 export async function runEvalCase(
@@ -42,8 +44,7 @@ export async function runEvalCase(
   tagClient: InferenceClient,
   judgeClient: InferenceClient,
 ): Promise<EvalCaseResult> {
-  // Use per-fixture contextLength override, or fall back to global config
-  const contextLength = fixture.contextLength ?? config.EVAL_CONTEXT_LENGTH;
+  const contextLength = config.EVAL_CONTEXT_LENGTH;
 
   // 1. Build prompt using the real prompt functions
   let prompt: string;
@@ -67,9 +68,11 @@ export async function runEvalCase(
   }
 
   // 2. Run inference
+  const startTime = performance.now();
   const response = await tagClient.inferFromText(prompt, {
     schema: openAIResponseSchema,
   });
+  const latencyMs = Math.round(performance.now() - startTime);
 
   // 3. Parse response and run scorers
   const formatResult = scoreFormat(response.response);
@@ -119,5 +122,6 @@ export async function runEvalCase(
       language: languageScore,
     },
     totalTokens: response.totalTokens,
+    latencyMs,
   };
 }

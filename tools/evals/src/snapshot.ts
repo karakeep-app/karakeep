@@ -1,6 +1,6 @@
 /**
  * Snapshot script: fetches real bookmarks from a running Karakeep instance
- * and saves them as JSON fixtures for the eval suite.
+ * and saves them as individual markdown fixtures for the eval suite.
  *
  * Usage:
  *   KARAKEEP_SERVER_ADDR=http://localhost:3000 KARAKEEP_API_KEY=... npx tsx src/snapshot.ts
@@ -10,6 +10,7 @@
 import { createKarakeepClient } from "@karakeep/sdk";
 import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 import * as fs from "fs";
+import matter from "gray-matter";
 import * as path from "path";
 import { z } from "zod";
 
@@ -30,8 +31,14 @@ interface SnapshotBookmark {
   url: string | null;
   description: string | null;
   content: string | null;
-  existingAiTags: string[];
-  existingHumanTags: string[];
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
 }
 
 async function fetchBookmarks(): Promise<SnapshotBookmark[]> {
@@ -81,12 +88,6 @@ async function fetchBookmarks(): Promise<SnapshotBookmark[]> {
         url: c.url ?? null,
         description: c.description ?? null,
         content: c.htmlContent ? htmlToPlainText(c.htmlContent) : null,
-        existingAiTags: (b.tags || [])
-          .filter((t) => t.attachedBy === "ai")
-          .map((t) => t.name),
-        existingHumanTags: (b.tags || [])
-          .filter((t) => t.attachedBy === "human")
-          .map((t) => t.name),
       });
     }
     cursor = data?.nextCursor || null;
@@ -94,6 +95,22 @@ async function fetchBookmarks(): Promise<SnapshotBookmark[]> {
   }
 
   return bookmarks.slice(0, env.SNAPSHOT_LIMIT);
+}
+
+function writeFixture(fixturesDir: string, bookmark: SnapshotBookmark): string {
+  const slug = slugify(bookmark.title || bookmark.id);
+  const filename = `${slug}.md`;
+
+  const frontmatter: Record<string, unknown> = {
+    id: bookmark.id,
+  };
+  if (bookmark.title) frontmatter.title = bookmark.title;
+  if (bookmark.url) frontmatter.url = bookmark.url;
+  if (bookmark.description) frontmatter.description = bookmark.description;
+
+  const fileContent = matter.stringify(bookmark.content ?? "", frontmatter);
+  fs.writeFileSync(path.join(fixturesDir, filename), fileContent);
+  return filename;
 }
 
 async function main() {
@@ -111,9 +128,21 @@ async function main() {
     process.exit(1);
   }
 
-  const outPath = path.join(__dirname, "..", "fixtures", "bookmarks.json");
-  fs.writeFileSync(outPath, JSON.stringify(bookmarks, null, 2) + "\n");
-  console.log(`Wrote ${bookmarks.length} bookmarks to ${outPath}`);
+  const fixturesDir = path.join(__dirname, "..", "fixtures", "snapshot");
+  fs.mkdirSync(fixturesDir, { recursive: true });
+
+  // Clean existing fixtures
+  const existing = fs.readdirSync(fixturesDir).filter((f) => f.endsWith(".md"));
+  for (const f of existing) {
+    fs.unlinkSync(path.join(fixturesDir, f));
+  }
+
+  for (const bookmark of bookmarks) {
+    const filename = writeFixture(fixturesDir, bookmark);
+    console.log(`  ${filename}`);
+  }
+
+  console.log(`\nWrote ${bookmarks.length} fixtures to ${fixturesDir}`);
 }
 
 main().catch((err) => {
