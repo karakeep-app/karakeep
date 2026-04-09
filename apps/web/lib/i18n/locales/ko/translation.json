@@ -916,9 +916,9 @@
       "viewer_description": "목록에서 북마크를 볼 수 있음",
       "editor_description": "북마크를 추가 및 제거할 수 있음",
       "no_collaborators": "아직 협력자가 없습니다. 협업을 시작하려면 누군가를 추가하세요!",
-      "no_collaborators_readonly": "이 리스트에는 협업자가 없습니다.",
-      "people_with_access": "이 리스트에 접근할 수 있는 사람들",
-      "add_or_remove": "이 리스트에 접근할 수 있는 사람을 추가하거나 삭제합니다",
+      "no_collaborators_readonly": "이 목록에는 협력자가 없습니다.",
+      "people_with_access": "이 목록에 접근할 수 있는 사람들",
+      "add_or_remove": "이 목록에 접근할 수 있는 사람을 추가하거나 삭제합니다",
       "invitation_sent": "초대장 전송 완료",
       "invitation_revoked": "초대 취소됨",
       "failed_to_revoke": "초대 취소 실패",
@@ -927,10 +927,10 @@
       "declined": "거절됨"
     },
     "leave_list": {
-      "title": "리스트에서 나가기",
+      "title": "목록에서 나가기",
       "confirm_message": "{{icon}} {{name}}에서 나가시겠습니까?",
-      "warning": "이제 이 리스트의 북마크를 보거나 접근할 수 없습니다. 리스트 주인이 필요하면 다시 추가할 수 있습니다.",
-      "action": "리스트에서 나가기",
+      "warning": "이제 이 목록의 북마크를 보거나 접근할 수 없습니다. 목록 소유자가 필요하면 다시 추가할 수 있습니다.",
+      "action": "목록에서 나가기",
       "success": "\"{{icon}} {{name}}\"에서 나왔습니다."
     },
     "invitations": {

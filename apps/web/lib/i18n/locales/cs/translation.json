@@ -166,10 +166,10 @@
     "manage_assets": {
       "asset_link": "Odkaz na položku",
       "delete_asset": "Smazat aktivum",
-      "delete_asset_confirmation": "Opravdu chceš tento majetek smazat?",
+      "delete_asset_confirmation": "Opravdu chceš toto aktivum smazat?",
       "manage_assets": "Spravovat aktiva",
       "no_assets": "Zatím nemáš žádné zdroje.",
-      "asset_type": "Typ majetku",
+      "asset_type": "Typ aktiva",
       "bookmark_link": "Odkaz na záložku"
     },
     "rules": {

@@ -935,7 +935,7 @@
     "cleanups": "پاک‌سازی‌ها",
     "duplicate_tags": {
       "title": "برچسب‌های تکراری",
-      "merge_all_suggestions": "ادغام همه پیشنهادها"
+      "merge_all_suggestions": "ادغام همه پیشنهادها؟"
     }
   },
   "bookmark_editor": {

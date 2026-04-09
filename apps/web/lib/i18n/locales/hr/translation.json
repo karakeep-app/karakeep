@@ -341,7 +341,7 @@
       "new_api_key": "Novi API ključ",
       "new_api_key_desc": "Daj svom API ključu jedinstveno ime",
       "key_success": "Ključ je uspješno kreiran",
-      "key_success_please_copy": "Molimo kopiraj ključ i spremi ga na sigurno mjesto. Nakon što zatvoriš dijalog, više ga nećeš moći ponovo pristupiti.",
+      "key_success_please_copy": "Molimo kopiraj ključ i spremi ga na sigurno mjesto. Nakon što zatvoriš dijalog, više mu nećeš moći ponovno pristupiti.",
       "regenerate_api_key": "Ponovo stvori API ključ",
       "key_regenerated": "Ključ je uspješno ponovo stvoren",
       "key_regenerated_please_copy": "Kopiraj novi ključ i spremi ga na sigurno mjesto. Stari ključ je povučen i više neće raditi.",

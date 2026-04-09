@@ -1,7 +1,7 @@
 {
   "settings": {
     "api_keys": {
-      "key_success_please_copy": "Kopiraj ključ in ga shrani na varno mesto. Ko zapreš pogovorno okno, ključa ne boš mogel več dostopati.",
+      "key_success_please_copy": "Kopiraj ključ in ga shrani na varno mesto. Ko zapreš pogovorno okno, do ključa ne boš mogel več dostopati.",
       "new_api_key": "Nov API ključ",
       "new_api_key_desc": "Izberi edinstveno ime za svoj API ključ",
       "api_keys": "API Ključi",
