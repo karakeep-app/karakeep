@@ -230,7 +230,7 @@ export abstract class List {
     const list = listObj.asZBookmarkList();
 
     const bookmarks = await Bookmark.loadMulti(authedCtx, {
-      ids: bookmarkIds,
+      listId: listdb.id,
       includeContent: false,
       limit: pagination.limit,
       sortOrder: pagination.order,
