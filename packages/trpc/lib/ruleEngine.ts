@@ -297,7 +297,7 @@ export class RuleEngine {
           {
             groupId: this.bookmark.userId,
             priority: QueuePriority.Low,
-            idempotencyKey: `crawl:${this.bookmark.id}`,
+            idempotencyKey: `crawl:archive:${this.bookmark.id}`,
           },
         );
         return `Enqueued full page archive`;
