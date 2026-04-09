@@ -111,8 +111,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.1)
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@crxjs/vite-plugin':
         specifier: 2.2.0
@@ -278,8 +278,8 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -474,8 +474,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
       zustand:
         specifier: ^5.0.5
         version: 5.0.8(@types/react@19.2.14)(immer@9.0.21)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3))
@@ -751,8 +751,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
       zustand:
         specifier: ^5.0.5
         version: 5.0.8(@types/react@19.2.14)(immer@9.0.21)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3))
@@ -956,8 +956,8 @@ importers:
         specifier: ^5.9
         version: 5.9.3
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@types/archiver':
         specifier: ^7.0.0
@@ -1040,7 +1040,7 @@ importers:
         version: 0.4.2(@trpc/server@11.9.0(typescript@5.9.3))(hono@4.12.8)
       '@hono/zod-validator':
         specifier: ^0.5.0
-        version: 0.5.0(hono@4.12.8)(zod@3.25.76)
+        version: 0.5.0(hono@4.12.8)(zod@3.24.4)
       '@karakeep/db':
         specifier: workspace:*
         version: link:../db
@@ -1072,8 +1072,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -1115,8 +1115,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -1192,8 +1192,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -1215,13 +1215,13 @@ importers:
     dependencies:
       '@asteasolutions/zod-to-openapi':
         specifier: ^7.2.0
-        version: 7.3.3(zod@3.25.76)
+        version: 7.3.3(zod@3.24.4)
       '@karakeep/shared':
         specifier: workspace:^0.1.0
         version: link:../shared
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -1310,8 +1310,8 @@ importers:
         specifier: ^0.5.14
         version: 0.5.17
       openai:
-        specifier: ^6.34.0
-        version: 6.34.0(ws@8.18.3)(zod@3.25.76)
+        specifier: ^5.23.2
+        version: 5.23.2(ws@8.18.3)(zod@3.24.4)
       typescript-parsec:
         specifier: ^0.3.4
         version: 0.3.4
@@ -1322,11 +1322,11 @@ importers:
         specifier: ^3.11.0
         version: 3.17.0
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
       zod-to-json-schema:
         specifier: ^3.24.3
-        version: 3.24.5(zod@3.25.76)
+        version: 3.24.5(zod@3.24.4)
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -1469,8 +1469,8 @@ importers:
         specifier: ^1.3.3
         version: 1.3.3
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
@@ -1554,8 +1554,8 @@ importers:
         specifier: ^5.3.0
         version: 5.4.1
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^3.24.4
+        version: 3.24.4
     devDependencies:
       '@types/node':
         specifier: ^24
@@ -12152,12 +12152,12 @@ packages:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
 
-  openai@6.34.0:
-    resolution: {integrity: sha512-yEr2jdGf4tVFYG6ohmr3pF6VJuveP0EA/sS8TBx+4Eq5NT10alu5zg2dmxMXMgqpihRDQlFGpRt2XwsGj+Fyxw==}
+  openai@5.23.2:
+    resolution: {integrity: sha512-MQBzmTulj+MM5O8SKEk/gL8a7s5mktS9zUtAkU257WjvobGc9nKcBuVwjyEEcb9SI8a8Y2G/mzn3vm9n1Jlleg==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
-      zod: ^3.25 || ^4.0
+      zod: ^3.23.8
     peerDependenciesMeta:
       ws:
         optional: true
@@ -15990,8 +15990,8 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@3.24.4:
+    resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
 
   zustand@5.0.8:
     resolution: {integrity: sha512-gyPKpIaxY9XcO2vSMrLbiER7QMAMGOQZVRdJ6Zi782jkbzZygq5GI9nG8g+sMgitRtndwaBSl7uiqC49o1SSiw==}
@@ -16173,10 +16173,10 @@ snapshots:
 
   '@asamuzakjp/nwsapi@2.3.9': {}
 
-  '@asteasolutions/zod-to-openapi@7.3.3(zod@3.25.76)':
+  '@asteasolutions/zod-to-openapi@7.3.3(zod@3.24.4)':
     dependencies:
       openapi3-ts: 4.4.0
-      zod: 3.25.76
+      zod: 3.24.4
 
   '@auth/core@0.27.0':
     dependencies:
@@ -19765,10 +19765,10 @@ snapshots:
       '@trpc/server': 11.9.0(typescript@5.9.3)
       hono: 4.12.8
 
-  '@hono/zod-validator@0.5.0(hono@4.12.8)(zod@3.25.76)':
+  '@hono/zod-validator@0.5.0(hono@4.12.8)(zod@3.24.4)':
     dependencies:
       hono: 4.12.8
-      zod: 3.25.76
+      zod: 3.24.4
 
   '@hookform/error-message@2.0.1(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.62.0(react@19.2.3))(react@19.2.3)':
     dependencies:
@@ -20398,8 +20398,8 @@ snapshots:
       express-rate-limit: 7.5.0(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.0
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.5(zod@3.25.76)
+      zod: 3.24.4
+      zod-to-json-schema: 3.24.5(zod@3.24.4)
     transitivePeerDependencies:
       - supports-color
 
@@ -27566,7 +27566,7 @@ snapshots:
       async-mutex: 0.4.1
       better-sqlite3: 11.3.0
       drizzle-orm: 0.33.0(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.2.14)(better-sqlite3@11.3.0)(kysely@0.28.5)(react@19.2.3)
-      zod: 3.25.76
+      zod: 3.24.4
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -29617,10 +29617,10 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@6.34.0(ws@8.18.3)(zod@3.25.76):
+  openai@5.23.2(ws@8.18.3)(zod@3.24.4):
     optionalDependencies:
       ws: 8.18.3
-      zod: 3.25.76
+      zod: 3.24.4
 
   openapi-fetch@0.13.8:
     dependencies:
@@ -34238,11 +34238,11 @@ snapshots:
 
   zlibjs@0.3.1: {}
 
-  zod-to-json-schema@3.24.5(zod@3.25.76):
+  zod-to-json-schema@3.24.5(zod@3.24.4):
     dependencies:
-      zod: 3.25.76
+      zod: 3.24.4
 
-  zod@3.25.76: {}
+  zod@3.24.4: {}
 
   zustand@5.0.8(@types/react@19.2.14)(immer@9.0.21)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3)):
     optionalDependencies:
