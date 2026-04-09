@@ -127,6 +127,9 @@ function redactUrlCredentials(url: string): string {
     for (const key of parsed.searchParams.keys()) {
       parsed.searchParams.set(key, "REDACTED");
     }
+    if (parsed.username) {
+      parsed.username = "REDACTED";
+    }
     if (parsed.password) {
       parsed.password = "REDACTED";
     }
@@ -1809,15 +1812,15 @@ async function crawlAndParseUrl(
 
       // Track status code in Prometheus
       if (statusCode !== null) {
+        const sanitizedProxyUrl = redactUrlCredentials(
+          runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+        );
         crawlerStatusCodeCounter
-          .labels(
-            statusCode.toString(),
-            runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
-          )
+          .labels(statusCode.toString(), sanitizedProxyUrl)
           .inc();
         setSpanAttributes({
           "crawler.statusCode": statusCode,
-          "crawler.proxy": runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+          "crawler.proxy": sanitizedProxyUrl,
         });
       }
 
