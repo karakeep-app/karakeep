@@ -30,7 +30,7 @@
     "note": "Nota",
     "highlights": "Destaques",
     "source": "Fonte",
-    "screenshot": "Captura de tela",
+    "screenshot": "Captura de ecrã",
     "type": "Tipo",
     "size": "Tamanho",
     "updated_at": "Atualizado em",
@@ -74,7 +74,7 @@
     "unfavorite": "Desfavoritar",
     "delete": "Excluir",
     "bulk_edit": "Edição em massa",
-    "manage_lists": "Gerenciar Listas",
+    "manage_lists": "Gerir Listas",
     "remove_from_list": "Remover da Lista",
     "save": "Salvar",
     "add": "Adicionar",
@@ -189,13 +189,13 @@
         "adjust_hint": "Ajuste as configurações acima para visualizar as alterações"
       },
       "avatar": {
-        "upload": "Enviar avatar",
-        "change": "Alterar avatar",
+        "upload": "Mandar avatar",
+        "change": "Trocar avatar",
         "remove_confirm_title": "Remover avatar?",
         "updated": "Avatar atualizado",
         "removed": "Avatar removido",
-        "description": "Envie uma imagem quadrada para usar como seu avatar.",
-        "remove_confirm_description": "Isso vai apagar sua foto de perfil atual.",
+        "description": "Manda uma imagem quadrada para usar como teu avatar.",
+        "remove_confirm_description": "Isso vai apagar tua foto de perfil atual.",
         "title": "Foto do perfil",
         "remove": "Remover avatar"
       }
@@ -491,7 +491,7 @@
       },
       "dialogs": {
         "delete_backup_title": "Apagar backup?",
-        "delete_backup_description": "Tem certeza de que deseja apagar este backup? Esta ação não pode ser desfeita."
+        "delete_backup_description": "Tens a certeza que queres apagar este backup? Esta ação não pode ser desfeita."
       },
       "toasts": {
         "backup_queued": "O trabalho de backup foi enfileirado! Será processado em breve.",
@@ -609,7 +609,7 @@
       "change_role": "Alterar função",
       "reset_password": "Redefinir Senha",
       "local_user": "Usuário local",
-      "delete_user_confirm_description": "Tem certeza de que deseja apagar o usuário \"{{name}}\"?",
+      "delete_user_confirm_description": "Tens a certeza que queres apagar o utilizador \"{{name}}\"?",
       "unlimited": "Ilimitado"
     },
     "server_stats": {
@@ -646,8 +646,8 @@
       "url": "URL",
       "source_url": "URL de Origem",
       "asset_type": "Tipo de Recurso",
-      "file_name": "Nome do Arquivo",
-      "owner_user_id": "ID do Usuário Proprietário",
+      "file_name": "Nome do Ficheiro",
+      "owner_user_id": "ID do Utilizador Proprietário",
       "tagging_status": "Estado da Etiquetagem",
       "summarization_status": "Estado da Sumarização",
       "crawl_status": "Estado da Indexação",
@@ -673,7 +673,7 @@
     "light_mode": "Modo claro",
     "apps_extensions": "Apps e extensões",
     "documentation": "Documentação",
-    "follow_us_on_x": "Siga-nos no X"
+    "follow_us_on_x": "Segue-nos no X"
   },
   "lists": {
     "new_nested_list": "Nova Lista Aninhada",
@@ -705,9 +705,9 @@
       "share_link": "Compartilhar link"
     },
     "delete_list": {
-      "title": "Excluir lista",
-      "description": "Excluir uma lista não exclui nenhum marcador dessa lista.",
-      "delete_children": "Excluir listas filhas (recursivamente)",
+      "title": "Eliminar lista",
+      "description": "Eliminar uma lista não elimina nenhum marcador dessa lista.",
+      "delete_children": "Eliminar listas filhas (recursivamente)",
       "delete_children_description": "Se não estiver selecionado, todas as listas filhas diretas se tornarão listas raiz"
     },
     "shared": "Compartilhado",
@@ -759,7 +759,7 @@
       "failed_to_accept": "Falha ao aceitar o convite",
       "failed_to_decline": "Falha ao recusar o convite"
     },
-    "shared_lists": "Listas Compartilhadas"
+    "shared_lists": "Listas Partilhadas"
   },
   "tags": {
     "your_tags_info": "Tags que foram anexadas pelo menos uma vez por você",
@@ -776,7 +776,7 @@
     "create_tag": "Criar etiqueta",
     "create_tag_description": "Criar uma nova etiqueta sem anexá-la a nenhum marcador",
     "tag_name": "Nome da etiqueta",
-    "enter_tag_name": "Insira o nome da etiqueta",
+    "enter_tag_name": "Insere o nome da etiqueta",
     "sort_by_usage": "Ordenar por uso",
     "sort_by_relevance": "Ordenar por relevância",
     "no_custom_tags": "Ainda não há tags personalizadas",
@@ -947,7 +947,7 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Excluir marcador?",
-      "delete_confirmation_description": "Tem certeza de que deseja apagar este marcador?"
+      "delete_confirmation_description": "Tens a certeza que queres apagar este marcador?"
     }
   },
   "layouts": {
