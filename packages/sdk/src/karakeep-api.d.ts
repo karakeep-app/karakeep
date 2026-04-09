@@ -732,12 +732,12 @@ export interface paths {
       cookie?: never;
     };
     get?: never;
+    put?: never;
     /**
      * Trigger a feed fetch
      * @description Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.
      */
-    put: operations["fetchFeedNow"];
-    post?: never;
+    post: operations["fetchFeedNow"];
     delete?: never;
     options?: never;
     head?: never;

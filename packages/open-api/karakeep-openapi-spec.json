@@ -4971,7 +4971,7 @@
       }
     },
     "/feeds/{feedId}/fetch": {
-      "put": {
+      "post": {
         "operationId": "fetchFeedNow",
         "description": "Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.",
         "summary": "Trigger a feed fetch",

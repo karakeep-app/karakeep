@@ -207,7 +207,7 @@ registry.registerPath({
 
 registry.registerPath({
   operationId: "fetchFeedNow",
-  method: "put",
+  method: "post",
   path: "/feeds/{feedId}/fetch",
   description:
     "Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.",

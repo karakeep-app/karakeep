@@ -50,8 +50,8 @@ const app = new Hono()
     return c.body(null, 204);
   })
 
-  // PUT /feeds/:feedId/fetch
-  .put("/:feedId/fetch", async (c) => {
+  // POST /feeds/:feedId/fetch
+  .post("/:feedId/fetch", async (c) => {
     const feedId = c.req.param("feedId");
     await c.var.api.feeds.fetchNow({ feedId });
     return c.body(null, 204);
