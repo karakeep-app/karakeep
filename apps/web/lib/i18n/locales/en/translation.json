@@ -412,7 +412,17 @@
       "approaching_quota_limit": "Approaching quota limit",
       "loading_usage": "Loading usage information...",
       "free": "Free",
-      "paid": "Paid"
+      "paid": "Paid",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "per_month": "month",
+      "per_year": "year",
+      "excl_vat": "excl. VAT",
+      "yearly_savings": "Save {{percent}}%",
+      "pro_feature_bookmarks": "50,000 bookmarks",
+      "pro_feature_storage": "50GB storage",
+      "pro_feature_ai_tagging": "AI-powered tagging",
+      "pro_feature_full_text_search": "Full-text search"
     },
     "import_sessions": {
       "title": "Import Sessions",

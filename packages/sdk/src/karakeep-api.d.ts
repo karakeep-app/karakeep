@@ -13,130 +13,15 @@ export interface paths {
     };
     /**
      * Get all bookmarks
-     * @description Get all bookmarks
+     * @description Retrieve a paginated list of all bookmarks for the authenticated user. Supports filtering by archived/favourited status and sorting by date.
      */
-    get: {
-      parameters: {
-        query?: {
-          archived?: boolean;
-          favourited?: boolean;
-          sortOrder?: "asc" | "desc";
-          limit?: number;
-          cursor?: components["schemas"]["Cursor"];
-          /** @description If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks. */
-          includeContent?: boolean;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with all bookmarks data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["PaginatedBookmarks"];
-          };
-        };
-      };
-    };
+    get: operations["listBookmarks"];
     put?: never;
     /**
      * Create a new bookmark
-     * @description Create a new bookmark
+     * @description Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description The bookmark to create */
-      requestBody?: {
-        content: {
-          "application/json": {
-            title?: string | null;
-            archived?: boolean;
-            favourited?: boolean;
-            note?: string;
-            summary?: string;
-            createdAt?: string | null;
-            /** @enum {string} */
-            crawlPriority?: "low" | "normal";
-            importSessionId?: string;
-            /** @enum {string} */
-            source?:
-              | "api"
-              | "web"
-              | "cli"
-              | "mobile"
-              | "extension"
-              | "singlefile"
-              | "rss"
-              | "import";
-          } & (
-            | {
-                /** @enum {string} */
-                type: "link";
-                /** Format: uri */
-                url: string;
-                precrawledArchiveId?: string;
-              }
-            | {
-                /** @enum {string} */
-                type: "text";
-                text: string;
-                sourceUrl?: string;
-              }
-            | {
-                /** @enum {string} */
-                type: "asset";
-                /** @enum {string} */
-                assetType: "image" | "pdf";
-                assetId: string;
-                fileName?: string;
-                sourceUrl?: string;
-              }
-          );
-        };
-      };
-      responses: {
-        /** @description The bookmark already exists */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Bookmark"];
-          };
-        };
-        /** @description The bookmark got created */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Bookmark"];
-          };
-        };
-        /** @description Bad request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["createBookmark"];
     delete?: never;
     options?: never;
     head?: never;
@@ -152,35 +37,9 @@ export interface paths {
     };
     /**
      * Search bookmarks
-     * @description Search bookmarks
+     * @description Full-text search across all bookmarks. Searches bookmark titles, content, descriptions, and notes. Results default to relevance sorting.
      */
-    get: {
-      parameters: {
-        query: {
-          q: string;
-          sortOrder?: "asc" | "desc" | "relevance";
-          limit?: number;
-          cursor?: components["schemas"]["Cursor"];
-          /** @description If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks. */
-          includeContent?: boolean;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with the search results. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["PaginatedBookmarks"];
-          };
-        };
-      };
-    };
+    get: operations["searchBookmarks"];
     put?: never;
     post?: never;
     delete?: never;
@@ -200,30 +59,7 @@ export interface paths {
      * Check if a URL exists in bookmarks
      * @description Check if a URL is already bookmarked. Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.
      */
-    get: {
-      parameters: {
-        query: {
-          url: string;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object indicating whether the URL is bookmarked. bookmarkId is null if not found. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              bookmarkId: string | null;
-            };
-          };
-        };
-      };
-    };
+    get: operations["checkBookmarkUrl"];
     put?: never;
     post?: never;
     delete?: never;
@@ -241,169 +77,23 @@ export interface paths {
     };
     /**
      * Get a single bookmark
-     * @description Get bookmark by its id
+     * @description Retrieve a single bookmark by its ID, including its tags, content, and assets.
      */
-    get: {
-      parameters: {
-        query?: {
-          /** @description If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks. */
-          includeContent?: boolean;
-        };
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with bookmark data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Bookmark"];
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getBookmark"];
     put?: never;
     post?: never;
     /**
      * Delete a bookmark
-     * @description Delete bookmark by its id
+     * @description Permanently delete a bookmark and all its associated data (tags, highlights, assets).
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - the bookmark was deleted */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["deleteBookmark"];
     options?: never;
     head?: never;
     /**
      * Update a bookmark
-     * @description Update bookmark by its id
+     * @description Partially update a bookmark. Only the fields provided in the request body will be updated. Supports updating common fields (title, note, archived, favourited) as well as type-specific fields.
      */
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      /** @description The data to update. Only the fields you want to update need to be provided. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            archived?: boolean;
-            favourited?: boolean;
-            summary?: string | null;
-            note?: string;
-            title?: string | null;
-            createdAt?: string | null;
-            /** Format: uri */
-            url?: string;
-            description?: string | null;
-            author?: string | null;
-            publisher?: string | null;
-            datePublished?: string | null;
-            dateModified?: string | null;
-            text?: string | null;
-            assetContent?: string | null;
-          };
-        };
-      };
-      responses: {
-        /** @description The updated bookmark */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              createdAt: string;
-              modifiedAt: string | null;
-              title?: string | null;
-              archived: boolean;
-              favourited: boolean;
-              /** @enum {string|null} */
-              taggingStatus: "success" | "failure" | "pending" | null;
-              /** @enum {string|null} */
-              summarizationStatus: "success" | "failure" | "pending" | null;
-              note?: string | null;
-              summary?: string | null;
-              /** @enum {string|null} */
-              source?:
-                | "api"
-                | "web"
-                | "cli"
-                | "mobile"
-                | "extension"
-                | "singlefile"
-                | "rss"
-                | "import"
-                | null;
-              userId: string;
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    patch: operations["updateBookmark"];
     trace?: never;
   };
   "/bookmarks/{bookmarkId}/summarize": {
@@ -417,67 +107,9 @@ export interface paths {
     put?: never;
     /**
      * Summarize a bookmark
-     * @description Attaches a summary to the bookmark and returns the updated record.
+     * @description Trigger AI summarization for a bookmark. The summary is generated asynchronously and attached to the bookmark. Returns the updated bookmark record.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description The updated bookmark with summary */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              createdAt: string;
-              modifiedAt: string | null;
-              title?: string | null;
-              archived: boolean;
-              favourited: boolean;
-              /** @enum {string|null} */
-              taggingStatus: "success" | "failure" | "pending" | null;
-              /** @enum {string|null} */
-              summarizationStatus: "success" | "failure" | "pending" | null;
-              note?: string | null;
-              summary?: string | null;
-              /** @enum {string|null} */
-              source?:
-                | "api"
-                | "web"
-                | "cli"
-                | "mobile"
-                | "extension"
-                | "singlefile"
-                | "rss"
-                | "import"
-                | null;
-              userId: string;
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["summarizeBookmark"];
     delete?: never;
     options?: never;
     head?: never;
@@ -495,114 +127,14 @@ export interface paths {
     put?: never;
     /**
      * Attach tags to a bookmark
-     * @description Attach tags to a bookmark
+     * @description Attach one or more tags to a bookmark. Tags can be identified by ID or name. If a tag name is provided and the tag doesn't exist, it will be created automatically.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      /** @description The tags to attach. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            tags: {
-              tagId?: string;
-              tagName?: string;
-              /**
-               * @default human
-               * @enum {string}
-               */
-              attachedBy?: "ai" | "human";
-            }[];
-          };
-        };
-      };
-      responses: {
-        /** @description The list of attached tag ids */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              attached: components["schemas"]["TagId"][];
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["attachTagsToBookmark"];
     /**
      * Detach tags from a bookmark
-     * @description Detach tags from a bookmark
+     * @description Detach one or more tags from a bookmark. Tags can be identified by ID or name.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      /** @description The tags to detach. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            tags: {
-              tagId?: string;
-              tagName?: string;
-              /**
-               * @default human
-               * @enum {string}
-               */
-              attachedBy?: "ai" | "human";
-            }[];
-          };
-        };
-      };
-      responses: {
-        /** @description The list of detached tag ids */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              detached: components["schemas"]["TagId"][];
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["detachTagsFromBookmark"];
     options?: never;
     head?: never;
     patch?: never;
@@ -617,44 +149,9 @@ export interface paths {
     };
     /**
      * Get lists of a bookmark
-     * @description Get lists of a bookmark
+     * @description Retrieve all lists that contain the specified bookmark.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description The list of highlights */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              lists: components["schemas"]["List"][];
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getBookmarkLists"];
     put?: never;
     post?: never;
     delete?: never;
@@ -672,44 +169,9 @@ export interface paths {
     };
     /**
      * Get highlights of a bookmark
-     * @description Get highlights of a bookmark
+     * @description Retrieve all text highlights within the specified bookmark.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description The list of highlights */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              highlights: components["schemas"]["Highlight"][];
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getBookmarkHighlights"];
     put?: never;
     post?: never;
     delete?: never;
@@ -728,81 +190,10 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * Attach asset
-     * @description Attach a new asset to a bookmark
+     * Attach asset to a bookmark
+     * @description Attach a previously uploaded asset to a bookmark. The asset must be uploaded first via the POST /assets endpoint.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      /** @description The asset to attach */
-      requestBody?: {
-        content: {
-          "application/json": {
-            id: string;
-            /** @enum {string} */
-            assetType:
-              | "linkHtmlContent"
-              | "screenshot"
-              | "pdf"
-              | "assetScreenshot"
-              | "bannerImage"
-              | "fullPageArchive"
-              | "video"
-              | "bookmarkAsset"
-              | "precrawledArchive"
-              | "userUploaded"
-              | "avatar"
-              | "unknown";
-          };
-        };
-      };
-      responses: {
-        /** @description The attached asset */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              /** @enum {string} */
-              assetType:
-                | "linkHtmlContent"
-                | "screenshot"
-                | "pdf"
-                | "assetScreenshot"
-                | "bannerImage"
-                | "fullPageArchive"
-                | "video"
-                | "bookmarkAsset"
-                | "precrawledArchive"
-                | "userUploaded"
-                | "avatar"
-                | "unknown";
-              fileName?: string | null;
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["attachAssetToBookmark"];
     delete?: never;
     options?: never;
     head?: never;
@@ -818,87 +209,16 @@ export interface paths {
     };
     get?: never;
     /**
-     * Replace asset
-     * @description Replace an existing asset with a new one
+     * Replace asset on a bookmark
+     * @description Replace an existing asset on a bookmark with a different previously uploaded asset.
      */
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-          assetId: components["parameters"]["AssetId"];
-        };
-        cookie?: never;
-      };
-      /** @description The new asset to replace with */
-      requestBody?: {
-        content: {
-          "application/json": {
-            assetId: string;
-          };
-        };
-      };
-      responses: {
-        /** @description No content - asset was replaced successfully */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    put: operations["replaceAssetOnBookmark"];
     post?: never;
     /**
-     * Detach asset
-     * @description Detach an asset from a bookmark
+     * Detach asset from a bookmark
+     * @description Detach an asset from a bookmark.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          bookmarkId: components["parameters"]["BookmarkId"];
-          assetId: components["parameters"]["AssetId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - asset was detached successfully */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["detachAssetFromBookmark"];
     options?: never;
     head?: never;
     patch?: never;
@@ -913,83 +233,15 @@ export interface paths {
     };
     /**
      * Get all lists
-     * @description Get all lists
+     * @description Retrieve all bookmark lists for the authenticated user, including both manual and smart lists.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with all lists data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              lists: components["schemas"]["List"][];
-            };
-          };
-        };
-      };
-    };
+    get: operations["listLists"];
     put?: never;
     /**
      * Create a new list
-     * @description Create a new list
+     * @description Create a new bookmark list. Lists can be manual (bookmarks are added explicitly) or smart (bookmarks are matched automatically by a search query).
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description The list to create */
-      requestBody?: {
-        content: {
-          "application/json": {
-            name: string;
-            description?: string;
-            icon: string;
-            /**
-             * @default manual
-             * @enum {string}
-             */
-            type?: "manual" | "smart";
-            query?: string;
-            parentId?: string | null;
-          };
-        };
-      };
-      responses: {
-        /** @description The created list */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["List"];
-          };
-        };
-        /** @description Bad request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["createList"];
     delete?: never;
     options?: never;
     head?: never;
@@ -1005,132 +257,23 @@ export interface paths {
     };
     /**
      * Get a single list
-     * @description Get list by its id
+     * @description Retrieve a single list by its ID.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          listId: components["parameters"]["ListId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with list data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["List"];
-          };
-        };
-        /** @description List not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getList"];
     put?: never;
     post?: never;
     /**
      * Delete a list
-     * @description Delete list by its id
+     * @description Delete a list. This removes the list only — bookmarks within it are not deleted.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          listId: components["parameters"]["ListId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - the bookmark was deleted */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description List not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["deleteList"];
     options?: never;
     head?: never;
     /**
      * Update a list
-     * @description Update list by its id
+     * @description Partially update a list. Only the fields provided in the request body will be updated.
      */
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          listId: components["parameters"]["ListId"];
-        };
-        cookie?: never;
-      };
-      /** @description The data to update. Only the fields you want to update need to be provided. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            name?: string;
-            description?: string | null;
-            icon?: string;
-            parentId?: string | null;
-            query?: string;
-            public?: boolean;
-          };
-        };
-      };
-      responses: {
-        /** @description The updated list */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["List"];
-          };
-        };
-        /** @description List not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    patch: operations["updateList"];
     trace?: never;
   };
   "/lists/{listId}/bookmarks": {
@@ -1141,49 +284,10 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Get bookmarks in the list
-     * @description Get bookmarks in the list
+     * Get bookmarks in a list
+     * @description Retrieve a paginated list of bookmarks within the specified list. For smart lists, bookmarks are computed from the list's query.
      */
-    get: {
-      parameters: {
-        query?: {
-          sortOrder?: "asc" | "desc";
-          limit?: number;
-          cursor?: components["schemas"]["Cursor"];
-          /** @description If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks. */
-          includeContent?: boolean;
-        };
-        header?: never;
-        path: {
-          listId: components["parameters"]["ListId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with list data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["PaginatedBookmarks"];
-          };
-        };
-        /** @description List not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getListBookmarks"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1202,91 +306,15 @@ export interface paths {
     get?: never;
     /**
      * Add a bookmark to a list
-     * @description Add the bookmarks to a list
+     * @description Add a bookmark to a manual list. This operation is idempotent — adding an already-present bookmark has no effect.
      */
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          listId: components["parameters"]["ListId"];
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - the bookmark was added */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description List or bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    put: operations["addBookmarkToList"];
     post?: never;
     /**
      * Remove a bookmark from a list
-     * @description Remove the bookmarks from a list
+     * @description Remove a bookmark from a manual list.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          listId: components["parameters"]["ListId"];
-          bookmarkId: components["parameters"]["BookmarkId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - the bookmark was added */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Bookmark already not in list */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-        /** @description List or bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["removeBookmarkFromList"];
     options?: never;
     head?: never;
     patch?: never;
@@ -1301,72 +329,15 @@ export interface paths {
     };
     /**
      * Get all tags
-     * @description Get all tags
+     * @description Retrieve a paginated list of all tags. Supports filtering by name, attached-by source, and sorting by name, usage count, or relevance.
      */
-    get: {
-      parameters: {
-        query?: {
-          nameContains?: string;
-          sort?: "name" | "usage" | "relevance";
-          attachedBy?: "ai" | "human" | "none";
-          cursor?: string;
-          limit?: number | null;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with all tags data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              tags: components["schemas"]["Tag"][];
-              nextCursor: string | null;
-            };
-          };
-        };
-      };
-    };
+    get: operations["listTags"];
     put?: never;
     /**
      * Create a new tag
-     * @description Create a new tag
+     * @description Create a new tag. Tag names are normalized (trimmed and converted to the user's preferred tag style).
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description The data to create the tag with. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            name: string;
-          };
-        };
-      };
-      responses: {
-        /** @description The created tag */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              name: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["createTag"];
     delete?: never;
     options?: never;
     head?: never;
@@ -1382,130 +353,23 @@ export interface paths {
     };
     /**
      * Get a single tag
-     * @description Get tag by its id
+     * @description Retrieve a single tag by its ID, including the number of bookmarks using it.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          tagId: components["parameters"]["TagId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with list data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Tag"];
-          };
-        };
-        /** @description Tag not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getTag"];
     put?: never;
     post?: never;
     /**
      * Delete a tag
-     * @description Delete tag by its id
+     * @description Delete a tag. This removes the tag from all bookmarks it was attached to.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          tagId: components["parameters"]["TagId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - the bookmark was deleted */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Tag not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["deleteTag"];
     options?: never;
     head?: never;
     /**
      * Update a tag
-     * @description Update tag by its id
+     * @description Rename a tag. The new name will be normalized and trimmed.
      */
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          tagId: components["parameters"]["TagId"];
-        };
-        cookie?: never;
-      };
-      /** @description The data to update. Only the fields you want to update need to be provided. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            name?: string;
-          };
-        };
-      };
-      responses: {
-        /** @description The updated tag */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              name: string;
-            };
-          };
-        };
-        /** @description Tag not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    patch: operations["updateTag"];
     trace?: never;
   };
   "/tags/{tagId}/bookmarks": {
@@ -1516,49 +380,10 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Get bookmarks with the tag
-     * @description Get bookmarks with the tag
+     * Get bookmarks with a tag
+     * @description Retrieve a paginated list of all bookmarks that have the specified tag attached.
      */
-    get: {
-      parameters: {
-        query?: {
-          sortOrder?: "asc" | "desc";
-          limit?: number;
-          cursor?: components["schemas"]["Cursor"];
-          /** @description If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks. */
-          includeContent?: boolean;
-        };
-        header?: never;
-        path: {
-          tagId: components["parameters"]["TagId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with list data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["PaginatedBookmarks"];
-          };
-        };
-        /** @description Tag not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getTagBookmarks"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1576,96 +401,15 @@ export interface paths {
     };
     /**
      * Get all highlights
-     * @description Get all highlights
+     * @description Retrieve a paginated list of all highlights across all bookmarks for the authenticated user.
      */
-    get: {
-      parameters: {
-        query?: {
-          limit?: number;
-          cursor?: components["schemas"]["Cursor"];
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with all highlights data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["PaginatedHighlights"];
-          };
-        };
-      };
-    };
+    get: operations["listHighlights"];
     put?: never;
     /**
      * Create a new highlight
-     * @description Create a new highlight
+     * @description Create a new text highlight on a bookmark. Highlights are defined by character offsets within the bookmark's content and support color coding.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description The highlight to create */
-      requestBody?: {
-        content: {
-          "application/json": {
-            bookmarkId: string;
-            startOffset: number;
-            endOffset: number;
-            /**
-             * @default yellow
-             * @enum {string}
-             */
-            color?: "yellow" | "red" | "green" | "blue";
-            text: string | null;
-            note: string | null;
-          };
-        };
-      };
-      responses: {
-        /** @description The created highlight */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Highlight"];
-          };
-        };
-        /** @description Bad highlight request */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-        /** @description Bookmark not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["createHighlight"];
     delete?: never;
     options?: never;
     head?: never;
@@ -1681,131 +425,23 @@ export interface paths {
     };
     /**
      * Get a single highlight
-     * @description Get highlight by its id
+     * @description Retrieve a single highlight by its ID.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          highlightId: components["parameters"]["HighlightId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with highlight data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Highlight"];
-          };
-        };
-        /** @description Highlight not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getHighlight"];
     put?: never;
     post?: never;
     /**
      * Delete a highlight
-     * @description Delete highlight by its id
+     * @description Delete a highlight by its ID.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          highlightId: components["parameters"]["HighlightId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description The deleted highlight */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Highlight"];
-          };
-        };
-        /** @description Highlight not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["deleteHighlight"];
     options?: never;
     head?: never;
     /**
      * Update a highlight
-     * @description Update highlight by its id
+     * @description Partially update a highlight. Supports changing the color or note.
      */
-    patch: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          highlightId: components["parameters"]["HighlightId"];
-        };
-        cookie?: never;
-      };
-      /** @description The data to update. Only the fields you want to update need to be provided. */
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            color?: "yellow" | "red" | "green" | "blue";
-            note?: string | null;
-          };
-        };
-      };
-      responses: {
-        /** @description The updated highlight */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Highlight"];
-          };
-        };
-        /** @description Highlight not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    patch: operations["updateHighlight"];
     trace?: never;
   };
   "/users/me": {
@@ -1817,34 +453,9 @@ export interface paths {
     };
     /**
      * Get current user info
-     * @description Returns info about the current user
+     * @description Retrieve profile information for the currently authenticated user, including their name, email, and avatar.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with user data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              name?: string | null;
-              email?: string | null;
-              image?: string | null;
-              localUser: boolean;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getCurrentUser"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1862,81 +473,9 @@ export interface paths {
     };
     /**
      * Get current user stats
-     * @description Returns stats about the current user
+     * @description Retrieve usage statistics for the currently authenticated user, including bookmark counts by type, top domains, tag usage, bookmarking activity patterns, and storage usage.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with user stats. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              numBookmarks: number;
-              numFavorites: number;
-              numArchived: number;
-              numTags: number;
-              numLists: number;
-              numHighlights: number;
-              bookmarksByType: {
-                link: number;
-                text: number;
-                asset: number;
-              };
-              topDomains: {
-                domain: string;
-                count: number;
-              }[];
-              totalAssetSize: number;
-              assetsByType: {
-                type: string;
-                count: number;
-                totalSize: number;
-              }[];
-              bookmarkingActivity: {
-                thisWeek: number;
-                thisMonth: number;
-                thisYear: number;
-                byHour: {
-                  hour: number;
-                  count: number;
-                }[];
-                byDayOfWeek: {
-                  day: number;
-                  count: number;
-                }[];
-              };
-              tagUsage: {
-                name: string;
-                count: number;
-              }[];
-              bookmarksBySource: {
-                /** @enum {string|null} */
-                source:
-                  | "api"
-                  | "web"
-                  | "cli"
-                  | "mobile"
-                  | "extension"
-                  | "singlefile"
-                  | "rss"
-                  | "import"
-                  | null;
-                count: number;
-              }[];
-            };
-          };
-        };
-      };
-    };
+    get: operations["getCurrentUserStats"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1956,35 +495,9 @@ export interface paths {
     put?: never;
     /**
      * Upload a new asset
-     * @description Upload a new asset
+     * @description Upload a binary file as a new asset. The uploaded asset can then be attached to a bookmark via the POST /bookmarks/{bookmarkId}/assets endpoint.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      /** @description The data to create the asset with. */
-      requestBody?: {
-        content: {
-          "multipart/form-data": {
-            file: components["schemas"]["File to be uploaded"];
-          };
-        };
-      };
-      responses: {
-        /** @description Details about the created asset */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": components["schemas"]["Asset"];
-          };
-        };
-      };
-    };
+    post: operations["uploadAsset"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2000,28 +513,9 @@ export interface paths {
     };
     /**
      * Get a single asset
-     * @description Get asset by its id
+     * @description Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          assetId: components["parameters"]["AssetId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Asset content. Content type is determined by the asset type. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-      };
-    };
+    get: operations["getAsset"];
     put?: never;
     post?: never;
     delete?: never;
@@ -2039,88 +533,71 @@ export interface paths {
     };
     get?: never;
     /**
-     * Update user
-     * @description Update a user's role, bookmark quota, or storage quota. Admin access required.
+     * Update a user (admin)
+     * @description Update a user's role, bookmark quota, storage quota, or browser crawling setting. Requires admin role. You cannot update your own user account via this endpoint.
      */
-    put: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          userId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          "application/json": {
-            /** @enum {string} */
-            role?: "user" | "admin";
-            bookmarkQuota?: number | null;
-            storageQuota?: number | null;
-            browserCrawlingEnabled?: boolean | null;
-          };
-        };
-      };
-      responses: {
-        /** @description User updated successfully */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              success: boolean;
-            };
-          };
-        };
-        /** @description Bad request - Invalid input data or cannot update own user */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              error: string;
-            };
-          };
-        };
-        /** @description Unauthorized - Authentication required */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              error: string;
-            };
-          };
-        };
-        /** @description Forbidden - Admin access required */
-        403: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              error: string;
-            };
-          };
-        };
-        /** @description User not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              error: string;
-            };
-          };
-        };
-      };
-    };
+    put: operations["adminUpdateUser"];
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/jobs/trigger/recrawl": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Trigger recrawl of links (admin)
+     * @description Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones). Optionally run AI inference after crawling. Requires admin role.
+     */
+    post: operations["adminTriggerRecrawl"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/jobs/trigger/reindex": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Trigger reindex of all bookmarks (admin)
+     * @description Trigger a reindex of all bookmarks in the search engine. This clears the existing index and re-queues all bookmarks for indexing. Requires admin role.
+     */
+    post: operations["adminTriggerReindex"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/jobs/trigger/inference": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Trigger AI inference on bookmarks (admin)
+     * @description Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status to target specific bookmarks (e.g., only failed ones). Requires admin role.
+     */
+    post: operations["adminTriggerInference"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2136,75 +613,15 @@ export interface paths {
     };
     /**
      * Get all backups
-     * @description Get all backups
+     * @description Retrieve a list of all backups for the authenticated user, including their status and metadata.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with all backups data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              backups: {
-                id: string;
-                userId: string;
-                assetId: string | null;
-                createdAt: string;
-                size: number;
-                bookmarkCount: number;
-                /** @enum {string} */
-                status: "pending" | "success" | "failure";
-                errorMessage?: string | null;
-              }[];
-            };
-          };
-        };
-      };
-    };
+    get: operations["listBackups"];
     put?: never;
     /**
      * Trigger a new backup
-     * @description Trigger a new backup
+     * @description Trigger a new full account backup. The backup is created asynchronously — use GET /backups/{backupId} to check its status.
      */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Backup created successfully */
-        201: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              userId: string;
-              assetId: string | null;
-              createdAt: string;
-              size: number;
-              bookmarkCount: number;
-              /** @enum {string} */
-              status: "pending" | "success" | "failure";
-              errorMessage?: string | null;
-            };
-          };
-        };
-      };
-    };
+    post: operations["createBackup"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2220,90 +637,16 @@ export interface paths {
     };
     /**
      * Get a single backup
-     * @description Get backup by its id
+     * @description Retrieve metadata for a single backup, including its current status (pending, success, or failure).
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          backupId: components["parameters"]["BackupId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Object with backup data. */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              id: string;
-              userId: string;
-              assetId: string | null;
-              createdAt: string;
-              size: number;
-              bookmarkCount: number;
-              /** @enum {string} */
-              status: "pending" | "success" | "failure";
-              errorMessage?: string | null;
-            };
-          };
-        };
-        /** @description Backup not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["getBackup"];
     put?: never;
     post?: never;
     /**
      * Delete a backup
-     * @description Delete backup by its id
+     * @description Permanently delete a backup and its associated archive file.
      */
-    delete: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          backupId: components["parameters"]["BackupId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description No content - the backup was deleted */
-        204: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description Backup not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    delete: operations["deleteBackup"];
     options?: never;
     head?: never;
     patch?: never;
@@ -2318,44 +661,83 @@ export interface paths {
     };
     /**
      * Download a backup
-     * @description Download backup file
+     * @description Download a completed backup as a zip archive. The backup must have a 'success' status.
      */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path: {
-          backupId: components["parameters"]["BackupId"];
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description Backup file (zip archive) */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/zip": unknown;
-          };
-        };
-        /** @description Backup not found */
-        404: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            "application/json": {
-              code: string;
-              message: string;
-            };
-          };
-        };
-      };
-    };
+    get: operations["downloadBackup"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/feeds": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get all feeds
+     * @description Retrieve all RSS feed subscriptions for the authenticated user.
+     */
+    get: operations["listFeeds"];
+    put?: never;
+    /**
+     * Create a new feed
+     * @description Create a new RSS feed subscription. The feed will be periodically fetched and matching items will be imported as bookmarks.
+     */
+    post: operations["createFeed"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/feeds/{feedId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get a single feed
+     * @description Retrieve a single RSS feed subscription by its ID.
+     */
+    get: operations["getFeed"];
+    put?: never;
+    post?: never;
+    /**
+     * Delete a feed
+     * @description Delete an RSS feed subscription. Previously imported bookmarks are not affected.
+     */
+    delete: operations["deleteFeed"];
+    options?: never;
+    head?: never;
+    /**
+     * Update a feed
+     * @description Update an RSS feed subscription. Only provided fields will be changed.
+     */
+    patch: operations["updateFeed"];
+    trace?: never;
+  };
+  "/feeds/{feedId}/fetch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Trigger a feed fetch
+     * @description Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.
+     */
+    post: operations["fetchFeedNow"];
     delete?: never;
     options?: never;
     head?: never;
@@ -2366,18 +748,41 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    /**
+     * @description The unique identifier of the bookmark.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
     BookmarkId: string;
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    /**
+     * @description The unique identifier of the list.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
     ListId: string;
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    /**
+     * @description The unique identifier of the tag.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
     TagId: string;
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    /**
+     * @description The unique identifier of the highlight.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
     HighlightId: string;
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    /**
+     * @description The unique identifier of the asset.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
     AssetId: string;
-    /** @example ieidlxygmwj87oxz5hxttoc8 */
+    /**
+     * @description The unique identifier of the backup.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
     BackupId: string;
+    /**
+     * @description The unique identifier of the feed.
+     * @example ieidlxygmwj87oxz5hxttoc8
+     */
+    FeedId: string;
     Bookmark: {
       id: string;
       createdAt: string;
@@ -2476,9 +881,17 @@ export interface components {
     };
     PaginatedBookmarks: {
       bookmarks: components["schemas"]["Bookmark"][];
+      /** @description Cursor for the next page, or null if no more results. */
       nextCursor: string | null;
     };
+    /** @description Cursor from a previous response to fetch the next page. */
     Cursor: string;
+    Error: {
+      /** @description A machine-readable error code. */
+      code: string;
+      /** @description A human-readable error message. */
+      message: string;
+    };
     List: {
       id: string;
       name: string;
@@ -2522,15 +935,35 @@ export interface components {
     };
     PaginatedHighlights: {
       highlights: components["schemas"]["Highlight"][];
+      /** @description Cursor for the next page, or null if no more results. */
       nextCursor: string | null;
     };
-    Asset: {
+    UploadedAsset: {
+      /** @description The unique identifier assigned to the uploaded asset. */
       assetId: string;
+      /** @description The MIME type of the uploaded file. */
       contentType: string;
+      /** @description The size of the uploaded file in bytes. */
       size: number;
+      /** @description The original file name of the uploaded file. */
       fileName: string;
     };
     "File to be uploaded": unknown;
+    Feed: {
+      id: string;
+      name: string;
+      /** Format: uri */
+      url: string;
+      enabled: boolean;
+      importTags: boolean;
+      /** @enum {string|null} */
+      lastFetchedStatus: "success" | "failure" | "pending" | null;
+      /**
+       * @description ISO 8601 timestamp of the last fetch attempt, or null if never fetched.
+       * @example 2025-01-15T12:00:00.000Z
+       */
+      lastFetchedAt: string | null;
+    };
   };
   responses: never;
   parameters: {
@@ -2540,10 +973,2539 @@ export interface components {
     HighlightId: components["schemas"]["HighlightId"];
     AssetId: components["schemas"]["AssetId"];
     BackupId: components["schemas"]["BackupId"];
+    FeedId: components["schemas"]["FeedId"];
   };
   requestBodies: never;
   headers: never;
   pathItems: never;
 }
 export type $defs = Record<string, never>;
-export type operations = Record<string, never>;
+export interface operations {
+  listBookmarks: {
+    parameters: {
+      query?: {
+        /** @description Filter by archived status. */
+        archived?: boolean;
+        /** @description Filter by favourited status. */
+        favourited?: boolean;
+        /** @description Sort order by creation date. Defaults to 'desc'. */
+        sortOrder?: "asc" | "desc";
+        /** @description Maximum number of items to return per page. */
+        limit?: number;
+        /** @description Cursor from a previous response to fetch the next page. */
+        cursor?: components["schemas"]["Cursor"];
+        /** @description If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed. */
+        includeContent?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A paginated list of bookmarks. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedBookmarks"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  createBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description The bookmark to create. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          title?: string | null;
+          archived?: boolean;
+          favourited?: boolean;
+          note?: string;
+          summary?: string;
+          createdAt?: string | null;
+          /** @enum {string} */
+          crawlPriority?: "low" | "normal";
+          importSessionId?: string;
+          /** @enum {string} */
+          source?:
+            | "api"
+            | "web"
+            | "cli"
+            | "mobile"
+            | "extension"
+            | "singlefile"
+            | "rss"
+            | "import";
+        } & (
+          | {
+              /** @enum {string} */
+              type: "link";
+              /** Format: uri */
+              url: string;
+              precrawledArchiveId?: string;
+            }
+          | {
+              /** @enum {string} */
+              type: "text";
+              text: string;
+              sourceUrl?: string;
+            }
+          | {
+              /** @enum {string} */
+              type: "asset";
+              /** @enum {string} */
+              assetType: "image" | "pdf";
+              assetId: string;
+              fileName?: string;
+              sourceUrl?: string;
+            }
+        );
+      };
+    };
+    responses: {
+      /** @description A bookmark with this URL already exists. The existing bookmark is returned. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Bookmark"];
+        };
+      };
+      /** @description The bookmark was created successfully. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Bookmark"];
+        };
+      };
+      /** @description Bad request — invalid input data. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  searchBookmarks: {
+    parameters: {
+      query: {
+        /** @description The search query string. */
+        q: string;
+        /** @description Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting. */
+        sortOrder?: "asc" | "desc" | "relevance";
+        /** @description Maximum number of items to return per page. */
+        limit?: number;
+        /** @description Cursor from a previous response to fetch the next page. */
+        cursor?: components["schemas"]["Cursor"];
+        /** @description If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed. */
+        includeContent?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A paginated list of bookmarks matching the search query. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedBookmarks"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  checkBookmarkUrl: {
+    parameters: {
+      query: {
+        /** @description The URL to check against existing bookmarks. */
+        url: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Object indicating whether the URL is bookmarked. `bookmarkId` is `null` if not found. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @description The ID of the existing bookmark, or null if the URL is not bookmarked. */
+            bookmarkId: string | null;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getBookmark: {
+    parameters: {
+      query?: {
+        /** @description If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed. */
+        includeContent?: boolean;
+      };
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The requested bookmark. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Bookmark"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  deleteBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the bookmark was deleted successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  updateBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    /** @description The fields to update. Only the fields you want to change need to be provided. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          archived?: boolean;
+          favourited?: boolean;
+          summary?: string | null;
+          note?: string;
+          title?: string | null;
+          createdAt?: string | null;
+          /** Format: uri */
+          url?: string;
+          description?: string | null;
+          author?: string | null;
+          publisher?: string | null;
+          datePublished?: string | null;
+          dateModified?: string | null;
+          text?: string | null;
+          assetContent?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description The updated bookmark. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            createdAt: string;
+            modifiedAt: string | null;
+            title?: string | null;
+            archived: boolean;
+            favourited: boolean;
+            /** @enum {string|null} */
+            taggingStatus: "success" | "failure" | "pending" | null;
+            /** @enum {string|null} */
+            summarizationStatus: "success" | "failure" | "pending" | null;
+            note?: string | null;
+            summary?: string | null;
+            /** @enum {string|null} */
+            source?:
+              | "api"
+              | "web"
+              | "cli"
+              | "mobile"
+              | "extension"
+              | "singlefile"
+              | "rss"
+              | "import"
+              | null;
+            userId: string;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  summarizeBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The bookmark with the updated summary. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            createdAt: string;
+            modifiedAt: string | null;
+            title?: string | null;
+            archived: boolean;
+            favourited: boolean;
+            /** @enum {string|null} */
+            taggingStatus: "success" | "failure" | "pending" | null;
+            /** @enum {string|null} */
+            summarizationStatus: "success" | "failure" | "pending" | null;
+            note?: string | null;
+            summary?: string | null;
+            /** @enum {string|null} */
+            source?:
+              | "api"
+              | "web"
+              | "cli"
+              | "mobile"
+              | "extension"
+              | "singlefile"
+              | "rss"
+              | "import"
+              | null;
+            userId: string;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  attachTagsToBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    /** @description The tags to attach. Each tag must have either a `tagId` or a `tagName`. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          tags: {
+            tagId?: string;
+            tagName?: string;
+            /**
+             * @default human
+             * @enum {string}
+             */
+            attachedBy?: "ai" | "human";
+          }[];
+        };
+      };
+    };
+    responses: {
+      /** @description The IDs of the tags that were attached. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            attached: components["schemas"]["TagId"][];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  detachTagsFromBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    /** @description The tags to detach. Each tag must have either a `tagId` or a `tagName`. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          tags: {
+            tagId?: string;
+            tagName?: string;
+            /**
+             * @default human
+             * @enum {string}
+             */
+            attachedBy?: "ai" | "human";
+          }[];
+        };
+      };
+    };
+    responses: {
+      /** @description The IDs of the tags that were detached. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            detached: components["schemas"]["TagId"][];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  getBookmarkLists: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The lists that contain this bookmark. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            lists: components["schemas"]["List"][];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  getBookmarkHighlights: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The highlights within this bookmark. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            highlights: components["schemas"]["Highlight"][];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  attachAssetToBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    /** @description The asset ID and type to attach. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @description The ID of the previously uploaded asset. */
+          id: string;
+          /**
+           * @description The type classification for this asset.
+           * @enum {string}
+           */
+          assetType:
+            | "linkHtmlContent"
+            | "screenshot"
+            | "pdf"
+            | "assetScreenshot"
+            | "bannerImage"
+            | "fullPageArchive"
+            | "video"
+            | "bookmarkAsset"
+            | "precrawledArchive"
+            | "userUploaded"
+            | "avatar"
+            | "unknown";
+        };
+      };
+    };
+    responses: {
+      /** @description The asset was attached successfully. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            /** @enum {string} */
+            assetType:
+              | "linkHtmlContent"
+              | "screenshot"
+              | "pdf"
+              | "assetScreenshot"
+              | "bannerImage"
+              | "fullPageArchive"
+              | "video"
+              | "bookmarkAsset"
+              | "precrawledArchive"
+              | "userUploaded"
+              | "avatar"
+              | "unknown";
+            fileName?: string | null;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  replaceAssetOnBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+        assetId: components["parameters"]["AssetId"];
+      };
+      cookie?: never;
+    };
+    /** @description The ID of the new asset to replace the existing one. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @description The ID of the new asset to use as a replacement. */
+          assetId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description No content — asset was replaced successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark or asset not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  detachAssetFromBookmark: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        bookmarkId: components["parameters"]["BookmarkId"];
+        assetId: components["parameters"]["AssetId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — asset was detached successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark or asset not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  listLists: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description All lists owned by or shared with the current user. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            lists: components["schemas"]["List"][];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  createList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description The list to create. For smart lists, a `query` field is required. For manual lists, `query` must not be set. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          name: string;
+          description?: string;
+          icon: string;
+          /**
+           * @default manual
+           * @enum {string}
+           */
+          type?: "manual" | "smart";
+          query?: string;
+          parentId?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description The created list. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["List"];
+        };
+      };
+      /** @description Bad request — invalid input data (e.g., smart list missing query, or manual list with a query). */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        listId: components["parameters"]["ListId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The requested list. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["List"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description List not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  deleteList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        listId: components["parameters"]["ListId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the list was deleted successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description List not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  updateList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        listId: components["parameters"]["ListId"];
+      };
+      cookie?: never;
+    };
+    /** @description The fields to update. Only the fields you want to change need to be provided. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          name?: string;
+          description?: string | null;
+          icon?: string;
+          parentId?: string | null;
+          query?: string;
+          public?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description The updated list. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["List"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description List not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  getListBookmarks: {
+    parameters: {
+      query?: {
+        /** @description Sort order by creation date. Defaults to 'desc'. */
+        sortOrder?: "asc" | "desc";
+        /** @description Maximum number of items to return per page. */
+        limit?: number;
+        /** @description Cursor from a previous response to fetch the next page. */
+        cursor?: components["schemas"]["Cursor"];
+        /** @description If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed. */
+        includeContent?: boolean;
+      };
+      header?: never;
+      path: {
+        listId: components["parameters"]["ListId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A paginated list of bookmarks in the specified list. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedBookmarks"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description List not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  addBookmarkToList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        listId: components["parameters"]["ListId"];
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the bookmark was added to the list successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description List or bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  removeBookmarkFromList: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        listId: components["parameters"]["ListId"];
+        bookmarkId: components["parameters"]["BookmarkId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the bookmark was removed from the list successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Bookmark is not in the list. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description List or bookmark not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  listTags: {
+    parameters: {
+      query?: {
+        nameContains?: string;
+        sort?: "name" | "usage" | "relevance";
+        attachedBy?: "ai" | "human" | "none";
+        cursor?: string;
+        limit?: number | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A paginated list of tags with usage counts. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            tags: components["schemas"]["Tag"][];
+            /** @description Cursor for the next page, or null if no more results. */
+            nextCursor: string | null;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  createTag: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description The tag name to create. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          name: string;
+        };
+      };
+    };
+    responses: {
+      /** @description The created tag. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            name: string;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getTag: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        tagId: components["parameters"]["TagId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The requested tag with usage statistics. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Tag"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Tag not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  deleteTag: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        tagId: components["parameters"]["TagId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the tag was deleted successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Tag not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  updateTag: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        tagId: components["parameters"]["TagId"];
+      };
+      cookie?: never;
+    };
+    /** @description The new tag name. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          name?: string;
+        };
+      };
+    };
+    responses: {
+      /** @description The updated tag. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            name: string;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Tag not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  getTagBookmarks: {
+    parameters: {
+      query?: {
+        /** @description Sort order by creation date. Defaults to 'desc'. */
+        sortOrder?: "asc" | "desc";
+        /** @description Maximum number of items to return per page. */
+        limit?: number;
+        /** @description Cursor from a previous response to fetch the next page. */
+        cursor?: components["schemas"]["Cursor"];
+        /** @description If set to true, the bookmark's full content (HTML, text, etc.) will be included in the response. Set to false for lighter responses when only metadata is needed. */
+        includeContent?: boolean;
+      };
+      header?: never;
+      path: {
+        tagId: components["parameters"]["TagId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A paginated list of bookmarks that have the specified tag. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedBookmarks"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Tag not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  listHighlights: {
+    parameters: {
+      query?: {
+        /** @description Maximum number of items to return per page. */
+        limit?: number;
+        /** @description Cursor from a previous response to fetch the next page. */
+        cursor?: components["schemas"]["Cursor"];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A paginated list of highlights. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PaginatedHighlights"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  createHighlight: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description The highlight to create, including the bookmark ID, text offsets, and optional color/note. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          bookmarkId: string;
+          startOffset: number;
+          endOffset: number;
+          /**
+           * @default yellow
+           * @enum {string}
+           */
+          color?: "yellow" | "red" | "green" | "blue";
+          text: string | null;
+          note: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description The created highlight. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Highlight"];
+        };
+      };
+      /** @description Bad request — invalid offsets or missing required fields. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Bookmark not found — the specified bookmarkId does not exist. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  getHighlight: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        highlightId: components["parameters"]["HighlightId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The requested highlight. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Highlight"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Highlight not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  deleteHighlight: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        highlightId: components["parameters"]["HighlightId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The deleted highlight is returned. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Highlight"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Highlight not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  updateHighlight: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        highlightId: components["parameters"]["HighlightId"];
+      };
+      cookie?: never;
+    };
+    /** @description The fields to update. Only the fields you want to change need to be provided. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @enum {string} */
+          color?: "yellow" | "red" | "green" | "blue";
+          note?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description The updated highlight. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Highlight"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Highlight not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  getCurrentUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The current user's profile information. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            name?: string | null;
+            email?: string | null;
+            image?: string | null;
+            localUser: boolean;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getCurrentUserStats: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Detailed usage statistics for the current user. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            numBookmarks: number;
+            numFavorites: number;
+            numArchived: number;
+            numTags: number;
+            numLists: number;
+            numHighlights: number;
+            bookmarksByType: {
+              link: number;
+              text: number;
+              asset: number;
+            };
+            topDomains: {
+              domain: string;
+              count: number;
+            }[];
+            totalAssetSize: number;
+            assetsByType: {
+              type: string;
+              count: number;
+              totalSize: number;
+            }[];
+            bookmarkingActivity: {
+              thisWeek: number;
+              thisMonth: number;
+              thisYear: number;
+              byHour: {
+                hour: number;
+                count: number;
+              }[];
+              byDayOfWeek: {
+                day: number;
+                count: number;
+              }[];
+            };
+            tagUsage: {
+              name: string;
+              count: number;
+            }[];
+            bookmarksBySource: {
+              /** @enum {string|null} */
+              source:
+                | "api"
+                | "web"
+                | "cli"
+                | "mobile"
+                | "extension"
+                | "singlefile"
+                | "rss"
+                | "import"
+                | null;
+              count: number;
+            }[];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  uploadAsset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description The file to upload as multipart/form-data. */
+    requestBody?: {
+      content: {
+        "multipart/form-data": {
+          file: components["schemas"]["File to be uploaded"];
+        };
+      };
+    };
+    responses: {
+      /** @description The asset was uploaded successfully. Returns metadata about the uploaded asset. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadedAsset"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getAsset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assetId: components["parameters"]["AssetId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The asset's binary content. The Content-Type header reflects the asset's MIME type (e.g., image/png, application/pdf). */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  adminUpdateUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        userId: string;
+      };
+      cookie?: never;
+    };
+    /** @description The fields to update. All fields are optional — only provided fields will be changed. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          /** @enum {string} */
+          role?: "user" | "admin";
+          bookmarkQuota?: number | null;
+          storageQuota?: number | null;
+          browserCrawlingEnabled?: boolean | null;
+        };
+      };
+    };
+    responses: {
+      /** @description User updated successfully. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @description Whether the update was successful. */
+            success: boolean;
+          };
+        };
+      };
+      /** @description Bad request — invalid input data or attempted to update own user. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Forbidden — admin access required. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description User not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  adminTriggerRecrawl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Options for the recrawl job. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          /**
+           * @description Filter bookmarks by their crawl status. Use 'failure' to retry only failed crawls.
+           * @default all
+           * @enum {string}
+           */
+          crawlStatus?: "success" | "failure" | "pending" | "all";
+          /**
+           * @description Whether to run AI inference after crawling.
+           * @default false
+           */
+          runInference?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description Recrawl jobs triggered successfully. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @description Whether the job was triggered successfully. */
+            success: boolean;
+          };
+        };
+      };
+      /** @description Bad request — invalid input data. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Forbidden — admin access required. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  adminTriggerReindex: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Reindex jobs triggered successfully. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @description Whether the job was triggered successfully. */
+            success: boolean;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Forbidden — admin access required. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  adminTriggerInference: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Options for the inference job. */
+    requestBody: {
+      content: {
+        "application/json": {
+          /**
+           * @description The type of inference to run: 'tag' for AI tagging, 'summarize' for AI summarization.
+           * @enum {string}
+           */
+          type: "tag" | "summarize";
+          /**
+           * @description Filter bookmarks by their inference status. Use 'failure' to retry only failed ones.
+           * @default all
+           * @enum {string}
+           */
+          status?: "success" | "failure" | "pending" | "all";
+        };
+      };
+    };
+    responses: {
+      /** @description Inference jobs triggered successfully. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @description Whether the job was triggered successfully. */
+            success: boolean;
+          };
+        };
+      };
+      /** @description Bad request — invalid input data. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Forbidden — admin access required. */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  listBackups: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A list of all backups. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            backups: {
+              id: string;
+              userId: string;
+              assetId: string | null;
+              createdAt: string;
+              size: number;
+              bookmarkCount: number;
+              /** @enum {string} */
+              status: "pending" | "success" | "failure";
+              errorMessage?: string | null;
+            }[];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  createBackup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Backup creation was triggered. The backup object is returned with a 'pending' status. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            userId: string;
+            assetId: string | null;
+            createdAt: string;
+            size: number;
+            bookmarkCount: number;
+            /** @enum {string} */
+            status: "pending" | "success" | "failure";
+            errorMessage?: string | null;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getBackup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backupId: components["parameters"]["BackupId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The requested backup. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            id: string;
+            userId: string;
+            assetId: string | null;
+            createdAt: string;
+            size: number;
+            bookmarkCount: number;
+            /** @enum {string} */
+            status: "pending" | "success" | "failure";
+            errorMessage?: string | null;
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Backup not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  deleteBackup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backupId: components["parameters"]["BackupId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the backup was deleted successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Backup not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  downloadBackup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        backupId: components["parameters"]["BackupId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The backup file as a zip archive. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/zip": unknown;
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Backup not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  listFeeds: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description A list of all feeds. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            feeds: components["schemas"]["Feed"][];
+          };
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  createFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description The feed to create. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          name: string;
+          /** Format: uri */
+          url: string;
+          enabled: boolean;
+          /** @default false */
+          importTags?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description The created feed. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Feed"];
+        };
+      };
+      /** @description Bad request — e.g. the maximum number of RSS feeds per user has been reached. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+    };
+  };
+  getFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        feedId: components["parameters"]["FeedId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description The requested feed. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Feed"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Feed not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  deleteFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        feedId: components["parameters"]["FeedId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the feed was deleted successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Feed not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  updateFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        feedId: components["parameters"]["FeedId"];
+      };
+      cookie?: never;
+    };
+    /** @description The fields to update. */
+    requestBody?: {
+      content: {
+        "application/json": {
+          name?: string;
+          /** Format: uri */
+          url?: string;
+          enabled?: boolean;
+          importTags?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description The updated feed. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Feed"];
+        };
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Feed not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+  fetchFeedNow: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        feedId: components["parameters"]["FeedId"];
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No content — the fetch has been enqueued. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Unauthorized — the Bearer token is missing, invalid, or expired. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Feed not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Error"];
+        };
+      };
+    };
+  };
+}

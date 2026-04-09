@@ -28,6 +28,7 @@ import {
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
+import { bookmarkCreationCounter } from "../stats";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
@@ -312,6 +313,8 @@ export const bookmarksAppRouter = router({
           behavior: "immediate",
         },
       );
+
+      bookmarkCreationCounter.labels(input.source ?? "unknown").inc();
 
       const forceLowPriority = await shouldUseLowPriorityQueues(ctx);
       const shouldUseLowPriority =

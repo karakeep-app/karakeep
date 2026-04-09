@@ -10,7 +10,7 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import type { RunnerJobData, RunnerResult, SerializedError } from "./types";
 import { runnerServiceName } from "./runner";
-import { RestateSemaphore } from "./semaphore";
+import { ReenqueueRequested, RestateSemaphore } from "./semaphore";
 
 export function buildDispatcherService<T, R>(
   queue: Queue<T>,
@@ -94,11 +94,23 @@ export function buildDispatcherService<T, R>(
           await logDebug(
             `Dispatcher attempt ${runNumber} for queue ${queue.name()} job ${id} (priority=${priority}, groupId=${data.groupId ?? "none"})`,
           );
-          const leaseId = await semaphore.acquire(
-            priority,
-            data.groupId,
-            data.queuedIdempotencyKey,
+          const acquireResult = await tryCatch(
+            semaphore.acquire(
+              priority,
+              data.groupId,
+              data.queuedIdempotencyKey,
+            ),
           );
+          if (acquireResult.error) {
+            if (acquireResult.error instanceof ReenqueueRequested) {
+              await logDebug(
+                `Dispatcher re-enqueue requested for queue ${queue.name()} job ${id}`,
+              );
+              continue;
+            }
+            throw acquireResult.error;
+          }
+          const leaseId = acquireResult.data;
           if (!leaseId) {
             // Idempotency key already exists, skip
             await logDebug(
@@ -144,7 +156,13 @@ export function buildDispatcherService<T, R>(
                     res.error instanceof Error ? res.error.name : "RPCError",
                   message: errorMessage,
                   stack:
-                    res.error instanceof Error ? res.error.stack : undefined,
+                    res.error instanceof Error
+                      ? // TerminalError stacks can be non determinstic
+                        // https://github.com/restatedev/sdk-typescript/issues/656
+                        res.error instanceof restate.TerminalError
+                        ? undefined
+                        : res.error.stack
+                      : undefined,
                 },
               }),
             );

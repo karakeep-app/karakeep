@@ -86,9 +86,17 @@ A custom integration that brings Karakeep data into Home Assistant. It exposes y
 
 Get it [here](https://github.com/sli-cka/karakeep-homeassistant)
 
+### karaclean
+
+_By [@lmgarret](https://github.com/lmgarret)_
+
+ A Docker sidecar that automatically cleans up Karakeep bookmarks based on declarative YAML rules.
+
+Get it [here](https://github.com/lmgarret/karaclean)
+
 ### Karatui
 
-_By [@bercribe](https://github.com/bercribe)_
+_By [@bercribe](https://github.com/bercribe)._
 
 A terminal user interface for Karakeep. Supports keyboard driven tag and list management of bookmarks, with suggestions populated from your server.
 

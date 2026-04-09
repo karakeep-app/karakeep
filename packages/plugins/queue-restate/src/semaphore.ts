@@ -7,6 +7,7 @@ import {
   ObjectContext,
   ObjectSharedContext,
 } from "@restatedev/restate-sdk";
+import { tryCatch } from "@karakeep/shared/tryCatch";
 
 interface QueueItem {
   awakeable: string;
@@ -129,9 +130,66 @@ export const semaphore = object({
     ),
     tick: restate.handlers.object.exclusive(
       {},
-      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        req?: { count?: number },
+      ): Promise<void> => {
         const state = await getState(ctx);
-        await tick(ctx, state, 1);
+        await tickUnlimited(ctx, state, req?.count ?? 1);
+        setState(ctx, state);
+      },
+    ),
+    forceReenqueue: restate.handlers.object.exclusive(
+      {},
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        req?: { count?: number },
+      ): Promise<void> => {
+        const state = await getState(ctx);
+        let dequeued = 0;
+        const count = req?.count ?? 1;
+        while (dequeued < count && Object.keys(state.groups).length > 0) {
+          const now = await ctx.date.now();
+          const { item } = selectAndPopItem(state, now);
+          dequeued++;
+          ctx.rejectAwakeable(item.awakeable, "Re-enqueue requested");
+        }
+        setState(ctx, state);
+      },
+    ),
+    reject: restate.handlers.object.exclusive(
+      {},
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        req?: { count?: number; reason?: string },
+      ): Promise<void> => {
+        const state = await getState(ctx);
+        let rejected = 0;
+        const count = req?.count ?? 1;
+        const reason = req?.reason ?? "Rejected";
+        while (rejected < count && Object.keys(state.groups).length > 0) {
+          const now = await ctx.date.now();
+          const { item } = selectAndPopItem(state, now);
+          rejected++;
+          ctx.rejectAwakeable(item.awakeable, reason);
+        }
+        setState(ctx, state);
+      },
+    ),
+    clearState: restate.handlers.object.exclusive(
+      {},
+      async (ctx: ObjectContext<LegacyQueueState>): Promise<void> => {
+        ctx.clearAll();
+      },
+    ),
+    clearGroupId: restate.handlers.object.exclusive(
+      {},
+      async (
+        ctx: ObjectContext<LegacyQueueState>,
+        req: { groupId: string },
+      ): Promise<void> => {
+        const state = await getState(ctx);
+        delete state.groups[req.groupId];
         setState(ctx, state);
       },
     ),
@@ -229,6 +287,26 @@ function pruneExpiredLeases(state: QueueState, now: number) {
   return Object.keys(state.leases).length;
 }
 
+async function tickUnlimited(
+  ctx: ObjectContext<LegacyQueueState>,
+  state: QueueState,
+  count: number,
+): Promise<void> {
+  pruneExpiredLeases(state, await ctx.date.now());
+  let dequeued = 0;
+  while (
+    !state.paused &&
+    dequeued < count &&
+    Object.keys(state.groups).length > 0
+  ) {
+    const now = await ctx.date.now();
+    const { item } = selectAndPopItem(state, now);
+    state.leases[item.awakeable] = now + item.leaseDurationMs;
+    dequeued++;
+    ctx.resolveAwakeable(item.awakeable);
+  }
+}
+
 async function tick(
   ctx: ObjectContext<LegacyQueueState>,
   state: QueueState,
@@ -280,6 +358,15 @@ function setState(ctx: ObjectContext<LegacyQueueState>, state: QueueState) {
   ctx.set("paused", state.paused);
 }
 
+export const REENQUEUE_REASON = "Re-enqueue requested";
+
+export class ReenqueueRequested extends Error {
+  constructor() {
+    super(REENQUEUE_REASON);
+    this.name = "ReenqueueRequested";
+  }
+}
+
 export class RestateSemaphore {
   constructor(
     private readonly ctx: Context,
@@ -305,13 +392,18 @@ export class RestateSemaphore {
       return false;
     }
 
-    try {
-      await awk.promise;
-    } catch (e) {
-      if (e instanceof restate.CancelledError) {
+    const result = await tryCatch(awk.promise);
+    if (result.error) {
+      if (result.error instanceof restate.CancelledError) {
         await this.release(awk.id);
       }
-      throw e;
+      if (
+        result.error instanceof restate.TerminalError &&
+        result.error.message === REENQUEUE_REASON
+      ) {
+        throw new ReenqueueRequested();
+      }
+      throw result.error;
     }
     return awk.id;
   }

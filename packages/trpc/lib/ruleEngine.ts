@@ -7,7 +7,11 @@ import {
   ruleEngineRulesTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { LinkCrawlerQueue, RuleEngineQueue } from "@karakeep/shared-server";
+import {
+  LowPriorityCrawlerQueue,
+  QueuePriority,
+  RuleEngineQueue,
+} from "@karakeep/shared-server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
@@ -284,7 +288,7 @@ export class RuleEngine {
         return `Removed from list ${action.listId}`;
       }
       case "downloadFullPageArchive": {
-        await LinkCrawlerQueue.enqueue(
+        await LowPriorityCrawlerQueue.enqueue(
           {
             bookmarkId: this.bookmark.id,
             archiveFullPage: true,
@@ -292,6 +296,7 @@ export class RuleEngine {
           },
           {
             groupId: this.bookmark.userId,
+            priority: QueuePriority.Low,
           },
         );
         return `Enqueued full page archive`;

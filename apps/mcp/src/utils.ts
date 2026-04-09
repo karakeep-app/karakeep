@@ -3,14 +3,19 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { KarakeepAPISchemas } from "@karakeep/sdk";
 
 export function toMcpToolError(
-  error: { code: string; message: string } | undefined,
+  error: KarakeepAPISchemas["Error"] | string | undefined,
 ): CallToolResult {
   return {
     isError: true,
     content: [
       {
         type: "text",
-        text: error ? JSON.stringify(error) : `Something went wrong`,
+        text:
+          typeof error === "string"
+            ? error
+            : error
+              ? JSON.stringify(error)
+              : `Something went wrong`,
       },
     ],
   };

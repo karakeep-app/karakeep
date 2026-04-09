@@ -87,7 +87,7 @@ mcpServer.tool(
         },
       },
     });
-    if (res.error) {
+    if (!res.data) {
       return toMcpToolError(res.error);
     }
     return {
@@ -130,7 +130,7 @@ mcpServer.tool(
         } as const
       )[type],
     });
-    if (res.error) {
+    if (!res.data) {
       return toMcpToolError(res.error);
     }
     return {
@@ -161,7 +161,7 @@ mcpServer.tool(
         },
       },
     });
-    if (res.error) {
+    if (!res.data) {
       return toMcpToolError(res.error);
     }
     let content;

@@ -14,6 +14,7 @@ import serverConfig from "@karakeep/shared/config";
 import { PluginProvider } from "@karakeep/shared/plugins";
 
 import { envConfig } from "./env";
+import logger from "@karakeep/shared/logger";
 
 function filterToMeiliSearchFilter(filter: FilterQuery): string {
   switch (filter.type) {
@@ -91,29 +92,73 @@ class BatchingDocumentQueue {
         this.flushTimeout = null;
       }
 
-      // Process operations in order, batching consecutive operations of the same type
-      while (this.pendingOperations.length > 0) {
-        const currentType = this.pendingOperations[0].type;
+      if (this.pendingOperations.length === 0) return;
 
-        // Collect consecutive operations of the same type (up to batchSize)
-        const batch: PendingOperation[] = [];
-        while (
-          batch.length < this.batchSize &&
-          this.pendingOperations.length > 0 &&
-          this.pendingOperations[0].type === currentType
-        ) {
-          batch.push(this.pendingOperations.shift()!);
+      // Deduplicate: for each document ID, only the last operation matters.
+      // Earlier operations for the same document are resolved immediately since
+      // the final state will be achieved by the last operation.
+      const lastOpIndexByDocId = new Map<string, number>();
+      for (let i = 0; i < this.pendingOperations.length; i++) {
+        const op = this.pendingOperations[i];
+        const docId = op.type === "add" ? op.document.id : op.id;
+        lastOpIndexByDocId.set(docId, i);
+      }
+
+      const adds: Extract<PendingOperation, { type: "add" }>[] = [];
+      const deletes: Extract<PendingOperation, { type: "delete" }>[] = [];
+      const supersededByDocId = new Map<string, PendingOperation[]>();
+
+      for (let i = 0; i < this.pendingOperations.length; i++) {
+        const op = this.pendingOperations[i];
+        const docId = op.type === "add" ? op.document.id : op.id;
+
+        if (lastOpIndexByDocId.get(docId) !== i) {
+          let list = supersededByDocId.get(docId);
+          if (!list) {
+            list = [];
+            supersededByDocId.set(docId, list);
+          }
+          list.push(op);
+          continue;
         }
 
-        if (currentType === "add") {
-          await this.flushAddBatch(
-            batch as Extract<PendingOperation, { type: "add" }>[],
-          );
+        // Wrap resolve/reject to also settle any superseded operations
+        // for the same document, so callers only see success/failure
+        // after the actual batch completes.
+        const superseded = supersededByDocId.get(docId) ?? [];
+        const origResolve = op.resolve;
+        const origReject = op.reject;
+        op.resolve = () => {
+          origResolve();
+          superseded.forEach((s) => s.resolve());
+        };
+        op.reject = (error: Error) => {
+          origReject(error);
+          superseded.forEach((s) => s.reject(error));
+        };
+
+        if (op.type === "add") {
+          adds.push(op as Extract<PendingOperation, { type: "add" }>);
         } else {
-          await this.flushDeleteBatch(
-            batch as Extract<PendingOperation, { type: "delete" }>[],
-          );
+          deletes.push(op as Extract<PendingOperation, { type: "delete" }>);
         }
+      }
+
+      this.pendingOperations = [];
+
+      // Flush all deletes first, then all adds, in batchSize chunks
+      for (let i = 0; i < deletes.length; i += this.batchSize) {
+        const batch = deletes.slice(i, i + this.batchSize);
+        logger.debug(
+          `[meilisearch] Flushing delete batch: size=${batch.length}`,
+        );
+        await this.flushDeleteBatch(batch);
+      }
+
+      for (let i = 0; i < adds.length; i += this.batchSize) {
+        const batch = adds.slice(i, i + this.batchSize);
+        logger.debug(`[meilisearch] Flushing add batch: size=${batch.length}`);
+        await this.flushAddBatch(batch);
       }
     });
   }
