@@ -8,7 +8,11 @@
     "eval:watch": "vitest --config vitest.config.ts",
     "snapshot": "tsx src/snapshot.ts",
     "compare": "tsx src/compare.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
   },
   "dependencies": {
     "@karakeep/sdk": "workspace:^",

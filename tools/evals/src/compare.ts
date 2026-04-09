@@ -12,6 +12,7 @@ import * as path from "path";
 interface StoredSummary {
   timestamp: string;
   model: string;
+  contextLength?: number;
   totalCases: number;
   passedCases: number;
   scores: Record<string, { mean: number; min: number }>;
@@ -77,6 +78,7 @@ function printTable(results: StoredResult[]): void {
   // Build header
   const cols = [
     { label: "Model", width: 20 },
+    { label: "Context", width: 8 },
     { label: "Timestamp", width: 20 },
     { label: "Pass", width: 8 },
     ...scorers.map((s) => ({ label: `${s} (avg/min)`, width: 16 })),
@@ -93,6 +95,7 @@ function printTable(results: StoredResult[]): void {
     const s = r.summary;
     const row = [
       s.model.padEnd(20).slice(0, 20),
+      String(s.contextLength ?? "—").padEnd(8),
       s.timestamp.slice(0, 19).padEnd(20),
       `${s.passedCases}/${s.totalCases}`.padEnd(8),
       ...scorers.map((scorer) => {

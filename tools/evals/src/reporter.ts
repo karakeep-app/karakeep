@@ -8,6 +8,7 @@ import type { ScoreResult } from "./scorers";
 export interface EvalSummary {
   timestamp: string;
   model: string;
+  contextLength: number;
   totalCases: number;
   passedCases: number;
   scores: {
@@ -36,9 +37,12 @@ function aggregateScores(scores: (ScoreResult | null)[]): {
   };
 }
 
-function aggregateLatency(
-  values: number[],
-): { mean: number; min: number; max: number; p50: number } {
+function aggregateLatency(values: number[]): {
+  mean: number;
+  min: number;
+  max: number;
+  p50: number;
+} {
   if (values.length === 0) {
     return { mean: 0, min: 0, max: 0, p50: 0 };
   }
@@ -54,22 +58,12 @@ function aggregateLatency(
 export function buildSummary(
   results: EvalCaseResult[],
   model: string,
+  contextLength: number,
 ): EvalSummary {
-  const allPassed = results.every((r) => {
-    const scores = r.scores;
-    return (
-      scores.format.passed &&
-      scores.style.passed &&
-      (!scores.curated || scores.curated.passed) &&
-      scores.relevance.passed &&
-      scores.quality.passed &&
-      (!scores.language || scores.language.passed)
-    );
-  });
-
   return {
     timestamp: new Date().toISOString(),
     model,
+    contextLength,
     totalCases: results.length,
     passedCases: results.filter((r) => {
       const s = r.scores;
@@ -97,7 +91,9 @@ export function buildSummary(
 export function printSummary(summary: EvalSummary): void {
   console.log("\n" + "=".repeat(70));
   console.log(`  TAGGING EVAL RESULTS — ${summary.model}`);
-  console.log(`  ${summary.timestamp}`);
+  console.log(
+    `  ${summary.timestamp}  Context: ${summary.contextLength} tokens`,
+  );
   console.log("=".repeat(70));
   console.log(`  Cases: ${summary.passedCases}/${summary.totalCases} passed\n`);
 

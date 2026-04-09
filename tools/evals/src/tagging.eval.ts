@@ -26,7 +26,11 @@ describe("Tagging Eval", () => {
 
   afterAll(() => {
     if (results.length > 0) {
-      const summary = buildSummary(results, config.EVAL_TEXT_MODEL);
+      const summary = buildSummary(
+        results,
+        config.EVAL_TEXT_MODEL,
+        config.EVAL_CONTEXT_LENGTH,
+      );
       printSummary(summary);
       const filePath = saveResults(results, summary);
       console.log(`  Results saved to ${filePath}\n`);
