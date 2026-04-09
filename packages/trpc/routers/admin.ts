@@ -227,18 +227,16 @@ export const adminAppRouter = router({
       });
 
       await Promise.all(
-        bookmarkIds.map((b) =>
-          LowPriorityCrawlerQueue.enqueue(
-            {
-              bookmarkId: b.id,
-              runInference: input.runInference,
-            },
-            {
-              priority: QueuePriority.Low,
-              idempotencyKey: `crawl:${b.id}`,
-            },
-          ),
-        ),
+        bookmarkIds.map((b) => {
+          const payload = {
+            bookmarkId: b.id,
+            runInference: input.runInference,
+          };
+          return LowPriorityCrawlerQueue.enqueue(payload, {
+            priority: QueuePriority.Low,
+            idempotencyKey: `crawl:${JSON.stringify(payload, Object.keys(payload).sort())}`,
+          });
+        }),
       );
     }),
   reindexAllBookmarks: adminProcedure.mutation(async ({ ctx }) => {
