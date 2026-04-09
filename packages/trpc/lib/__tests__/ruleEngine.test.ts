@@ -612,6 +612,7 @@ describe("RuleEngine", () => {
         {
           groupId: userId,
           priority: QueuePriority.Low,
+          idempotencyKey: `crawl:${bookmarkId}`,
         },
       );
     });

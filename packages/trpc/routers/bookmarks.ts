@@ -641,6 +641,7 @@ export const bookmarksAppRouter = router({
         {
           groupId: ctx.user.id,
           priority: QueuePriority.Low,
+          idempotencyKey: `crawl:${input.bookmarkId}`,
         },
       );
     }),

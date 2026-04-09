@@ -235,6 +235,7 @@ export const adminAppRouter = router({
             },
             {
               priority: QueuePriority.Low,
+              idempotencyKey: `crawl:${b.id}`,
             },
           ),
         ),
@@ -677,6 +678,7 @@ export const adminAppRouter = router({
         {
           priority: QueuePriority.Low,
           groupId: "admin",
+          idempotencyKey: `crawl:${input.bookmarkId}`,
         },
       );
     }),
