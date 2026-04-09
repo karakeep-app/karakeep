@@ -1,7 +1,7 @@
 import { Ollama } from "ollama";
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
-import * as undici from "undici";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
@@ -85,20 +85,16 @@ export class OpenAIInferenceClient implements InferenceClient {
   constructor(config: OpenAIInferenceConfig) {
     this.config = config;
 
-    const fetchOptions = config.proxyUrl
-      ? {
-          dispatcher: new undici.ProxyAgent(config.proxyUrl),
-        }
-      : undefined;
-
     this.openAI = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
-      ...(fetchOptions ? { fetchOptions } : {}),
       defaultHeaders: {
         "X-Title": "Karakeep",
         "HTTP-Referer": "https://karakeep.app",
       },
+      httpAgent: config.proxyUrl
+        ? new HttpsProxyAgent(config.proxyUrl)
+        : undefined,
     });
   }
 

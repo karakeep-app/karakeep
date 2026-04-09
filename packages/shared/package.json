@@ -8,6 +8,7 @@
     "@aws-sdk/client-s3": "^3.1014.0",
     "glob": "^11.0.0",
     "html-to-text": "^9.0.5",
+    "https-proxy-agent": "^7.0.6",
     "js-tiktoken": "^1.0.20",
     "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
