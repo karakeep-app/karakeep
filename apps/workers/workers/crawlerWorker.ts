@@ -1751,6 +1751,10 @@ async function crawlAndParseUrl(
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
 ) {
+  const sanitizedProxyUrl = redactUrlCredentials(
+    runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+  );
+
   return await withSpan(
     tracer,
     "crawlerWorker.crawlAndParseUrl",
@@ -1764,6 +1768,7 @@ async function crawlAndParseUrl(
         "crawler.archiveFullPage": archiveFullPage,
         "crawler.forceStorePdf": forceStorePdf,
         "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
+        "crawler.proxy": sanitizedProxyUrl,
       },
     },
     async () => {
@@ -1812,15 +1817,11 @@ async function crawlAndParseUrl(
 
       // Track status code in Prometheus
       if (statusCode !== null) {
-        const sanitizedProxyUrl = redactUrlCredentials(
-          runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
-        );
         crawlerStatusCodeCounter
           .labels(statusCode.toString(), sanitizedProxyUrl)
           .inc();
         setSpanAttributes({
           "crawler.statusCode": statusCode,
-          "crawler.proxy": sanitizedProxyUrl,
         });
       }
 
