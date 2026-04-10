@@ -311,6 +311,7 @@
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
       "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
+      "import_bookmarks_from_onetab_export": "Import Bookmarks from OneTab export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
