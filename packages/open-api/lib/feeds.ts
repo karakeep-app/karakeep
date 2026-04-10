@@ -23,6 +23,11 @@ const FeedSchema = zFeedSchema
         "ISO 8601 timestamp of the last fetch attempt, or null if never fetched.",
       example: "2025-01-15T12:00:00.000Z",
     }),
+    lastSuccessfulFetchAt: z.string().nullable().openapi({
+      description:
+        "ISO 8601 timestamp of the last successful fetch, or null if the feed has never been fetched successfully.",
+      example: "2025-01-15T12:00:00.000Z",
+    }),
   })
   .openapi("Feed");
 

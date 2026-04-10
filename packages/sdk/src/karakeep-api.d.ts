@@ -963,6 +963,11 @@ export interface components {
        * @example 2025-01-15T12:00:00.000Z
        */
       lastFetchedAt: string | null;
+      /**
+       * @description ISO 8601 timestamp of the last successful fetch, or null if the feed has never been fetched successfully.
+       * @example 2025-01-15T12:00:00.000Z
+       */
+      lastSuccessfulFetchAt: string | null;
     };
   };
   responses: never;

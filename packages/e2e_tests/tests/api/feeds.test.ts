@@ -75,6 +75,7 @@ describe("Feeds API", () => {
     expect(createdFeed?.importTags).toBe(false);
     expect(createdFeed?.lastFetchedStatus).toBe("pending");
     expect(createdFeed?.lastFetchedAt).toBeNull();
+    expect(createdFeed?.lastSuccessfulFetchAt).toBeNull();
 
     const { data: retrievedFeed, response: getResponse } = await client.GET(
       "/feeds/{feedId}",
@@ -194,6 +195,7 @@ describe("Feeds API", () => {
     expect(getFeedResponse.status).toBe(200);
     expect(fetchedFeed?.lastFetchedStatus).toBe("success");
     expect(fetchedFeed?.lastFetchedAt).toBeTruthy();
+    expect(fetchedFeed?.lastSuccessfulFetchAt).toBeTruthy();
 
     const { data: bookmarks, response: bookmarksResponse } = await client.GET(
       "/bookmarks",
