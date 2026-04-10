@@ -2,7 +2,7 @@ import {
   extendZodWithOpenApi,
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import * as z from "zod";
 
 import { zSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
@@ -220,11 +220,11 @@ registry.registerPath({
         sortOrder: zSortOrder
           .exclude(["relevance"])
           .optional()
-          .default(zSortOrder.Enum.desc)
+          .default(zSortOrder.enum.desc)
           .describe("Sort order by creation date. Defaults to 'desc'."),
       })
-      .merge(PaginationSchema)
-      .merge(IncludeContentSearchParamSchema),
+      .extend(PaginationSchema.shape)
+      .extend(IncludeContentSearchParamSchema.shape),
   },
   responses: {
     200: {

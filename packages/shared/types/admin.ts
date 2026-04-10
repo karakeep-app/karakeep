@@ -6,7 +6,7 @@ export const zRoleSchema = z.object({
   role: z.enum(["user", "admin"]),
 });
 
-export const zAdminCreateUserSchema = zSignUpSchema.and(zRoleSchema);
+export const zAdminCreateUserSchema = zSignUpSchema.extend(zRoleSchema.shape);
 
 export const updateUserSchema = z.object({
   userId: z.string(),

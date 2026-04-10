@@ -2,7 +2,7 @@ import {
   extendZodWithOpenApi,
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import * as z from "zod";
 
 import {
   zNewHighlightSchema,

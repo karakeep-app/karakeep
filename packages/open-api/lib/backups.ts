@@ -2,7 +2,7 @@ import {
   extendZodWithOpenApi,
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import * as z from "zod";
 
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
@@ -121,7 +121,10 @@ registry.registerPath({
       description: "The backup file as a zip archive.",
       content: {
         "application/zip": {
-          schema: z.instanceof(Blob),
+          schema: z.any().openapi({
+            type: "string",
+            format: "binary",
+          }),
         },
       },
     },

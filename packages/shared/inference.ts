@@ -3,7 +3,6 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import * as undici from "undici";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 import serverConfig from "./config";
 import { customFetch } from "./customFetch";
@@ -282,8 +281,10 @@ class OllamaInferenceClient implements InferenceClient {
       model: model,
       format: mapInferenceOutputSchema(
         {
+          // zod-to-json-schema still exposes Zod 3-era types even though it supports Zod 4.
+          // The runtime call is valid; this suppression is for the stale declaration shape only.
           structured: optsWithDefaults.schema
-            ? zodToJsonSchema(optsWithDefaults.schema)
+            ? z.toJSONSchema(optsWithDefaults.schema)
             : undefined,
           json: "json",
           plain: undefined,

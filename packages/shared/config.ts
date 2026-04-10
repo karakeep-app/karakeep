@@ -5,7 +5,7 @@ import { z } from "zod";
 const stringBool = (defaultValue: string) =>
   z
     .string()
-    .default(defaultValue)
+    .prefault(defaultValue)
     .refine((s) => s === "true" || s === "false")
     .transform((s) => s === "true");
 
@@ -22,7 +22,7 @@ const allEnv = z.object({
   WORKERS_PORT: z.coerce.number().default(0),
   WORKERS_ENABLED_WORKERS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((val) =>
       val
         .split(",")
@@ -31,7 +31,7 @@ const allEnv = z.object({
     ),
   WORKERS_DISABLED_WORKERS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((val) =>
       val
         .split(",")
@@ -42,7 +42,7 @@ const allEnv = z.object({
   NEXTAUTH_URL: z
     .string()
     .url()
-    .default("http://localhost:3000")
+    .prefault("http://localhost:3000")
     .transform((s) => s.replace(/\/+$/, "")),
   NEXTAUTH_SECRET: z.string().optional(),
   DISABLE_SIGNUPS: stringBool("false"),
@@ -80,7 +80,7 @@ const allEnv = z.object({
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
-    .default("eng")
+    .prefault("eng")
     .transform((val) => val.split(",")),
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().default(50),
   OCR_USE_LLM: stringBool("false"),
@@ -110,12 +110,12 @@ const allEnv = z.object({
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_MONOLITH_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_MONOLITH_ARGS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((t) => t.split("%%").filter((a) => a)),
   CRAWLER_PARSER_MEM_LIMIT_MB: z.coerce.number().default(512),
   CRAWLER_PARSE_TIMEOUT_SEC: z.coerce.number().default(60),

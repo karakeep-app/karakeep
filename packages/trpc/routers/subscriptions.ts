@@ -259,7 +259,7 @@ export const subscriptionsRouter = router({
         .object({
           billingPeriod: z.enum(["monthly", "yearly"]).default("monthly"),
         })
-        .default({}),
+        .prefault({}),
     )
     .mutation(async ({ ctx, input }) => {
       const { stripe, priceId, yearlyPriceId } = requireStripeConfig();

@@ -2,7 +2,7 @@ import {
   extendZodWithOpenApi,
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import * as z from "zod";
 
 import { BearerAuth } from "./common";
 import { UnauthorizedResponse } from "./errors";
@@ -37,7 +37,11 @@ registry.registerPath({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            file: z.instanceof(File).openapi("File to be uploaded"),
+            file: z.instanceof(File).openapi({
+              description: "File to be uploaded",
+              type: "string",
+              format: "binary",
+            }),
           }),
         },
       },
