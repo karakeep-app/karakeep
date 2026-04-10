@@ -378,8 +378,8 @@ importers:
         specifier: ~19.0.21
         version: 19.0.21(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))
       expo-glass-effect:
-        specifier: ~0.1.9
-        version: 0.1.9(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
+        specifier: ~55.0.10
+        version: 55.0.10(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       expo-haptics:
         specifier: ~15.0.8
         version: 15.0.8(expo@54.0.31)
@@ -9653,8 +9653,8 @@ packages:
       react: '*'
       react-native: '*'
 
-  expo-glass-effect@0.1.9:
-    resolution: {integrity: sha512-mDnoQKrvdkKEk1kUDgCKRdw1fHsouG25BclBico9lZSrLb7HpfGla3jnlz9rYGqXIiO8i9BTxpsmFhDnc1/4hg==}
+  expo-glass-effect@55.0.10:
+    resolution: {integrity: sha512-5kL/jATvgJWdrqPdxixrECJqD2l8cfQ4ALr1DK7qi9XkyI97ejXvUjB2VsfEePNy3Fg+/VwzA3n3L7Nv3tAPkw==}
     peerDependencies:
       expo: '*'
       react: '*'
@@ -10262,7 +10262,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    deprecated: Glob versions prior to v9 are no longer supported
 
   global-dirs@0.1.1:
     resolution: {integrity: sha512-NknMLn7F2J7aflwFOlGdNIuCDpN3VGoSoB+aap3KABFWbHVn1TCgFC+np23J8W2BiZbjfEw3BFBycSMv1AFblg==}
@@ -27187,7 +27187,7 @@ snapshots:
       react: 19.2.3
       react-native: 0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3)
 
-  expo-glass-effect@0.1.9(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3):
+  expo-glass-effect@55.0.10(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3):
     dependencies:
       expo: 54.0.31(@babel/core@7.26.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.21)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       react: 19.2.3

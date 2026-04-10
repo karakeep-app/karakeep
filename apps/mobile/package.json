@@ -46,7 +46,7 @@
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",
     "expo-file-system": "~19.0.21",
-    "expo-glass-effect": "~0.1.9",
+    "expo-glass-effect": "~55.0.10",
     "expo-haptics": "~15.0.8",
     "expo-image": "~3.0.11",
     "expo-image-picker": "~17.0.10",
