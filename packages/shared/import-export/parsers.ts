@@ -18,7 +18,8 @@ export type ImportSource =
   | "tab-session-manager"
   | "mymind"
   | "readwise-reader"
-  | "instapaper";
+  | "instapaper"
+  | "onetab";
 
 export interface ParsedBookmark {
   title: string;
@@ -574,6 +575,42 @@ function parseReadwiseReaderBookmarkFile(
   });
 }
 
+function parseOneTabFile(textContent: string): ParsedBookmark[] {
+  const bookmarks: ParsedBookmark[] = [];
+
+  for (const line of textContent.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // OneTab format: "URL | Title" or just "URL"
+    const pipeIndex = trimmed.indexOf(" | ");
+    let url: string;
+    let title: string;
+
+    if (pipeIndex !== -1) {
+      url = trimmed.substring(0, pipeIndex).trim();
+      title = trimmed.substring(pipeIndex + 3).trim();
+    } else {
+      url = trimmed;
+      title = "";
+    }
+
+    // Skip lines that don't look like URLs (group headers, timestamps, etc.)
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      continue;
+    }
+
+    bookmarks.push({
+      title,
+      content: { type: BookmarkTypes.LINK as const, url },
+      tags: [],
+      paths: [],
+    });
+  }
+
+  return bookmarks;
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -663,6 +700,9 @@ export function parseImportFile(
       break;
     case "readwise-reader":
       result = parseReadwiseReaderBookmarkFile(textContent);
+      break;
+    case "onetab":
+      result = parseOneTabFile(textContent);
       break;
   }
   return { bookmarks: deduplicateBookmarks(result), lists: [] };
