@@ -8,18 +8,16 @@
   },
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
-    "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.5.11"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "typescript": "^5.9"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

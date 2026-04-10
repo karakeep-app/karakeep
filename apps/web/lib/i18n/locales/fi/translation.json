@@ -107,7 +107,7 @@
     "download": "Lataa"
   },
   "highlights": {
-    "no_highlights": "Sulla ei oo vielä yhtään korostusta."
+    "no_highlights": "Sinulla ei ole vielä yhtään korostusta."
   },
   "settings": {
     "back_to_app": "Takaisin sovellukseen",
@@ -740,10 +740,10 @@
       "owner": "Omistaja",
       "viewer_description": "Voi tarkastella kirjanmerkkejä luettelossa",
       "editor_description": "Voi lisätä ja poistaa kirjanmerkkejä",
-      "no_collaborators": "Ei vielä avustajia. Lisää joku, että pääsette hommiin!",
+      "no_collaborators": "Ei vielä avustajia. Lisää joku, jotta voitte aloittaa yhteistyön!",
       "no_collaborators_readonly": "Ei tällä listalla ole muita tekijöitä.",
-      "people_with_access": "Ihmisillä, joilla on pääsy tälle listalle",
-      "add_or_remove": "Lisää tai poista ihmisiä, keillä on pääsy tälle listalle.",
+      "people_with_access": "Henkilöt, joilla on pääsy tähän listaan",
+      "add_or_remove": "Lisää tai poista henkilöitä, joilla on pääsy tähän listaan.",
       "invitation_sent": "Kutsu lähetetty onnistuneesti",
       "invitation_revoked": "Kutsu peruttu",
       "failed_to_revoke": "Kutsun peruminen epäonnistui",
@@ -988,7 +988,7 @@
   "version": {
     "new_release_available": "Uudet julkaisutiedot saatavilla",
     "whats_new_title": "Mitä uutta versiossa v{{version}}",
-    "release_notes_description": "Tässäpä uusimmat päivitykset, jotka on haettu GitHubin julkaisutiedoista.",
+    "release_notes_description": "Tässä ovat uusimmat päivitykset, jotka on haettu GitHubin julkaisutiedoista.",
     "loading_release_notes": "Julkaisutietoja ladataan…",
     "unable_to_load_release_notes": "Julkaisutietojen lataaminen ei onnistu juuri nyt. Yritä myöhemmin uudelleen.",
     "no_release_notes": "Tälle versiolle ei ole julkaistu julkaisutietoja.",
@@ -996,21 +996,21 @@
     "view_on_github": "Näytä GitHubissa"
   },
   "wrapped": {
-    "title": "Sun {{year}}-kooste",
+    "title": "Sinun {{year}}-koosteesi",
     "subtitle": "Vuosi Karakeepissä",
     "banner": {
-      "title": "Sun 2025 -kooste on valmis!",
-      "description": "Katso sun vuotta kirjanmerkeissä",
+      "title": "Sinun 2025 -koosteesi on valmis!",
+      "description": "Katso vuotesi kirjanmerkeissä",
       "view_now": "Katso nyt"
     },
     "button": "2025 -kooste",
-    "loading": "Ladataan sun koosteesta...",
-    "failed_to_load": "Sun koosteen tilastojen lataus epäonnistui",
+    "loading": "Ladataan koostettasi...",
+    "failed_to_load": "Koosteen tilastojen lataaminen epäonnistui",
     "sections": {
       "total_saves": {
-        "prefix": "Oot tallentanu",
-        "suffix": "juttua tänä vuonna",
-        "suffix_singular": "juttu tänä vuonna"
+        "prefix": "Olet tallentanut",
+        "suffix": "kohdetta tänä vuonna",
+        "suffix_singular": "kohteen tänä vuonna"
       },
       "first_bookmark": {
         "title": "Matkasi alkoi",

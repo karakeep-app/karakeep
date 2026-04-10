@@ -104,7 +104,7 @@ const QUALIFIER_DEFINITIONS = [
     value: "source:",
     descriptionKey: "search.is_from_source",
   },
-] satisfies ReadonlyArray<QualifierDefinition>;
+] satisfies readonly QualifierDefinition[];
 
 export interface AutocompleteSuggestionItem {
   type: "token" | "tag" | "list" | "feed" | "source";

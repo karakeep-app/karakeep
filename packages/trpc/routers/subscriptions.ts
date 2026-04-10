@@ -24,7 +24,11 @@ function requireStripeConfig() {
       message: "Stripe is not configured. Please contact your administrator.",
     });
   }
-  return { stripe, priceId: serverConfig.stripe.priceId };
+  return {
+    stripe,
+    priceId: serverConfig.stripe.priceId,
+    yearlyPriceId: serverConfig.stripe.yearlyPriceId,
+  };
 }
 
 // Taken from https://github.com/t3dotgg/stripe-recommendations
@@ -217,100 +221,134 @@ export const subscriptionsRouter = router({
       });
     }
 
-    const { priceId } = requireStripeConfig();
+    const { priceId, yearlyPriceId } = requireStripeConfig();
 
-    const price = await stripe.prices.retrieve(priceId);
+    const monthlyPrice = await stripe.prices.retrieve(priceId);
 
-    return {
-      priceId: price.id,
-      currency: price.currency,
-      amount: price.unit_amount,
+    const result: {
+      monthly: { priceId: string; currency: string; amount: number | null };
+      yearly: {
+        priceId: string;
+        currency: string;
+        amount: number | null;
+      } | null;
+    } = {
+      monthly: {
+        priceId: monthlyPrice.id,
+        currency: monthlyPrice.currency,
+        amount: monthlyPrice.unit_amount,
+      },
+      yearly: null,
     };
+
+    if (yearlyPriceId) {
+      const yearlyPrice = await stripe.prices.retrieve(yearlyPriceId);
+      result.yearly = {
+        priceId: yearlyPrice.id,
+        currency: yearlyPrice.currency,
+        amount: yearlyPrice.unit_amount,
+      };
+    }
+
+    return result;
   }),
 
-  createCheckoutSession: authedProcedure.mutation(async ({ ctx }) => {
-    const { stripe, priceId } = requireStripeConfig();
+  createCheckoutSession: authedProcedure
+    .input(
+      z
+        .object({
+          billingPeriod: z.enum(["monthly", "yearly"]).default("monthly"),
+        })
+        .default({}),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { stripe, priceId, yearlyPriceId } = requireStripeConfig();
 
-    const user = await ctx.db.query.users.findFirst({
-      where: eq(users.id, ctx.user.id),
-      columns: {
-        email: true,
-      },
-      with: {
-        subscription: true,
-      },
-    });
+      const selectedPriceId =
+        input.billingPeriod === "yearly" && yearlyPriceId
+          ? yearlyPriceId
+          : priceId;
 
-    if (!user) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+        columns: {
+          email: true,
+        },
+        with: {
+          subscription: true,
+        },
       });
-    }
 
-    const existingSubscription = user.subscription;
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
 
-    if (existingSubscription?.status === "active") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "User already has an active subscription",
-      });
-    }
+      const existingSubscription = user.subscription;
 
-    let customerId = existingSubscription?.stripeCustomerId;
+      if (existingSubscription?.status === "active") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User already has an active subscription",
+        });
+      }
 
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
+      let customerId = existingSubscription?.stripeCustomerId;
+
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            userId: ctx.user.id,
+          },
+        });
+        customerId = customer.id;
+
+        if (!existingSubscription) {
+          await ctx.db.insert(subscriptions).values({
+            userId: ctx.user.id,
+            stripeCustomerId: customerId,
+            status: "unpaid",
+          });
+        } else {
+          await ctx.db
+            .update(subscriptions)
+            .set({ stripeCustomerId: customerId })
+            .where(eq(subscriptions.userId, ctx.user.id));
+        }
+      }
+
+      // @ts-expect-error managed_payments is a Stripe preview feature not yet in the SDK types
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [
+          {
+            price: selectedPriceId,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: `${serverConfig.publicUrl}/settings/subscription?success=true`,
+        cancel_url: `${serverConfig.publicUrl}/settings/subscription?canceled=true`,
         metadata: {
           userId: ctx.user.id,
         },
-      });
-      customerId = customer.id;
-
-      if (!existingSubscription) {
-        await ctx.db.insert(subscriptions).values({
-          userId: ctx.user.id,
-          stripeCustomerId: customerId,
-          status: "unpaid",
-        });
-      } else {
-        await ctx.db
-          .update(subscriptions)
-          .set({ stripeCustomerId: customerId })
-          .where(eq(subscriptions.userId, ctx.user.id));
-      }
-    }
-
-    // @ts-expect-error managed_payments is a Stripe preview feature not yet in the SDK types
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
+        customer_update: {
+          address: "auto",
         },
-      ],
-      mode: "subscription",
-      success_url: `${serverConfig.publicUrl}/settings/subscription?success=true`,
-      cancel_url: `${serverConfig.publicUrl}/settings/subscription?canceled=true`,
-      metadata: {
-        userId: ctx.user.id,
-      },
-      customer_update: {
-        address: "auto",
-      },
-      allow_promotion_codes: true,
-      managed_payments: {
-        enabled: true,
-      },
-    });
+        allow_promotion_codes: true,
+        managed_payments: {
+          enabled: true,
+        },
+      });
 
-    return {
-      sessionId: session.id,
-      url: session.url,
-    };
-  }),
+      return {
+        sessionId: session.id,
+        url: session.url,
+      };
+    }),
 
   syncWithStripe: authedProcedure.mutation(async ({ ctx }) => {
     const subscription = await ctx.db.query.subscriptions.findFirst({

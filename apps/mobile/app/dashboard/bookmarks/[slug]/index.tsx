@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,6 +16,7 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { isIOS26 } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { useNavigation } from "@react-navigation/native";
@@ -25,9 +26,6 @@ import { useColorScheme } from "nativewind";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
-const isIOS26 =
-  Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
 
 // Standard iOS navigation bar height (points)
 const NAV_BAR_HEIGHT = 44;
@@ -43,7 +41,9 @@ export default function BookmarkView() {
   const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
-    settings.defaultBookmarkView,
+    settings.defaultBookmarkView === "externalBrowser"
+      ? "browser"
+      : settings.defaultBookmarkView,
   );
 
   const { barsVisible, onScrollOffsetChange } = useScrollDirection();
@@ -157,14 +157,16 @@ export default function BookmarkView() {
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
-              <View className="flex-row items-center gap-3 px-4">
+              <View
+                className={`flex-row items-center gap-3${isIOS26 ? " px-2" : ""}`}
+              >
                 {bookmarkLinkType === "reader" && (
                   <Pressable
                     onPress={() =>
                       router.push("/dashboard/settings/reader-settings")
                     }
                   >
-                    <Settings size={20} color="gray" />
+                    <Settings size={20} color={isDark ? "#fff" : "#000"} />
                   </Pressable>
                 )}
                 <BookmarkLinkTypeSelector

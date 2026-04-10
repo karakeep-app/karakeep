@@ -187,6 +187,152 @@ describe.each([
       const streamedContent = await streamToBuffer(stream);
       expect(streamedContent.toString()).toBe("56789a");
     });
+
+    it("should support start-only range requests in streams", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const stream = await context.store.createAssetReadStream({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        start: 10,
+      });
+
+      const streamedContent = await streamToBuffer(stream);
+      expect(streamedContent.toString()).toBe("abcdef");
+    });
+
+    it("should support end-only range requests in streams", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const stream = await context.store.createAssetReadStream({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        end: 5,
+      });
+
+      const streamedContent = await streamToBuffer(stream);
+      expect(streamedContent.toString()).toBe("012345");
+    });
+  });
+
+  describe("Range Read Operations", () => {
+    it("should support range requests in readAsset", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const { asset, metadata } = await context.store.readAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        start: 5,
+        end: 10,
+      });
+
+      expect(asset.toString()).toBe("56789a");
+      expect(metadata).toEqual(testData.metadata);
+    });
+
+    it("should support start-only range requests in readAsset", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const { asset } = await context.store.readAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        start: 10,
+      });
+
+      expect(asset.toString()).toBe("abcdef");
+    });
+
+    it("should support end-only range requests in readAsset", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const { asset } = await context.store.readAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        end: 5,
+      });
+
+      expect(asset.toString()).toBe("012345");
+    });
+
+    it("should handle end larger than file size in readAsset", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const { asset } = await context.store.readAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        start: 10,
+        end: 1000,
+      });
+
+      expect(asset.toString()).toBe("abcdef");
+    });
+
+    it("should return full content when no range is specified in readAsset", async () => {
+      const content = Buffer.from("0123456789abcdef");
+      const testData = createTestAssetData({ content });
+
+      await context.store.saveAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+        asset: testData.content,
+        metadata: testData.metadata,
+      });
+
+      const { asset } = await context.store.readAsset({
+        userId: testData.userId,
+        assetId: testData.assetId,
+      });
+
+      expect(asset.toString()).toBe("0123456789abcdef");
+    });
   });
 
   describe("Asset Types Support", () => {

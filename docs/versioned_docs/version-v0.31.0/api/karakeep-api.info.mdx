@@ -1,7 +1,7 @@
 ---
 id: karakeep-api
 title: "Karakeep API"
-description: "The API for the Karakeep app"
+description: "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, assets, and backups programmatically."
 sidebar_label: Introduction
 sidebar_position: 0
 hide_title: true
@@ -29,7 +29,22 @@ import Export from "@theme/ApiExplorer/Export";
 
 
 
-The API for the Karakeep app
+Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, assets, and backups programmatically.
+
+## Authentication
+
+All endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.
+
+## Pagination
+
+List endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.
+
+## Bookmark Types
+
+Bookmarks can be one of three types:
+- **link** — A URL bookmark with optional crawled metadata.
+- **text** — A plain text note.
+- **asset** — An uploaded file (image or PDF).
 
 <div
   style={{"marginBottom":"2rem"}}

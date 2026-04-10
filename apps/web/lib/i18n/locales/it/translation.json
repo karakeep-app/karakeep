@@ -78,7 +78,7 @@
     "archive": "Archivio",
     "home": "Home",
     "url": "URL",
-    "type": "Digita",
+    "type": "Tipo",
     "bookmark_types": {
       "link": "Collegamento",
       "text": "Testo",
@@ -168,7 +168,7 @@
         "updated": "Avatar aggiornato",
         "removed": "Avatar rimosso",
         "description": "Carica un'immagine quadrata da usare come avatar.",
-        "remove_confirm_description": "Ehm... rimuoverai la tua attuale foto del profilo.",
+        "remove_confirm_description": "Questo rimuoverà la tua attuale foto del profilo.",
         "title": "Foto profilo",
         "remove": "Rimuovi avatar"
       }

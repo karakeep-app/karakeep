@@ -102,6 +102,8 @@ export interface AssetStore {
   readAsset(params: {
     userId: string;
     assetId: string;
+    start?: number;
+    end?: number;
   }): Promise<{ asset: Buffer; metadata: AssetMetadata }>;
 
   createAssetReadStream(params: {
@@ -203,11 +205,47 @@ class LocalFileSystemAssetStore implements AssetStore {
     await fs.promises.rm(assetPath);
   }
 
-  async readAsset({ userId, assetId }: { userId: string; assetId: string }) {
+  async readAsset({
+    userId,
+    assetId,
+    start,
+    end,
+  }: {
+    userId: string;
+    assetId: string;
+    start?: number;
+    end?: number;
+  }) {
     const assetDir = this.getAssetDir(userId, assetId);
 
+    const readAssetFile =
+      start !== undefined || end !== undefined
+        ? (async () => {
+            const fd = await fs.promises.open(
+              path.join(assetDir, "asset.bin"),
+              "r",
+            );
+            try {
+              const stat = await fd.stat();
+              const offset = start ?? 0;
+              const effectiveEnd = Math.min(
+                end !== undefined ? end + 1 : stat.size,
+                stat.size,
+              );
+              const length = effectiveEnd - offset;
+              const buffer = Buffer.alloc(length);
+              const { bytesRead } = await fd.read(buffer, 0, length, offset);
+              return bytesRead < length
+                ? buffer.subarray(0, bytesRead)
+                : buffer;
+            } finally {
+              await fd.close();
+            }
+          })()
+        : fs.promises.readFile(path.join(assetDir, "asset.bin"));
+
     const [asset, metadataStr] = await Promise.all([
-      fs.promises.readFile(path.join(assetDir, "asset.bin")),
+      readAssetFile,
       fs.promises.readFile(path.join(assetDir, "metadata.json"), {
         encoding: "utf8",
       }),
@@ -396,11 +434,27 @@ class S3AssetStore implements AssetStore {
     await fs.promises.rm(assetPath);
   }
 
-  async readAsset({ userId, assetId }: { userId: string; assetId: string }) {
+  async readAsset({
+    userId,
+    assetId,
+    start,
+    end,
+  }: {
+    userId: string;
+    assetId: string;
+    start?: number;
+    end?: number;
+  }) {
+    const range =
+      start !== undefined || end !== undefined
+        ? `bytes=${start ?? 0}-${end ?? ""}`
+        : undefined;
+
     const response = await this.s3Client.send(
       new GetObjectCommand({
         Bucket: this.bucketName,
         Key: this.getAssetKey(userId, assetId),
+        Range: range,
       }),
     );
 
@@ -426,8 +480,8 @@ class S3AssetStore implements AssetStore {
     end?: number;
   }) {
     const range =
-      start !== undefined && end !== undefined
-        ? `bytes=${start}-${end}`
+      start !== undefined || end !== undefined
+        ? `bytes=${start ?? 0}-${end ?? ""}`
         : undefined;
 
     const command = new GetObjectCommand({
@@ -682,11 +736,15 @@ export async function saveAssetFromFile({
 export async function readAsset({
   userId,
   assetId,
+  start,
+  end,
 }: {
   userId: string;
   assetId: string;
+  start?: number;
+  end?: number;
 }) {
-  return defaultAssetStore.readAsset({ userId, assetId });
+  return defaultAssetStore.readAsset({ userId, assetId, start, end });
 }
 
 export async function createAssetReadStream({

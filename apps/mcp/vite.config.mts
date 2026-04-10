@@ -20,5 +20,5 @@ export default defineConfig({
     // bundle everything except for Node built-ins
     noExternal: /^(?!node:).*$/,
   },
-  plugins: [tsconfigPaths()],
+  plugins: [tsconfigPaths({ skip: (dir) => dir === ".claude" })],
 });

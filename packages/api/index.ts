@@ -14,6 +14,7 @@ import admin from "./routes/admin";
 import assets from "./routes/assets";
 import backups from "./routes/backups";
 import bookmarks from "./routes/bookmarks";
+import feeds from "./routes/feeds";
 import health from "./routes/health";
 import highlights from "./routes/highlights";
 import lists from "./routes/lists";
@@ -41,7 +42,8 @@ const v1 = new Hono<{
   .route("/assets", assets)
   .route("/admin", admin)
   .route("/rss", rss)
-  .route("/backups", backups);
+  .route("/backups", backups)
+  .route("/feeds", feeds);
 
 const app = new Hono<{
   Variables: {

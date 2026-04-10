@@ -10,7 +10,7 @@ import {
 } from "@karakeep/shared/types/highlights";
 
 import { BearerAuth } from "./common";
-import { ErrorSchema } from "./errors";
+import { ErrorSchema, UnauthorizedResponse } from "./errors";
 import { PaginationSchema } from "./pagination";
 import { HighlightSchema, PaginatedHighlightsSchema } from "./types";
 
@@ -24,14 +24,17 @@ export const HighlightIdSchema = registry.registerParameter(
       name: "highlightId",
       in: "path",
     },
+    description: "The unique identifier of the highlight.",
     example: "ieidlxygmwj87oxz5hxttoc8",
   }),
 );
 
 registry.registerPath({
+  operationId: "listHighlights",
   method: "get",
   path: "/highlights",
-  description: "Get all highlights",
+  description:
+    "Retrieve a paginated list of all highlights across all bookmarks for the authenticated user.",
   summary: "Get all highlights",
   tags: ["Highlights"],
   security: [{ [BearerAuth.name]: [] }],
@@ -40,26 +43,30 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "Object with all highlights data.",
+      description: "A paginated list of highlights.",
       content: {
         "application/json": {
           schema: PaginatedHighlightsSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
   },
 });
 
 registry.registerPath({
+  operationId: "createHighlight",
   method: "post",
   path: "/highlights",
-  description: "Create a new highlight",
+  description:
+    "Create a new text highlight on a bookmark. Highlights are defined by character offsets within the bookmark's content and support color coding.",
   summary: "Create a new highlight",
   tags: ["Highlights"],
   security: [{ [BearerAuth.name]: [] }],
   request: {
     body: {
-      description: "The highlight to create",
+      description:
+        "The highlight to create, including the bookmark ID, text offsets, and optional color/note.",
       content: {
         "application/json": {
           schema: zNewHighlightSchema,
@@ -69,7 +76,7 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: "The created highlight",
+      description: "The created highlight.",
       content: {
         "application/json": {
           schema: HighlightSchema,
@@ -77,15 +84,17 @@ registry.registerPath({
       },
     },
     400: {
-      description: "Bad highlight request",
+      description: "Bad request — invalid offsets or missing required fields.",
       content: {
         "application/json": {
           schema: ErrorSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "Bookmark not found",
+      description:
+        "Bookmark not found — the specified bookmarkId does not exist.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -94,10 +103,12 @@ registry.registerPath({
     },
   },
 });
+
 registry.registerPath({
+  operationId: "getHighlight",
   method: "get",
   path: "/highlights/{highlightId}",
-  description: "Get highlight by its id",
+  description: "Retrieve a single highlight by its ID.",
   summary: "Get a single highlight",
   tags: ["Highlights"],
   security: [{ [BearerAuth.name]: [] }],
@@ -106,15 +117,16 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "Object with highlight data.",
+      description: "The requested highlight.",
       content: {
         "application/json": {
           schema: HighlightSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "Highlight not found",
+      description: "Highlight not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -125,9 +137,10 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "deleteHighlight",
   method: "delete",
   path: "/highlights/{highlightId}",
-  description: "Delete highlight by its id",
+  description: "Delete a highlight by its ID.",
   summary: "Delete a highlight",
   tags: ["Highlights"],
   security: [{ [BearerAuth.name]: [] }],
@@ -136,15 +149,16 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "The deleted highlight",
+      description: "The deleted highlight is returned.",
       content: {
         "application/json": {
           schema: HighlightSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "Highlight not found",
+      description: "Highlight not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,
@@ -155,9 +169,11 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  operationId: "updateHighlight",
   method: "patch",
   path: "/highlights/{highlightId}",
-  description: "Update highlight by its id",
+  description:
+    "Partially update a highlight. Supports changing the color or note.",
   summary: "Update a highlight",
   tags: ["Highlights"],
   security: [{ [BearerAuth.name]: [] }],
@@ -165,7 +181,7 @@ registry.registerPath({
     params: z.object({ highlightId: HighlightIdSchema }),
     body: {
       description:
-        "The data to update. Only the fields you want to update need to be provided.",
+        "The fields to update. Only the fields you want to change need to be provided.",
       content: {
         "application/json": {
           schema: zUpdateHighlightSchema.omit({ highlightId: true }),
@@ -175,15 +191,16 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "The updated highlight",
+      description: "The updated highlight.",
       content: {
         "application/json": {
           schema: HighlightSchema,
         },
       },
     },
+    401: UnauthorizedResponse,
     404: {
-      description: "Highlight not found",
+      description: "Highlight not found.",
       content: {
         "application/json": {
           schema: ErrorSchema,

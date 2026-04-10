@@ -33,7 +33,7 @@ export default function HighlightsBox({
 
   return (
     <Collapsible defaultOpen={true}>
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-sm text-gray-400">
+      <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t("common.highlights")}
         <ChevronsDownUp className="size-4" />
       </CollapsibleTrigger>

@@ -9,7 +9,7 @@ Karakeep is a monorepo project managed with Turborepo. It appears to be a web ap
 - **Frontend:** Next.js, React, TypeScript, Tailwind CSS
 - **Backend:** Hono (a lightweight web framework), tRPC
 - **Database:** Drizzle ORM (likely with a relational database like PostgreSQL or SQLite)
-- **Tooling:** Prettier,oxlint, Vitest, pnpm
+- **Tooling:** Oxfmt, oxlint, Vitest, pnpm
 
 ## Project Structure
 
@@ -45,7 +45,7 @@ The project is organized into `apps` and `packages`:
 
 - **Package Manager:** pnpm
 - **Build System:** Turborepo
-- **Code Formatting:** Prettier
+- **Code Formatting:** Oxfmt
 - **Linting:** oxlint
 - **Testing:** Vitest
 

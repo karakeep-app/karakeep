@@ -8,6 +8,7 @@ import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus, Search } from "lucide-react-native";
@@ -19,6 +20,7 @@ function HeaderRight({
   openNewBookmarkModal: () => void;
 }) {
   const { settings } = useAppSettings();
+  const { colors } = useColorScheme();
   const { menuIconColor } = useMenuIconColors();
   const uploadToastIdRef = useRef<string | number | null>(null);
   const { uploadAsset } = useUploadAsset(settings, {
@@ -44,19 +46,34 @@ function HeaderRight({
         if (nativeEvent.event === "new") {
           openNewBookmarkModal();
         } else if (nativeEvent.event === "library") {
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: settings.imageQuality,
-            allowsMultipleSelection: false,
-          });
-          if (!result.canceled) {
-            uploadToastIdRef.current =
-              sonnerToast.loading("Uploading image...");
-            uploadAsset({
-              type: result.assets[0].mimeType ?? "",
-              name: result.assets[0].fileName ?? "",
-              uri: result.assets[0].uri,
+          try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ["images"],
+              quality: settings.imageQuality,
+              allowsMultipleSelection: false,
             });
+            if (!result.canceled) {
+              const asset = result.assets[0];
+              if (!asset) {
+                uploadToastIdRef.current = null;
+                return;
+              }
+              uploadToastIdRef.current =
+                sonnerToast.loading("Uploading image...");
+              uploadAsset({
+                type: asset.mimeType ?? "",
+                name: asset.fileName ?? "",
+                uri: asset.uri,
+              });
+            }
+          } catch {
+            sonnerToast.error("Failed to open photo library", {
+              id:
+                uploadToastIdRef.current !== null
+                  ? uploadToastIdRef.current
+                  : undefined,
+            });
+            uploadToastIdRef.current = null;
           }
         }
       }}
@@ -84,9 +101,9 @@ function HeaderRight({
       ]}
       shouldOpenOnLongPress={false}
     >
-      <View className="my-auto px-4">
+      <View className="my-auto">
         <Plus
-          color="rgb(0, 122, 255)"
+          color={colors.foreground}
           onPress={() => Haptics.selectionAsync()}
         />
       </View>
@@ -121,7 +138,9 @@ export default function Home() {
                 <Search size={16} color={styles?.color?.toString()} />
               )}
             />
-            <Text className="text-muted">Search</Text>
+            <Text className="flex-1 text-muted" numberOfLines={1}>
+              Search
+            </Text>
           </Pressable>
         }
       />

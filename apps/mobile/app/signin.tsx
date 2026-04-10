@@ -84,7 +84,7 @@ export default function Signin() {
 
   const onSignUp = async () => {
     const serverAddress = settings.address ?? "https://cloud.karakeep.app";
-    const signupUrl = `${serverAddress}/signup?redirectUrl=${encodeURIComponent("karakeep://signin")}`;
+    const signupUrl = `${serverAddress}/signup?redirectUrl=${encodeURIComponent("karakeep://signin")}&skipSessionRedirect=1`;
 
     await WebBrowser.openAuthSessionAsync(signupUrl, "karakeep://signin");
   };

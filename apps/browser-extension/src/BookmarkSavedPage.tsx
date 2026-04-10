@@ -22,14 +22,19 @@ export default function BookmarkSavedPage() {
 
   const { mutate: deleteBookmark, isPending } = useDeleteBookmark({
     onSuccess: async () => {
-      const [currentTab] = await chrome.tabs.query({
-        active: true,
-        lastFocusedWindow: true,
-      });
-      await chrome.runtime.sendMessage({
-        type: MessageType.BOOKMARK_REFRESH_BADGE,
-        currentTab: currentTab,
-      });
+      try {
+        const [currentTab] = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true,
+        });
+        await chrome.runtime.sendMessage({
+          type: MessageType.BOOKMARK_REFRESH_BADGE,
+          currentTab: currentTab,
+        });
+      } catch {
+        // Badge refresh is best-effort — on Firefox Android the background
+        // script may not be reachable from the popup context.
+      }
       navigate("/bookmarkdeleted");
     },
     onError: (e) => {

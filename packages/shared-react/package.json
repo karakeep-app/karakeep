@@ -19,7 +19,6 @@
     "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0"
   },
   "peerDependencies": {
@@ -37,10 +36,9 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix"
-  },
-  "prettier": "@karakeep/prettier-config"
+  }
 }

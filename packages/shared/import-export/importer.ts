@@ -17,6 +17,7 @@ export interface StagedBookmark {
   tags: string[];
   listIds: string[];
   sourceAddedAt?: Date;
+  archived?: boolean;
 }
 
 export interface ImportDeps {
@@ -252,6 +253,7 @@ export async function importBookmarksFromFile(
       sourceAddedAt: bookmark.addDate
         ? new Date(bookmark.addDate * 1000)
         : undefined,
+      archived: bookmark.archived,
     };
   });
 

@@ -1,0 +1,70 @@
+---
+import { Image } from "astro:assets";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { DEMO_LINK, GITHUB_LINK } from "../constants";
+import heroImage from "../assets/hero.webp";
+---
+
+<section class="relative overflow-hidden px-4 pb-20 pt-16 sm:pt-24">
+  <div class="mx-auto max-w-5xl text-center">
+    <h1 class="text-3xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+      The
+      <span class="bg-gradient-to-r from-purple-600 to-red-600 bg-clip-text text-transparent">
+        Bookmark Everything
+      </span>
+      App
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
+      Quickly save links, notes, and images and Karakeep will automatically
+      tag them for you using AI for faster retrieval. Built for the data
+      hoarders out there!
+    </p>
+    <div class="mt-6 flex items-center justify-center">
+      <a
+        href={GITHUB_LINK}
+        target="_blank"
+        rel="noreferrer"
+        class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 fill-yellow-400 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span class="font-semibold">24k+</span>
+        <span class="text-gray-500">stars on GitHub</span>
+      </a>
+    </div>
+    <div class="mt-8 flex items-center justify-center gap-4">
+      <a
+        href={DEMO_LINK}
+        target="_blank"
+        class={cn("gap-2 px-8", buttonVariants({ variant: "default", size: "lg" }))}
+        rel="noreferrer"
+      >
+        Try Demo
+      </a>
+      <a
+        href={GITHUB_LINK}
+        target="_blank"
+        class={cn("gap-2 px-8", buttonVariants({ variant: "outline", size: "lg" }))}
+        rel="noreferrer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- Hero screenshot with browser mockup -->
+  <div class="relative mx-auto mt-16 max-w-screen-2xl px-4">
+    <!-- Glow effect -->
+    <div class="absolute -inset-4 rounded-3xl bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-red-400/20 blur-3xl"></div>
+
+    <Image
+      src={heroImage}
+      alt="Karakeep dashboard"
+      width={3963}
+      height={2261}
+      class="relative h-auto w-full"
+      loading="eager"
+    />
+  </div>
+</section>

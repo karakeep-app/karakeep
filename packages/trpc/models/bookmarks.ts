@@ -29,7 +29,9 @@ import {
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { SearchIndexingQueue, triggerWebhook } from "@karakeep/shared-server";
+import { SearchIndexingQueue } from "@karakeep/shared-server";
+
+import { WebhooksService } from "./webhooks.service";
 import { deleteAsset, readAsset } from "@karakeep/shared/assetdb";
 import { getAlignedExpiry } from "@karakeep/shared/signedTokens";
 import {
@@ -89,6 +91,10 @@ export class BareBookmark {
 
   get createdAt() {
     return this.bareBookmark.createdAt;
+  }
+
+  get userId() {
+    return this.bareBookmark.userId;
   }
 
   static async bareFromId(ctx: AuthedContext, bookmarkId: string) {
@@ -935,9 +941,15 @@ export class Bookmark extends BareBookmark {
       },
     );
 
-    await triggerWebhook(this.bookmark.id, "deleted", this.ctx.user.id, {
-      groupId: this.ctx.user.id,
-    });
+    const webhookService = new WebhooksService(this.ctx.db);
+    await webhookService.triggerWebhook(
+      this.bookmark.id,
+      "deleted",
+      this.bookmark.userId,
+      {
+        groupId: this.ctx.user.id,
+      },
+    );
     if (deleted.changes > 0) {
       await this.cleanupAssets();
     }

@@ -156,12 +156,12 @@
         "adjust_hint": "Dostosuj powyższe ustawienia, aby wyświetlić zmiany w podglądzie"
       },
       "avatar": {
-        "upload": "Wrzuć awatar",
+        "upload": "Prześlij awatar",
         "change": "Zmień awatar",
         "remove_confirm_title": "Usunąć awatar?",
         "updated": "Awatar zaktualizowany",
         "removed": "Awatar usunięty",
-        "description": "Wrzuć kwadratowy obrazek, który będzie Twoim awatarem.",
+        "description": "Prześlij kwadratowy obrazek, który będzie Twoim awatarem.",
         "remove_confirm_description": "To wyczyści Twoje aktualne zdjęcie profilowe.",
         "title": "Zdjęcie profilowe",
         "remove": "Usuń awatar"
@@ -407,7 +407,7 @@
         "completed": "Ukończone",
         "failed": "Niepowodzenie",
         "processing": "Przetwarzanie",
-        "staging": "Wersja testowa",
+        "staging": "Przygotowywanie",
         "running": "Uruchomiony",
         "paused": "Wstrzymane"
       },
@@ -615,7 +615,7 @@
       "regenerate_ai_tags_for_all_bookmarks": "Regeneruj tagi AI dla wszystkich zakładek",
       "reindex_all_bookmarks": "Ponowne indeksowanie wszystkich zakładek",
       "compact_assets": "Kompaktuj zasoby",
-      "reprocess_assets_fix_mode": "Ponowne przetwarzanie zasobów (tryb fiksny)",
+      "reprocess_assets_fix_mode": "Ponowne przetwarzanie zasobów (tryb naprawczy)",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Wygeneruj ponownie podsumowania AI tylko dla nieudanych zakładek",
       "regenerate_ai_summaries_for_all_bookmarks": "Wygeneruj ponownie podsumowania AI dla wszystkich zakładek"
     },
@@ -855,7 +855,7 @@
       "no_collaborators_readonly": "Brak współpracowników dla tej listy.",
       "people_with_access": "Osoby, które mają dostęp do tej listy",
       "add_or_remove": "Dodaj lub usuń osoby, które mogą uzyskać dostęp do tej listy",
-      "invitation_sent": "Zaproszenie wysłane, ziom!",
+      "invitation_sent": "Zaproszenie wysłane pomyślnie",
       "invitation_revoked": "Cofnięto zaproszenie",
       "failed_to_revoke": "Nie udało się cofnąć zaproszenia",
       "pending": "Oczekuje",

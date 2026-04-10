@@ -3,11 +3,9 @@ import { useEffect } from "react";
 import { AppState, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
+import { isIOS26 } from "@/lib/ios";
 import { useIsLoggedIn } from "@/lib/session";
 import { focusManager } from "@tanstack/react-query";
-
-const isIOS26 =
-  Platform.OS === "ios" && parseInt(Platform.Version as string, 10) >= 26;
 
 function onAppStateChange(status: AppStateStatus) {
   if (Platform.OS !== "web") {

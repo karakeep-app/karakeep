@@ -74,6 +74,52 @@ const metascraperParser = metascraper([
   metascraperUrl(),
 ]);
 
+/**
+ * Many sites use custom data-* attributes for lazy loading images instead of the
+ * standard `src` attribute (e.g. WeChat's data-src, data-actualsrc, data-srv, or
+ * the common data-original / data-lazy patterns used by jQuery plugins).
+ *
+ * Readability and DOMPurify both operate on the DOM, so images with no `src` are
+ * either ignored or their placeholders are stripped.  We normalise these attributes
+ * to `src` *before* passing the document to Readability so that the extracted
+ * article retains the actual image URLs.
+ */
+const LAZY_SRC_ATTRS = [
+  "data-src",
+  "data-actualsrc",
+  "data-srv",
+  "data-original",
+  "data-lazy",
+  "data-lazyload",
+  "data-img-src",
+  "data-url",
+];
+
+function normalizeLazyLoadImages(document: Document): void {
+  const images = document.querySelectorAll("img");
+  for (const img of images) {
+    // Only fill in src if it is absent or a known placeholder (blank / data:)
+    const currentSrc = img.getAttribute("src") ?? "";
+    const needsSrc =
+      !currentSrc ||
+      currentSrc === "#" ||
+      currentSrc.startsWith("data:image/gif") ||
+      currentSrc.startsWith("data:image/png");
+
+    if (!needsSrc) {
+      continue;
+    }
+
+    for (const attr of LAZY_SRC_ATTRS) {
+      const value = img.getAttribute(attr);
+      if (value && value.trim() && !value.startsWith("data:")) {
+        img.setAttribute("src", value.trim());
+        break;
+      }
+    }
+  }
+}
+
 function extractReadableContent(
   htmlContent: string,
   url: string,
@@ -81,6 +127,7 @@ function extractReadableContent(
   const virtualConsole = new VirtualConsole();
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
   try {
+    normalizeLazyLoadImages(dom.window.document);
     const readableContent = new Readability(dom.window.document).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
       return null;

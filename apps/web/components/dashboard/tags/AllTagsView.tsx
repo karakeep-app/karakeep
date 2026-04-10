@@ -332,7 +332,10 @@ export default function AllTagsView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>{t("tags.your_tags")}</span>
-            <Badge variant="secondary">{allHumanTags.length}</Badge>
+            <Badge variant="secondary">
+              {allHumanTags.length}
+              {hasNextPageHumanTags ? "+" : ""}
+            </Badge>
           </CardTitle>
           <CardDescription>{t("tags.your_tags_info")}</CardDescription>
         </CardHeader>
@@ -362,7 +365,10 @@ export default function AllTagsView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>{t("tags.ai_tags")}</span>
-            <Badge variant="secondary">{allAiTags.length}</Badge>
+            <Badge variant="secondary">
+              {allAiTags.length}
+              {hasNextPageAiTags ? "+" : ""}
+            </Badge>
           </CardTitle>
           <CardDescription>{t("tags.ai_tags_info")}</CardDescription>
         </CardHeader>
@@ -392,7 +398,10 @@ export default function AllTagsView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <span>{t("tags.unused_tags")}</span>
-            <Badge variant="secondary">{allEmptyTags.length}</Badge>
+            <Badge variant="secondary">
+              {allEmptyTags.length}
+              {hasNextPageEmptyTags ? "+" : ""}
+            </Badge>
           </CardTitle>
           <CardDescription>{t("tags.unused_tags_info")}</CardDescription>
         </CardHeader>

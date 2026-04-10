@@ -34,7 +34,7 @@ Check the logs of the container and this will usually tell you what's wrong. Com
 
 ## Upgrading Meilisearch - Migrating the Meilisearch db version
 
-[Meilisearch](https://www.meilisearch.com/) is the database used by karakeep for searching in your bookmarks. The version used by karakeep is `1.13.3` and it is advised not to upgrade it without good reasons. If you do, you might see errors like `Your database version (1.11.1) is incompatible with your current engine version (1.13.3). To migrate data between Meilisearch versions, please follow our guide on https://www.meilisearch.com/docs/learn/update_and_migration/updating.`.
+[Meilisearch](https://www.meilisearch.com/) is the database used by karakeep for searching in your bookmarks. The version used by karakeep is `1.37.0` and it is advised not to upgrade it without good reasons. If you do, you might see errors like `Your database version (1.13.3) is incompatible with your current engine version (1.37.0). To migrate data between Meilisearch versions, please follow our guide on https://www.meilisearch.com/docs/learn/update_and_migration/updating.`.
 
 Luckily we can easily workaround this:
 1. Stop the Meilisearch container.

@@ -918,6 +918,7 @@ export const importStagingBookmarks = sqliteTable(
     tags: text("tags", { mode: "json" }).$type<string[]>(),
     listIds: text("listIds", { mode: "json" }).$type<string[]>(),
     sourceAddedAt: integer("sourceAddedAt", { mode: "timestamp" }),
+    archived: integer("archived", { mode: "boolean" }),
 
     // Processing state
     status: text("status", {

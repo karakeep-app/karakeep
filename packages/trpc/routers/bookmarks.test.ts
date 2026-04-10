@@ -27,9 +27,10 @@ vi.mock("@karakeep/shared-server", async (original) => {
     SearchIndexingQueue: {
       enqueue: vi.fn(),
     },
-    triggerRuleEngineOnEvent: vi.fn(),
+    RuleEngineQueue: {
+      enqueue: vi.fn(),
+    },
     triggerSearchReindex: vi.fn(),
-    triggerWebhook: vi.fn(),
   };
 });
 

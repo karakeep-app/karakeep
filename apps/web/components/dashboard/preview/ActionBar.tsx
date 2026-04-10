@@ -50,7 +50,7 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
     });
 
   return (
-    <div className="flex items-center justify-center gap-3">
+    <div className="flex items-center justify-center gap-3 text-muted-foreground">
       <Tooltip delayDuration={0}>
         <EditBookmarkDialog
           bookmark={bookmark}
@@ -60,13 +60,14 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
 
         <TooltipTrigger asChild>
           <Button
-            variant="none"
-            className="size-14 rounded-full bg-background"
+            variant="ghost"
+            size="none"
+            className="size-8 rounded-md"
             onClick={() => {
               setEditBookmarkDialogOpen(true);
             }}
           >
-            <Pencil />
+            <Pencil size={18} strokeWidth={1.5} />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">{t("actions.edit")}</TooltipContent>
@@ -74,8 +75,9 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <ActionButton
-            variant="none"
-            className="size-14 rounded-full bg-background"
+            variant="ghost"
+            size="none"
+            className="size-8 rounded-md"
             loading={pendingFav}
             onClick={() => {
               favBookmark({
@@ -84,7 +86,11 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
               });
             }}
           >
-            <FavouritedActionIcon favourited={bookmark.favourited} />
+            <FavouritedActionIcon
+              favourited={bookmark.favourited}
+              size={18}
+              strokeWidth={1.5}
+            />
           </ActionButton>
         </TooltipTrigger>
         <TooltipContent side="bottom">
@@ -96,9 +102,10 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <ActionButton
-            variant="none"
+            variant="ghost"
+            size="none"
             loading={pendingArchive}
-            className="size-14 rounded-full bg-background"
+            className="size-8 rounded-md"
             onClick={() => {
               archiveBookmark({
                 bookmarkId: bookmark.id,
@@ -106,7 +113,11 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
               });
             }}
           >
-            <ArchivedActionIcon archived={bookmark.archived} />
+            <ArchivedActionIcon
+              archived={bookmark.archived}
+              size={18}
+              strokeWidth={1.5}
+            />
           </ActionButton>
         </TooltipTrigger>
         <TooltipContent side="bottom">
@@ -121,11 +132,12 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         />
         <TooltipTrigger asChild>
           <Button
-            className="size-14 rounded-full bg-background"
-            variant="none"
+            className="size-8 rounded-md"
+            variant="ghost"
+            size="none"
             onClick={() => setDeleteBookmarkDialogOpen(true)}
           >
-            <Trash2 />
+            <Trash2 size={18} strokeWidth={1.5} />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">{t("actions.delete")}</TooltipContent>

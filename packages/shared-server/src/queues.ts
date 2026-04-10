@@ -257,22 +257,6 @@ export const WebhookQueue = createDeferredQueue<ZWebhookRequest>(
   },
 );
 
-export async function triggerWebhook(
-  bookmarkId: string,
-  operation: ZWebhookRequest["operation"],
-  userId?: string,
-  opts?: EnqueueOptions,
-) {
-  await WebhookQueue.enqueue(
-    {
-      bookmarkId,
-      userId,
-      operation,
-    },
-    opts,
-  );
-}
-
 // RuleEngine worker
 export const zRuleEngineRequestSchema = z.object({
   bookmarkId: z.string(),
@@ -288,20 +272,6 @@ export const RuleEngineQueue = createDeferredQueue<ZRuleEngineRequest>(
     keepFailedJobs: false,
   },
 );
-
-export async function triggerRuleEngineOnEvent(
-  bookmarkId: string,
-  events: z.infer<typeof zRuleEngineEventSchema>[],
-  opts?: EnqueueOptions,
-) {
-  await RuleEngineQueue.enqueue(
-    {
-      events,
-      bookmarkId,
-    },
-    opts,
-  );
-}
 
 // Backup worker
 export const zBackupRequestSchema = z.object({

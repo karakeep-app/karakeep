@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { haptic } from "@/lib/haptic";
 import { cn } from "@/lib/utils";
 
 export default function MobileSidebarItem({
@@ -19,7 +20,7 @@ export default function MobileSidebarItem({
         path == currentPath ? "bg-background" : "",
       )}
     >
-      <Link href={path} className="m-auto px-3 py-2">
+      <Link onClick={haptic} href={path} className="m-auto px-3 py-2">
         {logo}
       </Link>
     </li>

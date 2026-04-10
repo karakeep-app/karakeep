@@ -1,0 +1,26 @@
+---
+import Banner from "../components/Banner";
+import Footer from "../components/Footer";
+import NavBar from "../Navbar";
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  path?: string;
+}
+
+const { title, description, path } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} path={path}>
+  <slot name="head" slot="head" />
+  <div class="flex min-h-screen flex-col bg-gray-50">
+    <Banner />
+    <NavBar client:load />
+    <div class="flex-1">
+      <slot />
+    </div>
+    <Footer />
+  </div>
+</BaseLayout>
