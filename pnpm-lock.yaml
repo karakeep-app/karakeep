@@ -378,7 +378,7 @@ importers:
         specifier: ~19.0.21
         version: 19.0.21(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))
       expo-glass-effect:
-        specifier: ~55.0.7
+        specifier: ~55.0.10
         version: 55.0.10(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       expo-haptics:
         specifier: ~15.0.8
