@@ -37,6 +37,10 @@
   },
   "packageManager": "pnpm@9.15.9",
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "re2"
+    ],
     "patchedDependencies": {
       "xcode@3.0.1": "patches/xcode@3.0.1.patch",
       "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch",

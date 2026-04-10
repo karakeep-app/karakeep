@@ -28,7 +28,6 @@
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "@tsconfig/node22": "^22.0.0",
     "@types/better-sqlite3": "^7.6.11",
     "@vercel/ncc": "^0.38.4"
   }
