@@ -383,6 +383,9 @@ importers:
       expo-image-picker:
         specifier: ~17.0.10
         version: 17.0.10(expo@54.0.31)
+      expo-keep-awake:
+        specifier: ~15.0.8
+        version: 15.0.8(expo@54.0.31)(react@19.2.3)
       expo-linking:
         specifier: ~8.0.11
         version: 8.0.11(expo@54.0.31)(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
@@ -795,7 +798,7 @@ importers:
         version: 3.4.1
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.3)(happy-dom@20.3.9)(jiti@2.4.2)(jsdom@27.4.0(@noble/hashes@1.8.0))(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)
@@ -1336,7 +1339,7 @@ importers:
         version: 6.4.17
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 6.1.1(typescript@5.9.3)(vite@7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.3)(happy-dom@20.3.9)(jiti@2.4.2)(jsdom@27.4.0(@noble/hashes@1.8.0))(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)

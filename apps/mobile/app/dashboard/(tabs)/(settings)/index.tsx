@@ -202,6 +202,22 @@ export default function Settings() {
             }
           />
         </View>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
+          <Text className="flex-1" numberOfLines={1}>
+            Keep screen on while reading
+          </Text>
+          <Switch
+            className="shrink-0"
+            value={settings.keepScreenOnWhileReading}
+            onValueChange={(value) =>
+              setSettings({
+                ...settings,
+                keepScreenOnWhileReading: value,
+              })
+            }
+          />
+        </View>
       </View>
 
       <SectionHeader title="Media" />
