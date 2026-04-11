@@ -109,6 +109,7 @@ function useToolbarActions(bookmark: ZBookmark) {
   const { mutate: archiveBookmark, isPending: isArchivePending } =
     useUpdateBookmark({
       onSuccess: (resp) => {
+        router.back();
         toast({
           message: `The bookmark has been ${resp.archived ? "archived" : "un-archived"}!`,
           showProgress: false,
