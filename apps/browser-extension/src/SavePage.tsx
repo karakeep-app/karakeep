@@ -173,7 +173,9 @@ export default function SavePage() {
             )}
             {pendingBookmark.type === BookmarkTypes.TEXT && (
               <p className="text-muted-foreground text-xs">
-                {pendingBookmark.text.substring(0, 150)}...
+                {pendingBookmark.text.length > 150
+                  ? `${pendingBookmark.text.substring(0, 150)}...`
+                  : pendingBookmark.text}
               </p>
             )}
             {pendingBookmark.type === BookmarkTypes.ASSET && (
