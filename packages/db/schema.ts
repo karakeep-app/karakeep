@@ -733,8 +733,6 @@ export const ruleEngineRulesTable = sqliteTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-
-    listId: text("listId"),
     tagId: text("tagId"),
   },
   (rl) => [
@@ -745,11 +743,6 @@ export const ruleEngineRulesTable = sqliteTable(
       columns: [rl.userId, rl.tagId],
       foreignColumns: [bookmarkTags.userId, bookmarkTags.id],
       name: "ruleEngineRules_userId_tagId_fk",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [rl.userId, rl.listId],
-      foreignColumns: [bookmarkLists.userId, bookmarkLists.id],
-      name: "ruleEngineRules_userId_listId_fk",
     }).onDelete("cascade"),
   ],
 );

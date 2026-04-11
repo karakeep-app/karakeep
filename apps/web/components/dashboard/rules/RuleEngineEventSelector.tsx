@@ -8,19 +8,19 @@ import {
 } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
 
-import type { RuleEngineEvent } from "@karakeep/shared/types/rules";
+import type { RuleEngineRuleEvent } from "@karakeep/shared/types/rules";
 
 import { BookmarkListSelector } from "../lists/BookmarkListSelector";
 import { TagAutocomplete } from "../tags/TagAutocomplete";
 
 interface EventSelectorProps {
-  value: RuleEngineEvent;
-  onChange: (event: RuleEngineEvent) => void;
+  value: RuleEngineRuleEvent;
+  onChange: (event: RuleEngineRuleEvent) => void;
 }
 
 export function EventSelector({ value, onChange }: EventSelectorProps) {
   const { t } = useTranslation();
-  const handleTypeChange = (type: RuleEngineEvent["type"]) => {
+  const handleTypeChange = (type: RuleEngineRuleEvent["type"]) => {
     switch (type) {
       case "bookmarkAdded":
         onChange({ type: "bookmarkAdded" });
@@ -32,10 +32,10 @@ export function EventSelector({ value, onChange }: EventSelectorProps) {
         onChange({ type: "tagRemoved", tagId: "" });
         break;
       case "addedToList":
-        onChange({ type: "addedToList", listId: "" });
+        onChange({ type: "addedToList", listIds: [] });
         break;
       case "removedFromList":
-        onChange({ type: "removedFromList", listId: "" });
+        onChange({ type: "removedFromList", listIds: [] });
         break;
       case "favourited":
         onChange({ type: "favourited" });
@@ -96,8 +96,9 @@ export function EventSelector({ value, onChange }: EventSelectorProps) {
             value.type === "removedFromList") && (
             <BookmarkListSelector
               listTypes={["manual"]}
-              value={value.listId}
-              onChange={(l) => onChange({ type: value.type, listId: l })}
+              value={value.listIds}
+              onChange={(l) => onChange({ type: value.type, listIds: l })}
+              multiSelect
             />
           )}
         </div>

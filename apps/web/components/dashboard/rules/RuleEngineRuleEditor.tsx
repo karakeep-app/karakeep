@@ -16,8 +16,8 @@ import { useTranslation } from "react-i18next";
 import type {
   RuleEngineAction,
   RuleEngineCondition,
-  RuleEngineEvent,
   RuleEngineRule,
+  RuleEngineRuleEvent,
 } from "@karakeep/shared/types/rules";
 import {
   useCreateRule,
@@ -98,7 +98,7 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
     setEditedRule({ ...rule });
   }, [rule]);
 
-  const handleEventChange = (event: RuleEngineEvent) => {
+  const handleEventChange = (event: RuleEngineRuleEvent) => {
     setEditedRule({ ...editedRule, event });
   };
 

@@ -347,7 +347,7 @@ describe("Rules Routes", () => {
         name: "Invalid Rule",
         description: "Event with other user's list",
         enabled: true,
-        event: { type: "addedToList", listId: otherUserListId }, // Other user's list
+        event: { type: "addedToList", listIds: [otherUserListId] }, // Other user's list
         condition: { type: "alwaysTrue" },
         actions: [{ type: "addTag", tagId: tagId1 }],
       };
@@ -355,6 +355,13 @@ describe("Rules Routes", () => {
       await expect(() => api.create(invalidRuleInput)).rejects.toThrow(
         /List not found/,
       );
+
+      await expect(() =>
+        api.create({
+          ...invalidRuleInput,
+          event: { type: "addedToList", listIds: [listId, otherUserListId] },
+        }),
+      ).rejects.toThrow(/List not found/);
     });
 
     test<CustomTestContext>("cannot create rule with action on another user's list", async ({

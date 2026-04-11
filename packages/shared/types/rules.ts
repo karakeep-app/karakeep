@@ -35,6 +35,16 @@ const zArchivedEvent = z.object({
   type: z.literal("archived"),
 });
 
+const zAddedToListRuleEvent = z.object({
+  type: z.literal("addedToList"),
+  listIds: z.array(z.string()),
+});
+
+const zRemovedFromListRuleEvent = z.object({
+  type: z.literal("removedFromList"),
+  listIds: z.array(z.string()),
+});
+
 export const zRuleEngineEventSchema = z.discriminatedUnion("type", [
   zBookmarkAddedEvent,
   zTagAddedEvent,
@@ -45,6 +55,17 @@ export const zRuleEngineEventSchema = z.discriminatedUnion("type", [
   zArchivedEvent,
 ]);
 export type RuleEngineEvent = z.infer<typeof zRuleEngineEventSchema>;
+
+export const zRuleEngineRuleEventSchema = z.discriminatedUnion("type", [
+  zBookmarkAddedEvent,
+  zTagAddedEvent,
+  zTagRemovedEvent,
+  zAddedToListRuleEvent,
+  zRemovedFromListRuleEvent,
+  zFavouritedEvent,
+  zArchivedEvent,
+]);
+export type RuleEngineRuleEvent = z.infer<typeof zRuleEngineRuleEventSchema>;
 
 // Conditions
 const zAlwaysTrueCondition = z.object({
@@ -193,7 +214,7 @@ export const zRuleEngineRuleSchema = z.object({
   name: z.string().min(1),
   description: z.string().nullable(),
   enabled: z.boolean(),
-  event: zRuleEngineEventSchema,
+  event: zRuleEngineRuleEventSchema,
   condition: zRuleEngineConditionSchema,
   actions: z.array(zRuleEngineActionSchema),
 });
@@ -203,7 +224,7 @@ const ruleValidaitorFn = (
   r: Omit<RuleEngineRule, "id">,
   ctx: RefinementCtx,
 ) => {
-  const validateEvent = (event: RuleEngineEvent) => {
+  const validateEvent = (event: RuleEngineRuleEvent) => {
     switch (event.type) {
       case "bookmarkAdded":
       case "favourited":
@@ -222,11 +243,11 @@ const ruleValidaitorFn = (
         return true;
       case "addedToList":
       case "removedFromList":
-        if (event.listId.length == 0) {
+        if (event.listIds.length == 0) {
           ctx.addIssue({
             code: "custom",
-            message: "You must specify a list for this event type",
-            path: ["event", "listId"],
+            message: "You must specify at least one list for this event type",
+            path: ["event", "listIds"],
           });
           return false;
         }

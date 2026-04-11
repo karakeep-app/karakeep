@@ -589,7 +589,7 @@ function remapRuleIds(
         return { ...e, tagId: mapTag(e.tagId) };
       case "addedToList":
       case "removedFromList":
-        return { ...e, listId: mapList(e.listId) };
+        return { ...e, listIds: e.listIds.map(mapList) };
       default:
         return e;
     }

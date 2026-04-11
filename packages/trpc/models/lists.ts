@@ -1,15 +1,16 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, or } from "drizzle-orm";
+import { and, count, eq, inArray, or, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
+import { KarakeepDBTransaction, SqliteError } from "@karakeep/db";
 import {
   bookmarkLists,
   bookmarks,
   bookmarksInLists,
   listCollaborators,
+  ruleEngineRulesTable,
   users,
 } from "@karakeep/db/schema";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -28,6 +29,7 @@ import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { ListInvitation } from "./listInvitations";
+import { zRuleEngineRuleEventSchema } from "@karakeep/shared/types/rules";
 
 interface ListCollaboratorEntry {
   membershipId: string;
@@ -462,19 +464,102 @@ export abstract class List {
     }
   }
 
-  async delete() {
-    this.ensureCanManage();
-    const res = await this.ctx.db
-      .delete(bookmarkLists)
+  protected async cleanupRulesAfterListDeletion(tx: KarakeepDBTransaction) {
+    const rules = await tx
+      .select({
+        id: ruleEngineRulesTable.id,
+        event: ruleEngineRulesTable.event,
+      })
+      .from(ruleEngineRulesTable)
       .where(
         and(
-          eq(bookmarkLists.id, this.list.id),
-          eq(bookmarkLists.userId, this.ctx.user.id),
+          eq(ruleEngineRulesTable.userId, this.ctx.user.id),
+          sql`json_valid(${ruleEngineRulesTable.event})`,
+          sql`json_extract(${ruleEngineRulesTable.event}, '$.type') IN ('addedToList', 'removedFromList')`,
+          sql`EXISTS (
+            SELECT 1
+            FROM json_each(json_extract(${ruleEngineRulesTable.event}, '$.listIds'))
+            WHERE value = ${this.list.id}
+          )`,
         ),
       );
-    if (res.changes == 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
+    const rulesToDelete: string[] = [];
+    const rulesToUpdate: { id: string; event: string }[] = [];
+
+    for (const rule of rules) {
+      let parsedEvent: unknown;
+      try {
+        parsedEvent = JSON.parse(rule.event);
+      } catch {
+        // Log and skip corrupted rule, continue with others
+        console.error(`Failed to parse event JSON for rule ${rule.id}`);
+        continue;
+      }
+
+      const ruleEvent = zRuleEngineRuleEventSchema.safeParse(parsedEvent);
+      if (!ruleEvent.success) {
+        // Log and skip invalid rule, continue with others
+        console.error(`Failed to validate event schema for rule ${rule.id}`);
+        continue;
+      }
+      const ruleEventData = ruleEvent.data;
+      if (
+        ruleEventData.type === "addedToList" ||
+        ruleEventData.type === "removedFromList"
+      ) {
+        const filtered = ruleEventData.listIds.filter(
+          (id: string) => id !== this.list.id,
+        );
+        if (filtered.length === 0) {
+          rulesToDelete.push(rule.id);
+        } else {
+          const updatedEvent = {
+            ...ruleEventData,
+            listIds: filtered,
+          };
+
+          rulesToUpdate.push({
+            id: rule.id,
+            event: JSON.stringify(updatedEvent),
+          });
+        }
+      }
     }
+
+    if (rulesToDelete.length > 0) {
+      await tx
+        .delete(ruleEngineRulesTable)
+        .where(inArray(ruleEngineRulesTable.id, rulesToDelete));
+    }
+
+    if (rulesToUpdate.length > 0) {
+      await Promise.all(
+        rulesToUpdate.map(({ id, event }) =>
+          tx
+            .update(ruleEngineRulesTable)
+            .set({ event })
+            .where(eq(ruleEngineRulesTable.id, id)),
+        ),
+      );
+    }
+  }
+
+  async delete() {
+    this.ensureCanManage();
+    await this.ctx.db.transaction(async (tx) => {
+      const res = await tx
+        .delete(bookmarkLists)
+        .where(
+          and(
+            eq(bookmarkLists.id, this.list.id),
+            eq(bookmarkLists.userId, this.ctx.user.id),
+          ),
+        );
+      if (res.changes == 0) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      await this.cleanupRulesAfterListDeletion(tx);
+    });
   }
 
   async getChildren(): Promise<(ManualList | SmartList)[]> {
@@ -1051,6 +1136,7 @@ export class ManualList extends List {
         await tx
           .delete(bookmarkLists)
           .where(eq(bookmarkLists.id, this.list.id));
+        await this.cleanupRulesAfterListDeletion(tx);
       }
     });
   }

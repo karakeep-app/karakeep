@@ -68,7 +68,7 @@ const ensureTagListOwnership = experimental_trpcMiddleware<{
   const listIds = [
     ...(opts.input.event.type === "addedToList" ||
     opts.input.event.type === "removedFromList"
-      ? [opts.input.event.listId]
+      ? opts.input.event.listIds
       : []),
     ...opts.input.actions.flatMap((a) =>
       a.type == "addToList" || a.type == "removeFromList" ? [a.listId] : [],

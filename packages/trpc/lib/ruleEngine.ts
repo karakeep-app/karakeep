@@ -20,7 +20,7 @@ import {
   RuleEngineCondition,
   RuleEngineEvent,
   RuleEngineRule,
-  zRuleEngineEventSchema,
+  zRuleEngineRuleEventSchema,
 } from "@karakeep/shared/types/rules";
 
 import { AuthedContext } from "..";
@@ -84,6 +84,20 @@ export class RuleEngine {
     );
   }
 
+  static doesEventMatchRule(
+    ruleEvent: RuleEngineRule["event"],
+    event: RuleEngineEvent,
+  ) {
+    if (
+      ruleEvent.type === event.type &&
+      "listIds" in ruleEvent &&
+      (event.type === "addedToList" || event.type === "removedFromList")
+    ) {
+      return ruleEvent.listIds.includes(event.listId);
+    }
+    return deepEql(ruleEvent, event, { strict: true });
+  }
+
   /**
    * Checks whether any enabled rule for the given user matches any of the events.
    * Only fetches the minimal data needed (rule events, no actions or bookmark data).
@@ -106,7 +120,6 @@ export class RuleEngine {
         event: true,
       },
     });
-
     return enabledRules.some((rule) => {
       let parsedEvent: unknown;
       try {
@@ -114,12 +127,12 @@ export class RuleEngine {
       } catch {
         return false;
       }
-      const ruleEvent = zRuleEngineEventSchema.safeParse(parsedEvent);
+      const ruleEvent = zRuleEngineRuleEventSchema.safeParse(parsedEvent);
       if (!ruleEvent.success) {
         return false;
       }
       return events.some((event) =>
-        deepEql(ruleEvent.data, event, { strict: true }),
+        this.doesEventMatchRule(ruleEvent.data, event),
       );
     });
   }
@@ -226,7 +239,7 @@ export class RuleEngine {
     if (!rule.enabled) {
       return [];
     }
-    if (!deepEql(rule.event, event, { strict: true })) {
+    if (!RuleEngine.doesEventMatchRule(rule.event, event)) {
       return [];
     }
     if (!this.doesBookmarkMatchConditions(rule.condition)) {
@@ -330,7 +343,6 @@ export class RuleEngine {
     const results = await Promise.all(
       this.rules.map((rule) => this.evaluateRule(rule, event)),
     );
-
     return results.flat();
   }
 }

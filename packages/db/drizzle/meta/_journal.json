@@ -582,6 +582,13 @@
       "when": 1775816137345,
       "tag": "0082_add_feed_last_successful_fetch",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "6",
+      "when": 1775816137346,
+      "tag": "0083_rule_engine_multi_list_support",
+      "breakpoints": true
     }
   ]
 }
