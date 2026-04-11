@@ -505,7 +505,7 @@ function parseReadwiseReaderBookmarkFile(
     "Saved date": z.string(),
     "Reading progress": z.string(),
     Location: z.string(),
-    Seen: z.string(),
+    Seen: z.enum(["True", "False"]),
   });
 
   const zReadwiseReaderExportScheme = z.array(zReadwiseReaderRecordScheme);
