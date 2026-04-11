@@ -499,11 +499,11 @@ function parseReadwiseReaderBookmarkFile(
 ): ParsedBookmark[] {
   const zReadwiseReaderRecordScheme = z.object({
     Title: z.string(),
-    Url: z.string(),
-    Id: z.string(),
-    "Document Tags": z.string(),
-    "Saved Date": z.string(),
-    "Reading Progress": z.string(),
+    URL: z.string(),
+    ID: z.string(),
+    "Document tags": z.string(),
+    "Saved date": z.string(),
+    "Reading progress": z.string(),
     Location: z.string(),
     Seen: z.string(),
   });
@@ -535,20 +535,20 @@ function parseReadwiseReaderBookmarkFile(
     (record) => record.Location !== "feed",
   );
   const emptyFilteredArticles = feedFilteredArticles.filter(
-    (record) => record.Url && record.Url.trim().length > 0,
+    (record) => record.URL && record.URL.trim().length > 0,
   );
 
   return emptyFilteredArticles.map((record) => {
     let content: ParsedBookmark["content"] = {
       type: BookmarkTypes.LINK as const,
-      url: record.Url.trim(),
+      url: record.URL.trim(),
     };
 
-    const addDate = new Date(record["Saved Date"]).getTime() / 1000;
+    const addDate = new Date(record["Saved date"]).getTime() / 1000;
 
     let tags: string[] = [];
     try {
-      const documentTags = record["Document Tags"];
+      const documentTags = record["Document tags"];
       if (documentTags) {
         const parsedTags = JSON.parse(documentTags);
         if (Array.isArray(parsedTags)) {
