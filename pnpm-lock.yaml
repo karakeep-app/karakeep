@@ -1167,9 +1167,6 @@ importers:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
         version: link:../../tooling/typescript
-      '@tsconfig/node22':
-        specifier: ^22.0.0
-        version: 22.0.2
       '@types/better-sqlite3':
         specifier: ^7.6.11
         version: 7.6.13

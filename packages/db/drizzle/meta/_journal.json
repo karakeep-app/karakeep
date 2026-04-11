@@ -575,6 +575,13 @@
       "when": 1775542878403,
       "tag": "0081_add_archived_to_import_staging_bookmarks",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "6",
+      "when": 1775816137345,
+      "tag": "0082_add_feed_last_successful_fetch",
+      "breakpoints": true
     }
   ]
 }

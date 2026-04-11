@@ -13,6 +13,7 @@ export const zFeedSchema = z.object({
   importTags: z.boolean(),
   lastFetchedStatus: z.enum(["success", "failure", "pending"]).nullable(),
   lastFetchedAt: z.date().nullable(),
+  lastSuccessfulFetchAt: z.date().nullable(),
 });
 
 export type ZFeed = z.infer<typeof zFeedSchema>;

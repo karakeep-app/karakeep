@@ -179,6 +179,10 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
   );
 
   const feedItems = await parseFeedItems(xmlData);
+  await db
+    .update(rssFeedsTable)
+    .set({ lastSuccessfulFetchAt: new Date() })
+    .where(eq(rssFeedsTable.id, feed.id));
 
   logger.info(
     `[feed][${jobId}] Found ${feedItems.length} entries in feed "${feed.name}" (${feed.id}) ...`,

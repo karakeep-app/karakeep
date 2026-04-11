@@ -29,6 +29,7 @@ describe("Feed Worker Tests", () => {
 
     expect(feed.id).toBeDefined();
     expect(feed.lastFetchedStatus).toBe("pending");
+    expect(feed.lastSuccessfulFetchAt).toBeNull();
 
     // Trigger a manual fetch
     await trpcClient.feeds.fetchNow.mutate({ feedId: feed.id });
@@ -43,6 +44,7 @@ describe("Feed Worker Tests", () => {
     const fetchedFeed = await trpcClient.feeds.get.query({ feedId: feed.id });
     expect(fetchedFeed.lastFetchedStatus).toBe("success");
     expect(fetchedFeed.lastFetchedAt).toBeDefined();
+    expect(fetchedFeed.lastSuccessfulFetchAt).toBeDefined();
 
     // Verify bookmarks were created from the feed entries
     const bookmarks = await trpcClient.bookmarks.getBookmarks.query({
@@ -126,8 +128,8 @@ describe("Feed Worker Tests", () => {
     const afterFirstFetch = await trpcClient.feeds.get.query({
       feedId: feed.id,
     });
-    assert(afterFirstFetch.lastFetchedAt);
-    const firstFetchedAt = afterFirstFetch.lastFetchedAt;
+    assert(afterFirstFetch.lastSuccessfulFetchAt);
+    const firstSuccessfulFetchAt = afterFirstFetch.lastSuccessfulFetchAt;
 
     const firstFetch = await trpcClient.bookmarks.getBookmarks.query({
       archived: false,
@@ -138,13 +140,56 @@ describe("Feed Worker Tests", () => {
     await trpcClient.feeds.fetchNow.mutate({ feedId: feed.id });
     await waitUntil(async () => {
       const updated = await trpcClient.feeds.get.query({ feedId: feed.id });
-      assert(updated.lastFetchedAt);
-      return updated.lastFetchedAt > firstFetchedAt;
+      assert(updated.lastSuccessfulFetchAt);
+      return updated.lastSuccessfulFetchAt > firstSuccessfulFetchAt;
     }, "Second feed fetch completes");
 
     const secondFetch = await trpcClient.bookmarks.getBookmarks.query({
       archived: false,
     });
     expect(secondFetch.bookmarks.length).toBe(2);
+  });
+
+  it("should preserve the last successful fetch after a failed fetch", async () => {
+    const trpcClient = getTrpcClient(apiKey);
+
+    const feed = await trpcClient.feeds.create.mutate({
+      name: "Test Feed Failure Tracking",
+      url: "http://nginx:80/feed.xml",
+      enabled: true,
+    });
+
+    await trpcClient.feeds.fetchNow.mutate({ feedId: feed.id });
+    await waitUntil(async () => {
+      const updated = await trpcClient.feeds.get.query({ feedId: feed.id });
+      return updated.lastFetchedStatus === "success";
+    }, "Initial successful feed fetch completes");
+
+    const afterSuccess = await trpcClient.feeds.get.query({ feedId: feed.id });
+    assert(afterSuccess.lastSuccessfulFetchAt);
+    const firstSuccessfulFetchAt = afterSuccess.lastSuccessfulFetchAt;
+
+    await trpcClient.feeds.update.mutate({
+      feedId: feed.id,
+      url: "http://nginx:80/hello.html",
+    });
+
+    await trpcClient.feeds.fetchNow.mutate({ feedId: feed.id });
+    await waitUntil(async () => {
+      const updated = await trpcClient.feeds.get.query({ feedId: feed.id });
+      return updated.lastFetchedStatus === "failure";
+    }, "Failed feed fetch completes");
+
+    const afterFailure = await trpcClient.feeds.get.query({ feedId: feed.id });
+    assert(afterFailure.lastFetchedAt);
+    assert(afterFailure.lastSuccessfulFetchAt);
+
+    expect(afterFailure.lastFetchedStatus).toBe("failure");
+    expect(afterFailure.lastSuccessfulFetchAt.toISOString()).toBe(
+      firstSuccessfulFetchAt.toISOString(),
+    );
+    expect(
+      afterFailure.lastFetchedAt > afterFailure.lastSuccessfulFetchAt,
+    ).toBe(true);
   });
 });

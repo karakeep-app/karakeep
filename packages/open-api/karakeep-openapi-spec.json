@@ -682,6 +682,12 @@
             "nullable": true,
             "description": "ISO 8601 timestamp of the last fetch attempt, or null if never fetched.",
             "example": "2025-01-15T12:00:00.000Z"
+          },
+          "lastSuccessfulFetchAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 timestamp of the last successful fetch, or null if the feed has never been fetched successfully.",
+            "example": "2025-01-15T12:00:00.000Z"
           }
         },
         "required": [
@@ -691,7 +697,8 @@
           "enabled",
           "importTags",
           "lastFetchedStatus",
-          "lastFetchedAt"
+          "lastFetchedAt",
+          "lastSuccessfulFetchAt"
         ]
       }
     },
