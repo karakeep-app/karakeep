@@ -10,13 +10,20 @@ import {
 
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
 import Spinner from "./Spinner";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { Textarea } from "./components/ui/textarea";
+import usePluginSettings from "./utils/settings";
 import { useTRPC } from "./utils/trpc";
 import { MessageType } from "./utils/type";
 import { isHttpUrl } from "./utils/url";
 
 export default function SavePage() {
   const api = useTRPC();
+  const { settings, isPending: isSettingsLoaded } = usePluginSettings();
   const [error, setError] = useState<string | undefined>(undefined);
+  const [pendingBookmark, setPendingBookmark] = useState<ZNewBookmarkRequest | null>(null);
+  const [hasCheckedRequest, setHasCheckedRequest] = useState(false);
 
   const {
     data,
@@ -45,6 +52,7 @@ export default function SavePage() {
       },
     }),
   );
+
   useEffect(() => {
     async function getNewBookmarkRequestFromBackgroundScriptIfAny(): Promise<ZNewBookmarkRequest | null> {
       const { [NEW_BOOKMARK_REQUEST_KEY_NAME]: req } =
@@ -57,7 +65,7 @@ export default function SavePage() {
       return zNewBookmarkRequestSchema.parse(req);
     }
 
-    async function runSave() {
+    async function loadBookmarkRequest() {
       let newBookmarkRequest =
         await getNewBookmarkRequestFromBackgroundScriptIfAny();
       if (!newBookmarkRequest) {
@@ -67,6 +75,7 @@ export default function SavePage() {
         });
         if (!currentTab.url) {
           setError("Current tab has no URL to bookmark.");
+          setHasCheckedRequest(true);
           return;
         }
 
@@ -74,6 +83,7 @@ export default function SavePage() {
           setError(
             "Cannot bookmark this type of URL. Only HTTP/HTTPS URLs are supported.",
           );
+          setHasCheckedRequest(true);
           return;
         }
 
@@ -85,14 +95,37 @@ export default function SavePage() {
         };
       }
 
-      createBookmark({
-        ...newBookmarkRequest,
-        source: newBookmarkRequest.source || "extension",
-      });
+      setPendingBookmark(newBookmarkRequest);
+      setHasCheckedRequest(true);
     }
 
-    runSave();
-  }, [createBookmark]);
+    if (!isSettingsLoaded) return;
+    loadBookmarkRequest();
+  }, [isSettingsLoaded]);
+
+  // Auto-save when settings are loaded and we have a pending bookmark
+  useEffect(() => {
+    if (
+      hasCheckedRequest &&
+      pendingBookmark &&
+      settings.autoSave &&
+      status === "idle"
+    ) {
+      createBookmark({
+        ...pendingBookmark,
+        source: pendingBookmark.source || "extension",
+      });
+    }
+  }, [hasCheckedRequest, pendingBookmark, settings.autoSave, status, createBookmark]);
+
+  const handleManualSave = () => {
+    if (pendingBookmark) {
+      createBookmark({
+        ...pendingBookmark,
+        source: pendingBookmark.source || "extension",
+      });
+    }
+  };
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
@@ -114,7 +147,78 @@ export default function SavePage() {
       );
     }
     case "idle": {
-      return <div />;
+      // Show confirmation UI when autoSave is disabled
+      if (!settings.autoSave && pendingBookmark && hasCheckedRequest) {
+        return (
+          <div className="flex flex-col gap-3">
+            <p className="text-lg font-medium">Save Bookmark?</p>
+            {pendingBookmark.type === BookmarkTypes.LINK && (
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Title
+                </label>
+                <Input
+                  value={pendingBookmark.title ?? ""}
+                  onChange={(e) =>
+                    setPendingBookmark((prev) =>
+                      prev ? { ...prev, title: e.target.value } : prev,
+                    )
+                  }
+                  placeholder="Untitled"
+                />
+                <p className="text-muted-foreground truncate text-xs">
+                  {pendingBookmark.url}
+                </p>
+              </div>
+            )}
+            {pendingBookmark.type === BookmarkTypes.TEXT && (
+              <p className="text-muted-foreground text-xs">
+                {pendingBookmark.text.substring(0, 150)}...
+              </p>
+            )}
+            {pendingBookmark.type === BookmarkTypes.ASSET && (
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Title
+                </label>
+                <Input
+                  value={pendingBookmark.title ?? ""}
+                  onChange={(e) =>
+                    setPendingBookmark((prev) =>
+                      prev ? { ...prev, title: e.target.value } : prev,
+                    )
+                  }
+                  placeholder={pendingBookmark.fileName ?? "Asset"}
+                />
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-muted-foreground">
+                Notes
+              </label>
+              <Textarea
+                value={pendingBookmark.note ?? ""}
+                onChange={(e) =>
+                  setPendingBookmark((prev) =>
+                    prev ? { ...prev, note: e.target.value } : prev,
+                  )
+                }
+                placeholder="Add notes..."
+                className="h-20 resize-none"
+              />
+            </div>
+            <Button onClick={handleManualSave} className="w-full">
+              Save Bookmark
+            </Button>
+          </div>
+        );
+      }
+      return (
+        <div className="flex justify-between text-lg">
+          <span>Saving Bookmark </span>
+          <Spinner />
+        </div>
+      );
     }
   }
 }

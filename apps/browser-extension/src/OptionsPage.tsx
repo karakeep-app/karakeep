@@ -121,6 +121,19 @@ export default function OptionsPage() {
         </>
       )}
       <hr />
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium">Auto-save on open</span>
+        <Switch
+          checked={settings.autoSave}
+          onCheckedChange={(checked) =>
+            setSettings((s) => ({ ...s, autoSave: checked }))
+          }
+        />
+      </div>
+      <p className="text-muted-foreground text-xs">
+        When disabled, you&apos;ll confirm before saving bookmarks.
+      </p>
+      <hr />
       <div className="flex gap-2">
         <span className="my-auto">Server Address:</span>
         {settings.address}
