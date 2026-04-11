@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Pressable, View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, useFocusEffect } from "expo-router";
+import type { SearchBarCommands } from "react-native-screens";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
@@ -22,6 +23,16 @@ export default function SearchTab() {
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const query = useDebounce(search, 10);
+  const searchBarRef = useRef<SearchBarCommands>(
+    null,
+  ) as React.RefObject<SearchBarCommands>;
+
+  useFocusEffect(
+    useCallback(() => {
+      const id = setTimeout(() => searchBarRef.current?.focus(), 0);
+      return () => clearTimeout(id);
+    }, []),
+  );
 
   const { history, addTerm, clearHistory } = useSearchHistory({
     getItem: (k: string) => AsyncStorage.getItem(k),
@@ -141,6 +152,7 @@ export default function SearchTab() {
       <Stack.Screen
         options={{
           headerSearchBarOptions: {
+            ref: searchBarRef,
             placeholder: "Search bookmarks...",
             onChangeText: (event) => setSearch(event.nativeEvent.text),
             onFocus: () => setIsSearchFocused(true),
