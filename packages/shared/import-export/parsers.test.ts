@@ -581,7 +581,7 @@ describe("parsePocketBookmarkFile", () => {
 
 describe("parseReadwiseReaderBookmarkFile", () => {
   it("parses a Readwise Reader CSV file with multiple items", () => {
-    const csv = `Title,Url,Id,Document Tags,Saved Date,Reading Progress,Location,Seen
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
 "Example Site","https://example.com","id1","['tag1','tag2']","2026-03-14 23:55:23.291000+00:00","0","new","True"
 "Example Tag less Site","https://notags.com","id2",,"2026-03-14 23:55:23.291000+00:00","100","new","True"
 "Archived Site","https://archived.com","id3",['tag1'],"2026-03-14 23:55:23.291000+00:00","100","archive","True"`;
@@ -625,7 +625,7 @@ describe("parseReadwiseReaderBookmarkFile", () => {
     });
   });
   it("filters out feed items", () => {
-    const csv = `Title,Url,Id,Document Tags,Saved Date,Reading Progress,Location,Seen
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
 "Feed Item","https://feed.com","id1",,"2026-03-14 23:55:23.291000+00:00","0","feed","True"
 "Normal Item","https://normal.com","id2",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
 
@@ -637,7 +637,7 @@ describe("parseReadwiseReaderBookmarkFile", () => {
   });
 
   it("handles invalid JSON in DocumentTags", () => {
-    const csv = `Title,Url,Id,Document Tags,Saved Date,Reading Progress,Location,Seen
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
 "Invalid Tags","https://invalid.com","id1","not-json","2026-03-14 23:55:23.291000+00:00","0","new","True"`;
 
     const parsed = parseImportFile("readwise-reader", csv);
@@ -648,7 +648,7 @@ describe("parseReadwiseReaderBookmarkFile", () => {
   });
 
   it("handles empty URL", () => {
-    const csv = `Title,Url,Id,Document Tags,Saved Date,Reading Progress,Location,Seen
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
 "No URL","","id1",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
 
     const parsed = parseImportFile("readwise-reader", csv);
