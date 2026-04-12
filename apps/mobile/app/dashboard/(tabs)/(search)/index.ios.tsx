@@ -152,8 +152,9 @@ export default function SearchTab() {
             onFocus: () => setIsSearchFocused(true),
             onBlur: () => {
               setIsSearchFocused(false);
-              if (search.trim().length > 0) {
-                addTerm(search);
+              const normalized = search.trim();
+              if (normalized.length > 0) {
+                addTerm(normalized);
               }
             },
             onSearchButtonPress: () => handleSearchSubmit(search),
