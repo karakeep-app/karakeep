@@ -2,7 +2,10 @@ import { useCallback, useState } from "react";
 import { Linking, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
-import { ShouldStartLoadRequest, WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import {
+  ShouldStartLoadRequest,
+  WebViewSourceUri,
+} from "react-native-webview/lib/WebViewTypes";
 import * as WebBrowser from "expo-web-browser";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
