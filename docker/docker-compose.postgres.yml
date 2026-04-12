@@ -3,11 +3,6 @@
 #   docker compose -f docker-compose.dev.yml -f docker-compose.postgres.yml up
 #
 # Set DATABASE_PASSWORD in your .env file (or export it) before starting.
-#
-# For docker-compose.dev.yml: workers and prep also need the database vars.
-# Since they read from .env via env_file, add these lines to your .env:
-#   DATABASE_DIALECT=postgresql
-#   DATABASE_URL=postgresql://karakeep:yourpassword@postgres:5432/karakeep
 
 services:
   postgres:
@@ -28,6 +23,22 @@ services:
       retries: 5
 
   web:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_DIALECT: postgresql
+      DATABASE_URL: postgresql://${DATABASE_USER:-karakeep}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-karakeep}
+
+  workers:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_DIALECT: postgresql
+      DATABASE_URL: postgresql://${DATABASE_USER:-karakeep}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-karakeep}
+
+  prep:
     depends_on:
       postgres:
         condition: service_healthy
