@@ -1,9 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { Linking, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
-import { ShouldStartLoadRequest } from "react-native-webview/lib/WebViewTypes";
-import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import { ShouldStartLoadRequest, WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
 import * as WebBrowser from "expo-web-browser";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
@@ -49,19 +48,16 @@ export function BookmarkLinkBrowserPreview({
     throw new Error("Wrong content type rendered");
   }
 
-  const hasLoaded = useRef(false);
-
   const onShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
-      // Allow the initial page load
-      if (!hasLoaded.current) {
-        hasLoaded.current = true;
+      const bookmarkOrigin = new URL(bookmark.content.url).origin;
+      if (request.url.startsWith(bookmarkOrigin)) {
         return true;
       }
       openUrlExternally(request.url);
       return false;
     },
-    [],
+    [bookmark.content.url],
   );
 
   return (

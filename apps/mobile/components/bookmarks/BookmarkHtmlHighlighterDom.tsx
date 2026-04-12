@@ -64,10 +64,7 @@ export default function BookmarkHtmlHighlighterDom({
       if (anchor?.href) {
         const href = anchor.href;
         // Allow in-page anchor links
-        if (
-          href.startsWith("#") ||
-          anchor.getAttribute("href")?.startsWith("#")
-        ) {
+        if (anchor.getAttribute("href")?.startsWith("#")) {
           return;
         }
         // Ignore javascript: URLs
