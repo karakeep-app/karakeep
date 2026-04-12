@@ -19,6 +19,9 @@ import * as sqliteSchema from "./schema.sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Raw database client, stored for graceful shutdown via close().
+let _rawClient: Database.Database | ReturnType<typeof postgres> | null = null;
+
 export const dialect = serverConfig.database.dialect;
 
 // The canonical schema type used for DB typing.
@@ -43,6 +46,7 @@ async function createSqliteDB() {
     : "./db.db";
 
   const sqlite = new SqliteDatabase(databaseURL);
+  _rawClient = sqlite;
 
   if (serverConfig.database.walMode) {
     sqlite.pragma("journal_mode = WAL");
@@ -69,12 +73,22 @@ async function createPostgresDB() {
 
   const connectionString = buildPgConnectionString(serverConfig.database);
 
-  const client = pgClient(connectionString);
   // PostgreSQL COUNT/SUM return bigint (OID 20), which postgres.js delivers
   // as a string by default.  The app expects plain numbers everywhere, so
-  // parse bigint results as Number.  Safe for the counts and sums used in
-  // this application (well within Number.MAX_SAFE_INTEGER).
-  client.options.parsers["20"] = (val: string) => Number(val);
+  // parse bigint results as Number via the documented types API.  Safe for
+  // the counts and sums used in this application (well within
+  // Number.MAX_SAFE_INTEGER).
+  const client = pgClient(connectionString, {
+    types: {
+      bigint: {
+        to: 20,
+        from: [20],
+        serialize: (val: number) => String(val),
+        parse: (val: string) => Number(val),
+      },
+    },
+  });
+  _rawClient = client;
 
   // The codebase reads `.changes` on Drizzle mutation results (delete/update)
   // to get the affected row count.  This is a better-sqlite3 convention.
@@ -89,6 +103,21 @@ async function createPostgresDB() {
       },
       configurable: true,
     });
+  }
+
+  // Verify the .changes patch works on a mutation result.
+  // If postgres.js changes its Result class hierarchy, this will fail
+  // immediately at startup rather than producing silent bugs at runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const verify: any =
+    await client`CREATE TEMP TABLE IF NOT EXISTS _karakeep_verify(x int)`;
+  if (typeof verify.changes !== "number") {
+    throw new Error(
+      "PostgreSQL .changes compatibility patch failed. " +
+        "This likely means the postgres.js driver version is incompatible. " +
+        `Expected numeric .changes, got ${typeof verify.changes}. ` +
+        "Pin postgres to ~3.4.9 or update the patch in drizzle.ts.",
+    );
   }
 
   return drizzle(client, { schema: { ...pgSchema, ...relations } });
@@ -134,4 +163,18 @@ export async function getInMemoryDB(runMigrations: boolean) {
     });
   }
   return db;
+}
+
+/**
+ * Gracefully close the database connection.
+ * Safe to call multiple times; no-ops after the first call.
+ */
+export async function close(): Promise<void> {
+  if (_rawClient === null) return;
+  if (dialect === "postgresql") {
+    await (_rawClient as ReturnType<typeof postgres>).end();
+  } else {
+    (_rawClient as Database.Database).close();
+  }
+  _rawClient = null;
 }
