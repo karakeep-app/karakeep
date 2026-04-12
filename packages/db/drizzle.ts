@@ -1,6 +1,5 @@
 import "dotenv/config";
 
-import { createRequire } from "node:module";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -18,7 +17,6 @@ import * as pgSchema from "./schema.pg";
 import * as relations from "./schema.relations";
 import * as sqliteSchema from "./schema.sqlite";
 
-const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const dialect = serverConfig.database.dialect;
@@ -30,19 +28,21 @@ export const dialect = serverConfig.database.dialect;
 // downstream consumers trying to call query / select / insert etc.
 type FullSchema = typeof sqliteSchema & typeof relations;
 
-function createSqliteDB() {
-  const Database = require("better-sqlite3") as {
-    new (filename: string | Buffer): Database.Database;
-  };
-  const { drizzle } = require("drizzle-orm/better-sqlite3") as {
-    drizzle: typeof sqliteDrizzle;
-  };
+async function createSqliteDB() {
+  const { default: SqliteDatabase } =
+    (await import("better-sqlite3")) as unknown as {
+      default: new (filename: string | Buffer) => Database.Database;
+    };
+  const { drizzle } =
+    (await import("drizzle-orm/better-sqlite3")) as unknown as {
+      drizzle: typeof sqliteDrizzle;
+    };
 
   const databaseURL = serverConfig.dataDir
     ? `${serverConfig.dataDir}/db.db`
     : "./db.db";
 
-  const sqlite = new Database(databaseURL);
+  const sqlite = new SqliteDatabase(databaseURL);
 
   if (serverConfig.database.walMode) {
     sqlite.pragma("journal_mode = WAL");
@@ -59,9 +59,11 @@ function createSqliteDB() {
   return drizzle(sqlite, { schema: { ...sqliteSchema, ...relations } });
 }
 
-function createPostgresDB() {
-  const pgClient = require("postgres") as typeof postgres;
-  const { drizzle } = require("drizzle-orm/postgres-js") as {
+async function createPostgresDB() {
+  const { default: pgClient } = (await import("postgres")) as unknown as {
+    default: typeof postgres;
+  };
+  const { drizzle } = (await import("drizzle-orm/postgres-js")) as unknown as {
     drizzle: typeof pgDrizzle;
   };
 
@@ -85,8 +87,8 @@ function createPostgresDB() {
 // operations used by the application.
 export const db: BetterSQLite3Database<FullSchema> =
   dialect === "postgresql"
-    ? (createPostgresDB() as unknown as BetterSQLite3Database<FullSchema>)
-    : createSqliteDB();
+    ? ((await createPostgresDB()) as unknown as BetterSQLite3Database<FullSchema>)
+    : ((await createSqliteDB()) as unknown as BetterSQLite3Database<FullSchema>);
 export type DB = typeof db;
 
 // Dialect-agnostic transaction type inferred from the db instance
@@ -94,18 +96,21 @@ export type KarakeepDBTransaction = Parameters<
   Parameters<DB["transaction"]>[0]
 >[0];
 
-export function getInMemoryDB(runMigrations: boolean) {
-  const Database = require("better-sqlite3") as {
-    new (filename: string | Buffer): Database.Database;
-  };
-  const { drizzle } = require("drizzle-orm/better-sqlite3") as {
-    drizzle: typeof sqliteDrizzle;
-  };
-  const { migrate } = require("drizzle-orm/better-sqlite3/migrator") as {
-    migrate: typeof sqliteMigrate;
-  };
+export async function getInMemoryDB(runMigrations: boolean) {
+  const { default: SqliteDatabase } =
+    (await import("better-sqlite3")) as unknown as {
+      default: new (filename: string | Buffer) => Database.Database;
+    };
+  const { drizzle } =
+    (await import("drizzle-orm/better-sqlite3")) as unknown as {
+      drizzle: typeof sqliteDrizzle;
+    };
+  const { migrate } =
+    (await import("drizzle-orm/better-sqlite3/migrator")) as unknown as {
+      migrate: typeof sqliteMigrate;
+    };
 
-  const mem = new Database(":memory:");
+  const mem = new SqliteDatabase(":memory:");
   const db = drizzle(mem, {
     schema: { ...sqliteSchema, ...relations },
     logger: false,
