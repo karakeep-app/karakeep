@@ -550,4 +550,13 @@ export const clientConfig = {
 };
 export type ClientConfig = typeof clientConfig;
 
+export function buildPgConnectionString(
+  dbConfig: typeof serverConfig.database,
+): string {
+  return (
+    dbConfig.url ??
+    `postgresql://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`
+  );
+}
+
 export default serverConfig;

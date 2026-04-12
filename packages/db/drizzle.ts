@@ -10,7 +10,7 @@ import type { migrate as sqliteMigrate } from "drizzle-orm/better-sqlite3/migrat
 import type { drizzle as pgDrizzle } from "drizzle-orm/postgres-js";
 import type postgres from "postgres";
 
-import serverConfig from "@karakeep/shared/config";
+import serverConfig, { buildPgConnectionString } from "@karakeep/shared/config";
 
 import { instrumentSqliteDatabase } from "./instrumentation";
 import * as pgSchema from "./schema.pg";
@@ -67,10 +67,7 @@ async function createPostgresDB() {
     drizzle: typeof pgDrizzle;
   };
 
-  const dbConfig = serverConfig.database;
-  const connectionString =
-    dbConfig.url ??
-    `postgresql://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`;
+  const connectionString = buildPgConnectionString(serverConfig.database);
 
   const client = pgClient(connectionString);
   // PostgreSQL COUNT/SUM return bigint (OID 20), which postgres.js delivers
@@ -78,6 +75,22 @@ async function createPostgresDB() {
   // parse bigint results as Number.  Safe for the counts and sums used in
   // this application (well within Number.MAX_SAFE_INTEGER).
   client.options.parsers["20"] = (val: string) => Number(val);
+
+  // The codebase reads `.changes` on Drizzle mutation results (delete/update)
+  // to get the affected row count.  This is a better-sqlite3 convention.
+  // postgres.js uses `.count` instead.  Alias `.changes` on the Result
+  // prototype so all existing call sites work without modification.
+  const probe = await client`SELECT 1`;
+  const ResultProto = Object.getPrototypeOf(probe);
+  if (!("changes" in ResultProto)) {
+    Object.defineProperty(ResultProto, "changes", {
+      get() {
+        return this.count;
+      },
+      configurable: true,
+    });
+  }
+
   return drizzle(client, { schema: { ...pgSchema, ...relations } });
 }
 

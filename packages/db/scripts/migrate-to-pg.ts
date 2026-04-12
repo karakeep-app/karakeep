@@ -25,7 +25,7 @@ import type Database from "better-sqlite3";
 import type { migrate as pgMigrate } from "drizzle-orm/postgres-js/migrator";
 import type postgres from "postgres";
 
-import serverConfig from "@karakeep/shared/config";
+import serverConfig, { buildPgConnectionString } from "@karakeep/shared/config";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -41,10 +41,7 @@ if (serverConfig.database.dialect !== "postgresql") {
   process.exit(1);
 }
 
-const dbConfig = serverConfig.database;
-const connectionString =
-  dbConfig.url ??
-  `postgresql://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`;
+const connectionString = buildPgConnectionString(serverConfig.database);
 
 /** Mask the password in a connection string for safe logging. */
 function maskPassword(connStr: string): string {

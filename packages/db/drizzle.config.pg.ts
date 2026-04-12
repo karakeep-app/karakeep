@@ -2,12 +2,9 @@ import "dotenv/config";
 
 import type { Config } from "drizzle-kit";
 
-import serverConfig from "@karakeep/shared/config";
+import serverConfig, { buildPgConnectionString } from "@karakeep/shared/config";
 
-const dbConfig = serverConfig.database;
-const connectionString =
-  dbConfig.url ??
-  `postgresql://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`;
+const connectionString = buildPgConnectionString(serverConfig.database);
 
 export default {
   dialect: "postgresql",
