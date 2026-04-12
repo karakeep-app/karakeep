@@ -11,7 +11,7 @@ const databaseURL = serverConfig.dataDir
 export default {
   dialect: "sqlite",
   schema: "./schema.ts",
-  out: "./drizzle",
+  out: "./migrations/sqlite",
   dbCredentials: {
     url: databaseURL,
   },

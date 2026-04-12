@@ -32,7 +32,9 @@ export function getInMemoryDB(runMigrations: boolean) {
   const mem = new Database(":memory:");
   const db = drizzle(mem, { schema, logger: false });
   if (runMigrations) {
-    migrate(db, { migrationsFolder: path.resolve(__dirname, "./drizzle") });
+    migrate(db, {
+      migrationsFolder: path.resolve(__dirname, "./migrations/sqlite"),
+    });
   }
   return db;
 }
