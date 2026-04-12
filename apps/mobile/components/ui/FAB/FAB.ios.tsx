@@ -27,6 +27,11 @@ export function FAB({ children }: { children: ReactNode }) {
         <GlassView
           glassEffectStyle="regular"
           colorScheme={colorScheme}
+          tintColor={
+            colorScheme === "dark"
+              ? "rgba(0, 0, 0, 0.4)"
+              : "rgba(255, 255, 255, 0.4)"
+          }
           style={styles.button}
         >
           {children}
