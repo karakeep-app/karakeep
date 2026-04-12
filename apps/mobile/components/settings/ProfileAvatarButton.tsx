@@ -6,8 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const AVATAR_SIZE = 28;
-const MARGIN = 2;
-const CONTAINER_SIZE = AVATAR_SIZE + MARGIN * 2;
+const CONTAINER_SIZE = 44;
 
 export function ProfileAvatarButton() {
   const router = useRouter();
@@ -20,15 +19,12 @@ export function ProfileAvatarButton() {
         e.stopPropagation();
         router.push("/dashboard/settings");
       }}
+      accessibilityLabel="Open profile settings"
+      accessibilityRole="button"
     >
       <View
-        style={{
-          width: CONTAINER_SIZE,
-          height: CONTAINER_SIZE,
-          borderRadius: CONTAINER_SIZE / 2,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className="items-center justify-center rounded-full"
+        style={{ width: CONTAINER_SIZE, height: CONTAINER_SIZE }}
       >
         <Avatar image={data?.image} name={data?.name} size={AVATAR_SIZE} />
       </View>

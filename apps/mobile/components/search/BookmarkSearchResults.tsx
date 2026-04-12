@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
@@ -43,25 +43,31 @@ export default function BookmarkSearchResults({
     queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
   };
 
-  const {
-    data,
-    error,
-    refetch,
-    isPending,
-    isFetching,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery(
-    api.bookmarks.searchBookmarks.infiniteQueryOptions(
-      { text: query },
-      {
-        placeholderData: keepPreviousData,
-        gcTime: 0,
-        initialCursor: null,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      },
-    ),
-  );
+  const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery(
+      api.bookmarks.searchBookmarks.infiniteQueryOptions(
+        { text: query },
+        {
+          enabled: query.trim().length > 0,
+          placeholderData: keepPreviousData,
+          gcTime: 0,
+          initialCursor: null,
+          getNextPageParam: (lastPage) => lastPage.nextCursor,
+        },
+      ),
+    );
+
+  const prevFocusedRef = useRef(isInputFocused);
+  useEffect(() => {
+    if (
+      prevFocusedRef.current &&
+      !isInputFocused &&
+      rawQuery.trim().length > 0
+    ) {
+      addTerm(rawQuery.trim());
+    }
+    prevFocusedRef.current = isInputFocused;
+  }, [isInputFocused]);
 
   const filteredHistory = useMemo(() => {
     if (rawQuery.trim().length === 0) {
@@ -118,7 +124,7 @@ export default function BookmarkSearchResults({
     );
   }
 
-  if (isFetching && query.length > 0) {
+  if (isPending && query.length > 0) {
     return <FullPageSpinner />;
   }
 

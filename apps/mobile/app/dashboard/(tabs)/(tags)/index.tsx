@@ -161,7 +161,9 @@ export default function Tags() {
           !isPending ? (
             <View className="py-8">
               <Text className="text-center text-muted-foreground">
-                No tags yet
+                {searchQuery.trim().length > 0
+                  ? "No tags match your search"
+                  : "No tags yet"}
               </Text>
             </View>
           ) : null

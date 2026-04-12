@@ -50,7 +50,12 @@ export default function InlineSearch({
           />
         </View>
         {rightElement}
-        <Pressable onPress={onClose} className="p-1">
+        <Pressable
+          onPress={onClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+          className="p-1"
+        >
           <TailwindResolver
             className="text-muted-foreground"
             comp={(styles) => (

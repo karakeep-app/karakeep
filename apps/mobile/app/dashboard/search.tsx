@@ -48,7 +48,11 @@ export default function Search() {
           options={{
             headerTitle: () => searchInput,
             headerRight: () => (
-              <Pressable onPress={() => router.back()}>
+              <Pressable
+                onPress={() => router.back()}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
+              >
                 <X size={22} color={colors.foreground} />
               </Pressable>
             ),

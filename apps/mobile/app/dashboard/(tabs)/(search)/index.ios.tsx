@@ -22,7 +22,7 @@ const MAX_DISPLAY_SUGGESTIONS = 5;
 export default function SearchTab() {
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const query = useDebounce(search, 10);
+  const query = useDebounce(search, 300);
   const searchBarRef = useRef<SearchBarCommands>(
     null,
   ) as React.RefObject<SearchBarCommands>;
@@ -47,25 +47,19 @@ export default function SearchTab() {
     queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
   };
 
-  const {
-    data,
-    error,
-    refetch,
-    isPending,
-    isFetching,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery(
-    api.bookmarks.searchBookmarks.infiniteQueryOptions(
-      { text: query },
-      {
-        placeholderData: keepPreviousData,
-        gcTime: 0,
-        initialCursor: null,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      },
-    ),
-  );
+  const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery(
+      api.bookmarks.searchBookmarks.infiniteQueryOptions(
+        { text: query },
+        {
+          enabled: query.trim().length > 0,
+          placeholderData: keepPreviousData,
+          gcTime: 0,
+          initialCursor: null,
+          getNextPageParam: (lastPage) => lastPage.nextCursor,
+        },
+      ),
+    );
 
   const filteredHistory = useMemo(() => {
     if (search.trim().length === 0) {
@@ -130,7 +124,7 @@ export default function SearchTab() {
         />
       );
     }
-    if (showResults && isFetching) {
+    if (showResults && isPending) {
       return <FullPageSpinner />;
     }
     if (showResults && data) {

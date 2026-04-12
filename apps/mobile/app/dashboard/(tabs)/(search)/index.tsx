@@ -1,5 +1,5 @@
 // Android stub — the search tab is hidden on Android.
-// Android uses AndroidSearchBar in the home tab to navigate to /dashboard/search.
+// AndroidSearchBar in the home tab toggles InlineSearch inline (see (home)/index.tsx).
 export default function SearchTab() {
   return null;
 }
