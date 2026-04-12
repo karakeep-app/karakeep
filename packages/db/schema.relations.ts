@@ -26,7 +26,7 @@ import {
   userReadingProgress,
   users,
   webhooksTable,
-} from "./schema";
+} from "./schema.sqlite";
 
 export const userRelations = relations(users, ({ many, one }) => ({
   tags: many(bookmarkTags),
