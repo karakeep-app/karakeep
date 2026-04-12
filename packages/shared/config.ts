@@ -555,7 +555,7 @@ export function buildPgConnectionString(
 ): string {
   return (
     dbConfig.url ??
-    `postgresql://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`
+    `postgresql://${encodeURIComponent(dbConfig.user!)}:${encodeURIComponent(dbConfig.password!)}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`
   );
 }
 
