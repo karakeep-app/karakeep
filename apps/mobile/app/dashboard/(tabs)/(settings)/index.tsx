@@ -209,13 +209,15 @@ export default function Settings() {
           </Text>
           <Switch
             className="shrink-0"
+            disabled={isSettingsLoading}
             value={settings.keepScreenOnWhileReading}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
+              if (isSettingsLoading) return;
               setSettings({
                 ...settings,
                 keepScreenOnWhileReading: value,
-              })
-            }
+              });
+            }}
           />
         </View>
       </View>
