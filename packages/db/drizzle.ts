@@ -105,12 +105,15 @@ async function createPostgresDB() {
     });
   }
 
-  // Verify the .changes patch works on a mutation result.
+  // Verify the .changes patch works on a DML result.  DDL statements
+  // (CREATE TABLE etc.) leave .count as null, so we need an actual
+  // mutation to get a numeric value.
   // If postgres.js changes its Result class hierarchy, this will fail
   // immediately at startup rather than producing silent bugs at runtime.
+  await client`CREATE TEMP TABLE IF NOT EXISTS _karakeep_verify(x int)`;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const verify: any =
-    await client`CREATE TEMP TABLE IF NOT EXISTS _karakeep_verify(x int)`;
+  const verify: any = await client`DELETE FROM _karakeep_verify`;
+  await client`DROP TABLE IF EXISTS _karakeep_verify`;
   if (typeof verify.changes !== "number") {
     throw new Error(
       "PostgreSQL .changes compatibility patch failed. " +
