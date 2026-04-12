@@ -7,7 +7,10 @@ import type Database from "better-sqlite3";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type { drizzle as sqliteDrizzle } from "drizzle-orm/better-sqlite3";
 import type { migrate as sqliteMigrate } from "drizzle-orm/better-sqlite3/migrator";
-import type { drizzle as pgDrizzle } from "drizzle-orm/postgres-js";
+import type {
+  drizzle as pgDrizzle,
+  PostgresJsDatabase,
+} from "drizzle-orm/postgres-js";
 import type postgres from "postgres";
 
 import serverConfig, { buildPgConnectionString } from "@karakeep/shared/config";
@@ -30,6 +33,23 @@ export const dialect = serverConfig.database.dialect;
 // of the active dialect.  This avoids a union DB type that would break
 // downstream consumers trying to call query / select / insert etc.
 type FullSchema = typeof sqliteSchema & typeof relations;
+
+// Compile-time check: verify that PostgresJsDatabase exposes the same
+// core methods as BetterSQLite3Database.  If a Drizzle upgrade breaks
+// structural compatibility, this block will produce a type error.
+// See .claude/specs/2026-04-12-postgresql-review-fixes-design.md for rationale.
+type _PgDB = PostgresJsDatabase<FullSchema>;
+type _AssertHas<T, K extends keyof T> = K;
+type _PgCompat =
+  | _AssertHas<_PgDB, "select">
+  | _AssertHas<_PgDB, "selectDistinct">
+  | _AssertHas<_PgDB, "insert">
+  | _AssertHas<_PgDB, "update">
+  | _AssertHas<_PgDB, "delete">
+  | _AssertHas<_PgDB, "query">
+  | _AssertHas<_PgDB, "transaction">
+  | _AssertHas<_PgDB, "$count">;
+type _Used = _PgCompat; // suppress unused warning
 
 async function createSqliteDB() {
   const { default: SqliteDatabase } =
@@ -126,10 +146,15 @@ async function createPostgresDB() {
   return drizzle(client, { schema: { ...pgSchema, ...relations } });
 }
 
-// Use BetterSQLite3Database as the canonical DB type so downstream consumers
-// see a single concrete type rather than a union.  At runtime the PG drizzle
-// instance is structurally compatible for all query / select / insert
-// operations used by the application.
+// Drizzle has no shared base type between SQLite and PG — they are separate
+// type hierarchies.  A union type would require narrowing at every call site
+// (~250 usages across 47 files), and a wrapper class can't properly type the
+// dialect-specific builder return values.
+//
+// Instead we use BetterSQLite3Database as the canonical compile-time type and
+// cast the PG instance into it.  This works because the query builder APIs are
+// structurally compatible at runtime.  The _PgCompat type assertion above
+// catches Drizzle upgrades that remove any of the methods we depend on.
 export const db: BetterSQLite3Database<FullSchema> =
   dialect === "postgresql"
     ? ((await createPostgresDB()) as unknown as BetterSQLite3Database<FullSchema>)
