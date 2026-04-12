@@ -8,12 +8,15 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "migrate": "tsx migrate.ts",
-    "generate": "drizzle-kit generate",
+    "generate:sqlite": "drizzle-kit generate --config=drizzle.config.sqlite.ts",
+    "generate:pg": "drizzle-kit generate --config=drizzle.config.pg.ts",
+    "generate": "pnpm generate:sqlite && pnpm generate:pg",
     "studio": "drizzle-kit studio",
     "format": "oxfmt --check .",
     "format:fix": "oxfmt .",
     "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix"
+    "lint:fix": "oxlint . --fix",
+    "migrate-to-pg": "tsx scripts/migrate-to-pg.ts"
   },
   "dependencies": {
     "@auth/core": "^0.27.0",
