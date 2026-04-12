@@ -48,6 +48,29 @@ export default function BookmarkHtmlHighlighterDom({
   }) => void;
   dom?: import("expo/dom").DOMProps;
 }) {
+  // Strip href from links so the browser treats them as regular selectable text
+  // instead of activating native link gestures (iOS preview, Android drag).
+  // The URL is preserved in data-href for our click handler.
+  useEffect(() => {
+    const stripHrefs = () => {
+      document.querySelectorAll("a[href]").forEach((a) => {
+        const anchor = a as HTMLAnchorElement;
+        if (!anchor.dataset.href) {
+          anchor.dataset.href = anchor.getAttribute("href")!;
+          anchor.removeAttribute("href");
+        }
+      });
+    };
+
+    stripHrefs();
+
+    // Re-strip if the DOM changes (e.g. highlight effects re-render content)
+    const observer = new MutationObserver(stripHrefs);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   // Intercept link and image clicks to open them externally
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -59,12 +82,16 @@ export default function BookmarkHtmlHighlighterDom({
         return;
       }
 
-      // Check for link clicks
+      // Check for link clicks (href is stored in data-href)
       const anchor = target.closest("a");
-      if (anchor?.href) {
-        const href = anchor.href;
+      const href = anchor?.dataset.href;
+      if (href) {
         // Allow in-page anchor links
-        if (anchor.getAttribute("href")?.startsWith("#")) {
+        if (href.startsWith("#")) {
+          const targetEl = document.querySelector(href);
+          if (targetEl) {
+            targetEl.scrollIntoView();
+          }
           return;
         }
         // Ignore javascript: URLs
@@ -86,8 +113,8 @@ export default function BookmarkHtmlHighlighterDom({
       }
     };
 
-    document.addEventListener("click", handleClick, true);
-    return () => document.removeEventListener("click", handleClick, true);
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
   }, [onLinkPress, onImagePress]);
   return (
     <div style={{ maxWidth: "100vw", overflowX: "hidden" }}>
