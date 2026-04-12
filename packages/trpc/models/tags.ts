@@ -418,7 +418,7 @@ export class Tag {
           eq(bookmarkTags.userId, this.ctx.user.id),
         ),
       )
-      .groupBy(tagsOnBookmarks.attachedBy);
+      .groupBy(bookmarkTags.id, bookmarkTags.name, tagsOnBookmarks.attachedBy);
 
     if (res.length === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
