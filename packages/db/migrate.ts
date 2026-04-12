@@ -1,7 +1,7 @@
 import type { migrate as sqliteMigrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { migrate as pgMigrate } from "drizzle-orm/postgres-js/migrator";
 
-import { db, dialect } from "./drizzle";
+import { close, db, dialect } from "./drizzle";
 
 if (dialect === "postgresql") {
   const { migrate } =
@@ -12,8 +12,9 @@ if (dialect === "postgresql") {
   await migrate(db as unknown as Parameters<typeof migrate>[0], {
     migrationsFolder: "./migrations/pg",
   });
-  // postgres.js keeps the event loop alive; exit explicitly after migration.
-  process.exit(0);
+  // Close the connection so the process can exit naturally.
+  // (postgres.js keeps the event loop alive if connections remain open.)
+  await close();
 } else {
   const { migrate } =
     (await import("drizzle-orm/better-sqlite3/migrator")) as unknown as {
@@ -22,4 +23,5 @@ if (dialect === "postgresql") {
   migrate(db, {
     migrationsFolder: "./migrations/sqlite",
   });
+  await close();
 }
