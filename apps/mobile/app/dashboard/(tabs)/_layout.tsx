@@ -15,7 +15,10 @@ export default function TabLayout() {
   return (
     <NativeTabs
       backgroundColor={colors.grey6}
-      minimizeBehavior="onScrollDown"
+      minimizeBehavior={Platform.select({
+        ios: "never",
+        default: "onScrollDown",
+      })}
       labelVisibilityMode={Platform.select({ android: "labeled" })}
     >
       <NativeTabs.Trigger name="(home)">
