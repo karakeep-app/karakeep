@@ -71,6 +71,11 @@ function createPostgresDB() {
     `postgresql://${dbConfig.user}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`;
 
   const client = pgClient(connectionString);
+  // PostgreSQL COUNT/SUM return bigint (OID 20), which postgres.js delivers
+  // as a string by default.  The app expects plain numbers everywhere, so
+  // parse bigint results as Number.  Safe for the counts and sums used in
+  // this application (well within Number.MAX_SAFE_INTEGER).
+  client.options.parsers["20"] = (val: string) => Number(val);
   return drizzle(client, { schema: { ...pgSchema, ...relations } });
 }
 

@@ -6,6 +6,7 @@ services:
     volumes:
       - data:/data
       - ..:/app
+      - node_modules:/app/node_modules
     ports:
       - 3000:3000
     env_file:
@@ -39,6 +40,7 @@ services:
     volumes:
       - data:/data
       - ..:/app
+      - node_modules:/app/node_modules
     env_file:
       - .env
     working_dir: /app
@@ -64,6 +66,7 @@ services:
     volumes:
       - data:/data
       - ..:/app
+      - node_modules:/app/node_modules
     command:
      - /bin/sh
      - -c
@@ -72,3 +75,4 @@ services:
 volumes:
   meilisearch:
   data:
+  node_modules:

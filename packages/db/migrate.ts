@@ -15,6 +15,8 @@ if (dialect === "postgresql") {
   await migrate(db as unknown as Parameters<typeof migrate>[0], {
     migrationsFolder: "./migrations/pg",
   });
+  // postgres.js keeps the event loop alive; exit explicitly after migration.
+  process.exit(0);
 } else {
   const { migrate } = require("drizzle-orm/better-sqlite3/migrator") as {
     migrate: typeof sqliteMigrate;

@@ -42,14 +42,50 @@ If both `DATABASE_URL` and individual fields are set, `DATABASE_URL` takes prece
 
 ## Docker
 
-Pass the environment variables to your container. No changes to `docker-compose.yml` are needed — Karakeep connects to your existing PostgreSQL instance:
+### Using the included PostgreSQL overlay
+
+The easiest way to add PostgreSQL to any Docker Compose setup is with the included overlay file. Set your database password in `.env`:
+
+```
+DATABASE_PASSWORD=changeme
+```
+
+Then combine the overlay with whichever base compose file you use:
+
+```bash
+# Production
+docker compose -f docker-compose.yml -f docker-compose.postgres.yml up
+
+# Development
+docker compose -f docker-compose.dev.yml -f docker-compose.postgres.yml up
+
+# Local build
+docker compose -f docker-compose.build.yml -f docker-compose.postgres.yml up
+```
+
+The overlay adds a PostgreSQL 16 container and configures the app to connect to it automatically. You can optionally set `DATABASE_USER` and `DATABASE_NAME` in `.env` (both default to `karakeep`).
+
+:::note Development compose
+When using `docker-compose.dev.yml`, the `workers` and `prep` services also need database configuration. Since they read from `.env` via `env_file`, add these lines to your `.env`:
+
+```
+DATABASE_DIALECT=postgresql
+DATABASE_URL=postgresql://karakeep:changeme@postgres:5432/karakeep
+```
+
+Replace `changeme` with the same password you set in `DATABASE_PASSWORD`.
+:::
+
+### Connecting to an external PostgreSQL
+
+To connect to a managed or self-hosted PostgreSQL instance instead, pass the environment variables directly — no overlay needed:
 
 ```yaml
 services:
   web:
     environment:
-      - DATABASE_DIALECT=postgresql
-      - DATABASE_URL=postgresql://karakeep:yourpassword@db.example.com:5432/karakeep
+      DATABASE_DIALECT: postgresql
+      DATABASE_URL: postgresql://karakeep:yourpassword@db.example.com:5432/karakeep
 ```
 
 ## Migrating from SQLite
