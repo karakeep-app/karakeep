@@ -179,7 +179,7 @@ const TABLE_SPECS: TableSpec[] = [
   },
   {
     table: "listCollaborators",
-    timestampCols: ["addedAt"],
+    timestampCols: ["createdAt"],
   },
   {
     table: "listInvitations",
