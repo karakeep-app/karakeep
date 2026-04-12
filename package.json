@@ -43,8 +43,7 @@
     ],
     "patchedDependencies": {
       "xcode@3.0.1": "patches/xcode@3.0.1.patch",
-      "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch",
-      "react-native-keyboard-controller@1.21.4": "patches/react-native-keyboard-controller@1.21.4.patch"
+      "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch"
     }
   }
 }

@@ -66,7 +66,7 @@
     "react-native-css-interop": "0.2.1",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-image-viewing": "^0.2.2",
-    "react-native-keyboard-controller": "^1.21.0",
+    "react-native-keyboard-controller": "^1.21.5",
     "react-native-markdown-display": "^7.0.2",
     "react-native-pdf": "7.0.3",
     "react-native-reanimated": "~4.1.1",
