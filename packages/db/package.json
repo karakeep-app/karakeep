@@ -24,6 +24,7 @@
     "dotenv": "^16.4.1",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9",
     "tsx": "^4.8.1"
   },
   "devDependencies": {
