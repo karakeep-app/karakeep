@@ -57,7 +57,7 @@ COPY . .
 # Build the db migration script
 RUN cd packages/db && \
     pnpm exec ncc build migrate.ts -o /db_migrations && \
-    cp -R drizzle /db_migrations
+    cp -R migrations /db_migrations
 
 
 # Compile the web app
