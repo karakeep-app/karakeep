@@ -16,7 +16,8 @@
     "format:fix": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "migrate-to-pg": "tsx scripts/migrate-to-pg.ts"
+    "migrate-to-pg": "tsx scripts/migrate-to-pg.ts",
+    "test": "vitest"
   },
   "dependencies": {
     "@auth/core": "^0.27.0",
@@ -33,6 +34,8 @@
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/better-sqlite3": "^7.6.11",
-    "@vercel/ncc": "^0.38.4"
+    "@vercel/ncc": "^0.38.4",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.4"
   }
 }
