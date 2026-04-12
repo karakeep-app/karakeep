@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import { Platform, PlatformColor, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { router, Stack } from "expo-router";
@@ -10,7 +10,6 @@ import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
 import { FAB } from "@/components/ui/FAB";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
-import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus } from "lucide-react-native";
@@ -106,7 +105,6 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
 }
 
 export default function Home() {
-  const { colors } = useColorScheme();
   const [searchActive, setSearchActive] = useState(false);
   const { onPressAction, actions } = useNewBookmarkActions(() =>
     router.push("/dashboard/bookmarks/new"),
@@ -143,10 +141,7 @@ export default function Home() {
           <View className="h-full w-full items-center justify-center">
             <Plus
               size={24}
-              color={Platform.select({
-                ios: colors.foreground,
-                default: "white",
-              })}
+              color={Platform.OS === "ios" ? PlatformColor("label") : "white"}
             />
           </View>
         </MenuView>

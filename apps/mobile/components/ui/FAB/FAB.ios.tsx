@@ -4,14 +4,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
 import { isIOS26 } from "@/lib/ios";
-import { useColorScheme } from "@/lib/useColorScheme";
 
 const shouldUseGlass = isIOS26 && isGlassEffectAPIAvailable();
 const SIZE = 62;
 
 export function FAB({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
-  const { colorScheme } = useColorScheme();
 
   return (
     <View
@@ -24,28 +22,11 @@ export function FAB({ children }: { children: ReactNode }) {
       ]}
     >
       {shouldUseGlass ? (
-        <GlassView
-          glassEffectStyle="regular"
-          colorScheme={colorScheme}
-          tintColor={
-            colorScheme === "dark"
-              ? "rgba(0, 0, 0, 0.4)"
-              : "rgba(255, 255, 255, 0.4)"
-          }
-          style={styles.button}
-        >
+        <GlassView glassEffectStyle="regular" style={styles.button}>
           {children}
         </GlassView>
       ) : (
-        <BlurView
-          tint={
-            colorScheme === "dark"
-              ? "systemMaterialDark"
-              : "systemMaterialLight"
-          }
-          intensity={80}
-          style={styles.button}
-        >
+        <BlurView tint="systemMaterial" intensity={80} style={styles.button}>
           {children}
         </BlurView>
       )}

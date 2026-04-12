@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Platform, Pressable, View } from "react-native";
+import {
+  FlatList,
+  Platform,
+  PlatformColor,
+  Pressable,
+  View,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
 import FullPageError from "@/components/FullPageError";
@@ -281,10 +287,7 @@ export default function Lists() {
         >
           <Plus
             size={24}
-            color={Platform.select({
-              ios: colors.foreground,
-              default: "white",
-            })}
+            color={Platform.OS === "ios" ? PlatformColor("label") : "white"}
           />
         </Pressable>
       </FAB>
