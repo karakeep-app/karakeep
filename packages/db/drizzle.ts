@@ -13,7 +13,7 @@ import type postgres from "postgres";
 
 import serverConfig from "@karakeep/shared/config";
 
-import { instrumentDatabase } from "./instrumentation";
+import { instrumentSqliteDatabase } from "./instrumentation";
 import * as pgSchema from "./schema.pg";
 import * as relations from "./schema.relations";
 import * as sqliteSchema from "./schema.sqlite";
@@ -54,7 +54,7 @@ function createSqliteDB() {
   sqlite.pragma("foreign_keys = ON");
   sqlite.pragma("temp_store = MEMORY");
 
-  instrumentDatabase(sqlite);
+  instrumentSqliteDatabase(sqlite);
 
   return drizzle(sqlite, { schema: { ...sqliteSchema, ...relations } });
 }

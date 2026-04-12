@@ -17,7 +17,7 @@ function getOperationType(sql: string): string {
  * The instrumentation is a no-op when no OTel TracerProvider is registered
  * (i.e. when tracing is disabled), following standard OTel conventions.
  */
-export function instrumentDatabase(
+export function instrumentSqliteDatabase(
   sqlite: Database.Database,
 ): Database.Database {
   const tracer = trace.getTracer(TRACER_NAME);
