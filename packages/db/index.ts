@@ -7,9 +7,10 @@ import * as schema from "./schema";
 export { db } from "./drizzle";
 export type { DB } from "./drizzle";
 export * as schema from "./schema";
-export { SqliteError } from "better-sqlite3";
+export { isUniqueConstraintError } from "./errors";
 
-// This is exported here to avoid leaking better-sqlite types outside of this package.
+// Temporarily keep the SQLite-specific transaction type.
+// This will be replaced with a dialect-agnostic type in Task 8.
 export type KarakeepDBTransaction = SQLiteTransaction<
   "sync",
   Database.RunResult,

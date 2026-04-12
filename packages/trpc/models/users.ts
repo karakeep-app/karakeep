@@ -4,7 +4,7 @@ import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
-import { SqliteError } from "@karakeep/db";
+import { isUniqueConstraintError } from "@karakeep/db";
 import {
   assets,
   AssetTypes,
@@ -127,13 +127,11 @@ export class User {
 
         return result;
       } catch (e) {
-        if (e instanceof SqliteError) {
-          if (e.code === "SQLITE_CONSTRAINT_UNIQUE") {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: "Email is already taken",
-            });
-          }
+        if (isUniqueConstraintError(e)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Email is already taken",
+          });
         }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
