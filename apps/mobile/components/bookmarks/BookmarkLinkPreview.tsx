@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Pressable, TouchableOpacity, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { Linking, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
+import { ShouldStartLoadRequest } from "react-native-webview/lib/WebViewTypes";
 import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import * as WebBrowser from "expo-web-browser";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
@@ -25,6 +27,19 @@ import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
 
+function openUrlExternally(url: string) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    void WebBrowser.openBrowserAsync(url);
+  } else if (
+    url.startsWith("mailto:") ||
+    url.startsWith("tel:") ||
+    url.startsWith("sms:")
+  ) {
+    void Linking.openURL(url);
+  }
+  // Ignore javascript: and other schemes
+}
+
 export function BookmarkLinkBrowserPreview({
   bookmark,
 }: {
@@ -34,11 +49,28 @@ export function BookmarkLinkBrowserPreview({
     throw new Error("Wrong content type rendered");
   }
 
+  const hasLoaded = useRef(false);
+
+  const onShouldStartLoadWithRequest = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      // Allow the initial page load
+      if (!hasLoaded.current) {
+        hasLoaded.current = true;
+        return true;
+      }
+      openUrlExternally(request.url);
+      return false;
+    },
+    [],
+  );
+
   return (
     <WebView
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
       source={{ uri: bookmark.content.url }}
+      setSupportMultipleWindows={false}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
     />
   );
 }
@@ -112,6 +144,16 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+  const handleLinkPress = useCallback((url: string) => {
+    openUrlExternally(url);
+  }, []);
+
+  const handleImagePress = useCallback((src: string) => {
+    setViewingImage(src);
+  }, []);
+
   if (isLoading) {
     return <FullPageSpinner />;
   }
@@ -135,6 +177,13 @@ export function BookmarkLinkReaderPreview({
 
   return (
     <View className="flex-1 bg-background">
+      <ImageView
+        visible={!!viewingImage}
+        imageIndex={0}
+        onRequestClose={() => setViewingImage(null)}
+        doubleTapToZoomEnabled={true}
+        images={viewingImage ? [{ uri: viewingImage }] : []}
+      />
       {showBanner && (
         <View className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2">
           <BookOpen size={16} className="text-muted-foreground" />
@@ -165,6 +214,8 @@ export function BookmarkLinkReaderPreview({
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
         onScrollPositionChange={onScrollPositionChange}
+        onLinkPress={handleLinkPress}
+        onImagePress={handleImagePress}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,
@@ -204,6 +255,22 @@ export function BookmarkLinkArchivePreview({
 
   const assetSource = useAssetUrl(asset?.id ?? "");
 
+  const originUri = assetSource.uri;
+  const onShouldStartLoadWithRequest = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      // Allow loading the archive asset itself
+      if (
+        originUri &&
+        (request.url === originUri || request.url.startsWith(originUri))
+      ) {
+        return true;
+      }
+      openUrlExternally(request.url);
+      return false;
+    },
+    [originUri],
+  );
+
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
@@ -216,12 +283,15 @@ export function BookmarkLinkArchivePreview({
     uri: assetSource.uri!,
     headers: assetSource.headers,
   };
+
   return (
     <WebView
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
       source={webViewUri}
       decelerationRate={0.998}
+      setSupportMultipleWindows={false}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
     />
   );
 }
