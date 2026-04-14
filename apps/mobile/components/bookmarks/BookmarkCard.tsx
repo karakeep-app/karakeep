@@ -104,12 +104,45 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
   const handleShare = async () => {
     try {
       switch (bookmark.content.type) {
-        case BookmarkTypes.LINK:
-          await Share.share({
-            url: bookmark.content.url,
-            message: bookmark.content.url,
-          });
+        case BookmarkTypes.LINK: {
+          const pdfAsset = bookmark.assets.find((a) => a.assetType === "pdf");
+          if (pdfAsset && (await Sharing.isAvailableAsync())) {
+            const assetUrl = `${settings.address}/api/assets/${pdfAsset.id}`;
+            const fileName =
+              pdfAsset.fileName ||
+              `${bookmark.title || bookmark.content.title || "document"}.pdf`;
+            const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+            const downloadResult = await FileSystem.downloadAsync(
+              assetUrl,
+              fileUri,
+              {
+                headers: buildApiHeaders(
+                  settings.apiKey,
+                  settings.customHeaders,
+                ),
+              },
+            );
+
+            if (downloadResult.status === 200) {
+              await Sharing.shareAsync(downloadResult.uri, {
+                mimeType: "application/pdf",
+                UTI: "com.adobe.pdf",
+              });
+              await FileSystem.deleteAsync(downloadResult.uri, {
+                idempotent: true,
+              });
+            } else {
+              throw new Error("Failed to download PDF");
+            }
+          } else {
+            await Share.share({
+              url: bookmark.content.url,
+              message: bookmark.content.url,
+            });
+          }
           break;
+        }
 
         case BookmarkTypes.TEXT:
           await Clipboard.setStringAsync(bookmark.content.text);
