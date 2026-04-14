@@ -32,7 +32,7 @@ export const usersAppRouter = router({
         maxRequests: 3,
       }),
     )
-    .input(zSignUpSchema.extend({ redirectUrl: z.string().optional() }))
+    .input(zSignUpSchema.safeExtend({ redirectUrl: z.string().optional() }))
     .output(
       z.object({
         id: z.string(),

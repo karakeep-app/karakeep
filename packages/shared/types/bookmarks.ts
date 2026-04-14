@@ -160,7 +160,10 @@ export const zNewBookmarkRequestSchema = z.intersection(
     favourited: z.boolean().optional(),
     note: z.string().optional(),
     summary: z.string().optional(),
-    createdAt: z.coerce.date().optional(),
+    createdAt: z.coerce
+      .date()
+      .optional()
+      .meta({ type: "string", format: "date-time" }),
     // A mechanism to prioritize crawling of bookmarks depending on whether
     // they were created by a user interaction or by a bulk import.
     crawlPriority: z.enum(["low", "normal"]).optional(),
@@ -227,7 +230,10 @@ export const zUpdateBookmarksRequestSchema = z.object({
   summary: z.string().nullish(),
   note: z.string().optional(),
   title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
-  createdAt: z.coerce.date().optional(),
+  createdAt: z.coerce
+    .date()
+    .optional()
+    .meta({ type: "string", format: "date-time" }),
   // Link specific fields (optional)
   url: z.string().url().optional(),
   description: z.string().nullish(),

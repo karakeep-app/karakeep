@@ -1,7 +1,4 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import * as z from "zod";
 
 import { zSortOrder } from "@karakeep/shared/types/bookmarks";
@@ -22,7 +19,6 @@ import {
 import { TagSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 export const TagIdSchema = registry.registerParameter(
   "TagId",

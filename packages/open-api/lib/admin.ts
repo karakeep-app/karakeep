@@ -1,7 +1,4 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import * as z from "zod";
 
 import { updateUserSchema } from "@karakeep/shared/types/admin";
@@ -10,7 +7,6 @@ import { BearerAuth } from "./common";
 import { ErrorSchema, UnauthorizedResponse } from "./errors";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 const updateUserRequestSchema = updateUserSchema.omit({ userId: true });
 

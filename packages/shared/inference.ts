@@ -281,8 +281,7 @@ class OllamaInferenceClient implements InferenceClient {
       model: model,
       format: mapInferenceOutputSchema(
         {
-          // zod-to-json-schema still exposes Zod 3-era types even though it supports Zod 4.
-          // The runtime call is valid; this suppression is for the stale declaration shape only.
+          // Use Zod 4's native JSON Schema emitter for Ollama structured output.
           structured: optsWithDefaults.schema
             ? z.toJSONSchema(optsWithDefaults.schema)
             : undefined,
