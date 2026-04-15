@@ -665,4 +665,21 @@ describe("parseReadwiseReaderBookmarkFile", () => {
       "CSV file contains an invalid Readwise Reader bookmark file",
     );
   });
+
+  it("handles complex tag formatting in Readwise Reader CSV", () => {
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
+"Single Tag","https://single.com","id1",['test'],"2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Complex Tags","https://complex.com","id2","['test', 'test2', ""it's crazy""]","2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Escaped Quotes","https://escaped.com","id3","['tag\\'s', 'another']","2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Empty Tags","https://empty.com","id4",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
+
+    const parsed = parseImportFile("readwise-reader", csv);
+    const result = parsed.bookmarks;
+
+    expect(result).toHaveLength(4);
+    expect(result[0].tags).toEqual(["test"]);
+    expect(result[1].tags).toEqual(["test", "test2", "it's crazy"]);
+    expect(result[2].tags).toEqual(["tag's", "another"]);
+    expect(result[3].tags).toEqual([]);
+  });
 });
