@@ -515,8 +515,12 @@ function parseReadwiseReaderBookmarkFile(
     skip_empty_lines: true,
     cast: function (value, context) {
       //Replace for json parsing; original comes with \' instead of \" so it's not json parsable.
-      if (context.index === 3) {
-        return value.replace(/'/g, '"');
+      if (context.column === "Document tags") {
+        return value
+          .replace(/\\'/g, "'")
+          .replace(/(^|\[|,)\s*'/g, '$1"')
+          .replace(/'\s*(]|,|$)/g, '"$1')
+          .replace(/""/g, '"');
       }
       return value;
     },
