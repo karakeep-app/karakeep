@@ -330,9 +330,7 @@ export function ImportExportRow() {
         </ImportCard>
         <ImportCard
           text="OneTab"
-          description={t(
-            "settings.import.import_bookmarks_from_onetab_export",
-          )}
+          description={t("settings.import.import_bookmarks_from_onetab_export")}
         >
           <FilePickerButton
             size={"sm"}
