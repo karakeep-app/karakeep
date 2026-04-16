@@ -287,8 +287,7 @@ export default function ImportSessionDetail({
     stats.status === "completed" ||
     stats.status === "failed" ||
     stats.status === "paused";
-  const canFinalize =
-    stats.status === "staging" && stats.totalBookmarks > 0;
+  const canFinalize = stats.status === "staging" && stats.totalBookmarks > 0;
   const canPause = stats.status === "pending" || stats.status === "running";
   const canResume = stats.status === "paused";
 
