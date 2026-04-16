@@ -19,6 +19,7 @@ import {
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  buildCrawlIdempotencyKey,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
   OpenAIQueue,
@@ -640,7 +641,7 @@ export const bookmarksAppRouter = router({
       await LowPriorityCrawlerQueue.enqueue(payload, {
         groupId: ctx.user.id,
         priority: QueuePriority.Low,
-        idempotencyKey: `crawl:${JSON.stringify(payload, Object.keys(payload).sort())}`,
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
     }),
   updateReadingProgress: authedProcedure

@@ -7,6 +7,7 @@ import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
+  buildCrawlIdempotencyKey,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -234,7 +235,7 @@ export const adminAppRouter = router({
           };
           return LowPriorityCrawlerQueue.enqueue(payload, {
             priority: QueuePriority.Low,
-            idempotencyKey: `crawl:${JSON.stringify(payload, Object.keys(payload).sort())}`,
+            idempotencyKey: buildCrawlIdempotencyKey(payload),
           });
         }),
       );
@@ -669,16 +670,12 @@ export const adminAppRouter = router({
         });
       }
 
-      await LowPriorityCrawlerQueue.enqueue(
-        {
-          bookmarkId: input.bookmarkId,
-        },
-        {
-          priority: QueuePriority.Low,
-          groupId: "admin",
-          idempotencyKey: `crawl:${input.bookmarkId}`,
-        },
-      );
+      const payload = { bookmarkId: input.bookmarkId };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        priority: QueuePriority.Low,
+        groupId: "admin",
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
     }),
   adminReindexBookmark: adminProcedure
     .input(z.object({ bookmarkId: z.string() }))
