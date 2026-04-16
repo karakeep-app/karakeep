@@ -11,12 +11,11 @@
     "js-tiktoken": "^1.0.20",
     "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
-    "openai": "^5.23.2",
+    "openai": "^6.34.0",
     "typescript-parsec": "^0.3.4",
     "undici": "^6.23.0",
     "winston": "^3.11.0",
-    "zod": "^3.24.4",
-    "zod-to-json-schema": "^3.24.3"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",

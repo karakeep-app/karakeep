@@ -1,8 +1,32 @@
 ---
 name: karakeep
-description: how to use karakeep (the bookmark manager) and interact with it programmatically
+description: Official skill for how to use karakeep (the bookmark manager) and interact with it programmatically.
 metadata:
   tags: bookmarks, bookmark manager, 2nd brain, productivity
+  openclaw:
+    envVars:
+      - name: KARAKEEP_API_KEY
+        required: true
+        description: The API key for your Karakeep instance
+      - name: KARAKEEP_SERVER_ADDR
+        required: false
+        description: The server address for your Karakeep instance.
+    requires:
+      env:
+        - KARAKEEP_API_KEY
+        - KARAKEEP_SERVER_ADDR
+      bins:
+        - karakeep
+    homepage: https://karakeep.app
+    links:
+      repository: https://github.com/karakeep-app/karakeep
+      documentation: https://docs.karakeep.app
+    emoji: 📦
+    cliHelp: karakeep --help
+    install:
+      - kind: node
+        package: "@karakeep/cli"
+        bins: [karakeep]
 ---
 
 # Karakeep

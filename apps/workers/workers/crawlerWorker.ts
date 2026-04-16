@@ -475,7 +475,7 @@ async function loadCookiesFromFile(): Promise<void> {
   } catch (error) {
     logger.error("Failed to read or parse cookies file:", error);
     if (error instanceof z.ZodError) {
-      logger.error("[Crawler] Invalid cookie file format:", error.errors);
+      logger.error("[Crawler] Invalid cookie file format:", error.issues);
     } else {
       logger.error("[Crawler] Failed to read or parse cookies file:", error);
     }

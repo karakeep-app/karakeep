@@ -527,6 +527,45 @@ describe("parseKarakeepBookmarkFile", () => {
   });
 });
 
+describe("parseInstapaperBookmarkFile", () => {
+  it("maps Archive folder to archived flag, Unread to no paths, and custom folders to paths", () => {
+    const csv = [
+      "URL,Title,Selection,Folder,Timestamp,Tags",
+      "https://archived.example,Archived Article,,Archive,1700000000,[]",
+      "https://unread.example,Unread Article,,Unread,1700000001,[]",
+      "https://custom.example,Custom Article,,Reading List,1700000002,[]",
+    ].join("\n");
+
+    const result = parseImportFile("instapaper", csv);
+
+    expect(result.bookmarks).toHaveLength(3);
+
+    // Archive folder -> archived: true, no paths
+    expect(result.bookmarks[0]).toMatchObject({
+      title: "Archived Article",
+      content: { type: "link", url: "https://archived.example" },
+      archived: true,
+      paths: [],
+    });
+
+    // Unread folder -> not archived, no paths
+    expect(result.bookmarks[1]).toMatchObject({
+      title: "Unread Article",
+      content: { type: "link", url: "https://unread.example" },
+      archived: false,
+      paths: [],
+    });
+
+    // Custom folder -> not archived, folder as single-element path
+    expect(result.bookmarks[2]).toMatchObject({
+      title: "Custom Article",
+      content: { type: "link", url: "https://custom.example" },
+      archived: false,
+      paths: [["Reading List"]],
+    });
+  });
+});
+
 describe("parsePocketBookmarkFile", () => {
   it("sets archived true for items with status archive", () => {
     const csv = `title,url,time_added,tags,status\nTest,https://example.com,1234567890,,archive`;
@@ -537,5 +576,159 @@ describe("parsePocketBookmarkFile", () => {
     const csv = `title,url,time_added,tags,status\nTest,https://example.com,1234567890,,unread`;
     const result = parseImportFile("pocket", csv);
     expect(result.bookmarks[0].archived).toBeFalsy();
+  });
+});
+
+describe("parseReadwiseReaderBookmarkFile", () => {
+  it("parses a Readwise Reader CSV file with multiple items", () => {
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
+"Example Site","https://example.com","id1","['tag1','tag2']","2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Example Tag less Site","https://notags.com","id2",,"2026-03-14 23:55:23.291000+00:00","100","new","True"
+"Archived Site","https://archived.com","id3",['tag1'],"2026-03-14 23:55:23.291000+00:00","100","archive","True"`;
+
+    const parsed = parseImportFile("readwise-reader", csv);
+    const result = parsed.bookmarks;
+
+    expect(result).toHaveLength(3);
+
+    expect(result[0]).toMatchObject({
+      title: "Example Site",
+      content: {
+        type: "link",
+        url: "https://example.com",
+      },
+      tags: ["tag1", "tag2"],
+      addDate: 1773532523.291,
+      archived: false,
+    });
+
+    expect(result[1]).toMatchObject({
+      title: "Example Tag less Site",
+      content: {
+        type: "link",
+        url: "https://notags.com",
+      },
+      tags: [],
+      addDate: 1773532523.291,
+      archived: false,
+    });
+
+    expect(result[2]).toMatchObject({
+      title: "Archived Site",
+      content: {
+        type: "link",
+        url: "https://archived.com",
+      },
+      tags: ["tag1"],
+      addDate: 1773532523.291,
+      archived: true,
+    });
+  });
+  it("filters out feed items", () => {
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
+"Feed Item","https://feed.com","id1",,"2026-03-14 23:55:23.291000+00:00","0","feed","True"
+"Normal Item","https://normal.com","id2",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
+
+    const parsed = parseImportFile("readwise-reader", csv);
+    const result = parsed.bookmarks;
+
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe("Normal Item");
+  });
+
+  it("handles invalid JSON in DocumentTags", () => {
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
+"Invalid Tags","https://invalid.com","id1","not-json","2026-03-14 23:55:23.291000+00:00","0","new","True"`;
+
+    const parsed = parseImportFile("readwise-reader", csv);
+    const result = parsed.bookmarks;
+
+    expect(result).toHaveLength(1);
+    expect(result[0].tags).toEqual([]);
+  });
+
+  it("handles empty URL", () => {
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
+"No URL","","id1",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
+
+    const parsed = parseImportFile("readwise-reader", csv);
+    const result = parsed.bookmarks;
+
+    expect(result).toHaveLength(0);
+  });
+
+  it("throws error for invalid Readwise Reader CSV", () => {
+    const csv = `Title,Url,Id
+"Missing Columns","https://missing.com","id1"`;
+
+    expect(() => parseImportFile("readwise-reader", csv)).toThrow(
+      "CSV file contains an invalid Readwise Reader bookmark file",
+    );
+  });
+
+  it("handles complex tag formatting in Readwise Reader CSV", () => {
+    const csv = `Title,URL,ID,Document tags,Saved date,Reading progress,Location,Seen
+"Single Tag","https://single.com","id1",['test'],"2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Complex Tags","https://complex.com","id2","['test', 'test2', ""it's crazy""]","2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Escaped Quotes","https://escaped.com","id3","['tag\\'s', 'another']","2026-03-14 23:55:23.291000+00:00","0","new","True"
+"Empty Tags","https://empty.com","id4",,"2026-03-14 23:55:23.291000+00:00","0","new","True"`;
+
+    const parsed = parseImportFile("readwise-reader", csv);
+    const result = parsed.bookmarks;
+
+    expect(result).toHaveLength(4);
+    expect(result[0].tags).toEqual(["test"]);
+    expect(result[1].tags).toEqual(["test", "test2", "it's crazy"]);
+    expect(result[2].tags).toEqual(["tag's", "another"]);
+    expect(result[3].tags).toEqual([]);
+  });
+});
+
+describe("parseOneTabFile", () => {
+  it("parses URL | Title lines", () => {
+    const txt = `https://example.com | Example Site
+https://github.com | GitHub`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(2);
+    expect(bookmarks[0]).toMatchObject({
+      title: "Example Site",
+      content: { type: "link", url: "https://example.com" },
+    });
+    expect(bookmarks[0].tags).toEqual([]);
+    expect(bookmarks[0].paths).toEqual([]);
+    expect(bookmarks[1]).toMatchObject({
+      title: "GitHub",
+      content: { type: "link", url: "https://github.com" },
+    });
+    expect(bookmarks[1].tags).toEqual([]);
+    expect(bookmarks[1].paths).toEqual([]);
+  });
+
+  it("parses plain URL lines without a title", () => {
+    const txt = `https://example.com`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(1);
+    expect(bookmarks[0].title).toBe("");
+    expect(bookmarks[0].content).toMatchObject({
+      type: "link",
+      url: "https://example.com",
+    });
+  });
+
+  it("skips non-URL lines and empty lines", () => {
+    const txt = `Sat Feb 18 2023 10:30:00 GMT+0000
+https://example.com | Example
+
+not a url at all
+https://github.com | GitHub`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(2);
+  });
+
+  it("deduplicates repeated URLs", () => {
+    const txt = `https://example.com | Example
+https://example.com | Example`;
+    const { bookmarks } = parseImportFile("onetab", txt);
+    expect(bookmarks).toHaveLength(1);
   });
 });

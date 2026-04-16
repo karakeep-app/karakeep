@@ -8,6 +8,7 @@ import {
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
 import {
+  buildCrawlIdempotencyKey,
   LowPriorityCrawlerQueue,
   QueuePriority,
   RuleEngineQueue,
@@ -288,17 +289,16 @@ export class RuleEngine {
         return `Removed from list ${action.listId}`;
       }
       case "downloadFullPageArchive": {
-        await LowPriorityCrawlerQueue.enqueue(
-          {
-            bookmarkId: this.bookmark.id,
-            archiveFullPage: true,
-            runInference: false,
-          },
-          {
-            groupId: this.bookmark.userId,
-            priority: QueuePriority.Low,
-          },
-        );
+        const payload = {
+          bookmarkId: this.bookmark.id,
+          archiveFullPage: true,
+          runInference: false,
+        };
+        await LowPriorityCrawlerQueue.enqueue(payload, {
+          groupId: this.bookmark.userId,
+          priority: QueuePriority.Low,
+          idempotencyKey: buildCrawlIdempotencyKey(payload),
+        });
         return `Enqueued full page archive`;
       }
       case "favouriteBookmark": {

@@ -10,7 +10,7 @@ For the fastest way to get started with development, use the one-command setup s
 
 This script will automatically:
 - Start Meilisearch in Docker (on port 7700)
-- Start headless Chrome in Docker (on port 9222) 
+- Start headless Chrome in Docker (on port 9222)
 - Install dependencies with `pnpm install` if needed
 - Start both the web app and workers in parallel
 - Provide cleanup when you stop with Ctrl+C
@@ -26,18 +26,20 @@ The script will output the running services:
 
 Press Ctrl+C to stop all services and clean up Docker containers.
 
+Alternatively, you can use Docker Compose to run the full stack in containers — see [Docker Compose Details](#docker-compose-details) below.
+
 ## Manual Setup
 
 Karakeep uses `node` version 24. To install it, you can use `nvm` [^1]
 
 ```
-$ nvm install  24
+$ nvm install 24
 ```
 
 Verify node version using this command:
 ```
 $ node --version
-v24.14.0
+v24.0.0
 ```
 
 Karakeep also makes use of `corepack`[^2]. If you have `node` installed, then `corepack` should already be
@@ -45,7 +47,7 @@ installed on your machine, and you don't need to do anything. To verify the `cor
 
 ```
 $ command -v corepack
-/home/<user>/.nvm/versions/node/v24.14.0/bin/corepack
+/home/<user>/.nvm/versions/node/v22.14.0/bin/corepack
 ```
 
 To enable `corepack` run the following command:
@@ -184,10 +186,58 @@ Note: Changing the code will hot reload the app. However, installing new package
 In dev mode, opening and closing the plugin menu should reload the code.
 
 
-## Docker Dev Env
+## Docker Compose Details
 
-If the manual setup is too much hassle for you. You can use a docker based dev environment by running `docker compose -f docker/docker-compose.dev.yml up` in the root of the repo. This setup wasn't super reliable for me though.
+If you prefer to run the full stack inside Docker, follow these steps:
 
+1. (Optional) Copy the sample env file whenever you need to override the defaults or commit real secrets:
+
+```bash
+cp .env.sample .env
+```
+
+   - Even if you skip this step, the compose file injects sensible defaults: `DATA_DIR=/data`, `MEILI_ADDR=http://meilisearch:7700`, `NEXTAUTH_URL=http://localhost:3000`, and `NEXTAUTH_SECRET=super-secure-nextauth-secret`.
+   - When you're ready, set at least `NEXTAUTH_SECRET` (use `openssl rand -base64 36`) and any optional keys like `OPENAI_API_KEY` inside `.env` so they override the defaults.
+   - The stack automatically mounts `/data` inside the containers, so you only need to change `DATA_DIR` if you prefer a host path.
+2. Start every dependency, install packages, and run migrations in one go:
+
+```bash
+docker compose -f docker/docker-compose.dev.yml up
+```
+
+   - The `prep` service creates `DATA_DIR` (if missing), runs `pnpm install --frozen-lockfile`, and then `pnpm run db:migrate` the first time (and whenever you restart the stack) so the rest of the services always have dependencies ready.
+   - The `web` and `workers` services run `pnpm web` and `pnpm workers` respectively using the same code that lives on your host machine, so hot reload works out of the box.
+3. Tail the dev logs when needed:
+
+```bash
+docker compose logs -f web workers
+```
+
+4. Stop everything with `docker compose down`. Re-run with `--build` if you change Node dependencies or the Dockerfile.
+
+This setup exposes:
+- Web app: http://localhost:3000
+- Chrome debugger: http://localhost:9222
+
+Meilisearch runs as an internal service only (no host port exposed).
+
+`docker compose -f docker/docker-compose.dev.yml up` starts five services:
+
+- `prep`: installs dependencies and runs database migrations before anything else boots.
+- `web`: runs `pnpm web` with hot reload enabled (polling watchers are turned on for reliable Mac/Windows file sync).
+- `workers`: runs `pnpm workers` so crawlers, importers, and background jobs behave the same way as in local dev.
+- `meilisearch`: exposes http://localhost:7700 with analytics disabled and persistent data stored in the `meilisearch` Docker volume.
+- `chrome`: provides the remote-debuggable Chrome instance required by the workers on http://localhost:9222.
+
+All application containers mount your checkout into `/app` and share two volumes: `node_modules` (so dependencies live inside Linux containers) and `pnpm-store` (to keep the pnpm cache). If you ever need a clean slate you can remove them with:
+
+```bash
+docker compose -f docker/docker-compose.dev.yml down -v
+```
+
+Every environment value is defined with `${VAR:-default}` syntax, so the stack boots even if `.env` is missing; create the file only when you want to override something like `NEXTAUTH_SECRET` or `MEILI_MASTER_KEY`.
+
+You can override the default `/data` mount by editing `DATA_DIR` in `.env` and binding a host directory via a regular Docker volume mapping. Any other environment variable defined in `.env` is automatically propagated to the Node services.
 
 [^1]: [nvm](https://github.com/nvm-sh/nvm) is a node version manager. You can install it following [these
 instructions](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating).

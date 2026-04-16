@@ -1,8 +1,5 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import * as z from "zod";
 
 import {
   zNewHighlightSchema,
@@ -15,7 +12,6 @@ import { PaginationSchema } from "./pagination";
 import { HighlightSchema, PaginatedHighlightsSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 export const HighlightIdSchema = registry.registerParameter(
   "HighlightId",

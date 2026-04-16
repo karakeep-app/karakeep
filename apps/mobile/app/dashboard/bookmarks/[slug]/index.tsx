@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
 import BookmarkLinkTypeSelector, {
@@ -29,6 +30,11 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 // Standard iOS navigation bar height (points)
 const NAV_BAR_HEIGHT = 44;
+
+function KeepScreenOn() {
+  useKeepAwake();
+  return null;
+}
 
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
@@ -148,6 +154,7 @@ export default function BookmarkView() {
 
   return (
     <View style={{ flex: 1 }}>
+      {settings.keepScreenOnWhileReading && <KeepScreenOn />}
       <Stack.Screen
         options={{
           headerTitle: title ?? "",

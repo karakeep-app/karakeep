@@ -1,8 +1,5 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import * as z from "zod";
 
 import {
   zFeedSchema,
@@ -14,13 +11,17 @@ import { BearerAuth } from "./common";
 import { ErrorSchema, UnauthorizedResponse } from "./errors";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 const FeedSchema = zFeedSchema
   .extend({
     lastFetchedAt: z.string().nullable().openapi({
       description:
         "ISO 8601 timestamp of the last fetch attempt, or null if never fetched.",
+      example: "2025-01-15T12:00:00.000Z",
+    }),
+    lastSuccessfulFetchAt: z.string().nullable().openapi({
+      description:
+        "ISO 8601 timestamp of the last successful fetch, or null if the feed has never been fetched successfully.",
       example: "2025-01-15T12:00:00.000Z",
     }),
   })

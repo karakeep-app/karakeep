@@ -115,20 +115,18 @@ mcpServer.tool(
   },
   async ({ title, type, content }): Promise<CallToolResult> => {
     const res = await karakeepClient.POST(`/bookmarks`, {
-      body: (
-        {
-          link: {
-            type: "link",
-            title,
-            url: content,
-          },
-          text: {
-            type: "text",
-            title,
-            text: content,
-          },
-        } as const
-      )[type],
+      body:
+        type === "link"
+          ? {
+              type: "link",
+              title,
+              url: content,
+            }
+          : {
+              type: "text",
+              title,
+              text: content,
+            },
     });
     if (!res.data) {
       return toMcpToolError(res.error);

@@ -12,7 +12,8 @@ export const zPagination = z.object({
       const [id, createdAt] = val.split("_");
       return { id, createdAt };
     })
-    .pipe(z.object({ id: z.string(), createdAt: z.coerce.date() }))
+    .transform(({ id, createdAt }) => ({ id, createdAt: new Date(createdAt) }))
+    .pipe(z.object({ id: z.string(), createdAt: z.date() }))
     .optional(),
 });
 

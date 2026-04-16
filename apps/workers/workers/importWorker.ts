@@ -377,12 +377,13 @@ export class ImportWorker {
         ?.trim()
         .substring(0, MAX_BOOKMARK_TITLE_LENGTH);
 
-      const baseRequest = {
+      const baseRequest: Partial<CreateBookmarkInput> = {
         title: normalizedTitle || undefined,
         note: staged.note ?? undefined,
         createdAt: staged.sourceAddedAt ?? undefined,
         crawlPriority: "low" as const,
         archived: staged.archived ?? false,
+        source: "import",
       };
 
       let bookmarkRequest: CreateBookmarkInput;

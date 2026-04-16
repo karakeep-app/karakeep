@@ -16,6 +16,9 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       CRAWLER_NUM_WORKERS: 6
       CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      OPENAI_API_KEY: aimock-test-key
+      OPENAI_BASE_URL: http://aimock:4010/v1
+      INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
   meilisearch:
     image: getmeili/meilisearch:v1.41.0
     restart: unless-stopped
@@ -49,6 +52,28 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+  aimock:
+    image: ghcr.io/copilotkit/aimock:latest
+    restart: unless-stopped
+    ports:
+      - "${AIMOCK_PORT:-4010}:4010"
+    volumes:
+      - ./setup/aimock:/fixtures:ro
+    command:
+      - --fixtures
+      - /fixtures
+      - --host
+      - 0.0.0.0
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -q
+        - http://127.0.0.1:4010/health
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
 volumes:
   minio_data:
