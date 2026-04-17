@@ -61,6 +61,7 @@ export interface OpenAIInferenceConfig {
   contextLength: number;
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
+  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
   outputSchema: "structured" | "json" | "plain";
 }
 
@@ -109,6 +110,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       maxOutputTokens: serverConfig.inference.maxOutputTokens,
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
+      reasoningEffort: serverConfig.inference.openAIReasoningEffort,
     });
   }
 
@@ -119,6 +121,12 @@ export class OpenAIInferenceClient implements InferenceClient {
     const optsWithDefaults: InferenceOptions = {
       ...defaultInferenceOptions,
       ..._opts,
+    };
+
+    const optionalProps = {
+      ...(this.config.reasoningEffort
+        ? { reasoning_effort: this.config.reasoningEffort }
+        : {}),
     };
     const chatCompletion = await this.openAI.chat.completions.create(
       {
@@ -140,13 +148,19 @@ export class OpenAIInferenceClient implements InferenceClient {
           },
           this.config.outputSchema,
         ),
+        ...optionalProps,
       },
       {
         signal: optsWithDefaults.abortSignal,
       },
     );
 
-    const response = chatCompletion.choices[0].message.content;
+    //Some reasoning models might still return the response in reasoning field, even when reasoning_effort is set to none.
+    const response =
+      chatCompletion.choices[0].message.content ||
+      // @ts-expect-error: important: Some OpenRouter models might return the response in reasoning field yet the OpenAI API ChatCompletion type doesn't have this as a valid field.
+      chatCompletion.choices[0].message.reasoning;
+
     if (!response) {
       throw new Error(`Got no message content from OpenAI`);
     }
