@@ -127,7 +127,7 @@ export default function ManageListsModal({
                     onClick={() =>
                       deleteFromList({ bookmarkId, listId: list.id })
                     }
-                    aria-label={t("actions.remove_bookmark")}
+                    aria-label={t("actions.remove_from_list")}
                   >
                     <X className="size-4" />
                   </ActionButton>
