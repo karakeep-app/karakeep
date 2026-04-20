@@ -198,6 +198,27 @@ export default function QueryExplainerTooltip({
             </TableCell>
           </TableRow>
         );
+      case "brokenLinks":
+        return (
+          <TableRow>
+            <TableCell colSpan={2} className="text-center">
+              {matcher.brokenLinks
+                ? t("search.is_broken_link")
+                : t("search.is_not_broken_link")}
+            </TableCell>
+          </TableRow>
+        );
+      case "source":
+        return (
+          <TableRow>
+            <TableCell>
+              {matcher.inverse
+                ? t("search.is_not_from_source")
+                : t("search.is_from_source")}
+            </TableCell>
+            <TableCell>{matcher.source}</TableCell>
+          </TableRow>
+        );
       default: {
         const _exhaustiveCheck: never = matcher;
         return null;

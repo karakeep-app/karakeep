@@ -3,25 +3,32 @@
 import { useState } from "react";
 import { RuleEditor } from "@/components/dashboard/rules/RuleEngineRuleEditor";
 import RuleList from "@/components/dashboard/rules/RuleEngineRuleList";
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
-import { Tooltip, TooltipContent, TooltipTrigger } from "components/ui/tooltip";
-import { FlaskConical, PlusCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { PlusCircle } from "lucide-react";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { RuleEngineRule } from "@karakeep/shared/types/rules";
 
 export default function RulesSettingsPage() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [editingRule, setEditingRule] = useState<
     (Omit<RuleEngineRule, "id"> & { id: string | null }) | null
   >(null);
 
-  const { data: rules, isLoading } = api.rules.list.useQuery(undefined, {
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const { data: rules, isLoading } = useQuery(
+    api.rules.list.queryOptions(undefined, {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+    }),
+  );
 
   const handleCreateRule = () => {
     const newRule = {
@@ -44,28 +51,17 @@ export default function RulesSettingsPage() {
   };
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-lg font-medium">
-            {t("settings.rules.rules")}
-            <Tooltip>
-              <TooltipTrigger className="text-muted-foreground">
-                <FlaskConical size={15} />
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {t("common.experimental")}
-              </TooltipContent>
-            </Tooltip>
-          </span>
-          <Button onClick={handleCreateRule} variant="default">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            {t("settings.rules.ceate_rule")}
-          </Button>
-        </div>
-        <p className="text-sm italic text-muted-foreground">
-          {t("settings.rules.description")}
-        </p>
+    <SettingsPage
+      title={t("settings.rules.rules")}
+      description={t("settings.rules.description")}
+      action={
+        <Button onClick={handleCreateRule} variant="default">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          {t("settings.rules.ceate_rule")}
+        </Button>
+      }
+    >
+      <SettingsSection>
         {!rules || isLoading ? (
           <FullPageSpinner />
         ) : (
@@ -83,7 +79,7 @@ export default function RulesSettingsPage() {
             />
           )}
         </div>
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

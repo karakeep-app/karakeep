@@ -1,9 +1,10 @@
 import os from "os";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
 import { createWorker } from "tesseract.js";
+import { withWorkerTracing } from "workerTracing";
 
 import type { AssetPreprocessingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -22,7 +23,9 @@ import {
 } from "@karakeep/shared-server";
 import { newAssetId, readAsset, saveAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
+import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
+import { buildOCRPrompt } from "@karakeep/shared/prompts";
 import {
   DequeuedJob,
   EnqueueOptions,
@@ -36,7 +39,7 @@ export class AssetPreprocessingWorker {
       (await getQueueClient())!.createRunner<AssetPreprocessingRequest>(
         AssetPreprocessingQueue,
         {
-          run: run,
+          run: withWorkerTracing("assetPreprocessingWorker.run", run),
           onComplete: async (job) => {
             workerStatsCounter.labels("assetPreprocessing", "completed").inc();
             const jobId = job.id;
@@ -56,13 +59,41 @@ export class AssetPreprocessingWorker {
             logger.error(
               `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,
             );
+
+            const bookmarkId = job.data?.bookmarkId;
+            if (bookmarkId && job.numRetriesLeft == 0) {
+              await db.transaction(async (tx) => {
+                await tx
+                  .update(bookmarks)
+                  .set({
+                    taggingStatus: null,
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.taggingStatus, "pending"),
+                    ),
+                  );
+                await tx
+                  .update(bookmarks)
+                  .set({
+                    summarizationStatus: null,
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.summarizationStatus, "pending"),
+                    ),
+                  );
+              });
+            }
             return Promise.resolve();
           },
         },
         {
           concurrency: serverConfig.assetPreprocessing.numWorkers,
           pollIntervalMs: 1000,
-          timeoutSecs: 30,
+          timeoutSecs: serverConfig.assetPreprocessing.jobTimeoutSec,
         },
       );
 
@@ -86,6 +117,38 @@ async function readImageText(buffer: Buffer) {
   } finally {
     await worker.terminate();
   }
+}
+
+async function readImageTextWithLLM(
+  buffer: Buffer,
+  contentType: string,
+): Promise<string | null> {
+  const inferenceClient = InferenceClientFactory.build();
+  if (!inferenceClient) {
+    logger.warn(
+      "[assetPreprocessing] LLM OCR is enabled but no inference client is configured. Falling back to Tesseract.",
+    );
+    return readImageText(buffer);
+  }
+
+  const base64 = buffer.toString("base64");
+  const prompt = buildOCRPrompt();
+
+  const response = await inferenceClient.inferFromImage(
+    prompt,
+    contentType,
+    base64,
+    {
+      schema: null,
+    },
+  );
+
+  const extractedText = response.response.trim();
+  if (!extractedText) {
+    return null;
+  }
+
+  return extractedText;
 }
 
 async function readPDFText(buffer: Buffer): Promise<{
@@ -199,6 +262,7 @@ export async function extractAndSavePDFScreenshot(
 async function extractAndSaveImageText(
   jobId: string,
   asset: Buffer,
+  contentType: string,
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
 ): Promise<boolean> {
@@ -212,16 +276,31 @@ async function extractAndSaveImageText(
     }
   }
   let imageText = null;
-  logger.info(
-    `[assetPreprocessing][${jobId}] Attempting to extract text from image.`,
-  );
-  try {
-    imageText = await readImageText(asset);
-  } catch (e) {
-    logger.error(
-      `[assetPreprocessing][${jobId}] Failed to read image text: ${e}`,
+
+  if (serverConfig.ocr.useLLM) {
+    logger.info(
+      `[assetPreprocessing][${jobId}] Attempting to extract text from image using LLM OCR.`,
     );
+    try {
+      imageText = await readImageTextWithLLM(asset, contentType);
+    } catch (e) {
+      logger.error(
+        `[assetPreprocessing][${jobId}] Failed to read image text with LLM: ${e}`,
+      );
+    }
+  } else {
+    logger.info(
+      `[assetPreprocessing][${jobId}] Attempting to extract text from image using Tesseract.`,
+    );
+    try {
+      imageText = await readImageText(asset);
+    } catch (e) {
+      logger.error(
+        `[assetPreprocessing][${jobId}] Failed to read image text: ${e}`,
+      );
+    }
   }
+
   if (!imageText) {
     return false;
   }
@@ -313,7 +392,7 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
     );
   }
 
-  const { asset } = await readAsset({
+  const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
     assetId: bookmark.asset.assetId,
   });
@@ -330,6 +409,7 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       const extractedText = await extractAndSaveImageText(
         jobId,
         asset,
+        metadata.contentType,
         bookmark,
         isFixMode,
       );

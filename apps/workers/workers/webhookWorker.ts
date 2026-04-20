@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
+import { withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
@@ -19,7 +20,7 @@ export class WebhookWorker {
     const worker = (await getQueueClient())!.createRunner<ZWebhookRequest>(
       WebhookQueue,
       {
-        run: runWebhook,
+        run: withWorkerTracing("webhookWorker.run", runWebhook),
         onComplete: async (job) => {
           workerStatsCounter.labels("webhook", "completed").inc();
           const jobId = job.id;
@@ -72,12 +73,24 @@ async function fetchUserWebhooks(userId: string) {
   });
 }
 
+function canDeliverWebhookWithoutBookmark(
+  operation: ZWebhookRequest["operation"],
+) {
+  return operation === "deleted";
+}
+
 async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
   const jobId = job.id;
   const webhookTimeoutSec = serverConfig.webhook.timeoutSec;
 
-  const { bookmarkId } = job.data;
+  const { bookmarkId, operation } = job.data;
   const bookmark = await fetchBookmark(bookmarkId);
+  if (!bookmark && !canDeliverWebhookWithoutBookmark(operation)) {
+    logger.info(
+      `[webhook][${jobId}] Bookmark with id ${bookmarkId} not found for "${operation}" webhook. Skipping webhook`,
+    );
+    return;
+  }
 
   const userId = job.data.userId ?? bookmark?.userId;
   if (!userId) {

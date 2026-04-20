@@ -6,7 +6,7 @@ import Sidebar from "@/components/shared/sidebar/Sidebar";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
 import { getServerAuthSession } from "@/server/auth";
 import { TFunction } from "i18next";
-import { Activity, ArrowLeft, Settings, Users } from "lucide-react";
+import { Activity, ArrowLeft, Settings, Users, Wrench } from "lucide-react";
 
 const adminSidebarItems = (
   t: TFunction,
@@ -34,6 +34,11 @@ const adminSidebarItems = (
     name: t("admin.background_jobs.background_jobs"),
     icon: <Settings size={18} />,
     path: "/admin/background_jobs",
+  },
+  {
+    name: t("admin.admin_tools.admin_tools"),
+    icon: <Wrench size={18} />,
+    path: "/admin/admin_tools",
   },
 ];
 

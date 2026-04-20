@@ -14,6 +14,11 @@ export default function SidebarItem({
   style,
   collapseButton,
   right = null,
+  dropHighlight = false,
+  onDrop,
+  onDragOver,
+  onDragEnter,
+  onDragLeave,
 }: {
   name: string;
   logo: React.ReactNode;
@@ -23,6 +28,11 @@ export default function SidebarItem({
   linkClassName?: string;
   right?: React.ReactNode;
   collapseButton?: React.ReactNode;
+  dropHighlight?: boolean;
+  onDrop?: React.DragEventHandler;
+  onDragOver?: React.DragEventHandler;
+  onDragEnter?: React.DragEventHandler;
+  onDragLeave?: React.DragEventHandler;
 }) {
   const currentPath = usePathname();
   return (
@@ -32,9 +42,14 @@ export default function SidebarItem({
         path == currentPath
           ? "bg-accent/50 text-foreground"
           : "text-muted-foreground",
+        dropHighlight && "bg-accent ring-2 ring-primary",
         className,
       )}
       style={style}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
     >
       <div className="flex-1">
         {collapseButton}

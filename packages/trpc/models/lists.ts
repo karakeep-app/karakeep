@@ -7,11 +7,11 @@ import { z } from "zod";
 import { SqliteError } from "@karakeep/db";
 import {
   bookmarkLists,
+  bookmarks,
   bookmarksInLists,
   listCollaborators,
   users,
 } from "@karakeep/db/schema";
-import { triggerRuleEngineOnEvent } from "@karakeep/shared-server";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZSortOrder } from "@karakeep/shared/types/bookmarks";
 import {
@@ -24,6 +24,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
+import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { ListInvitation } from "./listInvitations";
@@ -719,6 +720,7 @@ export abstract class List {
               id: true,
               name: true,
               email: true,
+              image: true,
             },
           },
         },
@@ -738,6 +740,7 @@ export abstract class List {
         id: true,
         name: true,
         email: true,
+        image: true,
       },
     });
 
@@ -754,6 +757,7 @@ export abstract class List {
           name: c.user.name,
           // Only show email to the owner for privacy
           email: isOwner ? c.user.email : null,
+          image: c.user.image,
         },
       };
     });
@@ -766,6 +770,7 @@ export abstract class List {
             name: owner.name,
             // Only show owner email to the owner for privacy
             email: isOwner ? owner.email : null,
+            image: owner.image,
           }
         : null,
     };
@@ -805,8 +810,8 @@ export abstract class List {
   }
 
   abstract get type(): "manual" | "smart";
-  abstract getBookmarkIds(ctx: AuthedContext): Promise<string[]>;
-  abstract getSize(ctx: AuthedContext): Promise<number>;
+  abstract getBookmarkIds(visitedListIds?: Set<string>): Promise<string[]>;
+  abstract getSize(): Promise<number>;
   abstract addBookmark(bookmarkId: string): Promise<void>;
   abstract removeBookmark(bookmarkId: string): Promise<void>;
   abstract mergeInto(
@@ -816,6 +821,8 @@ export abstract class List {
 }
 
 export class SmartList extends List {
+  private static readonly MAX_VISITED_LISTS = 30;
+
   parsedQuery: ReturnType<typeof parseSearchQuery> | null = null;
 
   constructor(ctx: AuthedContext, list: ZBookmarkList & { userId: string }) {
@@ -843,12 +850,27 @@ export class SmartList extends List {
     return this.parsedQuery;
   }
 
-  async getBookmarkIds(): Promise<string[]> {
+  async getBookmarkIds(visitedListIds = new Set<string>()): Promise<string[]> {
+    if (visitedListIds.size >= SmartList.MAX_VISITED_LISTS) {
+      return [];
+    }
+
+    if (visitedListIds.has(this.list.id)) {
+      return [];
+    }
+
+    const newVisitedListIds = new Set(visitedListIds);
+    newVisitedListIds.add(this.list.id);
+
     const parsedQuery = this.getParsedQuery();
     if (!parsedQuery.matcher) {
       return [];
     }
-    return await getBookmarkIdsFromMatcher(this.ctx, parsedQuery.matcher);
+    return await getBookmarkIdsFromMatcher(
+      this.ctx,
+      parsedQuery.matcher,
+      newVisitedListIds,
+    );
   }
 
   async getSize(): Promise<number> {
@@ -894,7 +916,7 @@ export class ManualList extends List {
     return this.list.type;
   }
 
-  async getBookmarkIds(): Promise<string[]> {
+  async getBookmarkIds(_visitedListIds?: Set<string>): Promise<string[]> {
     const results = await this.ctx.db
       .select({ id: bookmarksInLists.bookmarkId })
       .from(bookmarksInLists)
@@ -919,12 +941,24 @@ export class ManualList extends List {
         bookmarkId,
         listMembershipId: this.collaboratorEntry?.membershipId,
       });
-      await triggerRuleEngineOnEvent(bookmarkId, [
-        {
-          type: "addedToList",
-          listId: this.list.id,
-        },
-      ]);
+      const bookmark = await this.ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, bookmarkId),
+        columns: { userId: true },
+      });
+      if (bookmark) {
+        await RuleEngine.triggerOnEvent(
+          bookmark.userId,
+          bookmarkId,
+          [
+            {
+              type: "addedToList",
+              listId: this.list.id,
+            },
+          ],
+          undefined,
+          this.ctx.db,
+        );
+      }
     } catch (e) {
       if (e instanceof SqliteError) {
         if (e.code == "SQLITE_CONSTRAINT_PRIMARYKEY") {
@@ -957,12 +991,24 @@ export class ManualList extends List {
         message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
       });
     }
-    await triggerRuleEngineOnEvent(bookmarkId, [
-      {
-        type: "removedFromList",
-        listId: this.list.id,
-      },
-    ]);
+    const bookmark = await this.ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+      columns: { userId: true },
+    });
+    if (bookmark) {
+      await RuleEngine.triggerOnEvent(
+        bookmark.userId,
+        bookmarkId,
+        [
+          {
+            type: "removedFromList",
+            listId: this.list.id,
+          },
+        ],
+        undefined,
+        this.ctx.db,
+      );
+    }
   }
 
   async update(input: z.infer<typeof zEditBookmarkListSchemaWithValidation>) {

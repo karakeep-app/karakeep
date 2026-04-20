@@ -77,16 +77,22 @@ jobs:
             echo "${out%,}"
           }
 
-          latest_with_suffix=$(add_suffix "${{ matrix.tags_latest }}")
-          all_tags="${latest_with_suffix}"
+          all_tags=""
 
+          # Only push 'latest' tags on pushes to main, not on releases
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            latest_with_suffix=$(add_suffix "${{ matrix.tags_latest }}")
+            all_tags="${latest_with_suffix}"
+            echo "latest=${latest_with_suffix}" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Only push release-specific tags on releases
           if [[ "${{ github.event_name }}" == "release" ]]; then
             release_with_suffix=$(add_suffix "${{ matrix.tags_release }}")
-            all_tags="${all_tags},${release_with_suffix}"
+            all_tags="${release_with_suffix}"
             echo "release=${release_with_suffix}" >> "$GITHUB_OUTPUT"
           fi
 
-          echo "latest=${latest_with_suffix}" >> "$GITHUB_OUTPUT"
           echo "all=${all_tags}" >> "$GITHUB_OUTPUT"
 
       - name: Build ${{ matrix.name }}
@@ -143,6 +149,7 @@ jobs:
           TAGS_LATEST: ${{ matrix.tags_latest }}
           TAGS_RELEASE: ${{ matrix.tags_release }}
           IS_RELEASE: ${{ github.event_name == 'release' }}
+          IS_PUSH: ${{ github.event_name == 'push' }}
         run: |
           set -euo pipefail
 
@@ -154,11 +161,15 @@ jobs:
               "${tag}-arm64"
           }
 
-          IFS=',' read -ra latest_tags <<< "${TAGS_LATEST}"
-          for tag in "${latest_tags[@]}"; do
-            create_manifest "$tag"
-          done
+          # Only create 'latest' manifests on pushes to main
+          if [[ "${IS_PUSH}" == "true" ]]; then
+            IFS=',' read -ra latest_tags <<< "${TAGS_LATEST}"
+            for tag in "${latest_tags[@]}"; do
+              create_manifest "$tag"
+            done
+          fi
 
+          # Only create release-specific manifests on releases
           if [[ "${IS_RELEASE}" == "true" ]]; then
             IFS=',' read -ra release_tags <<< "${TAGS_RELEASE}"
             for tag in "${release_tags[@]}"; do

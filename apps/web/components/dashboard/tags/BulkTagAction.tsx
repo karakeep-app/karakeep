@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { ButtonWithTooltip } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 import { Toggle } from "@/components/ui/toggle";
-import { useToast } from "@/components/ui/use-toast";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { useTranslation } from "@/lib/i18n/client";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
@@ -17,7 +17,6 @@ const MAX_CONCURRENT_BULK_ACTIONS = 50;
 
 export default function BulkTagAction() {
   const { t } = useTranslation();
-  const { toast } = useToast();
 
   const {
     selectedTagIds,

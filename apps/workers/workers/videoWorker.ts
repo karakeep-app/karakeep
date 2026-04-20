@@ -4,6 +4,7 @@ import path from "path";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
 import { getProxyAgent, validateUrl } from "network";
+import { withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
@@ -35,7 +36,7 @@ export class VideoWorker {
     return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
-        run: runWorker,
+        run: withWorkerTracing("videoWorker.run", runWorker),
         onComplete: async (job) => {
           workerStatsCounter.labels("video", "completed").inc();
           const jobId = job.id;

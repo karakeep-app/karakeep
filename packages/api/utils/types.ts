@@ -8,21 +8,20 @@ export const zStringBool = z
   .transform((val) => val === "true");
 
 export const zIncludeContentSearchParamsSchema = z.object({
-  // TODO: Change the default to false in a couple of releases.
-  includeContent: zStringBool.optional().default("true"),
+  includeContent: zStringBool.optional().prefault("false"),
 });
 
 export const zGetBookmarkQueryParamsSchema = z
   .object({
     sortOrder: zSortOrder
-      .exclude([zSortOrder.Enum.relevance])
+      .exclude([zSortOrder.enum.relevance])
       .optional()
-      .default(zSortOrder.Enum.desc),
+      .default(zSortOrder.enum.desc),
   })
-  .merge(zIncludeContentSearchParamsSchema);
+  .extend(zIncludeContentSearchParamsSchema.shape);
 
 export const zGetBookmarkSearchParamsSchema = z
   .object({
-    sortOrder: zSortOrder.optional().default(zSortOrder.Enum.relevance),
+    sortOrder: zSortOrder.optional().default(zSortOrder.enum.relevance),
   })
-  .merge(zIncludeContentSearchParamsSchema);
+  .extend(zIncludeContentSearchParamsSchema.shape);

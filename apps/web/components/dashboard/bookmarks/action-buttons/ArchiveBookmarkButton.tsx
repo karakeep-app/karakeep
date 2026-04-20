@@ -1,12 +1,15 @@
 import React from "react";
 import { ActionButton, ActionButtonProps } from "@/components/ui/action-button";
-import { toast } from "@/components/ui/use-toast";
-import { api } from "@/lib/trpc";
+import { toast } from "@/components/ui/sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
-interface ArchiveBookmarkButtonProps
-  extends Omit<ActionButtonProps, "loading" | "disabled"> {
+interface ArchiveBookmarkButtonProps extends Omit<
+  ActionButtonProps,
+  "loading" | "disabled"
+> {
   bookmarkId: string;
   onDone?: () => void;
 }
@@ -15,13 +18,16 @@ const ArchiveBookmarkButton = React.forwardRef<
   HTMLButtonElement,
   ArchiveBookmarkButtonProps
 >(({ bookmarkId, onDone, ...props }, ref) => {
-  const { data } = api.bookmarks.getBookmark.useQuery(
-    { bookmarkId },
-    {
-      select: (data) => ({
-        archived: data.archived,
-      }),
-    },
+  const api = useTRPC();
+  const { data } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      { bookmarkId },
+      {
+        select: (data) => ({
+          archived: data.archived,
+        }),
+      },
+    ),
   );
 
   const { mutate: updateBookmark, isPending: isArchivingBookmark } =

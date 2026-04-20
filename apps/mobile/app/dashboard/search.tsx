@@ -1,18 +1,21 @@
 import { useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Pressable, TextInput, View } from "react-native";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
-import CustomSafeAreaView from "@/components/ui/CustomSafeAreaView";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
-import { api } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { keepPreviousData } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 
@@ -29,25 +32,25 @@ export default function Search() {
     removeItem: (k: string) => AsyncStorage.removeItem(k),
   });
 
-  const onRefresh = api.useUtils().bookmarks.searchBookmarks.invalidate;
+  const api = useTRPC();
+  const queryClient = useQueryClient();
 
-  const {
-    data,
-    error,
-    refetch,
-    isPending,
-    isFetching,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = api.bookmarks.searchBookmarks.useInfiniteQuery(
-    { text: query },
-    {
-      placeholderData: keepPreviousData,
-      gcTime: 0,
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
-  );
+  const onRefresh = () => {
+    queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
+  };
+
+  const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
+    useInfiniteQuery(
+      api.bookmarks.searchBookmarks.infiniteQueryOptions(
+        { text: query },
+        {
+          placeholderData: keepPreviousData,
+          gcTime: 0,
+          initialCursor: null,
+          getNextPageParam: (lastPage) => lastPage.nextCursor,
+        },
+      ),
+    );
 
   const filteredHistory = useMemo(() => {
     if (search.trim().length === 0) {
@@ -95,12 +98,7 @@ export default function Search() {
   };
 
   return (
-    <CustomSafeAreaView>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-        }}
-      />
+    <>
       <SearchInput
         containerClassName="m-3"
         ref={inputRef}
@@ -117,7 +115,7 @@ export default function Search() {
         onCancel={router.back}
       />
 
-      {isInputFocused ? (
+      {isInputFocused && search.trim().length === 0 ? (
         <FlatList
           data={filteredHistory}
           renderItem={renderHistoryItem}
@@ -141,7 +139,7 @@ export default function Search() {
           }
           keyboardShouldPersistTaps="handled"
         />
-      ) : isFetching && query.length > 0 ? (
+      ) : isPending && query.length > 0 ? (
         <FullPageSpinner />
       ) : data && query.length > 0 ? (
         <BookmarkList
@@ -154,6 +152,6 @@ export default function Search() {
       ) : (
         <View />
       )}
-    </CustomSafeAreaView>
+    </>
   );
 }

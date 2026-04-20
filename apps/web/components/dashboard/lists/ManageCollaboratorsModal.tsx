@@ -22,11 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Trash2, UserPlus, Users } from "lucide-react";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 export function ManageCollaboratorsModal({
@@ -42,6 +44,7 @@ export function ManageCollaboratorsModal({
   children?: React.ReactNode;
   readOnly?: boolean;
 }) {
+  const api = useTRPC();
   if (
     (userOpen !== undefined && !userSetOpen) ||
     (userOpen === undefined && userSetOpen)
@@ -60,82 +63,102 @@ export function ManageCollaboratorsModal({
   >("viewer");
 
   const { t } = useTranslation();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const invalidateListCaches = () =>
     Promise.all([
-      utils.lists.getCollaborators.invalidate({ listId: list.id }),
-      utils.lists.get.invalidate({ listId: list.id }),
-      utils.lists.list.invalidate(),
-      utils.bookmarks.getBookmarks.invalidate({ listId: list.id }),
+      queryClient.invalidateQueries(
+        api.lists.getCollaborators.queryFilter({ listId: list.id }),
+      ),
+      queryClient.invalidateQueries(
+        api.lists.get.queryFilter({ listId: list.id }),
+      ),
+      queryClient.invalidateQueries(api.lists.list.pathFilter()),
+      queryClient.invalidateQueries(
+        api.bookmarks.getBookmarks.queryFilter({ listId: list.id }),
+      ),
     ]);
 
   // Fetch collaborators
-  const { data: collaboratorsData, isLoading } =
-    api.lists.getCollaborators.useQuery({ listId: list.id }, { enabled: open });
+  const { data: collaboratorsData, isLoading } = useQuery(
+    api.lists.getCollaborators.queryOptions(
+      { listId: list.id },
+      { enabled: open },
+    ),
+  );
 
   // Mutations
-  const addCollaborator = api.lists.addCollaborator.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.invitation_sent"),
-      });
-      setNewCollaboratorEmail("");
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.collaborators.failed_to_add"),
-      });
-    },
-  });
+  const addCollaborator = useMutation(
+    api.lists.addCollaborator.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.invitation_sent"),
+        });
+        setNewCollaboratorEmail("");
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description: error.message || t("lists.collaborators.failed_to_add"),
+        });
+      },
+    }),
+  );
 
-  const removeCollaborator = api.lists.removeCollaborator.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.removed"),
-      });
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.collaborators.failed_to_remove"),
-      });
-    },
-  });
+  const removeCollaborator = useMutation(
+    api.lists.removeCollaborator.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.removed"),
+        });
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.collaborators.failed_to_remove"),
+        });
+      },
+    }),
+  );
 
-  const updateCollaboratorRole = api.lists.updateCollaboratorRole.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.role_updated"),
-      });
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description:
-          error.message || t("lists.collaborators.failed_to_update_role"),
-      });
-    },
-  });
+  const updateCollaboratorRole = useMutation(
+    api.lists.updateCollaboratorRole.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.role_updated"),
+        });
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.collaborators.failed_to_update_role"),
+        });
+      },
+    }),
+  );
 
-  const revokeInvitation = api.lists.revokeInvitation.useMutation({
-    onSuccess: async () => {
-      toast({
-        description: t("lists.collaborators.invitation_revoked"),
-      });
-      await invalidateListCaches();
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        description: error.message || t("lists.collaborators.failed_to_revoke"),
-      });
-    },
-  });
+  const revokeInvitation = useMutation(
+    api.lists.revokeInvitation.mutationOptions({
+      onSuccess: async () => {
+        toast({
+          description: t("lists.collaborators.invitation_revoked"),
+        });
+        await invalidateListCaches();
+      },
+      onError: (error) => {
+        toast({
+          variant: "destructive",
+          description:
+            error.message || t("lists.collaborators.failed_to_revoke"),
+        });
+      },
+    }),
+  );
 
   const handleAddCollaborator = () => {
     if (!newCollaboratorEmail.trim()) {
@@ -256,15 +279,22 @@ export function ManageCollaboratorsModal({
                     key={`owner-${collaboratorsData.owner.id}`}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
-                    <div className="flex-1">
-                      <div className="font-medium">
-                        {collaboratorsData.owner.name}
-                      </div>
-                      {collaboratorsData.owner.email && (
-                        <div className="text-sm text-muted-foreground">
-                          {collaboratorsData.owner.email}
+                    <div className="flex flex-1 items-center gap-3">
+                      <UserAvatar
+                        name={collaboratorsData.owner.name}
+                        image={collaboratorsData.owner.image}
+                        className="size-10 ring-1 ring-border"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">
+                          {collaboratorsData.owner.name}
                         </div>
-                      )}
+                        {collaboratorsData.owner.email && (
+                          <div className="text-sm text-muted-foreground">
+                            {collaboratorsData.owner.email}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="text-sm capitalize text-muted-foreground">
                       {t("lists.collaborators.owner")}
@@ -278,27 +308,34 @@ export function ManageCollaboratorsModal({
                       key={collaborator.id}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className="font-medium">
-                            {collaborator.user.name}
+                      <div className="flex flex-1 items-center gap-3">
+                        <UserAvatar
+                          name={collaborator.user.name}
+                          image={collaborator.user.image}
+                          className="size-10 ring-1 ring-border"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium">
+                              {collaborator.user.name}
+                            </div>
+                            {collaborator.status === "pending" && (
+                              <Badge variant="outline" className="text-xs">
+                                {t("lists.collaborators.pending")}
+                              </Badge>
+                            )}
+                            {collaborator.status === "declined" && (
+                              <Badge variant="destructive" className="text-xs">
+                                {t("lists.collaborators.declined")}
+                              </Badge>
+                            )}
                           </div>
-                          {collaborator.status === "pending" && (
-                            <Badge variant="outline" className="text-xs">
-                              {t("lists.collaborators.pending")}
-                            </Badge>
-                          )}
-                          {collaborator.status === "declined" && (
-                            <Badge variant="destructive" className="text-xs">
-                              {t("lists.collaborators.declined")}
-                            </Badge>
+                          {collaborator.user.email && (
+                            <div className="text-sm text-muted-foreground">
+                              {collaborator.user.email}
+                            </div>
                           )}
                         </div>
-                        {collaborator.user.email && (
-                          <div className="text-sm text-muted-foreground">
-                            {collaborator.user.email}
-                          </div>
-                        )}
                       </div>
                       {readOnly ? (
                         <div className="text-sm capitalize text-muted-foreground">

@@ -3,8 +3,9 @@
 import { AdminCard } from "@/components/admin/AdminCard";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { useQuery } from "@tanstack/react-query";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const REPO_LATEST_RELEASE_API =
   "https://api.github.com/repos/karakeep-app/karakeep/releases/latest";
@@ -42,7 +43,7 @@ function ReleaseInfo() {
         rel="noreferrer"
         title="Update available"
       >
-        ({latestRelease} ⬆️)
+        ({latestRelease}⬆️)
       </a>
     );
   }
@@ -71,10 +72,13 @@ function StatsSkeleton() {
 }
 
 export default function BasicStats() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: serverStats } = api.admin.stats.useQuery(undefined, {
-    refetchInterval: 5000,
-  });
+  const { data: serverStats } = useQuery(
+    api.admin.stats.queryOptions(undefined, {
+      refetchInterval: 5000,
+    }),
+  );
 
   if (!serverStats) {
     return <StatsSkeleton />;

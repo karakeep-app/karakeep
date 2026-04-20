@@ -112,9 +112,21 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
         />
       ),
       shouldRender: bookmark.content.type == BookmarkTypes.LINK,
-      onClick: () =>
-        bookmark.content.type == BookmarkTypes.LINK &&
-        Linking.openURL(bookmark.content.url),
+      onClick: async () => {
+        if (bookmark.content.type !== BookmarkTypes.LINK) {
+          return;
+        }
+
+        try {
+          await Linking.openURL(bookmark.content.url);
+        } catch {
+          toast({
+            message: "Failed to open link",
+            variant: "destructive",
+            showProgress: false,
+          });
+        }
+      },
       disabled: false,
     },
   ];

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { badgeVariants } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
-import { useSession } from "next-auth/react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 

@@ -2,6 +2,7 @@
 import { create } from "zustand";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 interface BookmarkState {
   selectedBookmarks: ZBookmark[];
@@ -13,12 +14,15 @@ interface BookmarkState {
   selectAll: () => void;
   unSelectAll: () => void;
   isEverythingSelected: () => boolean;
+  setListContext: (listContext: ZBookmarkList | undefined) => void;
+  listContext: ZBookmarkList | undefined;
 }
 
 const useBulkActionsStore = create<BookmarkState>((set, get) => ({
   selectedBookmarks: [],
   visibleBookmarks: [],
   isBulkEditEnabled: false,
+  listContext: undefined,
 
   toggleBookmark: (bookmark: ZBookmark) => {
     const selectedBookmarks = get().selectedBookmarks;
@@ -56,6 +60,9 @@ const useBulkActionsStore = create<BookmarkState>((set, get) => ({
     set({
       visibleBookmarks,
     });
+  },
+  setListContext: (listContext: ZBookmarkList | undefined) => {
+    set({ listContext });
   },
 }));
 

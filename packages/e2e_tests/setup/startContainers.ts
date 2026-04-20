@@ -29,31 +29,54 @@ async function waitForHealthy(port: number, timeout = 60000): Promise<void> {
   );
 }
 
+async function waitForAimockHealthy(
+  port: number,
+  timeout = 60000,
+): Promise<void> {
+  return waitUntil(
+    async () => {
+      const response = await fetch(`http://localhost:${port}/health`);
+      return response.status === 200;
+    },
+    "Aimock is healthy",
+    timeout,
+  );
+}
+
 export default async function ({ provide }: GlobalSetupContext) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const port = await getRandomPort();
+  const karakeepPort = await getRandomPort();
+  const aimockPort = await getRandomPort();
 
   const buildArg = process.env.E2E_TEST_NO_BUILD ? "" : "--build";
 
-  console.log(`Starting docker compose on port ${port}...`);
+  console.log(
+    `Starting docker compose on ports karakeep=${karakeepPort} aimock=${aimockPort}...`,
+  );
   execSync(`docker compose up ${buildArg} -d`, {
     cwd: __dirname,
     stdio: "inherit",
     env: {
       ...process.env,
-      KARAKEEP_PORT: port.toString(),
+      KARAKEEP_PORT: karakeepPort.toString(),
+      AIMOCK_PORT: aimockPort.toString(),
     },
   });
 
-  console.log("Waiting for service to become healthy...");
-  await waitForHealthy(port);
+  console.log("Waiting for services to become healthy...");
+  await Promise.all([
+    waitForHealthy(karakeepPort),
+    waitForAimockHealthy(aimockPort),
+  ]);
 
   // Wait 5 seconds for the worker to start
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  provide("karakeepPort", port);
+  provide("karakeepPort", karakeepPort);
+  provide("aimockPort", aimockPort);
 
-  process.env.KARAKEEP_PORT = port.toString();
+  process.env.KARAKEEP_PORT = karakeepPort.toString();
+  process.env.AIMOCK_PORT = aimockPort.toString();
 
   return async () => {
     console.log("Capturing docker logs...");
@@ -61,7 +84,14 @@ export default async function ({ provide }: GlobalSetupContext) {
       const logsDir = path.join(__dirname, "docker-logs");
       execSync(`mkdir -p "${logsDir}"`, { cwd: __dirname });
 
-      const services = ["web", "meilisearch", "chrome", "nginx", "minio"];
+      const services = [
+        "web",
+        "meilisearch",
+        "chrome",
+        "nginx",
+        "minio",
+        "aimock",
+      ];
       for (const service of services) {
         try {
           execSync(
@@ -91,5 +121,6 @@ export default async function ({ provide }: GlobalSetupContext) {
 declare module "vitest" {
   export interface ProvidedContext {
     karakeepPort: number;
+    aimockPort: number;
   }
 }

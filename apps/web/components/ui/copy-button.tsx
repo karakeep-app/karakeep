@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Check, Copy } from "lucide-react";
 
 import { Button } from "./button";
-import { toast } from "./use-toast";
 
 export default function CopyBtn({
   className,

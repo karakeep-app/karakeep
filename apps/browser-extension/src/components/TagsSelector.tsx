@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSet } from "@uidotdev/usehooks";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
@@ -8,7 +9,7 @@ import {
 } from "@karakeep/shared-react/hooks/bookmarks";
 
 import { cn } from "../utils/css";
-import { api } from "../utils/trpc";
+import { useTRPC } from "../utils/trpc";
 import { Button } from "./ui/button";
 import {
   Command,
@@ -22,7 +23,8 @@ import { DynamicPopoverContent } from "./ui/dynamic-popover";
 import { Popover, PopoverTrigger } from "./ui/popover";
 
 export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
-  const { data: allTags } = api.tags.list.useQuery({});
+  const api = useTRPC();
+  const { data: allTags } = useQuery(api.tags.list.queryOptions({}));
   const { data: bookmark } = useAutoRefreshingBookmarkQuery({ bookmarkId });
 
   const existingTagIds = new Set(bookmark?.tags.map((t) => t.id) ?? []);

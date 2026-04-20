@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-
-dayjs.extend(relativeTime);
+import { formatDistanceToNow } from "date-fns";
 
 export default function useRelativeTime(date: Date) {
   const [state, setState] = useState({
@@ -13,7 +10,7 @@ export default function useRelativeTime(date: Date) {
   // This is to avoid hydration errors when server and clients are in different timezones
   useEffect(() => {
     setState({
-      fromNow: dayjs(date).fromNow(),
+      fromNow: formatDistanceToNow(date, { addSuffix: true }),
       localCreatedAt: date.toLocaleString(),
     });
   }, [date]);

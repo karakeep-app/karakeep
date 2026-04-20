@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
-import { api } from "@/lib/trpc";
-import { keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 
 import { useInSearchPageStore } from "../store/useInSearchPageStore";
@@ -11,9 +11,22 @@ import { useInSearchPageStore } from "../store/useInSearchPageStore";
 function useSearchQuery() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("q") ?? "";
+  const pathname = usePathname();
+  const lastQuery = useRef(searchQuery);
 
-  const parsed = useMemo(() => parseSearchQuery(searchQuery), [searchQuery]);
-  return { searchQuery, parsedSearchQuery: parsed };
+  // Only update the effective search query when on the search page.
+  // This prevents the query from resetting when intercepting routes
+  // change the URL (e.g., opening a bookmark preview dialog).
+  if (pathname.startsWith("/dashboard/search")) {
+    lastQuery.current = searchQuery;
+  }
+
+  const effectiveQuery = lastQuery.current;
+  const parsed = useMemo(
+    () => parseSearchQuery(effectiveQuery),
+    [effectiveQuery],
+  );
+  return { searchQuery: effectiveQuery, parsedSearchQuery: parsed };
 }
 
 export function useDoBookmarkSearch() {
@@ -55,6 +68,7 @@ export function useDoBookmarkSearch() {
 }
 
 export function useBookmarkSearch() {
+  const api = useTRPC();
   const { searchQuery } = useSearchQuery();
   const sortOrder = useSortOrderStore((state) => state.sortOrder);
 
@@ -67,17 +81,19 @@ export function useBookmarkSearch() {
     fetchNextPage,
     isFetchingNextPage,
     refetch,
-  } = api.bookmarks.searchBookmarks.useInfiniteQuery(
-    {
-      text: searchQuery,
-      sortOrder,
-    },
-    {
-      placeholderData: keepPreviousData,
-      gcTime: 0,
-      initialCursor: null,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  } = useInfiniteQuery(
+    api.bookmarks.searchBookmarks.infiniteQueryOptions(
+      {
+        text: searchQuery,
+        sortOrder,
+      },
+      {
+        placeholderData: keepPreviousData,
+        gcTime: 0,
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   useEffect(() => {

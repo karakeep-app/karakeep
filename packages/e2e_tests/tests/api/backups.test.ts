@@ -169,6 +169,27 @@ describe("Backups API", () => {
       bookmarks.push(bookmark!);
     }
 
+    // Step 1b: Create a list and add first two bookmarks to it
+    const { data: listData } = await client.POST("/lists", {
+      body: {
+        name: "Backup Test List",
+        icon: "📋",
+      },
+    });
+    expect(listData).toBeDefined();
+    const listId = listData!.id;
+
+    await client.PUT("/lists/{listId}/bookmarks/{bookmarkId}", {
+      params: {
+        path: { listId, bookmarkId: bookmarks[0].id },
+      },
+    });
+    await client.PUT("/lists/{listId}/bookmarks/{bookmarkId}", {
+      params: {
+        path: { listId, bookmarkId: bookmarks[1].id },
+      },
+    });
+
     // Step 2: Trigger a backup
     const { data: createdBackup, response: createResponse } =
       await client.POST("/backups");
@@ -272,6 +293,31 @@ describe("Backups API", () => {
     const firstBookmark = backupData.bookmarks[0];
     expect(firstBookmark).toHaveProperty("content");
     expect(firstBookmark.content).toHaveProperty("type");
+
+    // Validate lists in backup
+    expect(backupData.lists).toBeDefined();
+    expect(Array.isArray(backupData.lists)).toBe(true);
+    const exportedList = backupData.lists.find(
+      (l: { name: string }) => l.name === "Backup Test List",
+    );
+    expect(exportedList).toBeDefined();
+    expect(exportedList.icon).toBe("📋");
+    expect(exportedList.type).toBe("manual");
+    expect(exportedList.id).toBe(listId);
+
+    // Validate bookmark-to-list memberships
+    const bm1 = backupData.bookmarks.find(
+      (b: { title: string }) => b.title === "Test Bookmark 1",
+    );
+    const bm2 = backupData.bookmarks.find(
+      (b: { title: string }) => b.title === "Test Bookmark 2",
+    );
+    const bm3 = backupData.bookmarks.find(
+      (b: { title: string }) => b.title === "Test Bookmark 3",
+    );
+    expect(bm1.lists).toContain(listId);
+    expect(bm2.lists).toContain(listId);
+    expect(bm3.lists).toEqual([]);
 
     // Step 7: Verify the backup appears in the list with updated status
     const { data: backupsData } = await client.GET("/backups");

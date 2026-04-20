@@ -1,5 +1,6 @@
 // Copied from https://gist.github.com/devster31/4e8c6548fd16ffb75c02e6f24e27f9b9
 
+import type { AnyNode } from "domhandler";
 import * as cheerio from "cheerio";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
@@ -10,11 +11,15 @@ import { zExportSchema } from "./exporters";
 export type ImportSource =
   | "html"
   | "pocket"
+  | "matter"
   | "omnivore"
   | "karakeep"
   | "linkwarden"
   | "tab-session-manager"
-  | "mymind";
+  | "mymind"
+  | "readwise-reader"
+  | "instapaper"
+  | "onetab";
 
 export interface ParsedBookmark {
   title: string;
@@ -26,6 +31,23 @@ export interface ParsedBookmark {
   notes?: string;
   archived?: boolean;
   paths: string[][];
+  // Optional list IDs from the source file (used with top-level `lists`).
+  listExternalIds?: string[];
+}
+
+export interface ParsedImportList {
+  externalId: string;
+  name: string;
+  icon?: string;
+  description?: string;
+  parentExternalId: string | null;
+  type: "manual" | "smart";
+  query?: string;
+}
+
+export interface ParsedImportFile {
+  bookmarks: ParsedBookmark[];
+  lists: ParsedImportList[];
 }
 
 function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -34,41 +56,58 @@ function parseNetscapeBookmarkFile(textContent: string): ParsedBookmark[] {
   }
 
   const $ = cheerio.load(textContent);
+  const bookmarks: ParsedBookmark[] = [];
 
-  return $("a")
-    .map(function (_index, a) {
-      const $a = $(a);
-      const addDate = $a.attr("add_date");
-      let tags: string[] = [];
+  // Recursively traverse the bookmark hierarchy top-down
+  function traverseFolder(
+    element: cheerio.Cheerio<AnyNode>,
+    currentPath: string[],
+  ) {
+    element.children().each((_index, child) => {
+      const $child = $(child);
 
-      const tagsStr = $a.attr("tags");
-      try {
-        tags = tagsStr && tagsStr.length > 0 ? tagsStr.split(",") : [];
-      } catch {
-        /* empty */
-      }
-      const url = $a.attr("href");
+      // Check if this is a folder (DT with H3)
+      const h3 = $child.children("h3").first();
+      if (h3.length > 0) {
+        const folderName = h3.text().trim() || "Unnamed";
+        const newPath = [...currentPath, folderName];
 
-      // Build folder path by traversing up the hierarchy
-      const path: string[] = [];
-      let current = $a.parent();
-      while (current && current.length > 0) {
-        const h3 = current.find("> h3").first();
-        if (h3.length > 0) {
-          path.unshift(h3.text());
+        // Find the DL that follows this folder and recurse into it
+        const dl = $child.children("dl").first();
+        if (dl.length > 0) {
+          traverseFolder(dl, newPath);
         }
-        current = current.parent();
-      }
+      } else {
+        // Check if this is a bookmark (DT with A)
+        const anchor = $child.children("a").first();
+        if (anchor.length > 0) {
+          const addDate = anchor.attr("add_date");
+          const tagsStr = anchor.attr("tags");
+          const tags = tagsStr && tagsStr.length > 0 ? tagsStr.split(",") : [];
+          const url = anchor.attr("href");
 
-      return {
-        title: $a.text(),
-        content: url ? { type: BookmarkTypes.LINK as const, url } : undefined,
-        tags,
-        addDate: typeof addDate === "undefined" ? undefined : parseInt(addDate),
-        paths: [path],
-      };
-    })
-    .get();
+          bookmarks.push({
+            title: anchor.text(),
+            content: url
+              ? { type: BookmarkTypes.LINK as const, url }
+              : undefined,
+            tags,
+            addDate:
+              typeof addDate === "undefined" ? undefined : parseInt(addDate),
+            paths: [currentPath],
+          });
+        }
+      }
+    });
+  }
+
+  // Start traversal from the root DL element
+  const rootDl = $("dl").first();
+  if (rootDl.length > 0) {
+    traverseFolder(rootDl, []);
+  }
+
+  return bookmarks;
 }
 
 function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -95,7 +134,53 @@ function parsePocketBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
-function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
+function parseMatterBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zMatterRecordSchema = z.object({
+    Title: z.string(),
+    Author: z.string(),
+    Publisher: z.string(),
+    URL: z.string(),
+    Tags: z
+      .string()
+      .transform((tags) => (tags.length > 0 ? tags.split(";") : [])),
+    "Word Count": z.string(),
+    "In Queue": z.string().transform((inQueue) => inQueue === "False"),
+    Favorited: z.string(),
+    Read: z.string(),
+    Highlight_Count: z.string(),
+    "Last Interaction Date": z
+      .string()
+      .transform((date) => Date.parse(date) / 1000),
+    "File Id": z.string(),
+  });
+
+  const zMatterExportSchema = z.array(zMatterRecordSchema);
+
+  const records = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zMatterExportSchema.safeParse(records);
+  if (!parsed.success) {
+    throw new Error(
+      `The uploaded CSV file contains an invalid Matter bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record) => {
+    return {
+      title: record.Title,
+      content: { type: BookmarkTypes.LINK as const, url: record.URL },
+      tags: record.Tags,
+      addDate: record["Last Interaction Date"],
+      archived: record["In Queue"],
+      paths: [], // TODO
+    };
+  });
+}
+
+function parseKarakeepBookmarkFile(textContent: string): ParsedImportFile {
   const parsed = zExportSchema.safeParse(JSON.parse(textContent));
   if (!parsed.success) {
     throw new Error(
@@ -103,7 +188,22 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
-  return parsed.data.bookmarks.map((bookmark) => {
+  const exportedLists = parsed.data.lists ?? [];
+  const parsedLists: ParsedImportList[] = exportedLists.map((list) => ({
+    externalId: list.id,
+    name: list.name,
+    icon: list.icon,
+    description: list.description ?? undefined,
+    parentExternalId: list.parentId,
+    type: list.type,
+    query: list.type === "smart" ? (list.query ?? undefined) : undefined,
+  }));
+
+  const manualListIds = new Set(
+    exportedLists.filter((l) => l.type === "manual").map((l) => l.id),
+  );
+
+  const parsedBookmarks = parsed.data.bookmarks.map((bookmark) => {
     let content = undefined;
     if (bookmark.content?.type == BookmarkTypes.LINK) {
       content = {
@@ -116,6 +216,7 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
         text: bookmark.content.text,
       };
     }
+
     return {
       title: bookmark.title ?? "",
       content,
@@ -123,9 +224,17 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedBookmark[] {
       addDate: bookmark.createdAt,
       notes: bookmark.note ?? undefined,
       archived: bookmark.archived,
-      paths: [], // TODO
+      paths: [],
+      listExternalIds: (bookmark.lists ?? []).filter((listId) =>
+        manualListIds.has(listId),
+      ),
     };
   });
+
+  return {
+    bookmarks: parsedBookmarks,
+    lists: parsedLists,
+  };
 }
 
 function parseOmnivoreBookmarkFile(textContent: string): ParsedBookmark[] {
@@ -162,6 +271,9 @@ function parseLinkwardenBookmarkFile(textContent: string): ParsedBookmark[] {
   const zLinkwardenExportSchema = z.object({
     collections: z.array(
       z.object({
+        id: z.number(),
+        name: z.string(),
+        parentId: z.number().nullable(),
         links: z.array(
           z.object({
             name: z.string(),
@@ -181,13 +293,32 @@ function parseLinkwardenBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
+  // Build a map of collection id -> collection for path resolution
+  const collectionsById = new Map(
+    parsed.data.collections.map((c) => [c.id, c]),
+  );
+
+  // Resolve the full path for a collection by walking up the parent chain
+  function getCollectionPath(collectionId: number): string[] {
+    const path: string[] = [];
+    let currentId: number | null = collectionId;
+    while (currentId !== null) {
+      const collection = collectionsById.get(currentId);
+      if (!collection) break;
+      path.unshift(collection.name);
+      currentId = collection.parentId;
+    }
+    return path;
+  }
+
   return parsed.data.collections.flatMap((collection) => {
+    const collectionPath = getCollectionPath(collection.id);
     return collection.links.map((bookmark) => ({
       title: bookmark.name ?? "",
       content: { type: BookmarkTypes.LINK as const, url: bookmark.url },
       tags: bookmark.tags.map((tag) => tag.name),
       addDate: bookmark.createdAt.getTime() / 1000,
-      paths: [], // TODO
+      paths: [collectionPath],
     }));
   });
 }
@@ -292,6 +423,194 @@ function parseMymindBookmarkFile(textContent: string): ParsedBookmark[] {
   });
 }
 
+function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
+  const zInstapaperRecordScheme = z.object({
+    URL: z.string(),
+    Title: z.string(),
+    Selection: z.string(),
+    Folder: z.string(),
+    Timestamp: z.string(),
+    Tags: z.string(),
+  });
+
+  const zInstapaperExportScheme = z.array(zInstapaperRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+  });
+
+  const parsed = zInstapaperExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid instapaper bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  return parsed.data.map((record): ParsedBookmark => {
+    let content: ParsedBookmark["content"];
+    if (record.URL && record.URL.trim().length > 0) {
+      content = { type: BookmarkTypes.LINK as const, url: record.URL.trim() };
+    } else if (record.Selection && record.Selection.trim().length > 0) {
+      content = {
+        type: BookmarkTypes.TEXT as const,
+        text: record.Selection.trim(),
+      };
+    }
+
+    const addDate = parseInt(record.Timestamp);
+
+    let tags: string[] = [];
+    try {
+      const parsedTags = JSON.parse(record.Tags);
+      if (Array.isArray(parsedTags)) {
+        tags = parsedTags.map((tag) => tag.toString().trim());
+      }
+    } catch {
+      tags = [];
+    }
+
+    let archived = false;
+    const paths = [];
+    if (record.Folder === "Archive") {
+      archived = true;
+    } else if (record.Folder === "Unread") {
+      // This maps to home feed in instapaper, do nothing.
+    } else {
+      // Instapaper "Starred" should map to favorites in karakeep, but
+      // apparently instapaper export only includes on folder per bookmark
+      // so for now, we'll treat the "Starred" as a normal folder.
+      paths.push([record.Folder]);
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths,
+      archived,
+    };
+  });
+}
+
+function parseReadwiseReaderBookmarkFile(
+  textContent: string,
+): ParsedBookmark[] {
+  const zReadwiseReaderRecordScheme = z.object({
+    Title: z.string(),
+    URL: z.string(),
+    ID: z.string(),
+    "Document tags": z.string(),
+    "Saved date": z.string(),
+    "Reading progress": z.string(),
+    Location: z.string(),
+    Seen: z.enum(["True", "False"]),
+  });
+
+  const zReadwiseReaderExportScheme = z.array(zReadwiseReaderRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+    cast: function (value, context) {
+      //Replace for json parsing; original comes with \' instead of \" so it's not json parsable.
+      if (context.column === "Document tags") {
+        return value
+          .replace(/\\'/g, "'")
+          .replace(/(^|\[|,)\s*'/g, '$1"')
+          .replace(/'\s*(]|,|$)/g, '"$1')
+          .replace(/""/g, '"');
+      }
+      return value;
+    },
+  });
+
+  const parsed = zReadwiseReaderExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid Readwise Reader bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  //Feed (RSS) articles are included automatically, so filter them. Only include actively added links.
+  const feedFilteredArticles = parsed.data.filter(
+    (record) => record.Location !== "feed",
+  );
+  const emptyFilteredArticles = feedFilteredArticles.filter(
+    (record) => record.URL && record.URL.trim().length > 0,
+  );
+
+  return emptyFilteredArticles.map((record) => {
+    let content: ParsedBookmark["content"] = {
+      type: BookmarkTypes.LINK as const,
+      url: record.URL.trim(),
+    };
+
+    const addDate = new Date(record["Saved date"]).getTime() / 1000;
+
+    let tags: string[] = [];
+    try {
+      const documentTags = record["Document tags"];
+      if (documentTags) {
+        const parsedTags = JSON.parse(documentTags);
+        if (Array.isArray(parsedTags)) {
+          tags = parsedTags.map((tag) => tag.toString().trim());
+        }
+      }
+    } catch {
+      tags = [];
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths: [], // TODO
+      archived: record.Location === "archive",
+    };
+  });
+}
+
+function parseOneTabFile(textContent: string): ParsedBookmark[] {
+  const bookmarks: ParsedBookmark[] = [];
+
+  for (const line of textContent.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // OneTab format: "URL | Title" or just "URL"
+    const pipeIndex = trimmed.indexOf(" | ");
+    let url: string;
+    let title: string;
+
+    if (pipeIndex !== -1) {
+      url = trimmed.substring(0, pipeIndex).trim();
+      title = trimmed.substring(pipeIndex + 3).trim();
+    } else {
+      url = trimmed;
+      title = "";
+    }
+
+    // Skip lines that don't look like URLs (group headers, timestamps, etc.)
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      continue;
+    }
+
+    bookmarks.push({
+      title,
+      content: { type: BookmarkTypes.LINK as const, url },
+      tags: [],
+      paths: [],
+    });
+  }
+
+  return bookmarks;
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -305,6 +624,14 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
         existing.tags = [...new Set([...existing.tags, ...bookmark.tags])];
         // Merge paths
         existing.paths = [...existing.paths, ...bookmark.paths];
+        if (existing.listExternalIds || bookmark.listExternalIds) {
+          existing.listExternalIds = [
+            ...new Set([
+              ...(existing.listExternalIds ?? []),
+              ...(bookmark.listExternalIds ?? []),
+            ]),
+          ];
+        }
         const existingDate = existing.addDate ?? Infinity;
         const newDate = bookmark.addDate ?? Infinity;
         if (newDate < existingDate) {
@@ -336,7 +663,15 @@ function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
 export function parseImportFile(
   source: ImportSource,
   textContent: string,
-): ParsedBookmark[] {
+): ParsedImportFile {
+  if (source === "karakeep") {
+    const parsed = parseKarakeepBookmarkFile(textContent);
+    return {
+      bookmarks: deduplicateBookmarks(parsed.bookmarks),
+      lists: parsed.lists,
+    };
+  }
+
   let result: ParsedBookmark[];
   switch (source) {
     case "html":
@@ -345,8 +680,8 @@ export function parseImportFile(
     case "pocket":
       result = parsePocketBookmarkFile(textContent);
       break;
-    case "karakeep":
-      result = parseKarakeepBookmarkFile(textContent);
+    case "matter":
+      result = parseMatterBookmarkFile(textContent);
       break;
     case "omnivore":
       result = parseOmnivoreBookmarkFile(textContent);
@@ -360,6 +695,15 @@ export function parseImportFile(
     case "mymind":
       result = parseMymindBookmarkFile(textContent);
       break;
+    case "instapaper":
+      result = parseInstapaperBookmarkFile(textContent);
+      break;
+    case "readwise-reader":
+      result = parseReadwiseReaderBookmarkFile(textContent);
+      break;
+    case "onetab":
+      result = parseOneTabFile(textContent);
+      break;
   }
-  return deduplicateBookmarks(result);
+  return { bookmarks: deduplicateBookmarks(result), lists: [] };
 }

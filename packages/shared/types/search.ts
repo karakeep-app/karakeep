@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { BookmarkTypes } from "./bookmarks";
+import { BookmarkTypes, zBookmarkSourceSchema } from "./bookmarks";
 
 const zTagNameMatcher = z.object({
   type: z.literal("tagName"),
@@ -83,6 +83,17 @@ const zTypeMatcher = z.object({
   inverse: z.boolean(),
 });
 
+const zBrokenLinksMatcher = z.object({
+  type: z.literal("brokenLinks"),
+  brokenLinks: z.boolean(),
+});
+
+const zSourceMatcher = z.object({
+  type: z.literal("source"),
+  source: zBookmarkSourceSchema,
+  inverse: z.boolean(),
+});
+
 const zNonRecursiveMatcher = z.union([
   zTagNameMatcher,
   zListNameMatcher,
@@ -97,6 +108,8 @@ const zNonRecursiveMatcher = z.union([
   zIsInListMatcher,
   zTypeMatcher,
   zRssFeedNameMatcher,
+  zBrokenLinksMatcher,
+  zSourceMatcher,
 ]);
 
 type NonRecursiveMatcher = z.infer<typeof zNonRecursiveMatcher>;
@@ -120,6 +133,8 @@ export const zMatcherSchema: z.ZodType<Matcher> = z.lazy(() => {
     zIsInListMatcher,
     zTypeMatcher,
     zRssFeedNameMatcher,
+    zBrokenLinksMatcher,
+    zSourceMatcher,
     z.object({
       type: z.literal("and"),
       matchers: z.array(zMatcherSchema),

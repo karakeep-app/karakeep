@@ -7,7 +7,7 @@ import {
   ActionButtonWithTooltip,
 } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useTranslation } from "@/lib/i18n/client";
 import {
@@ -16,6 +16,7 @@ import {
   Hash,
   Link,
   List,
+  ListMinus,
   Pencil,
   RotateCw,
   Trash2,
@@ -27,6 +28,7 @@ import {
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
+import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks/lists";
 import { limitConcurrency } from "@karakeep/shared/concurrency";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -38,7 +40,11 @@ const MAX_CONCURRENT_BULK_ACTIONS = 50;
 
 export default function BulkBookmarksAction() {
   const { t } = useTranslation();
-  const { selectedBookmarks, isBulkEditEnabled } = useBulkActionsStore();
+  const {
+    selectedBookmarks,
+    isBulkEditEnabled,
+    listContext: withinListContext,
+  } = useBulkActionsStore();
   const setIsBulkEditEnabled = useBulkActionsStore(
     (state) => state.setIsBulkEditEnabled,
   );
@@ -49,8 +55,9 @@ export default function BulkBookmarksAction() {
   const isEverythingSelected = useBulkActionsStore(
     (state) => state.isEverythingSelected,
   );
-  const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRemoveFromListDialogOpen, setIsRemoveFromListDialogOpen] =
+    useState(false);
   const [manageListsModal, setManageListsModalOpen] = useState(false);
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);
   const pathname = usePathname();
@@ -87,6 +94,13 @@ export default function BulkBookmarksAction() {
   });
 
   const recrawlBookmarkMutator = useRecrawlBookmark({
+    onSuccess: () => {
+      setIsBulkEditEnabled(false);
+    },
+    onError,
+  });
+
+  const removeBookmarkFromListMutator = useRemoveBookmarkFromList({
     onSuccess: () => {
       setIsBulkEditEnabled(false);
     },
@@ -185,6 +199,31 @@ export default function BulkBookmarksAction() {
     setIsDeleteDialogOpen(false);
   };
 
+  const removeBookmarksFromList = async () => {
+    if (!withinListContext) return;
+
+    const results = await Promise.allSettled(
+      limitConcurrency(
+        selectedBookmarks.map(
+          (item) => () =>
+            removeBookmarkFromListMutator.mutateAsync({
+              bookmarkId: item.id,
+              listId: withinListContext.id,
+            }),
+        ),
+        MAX_CONCURRENT_BULK_ACTIONS,
+      ),
+    );
+
+    const successes = results.filter((r) => r.status === "fulfilled").length;
+    if (successes > 0) {
+      toast({
+        description: `${successes} bookmarks have been removed from the list!`,
+      });
+    }
+    setIsRemoveFromListDialogOpen(false);
+  };
+
   const alreadyFavourited =
     selectedBookmarks.length &&
     selectedBookmarks.every((item) => item.favourited === true);
@@ -202,6 +241,18 @@ export default function BulkBookmarksAction() {
       action: () => copyLinks(),
       isPending: false,
       hidden: !isBulkEditEnabled,
+    },
+    {
+      name: t("actions.remove_from_list"),
+      icon: <ListMinus size={18} />,
+      action: () => setIsRemoveFromListDialogOpen(true),
+      isPending: removeBookmarkFromListMutator.isPending,
+      hidden:
+        !isBulkEditEnabled ||
+        !withinListContext ||
+        withinListContext.type !== "manual" ||
+        (withinListContext.userRole !== "editor" &&
+          withinListContext.userRole !== "owner"),
     },
     {
       name: t("actions.add_to_list"),
@@ -232,7 +283,7 @@ export default function BulkBookmarksAction() {
       hidden: !isBulkEditEnabled,
     },
     {
-      name: t("actions.download_full_page_archive"),
+      name: t("actions.preserve_offline_archive"),
       icon: <FileDown size={18} />,
       action: () => recrawlBookmarks(true),
       isPending: recrawlBookmarkMutator.isPending,
@@ -296,6 +347,27 @@ export default function BulkBookmarksAction() {
             onClick={() => deleteBookmarks()}
           >
             {t("actions.delete")}
+          </ActionButton>
+        )}
+      />
+      <ActionConfirmingDialog
+        open={isRemoveFromListDialogOpen}
+        setOpen={setIsRemoveFromListDialogOpen}
+        title={"Remove Bookmarks from List"}
+        description={
+          <p>
+            Are you sure you want to remove {selectedBookmarks.length} bookmarks
+            from this list?
+          </p>
+        }
+        actionButton={() => (
+          <ActionButton
+            type="button"
+            variant="destructive"
+            loading={removeBookmarkFromListMutator.isPending}
+            onClick={() => removeBookmarksFromList()}
+          >
+            {t("actions.remove")}
           </ActionButton>
         )}
       />

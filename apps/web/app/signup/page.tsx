@@ -3,10 +3,25 @@ import KarakeepLogo from "@/components/KarakeepIcon";
 import SignUpForm from "@/components/signup/SignUpForm";
 import { getServerAuthSession } from "@/server/auth";
 
-export default async function SignUpPage() {
+import {
+  isMobileAppRedirect,
+  validateRedirectUrl,
+} from "@karakeep/shared/utils/redirectUrl";
+
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectUrl?: string; skipSessionRedirect?: string }>;
+}) {
   const session = await getServerAuthSession();
-  if (session) {
-    redirect("/");
+  const { redirectUrl: rawRedirectUrl, skipSessionRedirect } =
+    await searchParams;
+  const redirectUrl = validateRedirectUrl(rawRedirectUrl) ?? "/";
+  const shouldSkipSessionRedirect =
+    isMobileAppRedirect(redirectUrl) && skipSessionRedirect === "1";
+
+  if (session && !shouldSkipSessionRedirect) {
+    redirect(redirectUrl);
   }
 
   return (
@@ -15,7 +30,7 @@ export default async function SignUpPage() {
         <div className="flex items-center justify-center">
           <KarakeepLogo height={80} />
         </div>
-        <SignUpForm />
+        <SignUpForm redirectUrl={redirectUrl} />
       </div>
     </div>
   );

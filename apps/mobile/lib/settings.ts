@@ -1,6 +1,9 @@
+import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { z } from "zod";
 import { create } from "zustand";
+
+import { zReaderFontFamilySchema } from "@karakeep/shared/types/users";
 
 const SETTING_NAME = "settings";
 
@@ -11,11 +14,16 @@ const zSettingsSchema = z.object({
   imageQuality: z.number().optional().default(0.2),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   defaultBookmarkView: z
-    .enum(["reader", "browser"])
+    .enum(["reader", "browser", "externalBrowser"])
     .optional()
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
+  keepScreenOnWhileReading: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
+  // Reader settings (local device overrides)
+  readerFontSize: z.number().int().min(12).max(24).optional(),
+  readerLineHeight: z.number().min(1.2).max(2.5).optional(),
+  readerFontFamily: zReaderFontFamilySchema.optional(),
 });
 
 export type Settings = z.infer<typeof zSettingsSchema>;
@@ -35,6 +43,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       theme: "system",
       defaultBookmarkView: "reader",
       showNotes: false,
+      keepScreenOnWhileReading: false,
       customHeaders: {},
     },
   },
@@ -71,5 +80,13 @@ const useSettings = create<AppSettingsState>((set, get) => ({
 export default function useAppSettings() {
   const { settings, setSettings, load } = useSettings();
 
+  useEffect(() => {
+    if (settings.isLoading) {
+      load();
+    }
+  }, [load, settings.isLoading]);
+
   return { ...settings, setSettings, load };
 }
+
+export { useSettings };

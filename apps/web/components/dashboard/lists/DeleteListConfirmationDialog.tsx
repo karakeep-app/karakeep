@@ -3,8 +3,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";

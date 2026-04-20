@@ -1,11 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 
 import type { db } from "@karakeep/db";
 import serverConfig from "@karakeep/shared/config";
 
 import { createRateLimitMiddleware } from "./lib/rateLimit";
+import { createTracingMiddleware } from "./lib/tracing";
 import {
   apiErrorsTotalCounter,
   apiRequestDurationSummary,
@@ -50,11 +51,16 @@ const t = initTRPC.context<Context>().create({
     });
     return {
       ...shape,
+      message:
+        error.code === "INTERNAL_SERVER_ERROR" &&
+        process.env.NODE_ENV === "production"
+          ? "Internal server error"
+          : shape.message,
       data: {
         ...shape.data,
         zodError:
           error.code === "BAD_REQUEST" && error.cause instanceof ZodError
-            ? error.cause.flatten()
+            ? z.flattenError(error.cause)
             : null,
       },
     };
@@ -86,7 +92,9 @@ export const procedure = t.procedure
     });
     end();
     return res;
-  });
+  })
+  // OpenTelemetry tracing middleware
+  .use(createTracingMiddleware());
 
 // Default public procedure rate limiting
 export const publicProcedure = procedure.use(

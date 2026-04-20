@@ -1,12 +1,17 @@
 import { and, eq } from "drizzle-orm";
+import { getBookmarkDomain } from "network";
 
 import { db } from "@karakeep/db";
-import { bookmarks, customPrompts } from "@karakeep/db/schema";
-import { triggerSearchReindex, ZOpenAIRequest } from "@karakeep/shared-server";
+import { bookmarks, customPrompts, users } from "@karakeep/db/schema";
+import {
+  setSpanAttributes,
+  triggerSearchReindex,
+  ZOpenAIRequest,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClient } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
-import { buildSummaryPrompt } from "@karakeep/shared/prompts";
+import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
@@ -22,6 +27,7 @@ async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
           description: true,
           htmlContent: true,
           contentAssetId: true,
+          crawlStatusCode: true,
           publisher: true,
           author: true,
           url: true,
@@ -55,6 +61,33 @@ export async function runSummarization(
   );
 
   const bookmarkData = await fetchBookmarkDetailsForSummary(bookmarkId);
+
+  // Check user-level preference
+  const userSettings = await db.query.users.findFirst({
+    where: eq(users.id, bookmarkData.userId),
+    columns: {
+      autoSummarizationEnabled: true,
+      inferredTagLang: true,
+    },
+  });
+
+  setSpanAttributes({
+    "user.id": bookmarkData.userId,
+    "bookmark.id": bookmarkData.id,
+    "bookmark.url": bookmarkData.link?.url,
+    "bookmark.domain": getBookmarkDomain(bookmarkData.link?.url),
+    "bookmark.content.type": bookmarkData.type,
+    "crawler.statusCode": bookmarkData.link?.crawlStatusCode ?? undefined,
+    "inference.type": "summarization",
+    "inference.model": serverConfig.inference.textModel,
+  });
+
+  if (userSettings?.autoSummarizationEnabled === false) {
+    logger.debug(
+      `[inference][${jobId}] Skipping summarization job for bookmark with id "${bookmarkId}" because user has disabled auto-summarization.`,
+    );
+    return;
+  }
 
   let textToSummarize = "";
   if (bookmarkData.type === BookmarkTypes.LINK && bookmarkData.link) {
@@ -105,12 +138,20 @@ URL: ${link.url ?? ""}
     },
   });
 
+  setSpanAttributes({
+    "inference.prompt.customCount": prompts.length,
+  });
+
   const summaryPrompt = await buildSummaryPrompt(
-    serverConfig.inference.inferredTagLang,
+    userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
     prompts.map((p) => p.text),
     textToSummarize,
     serverConfig.inference.contextLength,
   );
+
+  setSpanAttributes({
+    "inference.prompt.size": Buffer.byteLength(summaryPrompt, "utf8"),
+  });
 
   const summaryResult = await inferenceClient.inferFromText(summaryPrompt, {
     schema: null, // Summaries are typically free-form text
@@ -122,6 +163,11 @@ URL: ${link.url ?? ""}
       `[inference][${jobId}] Failed to summarize bookmark ${bookmarkId}, empty response from inference client.`,
     );
   }
+
+  setSpanAttributes({
+    "inference.summary.size": Buffer.byteLength(summaryResult.response, "utf8"),
+    "inference.totalTokens": summaryResult.totalTokens,
+  });
 
   logger.info(
     `[inference][${jobId}] Generated summary for bookmark "${bookmarkId}" using ${summaryResult.totalTokens} tokens.`,

@@ -39,7 +39,11 @@
     "summary": "Resumo",
     "quota": "Cota",
     "bookmarks": "Marcadores",
-    "storage": "Almacenamento"
+    "storage": "Almacenamento",
+    "pdf": "PDF Arquivado",
+    "default": "Predeterminado",
+    "id": "ID",
+    "last_used": "Usado por última vez"
   },
   "actions": {
     "favorite": "Marcar como favorito",
@@ -84,7 +88,17 @@
     "confirm": "Confirmar",
     "regenerate": "Rexenerar",
     "load_more": "Cargar máis",
-    "edit_notes": "Editar notas"
+    "edit_notes": "Editar notas",
+    "preserve_as_pdf": "Gardar como PDF",
+    "offline_copies": "Copias sen conexión",
+    "preserve_offline_archive": "Conservar o arquivo sen conexión",
+    "download_full_page_archive_file": "Descargar o arquivo",
+    "download_pdf_file": "Descargar ficheiro PDF",
+    "remove": "Retirar",
+    "more": "Máis",
+    "replace_banner": "Substituír o banner",
+    "add_banner": "Engadir banner",
+    "download": "Descargar"
   },
   "tags": {
     "drag_and_drop_merging_info": "Arrastra e solta etiquetas sobre outras para unilas",
@@ -108,7 +122,9 @@
     "no_ai_tags": "Aínda non hai etiquetas de IA",
     "no_unused_tags": "Non tes etiquetas sen usar",
     "no_unused_tags_match_your_search": "Ningunha etiqueta sen usar coincide coa túa busca",
-    "no_tags_match_your_search": "Ningunha etiqueta coincide coa túa busca"
+    "no_tags_match_your_search": "Ningunha etiqueta coincide coa túa busca",
+    "search_placeholder": "Buscar etiquetas...",
+    "search_or_create_placeholder": "Buscar ou crear etiquetas..."
   },
   "toasts": {
     "bookmarks": {
@@ -117,7 +133,10 @@
       "refetch": "Solicitouse a actualización!",
       "full_page_archive": "Pediuse un Arquivo de Páxina Completa",
       "delete_from_list": "O marcador borrouse da lista",
-      "clipboard_copied": "A ligazón copiouse no teu portapapeis!"
+      "clipboard_copied": "A ligazón copiouse no teu portapapeis!",
+      "preserve_pdf": "Activouse a preservación en PDF",
+      "update_banner": "Banner actualizado!",
+      "uploading_banner": "Cargando o banner..."
     },
     "lists": {
       "updated": "A lista foi actualizada!",
@@ -149,13 +168,15 @@
       "import_export_bookmarks": "Importar / Exportar marcadores",
       "import_bookmarks_from_html_file": "Importar marcadores desde arquivo HTML",
       "import_bookmarks_from_pocket_export": "Importar marcadores desde Pocket",
+      "import_bookmarks_from_matter_export": "Importar marcadores desde Matter",
       "import_bookmarks_from_omnivore_export": "Importar marcadores desde Omnivore",
       "import_bookmarks_from_linkwarden_export": "Importar marcadores desde Linkwarden",
       "import_bookmarks_from_karakeep_export": "Importar marcadores desde Karakeep",
       "export_links_and_notes": "Exportar links e notas",
       "imported_bookmarks": "Marcadores importados",
       "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do xestor de sesións de pestanas",
-      "import_bookmarks_from_mymind_export": "Importar marcadores da exportación de mymind"
+      "import_bookmarks_from_mymind_export": "Importar marcadores da exportación de mymind",
+      "import_bookmarks_from_instapaper_export": "Importar marcadores da exportación de Instapaper"
     },
     "back_to_app": "Volver á aplicación",
     "user_settings": "Axustes de usuario",
@@ -167,7 +188,7 @@
       "new_password": "Novo contrasinal",
       "confirm_new_password": "Confirmar novo contrasinal",
       "options": "Axustes",
-      "interface_lang": "Idioma de la interface",
+      "interface_lang": "Idioma da interface",
       "user_settings": {
         "user_settings_updated": "Actualizáronse os axustes do usuario!",
         "bookmark_click_action": {
@@ -180,12 +201,55 @@
           "show": "Mostrar os marcadores arquivados en etiquetas e listas",
           "hide": "Ocultar os marcadores arquivados en etiquetas e listas"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Axustes específicos do dispositivo activos",
+        "using_default": "Usando o predeterminado do cliente",
+        "clear_override_hint": "Limpa a anulación do dispositivo para usar a configuración global ({{value}})",
+        "font_size": "Tamaño da letra",
+        "font_family": "Familia tipográfica",
+        "preview_inline": "(vista previa)",
+        "tooltip_preview": "Cambios da vista previa sen gardar",
+        "save_to_all_devices": "Todos os dispositivos",
+        "tooltip_local": "Os axustes do dispositivo difiren dos globais",
+        "reset_preview": "Restabelecer a vista previa",
+        "mono": "Monoespazo",
+        "line_height": "Alto de liña",
+        "tooltip_default": "Axustes de lectura",
+        "title": "Axustes do Reader",
+        "serif": "Con serifas",
+        "preview": "Vista previa",
+        "not_set": "Sen axustar",
+        "clear_local_overrides": "Eliminar axustes do dispositivo",
+        "preview_text": "A raposa marrón rápida salta sobre o can preguiceiro. Así é como aparecerá o texto da vista do lector.",
+        "local_overrides_cleared": "Elimináronse os axustes específicos do dispositivo",
+        "local_overrides_description": "Este dispositivo ten parámetros de lector que difieren dos teus predeterminados globais:",
+        "clear_defaults": "Borrar todos os predeterminados",
+        "description": "Configura os axustes de texto predeterminados para a vista do lector. Estes axustes sincronízanse en todos os teus dispositivos.",
+        "defaults_cleared": "Elimináronse os valores predeterminados do lector",
+        "save_hint": "Garda os axustes só para este dispositivo ou sincronízaos en todos os dispositivos",
+        "save_as_default": "Gardar como predeterminado",
+        "save_to_device": "Este dispositivo",
+        "sans": "Sen serifas",
+        "tooltip_preview_and_local": "Cambios da vista previa sen gardar; os axustes do dispositivo difiren dos globais",
+        "adjust_hint": "Axusta os axustes de arriba para previsualizar os cambios"
+      },
+      "avatar": {
+        "upload": "Subir avatar",
+        "change": "Cambiar o avatar",
+        "remove_confirm_title": "Queres eliminar o avatar?",
+        "updated": "Avatar actualizado",
+        "removed": "Avatar eliminado",
+        "description": "Sube unha imaxe cadrada para usar como avatar.",
+        "remove_confirm_description": "Isto borrará a túa foto de perfil actual.",
+        "title": "Foto de perfil",
+        "remove": "Eliminar o avatar"
       }
     },
     "ai": {
-      "ai_settings": "Axustes de la IA",
+      "ai_settings": "Axustes da IA",
       "tagging_rules": "Regras de etiquetado",
-      "tagging_rule_description": "Os prompts que engadas aquí incluiranse como regras durante la xeración de etiquetas. Podes comprobar o prompt final na sección de previsualización.",
+      "tagging_rule_description": "Os prompts que engadas aquí incluiranse como regras durante a xeración de etiquetas. Podes comprobar o prompt final na sección de previsualización.",
       "prompt_preview": "Previsualización",
       "text_prompt": "Prompt para texto",
       "images_prompt": "Prompt para Imaxen",
@@ -193,7 +257,26 @@
       "all_tagging": "Todas as etiquetas",
       "text_tagging": "Etiquetaxe de texto",
       "image_tagging": "Etiquetaxe de imaxes",
-      "summarization": "Resumo"
+      "summarization": "Resumo",
+      "tag_style": "Estilo da etiqueta",
+      "auto_summarization_description": "Xera automaticamente resumos para os teus marcadores usando a intelixencia artificial.",
+      "auto_tagging": "Etiquetado automático",
+      "titlecase_spaces": "Maiúsculas e minúsculas con espazos",
+      "lowercase_underscores": "Minúsculas con guións baixos",
+      "inference_language": "Linguaxe dedución",
+      "titlecase_hyphens": "Maiúsculas só na primeira palabra con guións",
+      "lowercase_hyphens": "Minúsculas con guións",
+      "lowercase_spaces": "Minúsculas con espazos",
+      "inference_language_description": "Elixe a lingua para as etiquetas e os resumos xerados pola IA.",
+      "tag_style_description": "Elixe como se deben formatar as etiquetas xeradas automaticamente.",
+      "auto_tagging_description": "Xera automaticamente etiquetas para os teus marcadores usando a intelixencia artificial.",
+      "camelCase": "camelCase (a primeira palabra en minúsculas e as seguintes en maiúsculas)",
+      "auto_summarization": "Resumo automático",
+      "no_preference": "Sen preferencias",
+      "curated_tags": "Etiquetas seleccionadas",
+      "curated_tags_description": "De xeito opcional, restrinxe o etiquetado da IA para que só utilice etiquetas desta lista. Cando non hai etiquetas seleccionadas, a IA xera etiquetas libremente.",
+      "curated_tags_updated": "Etiquetas seleccionadas actualizadas correctamente!",
+      "curated_tags_update_failed": "Non se puideron actualizar as etiquetas seleccionadas"
     },
     "feeds": {
       "rss_subscriptions": "Subscricións RSS",
@@ -273,7 +356,10 @@
         "is_favourited": "Está marcado como favorito",
         "is_archived": "Está arquivado",
         "and": "Todo o seguinte é certo",
-        "or": "Calquera das seguintes é verdadeira"
+        "or": "Calquera das seguintes é verdadeira",
+        "url_does_not_contain": "O URL non contén",
+        "title_contains": "O título contén",
+        "title_does_not_contain": "O título non contén"
       },
       "actions_types": {
         "add_tag": "Engadir etiqueta",
@@ -382,7 +468,10 @@
         "in_progress": "En progreso",
         "completed": "Completado",
         "failed": "Fallou",
-        "processing": "Procesando"
+        "processing": "Procesando",
+        "staging": "Preparando",
+        "running": "Executando",
+        "paused": "En pausa"
       },
       "badges": {
         "pending": "{{count}} pendentes",
@@ -394,7 +483,33 @@
       "view_list": "Ver lista",
       "delete_dialog_title": "Eliminar sesión de importación",
       "delete_dialog_description": "Seguro que queres borrar «{{name}}»? Esta acción non se pode desfacer. Os marcadores en si non se borrarán.",
-      "delete_session": "Eliminar sesión"
+      "delete_session": "Eliminar sesión",
+      "pause_session": "Pausar",
+      "resume_session": "Reanudar",
+      "view_details": "Ver detalles",
+      "detail": {
+        "page_title": "Ver detalles da sesión de importación",
+        "back_to_import": "Volver á importación",
+        "filter_all": "Todo",
+        "filter_accepted": "Aceptado",
+        "filter_rejected": "Rexeitado",
+        "filter_duplicates": "Duplicados",
+        "filter_pending": "Pendentes",
+        "table_title": "Título/URL",
+        "table_type": "Tipo",
+        "table_result": "Resultado",
+        "table_reason": "Motivo",
+        "table_bookmark": "Marcador",
+        "result_accepted": "Aceptado",
+        "result_rejected": "Rexeitado",
+        "result_skipped_duplicate": "Duplicado",
+        "result_pending": "Pendentes",
+        "result_processing": "Procesando",
+        "no_results": "Non se atoparon resultados para este filtro.",
+        "view_bookmark": "Ver o marcador",
+        "load_more": "Cargar máis",
+        "no_title": "Sen título"
+      }
     },
     "backups": {
       "backups": "Copias de seguridade",
@@ -412,7 +527,7 @@
           "daily": "Diariamente",
           "weekly": "Semanalmente"
         },
-        "select_frequency": "Seleccione a frecuencia",
+        "select_frequency": "Selecciona a frecuencia",
         "save_settings": "Gardar a configuración"
       },
       "list": {
@@ -447,7 +562,7 @@
     }
   },
   "highlights": {
-    "no_highlights": "Inda non tés nada destacado."
+    "no_highlights": "Aínda non tes nada destacado."
   },
   "admin": {
     "admin_settings": "Axustes de Administrador",
@@ -538,7 +653,10 @@
         "reindex_all_bookmarks": "Volver indexar todos os marcadores",
         "clean_assets": "Limpar os recursos colgantes e volver sincronizar os metadatos",
         "reprocess_assets_fix_mode": "Volver procesar os recursos sen procesar",
-        "migrate_large_link_html_content": "Mover o contido HTML en liña grande aos recursos"
+        "migrate_large_link_html_content": "Mover o contido HTML en liña grande aos recursos",
+        "recrawl_pending_links_only": "Volver a rastrexar só as ligazóns pendentes",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Volver a xerar as etiquetas de intelixencia artificial só para os marcadores pendentes",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Só volver a xerar os resumos de IA para os marcadores pendentes"
       }
     },
     "actions": {
@@ -577,11 +695,50 @@
         "connected": "Conectado",
         "disconnected": "Desconectado"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Ferramentas de administración",
+      "bookmark_debugger": "Depurador de marcadores",
+      "bookmark_id": "ID de marcador",
+      "bookmark_id_placeholder": "Introduza o ID do marcador",
+      "lookup": "Buscar",
+      "debug_info": "Información de depuración",
+      "basic_info": "Información básica",
+      "status": "Estado",
+      "content": "Contido",
+      "html_preview": "Vista previa HTML (primeiros 1000 caracteres)",
+      "summary": "Resumo",
+      "url": "URL",
+      "source_url": "URL fonte",
+      "asset_type": "Tipo de activo",
+      "file_name": "Nome do ficheiro",
+      "owner_user_id": "ID de usuario propietario",
+      "tagging_status": "Estado de etiquetaxe",
+      "summarization_status": "Estado de resumo",
+      "crawl_status": "Estado de rastrexo",
+      "crawl_status_code": "Código de estado HTTP",
+      "crawled_at": "Rastrexado en",
+      "recrawl": "Volver rastrexar",
+      "reindex": "Volver indexar",
+      "retag": "Volver etiquetar",
+      "resummarize": "Volver resumir",
+      "bookmark_not_found": "Marcador non atopado",
+      "action_success": "A acción completouse correctamente",
+      "action_failed": "A acción fallou",
+      "recrawl_queued": "O traballo de volver rastrexar foi posto en cola",
+      "reindex_queued": "O traballo de volver indexar foi posto en cola",
+      "retag_queued": "O traballo de volver etiquetar foi posto en cola",
+      "resummarize_queued": "O traballo de volver resumir foi posto en cola",
+      "view": "Ver",
+      "fetch_error": "Erro ao obter o marcador"
     }
   },
   "options": {
     "dark_mode": "Modo escuro",
-    "light_mode": "Modo claro"
+    "light_mode": "Modo claro",
+    "apps_extensions": "Aplicacións e extensións",
+    "documentation": "Documentación",
+    "follow_us_on_x": "Séguenos en X"
   },
   "lists": {
     "all_lists": "Todas as listas",
@@ -676,7 +833,14 @@
     "tabs": {
       "content": "Contido",
       "details": "Detalles"
-    }
+    },
+    "archive_info": "É posible que os arquivos non se representen correctamente en liña se requiren Javascript. Para obter os mellores resultados, <1>descárgueo e ábreo no navegador</1>.",
+    "fetch_error_title": "Contido non dispoñible",
+    "fetch_error_description": "Non puidemos obter o contido desta ligazón. A páxina pode estar protexida, requirir autenticación ou non estar dispoñible temporalmente.",
+    "crawling_in_progress": "Obtendo o contido da páxina…",
+    "continue_reading": "Continúa onde o deixaches",
+    "continue_reading_percent": "Continúa onde o deixaches ({{percent}}%)",
+    "continue_button": "Continúa"
   },
   "editor": {
     "quickly_focus": "Podes enfocar este campo pulsando ⌘ + E",
@@ -775,7 +939,16 @@
     "year_s_ago": " Hai anos",
     "history": "Buscas recentes",
     "title_contains": "O título contén",
-    "title_does_not_contain": "O título non contén"
+    "title_does_not_contain": "O título non contén",
+    "is_broken_link": "Ten Ligazón Rota",
+    "tags": "Etiquetas",
+    "no_suggestions": "Sen suxestións",
+    "filters": "Filtros",
+    "is_not_broken_link": "Ten Ligazón Válida",
+    "lists": "Listas",
+    "feeds": "Fontes",
+    "is_from_source": "Orixe é",
+    "is_not_from_source": "A orixe non é"
   },
   "dialogs": {
     "bookmarks": {
@@ -820,5 +993,54 @@
     "no_release_notes": "Non se publicaron notas da versión para esta versión.",
     "release_notes_synced": "As notas da versión sincronízanse desde GitHub.",
     "view_on_github": "Ver en GitHub"
+  },
+  "wrapped": {
+    "title": "O teu {{year}} resumido",
+    "subtitle": "Un ano en Karakeep",
+    "banner": {
+      "title": "Xa está listo o teu resumo de 2025!",
+      "description": "Consulta o teu ano en marcadores",
+      "view_now": "Ver agora"
+    },
+    "button": "Resumo de 2025",
+    "loading": "Cargando o teu resumo...",
+    "failed_to_load": "Non se puideron cargar as estatísticas do teu resumo",
+    "sections": {
+      "total_saves": {
+        "prefix": "Gardaches",
+        "suffix": "elementos este ano",
+        "suffix_singular": "elemento este ano"
+      },
+      "first_bookmark": {
+        "title": "Comeza a túa viaxe",
+        "description": "Primeiro gardado de {{year}}:"
+      },
+      "top_domains": "Os teus sitios principais",
+      "top_tags": "As túas etiquetas principais",
+      "monthly_activity": "O teu ano en gardados",
+      "most_active_day": "O teu día de maior actividade",
+      "peak_times": {
+        "title": "Cando gardas",
+        "peak_hour": "Hora de maior actividade",
+        "peak_day": "Día de maior actividade"
+      },
+      "how_you_save": "Como gardas",
+      "what_you_saved": "Que gardaches",
+      "summary": {
+        "favorites": "Favoritos",
+        "tags_created": "Etiquetas creadas",
+        "highlights": "Momentos salientables"
+      },
+      "types": {
+        "links": "Ligazóns",
+        "notes": "Notas",
+        "assets": "Activos"
+      }
+    },
+    "footer": "Feito con Karakeep",
+    "share": "Compartir",
+    "download": "Descargar",
+    "close": "Pechar",
+    "generating": "Xerando..."
   }
 }

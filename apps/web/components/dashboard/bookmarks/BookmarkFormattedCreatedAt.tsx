@@ -1,8 +1,8 @@
-import dayjs from "dayjs";
+import { format, isAfter, subYears } from "date-fns";
 
 export default function BookmarkFormattedCreatedAt(prop: { createdAt: Date }) {
-  const createdAt = dayjs(prop.createdAt);
-  const oneYearAgo = dayjs().subtract(1, "year");
-  const formatString = createdAt.isAfter(oneYearAgo) ? "MMM D" : "MMM D, YYYY";
-  return createdAt.format(formatString);
+  const createdAt = prop.createdAt;
+  const oneYearAgo = subYears(new Date(), 1);
+  const formatString = isAfter(createdAt, oneYearAgo) ? "MMM d" : "MMM d, yyyy";
+  return format(createdAt, formatString);
 }

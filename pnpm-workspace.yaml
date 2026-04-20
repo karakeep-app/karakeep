@@ -2,4 +2,5 @@ packages:
   - "packages/*"
   - "apps/*"
   - "tooling/*"
+  - "tools/*"
   - "docs"

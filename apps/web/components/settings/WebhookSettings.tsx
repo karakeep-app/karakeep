@@ -12,10 +12,10 @@ import {
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Edit,
   KeyRound,
@@ -28,6 +28,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   zNewWebhookSchema,
   zUpdateWebhookSchema,
@@ -53,12 +54,14 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { SettingsPage, SettingsSection } from "./SettingsPage";
 import { WebhookEventSelector } from "./WebhookEventSelector";
 
 export function WebhooksEditorDialog() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof zNewWebhookSchema>>({
     resolver: zodResolver(zNewWebhookSchema),
@@ -75,16 +78,17 @@ export function WebhooksEditorDialog() {
     }
   }, [open]);
 
-  const { mutateAsync: createWebhook, isPending: isCreating } =
-    api.webhooks.create.useMutation({
+  const { mutateAsync: createWebhook, isPending: isCreating } = useMutation(
+    api.webhooks.create.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook has been created!",
         });
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
         setOpen(false);
       },
-    });
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -179,8 +183,9 @@ export function WebhooksEditorDialog() {
 }
 
 export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
@@ -191,16 +196,17 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
       });
     }
   }, [open]);
-  const { mutateAsync: updateWebhook, isPending: isUpdating } =
-    api.webhooks.update.useMutation({
+  const { mutateAsync: updateWebhook, isPending: isUpdating } = useMutation(
+    api.webhooks.update.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook has been updated!",
         });
         setOpen(false);
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
-    });
+    }),
+  );
   const updateSchema = zUpdateWebhookSchema.required({
     events: true,
     url: true,
@@ -302,8 +308,9 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
 }
 
 export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
@@ -331,16 +338,17 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
     },
   });
 
-  const { mutateAsync: updateWebhook, isPending: isUpdating } =
-    api.webhooks.update.useMutation({
+  const { mutateAsync: updateWebhook, isPending: isUpdating } = useMutation(
+    api.webhooks.update.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook token has been updated!",
         });
         setOpen(false);
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
-    });
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -432,17 +440,19 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
 }
 
 export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
-  const { mutate: deleteWebhook, isPending: isDeleting } =
-    api.webhooks.delete.useMutation({
+  const queryClient = useQueryClient();
+  const { mutate: deleteWebhook, isPending: isDeleting } = useMutation(
+    api.webhooks.delete.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Webhook has been deleted!",
         });
-        apiUtils.webhooks.list.invalidate();
+        queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
-    });
+    }),
+  );
 
   return (
     <TableRow>
@@ -479,23 +489,21 @@ export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
 }
 
 export default function WebhookSettings() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: webhooks, isLoading } = api.webhooks.list.useQuery();
+  const { data: webhooks, isLoading } = useQuery(
+    api.webhooks.list.queryOptions(),
+  );
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-lg font-medium">
-            {t("settings.webhooks.webhooks")}
-          </span>
-          <WebhooksEditorDialog />
-        </div>
-        <p className="text-sm italic text-muted-foreground">
-          {t("settings.webhooks.description")}
-        </p>
+    <SettingsPage
+      title={t("settings.webhooks.webhooks")}
+      description={t("settings.webhooks.description")}
+      action={<WebhooksEditorDialog />}
+    >
+      <SettingsSection>
         {isLoading && <FullPageSpinner />}
         {webhooks && webhooks.webhooks.length == 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             You don&apos;t have any webhooks configured yet.
           </p>
         )}
@@ -516,7 +524,7 @@ export default function WebhookSettings() {
             </TableBody>
           </Table>
         )}
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

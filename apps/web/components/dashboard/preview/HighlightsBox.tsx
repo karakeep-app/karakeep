@@ -5,9 +5,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronsDownUp } from "lucide-react";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import HighlightCard from "../highlights/HighlightCard";
 
@@ -18,10 +20,12 @@ export default function HighlightsBox({
   bookmarkId: string;
   readOnly: boolean;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
 
-  const { data: highlights, isPending: isLoading } =
-    api.highlights.getForBookmark.useQuery({ bookmarkId });
+  const { data: highlights, isPending: isLoading } = useQuery(
+    api.highlights.getForBookmark.queryOptions({ bookmarkId }),
+  );
 
   if (isLoading || !highlights || highlights?.highlights.length === 0) {
     return null;
@@ -29,7 +33,7 @@ export default function HighlightsBox({
 
   return (
     <Collapsible defaultOpen={true}>
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-sm text-gray-400">
+      <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t("common.highlights")}
         <ChevronsDownUp className="size-4" />
       </CollapsibleTrigger>

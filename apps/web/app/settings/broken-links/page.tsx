@@ -1,7 +1,12 @@
 "use client";
 
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
 import { ActionButton } from "@/components/ui/action-button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import { toast } from "@/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -10,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -18,20 +23,23 @@ import {
   useDeleteBookmark,
   useRecrawlBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function BrokenLinksPage() {
+  const api = useTRPC();
   const { t } = useTranslation();
 
-  const apiUtils = api.useUtils();
-  const { data, isPending } = api.bookmarks.getBrokenLinks.useQuery();
+  const queryClient = useQueryClient();
+  const { data, isPending } = useQuery(
+    api.bookmarks.getBrokenLinks.queryOptions(),
+  );
 
   const { mutate: deleteBookmark, isPending: isDeleting } = useDeleteBookmark({
     onSuccess: () => {
       toast({
         description: t("toasts.bookmarks.deleted"),
       });
-      apiUtils.bookmarks.getBrokenLinks.invalidate();
+      queryClient.invalidateQueries(api.bookmarks.getBrokenLinks.pathFilter());
     },
     onError: () => {
       toast({
@@ -47,7 +55,9 @@ export default function BrokenLinksPage() {
         toast({
           description: t("toasts.bookmarks.refetch"),
         });
-        apiUtils.bookmarks.getBrokenLinks.invalidate();
+        queryClient.invalidateQueries(
+          api.bookmarks.getBrokenLinks.pathFilter(),
+        );
       },
       onError: () => {
         toast({
@@ -58,16 +68,11 @@ export default function BrokenLinksPage() {
     });
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex items-center justify-between">
-        <div className="mb-2 text-lg font-medium">
-          {t("settings.broken_links.broken_links")}
-        </div>
-      </div>
-      <div className="mt-2">
+    <SettingsPage title={t("settings.broken_links.broken_links")}>
+      <SettingsSection>
         {isPending && <FullPageSpinner />}
         {!isPending && data && data.bookmarks.length == 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             No broken links found
           </p>
         )}
@@ -110,13 +115,12 @@ export default function BrokenLinksPage() {
                       {t("actions.recrawl")}
                     </ActionButton>
                     <ActionButton
-                      variant="destructive"
+                      variant="ghostDestructive"
                       onClick={() => deleteBookmark({ bookmarkId: b.id })}
                       loading={isDeleting}
                       className="flex items-center gap-2"
                     >
                       <Trash2 className="size-4" />
-                      {t("actions.delete")}
                     </ActionButton>
                   </TableCell>
                 </TableRow>
@@ -125,7 +129,7 @@ export default function BrokenLinksPage() {
             </TableBody>
           </Table>
         )}
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

@@ -2,9 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
 import cron from "node-cron";
-import Parser from "rss-parser";
 import { buildImpersonatingTRPCClient } from "trpc";
-import { z } from "zod";
+import { withWorkerTracing } from "workerTracing";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -13,6 +12,23 @@ import { FeedQueue, QuotaService } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
+import { parseFeedItems } from "./utils/feedParser";
+
+/**
+ * Deterministically maps a feed ID to a minute offset within the hour (0-59).
+ * This ensures feeds are spread evenly across the hour based on their ID.
+ */
+function getFeedMinuteOffset(feedId: string): number {
+  // Simple hash function: sum character codes
+  let hash = 0;
+  for (let i = 0; i < feedId.length; i++) {
+    hash = (hash << 5) - hash + feedId.charCodeAt(i);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  // Return a minute offset between 0 and 59
+  return Math.abs(hash) % 60;
+}
 
 export const FeedRefreshingWorker = cron.schedule(
   "0 * * * *",
@@ -30,9 +46,24 @@ export const FeedRefreshingWorker = cron.schedule(
         const currentHour = new Date();
         currentHour.setMinutes(0, 0, 0);
         const hourlyWindow = currentHour.toISOString();
+        const now = new Date();
+        const currentMinute = now.getMinutes();
 
         for (const feed of feeds) {
           const idempotencyKey = `${feed.id}-${hourlyWindow}`;
+          const targetMinute = getFeedMinuteOffset(feed.id);
+
+          // Calculate delay: if target minute has passed, schedule for next hour
+          let delayMinutes = targetMinute - currentMinute;
+          if (delayMinutes < 0) {
+            delayMinutes += 60;
+          }
+          const delayMs = delayMinutes * 60 * 1000;
+
+          logger.debug(
+            `[feed] Scheduling feed ${feed.id} at minute ${targetMinute} (delay: ${delayMinutes} minutes)`,
+          );
+
           FeedQueue.enqueue(
             {
               feedId: feed.id,
@@ -40,6 +71,7 @@ export const FeedRefreshingWorker = cron.schedule(
             {
               idempotencyKey,
               groupId: feed.userId,
+              delayMs,
             },
           );
         }
@@ -57,7 +89,7 @@ export class FeedWorker {
     const worker = (await getQueueClient())!.createRunner<ZFeedRequestSchema>(
       FeedQueue,
       {
-        run: run,
+        run: withWorkerTracing("feedWorker.run", run),
         onComplete: async (job) => {
           workerStatsCounter.labels("feed", "completed").inc();
           const jobId = job.id;
@@ -124,9 +156,9 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
   const response = await fetchWithProxy(feed.url, {
     signal: AbortSignal.timeout(5000),
     headers: {
-      UserAgent:
+      "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      Accept: "application/rss+xml",
+      Accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
     },
   });
   if (response.status !== 200) {
@@ -146,26 +178,11 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
     `[feed][${jobId}] Successfully fetched feed "${feed.name}" (${feed.id}) ...`,
   );
 
-  const parser = new Parser({
-    customFields: {
-      item: ["id"],
-    },
-  });
-  const unparseFeedData = await parser.parseString(xmlData);
-
-  // Apparently, we can't trust the output of the xml parser. So let's do our own type
-  // validation.
-  const feedItemsSchema = z.object({
-    id: z.coerce.string(),
-    link: z.string().optional(),
-    guid: z.string().optional(),
-    title: z.string().optional(),
-    categories: z.array(z.string()).optional(),
-  });
-
-  const feedItems = unparseFeedData.items
-    .map((i) => feedItemsSchema.safeParse(i))
-    .flatMap((i) => (i.success ? [i.data] : []));
+  const feedItems = await parseFeedItems(xmlData);
+  await db
+    .update(rssFeedsTable)
+    .set({ lastSuccessfulFetchAt: new Date() })
+    .where(eq(rssFeedsTable.id, feed.id));
 
   logger.info(
     `[feed][${jobId}] Found ${feedItems.length} entries in feed "${feed.name}" (${feed.id}) ...`,
@@ -175,11 +192,6 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
     logger.info(`[feed][${jobId}] No entries found.`);
     return;
   }
-
-  // For feeds that don't have guids, use the link as the id
-  feedItems.forEach((item) => {
-    item.guid = item.guid ?? item.id ?? item.link;
-  });
 
   const exitingEntries = await db.query.rssFeedImportsTable.findMany({
     where: and(

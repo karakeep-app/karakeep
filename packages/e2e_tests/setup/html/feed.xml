@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test RSS Feed</title>
+    <link>http://nginx:80</link>
+    <description>A test RSS feed for e2e testing</description>
+    <item>
+      <title>First Test Article</title>
+      <link>http://nginx:80/hello.html</link>
+      <guid>test-entry-1</guid>
+      <description>This is the first test article</description>
+      <category>tech</category>
+      <category>testing</category>
+    </item>
+    <item>
+      <title>Second Test Article</title>
+      <link>http://nginx:80/hello.html?article=2</link>
+      <guid>test-entry-2</guid>
+      <description>This is the second test article</description>
+      <category>news</category>
+    </item>
+  </channel>
+</rss>

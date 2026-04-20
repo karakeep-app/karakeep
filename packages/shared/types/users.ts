@@ -1,13 +1,36 @@
 import { z } from "zod";
 
+import {
+  containsUnsafeUserNameMarkup,
+  normalizeUserNameInput,
+} from "../utils/userName";
 import { zBookmarkSourceSchema } from "./bookmarks";
 
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 100;
 
+export const zTagStyleSchema = z.enum([
+  "lowercase-hyphens",
+  "lowercase-spaces",
+  "lowercase-underscores",
+  "titlecase-spaces",
+  "titlecase-hyphens",
+  "camelCase",
+  "as-generated",
+]);
+export type ZTagStyle = z.infer<typeof zTagStyleSchema>;
+
+export const zUserNameSchema = z
+  .string()
+  .refine((value) => !containsUnsafeUserNameMarkup(value), {
+    message: "Name contains invalid characters",
+  })
+  .transform(normalizeUserNameInput)
+  .pipe(z.string().min(1, { message: "Name can't be empty" }));
+
 export const zSignUpSchema = z
   .object({
-    name: z.string().min(1, { message: "Name can't be empty" }),
+    name: zUserNameSchema,
     email: z.string().email(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
@@ -38,6 +61,7 @@ export const zWhoAmIResponseSchema = z.object({
   id: z.string(),
   name: z.string().nullish(),
   email: z.string().nullish(),
+  image: z.string().nullish(),
   localUser: z.boolean(),
 });
 
@@ -102,6 +126,76 @@ export const zUserStatsResponseSchema = z.object({
   ),
 });
 
+export const zWrappedStatsResponseSchema = z.object({
+  year: z.number(),
+  totalBookmarks: z.number(),
+  totalFavorites: z.number(),
+  totalArchived: z.number(),
+  totalHighlights: z.number(),
+  totalTags: z.number(),
+  totalLists: z.number(),
+
+  firstBookmark: z
+    .object({
+      id: z.string(),
+      title: z.string().nullable(),
+      createdAt: z.date(),
+      type: z.enum(["link", "text", "asset"]),
+    })
+    .nullable(),
+
+  mostActiveDay: z
+    .object({
+      date: z.string(),
+      count: z.number(),
+    })
+    .nullable(),
+
+  topDomains: z
+    .array(
+      z.object({
+        domain: z.string(),
+        count: z.number(),
+      }),
+    )
+    .max(5),
+
+  topTags: z
+    .array(
+      z.object({
+        name: z.string(),
+        count: z.number(),
+      }),
+    )
+    .max(5),
+
+  bookmarksByType: z.object({
+    link: z.number(),
+    text: z.number(),
+    asset: z.number(),
+  }),
+
+  bookmarksBySource: z.array(
+    z.object({
+      source: zBookmarkSourceSchema.nullable(),
+      count: z.number(),
+    }),
+  ),
+
+  monthlyActivity: z.array(
+    z.object({
+      month: z.number(),
+      count: z.number(),
+    }),
+  ),
+
+  peakHour: z.number(),
+  peakDayOfWeek: z.number(),
+});
+
+export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
+export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
+
 export const zUserSettingsSchema = z.object({
   bookmarkClickAction: z.enum([
     "open_original_link",
@@ -112,6 +206,16 @@ export const zUserSettingsSchema = z.object({
   backupsEnabled: z.boolean(),
   backupsFrequency: z.enum(["daily", "weekly"]),
   backupsRetentionDays: z.number().int().min(1).max(365),
+  // Reader settings (nullable = opt-in, null means use client default)
+  readerFontSize: z.number().int().min(12).max(24).nullable(),
+  readerLineHeight: z.number().min(1.2).max(2.5).nullable(),
+  readerFontFamily: zReaderFontFamilySchema.nullable(),
+  // AI settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: z.boolean().nullable(),
+  autoSummarizationEnabled: z.boolean().nullable(),
+  tagStyle: zTagStyleSchema,
+  curatedTagIds: z.array(z.string()).nullable(),
+  inferredTagLang: z.string().nullable(),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -123,6 +227,14 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   backupsEnabled: true,
   backupsFrequency: true,
   backupsRetentionDays: true,
+  readerFontSize: true,
+  readerLineHeight: true,
+  readerFontFamily: true,
+  autoTaggingEnabled: true,
+  autoSummarizationEnabled: true,
+  tagStyle: true,
+  curatedTagIds: true,
+  inferredTagLang: true,
 });
 
 export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({

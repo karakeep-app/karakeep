@@ -15,7 +15,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -36,7 +36,8 @@ export default function BulkManageListsModal({
 }) {
   const formSchema = z.object({
     listId: z.string({
-      required_error: "Please select a list",
+      error: (issue) =>
+        issue.input === undefined ? "Please select a list" : undefined,
     }),
   });
   const form = useForm<z.infer<typeof formSchema>>({

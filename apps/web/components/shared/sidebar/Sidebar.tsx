@@ -32,7 +32,10 @@ export default async function Sidebar({
         </ul>
       </div>
       {extraSections}
-      <SidebarVersion serverVersion={serverConfig.serverVersion} />
+      <SidebarVersion
+        serverVersion={serverConfig.serverVersion}
+        changeLogVersion={serverConfig.changelogVersion}
+      />
     </aside>
   );
 }

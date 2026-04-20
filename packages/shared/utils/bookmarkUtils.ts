@@ -28,9 +28,13 @@ export function getBookmarkLinkImageUrl(bookmark: ZBookmarkedLink) {
 }
 
 export function isBookmarkStillCrawling(bookmark: ZBookmark) {
-  return (
-    bookmark.content.type == BookmarkTypes.LINK && !bookmark.content.crawledAt
-  );
+  if (bookmark.content.type != BookmarkTypes.LINK) {
+    return false;
+  }
+  if (bookmark.content.crawlStatus) {
+    return bookmark.content.crawlStatus === "pending";
+  }
+  return !bookmark.content.crawledAt;
 }
 
 export function isBookmarkStillTagging(bookmark: ZBookmark) {

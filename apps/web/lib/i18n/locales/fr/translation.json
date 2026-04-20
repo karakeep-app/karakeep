@@ -39,7 +39,11 @@
     "summary": "Résumé",
     "quota": "Quota",
     "bookmarks": "Marque-pages",
-    "storage": "Stockage"
+    "storage": "Stockage",
+    "pdf": "PDF archivé",
+    "default": "Par défaut",
+    "id": "ID",
+    "last_used": "Dernière utilisation"
   },
   "layouts": {
     "masonry": "Mosaïque",
@@ -90,7 +94,17 @@
     "confirm": "Confirmer",
     "regenerate": "Régénérer",
     "load_more": "En charger plus",
-    "edit_notes": "Modifier les notes"
+    "edit_notes": "Modifier les notes",
+    "preserve_as_pdf": "Conserver en PDF",
+    "offline_copies": "Copies hors ligne",
+    "preserve_offline_archive": "Conserver l’archive hors ligne",
+    "download_full_page_archive_file": "Télécharger le fichier d’archive",
+    "download_pdf_file": "Télécharger le fichier PDF",
+    "remove": "Supprimer",
+    "more": "Plus",
+    "replace_banner": "Remplacer la bannière",
+    "add_banner": "Ajouter une bannière",
+    "download": "Télécharger"
   },
   "settings": {
     "back_to_app": "Retour à l'application",
@@ -116,6 +130,49 @@
           "open_external_url": "Ouvrir l’URL d’origine",
           "open_bookmark_details": "Ouvrir les détails du marque-page"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Paramètres spécifiques à l’appareil actifs",
+        "using_default": "Utilisation des paramètres par défaut du client",
+        "clear_override_hint": "Effacer la substitution de l’appareil pour utiliser le paramètre général ({{value}})",
+        "font_size": "Taille de la police",
+        "font_family": "Famille de polices",
+        "preview_inline": "(aperçu)",
+        "tooltip_preview": "Modifications de l’aperçu non enregistrées",
+        "save_to_all_devices": "Tous les appareils",
+        "tooltip_local": "Les paramètres de l’appareil diffèrent des paramètres généraux",
+        "reset_preview": "Réinitialiser l’aperçu",
+        "mono": "Monospace",
+        "line_height": "Hauteur de ligne",
+        "tooltip_default": "Paramètres de lecture",
+        "title": "Paramètres du lecteur",
+        "serif": "Avec empattement",
+        "preview": "Aperçu",
+        "not_set": "Non défini",
+        "clear_local_overrides": "Effacer les paramètres de l’appareil",
+        "preview_text": "Le rapide renard brun saute par-dessus le chien paresseux. Voici comment apparaîtra le texte de votre affichage de lecteur.",
+        "local_overrides_cleared": "Les paramètres spécifiques à l’appareil ont été effacés",
+        "local_overrides_description": "Cet appareil a des paramètres de lecteur qui diffèrent de vos paramètres par défaut globaux :",
+        "clear_defaults": "Effacer toutes les valeurs par défaut",
+        "description": "Configurez les paramètres de texte par défaut pour l’affichage du lecteur. Ces paramètres sont synchronisés sur tous vos appareils.",
+        "defaults_cleared": "Les paramètres par défaut du lecteur ont été supprimés",
+        "save_hint": "Enregistrer les paramètres pour cet appareil uniquement ou synchroniser avec tous les appareils",
+        "save_as_default": "Enregistrer comme valeurs par défaut",
+        "save_to_device": "Cet appareil",
+        "sans": "Sans empattement",
+        "tooltip_preview_and_local": "Modifications de l’aperçu non enregistrées ; les paramètres de l’appareil diffèrent des paramètres généraux",
+        "adjust_hint": "Ajustez les paramètres ci-dessus pour prévisualiser les modifications"
+      },
+      "avatar": {
+        "upload": "Téléverser un avatar",
+        "change": "Changer d’avatar",
+        "remove_confirm_title": "Supprimer l’avatar ?",
+        "updated": "Avatar mis à jour",
+        "removed": "Avatar supprimé",
+        "description": "Téléversez une image carrée à utiliser comme avatar.",
+        "remove_confirm_description": "Cela supprimera votre photo de profil actuelle.",
+        "title": "Photo de profil",
+        "remove": "Supprimer l’avatar"
       }
     },
     "ai": {
@@ -129,7 +186,26 @@
       "all_tagging": "Tout le tagging",
       "text_tagging": "Balises de texte",
       "image_tagging": "Marquage d'image",
-      "summarization": "Résumer"
+      "summarization": "Résumer",
+      "tag_style": "Style des balises",
+      "auto_summarization_description": "Générez automatiquement des résumés pour vos favoris à l’aide de l’IA.",
+      "auto_tagging": "Attribution automatique de balises",
+      "titlecase_spaces": "Majuscule en début de mot avec espaces",
+      "lowercase_underscores": "Minuscules avec traits de soulignement",
+      "inference_language": "Langue d’inférence",
+      "titlecase_hyphens": "Majuscule en début de mot avec tirets",
+      "lowercase_hyphens": "Minuscules avec tirets",
+      "lowercase_spaces": "Minuscules avec espaces",
+      "inference_language_description": "Choisissez la langue pour les balises et les résumés générés par l’IA.",
+      "tag_style_description": "Choisissez le format de vos balises générées automatiquement.",
+      "auto_tagging_description": "Générez automatiquement des balises pour vos favoris à l’aide de l’IA.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Résumés automatiques",
+      "no_preference": "Aucune préférence",
+      "curated_tags": "Tags sélectionnés",
+      "curated_tags_description": "Restreignez éventuellement le balisage de l’IA pour n’utiliser que les balises de cette liste. Lorsqu’aucune balise n’est sélectionnée, l’IA génère les balises librement.",
+      "curated_tags_updated": "Tags sélectionnés mis à jour avec succès !",
+      "curated_tags_update_failed": "Échec de la mise à jour des balises sélectionnées"
     },
     "feeds": {
       "rss_subscriptions": "Abonnements RSS",
@@ -142,13 +218,15 @@
       "import_export_bookmarks": "Importer / Exporter des favoris",
       "import_bookmarks_from_html_file": "Importer des favoris depuis un fichier HTML",
       "import_bookmarks_from_pocket_export": "Importer des favoris depuis une exportation Pocket",
+      "import_bookmarks_from_matter_export": "Importer des favoris depuis une exportation Matter",
       "import_bookmarks_from_omnivore_export": "Importer des favoris depuis une exportation Omnivore",
       "import_bookmarks_from_karakeep_export": "Importer des favoris depuis une exportation Karakeep",
       "export_links_and_notes": "Exporter les liens et les notes",
       "imported_bookmarks": "Favoris importés",
       "import_bookmarks_from_linkwarden_export": "Importer des marque-pages depuis l'export Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importer les marque-pages depuis Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importer les signets depuis l'export mymind"
+      "import_bookmarks_from_mymind_export": "Importer les signets depuis l'export mymind",
+      "import_bookmarks_from_instapaper_export": "Importer les marque-pages à partir de l’exportation Instapaper"
     },
     "api_keys": {
       "api_keys": "Clés API",
@@ -222,7 +300,10 @@
         "is_favourited": "Est mis en favori",
         "is_archived": "Est archivé",
         "and": "Toutes les conditions suivantes sont vraies",
-        "or": "Si l'une des conditions suivantes est remplie"
+        "or": "Si l'une des conditions suivantes est remplie",
+        "url_does_not_contain": "L’URL ne contient pas",
+        "title_contains": "Le titre contient",
+        "title_does_not_contain": "Le titre ne contient pas"
       },
       "actions_types": {
         "add_tag": "Ajouter un tag",
@@ -331,7 +412,10 @@
         "in_progress": "En cours",
         "completed": "Terminé",
         "failed": "Échoué",
-        "processing": "Traitement"
+        "processing": "Traitement",
+        "staging": "Préparation",
+        "running": "En cours d’exécution",
+        "paused": "En pause"
       },
       "badges": {
         "pending": "{{count}} en attente",
@@ -343,16 +427,42 @@
       "view_list": "Voir la liste",
       "delete_dialog_title": "Supprimer la session d’importation",
       "delete_dialog_description": "Êtes-vous sûr de vouloir supprimer « {{name}} » ? Cette action est irréversible. Les signets eux-mêmes ne seront pas supprimés.",
-      "delete_session": "Supprimer la session"
+      "delete_session": "Supprimer la session",
+      "pause_session": "Pause",
+      "resume_session": "Reprendre",
+      "view_details": "Voir les détails",
+      "detail": {
+        "page_title": "Détails de la session d'importation",
+        "back_to_import": "Retour à l'importation",
+        "filter_all": "Tous",
+        "filter_accepted": "Accepté",
+        "filter_rejected": "Rejeté",
+        "filter_duplicates": "Doublons",
+        "filter_pending": "En attente",
+        "table_title": "Titre/URL",
+        "table_type": "Type",
+        "table_result": "Résultat",
+        "table_reason": "Raison",
+        "table_bookmark": "Marque-page",
+        "result_accepted": "Accepté",
+        "result_rejected": "Rejeté",
+        "result_skipped_duplicate": "Dupliquer",
+        "result_pending": "En attente",
+        "result_processing": "En traitement",
+        "no_results": "Aucun résultat trouvé pour ce filtre.",
+        "view_bookmark": "Voir le marque-page",
+        "load_more": "Charger plus",
+        "no_title": "Pas de titre"
+      }
     },
     "backups": {
       "backups": "Sauvegardes",
       "page_title": "Sauvegardes",
-      "page_description": "Crée et gère automatiquement les sauvegardes de tes marque-pages. Les sauvegardes sont compressées et stockées de manière sécurisée.",
+      "page_description": "Créez et gérez automatiquement les sauvegardes de vos marque-pages. Les sauvegardes sont compressées et stockées de manière sécurisée.",
       "configuration": {
         "title": "Configuration des sauvegardes",
         "enable_automatic_backups": "Activer les sauvegardes automatiques",
-        "enable_automatic_backups_description": "Crée automatiquement des sauvegardes de tes marque-pages",
+        "enable_automatic_backups_description": "Créez automatiquement des sauvegardes de vos marque-pages",
         "backup_frequency": "Fréquence des sauvegardes",
         "backup_frequency_description": "À quelle fréquence les sauvegardes doivent être créées",
         "retention_period": "Période de rétention (jours)",
@@ -365,9 +475,9 @@
         "save_settings": "Enregistrer les paramètres"
       },
       "list": {
-        "title": "Tes sauvegardes",
+        "title": "Vos sauvegardes",
         "create_backup_now": "Créer une sauvegarde maintenant",
-        "no_backups": "Tu n'as pas encore de sauvegardes. Active les sauvegardes automatiques ou crées-en une manuellement.",
+        "no_backups": "Vous n'avez pas encore de sauvegardes. Activez les sauvegardes automatiques ou créez-en une manuellement.",
         "table": {
           "created_at": "Créé à",
           "bookmarks": "Marque-pages",
@@ -484,7 +594,10 @@
         "reindex_all_bookmarks": "Réindexer tous les marque-pages",
         "clean_assets": "Nettoyer les assets orphelins et resynchroniser les métadonnées",
         "reprocess_assets_fix_mode": "Retraiter les assets non traités",
-        "migrate_large_link_html_content": "Bouger du Grand Contenu HTML En Ligne vers les Ressources"
+        "migrate_large_link_html_content": "Bouger du Grand Contenu HTML En Ligne vers les Ressources",
+        "recrawl_pending_links_only": "Recréer l'index des liens en attente uniquement",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Régénérer les étiquettes d'IA pour les favoris en attente uniquement",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Régénérer les résumés d'IA pour les favoris en attente uniquement"
       }
     },
     "actions": {
@@ -523,11 +636,50 @@
         "connected": "Connecté",
         "disconnected": "Déconnecté"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Outils d’administration",
+      "bookmark_debugger": "Débogueur de signets",
+      "bookmark_id": "ID de signet",
+      "bookmark_id_placeholder": "Entrez l’ID de signet",
+      "lookup": "Rechercher",
+      "debug_info": "Informations de débogage",
+      "basic_info": "Informations de base",
+      "status": "État",
+      "content": "Contenu",
+      "html_preview": "Aperçu HTML (1000 premiers caractères)",
+      "summary": "Résumé",
+      "url": "URL",
+      "source_url": "URL source",
+      "asset_type": "Type d’actif",
+      "file_name": "Nom de fichier",
+      "owner_user_id": "ID d’utilisateur du propriétaire",
+      "tagging_status": "État du balisage",
+      "summarization_status": "État de la création de résumés",
+      "crawl_status": "État de l’exploration du Web",
+      "crawl_status_code": "Code d'état HTTP",
+      "crawled_at": "Exploré à",
+      "recrawl": "Nouvel explorage",
+      "reindex": "Réindexation",
+      "retag": "Ré-étiquetage",
+      "resummarize": "Nouveau résumé",
+      "bookmark_not_found": "Marque-page introuvable",
+      "action_success": "Action réussie",
+      "action_failed": "Échec de l'action",
+      "recrawl_queued": "La tâche de réexploration a été mise en file d'attente",
+      "reindex_queued": "La tâche de réindexation a été mise en file d'attente",
+      "retag_queued": "La tâche de ré-étiquetage a été mise en file d'attente",
+      "resummarize_queued": "La tâche de nouveau résumé a été mise en file d'attente",
+      "view": "Afficher",
+      "fetch_error": "Erreur lors de la récupération du favori"
     }
   },
   "options": {
     "dark_mode": "Mode sombre",
-    "light_mode": "Mode clair"
+    "light_mode": "Mode clair",
+    "apps_extensions": "Applications et extensions",
+    "documentation": "Documentation",
+    "follow_us_on_x": "Suivez-nous sur X"
   },
   "lists": {
     "all_lists": "Toutes les listes",
@@ -637,7 +789,9 @@
     "no_ai_tags": "Pas encore de balises d'IA",
     "no_unused_tags": "Vous n'avez pas de balises inutilisées",
     "no_unused_tags_match_your_search": "Aucune balise inutilisée ne correspond à votre recherche",
-    "no_tags_match_your_search": "Aucune balise ne correspond à votre recherche"
+    "no_tags_match_your_search": "Aucune balise ne correspond à votre recherche",
+    "search_placeholder": "Rechercher des tags…",
+    "search_or_create_placeholder": "Rechercher ou créer des tags…"
   },
   "preview": {
     "view_original": "Voir l'original",
@@ -646,7 +800,14 @@
     "tabs": {
       "details": "Détails",
       "content": "Contenu"
-    }
+    },
+    "archive_info": "Les archives peuvent ne pas s'afficher correctement en ligne si elles nécessitent Javascript. Pour de meilleurs résultats, <1>téléchargez-les et ouvrez-les dans votre navigateur</1>.",
+    "fetch_error_title": "Contenu non disponible",
+    "fetch_error_description": "Impossible de récupérer le contenu de ce lien. La page est peut-être protégée, nécessite une authentification ou est temporairement indisponible.",
+    "crawling_in_progress": "Récupération du contenu de la page…",
+    "continue_reading": "Continuez là où vous vous êtes arrêté",
+    "continue_reading_percent": "Continuez là où vous vous êtes arrêté ({{percent}} %)",
+    "continue_button": "Continuer"
   },
   "editor": {
     "quickly_focus": "Vous pouvez rapidement vous concentrer sur ce champ en appuyant sur ⌘ + E",
@@ -714,7 +875,10 @@
       "refetch": "Re-fetch a été mis en file d'attente !",
       "full_page_archive": "La création de l'archive de la page complète a été déclenchée",
       "delete_from_list": "Le favori a été supprimé de la liste",
-      "clipboard_copied": "Le lien a été ajouté à votre presse-papiers !"
+      "clipboard_copied": "Le lien a été ajouté à votre presse-papiers !",
+      "preserve_pdf": "La conservation en PDF a été déclenchée",
+      "update_banner": "La bannière a été mise à jour!",
+      "uploading_banner": "Téléversement de la bannière…"
     },
     "lists": {
       "created": "La liste a été créée !",
@@ -772,12 +936,21 @@
     "year_s_ago": " Il y a {years} an(s)",
     "history": "Recherches récentes",
     "title_contains": "Le titre contient",
-    "title_does_not_contain": "Le titre ne contient pas"
+    "title_does_not_contain": "Le titre ne contient pas",
+    "is_broken_link": "A un lien brisé",
+    "tags": "Balises",
+    "no_suggestions": "Pas de suggestions",
+    "filters": "Filtres",
+    "is_not_broken_link": "A un lien fonctionnel",
+    "lists": "Listes",
+    "feeds": "Flux",
+    "is_from_source": "La source est",
+    "is_not_from_source": "La source n'est pas"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Supprimer le signet ?",
-      "delete_confirmation_description": "T'es sûr de vouloir supprimer ce marque-page ?"
+      "delete_confirmation_description": "Êtes-vous sûr de vouloir supprimer ce marque-page ?"
     }
   },
   "highlights": {
@@ -820,5 +993,54 @@
     "no_release_notes": "Aucune note de version n’a été publiée pour cette version.",
     "release_notes_synced": "Les notes de version sont synchronisées depuis GitHub.",
     "view_on_github": "Voir sur GitHub"
+  },
+  "wrapped": {
+    "title": "Votre récap de {{year}}",
+    "subtitle": "Une année dans Karakeep",
+    "banner": {
+      "title": "Votre récap 2025 est prêt !",
+      "description": "Consultez votre année en signets",
+      "view_now": "Afficher maintenant"
+    },
+    "button": "Récap 2025",
+    "loading": "Chargement de votre récapitulatif…",
+    "failed_to_load": "Échec du chargement de vos infos récapitulatives",
+    "sections": {
+      "total_saves": {
+        "prefix": "Vous avez enregistré",
+        "suffix": "éléments cette année",
+        "suffix_singular": "élément cette année"
+      },
+      "first_bookmark": {
+        "title": "Votre aventure commence",
+        "description": "Premier enregistrement de {{year}}:"
+      },
+      "top_domains": "Vos meilleurs sites",
+      "top_tags": "Vos meilleurs tags",
+      "monthly_activity": "Votre année d'enregistrements",
+      "most_active_day": "Votre jour le plus actif",
+      "peak_times": {
+        "title": "Quand vous enregistrez",
+        "peak_hour": "Heure de pointe",
+        "peak_day": "Jour de pointe"
+      },
+      "how_you_save": "Comment vous enregistrez",
+      "what_you_saved": "Ce que vous avez enregistré",
+      "summary": {
+        "favorites": "Favoris",
+        "tags_created": "Tags créés",
+        "highlights": "Points forts"
+      },
+      "types": {
+        "links": "Liens",
+        "notes": "Remarques",
+        "assets": "Ressources"
+      }
+    },
+    "footer": "Fait avec Karakeep",
+    "share": "Partager",
+    "download": "Télécharger",
+    "close": "Fermer",
+    "generating": "Génération en cours..."
   }
 }

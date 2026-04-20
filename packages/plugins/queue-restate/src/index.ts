@@ -13,19 +13,21 @@ import type {
 } from "@karakeep/shared/queueing";
 import logger from "@karakeep/shared/logger";
 
-import { AdminClient } from "./admin";
 import { envConfig } from "./env";
 import { idProvider } from "./idProvider";
 import { semaphore } from "./semaphore";
-import { buildRestateService } from "./service";
+import { buildRestateServices } from "./service";
 
 class RestateQueueWrapper<T> implements Queue<T> {
   constructor(
     private readonly _name: string,
     private readonly client: restateClient.Ingress,
-    private readonly adminClient: AdminClient,
     public readonly opts: QueueOptions,
   ) {}
+
+  ensureInit(): Promise<void> {
+    return Promise.resolve();
+  }
 
   name(): string {
     return this._name;
@@ -71,10 +73,15 @@ class RestateQueueWrapper<T> implements Queue<T> {
     running: number;
     failed: number;
   }> {
-    const res = await this.adminClient.getStats(this.name());
+    const semaphoreId = `queue:${this.name()}`;
+    const client = this.client.objectClient<typeof semaphore>(
+      { name: "Semaphore" },
+      semaphoreId,
+    );
+    const res = await client.queueSize();
     return {
-      pending: res.pending + res.ready,
-      pending_retry: res["backing-off"] + res.paused + res.suspended,
+      pending: res.pending,
+      pending_retry: 0,
       running: res.running,
       failed: 0,
     };
@@ -87,12 +94,13 @@ class RestateQueueWrapper<T> implements Queue<T> {
 
 class RestateRunnerWrapper<T> implements Runner<T> {
   constructor(
-    private readonly wf: restate.ServiceDefinition<
+    private readonly dispatcherDef: restate.ServiceDefinition<
       string,
       {
         run: (ctx: restate.Context, data: T) => Promise<void>;
       }
     >,
+    private readonly runnerDef: restate.ServiceDefinition<string, unknown>,
   ) {}
 
   async run(): Promise<void> {
@@ -107,14 +115,17 @@ class RestateRunnerWrapper<T> implements Runner<T> {
     throw new Error("Method not implemented.");
   }
 
-  get def(): restate.WorkflowDefinition<string, unknown> {
-    return this.wf;
+  get dispatcherService(): restate.ServiceDefinition<string, unknown> {
+    return this.dispatcherDef;
+  }
+
+  get runnerService(): restate.ServiceDefinition<string, unknown> {
+    return this.runnerDef;
   }
 }
 
 class RestateQueueClient implements QueueClient {
   private client: restateClient.Ingress;
-  private adminClient: AdminClient;
   private queues = new Map<string, RestateQueueWrapper<unknown>>();
   private services = new Map<string, RestateRunnerWrapper<unknown>>();
 
@@ -122,7 +133,6 @@ class RestateQueueClient implements QueueClient {
     this.client = restateClient.connect({
       url: envConfig.RESTATE_INGRESS_ADDR,
     });
-    this.adminClient = new AdminClient(envConfig.RESTATE_ADMIN_ADDR);
   }
 
   async prepare(): Promise<void> {
@@ -130,13 +140,24 @@ class RestateQueueClient implements QueueClient {
   }
 
   async start(): Promise<void> {
+    const servicesToExpose: restate.ServiceDefinition<string, unknown>[] = [];
+
+    for (const svc of this.services.values()) {
+      if (envConfig.RESTATE_ENABLE_DISPATCHERS) {
+        servicesToExpose.push(svc.dispatcherService);
+      }
+      if (envConfig.RESTATE_ENABLE_RUNNERS) {
+        servicesToExpose.push(svc.runnerService);
+      }
+    }
+
+    if (envConfig.RESTATE_EXPOSE_CORE_SERVICES) {
+      servicesToExpose.push(semaphore, idProvider);
+    }
+
     const port = await restate.serve({
       port: envConfig.RESTATE_LISTEN_PORT ?? 0,
-      services: [
-        ...[...this.services.values()].map((svc) => svc.def),
-        semaphore,
-        idProvider,
-      ],
+      services: servicesToExpose,
       identityKeys: envConfig.RESTATE_PUB_KEY
         ? [envConfig.RESTATE_PUB_KEY]
         : undefined,
@@ -155,12 +176,7 @@ class RestateQueueClient implements QueueClient {
     if (this.queues.has(name)) {
       throw new Error(`Queue ${name} already exists`);
     }
-    const wrapper = new RestateQueueWrapper<T>(
-      name,
-      this.client,
-      this.adminClient,
-      opts,
-    );
+    const wrapper = new RestateQueueWrapper<T>(name, this.client, opts);
     this.queues.set(name, wrapper);
     return wrapper;
   }
@@ -175,8 +191,10 @@ class RestateQueueClient implements QueueClient {
     if (wrapper) {
       throw new Error(`Queue ${name} already exists`);
     }
+    const services = buildRestateServices(queue, funcs, opts, queue.opts);
     const svc = new RestateRunnerWrapper<T>(
-      buildRestateService(queue, funcs, opts, queue.opts),
+      services.dispatcher,
+      services.runner,
     );
     this.services.set(name, svc);
     return svc;

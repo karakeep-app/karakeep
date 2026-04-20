@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
-import { MoreHorizontal, SearchIcon, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { MoreHorizontal, SearchIcon } from "lucide-react";
 
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
@@ -24,15 +25,30 @@ export default function ListHeader({
 }: {
   initialData: ZBookmarkList;
 }) {
+  const api = useTRPC();
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: list, error } = api.lists.get.useQuery(
-    {
-      listId: initialData.id,
-    },
-    {
-      initialData,
-    },
+  const { data: list, error } = useQuery(
+    api.lists.get.queryOptions(
+      {
+        listId: initialData.id,
+      },
+      {
+        initialData,
+      },
+    ),
+  );
+
+  const { data: collaboratorsData } = useQuery(
+    api.lists.getCollaborators.queryOptions(
+      {
+        listId: initialData.id,
+      },
+      {
+        refetchOnWindowFocus: false,
+        enabled: list.hasCollaborators,
+      },
+    ),
   );
 
   const parsedQuery = useMemo(() => {
@@ -55,22 +71,44 @@ export default function ListHeader({
         <span className="text-2xl">
           {list.icon} {list.name}
         </span>
-        {list.hasCollaborators && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Users className="size-5 text-primary" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t("lists.shared")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        {list.hasCollaborators && collaboratorsData && (
+          <div className="group flex">
+            {collaboratorsData.owner && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                    <UserAvatar
+                      name={collaboratorsData.owner.name}
+                      image={collaboratorsData.owner.image}
+                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{collaboratorsData.owner.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {collaboratorsData.collaborators.map((collab) => (
+              <Tooltip key={collab.userId}>
+                <TooltipTrigger>
+                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                    <UserAvatar
+                      name={collab.user.name}
+                      image={collab.user.image}
+                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{collab.user.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
         )}
         {list.description && (
-          <span className="text-lg text-gray-400">
-            {`(${list.description})`}
-          </span>
+          <span className="text-lg text-gray-400">{`(${list.description})`}</span>
         )}
       </div>
       <div className="flex items-center">

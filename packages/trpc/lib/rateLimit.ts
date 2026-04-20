@@ -12,7 +12,10 @@ import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
   return async function rateLimitMiddleware(opts: {
     path: string;
-    ctx: { req: { ip: string | null } };
+    ctx: {
+      req: { ip: string | null };
+      user?: { id?: string | null } | null;
+    };
     next: () => Promise<T>;
   }) {
     if (!serverConfig.rateLimiting.enabled) {
@@ -32,9 +35,9 @@ export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
       return opts.next();
     }
 
-    // Build the rate limiting key from IP and path
-    const key = `${ip}:${opts.path}`;
-    const result = client.checkRateLimit(config, key);
+    const userSegment = opts.ctx.user?.id ? `:user:${opts.ctx.user.id}` : "";
+    const key = `${ip}${userSegment}:${opts.path}`;
+    const result = await client.checkRateLimit(config, key);
 
     if (!result.allowed) {
       throw new TRPCError({

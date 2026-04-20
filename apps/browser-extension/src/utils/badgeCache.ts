@@ -1,9 +1,6 @@
 // Badge count cache helpers
-import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
 import { getPluginSettings } from "./settings";
 import { getApiClient, getQueryClient } from "./trpc";
-import { urlsMatchIgnoringAnchorAndTrailingSlash } from "./url";
 
 /**
  * Fetches the bookmark status for a given URL from the API.
@@ -18,28 +15,12 @@ async function fetchBadgeStatus(url: string): Promise<string | null> {
     throw new Error("[badgeCache] API client not configured");
   }
   try {
-    const data = await api.bookmarks.searchBookmarks.query({
-      text: "url:" + url,
-    });
-    const bookmarks = data.bookmarks;
-    const bookmarksLength = bookmarks.length;
-    if (bookmarksLength === 0) {
-      return null;
-    }
-
-    // First check the exact match (including anchor points)
-    const exactMatch =
-      bookmarks.find(
-        (b) =>
-          b.content.type === BookmarkTypes.LINK &&
-          urlsMatchIgnoringAnchorAndTrailingSlash(url, b.content.url),
-      ) || null;
-
-    return exactMatch ? exactMatch.id : null;
+    const data = await api.bookmarks.checkUrl.query({ url });
+    return data.bookmarkId;
   } catch (error) {
     console.error(`[badgeCache] Failed to fetch status for ${url}:`, error);
     // In case of API error, return a non-cacheable empty status
-    // Propagate so cache treats this as a miss and doesn’t store
+    // Propagate so cache treats this as a miss and doesn't store
     throw error;
   }
 }

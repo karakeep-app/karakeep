@@ -1,4 +1,9 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
 import pwa from "next-pwa";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const withPWA = pwa({
   dest: "public",
@@ -53,4 +58,4 @@ const nextConfig = withPWA({
   typescript: { ignoreBuildErrors: true },
 });
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

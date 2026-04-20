@@ -1,5 +1,7 @@
 {
   "common": {
+    "default": "Default",
+    "id": "ID",
     "url": "URL",
     "name": "Name",
     "email": "Email",
@@ -8,6 +10,7 @@
     "actions": "Actions",
     "created_at": "Created At",
     "updated_at": "Updated At",
+    "last_used": "Last Used",
     "key": "Key",
     "role": "Role",
     "type": "Type",
@@ -25,6 +28,7 @@
     "highlights": "Highlights",
     "source": "Source",
     "screenshot": "Screenshot",
+    "pdf": "Archived PDF",
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
@@ -69,7 +73,11 @@
     "toggle_show_archived": "Show Archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
-    "download_full_page_archive": "Download Full Page Archive",
+    "offline_copies": "Offline Copies",
+    "preserve_offline_archive": "Preserve Offline Archive",
+    "download_full_page_archive_file": "Download Archive File",
+    "preserve_as_pdf": "Preserve as PDF",
+    "download_pdf_file": "Download PDF File",
     "edit_tags": "Edit Tags",
     "edit_notes": "Edit Notes",
     "add_to_list": "Add to List",
@@ -82,6 +90,7 @@
     "remove_from_list": "Remove from List",
     "save": "Save",
     "add": "Add",
+    "remove": "Remove",
     "edit": "Edit",
     "confirm": "Confirm",
     "open_editor": "Open Editor",
@@ -96,6 +105,10 @@
     "regenerate": "Regenerate",
     "apply_all": "Apply All",
     "ignore": "Ignore",
+    "more": "More",
+    "replace_banner": "Replace Banner",
+    "add_banner": "Add Banner",
+    "download": "Download",
     "sort": {
       "title": "Sort",
       "relevant_first": "Most Relevant First",
@@ -119,6 +132,17 @@
       "confirm_new_password": "Confirm New Password",
       "options": "Options",
       "interface_lang": "Interface Language",
+      "avatar": {
+        "title": "Profile Photo",
+        "description": "Upload a square image to use as your avatar.",
+        "upload": "Upload avatar",
+        "change": "Change avatar",
+        "remove": "Remove avatar",
+        "remove_confirm_title": "Remove avatar?",
+        "remove_confirm_description": "This will clear your current profile photo.",
+        "updated": "Avatar updated",
+        "removed": "Avatar removed"
+      },
       "user_settings": {
         "user_settings_updated": "User settings have been updated!",
         "bookmark_click_action": {
@@ -131,6 +155,38 @@
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
         }
+      },
+      "reader_settings": {
+        "title": "Reader Settings",
+        "description": "Configure default text settings for the reader view. These settings sync across all your devices.",
+        "font_family": "Font Family",
+        "font_size": "Font Size",
+        "line_height": "Line Height",
+        "save_as_default": "Save as default",
+        "clear_defaults": "Clear all defaults",
+        "not_set": "Not set",
+        "using_default": "Using client default",
+        "preview": "Preview",
+        "preview_text": "The quick brown fox jumps over the lazy dog. This is how your reader view text will appear.",
+        "defaults_cleared": "Reader defaults have been cleared",
+        "local_overrides_title": "Device-specific settings active",
+        "local_overrides_description": "This device has reader settings that differ from your global defaults:",
+        "local_overrides_cleared": "Device-specific settings have been cleared",
+        "clear_local_overrides": "Clear device settings",
+        "serif": "Serif",
+        "sans": "Sans Serif",
+        "mono": "Monospace",
+        "tooltip_default": "Reading settings",
+        "tooltip_preview": "Unsaved preview changes",
+        "tooltip_local": "Device settings differ from global",
+        "tooltip_preview_and_local": "Unsaved preview changes; device settings differ from global",
+        "reset_preview": "Reset preview",
+        "save_to_device": "This device",
+        "save_to_all_devices": "All devices",
+        "save_hint": "Save settings for this device only or sync across all devices",
+        "adjust_hint": "Adjust settings above to preview changes",
+        "clear_override_hint": "Clear device override to use global setting ({{value}})",
+        "preview_inline": "(preview)"
       }
     },
     "stats": {
@@ -189,6 +245,10 @@
     },
     "ai": {
       "ai_settings": "AI Settings",
+      "auto_tagging": "Auto-tagging",
+      "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
+      "auto_summarization": "Auto-summarization",
+      "auto_summarization_description": "Automatically generate summaries for your bookmarks using AI.",
       "tagging_rules": "Tagging Rules",
       "tagging_rule_description": "Prompts that you add here will be included as rules to the model during tag generation. You can view the final prompts in the prompt preview section.",
       "prompt_preview": "Prompt Preview",
@@ -198,7 +258,22 @@
       "all_tagging": "All Tagging",
       "text_tagging": "Text Tagging",
       "image_tagging": "Image Tagging",
-      "summarization": "Summarization"
+      "summarization": "Summarization",
+      "tag_style": "Tag Style",
+      "tag_style_description": "Choose how your auto-generated tags should be formatted.",
+      "lowercase_hyphens": "Lowercase with hyphens",
+      "lowercase_spaces": "Lowercase with spaces",
+      "lowercase_underscores": "Lowercase with underscores",
+      "titlecase_spaces": "Title case with spaces",
+      "titlecase_hyphens": "Title case with hyphens",
+      "camelCase": "camelCase",
+      "no_preference": "No preference",
+      "inference_language": "Inference Language",
+      "inference_language_description": "Choose language for AI-generated tags and summaries.",
+      "curated_tags": "Curated Tags",
+      "curated_tags_description": "Optionally restrict AI tagging to only use tags from this list. When no tags are selected, the AI generates tags freely.",
+      "curated_tags_updated": "Curated tags updated successfully!",
+      "curated_tags_update_failed": "Failed to update curated tags"
     },
     "feeds": {
       "rss_subscriptions": "RSS Subscriptions",
@@ -229,11 +304,15 @@
       "import_export_bookmarks": "Import / Export Bookmarks",
       "import_bookmarks_from_html_file": "Import Bookmarks from HTML file",
       "import_bookmarks_from_pocket_export": "Import Bookmarks from Pocket export",
+      "import_bookmarks_from_matter_export": "Import Bookmarks from Matter export",
       "import_bookmarks_from_omnivore_export": "Import Bookmarks from Omnivore export",
       "import_bookmarks_from_linkwarden_export": "Import Bookmarks from Linkwarden export",
       "import_bookmarks_from_karakeep_export": "Import Bookmarks from Karakeep export",
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
+      "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
+      "import_bookmarks_from_readwise_reader_export": "Import Bookmarks from Readwise Reader export",
+      "import_bookmarks_from_onetab_export": "Import Bookmarks from OneTab export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
@@ -285,8 +364,12 @@
       "conditions_types": {
         "always": "Always",
         "url_contains": "URL Contains",
+        "url_does_not_contain": "URL Does Not Contain",
+        "title_contains": "Title Contains",
+        "title_does_not_contain": "Title Does Not Contain",
         "imported_from_feed": "Imported From Feed",
         "bookmark_type_is": "Bookmark Type Is",
+        "bookmark_source_is": "Bookmark Source Is",
         "has_tag": "Has Tag",
         "is_favourited": "Is Favourited",
         "is_archived": "Is Archived",
@@ -331,7 +414,17 @@
       "approaching_quota_limit": "Approaching quota limit",
       "loading_usage": "Loading usage information...",
       "free": "Free",
-      "paid": "Paid"
+      "paid": "Paid",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "per_month": "month",
+      "per_year": "year",
+      "excl_vat": "excl. VAT",
+      "yearly_savings": "Save {{percent}}%",
+      "pro_feature_bookmarks": "50,000 bookmarks",
+      "pro_feature_storage": "50GB storage",
+      "pro_feature_ai_tagging": "AI-powered tagging",
+      "pro_feature_full_text_search": "Full-text search"
     },
     "import_sessions": {
       "title": "Import Sessions",
@@ -342,11 +435,12 @@
       "created_at": "Created {{time}}",
       "progress": "Progress",
       "status": {
+        "staging": "Staging",
         "pending": "Pending",
-        "in_progress": "In progress",
+        "running": "Running",
+        "paused": "Paused",
         "completed": "Completed",
-        "failed": "Failed",
-        "processing": "Processing"
+        "failed": "Failed"
       },
       "badges": {
         "pending": "{{count}} pending",
@@ -358,7 +452,36 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
-      "delete_session": "Delete Session"
+      "finalize_dialog_title": "Finalize Import Session",
+      "finalize_dialog_description": "Queue \"{{name}}\" for background processing? Staged bookmarks will start importing.",
+      "delete_session": "Delete Session",
+      "finalize_staging": "Finalize",
+      "pause_session": "Pause",
+      "resume_session": "Resume",
+      "view_details": "View Details",
+      "detail": {
+        "page_title": "Import Session Details",
+        "back_to_import": "Back to Import",
+        "filter_all": "All",
+        "filter_accepted": "Accepted",
+        "filter_rejected": "Rejected",
+        "filter_duplicates": "Duplicates",
+        "filter_pending": "Pending",
+        "table_title": "Title / URL",
+        "table_type": "Type",
+        "table_result": "Result",
+        "table_reason": "Reason",
+        "table_bookmark": "Bookmark",
+        "result_accepted": "Accepted",
+        "result_rejected": "Rejected",
+        "result_skipped_duplicate": "Duplicate",
+        "result_pending": "Pending",
+        "result_processing": "Processing",
+        "no_results": "No results found for this filter.",
+        "view_bookmark": "View Bookmark",
+        "load_more": "Load More",
+        "no_title": "No title"
+      }
     },
     "backups": {
       "backups": "Backups",
@@ -485,11 +608,14 @@
         }
       },
       "actions": {
+        "recrawl_pending_links_only": "Recrawl Pending Links Only",
         "recrawl_failed_links_only": "Recrawl Failed Links Only",
         "recrawl_all_links": "Recrawl All Links",
         "without_inference": "Without Inference",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
         "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerate AI Summaries for Pending Bookmarks Only",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",
@@ -510,11 +636,50 @@
       "local_user": "Local User",
       "confirm_password": "Confirm Password",
       "unlimited": "Unlimited"
+    },
+    "admin_tools": {
+      "admin_tools": "Admin Tools",
+      "bookmark_debugger": "Bookmark Debugger",
+      "bookmark_id": "Bookmark ID",
+      "bookmark_id_placeholder": "Enter bookmark ID",
+      "lookup": "Lookup",
+      "debug_info": "Debug Information",
+      "basic_info": "Basic Information",
+      "status": "Status",
+      "content": "Content",
+      "html_preview": "HTML Preview (First 1000 chars)",
+      "summary": "Summary",
+      "url": "URL",
+      "source_url": "Source URL",
+      "asset_type": "Asset Type",
+      "file_name": "File Name",
+      "owner_user_id": "Owner User ID",
+      "tagging_status": "Tagging Status",
+      "summarization_status": "Summarization Status",
+      "crawl_status": "Crawl Status",
+      "crawl_status_code": "HTTP Status Code",
+      "crawled_at": "Crawled At",
+      "recrawl": "Re-crawl",
+      "reindex": "Re-index",
+      "retag": "Re-tag",
+      "resummarize": "Re-summarize",
+      "bookmark_not_found": "Bookmark not found",
+      "action_success": "Action completed successfully",
+      "action_failed": "Action failed",
+      "recrawl_queued": "Re-crawl job has been queued",
+      "reindex_queued": "Re-index job has been queued",
+      "retag_queued": "Re-tag job has been queued",
+      "resummarize_queued": "Re-summarize job has been queued",
+      "view": "View",
+      "fetch_error": "Error fetching bookmark"
     }
   },
   "options": {
     "dark_mode": "Dark Mode",
-    "light_mode": "Light Mode"
+    "light_mode": "Light Mode",
+    "apps_extensions": "Apps & Extensions",
+    "documentation": "Documentation",
+    "follow_us_on_x": "Follow us on X"
   },
   "lists": {
     "all_lists": "All Lists",
@@ -620,6 +785,8 @@
     "create_tag_description": "Create a new tag without attaching it to any bookmark",
     "tag_name": "Tag Name",
     "enter_tag_name": "Enter tag name",
+    "search_placeholder": "Search tags...",
+    "search_or_create_placeholder": "Search or create tags...",
     "no_custom_tags": "No custom tags yet",
     "no_ai_tags": "No AI tags yet",
     "no_unused_tags": "You don't have any unused tags",
@@ -662,6 +829,10 @@
     "type_is_not": "Type is not",
     "is_from_feed": "Is from RSS Feed",
     "is_not_from_feed": "Is not from RSS Feed",
+    "is_from_source": "Source is",
+    "is_not_from_source": "Source is not",
+    "is_broken_link": "Has Broken Link",
+    "is_not_broken_link": "Has Working Link",
     "and": "And",
     "or": "Or",
     "history": "Recent Searches",
@@ -675,6 +846,13 @@
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
+    "fetch_error_title": "Content Unavailable",
+    "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
+    "crawling_in_progress": "Fetching page content…",
+    "continue_reading": "Continue where you left off",
+    "continue_reading_percent": "Continue where you left off ({{percent}}%)",
+    "continue_button": "Continue",
     "tabs": {
       "content": "Content",
       "details": "Details"
@@ -750,8 +928,11 @@
       "deleted": "The bookmark has been deleted!",
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
+      "preserve_pdf": "PDF preservation has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
-      "clipboard_copied": "Link has been added to your clipboard!"
+      "clipboard_copied": "Link has been added to your clipboard!",
+      "update_banner": "Banner has been updated!",
+      "uploading_banner": "Uploading banner..."
     },
     "lists": {
       "created": "List has been created!",
@@ -796,5 +977,54 @@
     "no_release_notes": "No release notes were published for this version.",
     "release_notes_synced": "Release notes are synced from GitHub.",
     "view_on_github": "View on GitHub"
+  },
+  "wrapped": {
+    "title": "Your {{year}} Wrapped",
+    "subtitle": "A Year in Karakeep",
+    "banner": {
+      "title": "Your 2025 Wrapped is ready!",
+      "description": "See your year in bookmarks",
+      "view_now": "View Now"
+    },
+    "button": "2025 Wrapped",
+    "loading": "Loading your Wrapped...",
+    "failed_to_load": "Failed to load your Wrapped stats",
+    "sections": {
+      "total_saves": {
+        "prefix": "You saved",
+        "suffix": "items this year",
+        "suffix_singular": "item this year"
+      },
+      "first_bookmark": {
+        "title": "Your Journey Started",
+        "description": "First save of {{year}}:"
+      },
+      "top_domains": "Your Top Sites",
+      "top_tags": "Your Top Tags",
+      "monthly_activity": "Your Year in Saves",
+      "most_active_day": "Your Most Active Day",
+      "peak_times": {
+        "title": "When You Save",
+        "peak_hour": "Peak Hour",
+        "peak_day": "Peak Day"
+      },
+      "how_you_save": "How You Save",
+      "what_you_saved": "What You Saved",
+      "summary": {
+        "favorites": "Favorites",
+        "tags_created": "Tags Created",
+        "highlights": "Highlights"
+      },
+      "types": {
+        "links": "Links",
+        "notes": "Notes",
+        "assets": "Assets"
+      }
+    },
+    "footer": "Made with Karakeep",
+    "share": "Share",
+    "download": "Download",
+    "close": "Close",
+    "generating": "Generating..."
   }
 }

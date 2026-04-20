@@ -22,7 +22,7 @@ export default async function BookmarkPreviewPage(props: {
   }
 
   return (
-    <div className="max-h-screen">
+    <div className="h-[calc(100dvh-theme(spacing.16)-theme(spacing.8))] overflow-hidden">
       <BookmarkPreview bookmarkId={bookmark.id} initialData={bookmark} />
     </div>
   );

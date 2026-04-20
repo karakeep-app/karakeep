@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { buildImpersonatingAuthedContext } from "trpc";
+import { withWorkerTracing } from "workerTracing";
 
 import type { ZRuleEngineRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -20,7 +21,7 @@ export class RuleEngineWorker {
     const worker = (await getQueueClient())!.createRunner<ZRuleEngineRequest>(
       RuleEngineQueue,
       {
-        run: runRuleEngine,
+        run: withWorkerTracing("ruleEngineWorker.run", runRuleEngine),
         onComplete: (job) => {
           workerStatsCounter.labels("ruleEngine", "completed").inc();
           const jobId = job.id;
@@ -66,14 +67,21 @@ async function runRuleEngine(job: DequeuedJob<ZRuleEngineRequest>) {
 
   const bookmark = await getBookmarkUserId(bookmarkId);
   if (!bookmark) {
-    throw new Error(
-      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found`,
+    logger.info(
+      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found, skipping`,
     );
+    return;
   }
   const userId = bookmark.userId;
   const authedCtx = await buildImpersonatingAuthedContext(userId);
 
   const ruleEngine = await RuleEngine.forBookmark(authedCtx, bookmarkId);
+  if (!ruleEngine) {
+    logger.info(
+      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found during rule evaluation, skipping`,
+    );
+    return;
+  }
 
   const results = (
     await Promise.all(events.map((event) => ruleEngine.onEvent(event)))

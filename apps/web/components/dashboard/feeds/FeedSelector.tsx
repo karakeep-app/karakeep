@@ -7,8 +7,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import LoadingSpinner from "@/components/ui/spinner";
-import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export function FeedSelector({
   value,
@@ -21,9 +23,12 @@ export function FeedSelector({
   onChange: (value: string) => void;
   placeholder?: string;
 }) {
-  const { data, isPending } = api.feeds.list.useQuery(undefined, {
-    select: (data) => data.feeds,
-  });
+  const api = useTRPC();
+  const { data, isPending } = useQuery(
+    api.feeds.list.queryOptions(undefined, {
+      select: (data) => data.feeds,
+    }),
+  );
 
   if (isPending) {
     return <LoadingSpinner />;

@@ -302,6 +302,7 @@ export const listsAppRouter = router({
               id: z.string(),
               name: z.string(),
               email: z.string().nullable(),
+              image: z.string().nullable(),
             }),
           }),
         ),
@@ -310,6 +311,7 @@ export const listsAppRouter = router({
             id: z.string(),
             name: z.string(),
             email: z.string().nullable(),
+            image: z.string().nullable(),
           })
           .nullable(),
       }),

@@ -1,4 +1,4 @@
-import { TextStyle, ViewStyle } from "react-native";
+import { Platform, TextStyle, ViewStyle } from "react-native";
 import { Stack } from "expo-router/stack";
 import { cssInterop } from "nativewind";
 
@@ -14,7 +14,10 @@ function StackImpl({ contentStyle, headerStyle, ...props }: StackProps) {
     headerStyle: {
       backgroundColor: headerStyle?.backgroundColor?.toString(),
     },
-    navigationBarColor: contentStyle?.backgroundColor?.toString(),
+    navigationBarColor:
+      Platform.OS === "android"
+        ? undefined
+        : contentStyle?.backgroundColor?.toString(),
     headerTintColor: headerStyle?.color?.toString(),
   };
   return <Stack {...props} />;

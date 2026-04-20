@@ -19,7 +19,7 @@ mcpServer.tool(
         },
       },
       body: {
-        tags: tagsToAttach.map((tag) => ({ tagName: tag })),
+        tags: tagsToAttach.map((tag: string) => ({ tagName: tag })),
       },
     });
     if (res.error) {
@@ -51,7 +51,7 @@ mcpServer.tool(
         },
       },
       body: {
-        tags: tagsToDetach.map((tag) => ({ tagName: tag })),
+        tags: tagsToDetach.map((tag: string) => ({ tagName: tag })),
       },
     });
     if (res.error) {

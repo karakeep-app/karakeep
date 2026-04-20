@@ -1,0 +1,63 @@
+---
+id: list-backups
+title: "Get all backups"
+description: "Retrieve a list of all backups for the authenticated user, including their status and metadata."
+sidebar_label: "Get all backups"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VsGO2zYQ/ZUBc2kNrb0pevKhgDdtgm1SIEh2URTJAh5LY4kxRTLk0LuOIaAf0S/slxRDybJ310B76kkCZzh8nHnzhnvlPAVk7ex1pebK6MhXWG6Sj6pQFcUyaC9WNVcfiIOmLQGCuIFbAxoDq94d1i4ANwSYuCHLukSmClKkUIC2pUmVtrV46ACRkVMEtBW0xFgh41QVirGOav5JHRDcFSpSmYLmnZp/2qsVYaCwSNyo+ae77q5QgaJ3NlJU87364fJSPo9RL86BlcNKZ5ksyw703ghe7ezsS5RtexXLhlqUP955UnPlVl+oZFUoHyRnrPtDh4gnjhgC7lShNFMb/z2Ark58Igdta9UVShJ3fd6EMRKfsxXKJmNwZUjNOSTqClUGkjos+GykqL/RicGmdkVBDCvnNi2GzSuXLJ/16Et4DgPZ1EoVPdmqX4mpLCkKo9aoTQqk7rpCUQgu/EYxYk3/4S6dVPtr0oEqia4rNSbpmJLTCw/Xe3qZEfpd9zTmoZZi6Qr14+XL53y6tUJwF/Q3quDvP//KnL/KxAR2G7KgI7Q6Rm1rIf4Wja4KcAHowctBT7jH9MAzb1CfZ90xqw/YeknGIwSq66G2xI2TBq4pMwylRdRsNbZypLClEHMbpWDUXO2xqgLF2M3Q69n2pSrUFoOWjOeyDuY+A2tMhtVcNcw+zmczDrvpBgNuiPwUvX8mFjeiBH0E6T1J0tvBH3osAv2kwT/KzYeWOmnzMRFystwju6n54CTVzT+vXWhREP76+42SjGi7drJdbt1Dejm9nF6KymjOeRzxLN5fP8M/GnUEhEhmfdG4yJIdOPBJ9EwkLBBWF5ovDDKFfDtd0hRuGh0ltgiPu4+wcwnYQYsW62OQWGSBigWI+hXQ6Loxum5kJbNavrYaZdYHVwdsWxSFNWY3/Ww/2xcvYHGUXe2sLC6MAbKVd9pyhIHngI/J6uWMCrTNJVouBmblIEtoCCsKU/jDJSjRQk1WpgUB2nyzDe1gHVz7uL73tILba0i2ogCTyUdi1raO8FPe85Z2cTI5wH6PtbYj5Hci1UfMMXnvAkOZQnThYoUC1Y87YKsRlr1xmZO0NLrVvISvicIOPAZsiSlEKQbBYVgM44iksktLD/xqCLHWZPqmlrSAZsDY5+VwyBhSKrkmLptslyACjKawgKUI1xK2aBLlqfjoDG2rPBpzYKlHILAOWhcywGQ4HnJzNVAEbnaeoiweVmKuxorAWerbKxCBdEqcf7YXMJkYbTeTSb7LAm4/vBv5BveaG3CZ52igDHhv6GQM99tFlcbtWZ1AlsA6psElk/PgYyF547CiCtbaEHynWyG5C/D+59ffT2VgeBe5xaxyFnMLvyE+HcpPe3B/lMn/4+3Ry8yJHMsQFqXcD3J6Mh8KJWIgS/u9sPI2mK6T5Uw8eZwcxTQ/VQrVt1LW3w3t5GFSluQ5q65J+d3w9BUi8jgK+5tfbmTOPRbFJyKYox9eIXZ3Enu/7z1upOm7ThUDiCwCqpOB9w8jvIXe
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all backups"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/backups"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve a list of all backups for the authenticated user, including their status and metadata.
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"A list of all backups.","content":{"application/json":{"schema":{"type":"object","properties":{"backups":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"userId":{"type":"string"},"assetId":{"type":"string","nullable":true},"createdAt":{"type":"string"},"size":{"type":"number"},"bookmarkCount":{"type":"number"},"status":{"type":"string","enum":["pending","success","failure"]},"errorMessage":{"type":"string","nullable":true}},"required":["id","userId","assetId","createdAt","size","bookmarkCount","status"]}}},"required":["backups"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

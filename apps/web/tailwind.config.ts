@@ -3,7 +3,10 @@ import type { Config } from "tailwindcss";
 import web from "@karakeep/tailwind-config/web";
 
 const config = {
-  content: web.content,
+  content: [
+    ...web.content,
+    "../../packages/shared-react/components/**/*.{ts,tsx}",
+  ],
   presets: [web],
 } satisfies Config;
 

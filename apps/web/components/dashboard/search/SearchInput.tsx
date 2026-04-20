@@ -11,7 +11,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -225,7 +224,6 @@ const SearchInput = React.forwardRef<
             onCloseAutoFocus={(e) => e.preventDefault()}
           >
             <CommandList className="max-h-96 overflow-y-auto">
-              <CommandEmpty>{t("search.no_suggestions")}</CommandEmpty>
               {hasSuggestions && <CommandItem value="-" className="hidden" />}
               {suggestionGroups.map((group) => (
                 <CommandGroup key={group.id} heading={group.label}>

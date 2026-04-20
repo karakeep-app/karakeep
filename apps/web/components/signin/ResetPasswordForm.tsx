@@ -20,20 +20,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zResetPasswordSchema } from "@karakeep/shared/types/users";
 
 const resetPasswordSchema = z
   .object({
     confirmPassword: z.string(),
   })
-  .merge(zResetPasswordSchema.pick({ newPassword: true }))
+  .extend(zResetPasswordSchema.pick({ newPassword: true }).shape)
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -44,6 +45,7 @@ interface ResetPasswordFormProps {
 }
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+  const api = useTRPC();
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
@@ -52,7 +54,9 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const resetPasswordMutation = api.users.resetPassword.useMutation();
+  const resetPasswordMutation = useMutation(
+    api.users.resetPassword.mutationOptions(),
+  );
 
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {

@@ -2,4 +2,7 @@
 # shellcheck shell=bash
 
 cd /app/apps/web;
+if [ "${USE_JEMALLOC:-false}" = "true" ]; then
+    export LD_PRELOAD=/usr/local/lib/libjemalloc.so
+fi
 exec node server.js;

@@ -42,7 +42,17 @@
     "confirm": "Xác nhận",
     "regenerate": "Tạo lại",
     "load_more": "Tải thêm",
-    "edit_notes": "Sửa ghi chú"
+    "edit_notes": "Sửa ghi chú",
+    "preserve_as_pdf": "Lưu giữ dưới dạng PDF",
+    "offline_copies": "Bản sao ngoại tuyến",
+    "preserve_offline_archive": "Lưu Trữ Ngoại Tuyến",
+    "download_full_page_archive_file": "Tải File Lưu Trữ",
+    "download_pdf_file": "Tải File PDF",
+    "remove": "Gỡ",
+    "more": "Thêm",
+    "replace_banner": "Thay Banner",
+    "add_banner": "Thêm Banner",
+    "download": "Tải xuống"
   },
   "layouts": {
     "list": "Danh sách",
@@ -65,10 +75,12 @@
       "import_export_bookmarks": "Nhập / Xuất đánh dấu trang",
       "import_bookmarks_from_linkwarden_export": "Nhập dấu trang từ bản xuất Linkwarden",
       "import_bookmarks_from_pocket_export": "Nhập dấu trang từ bản xuất Pocket",
+      "import_bookmarks_from_matter_export": "Nhập dấu trang từ bản xuất Matter",
       "import_bookmarks_from_omnivore_export": "Nhập dấu trang từ xuất Omnivore",
       "import_bookmarks_from_karakeep_export": "Nhập dấu trang từ bản xuất Karakeep",
       "import_bookmarks_from_tab_session_manager_export": "Nhập dấu trang từ Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Nhập dấu trang từ tệp xuất mymind"
+      "import_bookmarks_from_mymind_export": "Nhập dấu trang từ tệp xuất mymind",
+      "import_bookmarks_from_instapaper_export": "Nhập dấu trang từ bản xuất Instapaper"
     },
     "webhooks": {
       "edit_auth_token": "Sửa mã xác thực",
@@ -111,7 +123,26 @@
       "summarization": "Tóm tắt",
       "all_tagging": "Tất cả nhãn",
       "image_tagging": "Nhãn cho hình ảnh",
-      "text_tagging": "Nhãn cho văn bản"
+      "text_tagging": "Nhãn cho văn bản",
+      "tag_style": "Kiểu Thẻ",
+      "auto_summarization_description": "Tự động tạo bản tóm tắt cho dấu trang bằng AI.",
+      "auto_tagging": "Tự động gắn thẻ",
+      "titlecase_spaces": "Tiêu đề viết hoa có dấu cách",
+      "lowercase_underscores": "Chữ thường có dấu gạch dưới",
+      "inference_language": "Ngôn ngữ Suy luận",
+      "titlecase_hyphens": "Tiêu đề viết hoa có dấu gạch ngang",
+      "lowercase_hyphens": "Chữ thường có dấu gạch ngang",
+      "lowercase_spaces": "Chữ thường có dấu cách",
+      "inference_language_description": "Chọn ngôn ngữ cho các thẻ và tóm tắt do AI tạo.",
+      "tag_style_description": "Chọn cách định dạng các thẻ tự động tạo của bạn.",
+      "auto_tagging_description": "Tự động tạo thẻ cho dấu trang bằng AI.",
+      "camelCase": "camelCase",
+      "auto_summarization": "Tự động tóm tắt",
+      "no_preference": "Không có tùy chọn nào cả",
+      "curated_tags": "Các thẻ được tuyển chọn",
+      "curated_tags_description": "Bạn có thể giới hạn gắn thẻ AI để chỉ sử dụng các thẻ từ danh sách này. Nếu không có thẻ nào được chọn, AI sẽ tự do tạo thẻ.",
+      "curated_tags_updated": "Đã cập nhật thành công các thẻ được tuyển chọn!",
+      "curated_tags_update_failed": "Không cập nhật được các thẻ được tuyển chọn"
     },
     "info": {
       "basic_details": "Thông tin cơ bản",
@@ -134,6 +165,49 @@
           "show": "Hiển thị các bookmark đã lưu trữ trong tag và danh sách",
           "hide": "Ẩn các bookmark đã lưu trữ trong tag và danh sách"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "Đã kích hoạt cài đặt dành riêng cho thiết bị",
+        "using_default": "Sử dụng mặc định của ứng dụng",
+        "clear_override_hint": "Xóa ghi đè thiết bị để sử dụng cài đặt chung ({{value}})",
+        "font_size": "Cỡ chữ",
+        "font_family": "Họ phông chữ",
+        "preview_inline": "(xem trước)",
+        "tooltip_preview": "Các thay đổi xem trước chưa được lưu",
+        "save_to_all_devices": "Tất cả các thiết bị",
+        "tooltip_local": "Cài đặt thiết bị khác với cài đặt chung",
+        "reset_preview": "Đặt lại bản xem trước",
+        "mono": "Đơn cách",
+        "line_height": "Chiều cao dòng",
+        "tooltip_default": "Cài đặt đọc",
+        "title": "Cài đặt Trình đọc",
+        "serif": "Chân phương",
+        "preview": "Xem trước",
+        "not_set": "Chưa đặt",
+        "clear_local_overrides": "Xóa cài đặt thiết bị",
+        "preview_text": "Một con cáo nâu nhanh chóng nhảy qua con chó lười biếng. Đây là cách mà văn bản chế độ xem trình đọc của bạn sẽ hiển thị.",
+        "local_overrides_cleared": "Đã xóa cài đặt cho thiết bị",
+        "local_overrides_description": "Thiết bị này có các cài đặt trình đọc khác với cài đặt mặc định toàn cầu của bạn:",
+        "clear_defaults": "Xóa tất cả mặc định",
+        "description": "Cấu hình cài đặt văn bản mặc định cho chế độ xem trình đọc. Các cài đặt này đồng bộ hóa trên tất cả các thiết bị của bạn.",
+        "defaults_cleared": "Đã xóa các mặc định của trình đọc",
+        "save_hint": "Lưu cài đặt chỉ cho thiết bị này hoặc đồng bộ hóa trên tất cả các thiết bị",
+        "save_as_default": "Lưu làm mặc định",
+        "save_to_device": "Thiết bị này",
+        "sans": "Không chân phương",
+        "tooltip_preview_and_local": "Các thay đổi xem trước chưa được lưu; cài đặt thiết bị khác với cài đặt chung",
+        "adjust_hint": "Điều chỉnh các cài đặt ở trên để xem trước các thay đổi"
+      },
+      "avatar": {
+        "upload": "Tải lên ảnh đại diện",
+        "change": "Đổi ảnh đại diện",
+        "remove_confirm_title": "Xóa ảnh đại diện?",
+        "updated": "Đã cập nhật ảnh đại diện",
+        "removed": "Đã xóa ảnh đại diện",
+        "description": "Tải lên ảnh vuông để dùng làm ảnh đại diện.",
+        "remove_confirm_description": "Hành động này sẽ xóa ảnh hồ sơ hiện tại của bạn.",
+        "title": "Ảnh hồ sơ",
+        "remove": "Xóa ảnh đại diện"
       }
     },
     "user_settings": "Cài đặt người dùng",
@@ -151,7 +225,7 @@
       "delete_asset": "Xóa tài sản",
       "delete_asset_confirmation": "Bạn có chắc chắn muốn xóa tài sản này không?",
       "manage_assets": "Quản lý tài sản",
-      "no_assets": "Mày chưa có tài sản mẹ gì cả."
+      "no_assets": "Bạn chưa có tài sản nào."
     },
     "rules": {
       "actions_types": {
@@ -189,7 +263,10 @@
         "is_favourited": "Được yêu thích",
         "is_archived": "Đã lưu trữ",
         "and": "Tất cả những điều sau đây là đúng",
-        "or": "Bất kỳ điều nào sau đây là đúng"
+        "or": "Bất kỳ điều nào sau đây là đúng",
+        "url_does_not_contain": "URL Không Chứa",
+        "title_contains": "Chứa trong tiêu đề",
+        "title_does_not_contain": "Không chứa trong tiêu đề"
       },
       "events_types": {
         "bookmark_added": "Một dấu trang được thêm vào",
@@ -289,7 +366,10 @@
         "in_progress": "Đang thực hiện",
         "completed": "Đã hoàn thành",
         "failed": "Thất bại",
-        "processing": "Đang xử lý"
+        "processing": "Đang xử lý",
+        "staging": "Đang dàn dựng",
+        "running": "Đang chạy",
+        "paused": "Đang tạm dừng"
       },
       "badges": {
         "pending": "{{count}} đang chờ xử lý",
@@ -301,7 +381,33 @@
       "view_list": "Xem Danh sách",
       "delete_dialog_title": "Xóa Phiên Nhập",
       "delete_dialog_description": "Bạn có chắc chắn muốn xóa \"{{name}}\" không? Thao tác này không thể hoàn tác. Bản thân các dấu trang sẽ không bị xóa.",
-      "delete_session": "Xóa Phiên"
+      "delete_session": "Xóa Phiên",
+      "pause_session": "Tạm dừng",
+      "resume_session": "Tiếp tục",
+      "view_details": "Xem chi tiết",
+      "detail": {
+        "page_title": "Xem chi tiết phiên nhập",
+        "back_to_import": "Quay lại Nhập",
+        "filter_all": "Tất cả",
+        "filter_accepted": "Đã chấp nhận",
+        "filter_rejected": "Đã từ chối",
+        "filter_duplicates": "Bản sao",
+        "filter_pending": "Đang chờ xử lý",
+        "table_title": "Tiêu đề / URL",
+        "table_type": "Loại",
+        "table_result": "Kết quả",
+        "table_reason": "Lý do",
+        "table_bookmark": "Đánh dấu trang",
+        "result_accepted": "Đã chấp nhận",
+        "result_rejected": "Đã từ chối",
+        "result_skipped_duplicate": "Bản sao",
+        "result_pending": "Đang chờ xử lý",
+        "result_processing": "Đang xử lý",
+        "no_results": "Không tìm thấy kết quả nào cho bộ lọc này.",
+        "view_bookmark": "Xem dấu trang",
+        "load_more": "Tải thêm",
+        "no_title": "Không có tiêu đề"
+      }
     },
     "backups": {
       "backups": "Sao lưu",
@@ -345,7 +451,7 @@
       },
       "dialogs": {
         "delete_backup_title": "Xóa bản sao lưu?",
-        "delete_backup_description": "Mày có chắc là muốn xóa bản sao lưu này không? Hành động này không thể hoàn tác đâu đó."
+        "delete_backup_description": "Bạn có chắc chắn muốn xóa bản sao lưu này không? Hành động này không thể hoàn tác."
       },
       "toasts": {
         "backup_queued": "Công việc sao lưu đã được đưa vào hàng đợi! Nó sẽ sớm được xử lý thôi.",
@@ -441,7 +547,10 @@
         "reindex_all_bookmarks": "Lập chỉ mục lại tất cả các dấu trang",
         "clean_assets": "Xóa các tài sản treo lơ lửng & Đồng bộ lại siêu dữ liệu",
         "reprocess_assets_fix_mode": "Xử lý lại các tài sản chưa được xử lý",
-        "migrate_large_link_html_content": "Chuyển Nội Dung HTML Lớn Nội Tuyến sang Tài Sản"
+        "migrate_large_link_html_content": "Chuyển Nội Dung HTML Lớn Nội Tuyến sang Tài Sản",
+        "recrawl_pending_links_only": "Chỉ thu thập lại các liên kết đang chờ xử lý",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Chỉ tạo lại thẻ AI cho các dấu trang đang chờ xử lý",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Chỉ tạo lại tóm tắt AI cho các dấu trang đang chờ xử lý"
       }
     },
     "admin_settings": "Cài đặt quản trị viên",
@@ -455,7 +564,7 @@
       "num_bookmarks": "Số lượng dấu trang",
       "asset_sizes": "Kích thước tài sản",
       "local_user": "Người dùng cục bộ",
-      "delete_user_confirm_description": "Mày có chắc là muốn xóa người dùng \"{{name}}\" không?",
+      "delete_user_confirm_description": "Bạn có chắc chắn muốn xóa người dùng \"{{name}}\" không?",
       "unlimited": "Không giới hạn"
     },
     "actions": {
@@ -481,6 +590,42 @@
         "connected": "Đã kết nối",
         "disconnected": "Đã ngắt kết nối"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "Công cụ quản trị",
+      "bookmark_debugger": "Trình gỡ lỗi đánh dấu trang",
+      "bookmark_id": "ID đánh dấu trang",
+      "bookmark_id_placeholder": "Nhập ID đánh dấu trang",
+      "lookup": "Tra cứu",
+      "debug_info": "Thông tin gỡ lỗi",
+      "basic_info": "Thông tin cơ bản",
+      "status": "Trạng thái",
+      "content": "Nội dung",
+      "html_preview": "Xem trước HTML (1000 ký tự đầu tiên)",
+      "summary": "Tóm tắt",
+      "url": "URL",
+      "source_url": "URL nguồn",
+      "asset_type": "Loại tài sản",
+      "file_name": "Tên tập tin",
+      "owner_user_id": "ID người dùng sở hữu",
+      "tagging_status": "Trạng thái gắn thẻ",
+      "summarization_status": "Trạng thái tóm tắt",
+      "crawl_status": "Trạng thái thu thập dữ liệu",
+      "crawl_status_code": "Mã trạng thái HTTP",
+      "crawled_at": "Đã thu thập dữ liệu lúc",
+      "recrawl": "Thu thập dữ liệu lại",
+      "reindex": "Lập chỉ mục lại",
+      "retag": "Gắn thẻ lại",
+      "resummarize": "Tóm tắt lại",
+      "bookmark_not_found": "Không tìm thấy dấu trang",
+      "action_success": "Đã hoàn tất hành động thành công",
+      "action_failed": "Hành động thất bại",
+      "recrawl_queued": "Đã xếp hàng chờ việc thu thập dữ liệu lại",
+      "reindex_queued": "Đã xếp hàng chờ việc lập chỉ mục lại",
+      "retag_queued": "Đã xếp hàng chờ việc gắn thẻ lại",
+      "resummarize_queued": "Đã xếp hàng chờ việc tóm tắt lại",
+      "view": "Xem",
+      "fetch_error": "Lỗi khi tìm nạp dấu trang"
     }
   },
   "common": {
@@ -523,7 +668,11 @@
     "summary": "Tóm tắt",
     "quota": "Hạn ngạch",
     "bookmarks": "Dấu trang",
-    "storage": "Lưu trữ"
+    "storage": "Lưu trữ",
+    "pdf": "PDF đã lưu trữ",
+    "default": "Mặc định",
+    "id": "ID",
+    "last_used": "Lần cuối sử dụng"
   },
   "highlights": {
     "no_highlights": "Bạn chưa có đánh dấu nào."
@@ -652,7 +801,16 @@
     "year_s_ago": " Năm trước",
     "history": "Tìm kiếm gần đây",
     "title_contains": "Chứa trong tiêu đề",
-    "title_does_not_contain": "Không chứa trong tiêu đề"
+    "title_does_not_contain": "Không chứa trong tiêu đề",
+    "is_broken_link": "Có liên kết hỏng",
+    "tags": "Thẻ",
+    "no_suggestions": "Không có đề xuất nào",
+    "filters": "Bộ lọc",
+    "is_not_broken_link": "Có liên kết hoạt động",
+    "lists": "Danh sách",
+    "feeds": "Nguồn cấp dữ liệu",
+    "is_from_source": "Nguồn là",
+    "is_not_from_source": "Nguồn không phải là"
   },
   "tags": {
     "all_tags": "Tất cả nhãn",
@@ -676,11 +834,16 @@
     "no_ai_tags": "Chưa có thẻ AI nào",
     "no_unused_tags": "Bạn không có thẻ chưa sử dụng nào",
     "no_unused_tags_match_your_search": "Không có thẻ chưa sử dụng nào phù hợp với tìm kiếm của bạn",
-    "no_tags_match_your_search": "Không có thẻ nào phù hợp với tìm kiếm của bạn"
+    "no_tags_match_your_search": "Không có thẻ nào phù hợp với tìm kiếm của bạn",
+    "search_placeholder": "Tìm kiếm thẻ...",
+    "search_or_create_placeholder": "Tìm kiếm hoặc tạo thẻ..."
   },
   "options": {
     "dark_mode": "Chế độ tối",
-    "light_mode": "Chế độ sáng"
+    "light_mode": "Chế độ sáng",
+    "apps_extensions": "Ứng dụng & Tiện ích mở rộng",
+    "documentation": "Tài liệu",
+    "follow_us_on_x": "Theo dõi chúng tôi trên X"
   },
   "editor": {
     "text_toolbar": {
@@ -761,7 +924,10 @@
       "refetch": "Đã xếp hàng tìm nạp lại!",
       "full_page_archive": "Đã kích hoạt tạo bản lưu trữ toàn trang",
       "delete_from_list": "Đã xóa dấu trang khỏi danh sách",
-      "clipboard_copied": "Liên kết đã được thêm vào bảng nhớ tạm của bạn!"
+      "clipboard_copied": "Liên kết đã được thêm vào bảng nhớ tạm của bạn!",
+      "preserve_pdf": "Đã kích hoạt lưu giữ PDF",
+      "update_banner": "Banner đã được cập nhật!",
+      "uploading_banner": "Đang tải banner lên..."
     },
     "lists": {
       "created": "Đã tạo danh sách!",
@@ -781,7 +947,14 @@
     "tabs": {
       "content": "Nội dung",
       "details": "Chi tiết"
-    }
+    },
+    "archive_info": "Các bản lưu trữ có thể không hiển thị chính xác nội dòng nếu chúng yêu cầu Javascript. Để có kết quả tốt nhất, <1>hãy tải xuống và mở trong trình duyệt của bạn</1>.",
+    "fetch_error_title": "Không thể tìm thấy nội dung",
+    "fetch_error_description": "Chúng tôi không thể tìm nạp nội dung cho liên kết này. Trang có thể được bảo vệ, yêu cầu xác thực hoặc tạm thời không khả dụng.",
+    "crawling_in_progress": "Đang tìm nạp nội dung trang…",
+    "continue_reading": "Tiếp tục từ chỗ bạn đã dừng lại",
+    "continue_reading_percent": "Tiếp tục từ chỗ bạn đã dừng lại ({{percent}}%)",
+    "continue_button": "Tiếp tục"
   },
   "bookmark_editor": {
     "title": "Sửa dấu trang",
@@ -812,13 +985,62 @@
     "image_fit_contain": "Chứa (Vừa vặn)"
   },
   "version": {
-    "new_release_available": "Có ghi chú phát hành mới đó",
+    "new_release_available": "Có ghi chú phát hành mới",
     "whats_new_title": "Có gì mới trong v{{version}}?",
     "release_notes_description": "Đây là những cập nhật mới nhất lấy từ ghi chú phát hành trên GitHub.",
     "loading_release_notes": "Đang tải ghi chú phát hành…",
-    "unable_to_load_release_notes": "Không thể tải ghi chú phát hành ngay bây giờ. Lát nữa thử lại nha.",
+    "unable_to_load_release_notes": "Không thể tải ghi chú phát hành ngay bây giờ. Vui lòng thử lại sau.",
     "no_release_notes": "Không có ghi chú phát hành nào cho phiên bản này cả.",
     "release_notes_synced": "Ghi chú phát hành được đồng bộ hóa từ GitHub đó.",
     "view_on_github": "Xem trên GitHub nè"
+  },
+  "wrapped": {
+    "sections": {
+      "total_saves": {
+        "suffix": "{{items}} trong năm nay",
+        "suffix_singular": "{{item}} trong năm nay",
+        "prefix": "Bạn đã lưu"
+      },
+      "first_bookmark": {
+        "title": "Hành trình của bạn bắt đầu",
+        "description": "Lưu đầu tiên của năm {{year}}:"
+      },
+      "top_domains": "Các trang web hàng đầu của bạn",
+      "top_tags": "Các thẻ hàng đầu của bạn",
+      "monthly_activity": "Năm lưu trữ của bạn",
+      "most_active_day": "Ngày hoạt động tích cực nhất của bạn",
+      "peak_times": {
+        "title": "Khi bạn lưu",
+        "peak_hour": "Giờ cao điểm",
+        "peak_day": "Ngày cao điểm"
+      },
+      "how_you_save": "Cách bạn lưu",
+      "what_you_saved": "Những gì bạn đã lưu",
+      "summary": {
+        "favorites": "Yêu thích",
+        "tags_created": "Thẻ đã tạo",
+        "highlights": "Điểm nổi bật"
+      },
+      "types": {
+        "links": "Liên kết",
+        "notes": "Ghi chú",
+        "assets": "Tài sản"
+      }
+    },
+    "footer": "Được tạo bằng Karakeep",
+    "share": "Chia sẻ",
+    "download": "Tải xuống",
+    "close": "Đóng",
+    "generating": "Đang tạo...",
+    "title": "Tổng Kết {{year}} Của Bạn",
+    "subtitle": "Một Năm Ở Karakeep",
+    "banner": {
+      "title": "Tổng Kết Năm 2025 Của Bạn đã sẵn sàng!",
+      "description": "Xem năm của bạn qua các bookmark",
+      "view_now": "Xem Ngay"
+    },
+    "button": "Tổng Kết Năm 2025",
+    "loading": "Đang tải Tổng Kết của bạn...",
+    "failed_to_load": "Không tải được thống kê Tổng Kết của bạn"
   }
 }

@@ -12,6 +12,9 @@ coverage
 
 # next.js
 .next/
+
+# astro
+.astro/
 out/
 
 # production
@@ -63,3 +66,9 @@ data
 .vscode
 auth_failures.log
 .claude/settings.local.json
+
+# Local directory for AI agent contexts
+.aicontext/
+.codex
+.claude/worktrees
+jean.json

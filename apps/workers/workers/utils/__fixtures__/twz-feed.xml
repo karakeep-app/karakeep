@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  version="2.0"
+>
+  <channel>
+    <title>The War Zone</title>
+    <link>https://www.twz.com</link>
+    <description><![CDATA[A strong offense for the world of defense.]]></description>
+    <item>
+      <title><![CDATA[Test TWZ article]]></title>
+      <description><![CDATA[<p>Test description.</p>]]></description>
+      <link>https://www.twz.com/sea/test-article</link>
+      <guid isPermaLink="false">https://www.twz.com/?p=12345</guid>
+      <pubDate>Tue, 14 Jan 2026 10:00:00 -0500</pubDate>
+      <category domain="https://www.twz.com/category/sea">Sea</category>
+      <category domain="https://www.twz.com/category/news-features">News &amp; Features</category>
+      <content:encoded><![CDATA[<p>Test content.</p>]]></content:encoded>
+      <dc:creator><![CDATA[Test Author]]></dc:creator>
+    </item>
+  </channel>
+</rss>

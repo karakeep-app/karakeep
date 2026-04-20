@@ -86,6 +86,15 @@ function isAddressForbidden(address: string): boolean {
   return DISALLOWED_IP_RANGES.has(parsed.range());
 }
 
+export function getBookmarkDomain(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
 export type UrlValidationResult =
   | { ok: true; url: URL }
   | { ok: false; reason: string };
@@ -163,7 +172,7 @@ export async function validateUrl(
     if (isAddressForbidden(hostname)) {
       return {
         ok: false,
-        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()})`,
+        reason: `Refusing to access disallowed IP address ${hostname} (requested via ${parsedUrl.toString()}). You can use CRAWLER_ALLOWED_INTERNAL_HOSTNAMES to allowlist specific hostnames for internal access.`,
       } as const;
     }
     return { ok: true, url: parsedUrl } as const;
@@ -227,10 +236,43 @@ export function matchesNoProxy(url: string, noProxy: string[]) {
   }
 }
 
-export function getProxyAgent(url: string) {
-  const { proxy } = serverConfig;
+/**
+ * Pre-selected proxy URLs to use consistently across a single crawler run.
+ * Created once at the start of a run via `selectRunProxies()`.
+ */
+export interface RunProxyConfig {
+  httpProxy: string | undefined;
+  httpsProxy: string | undefined;
+  noProxy: string[] | undefined;
+}
 
-  if (!proxy.httpProxy && !proxy.httpsProxy) {
+/**
+ * Selects a random proxy from each configured proxy list, to be used
+ * consistently for the duration of a single crawler run.
+ */
+export function selectRunProxies(): RunProxyConfig {
+  const { proxy } = serverConfig;
+  return {
+    httpProxy: proxy.httpProxy ? getRandomProxy(proxy.httpProxy) : undefined,
+    httpsProxy: proxy.httpsProxy ? getRandomProxy(proxy.httpsProxy) : undefined,
+    noProxy: proxy.noProxy,
+  };
+}
+
+export function getProxyAgent(url: string, runProxy?: RunProxyConfig) {
+  const httpProxy = runProxy
+    ? runProxy.httpProxy
+    : serverConfig.proxy.httpProxy
+      ? getRandomProxy(serverConfig.proxy.httpProxy)
+      : undefined;
+  const httpsProxy = runProxy
+    ? runProxy.httpsProxy
+    : serverConfig.proxy.httpsProxy
+      ? getRandomProxy(serverConfig.proxy.httpsProxy)
+      : undefined;
+  const noProxy = runProxy ? runProxy.noProxy : serverConfig.proxy.noProxy;
+
+  if (!httpProxy && !httpsProxy) {
     return undefined;
   }
 
@@ -238,19 +280,16 @@ export function getProxyAgent(url: string) {
   const protocol = urlObj.protocol;
 
   // Check if URL should bypass proxy
-  if (proxy.noProxy && matchesNoProxy(url, proxy.noProxy)) {
+  if (noProxy && matchesNoProxy(url, noProxy)) {
     return undefined;
   }
 
-  if (protocol === "https:" && proxy.httpsProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpsProxy);
-    return new HttpsProxyAgent(selectedProxy);
-  } else if (protocol === "http:" && proxy.httpProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpProxy);
-    return new HttpProxyAgent(selectedProxy);
-  } else if (proxy.httpProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpProxy);
-    return new HttpProxyAgent(selectedProxy);
+  if (protocol === "https:" && httpsProxy) {
+    return new HttpsProxyAgent(httpsProxy);
+  } else if (protocol === "http:" && httpProxy) {
+    return new HttpProxyAgent(httpProxy);
+  } else if (httpProxy) {
+    return new HttpProxyAgent(httpProxy);
   }
 
   return undefined;
@@ -362,6 +401,7 @@ export function buildFetchOptions({
 export const fetchWithProxy = async (
   url: string,
   options: FetchWithProxyOptions = {},
+  runProxy?: RunProxyConfig,
 ) => {
   const {
     maxRedirects,
@@ -377,7 +417,7 @@ export const fetchWithProxy = async (
   let currentBody = preparedBody;
 
   while (true) {
-    const agent = getProxyAgent(currentUrl);
+    const agent = getProxyAgent(currentUrl, runProxy);
 
     const validation = await validateUrl(currentUrl, !!agent);
     if (!validation.ok) {

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/benchmarks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "tsx src/index.ts",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/trpc": "workspace:^0.1.0",
+    "@trpc/client": "^11.9.0",
+    "p-limit": "^7.2.0",
+    "superjson": "^2.2.1",
+    "tinybench": "^6.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "oxlint": "^1.60.0",
+    "tsx": "^4.8.1"
+  }
+}

@@ -2,8 +2,9 @@ import type translation from "@/lib/i18n/locales/en/translation.json";
 import type { TFunction } from "i18next";
 import type { LucideIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import {
+  Globe,
   History,
   ListTree,
   RssIcon,
@@ -14,6 +15,8 @@ import {
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
+import { useTRPC } from "@karakeep/shared-react/trpc";
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 
@@ -64,6 +67,12 @@ const QUALIFIER_DEFINITIONS = [
     appendSpace: true,
   },
   {
+    value: "is:broken",
+    descriptionKey: "search.is_broken_link",
+    negatedDescriptionKey: "search.is_not_broken_link",
+    appendSpace: true,
+  },
+  {
     value: "url:",
     descriptionKey: "search.url_contains",
   },
@@ -91,10 +100,14 @@ const QUALIFIER_DEFINITIONS = [
     value: "age:",
     descriptionKey: "search.created_within",
   },
-] satisfies ReadonlyArray<QualifierDefinition>;
+  {
+    value: "source:",
+    descriptionKey: "search.is_from_source",
+  },
+] satisfies readonly QualifierDefinition[];
 
 export interface AutocompleteSuggestionItem {
-  type: "token" | "tag" | "list" | "feed";
+  type: "token" | "tag" | "list" | "feed" | "source";
   id: string;
   label: string;
   insertText: string;
@@ -257,6 +270,7 @@ const useTagSuggestions = (
   const { data: tagResults } = useTagAutocomplete({
     nameContains: debouncedTagSearchTerm,
     select: (data) => data.tags,
+    enabled: parsed.activeToken.length > 0,
   });
 
   const tagSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
@@ -286,6 +300,7 @@ const useTagSuggestions = (
 const useFeedSuggestions = (
   parsed: ParsedSearchState,
 ): AutocompleteSuggestionItem[] => {
+  const api = useTRPC();
   const shouldSuggestFeeds =
     parsed.normalizedTokenWithoutMinus.startsWith("feed:");
   const feedSearchTermRaw = shouldSuggestFeeds
@@ -293,7 +308,11 @@ const useFeedSuggestions = (
     : "";
   const feedSearchTerm = stripSurroundingQuotes(feedSearchTermRaw);
   const normalizedFeedSearchTerm = feedSearchTerm.toLowerCase();
-  const { data: feedResults } = api.feeds.list.useQuery();
+  const { data: feedResults } = useQuery(
+    api.feeds.list.queryOptions(undefined, {
+      enabled: parsed.activeToken.length > 0,
+    }),
+  );
 
   const feedSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestFeeds) {
@@ -343,7 +362,9 @@ const useListSuggestions = (
     : "";
   const listSearchTerm = stripSurroundingQuotes(listSearchTermRaw);
   const normalizedListSearchTerm = listSearchTerm.toLowerCase();
-  const { data: listResults } = useBookmarkLists();
+  const { data: listResults } = useBookmarkLists(undefined, {
+    enabled: parsed.activeToken.length > 0,
+  });
 
   const listSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
     if (!shouldSuggestLists) {
@@ -351,6 +372,7 @@ const useListSuggestions = (
     }
 
     const lists = listResults?.data ?? [];
+    const seenListNames = new Set<string>();
 
     return lists
       .filter((list) => {
@@ -358,6 +380,15 @@ const useListSuggestions = (
           return true;
         }
         return list.name.toLowerCase().includes(normalizedListSearchTerm);
+      })
+      .filter((list) => {
+        const normalizedListName = list.name.trim().toLowerCase();
+        if (seenListNames.has(normalizedListName)) {
+          return false;
+        }
+
+        seenListNames.add(normalizedListName);
+        return true;
       })
       .slice(0, MAX_DISPLAY_SUGGESTIONS)
       .map((list) => {
@@ -383,12 +414,53 @@ const useListSuggestions = (
   return listSuggestions;
 };
 
+const SOURCE_VALUES = zBookmarkSourceSchema.options;
+
+const useSourceSuggestions = (
+  parsed: ParsedSearchState,
+): AutocompleteSuggestionItem[] => {
+  const shouldSuggestSources =
+    parsed.normalizedTokenWithoutMinus.startsWith("source:");
+  const sourceSearchTerm = shouldSuggestSources
+    ? parsed.normalizedTokenWithoutMinus.slice("source:".length)
+    : "";
+
+  const sourceSuggestions = useMemo<AutocompleteSuggestionItem[]>(() => {
+    if (!shouldSuggestSources) {
+      return [];
+    }
+
+    return SOURCE_VALUES.filter((source) => {
+      if (sourceSearchTerm.length === 0) {
+        return true;
+      }
+      return source.startsWith(sourceSearchTerm);
+    })
+      .slice(0, MAX_DISPLAY_SUGGESTIONS)
+      .map((source) => {
+        const insertText = `${parsed.isTokenNegative ? "-" : ""}source:${source}`;
+        return {
+          type: "source" as const,
+          id: `source-${source}`,
+          label: insertText,
+          insertText,
+          appendSpace: true,
+          description: undefined,
+          Icon: Globe,
+        } satisfies AutocompleteSuggestionItem;
+      });
+  }, [shouldSuggestSources, sourceSearchTerm, parsed.isTokenNegative]);
+
+  return sourceSuggestions;
+};
+
 const useHistorySuggestions = (
   value: string,
   history: string[],
 ): HistorySuggestionItem[] => {
   const historyItems = useMemo<HistorySuggestionItem[]>(() => {
     const trimmedValue = value.trim();
+    const seenTerms = new Set<string>();
     const results =
       trimmedValue.length === 0
         ? history
@@ -396,16 +468,27 @@ const useHistorySuggestions = (
             item.toLowerCase().includes(trimmedValue.toLowerCase()),
           );
 
-    return results.slice(0, MAX_DISPLAY_SUGGESTIONS).map(
-      (term) =>
-        ({
-          type: "history" as const,
-          id: `history-${term}`,
-          term,
-          label: term,
-          Icon: History,
-        }) satisfies HistorySuggestionItem,
-    );
+    return results
+      .filter((term) => {
+        const normalizedTerm = term.trim().toLowerCase();
+        if (seenTerms.has(normalizedTerm)) {
+          return false;
+        }
+
+        seenTerms.add(normalizedTerm);
+        return true;
+      })
+      .slice(0, MAX_DISPLAY_SUGGESTIONS)
+      .map(
+        (term) =>
+          ({
+            type: "history" as const,
+            id: `history-${term}`,
+            term,
+            label: term,
+            Icon: History,
+          }) satisfies HistorySuggestionItem,
+      );
   }, [history, value]);
 
   return historyItems;
@@ -425,8 +508,9 @@ export const useSearchAutocomplete = ({
   const tagSuggestions = useTagSuggestions(parsedState);
   const listSuggestions = useListSuggestions(parsedState);
   const feedSuggestions = useFeedSuggestions(parsedState);
+  const sourceSuggestions = useSourceSuggestions(parsedState);
   const historyItems = useHistorySuggestions(value, history);
-  const { activeToken, getActiveToken } = parsedState;
+  const { getActiveToken } = parsedState;
 
   const suggestionGroups = useMemo<SuggestionGroup[]>(() => {
     const groups: SuggestionGroup[] = [];
@@ -455,6 +539,14 @@ export const useSearchAutocomplete = ({
       });
     }
 
+    if (sourceSuggestions.length > 0) {
+      groups.push({
+        id: "sources",
+        label: t("search.is_from_source"),
+        items: sourceSuggestions,
+      });
+    }
+
     // Only suggest qualifiers if no other suggestions are available
     if (groups.length === 0 && qualifierSuggestions.length > 0) {
       groups.push({
@@ -478,14 +570,13 @@ export const useSearchAutocomplete = ({
     tagSuggestions,
     listSuggestions,
     feedSuggestions,
+    sourceSuggestions,
     historyItems,
     t,
   ]);
 
   const hasSuggestions = suggestionGroups.length > 0;
-  const showEmptyState =
-    isPopoverOpen && !hasSuggestions && activeToken.length > 0;
-  const isPopoverVisible = isPopoverOpen && (hasSuggestions || showEmptyState);
+  const isPopoverVisible = isPopoverOpen && hasSuggestions;
 
   const handleSuggestionSelect = useCallback(
     (item: AutocompleteSuggestionItem) => {
@@ -547,7 +638,6 @@ export const useSearchAutocomplete = ({
   return {
     suggestionGroups,
     hasSuggestions,
-    showEmptyState,
     isPopoverVisible,
     handleSuggestionSelect,
     handleCommandKeyDown,

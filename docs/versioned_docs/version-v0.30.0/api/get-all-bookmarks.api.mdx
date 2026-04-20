@@ -1,0 +1,71 @@
+---
+id: get-all-bookmarks
+title: "Get all bookmarks"
+description: "Get all bookmarks"
+sidebar_label: "Get all bookmarks"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNWM1u4zYQfhVhLr0IcbZH37KLdpsW3QRIFj0EPoylkcU1RWpJyonX0LsXQ8qS7NCJnA3QnuKI8z/DjzOzg5xsZkTthFYwh8/kEpQyWWq9rtCsLaTgcGVh/gAf+2+LFCxljRFuC/OHHSwJDZmrxpUwf1i0ixRqNFiRI2M9gc1KqhDmO3DbmmAOS60loYI2BUPfG2Eoh3mB0lIKCismQZOVYkM5pCDYtO8NmS206dukFbjRbPAkedYZoVaQAqmmYtfRZpD6ULHvORXYSAfz8OUFrVYbd2NyMhOUqqZaknlJmhSVcOeY74ST/OFTY6x+UXQWKKaHehQFZxpKj+roukgsucTpxJ/29fSLTTKtHCmXPAquM0qEymSTU54IlbiSEkO21srSRfJFO0oTV4qBKUPFPBLNipJCm8TqioZqvYj6+D8xrQ92J/ZTYDwK+oIdCGosx/3Xy0v+c+jDzfIbZWynKw+va5KjQ1bVWcWsWNdSZMiss2+W+SN51V4ipFAbXZNxImgfcGAgRWNwy1Y7quzrIkT+vDTbFDJD6Ci/ctHTSueiEPHjFFQjJS65tDmFbV/oEyh7VImixwgloucOVyuhVncOXWNf1zcAiG2yjCyjaYFCNoY4TKRy5lq0KdimqtCIHz5L7y9eaTctPMGO7TRa3ZhsgtgRjNYCUnikJReo5N+VXgrJ1tKTI2W5ulOwQq0kFeHAeLdEVWvjvC+NJXMdr6nwUr1zoYZLGzlA5zArKf8YDVfvM7tZNhUqWLQH6PTAGjv5B9I83egCa0U3hX9HX3YgnJ42RQq1DiE0Mh6/ydfoAI4m0IsKV/Q1pvYU8ZW15GJ5jlViZoiULbU7h6vOi3PIi0bKWzYsIMhZmgxlBh8l5W9g3oic9FmG4kZkE/NSukp+GirtVfquKs8xZ+/5RAVM/f4AiI0rtZmWrGYphS1pGnWOjm47jmnxYI6/u+dtAsMRZHjqcIMX3KD9HCI4egqg6n/EICGA/LSbGzd1r+NnbUWuuZBM/nX/CrkHEfC3fGA68W7wU/MlCvMnn72pWGbFj7HYrsk/fbPeHOYhKIOv7xD1Rq2Vfoy8XZ5h0fahff+Hd1Ka+U37YwRi48egy34n6W78fYlKkbnuauQI2qEDXabr+l8PeBBBcggNyddaasz9cIkbdMgpHkJ3VoXFeoQhFIs2SjB00we9czqeog9G4MNONt6A9r1W11kNRdrnfDEMmfv1ALCBip5cN3We7fF49zCSM1J1iyuh2N9hJdG2PjAVuVLnMIdVSBfySgJmY5GWzGa/l/CNEOwwzw1Z286wFrPNB84/GsEW+vrsjsMYth/9S+dqO5/NnNlerNHgmqi+wLqG43nzvqSkk5Dows+Rf3X0SbCFjR+tVO54NuvGr9FipQ8ja/Z1zmQ8n3giLlb/43dtKmQL//zn3udCqEIzO3sdTPpwcXlxOdoP9PZc3V5H7b+6vfYj7YHx7Cy/l9o67m7nu/18G1siHTWMPdrFN07BUX45ZrVE4WevrmkNKR1XySKFUlvHH3e7JVrG5rblz2Gk5kTnwnI6h53AmraHO6YNyoaV+rXHCfKDGzSFYbz/mUK/3/BMoe1XNi8Tnwz8f7gHieY3ePVsNzJ4txiupV8zplAScmw5wYH7KsuoHnM9232wlB4kPv92D6E3HI/7h9dpPHeh2o5k73aB4l6vSbUt7F1w/D+0jNT/AhF9X5k=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all bookmarks"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/bookmarks"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Get all bookmarks
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"boolean"},"required":false,"name":"archived","in":"query"},{"schema":{"type":"boolean"},"required":false,"name":"favourited","in":"query"},{"schema":{"type":"string","enum":["asc","desc"],"default":"desc"},"required":false,"name":"sortOrder","in":"query"},{"schema":{"type":"number"},"required":false,"name":"limit","in":"query"},{"schema":{"type":"string","title":"Cursor"},"required":false,"name":"cursor","in":"query"},{"schema":{"type":"boolean","default":true,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks."},"required":false,"description":"If set to true, bookmark's content will be included in the response. Note, this content can be large for some bookmarks.","name":"includeContent","in":"query"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Object with all bookmarks data.","content":{"application/json":{"schema":{"type":"object","properties":{"bookmarks":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"createdAt":{"type":"string"},"modifiedAt":{"type":"string","nullable":true},"title":{"type":"string","nullable":true},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"taggingStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"summarizationStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"note":{"type":"string","nullable":true},"summary":{"type":"string","nullable":true},"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"userId":{"type":"string"},"tags":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"attachedBy":{"type":"string","enum":["ai","human"]}},"required":["id","name","attachedBy"]}},"content":{"oneOf":[{"type":"object","properties":{"type":{"type":"string","enum":["link"]},"url":{"type":"string"},"title":{"type":"string","nullable":true},"description":{"type":"string","nullable":true},"imageUrl":{"type":"string","nullable":true},"imageAssetId":{"type":"string","nullable":true},"screenshotAssetId":{"type":"string","nullable":true},"pdfAssetId":{"type":"string","nullable":true},"fullPageArchiveAssetId":{"type":"string","nullable":true},"precrawledArchiveAssetId":{"type":"string","nullable":true},"videoAssetId":{"type":"string","nullable":true},"favicon":{"type":"string","nullable":true},"htmlContent":{"type":"string","nullable":true},"contentAssetId":{"type":"string","nullable":true},"crawledAt":{"type":"string","nullable":true},"crawlStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"author":{"type":"string","nullable":true},"publisher":{"type":"string","nullable":true},"datePublished":{"type":"string","nullable":true},"dateModified":{"type":"string","nullable":true}},"required":["type","url"]},{"type":"object","properties":{"type":{"type":"string","enum":["text"]},"text":{"type":"string"},"sourceUrl":{"type":"string","nullable":true}},"required":["type","text"]},{"type":"object","properties":{"type":{"type":"string","enum":["asset"]},"assetType":{"type":"string","enum":["image","pdf"]},"assetId":{"type":"string"},"fileName":{"type":"string","nullable":true},"sourceUrl":{"type":"string","nullable":true},"size":{"type":"number","nullable":true},"content":{"type":"string","nullable":true}},"required":["type","assetType","assetId"]},{"type":"object","properties":{"type":{"type":"string","enum":["unknown"]}},"required":["type"]}]},"assets":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"assetType":{"type":"string","enum":["linkHtmlContent","screenshot","pdf","assetScreenshot","bannerImage","fullPageArchive","video","bookmarkAsset","precrawledArchive","userUploaded","avatar","unknown"]},"fileName":{"type":"string","nullable":true}},"required":["id","assetType"]}}},"required":["id","createdAt","modifiedAt","archived","favourited","taggingStatus","summarizationStatus","userId","tags","content","assets"],"title":"Bookmark"}},"nextCursor":{"type":"string","nullable":true}},"required":["bookmarks","nextCursor"],"title":"PaginatedBookmarks"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

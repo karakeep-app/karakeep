@@ -8,6 +8,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import serverConfig from "@karakeep/shared/config";
 
 import dbConfig from "./drizzle.config";
+import { instrumentDatabase } from "./instrumentation";
 import * as schema from "./schema";
 
 const sqlite = new Database(dbConfig.dbCredentials.url);
@@ -21,6 +22,8 @@ if (serverConfig.database.walMode) {
 sqlite.pragma("cache_size = -65536");
 sqlite.pragma("foreign_keys = ON");
 sqlite.pragma("temp_store = MEMORY");
+
+instrumentDatabase(sqlite);
 
 export const db = drizzle(sqlite, { schema });
 export type DB = typeof db;

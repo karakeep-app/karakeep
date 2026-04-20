@@ -695,6 +695,7 @@ async function migrateBookmarks(
           summary: b.summary ?? undefined,
           createdAt: b.createdAt,
           crawlPriority: "low" as const,
+          source: b.source === null ? undefined : b.source,
         };
         let createdId: string | null = null;
         switch (b.content.type) {
@@ -789,7 +790,10 @@ async function migrateBookmarks(
         if (b.tags.length > 0) {
           await dest.bookmarks.updateTags.mutate({
             bookmarkId: createdId!,
-            attach: b.tags.map((t) => ({ tagName: t.name })),
+            attach: b.tags.map((t) => ({
+              tagName: t.name,
+              attachedBy: t.attachedBy,
+            })),
             detach: [],
           });
         }

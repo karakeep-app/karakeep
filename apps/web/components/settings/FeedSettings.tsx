@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
   CheckCircle,
@@ -33,6 +33,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   ZFeed,
   zNewFeedSchema,
@@ -59,11 +60,13 @@ import {
   TableRow,
 } from "../ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { SettingsPage, SettingsSection } from "./SettingsPage";
 
 export function FeedsEditorDialog() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof zNewFeedSchema>>({
     resolver: zodResolver(zNewFeedSchema),
@@ -81,16 +84,17 @@ export function FeedsEditorDialog() {
     }
   }, [open]);
 
-  const { mutateAsync: createFeed, isPending: isCreating } =
-    api.feeds.create.useMutation({
+  const { mutateAsync: createFeed, isPending: isCreating } = useMutation(
+    api.feeds.create.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Feed has been created!",
         });
-        apiUtils.feeds.list.invalidate();
+        queryClient.invalidateQueries(api.feeds.list.pathFilter());
         setOpen(false);
       },
-    });
+    }),
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -191,8 +195,9 @@ export function FeedsEditorDialog() {
 }
 
 export function EditFeedDialog({ feed }: { feed: ZFeed }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
@@ -204,16 +209,17 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
       });
     }
   }, [open]);
-  const { mutateAsync: updateFeed, isPending: isUpdating } =
-    api.feeds.update.useMutation({
+  const { mutateAsync: updateFeed, isPending: isUpdating } = useMutation(
+    api.feeds.update.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Feed has been updated!",
         });
         setOpen(false);
-        apiUtils.feeds.list.invalidate();
+        queryClient.invalidateQueries(api.feeds.list.pathFilter());
       },
-    });
+    }),
+  );
   const form = useForm<z.infer<typeof zUpdateFeedSchema>>({
     resolver: zodResolver(zUpdateFeedSchema),
     defaultValues: {
@@ -339,44 +345,49 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
 }
 
 export function FeedRow({ feed }: { feed: ZFeed }) {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const apiUtils = api.useUtils();
-  const { mutate: deleteFeed, isPending: isDeleting } =
-    api.feeds.delete.useMutation({
+  const queryClient = useQueryClient();
+  const { mutate: deleteFeed, isPending: isDeleting } = useMutation(
+    api.feeds.delete.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Feed has been deleted!",
         });
-        apiUtils.feeds.list.invalidate();
+        queryClient.invalidateQueries(api.feeds.list.pathFilter());
       },
-    });
+    }),
+  );
 
-  const { mutate: fetchNow, isPending: isFetching } =
-    api.feeds.fetchNow.useMutation({
+  const { mutate: fetchNow, isPending: isFetching } = useMutation(
+    api.feeds.fetchNow.mutationOptions({
       onSuccess: () => {
         toast({
           description: "Feed fetch has been enqueued!",
         });
-        apiUtils.feeds.list.invalidate();
+        queryClient.invalidateQueries(api.feeds.list.pathFilter());
       },
-    });
+    }),
+  );
 
-  const { mutate: updateFeedEnabled } = api.feeds.update.useMutation({
-    onSuccess: () => {
-      toast({
-        description: feed.enabled
-          ? t("settings.feeds.feed_disabled")
-          : t("settings.feeds.feed_enabled"),
-      });
-      apiUtils.feeds.list.invalidate();
-    },
-    onError: (error) => {
-      toast({
-        description: `Error: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+  const { mutate: updateFeedEnabled } = useMutation(
+    api.feeds.update.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: feed.enabled
+            ? t("settings.feeds.feed_disabled")
+            : t("settings.feeds.feed_enabled"),
+        });
+        queryClient.invalidateQueries(api.feeds.list.pathFilter());
+      },
+      onError: (error) => {
+        toast({
+          description: `Error: ${error.message}`,
+          variant: "destructive",
+        });
+      },
+    }),
+  );
 
   const handleToggle = (checked: boolean) => {
     updateFeedEnabled({ feedId: feed.id, enabled: checked });
@@ -446,7 +457,7 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
             </ActionButton>
           )}
         >
-          <Button variant="destructive" disabled={isDeleting}>
+          <Button variant="ghostDestructive" disabled={isDeleting}>
             <Trash2 className="size-4" />
           </Button>
         </ActionConfirmingDialog>
@@ -456,44 +467,40 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
 }
 
 export default function FeedSettings() {
+  const api = useTRPC();
   const { t } = useTranslation();
-  const { data: feeds, isLoading } = api.feeds.list.useQuery();
+  const { data: feeds, isLoading } = useQuery(api.feeds.list.queryOptions());
   return (
-    <>
-      <div className="rounded-md border bg-background p-4">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-lg font-medium">
-              {t("settings.feeds.rss_subscriptions")}
-            </span>
-            <FeedsEditorDialog />
-          </div>
-          {isLoading && <FullPageSpinner />}
-          {feeds && feeds.feeds.length == 0 && (
-            <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
-              You don&apos;t have any RSS subscriptions yet.
-            </p>
-          )}
-          {feeds && feeds.feeds.length > 0 && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("common.name")}</TableHead>
-                  <TableHead>{t("common.url")}</TableHead>
-                  <TableHead>Last Fetch</TableHead>
-                  <TableHead>Last Status</TableHead>
-                  <TableHead>{t("common.actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {feeds.feeds.map((feed) => (
-                  <FeedRow key={feed.id} feed={feed} />
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
-      </div>
-    </>
+    <SettingsPage
+      title={t("settings.feeds.rss_subscriptions")}
+      action={<FeedsEditorDialog />}
+    >
+      <SettingsSection>
+        {isLoading && <FullPageSpinner />}
+        {feeds && feeds.feeds.length == 0 && (
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
+            You don&apos;t have any RSS subscriptions yet.
+          </p>
+        )}
+        {feeds && feeds.feeds.length > 0 && (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("common.name")}</TableHead>
+                <TableHead>{t("common.url")}</TableHead>
+                <TableHead>Last Fetch</TableHead>
+                <TableHead>Last Status</TableHead>
+                <TableHead>{t("common.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {feeds.feeds.map((feed) => (
+                <FeedRow key={feed.id} feed={feed} />
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </SettingsSection>
+    </SettingsPage>
   );
 }

@@ -2,8 +2,8 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/use-toast";
 import { useClientConfig } from "@/lib/clientConfig";
 import { Edit, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -127,11 +127,7 @@ export default function RuleList({
                     </ActionButton>
                   )}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-600"
-                  >
+                  <Button variant="ghostDestructive" size="icon">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </ActionConfirmingDialog>

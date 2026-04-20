@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const MAX_FEED_URL_LENGTH = 500;
+const MAX_FEED_URL_LENGTH = 2000;
 const MAX_FEED_NAME_LENGTH = 100;
 
 export const zAppliesToEnumSchema = z.enum(["all", "text", "images"]);
@@ -13,6 +13,7 @@ export const zFeedSchema = z.object({
   importTags: z.boolean(),
   lastFetchedStatus: z.enum(["success", "failure", "pending"]).nullable(),
   lastFetchedAt: z.date().nullable(),
+  lastSuccessfulFetchAt: z.date().nullable(),
 });
 
 export type ZFeed = z.infer<typeof zFeedSchema>;

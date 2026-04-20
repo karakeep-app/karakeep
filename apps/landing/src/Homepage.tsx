@@ -1,58 +1,36 @@
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   ArrowDownNarrowWide,
+  BookOpen,
   Bookmark,
   BrainCircuit,
   CheckCheck,
-  Github,
+  FileText,
   Highlighter,
+  Link2,
   Plug,
   Rss,
   Server,
-  Star,
   SunMoon,
+  Tag,
   TextSearch,
   Users,
   Workflow,
+  Zap,
 } from "lucide-react";
 
-import { DEMO_LINK, DOCS_LINK, GITHUB_LINK } from "./constants";
-import NavBar from "./Navbar";
-import appStoreBadge from "/app-store-badge.png?url";
-import chromeExtensionBadge from "/chrome-extension-badge.png?url";
-import firefoxAddonBadge from "/firefox-addon.png?url";
-import playStoreBadge from "/google-play-badge.webp?url";
-import screenshot from "/hero.webp?url";
-
-const platforms = [
-  {
-    name: "iOS",
-    url: "https://apps.apple.com/us/app/karakeep-app/id6479258022",
-    badge: appStoreBadge,
-  },
-  {
-    name: "Android",
-    url: "https://play.google.com/store/apps/details?id=app.hoarder.hoardermobile&pcampaignid=web_share",
-    badge: playStoreBadge,
-  },
-  {
-    name: "Chrome Extension",
-    url: "https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje",
-    badge: chromeExtensionBadge,
-  },
-  {
-    name: "Firefox Addon",
-    url: "https://addons.mozilla.org/en-US/firefox/addon/karakeep/",
-    badge: firefoxAddonBadge,
-  },
-];
+import FeaturesGrid from "./components/FeaturesGrid";
+import OpenSource from "./components/OpenSource";
+import Platforms from "./components/Platforms";
+import readerViewScreenshot from "/screenshots/reader-view.webp?url";
+import ruleEngineScreenshot from "/screenshots/rule-engine.webp?url";
+import searchScreenshot from "/screenshots/search.webp?url";
+import tagsScreenshot from "/screenshots/tags.webp?url";
 
 const featuresList = [
   {
     icon: Bookmark,
     title: "Bookmark",
-    description: "Bookmark links, take simple notes and store images and pdfs.",
+    description: "Bookmark links, take simple notes and store images and PDFs.",
   },
   {
     icon: BrainCircuit,
@@ -82,7 +60,7 @@ const featuresList = [
     icon: Highlighter,
     title: "Highlights",
     description:
-      "Mark and store highlights from your hoarded content for quick reference.",
+      "Highlight text on any saved page and keep your highlights organized for quick reference.",
   },
   {
     icon: Plug,
@@ -97,7 +75,7 @@ const featuresList = [
   {
     icon: Server,
     title: "Self Hosting",
-    description: "Easy self hosting with docker for privacy and control.",
+    description: "Easy self hosting with Docker for privacy and control.",
   },
   {
     icon: CheckCheck,
@@ -117,166 +95,77 @@ const featuresList = [
   },
 ];
 
-const currentYear = new Date().getFullYear();
-
-function Hero() {
-  return (
-    <div className="mt-10 flex flex-grow flex-col items-center justify-center gap-6 sm:mt-20">
-      <div className="mt-4 w-full space-y-6 text-center">
-        <h1 className="text-center text-3xl font-bold sm:text-6xl">
-          The{" "}
-          <span className="bg-gradient-to-r from-purple-600 to-red-600 bg-clip-text text-transparent">
-            Bookmark Everything
-          </span>{" "}
-          App
-        </h1>
-        <div className="mx-auto w-full gap-2 text-base md:w-3/6">
-          <p className="text-center text-gray-600">
-            Quickly save links, notes, and images and karakeep will
-            automatically tag them for you using AI for faster retrieval. Built
-            for the data hoarders out there!
-          </p>
-        </div>
-        <a
-          href={GITHUB_LINK}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
-        >
-          <Star className="size-4 fill-yellow-400 text-yellow-400" />
-          <span className="font-semibold">21k</span>
-          <span className="text-gray-500">stars on GitHub</span>
-        </a>
-      </div>
-      <div className="flex h-10 gap-4">
-        <a
-          href={DEMO_LINK}
-          target="_blank"
-          className={cn(
-            "text flex w-28 gap-2",
-            buttonVariants({ variant: "default", size: "lg" }),
-          )}
-          rel="noreferrer"
-        >
-          Try Demo
-        </a>
-        <a
-          href={GITHUB_LINK}
-          target="_blank"
-          className={cn(
-            "flex gap-2",
-            buttonVariants({ variant: "outline", size: "lg" }),
-          )}
-          rel="noreferrer"
-        >
-          <Github /> GitHub
-        </a>
-      </div>
-    </div>
-  );
-}
-
-function Platforms() {
-  return (
-    <div className="bg-gray-100 py-20">
-      <h2 className="text-center text-3xl font-semibold">
-        Apps & Extensions for Seamless Access
-      </h2>
-      <p className="mt-2 text-center text-gray-600">
-        Enjoy seamless access with our mobile apps and browser extensions.
-      </p>
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-6 px-6">
-        {platforms.map((platform) => (
-          <div key={platform.name}>
-            <a
-              href={platform.url}
-              target="_blank"
-              className="flex items-center justify-center gap-2"
-              rel="noreferrer"
-            >
-              <img
-                className="h-12 w-auto rounded-md"
-                alt={platform.name}
-                src={platform.badge}
-              />
-            </a>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Features() {
-  return (
-    <div className="mx-auto block px-10 py-20 sm:w-4/5 sm:px-0">
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-4 sm:gap-14">
-        {featuresList.map((feature) => (
-          <div key={feature.title} className="flex flex-col gap-1 sm:gap-2">
-            <div className="flex gap-2">
-              <feature.icon size={20} />
-              <h3 className="text-md font-semibold text-gray-800">
-                {feature.title}
-              </h3>
-            </div>
-            <p className="text-gray-600">{feature.description}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Footer() {
-  return (
-    <div className="flex items-center justify-between bg-gray-100 px-10 py-6 text-sm">
-      <div>
-        © 2024-{currentYear}{" "}
-        <a href="https://localhostlabs.co.uk" target="_blank" rel="noreferrer">
-          Localhost Labs Ltd
-        </a>
-      </div>
-      <div className="flex items-center gap-6">
-        <a
-          href={DOCS_LINK}
-          target="_blank"
-          className="flex justify-center gap-2 text-center"
-          rel="noreferrer"
-        >
-          Docs
-        </a>
-        <a
-          href={GITHUB_LINK}
-          target="_blank"
-          className="flex justify-center gap-2 text-center"
-          rel="noreferrer"
-        >
-          GitHub
-        </a>
-      </div>
-    </div>
-  );
-}
-
-function Screenshots() {
-  return (
-    <div className="mx-auto mt-6 w-10/12">
-      <img alt="screenshot" src={screenshot} />
-    </div>
-  );
-}
+const _showcases = [
+  {
+    label: "BOOKMARKING",
+    title: "Save Everything",
+    headline: "One place for all your bookmarks",
+    description:
+      "Save links, notes, images, and PDFs from any device. Karakeep automatically fetches titles, descriptions, and images so you never lose context.",
+    bullets: [
+      { icon: Link2, text: "Save any link with one click" },
+      { icon: FileText, text: "Store notes, images, and PDFs" },
+      {
+        icon: ArrowDownNarrowWide,
+        text: "Auto-fetch metadata and thumbnails",
+      },
+    ],
+    screenshot: tagsScreenshot,
+    screenshotAlt: "Karakeep tags view",
+    reverse: false,
+  },
+  {
+    label: "ORGANIZATION",
+    title: "AI-Powered Organization",
+    headline: "Let AI organize your bookmarks",
+    description:
+      "Karakeep uses AI to automatically tag and categorize your bookmarks. Stop spending time filing things away — just save and let AI do the work.",
+    bullets: [
+      { icon: BrainCircuit, text: "Automatic AI-powered tagging" },
+      { icon: Tag, text: "Smart categorization" },
+      { icon: Zap, text: "Instant organization as you save" },
+    ],
+    screenshot: searchScreenshot,
+    screenshotAlt: "Karakeep search view",
+    reverse: true,
+  },
+  {
+    label: "READING",
+    title: "Reader View & Highlights",
+    headline: "Read and highlight with ease",
+    description:
+      "Enjoy saved articles in a clean, distraction-free reader view. Highlight important passages and keep them organized for quick reference.",
+    bullets: [
+      { icon: BookOpen, text: "Distraction-free reader view for articles" },
+      { icon: Highlighter, text: "Highlight text on any saved page" },
+    ],
+    screenshot: readerViewScreenshot,
+    screenshotAlt: "Karakeep reader view",
+    reverse: false,
+  },
+  {
+    label: "AUTOMATION",
+    title: "Rule Engine",
+    headline: "Automate your workflow",
+    description:
+      "Create powerful automation rules to manage your bookmarks. Automatically tag, move, or organize content based on custom conditions.",
+    bullets: [
+      { icon: Workflow, text: "Build custom automation rules" },
+      { icon: Zap, text: "Trigger actions on new bookmarks" },
+      { icon: Tag, text: "Auto-tag based on URL patterns or content" },
+    ],
+    screenshot: ruleEngineScreenshot,
+    screenshotAlt: "Karakeep rule engine",
+    reverse: true,
+  },
+];
 
 export default function Homepage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="container flex flex-col pb-10">
-        <NavBar />
-        <Hero />
-      </div>
-      <Screenshots />
-      <Features />
+    <>
+      <FeaturesGrid features={featuresList} />
       <Platforms />
-      <Footer />
-    </div>
+      <OpenSource />
+    </>
   );
 }

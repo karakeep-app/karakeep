@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { KeyboardAvoidingView } from "react-native";
+import { KeyboardAvoidingView, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useKeepAwake } from "expo-keep-awake";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
 import BookmarkLinkTypeSelector, {
   BookmarkLinkType,
@@ -11,21 +12,33 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { isIOS26 } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { Settings } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
+function KeepScreenOn() {
+  useKeepAwake();
+  return null;
+}
 
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { slug } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
+  const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
-    settings.defaultBookmarkView,
+    settings.defaultBookmarkView === "externalBrowser"
+      ? "browser"
+      : settings.defaultBookmarkView,
   );
 
   if (typeof slug !== "string") {
@@ -36,10 +49,12 @@ export default function BookmarkView() {
     data: bookmark,
     error,
     refetch,
-  } = api.bookmarks.getBookmark.useQuery({
-    bookmarkId: slug,
-    includeContent: false,
-  });
+  } = useQuery(
+    api.bookmarks.getBookmark.queryOptions({
+      bookmarkId: slug,
+      includeContent: false,
+    }),
+  );
 
   if (error) {
     return <FullPageError error={error.message} onRetry={refetch} />;
@@ -75,6 +90,7 @@ export default function BookmarkView() {
       style={{ flex: 1, paddingBottom: insets.bottom + 8 }}
       behavior="height"
     >
+      {settings.keepScreenOnWhileReading && <KeepScreenOn />}
       <Stack.Screen
         options={{
           headerTitle: title ?? "",
@@ -87,11 +103,24 @@ export default function BookmarkView() {
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
-              <BookmarkLinkTypeSelector
-                type={bookmarkLinkType}
-                onChange={(type) => setBookmarkLinkType(type)}
-                bookmark={bookmark}
-              />
+              <View
+                className={`flex-row items-center gap-3${isIOS26 ? " px-2" : ""}`}
+              >
+                {bookmarkLinkType === "reader" && (
+                  <Pressable
+                    onPress={() =>
+                      router.push("/dashboard/settings/reader-settings")
+                    }
+                  >
+                    <Settings size={20} color={isDark ? "#fff" : "#000"} />
+                  </Pressable>
+                )}
+                <BookmarkLinkTypeSelector
+                  type={bookmarkLinkType}
+                  onChange={(type) => setBookmarkLinkType(type)}
+                  bookmark={bookmark}
+                />
+              </View>
             ) : undefined,
         }}
       />

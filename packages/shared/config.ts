@@ -5,7 +5,7 @@ import { z } from "zod";
 const stringBool = (defaultValue: string) =>
   z
     .string()
-    .default(defaultValue)
+    .prefault(defaultValue)
     .refine((s) => s === "true" || s === "false")
     .transform((s) => s === "true");
 
@@ -22,7 +22,7 @@ const allEnv = z.object({
   WORKERS_PORT: z.coerce.number().default(0),
   WORKERS_ENABLED_WORKERS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((val) =>
       val
         .split(",")
@@ -31,7 +31,7 @@ const allEnv = z.object({
     ),
   WORKERS_DISABLED_WORKERS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((val) =>
       val
         .split(",")
@@ -42,11 +42,12 @@ const allEnv = z.object({
   NEXTAUTH_URL: z
     .string()
     .url()
-    .default("http://localhost:3000")
+    .prefault("http://localhost:3000")
     .transform((s) => s.replace(/\/+$/, "")),
   NEXTAUTH_SECRET: z.string().optional(),
   DISABLE_SIGNUPS: stringBool("false"),
   DISABLE_PASSWORD_AUTH: stringBool("false"),
+  OAUTH_AUTO_REDIRECT: stringBool("false"),
   OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING: stringBool("false"),
   OAUTH_WELLKNOWN_URL: z.string().url().optional(),
   OAUTH_CLIENT_SECRET: z.string().optional(),
@@ -58,6 +59,8 @@ const allEnv = z.object({
   TURNSTILE_SECRET_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
+  OPENAI_PROXY_URL: z.string().url().optional(),
+  OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
@@ -77,9 +80,10 @@ const allEnv = z.object({
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
-    .default("eng")
+    .prefault("eng")
     .transform((val) => val.split(",")),
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().default(50),
+  OCR_USE_LLM: stringBool("false"),
   CRAWLER_HEADLESS_BROWSER: stringBool("true"),
   BROWSER_WEB_URL: z.string().optional(),
   BROWSER_WEBSOCKET_URL: z.string().optional(),
@@ -93,10 +97,12 @@ const allEnv = z.object({
   SEARCH_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   WEBHOOK_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_NUM_WORKERS: z.coerce.number().default(1),
+  ASSET_PREPROCESSING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   RULE_ENGINE_NUM_WORKERS: z.coerce.number().default(1),
   CRAWLER_DOWNLOAD_BANNER_IMAGE: stringBool("true"),
   CRAWLER_STORE_SCREENSHOT: stringBool("true"),
   CRAWLER_FULL_PAGE_SCREENSHOT: stringBool("false"),
+  CRAWLER_STORE_PDF: stringBool("false"),
   CRAWLER_FULL_PAGE_ARCHIVE: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
@@ -104,8 +110,15 @@ const allEnv = z.object({
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
     .string()
-    .default("")
+    .prefault("")
     .transform((t) => t.split("%%").filter((a) => a)),
+  CRAWLER_MONOLITH_TIMEOUT_SEC: z.coerce.number().default(5),
+  CRAWLER_MONOLITH_ARGS: z
+    .string()
+    .prefault("")
+    .transform((t) => t.split("%%").filter((a) => a)),
+  CRAWLER_PARSER_MEM_LIMIT_MB: z.coerce.number().default(512),
+  CRAWLER_PARSE_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_SCREENSHOT_TIMEOUT_SEC: z.coerce.number().default(5),
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
@@ -122,8 +135,15 @@ const allEnv = z.object({
   INFERENCE_LANG: z.string().default("english"),
   WEBHOOK_TIMEOUT_SEC: z.coerce.number().default(5),
   WEBHOOK_RETRY_TIMES: z.coerce.number().int().min(0).default(3),
+  MAX_RSS_FEEDS_PER_USER: z.coerce.number().default(1000),
+  MAX_WEBHOOKS_PER_USER: z.coerce.number().default(100),
+  // Legal
+  TERMS_OF_SERVICE_URL: z.string().url().optional(),
+  PRIVACY_POLICY_URL: z.string().url().optional(),
+
   // Build only flag
   SERVER_VERSION: z.string().optional(),
+  CHANGELOG_VERSION: z.string().optional(),
   DISABLE_NEW_RELEASE_CHECK: stringBool("false"),
 
   // A flag to detect if the user is running in the old separete containers setup
@@ -152,11 +172,15 @@ const allEnv = z.object({
   // Rate limiting configuration
   RATE_LIMITING_ENABLED: stringBool("false"),
 
+  // Redis configuration
+  REDIS_URL: z.string().url().optional(),
+
   // Stripe configuration
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_ID: z.string().optional(),
+  STRIPE_YEARLY_PRICE_ID: z.string().optional(),
 
   FREE_QUOTA_BOOKMARK_LIMIT: z.coerce.number().optional(),
   FREE_QUOTA_ASSET_SIZE_BYTES: z.coerce.number().optional(),
@@ -205,6 +229,12 @@ const allEnv = z.object({
 
   // Database configuration
   DB_WAL_MODE: stringBool("false"),
+
+  // OpenTelemetry tracing configuration
+  OTEL_TRACING_ENABLED: stringBool("false"),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_SERVICE_NAME: z.string().default("karakeep"),
+  OTEL_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(1.0),
 });
 
 const serverConfigSchema = allEnv.transform((val, ctx) => {
@@ -230,6 +260,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       disablePasswordAuth: val.DISABLE_PASSWORD_AUTH,
       emailVerificationRequired: val.EMAIL_VERIFICATION_REQUIRED,
       oauth: {
+        autoRedirect: val.OAUTH_AUTO_REDIRECT,
         allowDangerousEmailAccountLinking:
           val.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING,
         wellKnownUrl: val.OAUTH_WELLKNOWN_URL,
@@ -264,6 +295,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       fetchTimeoutSec: val.INFERENCE_FETCH_TIMEOUT_SEC,
       openAIApiKey: val.OPENAI_API_KEY,
       openAIBaseUrl: val.OPENAI_BASE_URL,
+      openAIProxyUrl: val.OPENAI_PROXY_URL,
+      openAIServiceTier: val.OPENAI_SERVICE_TIER,
       ollamaBaseUrl: val.OLLAMA_BASE_URL,
       ollamaKeepAlive: val.OLLAMA_KEEP_ALIVE,
       textModel: val.INFERENCE_TEXT_MODEL,
@@ -296,12 +329,17 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadBannerImage: val.CRAWLER_DOWNLOAD_BANNER_IMAGE,
       storeScreenshot: val.CRAWLER_STORE_SCREENSHOT,
       fullPageScreenshot: val.CRAWLER_FULL_PAGE_SCREENSHOT,
+      storePdf: val.CRAWLER_STORE_PDF,
       fullPageArchive: val.CRAWLER_FULL_PAGE_ARCHIVE,
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
+      monolithTimeoutSec: val.CRAWLER_MONOLITH_TIMEOUT_SEC,
+      monolithArguments: val.CRAWLER_MONOLITH_ARGS,
+      parserMemLimitMb: val.CRAWLER_PARSER_MEM_LIMIT_MB,
+      parseTimeoutSec: val.CRAWLER_PARSE_TIMEOUT_SEC,
       screenshotTimeoutSec: val.CRAWLER_SCREENSHOT_TIMEOUT_SEC,
       htmlContentSizeThreshold: val.HTML_CONTENT_SIZE_INLINE_THRESHOLD_BYTES,
       ipValidation: {
@@ -321,6 +359,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       langs: val.OCR_LANGS,
       cacheDir: val.OCR_CACHE_DIR,
       confidenceThreshold: val.OCR_CONFIDENCE_THRESHOLD,
+      useLLM: val.OCR_USE_LLM,
     },
     search: {
       numWorkers: val.SEARCH_NUM_WORKERS,
@@ -337,13 +376,22 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     dataDir: val.DATA_DIR,
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
+    legal: {
+      termsOfServiceUrl: val.TERMS_OF_SERVICE_URL,
+      privacyPolicyUrl: val.PRIVACY_POLICY_URL,
+    },
     serverVersion: val.SERVER_VERSION,
+    changelogVersion: val.CHANGELOG_VERSION,
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,
     usingLegacySeparateContainers: val.USING_LEGACY_SEPARATE_CONTAINERS,
     webhook: {
       timeoutSec: val.WEBHOOK_TIMEOUT_SEC,
       retryTimes: val.WEBHOOK_RETRY_TIMES,
       numWorkers: val.WEBHOOK_NUM_WORKERS,
+      maxWebhooksPerUser: val.MAX_WEBHOOKS_PER_USER,
+    },
+    feeds: {
+      maxRssFeedsPerUser: val.MAX_RSS_FEEDS_PER_USER,
     },
     proxy: {
       httpProxy: val.CRAWLER_HTTP_PROXY,
@@ -353,6 +401,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     allowedInternalHostnames: val.CRAWLER_ALLOWED_INTERNAL_HOSTNAMES,
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
+      jobTimeoutSec: val.ASSET_PREPROCESSING_JOB_TIMEOUT_SEC,
     },
     ruleEngine: {
       numWorkers: val.RULE_ENGINE_NUM_WORKERS,
@@ -377,11 +426,15 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     rateLimiting: {
       enabled: val.RATE_LIMITING_ENABLED,
     },
+    redis: {
+      url: val.REDIS_URL,
+    },
     stripe: {
       secretKey: val.STRIPE_SECRET_KEY,
       publishableKey: val.STRIPE_PUBLISHABLE_KEY,
       webhookSecret: val.STRIPE_WEBHOOK_SECRET,
       priceId: val.STRIPE_PRICE_ID,
+      yearlyPriceId: val.STRIPE_YEARLY_PRICE_ID,
       isConfigured: !!val.STRIPE_SECRET_KEY && !!val.STRIPE_PUBLISHABLE_KEY,
     },
     quotas: {
@@ -398,6 +451,12 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     database: {
       walMode: val.DB_WAL_MODE,
+    },
+    tracing: {
+      enabled: val.OTEL_TRACING_ENABLED,
+      otlpEndpoint: val.OTEL_EXPORTER_OTLP_ENDPOINT,
+      serviceName: val.OTEL_SERVICE_NAME,
+      sampleRate: val.OTEL_SAMPLE_RATE,
     },
   };
   if (obj.auth.emailVerificationRequired && !obj.email.smtp) {
@@ -431,6 +490,7 @@ export const clientConfig = {
   auth: {
     disableSignups: serverConfig.auth.disableSignups,
     disablePasswordAuth: serverConfig.auth.disablePasswordAuth,
+    oauthAutoRedirect: serverConfig.auth.oauth.autoRedirect,
   },
   turnstile:
     serverConfig.auth.turnstile.enabled && serverConfig.auth.turnstile.siteKey
@@ -441,6 +501,12 @@ export const clientConfig = {
   inference: {
     isConfigured: serverConfig.inference.isConfigured,
     inferredTagLang: serverConfig.inference.inferredTagLang,
+    enableAutoTagging: serverConfig.inference.enableAutoTagging,
+    enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
+  },
+  legal: {
+    termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
+    privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

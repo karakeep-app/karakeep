@@ -102,6 +102,7 @@ export const tagsAppRouter = router({
     .query(async ({ ctx, input }) => {
       return await Tag.getAll(ctx, {
         nameContains: input.nameContains,
+        ids: input.ids,
         attachedBy: input.attachedBy,
         sortBy: input.sortBy,
         pagination: input.limit

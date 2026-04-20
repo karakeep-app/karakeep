@@ -39,7 +39,11 @@
     "summary": "摘要",
     "quota": "配额",
     "bookmarks": "书签",
-    "storage": "存储"
+    "storage": "存储",
+    "pdf": "已存档的 PDF",
+    "default": "默认",
+    "id": "ID",
+    "last_used": "上次使用"
   },
   "layouts": {
     "masonry": "砌体",
@@ -90,7 +94,17 @@
     "confirm": "确认",
     "regenerate": "重新生成",
     "load_more": "加载更多",
-    "edit_notes": "编辑备注"
+    "edit_notes": "编辑备注",
+    "preserve_as_pdf": "另存为 PDF",
+    "offline_copies": "离线副本",
+    "preserve_offline_archive": "保留离线存档",
+    "download_full_page_archive_file": "下载存档文件",
+    "download_pdf_file": "下载 PDF 文件",
+    "remove": "移除",
+    "more": "更多",
+    "replace_banner": "替换横幅",
+    "add_banner": "添加横幅",
+    "download": "下载"
   },
   "settings": {
     "back_to_app": "返回应用",
@@ -116,6 +130,49 @@
           "show": "在标签和列表中显示已存档的书签",
           "hide": "在标签和列表中隐藏已存档的书签"
         }
+      },
+      "reader_settings": {
+        "local_overrides_title": "设备特定的设置已激活",
+        "using_default": "正在使用客户端默认值",
+        "clear_override_hint": "清除设备覆盖以使用全局设置（{{value}}）",
+        "font_size": "字体大小",
+        "font_family": "字体系列",
+        "preview_inline": "（预览）",
+        "tooltip_preview": "未保存的预览更改",
+        "save_to_all_devices": "所有设备",
+        "tooltip_local": "设备设置与全局设置不同",
+        "reset_preview": "重置预览",
+        "mono": "等宽",
+        "line_height": "行高",
+        "tooltip_default": "阅读设置",
+        "title": "阅读器设置",
+        "serif": "衬线",
+        "preview": "预览",
+        "not_set": "未设置",
+        "clear_local_overrides": "清除设备设置",
+        "preview_text": "敏捷的棕色狐狸跳过懒惰的狗。这是您的阅读器视图文本的显示方式。",
+        "local_overrides_cleared": "设备特定的设置已清除",
+        "local_overrides_description": "此设备上的阅读器设置与您的全局默认值不同：",
+        "clear_defaults": "清除所有默认值",
+        "description": "配置阅读器视图的默认文本设置。这些设置将在您的所有设备上同步。",
+        "defaults_cleared": "阅读器默认值已清除",
+        "save_hint": "仅保存此设备的设置，还是在所有设备同步",
+        "save_as_default": "保存为默认值",
+        "save_to_device": "此设备",
+        "sans": "无衬线",
+        "tooltip_preview_and_local": "未保存的预览更改；设备设置与全局设置不同",
+        "adjust_hint": "调整以上设置以预览更改"
+      },
+      "avatar": {
+        "upload": "上传虚拟形象",
+        "change": "更改虚拟形象",
+        "remove_confirm_title": "移除虚拟形象？",
+        "updated": "虚拟形象已更新",
+        "removed": "虚拟形象已移除",
+        "description": "上传一张方形图片作为您的虚拟形象。",
+        "remove_confirm_description": "这会清除您当前的头像照片。",
+        "title": "头像照片",
+        "remove": "移除虚拟形象"
       }
     },
     "ai": {
@@ -129,7 +186,26 @@
       "image_tagging": "图片标记",
       "text_tagging": "文字标记",
       "all_tagging": "所有标记",
-      "summarization_prompt": "摘要生成提示"
+      "summarization_prompt": "摘要生成提示",
+      "tag_style": "标签样式",
+      "auto_summarization_description": "使用 AI 自动为你的书签生成摘要。",
+      "auto_tagging": "自动添加标签",
+      "titlecase_spaces": "带空格的首字母大写",
+      "lowercase_underscores": "带下划线的小写",
+      "inference_language": "推理语言",
+      "titlecase_hyphens": "带连字符的首字母大写",
+      "lowercase_hyphens": "带连字符的小写",
+      "lowercase_spaces": "带空格的小写",
+      "inference_language_description": "为 AI 生成的标签和摘要选择语言。",
+      "tag_style_description": "选择自动生成的标签应如何格式化。",
+      "auto_tagging_description": "使用 AI 自动为你的书签生成标签。",
+      "camelCase": "驼峰式命名",
+      "auto_summarization": "自动摘要",
+      "no_preference": "无偏好",
+      "curated_tags": "精选标签",
+      "curated_tags_description": "（可选）将 AI 标签限制为仅使用此列表中的标签。如果未选择任何标签，AI 将随意生成标签。",
+      "curated_tags_updated": "精选标签已成功更新！",
+      "curated_tags_update_failed": "更新精选标签失败"
     },
     "feeds": {
       "rss_subscriptions": "RSS订阅",
@@ -142,13 +218,15 @@
       "import_export_bookmarks": "导入/导出书签",
       "import_bookmarks_from_html_file": "从HTML文件导入书签",
       "import_bookmarks_from_pocket_export": "从Pocket导出导入书签",
+      "import_bookmarks_from_matter_export": "从Matter导出导入书签",
       "import_bookmarks_from_omnivore_export": "从Omnivore导出导入书签",
       "import_bookmarks_from_karakeep_export": "从Karakeep导出导入书签",
       "export_links_and_notes": "导出链接和笔记",
       "imported_bookmarks": "已导入书签",
       "import_bookmarks_from_linkwarden_export": "导入 Linkwarden 导出的书签",
       "import_bookmarks_from_tab_session_manager_export": "从 Tab Session Manager 导入书签",
-      "import_bookmarks_from_mymind_export": "从我的 mind 导出导入书签"
+      "import_bookmarks_from_mymind_export": "从我的 mind 导出导入书签",
+      "import_bookmarks_from_instapaper_export": "从 Instapaper 导出内容导入书签"
     },
     "api_keys": {
       "api_keys": "API密钥",
@@ -222,7 +300,10 @@
         "is_favourited": "已收藏",
         "is_archived": "已归档",
         "and": "以下全部为真",
-        "or": "以下任一条件为真"
+        "or": "以下任一条件为真",
+        "url_does_not_contain": "URL 不包含",
+        "title_contains": "标题包含",
+        "title_does_not_contain": "标题不包含"
       },
       "actions_types": {
         "add_tag": "添加标签",
@@ -331,7 +412,10 @@
         "in_progress": "正在进行",
         "completed": "已完成",
         "failed": "失败",
-        "processing": "正在处理"
+        "processing": "正在处理",
+        "staging": "正在暂存",
+        "running": "正在运行",
+        "paused": "已暂停"
       },
       "badges": {
         "pending": "{{count}} 待定",
@@ -343,7 +427,33 @@
       "view_list": "查看列表",
       "delete_dialog_title": "删除导入会话",
       "delete_dialog_description": "确定要删除 “{{name}}” 吗？此操作无法撤销。书签本身不会被删除。",
-      "delete_session": "删除会话"
+      "delete_session": "删除会话",
+      "pause_session": "暂停",
+      "resume_session": "恢复",
+      "view_details": "查看详情",
+      "detail": {
+        "page_title": "查看导入会话详情",
+        "back_to_import": "返回导入",
+        "filter_all": "全部",
+        "filter_accepted": "已接受",
+        "filter_rejected": "已拒绝",
+        "filter_duplicates": "重复",
+        "filter_pending": "待定",
+        "table_title": "标题/URL",
+        "table_type": "类型",
+        "table_result": "结果",
+        "table_reason": "原因",
+        "table_bookmark": "书签",
+        "result_accepted": "已接受",
+        "result_rejected": "已拒绝",
+        "result_skipped_duplicate": "重复",
+        "result_pending": "待定",
+        "result_processing": "正在处理",
+        "no_results": "没有找到符合此过滤器的结果。",
+        "view_bookmark": "查看书签",
+        "load_more": "加载更多",
+        "no_title": "没有标题"
+      }
     },
     "backups": {
       "backups": "备份",
@@ -387,7 +497,7 @@
       },
       "dialogs": {
         "delete_backup_title": "删除备份？",
-        "delete_backup_description": "你确定要删除这个备份吗？这个操作没法撤销哦。"
+        "delete_backup_description": "你确定要删除这个备份吗？此操作无法撤销。"
       },
       "toasts": {
         "backup_queued": "备份任务已加入队列！很快就会处理。",
@@ -484,7 +594,10 @@
         "reindex_all_bookmarks": "重新索引所有书签",
         "clean_assets": "清理悬空资产并重新同步元数据",
         "reprocess_assets_fix_mode": "重新处理未处理的资产",
-        "migrate_large_link_html_content": "将大型内联 HTML 内容移动到 Assets"
+        "migrate_large_link_html_content": "将大型内联 HTML 内容移动到 Assets",
+        "recrawl_pending_links_only": "仅重新抓取待处理的链接",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "仅为待处理的书签重新生成 AI 标签",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "仅为待处理的书签重新生成 AI 摘要"
       }
     },
     "actions": {
@@ -523,11 +636,50 @@
         "connected": "已连接",
         "disconnected": "已断开连接"
       }
+    },
+    "admin_tools": {
+      "admin_tools": "管理工具",
+      "bookmark_debugger": "书签调试器",
+      "bookmark_id": "书签 ID",
+      "bookmark_id_placeholder": "输入书签 ID",
+      "lookup": "查找",
+      "debug_info": "调试信息",
+      "basic_info": "基本信息",
+      "status": "状态",
+      "content": "内容",
+      "html_preview": "HTML 预览（前 1000 个字符）",
+      "summary": "摘要",
+      "url": "URL",
+      "source_url": "源 URL",
+      "asset_type": "资源类型",
+      "file_name": "文件名",
+      "owner_user_id": "所有者用户 ID",
+      "tagging_status": "标记状态",
+      "summarization_status": "摘要状态",
+      "crawl_status": "抓取状态",
+      "crawl_status_code": "HTTP 状态代码",
+      "crawled_at": "抓取时间",
+      "recrawl": "重新抓取",
+      "reindex": "重新索引",
+      "retag": "重新标记",
+      "resummarize": "重新总结",
+      "bookmark_not_found": "找不到书签",
+      "action_success": "操作成功完成",
+      "action_failed": "操作失败",
+      "recrawl_queued": "重新抓取任务已进入队列",
+      "reindex_queued": "重新索引任务已进入队列",
+      "retag_queued": "重新标记任务已进入队列",
+      "resummarize_queued": "重新总结任务已在队列中",
+      "view": "查看",
+      "fetch_error": "获取书签时出错"
     }
   },
   "options": {
     "dark_mode": "暗模式",
-    "light_mode": "亮模式"
+    "light_mode": "亮模式",
+    "apps_extensions": "应用与扩展",
+    "documentation": "文档",
+    "follow_us_on_x": "在 X 上关注我们"
   },
   "lists": {
     "all_lists": "所有列表",
@@ -637,7 +789,9 @@
     "no_ai_tags": "还没有 AI 标签呢",
     "no_unused_tags": "你没有未使用的标签",
     "no_unused_tags_match_your_search": "没有未使用的标签符合你的搜索",
-    "no_tags_match_your_search": "没有标签符合你的搜索内容"
+    "no_tags_match_your_search": "没有标签符合你的搜索内容",
+    "search_placeholder": "搜索标签...",
+    "search_or_create_placeholder": "搜索或创建标签..."
   },
   "preview": {
     "view_original": "查看原文",
@@ -646,7 +800,14 @@
     "tabs": {
       "content": "内容",
       "details": "详情"
-    }
+    },
+    "archive_info": "如果存档需要 Javascript，则可能无法正确地以内联方式呈现。为了获得最佳效果，<1>请下载并在浏览器中打开它</1>。",
+    "fetch_error_title": "内容不可用",
+    "fetch_error_description": "我们没法获取此链接的内容。这个页面可能受保护、需要验证，或者暂时不可用。",
+    "crawling_in_progress": "正在获取页面内容……",
+    "continue_reading": "从上次结束的地方继续",
+    "continue_reading_percent": "从上次结束的地方继续（{{percent}}%）",
+    "continue_button": "继续"
   },
   "editor": {
     "quickly_focus": "您可以按⌘ + E快速聚焦到此字段",
@@ -714,7 +875,10 @@
       "refetch": "重新获取已排队！",
       "full_page_archive": "已触发完整页面归档创建",
       "delete_from_list": "书签已从列表中删除",
-      "clipboard_copied": "链接已添加到您的剪贴板！"
+      "clipboard_copied": "链接已添加到您的剪贴板！",
+      "preserve_pdf": "已触发 PDF 保存",
+      "update_banner": "横幅已更新！",
+      "uploading_banner": "正在上传横幅..."
     },
     "lists": {
       "created": "列表已创建！",
@@ -772,7 +936,16 @@
     "week_s_ago": " {weeks} 周前",
     "history": "最近搜索",
     "title_contains": "标题包含",
-    "title_does_not_contain": "标题不包含"
+    "title_does_not_contain": "标题不包含",
+    "is_broken_link": "有损坏的链接",
+    "tags": "标签",
+    "no_suggestions": "没有建议",
+    "filters": "筛选器",
+    "is_not_broken_link": "有可用的链接",
+    "lists": "列表",
+    "feeds": "订阅",
+    "is_from_source": "来源是",
+    "is_not_from_source": "来源不是"
   },
   "dialogs": {
     "bookmarks": {
@@ -820,5 +993,54 @@
     "no_release_notes": "这个版本没发布版本说明。",
     "release_notes_synced": "版本说明是从 GitHub 同步过来的。",
     "view_on_github": "在 GitHub 上瞅瞅"
+  },
+  "wrapped": {
+    "title": "你的 {{year}} 年终报告",
+    "subtitle": "Karakeep 年度回顾",
+    "banner": {
+      "title": "你的 2025 年度报告已准备就绪！",
+      "description": "查看你一年来的书签",
+      "view_now": "立即查看"
+    },
+    "button": "2025 年度报告",
+    "loading": "正在加载你的年度报告...",
+    "failed_to_load": "加载你的年度报告统计信息失败",
+    "sections": {
+      "total_saves": {
+        "prefix": "你保存了",
+        "suffix": "今年的条目",
+        "suffix_singular": "今年的条目"
+      },
+      "first_bookmark": {
+        "title": "你的旅程开始了",
+        "description": "{{year}}年的首次保存："
+      },
+      "top_domains": "你最牛的站点",
+      "top_tags": "你最常用的标签",
+      "monthly_activity": "你今年的保存情况",
+      "most_active_day": "你最活跃的一天",
+      "peak_times": {
+        "title": "你在什么时候保存",
+        "peak_hour": "高峰时段",
+        "peak_day": "高峰日"
+      },
+      "how_you_save": "你怎样保存",
+      "what_you_saved": "你保存了什么",
+      "summary": {
+        "favorites": "收藏夹",
+        "tags_created": "创建的标签",
+        "highlights": "亮点"
+      },
+      "types": {
+        "links": "链接",
+        "notes": "笔记",
+        "assets": "资产"
+      }
+    },
+    "footer": "用 Karakeep 制作",
+    "share": "分享",
+    "download": "下载",
+    "close": "关闭",
+    "generating": "正在生成..."
   }
 }

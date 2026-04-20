@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   FileType,
+  Heading,
   Link,
   PlusCircle,
   Rss,
@@ -28,7 +29,11 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { RuleEngineCondition } from "@karakeep/shared/types/rules";
+import type {
+  RuleEngineCondition,
+  RuleEngineEvent,
+} from "@karakeep/shared/types/rules";
+import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
 
 import { FeedSelector } from "../feeds/FeedSelector";
 import { TagAutocomplete } from "../tags/TagAutocomplete";
@@ -36,6 +41,7 @@ import { TagAutocomplete } from "../tags/TagAutocomplete";
 interface ConditionBuilderProps {
   value: RuleEngineCondition;
   onChange: (condition: RuleEngineCondition) => void;
+  eventType: RuleEngineEvent["type"];
   level?: number;
   onRemove?: () => void;
 }
@@ -43,6 +49,7 @@ interface ConditionBuilderProps {
 export function ConditionBuilder({
   value,
   onChange,
+  eventType,
   level = 0,
   onRemove,
 }: ConditionBuilderProps) {
@@ -54,11 +61,23 @@ export function ConditionBuilder({
       case "urlContains":
         onChange({ type: "urlContains", str: "" });
         break;
+      case "urlDoesNotContain":
+        onChange({ type: "urlDoesNotContain", str: "" });
+        break;
+      case "titleContains":
+        onChange({ type: "titleContains", str: "" });
+        break;
+      case "titleDoesNotContain":
+        onChange({ type: "titleDoesNotContain", str: "" });
+        break;
       case "importedFromFeed":
         onChange({ type: "importedFromFeed", feedId: "" });
         break;
       case "bookmarkTypeIs":
         onChange({ type: "bookmarkTypeIs", bookmarkType: "link" });
+        break;
+      case "bookmarkSourceIs":
+        onChange({ type: "bookmarkSourceIs", source: "rss" });
         break;
       case "hasTag":
         onChange({ type: "hasTag", tagId: "" });
@@ -88,11 +107,17 @@ export function ConditionBuilder({
   const renderConditionIcon = (type: RuleEngineCondition["type"]) => {
     switch (type) {
       case "urlContains":
+      case "urlDoesNotContain":
         return <Link className="h-4 w-4" />;
+      case "titleContains":
+      case "titleDoesNotContain":
+        return <Heading className="h-4 w-4" />;
       case "importedFromFeed":
         return <Rss className="h-4 w-4" />;
       case "bookmarkTypeIs":
         return <FileType className="h-4 w-4" />;
+      case "bookmarkSourceIs":
+        return <Rss className="h-4 w-4" />;
       case "hasTag":
         return <Tag className="h-4 w-4" />;
       case "isFavourited":
@@ -113,6 +138,42 @@ export function ConditionBuilder({
               value={value.str}
               onChange={(e) => onChange({ ...value, str: e.target.value })}
               placeholder="URL contains..."
+              className="w-full"
+            />
+          </div>
+        );
+
+      case "urlDoesNotContain":
+        return (
+          <div className="mt-2">
+            <Input
+              value={value.str}
+              onChange={(e) => onChange({ ...value, str: e.target.value })}
+              placeholder="URL does not contain..."
+              className="w-full"
+            />
+          </div>
+        );
+
+      case "titleContains":
+        return (
+          <div className="mt-2">
+            <Input
+              value={value.str}
+              onChange={(e) => onChange({ ...value, str: e.target.value })}
+              placeholder="Title contains..."
+              className="w-full"
+            />
+          </div>
+        );
+
+      case "titleDoesNotContain":
+        return (
+          <div className="mt-2">
+            <Input
+              value={value.str}
+              onChange={(e) => onChange({ ...value, str: e.target.value })}
+              placeholder="Title does not contain..."
               className="w-full"
             />
           </div>
@@ -159,6 +220,33 @@ export function ConditionBuilder({
           </div>
         );
 
+      case "bookmarkSourceIs":
+        return (
+          <div className="mt-2">
+            <Select
+              value={value.source}
+              onValueChange={(source) =>
+                onChange({
+                  ...value,
+                  source:
+                    source as (typeof zBookmarkSourceSchema.options)[number],
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select bookmark source" />
+              </SelectTrigger>
+              <SelectContent>
+                {zBookmarkSourceSchema.options.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+
       case "hasTag":
         return (
           <div className="mt-2">
@@ -182,6 +270,7 @@ export function ConditionBuilder({
                   newConditions[index] = newCondition;
                   onChange({ ...value, conditions: newConditions });
                 }}
+                eventType={eventType}
                 level={level + 1}
                 onRemove={() => {
                   const newConditions = [...value.conditions];
@@ -217,6 +306,10 @@ export function ConditionBuilder({
     }
   };
 
+  // Title conditions are hidden for "bookmarkAdded" event because
+  // titles are not available at bookmark creation time (they're fetched during crawling)
+  const showTitleConditions = eventType !== "bookmarkAdded";
+
   const ConditionSelector = () => (
     <Select value={value.type} onValueChange={handleTypeChange}>
       <SelectTrigger className="ml-2 h-8 border-none bg-transparent px-2">
@@ -235,11 +328,27 @@ export function ConditionBuilder({
         <SelectItem value="urlContains">
           {t("settings.rules.conditions_types.url_contains")}
         </SelectItem>
+        <SelectItem value="urlDoesNotContain">
+          {t("settings.rules.conditions_types.url_does_not_contain")}
+        </SelectItem>
+        {showTitleConditions && (
+          <SelectItem value="titleContains">
+            {t("settings.rules.conditions_types.title_contains")}
+          </SelectItem>
+        )}
+        {showTitleConditions && (
+          <SelectItem value="titleDoesNotContain">
+            {t("settings.rules.conditions_types.title_does_not_contain")}
+          </SelectItem>
+        )}
         <SelectItem value="importedFromFeed">
           {t("settings.rules.conditions_types.imported_from_feed")}
         </SelectItem>
         <SelectItem value="bookmarkTypeIs">
           {t("settings.rules.conditions_types.bookmark_type_is")}
+        </SelectItem>
+        <SelectItem value="bookmarkSourceIs">
+          {t("settings.rules.conditions_types.bookmark_source_is")}
         </SelectItem>
         <SelectItem value="hasTag">
           {t("settings.rules.conditions_types.has_tag")}

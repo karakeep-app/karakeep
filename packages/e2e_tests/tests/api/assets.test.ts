@@ -3,6 +3,7 @@ import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 import { createKarakeepClient } from "@karakeep/sdk";
 
 import { createTestUser, uploadTestAsset } from "../../utils/api";
+import { createTestPdfFile } from "../../utils/assets";
 
 describe("Assets API", () => {
   const port = inject("karakeepPort");
@@ -27,9 +28,7 @@ describe("Assets API", () => {
 
   it("should upload and retrieve an asset", async () => {
     // Create a test file
-    const file = new File(["test content"], "test.pdf", {
-      type: "application/pdf",
-    });
+    const file = createTestPdfFile();
 
     // Upload the asset
     const uploadResponse = await uploadTestAsset(apiKey, port, file);
@@ -52,9 +51,7 @@ describe("Assets API", () => {
 
   it("should attach an asset to a bookmark", async () => {
     // Create a test file
-    const file = new File(["test content"], "test.pdf", {
-      type: "application/pdf",
-    });
+    const file = createTestPdfFile();
 
     // Upload the asset
     const uploadResponse = await uploadTestAsset(apiKey, port, file);
@@ -91,9 +88,7 @@ describe("Assets API", () => {
 
   it("should delete asset when deleting bookmark", async () => {
     // Create a test file
-    const file = new File(["test content"], "test.pdf", {
-      type: "application/pdf",
-    });
+    const file = createTestPdfFile();
 
     // Upload the asset
     const uploadResponse = await uploadTestAsset(apiKey, port, file);
@@ -154,9 +149,7 @@ describe("Assets API", () => {
       throw new Error("Bookmark creation failed");
     }
 
-    const file = new File(["test content"], "test.pdf", {
-      type: "application/pdf",
-    });
+    const file = createTestPdfFile();
 
     // Upload the asset
     const uploadResponse1 = await uploadTestAsset(apiKey, port, file);

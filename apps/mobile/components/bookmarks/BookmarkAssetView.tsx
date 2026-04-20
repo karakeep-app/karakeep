@@ -48,7 +48,7 @@ export default function BookmarkAssetView({
       <Pressable onPress={() => setImageZoom(true)}>
         <BookmarkAssetImage
           assetId={bookmark.content.assetId}
-          className="h-56 min-h-56 w-full object-cover"
+          className="h-56 min-h-56 w-full"
         />
       </Pressable>
     </View>

@@ -1,6 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, lt, or } from "drizzle-orm";
-import invariant from "tiny-invariant";
+import { and, eq, gt, inArray, like, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
@@ -15,21 +14,26 @@ import {
   bookmarkTexts,
   customPrompts,
   tagsOnBookmarks,
+  userReadingProgress,
+  users,
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  buildCrawlIdempotencyKey,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
+  QueuePriority,
   QuotaService,
-  triggerRuleEngineOnEvent,
   triggerSearchReindex,
-  triggerWebhook,
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
+import { bookmarkCreationCounter } from "../stats";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
-import { buildSummaryPrompt } from "@karakeep/shared/prompts";
+import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
+import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
@@ -44,14 +48,16 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
+import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
+import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
-import { ImportSession } from "../models/importSessions";
-import { ensureAssetOwnership } from "./assets";
+import { WebhooksService } from "../models/webhooks.service";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -106,8 +112,45 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
   ).asZBookmark();
 }
 
+const highBookmarkCreationRateLimitConfig = {
+  name: "bookmarks.createBookmark.highVolume",
+  windowMs: 5 * 60 * 1000,
+  maxRequests: 30,
+} as const;
+
+async function shouldUseLowPriorityQueues(
+  ctx: AuthedContext,
+): Promise<boolean> {
+  if (!serverConfig.rateLimiting.enabled) {
+    return false;
+  }
+
+  const rateLimitClient = await getRateLimitClient();
+  if (!rateLimitClient) {
+    return false;
+  }
+
+  try {
+    const result = await rateLimitClient.checkRateLimit(
+      highBookmarkCreationRateLimitConfig,
+      ctx.user.id,
+    );
+    return !result.allowed;
+  } catch {
+    // Don't block bookmark creation if rate limiting is unavailable.
+    return false;
+  }
+}
+
 export const bookmarksAppRouter = router({
   createBookmark: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.createBookmark",
+        windowMs: 60 * 1000,
+        maxRequests: 30,
+      }),
+    )
     .input(zNewBookmarkRequestSchema)
     .output(
       zBookmarkSchema.merge(
@@ -121,173 +164,179 @@ export const bookmarksAppRouter = router({
         // This doesn't 100% protect from duplicates because of races, but it's more than enough for this usecase.
         const alreadyExists = await attemptToDedupLink(ctx, input.url);
         if (alreadyExists) {
-          if (input.importSessionId) {
-            const session = await ImportSession.fromId(
-              ctx,
-              input.importSessionId,
-            );
-            await session.attachBookmark(alreadyExists.id);
-          }
           return { ...alreadyExists, alreadyExists: true };
         }
       }
 
-      // Check user quota
-      const quotaResult = await QuotaService.canCreateBookmark(
-        ctx.db,
-        ctx.user.id,
-      );
-      if (!quotaResult.result) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: quotaResult.error,
-        });
-      }
+      const bookmark = await ctx.db.transaction(
+        async (tx) => {
+          // Check user quota
+          const quotaResult = await QuotaService.canCreateBookmark(
+            tx,
+            ctx.user.id,
+          );
+          if (!quotaResult.result) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: quotaResult.error,
+            });
+          }
+          const bookmark = (
+            await tx
+              .insert(bookmarks)
+              .values({
+                userId: ctx.user.id,
+                title: input.title,
+                type: input.type,
+                archived: input.archived,
+                favourited: input.favourited,
+                note: input.note,
+                summary: input.summary,
+                createdAt: input.createdAt,
+                source: input.source,
+                // Only links currently support summarization. Let's set the status to null for other types for now.
+                summarizationStatus:
+                  input.type === BookmarkTypes.LINK ? "pending" : null,
+              })
+              .returning()
+          )[0];
 
-      const bookmark = await ctx.db.transaction(async (tx) => {
-        const bookmark = (
-          await tx
-            .insert(bookmarks)
-            .values({
-              userId: ctx.user.id,
-              title: input.title,
-              type: input.type,
-              archived: input.archived,
-              favourited: input.favourited,
-              note: input.note,
-              summary: input.summary,
-              createdAt: input.createdAt,
-              source: input.source,
-            })
-            .returning()
-        )[0];
+          let content: ZBookmarkContent;
 
-        let content: ZBookmarkContent;
-
-        switch (input.type) {
-          case BookmarkTypes.LINK: {
-            const link = (
-              await tx
-                .insert(bookmarkLinks)
+          switch (input.type) {
+            case BookmarkTypes.LINK: {
+              const link = (
+                await tx
+                  .insert(bookmarkLinks)
+                  .values({
+                    id: bookmark.id,
+                    url: input.url.trim(),
+                  })
+                  .returning()
+              )[0];
+              if (input.precrawledArchiveId) {
+                await Asset.ensureOwnership(ctx, input.precrawledArchiveId);
+                await tx
+                  .update(assets)
+                  .set({
+                    bookmarkId: bookmark.id,
+                    assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+                  })
+                  .where(
+                    and(
+                      eq(assets.id, input.precrawledArchiveId),
+                      eq(assets.userId, ctx.user.id),
+                    ),
+                  );
+              }
+              content = {
+                type: BookmarkTypes.LINK,
+                ...link,
+              };
+              break;
+            }
+            case BookmarkTypes.TEXT: {
+              const text = (
+                await tx
+                  .insert(bookmarkTexts)
+                  .values({
+                    id: bookmark.id,
+                    text: input.text,
+                    sourceUrl: input.sourceUrl,
+                  })
+                  .returning()
+              )[0];
+              content = {
+                type: BookmarkTypes.TEXT,
+                text: text.text ?? "",
+                sourceUrl: text.sourceUrl,
+              };
+              break;
+            }
+            case BookmarkTypes.ASSET: {
+              const [asset] = await tx
+                .insert(bookmarkAssets)
                 .values({
                   id: bookmark.id,
-                  url: input.url.trim(),
+                  assetType: input.assetType,
+                  assetId: input.assetId,
+                  content: null,
+                  metadata: null,
+                  fileName: input.fileName ?? null,
+                  sourceUrl: input.sourceUrl ?? null,
                 })
-                .returning()
-            )[0];
-            if (input.precrawledArchiveId) {
-              await ensureAssetOwnership({
-                ctx,
-                assetId: input.precrawledArchiveId,
-              });
+                .returning();
+              const uploadedAsset = await Asset.fromId(ctx, input.assetId);
+              uploadedAsset.ensureOwnership();
+              if (
+                !uploadedAsset.asset.contentType ||
+                !SUPPORTED_BOOKMARK_ASSET_TYPES.has(
+                  uploadedAsset.asset.contentType,
+                )
+              ) {
+                throw new TRPCError({
+                  code: "BAD_REQUEST",
+                  message: "Unsupported asset type",
+                });
+              }
               await tx
                 .update(assets)
                 .set({
                   bookmarkId: bookmark.id,
-                  assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+                  assetType: AssetTypes.BOOKMARK_ASSET,
                 })
                 .where(
                   and(
-                    eq(assets.id, input.precrawledArchiveId),
+                    eq(assets.id, input.assetId),
                     eq(assets.userId, ctx.user.id),
                   ),
                 );
+              content = {
+                type: BookmarkTypes.ASSET,
+                assetType: asset.assetType,
+                assetId: asset.assetId,
+                fileName: asset.fileName,
+                sourceUrl: asset.sourceUrl,
+              };
+              break;
             }
-            content = {
-              type: BookmarkTypes.LINK,
-              ...link,
-            };
-            break;
           }
-          case BookmarkTypes.TEXT: {
-            const text = (
-              await tx
-                .insert(bookmarkTexts)
-                .values({
-                  id: bookmark.id,
-                  text: input.text,
-                  sourceUrl: input.sourceUrl,
-                })
-                .returning()
-            )[0];
-            content = {
-              type: BookmarkTypes.TEXT,
-              text: text.text ?? "",
-              sourceUrl: text.sourceUrl,
-            };
-            break;
-          }
-          case BookmarkTypes.ASSET: {
-            const [asset] = await tx
-              .insert(bookmarkAssets)
-              .values({
-                id: bookmark.id,
-                assetType: input.assetType,
-                assetId: input.assetId,
-                content: null,
-                metadata: null,
-                fileName: input.fileName ?? null,
-                sourceUrl: null,
-              })
-              .returning();
-            const uploadedAsset = await ensureAssetOwnership({
-              ctx,
-              assetId: input.assetId,
-            });
-            if (
-              !uploadedAsset.contentType ||
-              !SUPPORTED_BOOKMARK_ASSET_TYPES.has(uploadedAsset.contentType)
-            ) {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Unsupported asset type",
-              });
-            }
-            await tx
-              .update(assets)
-              .set({
-                bookmarkId: bookmark.id,
-                assetType: AssetTypes.BOOKMARK_ASSET,
-              })
-              .where(
-                and(
-                  eq(assets.id, input.assetId),
-                  eq(assets.userId, ctx.user.id),
-                ),
-              );
-            content = {
-              type: BookmarkTypes.ASSET,
-              assetType: asset.assetType,
-              assetId: asset.assetId,
-            };
-            break;
-          }
-        }
 
-        return {
-          alreadyExists: false,
-          tags: [] as ZBookmarkTags[],
-          assets: [],
-          content,
-          ...bookmark,
-        };
-      });
+          return {
+            alreadyExists: false,
+            tags: [] as ZBookmarkTags[],
+            assets: [],
+            content,
+            ...bookmark,
+          };
+        },
+        {
+          behavior: "immediate",
+        },
+      );
 
-      if (input.importSessionId) {
-        const session = await ImportSession.fromId(ctx, input.importSessionId);
-        await session.attachBookmark(bookmark.id);
-      }
+      bookmarkCreationCounter.labels(input.source ?? "unknown").inc();
+
+      const forceLowPriority = await shouldUseLowPriorityQueues(ctx);
+      const shouldUseLowPriority =
+        input.crawlPriority === "low" || forceLowPriority;
 
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
-        priority: input.crawlPriority === "low" ? 50 : 0,
+        priority: shouldUseLowPriority
+          ? QueuePriority.Low
+          : QueuePriority.Default,
         groupId: ctx.user.id,
       };
 
       switch (bookmark.content.type) {
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
-          await LinkCrawlerQueue.enqueue(
+          // Use a separate queue for low priority crawling to avoid impacting main queue parallelism
+          const crawlerQueue = shouldUseLowPriority
+            ? LowPriorityCrawlerQueue
+            : LinkCrawlerQueue;
+          await crawlerQueue.enqueue(
             {
               bookmarkId: bookmark.id,
             },
@@ -317,22 +366,26 @@ export const bookmarksAppRouter = router({
         }
       }
 
-      await triggerRuleEngineOnEvent(
-        bookmark.id,
-        [
-          {
-            type: "bookmarkAdded",
-          },
-        ],
-        enqueueOpts,
-      );
-      await triggerSearchReindex(bookmark.id, enqueueOpts);
-      await triggerWebhook(
-        bookmark.id,
-        "created",
-        /* userId */ undefined,
-        enqueueOpts,
-      );
+      await Promise.all([
+        RuleEngine.triggerOnEvent(
+          bookmark.userId,
+          bookmark.id,
+          [
+            {
+              type: "bookmarkAdded",
+            },
+          ],
+          enqueueOpts,
+          ctx.db,
+        ),
+        triggerSearchReindex(bookmark.id, enqueueOpts),
+        new WebhooksService(ctx.db).triggerWebhook(
+          bookmark.id,
+          "created",
+          bookmark.userId,
+          enqueueOpts,
+        ),
+      ]);
       return bookmark;
     }),
 
@@ -477,7 +530,8 @@ export const bookmarksAppRouter = router({
       ).asZBookmark();
 
       if (input.favourited === true || input.archived === true) {
-        await triggerRuleEngineOnEvent(
+        await RuleEngine.triggerOnEvent(
+          updatedBookmark.userId,
           input.bookmarkId,
           [
             ...(input.favourited === true ? ["favourited" as const] : []),
@@ -485,15 +539,23 @@ export const bookmarksAppRouter = router({
           ].map((t) => ({
             type: t,
           })),
+          undefined,
+          ctx.db,
         );
       }
-      // Trigger re-indexing and webhooks
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          updatedBookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
+      ]);
 
       return updatedBookmark;
     }),
@@ -532,12 +594,19 @@ export const bookmarksAppRouter = router({
             ),
           );
       });
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          ctx.bookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
+      ]);
     }),
 
   deleteBookmark: authedProcedure
@@ -559,26 +628,82 @@ export const bookmarksAppRouter = router({
       z.object({
         bookmarkId: z.string(),
         archiveFullPage: z.boolean().optional().default(false),
+        storePdf: z.boolean().optional().default(false),
       }),
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
+      const payload = {
+        bookmarkId: input.bookmarkId,
+        archiveFullPage: input.archiveFullPage,
+        storePdf: input.storePdf,
+      };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        groupId: ctx.user.id,
+        priority: QueuePriority.Low,
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
+    }),
+  updateReadingProgress: authedProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        readingProgressOffset: z.number().int().nonnegative(),
+        readingProgressAnchor: z.string().max(ANCHOR_TEXT_MAX_LENGTH).nullish(),
+        readingProgressPercent: z.number().int().min(0).max(100).nullish(),
+      }),
+    )
+    .use(ensureBookmarkAccess)
+    .mutation(async ({ input, ctx }) => {
+      // Validate this is a LINK bookmark - reading progress only applies to links
+      const linkBookmark = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+      });
+      if (!linkBookmark) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Reading progress can only be saved for link bookmarks",
+        });
+      }
+
       await ctx.db
-        .update(bookmarkLinks)
-        .set({
-          crawlStatus: "pending",
-          crawlStatusCode: null,
-        })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
-      await LinkCrawlerQueue.enqueue(
-        {
+        .insert(userReadingProgress)
+        .values({
           bookmarkId: input.bookmarkId,
-          archiveFullPage: input.archiveFullPage,
-        },
-        {
-          groupId: ctx.user.id,
-        },
-      );
+          userId: ctx.user.id,
+          readingProgressOffset: input.readingProgressOffset,
+          readingProgressAnchor: input.readingProgressAnchor ?? null,
+          readingProgressPercent: input.readingProgressPercent ?? null,
+        })
+        .onConflictDoUpdate({
+          target: [userReadingProgress.bookmarkId, userReadingProgress.userId],
+          set: {
+            readingProgressOffset: input.readingProgressOffset,
+            readingProgressAnchor: input.readingProgressAnchor ?? null,
+            readingProgressPercent: input.readingProgressPercent ?? null,
+            modifiedAt: new Date(),
+          },
+        });
+    }),
+  getReadingProgress: authedProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      const progress = await ctx.db.query.userReadingProgress.findFirst({
+        where: and(
+          eq(userReadingProgress.bookmarkId, input.bookmarkId),
+          eq(userReadingProgress.userId, ctx.user.id),
+        ),
+      });
+      return {
+        readingProgressOffset: progress?.readingProgressOffset ?? null,
+        readingProgressAnchor: progress?.readingProgressAnchor ?? null,
+        readingProgressPercent: progress?.readingProgressPercent ?? null,
+      };
     }),
   getBookmark: authedProcedure
     .input(
@@ -684,6 +809,54 @@ export const bookmarksAppRouter = router({
               },
       };
     }),
+  checkUrl: authedProcedure
+    .input(
+      z.object({
+        url: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        bookmarkId: z.string().nullable(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      // Normalize and compare URLs (ignoring hash fragment and trailing slash)
+      function normalizeUrl(url: string): string {
+        const u = new URL(url);
+        u.hash = "";
+        let pathname = u.pathname;
+        if (pathname.endsWith("/") && pathname !== "/") {
+          pathname = pathname.slice(0, -1);
+        }
+        u.pathname = pathname;
+        return u.toString();
+      }
+
+      // Strip hash before querying so the LIKE clause can match
+      const normalizedInput = normalizeUrl(input.url);
+
+      const results = await ctx.db
+        .select({ id: bookmarkLinks.id, url: bookmarkLinks.url })
+        .from(bookmarkLinks)
+        .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
+        .where(
+          and(
+            eq(bookmarks.userId, ctx.user.id),
+            like(bookmarkLinks.url, `${normalizedInput}%`),
+          ),
+        );
+
+      if (results.length === 0) {
+        return { bookmarkId: null };
+      }
+
+      const exactMatch = results.find(
+        (r) => r.url && normalizeUrl(r.url) === normalizedInput,
+      );
+
+      return { bookmarkId: exactMatch?.id ?? null };
+    }),
   getBookmarks: authedProcedure
     .input(zGetBookmarksRequestSchema)
     .output(zGetBookmarksResponseSchema)
@@ -711,37 +884,111 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      return ctx.db.transaction(async (tx) => {
-        // Detaches
-        const idsToRemove: string[] = [];
-        if (input.detach.length > 0) {
-          const namesToRemove: string[] = [];
-          input.detach.forEach((detachInfo) => {
-            if (detachInfo.tagId) {
-              idsToRemove.push(detachInfo.tagId);
-            }
-            if (detachInfo.tagName) {
-              namesToRemove.push(detachInfo.tagName);
-            }
-          });
+      // Helper function to fetch tag IDs and their names from a list of tag identifiers
+      const fetchTagIdsWithNames = async (
+        tagIdentifiers: { tagId?: string; tagName?: string }[],
+      ): Promise<{ id: string; name: string }[]> => {
+        const tagIds = tagIdentifiers.flatMap((t) =>
+          t.tagId ? [t.tagId] : [],
+        );
+        const tagNames = tagIdentifiers.flatMap((t) =>
+          t.tagName ? [t.tagName] : [],
+        );
 
-          if (namesToRemove.length > 0) {
-            (
-              await tx.query.bookmarkTags.findMany({
-                where: and(
-                  eq(bookmarkTags.userId, ctx.user.id),
-                  inArray(bookmarkTags.name, namesToRemove),
-                ),
-                columns: {
-                  id: true,
-                },
-              })
-            ).forEach((tag) => {
-              idsToRemove.push(tag.id);
-            });
+        // Fetch tag IDs in parallel
+        const [byIds, byNames] = await Promise.all([
+          tagIds.length > 0
+            ? ctx.db
+                .select({ id: bookmarkTags.id, name: bookmarkTags.name })
+                .from(bookmarkTags)
+                .where(
+                  and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.id, tagIds),
+                  ),
+                )
+            : Promise.resolve([]),
+          tagNames.length > 0
+            ? ctx.db
+                .select({ id: bookmarkTags.id, name: bookmarkTags.name })
+                .from(bookmarkTags)
+                .where(
+                  and(
+                    eq(bookmarkTags.userId, ctx.user.id),
+                    inArray(bookmarkTags.name, tagNames),
+                  ),
+                )
+            : Promise.resolve([]),
+        ]);
+
+        // Union results and deduplicate by tag ID
+        const seen = new Set<string>();
+        const results: { id: string; name: string }[] = [];
+
+        for (const tag of [...byIds, ...byNames]) {
+          if (!seen.has(tag.id)) {
+            seen.add(tag.id);
+            results.push({ id: tag.id, name: tag.name });
           }
+        }
 
-          await tx
+        return results;
+      };
+
+      // Normalize tag names and create new tags outside transaction to reduce transaction duration
+      const normalizedAttachTags = input.attach.map((tag) => ({
+        tagId: tag.tagId,
+        tagName: tag.tagName ? normalizeTagName(tag.tagName) : undefined,
+        attachedBy: tag.attachedBy,
+      }));
+
+      {
+        // Create new tags
+        const toAddTagNames = normalizedAttachTags
+          .flatMap((i) => (i.tagName ? [i.tagName] : []))
+          .filter((n) => n.length > 0); // drop empty results
+
+        if (toAddTagNames.length > 0) {
+          await ctx.db
+            .insert(bookmarkTags)
+            .values(
+              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+            )
+            .onConflictDoNothing();
+        }
+      }
+
+      // Fetch tag IDs for attachment/detachment now that we know that they all exist
+      const [attachTagsWithNames, detachTagsWithNames] = await Promise.all([
+        fetchTagIdsWithNames(normalizedAttachTags),
+        fetchTagIdsWithNames(input.detach),
+      ]);
+
+      // Build the attachedBy map from the fetched results
+      const tagIdToAttachedBy = new Map<string, "ai" | "human">();
+
+      for (const fetchedTag of attachTagsWithNames) {
+        // Find the corresponding input tag
+        const inputTag = normalizedAttachTags.find(
+          (t) =>
+            (t.tagId && t.tagId === fetchedTag.id) ||
+            (t.tagName && t.tagName === fetchedTag.name),
+        );
+
+        if (inputTag) {
+          tagIdToAttachedBy.set(fetchedTag.id, inputTag.attachedBy);
+        }
+      }
+
+      // Extract just the IDs for the transaction
+      const allIdsToAttach = attachTagsWithNames.map((t) => t.id);
+      const idsToRemove = detachTagsWithNames.map((t) => t.id);
+
+      const res = await ctx.db.transaction(async (tx) => {
+        let numChanges = 0;
+        // Detaches
+        if (idsToRemove.length > 0) {
+          const res = await tx
             .delete(tagsOnBookmarks)
             .where(
               and(
@@ -749,101 +996,77 @@ export const bookmarksAppRouter = router({
                 inArray(tagsOnBookmarks.tagId, idsToRemove),
               ),
             );
+          numChanges += res.changes;
         }
 
-        if (input.attach.length == 0) {
-          return {
-            bookmarkId: input.bookmarkId,
-            attached: [],
-            detached: idsToRemove,
-          };
-        }
-
-        const toAddTagNames = input.attach
-          .flatMap((i) => (i.tagName ? [i.tagName] : []))
-          .map(normalizeTagName) // strip leading #
-          .filter((n) => n.length > 0); // drop empty results
-
-        const toAddTagIds = input.attach.flatMap((i) =>
-          i.tagId ? [i.tagId] : [],
-        );
-
-        // New Tags
-        if (toAddTagNames.length > 0) {
-          await tx
-            .insert(bookmarkTags)
+        // Attach tags
+        if (allIdsToAttach.length > 0) {
+          const res = await tx
+            .insert(tagsOnBookmarks)
             .values(
-              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+              allIdsToAttach.map((i) => ({
+                tagId: i,
+                bookmarkId: input.bookmarkId,
+                attachedBy: tagIdToAttachedBy.get(i) ?? "human",
+              })),
             )
-            .onConflictDoNothing()
-            .returning();
+            .onConflictDoNothing();
+          numChanges += res.changes;
         }
 
-        // If there is nothing to add, the "or" statement will become useless and
-        // the query below will simply select all the existing tags for this user and assign them to the bookmark
-        invariant(toAddTagNames.length > 0 || toAddTagIds.length > 0);
-        const allIds = (
-          await tx.query.bookmarkTags.findMany({
-            where: and(
-              eq(bookmarkTags.userId, ctx.user.id),
-              or(
-                toAddTagIds.length > 0
-                  ? inArray(bookmarkTags.id, toAddTagIds)
-                  : undefined,
-                toAddTagNames.length > 0
-                  ? inArray(bookmarkTags.name, toAddTagNames)
-                  : undefined,
+        // Update bookmark modified timestamp
+        if (numChanges > 0) {
+          await tx
+            .update(bookmarks)
+            .set({ modifiedAt: new Date() })
+            .where(
+              and(
+                eq(bookmarks.id, input.bookmarkId),
+                eq(bookmarks.userId, ctx.user.id),
               ),
-            ),
-            columns: {
-              id: true,
-            },
-          })
-        ).map((t) => t.id);
+            );
+        }
 
-        await tx
-          .insert(tagsOnBookmarks)
-          .values(
-            allIds.map((i) => ({
-              tagId: i,
-              bookmarkId: input.bookmarkId,
-              attachedBy: "human" as const,
-              userId: ctx.user.id,
-            })),
-          )
-          .onConflictDoNothing();
-        await tx
-          .update(bookmarks)
-          .set({ modifiedAt: new Date() })
-          .where(
-            and(
-              eq(bookmarks.id, input.bookmarkId),
-              eq(bookmarks.userId, ctx.user.id),
-            ),
-          );
-
-        await triggerRuleEngineOnEvent(input.bookmarkId, [
-          ...idsToRemove.map((t) => ({
-            type: "tagRemoved" as const,
-            tagId: t,
-          })),
-          ...allIds.map((t) => ({
-            type: "tagAdded" as const,
-            tagId: t,
-          })),
-        ]);
-        await triggerSearchReindex(input.bookmarkId, {
-          groupId: ctx.user.id,
-        });
-        await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        });
         return {
           bookmarkId: input.bookmarkId,
-          attached: allIds,
+          attached: allIdsToAttach,
           detached: idsToRemove,
+          numChanges,
         };
       });
+
+      if (res.numChanges > 0) {
+        await Promise.allSettled([
+          RuleEngine.triggerOnEvent(
+            ctx.bookmark.userId,
+            input.bookmarkId,
+            [
+              ...res.detached.map((t) => ({
+                type: "tagRemoved" as const,
+                tagId: t,
+              })),
+              ...res.attached.map((t) => ({
+                type: "tagAdded" as const,
+                tagId: t,
+              })),
+            ],
+            undefined,
+            ctx.db,
+          ),
+          triggerSearchReindex(input.bookmarkId, {
+            groupId: ctx.user.id,
+          }),
+          new WebhooksService(ctx.db).triggerWebhook(
+            input.bookmarkId,
+            "edited",
+            ctx.bookmark.userId,
+            {
+              groupId: ctx.user.id,
+            },
+          ),
+        ]);
+      }
+      return res;
     }),
   getBrokenLinks: authedProcedure
     .output(
@@ -954,8 +1177,15 @@ Author: ${bookmark.author ?? ""}
         },
       });
 
+      const userSettings = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+        columns: {
+          inferredTagLang: true,
+        },
+      });
+
       const summaryPrompt = await buildSummaryPrompt(
-        serverConfig.inference.inferredTagLang,
+        userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
         prompts.map((p) => p.text),
         bookmarkDetails,
         serverConfig.inference.contextLength,
@@ -977,12 +1207,19 @@ Author: ${bookmark.author ?? ""}
           summary: summary.response,
         })
         .where(eq(bookmarks.id, input.bookmarkId));
-      await triggerSearchReindex(input.bookmarkId, {
-        groupId: ctx.user.id,
-      });
-      await triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-        groupId: ctx.user.id,
-      });
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          ctx.bookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
+      ]);
 
       return {
         bookmarkId: input.bookmarkId,

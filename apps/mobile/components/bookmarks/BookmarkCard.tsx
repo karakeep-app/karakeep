@@ -1,7 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
-  Image,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -9,14 +9,17 @@ import {
   View,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { router, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { api } from "@/lib/trpc";
+import { useMenuIconColors } from "@/lib/useMenuIconColors";
+import { buildApiHeaders } from "@/lib/utils";
 import { MenuView } from "@react-native-menu/menu";
+import { useQuery } from "@tanstack/react-query";
 import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -25,6 +28,7 @@ import {
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
@@ -44,6 +48,7 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
   const { toast } = useToast();
   const { settings } = useAppSettings();
   const { data: currentUser } = useWhoAmI();
+  const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
 
   // Check if the current user owns this bookmark
   const isOwner = currentUser?.id === bookmark.userId;
@@ -124,9 +129,10 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
                 assetUrl,
                 fileUri,
                 {
-                  headers: {
-                    Authorization: `Bearer ${settings.apiKey}`,
-                  },
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
                 },
               );
 
@@ -140,14 +146,36 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
                 throw new Error("Failed to download image");
               }
             }
-          } else {
-            // For PDFs, share the URL
-            const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-            await Share.share({
-              url: assetUrl,
-              message:
-                bookmark.title || bookmark.content.fileName || "PDF Document",
-            });
+          } else if (bookmark.content.assetType === "pdf") {
+            if (await Sharing.isAvailableAsync()) {
+              const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
+              const fileName = bookmark.content.fileName || "document.pdf";
+              const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+              const downloadResult = await FileSystem.downloadAsync(
+                assetUrl,
+                fileUri,
+                {
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
+                },
+              );
+
+              if (downloadResult.status === 200) {
+                await Sharing.shareAsync(downloadResult.uri, {
+                  mimeType: "application/pdf",
+                  UTI: "com.adobe.pdf",
+                });
+                // Clean up the temporary file
+                await FileSystem.deleteAsync(downloadResult.uri, {
+                  idempotent: true,
+                });
+              } else {
+                throw new Error("Failed to download PDF");
+              }
+            }
           }
           break;
       }
@@ -171,12 +199,18 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         image: Platform.select({
           ios: "pencil",
         }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
+        }),
       },
       {
         id: "manage_list",
         title: "Manage Lists",
         image: Platform.select({
           ios: "list.bullet",
+        }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
         }),
       },
       {
@@ -185,12 +219,18 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         image: Platform.select({
           ios: "tag",
         }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
+        }),
       },
       {
         id: "archive",
         title: bookmark.archived ? "Un-archive" : "Archive",
         image: Platform.select({
           ios: "folder",
+        }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
         }),
       },
       {
@@ -201,6 +241,9 @@ function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
         },
         image: Platform.select({
           ios: "trash",
+        }),
+        imageColor: Platform.select({
+          ios: destructiveMenuIconColor,
         }),
       },
     );
@@ -314,29 +357,36 @@ function LinkCard({
   let imageComp;
   if (imageUrl) {
     imageComp = (
-      <Image
-        source={
-          imageUrl.localAsset
-            ? {
-                uri: `${settings.address}${imageUrl.url}`,
-                headers: {
-                  Authorization: `Bearer ${settings.apiKey}`,
-                },
-              }
-            : {
-                uri: imageUrl.url,
-              }
-        }
-        className="h-56 min-h-56 w-full object-cover"
-      />
+      <View className="h-56 min-h-56 w-full">
+        <Image
+          source={
+            imageUrl.localAsset
+              ? {
+                  uri: `${settings.address}${imageUrl.url}`,
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
+                }
+              : {
+                  uri: imageUrl.url,
+                }
+          }
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        />
+      </View>
     );
   } else {
     imageComp = (
-      <Image
-        // oxlint-disable-next-line no-require-imports
-        source={require("@/assets/blur.jpeg")}
-        className="h-56 w-full rounded-t-lg"
-      />
+      <View className="h-56 w-full overflow-hidden rounded-t-lg">
+        <Image
+          // oxlint-disable-next-line no-require-imports
+          source={require("@/assets/blur.jpeg")}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+        />
+      </View>
     );
   }
 
@@ -345,7 +395,8 @@ function LinkCard({
       <Pressable onPress={onOpenBookmark}>{imageComp}</Pressable>
       <View className="flex gap-2 p-2">
         <Text
-          className="line-clamp-2 text-xl font-bold text-foreground"
+          className="text-xl font-bold text-foreground"
+          numberOfLines={2}
           onPress={onOpenBookmark}
         >
           {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
@@ -360,7 +411,9 @@ function LinkCard({
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto line-clamp-1">{parsedUrl.host}</Text>
+          <Text className="my-auto shrink" numberOfLines={1}>
+            {parsedUrl.host}
+          </Text>
           <ActionBar bookmark={bookmark} />
         </View>
       </View>
@@ -388,7 +441,7 @@ function TextCard({
     <View className="flex max-h-96 gap-2 p-2">
       <Pressable onPress={onOpenBookmark}>
         {bookmark.title && (
-          <Text className="line-clamp-2 text-xl font-bold">
+          <Text className="text-xl font-bold" numberOfLines={2}>
             {bookmark.title}
           </Text>
         )}
@@ -437,13 +490,15 @@ function AssetCard({
       <Pressable onPress={onOpenBookmark}>
         <BookmarkAssetImage
           assetId={assetImage}
-          className="h-56 min-h-56 w-full object-cover"
+          className="h-56 min-h-56 w-full"
         />
       </Pressable>
       <View className="flex gap-2 p-2">
         <Pressable onPress={onOpenBookmark}>
           {title && (
-            <Text className="line-clamp-2 text-xl font-bold">{title}</Text>
+            <Text numberOfLines={2} className="text-xl font-bold">
+              {title}
+            </Text>
           )}
         </Pressable>
         {note && (
@@ -469,23 +524,48 @@ export default function BookmarkCard({
 }: {
   bookmark: ZBookmark;
 }) {
-  const { data: bookmark } = api.bookmarks.getBookmark.useQuery(
-    {
-      bookmarkId: initialData.id,
-    },
-    {
-      initialData,
-      refetchInterval: (query) => {
-        const data = query.state.data;
-        if (!data) {
-          return false;
-        }
-        return getBookmarkRefreshInterval(data);
+  const api = useTRPC();
+  const { data: bookmark } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: initialData.id,
       },
-    },
+      {
+        initialData,
+        refetchInterval: (query) => {
+          const data = query.state.data;
+          if (!data) {
+            return false;
+          }
+          return getBookmarkRefreshInterval(data);
+        },
+      },
+    ),
   );
 
   const router = useRouter();
+  const { settings } = useAppSettings();
+  const { toast } = useToast();
+
+  const onOpenBookmark = (bookmark: ZBookmark) => {
+    if (
+      bookmark.content.type === BookmarkTypes.LINK &&
+      settings.defaultBookmarkView === "externalBrowser"
+    ) {
+      void Linking.openURL(bookmark.content.url).catch(() => {
+        toast({
+          message: "Failed to open link",
+          variant: "destructive",
+          showProgress: false,
+        });
+
+        router.push(`/dashboard/bookmarks/${bookmark.id}`);
+      });
+      return;
+    }
+
+    router.push(`/dashboard/bookmarks/${bookmark.id}`);
+  };
 
   let comp;
   switch (bookmark.content.type) {
@@ -493,9 +573,7 @@ export default function BookmarkCard({
       comp = (
         <LinkCard
           bookmark={bookmark}
-          onOpenBookmark={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}`)
-          }
+          onOpenBookmark={() => onOpenBookmark(bookmark)}
         />
       );
       break;
@@ -503,9 +581,7 @@ export default function BookmarkCard({
       comp = (
         <TextCard
           bookmark={bookmark}
-          onOpenBookmark={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}`)
-          }
+          onOpenBookmark={() => onOpenBookmark(bookmark)}
         />
       );
       break;
@@ -513,13 +589,18 @@ export default function BookmarkCard({
       comp = (
         <AssetCard
           bookmark={bookmark}
-          onOpenBookmark={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}`)
-          }
+          onOpenBookmark={() => onOpenBookmark(bookmark)}
         />
       );
       break;
   }
 
-  return <View className="overflow-hidden rounded-xl bg-card">{comp}</View>;
+  return (
+    <View
+      className="overflow-hidden rounded-xl bg-card"
+      style={{ borderCurve: "continuous" }}
+    >
+      {comp}
+    </View>
+  );
 }

@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { WebhooksRepo } from "../models/webhooks.repo";
 import type { CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
 
@@ -96,6 +97,26 @@ describe("Webhook Routes", () => {
     ).rejects.toThrow(/Webhook not found/);
   });
 
+  test<CustomTestContext>("delete webhook returns not found when the row disappears after ownership check", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].webhooks;
+    const createdWebhook = await api.create({
+      url: "https://example.com/webhook",
+      events: ["created"],
+    });
+
+    const deleteSpy = vi
+      .spyOn(WebhooksRepo.prototype, "delete")
+      .mockResolvedValueOnce(false);
+
+    await expect(() =>
+      api.delete({ webhookId: createdWebhook.id }),
+    ).rejects.toThrow(/NOT_FOUND/);
+
+    deleteSpy.mockRestore();
+  });
+
   test<CustomTestContext>("privacy for webhooks", async ({ apiCallers }) => {
     const user1Webhook = await apiCallers[0].webhooks.create({
       url: "https://user1-webhook.com",
@@ -124,5 +145,27 @@ describe("Webhook Routes", () => {
     expect(user1List.webhooks.some((w) => w.id === user2Webhook.id)).toBe(
       false,
     );
+  });
+
+  test<CustomTestContext>("webhook limit enforcement", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].webhooks;
+
+    // Create 100 webhooks (the maximum)
+    for (let i = 0; i < 100; i++) {
+      await api.create({
+        url: `https://example${i}.com/webhook`,
+        events: ["created"],
+      });
+    }
+
+    // The 101st webhook should fail
+    await expect(() =>
+      api.create({
+        url: "https://example101.com/webhook",
+        events: ["created"],
+      }),
+    ).rejects.toThrow(/Maximum number of webhooks \(100\) reached/);
   });
 });

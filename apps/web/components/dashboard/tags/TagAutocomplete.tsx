@@ -15,11 +15,12 @@ import {
 } from "@/components/ui/popover";
 import LoadingSpinner from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
-import { api } from "@karakeep/shared-react/trpc";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 interface TagAutocompleteProps {
   tagId: string;
@@ -32,6 +33,7 @@ export function TagAutocomplete({
   onChange,
   className,
 }: TagAutocompleteProps) {
+  const api = useTRPC();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchQueryDebounced = useDebounce(searchQuery, 500);
@@ -41,8 +43,8 @@ export function TagAutocomplete({
     select: (data) => data.tags,
   });
 
-  const { data: selectedTag, isLoading: isSelectedTagLoading } =
-    api.tags.get.useQuery(
+  const { data: selectedTag, isLoading: isSelectedTagLoading } = useQuery(
+    api.tags.get.queryOptions(
       {
         tagId,
       },
@@ -53,7 +55,8 @@ export function TagAutocomplete({
         }),
         enabled: !!tagId,
       },
-    );
+    ),
+  );
 
   const handleSelect = (currentValue: string) => {
     setOpen(false);

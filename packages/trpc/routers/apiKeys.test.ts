@@ -428,9 +428,10 @@ describe("API Keys Routes", () => {
       await User.createRaw(db, {
         name: "Unverified User",
         email: "unverified@test.com",
-        password: await (
-          await import("../auth")
-        ).hashPassword("password123", "test-salt"),
+        password: await (await import("../auth")).hashPassword(
+          "password123",
+          "test-salt",
+        ),
         salt: "test-salt",
         emailVerified: null, // User is not verified
       });

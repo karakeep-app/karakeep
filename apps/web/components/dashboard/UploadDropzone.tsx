@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+import { toast } from "@/components/ui/sonner";
+import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import useUpload from "@/lib/hooks/upload-file";
 import { cn } from "@/lib/utils";
 import { TRPCClientError } from "@trpc/client";
@@ -10,7 +12,6 @@ import { useCreateBookmarkWithPostHook } from "@karakeep/shared-react/hooks/book
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import LoadingSpinner from "../ui/spinner";
-import { toast } from "../ui/use-toast";
 import BookmarkAlreadyExistsToast from "../utils/BookmarkAlreadyExistsToast";
 
 export function useUploadAsset() {
@@ -136,7 +137,12 @@ export default function UploadDropzone({
     <DropZone
       noClick
       onDrop={onDrop}
-      onDragEnter={() => setDragging(true)}
+      onDragEnter={(e) => {
+        // Don't show overlay for internal bookmark card drags
+        if (!e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME)) {
+          setDragging(true);
+        }
+      }}
       onDragLeave={() => setDragging(false)}
     >
       {({ getRootProps, getInputProps }) => (

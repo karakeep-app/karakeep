@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
 import usePluginSettings from "./utils/settings";
-import { api } from "./utils/trpc";
+import { useTRPC } from "./utils/trpc";
 
 const enum LoginState {
   NONE = "NONE",
@@ -14,6 +15,7 @@ const enum LoginState {
 }
 
 export default function SignInPage() {
+  const api = useTRPC();
   const navigate = useNavigate();
   const { settings, setSettings } = usePluginSettings();
 
@@ -21,23 +23,27 @@ export default function SignInPage() {
     mutate: login,
     error: usernamePasswordError,
     isPending: userNamePasswordRequestIsPending,
-  } = api.apiKeys.exchange.useMutation({
-    onSuccess: (resp) => {
-      setSettings((s) => ({ ...s, apiKey: resp.key, apiKeyId: resp.id }));
-      navigate("/options");
-    },
-  });
+  } = useMutation(
+    api.apiKeys.exchange.mutationOptions({
+      onSuccess: (resp) => {
+        setSettings((s) => ({ ...s, apiKey: resp.key, apiKeyId: resp.id }));
+        navigate("/options");
+      },
+    }),
+  );
 
   const {
     mutate: validateApiKey,
     error: apiKeyValidationError,
     isPending: apiKeyValueRequestIsPending,
-  } = api.apiKeys.validate.useMutation({
-    onSuccess: () => {
-      setSettings((s) => ({ ...s, apiKey: apiKeyFormData.apiKey }));
-      navigate("/options");
-    },
-  });
+  } = useMutation(
+    api.apiKeys.validate.mutationOptions({
+      onSuccess: () => {
+        setSettings((s) => ({ ...s, apiKey: apiKeyFormData.apiKey }));
+        navigate("/options");
+      },
+    }),
+  );
 
   const [lastLoginAttemptSource, setLastLoginAttemptSource] =
     useState<LoginState>(LoginState.NONE);

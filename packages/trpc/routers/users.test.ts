@@ -60,6 +60,32 @@ describe("User Routes", () => {
     expect(user.email).toEqual("test123@test.com");
   });
 
+  test<CustomTestContext>("create user trims surrounding whitespace in name", async ({
+    unauthedAPICaller,
+  }) => {
+    const user = await unauthedAPICaller.users.create({
+      name: "  Test \n User  ",
+      email: "sanitized@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+
+    expect(user.name).toEqual("Test \n User");
+  });
+
+  test<CustomTestContext>("create user rejects raw html in name", async ({
+    unauthedAPICaller,
+  }) => {
+    await expect(() =>
+      unauthedAPICaller.users.create({
+        name: "<script>alert('xss')</script>",
+        email: "html-only@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      }),
+    ).rejects.toThrow(/Name contains invalid characters/);
+  });
+
   test<CustomTestContext>("first user is admin", async ({
     unauthedAPICaller,
   }) => {
@@ -158,6 +184,18 @@ describe("User Routes", () => {
       backupsEnabled: false,
       backupsFrequency: "weekly",
       backupsRetentionDays: 30,
+
+      // Reader settings
+      readerFontFamily: null,
+      readerFontSize: null,
+      readerLineHeight: null,
+
+      // AI Settings
+      autoSummarizationEnabled: null,
+      autoTaggingEnabled: null,
+      curatedTagIds: null,
+      inferredTagLang: null,
+      tagStyle: "titlecase-spaces",
     });
 
     // Update settings
@@ -166,6 +204,17 @@ describe("User Routes", () => {
       backupsEnabled: true,
       backupsFrequency: "daily",
       backupsRetentionDays: 7,
+
+      // Reader settings
+      readerFontFamily: "serif",
+      readerFontSize: 12,
+      readerLineHeight: 1.5,
+
+      // AI Settings
+      autoSummarizationEnabled: true,
+      autoTaggingEnabled: true,
+      inferredTagLang: "en",
+      tagStyle: "lowercase-underscores",
     });
 
     // Verify updated settings
@@ -177,6 +226,18 @@ describe("User Routes", () => {
       backupsEnabled: true,
       backupsFrequency: "daily",
       backupsRetentionDays: 7,
+
+      // Reader settings
+      readerFontFamily: "serif",
+      readerFontSize: 12,
+      readerLineHeight: 1.5,
+
+      // AI Settings
+      autoSummarizationEnabled: true,
+      autoTaggingEnabled: true,
+      curatedTagIds: null,
+      inferredTagLang: "en",
+      tagStyle: "lowercase-underscores",
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)
@@ -915,6 +976,81 @@ describe("User Routes", () => {
     });
   });
 
+  describe("Update Avatar", () => {
+    test<CustomTestContext>("updateAvatar - promotes unknown asset", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Avatar Reject",
+        email: "avatar-reject@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      await db.insert(assets).values({
+        id: "avatar-asset-2",
+        assetType: AssetTypes.UNKNOWN,
+        userId: user.id,
+        contentType: "image/png",
+        size: 12,
+        fileName: "avatar.png",
+        bookmarkId: null,
+      });
+
+      await caller.users.updateAvatar({ assetId: "avatar-asset-2" });
+
+      const updatedAsset = await db
+        .select()
+        .from(assets)
+        .where(eq(assets.id, "avatar-asset-2"))
+        .then((rows) => rows[0]);
+
+      expect(updatedAsset?.assetType).toBe(AssetTypes.AVATAR);
+    });
+
+    test<CustomTestContext>("updateAvatar - deletes avatar asset", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Avatar Delete",
+        email: "avatar-delete@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      await db.insert(assets).values({
+        id: "avatar-asset-3",
+        assetType: AssetTypes.UNKNOWN,
+        userId: user.id,
+        contentType: "image/png",
+        size: 12,
+        fileName: "avatar.png",
+        bookmarkId: null,
+      });
+
+      await caller.users.updateAvatar({ assetId: "avatar-asset-3" });
+      await caller.users.updateAvatar({ assetId: null });
+
+      const updatedUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id))
+        .then((rows) => rows[0]);
+      const remainingAsset = await db
+        .select()
+        .from(assets)
+        .where(eq(assets.id, "avatar-asset-3"))
+        .then((rows) => rows[0]);
+
+      expect(updatedUser?.image).toBeNull();
+      expect(remainingAsset).toBeUndefined();
+    });
+  });
+
   describe("Who Am I", () => {
     test<CustomTestContext>("whoami - returns user info", async ({
       db,
@@ -1008,6 +1144,7 @@ describe("User Routes", () => {
         "resend@test.com",
         "Test User",
         expect.any(String), // token
+        undefined, // redirectUrl
       );
     });
 

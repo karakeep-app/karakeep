@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
+import { toast } from "@/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -13,14 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "@/components/ui/use-toast";
 import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import { useTranslation } from "@/lib/i18n/client";
-import { api } from "@/lib/trpc";
 import { formatBytes } from "@/lib/utils";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ExternalLink, Trash2 } from "lucide-react";
 
 import { useDetachBookmarkAsset } from "@karakeep/shared-react/hooks/assets";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import {
   humanFriendlyNameForAssertType,
@@ -28,6 +33,7 @@ import {
 } from "@karakeep/trpc/lib/attachments";
 
 export default function AssetsSettingsPage() {
+  const api = useTRPC();
   const { t } = useTranslation();
   const { mutate: detachAsset, isPending: isDetaching } =
     useDetachBookmarkAsset({
@@ -49,13 +55,15 @@ export default function AssetsSettingsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = api.assets.list.useInfiniteQuery(
-    {
-      limit: 20,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+  } = useInfiniteQuery(
+    api.assets.list.infiniteQueryOptions(
+      {
+        limit: 20,
+      },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
   );
 
   const assets = data?.pages.flatMap((page) => page.assets) ?? [];
@@ -65,13 +73,10 @@ export default function AssetsSettingsPage() {
   }
 
   return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="flex flex-col gap-2">
-        <div className="mb-2 text-lg font-medium">
-          {t("settings.manage_assets.manage_assets")}
-        </div>
+    <SettingsPage title={t("settings.manage_assets.manage_assets")}>
+      <SettingsSection>
         {assets.length === 0 && (
-          <p className="rounded-md bg-muted p-2 text-sm text-muted-foreground">
+          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
             {t("settings.manage_assets.no_assets")}
           </p>
         )}
@@ -178,7 +183,7 @@ export default function AssetsSettingsPage() {
             </ActionButton>
           </div>
         )}
-      </div>
-    </div>
+      </SettingsSection>
+    </SettingsPage>
   );
 }

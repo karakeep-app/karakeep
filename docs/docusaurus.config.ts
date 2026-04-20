@@ -19,7 +19,7 @@ const config: Config = {
   organizationName: "karakeep-app", // Usually your GitHub org/user name.
   projectName: "karakeep", // Usually your repo name.
 
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
@@ -57,6 +57,10 @@ const config: Config = {
     ],
   ],
   plugins: [
+    [
+      "@docusaurus/plugin-client-redirects",
+      {},
+    ],
     [
       "docusaurus-plugin-openapi-docs",
       {
@@ -108,52 +112,12 @@ const config: Config = {
         },
       ],
     },
-    footer: {
-      style: "dark",
-      links: [
-        {
-          title: "Docs",
-          items: [
-            {
-              label: "Introduction",
-              to: "/",
-            },
-          ],
-        },
-        {
-          title: "Community",
-          items: [
-            {
-              label: "GitHub",
-              href: "https://github.com/karakeep-app/karakeep",
-            },
-          ],
-        },
-        {
-          title: "More",
-          items: [
-            {
-              label: "Homepage",
-              href: "https://karakeep.app",
-            },
-            {
-              label: "GitHub",
-              href: "https://github.com/karakeep-app/karakeep",
-            },
-            {
-              label: "Demo",
-              href: "https://try.karakeep.app",
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} Karakeep App. Built with Docusaurus.`,
-    },
+
     algolia: {
-      appId: 'V93C1M14G6',
+      appId: "V93C1M14G6",
       // Public API key: it is safe to commit it
-      apiKey: '0eb8853d9740822fb9d21620d5515f35',
-      indexName: 'karakeep',
+      apiKey: "0eb8853d9740822fb9d21620d5515f35",
+      indexName: "karakeep",
       contextualSearch: true,
       insights: true,
     },

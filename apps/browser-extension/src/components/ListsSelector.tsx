@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSet } from "@uidotdev/usehooks";
 import { Check, ChevronsUpDown } from "lucide-react";
 
@@ -9,7 +10,7 @@ import {
 } from "@karakeep/shared-react/hooks/lists";
 
 import { cn } from "../utils/css";
-import { api } from "../utils/trpc";
+import { useTRPC } from "../utils/trpc";
 import { Button } from "./ui/button";
 import {
   Command,
@@ -23,14 +24,17 @@ import { DynamicPopoverContent } from "./ui/dynamic-popover";
 import { Popover, PopoverTrigger } from "./ui/popover";
 
 export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
+  const api = useTRPC();
   const currentlyUpdating = useSet<string>();
   const [open, setOpen] = React.useState(false);
 
   const { mutate: addToList } = useAddBookmarkToList();
   const { mutate: removeFromList } = useRemoveBookmarkFromList();
-  const { data: existingLists } = api.lists.getListsOfBookmark.useQuery({
-    bookmarkId,
-  });
+  const { data: existingLists } = useQuery(
+    api.lists.getListsOfBookmark.queryOptions({
+      bookmarkId,
+    }),
+  );
 
   const { data: allLists } = useBookmarkLists();
 

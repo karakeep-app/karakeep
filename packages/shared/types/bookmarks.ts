@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { zCursorV2 } from "./pagination";
-import { zBookmarkTagSchema } from "./tags";
+import { zAttachedByEnumSchema, zBookmarkTagSchema } from "./tags";
 
 export const MAX_BOOKMARK_TITLE_LENGTH = 1000;
 
@@ -18,6 +18,7 @@ export type ZSortOrder = z.infer<typeof zSortOrder>;
 export const zAssetTypesSchema = z.enum([
   "linkHtmlContent",
   "screenshot",
+  "pdf",
   "assetScreenshot",
   "bannerImage",
   "fullPageArchive",
@@ -25,6 +26,7 @@ export const zAssetTypesSchema = z.enum([
   "bookmarkAsset",
   "precrawledArchive",
   "userUploaded",
+  "avatar",
   "unknown",
 ]);
 export type ZAssetType = z.infer<typeof zAssetTypesSchema>;
@@ -43,6 +45,7 @@ export const zBookmarkedLinkSchema = z.object({
   imageUrl: z.string().nullish(),
   imageAssetId: z.string().nullish(),
   screenshotAssetId: z.string().nullish(),
+  pdfAssetId: z.string().nullish(),
   fullPageArchiveAssetId: z.string().nullish(),
   precrawledArchiveAssetId: z.string().nullish(),
   videoAssetId: z.string().nullish(),
@@ -50,6 +53,7 @@ export const zBookmarkedLinkSchema = z.object({
   htmlContent: z.string().nullish(),
   contentAssetId: z.string().nullish(),
   crawledAt: z.date().nullish(),
+  crawlStatus: z.enum(["success", "failure", "pending"]).nullish(),
   author: z.string().nullish(),
   publisher: z.string().nullish(),
   datePublished: z.date().nullish(),
@@ -112,78 +116,81 @@ export const zBareBookmarkSchema = z.object({
 
 export type ZBareBookmark = z.infer<typeof zBareBookmarkSchema>;
 
-export const zBookmarkSchema = zBareBookmarkSchema.merge(
+export const zBookmarkSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkContentSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmark = z.infer<typeof zBookmarkSchema>;
 
-const zBookmarkTypeLinkSchema = zBareBookmarkSchema.merge(
+const zBookmarkTypeLinkSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedLinkSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmarkTypeLink = z.infer<typeof zBookmarkTypeLinkSchema>;
 
-const zBookmarkTypeTextSchema = zBareBookmarkSchema.merge(
+const zBookmarkTypeTextSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedTextSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmarkTypeText = z.infer<typeof zBookmarkTypeTextSchema>;
 
-const zBookmarkTypeAssetSchema = zBareBookmarkSchema.merge(
+const zBookmarkTypeAssetSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedAssetSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmarkTypeAsset = z.infer<typeof zBookmarkTypeAssetSchema>;
 
 // POST /v1/bookmarks
-export const zNewBookmarkRequestSchema = z
-  .object({
+export const zNewBookmarkRequestSchema = z.intersection(
+  z.object({
     title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
     archived: z.boolean().optional(),
     favourited: z.boolean().optional(),
     note: z.string().optional(),
     summary: z.string().optional(),
-    createdAt: z.coerce.date().optional(),
+    createdAt: z.coerce
+      .date()
+      .optional()
+      .meta({ type: "string", format: "date-time" }),
     // A mechanism to prioritize crawling of bookmarks depending on whether
     // they were created by a user interaction or by a bulk import.
     crawlPriority: z.enum(["low", "normal"]).optional(),
+    // Deprecated
     importSessionId: z.string().optional(),
     source: zBookmarkSourceSchema.optional(),
-  })
-  .and(
-    z.discriminatedUnion("type", [
-      z.object({
-        type: z.literal(BookmarkTypes.LINK),
-        url: z.string().url(),
-        precrawledArchiveId: z.string().optional(),
-      }),
-      z.object({
-        type: z.literal(BookmarkTypes.TEXT),
-        text: z.string(),
-        sourceUrl: z.string().optional(),
-      }),
-      z.object({
-        type: z.literal(BookmarkTypes.ASSET),
-        assetType: z.enum(["image", "pdf"]),
-        assetId: z.string(),
-        fileName: z.string().optional(),
-        sourceUrl: z.string().optional(),
-      }),
-    ]),
-  );
+  }),
+  z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal(BookmarkTypes.LINK),
+      url: z.string().url(),
+      precrawledArchiveId: z.string().optional(),
+    }),
+    z.object({
+      type: z.literal(BookmarkTypes.TEXT),
+      text: z.string(),
+      sourceUrl: z.string().optional(),
+    }),
+    z.object({
+      type: z.literal(BookmarkTypes.ASSET),
+      assetType: z.enum(["image", "pdf"]),
+      assetId: z.string(),
+      fileName: z.string().optional(),
+      sourceUrl: z.string().optional(),
+    }),
+  ]),
+);
 export type ZNewBookmarkRequest = z.infer<typeof zNewBookmarkRequestSchema>;
 
 // GET /v1/bookmarks
@@ -223,7 +230,10 @@ export const zUpdateBookmarksRequestSchema = z.object({
   summary: z.string().nullish(),
   note: z.string().optional(),
   title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
-  createdAt: z.coerce.date().optional(),
+  createdAt: z.coerce
+    .date()
+    .optional()
+    .meta({ type: "string", format: "date-time" }),
   // Link specific fields (optional)
   url: z.string().url().optional(),
   description: z.string().nullish(),
@@ -248,6 +258,7 @@ export const zManipulatedTagSchema = z
     // At least one of the two must be set
     tagId: z.string().optional(), // If the tag already exists and we know its id we should pass it
     tagName: z.string().optional(),
+    attachedBy: zAttachedByEnumSchema.optional().default("human"),
   })
   .refine((val) => !!val.tagId || !!val.tagName, {
     message: "You must provide either a tagId or a tagName",

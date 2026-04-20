@@ -22,8 +22,7 @@ export default function InfoTooltip({
       <TooltipTrigger asChild>
         {variant === "tip" ? (
           <Info
-            color="#494949"
-            className={cn("z-10 cursor-pointer", className)}
+            className={cn("z-10 cursor-pointer text-[#494949]", className)}
             size={size}
           />
         ) : (
