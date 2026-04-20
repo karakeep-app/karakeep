@@ -123,6 +123,7 @@ RUN apt-get update \
         graphicsmagick \
         ghostscript \
         libjemalloc2 \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
