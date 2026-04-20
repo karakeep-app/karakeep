@@ -26,7 +26,8 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
       return next();
     }
 
-    const key = `${ip}:${config.name}`;
+    const userSegment = c.var.ctx.user?.id ? `:user:${c.var.ctx.user.id}` : "";
+    const key = `${ip}${userSegment}:${config.name}`;
     const result = await client.checkRateLimit(config, key);
 
     if (!result.allowed) {
