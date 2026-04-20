@@ -123,11 +123,6 @@ export class OpenAIInferenceClient implements InferenceClient {
       ..._opts,
     };
 
-    const optionalProps = {
-      ...(this.config.reasoningEffort
-        ? { reasoning_effort: this.config.reasoningEffort }
-        : {}),
-    };
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         messages: [{ role: "user", content: prompt }],
@@ -148,7 +143,7 @@ export class OpenAIInferenceClient implements InferenceClient {
           },
           this.config.outputSchema,
         ),
-        ...optionalProps,
+        reasoning_effort: this.config.reasoningEffort,
       },
       {
         signal: optsWithDefaults.abortSignal,
@@ -156,10 +151,7 @@ export class OpenAIInferenceClient implements InferenceClient {
     );
 
     //Some reasoning models might still return the response in reasoning field, even when reasoning_effort is set to none.
-    const response =
-      chatCompletion.choices[0].message.content ||
-      // @ts-expect-error: important: Some OpenRouter models might return the response in reasoning field yet the OpenAI API ChatCompletion type doesn't have this as a valid field.
-      chatCompletion.choices[0].message.reasoning;
+    const response = chatCompletion.choices[0].message.content;
 
     if (!response) {
       throw new Error(`Got no message content from OpenAI`);
