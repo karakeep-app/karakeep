@@ -291,10 +291,17 @@ export class User {
       const token = randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-      await ctx.db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
+      await ctx.db.transaction(async (tx) => {
+        // Invalidate any existing reset tokens for this user
+        await tx
+          .delete(passwordResetTokens)
+          .where(eq(passwordResetTokens.userId, user.id));
+
+        await tx.insert(passwordResetTokens).values({
+          userId: user.id,
+          token,
+          expires,
+        });
       });
 
       await sendPasswordResetEmail(email, user.name, token);
