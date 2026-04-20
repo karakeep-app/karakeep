@@ -130,7 +130,7 @@ export default function OptionsPage() {
           }
         />
       </div>
-      <p className="text-muted-foreground text-xs">
+      <p className="text-xs text-muted-foreground">
         When disabled, you&apos;ll confirm before saving bookmarks.
       </p>
       <hr />

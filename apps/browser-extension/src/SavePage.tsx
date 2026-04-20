@@ -22,7 +22,8 @@ export default function SavePage() {
   const api = useTRPC();
   const { settings, isPending: isSettingsLoaded } = usePluginSettings();
   const [error, setError] = useState<string | undefined>(undefined);
-  const [pendingBookmark, setPendingBookmark] = useState<ZNewBookmarkRequest | null>(null);
+  const [pendingBookmark, setPendingBookmark] =
+    useState<ZNewBookmarkRequest | null>(null);
   const [hasCheckedRequest, setHasCheckedRequest] = useState(false);
 
   const {
@@ -116,7 +117,13 @@ export default function SavePage() {
         source: pendingBookmark.source || "extension",
       });
     }
-  }, [hasCheckedRequest, pendingBookmark, settings.autoSave, status, createBookmark]);
+  }, [
+    hasCheckedRequest,
+    pendingBookmark,
+    settings.autoSave,
+    status,
+    createBookmark,
+  ]);
 
   const handleManualSave = () => {
     if (pendingBookmark) {
@@ -166,13 +173,13 @@ export default function SavePage() {
                   }
                   placeholder="Untitled"
                 />
-                <p className="text-muted-foreground truncate text-xs">
+                <p className="truncate text-xs text-muted-foreground">
                   {pendingBookmark.url}
                 </p>
               </div>
             )}
             {pendingBookmark.type === BookmarkTypes.TEXT && (
-              <p className="text-muted-foreground text-xs">
+              <p className="text-xs text-muted-foreground">
                 {pendingBookmark.text.length > 150
                   ? `${pendingBookmark.text.substring(0, 150)}...`
                   : pendingBookmark.text}
