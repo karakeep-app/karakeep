@@ -1,3 +1,4 @@
+import RelativeTime from "@/components/ui/relative-time";
 import {
   Table,
   TableBody,
@@ -8,7 +9,6 @@ import {
 } from "@/components/ui/table";
 import { useTranslation } from "@/lib/i18n/server";
 import { api } from "@/server/api/client";
-import { formatDistanceToNow } from "date-fns";
 
 import DeleteApiKey from "./DeleteApiKey";
 import RegenerateApiKey from "./RegenerateApiKey";
@@ -37,11 +37,11 @@ export default async function ApiKeys() {
                 <TableCell>{key.name}</TableCell>
                 <TableCell>**_{key.keyId}_**</TableCell>
                 <TableCell>
-                  {formatDistanceToNow(key.createdAt, { addSuffix: true })}
+                  <RelativeTime date={key.createdAt} />
                 </TableCell>
                 <TableCell>
                   {key.lastUsedAt
-                    ? formatDistanceToNow(key.lastUsedAt, { addSuffix: true })
+                    ? <RelativeTime date={key.lastUsedAt} />
                     : "—"}
                 </TableCell>
                 <TableCell>

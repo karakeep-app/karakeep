@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
+import FormattedDate from "@/components/ui/formatted-date";
 import {
   Form,
   FormControl,
@@ -409,7 +410,7 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
       >
         {feed.url}
       </TableCell>
-      <TableCell>{feed.lastFetchedAt?.toLocaleString()}</TableCell>
+      <TableCell><FormattedDate date={feed.lastFetchedAt} /></TableCell>
       <TableCell>
         {feed.lastFetchedStatus === "success" ? (
           <span title="Successful">

@@ -1,3 +1,4 @@
+import FormattedDate from "@/components/ui/formatted-date";
 import InfoTooltip from "@/components/ui/info-tooltip";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useTranslation } from "@/lib/i18n/client";
@@ -52,7 +53,7 @@ export default function QueryExplainerTooltip({
                 ? t("search.not_created_on_or_after")
                 : t("search.created_on_or_after")}
             </TableCell>
-            <TableCell>{matcher.dateAfter.toDateString()}</TableCell>
+            <TableCell><FormattedDate date={matcher.dateAfter} formatStr="PPP" /></TableCell>
           </TableRow>
         );
       case "dateBefore":
@@ -63,7 +64,7 @@ export default function QueryExplainerTooltip({
                 ? t("search.not_created_on_or_before")
                 : t("search.created_on_or_before")}
             </TableCell>
-            <TableCell>{matcher.dateBefore.toDateString()}</TableCell>
+            <TableCell><FormattedDate date={matcher.dateBefore} formatStr="PPP" /></TableCell>
           </TableRow>
         );
       case "age":
