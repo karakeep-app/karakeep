@@ -20,6 +20,9 @@ export type ZTagStyle = z.infer<typeof zTagStyleSchema>;
 export const zUserNameSchema = z
   .string()
   .transform(sanitizePlainTextInput)
+  .refine((value) => !/[<>]/.test(value), {
+    message: "Name contains invalid characters",
+  })
   .pipe(z.string().min(1, { message: "Name can't be empty" }));
 
 export const zSignUpSchema = z

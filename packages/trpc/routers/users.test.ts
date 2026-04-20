@@ -12,7 +12,6 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
 import * as emailModule from "../email";
-import { User } from "../models/users";
 import { defaultBeforeEach, getApiCaller } from "../testUtils";
 
 // Mock server config with email settings
@@ -87,15 +86,17 @@ describe("User Routes", () => {
     ).rejects.toThrow(/Name can't be empty/);
   });
 
-  test<CustomTestContext>("createRaw sanitizes html in name", async ({
-    db,
+  test<CustomTestContext>("create user rejects normalized angle-bracket markup", async ({
+    unauthedAPICaller,
   }) => {
-    const user = await User.createRaw(db, {
-      name: "<strong>OAuth User</strong>",
-      email: "oauth-sanitized@test.com",
-    });
-
-    expect(user.name).toEqual("OAuth User");
+    await expect(() =>
+      unauthedAPICaller.users.create({
+        name: "&lt;script&gt;alert('xss')&lt;/script&gt;",
+        email: "encoded-markup@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      }),
+    ).rejects.toThrow(/Name contains invalid characters/);
   });
 
   test<CustomTestContext>("first user is admin", async ({
