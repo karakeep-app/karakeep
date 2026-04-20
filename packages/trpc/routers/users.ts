@@ -101,6 +101,13 @@ export const usersAppRouter = router({
       };
     }),
   changePassword: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.changePassword",
+        windowMs: 15 * 60 * 1000,
+        maxRequests: 5,
+      }),
+    )
     .input(
       z.object({
         currentPassword: z.string(),
