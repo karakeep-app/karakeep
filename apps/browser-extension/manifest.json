@@ -48,7 +48,7 @@
   "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://karakeep.invalid/*"],
       "js": ["src/content-scripts/singlefile-content-script.ts"],
       "run_at": "document_idle",
       "all_frames": false

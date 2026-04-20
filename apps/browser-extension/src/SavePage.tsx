@@ -75,14 +75,16 @@ export default function SavePage() {
     }
 
     async function loadBookmarkRequest() {
+      const [currentTab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true,
+      });
+      setCurrentTabId(currentTab?.id);
+
       let newBookmarkRequest =
         await getNewBookmarkRequestFromBackgroundScriptIfAny();
       if (!newBookmarkRequest) {
-        const [currentTab] = await chrome.tabs.query({
-          active: true,
-          lastFocusedWindow: true,
-        });
-        if (!currentTab.url) {
+        if (!currentTab?.url) {
           setError("Current tab has no URL to bookmark.");
           setHasCheckedRequest(true);
           return;
@@ -96,7 +98,6 @@ export default function SavePage() {
           return;
         }
 
-        setCurrentTabId(currentTab.id);
         newBookmarkRequest = {
           type: BookmarkTypes.LINK,
           title: currentTab.title,
