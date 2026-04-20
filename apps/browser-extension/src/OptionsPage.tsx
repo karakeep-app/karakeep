@@ -121,11 +121,17 @@ export default function OptionsPage() {
         </>
       )}
       <hr />
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col">
-          <span className="text-sm font-medium">Use SingleFile</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Client-side crawling</span>
+            <span className="rounded bg-yellow-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+              Experimental
+            </span>
+          </div>
           <span className="text-xs text-gray-500">
-            Capture full page archives when saving bookmarks
+            Captures the page in the browser instead of on the server. Slower,
+            but captures the page more accurately as you see it.
           </span>
         </div>
         <Switch
@@ -135,6 +141,23 @@ export default function OptionsPage() {
           }
         />
       </div>
+      {settings.useSingleFile && (
+        <div className="flex items-start justify-between gap-2 pl-4">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">Include images</span>
+            <span className="text-xs text-gray-500">
+              Including images makes the upload slower.
+            </span>
+          </div>
+          <Switch
+            checked={settings.singleFileIncludeImages}
+            onCheckedChange={(checked) =>
+              setSettings((s) => ({ ...s, singleFileIncludeImages: checked }))
+            }
+          />
+        </div>
+      )}
+      <hr />
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium">Auto-save on open</span>
         <Switch

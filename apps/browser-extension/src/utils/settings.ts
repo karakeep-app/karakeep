@@ -14,6 +14,7 @@ const zSettingsSchema = z.object({
   badgeCacheExpireMs: z.number().min(0).default(DEFAULT_BADGE_CACHE_EXPIRE_MS),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
   useSingleFile: z.boolean().default(false),
+  singleFileIncludeImages: z.boolean().default(true),
   autoSave: z.boolean().default(true),
 });
 
@@ -26,6 +27,7 @@ const DEFAULT_SETTINGS: Settings = {
   badgeCacheExpireMs: DEFAULT_BADGE_CACHE_EXPIRE_MS,
   customHeaders: {},
   useSingleFile: false,
+  singleFileIncludeImages: true,
   autoSave: true,
 };
 

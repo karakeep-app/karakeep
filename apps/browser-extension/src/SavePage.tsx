@@ -16,7 +16,7 @@ import Spinner from "./Spinner";
 import usePluginSettings from "./utils/settings";
 import {
   capturePageWithSingleFile,
-  uploadSingleFileAndCreateBookmark,
+  uploadSingleFileAsset,
 } from "./utils/singlefile";
 import { useTRPC } from "./utils/trpc";
 import { MessageType } from "./utils/type";
@@ -26,13 +26,13 @@ export default function SavePage() {
   const api = useTRPC();
   const { settings, isPending: isSettingsLoaded } = usePluginSettings();
   const [error, setError] = useState<string | undefined>(undefined);
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedBookmarkId, setSavedBookmarkId] = useState<string | undefined>(
-    undefined,
-  );
+  const [isCapturing, setIsCapturing] = useState(false);
   const [pendingBookmark, setPendingBookmark] =
     useState<ZNewBookmarkRequest | null>(null);
   const [hasCheckedRequest, setHasCheckedRequest] = useState(false);
+  const [currentTabId, setCurrentTabId] = useState<number | undefined>(
+    undefined,
+  );
 
   const {
     data,
@@ -96,34 +96,7 @@ export default function SavePage() {
           return;
         }
 
-        // If SingleFile is enabled, capture and upload the page
-        if (settings.useSingleFile && currentTab.id) {
-          try {
-            setIsSaving(true);
-            const html = await capturePageWithSingleFile(currentTab.id);
-            const response = await uploadSingleFileAndCreateBookmark(
-              currentTab.url,
-              html,
-              currentTab.title,
-            );
-            const bookmark = await response.json();
-            setSavedBookmarkId(bookmark.id);
-
-            // Update badge cache
-            await chrome.runtime.sendMessage({
-              type: MessageType.BOOKMARK_REFRESH_BADGE,
-              currentTab: currentTab,
-            });
-            return;
-          } catch (e) {
-            setError(
-              `Failed to capture page with SingleFile: ${e instanceof Error ? e.message : String(e)}`,
-            );
-            setIsSaving(false);
-            return;
-          }
-        }
-
+        setCurrentTabId(currentTab.id);
         newBookmarkRequest = {
           type: BookmarkTypes.LINK,
           title: currentTab.title,
@@ -138,7 +111,40 @@ export default function SavePage() {
 
     if (!isSettingsLoaded) return;
     loadBookmarkRequest();
-  }, [isSettingsLoaded, settings.useSingleFile]);
+  }, [isSettingsLoaded]);
+
+  const saveBookmark = async (bookmark: ZNewBookmarkRequest) => {
+    let finalBookmark = bookmark;
+    if (
+      settings.useSingleFile &&
+      currentTabId !== undefined &&
+      bookmark.type === BookmarkTypes.LINK &&
+      !bookmark.precrawledArchiveId
+    ) {
+      try {
+        setIsCapturing(true);
+        const html = await capturePageWithSingleFile(currentTabId, {
+          includeImages: settings.singleFileIncludeImages,
+        });
+        const precrawledArchiveId = await uploadSingleFileAsset(
+          html,
+          bookmark.title ?? undefined,
+        );
+        finalBookmark = { ...bookmark, precrawledArchiveId };
+      } catch (e) {
+        setError(
+          `Failed to crawl page: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return;
+      } finally {
+        setIsCapturing(false);
+      }
+    }
+    createBookmark({
+      ...finalBookmark,
+      source: finalBookmark.source || "extension",
+    });
+  };
 
   // Auto-save when settings are loaded and we have a pending bookmark
   useEffect(() => {
@@ -146,27 +152,23 @@ export default function SavePage() {
       hasCheckedRequest &&
       pendingBookmark &&
       settings.autoSave &&
-      status === "idle"
+      status === "idle" &&
+      !isCapturing
     ) {
-      createBookmark({
-        ...pendingBookmark,
-        source: pendingBookmark.source || "extension",
-      });
+      saveBookmark(pendingBookmark);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hasCheckedRequest,
     pendingBookmark,
     settings.autoSave,
     status,
-    createBookmark,
+    isCapturing,
   ]);
 
   const handleManualSave = () => {
     if (pendingBookmark) {
-      createBookmark({
-        ...pendingBookmark,
-        source: pendingBookmark.source || "extension",
-      });
+      saveBookmark(pendingBookmark);
     }
   };
 
@@ -174,16 +176,10 @@ export default function SavePage() {
     return <div className="text-red-500">{error}</div>;
   }
 
-  // If we saved via SingleFile, navigate to the bookmark
-  if (savedBookmarkId) {
-    return <Navigate to={`/bookmark/${savedBookmarkId}`} />;
-  }
-
-  // If we're saving via SingleFile, show loading
-  if (isSaving) {
+  if (isCapturing) {
     return (
       <div className="flex justify-between text-lg">
-        <span>Capturing and Saving Page </span>
+        <span>Capturing Page </span>
         <Spinner />
       </div>
     );

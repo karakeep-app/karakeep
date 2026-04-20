@@ -8,10 +8,9 @@ declare module "single-file-core/single-file.js" {
     removeUnusedStyles?: boolean;
     removeUnusedFonts?: boolean;
     compressHTML?: boolean;
-    removeImports?: boolean;
-    removeScripts?: boolean;
-    removeAudioSrc?: boolean;
-    removeVideoSrc?: boolean;
+    blockScripts?: boolean;
+    blockImages?: boolean;
+    removeFrames?: boolean;
     removeAlternativeFonts?: boolean;
     removeAlternativeMedias?: boolean;
     removeAlternativeImages?: boolean;
