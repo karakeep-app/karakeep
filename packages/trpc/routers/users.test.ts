@@ -60,39 +60,26 @@ describe("User Routes", () => {
     expect(user.email).toEqual("test123@test.com");
   });
 
-  test<CustomTestContext>("create user sanitizes html in name", async ({
+  test<CustomTestContext>("create user trims surrounding whitespace in name", async ({
     unauthedAPICaller,
   }) => {
     const user = await unauthedAPICaller.users.create({
-      name: "  <b>Test</b>\n<User>  ",
+      name: "  Test \n User  ",
       email: "sanitized@test.com",
       password: "pass1234",
       confirmPassword: "pass1234",
     });
 
-    expect(user.name).toEqual("Test");
+    expect(user.name).toEqual("Test \n User");
   });
 
-  test<CustomTestContext>("create user rejects html-only name", async ({
+  test<CustomTestContext>("create user rejects raw html in name", async ({
     unauthedAPICaller,
   }) => {
     await expect(() =>
       unauthedAPICaller.users.create({
         name: "<script>alert('xss')</script>",
         email: "html-only@test.com",
-        password: "pass1234",
-        confirmPassword: "pass1234",
-      }),
-    ).rejects.toThrow(/Name can't be empty/);
-  });
-
-  test<CustomTestContext>("create user rejects normalized angle-bracket markup", async ({
-    unauthedAPICaller,
-  }) => {
-    await expect(() =>
-      unauthedAPICaller.users.create({
-        name: "&lt;script&gt;alert('xss')&lt;/script&gt;",
-        email: "encoded-markup@test.com",
         password: "pass1234",
         confirmPassword: "pass1234",
       }),

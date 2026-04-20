@@ -18,7 +18,10 @@ import {
   verificationTokens,
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
-import { sanitizePlainTextInput } from "@karakeep/shared/utils/htmlUtils";
+import {
+  containsUnsafeUserNameMarkup,
+  normalizeUserNameInput,
+} from "@karakeep/shared/utils/userName";
 import { validatePassword } from "@karakeep/trpc/auth";
 import { User } from "@karakeep/trpc/models/users";
 
@@ -72,6 +75,16 @@ async function isAdmin(email: string): Promise<boolean> {
   return res?.role == "admin";
 }
 
+function normalizeSafeDisplayName(
+  name: string | null | undefined,
+  email: string,
+): string {
+  const normalizedName = normalizeUserNameInput(name ?? "");
+  return !containsUnsafeUserNameMarkup(name ?? "") && normalizedName
+    ? normalizedName
+    : email;
+}
+
 const CustomProvider = (): Adapter => {
   const adapter = DrizzleAdapter(db, {
     usersTable: users,
@@ -83,11 +96,8 @@ const CustomProvider = (): Adapter => {
   return {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
-      const sanitizedName =
-        sanitizePlainTextInput(user.name ?? "") || user.email;
-
       return await User.createRaw(db, {
-        name: sanitizedName,
+        name: normalizeSafeDisplayName(user.name, user.email),
         email: user.email,
         emailVerified: user.emailVerified,
       });
@@ -141,12 +151,10 @@ if (oauth.wellKnownUrl) {
         isAdmin(profile.email),
         isFirstUser(),
       ]);
-      const sanitizedName =
-        sanitizePlainTextInput(profile.name || "") || profile.email;
 
       return {
         id: profile.sub,
-        name: sanitizedName,
+        name: normalizeSafeDisplayName(profile.name, profile.email),
         email: profile.email,
         role: admin || firstUser ? "admin" : "user",
       };
