@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { sanitizePlainTextInput } from "../utils/htmlUtils";
 import { zBookmarkSourceSchema } from "./bookmarks";
 
 export const PASSWORD_MIN_LENGTH = 8;
@@ -16,9 +17,14 @@ export const zTagStyleSchema = z.enum([
 ]);
 export type ZTagStyle = z.infer<typeof zTagStyleSchema>;
 
+export const zUserNameSchema = z
+  .string()
+  .transform(sanitizePlainTextInput)
+  .pipe(z.string().min(1, { message: "Name can't be empty" }));
+
 export const zSignUpSchema = z
   .object({
-    name: z.string().min(1, { message: "Name can't be empty" }),
+    name: zUserNameSchema,
     email: z.string().email(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),

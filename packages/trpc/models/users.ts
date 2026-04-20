@@ -29,6 +29,7 @@ import {
   zWhoAmIResponseSchema,
   zWrappedStatsResponseSchema,
 } from "@karakeep/shared/types/users";
+import { sanitizePlainTextInput } from "@karakeep/shared/utils/htmlUtils";
 
 import { AuthedContext, Context } from "..";
 import { generatePasswordSalt, hashPassword, validatePassword } from "../auth";
@@ -78,7 +79,7 @@ export class User {
       try {
         await sendVerificationEmail(
           input.email,
-          input.name,
+          user.name,
           token,
           input.redirectUrl,
         );
@@ -101,6 +102,8 @@ export class User {
       emailVerified?: Date | null;
     },
   ) {
+    const sanitizedName = sanitizePlainTextInput(input.name);
+
     return await db.transaction(async (trx) => {
       let userRole = input.role;
       if (!userRole) {
@@ -114,7 +117,7 @@ export class User {
         const [result] = await trx
           .insert(users)
           .values({
-            name: input.name,
+            name: sanitizedName,
             email: input.email,
             password: input.password,
             salt: input.salt,

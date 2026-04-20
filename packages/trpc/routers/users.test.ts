@@ -12,6 +12,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
 import * as emailModule from "../email";
+import { User } from "../models/users";
 import { defaultBeforeEach, getApiCaller } from "../testUtils";
 
 // Mock server config with email settings
@@ -58,6 +59,43 @@ describe("User Routes", () => {
 
     expect(user.name).toEqual("Test User");
     expect(user.email).toEqual("test123@test.com");
+  });
+
+  test<CustomTestContext>("create user sanitizes html in name", async ({
+    unauthedAPICaller,
+  }) => {
+    const user = await unauthedAPICaller.users.create({
+      name: "  <b>Test</b>\n<User>  ",
+      email: "sanitized@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+
+    expect(user.name).toEqual("Test");
+  });
+
+  test<CustomTestContext>("create user rejects html-only name", async ({
+    unauthedAPICaller,
+  }) => {
+    await expect(() =>
+      unauthedAPICaller.users.create({
+        name: "<script>alert('xss')</script>",
+        email: "html-only@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      }),
+    ).rejects.toThrow(/Name can't be empty/);
+  });
+
+  test<CustomTestContext>("createRaw sanitizes html in name", async ({
+    db,
+  }) => {
+    const user = await User.createRaw(db, {
+      name: "<strong>OAuth User</strong>",
+      email: "oauth-sanitized@test.com",
+    });
+
+    expect(user.name).toEqual("OAuth User");
   });
 
   test<CustomTestContext>("first user is admin", async ({

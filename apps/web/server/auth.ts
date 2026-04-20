@@ -18,6 +18,7 @@ import {
   verificationTokens,
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
+import { sanitizePlainTextInput } from "@karakeep/shared/utils/htmlUtils";
 import { validatePassword } from "@karakeep/trpc/auth";
 import { User } from "@karakeep/trpc/models/users";
 
@@ -82,8 +83,11 @@ const CustomProvider = (): Adapter => {
   return {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
+      const sanitizedName =
+        sanitizePlainTextInput(user.name ?? "") || user.email;
+
       return await User.createRaw(db, {
-        name: user.name ?? "",
+        name: sanitizedName,
         email: user.email,
         emailVerified: user.emailVerified,
       });
@@ -137,9 +141,12 @@ if (oauth.wellKnownUrl) {
         isAdmin(profile.email),
         isFirstUser(),
       ]);
+      const sanitizedName =
+        sanitizePlainTextInput(profile.name || "") || profile.email;
+
       return {
         id: profile.sub,
-        name: profile.name || profile.email,
+        name: sanitizedName,
         email: profile.email,
         role: admin || firstUser ? "admin" : "user",
       };
