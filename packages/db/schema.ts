@@ -621,6 +621,9 @@ export const rssFeedsTable = sqliteTable(
       .default(false),
     createdAt: createdAtField(),
     lastFetchedAt: integer("lastFetchedAt", { mode: "timestamp" }),
+    lastSuccessfulFetchAt: integer("lastSuccessfulFetchAt", {
+      mode: "timestamp",
+    }),
     lastFetchedStatus: text("lastFetchedStatus", {
       enum: ["pending", "failure", "success"],
     }).default("pending"),
@@ -918,6 +921,7 @@ export const importStagingBookmarks = sqliteTable(
     tags: text("tags", { mode: "json" }).$type<string[]>(),
     listIds: text("listIds", { mode: "json" }).$type<string[]>(),
     sourceAddedAt: integer("sourceAddedAt", { mode: "timestamp" }),
+    archived: integer("archived", { mode: "boolean" }),
 
     // Processing state
     status: text("status", {

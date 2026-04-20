@@ -188,7 +188,7 @@
       "new_password": "Novo contrasinal",
       "confirm_new_password": "Confirmar novo contrasinal",
       "options": "Axustes",
-      "interface_lang": "Idioma de la interface",
+      "interface_lang": "Idioma da interface",
       "user_settings": {
         "user_settings_updated": "Actualizáronse os axustes do usuario!",
         "bookmark_click_action": {
@@ -225,7 +225,7 @@
         "local_overrides_cleared": "Elimináronse os axustes específicos do dispositivo",
         "local_overrides_description": "Este dispositivo ten parámetros de lector que difieren dos teus predeterminados globais:",
         "clear_defaults": "Borrar todos os predeterminados",
-        "description": "Configure os axustes de texto predeterminados para a vista do lector. Estes axustes sincronízanse en todos os teus dispositivos.",
+        "description": "Configura os axustes de texto predeterminados para a vista do lector. Estes axustes sincronízanse en todos os teus dispositivos.",
         "defaults_cleared": "Elimináronse os valores predeterminados do lector",
         "save_hint": "Garda os axustes só para este dispositivo ou sincronízaos en todos os dispositivos",
         "save_as_default": "Gardar como predeterminado",
@@ -247,9 +247,9 @@
       }
     },
     "ai": {
-      "ai_settings": "Axustes de la IA",
+      "ai_settings": "Axustes da IA",
       "tagging_rules": "Regras de etiquetado",
-      "tagging_rule_description": "Os prompts que engadas aquí incluiranse como regras durante la xeración de etiquetas. Podes comprobar o prompt final na sección de previsualización.",
+      "tagging_rule_description": "Os prompts que engadas aquí incluiranse como regras durante a xeración de etiquetas. Podes comprobar o prompt final na sección de previsualización.",
       "prompt_preview": "Previsualización",
       "text_prompt": "Prompt para texto",
       "images_prompt": "Prompt para Imaxen",
@@ -527,7 +527,7 @@
           "daily": "Diariamente",
           "weekly": "Semanalmente"
         },
-        "select_frequency": "Seleccione a frecuencia",
+        "select_frequency": "Selecciona a frecuencia",
         "save_settings": "Gardar a configuración"
       },
       "list": {
@@ -562,7 +562,7 @@
     }
   },
   "highlights": {
-    "no_highlights": "Inda non tés nada destacado."
+    "no_highlights": "Aínda non tes nada destacado."
   },
   "admin": {
     "admin_settings": "Axustes de Administrador",
@@ -738,7 +738,7 @@
     "light_mode": "Modo claro",
     "apps_extensions": "Aplicacións e extensións",
     "documentation": "Documentación",
-    "follow_us_on_x": "Síguenos en X"
+    "follow_us_on_x": "Séguenos en X"
   },
   "lists": {
     "all_lists": "Todas as listas",

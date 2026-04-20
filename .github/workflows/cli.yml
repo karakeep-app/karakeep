@@ -2,8 +2,8 @@ name: Publish CLI Package to npm
 on:
   push:
     tags:
-      # This is a glob pattern not a regex
       - "cli/v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
 
 permissions:
   id-token: write # Required for OIDC
@@ -18,12 +18,26 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
+      - name: Set canary version
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm version "0.0.0-canary.${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT}" --no-git-tag-version
+        working-directory: apps/cli
+
       - name: Build CLI
         run: pnpm build
         working-directory: apps/cli
 
       # npm 11.5.1 or later is required for trusted publishing
-      - run: npm install -g npm@latest
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
-      - run: pnpm publish --access public --no-git-checks
+      - name: Publish stable release
+        if: github.event_name == 'push'
+        run: pnpm publish --access public --no-git-checks
+        working-directory: apps/cli
+
+      - name: Publish canary release
+        if: github.event_name == 'workflow_dispatch'
+        run: pnpm publish --access public --no-git-checks --tag canary
         working-directory: apps/cli

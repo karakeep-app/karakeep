@@ -12,13 +12,26 @@ import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
+import { isIOS26 } from "@/lib/ios";
 import { Providers } from "@/lib/providers";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
 import { NAV_THEME } from "@/theme";
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
+import * as Sentry from "@sentry/react-native";
 
-export default function RootLayout() {
+Sentry.init({
+  dsn: "https://a61d93ed65066ed54c8566ba6b6a01d2@o4511008866172928.ingest.de.sentry.io/4511008868270160",
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: false,
+
+  // Enable Logs
+  enableLogs: false,
+});
+
+export default Sentry.wrap(function RootLayout() {
   useInitialAndroidBarSync();
   const router = useRouter();
   const { hasShareIntent } = useShareIntent();
@@ -58,7 +71,7 @@ export default function RootLayout() {
               ...Platform.select({
                 ios: {
                   headerTransparent: true,
-                  headerBlurEffect: "systemMaterial",
+                  headerBlurEffect: isIOS26 ? undefined : "systemMaterial",
                   headerLargeTitle: true,
                   headerLargeTitleShadowVisible: false,
                   headerLargeStyle: { backgroundColor: "transparent" },
@@ -132,4 +145,4 @@ export default function RootLayout() {
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
-}
+});

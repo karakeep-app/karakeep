@@ -138,7 +138,7 @@
       "actions": {
         "recrawl_failed_links_only": "Gjennomgå bare mislykkede lenker på nytt",
         "recrawl_all_links": "Gjennomgå alle lenker på nytt",
-        "without_inference": "Uten Inferences",
+        "without_inference": "Uten inferens",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Gjenskap AI-tagger bare for mislykkede bokmerker",
         "regenerate_ai_tags_for_all_bookmarks": "Gjenskap AI-tagger for alle bokmerker",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Gjenskap AI-sammendrag bare for mislykkede bokmerker",
@@ -380,7 +380,7 @@
       "export_links_and_notes": "Eksporter lenker og notater",
       "imported_bookmarks": "Importerte bokmerker",
       "import_bookmarks_from_tab_session_manager_export": "Importer bokmerker fra Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksporten min",
+      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksport",
       "import_bookmarks_from_instapaper_export": "Importer bokmerker fra Instapaper-eksport"
     },
     "api_keys": {
@@ -425,7 +425,7 @@
       "broken_links": "Ødelagte lenker",
       "last_crawled_at": "Sist crawlet på",
       "crawling_status": "Gjennomsøkingsstatus",
-      "crawling_failed": "Kryping feilet"
+      "crawling_failed": "Gjennomsøking feilet"
     },
     "manage_assets": {
       "bookmark_link": "Bokmerke-lenke",
@@ -897,13 +897,13 @@
   },
   "toasts": {
     "bookmarks": {
-      "full_page_archive": "Full Page Archive-opprettelse er trigga",
+      "full_page_archive": "Full Page Archive-opprettelse er utløst",
       "refetch": "Ny henting er satt i kø!",
-      "delete_from_list": "Bokmerket er sletta fra lista",
+      "delete_from_list": "Bokmerket er slettet fra lista",
       "clipboard_copied": "Lenken er lagt til utklippstavlen din!",
       "updated": "Bokmerket er oppdatert!",
       "deleted": "Bokmerket er slettet!",
-      "preserve_pdf": "PDF-bevaring er trigget",
+      "preserve_pdf": "PDF-bevaring er utløst",
       "update_banner": "Banneret er oppdatert!",
       "uploading_banner": "Laster opp banner..."
     },
@@ -914,7 +914,7 @@
       "deleted": "Liste er slettet!"
     },
     "tags": {
-      "created": "Taggen er oppretta!",
+      "created": "Taggen er opprettet!",
       "failed_to_create": "Klarte ikke å opprette taggen"
     }
   },

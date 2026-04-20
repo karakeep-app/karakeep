@@ -19,9 +19,7 @@ import {
 } from "@karakeep/db/schema";
 import {
   setSpanAttributes,
-  triggerRuleEngineOnEvent,
   triggerSearchReindex,
-  triggerWebhook,
 } from "@karakeep/shared-server";
 import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
@@ -29,7 +27,9 @@ import logger from "@karakeep/shared/logger";
 import { buildImagePrompt } from "@karakeep/shared/prompts";
 import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
+import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
+import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 const openAIResponseSchema = z.object({
   tags: z.array(z.string()),
@@ -461,22 +461,25 @@ async function connectTags(
     const allTagIds = new Set([...matchedTagIds, ...newTagIds]);
 
     // Attach new ones
-    const attachedTags = await tx
-      .insert(tagsOnBookmarks)
-      .values(
-        [...allTagIds].map((tagId) => ({
-          tagId,
-          bookmarkId,
-          attachedBy: "ai" as const,
-        })),
-      )
-      .onConflictDoNothing()
-      .returning();
+    let attachedTags: { tagId: string; bookmarkId: string }[] = [];
+    if (allTagIds.size > 0) {
+      attachedTags = await tx
+        .insert(tagsOnBookmarks)
+        .values(
+          [...allTagIds].map((tagId) => ({
+            tagId,
+            bookmarkId,
+            attachedBy: "ai" as const,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning();
+    }
 
     return { detachedTags, attachedTags };
   });
 
-  await triggerRuleEngineOnEvent(bookmarkId, [
+  await RuleEngine.triggerOnEvent(userId, bookmarkId, [
     ...res.detachedTags.map((t) => ({
       type: "tagRemoved" as const,
       tagId: t.tagId,
@@ -579,7 +582,15 @@ export async function runTagging(
   };
 
   // Trigger a webhook
-  await triggerWebhook(bookmarkId, "ai tagged", undefined, enqueueOpts);
+  {
+    const webhookService = new WebhooksService(db);
+    await webhookService.triggerWebhook(
+      bookmarkId,
+      "ai tagged",
+      bookmark.userId,
+      enqueueOpts,
+    );
+  }
 
   // Update the search index
   await triggerSearchReindex(bookmarkId, enqueueOpts);

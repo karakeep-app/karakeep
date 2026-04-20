@@ -16,15 +16,16 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 
 function HeaderRight({ openNewListModal }: { openNewListModal: () => void }) {
+  const { colors } = useColorScheme();
   return (
     <Pressable
-      className="my-auto px-4"
+      className="my-auto"
       onPress={() => {
         Haptics.selectionAsync();
         openNewListModal();
       }}
     >
-      <Plus color="rgb(0, 122, 255)" />
+      <Plus color={colors.foreground} />
     </Pressable>
   );
 }
@@ -247,7 +248,7 @@ export default function Lists() {
                   }));
                 }}
               >
-                <Text>
+                <Text className="mr-2 flex-1" numberOfLines={1}>
                   {l.item.logo} {l.item.name}
                 </Text>
               </Pressable>
@@ -259,7 +260,7 @@ export default function Lists() {
                 className="flex-1"
               >
                 <Pressable className="flex flex-row items-center justify-between">
-                  <Text className="shrink">
+                  <Text className="mr-2 flex-1" numberOfLines={1}>
                     {l.item.logo} {l.item.name}
                   </Text>
                   <View className="flex flex-row items-center">

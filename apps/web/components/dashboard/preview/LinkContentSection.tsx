@@ -147,9 +147,9 @@ export default function LinkContentSection({
     );
   } else if (section === "cached") {
     content = (
-      <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-4">
+      <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-6">
         <ReaderView
-          className="mx-auto"
+          className="mx-auto max-w-3xl"
           style={{
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
             fontSize: `${settings.fontSize}px`,
@@ -171,8 +171,8 @@ export default function LinkContentSection({
   }
 
   return (
-    <div className="flex h-full w-full min-w-0 flex-col items-center gap-2 overflow-hidden">
-      <div className="flex items-center gap-2">
+    <div className="flex h-full w-full min-w-0 flex-col items-center overflow-hidden">
+      <div className="flex w-full items-center justify-center gap-2 border-b px-3 py-1.5">
         <Select onValueChange={setSection} value={section}>
           <SelectTrigger className="w-fit">
             <span className="mr-2">

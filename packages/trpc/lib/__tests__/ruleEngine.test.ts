@@ -15,7 +15,11 @@ import {
   tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
-import { LinkCrawlerQueue } from "@karakeep/shared-server";
+import {
+  buildCrawlIdempotencyKey,
+  LowPriorityCrawlerQueue,
+  QueuePriority,
+} from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
@@ -29,12 +33,19 @@ import { TestDB } from "../../testUtils";
 import { RuleEngine } from "../ruleEngine";
 
 // Mock the queue
-vi.mock("@karakeep/shared-server", () => ({
-  LinkCrawlerQueue: {
-    enqueue: vi.fn(),
-  },
-  triggerRuleEngineOnEvent: vi.fn(),
-}));
+vi.mock("@karakeep/shared-server", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@karakeep/shared-server")>();
+  return {
+    ...actual,
+    LowPriorityCrawlerQueue: {
+      enqueue: vi.fn(),
+    },
+    RuleEngineQueue: {
+      enqueue: vi.fn(),
+    },
+  };
+});
 
 describe("RuleEngine", () => {
   let db: TestDB;
@@ -129,6 +140,7 @@ describe("RuleEngine", () => {
           title: "Example Bookmark Title",
           favourited: false,
           archived: false,
+          source: "rss",
         })
         .returning({ id: bookmarks.id })
     ).map((b) => b.id);
@@ -295,6 +307,22 @@ describe("RuleEngine", () => {
       const condition: RuleEngineCondition = {
         type: "bookmarkTypeIs",
         bookmarkType: BookmarkTypes.TEXT,
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
+    });
+
+    it("should return true for bookmarkSourceIs condition", () => {
+      const condition: RuleEngineCondition = {
+        type: "bookmarkSourceIs",
+        source: "rss",
+      };
+      expect(engine.doesBookmarkMatchConditions(condition)).toBe(true);
+    });
+
+    it("should return false for bookmarkSourceIs condition mismatch", () => {
+      const condition: RuleEngineCondition = {
+        type: "bookmarkSourceIs",
+        source: "web",
       };
       expect(engine.doesBookmarkMatchConditions(condition)).toBe(false);
     });
@@ -576,14 +604,17 @@ describe("RuleEngine", () => {
       const action: RuleEngineAction = { type: "downloadFullPageArchive" };
       const result = await engine.executeAction(action);
       expect(result).toBe(`Enqueued full page archive`);
-      expect(LinkCrawlerQueue.enqueue).toHaveBeenCalledWith(
-        {
-          bookmarkId: bookmarkId,
-          archiveFullPage: true,
-          runInference: false,
-        },
+      const expectedPayload = {
+        bookmarkId: bookmarkId,
+        archiveFullPage: true,
+        runInference: false,
+      };
+      expect(LowPriorityCrawlerQueue.enqueue).toHaveBeenCalledWith(
+        expectedPayload,
         {
           groupId: userId,
+          priority: QueuePriority.Low,
+          idempotencyKey: buildCrawlIdempotencyKey(expectedPayload),
         },
       );
     });

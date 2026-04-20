@@ -6,9 +6,12 @@ import type {
   RateLimitConfig,
   RateLimitResult,
 } from "@karakeep/shared/ratelimiting";
+import { throttledLogger } from "@karakeep/shared/logger";
 import { PluginProvider } from "@karakeep/shared/plugins";
 
 const KEY_PREFIX = "ratelimit:v1";
+
+const failOpenLog = throttledLogger(30_000);
 
 export class RedisRateLimiter implements RateLimitClient {
   private redis: RedisClientType;
@@ -92,7 +95,10 @@ export class RedisRateLimiter implements RateLimitClient {
       }
     } catch (error) {
       // On Redis error, fail open (allow the request)
-      console.error("Redis rate limit error:", error);
+      failOpenLog(
+        "warn",
+        `Rate limiter failed open due to Redis error: ${error}`,
+      );
       return { allowed: true };
     }
   }

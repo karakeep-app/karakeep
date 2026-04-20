@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
 import BookmarkLinkTypeSelector, {
@@ -11,6 +12,7 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { isIOS26 } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
@@ -18,6 +20,11 @@ import { useColorScheme } from "nativewind";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
+function KeepScreenOn() {
+  useKeepAwake();
+  return null;
+}
 
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
@@ -29,7 +36,9 @@ export default function BookmarkView() {
   const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
-    settings.defaultBookmarkView,
+    settings.defaultBookmarkView === "externalBrowser"
+      ? "browser"
+      : settings.defaultBookmarkView,
   );
 
   if (typeof slug !== "string") {
@@ -81,6 +90,7 @@ export default function BookmarkView() {
       style={{ flex: 1, paddingBottom: insets.bottom + 8 }}
       behavior="height"
     >
+      {settings.keepScreenOnWhileReading && <KeepScreenOn />}
       <Stack.Screen
         options={{
           headerTitle: title ?? "",
@@ -93,14 +103,16 @@ export default function BookmarkView() {
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
-              <View className="flex-row items-center gap-3 px-4">
+              <View
+                className={`flex-row items-center gap-3${isIOS26 ? " px-2" : ""}`}
+              >
                 {bookmarkLinkType === "reader" && (
                   <Pressable
                     onPress={() =>
                       router.push("/dashboard/settings/reader-settings")
                     }
                   >
-                    <Settings size={20} color="gray" />
+                    <Settings size={20} color={isDark ? "#fff" : "#000"} />
                   </Pressable>
                 )}
                 <BookmarkLinkTypeSelector

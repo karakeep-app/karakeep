@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Asset } from "@karakeep/trpc/models/assets";
 
 import { authMiddleware } from "../middlewares/auth";
+import { createRateLimitMiddleware } from "../middlewares/rateLimit";
 import { serveAsset } from "../utils/assets";
 import { uploadAsset } from "../utils/upload";
 
@@ -12,6 +13,11 @@ const app = new Hono()
   .use(authMiddleware)
   .post(
     "/",
+    createRateLimitMiddleware({
+      name: "assets.upload",
+      windowMs: 60 * 1000,
+      maxRequests: 30,
+    }),
     zValidator(
       "form",
       z

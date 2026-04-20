@@ -28,15 +28,9 @@
       "cache": false
     },
     "format": {
-      "outputs": [
-        "node_modules/.cache/prettier/.prettier-cache"
-      ],
       "outputLogs": "new-only"
     },
     "format:fix": {
-      "outputs": [
-        "node_modules/.cache/prettier/.prettier-cache"
-      ],
       "outputLogs": "new-only"
     },
     "lint": {

@@ -1,0 +1,1 @@
+ALTER TABLE `importStagingBookmarks` ADD `archived` integer;

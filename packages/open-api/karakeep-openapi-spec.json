@@ -3,7 +3,7 @@
   "info": {
     "version": "1.0.0",
     "title": "Karakeep API",
-    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF)."
+    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, feeds, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying."
   },
   "tags": [
     {
@@ -37,6 +37,10 @@
     {
       "name": "Backups",
       "description": "Create and manage full account backups as downloadable zip archives."
+    },
+    {
+      "name": "Feeds",
+      "description": "Manage RSS feed subscriptions. Create, update, delete, and trigger fetches for RSS feeds that automatically import bookmarks."
     }
   ],
   "servers": [
@@ -89,6 +93,31 @@
         "description": "The unique identifier of the backup.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
+      "FeedId": {
+        "type": "string",
+        "description": "The unique identifier of the feed.",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "PaginatedBookmarks": {
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bookmark"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next page, or null if no more results."
+          }
+        },
+        "required": [
+          "bookmarks",
+          "nextCursor"
+        ]
+      },
       "Bookmark": {
         "type": "object",
         "properties": {
@@ -96,11 +125,13 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "modifiedAt": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "format": "date-time"
           },
           "title": {
             "type": "string",
@@ -118,7 +149,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "summarizationStatus": {
@@ -127,7 +159,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "note": {
@@ -149,7 +182,8 @@
               "extension",
               "singlefile",
               "rss",
-              "import"
+              "import",
+              null
             ]
           },
           "userId": {
@@ -245,7 +279,8 @@
                   },
                   "crawledAt": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "crawlStatus": {
                     "type": "string",
@@ -253,7 +288,8 @@
                     "enum": [
                       "success",
                       "failure",
-                      "pending"
+                      "pending",
+                      null
                     ]
                   },
                   "author": {
@@ -266,11 +302,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -409,26 +447,6 @@
           "assets"
         ]
       },
-      "PaginatedBookmarks": {
-        "type": "object",
-        "properties": {
-          "bookmarks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Bookmark"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "nullable": true,
-            "description": "Cursor for the next page, or null if no more results."
-          }
-        },
-        "required": [
-          "bookmarks",
-          "nextCursor"
-        ]
-      },
       "Cursor": {
         "type": "string",
         "description": "Cursor from a previous response to fetch the next page."
@@ -545,7 +563,8 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -637,7 +656,61 @@
           "fileName"
         ]
       },
-      "File to be uploaded": {}
+      "Feed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "importTags": {
+            "type": "boolean"
+          },
+          "lastFetchedStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              null
+            ]
+          },
+          "lastFetchedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 timestamp of the last fetch attempt, or null if never fetched.",
+            "example": "2025-01-15T12:00:00.000Z"
+          },
+          "lastSuccessfulFetchAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 timestamp of the last successful fetch, or null if the feed has never been fetched successfully.",
+            "example": "2025-01-15T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "enabled",
+          "importTags",
+          "lastFetchedStatus",
+          "lastFetchedAt",
+          "lastSuccessfulFetchAt"
+        ]
+      }
     },
     "parameters": {
       "BookmarkId": {
@@ -645,6 +718,7 @@
           "$ref": "#/components/schemas/BookmarkId"
         },
         "required": true,
+        "description": "The unique identifier of the bookmark.",
         "name": "bookmarkId",
         "in": "path"
       },
@@ -653,6 +727,7 @@
           "$ref": "#/components/schemas/ListId"
         },
         "required": true,
+        "description": "The unique identifier of the list.",
         "name": "listId",
         "in": "path"
       },
@@ -661,6 +736,7 @@
           "$ref": "#/components/schemas/TagId"
         },
         "required": true,
+        "description": "The unique identifier of the tag.",
         "name": "tagId",
         "in": "path"
       },
@@ -669,6 +745,7 @@
           "$ref": "#/components/schemas/HighlightId"
         },
         "required": true,
+        "description": "The unique identifier of the highlight.",
         "name": "highlightId",
         "in": "path"
       },
@@ -677,6 +754,7 @@
           "$ref": "#/components/schemas/AssetId"
         },
         "required": true,
+        "description": "The unique identifier of the asset.",
         "name": "assetId",
         "in": "path"
       },
@@ -685,7 +763,17 @@
           "$ref": "#/components/schemas/BackupId"
         },
         "required": true,
+        "description": "The unique identifier of the backup.",
         "name": "backupId",
+        "in": "path"
+      },
+      "FeedId": {
+        "schema": {
+          "$ref": "#/components/schemas/FeedId"
+        },
+        "required": true,
+        "description": "The unique identifier of the feed.",
+        "name": "feedId",
         "in": "path"
       }
     }
@@ -835,7 +923,7 @@
                       },
                       "createdAt": {
                         "type": "string",
-                        "nullable": true
+                        "format": "date-time"
                       },
                       "crawlPriority": {
                         "type": "string",
@@ -1298,7 +1386,7 @@
                   },
                   "createdAt": {
                     "type": "string",
-                    "nullable": true
+                    "format": "date-time"
                   },
                   "url": {
                     "type": "string",
@@ -1318,11 +1406,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "text": {
                     "type": "string",
@@ -1349,11 +1439,13 @@
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1371,7 +1463,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1380,7 +1473,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1402,7 +1496,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -1477,11 +1572,13 @@
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1499,7 +1596,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1508,7 +1606,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1530,7 +1629,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -3713,7 +3813,8 @@
                               "extension",
                               "singlefile",
                               "rss",
-                              "import"
+                              "import",
+                              null
                             ]
                           },
                           "count": {
@@ -3781,7 +3882,9 @@
                 "type": "object",
                 "properties": {
                   "file": {
-                    "$ref": "#/components/schemas/File to be uploaded"
+                    "type": "string",
+                    "description": "File to be uploaded",
+                    "format": "binary"
                   }
                 },
                 "required": [
@@ -3873,6 +3976,7 @@
               "example": "user_123"
             },
             "required": true,
+            "description": "The ID of the user to update.",
             "name": "userId",
             "in": "path"
           }
@@ -3980,6 +4084,268 @@
         }
       }
     },
+    "/admin/jobs/trigger/recrawl": {
+      "post": {
+        "operationId": "adminTriggerRecrawl",
+        "description": "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones). Optionally run AI inference after crawling. Requires admin role.",
+        "summary": "Trigger recrawl of links (admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Options for the recrawl job.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "crawlStatus": {
+                    "type": "string",
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending",
+                      "all"
+                    ],
+                    "default": "all",
+                    "description": "Filter bookmarks by their crawl status. Use 'failure' to retry only failed crawls."
+                  },
+                  "runInference": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to run AI inference after crawling."
+                  }
+                },
+                "example": {
+                  "crawlStatus": "failure",
+                  "runInference": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recrawl jobs triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the job was triggered successfully."
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid input data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — admin access required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/jobs/trigger/reindex": {
+      "post": {
+        "operationId": "adminTriggerReindex",
+        "description": "Trigger a reindex of all bookmarks in the search engine. This clears the existing index and re-queues all bookmarks for indexing. Requires admin role.",
+        "summary": "Trigger reindex of all bookmarks (admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reindex jobs triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the job was triggered successfully."
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — admin access required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/jobs/trigger/inference": {
+      "post": {
+        "operationId": "adminTriggerInference",
+        "description": "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status to target specific bookmarks (e.g., only failed ones). Requires admin role.",
+        "summary": "Trigger AI inference on bookmarks (admin)",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "Options for the inference job.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "tag",
+                      "summarize"
+                    ],
+                    "description": "The type of inference to run: 'tag' for AI tagging, 'summarize' for AI summarization."
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending",
+                      "all"
+                    ],
+                    "default": "all",
+                    "description": "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones."
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "example": {
+                  "type": "tag",
+                  "status": "failure"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inference jobs triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the job was triggered successfully."
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid input data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden — admin access required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/backups": {
       "get": {
         "operationId": "listBackups",
@@ -4017,7 +4383,8 @@
                             "nullable": true
                           },
                           "createdAt": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "date-time"
                           },
                           "size": {
                             "type": "number"
@@ -4101,7 +4468,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4186,7 +4554,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4311,7 +4680,10 @@
             "description": "The backup file as a zip archive.",
             "content": {
               "application/zip": {
-                "schema": {}
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
@@ -4328,6 +4700,357 @@
           },
           "404": {
             "description": "Backup not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds": {
+      "get": {
+        "operationId": "listFeeds",
+        "description": "Retrieve all RSS feed subscriptions for the authenticated user.",
+        "summary": "Get all feeds",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of all feeds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "feeds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Feed"
+                      }
+                    }
+                  },
+                  "required": [
+                    "feeds"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createFeed",
+        "description": "Create a new RSS feed subscription. The feed will be periodically fetched and matching items will be imported as bookmarks.",
+        "summary": "Create a new feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The feed to create.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "format": "uri"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "importTags": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — e.g. the maximum number of RSS feeds per user has been reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feedId}": {
+      "get": {
+        "operationId": "getFeed",
+        "description": "Retrieve a single RSS feed subscription by its ID.",
+        "summary": "Get a single feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateFeed",
+        "description": "Update an RSS feed subscription. Only provided fields will be changed.",
+        "summary": "Update a feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "requestBody": {
+          "description": "The fields to update.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "format": "uri"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "importTags": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteFeed",
+        "description": "Delete an RSS feed subscription. Previously imported bookmarks are not affected.",
+        "summary": "Delete a feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content — the feed was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feedId}/fetch": {
+      "post": {
+        "operationId": "fetchFeedNow",
+        "description": "Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.",
+        "summary": "Trigger a feed fetch",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content — the fetch has been enqueued."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
             "content": {
               "application/json": {
                 "schema": {

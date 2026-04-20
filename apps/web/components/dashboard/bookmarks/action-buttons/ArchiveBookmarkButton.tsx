@@ -6,8 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
-interface ArchiveBookmarkButtonProps
-  extends Omit<ActionButtonProps, "loading" | "disabled"> {
+interface ArchiveBookmarkButtonProps extends Omit<
+  ActionButtonProps,
+  "loading" | "disabled"
+> {
   bookmarkId: string;
   onDone?: () => void;
 }

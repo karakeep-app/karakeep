@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -410,7 +411,7 @@ function LinkCard({
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto" numberOfLines={1}>
+          <Text className="my-auto shrink" numberOfLines={1}>
             {parsedUrl.host}
           </Text>
           <ActionBar bookmark={bookmark} />
@@ -543,6 +544,28 @@ export default function BookmarkCard({
   );
 
   const router = useRouter();
+  const { settings } = useAppSettings();
+  const { toast } = useToast();
+
+  const onOpenBookmark = (bookmark: ZBookmark) => {
+    if (
+      bookmark.content.type === BookmarkTypes.LINK &&
+      settings.defaultBookmarkView === "externalBrowser"
+    ) {
+      void Linking.openURL(bookmark.content.url).catch(() => {
+        toast({
+          message: "Failed to open link",
+          variant: "destructive",
+          showProgress: false,
+        });
+
+        router.push(`/dashboard/bookmarks/${bookmark.id}`);
+      });
+      return;
+    }
+
+    router.push(`/dashboard/bookmarks/${bookmark.id}`);
+  };
 
   let comp;
   switch (bookmark.content.type) {
@@ -550,9 +573,7 @@ export default function BookmarkCard({
       comp = (
         <LinkCard
           bookmark={bookmark}
-          onOpenBookmark={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}`)
-          }
+          onOpenBookmark={() => onOpenBookmark(bookmark)}
         />
       );
       break;
@@ -560,9 +581,7 @@ export default function BookmarkCard({
       comp = (
         <TextCard
           bookmark={bookmark}
-          onOpenBookmark={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}`)
-          }
+          onOpenBookmark={() => onOpenBookmark(bookmark)}
         />
       );
       break;
@@ -570,9 +589,7 @@ export default function BookmarkCard({
       comp = (
         <AssetCard
           bookmark={bookmark}
-          onOpenBookmark={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}`)
-          }
+          onOpenBookmark={() => onOpenBookmark(bookmark)}
         />
       );
       break;

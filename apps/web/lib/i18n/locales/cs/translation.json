@@ -102,7 +102,7 @@
   },
   "settings": {
     "ai": {
-      "tagging_rule_description": "Dotazy, které sem přidáte, budou během generování tagů zahrnuty jako pravidla do modelu. Finální dotazy si můžete prohlédnout v sekci náhledu výzev.",
+      "tagging_rule_description": "Dotazy, které sem přidáš, budou během generování tagů zahrnuty jako pravidla do modelu. Finální dotazy si můžeš prohlédnout v sekci náhledu výzev.",
       "ai_settings": "Nastavení AI",
       "tagging_rules": "Pravidla pro označování štítky",
       "prompt_preview": "Náhled promptu",
@@ -114,8 +114,8 @@
       "image_tagging": "Označování obrázků",
       "summarization": "Shrnutí",
       "tag_style": "Styl štítků",
-      "auto_summarization_description": "Automaticky generovat shrnutí pro tvoje záložky pomocí umělý inteligence.",
-      "auto_tagging": "Automatický štítkování",
+      "auto_summarization_description": "Automaticky generovat shrnutí pro tvoje záložky pomocí umělé inteligence.",
+      "auto_tagging": "Automatické štítkování",
       "titlecase_spaces": "Velká písmena s mezerami",
       "lowercase_underscores": "Malá písmena s podtržítky",
       "inference_language": "Jazyk pro odvozování",
@@ -124,9 +124,9 @@
       "lowercase_spaces": "Malá písmena s mezerami",
       "inference_language_description": "Vyber jazyk pro štítky a souhrny generované AI.",
       "tag_style_description": "Vyber si, jakým způsobem se mají automaticky generované štítky formátovat.",
-      "auto_tagging_description": "Automaticky generovat štítky pro tvoje záložky pomocí umělý inteligence.",
+      "auto_tagging_description": "Automaticky generovat štítky pro tvoje záložky pomocí umělé inteligence.",
       "camelCase": "camelCase",
-      "auto_summarization": "Automatický shrnutí",
+      "auto_summarization": "Automatické shrnutí",
       "no_preference": "Bez preference",
       "curated_tags": "Vybrané štítky",
       "curated_tags_description": "Volitelně omezte označování pomocí AI tak, aby používala pouze štítky z tohoto seznamu. Pokud nejsou vybrány žádné štítky, umělá inteligence generuje štítky volně.",
@@ -135,7 +135,7 @@
     },
     "webhooks": {
       "webhooks": "Webhooky",
-      "description": "Webhooks můžete použít ke spouštění akcí, když jsou záložky vytvořeny, změněny nebo procházeny.",
+      "description": "Webhooks můžeš použít ke spouštění akcí, když jsou záložky vytvořeny, změněny nebo procházeny.",
       "events": {
         "title": "Události",
         "crawled": "Prohledáno",
@@ -147,7 +147,7 @@
       "edit_auth_token": "Upravit ověřovací token",
       "create_webhook": "Vytvořit webhook",
       "delete_webhook": "Smazat webhook",
-      "delete_webhook_confirmation": "Určitě chceš smazat tenhle webhook?",
+      "delete_webhook_confirmation": "Určitě chceš smazat tento webhook?",
       "edit_webhook": "Upravit Webhook",
       "webhook_url": "URL webhooku"
     },
@@ -156,20 +156,20 @@
       "api_keys": "API klíče",
       "new_api_key_desc": "Dej svému API klíči unikátní jméno",
       "key_success": "Klíč byl úspěšně vytvořen",
-      "key_success_please_copy": "Zkopírujte si klíč a uložte ho na bezpečné místo. Jakmile dialog zavřete, už se k němu nedostanete.",
+      "key_success_please_copy": "Zkopíruj si klíč a ulož ho na bezpečné místo. Jakmile dialog zavřeš, už se k němu nedostaneš.",
       "regenerate_api_key": "Regenerovat API klíč",
       "key_regenerated": "Klíč byl úspěšně obnoven",
-      "key_regenerated_please_copy": "Zkopírujte si nový klíč a uložte si ho na bezpečném místě. Starý klíč byl zrušen a už nebude fungovat.",
+      "key_regenerated_please_copy": "Zkopíruj si nový klíč a ulož si ho na bezpečném místě. Starý klíč byl zrušen a už nebude fungovat.",
       "regenerate_warning": "Opravdu chceš obnovit API klíč \"{{name}}\"?",
       "regenerate_confirmation": "Tím se zruší stávající klíč a vygeneruje se nový. Všechny aplikace, které používají stávající klíč, přestanou fungovat."
     },
     "manage_assets": {
       "asset_link": "Odkaz na položku",
       "delete_asset": "Smazat aktivum",
-      "delete_asset_confirmation": "Opravdu chceš tenhle majetek smazat?",
+      "delete_asset_confirmation": "Opravdu chceš toto aktivum smazat?",
       "manage_assets": "Spravovat aktiva",
-      "no_assets": "Zatím nemáte žádné zdroje.",
-      "asset_type": "Typ majetku",
+      "no_assets": "Zatím nemáš žádné zdroje.",
+      "asset_type": "Typ aktiva",
       "bookmark_link": "Odkaz na záložku"
     },
     "rules": {
@@ -181,15 +181,15 @@
       "if": "Pokud ...",
       "save_rule": "Uložit pravidlo",
       "delete_rule": "Smazat pravidlo",
-      "delete_rule_confirmation": "Určitě chceš smazat tohle pravidlo?",
+      "delete_rule_confirmation": "Určitě chceš smazat toto pravidlo?",
       "whenever": "Kdykoli ...",
-      "enter_rule_name": "Zadejte název pravidla",
-      "describe_what_this_rule_does": "Popište, co toto pravidlo dělá",
+      "enter_rule_name": "Zadej název pravidla",
+      "describe_what_this_rule_does": "Popiš, co toto pravidlo dělá",
       "rule_has_been_created": "Pravidlo bylo vytvořeno!",
       "rule_has_been_updated": "Pravidlo bylo aktualizováno!",
       "rule_has_been_deleted": "Pravidlo bylo smazáno!",
       "no_rules_created_yet": "Zatím nejsou vytvořena žádná pravidla",
-      "create_your_first_rule": "Vytvořte si první pravidlo pro automatizaci pracovního postupu",
+      "create_your_first_rule": "Vytvoř si první pravidlo pro automatizaci pracovního postupu",
       "conditions_types": {
         "always": "Vždy",
         "url_contains": "URL obsahuje",
@@ -243,14 +243,14 @@
       "basic_details": "Základní podrobnosti",
       "change_password": "Změnit heslo",
       "current_password": "Současné heslo",
-      "new_password": "Nový heslo",
-      "confirm_new_password": "Potvrďte nový heslo",
+      "new_password": "Nové heslo",
+      "confirm_new_password": "Potvrď nové heslo",
       "options": "Možnosti",
       "interface_lang": "Jazyk rozhraní",
       "reader_settings": {
         "local_overrides_title": "Aktivní nastavení specifická pro zařízení",
         "using_default": "Používám výchozí nastavení klienta",
-        "clear_override_hint": "Vymažte přepsání zařízení, abyste použili globální nastavení ({{value}})",
+        "clear_override_hint": "Vymaž přepsání zařízení, abys použil/a globální nastavení ({{value}})",
         "font_size": "Velikost písma",
         "font_family": "Rodina písem",
         "preview_inline": "(náhled)",
@@ -277,7 +277,7 @@
         "save_to_device": "Toto zařízení",
         "sans": "Bezpatkové",
         "tooltip_preview_and_local": "Neuložené změny náhledu; nastavení zařízení se liší od globálních",
-        "adjust_hint": "Upravte nastavení výše, abyste si prohlédli změny"
+        "adjust_hint": "Uprav nastavení výše, abys viděl/a změny"
       },
       "avatar": {
         "upload": "Nahrát avatara",
@@ -285,8 +285,8 @@
         "remove_confirm_title": "Odebrat avatara?",
         "updated": "Avatar aktualizován",
         "removed": "Avatar byl odebrán",
-        "description": "Nahrajte čtvercový obrázek, který se použije jako váš avatar.",
-        "remove_confirm_description": "Tímto vymažete vaši aktuální profilovou fotku.",
+        "description": "Nahraj čtvercový obrázek, který se použije jako tvůj avatar.",
+        "remove_confirm_description": "Tímto vymažeš svou aktuální profilovou fotku.",
         "title": "Profilová fotka",
         "remove": "Odebrat avatara"
       }
@@ -374,31 +374,31 @@
     },
     "subscription": {
       "subscription": "Předplatné",
-      "manage_subscription": "Spravujte své předplatné a fakturační údaje",
+      "manage_subscription": "Spravuj své předplatné a fakturační údaje",
       "current_plan": "Aktuální tarif",
       "billing_period": "Fakturační období",
       "paid_plan": "Placený tarif",
-      "unlock_bigger_quota": "Odemkněte větší kvótu a podpořte projekt",
+      "unlock_bigger_quota": "Odemkni větší kvótu a podpoř projekt",
       "subscribe_now": "Předplatit",
       "manage_billing": "Spravovat fakturaci",
-      "subscription_canceled": "Vaše předplatné bylo zrušeno a skončí {{date}}. Můžete se kdykoli znovu přihlásit k odběru.",
+      "subscription_canceled": "Tvé předplatné bylo zrušeno a skončí {{date}}. Můžeš se kdykoli znovu přihlásit k odběru.",
       "usage_quotas": "Využití a kvóty",
-      "track_usage": "Sledujte aktuální využití oproti limitům vašeho tarifu",
+      "track_usage": "Sleduj aktuální využití oproti limitům tvého tarifu",
       "total_bookmarks_saved": "Celkový počet uložených záložek",
       "assets_file_storage": "Prostor pro aktiva a soubory",
       "unlimited_usage": "Neomezené použití",
       "quota_limit_reached": "Limit kvóty byl dosažen",
-      "approaching_quota_limit": "Blížíte se k limitu kvóty",
+      "approaching_quota_limit": "Blížíš se k limitu kvóty",
       "loading_usage": "Načítám informace o využití…",
       "free": "Zdarma",
       "paid": "Placené"
     },
     "import_sessions": {
       "title": "Importovat relace",
-      "description": "Zobrazte a spravujte relace hromadného importu. Relace se vytvoří automaticky, když importujete záložky.",
+      "description": "Zobraz a spravuj relace hromadného importu. Relace se vytvoří automaticky, když importuješ záložky.",
       "load_error": "Nepodařilo se načíst relace importu",
       "no_sessions": "Zatím žádné relace importu",
-      "no_sessions_detail": "Relace importu se zde zobrazí automaticky, když importujete záložky",
+      "no_sessions_detail": "Relace importu se zde zobrazí automaticky, když importuješ záložky",
       "created_at": "Vytvořeno: {{time}}",
       "progress": "Průběh",
       "status": {
@@ -420,7 +420,7 @@
       "imported_to": "Importováno do:",
       "view_list": "Zobrazit seznam",
       "delete_dialog_title": "Smazat import relaci",
-      "delete_dialog_description": "Určitě chceš smazat \"{{name}}\"? Tahle akce nemůže být vrácena zpátky. Samotný záložky smazaný nebudou.",
+      "delete_dialog_description": "Určitě chceš smazat \"{{name}}\"? Tuto akci nelze vrátit zpět. Samotné záložky smazány nebudou.",
       "delete_session": "Smazat relaci",
       "pause_session": "Pauza",
       "resume_session": "Obnovit",
@@ -491,7 +491,7 @@
       },
       "dialogs": {
         "delete_backup_title": "Smazat zálohu?",
-        "delete_backup_description": "Jste si jistí, že chcete smazat tuto zálohu? Tuto akci nelze vrátit zpět."
+        "delete_backup_description": "Jsi si jistý/á, že chceš smazat tuto zálohu? Tuto akci nelze vrátit zpět."
       },
       "toasts": {
         "backup_queued": "Úloha zálohování byla zařazena do fronty! Bude brzy zpracována.",
@@ -501,7 +501,7 @@
   },
   "lists": {
     "search_query": "Vyhledávací dotaz",
-    "search_query_help": "Zjistěte více o jazyce vyhledávacích dotazů.",
+    "search_query_help": "Zjisti více o jazyce vyhledávacích dotazů.",
     "share_list": "Sdílet seznam",
     "new_nested_list": "Nový vnořený seznam",
     "no_parent": "Žádný rodič",
@@ -554,8 +554,8 @@
       "owner": "Vlastník",
       "viewer_description": "Může zobrazit záložky v seznamu",
       "editor_description": "Může přidávat a odebírat záložky",
-      "no_collaborators": "Zatím žádní spolupracovníci. Přidej někoho a začněte spolupracovat!",
-      "no_collaborators_readonly": "Pro tenhle seznam nejsou žádní spolupracovníci.",
+      "no_collaborators": "Zatím žádní spolupracovníci. Přidej někoho a začni spolupracovat!",
+      "no_collaborators_readonly": "Pro tento seznam nejsou žádní spolupracovníci.",
       "people_with_access": "Lidé, kteří mají přístup k tomuto seznamu",
       "add_or_remove": "Přidej nebo odeber lidi, kteří mají přístup k tomuto seznamu",
       "invitation_sent": "Pozvánka odeslána úspěšně",
@@ -568,13 +568,13 @@
     "leave_list": {
       "title": "Opustit Seznam",
       "confirm_message": "Jsi si jistý, že chceš opustit {{icon}} {{name}}?",
-      "warning": "Nebudeš už moct zobrazovat ani přistupovat k záložkam v tomto seznamu. Vlastník seznamu tě může, když bude potřeba, přidat zpátky.",
+      "warning": "Nebudeš už moct zobrazovat ani přistupovat k záložkám v tomto seznamu. Vlastník seznamu tě může, když bude potřeba, přidat zpět.",
       "action": "Opustit Seznam",
       "success": "Opustil(a) jsi \"{{icon}} {{name}}\""
     },
     "invitations": {
       "pending": "Pozvánky čekající na vyřízení",
-      "description": "Zkontrolujte pozvánky ke spolupráci na seznamech a reagujte na ně",
+      "description": "Zkontroluj pozvánky ke spolupráci na seznamech a reaguj na ně",
       "invited_by": "Pozval(a)",
       "accept": "Přijmout",
       "decline": "Odmítnout",
@@ -593,21 +593,21 @@
     "your_tags_info": "Štítky, které jsi alespoň jednou připojil(a)",
     "ai_tags": "AI Tagy",
     "ai_tags_info": "Štítky, které byly připojeny pouze automaticky (pomocí AI)",
-    "delete_all_unused_tags": "Smazat všechny nepoužívaný štítky",
+    "delete_all_unused_tags": "Smazat všechny nepoužívané štítky",
     "drag_and_drop_merging": "Sloučení přetažením",
     "drag_and_drop_merging_info": "Přetáhni štítky na sebe a sloučíš je",
     "sort_by_name": "Seřadit podle jména",
     "create_tag": "Vytvořit štítek",
-    "create_tag_description": "Vytvořte nový štítek bez připojení k žádné záložce",
+    "create_tag_description": "Vytvoř nový štítek bez připojení k žádné záložce",
     "tag_name": "Název štítku",
-    "enter_tag_name": "Zadejte název štítku",
+    "enter_tag_name": "Zadej název štítku",
     "sort_by_usage": "Seřadit podle použití",
     "sort_by_relevance": "Seřadit podle relevance",
     "no_custom_tags": "Zatím žádné vlastní štítky",
     "no_ai_tags": "Zatím žádné AI štítky",
-    "no_unused_tags": "Nemáte žádné nepoužité štítky",
-    "no_unused_tags_match_your_search": "Žádné nepoužité štítky neodpovídají vašemu hledání",
-    "no_tags_match_your_search": "Žádné štítky neodpovídají vašemu hledání",
+    "no_unused_tags": "Nemáš žádné nepoužité štítky",
+    "no_unused_tags_match_your_search": "Žádné nepoužité štítky neodpovídají tvému hledání",
+    "no_tags_match_your_search": "Žádné štítky neodpovídají tvému hledání",
     "search_placeholder": "Hledat štítky...",
     "search_or_create_placeholder": "Hledat nebo vytvořit štítky..."
   },
@@ -618,7 +618,7 @@
     "has_tag": "Má tag",
     "month_s": " Měsíc(e)",
     "year_s": " Rok(y)",
-    "day_s_ago": " Dny zpátky",
+    "day_s_ago": " Dny zpět",
     "week_s_ago": " Před týdnem/týdny",
     "month_s_ago": " Měsíc(e) zpět",
     "year_s_ago": " Před lety",
@@ -715,8 +715,8 @@
     "multiple_urls_dialog_desc": "Vstup obsahuje více URL na samostatných řádcích. Chceš je importovat jako samostatné záložky?",
     "import_as_text": "Importovat jako textovou záložku",
     "import_as_separate_bookmarks": "Importovat jako samostatné záložky",
-    "placeholder": "Vložte odkaz nebo obrázek, napište poznámku nebo sem přetáhněte obrázek…",
-    "placeholder_v2": "Vložte odkaz, napište poznámku nebo přetáhněte obrázek…",
+    "placeholder": "Vlož odkaz nebo obrázek, napiš poznámku nebo sem přetáhni obrázek…",
+    "placeholder_v2": "Vlož odkaz, napiš poznámku nebo přetáhni obrázek…",
     "new_item": "NOVÁ POLOŽKA"
   },
   "toasts": {
@@ -801,7 +801,7 @@
           "description": "Administrativní úklid a údržba majetku"
         }
       },
-      "monitor_and_manage": "Monitorujte a spravujte fronty úloh na pozadí a úlohy zpracování systému.",
+      "monitor_and_manage": "Monitoruj a spravuj fronty úloh na pozadí a úlohy zpracování systému.",
       "active": "Aktivní",
       "available_actions": "Dostupné akce",
       "status": {
@@ -812,7 +812,7 @@
         },
         "unprocessed": {
           "title": "Nezpracované",
-          "description": "Záložky, které ještě nebyly zpracovány. S největší pravděpodobností jsou již ve frontě na zpracování, pokud ne, možná je budete muset ručně znovu zařadit do fronty."
+          "description": "Záložky, které ještě nebyly zpracovány. S největší pravděpodobností jsou již ve frontě na zpracování, pokud ne, možná je budeš muset ručně znovu zařadit do fronty."
         },
         "failed": {
           "title": "Neúspěšné",
@@ -864,7 +864,7 @@
     },
     "service_connections": {
       "title": "Servisní připojení",
-      "description": "Monitorujte stav a připojení externích systémových závislostí",
+      "description": "Monitoruj stav a připojení externích systémových závislostí",
       "search_engine": "Vyhledávač",
       "browser": "Prohlížeč",
       "queue_system": "Systém front",
@@ -915,7 +915,7 @@
     "author": "Autor",
     "publisher": "Vydavatel",
     "date_published": "Datum zveřejnění",
-    "pick_a_date": "Vyberte datum",
+    "pick_a_date": "Vyber datum",
     "title": "Upravit záložku",
     "subtitle": "Proveď změny v podrobnostech záložky. Až budeš hotov, klikni na uložit.",
     "save_changes": "Uložit změny",
@@ -928,14 +928,14 @@
     "compact": "Kompaktní"
   },
   "highlights": {
-    "no_highlights": "Zatím nemáte žádné zvýraznění."
+    "no_highlights": "Zatím nemáš žádné zvýraznění."
   },
   "options": {
     "dark_mode": "Tmavý režim",
     "light_mode": "Světlý režim",
     "apps_extensions": "Aplikace a rozšíření",
     "documentation": "Dokumentace",
-    "follow_us_on_x": "Sleduj nás na Xku"
+    "follow_us_on_x": "Sleduj nás na X"
   },
   "preview": {
     "view_original": "Zobrazit originál",
@@ -945,7 +945,7 @@
       "content": "Obsah",
       "details": "Podrobnosti"
     },
-    "archive_info": "Archivy se nemusí vykreslovat správně inline, pokud vyžadují Javascript. Pro nejlepší výsledky si <1>stáhněte a otevřete v prohlížeči</1>.",
+    "archive_info": "Archivy se nemusí vykreslovat správně inline, pokud vyžadují Javascript. Pro nejlepší výsledky si <1>stáhni a otevři v prohlížeči</1>.",
     "fetch_error_title": "Obsah není k dispozici",
     "fetch_error_description": "Nepodařilo se nám načíst obsah pro tento odkaz. Stránka může být chráněná, vyžadovat ověření nebo být dočasně nedostupná.",
     "crawling_in_progress": "Načítám obsah stránky…",
@@ -956,7 +956,7 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Smazat záložku?",
-      "delete_confirmation_description": "Určitě chceš smazat tuhle záložku?"
+      "delete_confirmation_description": "Určitě chceš smazat tuto záložku?"
     }
   },
   "banners": {
@@ -989,7 +989,7 @@
     "whats_new_title": "Co je nového ve verzi v{{version}}",
     "release_notes_description": "Tady jsou nejnovější aktualizace stažené z poznámek k vydání na GitHubu.",
     "loading_release_notes": "Načítají se poznámky k verzi…",
-    "unable_to_load_release_notes": "Právě teď se nepodařilo načíst poznámky k verzi. Zkuste to prosím později.",
+    "unable_to_load_release_notes": "Právě teď se nepodařilo načíst poznámky k verzi. Zkus to prosím později.",
     "no_release_notes": "Pro tuto verzi nebyly publikovány žádné poznámky k vydání.",
     "release_notes_synced": "Poznámky k vydání se synchronizují z GitHubu.",
     "view_on_github": "Zobrazit na GitHubu"

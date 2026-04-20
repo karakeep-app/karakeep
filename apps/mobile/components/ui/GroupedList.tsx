@@ -59,7 +59,9 @@ function NavigationRow({
       onPress={onPress}
       className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
     >
-      <Text>{label}</Text>
+      <Text className="flex-1" numberOfLines={1}>
+        {label}
+      </Text>
       <ChevronRight size={16} />
     </Pressable>
   );

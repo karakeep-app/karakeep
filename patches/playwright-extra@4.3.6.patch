@@ -1,0 +1,21 @@
+diff --git a/dist/puppeteer-compatiblity-shim/index.js b/dist/puppeteer-compatiblity-shim/index.js
+index fd1297952369011b711a83124209f1cd3789978e..71eba6bf608da93f6e2adf0faf648bb7cd75d2fa 100644
+--- a/dist/puppeteer-compatiblity-shim/index.js
++++ b/dist/puppeteer-compatiblity-shim/index.js
+@@ -116,8 +116,14 @@ function createPageShim(page) {
+             if (prop === '_client') {
+                 return () => ({
+                     send: async (method, params) => {
+-                        const session = await getPageCDPSession(page);
+-                        return await session.send(method, params);
++                        try {
++                            const session = await getPageCDPSession(page);
++                            return await session.send(method, params);
++                        }
++                        catch (err) {
++                            debug('page shim: error when sending:', err.message);
++                            return Promise.resolve();
++                        }
+                     },
+                     on: (event, listener) => {
+                         getPageCDPSession(page).then(session => {

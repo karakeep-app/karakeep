@@ -18,7 +18,6 @@
     "types": "./dist/index.d.ts"
   },
   "devDependencies": {
-    "@karakeep/prettier-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "openapi-typescript": "^7.6.1",
@@ -31,8 +30,8 @@
     "run": "tsx src/index.ts",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier . --cache --ignore-path ../../.prettierignore --check",
-    "format:fix": "prettier . --cache --write --ignore-path ../../.prettierignore",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
@@ -40,7 +39,6 @@
     "url": "git+https://github.com/karakeep-app/karakeep.git",
     "directory": "packages/sdk"
   },
-  "prettier": "@karakeep/prettier-config",
   "dependencies": {
     "openapi-fetch": "^0.13.3"
   }

@@ -5,6 +5,7 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useArchiveFilter } from "@/lib/hooks";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -61,6 +62,7 @@ function ListActionsMenu({
   role: ZBookmarkList["userRole"];
 }) {
   const api = useTRPC();
+  const { colors } = useColorScheme();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const { mutate: deleteList } = useMutation(
     api.lists.delete.mutationOptions({
@@ -167,8 +169,11 @@ function ListActionsMenu({
       }}
       shouldOpenOnLongPress={false}
     >
-      <View className="my-auto px-4">
-        <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+      <View className="my-auto">
+        <Ellipsis
+          onPress={() => Haptics.selectionAsync()}
+          color={colors.foreground}
+        />
       </View>
     </MenuView>
   );

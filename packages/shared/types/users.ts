@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import {
+  containsUnsafeUserNameMarkup,
+  normalizeUserNameInput,
+} from "../utils/userName";
 import { zBookmarkSourceSchema } from "./bookmarks";
 
 export const PASSWORD_MIN_LENGTH = 8;
@@ -16,9 +20,17 @@ export const zTagStyleSchema = z.enum([
 ]);
 export type ZTagStyle = z.infer<typeof zTagStyleSchema>;
 
+export const zUserNameSchema = z
+  .string()
+  .refine((value) => !containsUnsafeUserNameMarkup(value), {
+    message: "Name contains invalid characters",
+  })
+  .transform(normalizeUserNameInput)
+  .pipe(z.string().min(1, { message: "Name can't be empty" }));
+
 export const zSignUpSchema = z
   .object({
-    name: z.string().min(1, { message: "Name can't be empty" }),
+    name: zUserNameSchema,
     email: z.string().email(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),

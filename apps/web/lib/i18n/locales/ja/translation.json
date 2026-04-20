@@ -171,7 +171,7 @@
       "users_list": "ユーザーリスト",
       "reset_password": "パスワードをリセット",
       "delete_user": "ユーザーを削除",
-      "delete_user_confirm_description": "ほんまにユーザー「{{name}}」を削除してええん？",
+      "delete_user_confirm_description": "ユーザー「{{name}}」を本当に削除しますか？",
       "unlimited": "無制限"
     },
     "service_connections": {
@@ -190,7 +190,7 @@
       "admin_tools": "管理ツール",
       "bookmark_debugger": "ブックマークデバッガー",
       "bookmark_id": "ブックマークID",
-      "bookmark_id_placeholder": "ブックマークIDを入力してや",
+      "bookmark_id_placeholder": "ブックマークIDを入力してください",
       "lookup": "検索",
       "debug_info": "デバッグ情報",
       "basic_info": "基本情報",
@@ -282,10 +282,10 @@
         "upload": "アバターをアップロードする",
         "change": "アバターを変更する",
         "remove_confirm_title": "アバターを削除する？",
-        "updated": "アバターを更新したで",
-        "removed": "アバターを削除したで",
-        "description": "アバターとして使う正方形の画像をアップロードしてちょ。",
-        "remove_confirm_description": "現在のプロフィール写真が消去されるけど、ええんか？",
+        "updated": "アバターが更新されました",
+        "removed": "アバターが削除されました",
+        "description": "アバターとして使う正方形の画像をアップロードしてください。",
+        "remove_confirm_description": "現在のプロフィール写真が消去されます。よろしいですか？",
         "title": "プロフィール画像",
         "remove": "アバターを削除する"
       }
@@ -311,8 +311,8 @@
       "titlecase_hyphens": "タイトルケース、ハイフン区切り",
       "lowercase_hyphens": "小文字、ハイフン区切り",
       "lowercase_spaces": "小文字、スペース区切り",
-      "inference_language_description": "AIが生成するタグや概要の言語を選んでくれ。",
-      "tag_style_description": "自動生成されるタグの書式を選んでくれ。",
+      "inference_language_description": "AIが生成するタグや概要の言語を選択してください。",
+      "tag_style_description": "自動生成されるタグの書式を選択してください。",
       "auto_tagging_description": "AIを使ってブックマークのタグを自動生成する。",
       "camelCase": "camelCase",
       "auto_summarization": "自動要約",
@@ -403,10 +403,10 @@
       "whenever": "いつでも…",
       "enter_rule_name": "ルール名を入力",
       "describe_what_this_rule_does": "このルールの内容を説明してください",
-      "rule_has_been_created": "ルールが作成されたぞ！",
+      "rule_has_been_created": "ルールが作成されました！",
       "rule_has_been_updated": "ルールを更新しました！",
-      "rule_has_been_deleted": "ルールが削除されたぞ！",
-      "no_rules_created_yet": "まだルールは作られてないぞ",
+      "rule_has_been_deleted": "ルールが削除されました！",
+      "no_rules_created_yet": "まだルールは作成されていません",
       "create_your_first_rule": "最初のルールを作成して、ワークフローを自動化しましょう",
       "conditions_types": {
         "always": "常に",
@@ -491,7 +491,7 @@
         "title": "ストレージの内訳"
       },
       "bookmark_sources": {
-        "title": "ソースをお気に入りに追加する",
+        "title": "ブックマークのソース",
         "empty": "ソースデータがありません"
       }
     },
@@ -518,10 +518,10 @@
     },
     "import_sessions": {
       "title": "インポートセッション",
-      "description": "ブックマークの一括インポートセッションを表示・管理しましょっ。セッションはブックマークをインポートするときに自動的に作られるよ。",
-      "load_error": "インポートセッションのロードに失敗しちゃった",
-      "no_sessions": "インポートセッションはまだないみたい",
-      "no_sessions_detail": "ブックマークをインポートすると、ここに自動的にインポートセッションが表示されるよ",
+      "description": "ブックマークの一括インポートセッションを表示・管理します。セッションはブックマークをインポートするときに自動的に作成されます。",
+      "load_error": "インポートセッションのロードに失敗しました",
+      "no_sessions": "インポートセッションはまだありません",
+      "no_sessions_detail": "ブックマークをインポートすると、ここに自動的にインポートセッションが表示されます",
       "created_at": "作成日時: {{time}}",
       "progress": "進捗状況",
       "status": {
@@ -543,7 +543,7 @@
       "imported_to": "インポート先:",
       "view_list": "リスト表示",
       "delete_dialog_title": "インポートセッションを削除する",
-      "delete_dialog_description": "「{{name}}」を削除してもいい？　これは取り消せない操作だよ。ブックマーク自体は削除されないから安心して。",
+      "delete_dialog_description": "「{{name}}」を削除しますか？この操作は取り消せません。ブックマーク自体は削除されません。",
       "delete_session": "セッションを削除",
       "pause_session": "一時停止",
       "resume_session": "再開",
@@ -575,11 +575,11 @@
     "backups": {
       "backups": "バックアップ",
       "page_title": "バックアップ",
-      "page_description": "あんたのブックマークのバックアップを自動で作成・管理するよ。バックアップは圧縮されて安全に保管されるから安心。",
+      "page_description": "ブックマークのバックアップを自動で作成・管理します。バックアップは圧縮されて安全に保管されます。",
       "configuration": {
         "title": "バックアップの設定",
         "enable_automatic_backups": "自動バックアップを有効にする",
-        "enable_automatic_backups_description": "ブックマークのバックアップを自動で作成するよ",
+        "enable_automatic_backups_description": "ブックマークのバックアップを自動で作成します",
         "backup_frequency": "バックアップの頻度",
         "backup_frequency_description": "バックアップをどのくらいの頻度で作成するか",
         "retention_period": "保存期間（日数）",
@@ -592,9 +592,9 @@
         "save_settings": "設定を保存"
       },
       "list": {
-        "title": "あんたのバックアップ",
+        "title": "バックアップ",
         "create_backup_now": "今すぐバックアップを作成",
-        "no_backups": "まだバックアップがないね。自動バックアップを有効にするか、手動で作成してくれ。",
+        "no_backups": "まだバックアップがありません。自動バックアップを有効にするか、手動で作成してください。",
         "table": {
           "created_at": "作成日時",
           "bookmarks": "ブックマーク",
@@ -663,7 +663,7 @@
     "quota": "割り当て",
     "bookmarks": "ブックマーク",
     "storage": "ストレージ",
-    "pdf": "PDFをアーカイブしたよ",
+    "pdf": "アーカイブ済みPDF",
     "default": "既定",
     "id": "ID",
     "last_used": "最後に使用"
@@ -733,7 +733,7 @@
       "no_collaborators_readonly": "このリストにはコラボレーターはいません。",
       "people_with_access": "このリストにアクセスできる人",
       "add_or_remove": "このリストにアクセスできる人を追加または削除する",
-      "invitation_sent": "招待状、送信完了！",
+      "invitation_sent": "招待を送信しました",
       "invitation_revoked": "招待取り消し",
       "failed_to_revoke": "招待の取り消しに失敗しました",
       "pending": "保留中",
@@ -765,7 +765,7 @@
     "light_mode": "ライトモード",
     "apps_extensions": "アプリと拡張機能",
     "documentation": "ドキュメンテーション",
-    "follow_us_on_x": "Xでフォローしてね"
+    "follow_us_on_x": "Xでフォローする"
   },
   "tags": {
     "drag_and_drop_merging": "ドラッグ＆ドロップマージ",
@@ -808,14 +808,14 @@
     "does_not_have_tag": "タグがない",
     "full_text_search": "全文検索",
     "created_on_or_before": "作成日（以前）",
-    "is_in_list": "リストに入ってる？",
+    "is_in_list": "リストに含まれている",
     "is_not_in_list": "リストにない",
     "type_is_not": "タイプが違う",
     "and": "そして",
     "or": "または",
     "is_favorited": "お気に入り",
     "is_not_favorited": "お気に入りではない",
-    "is_archived": "アーカイブ済み？",
+    "is_archived": "アーカイブ済み",
     "not_created_on_or_after": "以降に作成されなかった",
     "is_not_from_feed": "RSSフィードからではない",
     "is_from_feed": "RSSフィードから",
@@ -840,7 +840,7 @@
     "lists": "リスト",
     "feeds": "フィード",
     "is_from_source": "ソースは",
-    "is_not_from_source": "ソースじゃない"
+    "is_not_from_source": "ソースではない"
   },
   "preview": {
     "cached_content": "キャッシュされたコンテンツ",
@@ -915,7 +915,7 @@
     "disabled_submissions": "投稿は無効です",
     "multiple_urls_dialog_desc": "入力には複数のURLが別々の行に含まれています。それらを個別のブックマークとしてインポートしますか？",
     "new_item": "新しいアイテム",
-    "placeholder_v2": "リンクをペーストするか、メモを書くか、画像をドロップしてくれ…"
+    "placeholder_v2": "リンクをペーストするか、メモを書くか、画像をドロップしてください…"
   },
   "dialogs": {
     "bookmarks": {
@@ -925,21 +925,21 @@
   },
   "toasts": {
     "bookmarks": {
-      "updated": "ブックマークが更新されたよ！",
-      "clipboard_copied": "リンクをクリップボードに追加したぞ！",
+      "updated": "ブックマークが更新されました！",
+      "clipboard_copied": "リンクをクリップボードにコピーしました！",
       "full_page_archive": "フルページアーカイブの作成が開始されました",
       "delete_from_list": "ブックマークがリストから削除されました",
-      "deleted": "ブックマークが削除されたよ！",
-      "refetch": "再取得をエンキューしたぞ！",
-      "preserve_pdf": "PDF保存が開始されたよ",
+      "deleted": "ブックマークが削除されました！",
+      "refetch": "再取得をキューに追加しました！",
+      "preserve_pdf": "PDF保存が開始されました",
       "update_banner": "バナーが更新されました！",
       "uploading_banner": "バナーをアップロード中..."
     },
     "lists": {
       "created": "リストが作成されました！",
       "updated": "リストが更新されました！",
-      "merged": "リストがマージされたぞ！",
-      "deleted": "リストが削除されたぞ！"
+      "merged": "リストがマージされました！",
+      "deleted": "リストが削除されました！"
     },
     "tags": {
       "created": "タグが作成されました！",
@@ -959,7 +959,7 @@
   "banners": {
     "no_bookmarks": {
       "title": "ブックマークはまだありません",
-      "description": "気になる記事、リンク、ページを保存して、後ですぐにアクセスできるようにしよう。"
+      "description": "気になる記事、リンク、ページを保存して、後ですぐにアクセスできるようにしましょう。"
     }
   },
   "bookmark_editor": {

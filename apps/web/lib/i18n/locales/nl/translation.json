@@ -179,7 +179,7 @@
       "current_password": "Huidige Wachtwoord",
       "new_password": "Nieuwe Wachtwoord",
       "options": "Opties",
-      "confirm_new_password": "Confirmeer Nieuwe Wachtwoord",
+      "confirm_new_password": "Bevestig Nieuwe Wachtwoord",
       "interface_lang": "Interface Taal",
       "user_settings": {
         "user_settings_updated": "Gebruikersinstellingen zijn bijgewerkt!",
@@ -259,7 +259,7 @@
       "webhooks": "Webhooks",
       "description": "Je kunt webhooks gebruiken om acties te activeren wanneer bladwijzers worden gemaakt, gewijzigd of gecrawld.",
       "events": {
-        "title": "Evenementen",
+        "title": "Gebeurtenissen",
         "crawled": "Gecrawld",
         "created": "Aangemaakt",
         "edited": "Bewerkt"
@@ -283,7 +283,7 @@
       "delete_rule": "Regel verwijderen",
       "delete_rule_confirmation": "Weet je zeker dat je deze regel wilt verwijderen?",
       "whenever": "Wanneer ...",
-      "if": "Indien ...",
+      "if": "Als ...",
       "enter_rule_name": "Voer regelnaam in",
       "describe_what_this_rule_does": "Beschrijf wat deze regel doet",
       "rule_has_been_created": "Regel is aangemaakt!",
@@ -815,7 +815,7 @@
       "title": "Lijst verwijderen",
       "description": "Het verwijderen van een lijst verwijdert geen bladwijzers in die lijst.",
       "delete_children": "Verwijder kinderlijsten (recursief)",
-      "delete_children_description": "Indien niet aangevinkt, worden alle directe kinderlijsten rootlijsten"
+      "delete_children_description": "Als dit niet aangevinkt is, worden alle directe kinderlijsten rootlijsten"
     },
     "shared": "Gedeeld",
     "collaborators": {

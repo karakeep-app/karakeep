@@ -27,6 +27,7 @@ jobs:
         run: eas build --platform ios --local --non-interactive --output ${{ github.workspace }}/app-release.ipa
         env:
           EAS_SKIP_AUTO_FINGERPRINT: "1"
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4

@@ -17,5 +17,8 @@ export default defineConfig({
     ssr: true,
     sourcemap: true,
   },
-  plugins: [tsconfigPaths(), dts({ rollupTypes: true, copyDtsFiles: true })],
+  plugins: [
+    tsconfigPaths({ skip: (dir) => dir === ".claude" }),
+    dts({ rollupTypes: true, copyDtsFiles: true }),
+  ],
 });

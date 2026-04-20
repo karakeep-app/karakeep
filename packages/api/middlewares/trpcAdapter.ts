@@ -19,6 +19,8 @@ function trpcCodeToHttpCode(code: TRPCError["code"]) {
       return 408;
     case "PAYLOAD_TOO_LARGE":
       return 413;
+    case "TOO_MANY_REQUESTS":
+      return 429;
     case "INTERNAL_SERVER_ERROR":
       return 500;
     default:
@@ -31,9 +33,11 @@ const trpcAdapter = createMiddleware(async (c, next) => {
   const e = c.error;
   if (e instanceof TRPCError) {
     const code = trpcCodeToHttpCode(e.code);
+    const isInternalError = e.code === "INTERNAL_SERVER_ERROR";
+    const isProd = process.env.NODE_ENV === "production";
     throw new HTTPException(code, {
-      message: e.message,
-      cause: e.cause,
+      message: isInternalError && isProd ? "Internal server error" : e.message,
+      cause: isInternalError && isProd ? undefined : e.cause,
     });
   }
 });

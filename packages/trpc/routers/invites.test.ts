@@ -370,6 +370,36 @@ describe("Invites Router", () => {
     expect(result.name).toBe("New User");
   });
 
+  test<CustomTestContext>("invite accept rejects raw html in name", async ({
+    db,
+    unauthedAPICaller,
+  }) => {
+    const admin = await unauthedAPICaller.users.create({
+      name: "Admin User",
+      email: "admin@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+
+    const adminCaller = getApiCaller(db, admin.id, admin.email, "admin");
+
+    const invite = await adminCaller.invites.create({
+      email: "invite-sanitized@test.com",
+    });
+
+    const dbInvite = await db.query.invites.findFirst({
+      where: eq(invites.id, invite.id),
+    });
+
+    await expect(() =>
+      unauthedAPICaller.invites.accept({
+        token: dbInvite!.token,
+        name: "<b>Invited</b> <User>",
+        password: "newpass123",
+      }),
+    ).rejects.toThrow(/Name contains invalid characters/);
+  });
+
   test<CustomTestContext>("cannot accept used invite (deleted)", async ({
     db,
     unauthedAPICaller,

@@ -19,20 +19,21 @@ import {
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  buildCrawlIdempotencyKey,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
   OpenAIQueue,
   QueuePriority,
   QuotaService,
-  triggerRuleEngineOnEvent,
   triggerSearchReindex,
-  triggerWebhook,
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
+import { bookmarkCreationCounter } from "../stats";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
+import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
@@ -52,9 +53,11 @@ import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
 import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
+import { WebhooksService } from "../models/webhooks.service";
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -109,8 +112,45 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
   ).asZBookmark();
 }
 
+const highBookmarkCreationRateLimitConfig = {
+  name: "bookmarks.createBookmark.highVolume",
+  windowMs: 5 * 60 * 1000,
+  maxRequests: 30,
+} as const;
+
+async function shouldUseLowPriorityQueues(
+  ctx: AuthedContext,
+): Promise<boolean> {
+  if (!serverConfig.rateLimiting.enabled) {
+    return false;
+  }
+
+  const rateLimitClient = await getRateLimitClient();
+  if (!rateLimitClient) {
+    return false;
+  }
+
+  try {
+    const result = await rateLimitClient.checkRateLimit(
+      highBookmarkCreationRateLimitConfig,
+      ctx.user.id,
+    );
+    return !result.allowed;
+  } catch {
+    // Don't block bookmark creation if rate limiting is unavailable.
+    return false;
+  }
+}
+
 export const bookmarksAppRouter = router({
   createBookmark: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.createBookmark",
+        windowMs: 60 * 1000,
+        maxRequests: 30,
+      }),
+    )
     .input(zNewBookmarkRequestSchema)
     .output(
       zBookmarkSchema.merge(
@@ -223,7 +263,7 @@ export const bookmarksAppRouter = router({
                   content: null,
                   metadata: null,
                   fileName: input.fileName ?? null,
-                  sourceUrl: null,
+                  sourceUrl: input.sourceUrl ?? null,
                 })
                 .returning();
               const uploadedAsset = await Asset.fromId(ctx, input.assetId);
@@ -255,6 +295,8 @@ export const bookmarksAppRouter = router({
                 type: BookmarkTypes.ASSET,
                 assetType: asset.assetType,
                 assetId: asset.assetId,
+                fileName: asset.fileName,
+                sourceUrl: asset.sourceUrl,
               };
               break;
             }
@@ -273,12 +315,17 @@ export const bookmarksAppRouter = router({
         },
       );
 
+      bookmarkCreationCounter.labels(input.source ?? "unknown").inc();
+
+      const forceLowPriority = await shouldUseLowPriorityQueues(ctx);
+      const shouldUseLowPriority =
+        input.crawlPriority === "low" || forceLowPriority;
+
       const enqueueOpts: EnqueueOptions = {
         // The lower the priority number, the sooner the job will be processed
-        priority:
-          input.crawlPriority === "low"
-            ? QueuePriority.Low
-            : QueuePriority.Default,
+        priority: shouldUseLowPriority
+          ? QueuePriority.Low
+          : QueuePriority.Default,
         groupId: ctx.user.id,
       };
 
@@ -286,10 +333,9 @@ export const bookmarksAppRouter = router({
         case BookmarkTypes.LINK: {
           // The crawling job triggers openai when it's done
           // Use a separate queue for low priority crawling to avoid impacting main queue parallelism
-          const crawlerQueue =
-            input.crawlPriority === "low"
-              ? LowPriorityCrawlerQueue
-              : LinkCrawlerQueue;
+          const crawlerQueue = shouldUseLowPriority
+            ? LowPriorityCrawlerQueue
+            : LinkCrawlerQueue;
           await crawlerQueue.enqueue(
             {
               bookmarkId: bookmark.id,
@@ -321,7 +367,8 @@ export const bookmarksAppRouter = router({
       }
 
       await Promise.all([
-        triggerRuleEngineOnEvent(
+        RuleEngine.triggerOnEvent(
+          bookmark.userId,
           bookmark.id,
           [
             {
@@ -329,12 +376,13 @@ export const bookmarksAppRouter = router({
             },
           ],
           enqueueOpts,
+          ctx.db,
         ),
         triggerSearchReindex(bookmark.id, enqueueOpts),
-        triggerWebhook(
+        new WebhooksService(ctx.db).triggerWebhook(
           bookmark.id,
           "created",
-          /* userId */ undefined,
+          bookmark.userId,
           enqueueOpts,
         ),
       ]);
@@ -482,7 +530,8 @@ export const bookmarksAppRouter = router({
       ).asZBookmark();
 
       if (input.favourited === true || input.archived === true) {
-        await triggerRuleEngineOnEvent(
+        await RuleEngine.triggerOnEvent(
+          updatedBookmark.userId,
           input.bookmarkId,
           [
             ...(input.favourited === true ? ["favourited" as const] : []),
@@ -490,15 +539,22 @@ export const bookmarksAppRouter = router({
           ].map((t) => ({
             type: t,
           })),
+          undefined,
+          ctx.db,
         );
       }
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,
         }),
-        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          updatedBookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
       ]);
 
       return updatedBookmark;
@@ -542,9 +598,14 @@ export const bookmarksAppRouter = router({
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,
         }),
-        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          ctx.bookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
       ]);
     }),
 
@@ -572,17 +633,16 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await LowPriorityCrawlerQueue.enqueue(
-        {
-          bookmarkId: input.bookmarkId,
-          archiveFullPage: input.archiveFullPage,
-          storePdf: input.storePdf,
-        },
-        {
-          groupId: ctx.user.id,
-          priority: QueuePriority.Low,
-        },
-      );
+      const payload = {
+        bookmarkId: input.bookmarkId,
+        archiveFullPage: input.archiveFullPage,
+        storePdf: input.storePdf,
+      };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        groupId: ctx.user.id,
+        priority: QueuePriority.Low,
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
     }),
   updateReadingProgress: authedProcedure
     .input(
@@ -977,22 +1037,33 @@ export const bookmarksAppRouter = router({
 
       if (res.numChanges > 0) {
         await Promise.allSettled([
-          triggerRuleEngineOnEvent(input.bookmarkId, [
-            ...res.detached.map((t) => ({
-              type: "tagRemoved" as const,
-              tagId: t,
-            })),
-            ...res.attached.map((t) => ({
-              type: "tagAdded" as const,
-              tagId: t,
-            })),
-          ]),
+          RuleEngine.triggerOnEvent(
+            ctx.bookmark.userId,
+            input.bookmarkId,
+            [
+              ...res.detached.map((t) => ({
+                type: "tagRemoved" as const,
+                tagId: t,
+              })),
+              ...res.attached.map((t) => ({
+                type: "tagAdded" as const,
+                tagId: t,
+              })),
+            ],
+            undefined,
+            ctx.db,
+          ),
           triggerSearchReindex(input.bookmarkId, {
             groupId: ctx.user.id,
           }),
-          triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-            groupId: ctx.user.id,
-          }),
+          new WebhooksService(ctx.db).triggerWebhook(
+            input.bookmarkId,
+            "edited",
+            ctx.bookmark.userId,
+            {
+              groupId: ctx.user.id,
+            },
+          ),
         ]);
       }
       return res;
@@ -1140,9 +1211,14 @@ Author: ${bookmark.author ?? ""}
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,
         }),
-        triggerWebhook(input.bookmarkId, "edited", ctx.user.id, {
-          groupId: ctx.user.id,
-        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          ctx.bookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
       ]);
 
       return {

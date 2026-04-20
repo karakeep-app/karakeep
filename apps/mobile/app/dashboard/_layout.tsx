@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { AppState, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
+import { isIOS26 } from "@/lib/ios";
 import { useIsLoggedIn } from "@/lib/session";
 import { focusManager } from "@tanstack/react-query";
 
@@ -34,7 +35,7 @@ export default function Dashboard() {
         ...Platform.select({
           ios: {
             headerTransparent: true,
-            headerBlurEffect: "systemMaterial",
+            headerBlurEffect: isIOS26 ? undefined : "systemMaterial",
             headerLargeTitle: true,
             headerLargeTitleShadowVisible: false,
             headerLargeStyle: { backgroundColor: "transparent" },

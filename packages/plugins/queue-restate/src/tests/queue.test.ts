@@ -82,8 +82,16 @@ describe("Restate Queue Provider", () => {
   async function waitUntilQueueEmpty() {
     await waitUntil(
       async () => {
-        const stats = await queue.stats();
-        return stats.pending + stats.pending_retry + stats.running === 0;
+        const stats = await adminClient.getStats(queue.name());
+        return (
+          stats.pending +
+            stats.ready +
+            stats.running +
+            stats["backing-off"] +
+            stats.paused +
+            stats.suspended ===
+          0
+        );
       },
       "Queue to be empty",
       60000,

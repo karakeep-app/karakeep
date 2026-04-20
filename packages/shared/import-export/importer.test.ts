@@ -147,6 +147,10 @@ describe("importBookmarksFromFile", () => {
     expect(textBookmark.content).toBe("Important notes about the project");
     expect(textBookmark.note).toBe("Additional context");
     expect(textBookmark.listIds).toEqual(["Imported/Personal"]);
+    expect(textBookmark.archived).toBe(true);
+
+    // Verify non-archived bookmark does not have archived set
+    expect(githubBookmark.archived).toBeFalsy();
 
     // Verify bookmark with empty paths gets root list ID
     const noCategoryBookmark = stagedBookmarks.find(

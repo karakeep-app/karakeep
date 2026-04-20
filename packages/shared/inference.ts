@@ -3,7 +3,6 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import * as undici from "undici";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 import serverConfig from "./config";
 import { customFetch } from "./customFetch";
@@ -85,20 +84,16 @@ export class OpenAIInferenceClient implements InferenceClient {
   constructor(config: OpenAIInferenceConfig) {
     this.config = config;
 
-    const fetchOptions = config.proxyUrl
-      ? {
-          dispatcher: new undici.ProxyAgent(config.proxyUrl),
-        }
-      : undefined;
-
     this.openAI = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
-      ...(fetchOptions ? { fetchOptions } : {}),
       defaultHeaders: {
         "X-Title": "Karakeep",
         "HTTP-Referer": "https://karakeep.app",
       },
+      fetchOptions: config.proxyUrl
+        ? { dispatcher: new undici.ProxyAgent(config.proxyUrl) }
+        : undefined,
     });
   }
 
@@ -286,8 +281,9 @@ class OllamaInferenceClient implements InferenceClient {
       model: model,
       format: mapInferenceOutputSchema(
         {
+          // Use Zod 4's native JSON Schema emitter for Ollama structured output.
           structured: optsWithDefaults.schema
-            ? zodToJsonSchema(optsWithDefaults.schema)
+            ? z.toJSONSchema(optsWithDefaults.schema)
             : undefined,
           json: "json",
           plain: undefined,

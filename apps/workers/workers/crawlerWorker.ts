@@ -18,10 +18,11 @@ import {
 import {
   fetchWithProxy,
   getBookmarkDomain,
-  getRandomProxy,
   matchesNoProxy,
+  selectRunProxies,
   validateUrl,
 } from "network";
+import type { RunProxyConfig } from "network";
 import {
   Browser,
   BrowserContext,
@@ -51,7 +52,6 @@ import {
   QuotaService,
   setSpanAttributes,
   triggerSearchReindex,
-  triggerWebhook,
   VideoWorkerQueue,
   withSpan,
   zCrawlLinkRequestSchema,
@@ -80,6 +80,7 @@ import {
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 import type {
   ParseSubprocessError,
@@ -125,6 +126,9 @@ function redactUrlCredentials(url: string): string {
     const parsed = new URL(url);
     for (const key of parsed.searchParams.keys()) {
       parsed.searchParams.set(key, "REDACTED");
+    }
+    if (parsed.username) {
+      parsed.username = "REDACTED";
     }
     if (parsed.password) {
       parsed.password = "REDACTED";
@@ -181,28 +185,21 @@ interface CrawlerRunResult {
   status: "completed";
 }
 
-function getPlaywrightProxyConfig(): BrowserContextOptions["proxy"] {
-  const { proxy } = serverConfig;
-
-  if (!proxy.httpProxy && !proxy.httpsProxy) {
+function getPlaywrightProxyConfig(
+  runProxy: RunProxyConfig,
+): BrowserContextOptions["proxy"] {
+  const proxyUrl = runProxy.httpsProxy || runProxy.httpProxy;
+  if (!proxyUrl) {
     return undefined;
   }
 
-  // Use HTTPS proxy if available, otherwise fall back to HTTP proxy
-  const proxyList = proxy.httpsProxy || proxy.httpProxy;
-  if (!proxyList) {
-    // Unreachable, but TypeScript doesn't know that
-    return undefined;
-  }
-
-  const proxyUrl = getRandomProxy(proxyList);
   const parsed = new URL(proxyUrl);
 
   return {
     server: proxyUrl,
     username: parsed.username,
     password: parsed.password,
-    bypass: proxy.noProxy?.join(","),
+    bypass: runProxy.noProxy?.join(","),
   };
 }
 
@@ -287,8 +284,6 @@ async function startBrowserInstance() {
       `[Crawler] Connecting to existing browser websocket address: ${redactUrlCredentials(serverConfig.crawler.browserWebSocketUrl)}`,
     );
     return await chromium.connect(serverConfig.crawler.browserWebSocketUrl, {
-      // Important: using slowMo to ensure stability with remote browser
-      slowMo: 100,
       timeout: 5000,
     });
   } else if (serverConfig.crawler.browserWebUrl) {
@@ -304,8 +299,6 @@ async function startBrowserInstance() {
     );
 
     return await chromium.connectOverCDP(webUrl.toString(), {
-      // Important: using slowMo to ensure stability with remote browser
-      slowMo: 100,
       timeout: 5000,
     });
   } else {
@@ -482,7 +475,7 @@ async function loadCookiesFromFile(): Promise<void> {
   } catch (error) {
     logger.error("Failed to read or parse cookies file:", error);
     if (error instanceof z.ZodError) {
-      logger.error("[Crawler] Invalid cookie file format:", error.errors);
+      logger.error("[Crawler] Invalid cookie file format:", error.issues);
     } else {
       logger.error("[Crawler] Failed to read or parse cookies file:", error);
     }
@@ -496,6 +489,7 @@ async function browserlessCrawlPage(
   jobId: string,
   url: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -511,9 +505,13 @@ async function browserlessCrawlPage(
       logger.info(
         `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
       );
-      const response = await fetchWithProxy(url, {
-        signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-      });
+      const response = await fetchWithProxy(
+        url,
+        {
+          signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+        },
+        runProxy,
+      );
       logger.info(
         `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
       );
@@ -534,6 +532,7 @@ async function crawlPage(
   userId: string,
   forceStorePdf: boolean,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ): Promise<{
   htmlContent: string;
   screenshot: Buffer | undefined;
@@ -566,7 +565,7 @@ async function crawlPage(
       const browserCrawlingEnabled = userData.browserCrawlingEnabled;
 
       if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
-        return browserlessCrawlPage(jobId, url, abortSignal);
+        return browserlessCrawlPage(jobId, url, abortSignal, runProxy);
       }
 
       let browser: Browser | undefined;
@@ -586,10 +585,10 @@ async function crawlPage(
         },
       );
       if (!browser) {
-        return browserlessCrawlPage(jobId, url, abortSignal);
+        return browserlessCrawlPage(jobId, url, abortSignal, runProxy);
       }
 
-      const proxyConfig = getPlaywrightProxyConfig();
+      const proxyConfig = getPlaywrightProxyConfig(runProxy);
       const isRunningInProxyContext =
         proxyConfig !== undefined &&
         !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
@@ -1272,6 +1271,7 @@ async function downloadAndStoreFile(
   jobId: string,
   fileType: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1291,9 +1291,13 @@ async function downloadAndStoreFile(
         logger.info(
           `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
         );
-        const response = await fetchWithProxy(url, {
-          signal: abortSignal,
-        });
+        const response = await fetchWithProxy(
+          url,
+          {
+            signal: abortSignal,
+          },
+          runProxy,
+        );
         if (!response.ok || response.body == null) {
           throw new Error(`Failed to download ${fileType}: ${response.status}`);
         }
@@ -1380,6 +1384,7 @@ async function downloadAndStoreImage(
   userId: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   if (!serverConfig.crawler.downloadBannerImage) {
     logger.info(
@@ -1387,7 +1392,14 @@ async function downloadAndStoreImage(
     );
     return null;
   }
-  return downloadAndStoreFile(url, userId, jobId, "image", abortSignal);
+  return downloadAndStoreFile(
+    url,
+    userId,
+    jobId,
+    "image",
+    abortSignal,
+    runProxy,
+  );
 }
 
 async function archiveWebpage(
@@ -1396,6 +1408,7 @@ async function archiveWebpage(
   userId: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1410,6 +1423,20 @@ async function archiveWebpage(
     },
     async () => {
       logger.info(`[Crawler][${jobId}] Will attempt to archive page ...`);
+
+      {
+        // Archival is a heavy operation, so we need to check if the user is within reasonable quota before proceeding
+        const { error: quotaError } = await tryCatch(
+          QuotaService.checkStorageQuota(db, userId, /* estimated size */ 1024),
+        );
+        if (quotaError) {
+          logger.warn(
+            `[Crawler][${jobId}] Skipping archival as the user has exceeded their quota: ${quotaError.message}`,
+          );
+          return null;
+        }
+      }
+
       const assetId = newAssetId();
       const assetPath = path.join(os.tmpdir(), assetId);
 
@@ -1417,15 +1444,21 @@ async function archiveWebpage(
         input: html,
         cancelSignal: abortSignal,
         env: {
-          https_proxy: serverConfig.proxy.httpsProxy
-            ? getRandomProxy(serverConfig.proxy.httpsProxy)
-            : undefined,
-          http_proxy: serverConfig.proxy.httpProxy
-            ? getRandomProxy(serverConfig.proxy.httpProxy)
-            : undefined,
-          no_proxy: serverConfig.proxy.noProxy?.join(","),
+          https_proxy: runProxy.httpsProxy,
+          http_proxy: runProxy.httpProxy,
+          no_proxy: runProxy.noProxy?.join(","),
         },
-      })("monolith", ["-", "-Ije", "-t", "5", "-b", url, "-o", assetPath]);
+      })("monolith", [
+        "-",
+        "-Ije",
+        "-t",
+        String(serverConfig.crawler.monolithTimeoutSec),
+        ...serverConfig.crawler.monolithArguments,
+        "-b",
+        url,
+        "-o",
+        assetPath,
+      ]);
 
       if (res.isCanceled) {
         logger.error(
@@ -1488,6 +1521,7 @@ async function getContentType(
   url: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ): Promise<string | null> {
   return await withSpan(
     tracer,
@@ -1504,10 +1538,14 @@ async function getContentType(
         logger.info(
           `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
         );
-        const response = await fetchWithProxy(url, {
-          method: "GET",
-          signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-        });
+        const response = await fetchWithProxy(
+          url,
+          {
+            method: "GET",
+            signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+          },
+          runProxy,
+        );
         setSpanAttributes({
           "crawler.getContentType.statusCode": response.status,
         });
@@ -1545,6 +1583,7 @@ async function handleAsAssetBookmark(
   jobId: string,
   bookmarkId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
   return await withSpan(
     tracer,
@@ -1566,6 +1605,7 @@ async function handleAsAssetBookmark(
         jobId,
         assetType,
         abortSignal,
+        runProxy,
       );
       if (!downloaded) {
         return;
@@ -1709,7 +1749,12 @@ async function crawlAndParseUrl(
   forceStorePdf: boolean,
   numRetriesLeft: number,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
 ) {
+  const sanitizedProxyUrl = redactUrlCredentials(
+    runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+  );
+
   return await withSpan(
     tracer,
     "crawlerWorker.crawlAndParseUrl",
@@ -1723,6 +1768,7 @@ async function crawlAndParseUrl(
         "crawler.archiveFullPage": archiveFullPage,
         "crawler.forceStorePdf": forceStorePdf,
         "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
+        "crawler.proxy": sanitizedProxyUrl,
       },
     },
     async () => {
@@ -1756,6 +1802,7 @@ async function crawlAndParseUrl(
           userId,
           forceStorePdf,
           abortSignal,
+          runProxy,
         );
       }
       abortSignal.throwIfAborted();
@@ -1770,7 +1817,9 @@ async function crawlAndParseUrl(
 
       // Track status code in Prometheus
       if (statusCode !== null) {
-        crawlerStatusCodeCounter.labels(statusCode.toString()).inc();
+        crawlerStatusCodeCounter
+          .labels(statusCode.toString(), sanitizedProxyUrl)
+          .inc();
         setSpanAttributes({
           "crawler.statusCode": statusCode,
         });
@@ -1848,6 +1897,7 @@ async function crawlAndParseUrl(
           userId,
           jobId,
           abortSignal,
+          runProxy,
         );
         if (downloaded) {
           imageAssetInfo = {
@@ -1957,6 +2007,7 @@ async function crawlAndParseUrl(
             userId,
             jobId,
             abortSignal,
+            runProxy,
           );
 
           if (archiveResult) {
@@ -2076,11 +2127,19 @@ async function runCrawler(
 
   await checkDomainRateLimit(url, jobId);
 
+  // Select proxy URLs once for the entire run so all requests use the same proxy.
+  const runProxy = selectRunProxies();
+
   logger.info(
     `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
   );
 
-  const contentType = await getContentType(url, jobId, job.abortSignal);
+  const contentType = await getContentType(
+    url,
+    jobId,
+    job.abortSignal,
+    runProxy,
+  );
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
@@ -2094,6 +2153,7 @@ async function runCrawler(
       jobId,
       bookmarkId,
       job.abortSignal,
+      runProxy,
     );
   } else if (
     contentType &&
@@ -2107,6 +2167,7 @@ async function runCrawler(
       jobId,
       bookmarkId,
       job.abortSignal,
+      runProxy,
     );
   } else {
     const archivalLogic = await crawlAndParseUrl(
@@ -2124,6 +2185,7 @@ async function runCrawler(
       storePdf ?? false,
       numRetriesLeft,
       job.abortSignal,
+      runProxy,
     );
 
     // Propagate priority to child jobs
@@ -2165,7 +2227,15 @@ async function runCrawler(
     }
 
     // Trigger a webhook
-    await triggerWebhook(bookmarkId, "crawled", undefined, enqueueOpts);
+    {
+      const webhookService = new WebhooksService(db);
+      await webhookService.triggerWebhook(
+        bookmarkId,
+        "crawled",
+        userId,
+        enqueueOpts,
+      );
+    }
 
     // Do the archival as a separate last step as it has the potential for failure
     await archivalLogic();

@@ -5,11 +5,14 @@ import {
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
 
+import "./zod-extend";
+
 import { registry as adminRegistry } from "./lib/admin";
 import { registry as assetsRegistry } from "./lib/assets";
 import { registry as backupsRegistry } from "./lib/backups";
 import { registry as bookmarksRegistry } from "./lib/bookmarks";
 import { registry as commonRegistry } from "./lib/common";
+import { registry as feedsRegistry } from "./lib/feeds";
 import { registry as highlightsRegistry } from "./lib/highlights";
 import { registry as listsRegistry } from "./lib/lists";
 import { registry as tagsRegistry } from "./lib/tags";
@@ -26,6 +29,7 @@ function getOpenApiDocumentation() {
     assetsRegistry,
     adminRegistry,
     backupsRegistry,
+    feedsRegistry,
   ]);
 
   const generator = new OpenApiGeneratorV3(registry.definitions);
@@ -37,7 +41,7 @@ function getOpenApiDocumentation() {
       title: "Karakeep API",
       description:
         "Karakeep is a self-hostable bookmarking and read-it-later service. " +
-        "This API allows you to manage bookmarks, lists, tags, highlights, assets, and backups programmatically.\n\n" +
+        "This API allows you to manage bookmarks, lists, tags, highlights, feeds, assets, and backups programmatically.\n\n" +
         "## Authentication\n\n" +
         "All endpoints require a Bearer token passed in the `Authorization` header. " +
         "You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n" +
@@ -49,7 +53,8 @@ function getOpenApiDocumentation() {
         "Bookmarks can be one of three types:\n" +
         "- **link** — A URL bookmark with optional crawled metadata.\n" +
         "- **text** — A plain text note.\n" +
-        "- **asset** — An uploaded file (image or PDF).",
+        "- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. " +
+        "If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying.",
     },
     tags: [
       {
@@ -91,6 +96,11 @@ function getOpenApiDocumentation() {
         name: "Backups",
         description:
           "Create and manage full account backups as downloadable zip archives.",
+      },
+      {
+        name: "Feeds",
+        description:
+          "Manage RSS feed subscriptions. Create, update, delete, and trigger fetches for RSS feeds that automatically import bookmarks.",
       },
     ],
     servers: [

@@ -6,6 +6,18 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import type { RunnerJobData, RunnerResult, SerializedError } from "./types";
 
+function timeoutSignal(timeoutSecs: number): AbortSignal {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort(new Error(`Job timed out after ${timeoutSecs} seconds`));
+  }, timeoutSecs * 1000);
+  // Don't keep the process alive just for this timer
+  // TODO: Fix the monorepo type mismatch - mobile sees setTimeout returning number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (timer as any).unref?.();
+  return controller.signal;
+}
+
 function serializeError(error: Error): SerializedError {
   return {
     name: error.name,
@@ -30,103 +42,102 @@ export function buildRunnerService<T, R>(
       inactivityTimeout: {
         seconds: opts.timeoutSecs * 2,
       },
-      // No retries at runner level - dispatcher handles retry logic
-      retryPolicy: {
-        maxAttempts: 1,
-      },
       journalRetention: {
         days: 3,
       },
     },
     handlers: {
-      run: async (
-        ctx: restate.Context,
-        jobData: RunnerJobData<T>,
-      ): Promise<RunnerResult<R>> => {
-        // Validate payload if validator provided
-        let payload = jobData.data;
-        if (opts.validator) {
-          const res = opts.validator.safeParse(jobData.data);
-          if (!res.success) {
-            return {
-              type: "error",
-              error: {
-                name: "ValidationError",
-                message: res.error.message,
-              },
-            };
+      run: restate.handlers.handler(
+        {
+          // No retries at runner level - dispatcher handles retry logic
+          retryPolicy: {
+            maxAttempts: 1,
+          },
+        },
+        async (
+          ctx: restate.Context,
+          jobData: RunnerJobData<T>,
+        ): Promise<RunnerResult<R>> => {
+          // Validate payload if validator provided
+          let payload = jobData.data;
+          if (opts.validator) {
+            const res = opts.validator.safeParse(jobData.data);
+            if (!res.success) {
+              return {
+                type: "error",
+                error: {
+                  name: "ValidationError",
+                  message: res.error.message,
+                },
+              };
+            }
+            payload = res.data;
           }
-          payload = res.data;
-        }
 
-        const res = await tryCatch(
-          ctx
-            .run(
-              "main logic",
-              async () => {
-                const result = await tryCatch(
-                  funcs.run({
-                    id: jobData.id,
-                    data: payload,
-                    priority: jobData.priority,
-                    runNumber: jobData.runNumber,
-                    abortSignal: AbortSignal.timeout(
-                      jobData.timeoutSecs * 1000,
-                    ),
-                  }),
-                );
-                if (result.error) {
-                  if (result.error instanceof QueueRetryAfterError) {
+          const res = await tryCatch(
+            ctx
+              .run(
+                "main logic",
+                async () => {
+                  const result = await tryCatch(
+                    funcs.run({
+                      id: jobData.id,
+                      data: payload,
+                      priority: jobData.priority,
+                      runNumber: jobData.runNumber,
+                      abortSignal: timeoutSignal(jobData.timeoutSecs),
+                    }),
+                  );
+                  if (result.error) {
+                    if (result.error instanceof QueueRetryAfterError) {
+                      return {
+                        type: "rate_limit" as const,
+                        delayMs: result.error.delayMs,
+                      };
+                    }
                     return {
-                      type: "rate_limit" as const,
-                      delayMs: result.error.delayMs,
+                      type: "error" as const,
+                      error: serializeError(result.error),
                     };
                   }
-                  throw result.error;
-                }
-                return { type: "success" as const, value: result.data };
-              },
-              {
-                maxRetryAttempts: 1,
-              },
-            )
-            .orTimeout({
-              seconds: jobData.timeoutSecs * 1.1,
-            }),
-        );
+                  return { type: "success" as const, value: result.data };
+                },
+                {
+                  maxRetryAttempts: 1,
+                },
+              )
+              .orTimeout({
+                seconds: jobData.timeoutSecs * 1.1,
+              }),
+          );
 
-        if (res.error) {
-          return {
-            type: "error",
-            error: serializeError(res.error),
-          };
-        }
+          if (res.error) {
+            return {
+              type: "error",
+              error: serializeError(res.error),
+            };
+          }
 
-        return res.data as RunnerResult<R>;
-      },
+          return res.data as RunnerResult<R>;
+        },
+      ),
 
       onCompleted: async (
         ctx: restate.Context,
         data: { job: RunnerJobData<T>; result: R },
       ): Promise<void> => {
-        await ctx.run(
-          "onComplete",
-          async () => {
-            await funcs.onComplete?.(
-              {
-                id: data.job.id,
-                data: data.job.data,
-                priority: data.job.priority,
-                runNumber: data.job.runNumber,
-                abortSignal: AbortSignal.timeout(data.job.timeoutSecs * 1000),
-              },
-              data.result,
-            );
-          },
-          {
-            maxRetryAttempts: 1,
-          },
-        );
+        await ctx.run("onComplete", async () => {
+          await funcs.onComplete?.(
+            {
+              id: data.job.id,
+              data: data.job.data,
+              priority: data.job.priority,
+              runNumber: data.job.runNumber,
+              abortSignal: timeoutSignal(data.job.timeoutSecs),
+            },
+            data.result,
+          );
+        });
       },
 
       onError: async (
@@ -142,22 +153,16 @@ export function buildRunnerService<T, R>(
           },
         );
 
-        await ctx.run(
-          "onError",
-          async () => {
-            await funcs.onError?.({
-              id: data.job.id,
-              data: data.job.data,
-              priority: data.job.priority,
-              runNumber: data.job.runNumber,
-              numRetriesLeft: data.job.numRetriesLeft,
-              error: reconstructedError,
-            });
-          },
-          {
-            maxRetryAttempts: 1,
-          },
-        );
+        await ctx.run("onError", async () => {
+          await funcs.onError?.({
+            id: data.job.id,
+            data: data.job.data,
+            priority: data.job.priority,
+            runNumber: data.job.runNumber,
+            numRetriesLeft: data.job.numRetriesLeft,
+            error: reconstructedError,
+          });
+        });
       },
     },
   });

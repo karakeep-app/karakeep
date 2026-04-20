@@ -14,10 +14,11 @@ const zSettingsSchema = z.object({
   imageQuality: z.number().optional().default(0.2),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   defaultBookmarkView: z
-    .enum(["reader", "browser"])
+    .enum(["reader", "browser", "externalBrowser"])
     .optional()
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
+  keepScreenOnWhileReading: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
   // Reader settings (local device overrides)
   readerFontSize: z.number().int().min(12).max(24).optional(),
@@ -42,6 +43,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       theme: "system",
       defaultBookmarkView: "reader",
       showNotes: false,
+      keepScreenOnWhileReading: false,
       customHeaders: {},
     },
   },

@@ -1,9 +1,18 @@
+const IS_DEV = process.env.APP_VARIANT === "development";
+
 export default {
   expo: {
-    name: "Karakeep",
+    ...(IS_DEV
+      ? {
+          name: "Karakeep (Dev)",
+          scheme: "karakeep-dev",
+        }
+      : {
+          name: "Karakeep",
+          scheme: "karakeep",
+        }),
     slug: "hoarder",
-    scheme: "karakeep",
-    version: "1.9.1",
+    version: "1.9.2",
     orientation: "portrait",
     icon: {
       light: "./assets/icon.png",
@@ -16,7 +25,9 @@ export default {
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "app.hoarder.hoardermobile",
+      bundleIdentifier: IS_DEV
+        ? "app.hoarder.hoardermobile.dev"
+        : "app.hoarder.hoardermobile",
       splash: {
         image: "./assets/splash.png",
         resizeMode: "contain",
@@ -35,7 +46,7 @@ export default {
           NSAllowsArbitraryLoads: true,
         },
       },
-      buildNumber: "36",
+      buildNumber: "37",
     },
     android: {
       adaptiveIcon: {
@@ -53,8 +64,10 @@ export default {
           backgroundColor: "#000000",
         },
       },
-      package: "app.hoarder.hoardermobile",
-      versionCode: 36,
+      package: IS_DEV
+        ? "app.hoarder.hoardermobile.dev"
+        : "app.hoarder.hoardermobile",
+      versionCode: 37,
     },
     plugins: [
       "./plugins/trust-local-certs.js",
@@ -95,6 +108,14 @@ export default {
         },
       ],
       "expo-web-browser",
+      [
+        "@sentry/react-native/expo",
+        {
+          url: "https://sentry.io/",
+          project: "react-native",
+          organization: "localhost-labs-ltd",
+        },
+      ],
     ],
     extra: {
       router: {
