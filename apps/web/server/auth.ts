@@ -75,14 +75,13 @@ async function isAdmin(email: string): Promise<boolean> {
   return res?.role == "admin";
 }
 
-function normalizeSafeDisplayName(
-  name: string | null | undefined,
-  email: string,
-): string {
+const DEFAULT_DISPLAY_NAME = "User";
+
+function normalizeSafeDisplayName(name: string | null | undefined): string {
   const normalizedName = normalizeUserNameInput(name ?? "");
   return !containsUnsafeUserNameMarkup(name ?? "") && normalizedName
     ? normalizedName
-    : email;
+    : DEFAULT_DISPLAY_NAME;
 }
 
 const CustomProvider = (): Adapter => {
@@ -97,7 +96,7 @@ const CustomProvider = (): Adapter => {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
       return await User.createRaw(db, {
-        name: normalizeSafeDisplayName(user.name, user.email),
+        name: normalizeSafeDisplayName(user.name),
         email: user.email,
         emailVerified: user.emailVerified,
       });
@@ -154,7 +153,7 @@ if (oauth.wellKnownUrl) {
 
       return {
         id: profile.sub,
-        name: normalizeSafeDisplayName(profile.name, profile.email),
+        name: normalizeSafeDisplayName(profile.name),
         email: profile.email,
         role: admin || firstUser ? "admin" : "user",
       };
