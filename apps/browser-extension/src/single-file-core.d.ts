@@ -10,6 +10,7 @@ declare module "single-file-core/single-file.js" {
     compressHTML?: boolean;
     blockScripts?: boolean;
     blockImages?: boolean;
+    saveOriginalURLs?: boolean;
     removeFrames?: boolean;
     removeAlternativeFonts?: boolean;
     removeAlternativeMedias?: boolean;

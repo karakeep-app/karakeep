@@ -58,7 +58,9 @@ async function sendCaptureMessage(
 
 async function injectSingleFileContentScript(tabId: number): Promise<void> {
   const contentScripts = chrome.runtime.getManifest().content_scripts;
-  const files = contentScripts?.[0]?.js;
+  const files = contentScripts?.find((cs) =>
+    cs.js?.some((f) => f.includes("singlefile-content-script")),
+  )?.js;
   if (!files || files.length === 0) {
     throw new Error("SingleFile content script not declared in manifest");
   }
@@ -84,7 +86,9 @@ async function injectSingleFileContentScript(tabId: number): Promise<void> {
     args: [urls],
   });
   const res = result?.result;
-  if (!res || !res.ok) {
+  // Treat the re-entry guard as success — the listener is already registered
+  // from a concurrent injection, so the retried sendMessage will succeed.
+  if (!res || (!res.ok && !res.error?.includes("already loaded"))) {
     throw new Error(
       `Failed to inject SingleFile content script: ${res?.error ?? "unknown error"}`,
     );

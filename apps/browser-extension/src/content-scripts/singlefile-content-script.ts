@@ -45,6 +45,10 @@ async function captureCurrentPage(opts: {
       compressHTML: true,
       blockScripts: true,
       blockImages: opts.blockImages,
+      // When images are blocked, SingleFile wipes `srcset` and skips `src`
+      // rewriting. Ask it to stash the originals on `data-sf-original-*` so
+      // we can restore them below.
+      saveOriginalURLs: opts.blockImages,
       removeFrames: true,
       removeAlternativeFonts: true,
       removeAlternativeMedias: true,
@@ -57,5 +61,22 @@ async function captureCurrentPage(opts: {
     document,
     window,
   );
-  return pageData.content;
+  return opts.blockImages
+    ? restoreOriginalImageUrls(pageData.content)
+    : pageData.content;
+}
+
+function restoreOriginalImageUrls(html: string): string {
+  // Move `data-sf-original-src` / `data-sf-original-srcset` back onto the
+  // element as `src` / `srcset` so images load from origin in the viewer.
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const attr of ["src", "srcset"] as const) {
+    const dataAttr = `data-sf-original-${attr}`;
+    doc.querySelectorAll(`[${dataAttr}]`).forEach((el) => {
+      const v = el.getAttribute(dataAttr);
+      if (v) el.setAttribute(attr, v);
+      el.removeAttribute(dataAttr);
+    });
+  }
+  return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
 }

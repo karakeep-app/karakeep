@@ -33,6 +33,9 @@ export default function SavePage() {
   const [currentTabId, setCurrentTabId] = useState<number | undefined>(
     undefined,
   );
+  const [currentTabUrl, setCurrentTabUrl] = useState<string | undefined>(
+    undefined,
+  );
 
   const {
     data,
@@ -80,6 +83,7 @@ export default function SavePage() {
         lastFocusedWindow: true,
       });
       setCurrentTabId(currentTab?.id);
+      setCurrentTabUrl(currentTab?.url);
 
       let newBookmarkRequest =
         await getNewBookmarkRequestFromBackgroundScriptIfAny();
@@ -116,11 +120,16 @@ export default function SavePage() {
 
   const saveBookmark = async (bookmark: ZNewBookmarkRequest) => {
     let finalBookmark = bookmark;
+    // Only crawl when the bookmark target matches the active tab — context-menu
+    // saves (link/src URL) may create a bookmark for a different URL, in which
+    // case capturing the current page would attach the wrong archive.
     if (
       settings.useSingleFile &&
       currentTabId !== undefined &&
       bookmark.type === BookmarkTypes.LINK &&
-      !bookmark.precrawledArchiveId
+      !bookmark.precrawledArchiveId &&
+      currentTabUrl !== undefined &&
+      bookmark.url === currentTabUrl
     ) {
       try {
         setIsCapturing(true);
@@ -133,10 +142,9 @@ export default function SavePage() {
         );
         finalBookmark = { ...bookmark, precrawledArchiveId };
       } catch (e) {
-        setError(
-          `Failed to crawl page: ${e instanceof Error ? e.message : String(e)}`,
-        );
-        return;
+        // Client-side crawling is best-effort — fall back to a plain bookmark
+        // so users can still save links on pages where capture is blocked.
+        console.warn("Client-side crawl failed, saving without archive:", e);
       } finally {
         setIsCapturing(false);
       }
@@ -154,7 +162,8 @@ export default function SavePage() {
       pendingBookmark &&
       settings.autoSave &&
       status === "idle" &&
-      !isCapturing
+      !isCapturing &&
+      !error
     ) {
       saveBookmark(pendingBookmark);
     }
@@ -165,6 +174,7 @@ export default function SavePage() {
     settings.autoSave,
     status,
     isCapturing,
+    error,
   ]);
 
   const handleManualSave = () => {
