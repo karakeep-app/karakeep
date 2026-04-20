@@ -1,8 +1,5 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import * as z from "zod";
 
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
@@ -10,7 +7,6 @@ import { BearerAuth } from "./common";
 import { ErrorSchema, UnauthorizedResponse } from "./errors";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 export const BackupIdSchema = registry.registerParameter(
   "BackupId",
@@ -121,7 +117,10 @@ registry.registerPath({
       description: "The backup file as a zip archive.",
       content: {
         "application/zip": {
-          schema: z.instanceof(Blob),
+          schema: z.any().openapi({
+            type: "string",
+            format: "binary",
+          }),
         },
       },
     },

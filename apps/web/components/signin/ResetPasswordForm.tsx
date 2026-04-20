@@ -34,7 +34,7 @@ const resetPasswordSchema = z
   .object({
     confirmPassword: z.string(),
   })
-  .merge(zResetPasswordSchema.pick({ newPassword: true }))
+  .extend(zResetPasswordSchema.pick({ newPassword: true }).shape)
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],

@@ -33,8 +33,8 @@ const app = new Hono()
           favourited: zStringBool.optional(),
           archived: zStringBool.optional(),
         })
-        .and(zGetBookmarkQueryParamsSchema)
-        .and(zPagination),
+        .extend(zGetBookmarkQueryParamsSchema.shape)
+        .extend(zPagination.shape),
     ),
     async (c) => {
       const searchParams = c.req.valid("query");
@@ -69,7 +69,7 @@ const app = new Hono()
               val ? { ver: 1 as const, offset: parseInt(val) } : undefined,
             ),
         })
-        .and(zGetBookmarkSearchParamsSchema),
+        .extend(zGetBookmarkSearchParamsSchema.shape),
     ),
     async (c) => {
       const searchParams = c.req.valid("query");

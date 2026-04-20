@@ -1,8 +1,4 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 
 import {
   zUserStatsResponseSchema,
@@ -13,7 +9,6 @@ import { BearerAuth } from "./common";
 import { UnauthorizedResponse } from "./errors";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 registry.registerPath({
   operationId: "getCurrentUser",

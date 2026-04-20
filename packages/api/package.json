@@ -16,7 +16,7 @@
     "@hono/otel": "^1.1.1",
     "@hono/prometheus": "^1.0.2",
     "@hono/trpc-server": "^0.4.2",
-    "@hono/zod-validator": "^0.5.0",
+    "@hono/zod-validator": "^0.7.6",
     "@karakeep/db": "workspace:*",
     "@karakeep/shared": "workspace:*",
     "@karakeep/shared-server": "workspace:*",
@@ -27,7 +27,7 @@
     "hono": "^4.12.8",
     "prom-client": "^15.1.3",
     "rss": "^1.2.2",
-    "zod": "^3.24.4"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
 import BookmarkLinkTypeSelector, {
@@ -19,6 +20,11 @@ import { useColorScheme } from "nativewind";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
+function KeepScreenOn() {
+  useKeepAwake();
+  return null;
+}
 
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
@@ -84,6 +90,7 @@ export default function BookmarkView() {
       style={{ flex: 1, paddingBottom: insets.bottom + 8 }}
       behavior="height"
     >
+      {settings.keepScreenOnWhileReading && <KeepScreenOn />}
       <Stack.Screen
         options={{
           headerTitle: title ?? "",

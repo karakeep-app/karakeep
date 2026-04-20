@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 
 import type { db } from "@karakeep/db";
 import serverConfig from "@karakeep/shared/config";
@@ -60,7 +60,7 @@ const t = initTRPC.context<Context>().create({
         ...shape.data,
         zodError:
           error.code === "BAD_REQUEST" && error.cause instanceof ZodError
-            ? error.cause.flatten()
+            ? z.flattenError(error.cause)
             : null,
       },
     };

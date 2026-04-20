@@ -14,7 +14,7 @@ export type SerializedError = z.infer<typeof zSerializedError>;
 /**
  * Zod schema for job data passed from dispatcher to runner.
  */
-export function zRunnerJobData<T extends z.ZodTypeAny>(payloadSchema: T) {
+export function zRunnerJobData<T extends z.ZodType>(payloadSchema: T) {
   return z.object({
     id: z.string(),
     data: payloadSchema,
@@ -60,7 +60,7 @@ export type RunnerResult<R> =
 /**
  * Zod schema for runner.onCompleted() request.
  */
-export function zOnCompletedRequest<T extends z.ZodTypeAny>(payloadSchema: T) {
+export function zOnCompletedRequest<T extends z.ZodType>(payloadSchema: T) {
   return z.object({
     job: zRunnerJobData(payloadSchema),
     result: z.unknown(),
@@ -70,7 +70,7 @@ export function zOnCompletedRequest<T extends z.ZodTypeAny>(payloadSchema: T) {
 /**
  * Zod schema for runner.onError() request.
  */
-export function zOnErrorRequest<T extends z.ZodTypeAny>(payloadSchema: T) {
+export function zOnErrorRequest<T extends z.ZodType>(payloadSchema: T) {
   return z.object({
     job: zRunnerJobData(payloadSchema),
     error: zSerializedError,

@@ -19,6 +19,7 @@ import {
 } from "@karakeep/db/schema";
 import {
   AssetPreprocessingQueue,
+  buildCrawlIdempotencyKey,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
   OpenAIQueue,
@@ -632,17 +633,16 @@ export const bookmarksAppRouter = router({
     )
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await LowPriorityCrawlerQueue.enqueue(
-        {
-          bookmarkId: input.bookmarkId,
-          archiveFullPage: input.archiveFullPage,
-          storePdf: input.storePdf,
-        },
-        {
-          groupId: ctx.user.id,
-          priority: QueuePriority.Low,
-        },
-      );
+      const payload = {
+        bookmarkId: input.bookmarkId,
+        archiveFullPage: input.archiveFullPage,
+        storePdf: input.storePdf,
+      };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        groupId: ctx.user.id,
+        priority: QueuePriority.Low,
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
     }),
   updateReadingProgress: authedProcedure
     .input(

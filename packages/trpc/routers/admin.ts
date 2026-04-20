@@ -7,6 +7,7 @@ import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
+  buildCrawlIdempotencyKey,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -227,17 +228,16 @@ export const adminAppRouter = router({
       });
 
       await Promise.all(
-        bookmarkIds.map((b) =>
-          LowPriorityCrawlerQueue.enqueue(
-            {
-              bookmarkId: b.id,
-              runInference: input.runInference,
-            },
-            {
-              priority: QueuePriority.Low,
-            },
-          ),
-        ),
+        bookmarkIds.map((b) => {
+          const payload = {
+            bookmarkId: b.id,
+            runInference: input.runInference,
+          };
+          return LowPriorityCrawlerQueue.enqueue(payload, {
+            priority: QueuePriority.Low,
+            idempotencyKey: buildCrawlIdempotencyKey(payload),
+          });
+        }),
       );
     }),
   reindexAllBookmarks: adminProcedure.mutation(async ({ ctx }) => {
@@ -670,15 +670,12 @@ export const adminAppRouter = router({
         });
       }
 
-      await LowPriorityCrawlerQueue.enqueue(
-        {
-          bookmarkId: input.bookmarkId,
-        },
-        {
-          priority: QueuePriority.Low,
-          groupId: "admin",
-        },
-      );
+      const payload = { bookmarkId: input.bookmarkId };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        priority: QueuePriority.Low,
+        groupId: "admin",
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
     }),
   adminReindexBookmark: adminProcedure
     .input(z.object({ bookmarkId: z.string() }))

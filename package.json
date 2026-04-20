@@ -30,8 +30,8 @@
   },
   "devDependencies": {
     "@types/node": "^24",
-    "oxfmt": "^0.35.0",
-    "oxlint": "^1.50.0",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "sherif": "^1.6.1",
     "turbo": "^2.5.5"
   },
@@ -43,8 +43,7 @@
     ],
     "patchedDependencies": {
       "xcode@3.0.1": "patches/xcode@3.0.1.patch",
-      "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch",
-      "react-native-keyboard-controller@1.21.4": "patches/react-native-keyboard-controller@1.21.4.patch"
+      "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch"
     }
   }
 }
