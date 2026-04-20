@@ -73,12 +73,24 @@ async function fetchUserWebhooks(userId: string) {
   });
 }
 
+function canDeliverWebhookWithoutBookmark(
+  operation: ZWebhookRequest["operation"],
+) {
+  return operation === "deleted";
+}
+
 async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
   const jobId = job.id;
   const webhookTimeoutSec = serverConfig.webhook.timeoutSec;
 
-  const { bookmarkId } = job.data;
+  const { bookmarkId, operation } = job.data;
   const bookmark = await fetchBookmark(bookmarkId);
+  if (!bookmark && !canDeliverWebhookWithoutBookmark(operation)) {
+    logger.info(
+      `[webhook][${jobId}] Bookmark with id ${bookmarkId} not found for "${operation}" webhook. Skipping webhook`,
+    );
+    return;
+  }
 
   const userId = job.data.userId ?? bookmark?.userId;
   if (!userId) {

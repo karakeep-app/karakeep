@@ -12,6 +12,9 @@ coverage
 
 # next.js
 .next/
+
+# astro
+.astro/
 out/
 
 # production
@@ -68,3 +71,4 @@ auth_failures.log
 .aicontext/
 .codex
 .claude/worktrees
+jean.json

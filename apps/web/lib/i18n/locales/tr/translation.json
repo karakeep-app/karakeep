@@ -32,7 +32,7 @@
       "media": "Medya",
       "title": "Yer İşareti Türü"
     },
-    "type": "Yaz",
+    "type": "Tür",
     "updated_at": "Güncellenme Zamanı",
     "title": "Başlık",
     "description": "Açıklama",
@@ -377,7 +377,7 @@
         "title": "Depolama Dökümü"
       },
       "bookmark_sources": {
-        "title": "Kaynakları işaretle",
+        "title": "Yer İmi Kaynakları",
         "empty": "Kullanılabilir kaynak verisi yok"
       }
     },

@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+const zStatus = z.enum([
+  "pending",
+  "scheduled",
+  "ready",
+  "running",
+  "paused",
+  "backing-off",
+  "suspended",
+  "completed",
+]);
+
+type InvocationStatus = z.infer<typeof zStatus>;
+
 export class AdminClient {
   constructor(private addr: string) {}
 
@@ -20,7 +33,9 @@ export class AdminClient {
     }
   }
 
-  async getStats(serviceName: string) {
+  async getStats(
+    serviceName: string,
+  ): Promise<Record<InvocationStatus, number>> {
     const query = `select status, count(*) as count from sys_invocation where target_service_name='${serviceName}' group by status`;
     const res = await fetch(`${this.addr}/query`, {
       method: "POST",
@@ -36,16 +51,7 @@ export class AdminClient {
     if (!res.ok) {
       throw new Error(`Failed to get stats: ${res.status}`);
     }
-    const zStatus = z.enum([
-      "pending",
-      "scheduled",
-      "ready",
-      "running",
-      "paused",
-      "backing-off",
-      "suspended",
-      "completed",
-    ]);
+
     const zSchema = z.object({
       rows: z.array(
         z.object({
@@ -69,7 +75,7 @@ export class AdminClient {
         "backing-off": 0,
         suspended: 0,
         completed: 0,
-      } as Record<z.infer<typeof zStatus>, number>,
+      } as Record<InvocationStatus, number>,
     );
   }
 }

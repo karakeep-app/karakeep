@@ -6,6 +6,18 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import type { RunnerJobData, RunnerResult, SerializedError } from "./types";
 
+function timeoutSignal(timeoutSecs: number): AbortSignal {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    controller.abort(new Error(`Job timed out after ${timeoutSecs} seconds`));
+  }, timeoutSecs * 1000);
+  // Don't keep the process alive just for this timer
+  // TODO: Fix the monorepo type mismatch - mobile sees setTimeout returning number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (timer as any).unref?.();
+  return controller.signal;
+}
+
 function serializeError(error: Error): SerializedError {
   return {
     name: error.name,
@@ -73,9 +85,7 @@ export function buildRunnerService<T, R>(
                       data: payload,
                       priority: jobData.priority,
                       runNumber: jobData.runNumber,
-                      abortSignal: AbortSignal.timeout(
-                        jobData.timeoutSecs * 1000,
-                      ),
+                      abortSignal: timeoutSignal(jobData.timeoutSecs),
                     }),
                   );
                   if (result.error) {
@@ -85,7 +95,10 @@ export function buildRunnerService<T, R>(
                         delayMs: result.error.delayMs,
                       };
                     }
-                    throw result.error;
+                    return {
+                      type: "error" as const,
+                      error: serializeError(result.error),
+                    };
                   }
                   return { type: "success" as const, value: result.data };
                 },
@@ -120,7 +133,7 @@ export function buildRunnerService<T, R>(
               data: data.job.data,
               priority: data.job.priority,
               runNumber: data.job.runNumber,
-              abortSignal: AbortSignal.timeout(data.job.timeoutSecs * 1000),
+              abortSignal: timeoutSignal(data.job.timeoutSecs),
             },
             data.result,
           );

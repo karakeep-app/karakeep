@@ -76,7 +76,10 @@ async function runIndex(
   });
 
   if (!bookmark) {
-    throw new Error(`Bookmark ${bookmarkId} not found`);
+    logger.warn(
+      `[search] Bookmark ${bookmarkId} not found, it might have been deleted already by the user. Skipping ...`,
+    );
+    return;
   }
 
   const document: BookmarkSearchDocument = {

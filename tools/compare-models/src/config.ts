@@ -28,7 +28,7 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((val) => val === "true")
-    .default("false"),
+    .prefault("false"),
 });
 
 export const config = envSchema.parse(process.env);

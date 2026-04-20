@@ -72,6 +72,12 @@ export function useDeleteImportSession() {
         queryClient.invalidateQueries(
           api.importSessions.listImportSessions.pathFilter(),
         );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionResults.pathFilter(),
+        );
         toast({
           description: "Import session deleted successfully",
           variant: "default",
@@ -80,6 +86,37 @@ export function useDeleteImportSession() {
       onError: (error) => {
         toast({
           description: error.message || "Failed to delete import session",
+          variant: "destructive",
+        });
+      },
+    }),
+  );
+}
+
+export function useFinalizeImportStaging() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    api.importSessions.finalizeImportStaging.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          api.importSessions.listImportSessions.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionResults.pathFilter(),
+        );
+        toast({
+          description: "Import session queued for processing",
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          description: error.message || "Failed to finalize import session",
           variant: "destructive",
         });
       },
@@ -96,6 +133,9 @@ export function usePauseImportSession() {
       onSuccess: () => {
         queryClient.invalidateQueries(
           api.importSessions.listImportSessions.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
         );
         toast({
           description: "Import session paused",
@@ -121,6 +161,9 @@ export function useResumeImportSession() {
       onSuccess: () => {
         queryClient.invalidateQueries(
           api.importSessions.listImportSessions.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
         );
         toast({
           description: "Import session resumed",

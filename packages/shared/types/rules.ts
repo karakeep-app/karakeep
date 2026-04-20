@@ -361,7 +361,7 @@ const ruleValidaitorFn = (
       message: "You must specify at least one action",
       path: ["actions"],
     });
-    return false;
+    return;
   }
   r.actions.every((a) => validateAction(a));
 };

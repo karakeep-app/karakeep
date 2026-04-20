@@ -48,6 +48,7 @@ usersCmd
       } else {
         const data: string[][] = [
           [
+            "id",
             "Name",
             "Email",
             "Num Bookmarks",
@@ -67,6 +68,7 @@ usersCmd
           const assetSizesDisplay = `${toHumanReadableSize(stats.assetSizes)} / ${user.storageQuota ? toHumanReadableSize(user.storageQuota) : "Unlimited"}`;
 
           data.push([
+            user.id,
             user.name,
             user.email,
             numBookmarksDisplay,

@@ -124,8 +124,8 @@
     "enter_tag_name": "태그 이름을 입력하세요",
     "sort_by_usage": "사용 빈도순으로 정렬",
     "sort_by_relevance": "관련성순으로 정렬",
-    "no_custom_tags": "아직 지정 태그가 없어",
-    "no_ai_tags": "아직 AI 태그가 없어",
+    "no_custom_tags": "아직 지정 태그가 없습니다",
+    "no_ai_tags": "아직 AI 태그가 없습니다",
     "no_unused_tags": "사용하지 않는 태그가 없습니다",
     "no_unused_tags_match_your_search": "검색어와 일치하는 사용하지 않는 태그가 없습니다",
     "no_tags_match_your_search": "검색어와 일치하는 태그가 없습니다",
@@ -193,8 +193,8 @@
     "fetch_error_title": "콘텐츠를 사용할 수 없음",
     "fetch_error_description": "이 링크의 콘텐츠를 가져올 수 없습니다. 페이지가 보호되어 있거나 인증이 필요하거나 일시적으로 사용하지 못할 수 있습니다.",
     "crawling_in_progress": "페이지 콘텐츠 가져오는 중…",
-    "continue_reading": "이어서 하셈",
-    "continue_reading_percent": "이어서 하셈 ({{percent}}%)",
+    "continue_reading": "이어서 읽기",
+    "continue_reading_percent": "이어서 읽기 ({{percent}}%)",
     "continue_button": "계속"
   },
   "editor": {
@@ -663,7 +663,7 @@
       "list": {
         "title": "내 백업",
         "create_backup_now": "지금 백업 만들기",
-        "no_backups": "아직 백업이 없어요. 자동 백업을 활성화하거나 수동으로 만드세요.",
+        "no_backups": "아직 백업이 없습니다. 자동 백업을 활성화하거나 수동으로 만드세요.",
         "table": {
           "created_at": "생성 날짜",
           "bookmarks": "즐겨찾기",
@@ -891,7 +891,7 @@
     "share_list": "목록 공유",
     "delete_list": {
       "title": "목록 삭제",
-      "description": "목록을 삭제해도 해당 목록에 있는 북마크는 삭제되지 않아.",
+      "description": "목록을 삭제해도 해당 목록에 있는 북마크는 삭제되지 않습니다.",
       "delete_children": "자식 목록 삭제 (재귀적으로)",
       "delete_children_description": "선택하지 않으면 모든 직계 자식 목록이 루트 목록이 됨"
     },
@@ -916,9 +916,9 @@
       "viewer_description": "목록에서 북마크를 볼 수 있음",
       "editor_description": "북마크를 추가 및 제거할 수 있음",
       "no_collaborators": "아직 협력자가 없습니다. 협업을 시작하려면 누군가를 추가하세요!",
-      "no_collaborators_readonly": "요 리스트에는 협업자가 없어.",
-      "people_with_access": "요 리스트에 접근할 수 있는 사람들",
-      "add_or_remove": "요 리스트에 접근할 수 있는 사람들을 추가/삭제해 줘",
+      "no_collaborators_readonly": "이 목록에는 협력자가 없습니다.",
+      "people_with_access": "이 목록에 접근할 수 있는 사람들",
+      "add_or_remove": "이 목록에 접근할 수 있는 사람을 추가하거나 삭제합니다",
       "invitation_sent": "초대장 전송 완료",
       "invitation_revoked": "초대 취소됨",
       "failed_to_revoke": "초대 취소 실패",
@@ -927,11 +927,11 @@
       "declined": "거절됨"
     },
     "leave_list": {
-      "title": "리스트에서 나가기",
-      "confirm_message": "진짜 {{icon}} {{name}}에서 나가려고?",
-      "warning": "이제 이 리스트의 북마크를 보거나 접근할 수 없어. 리스트 주인이 필요하면 다시 추가해 줄 수 있어.",
-      "action": "리스트에서 나가기",
-      "success": "\"{icon}} {{name}}\"에서 나왔어."
+      "title": "목록에서 나가기",
+      "confirm_message": "{{icon}} {{name}}에서 나가시겠습니까?",
+      "warning": "이제 이 목록의 북마크를 보거나 접근할 수 없습니다. 목록 소유자가 필요하면 다시 추가할 수 있습니다.",
+      "action": "목록에서 나가기",
+      "success": "\"{{icon}} {{name}}\"에서 나왔습니다."
     },
     "invitations": {
       "pending": "초대 대기 중",
@@ -958,7 +958,7 @@
   },
   "banners": {
     "no_bookmarks": {
-      "title": "아직 북마크가 없어요",
+      "title": "아직 북마크가 없습니다",
       "description": "나중에 빠르게 액세스할 수 있도록 흥미로운 기사, 링크 및 페이지를 저장하세요."
     }
   },

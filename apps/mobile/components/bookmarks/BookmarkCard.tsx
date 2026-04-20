@@ -411,7 +411,7 @@ function LinkCard({
         <TagList bookmark={bookmark} />
         <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
         <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto" numberOfLines={1}>
+          <Text className="my-auto shrink" numberOfLines={1}>
             {parsedUrl.host}
           </Text>
           <ActionBar bookmark={bookmark} />

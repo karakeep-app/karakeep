@@ -1,0 +1,82 @@
+{
+  "collections": [
+    {
+      "id": 1,
+      "name": "Tech",
+      "parentId": null,
+      "links": [
+        {
+          "name": "GitHub",
+          "url": "https://github.com",
+          "tags": [{ "name": "dev" }],
+          "createdAt": "2025-01-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Frontend",
+      "parentId": 1,
+      "links": [
+        {
+          "name": "React",
+          "url": "https://react.dev",
+          "tags": [{ "name": "js" }, { "name": "ui" }],
+          "createdAt": "2025-02-15T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Frameworks",
+      "parentId": 2,
+      "links": [
+        {
+          "name": "Next.js",
+          "url": "https://nextjs.org",
+          "tags": [],
+          "createdAt": "2025-03-10T08:30:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "News",
+      "parentId": null,
+      "links": [
+        {
+          "name": "Hacker News",
+          "url": "https://news.ycombinator.com",
+          "tags": [{ "name": "news" }],
+          "createdAt": "2025-01-20T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Work",
+      "parentId": null,
+      "links": [
+        {
+          "name": "Example",
+          "url": "https://example.com",
+          "tags": [{ "name": "work" }],
+          "createdAt": "2025-01-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Personal",
+      "parentId": null,
+      "links": [
+        {
+          "name": "Example",
+          "url": "https://example.com",
+          "tags": [{ "name": "personal" }],
+          "createdAt": "2025-02-01T00:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}

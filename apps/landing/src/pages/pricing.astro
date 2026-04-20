@@ -1,0 +1,12 @@
+---
+import PricingPage from "../Pricing";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="Pricing"
+  description="Simple, transparent pricing for Karakeep. Free plan available. Pro plan at $4/month or $40/year with AI tagging, full-text search, and 50GB storage. Self-hosted option is free forever."
+  path="/pricing"
+>
+  <PricingPage client:load />
+</Layout>

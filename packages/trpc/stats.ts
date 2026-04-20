@@ -6,8 +6,10 @@ import { assets, bookmarks, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
+  BackupQueue,
   FeedQueue,
   LinkCrawlerQueue,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
   RuleEngineQueue,
   SearchIndexingQueue,
@@ -23,6 +25,8 @@ const queuePendingJobsGauge = new Gauge({
   async collect() {
     const queues = [
       { name: "link_crawler", queue: LinkCrawlerQueue },
+      { name: "low_priority_crawler", queue: LowPriorityCrawlerQueue },
+      { name: "backup", queue: BackupQueue },
       { name: "openai", queue: OpenAIQueue },
       { name: "search_indexing", queue: SearchIndexingQueue },
       { name: "admin_maintenance", queue: AdminMaintenanceQueue },
@@ -103,6 +107,13 @@ const totalBookmarksGauge = new Gauge({
   },
 });
 
+// Bookmark creation metrics
+const bookmarkCreationCounter = new Counter({
+  name: "karakeep_bookmark_creations_total",
+  help: "Total number of bookmarks created",
+  labelNames: ["source"],
+});
+
 // Api metrics
 const apiRequestsTotalCounter = new Counter({
   name: "karakeep_trpc_requests_total",
@@ -130,6 +141,7 @@ register.registerMetric(queuePendingJobsGauge);
 register.registerMetric(totalUsersGauge);
 register.registerMetric(totalAssetSizeGauge);
 register.registerMetric(totalBookmarksGauge);
+register.registerMetric(bookmarkCreationCounter);
 register.registerMetric(apiRequestsTotalCounter);
 register.registerMetric(apiErrorsTotalCounter);
 register.registerMetric(apiRequestDurationSummary);
@@ -139,6 +151,7 @@ export {
   totalUsersGauge,
   totalAssetSizeGauge,
   totalBookmarksGauge,
+  bookmarkCreationCounter,
   apiRequestsTotalCounter,
   apiErrorsTotalCounter,
   apiRequestDurationSummary,

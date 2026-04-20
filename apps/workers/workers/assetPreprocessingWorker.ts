@@ -1,5 +1,5 @@
 import os from "os";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import PDFParser from "pdf2json";
 import { fromBuffer } from "pdf2pic";
@@ -59,6 +59,34 @@ export class AssetPreprocessingWorker {
             logger.error(
               `[assetPreprocessing][${jobId}] Asset preprocessing failed: ${job.error}\n${job.error.stack}`,
             );
+
+            const bookmarkId = job.data?.bookmarkId;
+            if (bookmarkId && job.numRetriesLeft == 0) {
+              await db.transaction(async (tx) => {
+                await tx
+                  .update(bookmarks)
+                  .set({
+                    taggingStatus: null,
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.taggingStatus, "pending"),
+                    ),
+                  );
+                await tx
+                  .update(bookmarks)
+                  .set({
+                    summarizationStatus: null,
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.summarizationStatus, "pending"),
+                    ),
+                  );
+              });
+            }
             return Promise.resolve();
           },
         },
@@ -110,7 +138,9 @@ async function readImageTextWithLLM(
     prompt,
     contentType,
     base64,
-    { schema: null },
+    {
+      schema: null,
+    },
   );
 
   const extractedText = response.response.trim();

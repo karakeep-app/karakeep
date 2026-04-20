@@ -5,23 +5,23 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.842.0",
+    "@aws-sdk/client-s3": "^3.1014.0",
     "glob": "^11.0.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
     "nodemailer": "^7.0.4",
     "ollama": "^0.5.14",
-    "openai": "^4.86.1",
+    "openai": "^6.34.0",
     "typescript-parsec": "^0.3.4",
+    "undici": "^6.23.0",
     "winston": "^3.11.0",
-    "zod": "^3.24.2",
-    "zod-to-json-schema": "^3.24.3"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/html-to-text": "^9.0.4",
     "@types/nodemailer": "^6.4.17",
-    "vite-tsconfig-paths": "^4.3.1",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.2.4"
   },
   "scripts": {

@@ -1,14 +1,26 @@
 import deepEql from "deep-equal";
 import { and, eq } from "drizzle-orm";
 
-import { bookmarks, tagsOnBookmarks } from "@karakeep/db/schema";
-import { LinkCrawlerQueue } from "@karakeep/shared-server";
+import { db as globalDb, DB } from "@karakeep/db";
+import {
+  bookmarks,
+  ruleEngineRulesTable,
+  tagsOnBookmarks,
+} from "@karakeep/db/schema";
+import {
+  buildCrawlIdempotencyKey,
+  LowPriorityCrawlerQueue,
+  QueuePriority,
+  RuleEngineQueue,
+} from "@karakeep/shared-server";
+import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   RuleEngineAction,
   RuleEngineCondition,
   RuleEngineEvent,
   RuleEngineRule,
+  zRuleEngineEventSchema,
 } from "@karakeep/shared/types/rules";
 
 import { AuthedContext } from "..";
@@ -70,6 +82,64 @@ export class RuleEngine {
         : "") ??
       ""
     );
+  }
+
+  /**
+   * Checks whether any enabled rule for the given user matches any of the events.
+   * Only fetches the minimal data needed (rule events, no actions or bookmark data).
+   */
+  static async matchesAnyRule(
+    userId: string,
+    events: RuleEngineEvent[],
+    db: DB = globalDb,
+  ): Promise<boolean> {
+    if (events.length === 0) {
+      return false;
+    }
+
+    const enabledRules = await db.query.ruleEngineRulesTable.findMany({
+      where: and(
+        eq(ruleEngineRulesTable.userId, userId),
+        eq(ruleEngineRulesTable.enabled, true),
+      ),
+      columns: {
+        event: true,
+      },
+    });
+
+    return enabledRules.some((rule) => {
+      let parsedEvent: unknown;
+      try {
+        parsedEvent = JSON.parse(rule.event);
+      } catch {
+        return false;
+      }
+      const ruleEvent = zRuleEngineEventSchema.safeParse(parsedEvent);
+      if (!ruleEvent.success) {
+        return false;
+      }
+      return events.some((event) =>
+        deepEql(ruleEvent.data, event, { strict: true }),
+      );
+    });
+  }
+
+  /**
+   * Checks whether any enabled rule for the given user matches any of the events,
+   * and only then enqueues the job to the rule engine queue.
+   */
+  static async triggerOnEvent(
+    userId: string,
+    bookmarkId: string,
+    events: RuleEngineEvent[],
+    opts?: EnqueueOptions,
+    db: DB = globalDb,
+  ): Promise<void> {
+    if (!(await this.matchesAnyRule(userId, events, db))) {
+      return;
+    }
+
+    await RuleEngineQueue.enqueue({ bookmarkId, events }, opts);
   }
 
   static async forBookmark(
@@ -219,16 +289,16 @@ export class RuleEngine {
         return `Removed from list ${action.listId}`;
       }
       case "downloadFullPageArchive": {
-        await LinkCrawlerQueue.enqueue(
-          {
-            bookmarkId: this.bookmark.id,
-            archiveFullPage: true,
-            runInference: false,
-          },
-          {
-            groupId: this.bookmark.userId,
-          },
-        );
+        const payload = {
+          bookmarkId: this.bookmark.id,
+          archiveFullPage: true,
+          runInference: false,
+        };
+        await LowPriorityCrawlerQueue.enqueue(payload, {
+          groupId: this.bookmark.userId,
+          priority: QueuePriority.Low,
+          idempotencyKey: buildCrawlIdempotencyKey(payload),
+        });
         return `Enqueued full page archive`;
       }
       case "favouriteBookmark": {

@@ -53,5 +53,11 @@ export async function createTestUser() {
     keyName: "test-key",
   });
 
+  const authedTrpc = getTrpcClient(key);
+  await authedTrpc.users.updateSettings.mutate({
+    autoTaggingEnabled: false,
+    autoSummarizationEnabled: false,
+  });
+
   return key;
 }

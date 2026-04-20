@@ -1,3 +1,4 @@
+import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -9,35 +10,70 @@ import {
 } from "@karakeep/shared/types/highlights";
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
+import type { AuthedContext } from "../index";
 import { authedProcedure, router } from "../index";
-import { Highlight } from "../models/highlights";
+import { actorFromContext } from "../lib/actor";
+import { HighlightsService } from "../models/highlights.service";
 import { ensureBookmarkAccess, ensureBookmarkOwnership } from "./bookmarks";
 
+const highlightsProcedure = authedProcedure.use((opts) => {
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      actor: actorFromContext(opts.ctx),
+      highlightsService: new HighlightsService(opts.ctx.db),
+    },
+  });
+});
+
+type HighlightsContext = AuthedContext & {
+  actor: ReturnType<typeof actorFromContext>;
+  highlightsService: HighlightsService;
+};
+
+const ensureHighlightOwnership = experimental_trpcMiddleware<{
+  ctx: HighlightsContext;
+  input: { highlightId: string };
+}>().create(async (opts) => {
+  const highlight = await opts.ctx.highlightsService.get(
+    opts.ctx.actor,
+    opts.input.highlightId,
+  );
+
+  return opts.next({
+    ctx: {
+      ...opts.ctx,
+      highlight,
+    },
+  });
+});
+
 export const highlightsAppRouter = router({
-  create: authedProcedure
+  create: highlightsProcedure
     .input(zNewHighlightSchema)
     .output(zHighlightSchema)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      const highlight = await Highlight.create(ctx, input);
-      return highlight.asPublicHighlight();
+      return await ctx.highlightsService.create(ctx.actor, input);
     }),
-  getForBookmark: authedProcedure
+  getForBookmark: highlightsProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .output(z.object({ highlights: z.array(zHighlightSchema) }))
     .use(ensureBookmarkAccess)
     .query(async ({ ctx }) => {
-      const highlights = await Highlight.getForBookmark(ctx, ctx.bookmark);
-      return { highlights: highlights.map((h) => h.asPublicHighlight()) };
+      const highlights = await ctx.highlightsService.getForBookmark(
+        ctx.bookmark.id,
+      );
+      return { highlights };
     }),
-  get: authedProcedure
+  get: highlightsProcedure
     .input(z.object({ highlightId: z.string() }))
     .output(zHighlightSchema)
-    .query(async ({ input, ctx }) => {
-      const highlight = await Highlight.fromId(ctx, input.highlightId);
-      return highlight.asPublicHighlight();
+    .use(ensureHighlightOwnership)
+    .query(({ ctx }) => {
+      return ctx.highlight;
     }),
-  getAll: authedProcedure
+  getAll: highlightsProcedure
     .input(
       z.object({
         cursor: z.any().nullish(),
@@ -46,13 +82,13 @@ export const highlightsAppRouter = router({
     )
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
-      const result = await Highlight.getAll(ctx, input.cursor, input.limit);
-      return {
-        highlights: result.highlights.map((h) => h.asPublicHighlight()),
-        nextCursor: result.nextCursor,
-      };
+      return await ctx.highlightsService.getAll(
+        ctx.actor,
+        input.cursor,
+        input.limit,
+      );
     }),
-  search: authedProcedure
+  search: highlightsProcedure
     .input(
       z.object({
         text: z.string(),
@@ -62,30 +98,25 @@ export const highlightsAppRouter = router({
     )
     .output(zGetAllHighlightsResponseSchema)
     .query(async ({ input, ctx }) => {
-      const result = await Highlight.search(
-        ctx,
+      return await ctx.highlightsService.search(
+        ctx.actor,
         input.text,
         input.cursor,
         input.limit,
       );
-      return {
-        highlights: result.highlights.map((h) => h.asPublicHighlight()),
-        nextCursor: result.nextCursor,
-      };
     }),
-  delete: authedProcedure
+  delete: highlightsProcedure
     .input(z.object({ highlightId: z.string() }))
     .output(zHighlightSchema)
-    .mutation(async ({ input, ctx }) => {
-      const highlight = await Highlight.fromId(ctx, input.highlightId);
-      return await highlight.delete();
+    .use(ensureHighlightOwnership)
+    .mutation(async ({ ctx }) => {
+      return await ctx.highlightsService.delete(ctx.highlight);
     }),
-  update: authedProcedure
+  update: highlightsProcedure
     .input(zUpdateHighlightSchema)
     .output(zHighlightSchema)
+    .use(ensureHighlightOwnership)
     .mutation(async ({ input, ctx }) => {
-      const highlight = await Highlight.fromId(ctx, input.highlightId);
-      await highlight.update(input);
-      return highlight.asPublicHighlight();
+      return await ctx.highlightsService.update(ctx.highlight, input);
     }),
 });

@@ -28,7 +28,7 @@
     "table": "^6.8.2",
     "tsx": "^4.8.1",
     "vite": "^7.0.6",
-    "vite-tsconfig-paths": "^4.3.1"
+    "vite-tsconfig-paths": "^6.1.1"
   },
   "scripts": {
     "build": "vite build && chmod +x dist/index.mjs",

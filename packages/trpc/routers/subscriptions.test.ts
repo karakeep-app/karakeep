@@ -22,6 +22,9 @@ const mockStripeInstance = vi.hoisted(() => ({
       create: vi.fn(),
     },
   },
+  prices: {
+    retrieve: vi.fn(),
+  },
   subscriptions: {
     update: vi.fn(),
     list: vi.fn(),
@@ -47,6 +50,7 @@ vi.mock("@karakeep/shared/config", async (original) => {
       stripe: {
         secretKey: "sk_test_123",
         priceId: "price_123",
+        yearlyPriceId: "price_yearly_123",
         webhookSecret: "whsec_123",
         isConfigured: true,
       },
@@ -73,6 +77,7 @@ describe("Subscription Routes", () => {
   let mockBillingPortalSessionsCreate: ReturnType<typeof vi.fn>;
   let mockWebhooksConstructEvent: ReturnType<typeof vi.fn>;
   let mockSubscriptionsList: ReturnType<typeof vi.fn>;
+  let mockPricesRetrieve: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -84,6 +89,7 @@ describe("Subscription Routes", () => {
       mockStripeInstance.billingPortal.sessions.create;
     mockWebhooksConstructEvent = mockStripeInstance.webhooks.constructEvent;
     mockSubscriptionsList = mockStripeInstance.subscriptions.list;
+    mockPricesRetrieve = mockStripeInstance.prices.retrieve;
   });
 
   describe("getSubscriptionStatus", () => {
@@ -151,6 +157,48 @@ describe("Subscription Routes", () => {
     });
   });
 
+  describe("getSubscriptionPrice", () => {
+    test<CustomTestContext>("returns monthly and yearly prices", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "test@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id);
+
+      mockPricesRetrieve
+        .mockResolvedValueOnce({
+          id: "price_123",
+          currency: "usd",
+          unit_amount: 400,
+        })
+        .mockResolvedValueOnce({
+          id: "price_yearly_123",
+          currency: "usd",
+          unit_amount: 4000,
+        });
+
+      const result = await caller.subscriptions.getSubscriptionPrice();
+
+      expect(result).toEqual({
+        monthly: {
+          priceId: "price_123",
+          currency: "usd",
+          amount: 400,
+        },
+        yearly: {
+          priceId: "price_yearly_123",
+          currency: "usd",
+          amount: 4000,
+        },
+      });
+    });
+  });
+
   describe("createCheckoutSession", () => {
     test<CustomTestContext>("creates checkout session for new customer", async ({
       db,
@@ -211,6 +259,48 @@ describe("Subscription Routes", () => {
           enabled: true,
         },
       });
+    });
+
+    test<CustomTestContext>("creates checkout session with yearly price when billingPeriod is yearly", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "test@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id);
+
+      mockCustomersCreate.mockResolvedValue({
+        id: "cus_new123",
+      });
+
+      mockCheckoutSessionsCreate.mockResolvedValue({
+        id: "cs_123",
+        url: "https://checkout.stripe.com/pay/cs_123",
+      });
+
+      const result = await caller.subscriptions.createCheckoutSession({
+        billingPeriod: "yearly",
+      });
+
+      expect(result).toEqual({
+        sessionId: "cs_123",
+        url: "https://checkout.stripe.com/pay/cs_123",
+      });
+
+      expect(mockCheckoutSessionsCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          line_items: [
+            {
+              price: "price_yearly_123",
+              quantity: 1,
+            },
+          ],
+        }),
+      );
     });
 
     test<CustomTestContext>("throws error if user already has active subscription", async ({

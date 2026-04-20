@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   useDeleteImportSession,
+  useFinalizeImportStaging,
   useImportSessionStats,
   usePauseImportSession,
   useResumeImportSession,
@@ -79,6 +80,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const { t } = useTranslation();
   const { data: liveStats } = useImportSessionStats(session.id);
   const deleteSession = useDeleteImportSession();
+  const finalizeSession = useFinalizeImportStaging();
   const pauseSession = usePauseImportSession();
   const resumeSession = useResumeImportSession();
 
@@ -102,12 +104,13 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
       : 0;
 
   const canDelete =
+    stats.status === "staging" ||
     stats.status === "completed" ||
     stats.status === "failed" ||
     stats.status === "paused";
 
+  const canFinalize = stats.status === "staging" && stats.totalBookmarks > 0;
   const canPause = stats.status === "pending" || stats.status === "running";
-
   const canResume = stats.status === "paused";
 
   return (
@@ -260,6 +263,39 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   <Pause className="mr-1 h-4 w-4" />
                   {t("settings.import_sessions.pause_session")}
                 </Button>
+              )}
+              {canFinalize && (
+                <ActionConfirmingDialog
+                  title={t("settings.import_sessions.finalize_dialog_title")}
+                  description={
+                    <div>
+                      {t(
+                        "settings.import_sessions.finalize_dialog_description",
+                        {
+                          name: session.name,
+                        },
+                      )}
+                    </div>
+                  }
+                  actionButton={(setDialogOpen) => (
+                    <Button
+                      onClick={() => {
+                        finalizeSession.mutateAsync({
+                          importSessionId: session.id,
+                        });
+                        setDialogOpen(false);
+                      }}
+                      disabled={finalizeSession.isPending}
+                    >
+                      {t("settings.import_sessions.finalize_staging")}
+                    </Button>
+                  )}
+                >
+                  <Button size="sm" disabled={finalizeSession.isPending}>
+                    <Play className="mr-1 h-4 w-4" />
+                    {t("settings.import_sessions.finalize_staging")}
+                  </Button>
+                </ActionConfirmingDialog>
               )}
               {canResume && (
                 <Button

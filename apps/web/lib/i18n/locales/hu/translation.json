@@ -107,14 +107,14 @@
         "local_overrides_cleared": "Az eszközspecifikus beállítások törölve lettek",
         "local_overrides_description": "Ennek az eszköznek az olvasási beállításai eltérnek a globális alapértelmezésektől:",
         "clear_defaults": "Összes alapértelmezett törlése",
-        "description": "Az olvasónézet alapértelmezett szövegbeállításainak konfigurálása. Ezek a beállítások szinkronizálva vannak az összes eszközén.",
+        "description": "Az olvasónézet alapértelmezett szövegbeállításainak konfigurálása. Ezek a beállítások szinkronizálva vannak az összes eszközödön.",
         "defaults_cleared": "Az olvasó alapértelmezései törölve",
         "save_hint": "Beállítások mentése csak ehhez az eszközhöz, vagy szinkronizálás minden eszközre",
         "save_as_default": "Mentés alapértelmezettként",
         "save_to_device": "Ez az eszköz",
         "sans": "Sans Serif",
         "tooltip_preview_and_local": "El nem mentett előnézeti módosítások; az eszköz beállításai eltérnek a globálistól",
-        "adjust_hint": "A módosítások előnézetéhez állítsa be a fenti beállításokat"
+        "adjust_hint": "A módosítások előnézetéhez állítsd be a fenti beállításokat"
       },
       "avatar": {
         "upload": "Avatár feltöltése",
@@ -445,7 +445,7 @@
       },
       "dialogs": {
         "delete_backup_title": "Biztonsági mentés törlése?",
-        "delete_backup_description": "Biztos, hogy törölni akarja ezt a biztonsági mentést? Ez a művelet nem vonható vissza."
+        "delete_backup_description": "Biztos, hogy törölni akarod ezt a biztonsági mentést? Ez a művelet nem vonható vissza."
       },
       "toasts": {
         "backup_queued": "A biztonsági mentési feladat várólistára került! Hamarosan feldolgozásra kerül.",
@@ -550,12 +550,12 @@
       "align_center": "Középre igazított"
     },
     "multiple_urls_dialog_desc": "A beadott szöveg több URL-t tartalmat különböző sorokban. Külön könyvjelzőként importálod őket?",
-    "placeholder": "Illesszen be hivatkozást vagy képet, írjon jegyzetet vagy húzzon be ide képet…",
+    "placeholder": "Illessz be hivatkozást vagy képet, írj jegyzetet vagy húzz be ide képet…",
     "quickly_focus": "A ⌘ + E megnyomásával gyorsan erre a mezőre fókuszálhatsz",
     "multiple_urls_dialog_title": "Az URL címeket külön könyvjelzőként importálod?",
     "import_as_separate_bookmarks": "Importálás külön könyvjelzőkként",
-    "new_item": "ÚJ TÁRGY",
-    "disabled_submissions": "Az alárendelések le vannak tiltva",
+    "new_item": "ÚJ ELEM",
+    "disabled_submissions": "A beküldések le vannak tiltva",
     "placeholder_v2": "Illessz be egy linket, írj egy jegyzetet vagy húzz ide egy képet…"
   },
   "search": {

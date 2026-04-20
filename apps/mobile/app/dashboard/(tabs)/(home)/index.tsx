@@ -8,6 +8,7 @@ import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus, Search } from "lucide-react-native";
@@ -19,6 +20,7 @@ function HeaderRight({
   openNewBookmarkModal: () => void;
 }) {
   const { settings } = useAppSettings();
+  const { colors } = useColorScheme();
   const { menuIconColor } = useMenuIconColors();
   const uploadToastIdRef = useRef<string | number | null>(null);
   const { uploadAsset } = useUploadAsset(settings, {
@@ -99,9 +101,9 @@ function HeaderRight({
       ]}
       shouldOpenOnLongPress={false}
     >
-      <View className="my-auto px-4">
+      <View className="my-auto">
         <Plus
-          color="rgb(0, 122, 255)"
+          color={colors.foreground}
           onPress={() => Haptics.selectionAsync()}
         />
       </View>

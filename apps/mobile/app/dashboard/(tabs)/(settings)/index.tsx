@@ -9,8 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Slider } from "react-native-awesome-slider";
-import { useSharedValue } from "react-native-reanimated";
+import Slider from "@react-native-community/slider";
 import Constants from "expo-constants";
 import { Link } from "expo-router";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
@@ -41,13 +40,11 @@ export default function Settings() {
   } = useAppSettings();
   const api = useTRPC();
 
-  const imageQuality = useSharedValue(0);
-  const imageQualityMin = useSharedValue(0);
-  const imageQualityMax = useSharedValue(100);
+  const [imageQuality, setImageQuality] = useState<number | null>(null);
 
   useEffect(() => {
-    imageQuality.value = settings.imageQuality * 100;
-  }, [settings]);
+    setImageQuality(settings.imageQuality * 100);
+  }, [settings.imageQuality]);
 
   const { data, error } = useQuery(api.users.whoami.queryOptions());
   const {
@@ -205,6 +202,24 @@ export default function Settings() {
             }
           />
         </View>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
+          <Text className="flex-1" numberOfLines={1}>
+            Keep screen on while reading
+          </Text>
+          <Switch
+            className="shrink-0"
+            disabled={isSettingsLoading}
+            value={settings.keepScreenOnWhileReading}
+            onValueChange={(value) => {
+              if (isSettingsLoading) return;
+              setSettings({
+                ...settings,
+                keepScreenOnWhileReading: value,
+              });
+            }}
+          />
+        </View>
       </View>
 
       <SectionHeader title="Media" />
@@ -216,19 +231,26 @@ export default function Settings() {
           <Text>Upload Image Quality</Text>
           <View className="flex flex-1 flex-row items-center justify-center gap-2">
             <Text className="text-foreground">
-              {Math.round(settings.imageQuality * 100)}%
+              {Math.round(imageQuality ?? 0)}%
             </Text>
-            <Slider
-              onSlidingComplete={(value) =>
-                setSettings({
-                  ...settings,
-                  imageQuality: Math.round(value) / 100,
-                })
-              }
-              progress={imageQuality}
-              minimumValue={imageQualityMin}
-              maximumValue={imageQualityMax}
-            />
+
+            {imageQuality === null ? (
+              <ActivityIndicator size="small" />
+            ) : (
+              <Slider
+                style={{ height: 40, flex: 1 }}
+                onSlidingComplete={(value) =>
+                  setSettings({
+                    ...settings,
+                    imageQuality: Math.round(value) / 100,
+                  })
+                }
+                onValueChange={(value) => setImageQuality(value)}
+                value={imageQuality}
+                minimumValue={0}
+                maximumValue={100}
+              />
+            )}
           </View>
         </View>
       </View>

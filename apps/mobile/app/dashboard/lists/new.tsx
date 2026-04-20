@@ -52,7 +52,7 @@ const NewListPage = () => {
 
     mutate({
       name: text,
-      icon: "🚀",
+      icon: "📁",
       type: listType,
       query: listType === "smart" ? query : undefined,
     });
@@ -85,7 +85,7 @@ const NewListPage = () => {
 
       {/* List Name */}
       <View className="flex flex-row items-center gap-1">
-        <Text className="shrink p-2">🚀</Text>
+        <Text className="shrink p-2">📁</Text>
         <Input
           className="flex-1 bg-card"
           onChangeText={setText}

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { invites, users } from "@karakeep/db/schema";
+import { zUserNameSchema } from "@karakeep/shared/types/users";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { sendInviteEmail } from "../email";
@@ -158,7 +159,7 @@ export const invitesAppRouter = router({
     .input(
       z.object({
         token: z.string(),
-        name: z.string().min(1),
+        name: zUserNameSchema,
         password: z.string().min(8),
       }),
     )

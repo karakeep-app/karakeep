@@ -58,13 +58,14 @@
     "@trpc/client": "^11.9.0",
     "@trpc/server": "^11.9.0",
     "@trpc/tanstack-react-query": "^11.9.0",
+    "better-sqlite3": "^11.3.0",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",
     "csv-parse": "^5.5.6",
     "date-fns": "^3.6.0",
-    "drizzle-orm": "^0.44.2",
+    "drizzle-orm": "^0.45.2",
     "fastest-levenshtein": "^1.0.16",
     "i18next": "^23.16.5",
     "i18next-resources-to-backend": "^1.2.1",
@@ -99,7 +100,7 @@
     "sonner": "^2.0.7",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.1",
-    "zod": "^3.24.2",
+    "zod": "^4.0.0",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -115,7 +116,7 @@
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "vite-tsconfig-paths": "^4.3.1",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.2.4"
   }
 }

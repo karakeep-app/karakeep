@@ -204,8 +204,8 @@
         "remove_confirm_title": "Xóa ảnh đại diện?",
         "updated": "Đã cập nhật ảnh đại diện",
         "removed": "Đã xóa ảnh đại diện",
-        "description": "Tải lên ảnh vuông để dùng làm ảnh đại diện nha.",
-        "remove_confirm_description": "Hành động này sẽ xóa ảnh hồ sơ hiện tại của bạn đó.",
+        "description": "Tải lên ảnh vuông để dùng làm ảnh đại diện.",
+        "remove_confirm_description": "Hành động này sẽ xóa ảnh hồ sơ hiện tại của bạn.",
         "title": "Ảnh hồ sơ",
         "remove": "Xóa ảnh đại diện"
       }
@@ -225,7 +225,7 @@
       "delete_asset": "Xóa tài sản",
       "delete_asset_confirmation": "Bạn có chắc chắn muốn xóa tài sản này không?",
       "manage_assets": "Quản lý tài sản",
-      "no_assets": "Mày chưa có tài sản mẹ gì cả."
+      "no_assets": "Bạn chưa có tài sản nào."
     },
     "rules": {
       "actions_types": {
@@ -451,7 +451,7 @@
       },
       "dialogs": {
         "delete_backup_title": "Xóa bản sao lưu?",
-        "delete_backup_description": "Mày có chắc là muốn xóa bản sao lưu này không? Hành động này không thể hoàn tác đâu đó."
+        "delete_backup_description": "Bạn có chắc chắn muốn xóa bản sao lưu này không? Hành động này không thể hoàn tác."
       },
       "toasts": {
         "backup_queued": "Công việc sao lưu đã được đưa vào hàng đợi! Nó sẽ sớm được xử lý thôi.",
@@ -564,7 +564,7 @@
       "num_bookmarks": "Số lượng dấu trang",
       "asset_sizes": "Kích thước tài sản",
       "local_user": "Người dùng cục bộ",
-      "delete_user_confirm_description": "Mày có chắc là muốn xóa người dùng \"{{name}}\" không?",
+      "delete_user_confirm_description": "Bạn có chắc chắn muốn xóa người dùng \"{{name}}\" không?",
       "unlimited": "Không giới hạn"
     },
     "actions": {
@@ -985,11 +985,11 @@
     "image_fit_contain": "Chứa (Vừa vặn)"
   },
   "version": {
-    "new_release_available": "Có ghi chú phát hành mới đó",
+    "new_release_available": "Có ghi chú phát hành mới",
     "whats_new_title": "Có gì mới trong v{{version}}?",
     "release_notes_description": "Đây là những cập nhật mới nhất lấy từ ghi chú phát hành trên GitHub.",
     "loading_release_notes": "Đang tải ghi chú phát hành…",
-    "unable_to_load_release_notes": "Không thể tải ghi chú phát hành ngay bây giờ. Lát nữa thử lại nha.",
+    "unable_to_load_release_notes": "Không thể tải ghi chú phát hành ngay bây giờ. Vui lòng thử lại sau.",
     "no_release_notes": "Không có ghi chú phát hành nào cho phiên bản này cả.",
     "release_notes_synced": "Ghi chú phát hành được đồng bộ hóa từ GitHub đó.",
     "view_on_github": "Xem trên GitHub nè"

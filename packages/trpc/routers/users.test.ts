@@ -60,6 +60,32 @@ describe("User Routes", () => {
     expect(user.email).toEqual("test123@test.com");
   });
 
+  test<CustomTestContext>("create user trims surrounding whitespace in name", async ({
+    unauthedAPICaller,
+  }) => {
+    const user = await unauthedAPICaller.users.create({
+      name: "  Test \n User  ",
+      email: "sanitized@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+
+    expect(user.name).toEqual("Test \n User");
+  });
+
+  test<CustomTestContext>("create user rejects raw html in name", async ({
+    unauthedAPICaller,
+  }) => {
+    await expect(() =>
+      unauthedAPICaller.users.create({
+        name: "<script>alert('xss')</script>",
+        email: "html-only@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      }),
+    ).rejects.toThrow(/Name contains invalid characters/);
+  });
+
   test<CustomTestContext>("first user is admin", async ({
     unauthedAPICaller,
   }) => {

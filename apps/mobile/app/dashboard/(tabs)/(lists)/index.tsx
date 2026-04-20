@@ -16,15 +16,16 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 
 function HeaderRight({ openNewListModal }: { openNewListModal: () => void }) {
+  const { colors } = useColorScheme();
   return (
     <Pressable
-      className="my-auto px-4"
+      className="my-auto"
       onPress={() => {
         Haptics.selectionAsync();
         openNewListModal();
       }}
     >
-      <Plus color="rgb(0, 122, 255)" />
+      <Plus color={colors.foreground} />
     </Pressable>
   );
 }
