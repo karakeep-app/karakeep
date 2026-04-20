@@ -19,7 +19,8 @@
     "@types/turndown": "^5.0.5",
     "shx": "^0.4.0",
     "tsx": "^4.8.1",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "vite-tsconfig-paths": "^6.1.1"
   },
   "scripts": {
     "build": "vite build && shx chmod +x dist/index.js",

@@ -50,7 +50,8 @@ COPY ./patches ./patches
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN pnpm install --frozen-lockfile
+# Avoid pnpm hardlink collisions in Docker while preserving the repo's hoisted workspace layout.
+RUN pnpm install --frozen-lockfile --config.package-import-method=copy
 
 COPY . .
 
