@@ -122,7 +122,6 @@ export class OpenAIInferenceClient implements InferenceClient {
       ...defaultInferenceOptions,
       ..._opts,
     };
-
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         messages: [{ role: "user", content: prompt }],
@@ -150,9 +149,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       },
     );
 
-    //Some reasoning models might still return the response in reasoning field, even when reasoning_effort is set to none.
     const response = chatCompletion.choices[0].message.content;
-
     if (!response) {
       throw new Error(`Got no message content from OpenAI`);
     }
