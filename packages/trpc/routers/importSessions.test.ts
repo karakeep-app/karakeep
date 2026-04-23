@@ -16,7 +16,7 @@ import {
 import { zNewBookmarkListSchema } from "@karakeep/shared/types/lists";
 
 import type { APICallerType, CustomTestContext } from "../testUtils";
-import { defaultBeforeEach, getApiKeyCallerForPlainKey } from "../testUtils";
+import { defaultBeforeEach } from "../testUtils";
 
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
@@ -55,23 +55,6 @@ describe("ImportSessions Routes", () => {
     expect(sessionFromList).toBeDefined();
     expect(sessionFromList?.name).toEqual(newSessionInput.name);
     expect(sessionFromList?.rootListId).toEqual(listId);
-  });
-
-  test<CustomTestContext>("fullaccess API key cannot manage import sessions", async ({
-    apiCallers,
-    db,
-  }) => {
-    const fullAccessKey = await apiCallers[0].apiKeys.create({
-      name: "Full Access Import Session Key",
-    });
-    const apiKeyCaller = await getApiKeyCallerForPlainKey(
-      db,
-      fullAccessKey.key,
-    );
-
-    await expect(() =>
-      apiKeyCaller.importSessions.listImportSessions({}),
-    ).rejects.toThrow(/FORBIDDEN|API keys/i);
   });
 
   test<CustomTestContext>("create import session without rootListId", async ({

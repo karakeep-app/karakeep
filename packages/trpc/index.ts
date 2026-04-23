@@ -194,9 +194,7 @@ export function createScopedAuthedProcedure(resource: ZApiKeyScopeResource) {
   });
 }
 
-export const sessionProcedure = authedProcedure.use(
-  rejectApiKeyAuth("API keys cannot manage API keys"),
-);
+export const sessionProcedure = authedProcedure.use(rejectApiKeyAuth());
 
 export function createAdminScopedProcedure(
   resource: ZApiKeyAdminScopeResource,

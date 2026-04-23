@@ -8,7 +8,12 @@ import { z } from "zod";
 import { assets, bookmarks, subscriptions, users } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 
-import { Context, publicProcedure, router, sessionProcedure } from "../index";
+import {
+  Context,
+  publicProcedure,
+  router,
+  createScopedAuthedProcedure,
+} from "../index";
 
 const stripe = serverConfig.stripe.secretKey
   ? new Stripe(serverConfig.stripe.secretKey, {
@@ -185,7 +190,7 @@ async function processEvent(event: Stripe.Event, db: Context["db"]) {
   return await syncStripeDataToDatabase(customerId, db);
 }
 
-const subscriptionsProcedure = sessionProcedure;
+const subscriptionsProcedure = createScopedAuthedProcedure("subscriptions");
 
 export const subscriptionsRouter = router({
   getSubscriptionStatus: subscriptionsProcedure.query(async ({ ctx }) => {

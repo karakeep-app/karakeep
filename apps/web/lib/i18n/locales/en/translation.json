@@ -388,6 +388,14 @@
           "webhooks": {
             "label": "Webhooks",
             "description": "Access webhook configuration."
+          },
+          "subscriptions": {
+            "label": "Subscriptions",
+            "description": "Access subscription management.",
+          },
+          "importSessions": {
+            "label": "Import Sessions",
+            "description": "Access import sessions.",
           }
         },
         "admin_resources": {

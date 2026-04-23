@@ -74,7 +74,7 @@ describe("Assets API", () => {
     );
 
     const response = await fetch(
-      `http://localhost:${port}/api/assets/${uploadResponse.assetId}`,
+      `http://localhost:${port}/api/v1/assets/${uploadResponse.assetId}`,
       {
         headers: {
           authorization: `Bearer ${scopedApiKey}`,
@@ -88,7 +88,7 @@ describe("Assets API", () => {
   it("should require an asset scope before retrieving an asset", async () => {
     const scopedApiKey = await createTestUser(["bookmarks:read"]);
     const response = await fetch(
-      `http://localhost:${port}/api/assets/asset-id`,
+      `http://localhost:${port}/api/v1/assets/asset-id`,
       {
         headers: {
           authorization: `Bearer ${scopedApiKey}`,

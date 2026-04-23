@@ -323,20 +323,22 @@ function AddApiKeyForm({
           {!useFullAccess && (
             <ScrollArea className="h-[44vh] max-h-[28rem] min-h-48 pr-3">
               <div className="space-y-1.5">
-                {scopeOptions.map((option) => (
-                  <ScopeChoiceRow
-                    key={option.id}
-                    option={option}
-                    value={scopeChoices[option.id] ?? "none"}
-                    disabled={useFullAccess}
-                    onChange={(value) =>
-                      setScopeChoices((current) => ({
-                        ...current,
-                        [option.id]: value,
-                      }))
-                    }
-                  />
-                ))}
+                {scopeOptions
+                  .filter((option) => !option.hidden)
+                  .map((option) => (
+                    <ScopeChoiceRow
+                      key={option.id}
+                      option={option}
+                      value={scopeChoices[option.id] ?? "none"}
+                      disabled={useFullAccess}
+                      onChange={(value) =>
+                        setScopeChoices((current) => ({
+                          ...current,
+                          [option.id]: value,
+                        }))
+                      }
+                    />
+                  ))}
               </div>
             </ScrollArea>
           )}

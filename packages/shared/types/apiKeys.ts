@@ -14,6 +14,8 @@ export const API_KEY_SCOPE_RESOURCES = [
   "tags",
   "users",
   "webhooks",
+  "importSessions",
+  "subscriptions",
 ] as const;
 
 export const API_KEY_ADMIN_SCOPE_RESOURCES = [
