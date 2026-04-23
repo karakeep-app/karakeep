@@ -391,11 +391,11 @@
           },
           "subscriptions": {
             "label": "Subscriptions",
-            "description": "Access subscription management.",
+            "description": "Access subscription management."
           },
           "importSessions": {
             "label": "Import Sessions",
-            "description": "Access import sessions.",
+            "description": "Access import sessions."
           }
         },
         "admin_resources": {
