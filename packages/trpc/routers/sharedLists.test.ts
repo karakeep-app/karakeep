@@ -866,6 +866,63 @@ describe("Shared Lists", () => {
       expect(ownerView.bookmarks).toHaveLength(2);
       expect(collabView.bookmarks).toHaveLength(2);
     });
+
+    test<CustomTestContext>("should return collaborator bookmarks when loading by listId instead of ids", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds a bookmark
+      const ownerBookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: ownerBookmark.id,
+      });
+
+      // Share list with collaborator as editor
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
+      );
+
+      // Collaborator adds their own bookmark
+      const collabBookmark = await collaboratorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Collaborator's bookmark",
+      });
+
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: collabBookmark.id,
+      });
+
+      // Loading by listId returns all bookmarks (correct path used by public lists)
+      const byList = await ownerApi.bookmarks.getBookmarks({
+        listId: list.id,
+      });
+      expect(byList.bookmarks).toHaveLength(2);
+
+      // Loading by ids with owner context misses the collaborator's bookmark,
+      // because the ids-only path filters by userId. This is the code path
+      // that getPublicListContents previously used (before switching to listId).
+      const byIds = await ownerApi.bookmarks.getBookmarks({
+        ids: [ownerBookmark.id, collabBookmark.id],
+      });
+      expect(byIds.bookmarks).toHaveLength(1);
+    });
   });
 
   describe("Bookmark Editing Permissions", () => {
