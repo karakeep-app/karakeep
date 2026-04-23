@@ -582,6 +582,13 @@
       "when": 1775816137345,
       "tag": "0082_add_feed_last_successful_fetch",
       "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "6",
+      "when": 1776948580025,
+      "tag": "0083_add_api_key_scopes",
+      "breakpoints": true
     }
   ]
 }
