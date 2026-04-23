@@ -11,11 +11,11 @@ import {
 } from "@karakeep/shared/types/importSessions";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, router } from "../index";
+import { router, sessionProcedure } from "../index";
 import { actorFromContext } from "../lib/actor";
 import { ImportSessionsService } from "../models/importSessions.service";
 
-const importSessionsProcedure = authedProcedure.use((opts) => {
+const importSessionsProcedure = sessionProcedure.use((opts) => {
   return opts.next({
     ctx: {
       ...opts.ctx,

@@ -9,7 +9,7 @@ import {
 } from "@karakeep/shared/types/webhooks";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, router } from "../index";
+import { createScopedAuthedProcedure, router } from "../index";
 import { actorFromContext } from "../lib/actor";
 import { WebhooksService } from "../models/webhooks.service";
 
@@ -21,15 +21,17 @@ function toPublicWebhook(webhook: typeof webhooksTable.$inferSelect) {
   };
 }
 
-const webhooksProcedure = authedProcedure.use((opts) => {
-  return opts.next({
-    ctx: {
-      ...opts.ctx,
-      actor: actorFromContext(opts.ctx),
-      webhooksService: new WebhooksService(opts.ctx.db),
-    },
-  });
-});
+const webhooksProcedure = createScopedAuthedProcedure("webhooks").use(
+  (opts) => {
+    return opts.next({
+      ctx: {
+        ...opts.ctx,
+        actor: actorFromContext(opts.ctx),
+        webhooksService: new WebhooksService(opts.ctx.db),
+      },
+    });
+  },
+);
 
 type WebhooksContext = AuthedContext & {
   actor: ReturnType<typeof actorFromContext>;

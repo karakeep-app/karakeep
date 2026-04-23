@@ -11,8 +11,10 @@ import {
 } from "@karakeep/shared/types/tags";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, router } from "../index";
+import { createScopedAuthedProcedure, router } from "../index";
 import { Tag } from "../models/tags";
+
+const tagsProcedure = createScopedAuthedProcedure("tags");
 
 export const ensureTagOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -28,7 +30,7 @@ export const ensureTagOwnership = experimental_trpcMiddleware<{
 });
 
 export const tagsAppRouter = router({
-  create: authedProcedure
+  create: tagsProcedure
     .input(zCreateTagRequestSchema)
     .output(zTagBasicSchema)
     .mutation(async ({ input, ctx }) => {
@@ -36,7 +38,7 @@ export const tagsAppRouter = router({
       return tag.asBasicTag();
     }),
 
-  get: authedProcedure
+  get: tagsProcedure
     .input(
       z.object({
         tagId: z.string(),
@@ -47,7 +49,7 @@ export const tagsAppRouter = router({
     .query(async ({ ctx }) => {
       return await ctx.tag.getStats();
     }),
-  delete: authedProcedure
+  delete: tagsProcedure
     .input(
       z.object({
         tagId: z.string(),
@@ -57,7 +59,7 @@ export const tagsAppRouter = router({
     .mutation(async ({ ctx }) => {
       await ctx.tag.delete();
     }),
-  deleteUnused: authedProcedure
+  deleteUnused: tagsProcedure
     .output(
       z.object({
         deletedTags: z.number(),
@@ -67,7 +69,7 @@ export const tagsAppRouter = router({
       const deletedCount = await Tag.deleteUnused(ctx);
       return { deletedTags: deletedCount };
     }),
-  update: authedProcedure
+  update: tagsProcedure
     .input(zUpdateTagRequestSchema)
     .output(zTagBasicSchema)
     .use(ensureTagOwnership)
@@ -75,7 +77,7 @@ export const tagsAppRouter = router({
       await ctx.tag.update(input);
       return ctx.tag.asBasicTag();
     }),
-  merge: authedProcedure
+  merge: tagsProcedure
     .input(
       z.object({
         intoTagId: z.string(),
@@ -91,7 +93,7 @@ export const tagsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       return await Tag.merge(ctx, input);
     }),
-  list: authedProcedure
+  list: tagsProcedure
     .input(
       // TODO: Remove the optional and default once the next release is out.
       zTagListValidatedRequestSchema

@@ -5,7 +5,11 @@ import { assets, AssetTypes, subscriptions, users } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
-import { defaultBeforeEach, getApiCaller } from "../testUtils";
+import {
+  defaultBeforeEach,
+  getApiCaller,
+  getApiKeyCallerForPlainKey,
+} from "../testUtils";
 
 // Mock Stripe using vi.hoisted to ensure it's available during module initialization
 const mockStripeInstance = vi.hoisted(() => ({
@@ -90,6 +94,30 @@ describe("Subscription Routes", () => {
     mockWebhooksConstructEvent = mockStripeInstance.webhooks.constructEvent;
     mockSubscriptionsList = mockStripeInstance.subscriptions.list;
     mockPricesRetrieve = mockStripeInstance.prices.retrieve;
+  });
+
+  test<CustomTestContext>("fullaccess API key cannot manage subscriptions", async ({
+    db,
+    unauthedAPICaller,
+  }) => {
+    const user = await unauthedAPICaller.users.create({
+      name: "Subscription API Key User",
+      email: "subscription-api-key@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+    const caller = getApiCaller(db, user.id);
+    const fullAccessKey = await caller.apiKeys.create({
+      name: "Full Access Subscription Key",
+    });
+    const apiKeyCaller = await getApiKeyCallerForPlainKey(
+      db,
+      fullAccessKey.key,
+    );
+
+    await expect(() =>
+      apiKeyCaller.subscriptions.getQuotaUsage(),
+    ).rejects.toThrow(/FORBIDDEN|API keys/i);
   });
 
   describe("getSubscriptionStatus", () => {

@@ -52,12 +52,18 @@ import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import {
+  createRateLimitMiddleware,
+  createScopedAuthedProcedure,
+  router,
+} from "../index";
 import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
 import { WebhooksService } from "../models/webhooks.service";
+
+const bookmarksProcedure = createScopedAuthedProcedure("bookmarks");
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -143,7 +149,7 @@ async function shouldUseLowPriorityQueues(
 }
 
 export const bookmarksAppRouter = router({
-  createBookmark: authedProcedure
+  createBookmark: bookmarksProcedure
     .use(
       createRateLimitMiddleware({
         name: "bookmarks.createBookmark",
@@ -389,7 +395,7 @@ export const bookmarksAppRouter = router({
       return bookmark;
     }),
 
-  updateBookmark: authedProcedure
+  updateBookmark: bookmarksProcedure
     .input(zUpdateBookmarksRequestSchema)
     .output(zBookmarkSchema)
     .use(ensureBookmarkOwnership)
@@ -561,7 +567,7 @@ export const bookmarksAppRouter = router({
     }),
 
   // DEPRECATED: use updateBookmark instead
-  updateBookmarkText: authedProcedure
+  updateBookmarkText: bookmarksProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -609,14 +615,14 @@ export const bookmarksAppRouter = router({
       ]);
     }),
 
-  deleteBookmark: authedProcedure
+  deleteBookmark: bookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       const bookmark = await Bookmark.fromId(ctx, input.bookmarkId, false);
       await bookmark.delete();
     }),
-  recrawlBookmark: authedProcedure
+  recrawlBookmark: bookmarksProcedure
     .use(
       createRateLimitMiddleware({
         name: "bookmarks.recrawlBookmark",
@@ -644,7 +650,7 @@ export const bookmarksAppRouter = router({
         idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
     }),
-  updateReadingProgress: authedProcedure
+  updateReadingProgress: bookmarksProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -685,7 +691,7 @@ export const bookmarksAppRouter = router({
           },
         });
     }),
-  getReadingProgress: authedProcedure
+  getReadingProgress: bookmarksProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -705,7 +711,7 @@ export const bookmarksAppRouter = router({
         readingProgressPercent: progress?.readingProgressPercent ?? null,
       };
     }),
-  getBookmark: authedProcedure
+  getBookmark: bookmarksProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -719,7 +725,7 @@ export const bookmarksAppRouter = router({
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
     }),
-  searchBookmarks: authedProcedure
+  searchBookmarks: bookmarksProcedure
     .input(zSearchBookmarksRequestSchema)
     .output(
       z.object({
@@ -809,7 +815,7 @@ export const bookmarksAppRouter = router({
               },
       };
     }),
-  checkUrl: authedProcedure
+  checkUrl: bookmarksProcedure
     .input(
       z.object({
         url: z.string(),
@@ -857,7 +863,7 @@ export const bookmarksAppRouter = router({
 
       return { bookmarkId: exactMatch?.id ?? null };
     }),
-  getBookmarks: authedProcedure
+  getBookmarks: bookmarksProcedure
     .input(zGetBookmarksRequestSchema)
     .output(zGetBookmarksResponseSchema)
     .query(async ({ input, ctx }) => {
@@ -868,7 +874,7 @@ export const bookmarksAppRouter = router({
       };
     }),
 
-  updateTags: authedProcedure
+  updateTags: bookmarksProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -1068,7 +1074,7 @@ export const bookmarksAppRouter = router({
       }
       return res;
     }),
-  getBrokenLinks: authedProcedure
+  getBrokenLinks: bookmarksProcedure
     .output(
       z.object({
         bookmarks: z.array(
@@ -1116,7 +1122,7 @@ export const bookmarksAppRouter = router({
         })),
       };
     }),
-  summarizeBookmark: authedProcedure
+  summarizeBookmark: bookmarksProcedure
     .use(
       createRateLimitMiddleware({
         name: "bookmarks.summarizeBookmark",

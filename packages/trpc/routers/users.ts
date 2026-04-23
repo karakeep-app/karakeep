@@ -14,14 +14,17 @@ import {
 import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 import {
-  adminProcedure,
-  authedProcedure,
+  createAdminScopedProcedure,
   createRateLimitMiddleware,
+  createScopedAuthedProcedure,
   publicProcedure,
   router,
 } from "../index";
 import { verifyTurnstileToken } from "../lib/turnstile";
 import { User } from "../models/users";
+
+const usersProcedure = createScopedAuthedProcedure("users");
+const adminUsersProcedure = createAdminScopedProcedure("users");
 
 export const usersAppRouter = router({
   create: publicProcedure
@@ -78,7 +81,7 @@ export const usersAppRouter = router({
         role: user.role,
       };
     }),
-  list: adminProcedure
+  list: adminUsersProcedure
     .output(
       z.object({
         users: z.array(
@@ -100,7 +103,7 @@ export const usersAppRouter = router({
         users: users.map((u) => u.asPublicUser()),
       };
     }),
-  changePassword: authedProcedure
+  changePassword: usersProcedure
     .use(
       createRateLimitMiddleware({
         name: "users.changePassword",
@@ -118,7 +121,7 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       await user.changePassword(input.currentPassword, input.newPassword);
     }),
-  delete: adminProcedure
+  delete: adminUsersProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -127,7 +130,7 @@ export const usersAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await User.deleteAsAdmin(ctx, input.userId);
     }),
-  deleteAccount: authedProcedure
+  deleteAccount: usersProcedure
     .input(
       z.object({
         password: z.string().optional(),
@@ -137,19 +140,19 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       await user.deleteAccount(input.password);
     }),
-  whoami: authedProcedure
+  whoami: usersProcedure
     .output(zWhoAmIResponseSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return user.asWhoAmI();
     }),
-  stats: authedProcedure
+  stats: usersProcedure
     .output(zUserStatsResponseSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.getStats();
     }),
-  wrapped: authedProcedure
+  wrapped: usersProcedure
     .output(zWrappedStatsResponseSchema)
     .query(async ({ ctx }) => {
       throw new TRPCError({
@@ -159,7 +162,7 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       return await user.getWrappedStats(2025);
     }),
-  hasWrapped: authedProcedure.output(z.boolean()).query(async ({ ctx }) => {
+  hasWrapped: usersProcedure.output(z.boolean()).query(async ({ ctx }) => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "This endpoint is currently disabled",
@@ -167,19 +170,19 @@ export const usersAppRouter = router({
     const user = await User.fromCtx(ctx);
     return await user.hasWrapped();
   }),
-  settings: authedProcedure
+  settings: usersProcedure
     .output(zUserSettingsSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.getSettings();
     }),
-  updateSettings: authedProcedure
+  updateSettings: usersProcedure
     .input(zUpdateUserSettingsSchema)
     .mutation(async ({ input, ctx }) => {
       const user = await User.fromCtx(ctx);
       await user.updateSettings(input);
     }),
-  updateAvatar: authedProcedure
+  updateAvatar: usersProcedure
     .input(
       z.object({
         assetId: z.string().nullable(),

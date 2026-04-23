@@ -2,18 +2,24 @@ import { z } from "zod";
 
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
-import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import {
+  createRateLimitMiddleware,
+  createScopedAuthedProcedure,
+  router,
+} from "../index";
 import { Backup } from "../models/backups";
 
+const backupsProcedure = createScopedAuthedProcedure("backups");
+
 export const backupsAppRouter = router({
-  list: authedProcedure
+  list: backupsProcedure
     .output(z.object({ backups: z.array(zBackupSchema) }))
     .query(async ({ ctx }) => {
       const backups = await Backup.getAll(ctx);
       return { backups: backups.map((b) => b.asPublic()) };
     }),
 
-  get: authedProcedure
+  get: backupsProcedure
     .input(
       z.object({
         backupId: z.string(),
@@ -25,7 +31,7 @@ export const backupsAppRouter = router({
       return backup.asPublic();
     }),
 
-  delete: authedProcedure
+  delete: backupsProcedure
     .input(
       z.object({
         backupId: z.string(),
@@ -36,7 +42,7 @@ export const backupsAppRouter = router({
       await backup.delete();
     }),
 
-  triggerBackup: authedProcedure
+  triggerBackup: backupsProcedure
     .use(
       createRateLimitMiddleware({
         name: "backups.triggerBackup",
