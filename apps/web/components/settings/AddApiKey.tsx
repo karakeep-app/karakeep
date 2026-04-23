@@ -1,7 +1,7 @@
 "use client";
 
 import type { SubmitErrorHandler } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,8 @@ import {
   API_KEY_SCOPE_OPTIONS,
   FULL_ACCESS_SCOPE_OPTION,
 } from "./apiKeyScopes";
+
+const DIALOG_CLOSE_RESET_DELAY_MS = 200;
 
 function ScopeDescriptionPopover({
   label,
@@ -358,8 +360,27 @@ export default function AddApiKey({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useTranslation();
   const [key, setKey] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  useEffect(() => {
+    if (dialogOpen) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setKey(undefined),
+      DIALOG_CLOSE_RESET_DELAY_MS,
+    );
+    return () => window.clearTimeout(timeoutId);
+  }, [dialogOpen]);
+
+  function handleOpenChange(open: boolean) {
+    if (open) {
+      setKey(undefined);
+    }
+    setDialogOpen(open);
+  }
+
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -385,11 +406,7 @@ export default function AddApiKey({ isAdmin }: { isAdmin: boolean }) {
         {key && (
           <DialogFooter className="sm:justify-end">
             <DialogClose asChild>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setKey(undefined)}
-              >
+              <Button type="button" variant="outline">
                 {t("actions.close")}
               </Button>
             </DialogClose>
