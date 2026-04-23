@@ -111,6 +111,7 @@ const app = new Hono()
   .post(
     "/singlefile",
     apiKeyScopeMiddleware("assets", "readwrite"),
+    apiKeyScopeMiddleware("bookmarks", "readwrite"),
     zValidator(
       "query",
       z.object({
