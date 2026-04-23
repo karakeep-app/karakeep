@@ -639,7 +639,7 @@ describe("API Keys Routes", () => {
       );
 
       await expect(() => apiKeyCaller.apiKeys.list()).rejects.toThrow(
-        /FORBIDDEN|cannot manage API keys/i,
+        /FORBIDDEN|API keys are not allowed for this endpoint/i,
       );
     });
   });
