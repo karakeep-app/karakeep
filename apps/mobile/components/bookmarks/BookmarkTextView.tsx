@@ -11,17 +11,9 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 interface BookmarkTextViewProps {
   bookmark: ZBookmark;
-  onScrollOffsetChange?: (y: number) => void;
-  contentInsetTop?: number;
-  contentInsetBottom?: number;
 }
 
-export default function BookmarkTextView({
-  bookmark,
-  onScrollOffsetChange,
-  contentInsetTop = 0,
-  contentInsetBottom = 0,
-}: BookmarkTextViewProps) {
+export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
     throw new Error("Wrong content type rendered");
   }
@@ -104,13 +96,7 @@ export default function BookmarkTextView({
   }
 
   return (
-    <ScrollView
-      className="flex-1 rounded-lg border border-border bg-card p-2"
-      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
-      contentOffset={{ x: 0, y: -contentInsetTop }}
-      scrollEventThrottle={16}
-      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
-    >
+    <ScrollView className="m-4 flex-1 rounded-lg border border-border bg-card p-2">
       <Pressable onPress={() => setIsEditing(true)}>
         <View className="min-h-[200px] rounded-xl p-4">
           <BookmarkTextMarkdown text={content} />

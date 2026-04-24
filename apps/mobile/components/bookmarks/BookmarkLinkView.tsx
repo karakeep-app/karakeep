@@ -13,19 +13,11 @@ import { BookmarkLinkType } from "./BookmarkLinkTypeSelector";
 interface BookmarkLinkViewProps {
   bookmark: ZBookmark;
   bookmarkPreviewType: BookmarkLinkType;
-  onScrollOffsetChange?: (y: number) => void;
-  barsVisible?: boolean;
-  contentInsetTop?: number;
-  contentInsetBottom?: number;
 }
 
 export default function BookmarkLinkView({
   bookmark,
   bookmarkPreviewType,
-  onScrollOffsetChange,
-  barsVisible,
-  contentInsetTop,
-  contentInsetBottom,
 }: BookmarkLinkViewProps) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
@@ -33,34 +25,13 @@ export default function BookmarkLinkView({
 
   switch (bookmarkPreviewType) {
     case "browser":
-      return (
-        <BookmarkLinkBrowserPreview
-          bookmark={bookmark}
-          onScrollOffsetChange={onScrollOffsetChange}
-          contentInsetTop={contentInsetTop}
-          contentInsetBottom={contentInsetBottom}
-        />
-      );
+      return <BookmarkLinkBrowserPreview bookmark={bookmark} />;
     case "reader":
-      return (
-        <BookmarkLinkReaderPreview
-          bookmark={bookmark}
-          onScrollOffsetChange={onScrollOffsetChange}
-          barsVisible={barsVisible}
-          contentInsetBottom={contentInsetBottom}
-        />
-      );
+      return <BookmarkLinkReaderPreview bookmark={bookmark} />;
     case "screenshot":
       return <BookmarkLinkScreenshotPreview bookmark={bookmark} />;
     case "archive":
-      return (
-        <BookmarkLinkArchivePreview
-          bookmark={bookmark}
-          onScrollOffsetChange={onScrollOffsetChange}
-          contentInsetTop={contentInsetTop}
-          contentInsetBottom={contentInsetBottom}
-        />
-      );
+      return <BookmarkLinkArchivePreview bookmark={bookmark} />;
     case "pdf":
       return <BookmarkLinkPdfPreview bookmark={bookmark} />;
   }
