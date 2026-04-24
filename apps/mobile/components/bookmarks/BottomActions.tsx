@@ -1,20 +1,17 @@
 import type { ToolbarActionId } from "@/lib/settings";
 import type { LucideIcon } from "lucide-react-native";
-import { Alert, Linking, Platform, Pressable, Share, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import * as Clipboard from "expo-clipboard";
-import * as FileSystem from "expo-file-system/legacy";
 import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import * as Sharing from "expo-sharing";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { useToast } from "@/components/ui/Toast";
 import { isIOS26 } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
+import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
-import { buildApiHeaders } from "@/lib/utils";
 import { MenuView } from "@react-native-menu/menu";
 import {
   Archive,
@@ -138,79 +135,7 @@ function useToolbarActions(bookmark: ZBookmark) {
       ],
     );
 
-  const handleShare = async () => {
-    try {
-      switch (bookmark.content.type) {
-        case BookmarkTypes.LINK:
-          await Share.share({
-            url: bookmark.content.url,
-            message: bookmark.content.url,
-          });
-          break;
-
-        case BookmarkTypes.TEXT:
-          await Clipboard.setStringAsync(bookmark.content.text);
-          toast({
-            message: "Text copied to clipboard",
-            showProgress: false,
-          });
-          break;
-
-        case BookmarkTypes.ASSET: {
-          const canShare = await Sharing.isAvailableAsync();
-          const isShareable =
-            canShare &&
-            (bookmark.content.assetType === "image" ||
-              bookmark.content.assetType === "pdf");
-
-          if (!isShareable) {
-            toast({
-              message: "Sharing is not available for this file type",
-              variant: "destructive",
-              showProgress: false,
-            });
-            break;
-          }
-
-          const assetUrl = `${settings.address}/api/assets/${bookmark.content.assetId}`;
-          const fileUri =
-            bookmark.content.assetType === "pdf"
-              ? `${FileSystem.documentDirectory}${bookmark.content.fileName || "document.pdf"}`
-              : `${FileSystem.documentDirectory}temp_image.jpg`;
-          const downloadResult = await FileSystem.downloadAsync(
-            assetUrl,
-            fileUri,
-            {
-              headers: buildApiHeaders(settings.apiKey, settings.customHeaders),
-            },
-          );
-          if (downloadResult.status !== 200) {
-            throw new Error("Failed to download file");
-          }
-          try {
-            await Sharing.shareAsync(
-              downloadResult.uri,
-              bookmark.content.assetType === "pdf"
-                ? { mimeType: "application/pdf", UTI: "com.adobe.pdf" }
-                : undefined,
-            );
-          } finally {
-            await FileSystem.deleteAsync(downloadResult.uri, {
-              idempotent: true,
-            });
-          }
-          break;
-        }
-      }
-    } catch (error) {
-      console.error("Share error:", error);
-      toast({
-        message: "Failed to share",
-        variant: "destructive",
-        showProgress: false,
-      });
-    }
-  };
+  const handleShare = () => shareBookmark(bookmark, settings, toast);
 
   const makeIcon = (
     IconComp: LucideIcon,
