@@ -3,12 +3,12 @@ import type { LucideIcon } from "lucide-react-native";
 import { Alert, Linking, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
+import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { useToast } from "@/components/ui/Toast";
-import { isIOS26 } from "@/lib/ios";
+import { shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
@@ -245,9 +245,16 @@ function useToolbarActions(bookmark: ZBookmark) {
       id: "browser",
       icon: makeIcon(Globe),
       shouldRender: bookmark.content.type === BookmarkTypes.LINK,
-      onClick: () =>
-        bookmark.content.type === BookmarkTypes.LINK &&
-        Linking.openURL(bookmark.content.url),
+      onClick: () => {
+        if (bookmark.content.type !== BookmarkTypes.LINK) return;
+        Linking.openURL(bookmark.content.url).catch(() => {
+          toast({
+            message: "Failed to open link",
+            variant: "destructive",
+            showProgress: false,
+          });
+        });
+      },
       disabled: false,
     },
     share: {
@@ -279,8 +286,6 @@ function useToolbarActions(bookmark: ZBookmark) {
 
   return { barActions, overflowActions, allActions };
 }
-
-const shouldUseGlassPill = isIOS26 && isGlassEffectAPIAvailable();
 
 function ToolbarContainer({
   children,

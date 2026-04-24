@@ -12,7 +12,7 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { isIOS26 } from "@/lib/ios";
+import { shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
@@ -90,7 +90,10 @@ export default function BookmarkView() {
       // On iOS 26 the toolbar is absolute-positioned so its GlassView has
       // content behind it; its own bottomMargin handles the safe-area inset,
       // so padding here would leave a visible gap below the glass pill.
-      style={{ flex: 1, paddingBottom: isIOS26 ? 0 : insets.bottom + 8 }}
+      style={{
+        flex: 1,
+        paddingBottom: shouldUseGlassPill ? 0 : insets.bottom + 8,
+      }}
       behavior="height"
     >
       {settings.keepScreenOnWhileReading && <KeepScreenOn />}
@@ -107,7 +110,7 @@ export default function BookmarkView() {
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
               <View
-                className={`flex-row items-center gap-3${isIOS26 ? " px-2" : ""}`}
+                className={`flex-row items-center gap-3${shouldUseGlassPill ? " px-2" : ""}`}
               >
                 {bookmarkLinkType === "reader" && (
                   <Pressable
@@ -128,7 +131,7 @@ export default function BookmarkView() {
         }}
       />
       {comp}
-      {isIOS26 ? (
+      {shouldUseGlassPill ? (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
           <BottomActions bookmark={bookmark} />
         </View>
