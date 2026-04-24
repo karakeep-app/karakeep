@@ -19,6 +19,9 @@ export default function BookmarkHtmlHighlighterDom({
   restoreReadingPosition,
   onSavePosition,
   onScrollPositionChange,
+  onScrollOffsetChange,
+  showProgressBar = true,
+  progressBarTop = 0,
 }: {
   htmlContent: string;
   contentStyle?: React.CSSProperties;
@@ -40,18 +43,31 @@ export default function BookmarkHtmlHighlighterDom({
     anchor: string;
     percent: number;
   }) => void;
+  onScrollOffsetChange?: (scrollTop: number) => void;
+  showProgressBar?: boolean;
+  progressBarTop?: number;
   dom?: import("expo/dom").DOMProps;
 }) {
+  const bgColor = contentStyle?.background ?? contentStyle?.backgroundColor;
+
   return (
-    <div style={{ maxWidth: "100vw", overflowX: "hidden" }}>
+    <div
+      style={{
+        maxWidth: "100vw",
+        overflowX: "clip",
+        minHeight: "100vh",
+        background: bgColor,
+      }}
+    >
       <ScrollProgressTracker
         onSavePosition={onSavePosition}
         onScrollPositionChange={onScrollPositionChange}
+        onScrollOffsetChange={onScrollOffsetChange}
         restorePosition={restoreReadingPosition}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
-        showProgressBar
-        progressBarStyle={{ position: "fixed" }}
+        showProgressBar={showProgressBar}
+        progressBarStyle={{ position: "fixed", top: progressBarTop }}
       >
         <BookmarkHTMLHighlighter
           htmlContent={htmlContent}
