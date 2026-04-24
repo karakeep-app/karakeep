@@ -6,18 +6,16 @@ export const parseSubprocessInputSchema = z.object({
   jobId: z.string(),
 });
 
-export const parseSubprocessMetadataSchema = z
-  .object({
-    title: z.string().nullish(),
-    description: z.string().nullish(),
-    image: z.string().nullish(),
-    logo: z.string().nullish(),
-    author: z.string().nullish(),
-    publisher: z.string().nullish(),
-    datePublished: z.string().nullish(),
-    dateModified: z.string().nullish(),
-  })
-  .passthrough();
+export const parseSubprocessMetadataSchema = z.looseObject({
+  title: z.string().nullish(),
+  description: z.string().nullish(),
+  image: z.string().nullish(),
+  logo: z.string().nullish(),
+  author: z.string().nullish(),
+  publisher: z.string().nullish(),
+  datePublished: z.string().nullish(),
+  dateModified: z.string().nullish(),
+});
 
 export const parseSubprocessOutputSchema = z.object({
   metadata: parseSubprocessMetadataSchema,

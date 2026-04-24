@@ -98,6 +98,26 @@
         "description": "The unique identifier of the feed.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
+      "PaginatedBookmarks": {
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bookmark"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next page, or null if no more results."
+          }
+        },
+        "required": [
+          "bookmarks",
+          "nextCursor"
+        ]
+      },
       "Bookmark": {
         "type": "object",
         "properties": {
@@ -105,11 +125,13 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "modifiedAt": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "format": "date-time"
           },
           "title": {
             "type": "string",
@@ -127,7 +149,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "summarizationStatus": {
@@ -136,7 +159,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "note": {
@@ -158,7 +182,8 @@
               "extension",
               "singlefile",
               "rss",
-              "import"
+              "import",
+              null
             ]
           },
           "userId": {
@@ -254,7 +279,8 @@
                   },
                   "crawledAt": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "crawlStatus": {
                     "type": "string",
@@ -262,7 +288,8 @@
                     "enum": [
                       "success",
                       "failure",
-                      "pending"
+                      "pending",
+                      null
                     ]
                   },
                   "author": {
@@ -275,11 +302,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -418,26 +447,6 @@
           "assets"
         ]
       },
-      "PaginatedBookmarks": {
-        "type": "object",
-        "properties": {
-          "bookmarks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Bookmark"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "nullable": true,
-            "description": "Cursor for the next page, or null if no more results."
-          }
-        },
-        "required": [
-          "bookmarks",
-          "nextCursor"
-        ]
-      },
       "Cursor": {
         "type": "string",
         "description": "Cursor from a previous response to fetch the next page."
@@ -554,7 +563,8 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -646,7 +656,6 @@
           "fileName"
         ]
       },
-      "File to be uploaded": {},
       "Feed": {
         "type": "object",
         "properties": {
@@ -674,7 +683,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "lastFetchedAt": {
@@ -708,6 +718,7 @@
           "$ref": "#/components/schemas/BookmarkId"
         },
         "required": true,
+        "description": "The unique identifier of the bookmark.",
         "name": "bookmarkId",
         "in": "path"
       },
@@ -716,6 +727,7 @@
           "$ref": "#/components/schemas/ListId"
         },
         "required": true,
+        "description": "The unique identifier of the list.",
         "name": "listId",
         "in": "path"
       },
@@ -724,6 +736,7 @@
           "$ref": "#/components/schemas/TagId"
         },
         "required": true,
+        "description": "The unique identifier of the tag.",
         "name": "tagId",
         "in": "path"
       },
@@ -732,6 +745,7 @@
           "$ref": "#/components/schemas/HighlightId"
         },
         "required": true,
+        "description": "The unique identifier of the highlight.",
         "name": "highlightId",
         "in": "path"
       },
@@ -740,6 +754,7 @@
           "$ref": "#/components/schemas/AssetId"
         },
         "required": true,
+        "description": "The unique identifier of the asset.",
         "name": "assetId",
         "in": "path"
       },
@@ -748,6 +763,7 @@
           "$ref": "#/components/schemas/BackupId"
         },
         "required": true,
+        "description": "The unique identifier of the backup.",
         "name": "backupId",
         "in": "path"
       },
@@ -756,6 +772,7 @@
           "$ref": "#/components/schemas/FeedId"
         },
         "required": true,
+        "description": "The unique identifier of the feed.",
         "name": "feedId",
         "in": "path"
       }
@@ -906,7 +923,7 @@
                       },
                       "createdAt": {
                         "type": "string",
-                        "nullable": true
+                        "format": "date-time"
                       },
                       "crawlPriority": {
                         "type": "string",
@@ -1369,7 +1386,7 @@
                   },
                   "createdAt": {
                     "type": "string",
-                    "nullable": true
+                    "format": "date-time"
                   },
                   "url": {
                     "type": "string",
@@ -1389,11 +1406,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "text": {
                     "type": "string",
@@ -1420,11 +1439,13 @@
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1442,7 +1463,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1451,7 +1473,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1473,7 +1496,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -1548,11 +1572,13 @@
                       "type": "string"
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1570,7 +1596,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1579,7 +1606,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1601,7 +1629,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -3784,7 +3813,8 @@
                               "extension",
                               "singlefile",
                               "rss",
-                              "import"
+                              "import",
+                              null
                             ]
                           },
                           "count": {
@@ -3852,7 +3882,9 @@
                 "type": "object",
                 "properties": {
                   "file": {
-                    "$ref": "#/components/schemas/File to be uploaded"
+                    "type": "string",
+                    "description": "File to be uploaded",
+                    "format": "binary"
                   }
                 },
                 "required": [
@@ -3944,6 +3976,7 @@
               "example": "user_123"
             },
             "required": true,
+            "description": "The ID of the user to update.",
             "name": "userId",
             "in": "path"
           }
@@ -4350,7 +4383,8 @@
                             "nullable": true
                           },
                           "createdAt": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "date-time"
                           },
                           "size": {
                             "type": "number"
@@ -4434,7 +4468,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4519,7 +4554,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4644,7 +4680,10 @@
             "description": "The backup file as a zip archive.",
             "content": {
               "application/zip": {
-                "schema": {}
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },

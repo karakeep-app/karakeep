@@ -184,6 +184,9 @@ export function useUpdateBookmarkTags(
           queryClient.invalidateQueries(
             api.bookmarks.getBookmarks.queryFilter({ tagId: id }),
           );
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.infiniteQueryFilter({ tagId: id }),
+          );
         });
         queryClient.invalidateQueries(api.tags.list.pathFilter());
         queryClient.invalidateQueries(api.lists.stats.pathFilter());

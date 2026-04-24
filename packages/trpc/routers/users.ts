@@ -32,7 +32,7 @@ export const usersAppRouter = router({
         maxRequests: 3,
       }),
     )
-    .input(zSignUpSchema.and(z.object({ redirectUrl: z.string().optional() })))
+    .input(zSignUpSchema.safeExtend({ redirectUrl: z.string().optional() }))
     .output(
       z.object({
         id: z.string(),
@@ -101,6 +101,13 @@ export const usersAppRouter = router({
       };
     }),
   changePassword: authedProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "users.changePassword",
+        windowMs: 15 * 60 * 1000,
+        maxRequests: 5,
+      }),
+    )
     .input(
       z.object({
         currentPassword: z.string(),

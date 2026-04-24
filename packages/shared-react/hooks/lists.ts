@@ -43,6 +43,11 @@ export function useEditBookmarkList(
           queryClient.invalidateQueries(
             api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
           );
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.infiniteQueryFilter({
+              listId: req.listId,
+            }),
+          );
         }
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -63,6 +68,11 @@ export function useMergeLists(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ listId: req.targetId }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.infiniteQueryFilter({
+            listId: req.targetId,
+          }),
+        );
         queryClient.invalidateQueries(api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -81,6 +91,11 @@ export function useAddBookmarkToList(
       onSuccess: (res, req, meta, context) => {
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.infiniteQueryFilter({
+            listId: req.listId,
+          }),
         );
         queryClient.invalidateQueries(
           api.lists.getListsOfBookmark.queryFilter({
@@ -105,6 +120,11 @@ export function useRemoveBookmarkFromList(
       onSuccess: (res, req, meta, context) => {
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.infiniteQueryFilter({
+            listId: req.listId,
+          }),
         );
         queryClient.invalidateQueries(
           api.lists.getListsOfBookmark.queryFilter({

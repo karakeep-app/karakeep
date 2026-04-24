@@ -72,7 +72,10 @@ const app = new Hono()
   // GET /tags/[tagId]/bookmarks
   .get(
     "/:tagId/bookmarks",
-    zValidator("query", zPagination.and(zGetBookmarkQueryParamsSchema)),
+    zValidator(
+      "query",
+      zPagination.extend(zGetBookmarkQueryParamsSchema.shape),
+    ),
     async (c) => {
       const tagId = c.req.param("tagId");
       const searchParams = c.req.valid("query");

@@ -17,12 +17,12 @@ const zHighlightBaseSchema = z.object({
   note: z.string().nullable(),
 });
 
-export const zHighlightSchema = zHighlightBaseSchema.merge(
+export const zHighlightSchema = zHighlightBaseSchema.extend(
   z.object({
     id: z.string(),
     userId: z.string(),
     createdAt: z.date(),
-  }),
+  }).shape,
 );
 
 export type ZHighlight = z.infer<typeof zHighlightSchema>;

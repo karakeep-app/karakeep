@@ -93,6 +93,10 @@ import {
 
 const tracer = getTracer("@karakeep/workers");
 
+function truncateUrl(url: string): string {
+  return url.length > 100 ? url.slice(0, 100) + "..." : url;
+}
+
 function abortPromise(signal: AbortSignal): Promise<never> {
   if (signal.aborted) {
     const p = Promise.reject(signal.reason ?? new Error("AbortError"));
@@ -475,7 +479,7 @@ async function loadCookiesFromFile(): Promise<void> {
   } catch (error) {
     logger.error("Failed to read or parse cookies file:", error);
     if (error instanceof z.ZodError) {
-      logger.error("[Crawler] Invalid cookie file format:", error.errors);
+      logger.error("[Crawler] Invalid cookie file format:", error.issues);
     } else {
       logger.error("[Crawler] Failed to read or parse cookies file:", error);
     }
@@ -503,7 +507,7 @@ async function browserlessCrawlPage(
     },
     async () => {
       logger.info(
-        `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
+        `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${truncateUrl(url)}". Screenshots will be disabled.`,
       );
       const response = await fetchWithProxy(
         url,
@@ -513,7 +517,7 @@ async function browserlessCrawlPage(
         runProxy,
       );
       logger.info(
-        `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
+        `[Crawler][${jobId}] Successfully fetched the content of "${truncateUrl(url)}". Status: ${response.status}, Size: ${response.size}`,
       );
       return {
         htmlContent: await response.text(),
@@ -726,7 +730,7 @@ async function crawlPage(
         );
         if (!navigationValidation.ok) {
           throw new Error(
-            `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
+            `Disallowed navigation target "${truncateUrl(url)}": ${navigationValidation.reason}`,
           );
         }
         const targetUrl = navigationValidation.url.toString();
@@ -1080,7 +1084,7 @@ async function runParseSubprocess(
     },
     async () => {
       logger.info(
-        `[Crawler][${jobId}] Spawning parse subprocess for "${url}" ...`,
+        `[Crawler][${jobId}] Spawning parse subprocess for "${truncateUrl(url)}" ...`,
       );
 
       const { cmd, args } = getSubprocessCommand();
@@ -1289,7 +1293,7 @@ async function downloadAndStoreFile(
       let assetPath: string | undefined;
       try {
         logger.info(
-          `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+          `[Crawler][${jobId}] Downloading ${fileType} from "${truncateUrl(url)}"`,
         );
         const response = await fetchWithProxy(
           url,
@@ -1536,7 +1540,7 @@ async function getContentType(
     async () => {
       try {
         logger.info(
-          `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
+          `[Crawler][${jobId}] Attempting to determine the content-type for the url ${truncateUrl(url)}`,
         );
         const response = await fetchWithProxy(
           url,
@@ -1555,12 +1559,12 @@ async function getContentType(
           "crawler.contentType": contentType ?? undefined,
         });
         logger.info(
-          `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
+          `[Crawler][${jobId}] Content-type for the url ${truncateUrl(url)} is "${contentType}"`,
         );
         return contentType;
       } catch (e) {
         logger.error(
-          `[Crawler][${jobId}] Failed to determine the content-type for the url ${url}: ${e}`,
+          `[Crawler][${jobId}] Failed to determine the content-type for the url ${truncateUrl(url)}: ${e}`,
         );
         return null;
       }
@@ -2131,15 +2135,17 @@ async function runCrawler(
   const runProxy = selectRunProxies();
 
   logger.info(
-    `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
+    `[Crawler][${jobId}] Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`,
   );
 
-  const contentType = await getContentType(
-    url,
-    jobId,
-    job.abortSignal,
-    runProxy,
-  );
+  if (precrawledArchiveAssetId) {
+    logger.info(
+      `[Crawler][${jobId}] Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
+    );
+  }
+  const contentType = precrawledArchiveAssetId
+    ? ASSET_TYPES.TEXT_HTML
+    : await getContentType(url, jobId, job.abortSignal, runProxy);
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage

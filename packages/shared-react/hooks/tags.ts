@@ -85,6 +85,9 @@ export function useUpdateTag(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ tagId: res.id }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.infiniteQueryFilter({ tagId: res.id }),
+        );
 
         // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
         queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
@@ -109,6 +112,9 @@ export function useMergeTag(
           queryClient.invalidateQueries(api.tags.get.queryFilter({ tagId }));
           queryClient.invalidateQueries(
             api.bookmarks.getBookmarks.queryFilter({ tagId }),
+          );
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.infiniteQueryFilter({ tagId }),
           );
         });
         // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
