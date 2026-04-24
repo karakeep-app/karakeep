@@ -87,7 +87,10 @@ export default function BookmarkView() {
   }
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, paddingBottom: insets.bottom + 8 }}
+      // On iOS 26 the toolbar is absolute-positioned so its GlassView has
+      // content behind it; its own bottomMargin handles the safe-area inset,
+      // so padding here would leave a visible gap below the glass pill.
+      style={{ flex: 1, paddingBottom: isIOS26 ? 0 : insets.bottom + 8 }}
       behavior="height"
     >
       {settings.keepScreenOnWhileReading && <KeepScreenOn />}
@@ -125,7 +128,13 @@ export default function BookmarkView() {
         }}
       />
       {comp}
-      <BottomActions bookmark={bookmark} />
+      {isIOS26 ? (
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
+          <BottomActions bookmark={bookmark} />
+        </View>
+      ) : (
+        <BottomActions bookmark={bookmark} />
+      )}
     </KeyboardAvoidingView>
   );
 }
