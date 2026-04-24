@@ -40,6 +40,7 @@ function triggerHaptic() {
 
 interface ToolbarActionMeta {
   label: string;
+  render: (b: ZBookmark) => string;
   Icon: LucideIcon;
   sfSymbol: string;
 }
@@ -48,14 +49,49 @@ export const TOOLBAR_ACTION_REGISTRY: Record<
   ToolbarActionId,
   ToolbarActionMeta
 > = {
-  lists: { label: "Lists", Icon: ClipboardList, sfSymbol: "list.bullet" },
-  tags: { label: "Tags", Icon: Tag, sfSymbol: "tag" },
-  info: { label: "Info", Icon: Info, sfSymbol: "info.circle" },
-  favourite: { label: "Favourite", Icon: Star, sfSymbol: "star" },
-  archive: { label: "Archive", Icon: Archive, sfSymbol: "archivebox" },
-  browser: { label: "Open in Browser", Icon: Globe, sfSymbol: "safari" },
-  share: { label: "Share", Icon: ShareIcon, sfSymbol: "square.and.arrow.up" },
-  delete: { label: "Delete", Icon: Trash2, sfSymbol: "trash" },
+  lists: {
+    label: "Lists",
+    render: () => "Lists",
+    Icon: ClipboardList,
+    sfSymbol: "list.bullet",
+  },
+  tags: { label: "Tags", render: () => "Tags", Icon: Tag, sfSymbol: "tag" },
+  info: {
+    label: "Info",
+    render: () => "Info",
+    Icon: Info,
+    sfSymbol: "info.circle",
+  },
+  favourite: {
+    label: "Favourite",
+    render: (b) => (b.favourited ? "Unfavourite" : "Favourite"),
+    Icon: Star,
+    sfSymbol: "star",
+  },
+  archive: {
+    label: "Archive",
+    render: (b) => (b.archived ? "Un-archive" : "Archive"),
+    Icon: Archive,
+    sfSymbol: "archivebox",
+  },
+  browser: {
+    label: "Open in Browser",
+    render: () => "Open in Browser",
+    Icon: Globe,
+    sfSymbol: "safari",
+  },
+  share: {
+    label: "Share",
+    render: () => "Share",
+    Icon: ShareIcon,
+    sfSymbol: "square.and.arrow.up",
+  },
+  delete: {
+    label: "Delete",
+    render: () => "Delete",
+    Icon: Trash2,
+    sfSymbol: "trash",
+  },
 };
 
 interface ToolbarAction {
@@ -319,7 +355,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
       const meta = TOOLBAR_ACTION_REGISTRY[a.id];
       return {
         id: a.id,
-        title: meta.label,
+        title: meta.render(bookmark),
         image: Platform.select({ ios: meta.sfSymbol, default: undefined }),
         imageColor:
           a.id === "delete" ? destructiveMenuIconColor : menuIconColor,
