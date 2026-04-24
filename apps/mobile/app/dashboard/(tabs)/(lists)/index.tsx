@@ -195,7 +195,8 @@ export default function Lists() {
         className="h-full"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          gap: 15,
+          gap: 6,
+          paddingBottom: 20,
           marginHorizontal: 15,
           marginBottom: 15,
         }}
