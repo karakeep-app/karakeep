@@ -95,7 +95,7 @@ function useToolbarActions(bookmark: ZBookmark) {
       },
     });
 
-  const { mutate: favouriteBookmark, variables: favouriteVars } =
+  const { mutate: favouriteBookmark, isPending: isFavouritePending } =
     useUpdateBookmark({
       onError: () => {
         toast({
@@ -212,10 +212,6 @@ function useToolbarActions(bookmark: ZBookmark) {
     }
   };
 
-  const isFavourited = favouriteVars
-    ? favouriteVars.favourited
-    : bookmark.favourited;
-
   const makeIcon = (
     IconComp: LucideIcon,
     overrideColor?: string,
@@ -259,7 +255,7 @@ function useToolbarActions(bookmark: ZBookmark) {
     },
     favourite: {
       id: "favourite",
-      icon: isFavourited
+      icon: bookmark.favourited
         ? makeIcon(Star, "#ebb434", "#ebb434")
         : makeIcon(Star),
       shouldRender: isOwner,
@@ -267,10 +263,10 @@ function useToolbarActions(bookmark: ZBookmark) {
         triggerHaptic();
         favouriteBookmark({
           bookmarkId: bookmark.id,
-          favourited: !isFavourited,
+          favourited: !bookmark.favourited,
         });
       },
-      disabled: false,
+      disabled: isFavouritePending,
     },
     archive: {
       id: "archive",
