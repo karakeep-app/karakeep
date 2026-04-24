@@ -9,21 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
 import { useTranslation } from "@/lib/i18n/client";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { Archive, X } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import {
   useAddBookmarkToList,
@@ -46,18 +36,6 @@ export default function ManageListsModal({
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
-  const formSchema = z.object({
-    listId: z.string({
-      error: (issue) =>
-        issue.input === undefined ? "Please select a list" : undefined,
-    }),
-  });
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      listId: undefined,
-    },
-  });
 
   const { data: allLists, isPending: isAllListsPending } = useBookmarkLists(
     undefined,
@@ -81,7 +59,6 @@ export default function ManageListsModal({
         toast({
           description: t("toasts.lists.updated"),
         });
-        form.resetField("listId");
       },
       onError: (e) => {
         if (e.data?.code == "BAD_REQUEST") {
@@ -104,7 +81,6 @@ export default function ManageListsModal({
         toast({
           description: t("toasts.lists.updated"),
         });
-        form.resetField("listId");
       },
       onError: (e) => {
         if (e.data?.code == "BAD_REQUEST") {
@@ -124,97 +100,72 @@ export default function ManageListsModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((value) => {
-              addToList({
-                bookmarkId: bookmarkId,
-                listId: value.listId,
-              });
+        <DialogHeader>
+          <DialogTitle>{t("actions.manage_lists")}</DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <LoadingSpinner className="my-4" />
+        ) : (
+          <ul className="flex flex-col gap-2 pb-2 pt-4">
+            {alreadyInList?.lists.map((list) => {
+              const path = allLists?.getPathById(list.id);
+              return (
+                <li
+                  key={list.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
+                >
+                  <p>
+                    {path
+                      ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
+                      : list.name}
+                  </p>
+                  <ActionButton
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    loading={isDeleteFromListPending}
+                    onClick={() =>
+                      deleteFromList({ bookmarkId, listId: list.id })
+                    }
+                    aria-label={t("actions.remove_from_list")}
+                  >
+                    <X className="size-4" />
+                  </ActionButton>
+                </li>
+              );
             })}
-          >
-            <DialogHeader>
-              <DialogTitle>Manage Lists</DialogTitle>
-            </DialogHeader>
-            {isLoading ? (
-              <LoadingSpinner className="my-4" />
-            ) : (
-              allLists && (
-                <ul className="flex flex-col gap-2 pb-2 pt-4">
-                  {alreadyInList?.lists.map((list) => (
-                    <li
-                      key={list.id}
-                      className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
-                    >
-                      <p>
-                        {allLists
-                          .getPathById(list.id)!
-                          .map((l) => `${l.icon} ${l.name}`)
-                          .join(" / ")}
-                      </p>
-                      <ActionButton
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        loading={isDeleteFromListPending}
-                        onClick={() =>
-                          deleteFromList({ bookmarkId, listId: list.id })
-                        }
-                      >
-                        <X className="size-4" />
-                      </ActionButton>
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
+          </ul>
+        )}
 
-            <div className="pb-4">
-              <FormField
-                control={form.control}
-                name="listId"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormControl>
-                        <BookmarkListSelector
-                          value={field.value}
-                          hideBookmarkIds={alreadyInList?.lists.map(
-                            (l) => l.id,
-                          )}
-                          onChange={field.onChange}
-                          listTypes={["manual"]}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            </div>
-            <DialogFooter className="sm:justify-end">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  {t("actions.close")}
-                </Button>
-              </DialogClose>
-              <ArchiveBookmarkButton
-                type="button"
-                bookmarkId={bookmarkId}
-                onDone={() => setOpen(false)}
-              >
-                <Archive className="mr-2 size-4" /> {t("actions.archive")}
-              </ArchiveBookmarkButton>
-              <ActionButton
-                type="submit"
-                loading={isAddingToListPending}
-                disabled={isAddingToListPending}
-              >
-                {t("actions.add")}
-              </ActionButton>
-            </DialogFooter>
-          </form>
-        </Form>
+        <div className="pb-4">
+          <BookmarkListSelector
+            hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
+            onChange={(listId) => {
+              if (!isLoading && !isAddingToListPending) {
+                addToList({
+                  bookmarkId: bookmarkId,
+                  listId: listId,
+                });
+              }
+            }}
+            listTypes={["manual"]}
+            disabled={isLoading || isAddingToListPending}
+          />
+        </div>
+        <DialogFooter className="sm:justify-end">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              {t("actions.close")}
+            </Button>
+          </DialogClose>
+          <ArchiveBookmarkButton
+            type="button"
+            bookmarkId={bookmarkId}
+            onDone={() => setOpen(false)}
+          >
+            <Archive className="mr-2 size-4" /> {t("actions.archive")}
+          </ArchiveBookmarkButton>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

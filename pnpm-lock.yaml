@@ -101,6 +101,9 @@ importers:
       react-router-dom:
         specifier: ^6.22.0
         version: 6.22.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      single-file-core:
+        specifier: ^1.5.84
+        version: 1.5.84
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -208,8 +211,8 @@ importers:
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.14)(react@19.2.3)
       astro:
-        specifier: ^6.1.3
-        version: 6.1.3(@types/node@24.10.3)(idb-keyval@6.2.2)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.60.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
+        specifier: ^6.1.6
+        version: 6.1.8(@types/node@24.10.3)(idb-keyval@6.2.2)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.60.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -296,6 +299,9 @@ importers:
       vite:
         specifier: ^7.0.6
         version: 7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.3)
+      vite-tsconfig-paths:
+        specifier: ^6.1.1
+        version: 6.1.1(typescript@5.9.3)(vite@7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.20.3)(yaml@2.8.3))
 
   apps/mobile:
     dependencies:
@@ -636,6 +642,9 @@ importers:
       '@trpc/tanstack-react-query':
         specifier: ^11.9.0
         version: 11.9.0(@tanstack/react-query@5.90.2(react@19.2.3))(@trpc/client@11.9.0(@trpc/server@11.9.0(typescript@5.9.3))(typescript@5.9.3))(@trpc/server@11.9.0(typescript@5.9.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+      better-sqlite3:
+        specifier: ^11.3.0
+        version: 11.3.0
       cheerio:
         specifier: ^1.0.0
         version: 1.0.0
@@ -847,6 +856,9 @@ importers:
       async-mutex:
         specifier: ^0.4.1
         version: 0.4.1
+      better-sqlite3:
+        specifier: ^11.3.0
+        version: 11.3.0
       dompurify:
         specifier: ^3.2.4
         version: 3.2.6
@@ -1736,8 +1748,8 @@ packages:
       react: ^17.0.2 || ^18.0.0 || ^19.0.0
       react-dom: ^17.0.2 || ^18.0.0 || ^19.0.0
 
-  '@astrojs/telemetry@3.3.0':
-    resolution: {integrity: sha512-UFBgfeldP06qu6khs/yY+q1cDAaArM2/7AEIqQ9Cuvf7B1hNLq0xDrZkct+QoIGyjq56y8IaE2I3CTvG99mlhQ==}
+  '@astrojs/telemetry@3.3.1':
+    resolution: {integrity: sha512-7fcIxXS9J4ls5tr8b3ww9rbAIz2+HrhNJYZdkAhhB4za/I5IZ/60g+Bs8q7zwG0tOIZfNB4JWhVJ1Qkl/OrNCw==}
     engines: {node: 18.20.8 || ^20.3.0 || >=22.0.0}
 
   '@astrojs/yaml2ts@0.2.3':
@@ -7750,8 +7762,8 @@ packages:
     resolution: {integrity: sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==}
     hasBin: true
 
-  astro@6.1.3:
-    resolution: {integrity: sha512-FUKbBYOdYYrRNZwDd9I5CVSfR6Nj9aZeNzcjcvh1FgHwR0uXawkYFR3HiGxmdmAB2m8fs0iIkDdsiUfwGeO8qA==}
+  astro@6.1.8:
+    resolution: {integrity: sha512-6fT9M12U3fpi13DiPavNKDIoBflASTSxmKTEe+zXhWtlebQuOqfOnIrMWyRmlXp+mgDsojmw+fVFG9LUTzKSog==}
     engines: {node: '>=22.12.0', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
@@ -10873,6 +10885,11 @@ packages:
   is-docker@3.0.0:
     resolution: {integrity: sha512-eljcgEDlEns/7AXFosB5K/2nCM4P7FQPkGc/DWLy5rmFEWvZayGrik1d9/QIY5nJ4f9YsVvBkA6kJpHn9rISdQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    hasBin: true
+
+  is-docker@4.0.0:
+    resolution: {integrity: sha512-LHE+wROyG/Y/0ZnbktRCoTix2c1RhgWaZraMZ8o1Q7zCh0VSrICJQO5oqIIISrcSBtrXv0o233w1IYwsWCjTzA==}
+    engines: {node: '>=20'}
     hasBin: true
 
   is-extendable@0.1.1:
@@ -15145,6 +15162,9 @@ packages:
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
+  single-file-core@1.5.84:
+    resolution: {integrity: sha512-P6rhA92eZNGZfc35Uudki4Z+H5Ged3gee9qSNcnfHnKZ2/R+V30USgLCooQf+ydraqYZYFe1NawKr0A4zz6Iog==}
+
   sirv@2.0.4:
     resolution: {integrity: sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==}
     engines: {node: '>= 10'}
@@ -17319,17 +17339,14 @@ snapshots:
       - tsx
       - yaml
 
-  '@astrojs/telemetry@3.3.0':
+  '@astrojs/telemetry@3.3.1':
     dependencies:
       ci-info: 4.4.0
-      debug: 4.4.3
       dlv: 1.1.3
       dset: 3.1.4
-      is-docker: 3.0.0
+      is-docker: 4.0.0
       is-wsl: 3.1.1
       which-pm-runs: 1.1.0
-    transitivePeerDependencies:
-      - supports-color
 
   '@astrojs/yaml2ts@0.2.3':
     dependencies:
@@ -20359,7 +20376,7 @@ snapshots:
   '@emotion/babel-plugin@11.13.5':
     dependencies:
       '@babel/helper-module-imports': 7.27.1
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.29.2
       '@emotion/hash': 0.9.2
       '@emotion/memoize': 0.9.0
       '@emotion/serialize': 1.3.3
@@ -25040,12 +25057,12 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro@6.1.3(@types/node@24.10.3)(idb-keyval@6.2.2)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.60.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3):
+  astro@6.1.8(@types/node@24.10.3)(idb-keyval@6.2.2)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.60.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3):
     dependencies:
       '@astrojs/compiler': 3.0.1
       '@astrojs/internal-helpers': 0.8.0
       '@astrojs/markdown-remark': 7.1.0
-      '@astrojs/telemetry': 3.3.0
+      '@astrojs/telemetry': 3.3.1
       '@capsizecss/unpack': 4.0.0
       '@clack/prompts': 1.2.0
       '@oslojs/encoding': 1.1.0
@@ -25058,7 +25075,6 @@ snapshots:
       cookie: 1.1.1
       devalue: 5.6.4
       diff: 8.0.4
-      dlv: 1.1.3
       dset: 3.1.4
       es-module-lexer: 2.0.0
       esbuild: 0.27.7
@@ -26621,7 +26637,7 @@ snapshots:
 
   dom-helpers@5.2.1:
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.29.2
       csstype: 3.2.3
 
   dom-serializer@1.4.1:
@@ -28722,6 +28738,8 @@ snapshots:
   is-docker@2.2.1: {}
 
   is-docker@3.0.0: {}
+
+  is-docker@4.0.0: {}
 
   is-extendable@0.1.1: {}
 
@@ -34367,6 +34385,8 @@ snapshots:
   simple-swizzle@0.2.2:
     dependencies:
       is-arrayish: 0.3.2
+
+  single-file-core@1.5.84: {}
 
   sirv@2.0.4:
     dependencies:

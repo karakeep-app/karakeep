@@ -61,6 +61,7 @@ export interface OpenAIInferenceConfig {
   contextLength: number;
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
+  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
   outputSchema: "structured" | "json" | "plain";
 }
 
@@ -109,6 +110,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       maxOutputTokens: serverConfig.inference.maxOutputTokens,
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
+      reasoningEffort: serverConfig.inference.openAIReasoningEffort,
     });
   }
 
@@ -140,6 +142,7 @@ export class OpenAIInferenceClient implements InferenceClient {
           },
           this.config.outputSchema,
         ),
+        reasoning_effort: this.config.reasoningEffort,
       },
       {
         signal: optsWithDefaults.abortSignal,

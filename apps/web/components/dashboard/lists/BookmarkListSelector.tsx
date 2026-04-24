@@ -28,6 +28,7 @@ export function BookmarkListSelector({
   placeholder = "Select a list",
   className,
   listTypes = ["manual", "smart"],
+  disabled = false,
 }: {
   className?: string;
   value?: string | null;
@@ -36,6 +37,7 @@ export function BookmarkListSelector({
   hideSubtreeOf?: string;
   hideBookmarkIds?: string[];
   listTypes?: ZBookmarkList["type"][];
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const { data, isPending: isFetchingListsPending } = useBookmarkLists();
@@ -79,6 +81,7 @@ export function BookmarkListSelector({
           role="combobox"
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
+          disabled={disabled}
         >
           {selectedListName || placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

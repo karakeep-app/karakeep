@@ -85,7 +85,7 @@ export function EditListModal({
     defaultValues: {
       name: list?.name ?? prefill?.name ?? "",
       description: list?.description ?? prefill?.description ?? "",
-      icon: list?.icon ?? prefill?.icon ?? "🚀",
+      icon: list?.icon ?? prefill?.icon ?? "📁",
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
@@ -100,7 +100,7 @@ export function EditListModal({
     form.reset({
       name: list?.name ?? prefill?.name ?? "",
       description: list?.description ?? prefill?.description ?? "",
-      icon: list?.icon ?? prefill?.icon ?? "🚀",
+      icon: list?.icon ?? prefill?.icon ?? "📁",
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
