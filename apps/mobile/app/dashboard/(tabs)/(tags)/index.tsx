@@ -115,7 +115,8 @@ export default function Tags() {
           ) : undefined
         }
         contentContainerStyle={{
-          gap: 15,
+          gap: 6,
+          paddingBottom: 20,
           marginHorizontal: 15,
           marginBottom: 15,
         }}
