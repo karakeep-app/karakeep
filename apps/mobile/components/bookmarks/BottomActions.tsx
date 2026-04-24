@@ -12,7 +12,7 @@ import { isIOS26 } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
-import { MenuView } from "@react-native-menu/menu";
+import { MenuAction, MenuView } from "@react-native-menu/menu";
 import {
   Archive,
   ClipboardList,
@@ -349,7 +349,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
   const bottomMargin = shouldUseGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
 
   // Build native menu actions for the overflow ellipsis
-  const menuActions = overflowActions
+  const menuActions: MenuAction[] = overflowActions
     .filter((a) => a.shouldRender)
     .map((a) => {
       const meta = TOOLBAR_ACTION_REGISTRY[a.id];
@@ -367,12 +367,13 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
     });
 
   // Add separator + "Edit Toolbar..." at the bottom
-  const menuActionsWithEdit = [
+  const menuActionsWithEdit: MenuAction[] = [
     ...(menuActions.length > 0
       ? [
           {
             id: "overflow-group",
-            title: "",
+            // DisplayInline doesn't seem to be working on android
+            title: Platform.OS === "ios" ? "" : "More Actions",
             displayInline: true as const,
             subactions: menuActions,
           },
