@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { FlatList, Keyboard, Pressable, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { Stack, useFocusEffect } from "expo-router";
 import type { SearchBarCommands } from "react-native-screens";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
@@ -77,10 +77,10 @@ export default function SearchTab() {
   const handleSearchSubmit = (searchTerm: string) => {
     const term = searchTerm.trim();
     if (term.length > 0) {
-      addTerm(term);
       setSearch(term);
+      searchBarRef.current?.setText(term);
     }
-    Keyboard.dismiss();
+    searchBarRef.current?.blur();
   };
 
   const renderHistoryItem = ({ item }: { item: string }) => (
