@@ -9,8 +9,6 @@ import {
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
 import FullPageError from "@/components/FullPageError";
-import InlineSearch from "@/components/search/InlineSearch";
-import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
@@ -73,7 +71,6 @@ function traverseTree(
 
 export default function Lists() {
   const { colors } = useColorScheme();
-  const [searchActive, setSearchActive] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { data: lists, isPending, error, refetch } = useBookmarkLists();
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
@@ -102,10 +99,6 @@ export default function Lists() {
   useEffect(() => {
     setRefreshing(isPending);
   }, [isPending]);
-
-  if (Platform.OS === "android" && searchActive) {
-    return <InlineSearch onClose={() => setSearchActive(false)} />;
-  }
 
   if (error) {
     return <FullPageError error={error.message} onRetry={() => refetch()} />;
@@ -185,12 +178,6 @@ export default function Lists() {
 
   return (
     <>
-      {Platform.OS === "android" && (
-        <AndroidSearchBar
-          label="Search bookmarks..."
-          onPress={() => setSearchActive(true)}
-        />
-      )}
       <FlatList
         className="h-full"
         contentInsetAdjustmentBehavior="automatic"

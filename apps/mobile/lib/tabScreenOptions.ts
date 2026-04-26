@@ -24,7 +24,9 @@ export const tabScreenOptions: NativeStackNavigationOptions = {
       headerLargeStyle: { backgroundColor: "transparent" },
     },
     android: {
-      headerShown: false,
+      headerStyle: {
+        backgroundColor: "transparent",
+      },
       contentStyle: {
         // Manual padding to avoid the native tab bar until expo fixes this in SDK 55.
         paddingBottom: 100,
