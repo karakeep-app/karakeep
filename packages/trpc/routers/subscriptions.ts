@@ -8,7 +8,12 @@ import { z } from "zod";
 import { assets, bookmarks, subscriptions, users } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 
-import { authedProcedure, Context, publicProcedure, router } from "../index";
+import {
+  Context,
+  publicProcedure,
+  router,
+  createScopedAuthedProcedure,
+} from "../index";
 
 const stripe = serverConfig.stripe.secretKey
   ? new Stripe(serverConfig.stripe.secretKey, {
@@ -185,8 +190,10 @@ async function processEvent(event: Stripe.Event, db: Context["db"]) {
   return await syncStripeDataToDatabase(customerId, db);
 }
 
+const subscriptionsProcedure = createScopedAuthedProcedure("subscriptions");
+
 export const subscriptionsRouter = router({
-  getSubscriptionStatus: authedProcedure.query(async ({ ctx }) => {
+  getSubscriptionStatus: subscriptionsProcedure.query(async ({ ctx }) => {
     const subscription = await ctx.db.query.subscriptions.findFirst({
       where: eq(subscriptions.userId, ctx.user.id),
     });
@@ -213,7 +220,7 @@ export const subscriptionsRouter = router({
     };
   }),
 
-  getSubscriptionPrice: authedProcedure.query(async () => {
+  getSubscriptionPrice: subscriptionsProcedure.query(async () => {
     if (!stripe) {
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
@@ -253,7 +260,7 @@ export const subscriptionsRouter = router({
     return result;
   }),
 
-  createCheckoutSession: authedProcedure
+  createCheckoutSession: subscriptionsProcedure
     .input(
       z
         .object({
@@ -350,7 +357,7 @@ export const subscriptionsRouter = router({
       };
     }),
 
-  syncWithStripe: authedProcedure.mutation(async ({ ctx }) => {
+  syncWithStripe: subscriptionsProcedure.mutation(async ({ ctx }) => {
     const subscription = await ctx.db.query.subscriptions.findFirst({
       where: eq(subscriptions.userId, ctx.user.id),
     });
@@ -364,7 +371,7 @@ export const subscriptionsRouter = router({
     return { success: true };
   }),
 
-  createPortalSession: authedProcedure.mutation(async ({ ctx }) => {
+  createPortalSession: subscriptionsProcedure.mutation(async ({ ctx }) => {
     const { stripe } = requireStripeConfig();
 
     const subscription = await ctx.db.query.subscriptions.findFirst({
@@ -388,7 +395,7 @@ export const subscriptionsRouter = router({
     };
   }),
 
-  getQuotaUsage: authedProcedure.query(async ({ ctx }) => {
+  getQuotaUsage: subscriptionsProcedure.query(async ({ ctx }) => {
     const user = await ctx.db.query.users.findFirst({
       where: eq(users.id, ctx.user.id),
       columns: {

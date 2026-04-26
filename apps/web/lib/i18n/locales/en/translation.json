@@ -326,7 +326,97 @@
       "key_regenerated": "Key was successfully regenerated",
       "key_regenerated_please_copy": "Please copy the new key and store it somewhere safe. The old key has been revoked and will no longer work.",
       "regenerate_warning": "Are you sure you want to regenerate the API key \"{{name}}\"?",
-      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working."
+      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working.",
+      "scopes": {
+        "scopes": "Scopes",
+        "choose_at_least_one": "Choose at least one scope or select full access.",
+        "scope_details": "{{scope}} scope details",
+        "access": {
+          "none": "None",
+          "read": "Read",
+          "readwrite": "Read/write"
+        },
+        "full_access": {
+          "label": "Full access",
+          "description": "Access all supported API operations."
+        },
+        "limited_scopes": {
+          "label": "Limited scopes",
+          "description": "Choose the resource types this key can access."
+        },
+        "resources": {
+          "assets": {
+            "label": "Assets",
+            "description": "Access files and other stored bookmark content."
+          },
+          "backups": {
+            "label": "Backups",
+            "description": "Manage account backups."
+          },
+          "bookmarks": {
+            "label": "Bookmarks",
+            "description": "Access and manage bookmarks."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "Manage RSS feeds and related feed data."
+          },
+          "highlights": {
+            "label": "Highlights",
+            "description": "Manage saved bookmark highlights."
+          },
+          "lists": {
+            "label": "Lists",
+            "description": "Manage lists and list membership."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Manage saved AI prompt configuration."
+          },
+          "rules": {
+            "label": "Rules",
+            "description": "Access automation rules."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Access and modify tags."
+          },
+          "users": {
+            "label": "User account",
+            "description": "Access account profile and settings."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Access webhook configuration."
+          },
+          "subscriptions": {
+            "label": "Subscriptions",
+            "description": "Access subscription management."
+          },
+          "importSessions": {
+            "label": "Import Sessions",
+            "description": "Access import sessions."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bookmarks",
+            "description": "Access administrative bookmark tools."
+          },
+          "jobs": {
+            "label": "Admin: jobs",
+            "description": "Access background job controls."
+          },
+          "system": {
+            "label": "Admin: system",
+            "description": "Access system status and diagnostics."
+          },
+          "users": {
+            "label": "Admin: users",
+            "description": "Access administrative user management."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Broken Links",

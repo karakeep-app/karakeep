@@ -4,6 +4,10 @@ import { z } from "zod";
 
 import { apiKeys } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
+import {
+  API_KEY_FULL_ACCESS_SCOPE,
+  zApiKeyScopesSchema,
+} from "@karakeep/shared/types/apiKeys";
 
 import {
   authenticateApiKey,
@@ -12,10 +16,10 @@ import {
   validatePassword,
 } from "../auth";
 import {
-  authedProcedure,
   createRateLimitMiddleware,
   publicProcedure,
   router,
+  sessionProcedure,
 } from "../index";
 
 const zApiKeySchema = z.object({
@@ -23,20 +27,25 @@ const zApiKeySchema = z.object({
   name: z.string(),
   key: z.string(),
   createdAt: z.date(),
+  scopes: zApiKeyScopesSchema,
 });
 
 export const apiKeysAppRouter = router({
-  create: authedProcedure
+  create: sessionProcedure
     .input(
       z.object({
         name: z.string(),
+        scopes: zApiKeyScopesSchema.optional(),
       }),
     )
     .output(zApiKeySchema)
     .mutation(async ({ input, ctx }) => {
-      return await generateApiKey(input.name, ctx.user.id, ctx.db);
+      // Omitted scopes preserve the existing API behavior: a new key gets
+      // explicit full access unless the caller asks for granular scopes.
+      const scopes = input.scopes ?? [API_KEY_FULL_ACCESS_SCOPE];
+      return await generateApiKey(input.name, ctx.user.id, ctx.db, scopes);
     }),
-  regenerate: authedProcedure
+  regenerate: sessionProcedure
     .input(
       z.object({
         id: z.string(),
@@ -60,10 +69,11 @@ export const apiKeysAppRouter = router({
         id: existingKey.id,
         name: existingKey.name,
         createdAt: existingKey.createdAt,
+        scopes: existingKey.scopes,
         key: await regenerateApiKey(existingKey.id, ctx.user.id, ctx.db),
       };
     }),
-  revoke: authedProcedure
+  revoke: sessionProcedure
     .input(
       z.object({
         id: z.string(),
@@ -74,7 +84,7 @@ export const apiKeysAppRouter = router({
         .delete(apiKeys)
         .where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.id)));
     }),
-  list: authedProcedure
+  list: sessionProcedure
     .output(
       z.object({
         keys: z.array(
@@ -84,6 +94,7 @@ export const apiKeysAppRouter = router({
             createdAt: z.date(),
             keyId: z.string(),
             lastUsedAt: z.date().nullish(),
+            scopes: zApiKeyScopesSchema,
           }),
         ),
       }),
@@ -97,6 +108,7 @@ export const apiKeysAppRouter = router({
           createdAt: true,
           lastUsedAt: true,
           keyId: true,
+          scopes: true,
         },
         orderBy: desc(apiKeys.createdAt),
       });
@@ -117,6 +129,7 @@ export const apiKeysAppRouter = router({
         keyName: z.string(),
         email: z.string(),
         password: z.string(),
+        scopes: zApiKeyScopesSchema.optional(),
       }),
     )
     .output(zApiKeySchema)
@@ -144,7 +157,10 @@ export const apiKeysAppRouter = router({
         });
       }
 
-      return await generateApiKey(input.keyName, user.id, ctx.db);
+      // Omitted scopes preserve the existing API behavior: a new key gets
+      // explicit full access unless the caller asks for granular scopes.
+      const scopes = input.scopes ?? [API_KEY_FULL_ACCESS_SCOPE];
+      return await generateApiKey(input.keyName, user.id, ctx.db, scopes);
     }),
   validate: publicProcedure
     .use(

@@ -31,12 +31,17 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
-import { adminProcedure, router } from "../index";
+import { createAdminScopedProcedure, router } from "../index";
 import { Bookmark } from "../models/bookmarks";
 import { User } from "../models/users";
 
+const adminBookmarksProcedure = createAdminScopedProcedure("bookmarks");
+const adminJobsProcedure = createAdminScopedProcedure("jobs");
+const adminSystemProcedure = createAdminScopedProcedure("system");
+const adminUsersProcedure = createAdminScopedProcedure("users");
+
 export const adminAppRouter = router({
-  stats: adminProcedure
+  stats: adminSystemProcedure
     .output(
       z.object({
         numUsers: z.number(),
@@ -55,7 +60,7 @@ export const adminAppRouter = router({
         numBookmarks,
       };
     }),
-  backgroundJobsStats: adminProcedure
+  backgroundJobsStats: adminJobsProcedure
     .output(
       z.object({
         crawlStats: z.object({
@@ -210,7 +215,7 @@ export const adminAppRouter = router({
         },
       };
     }),
-  recrawlLinks: adminProcedure
+  recrawlLinks: adminBookmarksProcedure
     .input(
       z.object({
         crawlStatus: z.enum(["success", "failure", "pending", "all"]),
@@ -240,7 +245,7 @@ export const adminAppRouter = router({
         }),
       );
     }),
-  reindexAllBookmarks: adminProcedure.mutation(async ({ ctx }) => {
+  reindexAllBookmarks: adminBookmarksProcedure.mutation(async ({ ctx }) => {
     const searchIdx = await getSearchClient();
     await searchIdx?.clearIndex();
     const bookmarkIds = await ctx.db.query.bookmarks.findMany({
@@ -257,7 +262,7 @@ export const adminAppRouter = router({
       ),
     );
   }),
-  reprocessAssetsFixMode: adminProcedure.mutation(async ({ ctx }) => {
+  reprocessAssetsFixMode: adminBookmarksProcedure.mutation(async ({ ctx }) => {
     const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({
       columns: {
         id: true,
@@ -278,7 +283,7 @@ export const adminAppRouter = router({
       ),
     );
   }),
-  reRunInferenceOnAllBookmarks: adminProcedure
+  reRunInferenceOnAllBookmarks: adminBookmarksProcedure
     .input(
       z.object({
         type: z.enum(["tag", "summarize"]),
@@ -313,12 +318,12 @@ export const adminAppRouter = router({
         ),
       );
     }),
-  runAdminMaintenanceTask: adminProcedure
+  runAdminMaintenanceTask: adminJobsProcedure
     .input(zAdminMaintenanceTaskSchema)
     .mutation(async ({ input }) => {
       await AdminMaintenanceQueue.enqueue(input);
     }),
-  userStats: adminProcedure
+  userStats: adminUsersProcedure
     .output(
       z.record(
         z.string(),
@@ -360,7 +365,7 @@ export const adminAppRouter = router({
 
       return results;
     }),
-  createUser: adminProcedure
+  createUser: adminUsersProcedure
     .input(zAdminCreateUserSchema)
     .output(
       z.object({
@@ -373,7 +378,7 @@ export const adminAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       return await User.create(ctx, input, input.role);
     }),
-  updateUser: adminProcedure
+  updateUser: adminUsersProcedure
     .input(updateUserSchema)
     .mutation(async ({ input, ctx }) => {
       if (ctx.user.id == input.userId) {
@@ -420,7 +425,7 @@ export const adminAppRouter = router({
         });
       }
     }),
-  resetPassword: adminProcedure
+  resetPassword: adminUsersProcedure
     .input(resetPasswordSchema)
     .mutation(async ({ input, ctx }) => {
       if (ctx.user.id == input.userId) {
@@ -443,7 +448,7 @@ export const adminAppRouter = router({
         });
       }
     }),
-  getAdminNoticies: adminProcedure
+  getAdminNoticies: adminSystemProcedure
     .output(
       z.object({
         // Unused for now
@@ -454,7 +459,7 @@ export const adminAppRouter = router({
         // Unused for now
       };
     }),
-  checkConnections: adminProcedure
+  checkConnections: adminSystemProcedure
     .output(
       z.object({
         searchEngine: z.object({
@@ -569,7 +574,7 @@ export const adminAppRouter = router({
         queue: queueStatus,
       };
     }),
-  getBookmarkDebugInfo: adminProcedure
+  getBookmarkDebugInfo: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .output(
       z.object({
@@ -648,7 +653,7 @@ export const adminAppRouter = router({
 
       return await Bookmark.buildDebugInfo(ctx, input.bookmarkId);
     }),
-  adminRecrawlBookmark: adminProcedure
+  adminRecrawlBookmark: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       // Verify bookmark exists and is a link
@@ -677,7 +682,7 @@ export const adminAppRouter = router({
         idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
     }),
-  adminReindexBookmark: adminProcedure
+  adminReindexBookmark: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       // Verify bookmark exists
@@ -697,7 +702,7 @@ export const adminAppRouter = router({
         groupId: "admin",
       });
     }),
-  adminRetagBookmark: adminProcedure
+  adminRetagBookmark: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       // Verify bookmark exists
@@ -723,7 +728,7 @@ export const adminAppRouter = router({
         },
       );
     }),
-  adminResummarizeBookmark: adminProcedure
+  adminResummarizeBookmark: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       // Verify bookmark exists and is a link

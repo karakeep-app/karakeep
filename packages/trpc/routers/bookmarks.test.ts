@@ -12,7 +12,7 @@ import * as sharedServer from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { APICallerType, CustomTestContext } from "../testUtils";
-import { defaultBeforeEach } from "../testUtils";
+import { defaultBeforeEach, getApiKeyCallerForPlainKey } from "../testUtils";
 
 vi.mock("@karakeep/shared-server", async (original) => {
   const mod = (await original()) as typeof import("@karakeep/shared-server");
@@ -69,6 +69,71 @@ describe("Bookmark Routes", () => {
     expect(res.favourited).toEqual(false);
     expect(res.archived).toEqual(false);
     expect(res.content.type).toEqual(BookmarkTypes.LINK);
+  });
+
+  test<CustomTestContext>("api key with read scope can read bookmarks but not write", async ({
+    apiCallers,
+    db,
+  }) => {
+    await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "seed bookmark",
+    });
+
+    const scopedKey = await apiCallers[0].apiKeys.create({
+      name: "Read Bookmark Key",
+      scopes: ["bookmarks:read", "users:read"],
+    });
+    const apiKeyCaller = await getApiKeyCallerForPlainKey(db, scopedKey.key);
+
+    const bookmarks = await apiKeyCaller.bookmarks.getBookmarks({});
+    expect(bookmarks.bookmarks).toHaveLength(1);
+
+    await expect(() =>
+      apiKeyCaller.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "should fail",
+      }),
+    ).rejects.toThrow(/FORBIDDEN|missing required scope/i);
+  });
+
+  test<CustomTestContext>("api key with readwrite scope can read bookmarks", async ({
+    apiCallers,
+    db,
+  }) => {
+    await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "seed bookmark",
+    });
+
+    const scopedKey = await apiCallers[0].apiKeys.create({
+      name: "Readwrite Bookmark Key",
+      scopes: ["bookmarks:readwrite"],
+    });
+    const apiKeyCaller = await getApiKeyCallerForPlainKey(db, scopedKey.key);
+
+    const bookmarks = await apiKeyCaller.bookmarks.getBookmarks({});
+    expect(bookmarks.bookmarks).toHaveLength(1);
+  });
+
+  test<CustomTestContext>("fullaccess API key can write bookmarks", async ({
+    apiCallers,
+    db,
+  }) => {
+    const fullAccessKey = await apiCallers[0].apiKeys.create({
+      name: "Full Access Bookmark Key",
+    });
+    const apiKeyCaller = await getApiKeyCallerForPlainKey(
+      db,
+      fullAccessKey.key,
+    );
+
+    const created = await apiKeyCaller.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "allowed",
+    });
+
+    expect(created.content.type).toBe(BookmarkTypes.TEXT);
   });
 
   test<CustomTestContext>("delete bookmark", async ({ apiCallers }) => {

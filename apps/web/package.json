@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:portless": "portless run --name karakeep-web --lan next dev",
     "clean": "git clean -xdf .next .turbo node_modules",
     "build": "next build --experimental-build-mode compile",
     "start": "next start",
@@ -114,6 +115,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/request-ip": "^0.0.41",
     "autoprefixer": "^10.4.17",
+    "portless": "^0.10.3",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "vite-tsconfig-paths": "^6.1.1",
