@@ -1,104 +1,53 @@
-import { useEffect, useMemo, useRef } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  keepPreviousData,
-  useInfiniteQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
 
-import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
-import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
-import { useTRPC } from "@karakeep/shared-react/trpc";
-
-const MAX_DISPLAY_SUGGESTIONS = 5;
+import type { BookmarkSearchState } from "@/lib/useBookmarkSearchState";
 
 interface BookmarkSearchResultsProps {
-  query: string;
+  rawSearch: string;
   isInputFocused: boolean;
+  state: BookmarkSearchState;
   onSelectHistory: (term: string) => void;
 }
 
 export default function BookmarkSearchResults({
-  query: rawQuery,
-  isInputFocused,
+  rawSearch,
+  state,
   onSelectHistory,
 }: BookmarkSearchResultsProps) {
-  const query = useDebounce(rawQuery, 10);
-
-  const { history, addTerm, clearHistory } = useSearchHistory({
-    getItem: (k: string) => AsyncStorage.getItem(k),
-    setItem: (k: string, v: string) => AsyncStorage.setItem(k, v),
-    removeItem: (k: string) => AsyncStorage.removeItem(k),
-  });
-
-  const api = useTRPC();
-  const queryClient = useQueryClient();
-
-  const onRefresh = () => {
-    queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
-  };
-
-  const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery(
-      api.bookmarks.searchBookmarks.infiniteQueryOptions(
-        { text: query },
-        {
-          enabled: query.trim().length > 0,
-          placeholderData: keepPreviousData,
-          gcTime: 0,
-          initialCursor: null,
-          getNextPageParam: (lastPage) => lastPage.nextCursor,
-        },
-      ),
-    );
-
-  const prevFocusedRef = useRef(isInputFocused);
-  useEffect(() => {
-    if (
-      prevFocusedRef.current &&
-      !isInputFocused &&
-      rawQuery.trim().length > 0
-    ) {
-      addTerm(rawQuery.trim());
-    }
-    prevFocusedRef.current = isInputFocused;
-  }, [isInputFocused]);
-
-  const filteredHistory = useMemo(() => {
-    if (rawQuery.trim().length === 0) {
-      return history.slice(0, MAX_DISPLAY_SUGGESTIONS);
-    }
-    return history
-      .filter((item) => item.toLowerCase().includes(rawQuery.toLowerCase()))
-      .slice(0, MAX_DISPLAY_SUGGESTIONS);
-  }, [rawQuery, history]);
+  const {
+    history,
+    filteredHistory,
+    clearHistory,
+    data,
+    error,
+    refetch,
+    isPending,
+    fetchNextPage,
+    isFetchingNextPage,
+    onRefresh,
+  } = state;
 
   if (error) {
     return <FullPageError error={error.message} onRetry={() => refetch()} />;
   }
 
-  const handleSelectHistory = (term: string) => {
-    addTerm(term);
-    onSelectHistory(term);
-  };
-
   const renderHistoryItem = ({ item }: { item: string }) => (
     <Pressable
-      onPress={() => handleSelectHistory(item)}
+      onPress={() => onSelectHistory(item)}
       className="border-b border-gray-200 p-3"
     >
       <Text className="text-foreground">{item}</Text>
     </Pressable>
   );
 
-  if (isInputFocused) {
+  if (rawSearch.trim().length === 0) {
     return (
       <FlatList
+        contentInsetAdjustmentBehavior="automatic"
         data={filteredHistory}
         renderItem={renderHistoryItem}
         keyExtractor={(item, index) => `${item}-${index}`}
@@ -116,7 +65,7 @@ export default function BookmarkSearchResults({
         }
         ListEmptyComponent={
           <Text className="p-3 text-center text-gray-500">
-            No matching searches.
+            No recent searches
           </Text>
         }
         keyboardShouldPersistTaps="handled"
@@ -124,11 +73,11 @@ export default function BookmarkSearchResults({
     );
   }
 
-  if (isPending && query.length > 0) {
+  if (isPending) {
     return <FullPageSpinner />;
   }
 
-  if (data && query.length > 0) {
+  if (data) {
     return (
       <BookmarkList
         bookmarks={data.pages.flatMap((p) => p.bookmarks)}

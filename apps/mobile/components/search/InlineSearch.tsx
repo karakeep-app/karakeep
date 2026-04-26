@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BookmarkSearchResults from "@/components/search/BookmarkSearchResults";
+import { useBookmarkSearchState } from "@/lib/useBookmarkSearchState";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { XIcon } from "lucide-react-native";
@@ -19,13 +20,16 @@ export default function InlineSearch({
   const [isInputFocused, setIsInputFocused] = useState(true);
   const inputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
+  const state = useBookmarkSearchState(search);
 
   const handleSearchSubmit = () => {
+    state.commitTerm(search);
     inputRef.current?.blur();
   };
 
   const handleSelectHistory = (term: string) => {
     setSearch(term);
+    state.commitTerm(term);
     inputRef.current?.blur();
   };
 
@@ -42,7 +46,10 @@ export default function InlineSearch({
             value={search}
             onChangeText={setSearch}
             onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
+            onBlur={() => {
+              setIsInputFocused(false);
+              state.commitTerm(search);
+            }}
             onSubmitEditing={handleSearchSubmit}
             returnKeyType="search"
             autoFocus
@@ -65,8 +72,9 @@ export default function InlineSearch({
         </Pressable>
       </View>
       <BookmarkSearchResults
-        query={search}
+        rawSearch={search}
         isInputFocused={isInputFocused}
+        state={state}
         onSelectHistory={handleSelectHistory}
       />
     </View>
