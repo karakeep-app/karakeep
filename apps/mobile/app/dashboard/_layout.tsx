@@ -158,26 +158,6 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
-        name="search"
-        options={{
-          headerShown: true,
-          headerTransparent: false,
-          headerLargeTitle: false,
-          ...Platform.select({
-            ios: {
-              presentation: "formSheet" as const,
-              sheetGrabberVisible: true,
-              headerLeft: () => null,
-            },
-            default: {
-              animation: "fade_from_bottom" as const,
-              animationDuration: 100,
-              headerBackTitle: "",
-            },
-          }),
-        }}
-      />
-      <Stack.Screen
         name="settings/index"
         options={{
           headerTitle: "Settings",
