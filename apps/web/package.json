@@ -10,12 +10,12 @@
     "clean": "git clean -xdf .next .turbo node_modules",
     "build": "next build --experimental-build-mode compile",
     "start": "next start",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt ."
+    "format": "oxfmt --ignore-path=../../.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore ."
   },
   "dependencies": {
     "@auth/drizzle-adapter": "~1.5.0",

@@ -14,10 +14,10 @@
     "ios:preview": "SENTRY_DISABLE_AUTO_UPLOAD=true APP_VARIANT=development pnpm run ios --configuration Release",
     "ios:release": "SENTRY_DISABLE_AUTO_UPLOAD=true pnpm run ios --configuration Release",
     "web": "expo start --web",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt .",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore .",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

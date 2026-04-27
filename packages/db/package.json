@@ -10,10 +10,10 @@
     "migrate": "tsx migrate.ts",
     "generate": "drizzle-kit generate",
     "studio": "drizzle-kit studio",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt .",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix"
+    "format": "oxfmt --ignore-path=../../.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore .",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix"
   },
   "dependencies": {
     "@auth/core": "^0.27.0",
