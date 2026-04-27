@@ -17,9 +17,10 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { isIOS26, shouldUseGlassPill } from "@/lib/ios";
+import { isIOS26, NAV_BAR_HEIGHT, shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useScrollDirection } from "@/lib/useScrollDirection";
+import { COLORS } from "@/theme/colors";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
@@ -27,9 +28,6 @@ import { useColorScheme } from "nativewind";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-
-// Standard iOS navigation bar height (points)
-const NAV_BAR_HEIGHT = 44;
 
 function KeepScreenOn() {
   useKeepAwake();
@@ -108,11 +106,14 @@ export default function BookmarkView() {
     return <FullPageSpinner />;
   }
 
-  // On iOS 26 the header is transparent and content extends behind it,
-  // so scrollable children need top padding equal to the header height.
-  // Applied via contentInset so the background extends edge-to-edge.
-  const contentInsetTop = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
-  const contentInsetBottom = isIOS26 ? footerLayoutHeight : 0;
+  // The header is transparent on every platform (so content extends behind
+  // it and stays in place when the header animates in/out), so scrollable
+  // children need top padding equal to the header height.
+  const contentInsetTop = insets.top + NAV_BAR_HEIGHT;
+  // The toolbar floats over the content on every platform (so it can fully
+  // translate off-screen when bars hide without leaving a layout gap), so
+  // the scrollable content needs bottom padding equal to its height.
+  const contentInsetBottom = footerLayoutHeight;
 
   let comp;
   let title = null;
@@ -147,24 +148,21 @@ export default function BookmarkView() {
       break;
   }
 
-  const headerPlatformOptions = isIOS26
-    ? { headerTransparent: true as const }
-    : {
-        headerTransparent: false as const,
-        headerStyle: { backgroundColor: isDark ? "#000" : "#fff" },
-      };
+  // Use a transparent header on every platform so content stays in place
+  // when bars hide/show. iOS 26 drops the explicit background colour so the
+  // built-in liquid-glass effect can show through; other platforms paint the
+  // same card colour the toolbar uses to keep visual hierarchy.
+  const headerPlatformOptions = {
+    headerTransparent: true as const,
+    ...(!isIOS26 && {
+      headerStyle: {
+        backgroundColor: isDark ? COLORS.dark.card : COLORS.light.card,
+      },
+    }),
+  };
 
   return (
-    <KeyboardAvoidingView
-      // On iOS 26 the toolbar is absolute-positioned so its GlassView has
-      // content behind it; its own bottomMargin handles the safe-area inset,
-      // so padding here would leave a visible gap below the glass pill.
-      style={{
-        flex: 1,
-        paddingBottom: shouldUseGlassPill ? 0 : insets.bottom + 8,
-      }}
-      behavior="height"
-    >
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
       {settings.keepScreenOnWhileReading && <KeepScreenOn />}
       <Stack.Screen
         options={{
@@ -201,15 +199,11 @@ export default function BookmarkView() {
         onLayout={onFooterLayout}
         style={[
           footerAnimatedStyle,
-          // On iOS 26 BottomActions renders a translucent GlassView; floating
-          // it lets the article scroll under the blur. On older platforms the
-          // toolbar is opaque, so it stays in flow and pushes content up.
-          isIOS26 && {
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-          },
+          // Float the toolbar over the content so it can fully translate
+          // off-screen when bars hide. The article gets bottom padding equal
+          // to the toolbar's measured height (via contentInsetBottom) so its
+          // content isn't obscured.
+          { position: "absolute", left: 0, right: 0, bottom: 0 },
         ]}
       >
         <BottomActions bookmark={bookmark} />

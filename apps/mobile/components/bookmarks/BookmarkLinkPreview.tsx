@@ -15,7 +15,7 @@ import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
-import { isIOS26 } from "@/lib/ios";
+import { isIOS26, NAV_BAR_HEIGHT } from "@/lib/ios";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
@@ -36,9 +36,6 @@ import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
 
-// Standard iOS navigation bar height (points)
-const NAV_BAR_HEIGHT = 44;
-
 export function BookmarkLinkBrowserPreview({
   bookmark,
   onScrollOffsetChange,
@@ -54,15 +51,24 @@ export function BookmarkLinkBrowserPreview({
     throw new Error("Wrong content type rendered");
   }
 
+  // WebView's contentInset prop is iOS-only; on Android we wrap in a padded
+  // View to keep the content from being obscured by the floating toolbar.
+  const androidPadding =
+    Platform.OS === "android"
+      ? { paddingTop: contentInsetTop, paddingBottom: contentInsetBottom }
+      : null;
+
   return (
-    <WebView
-      startInLoadingState={true}
-      mediaPlaybackRequiresUserAction={true}
-      source={{ uri: bookmark.content.url }}
-      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
-      automaticallyAdjustContentInsets={false}
-      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
-    />
+    <View style={[{ flex: 1 }, androidPadding]}>
+      <WebView
+        startInLoadingState={true}
+        mediaPlaybackRequiresUserAction={true}
+        source={{ uri: bookmark.content.url }}
+        onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+        automaticallyAdjustContentInsets={false}
+        contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
+      />
+    </View>
   );
 }
 
@@ -90,9 +96,11 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
-// Gap below the transparent header, used for positioning both the
-// continue-reading pill and the progress bar.
-const BANNER_GAP = 8;
+// Gap below the header, used for positioning both the continue-reading pill
+// and the progress bar. The glass-pill variant blends with the header's
+// blur so it can sit closer; opaque pills need more breathing room.
+const BANNER_GAP_GLASS = 8;
+const BANNER_GAP_OPAQUE = 16;
 
 const pillStyle = {
   flexDirection: "row" as const,
@@ -194,10 +202,11 @@ export function BookmarkLinkReaderPreview({
   const insets = useSafeAreaInsets();
   const api = useTRPC();
 
-  // On iOS 26 the header is transparent, so content extends behind it and we
-  // need to offset by the safe-area top + nav-bar height. On Android / older
-  // iOS the header is opaque — content already starts below it.
-  const headerOffset = isIOS26 ? insets.top + NAV_BAR_HEIGHT : 0;
+  // The header is transparent on every platform, so content extends behind
+  // it and the pill needs to be offset by the safe-area top + nav-bar height
+  // to sit below the visible header.
+  const headerOffset = insets.top + NAV_BAR_HEIGHT;
+  const bannerGap = shouldUseGlassPill ? BANNER_GAP_GLASS : BANNER_GAP_OPAQUE;
 
   const {
     data: bookmarkWithContent,
@@ -235,15 +244,14 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  // Distance the pill translates up when the bars hide. Matches the amount
-  // the header itself moves so the pill slides with it behind the header.
-  const bannerHideDistance = isIOS26 ? NAV_BAR_HEIGHT : BANNER_GAP;
+  // Slide the pill up by the header's visible height when bars hide, so it
+  // tucks just under the status bar — matching the header's own animation.
   const bannerTranslateY = useSharedValue(0);
   useEffect(() => {
-    bannerTranslateY.value = withTiming(barsVisible ? 0 : -bannerHideDistance, {
+    bannerTranslateY.value = withTiming(barsVisible ? 0 : -NAV_BAR_HEIGHT, {
       duration: 250,
     });
-  }, [barsVisible, bannerTranslateY, bannerHideDistance]);
+  }, [barsVisible, bannerTranslateY]);
 
   // Keep the pill mounted during fade-out so it doesn't vanish abruptly.
   const [bannerMounted, setBannerMounted] = useState(showBanner);
@@ -300,8 +308,8 @@ export function BookmarkLinkReaderPreview({
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
-        showProgressBar={isIOS26 ? barsVisible : true}
-        progressBarTop={headerOffset + (isIOS26 ? BANNER_GAP : 0)}
+        showProgressBar={barsVisible}
+        progressBarTop={headerOffset + bannerGap}
         onScrollPositionChange={onScrollPositionChange}
         onScrollOffsetChange={onScrollOffsetChange}
         onHighlight={(h) =>
@@ -334,7 +342,7 @@ export function BookmarkLinkReaderPreview({
           style={[
             {
               position: "absolute",
-              top: headerOffset + BANNER_GAP,
+              top: headerOffset + bannerGap,
               left: 0,
               right: 0,
               zIndex: 10,
@@ -385,16 +393,24 @@ export function BookmarkLinkArchivePreview({
     uri: assetSource.uri!,
     headers: assetSource.headers,
   };
+  // WebView's contentInset prop is iOS-only; on Android we wrap in a padded
+  // View to keep the content from being obscured by the floating toolbar.
+  const androidPadding =
+    Platform.OS === "android"
+      ? { paddingTop: contentInsetTop, paddingBottom: contentInsetBottom }
+      : null;
   return (
-    <WebView
-      startInLoadingState={true}
-      mediaPlaybackRequiresUserAction={true}
-      source={webViewUri}
-      decelerationRate={0.998}
-      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
-      automaticallyAdjustContentInsets={false}
-      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
-    />
+    <View style={[{ flex: 1 }, androidPadding]}>
+      <WebView
+        startInLoadingState={true}
+        mediaPlaybackRequiresUserAction={true}
+        source={webViewUri}
+        decelerationRate={0.998}
+        onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+        automaticallyAdjustContentInsets={false}
+        contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
+      />
+    </View>
   );
 }
 

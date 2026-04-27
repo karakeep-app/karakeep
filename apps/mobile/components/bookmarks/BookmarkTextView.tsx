@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
@@ -108,6 +115,11 @@ export default function BookmarkTextView({
       className="flex-1 rounded-lg border border-border bg-card p-2"
       contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
       contentOffset={{ x: 0, y: -contentInsetTop }}
+      contentContainerStyle={
+        Platform.OS === "android"
+          ? { paddingTop: contentInsetTop, paddingBottom: contentInsetBottom }
+          : undefined
+      }
       scrollEventThrottle={16}
       onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
     >
