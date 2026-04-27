@@ -3,6 +3,16 @@ import superjson from "superjson";
 import { ZodError, z } from "zod";
 
 import type { db } from "@karakeep/db";
+import type {
+  ZApiKeyAdminScopeResource,
+  ZApiKeyScope,
+  ZApiKeyScopeResource,
+} from "@karakeep/shared/types/apiKeys";
+import {
+  apiKeyScopesGrantScope,
+  getAdminApiKeyScope,
+  getApiKeyScope,
+} from "@karakeep/shared/types/apiKeys";
 import serverConfig from "@karakeep/shared/config";
 
 import { createRateLimitMiddleware } from "./lib/rateLimit";
@@ -20,8 +30,20 @@ interface User {
   role: "admin" | "user" | null;
 }
 
+export type RequestAuth =
+  | {
+      type: "apiKey";
+      keyId: string;
+      scopes: ZApiKeyScope[];
+    }
+  | {
+      type: "session";
+    }
+  | null;
+
 export interface Context {
   user: User | null;
+  auth?: RequestAuth;
   db: typeof db;
   req: {
     ip: string | null;
@@ -30,6 +52,7 @@ export interface Context {
 
 export interface AuthedContext {
   user: User;
+  auth?: RequestAuth;
   db: typeof db;
   req: {
     ip: string | null;
@@ -128,13 +151,80 @@ export const authedProcedure = procedure
     });
   });
 
-export const adminProcedure = authedProcedure.use(function isAdmin(opts) {
-  const user = opts.ctx.user;
-  if (user.role != "admin") {
-    throw new TRPCError({ code: "FORBIDDEN" });
-  }
-  return opts.next(opts);
-});
+function hasRequiredApiKeyScopes(
+  grantedScopes: ZApiKeyScope[],
+  requiredScopes: ZApiKeyScope[],
+) {
+  return requiredScopes.every((scope) =>
+    apiKeyScopesGrantScope(grantedScopes, scope),
+  );
+}
+
+function rejectApiKeyAuth(
+  message = "API keys are not allowed for this endpoint",
+) {
+  return t.middleware((opts) => {
+    if (opts.ctx.auth?.type === "apiKey") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message,
+      });
+    }
+    return opts.next();
+  });
+}
+
+export function createScopedAuthedProcedure(resource: ZApiKeyScopeResource) {
+  return authedProcedure.use((opts) => {
+    if (opts.ctx.auth?.type !== "apiKey") {
+      return opts.next();
+    }
+
+    const access = opts.type === "query" ? "read" : "readwrite";
+    const scope = getApiKeyScope(resource, access);
+
+    if (hasRequiredApiKeyScopes(opts.ctx.auth.scopes, [scope])) {
+      return opts.next();
+    }
+
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `API key is missing required scope: ${scope}`,
+    });
+  });
+}
+
+export const sessionProcedure = authedProcedure.use(rejectApiKeyAuth());
+
+export function createAdminScopedProcedure(
+  resource: ZApiKeyAdminScopeResource,
+) {
+  return authedProcedure
+    .use((opts) => {
+      if (opts.ctx.auth?.type !== "apiKey") {
+        return opts.next();
+      }
+
+      const access = opts.type === "query" ? "read" : "readwrite";
+      const scope = getAdminApiKeyScope(resource, access);
+
+      if (hasRequiredApiKeyScopes(opts.ctx.auth.scopes, [scope])) {
+        return opts.next();
+      }
+
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `API key is missing required scope: ${scope}`,
+      });
+    })
+    .use(function isAdmin(opts) {
+      const user = opts.ctx.user;
+      if (user.role != "admin") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      return opts.next(opts);
+    });
+}
 
 // Export the rate limiting middleware for use in routers
 export { createRateLimitMiddleware } from "./lib/rateLimit";

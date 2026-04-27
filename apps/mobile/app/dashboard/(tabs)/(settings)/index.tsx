@@ -204,6 +204,19 @@ export default function Settings() {
         </View>
         <Divider orientation="horizontal" className="mx-6 my-1" />
         <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
+          <Link
+            asChild
+            href="/dashboard/settings/toolbar-settings"
+            className="flex-1"
+          >
+            <Pressable className="flex flex-row justify-between">
+              <Text>Toolbar Buttons</Text>
+              <ChevronRight />
+            </Pressable>
+          </Link>
+        </View>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
           <Text className="flex-1" numberOfLines={1}>
             Keep screen on while reading
           </Text>

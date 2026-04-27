@@ -162,6 +162,7 @@ export default function ManageListsModal({
             type="button"
             bookmarkId={bookmarkId}
             onDone={() => setOpen(false)}
+            variant="secondary"
           >
             <Archive className="mr-2 size-4" /> {t("actions.archive")}
           </ArchiveBookmarkButton>

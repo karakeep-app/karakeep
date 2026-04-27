@@ -193,6 +193,14 @@ export default function Dashboard() {
           headerBackTitle: "Back",
         }}
       />
+      <Stack.Screen
+        name="settings/toolbar-settings"
+        options={{
+          title: "Toolbar Buttons",
+          headerTitle: "Toolbar Buttons",
+          headerBackTitle: "Back",
+        }}
+      />
     </Stack>
   );
 }

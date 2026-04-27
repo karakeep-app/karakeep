@@ -9,11 +9,11 @@ import {
 } from "@karakeep/shared/types/feeds";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, router } from "../index";
+import { createScopedAuthedProcedure, router } from "../index";
 import { actorFromContext } from "../lib/actor";
 import { FeedsService } from "../models/feeds.service";
 
-const feedsProcedure = authedProcedure.use((opts) => {
+const feedsProcedure = createScopedAuthedProcedure("feeds").use((opts) => {
   return opts.next({
     ctx: {
       ...opts.ctx,

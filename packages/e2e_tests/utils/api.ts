@@ -1,4 +1,5 @@
 import { getTrpcClient } from "./trpc";
+import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 
 export function getAuthHeader(apiKey: string) {
   return {
@@ -34,7 +35,7 @@ export async function uploadTestAsset(
   }>;
 }
 
-export async function createTestUser() {
+export async function createTestUser(scopes?: ZApiKeyScope[]) {
   const trpc = getTrpcClient();
 
   const random = Math.random().toString(36).substring(7);
@@ -51,13 +52,20 @@ export async function createTestUser() {
     email,
     password: "test1234",
     keyName: "test-key",
+    scopes,
   });
 
-  const authedTrpc = getTrpcClient(key);
-  await authedTrpc.users.updateSettings.mutate({
-    autoTaggingEnabled: false,
-    autoSummarizationEnabled: false,
-  });
+  if (
+    !scopes ||
+    scopes.includes("fullaccess") ||
+    scopes.includes("users:readwrite")
+  ) {
+    const authedTrpc = getTrpcClient(key);
+    await authedTrpc.users.updateSettings.mutate({
+      autoTaggingEnabled: false,
+      autoSummarizationEnabled: false,
+    });
+  }
 
   return key;
 }

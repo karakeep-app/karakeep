@@ -10,6 +10,7 @@ import {
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 
+import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
 import { adaptPagination, zPagination } from "../utils/pagination";
 import {
@@ -109,6 +110,8 @@ const app = new Hono()
 
   .post(
     "/singlefile",
+    apiKeyScopeMiddleware("assets", "readwrite"),
+    apiKeyScopeMiddleware("bookmarks", "readwrite"),
     zValidator(
       "query",
       z.object({

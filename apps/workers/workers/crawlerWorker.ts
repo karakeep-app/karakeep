@@ -31,6 +31,7 @@ import {
 } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { abortRace, abortRaceResolve, raceWith, timeoutRace } from "utils";
 import { withWorkerTracing } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
@@ -95,31 +96,6 @@ const tracer = getTracer("@karakeep/workers");
 
 function truncateUrl(url: string): string {
   return url.length > 100 ? url.slice(0, 100) + "..." : url;
-}
-
-function abortPromise(signal: AbortSignal): Promise<never> {
-  if (signal.aborted) {
-    const p = Promise.reject(signal.reason ?? new Error("AbortError"));
-    p.catch(() => {
-      /* empty */
-    }); // suppress unhandledRejection if not awaited
-    return p;
-  }
-
-  const p = new Promise<never>((_, reject) => {
-    signal.addEventListener(
-      "abort",
-      () => {
-        reject(signal.reason ?? new Error("AbortError"));
-      },
-      { once: true },
-    );
-  });
-
-  p.catch(() => {
-    /* empty */
-  });
-  return p;
 }
 
 /**
@@ -240,7 +216,7 @@ function startContextReaper() {
           logger.warn(
             `[Crawler] Reaping stale browser context for job ${id} (age: ${Math.round((now - entry.createdAt) / 1000)}s)`,
           );
-          void Promise.race([
+          void raceWith<boolean>(
             entry.context
               .close()
               .then(() => true)
@@ -250,10 +226,8 @@ function startContextReaper() {
                 );
                 return true;
               }),
-            new Promise<false>((r) =>
-              setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
-            ),
-          ]).then((contextClosed) => {
+            timeoutRace<boolean>(CONTEXT_CLOSE_TIMEOUT_MS, () => false),
+          ).then((contextClosed) => {
             // Protect against deleting a newer context if the job id gets reused.
             if (!contextClosed) {
               logger.warn(
@@ -746,13 +720,13 @@ async function crawlPage(
             },
           },
           async () =>
-            Promise.race([
+            raceWith(
               activePage.goto(targetUrl, {
                 timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
                 waitUntil: "domcontentloaded",
               }),
-              abortPromise(abortSignal).then(() => null),
-            ]),
+              abortRaceResolve(abortSignal, null),
+            ),
         );
         setSpanAttributes({
           "crawler.statusCode": response?.status() ?? 0,
@@ -774,13 +748,13 @@ async function crawlPage(
             },
           },
           async () => {
-            await Promise.race([
+            await raceWith<unknown>(
               activePage
                 .waitForLoadState("networkidle", { timeout: 5000 })
                 .catch(() => ({})),
-              new Promise((resolve) => setTimeout(resolve, 5000)),
-              abortPromise(abortSignal),
-            ]);
+              timeoutRace<unknown>(5000, () => undefined),
+              abortRace(abortSignal),
+            );
           },
         );
 
@@ -831,24 +805,23 @@ async function crawlPage(
                   async () => {
                     const { data: screenshotData, error: screenshotError } =
                       await tryCatch(
-                        Promise.race<Buffer>([
+                        raceWith<Buffer>(
                           activePage.screenshot({
                             // If you change this, you need to change the asset type in the store function.
                             type: "jpeg",
                             fullPage: serverConfig.crawler.fullPageScreenshot,
                             quality: 80,
                           }),
-                          new Promise((_, reject) =>
-                            setTimeout(
-                              () =>
-                                reject(
-                                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                                ),
-                              serverConfig.crawler.screenshotTimeoutSec * 1000,
-                            ),
+                          timeoutRace<Buffer>(
+                            serverConfig.crawler.screenshotTimeoutSec * 1000,
+                            () => {
+                              throw new Error(
+                                "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                              );
+                            },
                           ),
-                          abortPromise(abortSignal).then(() => Buffer.from("")),
-                        ]),
+                          abortRaceResolve(abortSignal, Buffer.from("")),
+                        ),
                       );
                     abortSignal.throwIfAborted();
                     if (screenshotError) {
@@ -881,22 +854,21 @@ async function crawlPage(
                     },
                     async () => {
                       const { data: pdfData, error: pdfError } = await tryCatch(
-                        Promise.race<Buffer>([
+                        raceWith<Buffer>(
                           activePage.pdf({
                             format: "A4",
                             printBackground: true,
                           }),
-                          new Promise((_, reject) =>
-                            setTimeout(
-                              () =>
-                                reject(
-                                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                                ),
-                              serverConfig.crawler.screenshotTimeoutSec * 1000,
-                            ),
+                          timeoutRace<Buffer>(
+                            serverConfig.crawler.screenshotTimeoutSec * 1000,
+                            () => {
+                              throw new Error(
+                                "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                              );
+                            },
                           ),
-                          abortPromise(abortSignal).then(() => Buffer.from("")),
-                        ]),
+                          abortRaceResolve(abortSignal, Buffer.from("")),
+                        ),
                       );
                       abortSignal.throwIfAborted();
                       if (pdfError) {
@@ -953,7 +925,7 @@ async function crawlPage(
                 "crawlerWorker.crawlPage.cleanup.closePage",
                 { attributes: { "job.id": jobId } },
                 async () =>
-                  Promise.race([
+                  raceWith<boolean>(
                     pageToClose
                       .close()
                       .then(() => true)
@@ -963,10 +935,8 @@ async function crawlPage(
                         );
                         return true;
                       }),
-                    new Promise<false>((r) =>
-                      setTimeout(() => r(false), PAGE_CLOSE_TIMEOUT_MS),
-                    ),
-                  ]),
+                    timeoutRace<boolean>(PAGE_CLOSE_TIMEOUT_MS, () => false),
+                  ),
               );
               setSpanAttributes({ "crawler.cleanup.pageClosed": pageClosed });
               if (!pageClosed) {
@@ -982,7 +952,7 @@ async function crawlPage(
               "crawlerWorker.crawlPage.cleanup.closeContext",
               { attributes: { "job.id": jobId } },
               async () =>
-                Promise.race([
+                raceWith<boolean>(
                   context
                     .close()
                     .then(() => true)
@@ -992,10 +962,8 @@ async function crawlPage(
                       );
                       return true; // Error means it's likely already closed
                     }),
-                  new Promise<false>((r) =>
-                    setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
-                  ),
-                ]),
+                  timeoutRace<boolean>(CONTEXT_CLOSE_TIMEOUT_MS, () => false),
+                ),
             );
             setSpanAttributes({
               "crawler.cleanup.contextClosed": contextClosed,
@@ -1876,16 +1844,16 @@ async function crawlAndParseUrl(
 
       let readableContent = parsedReadableContent;
 
-      const screenshotAssetInfo = await Promise.race([
+      const screenshotAssetInfo = await raceWith(
         storeScreenshot(screenshot, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
+        abortRace(abortSignal),
+      );
       abortSignal.throwIfAborted();
 
-      const pdfAssetInfo = await Promise.race([
+      const pdfAssetInfo = await raceWith(
         storePdf(pdf, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
+        abortRace(abortSignal),
+      );
       abortSignal.throwIfAborted();
 
       const htmlContentAssetInfo = await storeHtmlContent(

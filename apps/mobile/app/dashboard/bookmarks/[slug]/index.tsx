@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -17,7 +17,7 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { isIOS26 } from "@/lib/ios";
+import { isIOS26, shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { useNavigation } from "@react-navigation/native";
@@ -60,9 +60,9 @@ export default function BookmarkView() {
   const [footerLayoutHeight, setFooterLayoutHeight] = useState(0);
 
   useEffect(() => {
-    // footerHeight already includes the bottom safe-area inset via the
-    // wrapper's paddingBottom, so translating by the measured height is enough
-    // to slide the toolbar fully off-screen.
+    // BottomActions handles its own safe-area inset internally, so the
+    // measured footerHeight covers the full visible footer; translating by
+    // it slides the toolbar fully off-screen.
     footerTranslateY.value = withTiming(barsVisible ? 0 : footerHeight.value, {
       duration: 250,
     });
@@ -155,7 +155,16 @@ export default function BookmarkView() {
       };
 
   return (
-    <View style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      // On iOS 26 the toolbar is absolute-positioned so its GlassView has
+      // content behind it; its own bottomMargin handles the safe-area inset,
+      // so padding here would leave a visible gap below the glass pill.
+      style={{
+        flex: 1,
+        paddingBottom: shouldUseGlassPill ? 0 : insets.bottom + 8,
+      }}
+      behavior="height"
+    >
       {settings.keepScreenOnWhileReading && <KeepScreenOn />}
       <Stack.Screen
         options={{
@@ -167,7 +176,7 @@ export default function BookmarkView() {
           headerRight: () =>
             bookmark.content.type === BookmarkTypes.LINK ? (
               <View
-                className={`flex-row items-center gap-3${isIOS26 ? " px-2" : ""}`}
+                className={`flex-row items-center gap-3${shouldUseGlassPill ? " px-2" : ""}`}
               >
                 {bookmarkLinkType === "reader" && (
                   <Pressable
@@ -191,20 +200,10 @@ export default function BookmarkView() {
       <Animated.View
         onLayout={onFooterLayout}
         style={[
-          // BottomActions is the old static toolbar: it has no background and
-          // doesn't apply its own safe-area inset. The wrapper supplies both so
-          // the footer stays opaque and clears the home indicator in both
-          // in-flow and absolute-positioned (iOS 26) modes.
-          //
-          // The background color is applied inline (not via `className`)
-          // because NativeWind-injected styles and Reanimated transforms can
-          // land on different view nodes on Android — causing the background
-          // to stay painted while the children translate off-screen.
-          {
-            backgroundColor: isDark ? "#000" : "#fff",
-            paddingBottom: insets.bottom + 8,
-          },
           footerAnimatedStyle,
+          // On iOS 26 BottomActions renders a translucent GlassView; floating
+          // it lets the article scroll under the blur. On older platforms the
+          // toolbar is opaque, so it stays in flow and pushes content up.
           isIOS26 && {
             position: "absolute",
             left: 0,
@@ -215,6 +214,6 @@ export default function BookmarkView() {
       >
         <BottomActions bookmark={bookmark} />
       </Animated.View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
