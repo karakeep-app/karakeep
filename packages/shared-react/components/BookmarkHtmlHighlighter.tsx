@@ -185,11 +185,11 @@ const BookmarkHTMLHighlighter = forwardRef<
       window.matchMedia("(pointer: coarse)").matches,
   )[0];
 
-  // Stable reference so React's prop diff skips the setter when
-  // htmlContent is unchanged. A fresh `{ __html }` literal causes React
-  // to re-run `innerHTML =`, which tears down and re-parses every child
-  // (including <img> elements) — visible as a scroll jump when images
-  // are above the viewport.
+  // Stable reference so React's prop-equality check skips the DOM
+  // `innerHTML` write when htmlContent is unchanged. A fresh `{ __html }`
+  // literal causes React to re-run `innerHTML =`, which tears down and
+  // re-parses every child (including <img> elements) — visible as a
+  // scroll jump when images are above the viewport.
   const innerHtml = useMemo(() => ({ __html: htmlContent }), [htmlContent]);
 
   // Apply existing highlights when component mounts or highlights change

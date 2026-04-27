@@ -5,7 +5,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
@@ -17,11 +16,11 @@ import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
-import { isIOS26, NAV_BAR_HEIGHT, shouldUseGlassPill } from "@/lib/ios";
+import { isIOS26, shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { useScrollDirection } from "@/lib/useScrollDirection";
+import { useStableHeaderHeight } from "@/lib/useStableHeaderHeight";
 import { COLORS } from "@/theme/colors";
-import { useNavigation } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
@@ -35,9 +34,7 @@ function KeepScreenOn() {
 }
 
 export default function BookmarkView() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const navigation = useNavigation();
   const { slug } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -52,7 +49,14 @@ export default function BookmarkView() {
 
   const { barsVisible, onScrollOffsetChange } = useScrollDirection();
 
-  // Animate footer translateY
+  // The header is transparent on every platform (so content extends behind
+  // it and stays in place when the header animates in/out), so scrollable
+  // children need top padding equal to the header height. React Navigation
+  // measures this for us — it handles platform differences (44pt on iOS,
+  // 56pt on Android Material) and the safe-area inset. We use the stable
+  // variant so the inset doesn't collapse to 0 while the header is hidden.
+  const contentInsetTop = useStableHeaderHeight();
+
   const footerHeight = useSharedValue(0);
   const footerTranslateY = useSharedValue(0);
   const [footerLayoutHeight, setFooterLayoutHeight] = useState(0);
@@ -65,11 +69,6 @@ export default function BookmarkView() {
       duration: 250,
     });
   }, [barsVisible, footerTranslateY, footerHeight]);
-
-  // Toggle native header visibility
-  useEffect(() => {
-    navigation.setOptions({ headerShown: barsVisible });
-  }, [barsVisible, navigation]);
 
   const footerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: footerTranslateY.value }],
@@ -106,10 +105,6 @@ export default function BookmarkView() {
     return <FullPageSpinner />;
   }
 
-  // The header is transparent on every platform (so content extends behind
-  // it and stays in place when the header animates in/out), so scrollable
-  // children need top padding equal to the header height.
-  const contentInsetTop = insets.top + NAV_BAR_HEIGHT;
   // The toolbar floats over the content on every platform (so it can fully
   // translate off-screen when bars hide without leaving a layout gap), so
   // the scrollable content needs bottom padding equal to its height.
@@ -155,9 +150,7 @@ export default function BookmarkView() {
   const headerPlatformOptions = {
     headerTransparent: true as const,
     ...(!isIOS26 && {
-      headerStyle: {
-        backgroundColor: isDark ? COLORS.dark.card : COLORS.light.card,
-      },
+      headerStyle: { backgroundColor: COLORS[colorScheme ?? "light"].card },
     }),
   };
 
@@ -168,7 +161,7 @@ export default function BookmarkView() {
         options={{
           headerTitle: title ?? "",
           headerBackTitle: "Back",
-          headerShown: true,
+          headerShown: barsVisible,
           ...headerPlatformOptions,
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>

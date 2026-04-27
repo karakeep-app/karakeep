@@ -5,6 +5,7 @@ import "@/globals.css";
 import type { Highlight } from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
+import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 
 export default function BookmarkHtmlHighlighterDom({
   htmlContent,
@@ -33,16 +34,8 @@ export default function BookmarkHtmlHighlighterDom({
   readingProgressOffset?: number | null;
   readingProgressAnchor?: string | null;
   restoreReadingPosition?: boolean;
-  onSavePosition?: (position: {
-    offset: number;
-    anchor: string;
-    percent: number;
-  }) => void;
-  onScrollPositionChange?: (position: {
-    offset: number;
-    anchor: string;
-    percent: number;
-  }) => void;
+  onSavePosition?: (position: ReadingPosition) => void;
+  onScrollPositionChange?: (position: ReadingPosition) => void;
   onScrollOffsetChange?: (scrollTop: number) => void;
   showProgressBar?: boolean;
   progressBarTop?: number;
