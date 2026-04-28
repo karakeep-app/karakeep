@@ -41,7 +41,8 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   BookmarkTypes,
   ZBookmark,
-  ZUpdateBookmarksRequest,
+  ZUpdateBookmarksRequestInput,
+  ZUpdateBookmarksRequestOutput,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
@@ -49,6 +50,10 @@ import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
 
 const formSchema = zUpdateBookmarksRequestSchema;
+
+function asDate(value: unknown): Date | undefined {
+  return value instanceof Date ? value : undefined;
+}
 
 export function EditBookmarkDialog({
   open,
@@ -109,7 +114,11 @@ export function EditBookmarkDialog({
     assetContent: assetContent ?? undefined,
   });
 
-  const form = useForm<ZUpdateBookmarksRequest>({
+  const form = useForm<
+    ZUpdateBookmarksRequestInput,
+    unknown,
+    ZUpdateBookmarksRequestOutput
+  >({
     resolver: zodResolver(formSchema),
     defaultValues: bookmarkToDefault(bookmark),
   });
@@ -132,7 +141,7 @@ export function EditBookmarkDialog({
       },
     });
 
-  function onSubmit(values: ZUpdateBookmarksRequest) {
+  function onSubmit(values: ZUpdateBookmarksRequestInput) {
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
       ...values,
@@ -339,8 +348,8 @@ export function EditBookmarkDialog({
                               !field.value && "text-muted-foreground",
                             )}
                           >
-                            {field.value ? (
-                              format(field.value, "PPP")
+                            {asDate(field.value) ? (
+                              format(asDate(field.value)!, "PPP")
                             ) : (
                               <span>{t("bookmark_editor.pick_a_date")}</span>
                             )}
@@ -351,7 +360,7 @@ export function EditBookmarkDialog({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value}
+                          selected={asDate(field.value)}
                           onSelect={field.onChange}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
@@ -383,8 +392,8 @@ export function EditBookmarkDialog({
                                 !field.value && "text-muted-foreground",
                               )}
                             >
-                              {field.value ? (
-                                format(field.value, "PPP")
+                              {asDate(field.value) ? (
+                                format(asDate(field.value)!, "PPP")
                               ) : (
                                 <span>{t("bookmark_editor.pick_a_date")}</span>
                               )}
@@ -395,7 +404,7 @@ export function EditBookmarkDialog({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value ?? undefined} // Calendar expects Date | undefined
+                            selected={asDate(field.value)}
                             onSelect={(date) => field.onChange(date ?? null)} // Handle undefined -> null
                             disabled={(date) =>
                               date > new Date() || date < new Date("1900-01-01")

@@ -532,8 +532,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(emoji-mart@5.6.0)(react@19.2.3)
       '@hookform/resolvers':
-        specifier: ^3.3.4
-        version: 3.3.4(react-hook-form@7.62.0(react@19.2.3))
+        specifier: ^5.2.2
+        version: 5.2.2(react-hook-form@7.62.0(react@19.2.3))
       '@karakeep/api':
         specifier: workspace:^0.1.0
         version: link:../../packages/api
@@ -4081,10 +4081,10 @@ packages:
       react-dom: '>=16.8.0'
       react-hook-form: ^7.0.0
 
-  '@hookform/resolvers@3.3.4':
-    resolution: {integrity: sha512-o5cgpGOuJYrd+iMKvkttOclgwRW86EsWJZZRC23prf0uU2i48Htq4PuT73AVb9ionFyZrwYEITuOFGF+BydEtQ==}
+  '@hookform/resolvers@5.2.2':
+    resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
     peerDependencies:
-      react-hook-form: ^7.0.0
+      react-hook-form: ^7.55.0
 
   '@ianvs/prettier-plugin-sort-imports@4.4.2':
     resolution: {integrity: sha512-KkVFy3TLh0OFzimbZglMmORi+vL/i2OFhEs5M07R9w0IwWAGpsNNyE4CY/2u0YoMF5bawKC2+8/fUH60nnNtjw==}
@@ -6869,6 +6869,9 @@ packages:
   '@smithy/uuid@1.1.2':
     resolution: {integrity: sha512-O/IEdcCUKkubz60tFbGA7ceITTAJsty+lBjNoorP4Z6XRqaFb/OjQjZODophEcuq68nKm6/0r+6/lLQ+XVpk8g==}
     engines: {node: '>=18.0.0'}
+
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     resolution: {integrity: sha512-lR8q/9W7hZpMWweNiAKU7NQerBnzQQLvi8qnTDU/fxItPhtZVMbPV3lbCwjhIlNBe9Bbr5V+KHshvWmVSG9cxQ==}
@@ -21187,8 +21190,9 @@ snapshots:
       react-dom: 19.2.3(react@19.2.3)
       react-hook-form: 7.62.0(react@19.2.3)
 
-  '@hookform/resolvers@3.3.4(react-hook-form@7.62.0(react@19.2.3))':
+  '@hookform/resolvers@5.2.2(react-hook-form@7.62.0(react@19.2.3))':
     dependencies:
+      '@standard-schema/utils': 0.3.0
       react-hook-form: 7.62.0(react@19.2.3)
 
   '@ianvs/prettier-plugin-sort-imports@4.4.2(prettier@3.8.1)':
@@ -24086,6 +24090,8 @@ snapshots:
   '@smithy/uuid@1.1.2':
     dependencies:
       tslib: 2.8.1
+
+  '@standard-schema/utils@0.3.0': {}
 
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     dependencies:

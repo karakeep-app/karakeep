@@ -10,9 +10,12 @@ import { useEffect, useRef } from "react";
  * @param form - React Hook Form instance
  * @param resetData - Data to reset the form with
  */
-export function useDialogFormReset<T extends FieldValues>(
+export function useDialogFormReset<
+  T extends FieldValues,
+  TTransformedValues extends FieldValues | undefined = T,
+>(
   open: boolean,
-  form: UseFormReturn<T>,
+  form: UseFormReturn<T, unknown, TTransformedValues>,
   resetData: T,
 ) {
   const prevOpenRef = useRef(open);

@@ -53,6 +53,8 @@ import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import {
   ZBookmarkList,
   zNewBookmarkListSchema,
+  ZNewBookmarkListInput,
+  ZNewBookmarkListOutput,
 } from "@karakeep/shared/types/lists";
 
 import QueryExplainerTooltip from "../search/QueryExplainerTooltip";
@@ -80,7 +82,8 @@ export function EditListModal({
     throw new Error("You must provide both open and setOpen or neither");
   }
   const [customOpen, customSetOpen] = useState(false);
-  const form = useForm<z.infer<typeof zNewBookmarkListSchema>>({
+
+  const form = useForm<ZNewBookmarkListInput, unknown, ZNewBookmarkListOutput>({
     resolver: zodResolver(zNewBookmarkListSchema),
     defaultValues: {
       name: list?.name ?? prefill?.name ?? "",
