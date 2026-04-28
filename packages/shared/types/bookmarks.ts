@@ -248,10 +248,7 @@ export const zUpdateBookmarksRequestSchema = z.object({
   // Asset specific fields (optional)
   assetContent: z.string().nullish(),
 });
-export type ZUpdateBookmarksRequestInput = z.input<
-  typeof zUpdateBookmarksRequestSchema
->;
-export type ZUpdateBookmarksRequestOutput = z.infer<
+export type ZUpdateBookmarksRequest = z.infer<
   typeof zUpdateBookmarksRequestSchema
 >;
 

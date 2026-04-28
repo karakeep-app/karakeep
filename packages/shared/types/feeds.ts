@@ -25,9 +25,6 @@ export const zNewFeedSchema = z.object({
   importTags: z.boolean().optional().default(false),
 });
 
-export type ZNewFeedInput = z.input<typeof zNewFeedSchema>;
-export type ZNewFeedOutput = z.output<typeof zNewFeedSchema>;
-
 export const zUpdateFeedSchema = z.object({
   feedId: z.string(),
   name: z.string().min(1).max(MAX_FEED_NAME_LENGTH).optional(),

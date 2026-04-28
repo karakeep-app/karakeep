@@ -1,4 +1,5 @@
 import * as React from "react";
+import { z } from "zod";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -41,19 +42,18 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   BookmarkTypes,
   ZBookmark,
-  ZUpdateBookmarksRequestInput,
-  ZUpdateBookmarksRequestOutput,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
 
-const formSchema = zUpdateBookmarksRequestSchema;
-
-function asDate(value: unknown): Date | undefined {
-  return value instanceof Date ? value : undefined;
-}
+const formSchema = zUpdateBookmarksRequestSchema.extend({
+  createdAt: z.date().optional(),
+  datePublished: z.date().nullish(),
+  dateModified: z.date().nullish(),
+});
+type BookmarkFormValues = z.infer<typeof formSchema>;
 
 export function EditBookmarkDialog({
   open,
@@ -83,7 +83,7 @@ export function EditBookmarkDialog({
     ),
   );
 
-  const bookmarkToDefault = (bookmark: ZBookmark) => ({
+  const bookmarkToDefault = (bookmark: ZBookmark): BookmarkFormValues => ({
     bookmarkId: bookmark.id,
     summary: bookmark.summary,
     note: bookmark.note === null ? undefined : bookmark.note,
@@ -114,11 +114,7 @@ export function EditBookmarkDialog({
     assetContent: assetContent ?? undefined,
   });
 
-  const form = useForm<
-    ZUpdateBookmarksRequestInput,
-    unknown,
-    ZUpdateBookmarksRequestOutput
-  >({
+  const form = useForm<BookmarkFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: bookmarkToDefault(bookmark),
   });
@@ -141,7 +137,7 @@ export function EditBookmarkDialog({
       },
     });
 
-  function onSubmit(values: ZUpdateBookmarksRequestOutput) {
+  function onSubmit(values: BookmarkFormValues) {
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
       ...values,
@@ -348,8 +344,8 @@ export function EditBookmarkDialog({
                               !field.value && "text-muted-foreground",
                             )}
                           >
-                            {asDate(field.value) ? (
-                              format(asDate(field.value)!, "PPP")
+                            {field.value ? (
+                              format(field.value, "PPP")
                             ) : (
                               <span>{t("bookmark_editor.pick_a_date")}</span>
                             )}
@@ -360,7 +356,7 @@ export function EditBookmarkDialog({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={asDate(field.value)}
+                          selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) =>
                             date > new Date() || date < new Date("1900-01-01")
@@ -392,8 +388,8 @@ export function EditBookmarkDialog({
                                 !field.value && "text-muted-foreground",
                               )}
                             >
-                              {asDate(field.value) ? (
-                                format(asDate(field.value)!, "PPP")
+                              {field.value ? (
+                                format(field.value, "PPP")
                               ) : (
                                 <span>{t("bookmark_editor.pick_a_date")}</span>
                               )}
@@ -404,7 +400,7 @@ export function EditBookmarkDialog({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={asDate(field.value)}
+                            selected={field.value ?? undefined}
                             onSelect={(date) => field.onChange(date ?? null)} // Handle undefined -> null
                             disabled={(date) =>
                               date > new Date() || date < new Date("1900-01-01")

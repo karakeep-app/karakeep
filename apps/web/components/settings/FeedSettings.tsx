@@ -37,8 +37,6 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   ZFeed,
   zNewFeedSchema,
-  ZNewFeedInput,
-  ZNewFeedOutput,
   zUpdateFeedSchema,
 } from "@karakeep/shared/types/feeds";
 
@@ -70,7 +68,7 @@ export function FeedsEditorDialog() {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
-  const form = useForm<ZNewFeedInput, unknown, ZNewFeedOutput>({
+  const form = useForm({
     resolver: zodResolver(zNewFeedSchema),
     defaultValues: {
       name: "",

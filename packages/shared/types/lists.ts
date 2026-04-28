@@ -48,9 +48,6 @@ export const zNewBookmarkListSchema = z
     path: ["query"],
   });
 
-export type ZNewBookmarkListInput = z.input<typeof zNewBookmarkListSchema>;
-export type ZNewBookmarkListOutput = z.output<typeof zNewBookmarkListSchema>;
-
 export const zBookmarkListSchema = z.object({
   id: z.string(),
   name: z.string(),
