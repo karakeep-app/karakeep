@@ -141,7 +141,7 @@ export function EditBookmarkDialog({
       },
     });
 
-  function onSubmit(values: ZUpdateBookmarksRequestInput) {
+  function onSubmit(values: ZUpdateBookmarksRequestOutput) {
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
       ...values,
