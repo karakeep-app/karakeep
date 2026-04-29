@@ -25,6 +25,8 @@ interface ScrollProgressTrackerProps {
   onSavePosition?: (position: ReadingPosition) => void;
   /** Called on every throttled scroll — use for responsive UI (banner dismissal, etc.) */
   onScrollPositionChange?: (position: ReadingPosition) => void;
+  /** Called on every throttled scroll with the raw pixel scrollTop — use for scroll-direction detection */
+  onScrollOffsetChange?: (scrollTop: number) => void;
   /** When set to true, scrolls to the saved reading position */
   restorePosition?: boolean;
   readingProgressOffset?: number | null;
@@ -48,6 +50,7 @@ const ScrollProgressTracker = forwardRef<
   {
     onSavePosition,
     onScrollPositionChange,
+    onScrollOffsetChange,
     restorePosition,
     readingProgressOffset,
     readingProgressAnchor,
@@ -65,9 +68,11 @@ const ScrollProgressTracker = forwardRef<
 
   const onSavePositionRef = useRef(onSavePosition);
   const onScrollPositionChangeRef = useRef(onScrollPositionChange);
+  const onScrollOffsetChangeRef = useRef(onScrollOffsetChange);
   useEffect(() => {
     onSavePositionRef.current = onSavePosition;
     onScrollPositionChangeRef.current = onScrollPositionChange;
+    onScrollOffsetChangeRef.current = onScrollOffsetChange;
   });
 
   // Restore reading position when triggered
@@ -103,6 +108,10 @@ const ScrollProgressTracker = forwardRef<
     const container = containerRef.current;
     if (!container) return;
 
+    const scrollParent = findScrollableParent(container);
+    const isWindowScroll = scrollParent === document.documentElement;
+    const target: HTMLElement | Window = isWindowScroll ? window : scrollParent;
+
     let lastScrollTime = 0;
     let idleTimerId: ReturnType<typeof setTimeout> | null = null;
     let hideBarTimerId: ReturnType<typeof setTimeout> | null = null;
@@ -117,6 +126,16 @@ const ScrollProgressTracker = forwardRef<
 
     const processScroll = () => {
       lastScrollTime = Date.now();
+
+      // Emit raw pixel scrollTop for consumers that need scroll-direction
+      // detection — text-based percent is too coarse (changes only on paragraph
+      // boundaries).
+      if (onScrollOffsetChangeRef.current) {
+        const scrollTop = isWindowScroll
+          ? window.scrollY
+          : scrollParent.scrollTop;
+        onScrollOffsetChangeRef.current(scrollTop);
+      }
 
       const position = getReadingPosition(container);
       if (position) {
@@ -154,10 +173,6 @@ const ScrollProgressTracker = forwardRef<
       }
       processScroll();
     };
-
-    const scrollParent = findScrollableParent(container);
-    const isWindowScroll = scrollParent === document.documentElement;
-    const target: HTMLElement | Window = isWindowScroll ? window : scrollParent;
 
     target.addEventListener("scroll", handleScroll, { passive: true });
 
