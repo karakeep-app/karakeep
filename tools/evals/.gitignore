@@ -1,0 +1,8 @@
+# Eval results (generated at runtime)
+results/
+
+# Environment file
+.env
+
+# Snapshot fixtures (contain user data)
+fixtures/snapshot/
