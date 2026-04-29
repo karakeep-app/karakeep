@@ -5,6 +5,7 @@ import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils
 import { useTRPC } from "../trpc";
 import { useBookmarkGridContext } from "./bookmark-grid-context";
 import { useAddBookmarkToList } from "./lists";
+import { scheduleInvalidateQueries } from "./query-invalidation";
 
 type TRPCApi = ReturnType<typeof useTRPC>;
 
@@ -81,14 +82,18 @@ export function useDeleteBookmark(
     api.bookmarks.deleteBookmark.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarks.pathFilter(),
+        );
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.searchBookmarks.pathFilter(),
         );
         queryClient.removeQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -106,14 +111,18 @@ export function useUpdateBookmark(
     api.bookmarks.updateBookmark.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarks.pathFilter(),
+        );
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.searchBookmarks.pathFilter(),
         );
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -181,15 +190,17 @@ export function useUpdateBookmarkTags(
           queryClient.invalidateQueries(
             api.tags.get.queryFilter({ tagId: id }),
           );
-          queryClient.invalidateQueries(
+          scheduleInvalidateQueries(
+            queryClient,
             api.bookmarks.getBookmarks.queryFilter({ tagId: id }),
           );
-          queryClient.invalidateQueries(
+          scheduleInvalidateQueries(
+            queryClient,
             api.bookmarks.getBookmarks.infiniteQueryFilter({ tagId: id }),
           );
         });
-        queryClient.invalidateQueries(api.tags.list.pathFilter());
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.tags.list.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),

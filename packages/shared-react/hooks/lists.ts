@@ -7,6 +7,7 @@ import {
 } from "@karakeep/shared/utils/listUtils";
 
 import { useTRPC } from "../trpc";
+import { scheduleInvalidateQueries } from "./query-invalidation";
 
 type TRPCApi = ReturnType<typeof useTRPC>;
 
@@ -89,10 +90,12 @@ export function useAddBookmarkToList(
     api.lists.addToList.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
         );
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.getBookmarks.infiniteQueryFilter({
             listId: req.listId,
           }),
@@ -102,7 +105,7 @@ export function useAddBookmarkToList(
             bookmarkId: req.bookmarkId,
           }),
         );
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -118,10 +121,12 @@ export function useRemoveBookmarkFromList(
     api.lists.removeFromList.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
         );
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.getBookmarks.infiniteQueryFilter({
             listId: req.listId,
           }),
@@ -131,7 +136,7 @@ export function useRemoveBookmarkFromList(
             bookmarkId: req.bookmarkId,
           }),
         );
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
