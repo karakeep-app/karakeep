@@ -32,6 +32,7 @@ interface ListSelectorComponentProps extends DataProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   children: ReactNode;
+  disabled?: boolean;
 }
 
 interface SingleSelectionProps {
@@ -69,13 +70,21 @@ function ListSelectorComponent({
   setOpen,
   isPending,
   allPaths,
+  disabled,
 }: ListSelectorComponentProps) {
   if (isPending) {
     return <LoadingSpinner />;
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={disabled ? false : open}
+      onOpenChange={(nextOpen) => {
+        if (!disabled) {
+          setOpen(nextOpen);
+        }
+      }}
+    >
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent
         className="w-[--radix-popover-trigger-width] p-0"
@@ -151,6 +160,7 @@ function BookmarkListSingleSelector({
       setOpen={setOpen}
       isPending={isPending}
       allPaths={allPaths}
+      disabled={disabled}
     >
       <Button
         variant="outline"
@@ -173,16 +183,23 @@ function BookmarkListMultiSelector({
   isPending,
   allPaths,
   className,
-}: MultiSelectionProps & DataProps) {
+  disabled,
+}: MultiSelectionProps & DataProps & { disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const onSelect = (currentValue: string) => {
+    if (disabled) {
+      return;
+    }
     const newValue = value?.includes(currentValue)
       ? value.filter((id) => id !== currentValue)
       : [...(value ?? []), currentValue];
     onChange(newValue);
   };
-  const removeSelection = (removedId?: string) =>
-    value && removedId && onChange(value.filter((id) => id !== removedId));
+  const removeSelection = (removedId?: string) => {
+    if (!disabled && value && removedId) {
+      onChange(value.filter((id) => id !== removedId));
+    }
+  };
 
   const isItemSelected = (id: string) => !!value?.includes(id);
 
@@ -197,16 +214,22 @@ function BookmarkListMultiSelector({
       setOpen={setOpen}
       isPending={isPending}
       allPaths={allPaths}
+      disabled={disabled}
     >
       <div
         role="combobox"
-        tabIndex={0}
-        aria-expanded={open}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        aria-expanded={disabled ? false : open}
         className={cn(
           "relative flex min-h-10 w-full cursor-pointer flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background transition-colors",
+          disabled && "cursor-not-allowed opacity-50",
           className,
         )}
         onKeyDown={(e) => {
+          if (disabled) {
+            return;
+          }
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             setOpen((prev) => !prev);
@@ -227,7 +250,8 @@ function BookmarkListMultiSelector({
                     {listName}
                     <button
                       type="button"
-                      className="cursor-pointer rounded-full outline-none ring-offset-background focus:ring-1 focus:ring-ring focus:ring-offset-2"
+                      disabled={disabled}
+                      className="cursor-pointer rounded-full outline-none ring-offset-background focus:ring-1 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed"
                       onClick={(e) => {
                         e.stopPropagation();
                         removeSelection(listId);

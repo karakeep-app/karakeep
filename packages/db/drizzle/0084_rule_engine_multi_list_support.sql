@@ -1,9 +1,15 @@
 DELETE FROM ruleEngineRules 
-WHERE json_extract("event", '$.type') 
+WHERE CASE
+    WHEN json_valid("event") THEN json_extract("event", '$.type')
+  END
 IN ('addedToList', 'removedFromList') 
 AND (
-    json_extract("event", '$.listId') IS NULL
-    OR json_extract("event", '$.listId') = ''
+    CASE
+      WHEN json_valid("event") THEN json_extract("event", '$.listId')
+    END IS NULL
+    OR CASE
+      WHEN json_valid("event") THEN json_extract("event", '$.listId')
+    END = ''
 );
 --> statement-breakpoint
 PRAGMA foreign_keys=OFF;
@@ -26,12 +32,16 @@ CREATE TABLE `__new_ruleEngineRules` (
 --> statement-breakpoint
 INSERT INTO `__new_ruleEngineRules`("id", "enabled", "name", "description", "event", "condition", "userId", "tagId") SELECT "id", "enabled", "name", "description",
 CASE 
-    WHEN json_extract("event", '$.type') IN ('addedToList', 'removedFromList')
-    THEN json_set(
-      json_remove("event", '$.listId'),
-      '$.listIds',
-      json_array(json_extract("event", '$.listId'))
-    )
+    WHEN json_valid("event") THEN
+      CASE 
+        WHEN json_extract("event", '$.type') IN ('addedToList', 'removedFromList')
+        THEN json_set(
+          json_remove("event", '$.listId'),
+          '$.listIds',
+          json_array(json_extract("event", '$.listId'))
+        )
+        ELSE "event"
+      END
     ELSE "event"
   END, "condition", "userId", "tagId" FROM `ruleEngineRules`;--> statement-breakpoint
 DROP TABLE `ruleEngineRules`;--> statement-breakpoint
