@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useRouter } from "expo-router";
-import { useShareIntentContext } from "expo-share-intent";
 import ErrorAnimation from "@/components/sharing/ErrorAnimation";
 import LoadingAnimation from "@/components/sharing/LoadingAnimation";
 import SuccessAnimation from "@/components/sharing/SuccessAnimation";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
+import { useKarakeepShareIntent } from "@/lib/shareIntent";
 import { useUploadAsset } from "@/lib/upload";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -26,7 +26,15 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
   const api = useTRPC();
   const queryClient = useQueryClient();
 
+  const { hasShareIntent, shareIntent, resetShareIntent } =
+    useKarakeepShareIntent();
+  const { settings, isLoading } = useAppSettings();
+
+  // Track whether we've already initiated a save to prevent double-processing
+  const saveInitiatedRef = useRef(false);
+
   const onSaved = (d: ZBookmark & { alreadyExists: boolean }) => {
+    resetShareIntent();
     queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
     setMode({
       type: d.alreadyExists ? "alreadyExists" : "success",
@@ -34,30 +42,52 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
     });
   };
 
-  const { hasShareIntent, shareIntent, resetShareIntent } =
-    useShareIntentContext();
-  const { settings, isLoading } = useAppSettings();
-  const { uploadAsset } = useUploadAsset(settings, {
+  const onError = () => {
+    resetShareIntent();
+    setMode({ type: "error" });
+  };
+
+  // Declare mutations BEFORE the useEffect that references isPending
+  const { mutate, isPending } = useMutation(
+    api.bookmarks.createBookmark.mutationOptions({
+      onSuccess: onSaved,
+      onError,
+    }),
+  );
+
+  const { uploadAsset, isPending: isUploadPending } = useUploadAsset(settings, {
     onSuccess: onSaved,
-    onError: () => {
-      setMode({ type: "error" });
-    },
+    onError: () => onError(),
   });
 
   useEffect(() => {
+    // Wait for settings to load
     if (isLoading) {
       return;
     }
-    if (!isPending && shareIntent.webUrl) {
+
+    // Don't process if a save is already in progress
+    if (isPending || isUploadPending || saveInitiatedRef.current) {
+      return;
+    }
+
+    // Guard: ensure we actually have share intent data
+    if (!hasShareIntent) {
+      return;
+    }
+
+    saveInitiatedRef.current = true;
+
+    if (shareIntent.webUrl) {
       mutate({
         type: BookmarkTypes.LINK,
         url: shareIntent.webUrl,
         source: "mobile",
       });
-    } else if (!isPending && shareIntent?.text) {
+    } else if (shareIntent.text) {
       const val = z.string().url();
       if (val.safeParse(shareIntent.text).success) {
-        // This is a URL, else treated as text
+        // This is a URL, treat as link
         mutate({
           type: BookmarkTypes.LINK,
           url: shareIntent.text,
@@ -70,26 +100,17 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
           source: "mobile",
         });
       }
-    } else if (!isPending && shareIntent?.files) {
+    } else if (shareIntent.files && shareIntent.files.length > 0) {
       uploadAsset({
         type: shareIntent.files[0].mimeType,
         name: shareIntent.files[0].fileName ?? "",
         uri: shareIntent.files[0].path,
       });
+    } else {
+      // We had hasShareIntent=true but no actionable data
+      onError();
     }
-    if (hasShareIntent) {
-      resetShareIntent();
-    }
-  }, [isLoading]);
-
-  const { mutate, isPending } = useMutation(
-    api.bookmarks.createBookmark.mutationOptions({
-      onSuccess: onSaved,
-      onError: () => {
-        setMode({ type: "error" });
-      },
-    }),
-  );
+  }, [isLoading, hasShareIntent]);
 
   return null;
 }
