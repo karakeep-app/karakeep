@@ -589,6 +589,13 @@
       "when": 1776948580025,
       "tag": "0083_add_api_key_scopes",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "6",
+      "when": 1777464072035,
+      "tag": "0084_rule_engine_multi_list_support",
+      "breakpoints": true
     }
   ]
 }
