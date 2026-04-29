@@ -10,8 +10,14 @@ import {
   zUpdateTagRequestSchema,
 } from "@karakeep/shared/types/tags";
 
+import { addLogFields } from "@karakeep/shared-server";
+
 import type { AuthedContext } from "../index";
-import { createScopedAuthedProcedure, router } from "../index";
+import {
+  createEventLogMiddleware,
+  createScopedAuthedProcedure,
+  router,
+} from "../index";
 import { Tag } from "../models/tags";
 
 const tagsProcedure = createScopedAuthedProcedure("tags");
@@ -31,10 +37,12 @@ export const ensureTagOwnership = experimental_trpcMiddleware<{
 
 export const tagsAppRouter = router({
   create: tagsProcedure
+    .use(createEventLogMiddleware("tag.create"))
     .input(zCreateTagRequestSchema)
     .output(zTagBasicSchema)
     .mutation(async ({ input, ctx }) => {
       const tag = await Tag.create(ctx, input);
+      addLogFields<"tag.create">({ "tag.id": tag.tag.id });
       return tag.asBasicTag();
     }),
 

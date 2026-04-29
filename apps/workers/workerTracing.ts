@@ -1,5 +1,11 @@
 import type { DequeuedJob } from "@karakeep/shared/queueing";
-import { getTracer, withSpan } from "@karakeep/shared-server";
+import {
+  addLogFields,
+  getTracer,
+  withEventLog,
+  withSpan,
+  EventLogType,
+} from "@karakeep/shared-server";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -39,5 +45,21 @@ export function withWorkerTracing<TData, TResult = void>(
       },
       () => fn(job),
     );
+  };
+}
+
+export function withWorkerEventLog<TData, TResult = void>(
+  name: EventLogType,
+  fn: WorkerRunFn<TData, TResult>,
+): WorkerRunFn<TData, TResult> {
+  return async (job: DequeuedJob<TData>): Promise<TResult> => {
+    return await withEventLog(name, async () => {
+      addLogFields({
+        "job.id": job.id,
+        "job.priority": job.priority,
+        "job.run_number": job.runNumber,
+      });
+      return fn(job);
+    });
   };
 }

@@ -228,3 +228,5 @@ export function createAdminScopedProcedure(
 
 // Export the rate limiting middleware for use in routers
 export { createRateLimitMiddleware } from "./lib/rateLimit";
+export { createEventLogMiddleware } from "./lib/eventLog";
+export { emitRateLimitedEvent } from "./lib/rateLimitedEvent";

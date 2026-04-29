@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -38,6 +39,7 @@ export function DeleteAccount() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
   const { data: user } = useWhoAmI();
 
   const isLocalUser = user?.localUser ?? false;
@@ -52,6 +54,7 @@ export function DeleteAccount() {
 
   const deleteAccountMutation = useDeleteAccount({
     onSuccess: () => {
+      setServerError(null);
       toast({
         description: "Your account has been successfully deleted.",
       });
@@ -61,21 +64,38 @@ export function DeleteAccount() {
     },
     onError: (error) => {
       if (error.data?.code === "UNAUTHORIZED") {
-        toast({
-          description: "Invalid password. Please try again.",
-          variant: "destructive",
+        form.setError("password", {
+          type: "server",
+          message: "Invalid password. Please try again.",
         });
-      } else {
-        toast({
-          description: "Failed to delete account. Please try again.",
-          variant: "destructive",
-        });
+        setServerError(null);
+        return;
       }
+
+      if (error.data?.code === "BAD_REQUEST") {
+        setServerError(error.message);
+        return;
+      }
+
+      toast({
+        description: "Failed to delete account. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
   const onSubmit = (values: z.infer<typeof deleteAccountSchema>) => {
+    setServerError(null);
+    form.clearErrors();
     deleteAccountMutation.mutate({ password: values.password });
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setServerError(null);
+      form.clearErrors();
+    }
   };
 
   return (
@@ -90,7 +110,7 @@ export function DeleteAccount() {
 
       <ActionConfirmingDialog
         open={isDialogOpen}
-        setOpen={setIsDialogOpen}
+        setOpen={handleDialogOpenChange}
         title="Delete Account"
         description={
           <div className="space-y-4">
@@ -106,6 +126,12 @@ export function DeleteAccount() {
                 </p>
               </div>
             </div>
+            {serverError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            )}
 
             <Form {...form}>
               <form

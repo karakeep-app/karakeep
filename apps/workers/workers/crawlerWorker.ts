@@ -32,7 +32,7 @@ import {
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { abortRace, abortRaceResolve, raceWith, timeoutRace } from "utils";
-import { withWorkerTracing } from "workerTracing";
+import { withWorkerTracing, withWorkerEventLog } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -47,6 +47,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  addLogFields,
   AssetPreprocessingQueue,
   getTracer,
   OpenAIQueue,
@@ -366,8 +367,11 @@ export class CrawlerWorker {
     >(
       queue,
       {
-        run: withWorkerTracing("crawlerWorker.run", (job) =>
-          runCrawler(job, queue.opts.defaultJobArgs.numRetries),
+        run: withWorkerTracing(
+          "crawlerWorker.run",
+          withWorkerEventLog("crawlerWorker.run", (job) =>
+            runCrawler(job, queue.opts.defaultJobArgs.numRetries),
+          ),
         ),
         onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
           workerStatsCounter.labels("crawler", "completed").inc();
@@ -1796,6 +1800,9 @@ async function crawlAndParseUrl(
           "crawler.statusCode": statusCode,
         });
       }
+      addLogFields<"crawlerWorker.run">({
+        "crawler.status_code": statusCode,
+      });
 
       if (shouldRetryCrawlStatusCode(statusCode)) {
         if (numRetriesLeft > 0) {
@@ -2101,6 +2108,14 @@ async function runCrawler(
 
   // Select proxy URLs once for the entire run so all requests use the same proxy.
   const runProxy = selectRunProxies();
+
+  addLogFields<"crawlerWorker.run">({
+    "crawler.url": url,
+    "crawler.domain": getBookmarkDomain(url),
+    "crawler.proxy": redactUrlCredentials(
+      runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+    ),
+  });
 
   logger.info(
     `[Crawler][${jobId}] Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`,

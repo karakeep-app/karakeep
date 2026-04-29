@@ -18,6 +18,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  addLogFields,
   setSpanAttributes,
   triggerSearchReindex,
 } from "@karakeep/shared-server";
@@ -156,7 +157,7 @@ async function inferTagsFromImage(
   }
 
   const base64 = asset.toString("base64");
-  setSpanAttributes({
+  addLogFields<"inferenceWorker.run">({
     "inference.model": serverConfig.inference.imageModel,
   });
   return inferenceClient.inferFromImage(
@@ -186,8 +187,8 @@ async function fetchCustomPrompts(
     },
   });
 
-  setSpanAttributes({
-    "inference.prompt.customCount": prompts.length,
+  addLogFields<"inferenceWorker.run">({
+    "inference.prompt.custom_count": prompts.length,
   });
 
   let promptTexts = prompts.map((p) => p.text);
@@ -250,10 +251,8 @@ async function inferTagsFromPDF(
     tagStyle,
     curatedTags,
   );
-  setSpanAttributes({
+  addLogFields<"inferenceWorker.run">({
     "inference.model": serverConfig.inference.textModel,
-  });
-  setSpanAttributes({
     "inference.prompt.size": Buffer.byteLength(prompt, "utf8"),
   });
   return inferenceClient.inferFromText(prompt, {
@@ -279,10 +278,8 @@ async function inferTagsFromText(
   if (!prompt) {
     return null;
   }
-  setSpanAttributes({
+  addLogFields<"inferenceWorker.run">({
     "inference.model": serverConfig.inference.textModel,
-  });
-  setSpanAttributes({
     "inference.prompt.size": Buffer.byteLength(prompt, "utf8"),
   });
   return await inferenceClient.inferFromText(prompt, {
@@ -303,13 +300,16 @@ async function inferTags(
   setSpanAttributes({
     "user.id": bookmark.userId,
     "bookmark.id": bookmark.id,
+    "inference.type": "tagging",
+  });
+  addLogFields<"inferenceWorker.run">({
+    "user.id": bookmark.userId,
     "bookmark.url": bookmark.link?.url,
     "bookmark.domain": getBookmarkDomain(bookmark.link?.url),
-    "bookmark.content.type": bookmark.type,
-    "crawler.statusCode": bookmark.link?.crawlStatusCode ?? undefined,
+    "bookmark.content_type": bookmark.type,
+    "crawler.status_code": bookmark.link?.crawlStatusCode ?? undefined,
     "inference.tagging.style": tagStyle,
-    "inference.lang": inferredTagLang,
-    "inference.type": "tagging",
+    "inference.tagging.lang": inferredTagLang,
   });
 
   let response: InferenceResponse | null;
@@ -375,9 +375,9 @@ async function inferTags(
       }
       return tag.trim();
     });
-    setSpanAttributes({
-      "inference.tagging.numGeneratedTags": tags.length,
-      "inference.totalTokens": response.totalTokens,
+    addLogFields<"inferenceWorker.run">({
+      "inference.tagging.num_generated_tags": tags.length,
+      "inference.total_tokens": response.totalTokens,
     });
 
     return tags;

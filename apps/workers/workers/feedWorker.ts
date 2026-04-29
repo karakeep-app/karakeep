@@ -3,12 +3,12 @@ import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
 import cron from "node-cron";
 import { buildImpersonatingTRPCClient } from "trpc";
-import { withWorkerTracing } from "workerTracing";
+import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { rssFeedImportsTable, rssFeedsTable } from "@karakeep/db/schema";
-import { FeedQueue, QuotaService } from "@karakeep/shared-server";
+import { addLogFields, FeedQueue, QuotaService } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -89,7 +89,10 @@ export class FeedWorker {
     const worker = (await getQueueClient())!.createRunner<ZFeedRequestSchema>(
       FeedQueue,
       {
-        run: withWorkerTracing("feedWorker.run", run),
+        run: withWorkerTracing(
+          "feedWorker.run",
+          withWorkerEventLog("feedWorker.run", run),
+        ),
         onComplete: async (job) => {
           workerStatsCounter.labels("feed", "completed").inc();
           const jobId = job.id;
@@ -129,6 +132,7 @@ export class FeedWorker {
 
 async function run(req: DequeuedJob<ZFeedRequestSchema>) {
   const jobId = req.id;
+  addLogFields<"feedWorker.run">({ "feed.id": req.data.feedId });
   const feed = await db.query.rssFeedsTable.findFirst({
     where: eq(rssFeedsTable.id, req.data.feedId),
   });
@@ -137,6 +141,10 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       `[feed][${jobId}] Feed with id ${req.data.feedId} not found`,
     );
   }
+  addLogFields<"feedWorker.run">({
+    "feed.url": feed.url,
+    "user.id": feed.userId,
+  });
 
   // If the user doesn't have bookmark quota, don't bother with fetching the feed
   {
@@ -145,6 +153,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       logger.debug(
         `[feed][${jobId}] User ${feed.userId} doesn't have enough quota to create bookmarks. Skipping feed fetching.`,
       );
+      addLogFields<"feedWorker.run">({ "feed.skipped_quota": true });
       return;
     }
   }
@@ -161,6 +170,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       Accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
     },
   });
+  addLogFields<"feedWorker.run">({ "feed.status_code": response.status });
   if (response.status !== 200) {
     throw new Error(
       `[feed][${jobId}] Feed "${feed.name}" (${feed.id}) returned a non-success status: ${response.status}.`,
@@ -179,6 +189,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
   );
 
   const feedItems = await parseFeedItems(xmlData);
+  addLogFields<"feedWorker.run">({ "feed.items_found": feedItems.length });
   await db
     .update(rssFeedsTable)
     .set({ lastSuccessfulFetchAt: new Date() })
@@ -209,6 +220,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       item.link &&
       item.guid,
   );
+  addLogFields<"feedWorker.run">({ "feed.items_new": newEntries.length });
 
   if (newEntries.length === 0) {
     logger.info(

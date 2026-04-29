@@ -8,8 +8,11 @@ import {
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
 
+import { addLogFields, logEvent } from "@karakeep/shared-server";
+
 import type { AuthedContext } from "../index";
 import {
+  createEventLogMiddleware,
   createRateLimitMiddleware,
   createScopedAuthedProcedure,
   router,
@@ -72,10 +75,13 @@ export const ensureInvitationAccess = experimental_trpcMiddleware<{
 
 export const listsAppRouter = router({
   create: listsProcedure
+    .use(createEventLogMiddleware("list.create"))
     .input(zNewBookmarkListSchema)
     .output(zBookmarkListSchema)
     .mutation(async ({ input, ctx }) => {
-      return await List.create(ctx, input).then((l) => l.asZBookmarkList());
+      const list = await List.create(ctx, input);
+      addLogFields<"list.create">({ "list.id": list.id });
+      return list.asZBookmarkList();
     }),
   edit: listsProcedure
     .input(zEditBookmarkListSchemaWithValidation)
@@ -84,6 +90,14 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.update(input);
+      if (input.public !== undefined) {
+        logEvent({
+          "event.name": "list.share",
+          "user.id": ctx.user.id,
+          "list.id": input.listId,
+          "list.public": input.public,
+        });
+      }
       return ctx.list.asZBookmarkList();
     }),
   merge: listsProcedure

@@ -21,7 +21,7 @@
     "@auth/drizzle-adapter": "~1.5.0",
     "@emoji-mart/data": "^1.1.2",
     "@emoji-mart/react": "^1.1.1",
-    "@hookform/resolvers": "^3.3.4",
+    "@hookform/resolvers": "^5.2.2",
     "@karakeep/api": "workspace:^0.1.0",
     "@karakeep/db": "workspace:^0.1.0",
     "@karakeep/shared": "workspace:^0.1.0",

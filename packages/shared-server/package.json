@@ -9,14 +9,22 @@
     "@karakeep/plugins": "workspace:^0.1.0",
     "@karakeep/shared": "workspace:^0.1.0",
     "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.213.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.213.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.208.0",
     "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-logs": "^0.213.0",
     "@opentelemetry/sdk-trace-base": "^2.2.0",
     "@opentelemetry/sdk-trace-node": "^2.2.0",
-    "@opentelemetry/semantic-conventions": "^1.38.0"
+    "@opentelemetry/semantic-conventions": "^1.38.0",
+    "@opentelemetry/winston-transport": "^0.23.0",
+    "@trpc/server": "^11.9.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
-    "@karakeep/tsconfig": "workspace:^0.1.0"
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

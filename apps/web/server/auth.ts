@@ -22,6 +22,7 @@ import {
   containsUnsafeUserNameMarkup,
   normalizeUserNameInput,
 } from "@karakeep/shared/utils/userName";
+import { logEvent } from "@karakeep/shared-server";
 import { validatePassword } from "@karakeep/trpc/auth";
 import { User } from "@karakeep/trpc/models/users";
 
@@ -95,11 +96,17 @@ const CustomProvider = (): Adapter => {
   return {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
-      return await User.createRaw(db, {
+      const created = await User.createRaw(db, {
         name: normalizeSafeDisplayName(user.name),
         email: user.email,
         emailVerified: user.emailVerified,
       });
+      logEvent({
+        "event.name": "user.signup",
+        "user.id": created.id,
+        "auth.provider": "oauth",
+      });
+      return created;
     },
   };
 };
@@ -123,7 +130,13 @@ const providers: Provider[] = [
           credentials?.password,
           db,
         );
-      } catch {
+      } catch (e) {
+        logEvent({
+          "event.name": "user.login_failed",
+          "user.email": credentials?.email,
+          "auth.failure_reason":
+            e instanceof Error ? e.message : "invalid_credentials",
+        });
         return null;
       }
     },
@@ -181,31 +194,59 @@ export const authOptions: NextAuthOptions = {
         throw new Error("Provider didn't provide an email during signin");
       }
       const user = await db.query.users.findFirst({
-        columns: { emailVerified: true },
+        columns: { id: true, emailVerified: true },
         where: eq(users.email, email),
       });
 
       if (credentials) {
         if (!user) {
+          logEvent({
+            "event.name": "user.login_failed",
+            "user.email": email,
+            "auth.failure_reason": "invalid_credentials",
+          });
           throw new Error("Invalid credentials");
         }
         if (
           serverConfig.auth.emailVerificationRequired &&
           !user.emailVerified
         ) {
+          logEvent({
+            "event.name": "user.login_failed",
+            "user.email": email,
+            "auth.failure_reason": "email_not_verified",
+          });
           throw new Error("Please verify your email address before signing in");
         }
+        logEvent({
+          "event.name": "user.login",
+          "user.id": user.id,
+          "auth.provider": "credentials",
+        });
         return true;
       }
 
       // If it's a new user and signups are disabled, fail the sign in
       if (!user && serverConfig.auth.disableSignups) {
+        logEvent({
+          "event.name": "user.signup",
+          "auth.provider": "oauth",
+          "auth.failure_reason": "signups_disabled",
+        });
         throw new Error("Signups are disabled in server config");
       }
 
       // TODO: We're blindly trusting oauth providers to validate emails
       // As such, oauth users can sign in even if email verification is enabled.
       // We might want to change this in the future.
+
+      if (user) {
+        logEvent({
+          "event.name": "user.login",
+          "user.id": user.id,
+          "auth.provider": "oauth",
+        });
+      }
 
       return true;
     },
