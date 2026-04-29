@@ -14,6 +14,7 @@ import {
   bookmarkTags,
   highlights,
   passwordResetTokens,
+  subscriptions,
   tagsOnBookmarks,
   users,
   verificationTokens,
@@ -369,7 +370,32 @@ export class User {
       .where(eq(passwordResetTokens.token, input.token));
   }
 
+  private static async assertNoActiveStripeSubscriptionForUser(
+    db: Context["db"],
+    userId: string,
+  ) {
+    const subscription = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.userId, userId),
+      columns: {
+        status: true,
+      },
+    });
+
+    if (
+      subscription?.status === "active" ||
+      subscription?.status === "trialing"
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Can't delete user while subscription is active. Please cancel your subscription first and try again.",
+      });
+    }
+  }
+
   private static async deleteInternal(db: Context["db"], userId: string) {
+    await User.assertNoActiveStripeSubscriptionForUser(db, userId);
+
     const res = await db.delete(users).where(eq(users.id, userId));
 
     if (res.changes === 0) {

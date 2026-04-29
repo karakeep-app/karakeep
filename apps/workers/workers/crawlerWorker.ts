@@ -31,7 +31,8 @@ import {
 } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { withWorkerTracing } from "workerTracing";
+import { abortRace, abortRaceResolve, raceWith, timeoutRace } from "utils";
+import { withWorkerTracing, withWorkerEventLog } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
 
@@ -46,6 +47,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  addLogFields,
   AssetPreprocessingQueue,
   getTracer,
   OpenAIQueue,
@@ -93,29 +95,8 @@ import {
 
 const tracer = getTracer("@karakeep/workers");
 
-function abortPromise(signal: AbortSignal): Promise<never> {
-  if (signal.aborted) {
-    const p = Promise.reject(signal.reason ?? new Error("AbortError"));
-    p.catch(() => {
-      /* empty */
-    }); // suppress unhandledRejection if not awaited
-    return p;
-  }
-
-  const p = new Promise<never>((_, reject) => {
-    signal.addEventListener(
-      "abort",
-      () => {
-        reject(signal.reason ?? new Error("AbortError"));
-      },
-      { once: true },
-    );
-  });
-
-  p.catch(() => {
-    /* empty */
-  });
-  return p;
+function truncateUrl(url: string): string {
+  return url.length > 100 ? url.slice(0, 100) + "..." : url;
 }
 
 /**
@@ -236,7 +217,7 @@ function startContextReaper() {
           logger.warn(
             `[Crawler] Reaping stale browser context for job ${id} (age: ${Math.round((now - entry.createdAt) / 1000)}s)`,
           );
-          void Promise.race([
+          void raceWith<boolean>(
             entry.context
               .close()
               .then(() => true)
@@ -246,10 +227,8 @@ function startContextReaper() {
                 );
                 return true;
               }),
-            new Promise<false>((r) =>
-              setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
-            ),
-          ]).then((contextClosed) => {
+            timeoutRace<boolean>(CONTEXT_CLOSE_TIMEOUT_MS, () => false),
+          ).then((contextClosed) => {
             // Protect against deleting a newer context if the job id gets reused.
             if (!contextClosed) {
               logger.warn(
@@ -388,8 +367,11 @@ export class CrawlerWorker {
     >(
       queue,
       {
-        run: withWorkerTracing("crawlerWorker.run", (job) =>
-          runCrawler(job, queue.opts.defaultJobArgs.numRetries),
+        run: withWorkerTracing(
+          "crawlerWorker.run",
+          withWorkerEventLog("crawlerWorker.run", (job) =>
+            runCrawler(job, queue.opts.defaultJobArgs.numRetries),
+          ),
         ),
         onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
           workerStatsCounter.labels("crawler", "completed").inc();
@@ -503,7 +485,7 @@ async function browserlessCrawlPage(
     },
     async () => {
       logger.info(
-        `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${url}". Screenshots will be disabled.`,
+        `[Crawler][${jobId}] Running in browserless mode. Will do a plain http request to "${truncateUrl(url)}". Screenshots will be disabled.`,
       );
       const response = await fetchWithProxy(
         url,
@@ -513,7 +495,7 @@ async function browserlessCrawlPage(
         runProxy,
       );
       logger.info(
-        `[Crawler][${jobId}] Successfully fetched the content of "${url}". Status: ${response.status}, Size: ${response.size}`,
+        `[Crawler][${jobId}] Successfully fetched the content of "${truncateUrl(url)}". Status: ${response.status}, Size: ${response.size}`,
       );
       return {
         htmlContent: await response.text(),
@@ -726,7 +708,7 @@ async function crawlPage(
         );
         if (!navigationValidation.ok) {
           throw new Error(
-            `Disallowed navigation target "${url}": ${navigationValidation.reason}`,
+            `Disallowed navigation target "${truncateUrl(url)}": ${navigationValidation.reason}`,
           );
         }
         const targetUrl = navigationValidation.url.toString();
@@ -742,13 +724,13 @@ async function crawlPage(
             },
           },
           async () =>
-            Promise.race([
+            raceWith(
               activePage.goto(targetUrl, {
                 timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
                 waitUntil: "domcontentloaded",
               }),
-              abortPromise(abortSignal).then(() => null),
-            ]),
+              abortRaceResolve(abortSignal, null),
+            ),
         );
         setSpanAttributes({
           "crawler.statusCode": response?.status() ?? 0,
@@ -770,13 +752,13 @@ async function crawlPage(
             },
           },
           async () => {
-            await Promise.race([
+            await raceWith<unknown>(
               activePage
                 .waitForLoadState("networkidle", { timeout: 5000 })
                 .catch(() => ({})),
-              new Promise((resolve) => setTimeout(resolve, 5000)),
-              abortPromise(abortSignal),
-            ]);
+              timeoutRace<unknown>(5000, () => undefined),
+              abortRace(abortSignal),
+            );
           },
         );
 
@@ -827,24 +809,23 @@ async function crawlPage(
                   async () => {
                     const { data: screenshotData, error: screenshotError } =
                       await tryCatch(
-                        Promise.race<Buffer>([
+                        raceWith<Buffer>(
                           activePage.screenshot({
                             // If you change this, you need to change the asset type in the store function.
                             type: "jpeg",
                             fullPage: serverConfig.crawler.fullPageScreenshot,
                             quality: 80,
                           }),
-                          new Promise((_, reject) =>
-                            setTimeout(
-                              () =>
-                                reject(
-                                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                                ),
-                              serverConfig.crawler.screenshotTimeoutSec * 1000,
-                            ),
+                          timeoutRace<Buffer>(
+                            serverConfig.crawler.screenshotTimeoutSec * 1000,
+                            () => {
+                              throw new Error(
+                                "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                              );
+                            },
                           ),
-                          abortPromise(abortSignal).then(() => Buffer.from("")),
-                        ]),
+                          abortRaceResolve(abortSignal, Buffer.from("")),
+                        ),
                       );
                     abortSignal.throwIfAborted();
                     if (screenshotError) {
@@ -877,22 +858,21 @@ async function crawlPage(
                     },
                     async () => {
                       const { data: pdfData, error: pdfError } = await tryCatch(
-                        Promise.race<Buffer>([
+                        raceWith<Buffer>(
                           activePage.pdf({
                             format: "A4",
                             printBackground: true,
                           }),
-                          new Promise((_, reject) =>
-                            setTimeout(
-                              () =>
-                                reject(
-                                  "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                                ),
-                              serverConfig.crawler.screenshotTimeoutSec * 1000,
-                            ),
+                          timeoutRace<Buffer>(
+                            serverConfig.crawler.screenshotTimeoutSec * 1000,
+                            () => {
+                              throw new Error(
+                                "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+                              );
+                            },
                           ),
-                          abortPromise(abortSignal).then(() => Buffer.from("")),
-                        ]),
+                          abortRaceResolve(abortSignal, Buffer.from("")),
+                        ),
                       );
                       abortSignal.throwIfAborted();
                       if (pdfError) {
@@ -949,7 +929,7 @@ async function crawlPage(
                 "crawlerWorker.crawlPage.cleanup.closePage",
                 { attributes: { "job.id": jobId } },
                 async () =>
-                  Promise.race([
+                  raceWith<boolean>(
                     pageToClose
                       .close()
                       .then(() => true)
@@ -959,10 +939,8 @@ async function crawlPage(
                         );
                         return true;
                       }),
-                    new Promise<false>((r) =>
-                      setTimeout(() => r(false), PAGE_CLOSE_TIMEOUT_MS),
-                    ),
-                  ]),
+                    timeoutRace<boolean>(PAGE_CLOSE_TIMEOUT_MS, () => false),
+                  ),
               );
               setSpanAttributes({ "crawler.cleanup.pageClosed": pageClosed });
               if (!pageClosed) {
@@ -978,7 +956,7 @@ async function crawlPage(
               "crawlerWorker.crawlPage.cleanup.closeContext",
               { attributes: { "job.id": jobId } },
               async () =>
-                Promise.race([
+                raceWith<boolean>(
                   context
                     .close()
                     .then(() => true)
@@ -988,10 +966,8 @@ async function crawlPage(
                       );
                       return true; // Error means it's likely already closed
                     }),
-                  new Promise<false>((r) =>
-                    setTimeout(() => r(false), CONTEXT_CLOSE_TIMEOUT_MS),
-                  ),
-                ]),
+                  timeoutRace<boolean>(CONTEXT_CLOSE_TIMEOUT_MS, () => false),
+                ),
             );
             setSpanAttributes({
               "crawler.cleanup.contextClosed": contextClosed,
@@ -1080,7 +1056,7 @@ async function runParseSubprocess(
     },
     async () => {
       logger.info(
-        `[Crawler][${jobId}] Spawning parse subprocess for "${url}" ...`,
+        `[Crawler][${jobId}] Spawning parse subprocess for "${truncateUrl(url)}" ...`,
       );
 
       const { cmd, args } = getSubprocessCommand();
@@ -1289,7 +1265,7 @@ async function downloadAndStoreFile(
       let assetPath: string | undefined;
       try {
         logger.info(
-          `[Crawler][${jobId}] Downloading ${fileType} from "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+          `[Crawler][${jobId}] Downloading ${fileType} from "${truncateUrl(url)}"`,
         );
         const response = await fetchWithProxy(
           url,
@@ -1536,7 +1512,7 @@ async function getContentType(
     async () => {
       try {
         logger.info(
-          `[Crawler][${jobId}] Attempting to determine the content-type for the url ${url}`,
+          `[Crawler][${jobId}] Attempting to determine the content-type for the url ${truncateUrl(url)}`,
         );
         const response = await fetchWithProxy(
           url,
@@ -1555,12 +1531,12 @@ async function getContentType(
           "crawler.contentType": contentType ?? undefined,
         });
         logger.info(
-          `[Crawler][${jobId}] Content-type for the url ${url} is "${contentType}"`,
+          `[Crawler][${jobId}] Content-type for the url ${truncateUrl(url)} is "${contentType}"`,
         );
         return contentType;
       } catch (e) {
         logger.error(
-          `[Crawler][${jobId}] Failed to determine the content-type for the url ${url}: ${e}`,
+          `[Crawler][${jobId}] Failed to determine the content-type for the url ${truncateUrl(url)}: ${e}`,
         );
         return null;
       }
@@ -1824,6 +1800,9 @@ async function crawlAndParseUrl(
           "crawler.statusCode": statusCode,
         });
       }
+      addLogFields<"crawlerWorker.run">({
+        "crawler.status_code": statusCode,
+      });
 
       if (shouldRetryCrawlStatusCode(statusCode)) {
         if (numRetriesLeft > 0) {
@@ -1872,16 +1851,16 @@ async function crawlAndParseUrl(
 
       let readableContent = parsedReadableContent;
 
-      const screenshotAssetInfo = await Promise.race([
+      const screenshotAssetInfo = await raceWith(
         storeScreenshot(screenshot, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
+        abortRace(abortSignal),
+      );
       abortSignal.throwIfAborted();
 
-      const pdfAssetInfo = await Promise.race([
+      const pdfAssetInfo = await raceWith(
         storePdf(pdf, userId, jobId),
-        abortPromise(abortSignal),
-      ]);
+        abortRace(abortSignal),
+      );
       abortSignal.throwIfAborted();
 
       const htmlContentAssetInfo = await storeHtmlContent(
@@ -2130,16 +2109,26 @@ async function runCrawler(
   // Select proxy URLs once for the entire run so all requests use the same proxy.
   const runProxy = selectRunProxies();
 
+  addLogFields<"crawlerWorker.run">({
+    "crawler.url": url,
+    "crawler.domain": getBookmarkDomain(url),
+    "crawler.proxy": redactUrlCredentials(
+      runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
+    ),
+  });
+
   logger.info(
-    `[Crawler][${jobId}] Will crawl "${url}" for link with id "${bookmarkId}"`,
+    `[Crawler][${jobId}] Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`,
   );
 
-  const contentType = await getContentType(
-    url,
-    jobId,
-    job.abortSignal,
-    runProxy,
-  );
+  if (precrawledArchiveAssetId) {
+    logger.info(
+      `[Crawler][${jobId}] Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
+    );
+  }
+  const contentType = precrawledArchiveAssetId
+    ? ASSET_TYPES.TEXT_HTML
+    : await getContentType(url, jobId, job.abortSignal, runProxy);
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage

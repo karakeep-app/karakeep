@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { addLogFields } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import {
   zResetPasswordSchema,
@@ -14,14 +15,18 @@ import {
 import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 import {
-  adminProcedure,
-  authedProcedure,
+  createAdminScopedProcedure,
+  createEventLogMiddleware,
   createRateLimitMiddleware,
+  createScopedAuthedProcedure,
   publicProcedure,
   router,
 } from "../index";
 import { verifyTurnstileToken } from "../lib/turnstile";
 import { User } from "../models/users";
+
+const usersProcedure = createScopedAuthedProcedure("users");
+const adminUsersProcedure = createAdminScopedProcedure("users");
 
 export const usersAppRouter = router({
   create: publicProcedure
@@ -32,6 +37,7 @@ export const usersAppRouter = router({
         maxRequests: 3,
       }),
     )
+    .use(createEventLogMiddleware("user.signup"))
     .input(zSignUpSchema.safeExtend({ redirectUrl: z.string().optional() }))
     .output(
       z.object({
@@ -42,13 +48,18 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      addLogFields<"user.signup">({ "auth.provider": "credentials" });
       if (
         serverConfig.auth.disableSignups ||
         serverConfig.auth.disablePasswordAuth
       ) {
+        const failureReason = serverConfig.auth.disablePasswordAuth
+          ? "password_auth_disabled"
+          : "signups_disabled";
         const errorMessage = serverConfig.auth.disablePasswordAuth
           ? "Local Signups are disabled in the server config. Use OAuth instead!"
           : "Signups are disabled in server config";
+        addLogFields<"user.signup">({ "auth.failure_reason": failureReason });
         throw new TRPCError({
           code: "FORBIDDEN",
           message: errorMessage,
@@ -60,6 +71,9 @@ export const usersAppRouter = router({
           ctx.req.ip,
         );
         if (!result.success) {
+          addLogFields<"user.signup">({
+            "auth.failure_reason": "turnstile_failed",
+          });
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Turnstile verification failed",
@@ -71,6 +85,7 @@ export const usersAppRouter = router({
         ...input,
         redirectUrl: validatedRedirectUrl,
       });
+      addLogFields<"user.signup">({ "user.id": user.id });
       return {
         id: user.id,
         name: user.name,
@@ -78,7 +93,7 @@ export const usersAppRouter = router({
         role: user.role,
       };
     }),
-  list: adminProcedure
+  list: adminUsersProcedure
     .output(
       z.object({
         users: z.array(
@@ -100,7 +115,7 @@ export const usersAppRouter = router({
         users: users.map((u) => u.asPublicUser()),
       };
     }),
-  changePassword: authedProcedure
+  changePassword: usersProcedure
     .use(
       createRateLimitMiddleware({
         name: "users.changePassword",
@@ -108,6 +123,7 @@ export const usersAppRouter = router({
         maxRequests: 5,
       }),
     )
+    .use(createEventLogMiddleware("user.password_change"))
     .input(
       z.object({
         currentPassword: z.string(),
@@ -118,38 +134,48 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       await user.changePassword(input.currentPassword, input.newPassword);
     }),
-  delete: adminProcedure
+  delete: adminUsersProcedure
+    .use(createEventLogMiddleware("user.delete"))
     .input(
       z.object({
         userId: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      addLogFields<"user.delete">({
+        "user.deleted_id": input.userId,
+        "user.deleted_by": "admin",
+      });
       await User.deleteAsAdmin(ctx, input.userId);
     }),
-  deleteAccount: authedProcedure
+  deleteAccount: usersProcedure
+    .use(createEventLogMiddleware("user.delete"))
     .input(
       z.object({
         password: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      addLogFields<"user.delete">({
+        "user.deleted_id": ctx.user.id,
+        "user.deleted_by": "self",
+      });
       const user = await User.fromCtx(ctx);
       await user.deleteAccount(input.password);
     }),
-  whoami: authedProcedure
+  whoami: usersProcedure
     .output(zWhoAmIResponseSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return user.asWhoAmI();
     }),
-  stats: authedProcedure
+  stats: usersProcedure
     .output(zUserStatsResponseSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.getStats();
     }),
-  wrapped: authedProcedure
+  wrapped: usersProcedure
     .output(zWrappedStatsResponseSchema)
     .query(async ({ ctx }) => {
       throw new TRPCError({
@@ -159,7 +185,7 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       return await user.getWrappedStats(2025);
     }),
-  hasWrapped: authedProcedure.output(z.boolean()).query(async ({ ctx }) => {
+  hasWrapped: usersProcedure.output(z.boolean()).query(async ({ ctx }) => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "This endpoint is currently disabled",
@@ -167,19 +193,19 @@ export const usersAppRouter = router({
     const user = await User.fromCtx(ctx);
     return await user.hasWrapped();
   }),
-  settings: authedProcedure
+  settings: usersProcedure
     .output(zUserSettingsSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.getSettings();
     }),
-  updateSettings: authedProcedure
+  updateSettings: usersProcedure
     .input(zUpdateUserSettingsSchema)
     .mutation(async ({ input, ctx }) => {
       const user = await User.fromCtx(ctx);
       await user.updateSettings(input);
     }),
-  updateAvatar: authedProcedure
+  updateAvatar: usersProcedure
     .input(
       z.object({
         assetId: z.string().nullable(),

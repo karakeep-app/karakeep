@@ -1,32 +1,9 @@
-import { Platform } from "react-native";
 import { Stack } from "expo-router/stack";
-import { isIOS26 } from "@/lib/ios";
+import { tabScreenOptions } from "@/lib/tabScreenOptions";
 
 export default function Layout() {
   return (
-    <Stack
-      screenOptions={{
-        ...Platform.select({
-          ios: {
-            headerLargeTitle: true,
-            headerTransparent: true,
-            headerBlurEffect: isIOS26 ? undefined : "systemMaterial",
-            headerLargeTitleShadowVisible: false,
-            headerLargeStyle: { backgroundColor: "transparent" },
-          },
-          android: {
-            headerStyle: {
-              backgroundColor: "transparent",
-            },
-            contentStyle: {
-              // Manual padding to avoid the native tabbar until expo fixes this in sdk 55.
-              paddingBottom: 100,
-            },
-          },
-        }),
-        headerShadowVisible: false,
-      }}
-    >
+    <Stack screenOptions={tabScreenOptions}>
       <Stack.Screen name="index" options={{ title: "Tags" }} />
     </Stack>
   );

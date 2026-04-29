@@ -7,6 +7,7 @@ import {
   AssetPreprocessingQueue,
   BackupQueue,
   FeedQueue,
+  initEventLogger,
   initTracing,
   LinkCrawlerQueue,
   loadAllPlugins,
@@ -15,6 +16,7 @@ import {
   prepareQueue,
   RuleEngineQueue,
   SearchIndexingQueue,
+  shutdownEventLogger,
   shutdownTracing,
   startQueue,
   VideoWorkerQueue,
@@ -100,6 +102,7 @@ function isWorkerEnabled(name: WorkerName) {
 async function main() {
   await loadAllPlugins();
   initTracing("workers");
+  initEventLogger("workers");
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
   await prepareQueue();
 
@@ -158,6 +161,7 @@ async function main() {
     worker.stop();
   }
   await httpServer.stop();
+  await shutdownEventLogger();
   await shutdownTracing();
   process.exit(0);
 }

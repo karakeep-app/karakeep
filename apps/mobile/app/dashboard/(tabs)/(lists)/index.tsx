@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import {
+  FlatList,
+  Platform,
+  PlatformColor,
+  Pressable,
+  View,
+} from "react-native";
 import * as Haptics from "expo-haptics";
-import { Link, router, Stack } from "expo-router";
+import { Link, router } from "expo-router";
 import FullPageError from "@/components/FullPageError";
 import ChevronRight from "@/components/ui/ChevronRight";
+import { FAB } from "@/components/ui/FAB";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -14,21 +21,6 @@ import { Plus } from "lucide-react-native";
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
-
-function HeaderRight({ openNewListModal }: { openNewListModal: () => void }) {
-  const { colors } = useColorScheme();
-  return (
-    <Pressable
-      className="my-auto"
-      onPress={() => {
-        Haptics.selectionAsync();
-        openNewListModal();
-      }}
-    >
-      <Plus color={colors.foreground} />
-    </Pressable>
-  );
-}
 
 interface ListLink {
   id: string;
@@ -186,25 +178,18 @@ export default function Lists() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <HeaderRight
-              openNewListModal={() => router.push("/dashboard/lists/new")}
-            />
-          ),
-        }}
-      />
       <FlatList
         className="h-full"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           gap: 6,
           paddingBottom: 20,
+          marginHorizontal: 15,
+          marginBottom: 15,
         }}
         renderItem={(l) => (
           <View
-            className="mx-2 flex flex-row items-center rounded-xl bg-card px-4 py-2"
+            className="flex flex-row items-center rounded-xl bg-card px-4 py-2"
             style={{
               borderCurve: "continuous",
               ...condProps({
@@ -280,6 +265,20 @@ export default function Lists() {
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
+      <FAB>
+        <Pressable
+          className="h-full w-full items-center justify-center"
+          onPress={() => {
+            Haptics.selectionAsync();
+            router.push("/dashboard/lists/new");
+          }}
+        >
+          <Plus
+            size={24}
+            color={Platform.OS === "ios" ? PlatformColor("label") : "white"}
+          />
+        </Pressable>
+      </FAB>
     </>
   );
 }

@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
-import { withWorkerTracing } from "workerTracing";
+import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
 import {
+  addLogFields,
   WebhookQueue,
   ZWebhookRequest,
   zWebhookRequestSchema,
@@ -20,7 +21,10 @@ export class WebhookWorker {
     const worker = (await getQueueClient())!.createRunner<ZWebhookRequest>(
       WebhookQueue,
       {
-        run: withWorkerTracing("webhookWorker.run", runWebhook),
+        run: withWorkerTracing(
+          "webhookWorker.run",
+          withWorkerEventLog("webhookWorker.run", runWebhook),
+        ),
         onComplete: async (job) => {
           workerStatsCounter.labels("webhook", "completed").inc();
           const jobId = job.id;
@@ -84,6 +88,10 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
   const webhookTimeoutSec = serverConfig.webhook.timeoutSec;
 
   const { bookmarkId, operation } = job.data;
+  addLogFields<"webhookWorker.run">({
+    "bookmark.id": bookmarkId,
+    "webhook.operation": operation,
+  });
   const bookmark = await fetchBookmark(bookmarkId);
   if (!bookmark && !canDeliverWebhookWithoutBookmark(operation)) {
     logger.info(
@@ -106,61 +114,72 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
     `[webhook][${jobId}] Starting a webhook job for bookmark with id "${bookmarkId} for operation "${job.data.operation}"`,
   );
 
-  await Promise.allSettled(
-    webhooks
-      .filter((w) => w.events.includes(job.data.operation))
-      .map(async (webhook) => {
-        const url = webhook.url;
-        const webhookToken = webhook.token;
-        const maxRetries = serverConfig.webhook.retryTimes;
-        let attempt = 0;
-        let success = false;
-
-        while (attempt < maxRetries && !success) {
-          try {
-            const response = await fetchWithProxy(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(webhookToken
-                  ? {
-                      Authorization: `Bearer ${webhookToken}`,
-                    }
-                  : {}),
-              },
-              body: JSON.stringify({
-                jobId,
-                bookmarkId,
-                userId,
-                url: bookmark?.link ? bookmark.link.url : undefined,
-                type: bookmark?.type,
-                operation: job.data.operation,
-              }),
-              signal: AbortSignal.timeout(webhookTimeoutSec * 1000),
-            });
-
-            if (!response.ok) {
-              logger.error(
-                `Webhook call to ${url} failed with status: ${response.status}`,
-              );
-            } else {
-              logger.info(
-                `[webhook][${jobId}] Webhook to ${url} call succeeded`,
-              );
-              success = true;
-            }
-          } catch (error) {
-            logger.error(
-              `[webhook][${jobId}] Webhook to ${url} call failed: ${error}`,
-            );
-          }
-          attempt++;
-          if (!success && attempt < maxRetries) {
-            logger.info(
-              `[webhook][${jobId}] Retrying webhook call to ${url}, attempt ${attempt + 1}`,
-            );
-          }
-        }
-      }),
+  const matchingWebhooks = webhooks.filter((w) =>
+    w.events.includes(job.data.operation),
   );
+  addLogFields<"webhookWorker.run">({
+    "webhook.matching_count": matchingWebhooks.length,
+  });
+
+  let deliveredCount = 0;
+  await Promise.allSettled(
+    matchingWebhooks.map(async (webhook) => {
+      const url = webhook.url;
+      const webhookToken = webhook.token;
+      const maxRetries = serverConfig.webhook.retryTimes;
+      let attempt = 0;
+      let success = false;
+
+      while (attempt < maxRetries && !success) {
+        try {
+          const response = await fetchWithProxy(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(webhookToken
+                ? {
+                    Authorization: `Bearer ${webhookToken}`,
+                  }
+                : {}),
+            },
+            body: JSON.stringify({
+              jobId,
+              bookmarkId,
+              userId,
+              url: bookmark?.link ? bookmark.link.url : undefined,
+              type: bookmark?.type,
+              operation: job.data.operation,
+            }),
+            signal: AbortSignal.timeout(webhookTimeoutSec * 1000),
+          });
+
+          if (!response.ok) {
+            logger.error(
+              `Webhook call to ${url} failed with status: ${response.status}`,
+            );
+          } else {
+            logger.info(`[webhook][${jobId}] Webhook to ${url} call succeeded`);
+            success = true;
+          }
+        } catch (error) {
+          logger.error(
+            `[webhook][${jobId}] Webhook to ${url} call failed: ${error}`,
+          );
+        }
+        attempt++;
+        if (!success && attempt < maxRetries) {
+          logger.info(
+            `[webhook][${jobId}] Retrying webhook call to ${url}, attempt ${attempt + 1}`,
+          );
+        }
+      }
+      if (success) {
+        deliveredCount++;
+      }
+    }),
+  );
+  addLogFields<"webhookWorker.run">({
+    "webhook.delivered_count": deliveredCount,
+    "webhook.failed_count": matchingWebhooks.length - deliveredCount,
+  });
 }

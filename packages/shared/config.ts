@@ -61,6 +61,9 @@ const allEnv = z.object({
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_PROXY_URL: z.string().url().optional(),
   OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
+  OPENAI_REASONING_EFFORT: z
+    .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
+    .optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
@@ -232,9 +235,14 @@ const allEnv = z.object({
 
   // OpenTelemetry tracing configuration
   OTEL_TRACING_ENABLED: stringBool("false"),
-  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: z.string().url().optional(),
   OTEL_SERVICE_NAME: z.string().default("karakeep"),
   OTEL_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(1.0),
+
+  // Event logging configuration
+  EVENT_LOGS_ENABLED: stringBool("false"),
+  OTEL_EVENT_LOGS_EXPORT_ENABLED: stringBool("false"),
+  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: z.string().url().optional(),
 });
 
 const serverConfigSchema = allEnv.transform((val, ctx) => {
@@ -297,6 +305,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       openAIBaseUrl: val.OPENAI_BASE_URL,
       openAIProxyUrl: val.OPENAI_PROXY_URL,
       openAIServiceTier: val.OPENAI_SERVICE_TIER,
+      openAIReasoningEffort: val.OPENAI_REASONING_EFFORT,
       ollamaBaseUrl: val.OLLAMA_BASE_URL,
       ollamaKeepAlive: val.OLLAMA_KEEP_ALIVE,
       textModel: val.INFERENCE_TEXT_MODEL,
@@ -454,9 +463,16 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     tracing: {
       enabled: val.OTEL_TRACING_ENABLED,
-      otlpEndpoint: val.OTEL_EXPORTER_OTLP_ENDPOINT,
+      otlpTracesEndpoint: val.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
       serviceName: val.OTEL_SERVICE_NAME,
       sampleRate: val.OTEL_SAMPLE_RATE,
+    },
+    eventLogs: {
+      enabled: val.EVENT_LOGS_ENABLED,
+      otlpExport: {
+        enabled: val.OTEL_EVENT_LOGS_EXPORT_ENABLED,
+        endpoint: val.OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
+      },
     },
   };
   if (obj.auth.emailVerificationRequired && !obj.email.smtp) {
@@ -472,6 +488,15 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       code: z.ZodIssueCode.custom,
       message:
         "TURNSTILE_SECRET_KEY is required when TURNSTILE_SITE_KEY is set",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
+  if (obj.eventLogs.otlpExport.enabled && !obj.eventLogs.otlpExport.endpoint) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is required when OTEL_EVENT_LOGS_EXPORT_ENABLED is true",
       fatal: true,
     });
     return z.NEVER;

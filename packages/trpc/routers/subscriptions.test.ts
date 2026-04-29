@@ -28,6 +28,7 @@ const mockStripeInstance = vi.hoisted(() => ({
   subscriptions: {
     update: vi.fn(),
     list: vi.fn(),
+    cancel: vi.fn(),
   },
   webhooks: {
     constructEvent: vi.fn(),
@@ -693,6 +694,29 @@ describe("Subscription Routes", () => {
       expect(subscription?.cancelAtPeriodEnd).toBe(false);
       expect(subscription?.startDate).toBeNull();
       expect(subscription?.endDate).toBeNull();
+    });
+
+    test<CustomTestContext>("acknowledges webhook for unknown Stripe customer", async ({
+      unauthedAPICaller,
+    }) => {
+      const mockEvent = {
+        type: "payment_intent.succeeded",
+        data: {
+          object: {
+            customer: "cus_deleted_user",
+          },
+        },
+      };
+
+      mockWebhooksConstructEvent.mockReturnValue(mockEvent);
+
+      const result = await unauthedAPICaller.subscriptions.handleWebhook({
+        body: "webhook-body",
+        signature: "webhook-signature",
+      });
+
+      expect(result).toEqual({ received: true });
+      expect(mockSubscriptionsList).not.toHaveBeenCalled();
     });
 
     test<CustomTestContext>("handles unknown webhook event type", async ({

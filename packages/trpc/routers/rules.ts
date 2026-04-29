@@ -10,9 +10,11 @@ import {
   zUpdateRuleEngineRuleSchema,
 } from "@karakeep/shared/types/rules";
 
-import { AuthedContext, authedProcedure, router } from "../index";
+import { AuthedContext, createScopedAuthedProcedure, router } from "../index";
 import { List } from "../models/lists";
 import { RuleEngineRuleModel } from "../models/rules";
+
+const rulesProcedure = createScopedAuthedProcedure("rules");
 
 const ensureRuleOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -83,7 +85,7 @@ const ensureTagListOwnership = experimental_trpcMiddleware<{
 });
 
 export const rulesAppRouter = router({
-  create: authedProcedure
+  create: rulesProcedure
     .input(zNewRuleEngineRuleSchema)
     .output(zRuleEngineRuleSchema)
     .use(ensureTagListOwnership)
@@ -91,7 +93,7 @@ export const rulesAppRouter = router({
       const newRule = await RuleEngineRuleModel.create(ctx, input);
       return newRule.rule;
     }),
-  update: authedProcedure
+  update: rulesProcedure
     .input(zUpdateRuleEngineRuleSchema)
     .output(zRuleEngineRuleSchema)
     .use(ensureRuleOwnership)
@@ -100,13 +102,13 @@ export const rulesAppRouter = router({
       await ctx.rule.update(input);
       return ctx.rule.rule;
     }),
-  delete: authedProcedure
+  delete: rulesProcedure
     .input(z.object({ id: z.string() }))
     .use(ensureRuleOwnership)
     .mutation(async ({ ctx }) => {
       await ctx.rule.delete();
     }),
-  list: authedProcedure
+  list: rulesProcedure
     .output(
       z.object({
         rules: z.array(zRuleEngineRuleSchema),

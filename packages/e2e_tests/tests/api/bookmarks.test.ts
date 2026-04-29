@@ -547,7 +547,7 @@ describe("Bookmarks API", () => {
   });
 
   describe("singlefile", () => {
-    async function uploadSinglefileAsset(ifexists?: string) {
+    async function uploadSinglefileAsset(ifexists?: string, key = apiKey) {
       const file = new File(["<html>HELLO WORLD</html>"], "test.html", {
         type: "text/html",
       });
@@ -566,7 +566,7 @@ describe("Bookmarks API", () => {
       const response = await fetch(url.toString(), {
         method: "POST",
         headers: {
-          authorization: `Bearer ${apiKey}`,
+          authorization: `Bearer ${key}`,
         },
         body: formData,
       });
@@ -578,6 +578,12 @@ describe("Bookmarks API", () => {
       const data = (await response.json()) as { id: string };
       return [data, response] as const;
     }
+
+    it("should require assets:readwrite to upload singlefile assets", async () => {
+      const scopedApiKey = await createTestUser(["bookmarks:readwrite"]);
+      const [, response] = await uploadSinglefileAsset(undefined, scopedApiKey);
+      expect(response.status).toBe(403);
+    });
 
     it("should support precrawling via singlefile with ifexists=skip", async () => {
       // First upload: create a bookmark

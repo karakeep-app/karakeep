@@ -1,11 +1,15 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
-import { withWorkerTracing } from "workerTracing";
+import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
-import { OpenAIQueue, zOpenAIRequestSchema } from "@karakeep/shared-server";
+import {
+  addLogFields,
+  OpenAIQueue,
+  zOpenAIRequestSchema,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
@@ -43,7 +47,10 @@ export class OpenAiWorker {
     const worker = (await getQueueClient())!.createRunner<ZOpenAIRequest>(
       OpenAIQueue,
       {
-        run: withWorkerTracing("inferenceWorker.run", runOpenAI),
+        run: withWorkerTracing(
+          "inferenceWorker.run",
+          withWorkerEventLog("inferenceWorker.run", runOpenAI),
+        ),
         onComplete: async (job) => {
           workerStatsCounter.labels("inference", "completed").inc();
           const jobId = job.id;
@@ -92,6 +99,18 @@ async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
   }
 
   const { bookmarkId } = request.data;
+  const bookmark = await db.query.bookmarks.findFirst({
+    where: eq(bookmarks.id, bookmarkId),
+    columns: {
+      userId: true,
+    },
+  });
+
+  addLogFields<"inferenceWorker.run">({
+    "bookmark.id": bookmarkId,
+    "inference.type": request.data.type,
+    ...(bookmark ? { "user.id": bookmark.userId } : {}),
+  });
   switch (request.data.type) {
     case "summarize":
       await runSummarization(bookmarkId, job, inferenceClient);

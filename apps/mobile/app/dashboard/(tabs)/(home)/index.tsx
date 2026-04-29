@@ -1,26 +1,22 @@
-import { useRef } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { useRef, useState } from "react";
+import { Platform, PlatformColor, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
-import { TailwindResolver } from "@/components/TailwindResolver";
-import { Text } from "@/components/ui/Text";
+import InlineSearch from "@/components/search/InlineSearch";
+import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
+import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
+import { FAB } from "@/components/ui/FAB";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
-import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
-import { Plus, Search } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import { toast as sonnerToast } from "sonner-native";
 
-function HeaderRight({
-  openNewBookmarkModal,
-}: {
-  openNewBookmarkModal: () => void;
-}) {
+function useNewBookmarkActions(openNewBookmarkModal: () => void) {
   const { settings } = useAppSettings();
-  const { colors } = useColorScheme();
   const { menuIconColor } = useMenuIconColors();
   const uploadToastIdRef = useRef<string | number | null>(null);
   const { uploadAsset } = useUploadAsset(settings, {
@@ -39,111 +35,109 @@ function HeaderRight({
       }
     },
   });
-  return (
-    <MenuView
-      onPressAction={async ({ nativeEvent }) => {
-        Haptics.selectionAsync();
-        if (nativeEvent.event === "new") {
-          openNewBookmarkModal();
-        } else if (nativeEvent.event === "library") {
-          try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ["images"],
-              quality: settings.imageQuality,
-              allowsMultipleSelection: false,
-            });
-            if (!result.canceled) {
-              const asset = result.assets[0];
-              if (!asset) {
-                uploadToastIdRef.current = null;
-                return;
-              }
-              uploadToastIdRef.current =
-                sonnerToast.loading("Uploading image...");
-              uploadAsset({
-                type: asset.mimeType ?? "",
-                name: asset.fileName ?? "",
-                uri: asset.uri,
-              });
-            }
-          } catch {
-            sonnerToast.error("Failed to open photo library", {
-              id:
-                uploadToastIdRef.current !== null
-                  ? uploadToastIdRef.current
-                  : undefined,
-            });
+
+  const onPressAction = async ({
+    nativeEvent,
+  }: {
+    nativeEvent: { event: string };
+  }) => {
+    Haptics.selectionAsync();
+    if (nativeEvent.event === "new") {
+      openNewBookmarkModal();
+    } else if (nativeEvent.event === "library") {
+      try {
+        uploadToastIdRef.current = sonnerToast.loading(
+          "Opening photo library...",
+        );
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          quality: settings.imageQuality,
+          allowsMultipleSelection: false,
+        });
+        if (!result.canceled) {
+          const asset = result.assets[0];
+          if (!asset) {
+            sonnerToast.dismiss(uploadToastIdRef.current);
             uploadToastIdRef.current = null;
+            return;
           }
+          sonnerToast.loading("Uploading image...", {
+            id: uploadToastIdRef.current,
+          });
+          uploadAsset({
+            type: asset.mimeType ?? "",
+            name: asset.fileName ?? "",
+            uri: asset.uri,
+          });
+        } else {
+          sonnerToast.dismiss(uploadToastIdRef.current);
+          uploadToastIdRef.current = null;
         }
-      }}
-      actions={[
-        {
-          id: "new",
-          title: "New Bookmark",
-          image: Platform.select({
-            ios: "square.and.pencil",
-          }),
-          imageColor: Platform.select({
-            ios: menuIconColor,
-          }),
-        },
-        {
-          id: "library",
-          title: "Photo Library",
-          image: Platform.select({
-            ios: "photo",
-          }),
-          imageColor: Platform.select({
-            ios: menuIconColor,
-          }),
-        },
-      ]}
-      shouldOpenOnLongPress={false}
-    >
-      <View className="my-auto">
-        <Plus
-          color={colors.foreground}
-          onPress={() => Haptics.selectionAsync()}
-        />
-      </View>
-    </MenuView>
-  );
+      } catch {
+        if (uploadToastIdRef.current !== null) {
+          sonnerToast.error("Failed to open photo library", {
+            id: uploadToastIdRef.current,
+          });
+          uploadToastIdRef.current = null;
+        } else {
+          sonnerToast.error("Failed to open photo library");
+        }
+      }
+    }
+  };
+
+  const actions = [
+    {
+      id: "new",
+      title: "New Bookmark",
+      image: Platform.select({ ios: "square.and.pencil" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+    {
+      id: "library",
+      title: "Photo Library",
+      image: Platform.select({ ios: "photo" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+  ];
+
+  return { onPressAction, actions };
 }
 
 export default function Home() {
+  const [searchActive, setSearchActive] = useState(false);
+  const { onPressAction, actions } = useNewBookmarkActions(() =>
+    router.push("/dashboard/bookmarks/new"),
+  );
+
+  if (Platform.OS === "android" && searchActive) {
+    return <InlineSearch onClose={() => setSearchActive(false)} />;
+  }
+
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <HeaderRight
-              openNewBookmarkModal={() =>
-                router.push("/dashboard/bookmarks/new")
-              }
+      {Platform.OS === "android" && (
+        <AndroidSearchBar
+          label="Search bookmarks..."
+          onPress={() => setSearchActive(true)}
+          rightElement={<ProfileAvatarButton />}
+        />
+      )}
+      <UpdatingBookmarkList query={{ archived: false }} />
+      <FAB>
+        <MenuView
+          onPressAction={onPressAction}
+          actions={actions}
+          shouldOpenOnLongPress={false}
+        >
+          <View className="h-full w-full items-center justify-center">
+            <Plus
+              size={24}
+              color={Platform.OS === "ios" ? PlatformColor("label") : "white"}
             />
-          ),
-        }}
-      />
-      <UpdatingBookmarkList
-        query={{ archived: false }}
-        header={
-          <Pressable
-            className="flex flex-row items-center gap-1 rounded-lg border border-input bg-card px-4 py-1"
-            onPress={() => router.push("/dashboard/search")}
-          >
-            <TailwindResolver
-              className="text-muted"
-              comp={(styles) => (
-                <Search size={16} color={styles?.color?.toString()} />
-              )}
-            />
-            <Text className="flex-1 text-muted" numberOfLines={1}>
-              Search
-            </Text>
-          </Pressable>
-        }
-      />
+          </View>
+        </MenuView>
+      </FAB>
     </>
   );
 }

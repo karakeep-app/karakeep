@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "9112a88e-9091-486b-9cf9-67cc66c0583e",
+  "id": "324628ba-d45a-40f9-8b5b-87fdfaa61837",
   "prevId": "7e3724a4-7348-4f8f-afd3-12bfce51e5f3",
   "tables": {
     "account": {
@@ -153,6 +153,13 @@
         },
         "keyHash": {
           "name": "keyHash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scopes": {
+          "name": "scopes",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -2433,8 +2440,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "listIds": {
-          "name": "listIds",
+        "listId": {
+          "name": "listId",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -2579,8 +2586,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "listIds": {
-          "name": "listIds",
+        "listId": {
+          "name": "listId",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -2624,6 +2631,21 @@
           "columnsFrom": [
             "userId",
             "tagId"
+          ],
+          "columnsTo": [
+            "userId",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ruleEngineRules_userId_listId_fk": {
+          "name": "ruleEngineRules_userId_listId_fk",
+          "tableFrom": "ruleEngineRules",
+          "tableTo": "bookmarkLists",
+          "columnsFrom": [
+            "userId",
+            "listId"
           ],
           "columnsTo": [
             "userId",
@@ -3340,9 +3362,7 @@
   "_meta": {
     "schemas": {},
     "tables": {},
-    "columns": {
-      "\"ruleEngineRules\".\"listId\"": "\"ruleEngineRules\".\"listIds\""
-    }
+    "columns": {}
   },
   "internal": {
     "indexes": {}

@@ -20,6 +20,7 @@ import {
   importSessions,
   importStagingBookmarks,
 } from "@karakeep/db/schema";
+import { addLogFields, withEventLog } from "@karakeep/shared-server";
 import logger, { throttledLogger } from "@karakeep/shared/logger";
 import {
   BookmarkTypes,
@@ -505,13 +506,35 @@ export class ImportWorker {
         );
 
       if (remaining[0]?.count === 0) {
-        logger.info(
-          `[import] Session ${sessionId} completed, all items processed`,
-        );
-        await db
-          .update(importSessions)
-          .set({ status: "completed" })
-          .where(eq(importSessions.id, sessionId));
+        await withEventLog("bookmark.import", async () => {
+          logger.info(
+            `[import] Session ${sessionId} completed, all items processed`,
+          );
+          await db
+            .update(importSessions)
+            .set({ status: "completed" })
+            .where(eq(importSessions.id, sessionId));
+          const session = await db.query.importSessions.findFirst({
+            where: eq(importSessions.id, sessionId),
+            columns: { userId: true, name: true },
+          });
+          const acceptedCount = await db
+            .select({ count: count() })
+            .from(importStagingBookmarks)
+            .where(
+              and(
+                eq(importStagingBookmarks.importSessionId, sessionId),
+                eq(importStagingBookmarks.result, "accepted"),
+              ),
+            );
+          if (session) {
+            addLogFields<"bookmark.import">({
+              "user.id": session.userId,
+              "import.source": session.name,
+              "import.count": acceptedCount[0]?.count ?? 0,
+            });
+          }
+        });
       }
     }
   }

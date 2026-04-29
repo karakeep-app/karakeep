@@ -13,6 +13,8 @@ import {
   unique,
 } from "drizzle-orm/sqlite-core";
 
+import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
+import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 function createdAtField() {
@@ -172,6 +174,10 @@ export const apiKeys = sqliteTable(
     lastUsedAt: integer("lastUsedAt", { mode: "timestamp" }),
     keyId: text("keyId").notNull().unique(),
     keyHash: text("keyHash").notNull(),
+    scopes: text("scopes", { mode: "json" })
+      .$type<ZApiKeyScope[]>()
+      .notNull()
+      .$defaultFn(() => [API_KEY_FULL_ACCESS_SCOPE]),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

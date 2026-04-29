@@ -4,11 +4,12 @@ import path from "path";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
 import { getProxyAgent, validateUrl } from "network";
-import { withWorkerTracing } from "workerTracing";
+import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
 import {
+  addLogFields,
   QuotaService,
   StorageQuotaError,
   VideoWorkerQueue,
@@ -36,7 +37,10 @@ export class VideoWorker {
     return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
-        run: withWorkerTracing("videoWorker.run", runWorker),
+        run: withWorkerTracing(
+          "videoWorker.run",
+          withWorkerEventLog("videoWorker.run", runWorker),
+        ),
         onComplete: async (job) => {
           workerStatsCounter.labels("video", "completed").inc();
           const jobId = job.id;
@@ -92,6 +96,7 @@ function prepareYtDlpArguments(
 async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const jobId = job.id;
   const { bookmarkId } = job.data;
+  addLogFields<"videoWorker.run">({ "bookmark.id": bookmarkId });
 
   const {
     url,

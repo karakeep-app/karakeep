@@ -13,6 +13,7 @@
     "db:studio": "pnpm --filter @karakeep/db studio",
     "workers": "pnpm --filter @karakeep/workers run start",
     "web": "pnpm --filter @karakeep/web run dev",
+    "web:portless": "pnpm --filter @karakeep/web run dev:portless",
     "android": "pnpm --filter @karakeep/mobile android",
     "ios": "pnpm --filter @karakeep/mobile ios",
     "prepare": "husky",

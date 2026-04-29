@@ -6,6 +6,7 @@ import {
   AssetTypes,
   bookmarks,
   passwordResetTokens,
+  subscriptions,
   users,
 } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -926,6 +927,41 @@ describe("User Routes", () => {
         .from(users)
         .where(eq(users.id, user.id));
       expect(deletedUser).toHaveLength(0);
+    });
+
+    test<CustomTestContext>("deleteAccount refuses active Stripe subscription", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "deletepaidaccount@test.com",
+        password: "pass1234",
+        confirmPassword: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      await db.insert(subscriptions).values({
+        userId: user.id,
+        stripeCustomerId: "cus_123",
+        stripeSubscriptionId: "sub_123",
+        status: "active",
+        tier: "paid",
+      });
+
+      await expect(() =>
+        caller.users.deleteAccount({
+          password: "pass1234",
+        }),
+      ).rejects.toThrow(
+        /Can't delete user while subscription is active. Please cancel your subscription first and try again./,
+      );
+
+      const deletedUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id));
+      expect(deletedUser).toHaveLength(1);
     });
 
     test<CustomTestContext>("deleteAccount - wrong password", async ({

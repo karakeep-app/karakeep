@@ -49,6 +49,56 @@ describe("Assets API", () => {
     expect(resp.status).toBe(200);
   });
 
+  it("should require assets:readwrite to upload an asset", async () => {
+    const scopedApiKey = await createTestUser(["assets:read"]);
+    const formData = new FormData();
+    formData.append("file", createTestPdfFile());
+
+    const response = await fetch(`http://localhost:${port}/api/v1/assets`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${scopedApiKey}`,
+      },
+      body: formData,
+    });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("should allow assets:readwrite to retrieve an uploaded asset", async () => {
+    const scopedApiKey = await createTestUser(["assets:readwrite"]);
+    const uploadResponse = await uploadTestAsset(
+      scopedApiKey,
+      port,
+      createTestPdfFile(),
+    );
+
+    const response = await fetch(
+      `http://localhost:${port}/api/v1/assets/${uploadResponse.assetId}`,
+      {
+        headers: {
+          authorization: `Bearer ${scopedApiKey}`,
+        },
+      },
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it("should require an asset scope before retrieving an asset", async () => {
+    const scopedApiKey = await createTestUser(["bookmarks:read"]);
+    const response = await fetch(
+      `http://localhost:${port}/api/v1/assets/asset-id`,
+      {
+        headers: {
+          authorization: `Bearer ${scopedApiKey}`,
+        },
+      },
+    );
+
+    expect(response.status).toBe(403);
+  });
+
   it("should attach an asset to a bookmark", async () => {
     // Create a test file
     const file = createTestPdfFile();
