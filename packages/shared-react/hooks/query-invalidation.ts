@@ -30,6 +30,11 @@ export function scheduleInvalidateQueries(
   debounceMs = DEFAULT_INVALIDATION_DEBOUNCE_MS,
   maxWaitMs = DEFAULT_INVALIDATION_MAX_WAIT_MS,
 ) {
+  if (filters.predicate) {
+    void queryClient.invalidateQueries(filters);
+    return;
+  }
+
   let clientInvalidations = pendingInvalidations.get(queryClient);
   if (!clientInvalidations) {
     clientInvalidations = new Map();
