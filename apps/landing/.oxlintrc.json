@@ -22,6 +22,7 @@
   "ignorePatterns": [
     "**/*.config.js",
     "**/*.config.cjs",
-    "**/.eslintrc.cjs"
+    "**/.eslintrc.cjs",
+    "dist"
   ]
 }
