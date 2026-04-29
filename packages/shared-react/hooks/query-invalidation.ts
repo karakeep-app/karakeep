@@ -30,6 +30,8 @@ export function scheduleInvalidateQueries(
   debounceMs = DEFAULT_INVALIDATION_DEBOUNCE_MS,
   maxWaitMs = DEFAULT_INVALIDATION_MAX_WAIT_MS,
 ) {
+  // Predicate functions are not hashable; run them immediately to avoid
+  // coalescing different predicate filters under the same structural key.
   if (filters.predicate) {
     void queryClient.invalidateQueries(filters);
     return;
