@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Platform, PlatformColor, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import InlineSearch from "@/components/search/InlineSearch";
 import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
@@ -116,14 +116,6 @@ export default function Home() {
 
   return (
     <>
-      <Stack.Screen
-        options={Platform.select({
-          ios: {
-            headerRight: () => <ProfileAvatarButton />,
-          },
-          default: {},
-        })}
-      />
       {Platform.OS === "android" && (
         <AndroidSearchBar
           label="Search bookmarks..."
