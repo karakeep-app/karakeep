@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,8 +46,13 @@ export function RenameTagModal({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: tag.name },
-    values: { name: tag.name },
   });
+
+  useEffect(() => {
+    if (open) {
+      form.reset({ name: tag.name });
+    }
+  }, [open, tag.name, form]);
 
   const { mutate: updateTag, isPending } = useUpdateTag({
     onSuccess: () => {
