@@ -53,7 +53,7 @@ export function TagOptions({
           onClick={() => setRenameTagDialogOpen(true)}
         >
           <Pencil className="size-4" />
-          <span>{t("actions.edit")}</span>
+          <span>{t("actions.rename")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           className="flex gap-2"

@@ -92,6 +92,7 @@
     "add": "Add",
     "remove": "Remove",
     "edit": "Edit",
+    "rename": "Rename",
     "confirm": "Confirm",
     "open_editor": "Open Editor",
     "create": "Create",
@@ -776,6 +777,12 @@
     "favourites": "Favourites",
     "shared": "Shared",
     "shared_lists": "Shared Lists",
+    "items_count": "{{count}} items",
+    "privacy": {
+      "public": "Public",
+      "shared": "Shared",
+      "private": "Private"
+    },
     "new_list": "New List",
     "edit_list": "Edit List",
     "share_list": "Share List",
@@ -862,6 +869,10 @@
     "your_tags": "Your Tags",
     "your_tags_info": "Tags that were attached at least once by you",
     "ai_tags": "AI Tags",
+    "rename_tag": "Rename Tag",
+    "items_count": "{{count}} items",
+    "attached_by_you": "{{count}} by you",
+    "attached_by_ai": "{{count}} by AI",
     "ai_tags_info": "Tags that were only attached automatically (by AI)",
     "unused_tags": "Unused Tags",
     "unused_tags_info": "Tags that are not attached to any bookmarks",
@@ -1032,7 +1043,9 @@
     },
     "tags": {
       "created": "Tag has been created!",
-      "failed_to_create": "Failed to create tag"
+      "failed_to_create": "Failed to create tag",
+      "updated": "Tag has been updated!",
+      "failed_to_update": "Failed to update tag"
     }
   },
   "banners": {

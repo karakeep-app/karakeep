@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { TagOptions } from "@/components/dashboard/tags/TagOptions";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/client";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, Hash, MoreHorizontal, User } from "lucide-react";
 
@@ -15,6 +16,7 @@ export default function TagHeader({
   initialData: ZGetTagResponse;
 }) {
   const api = useTRPC();
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: tag, error } = useQuery(
     api.tags.get.queryOptions({ tagId: initialData.id }, { initialData }),
@@ -38,13 +40,13 @@ export default function TagHeader({
             {tag.name}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-            <span>{tag.numBookmarks} items</span>
+            <span>{t("tags.items_count", { count: tag.numBookmarks })}</span>
             {humanCount > 0 && (
               <>
                 <span aria-hidden>·</span>
                 <span className="flex items-center gap-1">
                   <User className="size-3.5" />
-                  {humanCount} by you
+                  {t("tags.attached_by_you", { count: humanCount })}
                 </span>
               </>
             )}
@@ -53,7 +55,7 @@ export default function TagHeader({
                 <span aria-hidden>·</span>
                 <span className="flex items-center gap-1">
                   <Bot className="size-3.5" />
-                  {aiCount} by AI
+                  {t("tags.attached_by_ai", { count: aiCount })}
                 </span>
               </>
             )}

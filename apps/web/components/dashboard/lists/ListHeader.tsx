@@ -73,10 +73,10 @@ export default function ListHeader({
   }
 
   const privacy = list.public
-    ? { Icon: Globe, label: "Public" }
+    ? { Icon: Globe, label: t("lists.privacy.public") }
     : list.hasCollaborators
-      ? { Icon: Users, label: "Shared" }
-      : { Icon: Lock, label: "Private" };
+      ? { Icon: Users, label: t("lists.privacy.shared") }
+      : { Icon: Lock, label: t("lists.privacy.private") };
   const PrivacyIcon = privacy.Icon;
 
   return (
@@ -95,7 +95,7 @@ export default function ListHeader({
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             {itemCount !== undefined && (
               <>
-                <span>{itemCount} items</span>
+                <span>{t("lists.items_count", { count: itemCount })}</span>
                 <span aria-hidden>·</span>
               </>
             )}

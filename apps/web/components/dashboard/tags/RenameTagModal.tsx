@@ -50,7 +50,7 @@ export function RenameTagModal({
 
   const { mutate: updateTag, isPending } = useUpdateTag({
     onSuccess: () => {
-      toast({ description: "Tag updated!" });
+      toast({ description: t("toasts.tags.updated") });
       setOpen(false);
     },
     onError: (e) => {
@@ -76,7 +76,7 @@ export function RenameTagModal({
             })}
           >
             <DialogHeader>
-              <DialogTitle>{t("actions.edit")}</DialogTitle>
+              <DialogTitle>{t("tags.rename_tag")}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <FormField
