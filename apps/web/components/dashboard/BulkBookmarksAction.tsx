@@ -41,10 +41,15 @@ const MAX_CONCURRENT_BULK_ACTIONS = 50;
 export default function BulkBookmarksAction() {
   const { t } = useTranslation();
   const {
-    selectedBookmarks,
+    selectedBookmarkIds,
+    visibleBookmarks,
     isBulkEditEnabled,
     listContext: withinListContext,
   } = useBulkActionsStore();
+  const selectedBookmarks = React.useMemo(() => {
+    const selected = new Set(selectedBookmarkIds);
+    return visibleBookmarks.filter((bookmark) => selected.has(bookmark.id));
+  }, [selectedBookmarkIds, visibleBookmarks]);
   const setIsBulkEditEnabled = useBulkActionsStore(
     (state) => state.setIsBulkEditEnabled,
   );
