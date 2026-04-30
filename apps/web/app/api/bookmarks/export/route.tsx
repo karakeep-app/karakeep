@@ -47,41 +47,41 @@ export async function GET(request: NextRequest) {
     bookmarks = [...bookmarks, ...resp.bookmarks];
   }
 
+  // Fetch lists and bookmark-to-list memberships (used by both JSON and Netscape)
+  const listsResp = await caller.lists.list();
+  const ownedLists = listsResp.lists.filter((l) => l.userRole === "owner");
+
+  const manualLists = ownedLists.filter((l) => l.type === "manual");
+  const manualListIds = manualLists.map((l) => l.id);
+
+  let memberships: { bookmarkId: string; listId: string }[] = [];
+  if (manualListIds.length > 0) {
+    memberships = await db
+      .select({
+        bookmarkId: bookmarksInLists.bookmarkId,
+        listId: bookmarksInLists.listId,
+      })
+      .from(bookmarksInLists)
+      .innerJoin(
+        bookmarksTable,
+        eq(bookmarksTable.id, bookmarksInLists.bookmarkId),
+      )
+      .where(
+        and(
+          inArray(bookmarksInLists.listId, manualListIds),
+          eq(bookmarksTable.userId, ctx.user.id),
+        ),
+      );
+  }
+
+  const bookmarkListMap = new Map<string, string[]>();
+  for (const m of memberships) {
+    const existing = bookmarkListMap.get(m.bookmarkId) ?? [];
+    existing.push(m.listId);
+    bookmarkListMap.set(m.bookmarkId, existing);
+  }
+
   if (format === "json") {
-    // Fetch lists and bookmark-to-list memberships
-    const listsResp = await caller.lists.list();
-    const ownedLists = listsResp.lists.filter((l) => l.userRole === "owner");
-
-    const manualLists = ownedLists.filter((l) => l.type === "manual");
-    const manualListIds = manualLists.map((l) => l.id);
-
-    let memberships: { bookmarkId: string; listId: string }[] = [];
-    if (manualListIds.length > 0) {
-      memberships = await db
-        .select({
-          bookmarkId: bookmarksInLists.bookmarkId,
-          listId: bookmarksInLists.listId,
-        })
-        .from(bookmarksInLists)
-        .innerJoin(
-          bookmarksTable,
-          eq(bookmarksTable.id, bookmarksInLists.bookmarkId),
-        )
-        .where(
-          and(
-            inArray(bookmarksInLists.listId, manualListIds),
-            eq(bookmarksTable.userId, ctx.user.id),
-          ),
-        );
-    }
-
-    const bookmarkListMap = new Map<string, string[]>();
-    for (const m of memberships) {
-      const existing = bookmarkListMap.get(m.bookmarkId) ?? [];
-      existing.push(m.listId);
-      bookmarkListMap.set(m.bookmarkId, existing);
-    }
-
     const exportData: z.infer<typeof zExportSchema> = {
       bookmarks: bookmarks
         .map((b) => toExportFormat(b, bookmarkListMap.get(b.id) ?? []))
@@ -98,7 +98,11 @@ export async function GET(request: NextRequest) {
     });
   } else if (format === "netscape") {
     // Netscape format
-    const netscapeContent = toNetscapeFormat(bookmarks);
+    const netscapeContent = toNetscapeFormat(
+      bookmarks,
+      manualLists.map(toExportListFormat),
+      bookmarkListMap,
+    );
 
     return new Response(netscapeContent, {
       status: 200,
