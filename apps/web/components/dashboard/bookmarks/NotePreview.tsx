@@ -36,7 +36,7 @@ export function NotePreview({ note, bookmarkId, className }: NotePreviewProps) {
           )}
         >
           <NotepadText className="size-5 shrink-0" />
-          <div className="line-clamp-2 min-w-0 flex-1 overflow-hidden text-wrap break-words">
+          <div className="line-clamp-1 min-w-0 flex-1 overflow-hidden truncate">
             {note}
           </div>
         </div>
