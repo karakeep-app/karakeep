@@ -36,9 +36,7 @@ export function NotePreview({ note, bookmarkId, className }: NotePreviewProps) {
           )}
         >
           <NotepadText className="size-5 shrink-0" />
-          <div className="min-w-0 flex-1 truncate">
-            {note}
-          </div>
+          <div className="min-w-0 flex-1 truncate">{note}</div>
         </div>
       </PopoverTrigger>
       <PopoverContent className="w-96 max-w-[calc(100vw-2rem)]" align="start">
