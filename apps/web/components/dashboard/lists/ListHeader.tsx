@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTranslation } from "@/lib/i18n/client";
-import { useQuery } from "@tanstack/react-query";
-import { MoreHorizontal, SearchIcon } from "lucide-react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Globe, Lock, MoreHorizontal, Sparkles, Users } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
@@ -51,6 +51,13 @@ export default function ListHeader({
     ),
   );
 
+  const { data: statsData } = useQuery(
+    api.lists.stats.queryOptions(undefined, {
+      placeholderData: keepPreviousData,
+    }),
+  );
+  const itemCount = statsData?.stats.get(list.id);
+
   const parsedQuery = useMemo(() => {
     if (!list.query) {
       return null;
@@ -65,65 +72,94 @@ export default function ListHeader({
     }
   }
 
+  const privacy = list.public
+    ? { Icon: Globe, label: "Public" }
+    : list.hasCollaborators
+      ? { Icon: Users, label: "Shared" }
+      : { Icon: Lock, label: "Private" };
+  const PrivacyIcon = privacy.Icon;
+
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <span className="text-2xl">
-          {list.icon} {list.name}
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex min-w-0 flex-1 items-start gap-4">
+        <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-muted text-4xl">
+          {list.icon}
         </span>
-        {list.hasCollaborators && collaboratorsData && (
-          <div className="group flex">
-            {collaboratorsData.owner && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
-                    <UserAvatar
-                      name={collaboratorsData.owner.name}
-                      image={collaboratorsData.owner.image}
-                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{collaboratorsData.owner.name}</p>
-                </TooltipContent>
-              </Tooltip>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-2xl font-semibold leading-tight">
+            {list.name}
+          </h1>
+          {list.description && (
+            <p className="mt-1 text-muted-foreground">{list.description}</p>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            {itemCount !== undefined && (
+              <>
+                <span>{itemCount} items</span>
+                <span aria-hidden>·</span>
+              </>
             )}
-            {collaboratorsData.collaborators.map((collab) => (
-              <Tooltip key={collab.userId}>
-                <TooltipTrigger>
-                  <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
-                    <UserAvatar
-                      name={collab.user.name}
-                      image={collab.user.image}
-                      className="size-5 shrink-0 rounded-full ring-2 ring-background"
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{collab.user.name}</p>
-                </TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-        )}
-        {list.description && (
-          <span className="text-lg text-gray-400">{`(${list.description})`}</span>
-        )}
-      </div>
-      <div className="flex items-center">
-        {parsedQuery && (
-          <QueryExplainerTooltip
-            header={
-              <div className="flex items-center justify-center gap-1">
-                <SearchIcon className="size-3" />
-                <span className="text-sm">{t("lists.smart_list")}</span>
+            <span className="flex items-center gap-1">
+              <PrivacyIcon className="size-3.5" />
+              {privacy.label}
+            </span>
+            {parsedQuery && (
+              <>
+                <span aria-hidden>·</span>
+                <QueryExplainerTooltip
+                  parsedSearchQuery={parsedQuery}
+                  trigger={
+                    <button
+                      type="button"
+                      className="inline-flex cursor-help items-center gap-1 transition-colors hover:text-foreground"
+                    >
+                      <Sparkles className="size-3.5" />
+                      {t("lists.smart_list")}
+                    </button>
+                  }
+                />
+              </>
+            )}
+            {list.hasCollaborators && collaboratorsData && (
+              <div className="group flex items-center">
+                {collaboratorsData.owner && (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                        <UserAvatar
+                          name={collaboratorsData.owner.name}
+                          image={collaboratorsData.owner.image}
+                          className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{collaboratorsData.owner.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {collaboratorsData.collaborators.map((collab) => (
+                  <Tooltip key={collab.userId}>
+                    <TooltipTrigger>
+                      <div className="-mr-2 transition-all duration-300 ease-out group-hover:mr-1">
+                        <UserAvatar
+                          name={collab.user.name}
+                          image={collab.user.image}
+                          className="size-5 shrink-0 rounded-full ring-2 ring-background"
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{collab.user.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
               </div>
-            }
-            parsedSearchQuery={parsedQuery}
-            className="size-6 stroke-foreground"
-          />
-        )}
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center">
         <ListOptions list={list}>
           <Button variant="ghost">
             <MoreHorizontal />
