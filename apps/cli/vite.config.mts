@@ -13,7 +13,7 @@ export default defineConfig({
         entryFileNames: "index.mjs",
         banner: "#!/usr/bin/env node",
       },
-      external: ["node:fs", "node:path", "node:url", "node:process"],
+      external: ["node:fs", "node:os", "node:path", "node:url", "node:process"],
     },
     ssr: true,
     target: "node18",

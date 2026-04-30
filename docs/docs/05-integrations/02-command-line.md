@@ -34,10 +34,12 @@ A CLI interface to interact with the karakeep api
 Options:
   --api-key <key>       the API key to interact with the API (env: KARAKEEP_API_KEY)
   --server-addr <addr>  the address of the server to connect to (env: KARAKEEP_SERVER_ADDR)
+  --json                to output the result as JSON
   -V, --version         output the version number
   -h, --help            display help for command
 
 Commands:
+  auth                  authentication commands
   bookmarks             manipulating bookmarks
   lists                 manipulating lists
   tags                  manipulating tags
@@ -106,6 +108,28 @@ karakeep --api-key mysupersecretkey --server-addr https://try.karakeep.app whoam
   name: 'Test User',
   email: 'test@gmail.com'
 }
+```
+
+You can also store the server address and API key in
+`$XDG_CONFIG_HOME/karakeep/config.json`. If `XDG_CONFIG_HOME` is not set, the
+CLI reads `~/.config/karakeep/config.json`.
+
+```json
+{
+  "serverAddr": "https://try.karakeep.app",
+  "apiKey": "mysupersecretkey"
+}
+```
+
+Command-line options take precedence over environment variables, and
+environment variables take precedence over the config file.
+If no server address is provided, the CLI defaults to
+`https://cloud.karakeep.app`.
+
+To create or update this file interactively, run:
+
+```bash
+karakeep auth init
 ```
 
 
