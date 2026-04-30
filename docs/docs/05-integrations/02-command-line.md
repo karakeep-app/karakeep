@@ -128,7 +128,7 @@ If no server address is provided, the CLI defaults to
 
 To create or update this file interactively, run:
 
-```
+```bash
 karakeep auth init
 ```
 

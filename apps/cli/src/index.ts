@@ -32,6 +32,17 @@ function resolveGlobalOptions(opts: RawGlobalOptions) {
   };
 }
 
+function isAuthCommand(command: { name(): string; parent?: unknown }) {
+  let current: { name(): string; parent?: unknown } | undefined = command;
+  while (current) {
+    if (current.name() === "auth") {
+      return true;
+    }
+    current = current.parent as typeof current;
+  }
+  return false;
+}
+
 const program = new Command()
   .name("karakeep")
   .description("A CLI interface to interact with the karakeep api")
@@ -65,7 +76,7 @@ program.addCommand(wipeCmd);
 program.addCommand(dumpCmd);
 
 program.hook("preAction", (_thisCommand, actionCommand) => {
-  if (actionCommand.parent?.name() === "auth") {
+  if (isAuthCommand(actionCommand)) {
     return;
   }
 

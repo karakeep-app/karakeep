@@ -20,6 +20,17 @@ async function pathExists(filePath: string) {
   }
 }
 
+async function loadExistingConfig(opts: AuthInitOptions) {
+  try {
+    return loadConfigFile();
+  } catch (error) {
+    if (opts.force) {
+      return {};
+    }
+    throw error;
+  }
+}
+
 async function promptForValue(
   rl: readline.Interface,
   prompt: string,
@@ -60,10 +71,16 @@ authCmd
     const configPath = getConfigPath();
 
     try {
-      const existingConfig = loadConfigFile();
+      const existingConfig = await loadExistingConfig(opts);
       const existingAuth = normalizeConfig(existingConfig);
 
       if ((await pathExists(configPath)) && !opts.force) {
+        if (!input.isTTY) {
+          throw new Error(
+            `Config file already exists at ${configPath}. Re-run with --force to overwrite it.`,
+          );
+        }
+
         const rl = readline.createInterface({ input, output });
         const answer = (
           await rl.question(
