@@ -116,15 +116,15 @@ function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
 }
 
 function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
-  const { selectedBookmarks, isBulkEditEnabled } = useBulkActionsStore();
+  const { selectedBookmarkIds, isBulkEditEnabled } = useBulkActionsStore();
   const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
   const [isSelected, setIsSelected] = useState(false);
   const { theme } = useTheme();
   const { data: session } = useSession();
 
   useEffect(() => {
-    setIsSelected(selectedBookmarks.some((item) => item.id === bookmark.id));
-  }, [selectedBookmarks]);
+    setIsSelected(selectedBookmarkIds.includes(bookmark.id));
+  }, [bookmark.id, selectedBookmarkIds]);
 
   // Don't show selector for non-owned bookmarks or when bulk edit is disabled
   const isOwner = session?.user?.id === bookmark.userId;
@@ -153,7 +153,7 @@ function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
         },
         theme === "dark" ? "bg-white" : "bg-black",
       )}
-      onClick={() => toggleBookmark(bookmark)}
+      onClick={() => toggleBookmark(bookmark.id)}
     >
       <div className="absolute right-2 top-2 z-50 opacity-100">
         <div

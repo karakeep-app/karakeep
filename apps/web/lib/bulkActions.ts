@@ -5,11 +5,11 @@ import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 interface BookmarkState {
-  selectedBookmarks: ZBookmark[];
+  selectedBookmarkIds: string[];
   visibleBookmarks: ZBookmark[];
   isBulkEditEnabled: boolean;
   setIsBulkEditEnabled: (isEnabled: boolean) => void;
-  toggleBookmark: (bookmark: ZBookmark) => void;
+  toggleBookmark: (bookmarkId: string) => void;
   setVisibleBookmarks: (visibleBookmarks: ZBookmark[]) => void;
   selectAll: () => void;
   unSelectAll: () => void;
@@ -19,41 +19,39 @@ interface BookmarkState {
 }
 
 const useBulkActionsStore = create<BookmarkState>((set, get) => ({
-  selectedBookmarks: [],
+  selectedBookmarkIds: [],
   visibleBookmarks: [],
   isBulkEditEnabled: false,
   listContext: undefined,
 
-  toggleBookmark: (bookmark: ZBookmark) => {
-    const selectedBookmarks = get().selectedBookmarks;
-    const isBookmarkAlreadySelected = selectedBookmarks.some(
-      (b) => b.id === bookmark.id,
-    );
+  toggleBookmark: (bookmarkId: string) => {
+    const selectedBookmarkIds = get().selectedBookmarkIds;
+    const isBookmarkAlreadySelected = selectedBookmarkIds.includes(bookmarkId);
     if (isBookmarkAlreadySelected) {
       set({
-        selectedBookmarks: selectedBookmarks.filter(
-          (b) => b.id !== bookmark.id,
+        selectedBookmarkIds: selectedBookmarkIds.filter(
+          (id) => id !== bookmarkId,
         ),
       });
     } else {
-      set({ selectedBookmarks: [...selectedBookmarks, bookmark] });
+      set({ selectedBookmarkIds: [...selectedBookmarkIds, bookmarkId] });
     }
   },
 
   selectAll: () => {
-    set({ selectedBookmarks: get().visibleBookmarks });
+    set({ selectedBookmarkIds: get().visibleBookmarks.map((b) => b.id) });
   },
   unSelectAll: () => {
-    set({ selectedBookmarks: [] });
+    set({ selectedBookmarkIds: [] });
   },
 
   isEverythingSelected: () => {
-    return get().selectedBookmarks.length === get().visibleBookmarks.length;
+    return get().selectedBookmarkIds.length === get().visibleBookmarks.length;
   },
 
   setIsBulkEditEnabled: (isEnabled) => {
     set({ isBulkEditEnabled: isEnabled });
-    set({ selectedBookmarks: [] });
+    set({ selectedBookmarkIds: [] });
   },
 
   setVisibleBookmarks: (visibleBookmarks: ZBookmark[]) => {

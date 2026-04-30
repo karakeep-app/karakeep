@@ -1,13 +1,18 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import KeyboardShortcutsDialog from "@/components/dashboard/KeyboardShortcutsDialog";
 import NoBookmarksBanner from "@/components/dashboard/bookmarks/NoBookmarksBanner";
 import { ActionButton } from "@/components/ui/action-button";
+import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import useBulkActionsStore from "@/lib/bulkActions";
+import { useBookmarkKeyboardNavigation } from "@/lib/hooks/useBookmarkKeyboardNavigation";
+import { useTranslation } from "@/lib/i18n/client";
 import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
 import {
   bookmarkLayoutSwitch,
   useBookmarkLayout,
   useGridColumns,
 } from "@/lib/userLocalSettings/bookmarksLayout";
+import { cn } from "@/lib/utils";
 import tailwindConfig from "@/tailwind.config";
 import { Slot } from "@radix-ui/react-slot";
 import { ErrorBoundary } from "react-error-boundary";
@@ -48,6 +53,43 @@ function getBreakpointConfig(userColumns: number) {
   return breakpointColumnsObj;
 }
 
+function getColumnsForViewport(userColumns: number, viewportWidth: number) {
+  const fullConfig = resolveConfig(tailwindConfig);
+  const screens = fullConfig.theme.screens;
+  const lg = parseInt(screens.lg);
+  const md = parseInt(screens.md);
+  const sm = parseInt(screens.sm);
+
+  if (viewportWidth <= sm) {
+    return 1;
+  }
+  if (viewportWidth <= md) {
+    return Math.max(1, Math.min(userColumns, 2));
+  }
+  if (viewportWidth <= lg) {
+    return Math.max(1, userColumns - 1);
+  }
+  return userColumns;
+}
+
+function useActiveGridColumns(userColumns: number) {
+  const [activeColumns, setActiveColumns] = useState(userColumns);
+
+  useEffect(() => {
+    const updateActiveColumns = () => {
+      setActiveColumns(getColumnsForViewport(userColumns, window.innerWidth));
+    };
+
+    updateActiveColumns();
+    window.addEventListener("resize", updateActiveColumns);
+    return () => {
+      window.removeEventListener("resize", updateActiveColumns);
+    };
+  }, [userColumns]);
+
+  return activeColumns;
+}
+
 export default function BookmarksGrid({
   bookmarks,
   hasNextPage = false,
@@ -61,8 +103,10 @@ export default function BookmarksGrid({
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
 }) {
+  const { t } = useTranslation();
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
+  const activeGridColumns = useActiveGridColumns(gridColumns);
   const bulkActionsStore = useBulkActionsStore();
   const inBookmarkGrid = useInBookmarkGridStore();
   const withinListContext = useBookmarkListContext();
@@ -71,6 +115,28 @@ export default function BookmarksGrid({
     [gridColumns],
   );
   const { ref: loadMoreRef, inView: loadMoreButtonInView } = useInView();
+
+  // For list/compact layouts, navigation is single-column
+  const isListLayout = layout === "list" || layout === "compact";
+  const navColumns = isListLayout ? 1 : activeGridColumns;
+
+  const {
+    focusedIndex,
+    isNavigating,
+    helpDialogOpen,
+    setHelpDialogOpen,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    isBulkDelete,
+    deleteCount,
+    confirmDelete,
+    isDeletePending,
+  } = useBookmarkKeyboardNavigation({
+    bookmarks,
+    columns: navColumns,
+    hasNextPage,
+    fetchNextPage,
+  });
 
   useEffect(() => {
     bulkActionsStore.setVisibleBookmarks(bookmarks);
@@ -105,11 +171,21 @@ export default function BookmarksGrid({
         <EditorCard />
       </StyledBookmarkCard>
     ),
-    ...bookmarks.map((b) => (
+    ...bookmarks.map((b, i) => (
       <ErrorBoundary key={b.id} fallback={<UnknownCard bookmark={b} />}>
-        <StyledBookmarkCard>
-          <BookmarkCard bookmark={b} />
-        </StyledBookmarkCard>
+        <div
+          data-bookmark-index={i}
+          className={cn(
+            "rounded-lg",
+            isNavigating &&
+              focusedIndex === i &&
+              "ring-2 ring-primary ring-offset-2 ring-offset-background",
+          )}
+        >
+          <StyledBookmarkCard>
+            <BookmarkCard bookmark={b} />
+          </StyledBookmarkCard>
+        </div>
       </ErrorBoundary>
     )),
   ];
@@ -150,6 +226,34 @@ export default function BookmarksGrid({
           </ActionButton>
         </div>
       )}
+
+      <KeyboardShortcutsDialog
+        open={helpDialogOpen}
+        setOpen={setHelpDialogOpen}
+      />
+
+      <ActionConfirmingDialog
+        open={deleteDialogOpen}
+        setOpen={setDeleteDialogOpen}
+        title={t("dialogs.bookmarks.delete_confirmation_title")}
+        description={
+          isBulkDelete
+            ? t("dialogs.bookmarks.bulk_delete_confirmation_description", {
+                count: deleteCount,
+              })
+            : t("dialogs.bookmarks.delete_confirmation_description")
+        }
+        actionButton={() => (
+          <ActionButton
+            type="button"
+            variant="destructive"
+            loading={isDeletePending}
+            onClick={confirmDelete}
+          >
+            {t("actions.delete")}
+          </ActionButton>
+        )}
+      />
     </>
   );
 }
