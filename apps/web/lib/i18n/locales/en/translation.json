@@ -84,6 +84,7 @@
     "select_all": "Select All",
     "unselect_all": "Unselect All",
     "copy_link": "Copy Link",
+    "open_links": "Open Links",
     "close_bulk_edit": "Close Bulk Edit",
     "bulk_edit": "Bulk Edit",
     "manage_lists": "Manage Lists",
@@ -1033,7 +1034,13 @@
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!",
       "update_banner": "Banner has been updated!",
-      "uploading_banner": "Uploading banner..."
+      "uploading_banner": "Uploading banner...",
+      "no_links_selected": "No links selected",
+      "too_many_links": "Cannot open more than {{max}} links at once. You selected {{count}}.",
+      "links_opened": "Opened {{count}} links in new tabs.",
+      "links_opened_blocked": "Opened {{opened}} links. {{blocked}} were blocked by popup blocker.",
+      "links_opened_skipped": "Opened {{opened}} links. {{skipped}} had invalid or unsupported URLs.",
+      "links_opened_blocked_skipped": "Opened {{opened}} links. {{blocked}} were blocked by popup blocker. {{skipped}} had invalid or unsupported URLs."
     },
     "lists": {
       "created": "List has been created!",
