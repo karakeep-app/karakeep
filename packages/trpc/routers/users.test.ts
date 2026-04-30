@@ -15,6 +15,11 @@ import type { CustomTestContext } from "../testUtils";
 import * as emailModule from "../email";
 import { defaultBeforeEach, getApiCaller } from "../testUtils";
 
+const authConfigOverrides = {
+  emailVerificationRequired: true,
+  disablePasswordAuth: false,
+};
+
 // Mock server config with email settings
 vi.mock("@karakeep/shared/config", async (original) => {
   const mod = (await original()) as typeof import("@karakeep/shared/config");
@@ -24,7 +29,12 @@ vi.mock("@karakeep/shared/config", async (original) => {
       ...mod.default,
       auth: {
         ...mod.default.auth,
-        emailVerificationRequired: true,
+        get emailVerificationRequired() {
+          return authConfigOverrides.emailVerificationRequired;
+        },
+        get disablePasswordAuth() {
+          return authConfigOverrides.disablePasswordAuth;
+        },
       },
       email: {
         smtp: {
@@ -875,6 +885,35 @@ describe("User Routes", () => {
           newPassword: "newpass456",
         }),
       ).rejects.toThrow();
+    });
+
+    test<CustomTestContext>("changePassword - disabled when password auth is disabled", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "disabledpass@test.com",
+        password: "oldpass123",
+        confirmPassword: "oldpass123",
+      });
+
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      authConfigOverrides.disablePasswordAuth = true;
+
+      try {
+        await expect(() =>
+          caller.users.changePassword({
+            currentPassword: "oldpass123",
+            newPassword: "newpass456",
+          }),
+        ).rejects.toThrow(
+          /Password authentication is disabled in server config/,
+        );
+      } finally {
+        authConfigOverrides.disablePasswordAuth = false;
+      }
     });
 
     test<CustomTestContext>("changePassword - OAuth user (no password)", async ({
