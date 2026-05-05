@@ -29,6 +29,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/slider": "^5.1.2",
     "@react-native-menu/menu": "^2.0.0",
+    "@react-navigation/elements": "^2.9.5",
     "@react-navigation/native": "^7.1.8",
     "@rn-primitives/hooks": "^1.3.0",
     "@rn-primitives/slot": "^1.2.0",

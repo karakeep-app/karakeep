@@ -332,6 +332,9 @@ importers:
       '@react-native-menu/menu':
         specifier: ^2.0.0
         version: 2.0.0(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
+      '@react-navigation/elements':
+        specifier: ^2.9.5
+        version: 2.9.5(@react-navigation/native@7.1.28(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native-safe-area-context@5.6.2(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3))(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
       '@react-navigation/native':
         specifier: ^7.1.8
         version: 7.1.28(react-native@0.81.5(@babel/core@7.26.0)(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
@@ -819,7 +822,7 @@ importers:
         version: 3.4.1
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.3)(happy-dom@20.3.9)(jiti@2.4.2)(jsdom@27.4.0(@noble/hashes@1.8.0))(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)
@@ -1360,7 +1363,7 @@ importers:
         version: 6.4.17
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
+        version: 6.1.1(typescript@5.9.3)(vite@7.0.6(@types/node@24.10.3)(jiti@2.4.2)(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3))
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.10.3)(happy-dom@20.3.9)(jiti@2.4.2)(jsdom@27.4.0(@noble/hashes@1.8.0))(lightningcss@1.30.1)(sass@1.89.1)(terser@5.41.0)(tsx@4.21.0)(yaml@2.8.3)
@@ -7692,8 +7695,8 @@ packages:
   ajv@8.13.0:
     resolution: {integrity: sha512-PRA911Blj99jR5RMeTunVbNXMF6Lp4vZXnk5GQjcnUWUTsrXtekg/pnmFFI2u/I36Y/2bITGS30GZCXei6uNkA==}
 
-  ajv@8.18.0:
-    resolution: {integrity: sha512-PlXPeEWMXMZ7sPYOHqmDyCJzcfNrUr3fGNKtezX14ykXOEIvyK81d+qydx89KY5O71FKMPaQ2vBfBFI5NHR63A==}
+  ajv@8.20.0:
+    resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
 
   ajv@8.20.0:
     resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
@@ -21808,8 +21811,8 @@ snapshots:
   '@modelcontextprotocol/sdk@1.29.0(zod@4.3.6)':
     dependencies:
       '@hono/node-server': 1.19.11(hono@4.12.8)
-      ajv: 8.18.0
-      ajv-formats: 3.0.1(ajv@8.18.0)
+      ajv: 8.20.0
+      ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
@@ -25024,9 +25027,9 @@ snapshots:
     optionalDependencies:
       ajv: 8.13.0
 
-  ajv-formats@3.0.1(ajv@8.18.0):
+  ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
-      ajv: 8.18.0
+      ajv: 8.20.0
 
   ajv-keywords@3.5.2(ajv@6.12.6):
     dependencies:
@@ -25065,7 +25068,7 @@ snapshots:
       require-from-string: 2.0.2
       uri-js: 4.4.1
 
-  ajv@8.18.0:
+  ajv@8.20.0:
     dependencies:
       fast-deep-equal: 3.1.3
       fast-uri: 3.0.6
@@ -30435,8 +30438,8 @@ snapshots:
   metro-transform-plugins@0.82.5:
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/generator': 7.28.5
-      '@babel/template': 7.27.2
+      '@babel/generator': 7.29.1
+      '@babel/template': 7.28.6
       '@babel/traverse': 7.29.0
       flow-enums-runtime: 0.0.6
       nullthrows: 1.1.1
@@ -30457,7 +30460,7 @@ snapshots:
   metro-transform-worker@0.82.5:
     dependencies:
       '@babel/core': 7.26.0
-      '@babel/generator': 7.28.5
+      '@babel/generator': 7.29.1
       '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
       flow-enums-runtime: 0.0.6
@@ -34981,7 +34984,7 @@ snapshots:
 
   table@6.9.0:
     dependencies:
-      ajv: 8.11.0
+      ajv: 8.20.0
       lodash.truncate: 4.4.2
       slice-ansi: 4.0.0
       string-width: 4.2.3

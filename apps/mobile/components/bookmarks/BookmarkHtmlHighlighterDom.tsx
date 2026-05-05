@@ -5,6 +5,7 @@ import "@/globals.css";
 import type { Highlight } from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
+import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 
 export default function BookmarkHtmlHighlighterDom({
   htmlContent,
@@ -19,6 +20,9 @@ export default function BookmarkHtmlHighlighterDom({
   restoreReadingPosition,
   onSavePosition,
   onScrollPositionChange,
+  onScrollOffsetChange,
+  showProgressBar = true,
+  progressBarTop = 0,
 }: {
   htmlContent: string;
   contentStyle?: React.CSSProperties;
@@ -30,28 +34,33 @@ export default function BookmarkHtmlHighlighterDom({
   readingProgressOffset?: number | null;
   readingProgressAnchor?: string | null;
   restoreReadingPosition?: boolean;
-  onSavePosition?: (position: {
-    offset: number;
-    anchor: string;
-    percent: number;
-  }) => void;
-  onScrollPositionChange?: (position: {
-    offset: number;
-    anchor: string;
-    percent: number;
-  }) => void;
+  onSavePosition?: (position: ReadingPosition) => void;
+  onScrollPositionChange?: (position: ReadingPosition) => void;
+  onScrollOffsetChange?: (scrollTop: number) => void;
+  showProgressBar?: boolean;
+  progressBarTop?: number;
   dom?: import("expo/dom").DOMProps;
 }) {
+  const bgColor = contentStyle?.background ?? contentStyle?.backgroundColor;
+
   return (
-    <div style={{ maxWidth: "100vw", overflowX: "hidden" }}>
+    <div
+      style={{
+        maxWidth: "100vw",
+        overflowX: "clip",
+        minHeight: "100vh",
+        background: bgColor,
+      }}
+    >
       <ScrollProgressTracker
         onSavePosition={onSavePosition}
         onScrollPositionChange={onScrollPositionChange}
+        onScrollOffsetChange={onScrollOffsetChange}
         restorePosition={restoreReadingPosition}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
-        showProgressBar
-        progressBarStyle={{ position: "fixed" }}
+        showProgressBar={showProgressBar}
+        progressBarStyle={{ position: "fixed", top: progressBarTop }}
       >
         <BookmarkHTMLHighlighter
           htmlContent={htmlContent}

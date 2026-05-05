@@ -5,7 +5,10 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  initialWindowMetrics,
+  SafeAreaProvider,
+} from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
@@ -46,7 +49,7 @@ export default Sentry.wrap(function RootLayout() {
   }, [hasShareIntent]);
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider
         statusBarTranslucent={Platform.OS !== "android" ? true : undefined}
         navigationBarTranslucent={Platform.OS !== "android" ? true : undefined}

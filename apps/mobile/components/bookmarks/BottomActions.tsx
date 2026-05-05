@@ -8,9 +8,10 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { useToast } from "@/components/ui/Toast";
-import { shouldUseGlassPill } from "@/lib/ios";
+import { NAV_BAR_HEIGHT, shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { shareBookmark } from "@/lib/shareBookmark";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuAction, MenuView } from "@react-native-menu/menu";
 import {
@@ -296,6 +297,8 @@ function ToolbarContainer({
   bottomMargin: number;
   bottomInset: number;
 }) {
+  const { colors } = useColorScheme();
+
   if (shouldUseGlassPill) {
     return (
       <GlassView
@@ -316,26 +319,33 @@ function ToolbarContainer({
     );
   }
 
-  const fallbackStyle = {
+  // Inner row sized to the header height so the toolbar's visible content
+  // matches the header bar. The bottom safe-area inset is added as overflow
+  // on the outer chrome view so the background bleeds into the gesture-bar
+  // region rather than enlarging the content row.
+  const innerRow = {
     flexDirection: "row" as const,
     alignItems: "center" as const,
     justifyContent: "space-between" as const,
     paddingHorizontal: 40,
-    paddingTop: 16,
-    paddingBottom: bottomInset + 16,
+    height: NAV_BAR_HEIGHT,
   };
 
   if (Platform.OS === "ios") {
     return (
-      <BlurView tint="systemMaterial" intensity={80} style={fallbackStyle}>
-        {children}
+      <BlurView
+        tint="systemMaterial"
+        intensity={80}
+        style={{ paddingBottom: bottomInset }}
+      >
+        <View style={innerRow}>{children}</View>
       </BlurView>
     );
   }
 
   return (
-    <View className="bg-background" style={fallbackStyle}>
-      {children}
+    <View style={{ paddingBottom: bottomInset, backgroundColor: colors.card }}>
+      <View style={innerRow}>{children}</View>
     </View>
   );
 }

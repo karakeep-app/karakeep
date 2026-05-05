@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -183,6 +184,13 @@ const BookmarkHTMLHighlighter = forwardRef<
       typeof window !== "undefined" &&
       window.matchMedia("(pointer: coarse)").matches,
   )[0];
+
+  // Stable reference so React's prop-equality check skips the DOM
+  // `innerHTML` write when htmlContent is unchanged. A fresh `{ __html }`
+  // literal causes React to re-run `innerHTML =`, which tears down and
+  // re-parses every child (including <img> elements) — visible as a
+  // scroll jump when images are above the viewport.
+  const innerHtml = useMemo(() => ({ __html: htmlContent }), [htmlContent]);
 
   // Apply existing highlights when component mounts or highlights change
   useEffect(() => {
@@ -408,7 +416,7 @@ const BookmarkHTMLHighlighter = forwardRef<
       <div
         role="presentation"
         ref={contentRef}
-        dangerouslySetInnerHTML={{ __html: htmlContent }}
+        dangerouslySetInnerHTML={innerHtml}
         onPointerUp={handlePointerUp}
         className={cn(
           "prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto",

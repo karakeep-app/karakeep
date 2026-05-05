@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
@@ -11,9 +18,17 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 interface BookmarkTextViewProps {
   bookmark: ZBookmark;
+  onScrollOffsetChange?: (y: number) => void;
+  contentInsetTop?: number;
+  contentInsetBottom?: number;
 }
 
-export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
+export default function BookmarkTextView({
+  bookmark,
+  onScrollOffsetChange,
+  contentInsetTop = 0,
+  contentInsetBottom = 0,
+}: BookmarkTextViewProps) {
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
     throw new Error("Wrong content type rendered");
   }
@@ -96,7 +111,18 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   }
 
   return (
-    <ScrollView className="m-4 flex-1 rounded-lg border border-border bg-card p-2">
+    <ScrollView
+      className="flex-1 rounded-lg border border-border bg-card p-2"
+      contentInset={{ top: contentInsetTop, bottom: contentInsetBottom }}
+      contentOffset={{ x: 0, y: -contentInsetTop }}
+      contentContainerStyle={
+        Platform.OS === "android"
+          ? { paddingTop: contentInsetTop, paddingBottom: contentInsetBottom }
+          : undefined
+      }
+      scrollEventThrottle={16}
+      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
+    >
       <Pressable onPress={() => setIsEditing(true)}>
         <View className="min-h-[200px] rounded-xl p-4">
           <BookmarkTextMarkdown text={content} />
