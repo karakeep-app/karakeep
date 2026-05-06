@@ -36,7 +36,7 @@ MEILI_MASTER_KEY=another_random_string
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-You **should** change the random strings. You can use `openssl rand -base64 36` in a seperate terminal window to generate the random strings. You should also change the `NEXTAUTH_URL` variable to point to your server address.
+You **should** change the random strings. You can use `openssl rand -base64 36` in a separate terminal window to generate the random strings. You should also change the `NEXTAUTH_URL` variable to point to your server address.
 
 Using `KARAKEEP_VERSION=release` will pull the latest stable version. You might want to pin the version instead to control the upgrades (e.g. `KARAKEEP_VERSION=0.10.0`). Check the latest versions [here](https://github.com/karakeep-app/karakeep/pkgs/container/karakeep).
 
