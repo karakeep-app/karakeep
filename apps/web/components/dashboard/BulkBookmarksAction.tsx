@@ -12,6 +12,7 @@ import useBulkActionsStore from "@/lib/bulkActions";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   CheckCheck,
+  ExternalLink,
   FileDown,
   Hash,
   Link,
@@ -37,6 +38,7 @@ import BulkTagModal from "./bookmarks/BulkTagModal";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./bookmarks/icons";
 
 const MAX_CONCURRENT_BULK_ACTIONS = 50;
+const MAX_OPEN_LINKS_WARNING = 10; // Warning threshold, not a hard limit
 
 export default function BulkBookmarksAction() {
   const { t } = useTranslation();
@@ -60,6 +62,11 @@ export default function BulkBookmarksAction() {
     useState(false);
   const [manageListsModal, setManageListsModalOpen] = useState(false);
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);
+  const [isTooManyLinksDialogOpen, setIsTooManyLinksDialogOpen] =
+    useState(false);
+  const [pendingOpenableLinks, setPendingOpenableLinks] = useState<
+    typeof selectedBookmarks
+  >([]);
   const pathname = usePathname();
   const [currentPathname, setCurrentPathname] = useState("");
 
@@ -161,6 +168,93 @@ export default function BulkBookmarksAction() {
     });
   };
 
+  const openLinks = (linksToOpen?: typeof selectedBookmarks) => {
+    const links = selectedBookmarks.filter(
+      (item) => item.content.type === BookmarkTypes.LINK,
+    );
+
+    // First filter for valid HTTP(S) URLs that can actually be opened
+    const openableLinks = links.filter((item) => {
+      const url = item.content.url;
+      try {
+        const parsed = new URL(url);
+        return ["http:", "https:"].includes(parsed.protocol);
+      } catch {
+        return false;
+      }
+    });
+
+    if (openableLinks.length === 0) {
+      toast({
+        description: t("toasts.bookmarks.no_links_selected"),
+      });
+      return;
+    }
+
+    // If provided links to open (from confirmation dialog), use those
+    const targetLinks = linksToOpen ?? openableLinks;
+
+    // Show warning dialog if trying to open more than threshold
+    // (unless we're already in the confirmed path)
+    if (!linksToOpen && targetLinks.length > MAX_OPEN_LINKS_WARNING) {
+      setPendingOpenableLinks(targetLinks);
+      setIsTooManyLinksDialogOpen(true);
+      return;
+    }
+
+    let opened = 0;
+    let blocked = 0;
+    const skipped = links.length - openableLinks.length;
+
+    targetLinks.forEach((item) => {
+      const win = window.open(item.content.url, "_blank", "noopener,noreferrer");
+      if (win) {
+        opened++;
+      } else {
+        blocked++;
+      }
+    });
+
+    // Build toast message based on results
+    if (skipped > 0 && blocked > 0) {
+      toast({
+        variant: "destructive",
+        description: t("toasts.bookmarks.links_opened_blocked_skipped", {
+          opened,
+          blocked,
+          skipped,
+        }),
+      });
+    } else if (blocked > 0) {
+      toast({
+        variant: "destructive",
+        description: t("toasts.bookmarks.links_opened_blocked", {
+          opened,
+          blocked,
+        }),
+      });
+    } else if (skipped > 0) {
+      toast({
+        description: t("toasts.bookmarks.links_opened_skipped", {
+          opened,
+          skipped,
+        }),
+      });
+    } else {
+      toast({
+        description: t("toasts.bookmarks.links_opened", {
+          count: opened,
+        }),
+      });
+    }
+  };
+
+  const confirmOpenManyLinks = () => {
+    setIsTooManyLinksDialogOpen(false);
+    openLinks(pendingOpenableLinks);
+    setPendingOpenableLinks([]);
+  };
+
   const updateBookmarks = async ({
     favourited,
     archived,
@@ -239,6 +333,13 @@ export default function BulkBookmarksAction() {
         : "Copying is only available over https",
       icon: <Link size={18} />,
       action: () => copyLinks(),
+      isPending: false,
+      hidden: !isBulkEditEnabled,
+    },
+    {
+      name: t("actions.open_links"),
+      icon: <ExternalLink size={18} />,
+      action: () => openLinks(),
       isPending: false,
       hidden: !isBulkEditEnabled,
     },
@@ -368,6 +469,26 @@ export default function BulkBookmarksAction() {
             onClick={() => removeBookmarksFromList()}
           >
             {t("actions.remove")}
+          </ActionButton>
+        )}
+      />
+      <ActionConfirmingDialog
+        open={isTooManyLinksDialogOpen}
+        setOpen={setIsTooManyLinksDialogOpen}
+        title={"Open Many Links"}
+        description={
+          <p>
+            You are trying to open {pendingOpenableLinks.length} links at once.
+            This may trigger your browser&apos;s popup blocker. Continue anyway?
+          </p>
+        }
+        actionButton={() => (
+          <ActionButton
+            type="button"
+            variant="default"
+            onClick={() => confirmOpenManyLinks()}
+          >
+            {t("actions.open_links")}
           </ActionButton>
         )}
       />
