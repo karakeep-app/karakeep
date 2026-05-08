@@ -39,6 +39,10 @@ describe("createCustomFetch", () => {
     // Aborting the caller signal must abort the merged signal.
     callerController.abort();
     expect(capturedSignal?.aborted).toBe(true);
+
+    // Symmetrically, the merged signal must also carry an AbortSignal.timeout
+    // so that a timeout fires even when no caller signal is provided.
+    // (Verified separately in the "aborts via timeout" test.)
   });
 
   it("uses caller dispatcher when provided, not the default one", async () => {
