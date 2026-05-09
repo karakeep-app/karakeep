@@ -1,7 +1,11 @@
 import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test } from "vitest";
 
-import { bookmarkLinks, users } from "@karakeep/db/schema";
+import {
+  adapterExtractionLog,
+  bookmarkLinks,
+  users,
+} from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
@@ -89,8 +93,32 @@ describe("Admin Routes", () => {
           htmlContent: "<html><body>Test content</body></html>",
           title: "Test Title",
           description: "Test Description",
+          platform: "wechat",
+          rawExtraction: {
+            imageList: ["https://mmbiz.qpic.cn/image-one.webp"],
+            hasContentElement: true,
+          },
+          adapterVersion: "2026-05-07",
         })
         .where(eq(bookmarkLinks.id, bookmark.id));
+      await db.insert(adapterExtractionLog).values([
+        {
+          bookmarkId: bookmark.id,
+          adapter: "wechat",
+          version: "2026-05-07",
+          latencyMs: 123,
+          ok: true,
+          error: null,
+        },
+        {
+          bookmarkId: bookmark.id,
+          adapter: "wechat",
+          version: "2026-05-07",
+          latencyMs: 456,
+          ok: false,
+          error: "temporary fetch failure",
+        },
+      ]);
 
       // Admin should be able to access debug info
       const debugInfo = await adminApi.admin.getBookmarkDebugInfo({
@@ -107,6 +135,21 @@ describe("Admin Routes", () => {
       expect(debugInfo.linkInfo.hasHtmlContent).toEqual(true);
       expect(debugInfo.linkInfo.htmlContentPreview).toBeDefined();
       expect(debugInfo.linkInfo.htmlContentPreview).toContain("Test content");
+      expect(debugInfo.linkInfo.platform).toBe("wechat");
+      expect(debugInfo.linkInfo.rawExtraction).toMatchObject({
+        imageList: ["https://mmbiz.qpic.cn/image-one.webp"],
+        hasContentElement: true,
+      });
+      expect(debugInfo.linkInfo.adapterVersion).toBe("2026-05-07");
+      expect(debugInfo.linkInfo.adapterLogs).toHaveLength(2);
+      expect(
+        debugInfo.linkInfo.adapterLogs.map((log) => log.ok).sort(),
+      ).toEqual([false, true]);
+      expect(
+        debugInfo.linkInfo.adapterLogs.some(
+          (log) => log.error === "temporary fetch failure",
+        ),
+      ).toBe(true);
     });
 
     test<CustomTestContext>("admin can access bookmark debug info for text bookmark", async ({

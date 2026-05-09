@@ -12,8 +12,21 @@ describe("platform adapter registry", () => {
     ).toBe("wechat");
   });
 
+  test("matches X/Twitter status URLs", () => {
+    expect(findPlatformAdapter("https://x.com/example/status/123")?.id).toBe(
+      "x",
+    );
+    expect(
+      findPlatformAdapter("https://twitter.com/example/statuses/123")?.id,
+    ).toBe("x");
+    expect(
+      findPlatformAdapter("https://mobile.twitter.com/example/status/123")?.id,
+    ).toBe("x");
+  });
+
   test("does not match generic URLs", () => {
     expect(findPlatformAdapter("https://example.com/s/example")).toBeNull();
+    expect(findPlatformAdapter("https://x.com/example")).toBeNull();
   });
 
   test("keeps adapters sorted by priority", () => {

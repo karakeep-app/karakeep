@@ -58,6 +58,9 @@ export const zBookmarkedLinkSchema = z.object({
   publisher: z.string().nullish(),
   datePublished: z.date().nullish(),
   dateModified: z.date().nullish(),
+  platform: z.string().nullish(),
+  rawExtraction: z.record(z.string(), z.unknown()).nullish(),
+  adapterVersion: z.string().nullish(),
 });
 export type ZBookmarkedLink = z.infer<typeof zBookmarkedLinkSchema>;
 

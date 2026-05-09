@@ -443,6 +443,33 @@ export default function BookmarkDebugger() {
                       </Link>
                     </div>
                   )}
+                  {debugInfo.linkInfo?.platform && (
+                    <div>
+                      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Database className="h-3.5 w-3.5" />
+                        Platform adapter
+                      </div>
+                      <div className="space-y-2 rounded border bg-background px-3 py-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge>{debugInfo.linkInfo.platform}</Badge>
+                          {debugInfo.linkInfo.adapterVersion && (
+                            <Badge variant="secondary">
+                              {debugInfo.linkInfo.adapterVersion}
+                            </Badge>
+                          )}
+                        </div>
+                        {debugInfo.linkInfo.rawExtraction && (
+                          <pre className="max-h-32 overflow-auto rounded bg-muted p-2 text-xs">
+                            {JSON.stringify(
+                              debugInfo.linkInfo.rawExtraction,
+                              null,
+                              2,
+                            )}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {debugInfo.textInfo?.sourceUrl && (
                     <div>
                       <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -484,6 +511,63 @@ export default function BookmarkDebugger() {
                 </div>
               </div>
             )}
+
+            {/* Adapter Extraction Logs */}
+            {debugInfo.linkInfo &&
+              debugInfo.linkInfo.adapterLogs.length > 0 && (
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Database className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold">
+                      Adapter extraction attempts{" "}
+                      <span className="text-muted-foreground">
+                        ({debugInfo.linkInfo.adapterLogs.length})
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    {debugInfo.linkInfo.adapterLogs.map((log) => (
+                      <div
+                        key={log.id}
+                        className="rounded border bg-background px-3 py-2"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant={log.ok ? "default" : "destructive"}
+                            className="gap-1"
+                          >
+                            {log.ok ? (
+                              <CheckCircle2 className="h-3 w-3" />
+                            ) : (
+                              <XCircle className="h-3 w-3" />
+                            )}
+                            {log.ok ? "success" : "failure"}
+                          </Badge>
+                          <span className="font-mono text-xs">
+                            {log.adapter}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {log.version}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {log.latencyMs}ms
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(log.createdAt), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        </div>
+                        {log.error && (
+                          <div className="mt-2 rounded bg-muted p-2 font-mono text-xs text-muted-foreground">
+                            {log.error}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             {/* HTML Preview */}
             {debugInfo.linkInfo && debugInfo.linkInfo.htmlContentPreview && (

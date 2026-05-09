@@ -855,6 +855,54 @@ describe("Bookmark Routes", () => {
     ).rejects.toThrow(/Bookmark not found/);
   });
 
+  test<CustomTestContext>("returns platform adapter metadata for link bookmarks", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const createdBookmark = await api.createBookmark({
+      url: "https://x.com/example/status/1796912526641512791",
+      type: BookmarkTypes.LINK,
+    });
+
+    await db
+      .update(bookmarkLinks)
+      .set({
+        platform: "x",
+        rawExtraction: {
+          tweetId: "1796912526641512791",
+          handle: "example",
+          imageList: ["https://pbs.twimg.com/media/example.jpg"],
+        },
+        adapterVersion: "2026-05-09",
+      })
+      .where(eq(bookmarkLinks.id, createdBookmark.id));
+
+    const bookmark = await api.getBookmark({
+      bookmarkId: createdBookmark.id,
+      includeContent: false,
+    });
+    assert(bookmark.content.type === BookmarkTypes.LINK);
+    expect(bookmark.content.platform).toBe("x");
+    expect(bookmark.content.rawExtraction).toMatchObject({
+      tweetId: "1796912526641512791",
+      handle: "example",
+    });
+    expect(bookmark.content.adapterVersion).toBe("2026-05-09");
+
+    const listed = await api.getBookmarks({});
+    const listedBookmark = listed.bookmarks.find(
+      (b) => b.id === createdBookmark.id,
+    );
+    assert(listedBookmark?.content.type === BookmarkTypes.LINK);
+    expect(listedBookmark.content.platform).toBe("x");
+    expect(listedBookmark.content.rawExtraction).toMatchObject({
+      tweetId: "1796912526641512791",
+      handle: "example",
+    });
+    expect(listedBookmark.content.adapterVersion).toBe("2026-05-09");
+  });
+
   test<CustomTestContext>("getBrokenLinks", async ({ apiCallers, db }) => {
     const api = apiCallers[0].bookmarks;
 

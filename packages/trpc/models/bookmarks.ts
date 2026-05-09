@@ -20,6 +20,7 @@ import { db as DONT_USE_db } from "@karakeep/db";
 import {
   assets,
   AssetTypes,
+  adapterExtractionLog,
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
@@ -189,6 +190,9 @@ export class Bookmark extends BareBookmark {
         publisher: link.publisher,
         datePublished: link.datePublished,
         dateModified: link.dateModified,
+        platform: link.platform,
+        rawExtraction: link.rawExtraction,
+        adapterVersion: link.adapterVersion,
       };
     }
     if (bookmark.text) {
@@ -312,6 +316,12 @@ export class Bookmark extends BareBookmark {
     // Build link info
     let linkInfo = null;
     if (bookmark.link) {
+      const adapterLogs = await ctx.db.query.adapterExtractionLog.findMany({
+        where: eq(adapterExtractionLog.bookmarkId, bookmark.id),
+        orderBy: desc(adapterExtractionLog.createdAt),
+        limit: 10,
+      });
+
       const htmlContentPreview = await (async () => {
         try {
           const content = await Bookmark.getBookmarkHtmlContent(
@@ -332,6 +342,18 @@ export class Bookmark extends BareBookmark {
         hasHtmlContent: !!bookmark.link.htmlContent,
         hasContentAsset: !!bookmark.link.contentAssetId,
         htmlContentPreview,
+        platform: bookmark.link.platform,
+        rawExtraction: bookmark.link.rawExtraction,
+        adapterVersion: bookmark.link.adapterVersion,
+        adapterLogs: adapterLogs.map((log) => ({
+          id: log.id,
+          adapter: log.adapter,
+          version: log.version,
+          latencyMs: log.latencyMs,
+          ok: log.ok,
+          error: log.error,
+          createdAt: log.createdAt,
+        })),
       };
     }
 
@@ -597,6 +619,9 @@ export class Bookmark extends BareBookmark {
               publisher: row.bookmarkLinks.publisher,
               datePublished: row.bookmarkLinks.datePublished,
               dateModified: row.bookmarkLinks.dateModified,
+              platform: row.bookmarkLinks.platform,
+              rawExtraction: row.bookmarkLinks.rawExtraction,
+              adapterVersion: row.bookmarkLinks.adapterVersion,
             };
           } else if (row.bookmarkTexts) {
             content = {

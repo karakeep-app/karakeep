@@ -614,6 +614,20 @@ export const adminAppRouter = router({
             hasHtmlContent: z.boolean(),
             hasContentAsset: z.boolean(),
             htmlContentPreview: z.string().nullable(),
+            platform: z.string().nullable(),
+            rawExtraction: z.record(z.string(), z.unknown()).nullable(),
+            adapterVersion: z.string().nullable(),
+            adapterLogs: z.array(
+              z.object({
+                id: z.string(),
+                adapter: z.string(),
+                version: z.string(),
+                latencyMs: z.number(),
+                ok: z.boolean(),
+                error: z.string().nullable(),
+                createdAt: z.date(),
+              }),
+            ),
           })
           .nullable(),
         textInfo: z
