@@ -11,6 +11,8 @@ import { and, eq } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import {
+  adapterExtractionCounter,
+  adapterExtractionLatencyHistogram,
   bookmarkCrawlLatencyHistogram,
   crawlerStatusCodeCounter,
   workerStatsCounter,
@@ -35,12 +37,14 @@ import { abortRace, abortRaceResolve, raceWith, timeoutRace } from "utils";
 import { withWorkerTracing, withWorkerEventLog } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
+import { JSDOM } from "jsdom";
 
 import type { ZCrawlLinkRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import {
   assets,
   AssetTypes,
+  adapterExtractionLog,
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
@@ -84,6 +88,8 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
+import type { ExtractedContent, PlatformAdapter } from "./adapters/types";
+import { findPlatformAdapter } from "./adapters/registry";
 import type {
   ParseSubprocessError,
   ParseSubprocessOutput,
@@ -138,6 +144,17 @@ function shouldRetryCrawlStatusCode(statusCode: number | null): boolean {
   return statusCode === 403 || statusCode === 429 || statusCode >= 500;
 }
 
+const parseDate = (date: string | null | undefined) => {
+  if (!date) {
+    return null;
+  }
+  try {
+    return new Date(date);
+  } catch {
+    return null;
+  }
+};
+
 interface Cookie {
   name: string;
   value: string;
@@ -186,6 +203,7 @@ function getPlaywrightProxyConfig(
 
 let globalBrowser: Browser | undefined;
 let globalBlocker: PlaywrightBlocker | undefined;
+let globalBlockerPromise: Promise<PlaywrightBlocker | undefined> | undefined;
 // Global variable to store parsed cookies
 let globalCookies: Cookie[] = [];
 // Guards the interactions with the browser instance.
@@ -319,6 +337,36 @@ async function launchBrowser() {
   });
 }
 
+async function getAdblocker() {
+  if (!serverConfig.crawler.enableAdblocker) {
+    return undefined;
+  }
+  if (globalBlocker) {
+    return globalBlocker;
+  }
+  if (!globalBlockerPromise) {
+    globalBlockerPromise = (async () => {
+      logger.info("[crawler] Loading adblocker ...");
+      const globalBlockerResult = await tryCatch(
+        PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
+          path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
+          read: fs.readFile,
+          write: fs.writeFile,
+        }),
+      );
+      if (globalBlockerResult.error) {
+        logger.error(
+          `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
+        );
+        return undefined;
+      }
+      globalBlocker = globalBlockerResult.data;
+      return globalBlocker;
+    })();
+  }
+  return globalBlockerPromise;
+}
+
 export class CrawlerWorker {
   private static initPromise: Promise<void> | null = null;
 
@@ -326,23 +374,6 @@ export class CrawlerWorker {
     if (!CrawlerWorker.initPromise) {
       CrawlerWorker.initPromise = (async () => {
         chromium.use(StealthPlugin());
-        if (serverConfig.crawler.enableAdblocker) {
-          logger.info("[crawler] Loading adblocker ...");
-          const globalBlockerResult = await tryCatch(
-            PlaywrightBlocker.fromPrebuiltFull(fetchWithProxy, {
-              path: path.join(os.tmpdir(), "karakeep_adblocker.bin"),
-              read: fs.readFile,
-              write: fs.writeFile,
-            }),
-          );
-          if (globalBlockerResult.error) {
-            logger.error(
-              `[crawler] Failed to load adblocker. Will not be blocking ads: ${globalBlockerResult.error}`,
-            );
-          } else {
-            globalBlocker = globalBlockerResult.data;
-          }
-        }
         if (!serverConfig.crawler.browserConnectOnDemand) {
           await launchBrowser();
         } else {
@@ -614,8 +645,9 @@ async function crawlPage(
             const nextPage = await context.newPage();
 
             // Apply ad blocking
-            if (globalBlocker) {
-              await globalBlocker.enableBlockingInPage(nextPage);
+            const adblocker = await getAdblocker();
+            if (adblocker) {
+              await adblocker.enableBlockingInPage(nextPage);
             }
 
             // Auto-dismiss JavaScript dialogs (alert, confirm, prompt)
@@ -1248,6 +1280,7 @@ async function downloadAndStoreFile(
   fileType: string,
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
+  options: { headers?: Record<string, string>; fileName?: string } = {},
 ) {
   return await withSpan(
     tracer,
@@ -1271,6 +1304,7 @@ async function downloadAndStoreFile(
           url,
           {
             signal: abortSignal,
+            headers: options.headers,
           },
           runProxy,
         );
@@ -1331,7 +1365,7 @@ async function downloadAndStoreFile(
         await saveAssetFromFile({
           userId,
           assetId,
-          metadata: { contentType },
+          metadata: { contentType, fileName: options.fileName },
           assetPath,
           quotaApproved,
         });
@@ -1361,8 +1395,16 @@ async function downloadAndStoreImage(
   jobId: string,
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
+  options: {
+    headers?: Record<string, string>;
+    fileName?: string;
+    ignoreDownloadBannerImageConfig?: boolean;
+  } = {},
 ) {
-  if (!serverConfig.crawler.downloadBannerImage) {
+  if (
+    !serverConfig.crawler.downloadBannerImage &&
+    !options.ignoreDownloadBannerImageConfig
+  ) {
     logger.info(
       `[Crawler][${jobId}] Skipping downloading the image as per the config.`,
     );
@@ -1375,6 +1417,7 @@ async function downloadAndStoreImage(
     "image",
     abortSignal,
     runProxy,
+    options,
   );
 }
 
@@ -1710,6 +1753,156 @@ async function storeHtmlContent(
   );
 }
 
+interface PlatformExtractionResult {
+  adapter: PlatformAdapter;
+  extracted: ExtractedContent;
+  latencyMs: number;
+}
+
+function getAssetApiUrl(assetId: string): string {
+  return `/api/assets/${assetId}`;
+}
+
+async function recordAdapterExtraction({
+  bookmarkId,
+  adapter,
+  latencyMs,
+  ok,
+  error,
+}: {
+  bookmarkId: string;
+  adapter: PlatformAdapter;
+  latencyMs: number;
+  ok: boolean;
+  error?: string | null;
+}) {
+  await db.insert(adapterExtractionLog).values({
+    bookmarkId,
+    adapter: adapter.id,
+    version: adapter.version,
+    latencyMs,
+    ok,
+    error: error ?? null,
+  });
+
+  const status = ok ? "success" : "failure";
+  adapterExtractionCounter.labels(adapter.id, status).inc();
+  adapterExtractionLatencyHistogram
+    .labels(adapter.id, status)
+    .observe(latencyMs / 1000);
+}
+
+async function tryExtractWithPlatformAdapter(
+  url: string,
+  userId: string,
+  jobId: string,
+  bookmarkId: string,
+  abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
+): Promise<PlatformExtractionResult | null> {
+  const adapter = findPlatformAdapter(url);
+  if (!adapter) {
+    return null;
+  }
+
+  const startedAt = Date.now();
+  try {
+    logger.info(
+      `[Crawler][${jobId}] Matched platform adapter "${adapter.id}" for "${truncateUrl(url)}"`,
+    );
+    const extracted = await adapter.extract({
+      url,
+      userId,
+      jobId,
+      abortSignal: AbortSignal.any([
+        abortSignal,
+        AbortSignal.timeout(serverConfig.adapters.timeoutMs),
+      ]),
+      runProxy,
+    });
+    return { adapter, extracted, latencyMs: Date.now() - startedAt };
+  } catch (e) {
+    const latencyMs = Date.now() - startedAt;
+    const error = e instanceof Error ? e.message : String(e);
+    logger.warn(
+      `[Crawler][${jobId}] Platform adapter "${adapter.id}" failed after ${latencyMs}ms; falling back to generic crawler: ${error}`,
+    );
+    await recordAdapterExtraction({
+      bookmarkId,
+      adapter,
+      latencyMs,
+      ok: false,
+      error,
+    });
+    return null;
+  }
+}
+
+function collectImageSources(htmlContent: string): {
+  dom: JSDOM;
+  images: { element: HTMLImageElement; url: string }[];
+} {
+  const dom = new JSDOM(`<body>${htmlContent}</body>`);
+  const images: { element: HTMLImageElement; url: string }[] = [];
+  for (const img of Array.from(dom.window.document.querySelectorAll("img"))) {
+    const imageUrl = img.getAttribute("src")?.trim();
+    if (!imageUrl || imageUrl.startsWith("data:")) {
+      continue;
+    }
+    images.push({ element: img, url: imageUrl });
+  }
+  return { dom, images };
+}
+
+async function rewriteExtractedContentImages(
+  extracted: ExtractedContent,
+  userId: string,
+  jobId: string,
+  bookmarkId: string,
+  abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
+): Promise<{ htmlContent: string | null; imageErrors: string[] }> {
+  if (!extracted.htmlContent) {
+    return { htmlContent: extracted.htmlContent ?? null, imageErrors: [] };
+  }
+
+  const { dom, images } = collectImageSources(extracted.htmlContent);
+  const imageErrors: string[] = [];
+  const headers = extracted.imageReferer
+    ? { Referer: extracted.imageReferer }
+    : undefined;
+
+  for (const image of images) {
+    const downloaded = await downloadAndStoreImage(
+      image.url,
+      userId,
+      jobId,
+      abortSignal,
+      runProxy,
+      { headers, ignoreDownloadBannerImageConfig: true },
+    );
+    if (!downloaded) {
+      imageErrors.push(image.url);
+      continue;
+    }
+    await db.insert(assets).values({
+      id: downloaded.assetId,
+      bookmarkId,
+      userId,
+      assetType: AssetTypes.LINK_INLINE_IMAGE,
+      contentType: downloaded.contentType,
+      size: downloaded.size,
+      fileName: null,
+    });
+    image.element.setAttribute("src", getAssetApiUrl(downloaded.assetId));
+  }
+
+  return {
+    htmlContent: dom.window.document.body.innerHTML,
+    imageErrors,
+  };
+}
+
 async function crawlAndParseUrl(
   url: string,
   userId: string,
@@ -1755,6 +1948,7 @@ async function crawlAndParseUrl(
         statusCode: number | null;
         url: string;
       };
+      let platformExtraction: PlatformExtractionResult | null = null;
 
       if (precrawledArchiveAssetId) {
         logger.info(
@@ -1772,14 +1966,32 @@ async function crawlAndParseUrl(
           url,
         };
       } else {
-        result = await crawlPage(
-          jobId,
+        platformExtraction = await tryExtractWithPlatformAdapter(
           url,
           userId,
-          forceStorePdf,
+          jobId,
+          bookmarkId,
           abortSignal,
           runProxy,
         );
+        if (platformExtraction) {
+          result = {
+            htmlContent: platformExtraction.extracted.htmlContent ?? "",
+            screenshot: undefined,
+            pdf: undefined,
+            statusCode: platformExtraction.extracted.statusCode ?? 200,
+            url: platformExtraction.extracted.url ?? url,
+          };
+        } else {
+          result = await crawlPage(
+            jobId,
+            url,
+            userId,
+            forceStorePdf,
+            abortSignal,
+            runProxy,
+          );
+        }
       }
       abortSignal.throwIfAborted();
 
@@ -1815,20 +2027,61 @@ async function crawlAndParseUrl(
         );
       }
 
-      const { metadata: meta, readableContent: parsedReadableContent } =
-        await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
-      abortSignal.throwIfAborted();
+      let meta: ParseSubprocessOutput["metadata"];
+      let readableContent: ParseSubprocessOutput["readableContent"];
+      let platform: string | null = null;
+      let rawExtraction: Record<string, unknown> | null = null;
+      let adapterVersion: string | null = null;
+      let archivableHtmlContent = htmlContent;
+      if (platformExtraction) {
+        const { extracted, adapter, latencyMs } = platformExtraction;
+        const rewritten = await rewriteExtractedContentImages(
+          extracted,
+          userId,
+          jobId,
+          bookmarkId,
+          abortSignal,
+          runProxy,
+        );
+        abortSignal.throwIfAborted();
 
-      const parseDate = (date: string | null | undefined) => {
-        if (!date) {
-          return null;
-        }
-        try {
-          return new Date(date);
-        } catch {
-          return null;
-        }
-      };
+        platform = extracted.platform;
+        adapterVersion = extracted.adapterVersion;
+        rawExtraction = {
+          ...extracted.rawExtraction,
+          imageRewriteErrors: rewritten.imageErrors,
+        };
+        meta = {
+          title: extracted.title,
+          description: extracted.description,
+          image: extracted.coverImageUrl,
+          logo: null,
+          author: extracted.author,
+          publisher: extracted.publisher,
+          datePublished: extracted.datePublished,
+          dateModified: extracted.dateModified,
+        };
+        readableContent = rewritten.htmlContent
+          ? { content: rewritten.htmlContent }
+          : null;
+        archivableHtmlContent = rewritten.htmlContent ?? htmlContent;
+        await recordAdapterExtraction({
+          bookmarkId,
+          adapter,
+          latencyMs,
+          ok: true,
+          error:
+            rewritten.imageErrors.length > 0
+              ? `Failed to store ${rewritten.imageErrors.length} inline images`
+              : null,
+        });
+      } else {
+        const { metadata, readableContent: parsedReadableContent } =
+          await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
+        abortSignal.throwIfAborted();
+        meta = metadata;
+        readableContent = parsedReadableContent;
+      }
 
       // Phase 1: Write metadata immediately for fast user feedback.
       // Content and asset storage happen later and can be slow (banner
@@ -1846,10 +2099,11 @@ async function crawlAndParseUrl(
           publisher: meta.publisher,
           datePublished: parseDate(meta.datePublished),
           dateModified: parseDate(meta.dateModified),
+          platform,
+          rawExtraction,
+          adapterVersion,
         })
         .where(eq(bookmarkLinks.id, bookmarkId));
-
-      let readableContent = parsedReadableContent;
 
       const screenshotAssetInfo = await raceWith(
         storeScreenshot(screenshot, userId, jobId),
@@ -1871,12 +2125,19 @@ async function crawlAndParseUrl(
       abortSignal.throwIfAborted();
       let imageAssetInfo: DBAssetType | null = null;
       if (meta.image) {
+        const imageHeaders = platformExtraction?.extracted.imageReferer
+          ? { Referer: platformExtraction.extracted.imageReferer }
+          : undefined;
         const downloaded = await downloadAndStoreImage(
           meta.image,
           userId,
           jobId,
           abortSignal,
           runProxy,
+          {
+            headers: imageHeaders,
+            ignoreDownloadBannerImageConfig: !!platformExtraction,
+          },
         );
         if (downloaded) {
           imageAssetInfo = {
@@ -1981,7 +2242,7 @@ async function crawlAndParseUrl(
           (serverConfig.crawler.fullPageArchive || archiveFullPage)
         ) {
           const archiveResult = await archiveWebpage(
-            htmlContent,
+            archivableHtmlContent,
             browserUrl,
             userId,
             jobId,

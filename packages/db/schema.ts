@@ -272,12 +272,44 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+    platform: text("platform"),
+    rawExtraction: text("rawExtraction", { mode: "json" }).$type<
+      Record<string, unknown>
+    >(),
+    adapterVersion: text("adapterVersion"),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );
 
+export const adapterExtractionLog = sqliteTable(
+  "adapterExtractionLog",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    adapter: text("adapter").notNull(),
+    version: text("version").notNull(),
+    latencyMs: integer("latencyMs").notNull(),
+    ok: integer("ok", { mode: "boolean" }).notNull(),
+    error: text("error"),
+    createdAt: createdAtField(),
+  },
+  (ael) => [
+    index("adapterExtractionLog_bookmarkId_idx").on(ael.bookmarkId),
+    index("adapterExtractionLog_adapter_createdAt_idx").on(
+      ael.adapter,
+      ael.createdAt,
+    ),
+  ],
+);
+
 export const enum AssetTypes {
   LINK_BANNER_IMAGE = "linkBannerImage",
+  LINK_INLINE_IMAGE = "linkInlineImage",
   LINK_SCREENSHOT = "linkScreenshot",
   LINK_PDF = "linkPdf",
   ASSET_SCREENSHOT = "assetScreenshot",
@@ -300,6 +332,7 @@ export const assets = sqliteTable(
     assetType: text("assetType", {
       enum: [
         AssetTypes.LINK_BANNER_IMAGE,
+        AssetTypes.LINK_INLINE_IMAGE,
         AssetTypes.LINK_SCREENSHOT,
         AssetTypes.LINK_PDF,
         AssetTypes.ASSET_SCREENSHOT,

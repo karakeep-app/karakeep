@@ -1,6 +1,22 @@
 import type { ZTagStyle } from "./types/users";
 import { getCuratedTagsPrompt, getTagStylePrompt } from "./utils/tag";
 
+export interface TextTaggingMetadata {
+  platform?: string | null;
+  author?: string | null;
+  publisher?: string | null;
+  imageOcrText?: string | null;
+  rawExtraction?: Record<string, unknown> | null;
+}
+
+const CHINESE_TAGGING_PLATFORMS = new Set([
+  "wechat",
+  "weixin",
+  "xhs",
+  "xiaohongshu",
+  "douyin",
+]);
+
 /**
  * Remove duplicate whitespaces to avoid tokenization issues
  */
@@ -8,14 +24,117 @@ function preprocessContent(content: string) {
   return content.replace(/(\s){10,}/g, "$1");
 }
 
+function normalizeLang(lang: string) {
+  return lang.trim().toLowerCase().replace("_", "-");
+}
+
+export function shouldUseChineseTextTaggingPrompt(
+  lang: string,
+  metadata?: TextTaggingMetadata,
+): boolean {
+  const normalizedLang = normalizeLang(lang);
+  if (
+    normalizedLang === "zh" ||
+    normalizedLang === "zh-cn" ||
+    normalizedLang === "zh-hans" ||
+    normalizedLang === "chinese" ||
+    normalizedLang === "中文"
+  ) {
+    return true;
+  }
+
+  const platform = metadata?.platform?.trim().toLowerCase();
+  return !!platform && CHINESE_TAGGING_PLATFORMS.has(platform);
+}
+
+function getChineseCuratedTagsPrompt(curatedTags?: string[]): string {
+  if (curatedTags && curatedTags.length > 0) {
+    return `- 只能从这个预设标签列表中选择：[${curatedTags.join(", ")}]。不要创建列表之外的新标签；如果都不合适，返回空数组。`;
+  }
+  return "";
+}
+
+function formatTaggingMetadata(metadata?: TextTaggingMetadata): string {
+  if (!metadata) {
+    return "";
+  }
+
+  const fields: string[] = [];
+  if (metadata.platform) {
+    fields.push(`platform: ${metadata.platform}`);
+  }
+  if (metadata.author) {
+    fields.push(`author: ${metadata.author}`);
+  }
+  if (metadata.publisher) {
+    fields.push(`publisher: ${metadata.publisher}`);
+  }
+
+  const rawExtraction = metadata.rawExtraction;
+  if (rawExtraction) {
+    const imageList = rawExtraction.imageList;
+    if (Array.isArray(imageList)) {
+      fields.push(`imageCount: ${imageList.length}`);
+    }
+    if (typeof rawExtraction.hasContentElement === "boolean") {
+      fields.push(`hasContentElement: ${rawExtraction.hasContentElement}`);
+    }
+  }
+
+  if (metadata.imageOcrText) {
+    fields.push(`imageOcrText: ${metadata.imageOcrText.slice(0, 1200)}`);
+  }
+
+  if (fields.length === 0) {
+    return "";
+  }
+
+  return `
+<PLATFORM_METADATA>
+${fields.join("\n")}
+</PLATFORM_METADATA>`;
+}
+
+function constructChineseTextTaggingPrompt(
+  customPrompts: string[],
+  content: string,
+  tagStyle: ZTagStyle,
+  curatedTags?: string[],
+  metadata?: TextTaggingMetadata,
+): string {
+  const tagStyleInstruction = getTagStylePrompt(tagStyle);
+  const curatedInstruction = getChineseCuratedTagsPrompt(curatedTags);
+  const metadataBlock = formatTaggingMetadata(metadata);
+
+  return `
+你是 read-it-later / bookmark 应用的中文内容自动打标专家。
+请分析下面的 TEXT_CONTENT，并结合 PLATFORM_METADATA（如果存在）生成能描述文章主题、领域、人物/公司、内容类型和长期检索价值的标签。规则：
+- 标签必须使用中文；仅在专有名词、产品名、公司名或技术缩写本身更常用英文时保留英文。
+- 优先生成可复用的主题标签，不要生成过细的一次性短语。
+- 优先覆盖：主题、行业、技术、产品/公司/人物、内容类型、观点或事件类型。
+- 不要生成与错误页、403/404、登录墙、Cookie/GDPR 提示、导航栏、页脚、广告样板文案相关的标签。
+- 目标生成 3-5 个标签；如果没有合适标签，返回空数组。
+${curatedInstruction}
+${tagStyleInstruction ? `- 标签格式偏好：${tagStyleInstruction.replace(/^- /, "")}` : ""}
+${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+${metadataBlock}
+
+<TEXT_CONTENT>
+${content}
+</TEXT_CONTENT>
+必须返回 JSON，格式为 {"tags":["标签1","标签2"]}，不要包裹 markdown 代码块。`;
+}
+
 export function buildImagePrompt(
   lang: string,
   customPrompts: string[],
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  metadata?: TextTaggingMetadata,
 ) {
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
   const curatedInstruction = getCuratedTagsPrompt(curatedTags);
+  const metadataBlock = formatTaggingMetadata(metadata);
 
   return `
 You are an expert whose responsibility is to help with automatic text tagging for a read-it-later/bookmarking app.
@@ -28,6 +147,7 @@ Analyze the attached image and suggest relevant tags that describe its key theme
 ${curatedInstruction}
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+${metadataBlock}
 You must respond in valid JSON with the key "tags" and the value is list of tags. Don't wrap the response in a markdown code.`;
 }
 
@@ -40,9 +160,21 @@ export function constructTextTaggingPrompt(
   content: string,
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  metadata?: TextTaggingMetadata,
 ): string {
+  if (shouldUseChineseTextTaggingPrompt(lang, metadata)) {
+    return constructChineseTextTaggingPrompt(
+      customPrompts,
+      content,
+      tagStyle,
+      curatedTags,
+      metadata,
+    );
+  }
+
   const tagStyleInstruction = getTagStylePrompt(tagStyle);
   const curatedInstruction = getCuratedTagsPrompt(curatedTags);
+  const metadataBlock = formatTaggingMetadata(metadata);
 
   return `
 You are an expert whose responsibility is to help with automatic tagging for a read-it-later/bookmarking app.
@@ -58,6 +190,7 @@ Analyze the TEXT_CONTENT below and suggest relevant tags that describe its key t
 ${curatedInstruction}
 ${tagStyleInstruction}
 ${customPrompts && customPrompts.map((p) => `- ${p}`).join("\n")}
+${metadataBlock}
 
 <TEXT_CONTENT>
 ${content}
@@ -90,6 +223,7 @@ export function buildTextPromptUntruncated(
   content: string,
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  metadata?: TextTaggingMetadata,
 ): string {
   return constructTextTaggingPrompt(
     lang,
@@ -97,6 +231,7 @@ export function buildTextPromptUntruncated(
     preprocessContent(content),
     tagStyle,
     curatedTags,
+    metadata,
   );
 }
 

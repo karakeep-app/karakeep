@@ -87,6 +87,8 @@ const allEnv = z.object({
     .transform((val) => val.split(",")),
   OCR_CONFIDENCE_THRESHOLD: z.coerce.number().default(50),
   OCR_USE_LLM: stringBool("false"),
+  ADAPTER_TIMEOUT_MS: z.coerce.number().default(8000),
+  ADAPTER_DEFAULT_RATE_LIMIT: z.coerce.number().default(5),
   CRAWLER_HEADLESS_BROWSER: stringBool("true"),
   BROWSER_WEB_URL: z.string().optional(),
   BROWSER_WEBSOCKET_URL: z.string().optional(),
@@ -325,6 +327,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     },
     embedding: {
       textModel: val.EMBEDDING_TEXT_MODEL,
+    },
+    adapters: {
+      timeoutMs: val.ADAPTER_TIMEOUT_MS,
+      defaultRateLimit: val.ADAPTER_DEFAULT_RATE_LIMIT,
     },
     crawler: {
       numWorkers: val.CRAWLER_NUM_WORKERS,

@@ -25,12 +25,18 @@ import {
 import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import { buildImagePrompt } from "@karakeep/shared/prompts";
+import {
+  buildImagePrompt,
+  shouldUseChineseTextTaggingPrompt,
+} from "@karakeep/shared/prompts";
+import type { TextTaggingMetadata } from "@karakeep/shared/prompts";
 import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
+
+import { normalizeChineseTagSynonyms } from "./tagNormalization";
 
 const openAIResponseSchema = z.object({
   tags: z.array(z.string()),
@@ -103,6 +109,12 @@ async function buildPrompt(
       );
       return null;
     }
+    const taggingMetadata: TextTaggingMetadata = {
+      platform: bookmark.link.platform,
+      author: bookmark.link.author,
+      publisher: bookmark.link.publisher,
+      rawExtraction: bookmark.link.rawExtraction,
+    };
     return await buildTextPrompt(
       inferredTagLang,
       prompts,
@@ -113,6 +125,7 @@ Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
       tagStyle,
       curatedTags,
+      taggingMetadata,
     );
   }
 
@@ -166,6 +179,7 @@ async function inferTagsFromImage(
       await fetchCustomPrompts(bookmark.userId, "images"),
       tagStyle,
       curatedTags,
+      { imageOcrText: bookmark.asset.content },
     ),
     metadata.contentType,
     base64,
@@ -375,6 +389,13 @@ async function inferTags(
       }
       return tag.trim();
     });
+    if (
+      shouldUseChineseTextTaggingPrompt(inferredTagLang, {
+        platform: bookmark.link?.platform,
+      })
+    ) {
+      tags = normalizeChineseTagSynonyms(tags);
+    }
     addLogFields<"inferenceWorker.run">({
       "inference.tagging.num_generated_tags": tags.length,
       "inference.total_tokens": response.totalTokens,

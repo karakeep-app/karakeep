@@ -14,6 +14,7 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
     [AssetTypes.LINK_FULL_PAGE_ARCHIVE]: "fullPageArchive",
     [AssetTypes.LINK_PRECRAWLED_ARCHIVE]: "precrawledArchive",
     [AssetTypes.LINK_BANNER_IMAGE]: "bannerImage",
+    [AssetTypes.LINK_INLINE_IMAGE]: "unknown",
     [AssetTypes.LINK_VIDEO]: "video",
     [AssetTypes.LINK_HTML_CONTENT]: "linkHtmlContent",
     [AssetTypes.BOOKMARK_ASSET]: "bookmarkAsset",

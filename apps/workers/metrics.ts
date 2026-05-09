@@ -30,6 +30,21 @@ export const bookmarkCrawlLatencyHistogram = new Histogram({
   ],
 });
 
+export const adapterExtractionCounter = new Counter({
+  name: "karakeep_adapter_extractions_total",
+  help: "Platform adapter extraction attempts",
+  labelNames: ["adapter", "status"],
+});
+
+export const adapterExtractionLatencyHistogram = new Histogram({
+  name: "karakeep_adapter_extraction_latency_seconds",
+  help: "Latency of platform adapter extraction attempts",
+  labelNames: ["adapter", "status"],
+  buckets: [0.1, 0.25, 0.5, 1, 2.5, 5, 7.5, 10, 15, 30, 60],
+});
+
 registry.registerMetric(workerStatsCounter);
 registry.registerMetric(crawlerStatusCodeCounter);
 registry.registerMetric(bookmarkCrawlLatencyHistogram);
+registry.registerMetric(adapterExtractionCounter);
+registry.registerMetric(adapterExtractionLatencyHistogram);
