@@ -26,4 +26,25 @@ describe("sanitizeReadableHtml", () => {
     );
     expect(html).not.toContain("<d-math");
   });
+
+  test("falls back to plain text for invalid math", () => {
+    const html = sanitizeReadableHtml(
+      `<p><d-math>\\UNDEFINED{</d-math></p>`,
+      "https://example.com/article",
+    );
+
+    expect(html).toContain("\\UNDEFINED{");
+    expect(html).not.toContain("<math");
+    expect(html).not.toContain("<d-math");
+  });
+
+  test("drops empty Distill math elements during sanitization", () => {
+    const html = sanitizeReadableHtml(
+      `<p>before <d-math> </d-math> after</p>`,
+      "https://example.com/article",
+    );
+
+    expect(html).toBe("<p>before   after</p>");
+    expect(html).not.toContain("<d-math");
+  });
 });

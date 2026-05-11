@@ -20,25 +20,17 @@ function renderDistillMath(document: Document): void {
         displayMode,
         output: "mathml",
         strict: "ignore",
-        throwOnError: false,
+        throwOnError: true,
         trust: false,
       });
 
-      const renderedDom = new JSDOM(rendered);
-      try {
-        renderedDom.window.document
-          .querySelectorAll("annotation")
-          .forEach((annotation) => annotation.remove());
+      const temp = document.createElement("div");
+      temp.innerHTML = rendered;
+      temp
+        .querySelectorAll("annotation")
+        .forEach((annotation) => annotation.remove());
 
-        const replacementNodes = Array.from(
-          renderedDom.window.document.body.childNodes,
-          (node) => document.importNode(node, true),
-        );
-
-        mathElement.replaceWith(...replacementNodes);
-      } finally {
-        renderedDom.window.close();
-      }
+      mathElement.replaceWith(...Array.from(temp.childNodes));
     } catch {
       mathElement.replaceWith(document.createTextNode(tex));
     }
