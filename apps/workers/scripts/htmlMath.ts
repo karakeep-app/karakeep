@@ -37,7 +37,11 @@ function renderDistillMath(document: Document): void {
     } catch (error) {
       logger.warn(
         "[Crawler] Failed to render Distill math; falling back to plain text",
-        { error, tex, mathHtml: mathElement.outerHTML },
+        {
+          error,
+          texLength: tex.length,
+          texPreview: tex.slice(0, 120),
+        },
       );
       mathElement.replaceWith(document.createTextNode(tex));
     }
