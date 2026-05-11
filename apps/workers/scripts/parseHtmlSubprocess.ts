@@ -1,5 +1,4 @@
 import { Readability } from "@mozilla/readability";
-import DOMPurify from "dompurify";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { JSDOM, VirtualConsole } from "jsdom";
@@ -28,6 +27,7 @@ import {
   parseSubprocessInputSchema,
   parseSubprocessOutputSchema,
 } from "../workers/utils/parseHtmlSubprocessIpc";
+import { sanitizeReadableHtml } from "./htmlMath";
 
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
@@ -122,14 +122,7 @@ function extractReadableContent(
       return null;
     }
 
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
-      return { content: purifiedHTML };
-    } finally {
-      purifyWindow.close();
-    }
+    return { content: sanitizeReadableHtml(readableContent.content, url) };
   } finally {
     dom.window.close();
   }
@@ -164,14 +157,9 @@ async function main() {
   if (meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
-    const purifyWindow = new JSDOM("").window;
-    try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(meta.readableContentHtml);
-      readableContent = { content: purifiedHTML };
-    } finally {
-      purifyWindow.close();
-    }
+    readableContent = {
+      content: sanitizeReadableHtml(meta.readableContentHtml, url),
+    };
   }
 
   if (!readableContent) {
