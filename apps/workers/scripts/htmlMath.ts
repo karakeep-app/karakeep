@@ -2,6 +2,8 @@ import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import katex from "katex";
 
+import logger from "@karakeep/shared/logger";
+
 function renderDistillMath(document: Document): void {
   const mathElements = Array.from(document.querySelectorAll("d-math"));
 
@@ -32,7 +34,11 @@ function renderDistillMath(document: Document): void {
         .forEach((annotation) => annotation.remove());
 
       mathElement.replaceWith(...Array.from(template.content.childNodes));
-    } catch {
+    } catch (error) {
+      logger.warn(
+        "[Crawler] Failed to render Distill math; falling back to plain text",
+        { error, tex, mathHtml: mathElement.outerHTML },
+      );
       mathElement.replaceWith(document.createTextNode(tex));
     }
   }
