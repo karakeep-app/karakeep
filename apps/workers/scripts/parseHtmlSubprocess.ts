@@ -155,8 +155,9 @@ async function main() {
   // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = null;
   if (meta.readableContentHtml) {
-    // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
-    // path already does this, but the direct-content path was missing it).
+    // Run plugin-provided HTML through the shared sanitizer: Distill d-math
+    // rendering followed by DOMPurify. extractReadableContent already uses the
+    // same flow; the direct-content path was previously missing it.
     readableContent = {
       content: sanitizeReadableHtml(meta.readableContentHtml, url),
     };

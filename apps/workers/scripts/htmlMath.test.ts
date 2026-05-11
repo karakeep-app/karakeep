@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { JSDOM } from "jsdom";
 
 import { sanitizeReadableHtml } from "./htmlMath";
 
@@ -21,10 +22,14 @@ describe("sanitizeReadableHtml", () => {
       "https://example.com/article",
     );
 
-    expect(html).toContain(
-      '<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">',
-    );
+    const dom = new JSDOM(`<body>${html}</body>`);
+    const math = dom.window.document.querySelector("math");
+
+    expect(math?.namespaceURI).toBe("http://www.w3.org/1998/Math/MathML");
+    expect(math?.getAttribute("display")).toBe("block");
     expect(html).not.toContain("<d-math");
+
+    dom.window.close();
   });
 
   test("falls back to plain text for invalid math", () => {

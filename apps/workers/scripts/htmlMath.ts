@@ -24,13 +24,13 @@ function renderDistillMath(document: Document): void {
         trust: false,
       });
 
-      const temp = document.createElement("div");
-      temp.innerHTML = rendered;
-      temp
+      const template = document.createElement("template");
+      template.innerHTML = rendered;
+      template.content
         .querySelectorAll("annotation")
         .forEach((annotation) => annotation.remove());
 
-      mathElement.replaceWith(...Array.from(temp.childNodes));
+      mathElement.replaceWith(...Array.from(template.content.childNodes));
     } catch {
       mathElement.replaceWith(document.createTextNode(tex));
     }
