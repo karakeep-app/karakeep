@@ -8,6 +8,7 @@ function renderDistillMath(document: Document): void {
   for (const mathElement of mathElements) {
     const tex = mathElement.textContent?.trim();
     if (!tex) {
+      mathElement.remove();
       continue;
     }
 

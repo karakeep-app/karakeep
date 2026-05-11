@@ -49,7 +49,7 @@ describe("sanitizeReadableHtml", () => {
       "https://example.com/article",
     );
 
-    expect(html).toBe("<p>before   after</p>");
+    expect(html).toMatch(/^<p>before\s+after<\/p>$/);
     expect(html).not.toContain("<d-math");
   });
 });
