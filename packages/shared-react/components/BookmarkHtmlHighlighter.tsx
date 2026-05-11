@@ -15,6 +15,7 @@ import {
 } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
+import { renderMathInReaderElement } from "../lib/math-rendering";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
@@ -183,6 +184,13 @@ const BookmarkHTMLHighlighter = forwardRef<
       typeof window !== "undefined" &&
       window.matchMedia("(pointer: coarse)").matches,
   )[0];
+
+  useEffect(() => {
+    if (!contentRef.current) {
+      return;
+    }
+    renderMathInReaderElement(contentRef.current);
+  }, [htmlContent]);
 
   // Apply existing highlights when component mounts or highlights change
   useEffect(() => {
