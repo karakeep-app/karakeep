@@ -57,6 +57,17 @@ describe("getHighlightTextFromRange", () => {
     );
   });
 
+  test("uses title attribute for image labels when alt is missing", () => {
+    document.body.innerHTML =
+      '<p>Before <img title="system overview" src="/diagram.png"> after</p>';
+
+    const paragraph = document.querySelector("p") as HTMLElement;
+
+    expect(getHighlightTextFromRange(selectElementContents(paragraph))).toBe(
+      "Before\n[Image: system overview]\nafter",
+    );
+  });
+
   test("uses a concise marker for selected images without labels", () => {
     document.body.innerHTML = '<p>Before <img src="/diagram.png"> after</p>';
 
