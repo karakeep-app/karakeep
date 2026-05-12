@@ -32,7 +32,7 @@ import {
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-const MAX_TOOLBAR_CONTENT_WIDTH = 360;
+const TOOLBAR_ICON_GAP = 28;
 
 function triggerHaptic() {
   Haptics.selectionAsync().catch(() => {
@@ -301,12 +301,10 @@ function ToolbarContainer({
   const innerRow = (
     <View
       style={{
-        width: "100%",
-        maxWidth: MAX_TOOLBAR_CONTENT_WIDTH,
         alignSelf: "center",
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
+        gap: TOOLBAR_ICON_GAP,
       }}
     >
       {children}
