@@ -42,18 +42,30 @@ function appendLineBreak(parts: string[]) {
   }
 }
 
+function appendExplicitLineBreak(parts: string[]) {
+  parts.push("\n");
+}
+
 function getImageLabel(element: HTMLElement) {
   const label =
     element.getAttribute("alt")?.trim() ||
-    element.getAttribute("title")?.trim() ||
-    "Image";
+    element.getAttribute("title")?.trim();
 
-  return `[Image: ${label}]`;
+  return label ? `[Image: ${label}]` : "[Image]";
 }
 
 function visitHighlightNode(node: Node, parts: string[]) {
   if (node.nodeType === Node.TEXT_NODE) {
-    parts.push(node.textContent ?? "");
+    const text = node.textContent ?? "";
+    if (/^[\t\f\v \r\n\u00a0]*$/.test(text) && /\r|\n/.test(text)) {
+      const last = parts[parts.length - 1];
+      if (parts.length > 0 && last !== "\n" && !/\s$/.test(last ?? "")) {
+        parts.push(" ");
+      }
+      return;
+    }
+
+    parts.push(text);
     return;
   }
 
@@ -65,7 +77,7 @@ function visitHighlightNode(node: Node, parts: string[]) {
   const tagName = element.tagName;
 
   if (tagName === "BR") {
-    appendLineBreak(parts);
+    appendExplicitLineBreak(parts);
     return;
   }
 
@@ -77,10 +89,6 @@ function visitHighlightNode(node: Node, parts: string[]) {
   }
 
   const isBlock = BLOCK_TAGS.has(tagName);
-  if (isBlock && parts.length > 0) {
-    appendLineBreak(parts);
-  }
-
   for (const child of Array.from(element.childNodes)) {
     visitHighlightNode(child, parts);
   }
@@ -96,7 +104,7 @@ export function normalizeHighlightText(text: string) {
     .split("\n")
     .map((line) => line.replace(/[\t\f\v \u00a0]+/g, " ").trim())
     .join("\n")
-    .replace(/\n{2,}/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 

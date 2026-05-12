@@ -11,6 +11,16 @@ function selectElementContents(element: HTMLElement) {
 }
 
 describe("getHighlightTextFromRange", () => {
+  test("preserves consecutive structural breaks", () => {
+    document.body.innerHTML = "<p>First<br><br>Second</p>";
+
+    const paragraph = document.querySelector("p") as HTMLElement;
+
+    expect(getHighlightTextFromRange(selectElementContents(paragraph))).toBe(
+      "First\n\nSecond",
+    );
+  });
+
   test("preserves block breaks between selected paragraphs", () => {
     document.body.innerHTML = `
       <article>
@@ -44,6 +54,16 @@ describe("getHighlightTextFromRange", () => {
 
     expect(getHighlightTextFromRange(selectElementContents(paragraph))).toBe(
       "Before\n[Image: architecture diagram]\nafter",
+    );
+  });
+
+  test("uses a concise marker for selected images without labels", () => {
+    document.body.innerHTML = '<p>Before <img src="/diagram.png"> after</p>';
+
+    const paragraph = document.querySelector("p") as HTMLElement;
+
+    expect(getHighlightTextFromRange(selectElementContents(paragraph))).toBe(
+      "Before\n[Image]\nafter",
     );
   });
 });
