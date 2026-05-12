@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { GlassView, isGlassEffectAPIAvailable } from "expo-glass-effect";
-import { isIOS26 } from "@/lib/ios";
+import { isIOS26, isIPad } from "@/lib/ios";
 
 const shouldUseGlass = isIOS26 && isGlassEffectAPIAvailable();
 const SIZE = 62;
@@ -16,7 +16,7 @@ export function FAB({ children }: { children: ReactNode }) {
       style={[
         styles.container,
         {
-          bottom: insets.bottom + (isIOS26 ? 57 : 60),
+          bottom: insets.bottom + (isIPad ? 0 : isIOS26 ? 57 : 60),
           right: isIOS26 ? 21 : 16,
         },
       ]}
