@@ -240,31 +240,30 @@ export default function Settings() {
         className="w-full rounded-xl bg-card py-2"
         style={{ borderCurve: "continuous" }}
       >
-        <View className="flex w-full flex-row items-center justify-between gap-8 px-4 py-1">
-          <Text>Upload Image Quality</Text>
-          <View className="flex flex-1 flex-row items-center justify-center gap-2">
+        <View className="flex w-full flex-col gap-1 px-4 py-2">
+          <View className="flex flex-row items-center justify-between">
+            <Text>Upload Image Quality</Text>
             <Text className="text-foreground">
               {Math.round(imageQuality ?? 0)}%
             </Text>
-
-            {imageQuality === null ? (
-              <ActivityIndicator size="small" />
-            ) : (
-              <Slider
-                style={{ height: 40, flex: 1 }}
-                onSlidingComplete={(value) =>
-                  setSettings({
-                    ...settings,
-                    imageQuality: Math.round(value) / 100,
-                  })
-                }
-                onValueChange={(value) => setImageQuality(value)}
-                value={imageQuality}
-                minimumValue={0}
-                maximumValue={100}
-              />
-            )}
           </View>
+          {imageQuality === null ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Slider
+              style={{ height: 40, width: "100%" }}
+              onSlidingComplete={(value) =>
+                setSettings({
+                  ...settings,
+                  imageQuality: Math.round(value) / 100,
+                })
+              }
+              onValueChange={(value) => setImageQuality(value)}
+              value={imageQuality}
+              minimumValue={0}
+              maximumValue={100}
+            />
+          )}
         </View>
       </View>
 
