@@ -12,6 +12,7 @@ import {
 import Slider from "@react-native-community/slider";
 import Constants from "expo-constants";
 import { Link } from "expo-router";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { Divider } from "@/components/ui/Divider";
@@ -33,6 +34,7 @@ function SectionHeader({ title }: { title: string }) {
 
 export default function Settings() {
   const { logout } = useSession();
+  const headerHeight = useHeaderHeight();
   const {
     settings,
     setSettings,
@@ -107,7 +109,10 @@ export default function Settings() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+      contentContainerStyle={{
+        paddingHorizontal: 16,
+        paddingBottom: 40 + headerHeight,
+      }}
     >
       <UserProfileHeader
         image={data?.image}
