@@ -1,6 +1,7 @@
 import React from "react";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
+import { z } from "zod";
 import type {
   WidgetInfo,
   WidgetRepresentation,
@@ -11,9 +12,13 @@ import type { Settings } from "@/lib/settings";
 import {
   DEFAULT_ANDROID_WIDGET_SEARCH_QUERY,
   SETTING_NAME,
+  zSettingsSchema,
 } from "@/lib/settings";
 import { buildApiHeaders } from "@/lib/utils";
-import type { BookmarkSearchWidgetState } from "./BookmarkSearchWidget";
+import type {
+  BookmarkSearchWidgetState,
+  WidgetBookmark,
+} from "./BookmarkSearchWidget";
 
 import {
   BOOKMARK_SEARCH_WIDGET_NAME,
@@ -21,9 +26,23 @@ import {
   getBookmarkSearchWidgetItemLimit,
 } from "./BookmarkSearchWidget";
 
-interface SearchResponse {
-  bookmarks?: BookmarkSearchWidgetState["bookmarks"];
-}
+const zWidgetBookmark = z.object({
+  id: z.string(),
+  title: z.string().nullish(),
+  tags: z.array(z.object({ name: z.string() })).optional(),
+  content: z
+    .object({
+      type: z.string().optional(),
+      url: z.string().nullish(),
+      title: z.string().nullish(),
+      fileName: z.string().nullish(),
+    })
+    .optional(),
+}) satisfies z.ZodType<WidgetBookmark>;
+
+const zSearchResponse = z.object({
+  bookmarks: z.array(zWidgetBookmark).optional(),
+});
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
   if (props.widgetInfo.widgetName !== BOOKMARK_SEARCH_WIDGET_NAME) {
@@ -70,10 +89,12 @@ export async function getBookmarkSearchWidgetRepresentation(
       status: "ready",
       widgetInfo,
     });
-  } catch {
+  } catch (error) {
+    const errorMessage = getWidgetErrorMessage(error);
+    console.error("Karakeep search widget update failed", error);
     return renderWithThemes({
       bookmarks: [],
-      errorMessage: "Bookmarks unavailable",
+      errorMessage,
       query,
       scheme: getBookmarkSearchWidgetScheme(),
       status: "error",
@@ -88,7 +109,8 @@ async function loadSettings(): Promise<Settings | null> {
     if (!rawSettings) {
       return null;
     }
-    return JSON.parse(rawSettings) as Settings;
+    const parsed = zSettingsSchema.safeParse(JSON.parse(rawSettings));
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }
@@ -116,8 +138,12 @@ async function fetchBookmarks(
     throw new Error(`Search request failed with ${response.status}`);
   }
 
-  const data = (await response.json()) as SearchResponse;
-  return Array.isArray(data.bookmarks) ? data.bookmarks : [];
+  const parsed = zSearchResponse.safeParse(await response.json());
+  if (!parsed.success) {
+    console.warn("Karakeep search widget received invalid search response");
+    return [];
+  }
+  return parsed.data.bookmarks ?? [];
 }
 
 function renderWithThemes(
@@ -137,4 +163,10 @@ export function getBookmarkSearchWidgetScheme() {
     return scheme[0] ?? "karakeep";
   }
   return scheme ?? "karakeep";
+}
+
+function getWidgetErrorMessage(error: unknown) {
+  return error instanceof Error && error.message
+    ? error.message
+    : "Bookmarks unavailable";
 }

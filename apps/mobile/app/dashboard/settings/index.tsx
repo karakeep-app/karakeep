@@ -103,7 +103,11 @@ export default function Settings() {
     if (Platform.OS === "android") {
       const { updateBookmarkSearchWidgets } =
         await import("@/widgets/bookmark-search/updateBookmarkSearchWidgets");
-      updateBookmarkSearchWidgets().catch(() => undefined);
+      updateBookmarkSearchWidgets().catch((error: unknown) => {
+        if (__DEV__) {
+          console.error("Failed to update Karakeep search widgets", error);
+        }
+      });
     }
   };
 

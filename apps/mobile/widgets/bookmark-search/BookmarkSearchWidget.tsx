@@ -54,21 +54,19 @@ const palettes = {
   },
 } as const;
 
+const WIDGET_SIZE_THRESHOLDS = [
+  { minHeight: 330, itemLimit: 6 },
+  { minHeight: 270, itemLimit: 5 },
+  { minHeight: 220, itemLimit: 4 },
+  { minHeight: 170, itemLimit: 3 },
+  { minHeight: 130, itemLimit: 2 },
+] as const;
+
 export function getBookmarkSearchWidgetItemLimit(widgetInfo: WidgetInfo) {
-  if (widgetInfo.height >= 330) {
-    return 6;
-  }
-  if (widgetInfo.height >= 270) {
-    return 5;
-  }
-  if (widgetInfo.height >= 220) {
-    return 4;
-  }
-  if (widgetInfo.height >= 170) {
-    return 3;
-  }
-  if (widgetInfo.height >= 130) {
-    return 2;
+  for (const { minHeight, itemLimit } of WIDGET_SIZE_THRESHOLDS) {
+    if (widgetInfo.height >= minHeight) {
+      return itemLimit;
+    }
   }
   return 1;
 }

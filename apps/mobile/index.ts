@@ -1,6 +1,5 @@
 import "expo-router/entry";
-import { registerWidgetTaskHandler } from "react-native-android-widget";
 
-import { widgetTaskHandler } from "./widgets/bookmark-search/BookmarkSearchWidgetTask";
+import { registerBookmarkSearchWidgetTask } from "./widgets/bookmark-search/registerBookmarkSearchWidgetTask";
 
-registerWidgetTaskHandler(widgetTaskHandler);
+registerBookmarkSearchWidgetTask();

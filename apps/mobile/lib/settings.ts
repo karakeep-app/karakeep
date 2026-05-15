@@ -35,7 +35,7 @@ export const DEFAULT_OVERFLOW_ACTIONS: ToolbarActionId[] = [
   "delete",
 ];
 
-const zSettingsSchema = z.object({
+export const zSettingsSchema = z.object({
   apiKey: z.string().optional(),
   apiKeyId: z.string().optional(),
   address: z.string().optional().default("https://cloud.karakeep.app"),
