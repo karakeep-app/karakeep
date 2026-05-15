@@ -5,7 +5,8 @@ import { create } from "zustand";
 
 import { zReaderFontFamilySchema } from "@karakeep/shared/types/users";
 
-const SETTING_NAME = "settings";
+export const SETTING_NAME = "settings";
+export const DEFAULT_ANDROID_WIDGET_SEARCH_QUERY = "-is:archived";
 
 const zToolbarActionId = z.enum([
   "lists",
@@ -46,6 +47,10 @@ const zSettingsSchema = z.object({
     .default("reader"),
   showNotes: z.boolean().optional().default(false),
   keepScreenOnWhileReading: z.boolean().optional().default(false),
+  androidWidgetSearchQuery: z
+    .string()
+    .optional()
+    .default(DEFAULT_ANDROID_WIDGET_SEARCH_QUERY),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
   // Reader settings (local device overrides)
   readerFontSize: z.number().int().min(12).max(24).optional(),
@@ -80,6 +85,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       defaultBookmarkView: "reader",
       showNotes: false,
       keepScreenOnWhileReading: false,
+      androidWidgetSearchQuery: DEFAULT_ANDROID_WIDGET_SEARCH_QUERY,
       customHeaders: {},
       toolbarActions: DEFAULT_TOOLBAR_ACTIONS,
       overflowActions: DEFAULT_OVERFLOW_ACTIONS,

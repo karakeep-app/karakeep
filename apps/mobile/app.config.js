@@ -1,4 +1,21 @@
 const IS_DEV = process.env.APP_VARIANT === "development";
+const androidWidgetConfig = {
+  widgets: [
+    {
+      name: "BookmarkSearch",
+      label: "Karakeep Search",
+      description: "Shows saved bookmarks matching a Karakeep search query",
+      minWidth: "250dp",
+      minHeight: "120dp",
+      targetCellWidth: 4,
+      targetCellHeight: 2,
+      maxResizeHeight: "360dp",
+      resizeMode: "horizontal|vertical",
+      previewImage: "./assets/widget-preview/bookmark-search.png",
+      updatePeriodMillis: 1800000,
+    },
+  ],
+};
 
 export default {
   expo: {
@@ -107,6 +124,7 @@ export default {
           },
         },
       ],
+      ["react-native-android-widget", androidWidgetConfig],
       "expo-web-browser",
       [
         "@sentry/react-native/expo",
