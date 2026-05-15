@@ -1,5 +1,9 @@
 import "expo-router/entry";
 
+import { Platform } from "react-native";
+
 import { registerBookmarkSearchWidgetTask } from "./widgets/bookmark-search/registerBookmarkSearchWidgetTask";
 
-registerBookmarkSearchWidgetTask();
+if (Platform.OS === "android") {
+  registerBookmarkSearchWidgetTask();
+}
