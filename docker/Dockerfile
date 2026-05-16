@@ -136,6 +136,13 @@ RUN case ${TARGETARCH} in \
     && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_FILE} -o /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp
 
+# yt-dlp >=2025.x requires a JavaScript runtime to extract YouTube formats.
+# Deno is yt-dlp's default but is not present in this image. Node is the
+# base image and is fully supported by yt-dlp (min v20). Point yt-dlp at it
+# via its system config file so every invocation picks it up without
+# changes to the worker. Fixes karakeep-app/karakeep#2758.
+RUN echo "--js-runtimes node" > /etc/yt-dlp.conf
+
 # Copy monolith binary from builder
 COPY --from=monolith_builder /usr/local/cargo/bin/monolith /usr/local/bin/monolith
 
