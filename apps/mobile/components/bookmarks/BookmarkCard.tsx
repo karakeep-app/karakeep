@@ -6,8 +6,6 @@ import {
   ScrollView,
   View,
 } from "react-native";
-// RNGH Pressable coordinates with the FlatList's native scroll gesture, so taps
-// right after a scroll aren't eaten by the scroll-stop on iOS/Android.
 import { Pressable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
