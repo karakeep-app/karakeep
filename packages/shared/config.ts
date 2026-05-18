@@ -228,6 +228,13 @@ const allEnv = z.object({
     .optional(),
 
   // Database configuration
+  DATABASE_DIALECT: z.enum(["sqlite", "postgresql"]).default("sqlite"),
+  DATABASE_URL: z.string().url().optional(),
+  DATABASE_HOST: z.string().optional(),
+  DATABASE_PORT: z.coerce.number().default(5432),
+  DATABASE_USER: z.string().optional(),
+  DATABASE_PASSWORD: z.string().optional(),
+  DATABASE_NAME: z.string().optional(),
   DB_WAL_MODE: stringBool("false"),
 
   // OpenTelemetry tracing configuration
@@ -450,6 +457,13 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       },
     },
     database: {
+      dialect: val.DATABASE_DIALECT,
+      url: val.DATABASE_URL ?? null,
+      host: val.DATABASE_HOST ?? null,
+      port: val.DATABASE_PORT,
+      user: val.DATABASE_USER ?? null,
+      password: val.DATABASE_PASSWORD ?? null,
+      name: val.DATABASE_NAME ?? null,
       walMode: val.DB_WAL_MODE,
     },
     tracing: {
@@ -475,6 +489,29 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       fatal: true,
     });
     return z.NEVER;
+  }
+  if (obj.database.dialect === "postgresql") {
+    const hasUrl = !!obj.database.url;
+    const hasFields = !!(
+      obj.database.host &&
+      obj.database.user &&
+      obj.database.password &&
+      obj.database.name
+    );
+    if (!hasUrl && !hasFields) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "PostgreSQL requires either DATABASE_URL or DATABASE_HOST + DATABASE_USER + DATABASE_PASSWORD + DATABASE_NAME",
+        fatal: true,
+      });
+      return z.NEVER;
+    }
+    if (hasUrl && hasFields) {
+      console.warn(
+        "Both DATABASE_URL and individual DATABASE_* fields are set. DATABASE_URL takes precedence.",
+      );
+    }
   }
   return obj;
 });
@@ -512,5 +549,14 @@ export const clientConfig = {
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,
 };
 export type ClientConfig = typeof clientConfig;
+
+export function buildPgConnectionString(
+  dbConfig: typeof serverConfig.database,
+): string {
+  return (
+    dbConfig.url ??
+    `postgresql://${encodeURIComponent(dbConfig.user!)}:${encodeURIComponent(dbConfig.password!)}@${dbConfig.host}:${dbConfig.port}/${dbConfig.name}`
+  );
+}
 
 export default serverConfig;

@@ -1,0 +1,957 @@
+import type { AdapterAccount } from "@auth/core/adapters";
+import { createId } from "@paralleldrive/cuid2";
+import { sql, SQL } from "drizzle-orm";
+import {
+  AnyPgColumn,
+  boolean,
+  doublePrecision,
+  foreignKey,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  unique,
+} from "drizzle-orm/pg-core";
+
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
+function createdAtField() {
+  return timestamp("createdAt", { withTimezone: true })
+    .notNull()
+    .$defaultFn(() => new Date());
+}
+
+function modifiedAtField() {
+  return timestamp("modifiedAt", { withTimezone: true })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date());
+}
+
+export const users = pgTable("user", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: timestamp("emailVerified", {
+    withTimezone: true,
+    mode: "date",
+  }),
+  image: text("image"),
+  password: text("password"),
+  salt: text("salt").notNull().default(""),
+  role: text("role", { enum: ["admin", "user"] }).default("user"),
+
+  // Admin Only Settings
+  bookmarkQuota: integer("bookmarkQuota"),
+  storageQuota: integer("storageQuota"),
+  browserCrawlingEnabled: boolean("browserCrawlingEnabled"),
+
+  // User Settings
+  bookmarkClickAction: text("bookmarkClickAction", {
+    enum: ["open_original_link", "expand_bookmark_preview"],
+  })
+    .notNull()
+    .default("open_original_link"),
+  archiveDisplayBehaviour: text("archiveDisplayBehaviour", {
+    enum: ["show", "hide"],
+  })
+    .notNull()
+    .default("show"),
+  timezone: text("timezone").default("UTC"),
+
+  // Backup Settings
+  backupsEnabled: boolean("backupsEnabled").notNull().default(false),
+  backupsFrequency: text("backupsFrequency", {
+    enum: ["daily", "weekly"],
+  })
+    .notNull()
+    .default("weekly"),
+  backupsRetentionDays: integer("backupsRetentionDays").notNull().default(30),
+
+  // Reader view settings (nullable = opt-in, null means use client default)
+  readerFontSize: integer("readerFontSize"),
+  readerLineHeight: doublePrecision("readerLineHeight"),
+  readerFontFamily: text("readerFontFamily", {
+    enum: ["serif", "sans", "mono"],
+  }),
+
+  // AI Settings (nullable = opt-in, null means use server default)
+  autoTaggingEnabled: boolean("autoTaggingEnabled"),
+  autoSummarizationEnabled: boolean("autoSummarizationEnabled"),
+  tagStyle: text("tagStyle", {
+    enum: [
+      "lowercase-hyphens",
+      "lowercase-spaces",
+      "lowercase-underscores",
+      "titlecase-spaces",
+      "titlecase-hyphens",
+      "camelCase",
+      "as-generated",
+    ],
+  }).default("titlecase-spaces"),
+  curatedTagIds: jsonb("curatedTagIds").$type<string[]>(),
+  inferredTagLang: text("inferredTagLang"),
+});
+
+export const accounts = pgTable(
+  "account",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").$type<AdapterAccount["type"]>().notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => [
+    primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  ],
+);
+
+export const sessions = pgTable("session", {
+  sessionToken: text("sessionToken")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { withTimezone: true, mode: "date" }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+  },
+  (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
+);
+
+export const passwordResetTokens = pgTable(
+  "passwordResetToken",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expires: timestamp("expires", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    createdAt: createdAtField(),
+  },
+  (prt) => [index("passwordResetTokens_userId_idx").on(prt.userId)],
+);
+
+export const apiKeys = pgTable(
+  "apiKey",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    createdAt: createdAtField(),
+    lastUsedAt: timestamp("lastUsedAt", { withTimezone: true }),
+    keyId: text("keyId").notNull().unique(),
+    keyHash: text("keyHash").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (ak) => [unique().on(ak.name, ak.userId)],
+);
+
+export const bookmarks = pgTable(
+  "bookmarks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+    title: text("title"),
+    archived: boolean("archived").notNull().default(false),
+    favourited: boolean("favourited").notNull().default(false),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    taggingStatus: text("taggingStatus", {
+      enum: ["pending", "failure", "success"],
+    }).default("pending"),
+    summarizationStatus: text("summarizationStatus", {
+      enum: ["pending", "failure", "success"],
+    }).default("pending"),
+    summary: text("summary"),
+    note: text("note"),
+    type: text("type", {
+      enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
+    }).notNull(),
+    source: text("source", {
+      enum: [
+        "api",
+        "web",
+        "extension",
+        "cli",
+        "mobile",
+        "singlefile",
+        "rss",
+        "import",
+      ],
+    }),
+  },
+  (b) => [
+    index("bookmarks_userId_idx").on(b.userId),
+    index("bookmarks_createdAt_idx").on(b.createdAt),
+    // Composite indexes for optimized pagination queries
+    index("bookmarks_userId_createdAt_id_idx").on(b.userId, b.createdAt, b.id),
+    index("bookmarks_userId_archived_createdAt_id_idx").on(
+      b.userId,
+      b.archived,
+      b.createdAt,
+      b.id,
+    ),
+    index("bookmarks_userId_favourited_createdAt_id_idx").on(
+      b.userId,
+      b.favourited,
+      b.createdAt,
+      b.id,
+    ),
+  ],
+);
+
+export const bookmarkLinks = pgTable(
+  "bookmarkLinks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId())
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+
+    // Crawled info
+    title: text("title"),
+    description: text("description"),
+    author: text("author"),
+    publisher: text("publisher"),
+    datePublished: timestamp("datePublished", { withTimezone: true }),
+    dateModified: timestamp("dateModified", { withTimezone: true }),
+    imageUrl: text("imageUrl"),
+    favicon: text("favicon"),
+    htmlContent: text("htmlContent"),
+    contentAssetId: text("contentAssetId"),
+    crawledAt: timestamp("crawledAt", { withTimezone: true }),
+    crawlStatus: text("crawlStatus", {
+      enum: ["pending", "failure", "success"],
+    }).default("pending"),
+    crawlStatusCode: integer("crawlStatusCode").default(200),
+  },
+  (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
+);
+
+export const enum AssetTypes {
+  LINK_BANNER_IMAGE = "linkBannerImage",
+  LINK_SCREENSHOT = "linkScreenshot",
+  LINK_PDF = "linkPdf",
+  ASSET_SCREENSHOT = "assetScreenshot",
+  LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
+  LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
+  LINK_VIDEO = "linkVideo",
+  LINK_HTML_CONTENT = "linkHtmlContent",
+  BOOKMARK_ASSET = "bookmarkAsset",
+  USER_UPLOADED = "userUploaded",
+  AVATAR = "avatar",
+  BACKUP = "backup",
+  UNKNOWN = "unknown",
+}
+
+export const assets = pgTable(
+  "assets",
+  {
+    // Asset ids don't have a default function as they are generated by the caller
+    id: text("id").notNull().primaryKey(),
+    assetType: text("assetType", {
+      enum: [
+        AssetTypes.LINK_BANNER_IMAGE,
+        AssetTypes.LINK_SCREENSHOT,
+        AssetTypes.LINK_PDF,
+        AssetTypes.ASSET_SCREENSHOT,
+        AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+        AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+        AssetTypes.LINK_VIDEO,
+        AssetTypes.LINK_HTML_CONTENT,
+        AssetTypes.BOOKMARK_ASSET,
+        AssetTypes.USER_UPLOADED,
+        AssetTypes.AVATAR,
+        AssetTypes.BACKUP,
+        AssetTypes.UNKNOWN,
+      ],
+    }).notNull(),
+    size: integer("size").notNull().default(0),
+    contentType: text("contentType"),
+    fileName: text("fileName"),
+    bookmarkId: text("bookmarkId").references(() => bookmarks.id, {
+      onDelete: "cascade",
+    }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+
+  (tb) => [
+    index("assets_bookmarkId_idx").on(tb.bookmarkId),
+    index("assets_assetType_idx").on(tb.assetType),
+    index("assets_userId_idx").on(tb.userId),
+  ],
+);
+
+export const highlights = pgTable(
+  "highlights",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, {
+        onDelete: "cascade",
+      }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    startOffset: integer("startOffset").notNull(),
+    endOffset: integer("endOffset").notNull(),
+    color: text("color", {
+      enum: ["red", "green", "blue", "yellow"],
+    })
+      .default("yellow")
+      .notNull(),
+    text: text("text"),
+    note: text("note"),
+    createdAt: createdAtField(),
+  },
+  (tb) => [
+    index("highlights_bookmarkId_idx").on(tb.bookmarkId),
+    index("highlights_userId_idx").on(tb.userId),
+  ],
+);
+
+export const userReadingProgress = pgTable(
+  "userReadingProgress",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, {
+        onDelete: "cascade",
+      }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    readingProgressOffset: integer("readingProgressOffset").notNull(),
+    readingProgressAnchor: text("readingProgressAnchor"),
+    readingProgressPercent: integer("readingProgressPercent"),
+    modifiedAt: modifiedAtField(),
+  },
+  (tb) => [
+    unique().on(tb.bookmarkId, tb.userId),
+    index("userReadingProgress_bookmarkId_idx").on(tb.bookmarkId),
+    index("userReadingProgress_userId_idx").on(tb.userId),
+  ],
+);
+
+export const bookmarkTexts = pgTable("bookmarkTexts", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId())
+    .references(() => bookmarks.id, { onDelete: "cascade" }),
+  text: text("text"),
+  sourceUrl: text("sourceUrl"),
+});
+
+export const bookmarkAssets = pgTable("bookmarkAssets", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId())
+    .references(() => bookmarks.id, { onDelete: "cascade" }),
+  assetType: text("assetType", { enum: ["image", "pdf"] }).notNull(),
+  assetId: text("assetId").notNull(),
+  content: text("content"),
+  metadata: text("metadata"),
+  fileName: text("fileName"),
+  sourceUrl: text("sourceUrl"),
+});
+
+export const bookmarkTags = pgTable(
+  "bookmarkTags",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    normalizedName: text("normalizedName").generatedAlwaysAs(
+      (): SQL =>
+        // This function needs to be in sync with the tagNormalizer function in tagging.ts
+        // PostgreSQL only supports stored generated columns (no "virtual" mode)
+        sql`lower(replace(replace(replace(${bookmarkTags.name}, ' ', ''), '-', ''), '_', ''))`,
+    ),
+    createdAt: createdAtField(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (bt) => [
+    unique().on(bt.userId, bt.name),
+    unique("bookmarkTags_userId_id_idx").on(bt.userId, bt.id),
+    index("bookmarkTags_name_idx").on(bt.name),
+    index("bookmarkTags_userId_idx").on(bt.userId),
+    index("bookmarkTags_normalizedName_idx").on(bt.normalizedName),
+  ],
+);
+
+export const tagsOnBookmarks = pgTable(
+  "tagsOnBookmarks",
+  {
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    tagId: text("tagId")
+      .notNull()
+      .references(() => bookmarkTags.id, { onDelete: "cascade" }),
+
+    attachedAt: timestamp("attachedAt", { withTimezone: true }).$defaultFn(
+      () => new Date(),
+    ),
+    attachedBy: text("attachedBy", { enum: ["ai", "human"] }).notNull(),
+  },
+  (tb) => [
+    primaryKey({ columns: [tb.bookmarkId, tb.tagId] }),
+    index("tagsOnBookmarks_tagId_idx").on(tb.tagId),
+    index("tagsOnBookmarks_bookmarkId_idx").on(tb.bookmarkId),
+    // Composite index for tag-first queries (when filtering by tagId)
+    index("tagsOnBookmarks_tagId_bookmarkId_idx").on(tb.tagId, tb.bookmarkId),
+  ],
+);
+
+export const bookmarkLists = pgTable(
+  "bookmarkLists",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    description: text("description"),
+    icon: text("icon").notNull(),
+    createdAt: createdAtField(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type", { enum: ["manual", "smart"] }).notNull(),
+    // Only applicable for smart lists
+    query: text("query"),
+    parentId: text("parentId").references((): AnyPgColumn => bookmarkLists.id, {
+      onDelete: "set null",
+    }),
+    // Whoever have access to this token can read the content of this list
+    rssToken: text("rssToken"),
+    public: boolean("public").notNull().default(false),
+  },
+  (bl) => [
+    index("bookmarkLists_userId_idx").on(bl.userId),
+    unique("bookmarkLists_userId_id_idx").on(bl.userId, bl.id),
+  ],
+);
+
+export const bookmarksInLists = pgTable(
+  "bookmarksInLists",
+  {
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    listId: text("listId")
+      .notNull()
+      .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    addedAt: timestamp("addedAt", { withTimezone: true }).$defaultFn(
+      () => new Date(),
+    ),
+    // Tie the list's existence to the user's membership
+    // of this list.
+    listMembershipId: text("listMembershipId").references(
+      () => listCollaborators.id,
+      {
+        onDelete: "cascade",
+      },
+    ),
+  },
+  (tb) => [
+    primaryKey({ columns: [tb.bookmarkId, tb.listId] }),
+    index("bookmarksInLists_bookmarkId_idx").on(tb.bookmarkId),
+    index("bookmarksInLists_listId_idx").on(tb.listId),
+    // Composite index for list-first queries (when filtering by listId)
+    index("bookmarksInLists_listId_bookmarkId_idx").on(
+      tb.listId,
+      tb.bookmarkId,
+    ),
+  ],
+);
+
+export const listCollaborators = pgTable(
+  "listCollaborators",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    listId: text("listId")
+      .notNull()
+      .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["viewer", "editor"] }).notNull(),
+    addedAt: createdAtField(),
+    addedBy: text("addedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (lc) => [
+    unique().on(lc.listId, lc.userId),
+    index("listCollaborators_listId_idx").on(lc.listId),
+    index("listCollaborators_userId_idx").on(lc.userId),
+  ],
+);
+
+export const listInvitations = pgTable(
+  "listInvitations",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    listId: text("listId")
+      .notNull()
+      .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["viewer", "editor"] }).notNull(),
+    status: text("status", { enum: ["pending", "declined"] })
+      .notNull()
+      .default("pending"),
+    invitedAt: timestamp("invitedAt", { withTimezone: true })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    invitedEmail: text("invitedEmail"),
+    invitedBy: text("invitedBy").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (li) => [
+    unique().on(li.listId, li.userId),
+    index("listInvitations_listId_idx").on(li.listId),
+    index("listInvitations_userId_idx").on(li.userId),
+    index("listInvitations_status_idx").on(li.status),
+  ],
+);
+
+export const customPrompts = pgTable(
+  "customPrompts",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    text: text("text").notNull(),
+    enabled: boolean("enabled").notNull(),
+    appliesTo: text("appliesTo", {
+      enum: ["all_tagging", "text", "images", "summary"],
+    }).notNull(),
+    createdAt: createdAtField(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (bl) => [index("customPrompts_userId_idx").on(bl.userId)],
+);
+
+export const rssFeedsTable = pgTable(
+  "rssFeeds",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    url: text("url").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    importTags: boolean("importTags").notNull().default(false),
+    createdAt: createdAtField(),
+    lastFetchedAt: timestamp("lastFetchedAt", { withTimezone: true }),
+    lastSuccessfulFetchAt: timestamp("lastSuccessfulFetchAt", {
+      withTimezone: true,
+    }),
+    lastFetchedStatus: text("lastFetchedStatus", {
+      enum: ["pending", "failure", "success"],
+    }).default("pending"),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (bl) => [index("rssFeeds_userId_idx").on(bl.userId)],
+);
+
+export const webhooksTable = pgTable(
+  "webhooks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    createdAt: createdAtField(),
+    url: text("url").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    events: jsonb("events")
+      .notNull()
+      .$type<("created" | "edited" | "crawled" | "ai tagged" | "deleted")[]>(),
+    token: text("token"),
+  },
+  (bl) => [index("webhooks_userId_idx").on(bl.userId)],
+);
+
+export const rssFeedImportsTable = pgTable(
+  "rssFeedImports",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    createdAt: createdAtField(),
+    entryId: text("entryId").notNull(),
+    rssFeedId: text("rssFeedId")
+      .notNull()
+      .references(() => rssFeedsTable.id, { onDelete: "cascade" }),
+    bookmarkId: text("bookmarkId").references(() => bookmarks.id, {
+      onDelete: "set null",
+    }),
+  },
+  (bl) => [
+    index("rssFeedImports_feedIdIdx_idx").on(bl.rssFeedId),
+    index("rssFeedImports_entryIdIdx_idx").on(bl.entryId),
+    unique().on(bl.rssFeedId, bl.entryId),
+    // Composite index for RSS feed filter queries (when filtering by rssFeedId)
+    index("rssFeedImports_rssFeedId_bookmarkId_idx").on(
+      bl.rssFeedId,
+      bl.bookmarkId,
+    ),
+  ],
+);
+
+export const backupsTable = pgTable(
+  "backups",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    assetId: text("assetId").references(() => assets.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: createdAtField(),
+    size: integer("size").notNull(),
+    bookmarkCount: integer("bookmarkCount").notNull(),
+    status: text("status", {
+      enum: ["pending", "success", "failure"],
+    })
+      .notNull()
+      .default("pending"),
+    errorMessage: text("errorMessage"),
+  },
+  (b) => [
+    index("backups_userId_idx").on(b.userId),
+    index("backups_createdAt_idx").on(b.createdAt),
+  ],
+);
+
+export const config = pgTable("config", {
+  key: text("key").notNull().primaryKey(),
+  value: text("value").notNull(),
+});
+
+export const ruleEngineRulesTable = pgTable(
+  "ruleEngineRules",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    enabled: boolean("enabled").notNull().default(true),
+    name: text("name").notNull(),
+    description: text("description"),
+    event: text("event").notNull(),
+    condition: text("condition").notNull(),
+
+    // References
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    listId: text("listId"),
+    tagId: text("tagId"),
+  },
+  (rl) => [
+    index("ruleEngine_userId_idx").on(rl.userId),
+
+    // Ensures correct ownership
+    foreignKey({
+      columns: [rl.userId, rl.tagId],
+      foreignColumns: [bookmarkTags.userId, bookmarkTags.id],
+      name: "ruleEngineRules_userId_tagId_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [rl.userId, rl.listId],
+      foreignColumns: [bookmarkLists.userId, bookmarkLists.id],
+      name: "ruleEngineRules_userId_listId_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export const ruleEngineActionsTable = pgTable(
+  "ruleEngineActions",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ruleId: text("ruleId")
+      .notNull()
+      .references(() => ruleEngineRulesTable.id, { onDelete: "cascade" }),
+    action: text("action").notNull(),
+
+    // References
+    listId: text("listId"),
+    tagId: text("tagId"),
+  },
+  (rl) => [
+    index("ruleEngineActions_userId_idx").on(rl.userId),
+    index("ruleEngineActions_ruleId_idx").on(rl.ruleId),
+    // Ensures correct ownership
+    foreignKey({
+      columns: [rl.userId, rl.tagId],
+      foreignColumns: [bookmarkTags.userId, bookmarkTags.id],
+      name: "ruleEngineActions_userId_tagId_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [rl.userId, rl.listId],
+      foreignColumns: [bookmarkLists.userId, bookmarkLists.id],
+      name: "ruleEngineActions_userId_listId_fk",
+    }).onDelete("cascade"),
+  ],
+);
+
+export const invites = pgTable("invites", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: createdAtField(),
+  usedAt: timestamp("usedAt", { withTimezone: true }),
+  invitedBy: text("invitedBy")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+    stripeCustomerId: text("stripeCustomerId").notNull(),
+    stripeSubscriptionId: text("stripeSubscriptionId"),
+    status: text("status", {
+      enum: [
+        "active",
+        "canceled",
+        "past_due",
+        "unpaid",
+        "incomplete",
+        "trialing",
+        "incomplete_expired",
+        "paused",
+      ],
+    }).notNull(),
+    tier: text("tier", {
+      enum: ["free", "paid"],
+    })
+      .notNull()
+      .default("free"),
+    priceId: text("priceId"),
+    cancelAtPeriodEnd: boolean("cancelAtPeriodEnd").default(false),
+    startDate: timestamp("startDate", { withTimezone: true }),
+    endDate: timestamp("endDate", { withTimezone: true }),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (s) => [
+    index("subscriptions_userId_idx").on(s.userId),
+    index("subscriptions_stripeCustomerId_idx").on(s.stripeCustomerId),
+  ],
+);
+
+export const importSessions = pgTable(
+  "importSessions",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    name: text("name").notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    message: text("message"),
+    rootListId: text("rootListId").references(() => bookmarkLists.id, {
+      onDelete: "set null",
+    }),
+    status: text("status", {
+      enum: ["staging", "pending", "running", "paused", "completed", "failed"],
+    })
+      .notNull()
+      .default("staging"),
+    lastProcessedAt: timestamp("lastProcessedAt", { withTimezone: true }),
+    createdAt: createdAtField(),
+    modifiedAt: modifiedAtField(),
+  },
+  (is) => [
+    index("importSessions_userId_idx").on(is.userId),
+    index("importSessions_status_idx").on(is.status),
+  ],
+);
+
+export const importSessionBookmarks = pgTable(
+  "importSessionBookmarks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    importSessionId: text("importSessionId")
+      .notNull()
+      .references(() => importSessions.id, { onDelete: "cascade" }),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    createdAt: createdAtField(),
+  },
+  (isb) => [
+    index("importSessionBookmarks_sessionId_idx").on(isb.importSessionId),
+    index("importSessionBookmarks_bookmarkId_idx").on(isb.bookmarkId),
+    unique().on(isb.importSessionId, isb.bookmarkId),
+  ],
+);
+
+export const importStagingBookmarks = pgTable(
+  "importStagingBookmarks",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    importSessionId: text("importSessionId")
+      .notNull()
+      .references(() => importSessions.id, { onDelete: "cascade" }),
+
+    // Bookmark data to create
+    type: text("type", { enum: ["link", "text", "asset"] }).notNull(),
+    url: text("url"),
+    title: text("title"),
+    content: text("content"),
+    note: text("note"),
+    tags: jsonb("tags").$type<string[]>(),
+    listIds: jsonb("listIds").$type<string[]>(),
+    sourceAddedAt: timestamp("sourceAddedAt", { withTimezone: true }),
+    archived: boolean("archived"),
+
+    // Processing state
+    status: text("status", {
+      enum: ["pending", "processing", "completed", "failed"],
+    })
+      .notNull()
+      .default("pending"),
+    processingStartedAt: timestamp("processingStartedAt", {
+      withTimezone: true,
+    }),
+
+    // Result (for observability)
+    result: text("result", {
+      enum: ["accepted", "rejected", "skipped_duplicate"],
+    }),
+    resultReason: text("resultReason"),
+    resultBookmarkId: text("resultBookmarkId").references(() => bookmarks.id, {
+      onDelete: "set null",
+    }),
+
+    createdAt: createdAtField(),
+    completedAt: timestamp("completedAt", { withTimezone: true }),
+  },
+  (isb) => [
+    index("importStaging_session_status_idx").on(
+      isb.importSessionId,
+      isb.status,
+    ),
+    index("importStaging_completedAt_idx").on(isb.completedAt),
+    index("importStaging_status_idx").on(isb.status),
+    index("importStaging_status_processingStartedAt_idx").on(
+      isb.status,
+      isb.processingStartedAt,
+    ),
+  ],
+);

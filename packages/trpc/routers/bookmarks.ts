@@ -17,6 +17,7 @@ import {
   userReadingProgress,
   users,
 } from "@karakeep/db/schema";
+import { dialect } from "@karakeep/db";
 import {
   AssetPreprocessingQueue,
   LinkCrawlerQueue,
@@ -309,9 +310,10 @@ export const bookmarksAppRouter = router({
             ...bookmark,
           };
         },
-        {
-          behavior: "immediate",
-        },
+        // SQLite uses "immediate" to acquire the write lock upfront and avoid
+        // SQLITE_BUSY deadlocks.  PostgreSQL doesn't need this — its MVCC
+        // handles concurrent writers natively.
+        dialect === "sqlite" ? { behavior: "immediate" as const } : undefined,
       );
 
       bookmarkCreationCounter.labels(input.source ?? "unknown").inc();
