@@ -94,6 +94,7 @@ export default function Dashboard() {
             default: "modal" as const,
           }),
           sheetGrabberVisible: true,
+          sheetExpandsWhenScrolledToEdge: false,
         }}
       />
       <Stack.Screen
@@ -107,6 +108,7 @@ export default function Dashboard() {
             default: "modal" as const,
           }),
           sheetGrabberVisible: true,
+          sheetExpandsWhenScrolledToEdge: false,
         }}
       />
       <Stack.Screen
@@ -158,15 +160,16 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
-        name="search"
+        name="settings/index"
         options={{
-          headerTitle: "",
-          headerBackTitle: "",
-          headerShown: true,
+          headerTitle: "Settings",
           headerTransparent: false,
           headerLargeTitle: false,
-          animation: "fade_from_bottom",
-          animationDuration: 100,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
         }}
       />
       <Stack.Screen
@@ -190,6 +193,14 @@ export default function Dashboard() {
         options={{
           title: "Reader Settings",
           headerTitle: "Reader Settings",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
+        name="settings/toolbar-settings"
+        options={{
+          title: "Toolbar Buttons",
+          headerTitle: "Toolbar Buttons",
           headerBackTitle: "Back",
         }}
       />

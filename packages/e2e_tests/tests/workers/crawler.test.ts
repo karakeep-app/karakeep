@@ -67,6 +67,82 @@ describe("Crawler Tests", () => {
     ).toBeDefined();
   });
 
+  it("should crawl browser-rendered content", async () => {
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://nginx:80/browser-rendered.html",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      assert(data.content.type === "link");
+      return data.content.crawledAt !== null;
+    }, "Browser-rendered bookmark is crawled");
+
+    bookmark = await getBookmark(bookmark.id);
+    assert(bookmark && bookmark.content.type === "link");
+    expect(bookmark.content.crawledAt).toBeDefined();
+    expect(bookmark.content.htmlContent).toContain(
+      "Browser rendered crawler content",
+    );
+    expect(bookmark.content.htmlContent).not.toContain("Static shell only");
+    expect(bookmark.content.title).toContain("Browser rendered title");
+    expect(bookmark.content.url).toBe("http://nginx:80/browser-rendered.html");
+    expect(
+      bookmark.assets.find((a) => a.assetType === "screenshot"),
+    ).toBeDefined();
+  });
+
+  it("should fail crawling a disallowed non-redirect URL", async () => {
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://127.0.0.1:80/hello.html",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      assert(data.content.type === "link");
+      return data.content.crawlStatus === "failure";
+    }, "Disallowed non-redirect bookmark crawl fails");
+
+    bookmark = await getBookmark(bookmark.id);
+    assert(bookmark && bookmark.content.type === "link");
+    expect(bookmark.content.crawlStatus).toBe("failure");
+    expect(bookmark.content.crawledAt).toBeNull();
+    expect(bookmark.content.htmlContent).toBeNull();
+  });
+
+  it("should fail crawling a redirect to a disallowed URL", async () => {
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://nginx:80/redirect-to-loopback",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      assert(data.content.type === "link");
+      return data.content.crawlStatus === "failure";
+    }, "Disallowed redirect bookmark crawl fails");
+
+    bookmark = await getBookmark(bookmark.id);
+    assert(bookmark && bookmark.content.type === "link");
+    expect(bookmark.content.crawlStatus).toBe("failure");
+    expect(bookmark.content.crawledAt).toBeNull();
+    expect(bookmark.content.htmlContent).toBeNull();
+  });
+
   it("image lings jobs be converted into images", async () => {
     let { data: bookmark } = await client.POST("/bookmarks", {
       body: {

@@ -116,79 +116,81 @@ export const zBareBookmarkSchema = z.object({
 
 export type ZBareBookmark = z.infer<typeof zBareBookmarkSchema>;
 
-export const zBookmarkSchema = zBareBookmarkSchema.merge(
+export const zBookmarkSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkContentSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmark = z.infer<typeof zBookmarkSchema>;
 
-const zBookmarkTypeLinkSchema = zBareBookmarkSchema.merge(
+const zBookmarkTypeLinkSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedLinkSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmarkTypeLink = z.infer<typeof zBookmarkTypeLinkSchema>;
 
-const zBookmarkTypeTextSchema = zBareBookmarkSchema.merge(
+const zBookmarkTypeTextSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedTextSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmarkTypeText = z.infer<typeof zBookmarkTypeTextSchema>;
 
-const zBookmarkTypeAssetSchema = zBareBookmarkSchema.merge(
+const zBookmarkTypeAssetSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkedAssetSchema,
     assets: z.array(zAssetSchema),
-  }),
+  }).shape,
 );
 export type ZBookmarkTypeAsset = z.infer<typeof zBookmarkTypeAssetSchema>;
 
 // POST /v1/bookmarks
-export const zNewBookmarkRequestSchema = z
-  .object({
+export const zNewBookmarkRequestSchema = z.intersection(
+  z.object({
     title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
     archived: z.boolean().optional(),
     favourited: z.boolean().optional(),
     note: z.string().optional(),
     summary: z.string().optional(),
-    createdAt: z.coerce.date().optional(),
+    createdAt: z.coerce
+      .date()
+      .optional()
+      .meta({ type: "string", format: "date-time" }),
     // A mechanism to prioritize crawling of bookmarks depending on whether
     // they were created by a user interaction or by a bulk import.
     crawlPriority: z.enum(["low", "normal"]).optional(),
     // Deprecated
     importSessionId: z.string().optional(),
     source: zBookmarkSourceSchema.optional(),
-  })
-  .and(
-    z.discriminatedUnion("type", [
-      z.object({
-        type: z.literal(BookmarkTypes.LINK),
-        url: z.string().url(),
-        precrawledArchiveId: z.string().optional(),
-      }),
-      z.object({
-        type: z.literal(BookmarkTypes.TEXT),
-        text: z.string(),
-        sourceUrl: z.string().optional(),
-      }),
-      z.object({
-        type: z.literal(BookmarkTypes.ASSET),
-        assetType: z.enum(["image", "pdf"]),
-        assetId: z.string(),
-        fileName: z.string().optional(),
-        sourceUrl: z.string().optional(),
-      }),
-    ]),
-  );
+  }),
+  z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal(BookmarkTypes.LINK),
+      url: z.string().url(),
+      precrawledArchiveId: z.string().optional(),
+    }),
+    z.object({
+      type: z.literal(BookmarkTypes.TEXT),
+      text: z.string(),
+      sourceUrl: z.string().optional(),
+    }),
+    z.object({
+      type: z.literal(BookmarkTypes.ASSET),
+      assetType: z.enum(["image", "pdf"]),
+      assetId: z.string(),
+      fileName: z.string().optional(),
+      sourceUrl: z.string().optional(),
+    }),
+  ]),
+);
 export type ZNewBookmarkRequest = z.infer<typeof zNewBookmarkRequestSchema>;
 
 // GET /v1/bookmarks
@@ -228,7 +230,10 @@ export const zUpdateBookmarksRequestSchema = z.object({
   summary: z.string().nullish(),
   note: z.string().optional(),
   title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
-  createdAt: z.coerce.date().optional(),
+  createdAt: z.coerce
+    .date()
+    .optional()
+    .meta({ type: "string", format: "date-time" }),
   // Link specific fields (optional)
   url: z.string().url().optional(),
   description: z.string().nullish(),

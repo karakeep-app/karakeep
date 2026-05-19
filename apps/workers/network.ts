@@ -1,4 +1,5 @@
 import dns from "node:dns/promises";
+import { Readable } from "node:stream";
 import type { HeadersInit, RequestInit, Response } from "node-fetch";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -335,6 +336,22 @@ function isRedirectResponse(response: Response): boolean {
   );
 }
 
+function closeResponseBody(response: Response): void {
+  const body: unknown = response.body;
+  if (!body) {
+    return;
+  }
+
+  if (body instanceof Readable) {
+    body.destroy();
+  } else if (
+    typeof ReadableStream !== "undefined" &&
+    body instanceof ReadableStream
+  ) {
+    void body.cancel();
+  }
+}
+
 export type FetchWithProxyOptions = Omit<
   RequestInit & {
     maxRedirects?: number;
@@ -467,3 +484,69 @@ export const fetchWithProxy = async (
     redirectsRemaining -= 1;
   }
 };
+
+export async function resolveValidatedRedirectUrl(
+  url: string,
+  options: Pick<
+    FetchWithProxyOptions,
+    "headers" | "maxRedirects" | "signal"
+  > = {},
+  runProxy?: RunProxyConfig,
+): Promise<URL> {
+  const { maxRedirects, baseHeaders, baseOptions } = prepareFetchOptions({
+    ...options,
+    method: "GET",
+  });
+
+  let redirectsRemaining = maxRedirects;
+  let currentUrl = url;
+
+  while (true) {
+    const signal = options.signal
+      ? AbortSignal.any([
+          AbortSignal.timeout(5000),
+          options.signal as globalThis.AbortSignal,
+        ])
+      : AbortSignal.timeout(5000);
+    const agent = getProxyAgent(currentUrl, runProxy);
+    const validation = await validateUrl(currentUrl, !!agent);
+    if (!validation.ok) {
+      throw new Error(validation.reason);
+    }
+
+    const requestUrl = validation.url;
+    currentUrl = requestUrl.toString();
+
+    const response = await fetch(
+      currentUrl,
+      buildFetchOptions({
+        method: "GET",
+        headers: baseHeaders,
+        agent,
+        baseOptions: {
+          ...baseOptions,
+          signal: signal as RequestInit["signal"],
+        },
+      }),
+    );
+
+    if (!isRedirectResponse(response)) {
+      closeResponseBody(response);
+      return requestUrl;
+    }
+
+    closeResponseBody(response);
+
+    const locationHeader = response.headers.get("location");
+    if (!locationHeader) {
+      return requestUrl;
+    }
+
+    if (redirectsRemaining <= 0) {
+      throw new Error(`Too many redirects while resolving ${url}`);
+    }
+
+    currentUrl = new URL(locationHeader, currentUrl).toString();
+    redirectsRemaining -= 1;
+  }
+}

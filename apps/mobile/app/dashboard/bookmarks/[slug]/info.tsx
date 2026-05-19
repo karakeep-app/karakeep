@@ -26,6 +26,7 @@ import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { ChevronUp, RefreshCw, Sparkles, Trash2 } from "lucide-react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 import {
   useAutoRefreshingBookmarkQuery,
@@ -291,6 +292,7 @@ function AISummarySection({
 // --- Main Page ---
 
 const ViewBookmarkPage = () => {
+  const headerHeight = useHeaderHeight();
   const { slug } = useLocalSearchParams();
   const { toast } = useToast();
   const { data: currentUser } = useWhoAmI();
@@ -423,7 +425,11 @@ const ViewBookmarkPage = () => {
       <KeyboardAwareScrollView
         bottomOffset={8}
         keyboardDismissMode="interactive"
-        contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: 40 }}
+        contentContainerStyle={{
+          padding: 16,
+          gap: 20,
+          paddingBottom: 40 + headerHeight,
+        }}
         className="bg-background"
       >
         <TitleEditor

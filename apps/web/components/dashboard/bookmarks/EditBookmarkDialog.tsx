@@ -1,4 +1,5 @@
 import * as React from "react";
+import { z } from "zod";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -41,14 +42,18 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   BookmarkTypes,
   ZBookmark,
-  ZUpdateBookmarksRequest,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
 
-const formSchema = zUpdateBookmarksRequestSchema;
+const formSchema = zUpdateBookmarksRequestSchema.extend({
+  createdAt: z.date().optional(),
+  datePublished: z.date().nullish(),
+  dateModified: z.date().nullish(),
+});
+type BookmarkFormValues = z.infer<typeof formSchema>;
 
 export function EditBookmarkDialog({
   open,
@@ -78,7 +83,7 @@ export function EditBookmarkDialog({
     ),
   );
 
-  const bookmarkToDefault = (bookmark: ZBookmark) => ({
+  const bookmarkToDefault = (bookmark: ZBookmark): BookmarkFormValues => ({
     bookmarkId: bookmark.id,
     summary: bookmark.summary,
     note: bookmark.note === null ? undefined : bookmark.note,
@@ -109,7 +114,7 @@ export function EditBookmarkDialog({
     assetContent: assetContent ?? undefined,
   });
 
-  const form = useForm<ZUpdateBookmarksRequest>({
+  const form = useForm<BookmarkFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: bookmarkToDefault(bookmark),
   });
@@ -132,7 +137,7 @@ export function EditBookmarkDialog({
       },
     });
 
-  function onSubmit(values: ZUpdateBookmarksRequest) {
+  function onSubmit(values: BookmarkFormValues) {
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
       ...values,
@@ -395,7 +400,7 @@ export function EditBookmarkDialog({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value ?? undefined} // Calendar expects Date | undefined
+                            selected={field.value ?? undefined}
                             onSelect={(date) => field.onChange(date ?? null)} // Handle undefined -> null
                             disabled={(date) =>
                               date > new Date() || date < new Date("1900-01-01")

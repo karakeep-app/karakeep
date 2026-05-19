@@ -3,12 +3,17 @@ import * as os from "os";
 import path from "path";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
-import { getProxyAgent, validateUrl } from "network";
-import { withWorkerTracing } from "workerTracing";
+import {
+  getProxyAgent,
+  resolveValidatedRedirectUrl,
+  selectRunProxies,
+} from "network";
+import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
 import {
+  addLogFields,
   QuotaService,
   StorageQuotaError,
   VideoWorkerQueue,
@@ -36,7 +41,10 @@ export class VideoWorker {
     return (await getQueueClient())!.createRunner<ZVideoRequest>(
       VideoWorkerQueue,
       {
-        run: withWorkerTracing("videoWorker.run", runWorker),
+        run: withWorkerTracing(
+          "videoWorker.run",
+          withWorkerEventLog("videoWorker.run", runWorker),
+        ),
         onComplete: async (job) => {
           workerStatsCounter.labels("video", "completed").inc();
           const jobId = job.id;
@@ -72,6 +80,9 @@ function prepareYtDlpArguments(
   proxy: string | undefined,
   assetPath: string,
 ) {
+  // yt-dlp performs its own HTTP requests and can follow redirects that this
+  // process cannot validate. Full SSRF protection depends on an egress proxy or
+  // network policy that blocks internal/private targets.
   const ytDlpArguments = [url];
   if (serverConfig.crawler.maxVideoDownloadSize > 0) {
     ytDlpArguments.push(
@@ -92,6 +103,7 @@ function prepareYtDlpArguments(
 async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const jobId = job.id;
   const { bookmarkId } = job.data;
+  addLogFields<"videoWorker.run">({ "bookmark.id": bookmarkId });
 
   const {
     url,
@@ -106,20 +118,29 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     return;
   }
 
-  const proxy = getProxyAgent(url);
-  const validation = await validateUrl(url, !!proxy);
-  if (!validation.ok) {
+  const runProxy = selectRunProxies();
+  let normalizedUrl: string;
+  try {
+    const resolvedUrl = await resolveValidatedRedirectUrl(
+      url,
+      { signal: job.abortSignal },
+      runProxy,
+    );
+    normalizedUrl = resolvedUrl.toString();
+  } catch (error) {
     logger.warn(
-      `[VideoCrawler][${jobId}] Skipping video download to disallowed URL "${url}": ${validation.reason}`,
+      `[VideoCrawler][${jobId}] Skipping video download for "${url}": ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     );
     return;
   }
-  const normalizedUrl = validation.url.toString();
 
   const videoAssetId = newAssetId();
   let assetPath = `${TMP_FOLDER}/${videoAssetId}`;
   await fs.promises.mkdir(TMP_FOLDER, { recursive: true });
 
+  const proxy = getProxyAgent(normalizedUrl, runProxy);
   const ytDlpArguments = prepareYtDlpArguments(
     normalizedUrl,
     proxy?.proxy.toString(),

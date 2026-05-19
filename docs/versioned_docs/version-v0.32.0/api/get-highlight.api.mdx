@@ -1,0 +1,71 @@
+---
+id: get-highlight
+title: "Get a single highlight"
+description: "Retrieve a single highlight by its ID."
+sidebar_label: "Get a single highlight"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVm1v2zYQ/isH9ktrKHY6dFihDwPc9WVZCyxoEwxDGsBn6SyxpkiVPCVxDQH7EfuF+yXDUbIsJ27RYZ8kkHfH5+65e8itcjV5ZO3sWa5SVRD/qovS6KJklaicQuZ1LdsqVe+JvaYbAoSgbWEIyp0tLDegOcDZy6lKFGMRVHqlhlBBXScqUNZ4zRuVXm3VktCTnzdcqvTqur1OVI0eK2LyIRqErKQKVbpVvKlJpSqw17Z4AOqiJGis/twQ6Jws65UmD24FXI7wCSq6w6o2EkqTzs3dpqhuPz3/yd19+bG8Y3bZc4GuOZoM0M9y1SbK0+dGe8pVyr6hRFmsxKocWSVKC54auVSSj6dQOxsoSA4/nJ7K5yF0CUyBKT/EmjnLZFl8sK6NziJFs09BHI8Uxy0/USaM1V4IZd0du3RuXaFfC7f3C9kmKjB6/n21CsSjfdtUS/KyTzb/xm7mjPPHCCLbVEL/hoxxt0pKIeUpPJFViVqahqQfclphY1ilO8M2UUx3fCykbYzBpTAj9W8TZR3Tdxnq46k3gfxXqpJ5QqZ8fgRIe9AKV+P6HlZzXLs+qx5zRDScPz7t+kj3qbaVM5+dPn3YPpcWGy6d118oh3/++jt2/Is4V8BuTRZ0gEoHmdUEtL1Bo/MEnAe6qyWDe40mKGe1QX28xfb0DnM0RjAgffYQ6ZAOWMewco29f/b/afLM5Udb4RDDHCrMSm3pxBPm0iJA3jsP4j4V3isKAYvvClU2Fdr7gXr/6YMuiQD38Uc8vxLHWLl4PpeuF2FJUoQkVbNBF8JsO9KbVjqO/M1OLxtvVKq2mOeeQmhnWOvZzVOVqBv0WlDGWvXbHUW78SuZ65DOZuw30zV6XBPVU6zro1rbR9gp7NveHjoskstI6j8Ihb0UjQR/KLCcLHlEM5X2RqIR8ee18xUKwt/+uIhV1XblxF2y7iA9nZ5OT0e6PeCZn589wD9s6iB3GJnVSekCRw53o6xtAWhzEHJPNJ8YZPIxO53RFC5KHSQ2oEhWgI1rgB1UaLHYBwkJGB04JCBXYbLX9pAAhkDxa3NYYrZu6gC1d4XHqkLWGRqzmX60H+2jRyDlkjutmwxZnBsDZPPaacsB+i4DPJz7Ws7IQdtI0WLeD2kMsoCSMCc/hT9dAxlaKMjKE4AAbcxsTRtYeVcd8ntLS7g8g8bm5GEy+UDM2hYBfo4+b2kTJpMd7HMstB0gv9OBR5hDU9fOM2SND86fLFGg1oMH3GiERbe5iEVaGF1pXsDnhvwG9s8EIUMu0O6aBW0z0+QkzC4s3fEvfYiVJtPpo5QFNAOGri67Q4aQwuSKOCvjvgQRYDSFOSzkYlnADZqGYOX84Rna5sIRxcDChyewDirnI8DGcNjV5kXfInCxqSnI4m4lRDaWBM5SN16eCGRSQvrRnsBkYrRdTyYxlzlcvn839Bvcai7BxT5HA5nHW0M5VMSYI+O0cxeBH9yj0IMsiShTbxKbc2djoamNw5xyWGlD8FhX0uTOw/nL10+iZtYucIVRrvsn0RviI+/D+6O43Yv/f3hWdqIxuqfkIhfd2/ZqebV/kQWVqHT8PrtOlAy7GG230nWX3rStLMfGkmfoXiyjpOY6yH+u0hWaQN9I4fH7Xu6fwNdw9otoN1GT5Q2UKpWoNW3uPSTb6zZR3ZBGGJ3FPMuo5pHvgytThHe4Q968ulCJwkO5vSevMfpRXNttZ3EhctK2A8woLwKwbf8FIl9Czg==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a single highlight"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/highlights/{highlightId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve a single highlight by its ID.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the highlight.","example":"ieidlxygmwj87oxz5hxttoc8","title":"HighlightId"},"required":true,"name":"highlightId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The requested highlight.","content":{"application/json":{"schema":{"type":"object","properties":{"bookmarkId":{"type":"string"},"startOffset":{"type":"number"},"endOffset":{"type":"number"},"color":{"type":"string","enum":["yellow","red","green","blue"],"default":"yellow"},"text":{"type":"string","nullable":true},"note":{"type":"string","nullable":true},"id":{"type":"string"},"userId":{"type":"string"},"createdAt":{"type":"string"}},"required":["bookmarkId","startOffset","endOffset","text","note","id","userId","createdAt"],"title":"Highlight"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Highlight not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

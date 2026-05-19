@@ -104,7 +104,8 @@
     "more": "Mehr",
     "replace_banner": "Banner ersetzen",
     "add_banner": "Banner hinzufügen",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "rename": "Umbenennen"
   },
   "settings": {
     "back_to_app": "Zurück zur App",
@@ -226,7 +227,9 @@
       "import_bookmarks_from_linkwarden_export": "Lesezeichen aus Linkwarden-Export importieren",
       "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren",
       "import_bookmarks_from_mymind_export": "Lesezeichen aus meinem mymind-Export importieren",
-      "import_bookmarks_from_instapaper_export": "Lesezeichen aus Instapaper-Export importieren"
+      "import_bookmarks_from_instapaper_export": "Lesezeichen aus Instapaper-Export importieren",
+      "import_bookmarks_from_readwise_reader_export": "Lesezeichen aus dem Readwise Reader-Export importieren",
+      "import_bookmarks_from_onetab_export": "Lesezeichen aus OneTab-Export importieren"
     },
     "api_keys": {
       "api_keys": "API-Schlüssel",
@@ -238,7 +241,97 @@
       "key_regenerated": "Schlüssel wurde erfolgreich neu generiert",
       "key_regenerated_please_copy": "Bitte kopiere den neuen Schlüssel und bewahre ihn an einem sicheren Ort auf. Der alte Schlüssel wurde widerrufen und funktioniert nicht mehr.",
       "regenerate_warning": "Bist du sicher, dass du den API-Schlüssel „{{name}}“ neu generieren möchtest?",
-      "regenerate_confirmation": "Dies widerruft den aktuellen Schlüssel und generiert einen neuen. Alle Anwendungen, die den aktuellen Schlüssel verwenden, funktionieren dann nicht mehr."
+      "regenerate_confirmation": "Dies widerruft den aktuellen Schlüssel und generiert einen neuen. Alle Anwendungen, die den aktuellen Schlüssel verwenden, funktionieren dann nicht mehr.",
+      "scopes": {
+        "resources": {
+          "users": {
+            "label": "Benutzerkonto",
+            "description": "Zugriff auf Kontoprofil und Einstellungen."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Zugriff auf Webhook-Konfiguration."
+          },
+          "subscriptions": {
+            "label": "Abonnements",
+            "description": "Zugriff auf die Abonnementverwaltung."
+          },
+          "importSessions": {
+            "label": "Importsitzungen",
+            "description": "Zugriff auf Importsitzungen."
+          },
+          "assets": {
+            "label": "Assets",
+            "description": "Zugriff auf Dateien und andere gespeicherte Lesezeicheninhalte."
+          },
+          "backups": {
+            "label": "Backups",
+            "description": "Kontosicherungen verwalten."
+          },
+          "bookmarks": {
+            "label": "Lesezeichen",
+            "description": "Lesezeichen aufrufen und verwalten."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "RSS-Feeds und zugehörige Feed-Daten verwalten."
+          },
+          "highlights": {
+            "label": "Highlights",
+            "description": "Gespeicherte Lesezeichen-Highlights verwalten."
+          },
+          "lists": {
+            "label": "Listen",
+            "description": "Verwalten Sie Listen und Listenmitgliedschaften."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Gespeicherte KI-Prompt-Konfigurationen verwalten."
+          },
+          "rules": {
+            "label": "Regeln",
+            "description": "Zugriff auf Automatisierungsregeln."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Tags aufrufen und ändern."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: Lesezeichen",
+            "description": "Zugriff auf administrative Lesezeichen-Tools."
+          },
+          "jobs": {
+            "label": "Admin: Jobs",
+            "description": "Zugriff auf Hintergrundjob-Steuerungen."
+          },
+          "system": {
+            "label": "Admin: System",
+            "description": "Zugriff auf Systemstatus und Diagnose."
+          },
+          "users": {
+            "label": "Admin: Benutzer",
+            "description": "Zugriff auf die administrative Benutzerverwaltung."
+          }
+        },
+        "scopes": "Berechtigungen",
+        "choose_at_least_one": "Wählen Sie mindestens eine Berechtigung aus oder wählen Sie den Vollzugriff.",
+        "scope_details": "Details zur Berechtigung {{scope}}",
+        "access": {
+          "none": "Keine",
+          "read": "Lesen",
+          "readwrite": "Lesen/Schreiben"
+        },
+        "full_access": {
+          "label": "Vollzugriff",
+          "description": "Zugriff auf alle unterstützten API-Operationen."
+        },
+        "limited_scopes": {
+          "label": "Eingeschränkte Berechtigungen",
+          "description": "Wählen Sie die Ressourcentypen aus, auf die dieser Schlüssel zugreifen kann."
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Defekte Links",
@@ -286,7 +379,8 @@
         "is_archived": "Ist archiviert",
         "url_does_not_contain": "URL Enthält nicht",
         "title_contains": "Titel enthält",
-        "title_does_not_contain": "Titel enthält nicht"
+        "title_does_not_contain": "Titel enthält nicht",
+        "bookmark_source_is": "Lesezeichenquelle ist"
       },
       "rule_name": "Regelname",
       "rules": "Regel-Engine",
@@ -397,7 +491,17 @@
       "approaching_quota_limit": "Kontingentgrenze wird erreicht",
       "loading_usage": "Lade Nutzungsinformationen...",
       "free": "Kostenlos",
-      "paid": "Bezahlt"
+      "paid": "Bezahlt",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich",
+      "per_month": "Monat",
+      "per_year": "Jahr",
+      "excl_vat": "zzgl. MwSt.",
+      "yearly_savings": "Sparen Sie {{percent}}%",
+      "pro_feature_bookmarks": "50.000 Lesezeichen",
+      "pro_feature_storage": "50 GB Speicherplatz",
+      "pro_feature_ai_tagging": "KI-gestützte Verschlagwortung",
+      "pro_feature_full_text_search": "Volltextsuche"
     },
     "import_sessions": {
       "title": "Import-Sitzungen",
@@ -453,7 +557,10 @@
         "view_bookmark": "Lesezeichen anzeigen",
         "load_more": "Mehr laden",
         "no_title": "Kein Titel"
-      }
+      },
+      "finalize_dialog_title": "Import-Sitzung abschließen",
+      "finalize_dialog_description": "„{{name}}“ zur Hintergrundverarbeitung in die Warteschlange stellen? Die vorbereiteten Lesezeichen werden importiert.",
+      "finalize_staging": "Abschließen"
     },
     "backups": {
       "backups": "Backups",
@@ -765,7 +872,18 @@
       "failed_to_accept": "Einladung konnte nicht angenommen werden",
       "failed_to_decline": "Einladung konnte nicht abgelehnt werden"
     },
-    "shared_lists": "Geteilte Listen"
+    "shared_lists": "Geteilte Listen",
+    "privacy": {
+      "public": "Öffentlich",
+      "shared": "Geteilt",
+      "private": "Privat"
+    },
+    "summary_list_one": "{{count}} Listen",
+    "summary_list_other": "{{count}} Listen",
+    "summary_bookmark_one": "{{count}} Lesezeichen",
+    "summary_bookmark_other": "{{count}} Lesezeichen",
+    "items_count_one": "{{count}} Elemente",
+    "items_count_other": "{{count}} Elemente"
   },
   "tags": {
     "all_tags": "Alle Tags",
@@ -791,7 +909,11 @@
     "no_unused_tags_match_your_search": "Keine unbenutzten Tags entsprechen deiner Suche",
     "no_tags_match_your_search": "Keine Tags entsprechen deiner Suche",
     "search_placeholder": "Tags suchen...",
-    "search_or_create_placeholder": "Tags suchen oder erstellen..."
+    "search_or_create_placeholder": "Tags suchen oder erstellen...",
+    "rename_tag": "Tag umbenennen",
+    "items_count": "{{count}} Elemente",
+    "attached_by_you": "{{count}} von Ihnen",
+    "attached_by_ai": "{{count}} von KI"
   },
   "preview": {
     "view_original": "Original anzeigen",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "Tag wurde erstellt!",
-      "failed_to_create": "Tag konnte nicht erstellt werden"
+      "failed_to_create": "Tag konnte nicht erstellt werden",
+      "updated": "Tag wurde aktualisiert!",
+      "failed_to_update": "Fehler beim Aktualisieren des Tags"
     }
   },
   "cleanups": {

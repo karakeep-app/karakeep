@@ -11,10 +11,10 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt .",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt --ignore-path=../../.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore .",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -104,7 +104,8 @@
     "more": "Περισσότερα",
     "replace_banner": "Αντικατάσταση Banner",
     "add_banner": "Προσθήκη Banner",
-    "download": "Λήψη"
+    "download": "Λήψη",
+    "rename": "Μετεωνομασία"
   },
   "highlights": {
     "no_highlights": "Δεν έχετε ακόμα επιλογές."
@@ -247,7 +248,9 @@
       "export_links_and_notes": "Εξαγωγή Συνδέσμων και Σημειώσεων",
       "imported_bookmarks": "Εισαγόμενοι Σελιδοδείκτες",
       "import_bookmarks_from_mymind_export": "Εισαγωγή σελιδοδεικτών από την εξαγωγή mymind",
-      "import_bookmarks_from_instapaper_export": "Εισαγωγή σελιδοδεικτών από την εξαγωγή του Instapaper"
+      "import_bookmarks_from_instapaper_export": "Εισαγωγή σελιδοδεικτών από την εξαγωγή του Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Εισαγωγή σελιδοδεικτών από εξαγωγή του Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Εισαγωγή σελιδοδεικτών από εξαγωγή OneTab"
     },
     "api_keys": {
       "api_keys": "Κλειδιά API",
@@ -259,7 +262,97 @@
       "key_regenerated": "Το κλειδί ανανεώθηκε με επιτυχία",
       "key_regenerated_please_copy": "Αντιγράψτε το νέο κλειδί και αποθηκεύστε το κάπου με ασφάλεια. Το παλιό κλειδί έχει ανακληθεί και δεν θα λειτουργεί πλέον.",
       "regenerate_warning": "Είστε σίγουροι ότι θέλετε να ανανεώσετε το κλειδί API \"{{name}}\";",
-      "regenerate_confirmation": "Αυτό θα ανακαλέσει το τρέχον κλειδί και θα δημιουργήσει ένα νέο. Οποιεσδήποτε εφαρμογές χρησιμοποιούν το τρέχον κλειδί θα σταματήσουν να λειτουργούν."
+      "regenerate_confirmation": "Αυτό θα ανακαλέσει το τρέχον κλειδί και θα δημιουργήσει ένα νέο. Οποιεσδήποτε εφαρμογές χρησιμοποιούν το τρέχον κλειδί θα σταματήσουν να λειτουργούν.",
+      "scopes": {
+        "scopes": "Εμβέλειες",
+        "choose_at_least_one": "Επιλέξτε τουλάχιστον μία εμβέλεια ή επιλέξτε πλήρη πρόσβαση.",
+        "scope_details": "{{scope}} λεπτομέρειες εμβέλειας",
+        "access": {
+          "none": "Κανένα",
+          "read": "Ανάγνωση",
+          "readwrite": "Ανάγνωση/εγγραφή"
+        },
+        "full_access": {
+          "label": "Πλήρης πρόσβαση",
+          "description": "Πρόσβαση σε όλες τις υποστηριζόμενες λειτουργίες API."
+        },
+        "limited_scopes": {
+          "label": "Περιορισμένες εμβέλειες",
+          "description": "Επιλέξτε τους τύπους πόρων στους οποίους μπορεί να έχει πρόσβαση αυτό το κλειδί."
+        },
+        "resources": {
+          "assets": {
+            "label": "Στοιχεία",
+            "description": "Πρόσβαση σε αρχεία και άλλο αποθηκευμένο περιεχόμενο σελιδοδεικτών."
+          },
+          "backups": {
+            "label": "Αντίγραφα ασφαλείας",
+            "description": "Διαχείριση αντιγράφων ασφαλείας λογαριασμού."
+          },
+          "bookmarks": {
+            "label": "Σελιδοδείκτες",
+            "description": "Πρόσβαση και διαχείριση σελιδοδεικτών."
+          },
+          "feeds": {
+            "label": "Ροές",
+            "description": "Διαχείριση ροών RSS και σχετικών δεδομένων ροής."
+          },
+          "highlights": {
+            "label": "Επισημάνσεις",
+            "description": "Διαχείριση αποθηκευμένων επισημάνσεων σελιδοδεικτών."
+          },
+          "lists": {
+            "label": "Λίστες",
+            "description": "Διαχείριση λιστών και συμμετοχής σε λίστες."
+          },
+          "prompts": {
+            "label": "Εντολές (Prompts)",
+            "description": "Διαχείριση αποθηκευμένων ρυθμίσεων εντολών AI."
+          },
+          "rules": {
+            "label": "Κανόνες",
+            "description": "Πρόσβαση σε κανόνες αυτοματισμού."
+          },
+          "tags": {
+            "label": "Ετικέτες",
+            "description": "Πρόσβαση και τροποποίηση ετικετών."
+          },
+          "users": {
+            "label": "Λογαριασμός χρήστη",
+            "description": "Πρόσβαση στο προφίλ και τις ρυθμίσεις λογαριασμού."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Πρόσβαση στη διαμόρφωση των webhooks."
+          },
+          "subscriptions": {
+            "label": "Συνδρομές",
+            "description": "Πρόσβαση στη διαχείριση συνδρομών."
+          },
+          "importSessions": {
+            "label": "Συεδρίες Εισαγωγής",
+            "description": "Πρόσβαση στις συνεδρίες εισαγωγής."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Διαχειριστής: σελιδοδείκτες",
+            "description": "Πρόσβαση σε εργαλεία διαχειριστή για σελιδοδείκτες."
+          },
+          "jobs": {
+            "label": "Διαχειριστής: εργασίες",
+            "description": "Πρόσβαση στα στοιχεία ελέγχου εργασιών παρασκηνίου."
+          },
+          "system": {
+            "label": "Διαχειριστής: σύστημα",
+            "description": "Πρόσβαση στην κατάσταση συστήματος και στα διαγνωστικά."
+          },
+          "users": {
+            "label": "Διαχειριστής: χρήστες",
+            "description": "Πρόσβαση στην αναβαθμισμένη διαχείριση χρηστών."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Χαλασμένοι Σύνδεσμοι",
@@ -306,7 +399,8 @@
         "or": "Οποιοδήποτε από τα παρακάτω είναι αληθές",
         "url_does_not_contain": "Το URL δεν περιέχει",
         "title_contains": "Ο τίτλος περιέχει",
-        "title_does_not_contain": "Ο τίτλος δεν περιέχει"
+        "title_does_not_contain": "Ο τίτλος δεν περιέχει",
+        "bookmark_source_is": "Η πηγή σελιδοδείκτη είναι"
       },
       "actions_types": {
         "add_tag": "Προσθήκη Ετικέτας",
@@ -400,7 +494,17 @@
       "approaching_quota_limit": "Πλησιάζει το όριο ποσόστωσης",
       "loading_usage": "Φόρτωση πληροφοριών χρήσης...",
       "free": "Δωρεάν",
-      "paid": "Πληρωμένο"
+      "paid": "Πληρωμένο",
+      "monthly": "Μηνιαία",
+      "yearly": "Ετήσια",
+      "per_month": "μήνας",
+      "per_year": "έτος",
+      "excl_vat": "χωρίς ΦΠΑ",
+      "yearly_savings": "Εξοικονομήστε {{percent}}%",
+      "pro_feature_bookmarks": "50.000 σελιδοδείκτες",
+      "pro_feature_storage": "50GB αποθηκευτικός χώρος",
+      "pro_feature_ai_tagging": "Σήμανση με τεχνητή νοημοσύνη",
+      "pro_feature_full_text_search": "Αναζήτηση πλήρους κειμένου"
     },
     "import_sessions": {
       "title": "Εισαγωγή Συνεδριών",
@@ -456,7 +560,10 @@
         "view_bookmark": "Προβολή σελιδοδείκτη",
         "load_more": "Φορτώστε κι άλλα",
         "no_title": "Κανένας τίτλος"
-      }
+      },
+      "finalize_dialog_title": "Οριστικοποίηση περιόδου εισαγωγής",
+      "finalize_dialog_description": "Να προστεθεί το \"{{name}}\" στην ουρά για επεξεργασία στο παρασκήνιο; Θα ξεκινήσει η εισαγωγή των προετοιμασμένων σελιδοδεικτών.",
+      "finalize_staging": "Οριστικοποίηση"
     },
     "backups": {
       "backups": "Αντίγραφα ασφαλείας",
@@ -768,7 +875,18 @@
       "failed_to_accept": "Αποτυχία αποδοχής πρόσκλησης",
       "failed_to_decline": "Αποτυχία απόρριψης πρόσκλησης"
     },
-    "shared_lists": "Κοινόχρηστες λίστες"
+    "shared_lists": "Κοινόχρηστες λίστες",
+    "privacy": {
+      "public": "Δημόσιο",
+      "shared": "Κοινόχρηστο",
+      "private": "Ιδιωτικό"
+    },
+    "summary_list_one": "{{count}} Λίστες",
+    "summary_list_other": "{{count}} Λίστες",
+    "summary_bookmark_one": "{{count}} Σελιδοδείκτες",
+    "summary_bookmark_other": "{{count}} Σελιδοδείκτες",
+    "items_count_one": "{{count}} στοιχεία",
+    "items_count_other": "{{count}} στοιχεία"
   },
   "tags": {
     "all_tags": "Όλες οι Ετικέτες",
@@ -794,7 +912,11 @@
     "no_unused_tags_match_your_search": "Δεν υπάρχουν αχρησιμοποίητες ετικέτες που να ταιριάζουν με την αναζήτησή σας",
     "no_tags_match_your_search": "Καμία ετικέτα δεν ταιριάζει με την αναζήτησή σας",
     "search_placeholder": "Αναζήτηση ετικετών...",
-    "search_or_create_placeholder": "Αναζητήστε ή δημιουργήστε ετικέτες..."
+    "search_or_create_placeholder": "Αναζητήστε ή δημιουργήστε ετικέτες...",
+    "rename_tag": "Μετεωνομασία ετικέτας",
+    "items_count": "{{count}} στοιχεία",
+    "attached_by_you": "{{count}} από εσάς",
+    "attached_by_ai": "{{count}} από AI"
   },
   "search": {
     "is_favorited": "Είναι Αγαπημένο",
@@ -946,7 +1068,9 @@
     },
     "tags": {
       "created": "Η ετικέτα δημιουργήθηκε!",
-      "failed_to_create": "Αποτυχία δημιουργίας ετικέτας"
+      "failed_to_create": "Αποτυχία δημιουργίας ετικέτας",
+      "updated": "Η ετικέτα ενημερώθηκε!",
+      "failed_to_update": "Αποτυχία ενημέρωσης ετικέτας"
     }
   },
   "banners": {

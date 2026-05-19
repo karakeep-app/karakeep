@@ -266,7 +266,9 @@
       "import_bookmarks_from_omnivore_export": "Import oznaka iz Omnivore exporta",
       "import_bookmarks_from_tab_session_manager_export": "Uvezi oznake iz Tab Session Managera",
       "import_bookmarks_from_mymind_export": "Uvezi oznake iz mymind izvoza",
-      "import_bookmarks_from_instapaper_export": "Uvezi oznake iz eksporta Instapaper računa"
+      "import_bookmarks_from_instapaper_export": "Uvezi oznake iz eksporta Instapaper računa",
+      "import_bookmarks_from_readwise_reader_export": "Uvezite oznake iz Readwise Reader izvoza",
+      "import_bookmarks_from_onetab_export": "Uvezite oznake iz OneTab izvoza"
     },
     "back_to_app": "Povratak u aplikaciju",
     "user_settings": "Postavke korisnika",
@@ -346,7 +348,97 @@
       "key_regenerated": "Ključ je uspješno ponovo stvoren",
       "key_regenerated_please_copy": "Kopiraj novi ključ i spremi ga na sigurno mjesto. Stari ključ je povučen i više neće raditi.",
       "regenerate_warning": "Jesi li siguran da želiš ponovo stvoriti API ključ \"{{name}}\"?",
-      "regenerate_confirmation": "Ovo će povući trenutni ključ i stvoriti novi. Sve aplikacije koje koriste trenutni ključ prestat će raditi."
+      "regenerate_confirmation": "Ovo će povući trenutni ključ i stvoriti novi. Sve aplikacije koje koriste trenutni ključ prestat će raditi.",
+      "scopes": {
+        "scopes": "Opsezi",
+        "choose_at_least_one": "Odaberite barem jedan opseg ili odaberite puni pristup.",
+        "scope_details": "{{scope}} detalji opsega",
+        "access": {
+          "none": "Nijedan",
+          "read": "Čitanje",
+          "readwrite": "Čitanje/pisanje"
+        },
+        "full_access": {
+          "label": "Puni pristup",
+          "description": "Pristup svim podržanim API operacijama."
+        },
+        "limited_scopes": {
+          "label": "Ograničeni opsezi",
+          "description": "Odaberite vrste resursa kojima ovaj ključ može pristupiti."
+        },
+        "resources": {
+          "assets": {
+            "label": "Sredstva",
+            "description": "Pristup datotekama i drugom pohranjenom sadržaju knjižnica."
+          },
+          "backups": {
+            "label": "Sigurnosne kopije",
+            "description": "Upravljanje sigurnosnim kopijama računa."
+          },
+          "bookmarks": {
+            "label": "Knjižnice",
+            "description": "Pristup i upravljanje knjižnicama."
+          },
+          "feeds": {
+            "label": "Sažeci",
+            "description": "Upravljanje RSS sažecima i povezanim podacima sažetaka."
+          },
+          "highlights": {
+            "label": "Istaknuto",
+            "description": "Upravljanje spremljenim istaknutim dijelovima knjižnica."
+          },
+          "lists": {
+            "label": "Popisi",
+            "description": "Upravljajte popisima i članstvom u popisima."
+          },
+          "prompts": {
+            "label": "Upiti",
+            "description": "Upravljajte spremljenim konfiguracijama AI upita."
+          },
+          "rules": {
+            "label": "Pravila",
+            "description": "Pristupite pravilima automatizacije."
+          },
+          "tags": {
+            "label": "Oznake",
+            "description": "Pristupite i mijenjajte oznake."
+          },
+          "users": {
+            "label": "Korisnički račun",
+            "description": "Pristupite profilu i postavkama računa."
+          },
+          "webhooks": {
+            "label": "Web-kuke",
+            "description": "Pristupite konfiguraciji web-kuka."
+          },
+          "subscriptions": {
+            "label": "Pretplate",
+            "description": "Pristupite upravljanju pretplatama."
+          },
+          "importSessions": {
+            "label": "Sesije uvoza",
+            "description": "Pristupite sesijama uvoza."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: oznake",
+            "description": "Pristupite administrativnim alatima za oznake."
+          },
+          "jobs": {
+            "label": "Admin: poslovi",
+            "description": "Pristupite kontrolama pozadinskih poslova."
+          },
+          "system": {
+            "label": "Admin: sustav",
+            "description": "Pristup statusu sustava i dijagnostici."
+          },
+          "users": {
+            "label": "Admin: korisnici",
+            "description": "Pristup administrativnom upravljanju korisnicima."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Pokidane veze",
@@ -401,7 +493,8 @@
         "is_favourited": "Je li označeno kao omiljeno",
         "url_does_not_contain": "URL ne sadrži",
         "title_contains": "Naslov sadrži",
-        "title_does_not_contain": "Naslov ne sadrži"
+        "title_does_not_contain": "Naslov ne sadrži",
+        "bookmark_source_is": "Izvor knjižne oznake je"
       },
       "actions_types": {
         "add_tag": "Dodaj oznaku",
@@ -511,7 +604,17 @@
       "approaching_quota_limit": "Približavam se granici kvote",
       "loading_usage": "Učitavam informacije o korištenju...",
       "free": "Besplatno",
-      "paid": "Plaćeno"
+      "paid": "Plaćeno",
+      "monthly": "Mjesečno",
+      "yearly": "Godišnje",
+      "per_month": "mjesec",
+      "per_year": "godina",
+      "excl_vat": "bez PDV-a",
+      "yearly_savings": "Uštedite {{percent}}%",
+      "pro_feature_bookmarks": "50.000 oznaka",
+      "pro_feature_storage": "50 GB prostora",
+      "pro_feature_ai_tagging": "Označavanje pomoću umjetne inteligencije",
+      "pro_feature_full_text_search": "Pretraživanje cijelog teksta"
     },
     "import_sessions": {
       "title": "Uvoz sesija",
@@ -567,7 +670,10 @@
         "view_bookmark": "Pogledaj oznaku",
         "load_more": "Učitaj više",
         "no_title": "Bez naslova"
-      }
+      },
+      "finalize_dialog_title": "Dovrši sesiju uvoza",
+      "finalize_dialog_description": "Staviti „{{name}}“ u red čekanja za pozadinsku obradu? Pripremljene oznake počet će se uvoziti.",
+      "finalize_staging": "Dovrši"
     },
     "backups": {
       "backups": "Sigurnosne kopije",
@@ -672,7 +778,8 @@
     "more": "Više",
     "replace_banner": "Zamijeni banner",
     "add_banner": "Dodaj banner",
-    "download": "Preuzmi"
+    "download": "Preuzmi",
+    "rename": "Preimenuj"
   },
   "highlights": {
     "no_highlights": "Još nemaš nijednu istaknutu stavku."
@@ -768,7 +875,18 @@
       "failed_to_accept": "Nije uspjelo prihvatiti pozivnicu",
       "failed_to_decline": "Nije uspjelo odbiti pozivnicu"
     },
-    "shared_lists": "Zajednički popisi"
+    "shared_lists": "Zajednički popisi",
+    "privacy": {
+      "public": "Javno",
+      "shared": "Podijeljeno",
+      "private": "Privatno"
+    },
+    "summary_list_one": "{{count}} Popisi",
+    "summary_list_other": "{{count}} Popisi",
+    "summary_bookmark_one": "{{count}} Oznake",
+    "summary_bookmark_other": "{{count}} Oznake",
+    "items_count_one": "{{count}} stavki",
+    "items_count_other": "{{count}} stavki"
   },
   "tags": {
     "all_tags": "Sve oznake",
@@ -794,7 +912,11 @@
     "no_unused_tags_match_your_search": "Nijedna neiskorištena oznaka ne odgovara pretrazi",
     "no_tags_match_your_search": "Nijedna oznaka ne odgovara pretrazi",
     "search_placeholder": "Pretraži oznake...",
-    "search_or_create_placeholder": "Pretraži ili stvori oznake..."
+    "search_or_create_placeholder": "Pretraži ili stvori oznake...",
+    "rename_tag": "Preimenuj oznaku",
+    "items_count": "{{count}} stavki",
+    "attached_by_you": "{{count}} od vas",
+    "attached_by_ai": "{{count}} od strane AI"
   },
   "preview": {
     "view_original": "Pogledaj orginal",
@@ -891,7 +1013,9 @@
     },
     "tags": {
       "created": "Oznaka je kreirana!",
-      "failed_to_create": "Nije uspjelo kreiranje oznake"
+      "failed_to_create": "Nije uspjelo kreiranje oznake",
+      "updated": "Oznaka je ažurirana!",
+      "failed_to_update": "Ažuriranje oznake nije uspjelo"
     }
   },
   "cleanups": {

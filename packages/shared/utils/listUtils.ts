@@ -58,3 +58,6 @@ export function listsToTree(lists: ZBookmarkList[]) {
       allPaths.find((path) => path[path.length - 1].id === id),
   };
 }
+
+export const listNameFromPath = (path: ZBookmarkList[]) =>
+  path.map((p) => `${p.icon} ${p.name}`).join(" / ");

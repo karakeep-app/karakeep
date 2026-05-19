@@ -57,7 +57,8 @@ function ContentLoading() {
 }
 
 function CreationTime({ createdAt }: { createdAt: Date }) {
-  const { fromNow, localCreatedAt } = useRelativeTime(createdAt);
+  const { i18n } = useTranslation();
+  const { fromNow, localCreatedAt } = useRelativeTime(createdAt, i18n.language);
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
@@ -103,7 +104,11 @@ function BookmarkMetadata({ bookmark }: { bookmark: ZBookmark }) {
 }
 
 function PublishedDate({ datePublished }: { datePublished: Date }) {
-  const { fromNow, localCreatedAt } = useRelativeTime(datePublished);
+  const { i18n } = useTranslation();
+  const { fromNow, localCreatedAt } = useRelativeTime(
+    datePublished,
+    i18n.language,
+  );
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>

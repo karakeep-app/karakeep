@@ -80,12 +80,13 @@ export function EditListModal({
     throw new Error("You must provide both open and setOpen or neither");
   }
   const [customOpen, customSetOpen] = useState(false);
-  const form = useForm<z.infer<typeof zNewBookmarkListSchema>>({
+
+  const form = useForm({
     resolver: zodResolver(zNewBookmarkListSchema),
     defaultValues: {
       name: list?.name ?? prefill?.name ?? "",
       description: list?.description ?? prefill?.description ?? "",
-      icon: list?.icon ?? prefill?.icon ?? "🚀",
+      icon: list?.icon ?? prefill?.icon ?? "📁",
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
@@ -100,7 +101,7 @@ export function EditListModal({
     form.reset({
       name: list?.name ?? prefill?.name ?? "",
       description: list?.description ?? prefill?.description ?? "",
-      icon: list?.icon ?? prefill?.icon ?? "🚀",
+      icon: list?.icon ?? prefill?.icon ?? "📁",
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,

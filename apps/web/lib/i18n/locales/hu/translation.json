@@ -52,7 +52,8 @@
     "more": "Tovább",
     "replace_banner": "Banner cseréje",
     "add_banner": "Banner hozzáadása",
-    "download": "Letöltés"
+    "download": "Letöltés",
+    "rename": "Átnevezés"
   },
   "settings": {
     "user_settings": "Felhasználói beállítások",
@@ -188,7 +189,97 @@
       "key_regenerated": "A kulcs sikeresen újragenerálva",
       "key_regenerated_please_copy": "Kérlek, másold ki az új kulcsot, és tárold biztonságos helyen. A régi kulcs visszavonásra került, és nem fog többé működni.",
       "regenerate_warning": "Biztosan újra akarod generálni a(z) „{{name}}” API-kulcsot?",
-      "regenerate_confirmation": "Ez visszavonja a jelenlegi kulcsot, és generál egy újat. A jelenlegi kulcsot használó alkalmazások nem fognak működni."
+      "regenerate_confirmation": "Ez visszavonja a jelenlegi kulcsot, és generál egy újat. A jelenlegi kulcsot használó alkalmazások nem fognak működni.",
+      "scopes": {
+        "scopes": "Hatókörök",
+        "choose_at_least_one": "Válasszon ki legalább egy hatókört, vagy válassza a teljes hozzáférést.",
+        "scope_details": "{{scope}} hatókör részletei",
+        "access": {
+          "none": "Nincs",
+          "read": "Olvasás",
+          "readwrite": "Írás/olvasás"
+        },
+        "full_access": {
+          "label": "Teljes hozzáférés",
+          "description": "Hozzáférés az összes támogatott API-művelethez."
+        },
+        "limited_scopes": {
+          "label": "Korlátozott hatókörök",
+          "description": "Válassza ki az erőforrústípusokat, amelyekhez ez a kulcs hozzáférhet."
+        },
+        "resources": {
+          "assets": {
+            "label": "Eszközök",
+            "description": "Fájlok és egyéb tárolt könyvjelzőtartalmak elérése."
+          },
+          "backups": {
+            "label": "Biztonsági mentések",
+            "description": "Fiók biztonsági mentéseinek kezelése."
+          },
+          "bookmarks": {
+            "label": "Könyvjelzők",
+            "description": "Könyvjelzők elérése és kezelése."
+          },
+          "feeds": {
+            "label": "Hírcsatornák",
+            "description": "RSS-hírcsatornák és a kapcsolódó adatok kezelése."
+          },
+          "highlights": {
+            "label": "Kiemelések",
+            "description": "Mentett könyvjelző-kiemelések kezelése."
+          },
+          "lists": {
+            "label": "Listák",
+            "description": "Listák és listatagságok kezelése."
+          },
+          "prompts": {
+            "label": "Promptok",
+            "description": "Mentett MI prompt konfigurációk kezelése."
+          },
+          "rules": {
+            "label": "Szabályok",
+            "description": "Automatizálási szabályok elérése."
+          },
+          "tags": {
+            "label": "Címkék",
+            "description": "Címkék elérése és módosítása."
+          },
+          "users": {
+            "label": "User fiók",
+            "description": "Fiókprofil és beállítások elérése."
+          },
+          "webhooks": {
+            "label": "Webhookok",
+            "description": "Webhook konfigurációk elérése."
+          },
+          "subscriptions": {
+            "label": "Előfizetések",
+            "description": "Előfizetés-kezelés elérése."
+          },
+          "importSessions": {
+            "label": "Importálási munkamenetek",
+            "description": "Importálási munkamenetek elérése."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: könyvjelzők",
+            "description": "Adminisztratív könyvjelző eszközök elérése."
+          },
+          "jobs": {
+            "label": "Admin: feladatok",
+            "description": "Háttérben futó feladatok vezérlésének elérése."
+          },
+          "system": {
+            "label": "Admin: rendszer",
+            "description": "Rendszerállapot és diagnosztika elérése."
+          },
+          "users": {
+            "label": "Admin: felhasználók",
+            "description": "Adminisztratív felhasználókezelés elérése."
+          }
+        }
+      }
     },
     "import": {
       "import_bookmarks_from_karakeep_export": "Könyvjelző importálása Karakeep-ből",
@@ -203,7 +294,9 @@
       "imported_bookmarks": "Importált könyvjelzők",
       "import_bookmarks_from_tab_session_manager_export": "Könyvjelzők importálása a Tab Session Managerből",
       "import_bookmarks_from_mymind_export": "Könyvjelzők importálása a mymind exportálásából",
-      "import_bookmarks_from_instapaper_export": "Könyvjelzők importálása Instapaper exportból"
+      "import_bookmarks_from_instapaper_export": "Könyvjelzők importálása Instapaper exportból",
+      "import_bookmarks_from_readwise_reader_export": "Könyvjelzők importálása Readwise Reader exportfájlból",
+      "import_bookmarks_from_onetab_export": "Könyvjelzők importálása OneTab exportból"
     },
     "broken_links": {
       "crawling_status": "Feltérképezési állapot",
@@ -260,7 +353,8 @@
         "is_archived": "Archiválva",
         "url_does_not_contain": "Az URL nem tartalmazza",
         "title_contains": "A cím tartalmazza",
-        "title_does_not_contain": "A cím nem tartalmazza"
+        "title_does_not_contain": "A cím nem tartalmazza",
+        "bookmark_source_is": "Könyvjelző forrása"
       },
       "events_types": {
         "bookmark_added": "Könyvjelző hozzáadva",
@@ -345,7 +439,17 @@
       "approaching_quota_limit": "Közeledik a kvóta korlát",
       "loading_usage": "A használati adatok betöltése...",
       "free": "Ingyenes",
-      "paid": "Fizetős"
+      "paid": "Fizetős",
+      "monthly": "Havi",
+      "yearly": "Éves",
+      "per_month": "hónap",
+      "per_year": "év",
+      "excl_vat": "áfa nélkül",
+      "yearly_savings": "Spóroljon {{percent}}%-ot",
+      "pro_feature_bookmarks": "50 000 könyvjelző",
+      "pro_feature_storage": "50 GB tárhely",
+      "pro_feature_ai_tagging": "AI-alapú címkézés",
+      "pro_feature_full_text_search": "Teljes szöveges keresés"
     },
     "import_sessions": {
       "title": "Importálási munkamenetek",
@@ -401,7 +505,10 @@
         "view_bookmark": "Könyvjelző megtekintése",
         "load_more": "Tölts be többet",
         "no_title": "Nincs cím"
-      }
+      },
+      "finalize_dialog_title": "Importálási munkamenet véglegesítése",
+      "finalize_dialog_description": "Sorba állítja a(z) „{{name}}” elemet háttérfeldolgozáshoz? Az előkészített könyvjelzők importálása megkezdődik.",
+      "finalize_staging": "Véglegesítés"
     },
     "backups": {
       "backups": "Biztonsági mentések",
@@ -691,7 +798,18 @@
       "failed_to_accept": "Nem sikerült elfogadni a meghívást",
       "failed_to_decline": "Nem sikerült elutasítani a meghívást"
     },
-    "shared_lists": "Megosztott listák"
+    "shared_lists": "Megosztott listák",
+    "privacy": {
+      "public": "Nyilvános",
+      "shared": "Megosztott",
+      "private": "Privát"
+    },
+    "summary_list_one": "{{count}} Listák",
+    "summary_list_other": "{{count}} Listák",
+    "summary_bookmark_one": "{{count}} Könyvjelzők",
+    "summary_bookmark_other": "{{count}} Könyvjelzők",
+    "items_count_one": "{{count}} elem",
+    "items_count_other": "{{count}} elem"
   },
   "admin": {
     "background_jobs": {
@@ -893,7 +1011,11 @@
     "no_unused_tags_match_your_search": "Nincsenek a keresésednek megfelelő fel nem használt címkék",
     "no_tags_match_your_search": "Nincsenek a keresésednek megfelelő címkék",
     "search_placeholder": "Címkék keresése…",
-    "search_or_create_placeholder": "Címkék keresése vagy létrehozása…"
+    "search_or_create_placeholder": "Címkék keresése vagy létrehozása…",
+    "rename_tag": "Címke átnevezése",
+    "items_count": "{{count}} elem",
+    "attached_by_you": "{{count}} Ön által",
+    "attached_by_ai": "{{count}} MI által"
   },
   "layouts": {
     "masonry": "Falazat",
@@ -943,7 +1065,9 @@
     },
     "tags": {
       "created": "A címke létrejött!",
-      "failed_to_create": "Nem sikerült létrehozni a címkét"
+      "failed_to_create": "Nem sikerült létrehozni a címkét",
+      "updated": "Címke frissítve!",
+      "failed_to_update": "Címke frissítése sikertelen"
     }
   },
   "cleanups": {

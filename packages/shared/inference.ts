@@ -3,7 +3,6 @@ import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import * as undici from "undici";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 import serverConfig from "./config";
 import { customFetch } from "./customFetch";
@@ -62,6 +61,7 @@ export interface OpenAIInferenceConfig {
   contextLength: number;
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
+  reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
   outputSchema: "structured" | "json" | "plain";
 }
 
@@ -110,6 +110,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       maxOutputTokens: serverConfig.inference.maxOutputTokens,
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
+      reasoningEffort: serverConfig.inference.openAIReasoningEffort,
     });
   }
 
@@ -141,6 +142,7 @@ export class OpenAIInferenceClient implements InferenceClient {
           },
           this.config.outputSchema,
         ),
+        reasoning_effort: this.config.reasoningEffort,
       },
       {
         signal: optsWithDefaults.abortSignal,
@@ -282,8 +284,9 @@ class OllamaInferenceClient implements InferenceClient {
       model: model,
       format: mapInferenceOutputSchema(
         {
+          // Use Zod 4's native JSON Schema emitter for Ollama structured output.
           structured: optsWithDefaults.schema
-            ? zodToJsonSchema(optsWithDefaults.schema)
+            ? z.toJSONSchema(optsWithDefaults.schema)
             : undefined,
           json: "json",
           plain: undefined,

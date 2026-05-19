@@ -98,7 +98,8 @@
     "more": "Tuilleadh",
     "replace_banner": "Athsholáthar Meirge",
     "add_banner": "Cuir Meirge Leis",
-    "download": "Íoslódáil"
+    "download": "Íoslódáil",
+    "rename": "Athainmnigh"
   },
   "settings": {
     "ai": {
@@ -161,7 +162,97 @@
       "key_regenerated": "Athghineadh an eochair go rathúil",
       "key_regenerated_please_copy": "Cóipeáil an eochair nua agus stóráil in áit shábháilte é, le do thoil. Tá an tseaneochair tarraingthe siar agus ní oibreoidh sí a thuilleadh.",
       "regenerate_warning": "An bhfuil tú cinnte gur mhaith leat an eochair API \"{{name}}\" a athghiniúint?",
-      "regenerate_confirmation": "Tarraingeoidh sé seo siar an eochair reatha agus ginfear ceann nua. Stadfaidh aon fheidhmchláir a úsáideann an eochair reatha ag obair."
+      "regenerate_confirmation": "Tarraingeoidh sé seo siar an eochair reatha agus ginfear ceann nua. Stadfaidh aon fheidhmchláir a úsáideann an eochair reatha ag obair.",
+      "scopes": {
+        "scopes": "Scóip",
+        "choose_at_least_one": "Roghnaigh scóip amháin ar a laghad nó roghnaigh rochtain iomlán.",
+        "scope_details": "Sonraí scóipe {{scope}}",
+        "access": {
+          "none": "Dada",
+          "read": "Léamh",
+          "readwrite": "Léamh/scríobh"
+        },
+        "full_access": {
+          "label": "Rochtain iomlán",
+          "description": "Rochtain ar gach oibríocht API a dtacaítear léi."
+        },
+        "limited_scopes": {
+          "label": "Scóip theoranta",
+          "description": "Roghnaigh na cineálacha acmhainní ar féidir leis an eochair seo rochtain a fháil orthu."
+        },
+        "resources": {
+          "assets": {
+            "label": "Sócmhainní",
+            "description": "Rochtain ar chomhaid agus ar ábhar leabharmharcanna stóráilte eile."
+          },
+          "backups": {
+            "label": "Cúltacaí",
+            "description": "Bainistigh cúltacaí cuntais."
+          },
+          "bookmarks": {
+            "label": "Leabharmharcanna",
+            "description": "Rochtain a fháil ar leabharmharcanna agus iad a bhainistiú."
+          },
+          "feeds": {
+            "label": "Fothaí",
+            "description": "Bainistigh fothaí RSS agus sonraí fothaí gaolmhara."
+          },
+          "highlights": {
+            "label": "Aibhsithe",
+            "description": "Bainistigh aibhsithe leabharmharcanna sábháilte."
+          },
+          "lists": {
+            "label": "Liostaí",
+            "description": "Bainistigh liostaí agus ballraíocht i liostaí."
+          },
+          "prompts": {
+            "label": "Pridthe",
+            "description": "Bainistigh cumraíocht na bpridthe AI sábháilte."
+          },
+          "rules": {
+            "label": "Rialacha",
+            "description": "Rochtain ar rialacha uathoibrithe."
+          },
+          "tags": {
+            "label": "Clibeanna",
+            "description": "Rochtain a fháil ar chlibeanna agus iad a mhodhnú."
+          },
+          "users": {
+            "label": "Cuntas úsáideora",
+            "description": "Rochtain ar phróifíl agus ar shocruithe an chuntais."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Rochtain ar chumraíocht webhooks."
+          },
+          "subscriptions": {
+            "label": "Síntiúis",
+            "description": "Rochtain ar bhainistíocht síntiús."
+          },
+          "importSessions": {
+            "label": "Seisiúin Iompórtála",
+            "description": "Rochtain ar sheisiúin iompórtála."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Riarthóir: leabharmharcaí",
+            "description": "Rochtain ar uirlisí leabharmharcaí riaracháin."
+          },
+          "jobs": {
+            "label": "Riarthóir: poist",
+            "description": "Rochtain ar rialtáin post sa chúlra."
+          },
+          "system": {
+            "label": "Riarthóir: córas",
+            "description": "Faigh rochtain ar stádas an chórais agus ar dhiagnóisic."
+          },
+          "users": {
+            "label": "Riarthóir: úsáideoirí",
+            "description": "Faigh rochtain ar bhainistíocht úsáideoirí riaracháin."
+          }
+        }
+      }
     },
     "manage_assets": {
       "asset_link": "Nasc Sócmhainne",
@@ -211,7 +302,8 @@
         "or": "Tá aon cheann díobh seo a leanas fíor",
         "url_does_not_contain": "Níl an URL san Áireamh",
         "title_contains": "Tá Teideal Isteach Ann",
-        "title_does_not_contain": "Níl Sa Teideal"
+        "title_does_not_contain": "Níl Sa Teideal",
+        "bookmark_source_is": "Is é Foinse an Leabharmhairc"
       },
       "actions_types": {
         "add_tag": "Cuir Clib leis",
@@ -310,7 +402,9 @@
       "export_links_and_notes": "Easpórtáil Naisc agus Nótaí",
       "imported_bookmarks": "Leabharmharcanna Allmhairithe",
       "import_bookmarks_from_mymind_export": "Iompórtáil Leabharmharcanna ó onnmhairiú mymind",
-      "import_bookmarks_from_instapaper_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Instapaper"
+      "import_bookmarks_from_instapaper_export": "Iompórtáil Leabharmharcanna ó onnmhairiú Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Iompórtáil Leabharmharcaí ó easpórtáil Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Iompórtáil Leabharmharcaí ó easpórtáil OneTab"
     },
     "broken_links": {
       "broken_links": "Naisc Bhriste",
@@ -391,7 +485,17 @@
       "approaching_quota_limit": "Ag druidim le teorainn an chuóta",
       "loading_usage": "Ag lódáil faisnéise úsáide...",
       "free": "Saor in aisce",
-      "paid": "Íoctha"
+      "paid": "Íoctha",
+      "monthly": "Gach mí",
+      "yearly": "Gach bliain",
+      "per_month": "mí",
+      "per_year": "bliain",
+      "excl_vat": "gan CBL san áireamh",
+      "yearly_savings": "Sábháil {{percent}}%",
+      "pro_feature_bookmarks": "50,000 leabharmharc",
+      "pro_feature_storage": "Stóráil 50GB",
+      "pro_feature_ai_tagging": "Clibeáil méadaithe ag an AI",
+      "pro_feature_full_text_search": "Cuardach téacs iomlán"
     },
     "import_sessions": {
       "title": "Seisiúin Iompórtála",
@@ -447,7 +551,10 @@
         "view_bookmark": "Féach ar Leabharmharc",
         "load_more": "Luchtaigh Tuilleadh",
         "no_title": "Gan teideal"
-      }
+      },
+      "finalize_dialog_title": "Seisiún Iompórtála a Thabhairt chun Críche",
+      "finalize_dialog_description": "Ar mhaith leat \"{{name}}\" a chur sa scuaine le haghaidh próiseáil chúlra? Tosófar ar leabharmharcanna atá ullmhaithe a iompórtáil.",
+      "finalize_staging": "Tabhair chun críche"
     },
     "backups": {
       "backups": "Cúltaca",
@@ -583,7 +690,18 @@
       "failed_to_accept": "Theip ar ghlacadh leis an gcuireadh",
       "failed_to_decline": "Theip ar dhiúltú don chuireadh"
     },
-    "shared_lists": "Liostaí Comhroinnte"
+    "shared_lists": "Liostaí Comhroinnte",
+    "privacy": {
+      "public": "Poiblí",
+      "shared": "Comhroinnte",
+      "private": "Príobháideach"
+    },
+    "summary_list_one": "{{count}} Liostaí",
+    "summary_list_other": "{{count}} Liostaí",
+    "summary_bookmark_one": "{{count}} Leabhair mharcála",
+    "summary_bookmark_other": "{{count}} Leabhair mharcála",
+    "items_count_one": "{{count}} mír",
+    "items_count_other": "{{count}} mír"
   },
   "tags": {
     "unused_tags": "Clibeanna Neamhúsáidte",
@@ -609,7 +727,11 @@
     "no_unused_tags_match_your_search": "Ní fhreagraíonn aon chlibeanna neamhúsáidte d’inneall cuardaigh duit",
     "no_tags_match_your_search": "Ní fhreagraíonn aon chlibeanna d’inneall cuardaigh duit",
     "search_placeholder": "Cuardaigh clibeanna...",
-    "search_or_create_placeholder": "Cuardaigh nó cruthaigh clibeanna..."
+    "search_or_create_placeholder": "Cuardaigh nó cruthaigh clibeanna...",
+    "rename_tag": "Athainmnigh Clib",
+    "items_count": "{{count}} mír",
+    "attached_by_you": "{{count}} agat",
+    "attached_by_ai": "{{count}} ag AI"
   },
   "search": {
     "is_favorited": "Is Fearr",
@@ -739,7 +861,9 @@
     },
     "tags": {
       "created": "Tá an clib cruthaithe!",
-      "failed_to_create": "Theip ar chlib a chruthú"
+      "failed_to_create": "Theip ar chlib a chruthú",
+      "updated": "Nuashonraíodh an chlib!",
+      "failed_to_update": "Theip ar nuashonrú na clibe"
     }
   },
   "admin": {

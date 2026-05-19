@@ -3,6 +3,8 @@ import * as bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 
 import { apiKeys } from "@karakeep/db/schema";
+import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
+import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import serverConfig from "@karakeep/shared/config";
 
 import type { Context } from "./index";
@@ -51,6 +53,7 @@ export async function generateApiKey(
   name: string,
   userId: string,
   database: Context["db"],
+  scopes: ZApiKeyScope[],
 ) {
   const { keyId, secret, secretHash } = generateApiKeySecret();
 
@@ -64,6 +67,7 @@ export async function generateApiKey(
         userId: userId,
         keyId,
         keyHash: secretHash,
+        scopes,
       })
       .returning()
   )[0];
@@ -72,8 +76,15 @@ export async function generateApiKey(
     id: key.id,
     name: key.name,
     createdAt: key.createdAt,
+    scopes: normalizeApiKeyScopes(key.scopes),
     key: plain,
   };
+}
+
+function normalizeApiKeyScopes(
+  scopes: ZApiKeyScope[] | null | undefined,
+): ZApiKeyScope[] {
+  return scopes?.length ? scopes : [API_KEY_FULL_ACCESS_SCOPE];
 }
 
 function parseApiKey(plain: string) {
@@ -138,7 +149,14 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
       });
   }
 
-  return apiKey.user;
+  return {
+    user: apiKey.user,
+    apiKey: {
+      id: apiKey.id,
+      keyId: apiKey.keyId,
+      scopes: normalizeApiKeyScopes(apiKey.scopes),
+    },
+  };
 }
 
 export async function hashPassword(password: string, salt: string | null) {

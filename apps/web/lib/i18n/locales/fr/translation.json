@@ -104,7 +104,8 @@
     "more": "Plus",
     "replace_banner": "Remplacer la bannière",
     "add_banner": "Ajouter une bannière",
-    "download": "Télécharger"
+    "download": "Télécharger",
+    "rename": "Renommer"
   },
   "settings": {
     "back_to_app": "Retour à l'application",
@@ -226,7 +227,9 @@
       "import_bookmarks_from_linkwarden_export": "Importer des marque-pages depuis l'export Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importer les marque-pages depuis Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importer les signets depuis l'export mymind",
-      "import_bookmarks_from_instapaper_export": "Importer les marque-pages à partir de l’exportation Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importer les marque-pages à partir de l’exportation Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importer les signets depuis l'exportation de Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importer les signets à partir de l'exportation OneTab"
     },
     "api_keys": {
       "api_keys": "Clés API",
@@ -238,7 +241,97 @@
       "key_regenerated": "La clé a été régénérée avec succès",
       "key_regenerated_please_copy": "Veuillez copier la nouvelle clé et la conserver dans un endroit sûr. L'ancienne clé a été révoquée et ne fonctionnera plus.",
       "regenerate_warning": "Êtes-vous sûr de vouloir régénérer la clé API \"{{name}}\" ?",
-      "regenerate_confirmation": "Cela révoquera la clé actuelle et en générera une nouvelle. Toutes les applications utilisant la clé actuelle cesseront de fonctionner."
+      "regenerate_confirmation": "Cela révoquera la clé actuelle et en générera une nouvelle. Toutes les applications utilisant la clé actuelle cesseront de fonctionner.",
+      "scopes": {
+        "scopes": "Périmètres",
+        "choose_at_least_one": "Choisissez au moins un périmètre ou sélectionnez l'accès complet.",
+        "scope_details": "Détails du périmètre {{scope}}",
+        "access": {
+          "none": "Aucun",
+          "read": "Lecture",
+          "readwrite": "Lecture/écriture"
+        },
+        "full_access": {
+          "label": "Accès complet",
+          "description": "Accéder à toutes les opérations API prises en charge."
+        },
+        "limited_scopes": {
+          "label": "Périmètres limités",
+          "description": "Choisissez les types de ressources auxquels cette clé peut accéder."
+        },
+        "resources": {
+          "assets": {
+            "label": "Actifs",
+            "description": "Accéder aux fichiers et aux autres contenus de favoris stockés."
+          },
+          "backups": {
+            "label": "Sauvegardes",
+            "description": "Gérer les sauvegardes du compte."
+          },
+          "bookmarks": {
+            "label": "Favoris",
+            "description": "Accéder aux favoris et les gérer."
+          },
+          "feeds": {
+            "label": "Flux",
+            "description": "Gérer les flux RSS et les données de flux associées."
+          },
+          "highlights": {
+            "label": "Surlignages",
+            "description": "Gérer les surlignages de favoris enregistrés."
+          },
+          "lists": {
+            "label": "Listes",
+            "description": "Gérer les listes et l'appartenance aux listes."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Gérer la configuration des prompts d'IA enregistrés."
+          },
+          "rules": {
+            "label": "Règles",
+            "description": "Accéder aux règles d'automatisation."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Accéder aux tags et les modifier."
+          },
+          "users": {
+            "label": "Compte utilisateur",
+            "description": "Accéder au profil et aux paramètres du compte."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Accéder à la configuration des webhooks."
+          },
+          "subscriptions": {
+            "label": "Abonnements",
+            "description": "Accéder à la gestion des abonnements."
+          },
+          "importSessions": {
+            "label": "Sessions d'importation",
+            "description": "Accéder aux sessions d'importation."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin : favoris",
+            "description": "Accéder aux outils d'administration des favoris."
+          },
+          "jobs": {
+            "label": "Admin : tâches",
+            "description": "Accéder aux commandes des tâches de fond."
+          },
+          "system": {
+            "label": "Admin : système",
+            "description": "Accéder à l'état du système et aux diagnostics."
+          },
+          "users": {
+            "label": "Admin : utilisateurs",
+            "description": "Accéder à la gestion administrative des utilisateurs."
+          }
+        }
+      }
     },
     "webhooks": {
       "auth_token": "Jeton d'authentification",
@@ -303,7 +396,8 @@
         "or": "Si l'une des conditions suivantes est remplie",
         "url_does_not_contain": "L’URL ne contient pas",
         "title_contains": "Le titre contient",
-        "title_does_not_contain": "Le titre ne contient pas"
+        "title_does_not_contain": "Le titre ne contient pas",
+        "bookmark_source_is": "La source du signet est"
       },
       "actions_types": {
         "add_tag": "Ajouter un tag",
@@ -397,7 +491,17 @@
       "approaching_quota_limit": "Limite de quota atteinte",
       "loading_usage": "Chargement des informations d’utilisation…",
       "free": "Gratuit",
-      "paid": "Payant"
+      "paid": "Payant",
+      "monthly": "Mensuel",
+      "yearly": "Annuel",
+      "per_month": "mois",
+      "per_year": "année",
+      "excl_vat": "HT",
+      "yearly_savings": "Économisez {{percent}} %",
+      "pro_feature_bookmarks": "50 000 signets",
+      "pro_feature_storage": "50 Go de stockage",
+      "pro_feature_ai_tagging": "Marquage assisté par IA",
+      "pro_feature_full_text_search": "Recherche en plein texte"
     },
     "import_sessions": {
       "title": "Importer des sessions",
@@ -453,7 +557,10 @@
         "view_bookmark": "Voir le marque-page",
         "load_more": "Charger plus",
         "no_title": "Pas de titre"
-      }
+      },
+      "finalize_dialog_title": "Finaliser la session d'importation",
+      "finalize_dialog_description": "Mettre en file d'attente « {{name}} » pour le traitement en arrière-plan ? L'importation des signets préparés va commencer.",
+      "finalize_staging": "Finaliser"
     },
     "backups": {
       "backups": "Sauvegardes",
@@ -765,7 +872,18 @@
       "failed_to_accept": "Impossible d’accepter l’invitation",
       "failed_to_decline": "Impossible de refuser l’invitation"
     },
-    "shared_lists": "Listes partagées"
+    "shared_lists": "Listes partagées",
+    "privacy": {
+      "public": "Public",
+      "shared": "Partagé",
+      "private": "Privé"
+    },
+    "summary_list_one": "{{count}} Listes",
+    "summary_list_other": "{{count}} Listes",
+    "summary_bookmark_one": "{{count}} Marque-pages",
+    "summary_bookmark_other": "{{count}} Marque-pages",
+    "items_count_one": "{{count}} articles",
+    "items_count_other": "{{count}} articles"
   },
   "tags": {
     "all_tags": "Tous les tags",
@@ -791,7 +909,11 @@
     "no_unused_tags_match_your_search": "Aucune balise inutilisée ne correspond à votre recherche",
     "no_tags_match_your_search": "Aucune balise ne correspond à votre recherche",
     "search_placeholder": "Rechercher des tags…",
-    "search_or_create_placeholder": "Rechercher ou créer des tags…"
+    "search_or_create_placeholder": "Rechercher ou créer des tags…",
+    "rename_tag": "Renommer le tag",
+    "items_count": "{{count}} articles",
+    "attached_by_you": "{{count}} par vous",
+    "attached_by_ai": "{{count}} par l'IA"
   },
   "preview": {
     "view_original": "Voir l'original",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "Le tag a été créé !",
-      "failed_to_create": "Impossible de créer le tag"
+      "failed_to_create": "Impossible de créer le tag",
+      "updated": "Le tag a été mis à jour !",
+      "failed_to_update": "Impossible de mettre à jour le tag"
     }
   },
   "cleanups": {

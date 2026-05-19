@@ -9,6 +9,7 @@ import {
 import { ZTagListResponse } from "@karakeep/shared/types/tags";
 
 import { useTRPC } from "../trpc";
+import { scheduleInvalidateQueries } from "./query-invalidation";
 
 type TRPCApi = ReturnType<typeof useTRPC>;
 
@@ -85,6 +86,9 @@ export function useUpdateTag(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ tagId: res.id }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.infiniteQueryFilter({ tagId: res.id }),
+        );
 
         // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
         queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
@@ -110,6 +114,9 @@ export function useMergeTag(
           queryClient.invalidateQueries(
             api.bookmarks.getBookmarks.queryFilter({ tagId }),
           );
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.infiniteQueryFilter({ tagId }),
+          );
         });
         // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
         queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
@@ -129,8 +136,11 @@ export function useDeleteTag(
     api.tags.delete.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(api.tags.list.pathFilter());
-        queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.tags.list.pathFilter());
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmark.pathFilter(),
+        );
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),

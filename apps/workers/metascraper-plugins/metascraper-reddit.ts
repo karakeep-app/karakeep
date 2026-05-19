@@ -55,7 +55,9 @@ const redditPostSchema = z.object({
   url_overridden_by_dest: z.string().optional(),
   url: z.string().optional(),
   thumbnail: z.string().optional(),
-  media_metadata: z.record(redditMediaMetadataItemSchema).optional(),
+  media_metadata: z
+    .record(z.string(), redditMediaMetadataItemSchema)
+    .optional(),
   author: z.string().optional(),
   created_utc: z.number().optional(),
   selftext: z.string().nullish(),

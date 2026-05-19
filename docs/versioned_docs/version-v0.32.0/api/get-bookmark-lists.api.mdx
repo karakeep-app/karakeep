@@ -1,0 +1,71 @@
+---
+id: get-bookmark-lists
+title: "Get lists of a bookmark"
+description: "Retrieve all lists that contain the specified bookmark."
+sidebar_label: "Get lists of a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVttuGzcQ/ZUB85IIa8kpUjTQQwElTQI3fTAcG0XhCNBoOdIy4pIMyZWtCAv0I/qF/ZJ2uBddmwbIk1bkXA7ncma2wjryGJU1V1KMxZLiK2tXJfrVbyrEIDIhKeReORYRY3FD0StaE6DWoFkEYoERcmsiKgOxIAiOcrVQJGHe2hqKTERcBjG+F539IKaZCJRXXsWNGN9vxZzQk59UsRDj+2k9zYRDjyVF8iEJhLygEsV4K+LGkRiLEL0yyxOQtwVBZdTnikBJMpHBeLCLhG4fEz1i6TRbUqSkftwsy4dPL3+yj19+LB5jtPlLBq5iEumAX0lRZ8LT50p5kmIcfUWZMFiy0HwnlAnFYBzGQvBjPAVnTaDAD/jh8pJ/TnGfjakKB7D5gkxkA+icVnlK4OhTYCtnwmTnnyiPIhPOc7qjajAkV3ti6D1uGHakMvy/upKnmai7QJy5OHjraQpNpTXOOdIc0DoTKj8nWKeqIBOvzrg/Y6UROBUkU5VcjiWaCrXIRCjRR65JSQusdBTj7q7OxOeK/Oab/LlqrlW+Jzq3VhMatlJgeG1Z3nqM1ofzUlUgf2P1V1HbB0Oe/0sVLX+sFT2kk9b/tD6o0XvOVpubNrJ7cey1zkDcwzPd9QKTg6iPfTQFNa3TxYvL56cVfmewioX16su/7PD3n3+ljnyV+h6iXZEBFaBUISizzECZNWolM7Ae6NGxm6Pyj/QYR06jOl/4u7j1jb6PQHRIX5wi7bodjI2wsJU5dv09nZdbeTa9hxAmUGJeKEMXnlBylQF5bz2w+pBLpaQQcPlNpoqqRHNsqNUfiuNMJoA7+3uZf8OKKXDJfyxsOzdSQTF1i1HHVWG03fFhPdLtRAnk1x2lV16LsdiilJ5CqEfo1Gj9nAsavWKkKV7tdZOlrjuLGF0Yj0bRb4Yr9LgickN07uw4aC10Q+B9Kw8NFn7P3jT6wGlsPO/PpD7I7JnfkcS4eZOQyNqPt9aXyAh//f02RVaZhWV1fnUD6fnwcni5N1t6PJPrqxP8/aUKgBBILy4KG2LKYxdfZZaARgIn+ELFC42RfHqdymkItzxCJtdXPLbtQ4CNrSBaKNHgcmckZM34yYCHdQaFWhZaLQs+wRAo/RoJc8xXlQvgvF16LEuMKketN8OP5qN58gQ4XDx2m+7gw4nWQEY6q0wM0FYa4GHrO/Yhod0iZpO2T5ORGRSEkvwQ/rAV5GhgSYY3FwI06WUr2sDC2/Iwvw80h7srqIwkD4PBB4pRmWWAn5POe9qEwaCDfY1LZXrITHF7mEPlnPUR8soH6y/myFBdrwFrhTBrLmcpSDOtShVnkEYH7DYZTgZBtwyAMrmuJHFmZ4Ye4+vWxEKRbiiSwwIqAoYmLp2T3iRnckExL9I9G2FgNIQJzHg+zWCNuiJYWH/oQxnJOaJkmPPhCYyF0voEsNIxdLHp6fB24yjwYb/HpWzMCayhpr08EXCnhPFHcwGDgVZmNRikt0zg7ua3vt7gQcUCbKpz1JB7fNAkoaSIEiMOG3Xm+F49cT3wERMztSKpODsZA5XTFiVJWChN8FSVXOTWw/Uvb58l3nQ2xBITZbd72zuK7eplF4A9wuNe3O4mwPeswg2N7A0vHvvMhNuWQ+/7RZIJc3ywVbZTNhNMAiy63XI13nld13zc7ir30x2JJqqVKvC3FOMF6kBfednTm3YUPIP/QtutjGaTuFpX/E9kYkWbwy24nvLik3o3oWgEJnlOLu6pnkxT5uN+vLx7cysygYcsfMS6yfpZWNttI3HLLFPXPcrEOgywrv8BsYyNGA==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get lists of a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/bookmarks/{bookmarkId}/lists"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve all lists that contain the specified bookmark.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The lists that contain this bookmark.","content":{"application/json":{"schema":{"type":"object","properties":{"lists":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}},"required":["lists"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Bookmark not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

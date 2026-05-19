@@ -3,7 +3,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { apiKeys } from "@karakeep/db/schema";
+import { addLogFields, logEvent } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
+import {
+  API_KEY_FULL_ACCESS_SCOPE,
+  zApiKeyScopesSchema,
+} from "@karakeep/shared/types/apiKeys";
 
 import {
   authenticateApiKey,
@@ -12,10 +17,11 @@ import {
   validatePassword,
 } from "../auth";
 import {
-  authedProcedure,
+  createEventLogMiddleware,
   createRateLimitMiddleware,
   publicProcedure,
   router,
+  sessionProcedure,
 } from "../index";
 
 const zApiKeySchema = z.object({
@@ -23,20 +29,36 @@ const zApiKeySchema = z.object({
   name: z.string(),
   key: z.string(),
   createdAt: z.date(),
+  scopes: zApiKeyScopesSchema,
 });
 
 export const apiKeysAppRouter = router({
-  create: authedProcedure
+  create: sessionProcedure
+    .use(createEventLogMiddleware("apiKey.create"))
     .input(
       z.object({
         name: z.string(),
+        scopes: zApiKeyScopesSchema.optional(),
       }),
     )
     .output(zApiKeySchema)
     .mutation(async ({ input, ctx }) => {
-      return await generateApiKey(input.name, ctx.user.id, ctx.db);
+      // Omitted scopes preserve the existing API behavior: a new key gets
+      // explicit full access unless the caller asks for granular scopes.
+      const scopes = input.scopes ?? [API_KEY_FULL_ACCESS_SCOPE];
+      const created = await generateApiKey(
+        input.name,
+        ctx.user.id,
+        ctx.db,
+        scopes,
+      );
+      addLogFields<"apiKey.create">({
+        "apiKey.id": created.id,
+        "apiKey.source": "session",
+      });
+      return created;
     }),
-  regenerate: authedProcedure
+  regenerate: sessionProcedure
     .input(
       z.object({
         id: z.string(),
@@ -60,21 +82,24 @@ export const apiKeysAppRouter = router({
         id: existingKey.id,
         name: existingKey.name,
         createdAt: existingKey.createdAt,
+        scopes: existingKey.scopes,
         key: await regenerateApiKey(existingKey.id, ctx.user.id, ctx.db),
       };
     }),
-  revoke: authedProcedure
+  revoke: sessionProcedure
+    .use(createEventLogMiddleware("apiKey.revoke"))
     .input(
       z.object({
         id: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      addLogFields<"apiKey.revoke">({ "apiKey.id": input.id });
       await ctx.db
         .delete(apiKeys)
         .where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, ctx.user.id)));
     }),
-  list: authedProcedure
+  list: sessionProcedure
     .output(
       z.object({
         keys: z.array(
@@ -84,6 +109,7 @@ export const apiKeysAppRouter = router({
             createdAt: z.date(),
             keyId: z.string(),
             lastUsedAt: z.date().nullish(),
+            scopes: zApiKeyScopesSchema,
           }),
         ),
       }),
@@ -97,6 +123,7 @@ export const apiKeysAppRouter = router({
           createdAt: true,
           lastUsedAt: true,
           keyId: true,
+          scopes: true,
         },
         orderBy: desc(apiKeys.createdAt),
       });
@@ -112,15 +139,18 @@ export const apiKeysAppRouter = router({
         maxRequests: 10,
       }),
     ) // 10 requests per 15 minutes
+    .use(createEventLogMiddleware("apiKey.create"))
     .input(
       z.object({
         keyName: z.string(),
         email: z.string(),
         password: z.string(),
+        scopes: zApiKeyScopesSchema.optional(),
       }),
     )
     .output(zApiKeySchema)
     .mutation(async ({ input, ctx }) => {
+      addLogFields<"apiKey.create">({ "apiKey.source": "exchange" });
       let user;
       // Special handling as otherwise the extension would show "username or password is wrong"
       if (serverConfig.auth.disablePasswordAuth) {
@@ -132,8 +162,14 @@ export const apiKeysAppRouter = router({
       try {
         user = await validatePassword(input.email, input.password, ctx.db);
       } catch {
+        logEvent({
+          "event.name": "user.login_failed",
+          "user.email": input.email,
+          "auth.failure_reason": "invalid_credentials",
+        });
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
+      addLogFields({ "user.id": user.id });
 
       // Check if email verification is required and if the user has verified their email
       if (serverConfig.auth.emailVerificationRequired && !user.emailVerified) {
@@ -144,7 +180,17 @@ export const apiKeysAppRouter = router({
         });
       }
 
-      return await generateApiKey(input.keyName, user.id, ctx.db);
+      // Omitted scopes preserve the existing API behavior: a new key gets
+      // explicit full access unless the caller asks for granular scopes.
+      const scopes = input.scopes ?? [API_KEY_FULL_ACCESS_SCOPE];
+      const created = await generateApiKey(
+        input.keyName,
+        user.id,
+        ctx.db,
+        scopes,
+      );
+      addLogFields<"apiKey.create">({ "apiKey.id": created.id });
+      return created;
     }),
   validate: publicProcedure
     .use(

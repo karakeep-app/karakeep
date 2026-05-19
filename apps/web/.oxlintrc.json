@@ -24,11 +24,6 @@
     "**/*.config.js",
     "**/*.config.cjs",
     "**/.eslintrc.cjs",
-    ".next",
-    "dist",
-    "build",
-    "public/sw.js",
-    "public/workbox-*.js",
-    "pnpm-lock.yaml"
+    "next-env.d.ts"
   ]
 }

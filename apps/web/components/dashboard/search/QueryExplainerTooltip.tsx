@@ -1,5 +1,11 @@
+import FormattedDate from "@/components/ui/formatted-date";
 import InfoTooltip from "@/components/ui/info-tooltip";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
 import { match } from "@/lib/utils";
 
@@ -10,10 +16,12 @@ export default function QueryExplainerTooltip({
   parsedSearchQuery,
   header,
   className,
+  trigger,
 }: {
   header?: React.ReactNode;
   parsedSearchQuery: TextAndMatcher & { result: string };
   className?: string;
+  trigger?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   if (parsedSearchQuery.result == "invalid") {
@@ -52,7 +60,9 @@ export default function QueryExplainerTooltip({
                 ? t("search.not_created_on_or_after")
                 : t("search.created_on_or_after")}
             </TableCell>
-            <TableCell>{matcher.dateAfter.toDateString()}</TableCell>
+            <TableCell>
+              <FormattedDate date={matcher.dateAfter} formatStr="PPP" />
+            </TableCell>
           </TableRow>
         );
       case "dateBefore":
@@ -63,7 +73,9 @@ export default function QueryExplainerTooltip({
                 ? t("search.not_created_on_or_before")
                 : t("search.created_on_or_before")}
             </TableCell>
-            <TableCell>{matcher.dateBefore.toDateString()}</TableCell>
+            <TableCell>
+              <FormattedDate date={matcher.dateBefore} formatStr="PPP" />
+            </TableCell>
           </TableRow>
         );
       case "age":
@@ -226,8 +238,8 @@ export default function QueryExplainerTooltip({
     }
   };
 
-  return (
-    <InfoTooltip className={className}>
+  const body = (
+    <>
       {header}
       <Table>
         <TableBody>
@@ -242,6 +254,17 @@ export default function QueryExplainerTooltip({
           )}
         </TableBody>
       </Table>
-    </InfoTooltip>
+    </>
   );
+
+  if (trigger) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+        <TooltipContent>{body}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return <InfoTooltip className={className}>{body}</InfoTooltip>;
 }

@@ -104,7 +104,8 @@
     "more": "更多",
     "replace_banner": "更換橫幅",
     "add_banner": "新增橫幅",
-    "download": "下載"
+    "download": "下載",
+    "rename": "重新命名"
   },
   "settings": {
     "back_to_app": "返回應用程式",
@@ -226,7 +227,9 @@
       "import_bookmarks_from_linkwarden_export": "從 Linkwarden 匯出檔案匯入書籤",
       "import_bookmarks_from_tab_session_manager_export": "從 Tab Session Manager 匯入書籤",
       "import_bookmarks_from_mymind_export": "從 mymind 匯入書籤匯出檔案",
-      "import_bookmarks_from_instapaper_export": "從 Instapaper 匯出檔案匯入書籤"
+      "import_bookmarks_from_instapaper_export": "從 Instapaper 匯出檔案匯入書籤",
+      "import_bookmarks_from_readwise_reader_export": "從 Readwise Reader 匯出檔匯入書籤",
+      "import_bookmarks_from_onetab_export": "從 OneTab 匯出檔匯入書籤"
     },
     "api_keys": {
       "api_keys": "API 金鑰",
@@ -238,7 +241,97 @@
       "key_regenerated": "金鑰已成功重新產生",
       "key_regenerated_please_copy": "請複製新的金鑰並妥善存放。舊的金鑰已被撤銷，將無法再使用。",
       "regenerate_warning": "確定要重新產生 API 金鑰「{{name}}」嗎？",
-      "regenerate_confirmation": "這會撤銷目前的金鑰並產生新的金鑰。使用目前金鑰的任何應用程式都將停止運作。"
+      "regenerate_confirmation": "這會撤銷目前的金鑰並產生新的金鑰。使用目前金鑰的任何應用程式都將停止運作。",
+      "scopes": {
+        "scopes": "權限範圍",
+        "choose_at_least_one": "請至少選擇一個權限範圍或選擇「完整存取權」。",
+        "scope_details": "{{scope}} 權限範圍詳情",
+        "access": {
+          "none": "無",
+          "read": "讀取",
+          "readwrite": "讀取/寫入"
+        },
+        "full_access": {
+          "label": "完整存取權",
+          "description": "存取所有支援的 API 操作。"
+        },
+        "limited_scopes": {
+          "label": "有限權限範圍",
+          "description": "選擇此金鑰可以存取的資源類型。"
+        },
+        "resources": {
+          "assets": {
+            "label": "資產",
+            "description": "存取檔案及其他儲存的書籤內容。"
+          },
+          "backups": {
+            "label": "備份",
+            "description": "管理帳號備份。"
+          },
+          "bookmarks": {
+            "label": "書籤",
+            "description": "存取並管理書籤。"
+          },
+          "feeds": {
+            "label": "饋送",
+            "description": "管理 RSS 饋送及相關饋送資料。"
+          },
+          "highlights": {
+            "label": "重點畫記",
+            "description": "管理儲存的書籤重點畫記。"
+          },
+          "lists": {
+            "label": "清單",
+            "description": "管理清單及其成員。"
+          },
+          "prompts": {
+            "label": "提示詞",
+            "description": "管理已儲存的 AI 提示詞配置。"
+          },
+          "rules": {
+            "label": "規則",
+            "description": "存取自動化規則。"
+          },
+          "tags": {
+            "label": "標籤",
+            "description": "存取並修改標籤。"
+          },
+          "users": {
+            "label": "使用者帳戶",
+            "description": "存取帳戶個人資料與設定。"
+          },
+          "webhooks": {
+            "label": "Webhook",
+            "description": "存取 Webhook 配置。"
+          },
+          "subscriptions": {
+            "label": "訂閱",
+            "description": "存取訂閱管理。"
+          },
+          "importSessions": {
+            "label": "匯入工作階段",
+            "description": "存取匯入工作階段。"
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "管理員：書籤",
+            "description": "存取管理員書籤工具。"
+          },
+          "jobs": {
+            "label": "管理員：工作",
+            "description": "存取背景工作控制。"
+          },
+          "system": {
+            "label": "管理：系統",
+            "description": "訪問系統狀態與診斷。"
+          },
+          "users": {
+            "label": "管理：使用者",
+            "description": "訪問管理使用者管理。"
+          }
+        }
+      }
     },
     "webhooks": {
       "webhooks": "Webhook",
@@ -286,7 +379,8 @@
         "or": "以下任一項為真",
         "url_does_not_contain": "URL 不包含",
         "title_contains": "標題包含",
-        "title_does_not_contain": "標題不包含"
+        "title_does_not_contain": "標題不包含",
+        "bookmark_source_is": "書籤來源為"
       },
       "rules": "規則引擎",
       "rule_name": "規則名稱",
@@ -397,7 +491,17 @@
       "approaching_quota_limit": "快要達到配額上限了",
       "loading_usage": "正在載入使用量資訊...",
       "free": "免費",
-      "paid": "已付費"
+      "paid": "已付費",
+      "monthly": "每月",
+      "yearly": "每年",
+      "per_month": "月",
+      "per_year": "年",
+      "excl_vat": "不含增值稅",
+      "yearly_savings": "節省 {{percent}}%",
+      "pro_feature_bookmarks": "50,000 個書籤",
+      "pro_feature_storage": "50GB 儲存空間",
+      "pro_feature_ai_tagging": "AI 驅動標籤",
+      "pro_feature_full_text_search": "全文檢索"
     },
     "import_sessions": {
       "title": "匯入工作階段",
@@ -453,7 +557,10 @@
         "view_bookmark": "檢視書籤",
         "load_more": "載入更多",
         "no_title": "無標題"
-      }
+      },
+      "finalize_dialog_title": "完成匯入工作階段",
+      "finalize_dialog_description": "將「{{name}}」放入背景處理佇列？暫存的書籤將開始匯入。",
+      "finalize_staging": "完成"
     },
     "backups": {
       "backups": "備份",
@@ -765,7 +872,18 @@
       "failed_to_accept": "接受邀請失敗",
       "failed_to_decline": "拒絕邀請失敗"
     },
-    "shared_lists": "共用清單"
+    "shared_lists": "共用清單",
+    "privacy": {
+      "public": "公開",
+      "shared": "已共用",
+      "private": "私人"
+    },
+    "summary_list_one": "{{count}} 清單",
+    "summary_list_other": "{{count}} 清單",
+    "summary_bookmark_one": "{{count}} 書籤",
+    "summary_bookmark_other": "{{count}} 書籤",
+    "items_count_one": "{{count}} 個項目",
+    "items_count_other": "{{count}} 個項目"
   },
   "tags": {
     "all_tags": "所有標籤",
@@ -791,7 +909,11 @@
     "no_unused_tags_match_your_search": "沒有符合您搜尋的未使用標籤",
     "no_tags_match_your_search": "沒有符合您搜尋的標籤",
     "search_placeholder": "搜尋標籤...",
-    "search_or_create_placeholder": "搜尋或建立標籤..."
+    "search_or_create_placeholder": "搜尋或建立標籤...",
+    "rename_tag": "重新命名標籤",
+    "items_count": "{{count}} 個項目",
+    "attached_by_you": "{{count}} 個由您建立",
+    "attached_by_ai": "{{count}} 個由 AI 建立"
   },
   "preview": {
     "view_original": "檢視原始內容",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "已建立標籤！",
-      "failed_to_create": "建立標籤失敗"
+      "failed_to_create": "建立標籤失敗",
+      "updated": "標籤已更新！",
+      "failed_to_update": "無法更新標籤"
     }
   },
   "cleanups": {
@@ -985,13 +1109,13 @@
     "image_fit_contain": "包含（符合）"
   },
   "version": {
-    "new_release_available": "有新的版本更新說明啦",
-    "whats_new_title": "v{{version}} 有啥新東西？",
-    "release_notes_description": "以下是從 GitHub 版本更新說明抓取的最新更新。",
+    "new_release_available": "有新的版本更新說明",
+    "whats_new_title": "v{{version}} 最新消息",
+    "release_notes_description": "以下是從 GitHub 版本更新說明取得的最新更新。",
     "loading_release_notes": "載入版本更新說明中…",
-    "unable_to_load_release_notes": "現在沒辦法載入版本更新說明啦。晚點再試試看。",
-    "no_release_notes": "這個版本沒有發佈版本更新說明。",
-    "release_notes_synced": "版本更新說明是從 GitHub 同步更新的。",
+    "unable_to_load_release_notes": "目前無法載入版本更新說明。請稍後再試。",
+    "no_release_notes": "此版本沒有發佈版本更新說明。",
+    "release_notes_synced": "版本更新說明已從 GitHub 同步。",
     "view_on_github": "在 GitHub 上檢視"
   },
   "wrapped": {

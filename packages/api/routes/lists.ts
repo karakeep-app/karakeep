@@ -43,7 +43,10 @@ const app = new Hono()
   })
   .get(
     "/:listId/bookmarks",
-    zValidator("query", zPagination.and(zGetBookmarkQueryParamsSchema)),
+    zValidator(
+      "query",
+      zPagination.extend(zGetBookmarkQueryParamsSchema.shape),
+    ),
     async (c) => {
       const listId = c.req.param("listId");
       const searchParams = c.req.valid("query");

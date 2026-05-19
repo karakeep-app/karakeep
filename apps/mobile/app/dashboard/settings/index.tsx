@@ -12,6 +12,7 @@ import {
 import Slider from "@react-native-community/slider";
 import Constants from "expo-constants";
 import { Link } from "expo-router";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { Divider } from "@/components/ui/Divider";
@@ -33,6 +34,7 @@ function SectionHeader({ title }: { title: string }) {
 
 export default function Settings() {
   const { logout } = useSession();
+  const headerHeight = useHeaderHeight();
   const {
     settings,
     setSettings,
@@ -107,7 +109,10 @@ export default function Settings() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+      contentContainerStyle={{
+        paddingHorizontal: 16,
+        paddingBottom: 40 + headerHeight,
+      }}
     >
       <UserProfileHeader
         image={data?.image}
@@ -202,6 +207,37 @@ export default function Settings() {
             }
           />
         </View>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
+          <Link
+            asChild
+            href="/dashboard/settings/toolbar-settings"
+            className="flex-1"
+          >
+            <Pressable className="flex flex-row justify-between">
+              <Text>Toolbar Buttons</Text>
+              <ChevronRight />
+            </Pressable>
+          </Link>
+        </View>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
+          <Text className="flex-1" numberOfLines={1}>
+            Keep screen on while reading
+          </Text>
+          <Switch
+            className="shrink-0"
+            disabled={isSettingsLoading}
+            value={settings.keepScreenOnWhileReading}
+            onValueChange={(value) => {
+              if (isSettingsLoading) return;
+              setSettings({
+                ...settings,
+                keepScreenOnWhileReading: value,
+              });
+            }}
+          />
+        </View>
       </View>
 
       <SectionHeader title="Media" />
@@ -209,31 +245,30 @@ export default function Settings() {
         className="w-full rounded-xl bg-card py-2"
         style={{ borderCurve: "continuous" }}
       >
-        <View className="flex w-full flex-row items-center justify-between gap-8 px-4 py-1">
-          <Text>Upload Image Quality</Text>
-          <View className="flex flex-1 flex-row items-center justify-center gap-2">
+        <View className="flex w-full flex-col gap-1 px-4 py-2">
+          <View className="flex flex-row items-center justify-between">
+            <Text>Upload Image Quality</Text>
             <Text className="text-foreground">
               {Math.round(imageQuality ?? 0)}%
             </Text>
-
-            {imageQuality === null ? (
-              <ActivityIndicator size="small" />
-            ) : (
-              <Slider
-                style={{ height: 40, flex: 1 }}
-                onSlidingComplete={(value) =>
-                  setSettings({
-                    ...settings,
-                    imageQuality: Math.round(value) / 100,
-                  })
-                }
-                onValueChange={(value) => setImageQuality(value)}
-                value={imageQuality}
-                minimumValue={0}
-                maximumValue={100}
-              />
-            )}
           </View>
+          {imageQuality === null ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Slider
+              style={{ height: 40, width: "100%" }}
+              onSlidingComplete={(value) =>
+                setSettings({
+                  ...settings,
+                  imageQuality: Math.round(value) / 100,
+                })
+              }
+              onValueChange={(value) => setImageQuality(value)}
+              value={imageQuality}
+              minimumValue={0}
+              maximumValue={100}
+            />
+          )}
         </View>
       </View>
 

@@ -83,6 +83,7 @@ function ScreenshotSection({ link }: { link: ZBookmarkedLink }) {
         src={`/api/assets/${link.screenshotAssetId}`}
         width={0}
         height={0}
+        unoptimized
         sizes="100vw"
         style={{ width: "100%", height: "auto" }}
       />

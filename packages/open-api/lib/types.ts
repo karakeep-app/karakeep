@@ -1,12 +1,9 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import * as z from "zod";
 
 import { zBookmarkSchema } from "@karakeep/shared/types/bookmarks";
 import { zHighlightSchema } from "@karakeep/shared/types/highlights";
 import { zBookmarkListSchema } from "@karakeep/shared/types/lists";
 import { zGetTagResponseSchema } from "@karakeep/shared/types/tags";
-
-extendZodWithOpenApi(z);
 
 export const ListSchema = zBookmarkListSchema.openapi("List");
 

@@ -12,7 +12,7 @@ import {
   zNewRuleEngineRuleSchema,
   zRuleEngineActionSchema,
   zRuleEngineConditionSchema,
-  zRuleEngineEventSchema,
+  zRuleEngineRuleEventSchema,
   zUpdateRuleEngineRuleSchema,
 } from "@karakeep/shared/types/rules";
 
@@ -48,7 +48,7 @@ export class RuleEngineRuleModel {
       name: ruleData.name,
       description: ruleData.description,
       enabled: ruleData.enabled,
-      event: zRuleEngineEventSchema.parse(JSON.parse(ruleData.event)),
+      event: zRuleEngineRuleEventSchema.parse(JSON.parse(ruleData.event)),
       condition: zRuleEngineConditionSchema.parse(
         JSON.parse(ruleData.condition),
       ),
@@ -97,11 +97,6 @@ export class RuleEngineRuleModel {
           event: JSON.stringify(input.event),
           condition: JSON.stringify(input.condition),
           userId: ctx.user.id,
-          listId:
-            input.event.type === "addedToList" ||
-            input.event.type === "removedFromList"
-              ? input.event.listId
-              : null,
           tagId:
             input.event.type === "tagAdded" || input.event.type === "tagRemoved"
               ? input.event.tagId
@@ -149,11 +144,6 @@ export class RuleEngineRuleModel {
           enabled: input.enabled,
           event: JSON.stringify(input.event),
           condition: JSON.stringify(input.condition),
-          listId:
-            input.event.type === "addedToList" ||
-            input.event.type === "removedFromList"
-              ? input.event.listId
-              : null,
           tagId:
             input.event.type === "tagAdded" || input.event.type === "tagRemoved"
               ? input.event.tagId

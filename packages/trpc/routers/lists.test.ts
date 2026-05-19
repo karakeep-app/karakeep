@@ -19,6 +19,11 @@ async function createTestBookmark(api: APICallerType) {
   return createdBookmark.id;
 }
 
+async function getRuleByName(api: APICallerType, name: string) {
+  const { rules } = await api.rules.list();
+  return rules.find((rule) => rule.name === name);
+}
+
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Lists Routes", () => {
@@ -155,6 +160,144 @@ describe("Lists Routes", () => {
     await expect(() =>
       api.delete({ listId: "non-existent-id" }),
     ).rejects.toThrow(/List not found/);
+  });
+
+  describe("rule cleanup after list deletion", () => {
+    test<CustomTestContext>("deletes rules that has only the deleted list in their event", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const list = await api.lists.create({
+        name: "Deleted List",
+        type: "manual",
+        icon: "📚",
+      });
+
+      await api.rules.create({
+        name: "Only Deleted List Rule",
+        description: "",
+        enabled: true,
+        event: { type: "addedToList", listIds: [list.id] },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      await api.lists.delete({ listId: list.id });
+
+      expect(
+        await getRuleByName(api, "Only Deleted List Rule"),
+      ).toBeUndefined();
+    });
+
+    test<CustomTestContext>("removes deleted list from multi-list rules", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const deletedList = await api.lists.create({
+        name: "Deleted List",
+        type: "manual",
+        icon: "📚",
+      });
+      const otherList = await api.lists.create({
+        name: "Surviving List",
+        type: "manual",
+        icon: "📖",
+      });
+
+      await api.rules.create({
+        name: "Multi List Rule",
+        description: "",
+        enabled: true,
+        event: {
+          type: "addedToList",
+          listIds: [deletedList.id, otherList.id],
+        },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      await api.lists.delete({ listId: deletedList.id });
+
+      expect(await getRuleByName(api, "Multi List Rule")).toMatchObject({
+        event: { type: "addedToList", listIds: [otherList.id] },
+      });
+    });
+
+    test<CustomTestContext>("leaves unrelated rules unchanged", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const deletedList = await api.lists.create({
+        name: "Deleted List",
+        type: "manual",
+        icon: "📚",
+      });
+      const unrelatedList = await api.lists.create({
+        name: "Unrelated List",
+        type: "manual",
+        icon: "📖",
+      });
+
+      await api.rules.create({
+        name: "Unrelated List Rule",
+        description: "",
+        enabled: true,
+        event: { type: "addedToList", listIds: [unrelatedList.id] },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+      await api.rules.create({
+        name: "Bookmark Rule",
+        description: "",
+        enabled: true,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      await api.lists.delete({ listId: deletedList.id });
+
+      expect(await getRuleByName(api, "Unrelated List Rule")).toMatchObject({
+        event: { type: "addedToList", listIds: [unrelatedList.id] },
+      });
+      expect(await getRuleByName(api, "Bookmark Rule")).toMatchObject({
+        event: { type: "bookmarkAdded" },
+      });
+    });
+
+    test<CustomTestContext>("cleans up removed-from-list rules", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const deletedList = await api.lists.create({
+        name: "Deleted List",
+        type: "manual",
+        icon: "📚",
+      });
+      const survivingList = await api.lists.create({
+        name: "Surviving List",
+        type: "manual",
+        icon: "📖",
+      });
+
+      await api.rules.create({
+        name: "Removed From List Rule",
+        description: "",
+        enabled: true,
+        event: {
+          type: "removedFromList",
+          listIds: [deletedList.id, survivingList.id],
+        },
+        condition: { type: "alwaysTrue" },
+        actions: [{ type: "favouriteBookmark" }],
+      });
+
+      await api.lists.delete({ listId: deletedList.id });
+
+      expect(await getRuleByName(api, "Removed From List Rule")).toMatchObject({
+        event: { type: "removedFromList", listIds: [survivingList.id] },
+      });
+    });
   });
 
   test<CustomTestContext>("add and remove from list", async ({

@@ -16,6 +16,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  buildCrawlIdempotencyKey,
   LowPriorityCrawlerQueue,
   QueuePriority,
 } from "@karakeep/shared-server";
@@ -603,15 +604,17 @@ describe("RuleEngine", () => {
       const action: RuleEngineAction = { type: "downloadFullPageArchive" };
       const result = await engine.executeAction(action);
       expect(result).toBe(`Enqueued full page archive`);
+      const expectedPayload = {
+        bookmarkId: bookmarkId,
+        archiveFullPage: true,
+        runInference: false,
+      };
       expect(LowPriorityCrawlerQueue.enqueue).toHaveBeenCalledWith(
-        {
-          bookmarkId: bookmarkId,
-          archiveFullPage: true,
-          runInference: false,
-        },
+        expectedPayload,
         {
           groupId: userId,
           priority: QueuePriority.Low,
+          idempotencyKey: buildCrawlIdempotencyKey(expectedPayload),
         },
       );
     });

@@ -165,7 +165,9 @@
       "import_bookmarks_from_linkwarden_export": "Importar marcadores desde Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importar marcadores desde Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importar marcadores desde la exportación de mymind",
-      "import_bookmarks_from_instapaper_export": "Importar marcadores desde la exportación de Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importar marcadores desde la exportación de Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importar marcadores desde la exportación de Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importar marcadores desde la exportación de OneTab"
     },
     "api_keys": {
       "api_keys": "Claves APIs",
@@ -177,7 +179,97 @@
       "key_regenerated": "La clave se ha regenerado correctamente",
       "key_regenerated_please_copy": "Copia la nueva clave y guárdala en un lugar seguro. La clave antigua ha sido revocada y ya no funcionará.",
       "regenerate_warning": "¿Estás seguro de que quieres regenerar la clave API \"{{name}}\"?",
-      "regenerate_confirmation": "Esto revocará la clave actual y generará una nueva. Cualquier aplicación que utilice la clave actual dejará de funcionar."
+      "regenerate_confirmation": "Esto revocará la clave actual y generará una nueva. Cualquier aplicación que utilice la clave actual dejará de funcionar.",
+      "scopes": {
+        "scopes": "Ámbitos",
+        "choose_at_least_one": "Elige al menos un ámbito o selecciona acceso completo.",
+        "scope_details": "Detalles del ámbito {{scope}}",
+        "access": {
+          "none": "Ninguno",
+          "read": "Lectura",
+          "readwrite": "Lectura/escritura"
+        },
+        "full_access": {
+          "label": "Acceso completo",
+          "description": "Acceder a todas las operaciones de la API compatibles."
+        },
+        "limited_scopes": {
+          "label": "Ámbitos limitados",
+          "description": "Elige los tipos de recursos a los que puede acceder esta clave."
+        },
+        "resources": {
+          "assets": {
+            "label": "Recursos",
+            "description": "Acceder a archivos y otros contenidos de marcadores almacenados."
+          },
+          "backups": {
+            "label": "Copias de seguridad",
+            "description": "Gestionar copias de seguridad de la cuenta."
+          },
+          "bookmarks": {
+            "label": "Marcadores",
+            "description": "Acceder y gestionar marcadores."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "Gestionar feeds RSS y datos de feeds relacionados."
+          },
+          "highlights": {
+            "label": "Destacados",
+            "description": "Gestionar fragmentos destacados de marcadores guardados."
+          },
+          "lists": {
+            "label": "Listas",
+            "description": "Administre las listas y la pertenencia a ellas."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Administre la configuración de prompts de IA guardados."
+          },
+          "rules": {
+            "label": "Reglas",
+            "description": "Acceda a las reglas de automatización."
+          },
+          "tags": {
+            "label": "Etiquetas",
+            "description": "Acceda a las etiquetas y modifíquelas."
+          },
+          "users": {
+            "label": "Cuenta de usuario",
+            "description": "Acceda al perfil y a la configuración de la cuenta."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Acceda a la configuración de webhooks."
+          },
+          "subscriptions": {
+            "label": "Suscripciones",
+            "description": "Acceda a la gestión de suscripciones."
+          },
+          "importSessions": {
+            "label": "Sesiones de importación",
+            "description": "Acceda a las sesiones de importación."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: marcadores",
+            "description": "Acceda a las herramientas administrativas de marcadores."
+          },
+          "jobs": {
+            "label": "Admin: tareas",
+            "description": "Acceda a los controles de tareas en segundo plano."
+          },
+          "system": {
+            "label": "Admin: sistema",
+            "description": "Acceda al estado y diagnósticos del sistema."
+          },
+          "users": {
+            "label": "Admin: usuarios",
+            "description": "Acceda a la gestión administrativa de usuarios."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Enlaces rotos",
@@ -242,7 +334,8 @@
         "or": "Cualquiera de las siguientes opciones es verdadera",
         "url_does_not_contain": "La URL no contiene",
         "title_contains": "El título contiene",
-        "title_does_not_contain": "El título no contiene"
+        "title_does_not_contain": "El título no contiene",
+        "bookmark_source_is": "La fuente del marcador es"
       },
       "actions_types": {
         "add_tag": "Añadir etiqueta",
@@ -336,7 +429,17 @@
       "approaching_quota_limit": "Te estás acercando al límite de la cuota",
       "loading_usage": "Cargando información de uso...",
       "free": "Gratis",
-      "paid": "De pago"
+      "paid": "De pago",
+      "monthly": "Mensual",
+      "yearly": "Anual",
+      "per_month": "mes",
+      "per_year": "año",
+      "excl_vat": "excl. IVA",
+      "yearly_savings": "Ahorra {{percent}}%",
+      "pro_feature_bookmarks": "50.000 marcadores",
+      "pro_feature_storage": "50GB de almacenamiento",
+      "pro_feature_ai_tagging": "Etiquetado con IA",
+      "pro_feature_full_text_search": "Búsqueda de texto completo"
     },
     "import_sessions": {
       "title": "Importar sesiones",
@@ -392,7 +495,10 @@
         "view_bookmark": "Ver marcador",
         "load_more": "Cargar más",
         "no_title": "Sin título"
-      }
+      },
+      "finalize_dialog_title": "Finalizar sesión de importación",
+      "finalize_dialog_description": "¿Poner \"{{name}}\" en la cola para el procesamiento en segundo plano? Los marcadores preparados comenzarán a importarse.",
+      "finalize_staging": "Finalizar"
     },
     "backups": {
       "backups": "Copias de seguridad",
@@ -497,7 +603,8 @@
     "more": "Más",
     "replace_banner": "Reemplazar el banner",
     "add_banner": "Añadir un banner",
-    "download": "Descargar"
+    "download": "Descargar",
+    "rename": "Cambiar nombre"
   },
   "layouts": {
     "compact": "Compacto",
@@ -765,7 +872,18 @@
       "failed_to_accept": "No se pudo aceptar la invitación",
       "failed_to_decline": "No se pudo rechazar la invitación"
     },
-    "shared_lists": "Listas compartidas"
+    "shared_lists": "Listas compartidas",
+    "privacy": {
+      "public": "Público",
+      "shared": "Compartido",
+      "private": "Privado"
+    },
+    "summary_list_one": "{{count}} Listas",
+    "summary_list_other": "{{count}} Listas",
+    "summary_bookmark_one": "{{count}} Marcadores",
+    "summary_bookmark_other": "{{count}} Marcadores",
+    "items_count_one": "{{count}} elementos",
+    "items_count_other": "{{count}} elementos"
   },
   "tags": {
     "all_tags": "Todas las etiquetas",
@@ -791,7 +909,11 @@
     "no_unused_tags_match_your_search": "Ninguna etiqueta sin usar coincide con tu búsqueda",
     "no_tags_match_your_search": "Ninguna etiqueta coincide con tu búsqueda",
     "search_placeholder": "Buscar etiquetas...",
-    "search_or_create_placeholder": "Buscar o crear etiquetas..."
+    "search_or_create_placeholder": "Buscar o crear etiquetas...",
+    "rename_tag": "Cambiar nombre de etiqueta",
+    "items_count": "{{count}} elementos",
+    "attached_by_you": "{{count}} por ti",
+    "attached_by_ai": "{{count}} por IA"
   },
   "preview": {
     "view_original": "Ver original",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "¡Se ha creado la etiqueta!",
-      "failed_to_create": "No se ha podido crear la etiqueta"
+      "failed_to_create": "No se ha podido crear la etiqueta",
+      "updated": "¡La etiqueta ha sido actualizada!",
+      "failed_to_update": "Error al actualizar la etiqueta"
     }
   },
   "cleanups": {

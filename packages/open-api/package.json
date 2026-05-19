@@ -5,9 +5,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^7.2.0",
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@karakeep/shared": "workspace:^0.1.0",
-    "zod": "^3.24.4"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
@@ -17,10 +17,10 @@
     "typecheck": "tsc --noEmit",
     "check": "tsx index.ts check",
     "generate": "tsx index.ts",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt .",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix"
+    "format": "oxfmt --ignore-path=../../.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore .",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix"
   },
   "main": "index.ts"
 }

@@ -52,7 +52,8 @@
     "more": "Thêm",
     "replace_banner": "Thay Banner",
     "add_banner": "Thêm Banner",
-    "download": "Tải xuống"
+    "download": "Tải xuống",
+    "rename": "Đổi tên"
   },
   "layouts": {
     "list": "Danh sách",
@@ -80,7 +81,9 @@
       "import_bookmarks_from_karakeep_export": "Nhập dấu trang từ bản xuất Karakeep",
       "import_bookmarks_from_tab_session_manager_export": "Nhập dấu trang từ Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Nhập dấu trang từ tệp xuất mymind",
-      "import_bookmarks_from_instapaper_export": "Nhập dấu trang từ bản xuất Instapaper"
+      "import_bookmarks_from_instapaper_export": "Nhập dấu trang từ bản xuất Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Nhập dấu trang từ tệp xuất của Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Nhập dấu trang từ bản xuất OneTab"
     },
     "webhooks": {
       "edit_auth_token": "Sửa mã xác thực",
@@ -110,7 +113,97 @@
       "key_regenerated": "Đã tạo lại key thành công",
       "key_regenerated_please_copy": "Vui lòng copy key mới và lưu trữ nó ở nơi an toàn. Key cũ đã bị thu hồi và sẽ không còn hoạt động nữa.",
       "regenerate_warning": "Bạn có chắc chắn muốn tạo lại API key \"{{name}}\" không?",
-      "regenerate_confirmation": "Hành động này sẽ thu hồi key hiện tại và tạo một key mới. Bất kỳ ứng dụng nào đang sử dụng key hiện tại sẽ ngừng hoạt động."
+      "regenerate_confirmation": "Hành động này sẽ thu hồi key hiện tại và tạo một key mới. Bất kỳ ứng dụng nào đang sử dụng key hiện tại sẽ ngừng hoạt động.",
+      "scopes": {
+        "scopes": "Phạm vi",
+        "choose_at_least_one": "Chọn ít nhất một phạm vi hoặc chọn quyền truy cập đầy đủ.",
+        "scope_details": "Chi tiết phạm vi {{scope}}",
+        "access": {
+          "none": "Không có",
+          "read": "Đọc",
+          "readwrite": "Đọc/ghi"
+        },
+        "full_access": {
+          "label": "Quyền truy cập đầy đủ",
+          "description": "Truy cập tất cả các thao tác API được hỗ trợ."
+        },
+        "limited_scopes": {
+          "label": "Phạm vi giới hạn",
+          "description": "Chọn các loại tài nguyên mà khóa này có thể truy cập."
+        },
+        "resources": {
+          "assets": {
+            "label": "Tài sản",
+            "description": "Truy cập các tệp và nội dung dấu trang được lưu trữ khác."
+          },
+          "backups": {
+            "label": "Bản sao lưu",
+            "description": "Quản lý các bản sao lưu tài khoản."
+          },
+          "bookmarks": {
+            "label": "Dấu trang",
+            "description": "Truy cập và quản lý dấu trang."
+          },
+          "feeds": {
+            "label": "Nguồn cấp dữ liệu",
+            "description": "Quản lý nguồn cấp dữ liệu RSS và dữ liệu nguồn cấp liên quan."
+          },
+          "highlights": {
+            "label": "Điểm nổi bật",
+            "description": "Quản lý các điểm nổi bật của dấu trang đã lưu."
+          },
+          "lists": {
+            "label": "Danh sách",
+            "description": "Quản lý các danh sách và thành viên trong danh sách."
+          },
+          "prompts": {
+            "label": "Câu lệnh",
+            "description": "Quản lý cấu hình câu lệnh AI đã lưu."
+          },
+          "rules": {
+            "label": "Quy tắc",
+            "description": "Truy cập các quy tắc tự động hóa."
+          },
+          "tags": {
+            "label": "Thẻ",
+            "description": "Truy cập và sửa đổi các thẻ."
+          },
+          "users": {
+            "label": "Tài khoản người dùng",
+            "description": "Truy cập hồ sơ và cài đặt tài khoản."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Truy cập cấu hình webhook."
+          },
+          "subscriptions": {
+            "label": "Gói đăng ký",
+            "description": "Truy cập quản lý gói đăng ký."
+          },
+          "importSessions": {
+            "label": "Phiên nhập dữ liệu",
+            "description": "Truy cập các phiên nhập dữ liệu."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Quản trị viên: dấu trang",
+            "description": "Truy cập các công cụ dấu trang dành cho quản trị viên."
+          },
+          "jobs": {
+            "label": "Quản trị viên: công việc",
+            "description": "Truy cập các trình điều khiển công việc chạy ngầm."
+          },
+          "system": {
+            "label": "Quản trị viên: hệ thống",
+            "description": "Truy cập trạng thái hệ thống và chẩn đoán."
+          },
+          "users": {
+            "label": "Quản trị viên: người dùng",
+            "description": "Truy cập quản lý người dùng hành chính."
+          }
+        }
+      }
     },
     "ai": {
       "tagging_rule_description": "Các gợi ý mà bạn thêm vào đây sẽ được đưa vào làm quy tắc cho mô hình trong quá trình tạo nhãn. Bạn có thể xem các gợi ý cuối cùng trong phần xem trước gợi ý.",
@@ -266,7 +359,8 @@
         "or": "Bất kỳ điều nào sau đây là đúng",
         "url_does_not_contain": "URL Không Chứa",
         "title_contains": "Chứa trong tiêu đề",
-        "title_does_not_contain": "Không chứa trong tiêu đề"
+        "title_does_not_contain": "Không chứa trong tiêu đề",
+        "bookmark_source_is": "Nguồn đánh dấu là"
       },
       "events_types": {
         "bookmark_added": "Một dấu trang được thêm vào",
@@ -351,7 +445,17 @@
       "approaching_quota_limit": "Đang tiến gần đến giới hạn hạn ngạch",
       "loading_usage": "Đang tải thông tin sử dụng...",
       "free": "Miễn phí",
-      "paid": "Trả phí"
+      "paid": "Trả phí",
+      "monthly": "Hàng tháng",
+      "yearly": "Hàng năm",
+      "per_month": "tháng",
+      "per_year": "năm",
+      "excl_vat": "chưa bao gồm VAT",
+      "yearly_savings": "Tiết kiệm {{percent}}%",
+      "pro_feature_bookmarks": "50.000 dấu trang",
+      "pro_feature_storage": "50GB dung lượng lưu trữ",
+      "pro_feature_ai_tagging": "Gắn thẻ bằng AI",
+      "pro_feature_full_text_search": "Tìm kiếm toàn văn"
     },
     "import_sessions": {
       "title": "Nhập Phiên",
@@ -407,7 +511,10 @@
         "view_bookmark": "Xem dấu trang",
         "load_more": "Tải thêm",
         "no_title": "Không có tiêu đề"
-      }
+      },
+      "finalize_dialog_title": "Hoàn tất Phiên Nhập",
+      "finalize_dialog_description": "Thêm \"{{name}}\" vào hàng đợi để xử lý trong nền? Các dấu trang đã chuẩn bị sẽ bắt đầu được nhập.",
+      "finalize_staging": "Hoàn tất"
     },
     "backups": {
       "backups": "Sao lưu",
@@ -761,7 +868,18 @@
       "failed_to_accept": "Không chấp nhận được lời mời",
       "failed_to_decline": "Không từ chối được lời mời"
     },
-    "shared_lists": "Danh sách dùng chung"
+    "shared_lists": "Danh sách dùng chung",
+    "privacy": {
+      "public": "Công khai",
+      "shared": "Đã chia sẻ",
+      "private": "Riêng tư"
+    },
+    "summary_list_one": "{{count}} Danh sách",
+    "summary_list_other": "{{count}} Danh sách",
+    "summary_bookmark_one": "{{count}} Dấu trang",
+    "summary_bookmark_other": "{{count}} Dấu trang",
+    "items_count_one": "{{count}} mục",
+    "items_count_other": "{{count}} mục"
   },
   "search": {
     "is_favorited": "Được ưa thích",
@@ -836,7 +954,11 @@
     "no_unused_tags_match_your_search": "Không có thẻ chưa sử dụng nào phù hợp với tìm kiếm của bạn",
     "no_tags_match_your_search": "Không có thẻ nào phù hợp với tìm kiếm của bạn",
     "search_placeholder": "Tìm kiếm thẻ...",
-    "search_or_create_placeholder": "Tìm kiếm hoặc tạo thẻ..."
+    "search_or_create_placeholder": "Tìm kiếm hoặc tạo thẻ...",
+    "rename_tag": "Đổi tên thẻ",
+    "items_count": "{{count}} mục",
+    "attached_by_you": "{{count}} bởi bạn",
+    "attached_by_ai": "{{count}} bởi AI"
   },
   "options": {
     "dark_mode": "Chế độ tối",
@@ -937,7 +1059,9 @@
     },
     "tags": {
       "created": "Đã tạo thẻ thành công!",
-      "failed_to_create": "Không tạo được thẻ"
+      "failed_to_create": "Không tạo được thẻ",
+      "updated": "Thẻ đã được cập nhật!",
+      "failed_to_update": "Cập nhật thẻ thất bại"
     }
   },
   "preview": {

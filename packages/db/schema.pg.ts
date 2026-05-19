@@ -16,6 +16,8 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 
+import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
+import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 function createdAtField() {
@@ -178,6 +180,10 @@ export const apiKeys = pgTable(
     lastUsedAt: timestamp("lastUsedAt", { withTimezone: true }),
     keyId: text("keyId").notNull().unique(),
     keyHash: text("keyHash").notNull(),
+    scopes: jsonb("scopes")
+      .$type<ZApiKeyScope[]>()
+      .notNull()
+      .$defaultFn(() => [API_KEY_FULL_ACCESS_SCOPE]),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -732,8 +738,6 @@ export const ruleEngineRulesTable = pgTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-
-    listId: text("listId"),
     tagId: text("tagId"),
   },
   (rl) => [
@@ -744,11 +748,6 @@ export const ruleEngineRulesTable = pgTable(
       columns: [rl.userId, rl.tagId],
       foreignColumns: [bookmarkTags.userId, bookmarkTags.id],
       name: "ruleEngineRules_userId_tagId_fk",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [rl.userId, rl.listId],
-      foreignColumns: [bookmarkLists.userId, bookmarkLists.id],
-      name: "ruleEngineRules_userId_listId_fk",
     }).onDelete("cascade"),
   ],
 );

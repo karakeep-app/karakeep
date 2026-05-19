@@ -104,7 +104,8 @@
     "preserve_offline_archive": "Offline archief behouden",
     "download_full_page_archive_file": "Archiefbestand downloaden",
     "download_pdf_file": "PDF-bestand downloaden",
-    "download": "Downloaden"
+    "download": "Downloaden",
+    "rename": "Hernoemen"
   },
   "settings": {
     "ai": {
@@ -152,7 +153,9 @@
       "export_links_and_notes": "Links en notities exporteren",
       "import_bookmarks_from_tab_session_manager_export": "Bladwijzers importeren uit Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Bladwijzers importeren uit mijnmind-export",
-      "import_bookmarks_from_instapaper_export": "Bladwijzers importeren uit Instapaper-export"
+      "import_bookmarks_from_instapaper_export": "Bladwijzers importeren uit Instapaper-export",
+      "import_bookmarks_from_readwise_reader_export": "Bladwijzers importeren uit Readwise Reader-export",
+      "import_bookmarks_from_onetab_export": "Bladwijzers uit OneTab-export importeren"
     },
     "broken_links": {
       "broken_links": "Gebroken Links",
@@ -170,7 +173,97 @@
       "key_regenerated": "Sleutel is succesvol opnieuw gegenereerd",
       "key_regenerated_please_copy": "Kopieer de nieuwe sleutel en bewaar hem op een veilige plaats. De oude sleutel is ingetrokken en werkt niet meer.",
       "regenerate_warning": "Weet je zeker dat je de API-sleutel '{{name}}' opnieuw wilt genereren?",
-      "regenerate_confirmation": "Hiermee wordt de huidige sleutel ingetrokken en een nieuwe gegenereerd. Alle applicaties die de huidige sleutel gebruiken, werken niet meer."
+      "regenerate_confirmation": "Hiermee wordt de huidige sleutel ingetrokken en een nieuwe gegenereerd. Alle applicaties die de huidige sleutel gebruiken, werken niet meer.",
+      "scopes": {
+        "scopes": "Scopes",
+        "choose_at_least_one": "Kies ten minste één scope of selecteer volledige toegang.",
+        "scope_details": "{{scope}} scope details",
+        "access": {
+          "none": "Geen",
+          "read": "Lezen",
+          "readwrite": "Lezen/schrijven"
+        },
+        "full_access": {
+          "label": "Volledige toegang",
+          "description": "Toegang tot alle ondersteunde API-bewerkingen."
+        },
+        "limited_scopes": {
+          "label": "Beperkte scopes",
+          "description": "Kies de ressourcetypen waar deze sleutel toegang toe heeft."
+        },
+        "resources": {
+          "assets": {
+            "label": "Assets",
+            "description": "Toegang tot bestanden en andere opgeslagen bladwijzerinhoud."
+          },
+          "backups": {
+            "label": "Back-ups",
+            "description": "Accountback-ups beheren."
+          },
+          "bookmarks": {
+            "label": "Bladwijzers",
+            "description": "Bladwijzers bekijken en beheren."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "RSS-feeds en gerelateerde feedgegevens beheren."
+          },
+          "highlights": {
+            "label": "Highlights",
+            "description": "Opgeslagen bladwijzer-highlights beheren."
+          },
+          "lists": {
+            "label": "Lijsten",
+            "description": "Beheer lijsten en lidmaatschap van lijsten."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Beheer opgeslagen AI-promptconfiguraties."
+          },
+          "rules": {
+            "label": "Regels",
+            "description": "Toegang tot automatiseringsregels."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Tags bekijken en wijzigen."
+          },
+          "users": {
+            "label": "Gebruikersaccount",
+            "description": "Toegang tot accountprofiel en instellingen."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Toegang tot webhook-configuratie."
+          },
+          "subscriptions": {
+            "label": "Abonnementen",
+            "description": "Toegang tot abonnementsbeheer."
+          },
+          "importSessions": {
+            "label": "Importsessies",
+            "description": "Toegang tot importsessies."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bladwijzers",
+            "description": "Toegang tot administratieve bladwijzertools."
+          },
+          "jobs": {
+            "label": "Admin: taken",
+            "description": "Toegang tot instellingen voor achtergrondtaken."
+          },
+          "system": {
+            "label": "Admin: systeem",
+            "description": "Toegang tot de systeemstatus en diagnoses."
+          },
+          "users": {
+            "label": "Admin: gebruikers",
+            "description": "Toegang tot het administratieve gebruikersbeheer."
+          }
+        }
+      }
     },
     "info": {
       "user_info": "Gebruikersinfo",
@@ -303,7 +396,8 @@
         "or": "Als een van de volgende waar is",
         "url_does_not_contain": "URL bevat niet",
         "title_contains": "Titel bevat",
-        "title_does_not_contain": "Titel bevat niet"
+        "title_does_not_contain": "Titel bevat niet",
+        "bookmark_source_is": "Bladwijzerbron is"
       },
       "actions_types": {
         "add_tag": "Tag toevoegen",
@@ -397,7 +491,17 @@
       "approaching_quota_limit": "Nadert quotumlimiet",
       "loading_usage": "Gebruiksinformatie laden...",
       "free": "Gratis",
-      "paid": "Betaald"
+      "paid": "Betaald",
+      "monthly": "Maandelijks",
+      "yearly": "Jaarlijks",
+      "per_month": "maand",
+      "per_year": "jaar",
+      "excl_vat": "excl. btw",
+      "yearly_savings": "Bespaar {{percent}}%",
+      "pro_feature_bookmarks": "50.000 bladwijzers",
+      "pro_feature_storage": "50GB opslag",
+      "pro_feature_ai_tagging": "AI-gestuurde tagging",
+      "pro_feature_full_text_search": "Volledige tekstzoekopdracht"
     },
     "import_sessions": {
       "title": "Sessies importeren",
@@ -453,7 +557,10 @@
         "view_bookmark": "Bladwijzer bekijken",
         "load_more": "Meer laden",
         "no_title": "Geen titel"
-      }
+      },
+      "finalize_dialog_title": "Import-sessie afronden",
+      "finalize_dialog_description": "Zet \"{{name}}\" in de wachtrij voor verwerking op de achtergrond? Voorbereide bladwijzers worden geïmporteerd.",
+      "finalize_staging": "Afronden"
     },
     "backups": {
       "backups": "Back-ups",
@@ -698,7 +805,11 @@
     "no_unused_tags_match_your_search": "Geen ongebruikte tags komen overeen met je zoekopdracht",
     "no_tags_match_your_search": "Geen tags komen overeen met je zoekopdracht",
     "search_placeholder": "Tags zoeken...",
-    "search_or_create_placeholder": "Tags zoeken of maken..."
+    "search_or_create_placeholder": "Tags zoeken of maken...",
+    "rename_tag": "Tag hernoemen",
+    "items_count": "{{count}} items",
+    "attached_by_you": "{{count}} door jou",
+    "attached_by_ai": "{{count}} door AI"
   },
   "preview": {
     "view_original": "Toon origineel",
@@ -866,7 +977,18 @@
       "failed_to_accept": "Kon uitnodiging niet accepteren",
       "failed_to_decline": "Kon uitnodiging niet weigeren"
     },
-    "shared_lists": "Gedeelde lijsten"
+    "shared_lists": "Gedeelde lijsten",
+    "privacy": {
+      "public": "Openbaar",
+      "shared": "Gedeeld",
+      "private": "Privé"
+    },
+    "summary_list_one": "{{count}} Lijsten",
+    "summary_list_other": "{{count}} Lijsten",
+    "summary_bookmark_one": "{{count}} Bladwijzers",
+    "summary_bookmark_other": "{{count}} Bladwijzers",
+    "items_count_one": "{{count}} items",
+    "items_count_other": "{{count}} items"
   },
   "search": {
     "full_text_search": "Volledige tekst zoeken",
@@ -943,7 +1065,9 @@
     },
     "tags": {
       "created": "Tag is aangemaakt!",
-      "failed_to_create": "Kon tag niet aanmaken"
+      "failed_to_create": "Kon tag niet aanmaken",
+      "updated": "Tag is bijgewerkt!",
+      "failed_to_update": "Bijwerken van tag mislukt"
     }
   },
   "cleanups": {

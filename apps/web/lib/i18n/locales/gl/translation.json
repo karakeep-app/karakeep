@@ -98,7 +98,8 @@
     "more": "Máis",
     "replace_banner": "Substituír o banner",
     "add_banner": "Engadir banner",
-    "download": "Descargar"
+    "download": "Descargar",
+    "rename": "Renomear"
   },
   "tags": {
     "drag_and_drop_merging_info": "Arrastra e solta etiquetas sobre outras para unilas",
@@ -124,7 +125,11 @@
     "no_unused_tags_match_your_search": "Ningunha etiqueta sen usar coincide coa túa busca",
     "no_tags_match_your_search": "Ningunha etiqueta coincide coa túa busca",
     "search_placeholder": "Buscar etiquetas...",
-    "search_or_create_placeholder": "Buscar ou crear etiquetas..."
+    "search_or_create_placeholder": "Buscar ou crear etiquetas...",
+    "rename_tag": "Renomear etiqueta",
+    "items_count": "{{count}} elementos",
+    "attached_by_you": "{{count}} por ti",
+    "attached_by_ai": "{{count}} pola IA"
   },
   "toasts": {
     "bookmarks": {
@@ -146,7 +151,9 @@
     },
     "tags": {
       "created": "Creouse a etiqueta!",
-      "failed_to_create": "Non se puido crear a etiqueta"
+      "failed_to_create": "Non se puido crear a etiqueta",
+      "updated": "A etiqueta actualizouse correctamente!",
+      "failed_to_update": "Produciuse un erro ao actualizar a etiqueta"
     }
   },
   "cleanups": {
@@ -176,7 +183,9 @@
       "imported_bookmarks": "Marcadores importados",
       "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do xestor de sesións de pestanas",
       "import_bookmarks_from_mymind_export": "Importar marcadores da exportación de mymind",
-      "import_bookmarks_from_instapaper_export": "Importar marcadores da exportación de Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importar marcadores da exportación de Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importar marcadores desde a exportación de Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importar marcadores desde a exportación de OneTab"
     },
     "back_to_app": "Volver á aplicación",
     "user_settings": "Axustes de usuario",
@@ -294,7 +303,97 @@
       "key_regenerated": "A chave rexenerouse correctamente",
       "key_regenerated_please_copy": "Copia a nova chave e gárdaa nalgún lugar seguro. Revogouse a chave antiga e xa non funcionará.",
       "regenerate_warning": "Seguro que queres rexenerar a clave de API \"{{name}}\"?",
-      "regenerate_confirmation": "Isto revogará a clave actual e xerará unha nova. Calquera aplicación que use a clave actual deixará de funcionar."
+      "regenerate_confirmation": "Isto revogará a clave actual e xerará unha nova. Calquera aplicación que use a clave actual deixará de funcionar.",
+      "scopes": {
+        "scopes": "Ámbitos",
+        "choose_at_least_one": "Escolla polo menos un ámbito ou seleccione o acceso completo.",
+        "scope_details": "Detalles do ámbito {{scope}}",
+        "access": {
+          "none": "Ningún",
+          "read": "Lectura",
+          "readwrite": "Lectura/escritura"
+        },
+        "full_access": {
+          "label": "Acceso completo",
+          "description": "Acceder a todas as operacións compatibles da API."
+        },
+        "limited_scopes": {
+          "label": "Ámbitos limitados",
+          "description": "Escolla os tipos de recursos aos que esta clave pode acceder."
+        },
+        "resources": {
+          "assets": {
+            "label": "Activos",
+            "description": "Acceder a ficheiros e outros contidos de marcadores almacenados."
+          },
+          "backups": {
+            "label": "Copias de seguridade",
+            "description": "Xestionar as copias de seguridade da conta."
+          },
+          "bookmarks": {
+            "label": "Marcadores",
+            "description": "Acceder e xestionar os marcadores."
+          },
+          "feeds": {
+            "label": "Fontes",
+            "description": "Xestionar as fontes RSS e os datos de fontes relacionados."
+          },
+          "highlights": {
+            "label": "Resaltados",
+            "description": "Xestionar os resaltados dos marcadores gardados."
+          },
+          "lists": {
+            "label": "Listas",
+            "description": "Xestionar listas e a pertenza a listas."
+          },
+          "prompts": {
+            "label": "Indicacións",
+            "description": "Xestionar a configuración das indicacións de IA gardadas."
+          },
+          "rules": {
+            "label": "Regras",
+            "description": "Acceder ás regras de automatización."
+          },
+          "tags": {
+            "label": "Etiquetas",
+            "description": "Acceder e modificar as etiquetas."
+          },
+          "users": {
+            "label": "Conta de usuario",
+            "description": "Acceder ao perfil e á configuración da conta."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Acceder á configuración de webhooks."
+          },
+          "subscriptions": {
+            "label": "Subscricións",
+            "description": "Acceder á xestión de subscricións."
+          },
+          "importSessions": {
+            "label": "Sesións de importación",
+            "description": "Acceder ás sesións de importación."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Administración: marcadores",
+            "description": "Acceder ás ferramentas administrativas de marcadores."
+          },
+          "jobs": {
+            "label": "Administración: traballos",
+            "description": "Acceder aos controis de traballos en segundo plano."
+          },
+          "system": {
+            "label": "Admin: sistema",
+            "description": "Acceder ao estado do sistema e aos diagnósticos."
+          },
+          "users": {
+            "label": "Admin: usuarios",
+            "description": "Acceder á xestión administrativa de usuarios."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Ligazóns rotos",
@@ -359,7 +458,8 @@
         "or": "Calquera das seguintes é verdadeira",
         "url_does_not_contain": "O URL non contén",
         "title_contains": "O título contén",
-        "title_does_not_contain": "O título non contén"
+        "title_does_not_contain": "O título non contén",
+        "bookmark_source_is": "A orixe do marcador é"
       },
       "actions_types": {
         "add_tag": "Engadir etiqueta",
@@ -453,7 +553,17 @@
       "approaching_quota_limit": "Achegándose ao límite da cota",
       "loading_usage": "Cargando información de uso...",
       "free": "De balde",
-      "paid": "De pago"
+      "paid": "De pago",
+      "monthly": "Mensual",
+      "yearly": "Anual",
+      "per_month": "mes",
+      "per_year": "ano",
+      "excl_vat": "IVE non incluído",
+      "yearly_savings": "Aforra un {{percent}}%",
+      "pro_feature_bookmarks": "50.000 marcadores",
+      "pro_feature_storage": "50 GB de almacenamento",
+      "pro_feature_ai_tagging": "Etiquetado con IA",
+      "pro_feature_full_text_search": "Busca de texto completo"
     },
     "import_sessions": {
       "title": "Importar sesións",
@@ -509,7 +619,10 @@
         "view_bookmark": "Ver o marcador",
         "load_more": "Cargar máis",
         "no_title": "Sen título"
-      }
+      },
+      "finalize_dialog_title": "Finalizar sesión de importación",
+      "finalize_dialog_description": "Quere engadir \"{{name}}\" á cola para o procesamento en segundo plano? Os marcadores preparados comezarán a importarse.",
+      "finalize_staging": "Finalizar"
     },
     "backups": {
       "backups": "Copias de seguridade",
@@ -824,7 +937,18 @@
       "failed_to_accept": "Produciuse un erro ao aceptar a invitación",
       "failed_to_decline": "Produciuse un erro ao rexeitar a invitación"
     },
-    "shared_lists": "Listas compartidas"
+    "shared_lists": "Listas compartidas",
+    "privacy": {
+      "public": "Público",
+      "shared": "Compartido",
+      "private": "Privado"
+    },
+    "summary_list_one": "{{count}} Listas",
+    "summary_list_other": "{{count}} Listas",
+    "summary_bookmark_one": "{{count}} Marcadores",
+    "summary_bookmark_other": "{{count}} Marcadores",
+    "items_count_one": "{{count}} elementos",
+    "items_count_other": "{{count}} elementos"
   },
   "preview": {
     "view_original": "Ver orixinal",

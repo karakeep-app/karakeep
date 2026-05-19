@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@karakeep/cli",
-  "version": "0.31.0",
+  "version": "0.32.0",
   "description": "Command Line Interface (CLI) for Karakeep",
   "license": "GNU Affero General Public License version 3",
   "type": "module",
@@ -28,15 +28,16 @@
     "table": "^6.8.2",
     "tsx": "^4.8.1",
     "vite": "^7.0.6",
-    "vite-tsconfig-paths": "^6.1.1"
+    "vite-tsconfig-paths": "^6.1.1",
+    "zod": "^4.0.0"
   },
   "scripts": {
     "build": "vite build && chmod +x dist/index.mjs",
     "run": "tsx src/index.ts",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint . --fix",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt .",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
+    "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore .",
     "typecheck": "tsc --noEmit"
   },
   "repository": {

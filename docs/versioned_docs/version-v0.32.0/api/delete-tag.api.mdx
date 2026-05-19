@@ -1,0 +1,71 @@
+---
+id: delete-tag
+title: "Delete a tag"
+description: "Delete a tag. This removes the tag from all bookmarks it was attached to."
+sidebar_label: "Delete a tag"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVttuGzcQ/ZUB85IIa8kpUiTYhwJy7QBugsJIZBSFI0Cj5WiXEZdkSK4sRVigH9Ev7JcUw12tZMdN+9CnlTjk8MzlnOFeWEceo7LmWopcSNIUaYalyISkUHjl2CZycZksgBCxHMOsUgE81XZDAWJFvAorb2tArWFp7bpGvw6gItxjAIwRi4okRDsWmYhYBpHfiRl/55kIVDRexZ3I7/ZiSejJT5tYifxu3s4z4dBjTZF8SBtCUVGNIt+LuHMkchGiV+ZbxLOKoDHqS0OgJJmoVoo82NUBLyOhLdZOsxNFSurtrqzvP795bbdff6y2MdriDcNVMW2ZYXktRZsJT18a5UmKPPqGMmGwZntM9kwovt1hrASj9xScNYECI/7h/BV/HgL91UJhTSQT4a8//hzSyYnr6iEhNEVBIawarXdjhvDq/OW3jm4NNrGyXn0lObi6SPmEaNdkQAWoVQjKlBkos0GtZAbWA20dB8Qp6aGk/NI2TpxGDuh7eT9m8RSBaNs2IX0i5BmWYGyElW3M41vROa2K1JOTz8E+fbddfqYiikw4zx0cVZffwkr6986YQo1FpQydeUKJS01A3lsPfDylt6YQsPxPrqqmRvPYUX9+LNoH7XLXATz6nx+764oPppyl+2Nlj4TkOLmfcjFh7kz2qdVawdTxmwMxGq9FLvYopacQ2gk6Ndm8FJnYoFcMLqWoN3c1WWGjo8hFFaML+WQS/W68Ro9rIjdG554kVe/hQKV3/X7osHAIJ5z+yJXrbj5l9pBXvpnjSNtE3m8SWf/jrfU1MsJffpulZCqzsnyco+4gvRyfj89PaDrgmd5cf4N/MKoACIH06qyyIabSHWRLmRLQSOCanql4pjGST9Gpgnrtm95cs9TZ+wA720C0UKPB8ugkZKBViCFjLocMKlVWWpUVr2AIlL5GwhKLdeMCOG9Lj3WNURXILP9kPplnz4DTxeLVEYIXp1oDGemsMpFFODUX4EOiO75DgjKpRItpz8rkZAEVoSQ/ht9tAwUaKMnwFCBAkyJb065T8wf1vacl3F5DYyR5GI0+UozKlAF+Smfe0S6MRgfYN1gqM0B+r0I8wRwa56yPUDQ+WH+2RIbqhhOwUQiLzrhISVpoVau4gC8N+R0c5wEXg+CgsKBMoRtJXNmFoW38uXexUqQ7QeS08FDCbmoNlwwuuZIrikWV7OyEgdEYprAwjdYL2KBuCFbWP7xDGck16sYh18MTGAu19Qlgo2M45OaibxGY7RwFXrwYBiZXY0lgDXX08kTATAn5J3MGo5FWZj0apVimcPvh/dBvcK9iBTb1OWooPN5rklBTRIkRx91xVvTheFJ24CXWYuq3pOY87DHQOG1RkoSV0gTPVc1Nbj3cXL59kaTS2RBrTCrdz8HTp8JjAu6PSv//Pik6NTmZWG3WCeK+l8677tmRibyb0/NMMPPZsN9zC9563ba8nLqMHx9H5Uz6KlXg31LkK9SBvhPZ8w+95L+Af8LWL6LZJYHWDf8TmVjTbnhKtPM2Ex1XE4DONi0KcvHk1Knj+cnsuLx6fzW7EpnAh5L7SGKT6yfh7PfdjhlLStse0fF/Rte2fwPHe5L9
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete a tag"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/tags/{tagId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete a tag. This removes the tag from all bookmarks it was attached to.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the tag.","example":"ieidlxygmwj87oxz5hxttoc8","title":"TagId"},"required":true,"name":"tagId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content — the tag was deleted successfully."},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Tag not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

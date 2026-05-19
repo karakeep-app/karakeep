@@ -1,0 +1,63 @@
+---
+id: create-backup
+title: "Trigger a new backup"
+description: "Trigger a new full account backup. The backup is created asynchronously — use GET /backups/{backupId} to check its status."
+sidebar_label: "Trigger a new backup"
+hide_title: true
+hide_table_of_contents: true
+api: eJzFVsGO2zYQ/ZUBc0hraO2k6EmHAt60KbZJ0UXjRVFsFvBYHEuMKVLhkLvrGAL6Ef3CfkkxlOy1Nz701pMEznD4ZubNI3fKdxQwGu+utCpVFQgjXWK1SZ0qlCaugunErEq1CKauKQCCowdYJ2sBq8onF2GVd0xh0dD4D4ZhiKYBeeuqJnjnE9st/PPX35CY4OefFjAbvHm2G36udA/RQ9VQtQETGThiTDxVhYpYsypv1YCO1V2hmKoUTNyq8nanVoSBwjzFRpW3d/1doQJx5x0Tq3Knvnv1Wj6nKQ2xBqDGO3hAhjikSfokHb/6RFWUrALFFBxpeDCxAYSXHTltXP3yCGvlXSQX5UDsOmuqHH72ieXUneKqoRblL247UqUaoqtCdUEaEs2A2egjH47BuFr1hUpM4eq8CZkpnrMVyiVrcWVJlTEk6oux2Xoez0Zi84WODC61KwpiWHm/aTFs3kjnz3oMdTiHgVxqpYdjyVShOFUVMatCrdHYFEjd9YWiEHz4lZixpv+QSy+9/pxMIC3RjVaHIj2V5DjhMb3nyRyg3/W9BP3+HGduHKbY+GC+kM5cjg3BZSYfRL8hJyRpDbNxdQHG3aM1ugAfgB47gfiMIJEe46yzaM5T46l2j9h2kvIJAtUPUFuKjZcR7jxnIqHMgdrPl6RG4Z4C51lJwapS7VDrQMz9DDszu3+tCnWPwUhhc/dG81CCNSYbVamaGDsuZ7MYttMNBtwQdVPszshFQzBGAL/OVXo3+sOARbAfTfEHSX04+XiWD5WQkyWP7KbK0UmamH/e+tCiIPzlj4WSkhi39rJdsh4gvZ6+mr4SKTExF/KAZ3599RX+g9EwIDDZ9UXjOUp1YE8b42pApyEQ6gsTLyxGCjk7U5Hoh2GJDWitf2DY+iTq1qLD+ikIF2ANRy5AJK6AxtSNNXUjK5m88nV6VCKGLvg6YNtiNBVau51+dB/dixcg5SIXR7GRxbm1QE533rgowpVHBPCUrZ2cocG43KLlfKRWDrKEhlBTmMKfPkGFDmpycmEQoMuZbWgL6+Db0/4+0ApuriA5TQEmkw8Uo3E1ww95zzva8mSyh32NtXEHyO8NxyPMnLrOhwhVCuzDxQoFanfYAfcGYTkYl7lIS2taE5fwOVHYQocBW4oUeBDz/Y0AxlU2aZLOLh09xjdjiLUhO0y1lAVMBLkRpC77Qw4hpZNrilWT7RJEgNEU5rAUfVrCPdpEsPbh9AzjtPSIcmDpRyBwHlofMsBkI+9rczlSBBbbjlgW9yucu7Ei8I6G8QpEIJPC5Ud3AZOJNW4zmeRc5nDz+/sD34aLy2eeo4Uq4IMlDS1F1BhxOmwXWTpsz/IEsgTORxpdMjn3Pg5SZz1q0rA2luAb0wrJfYDrH99+O5V7QaSpxSxzDvMInz4pVmffHbsnsfzfnyCDEB0pttzGoqW7UXBv1erpeSJyIUu7nfD2Jti+l+VMTXmjPMltfrEUahi2rNAb2qpSzauKuph12SY5+qvXhAjoQfuvf/uwkBvvVDef6WQOP5rQbY+C73aDx0J0oe9VMaLIOqF6uRT/Bbudlic=
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Trigger a new backup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/backups"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Trigger a new full account backup. The backup is created asynchronously — use GET /backups/\{backupId\} to check its status.
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"Backup creation was triggered. The backup object is returned with a 'pending' status.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"userId":{"type":"string"},"assetId":{"type":"string","nullable":true},"createdAt":{"type":"string"},"size":{"type":"number"},"bookmarkCount":{"type":"number"},"status":{"type":"string","enum":["pending","success","failure"]},"errorMessage":{"type":"string","nullable":true}},"required":["id","userId","assetId","createdAt","size","bookmarkCount","status"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

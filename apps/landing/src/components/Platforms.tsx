@@ -4,6 +4,7 @@ import appStoreBadge from "/app-store-badge.png?url";
 import chromeExtensionBadge from "/chrome-extension-badge.png?url";
 import firefoxAddonBadge from "/firefox-addon.png?url";
 import playStoreBadge from "/google-play-badge.webp?url";
+import safariIcon from "/safari-extension.png?url";
 
 const platforms = [
   {
@@ -25,6 +26,11 @@ const platforms = [
     name: "Firefox Addon",
     url: "https://addons.mozilla.org/en-US/firefox/addon/karakeep/",
     badge: firefoxAddonBadge,
+  },
+  {
+    name: "Safari Extension",
+    url: "https://apps.apple.com/gb/app/karakeep-app/id6479258022?platform=mac",
+    badge: safariIcon,
   },
 ];
 

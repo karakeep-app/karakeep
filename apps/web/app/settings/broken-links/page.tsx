@@ -5,6 +5,7 @@ import {
   SettingsSection,
 } from "@/components/settings/SettingsPage";
 import { ActionButton } from "@/components/ui/action-button";
+import FormattedDate from "@/components/ui/formatted-date";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import {
@@ -95,8 +96,12 @@ export default function BrokenLinksPage() {
               {data.bookmarks.map((b) => (
                 <TableRow key={b.id}>
                   <TableCell>{b.url}</TableCell>
-                  <TableCell>{b.createdAt?.toLocaleString()}</TableCell>
-                  <TableCell>{b.crawledAt?.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <FormattedDate date={b.createdAt} />
+                  </TableCell>
+                  <TableCell>
+                    <FormattedDate date={b.crawledAt} />
+                  </TableCell>
                   <TableCell>
                     {b.isCrawlingFailure ? (
                       <span className="text-red-500">Failed</span>

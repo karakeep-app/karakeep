@@ -1,0 +1,71 @@
+---
+id: download-backup
+title: "Download a backup"
+description: "Download a completed backup as a zip archive. The backup must have a 'success' status."
+sidebar_label: "Download a backup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VttuGzcQ/ZUB85BEWEtOkaLBPhRQmqRwk4cgsVEUjgGNdke7jLgkw4ssWVigH9Ev7Je0w71IttK0L33SipzLmdsZ7oWx5DBIoy9KkYvS3GplsHyJxTpakYmSfOGkZQGRi1f9NSAUprGKApWwTLKAHhDupAV0RS03NIXLmobLJvoANW4IEB77WBTk/WPwAUP0U5GJgJUX+bXo/HpxkwlPRXQy7ER+vRdLQkduHkMt8uub9iYTFh02FMj5JOCLmhoU+V6EnSWRCx+c1NVJBIwpavklEsiSdJArSQ7MCsIIlvHQFjk8kQtJslTbXdXcfn7xg9nefV9vQzDFCwYtQxLpQF+Uos2Eoy9ROipFHlykTGhsWGQ5iGRCMgyLoRYchiNvjfbkGfp35+f8c4q4z+JKKjrNs8hEYXQgHVgZrVWySBWd3UnLR2Nu2rZtM/H8/NmplyuNMdTGybu/K/rn73+kfLxMWYdg1qRBemik91JXGUi9QSXLDIwD2loO+AGMQNswswo52m9V55DoYwRiQPr8FGmXbdAmwMpE/dDxcfyfvfm6e7P8TEUQmbCO+z/ILv+FKenfW2gODRa11HTmCEtcKgJyzjhg9Sk3QUPeY/WfTNWxQf3QUK8/Fe29jrruAB7s3xx68DUrprQl/6E2PM4VpSC52XIx67rIz/ZDN7azYd4Fz5vbDNMUnRK52GNZOvK+naGVs80zkYkNOslAU7r6665EK4wqiFzUIVifz2bB7aZrdLgmslO0p1zCfd1bGObvbS8PHRYO54gIPnIVO8/HdDDmmD1zHEmMZy4Jiaz/eGNcg4zwl18vU2KlXhlW56g7SM+m59Pzo8Ee8czfX5zgHy8lD6QntTqrjQ+pjEtj1g26tdQVoC6B63smw5nCQC5FJ4tEkNKzbUClzK2HnYkQDDSosToY8Rko6YPPgFkyg1pWtZJVzSfoPaVfPfCwB+tM5bBpMMgCldpNP+lP+tEj4HQx43XDwYdzpYB0aY3UwUPfaID3596yjxKkTiVazPshTUYWUBOW5Kbwm4lQoIaKNO8TAtQpsjXtYOVMc7++t7SEqwuIuiQHk8lHCkHqysOPSect7fxkMsB+j5XUI+R30ocjzD5aa1yAIjpv3NkSGaodNWAjERbd5SIlaaFkI8MCvkRyOzgskW5bDWwMUhcqlsSVXWjahp96EytJquNHTgvIwHSc8jI4GU1yJVcUijrdsxEGRlOYw0JHpRawQRUJVsbd9yF1yTWiZJjr4Qi0gca4BDCq4IfcvOxbBC53ljwfDic+VWNJYDR14+WIgCfF55/0GUwmSur1ZJJimcPVh3djv8GtDDWY1OeooHB4q6iEhgKWGHDaqTPBj+qJ6IGPmJepF0nNOchoiJaZhspujT2RDTe5cfD+1ZuniTat8aHBxNj92jx6byy/+iLZH6j/f3ycdPxytNLarKPIfc+t1/2C9yIT+dGuH+n1JhNMDiy533OXXjnVtnycGpEfNQdyTRRcSs/fpchXqDx9I+4nH/oN8RT+CWx/iHqXOFxF/icysabd8eOkvWkz0U10wtBdz4uCbDhSfPjEYJIeV87Pry9FJvA+NT+g4mT8q5j2+07ikqmnbUeIiYoYX9v+BSrqvTM=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Download a backup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/backups/{backupId}/download"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Download a completed backup as a zip archive. The backup must have a 'success' status.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the backup.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BackupId"},"required":true,"name":"backupId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The backup file as a zip archive.","content":{"application/zip":{"schema":{}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Backup not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

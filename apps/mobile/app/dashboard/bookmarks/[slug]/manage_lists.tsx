@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react-native";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
@@ -17,6 +18,7 @@ import {
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const ListPickerPage = () => {
+  const headerHeight = useHeaderHeight();
   const api = useTRPC();
   const { slug: bookmarkId } = useLocalSearchParams();
   const { colors } = useColorScheme();
@@ -106,8 +108,11 @@ const ListPickerPage = () => {
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-        className="bg-background"
+        contentContainerStyle={{
+          padding: 16,
+          paddingBottom: 40 + headerHeight,
+        }}
+        className="flex-1 bg-background"
       >
         {filteredPaths && filteredPaths.length > 0 ? (
           <View

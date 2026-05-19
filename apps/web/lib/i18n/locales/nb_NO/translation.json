@@ -267,7 +267,8 @@
     "more": "Mer",
     "replace_banner": "Erstatt banner",
     "add_banner": "Legg til banner",
-    "download": "Last ned"
+    "download": "Last ned",
+    "rename": "Gi nytt navn"
   },
   "settings": {
     "info": {
@@ -381,7 +382,9 @@
       "imported_bookmarks": "Importerte bokmerker",
       "import_bookmarks_from_tab_session_manager_export": "Importer bokmerker fra Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksport",
-      "import_bookmarks_from_instapaper_export": "Importer bokmerker fra Instapaper-eksport"
+      "import_bookmarks_from_instapaper_export": "Importer bokmerker fra Instapaper-eksport",
+      "import_bookmarks_from_readwise_reader_export": "Importer bokmerker fra Readwise Reader-eksport",
+      "import_bookmarks_from_onetab_export": "Importer bokmerker fra OneTab-eksport"
     },
     "api_keys": {
       "new_api_key": "Ny API-nøkkel",
@@ -393,7 +396,97 @@
       "key_regenerated": "Nøkkelen ble regenerert",
       "key_regenerated_please_copy": "Kopier den nye nøkkelen og oppbevar den på et trygt sted. Den gamle nøkkelen er trukket tilbake og vil ikke lenger fungere.",
       "regenerate_warning": "Er du sikker på at du vil regenerere API-nøkkelen \"{{name}}\"?",
-      "regenerate_confirmation": "Dette vil tilbakekalle den nåværende nøkkelen og generere en ny. Alle applikasjoner som bruker den nåværende nøkkelen, slutter å virke."
+      "regenerate_confirmation": "Dette vil tilbakekalle den nåværende nøkkelen og generere en ny. Alle applikasjoner som bruker den nåværende nøkkelen, slutter å virke.",
+      "scopes": {
+        "scopes": "Omfang",
+        "choose_at_least_one": "Velg minst ett omfang eller velg full tilgang.",
+        "scope_details": "{{scope}} detaljer om omfang",
+        "access": {
+          "none": "Ingen",
+          "read": "Lese",
+          "readwrite": "Lese/skrive"
+        },
+        "full_access": {
+          "label": "Full tilgang",
+          "description": "Få tilgang til alle støttede API-operasjoner."
+        },
+        "limited_scopes": {
+          "label": "Begrensede omfang",
+          "description": "Velg ressurstypene denne nøkkelen kan få tilgang til."
+        },
+        "resources": {
+          "assets": {
+            "label": "Ressurser",
+            "description": "Få tilgang til filer og annet lagret bokmerkeinnhold."
+          },
+          "backups": {
+            "label": "Sikkerhetskopier",
+            "description": "Administrer kontosikkerhetskopier."
+          },
+          "bookmarks": {
+            "label": "Bokmerker",
+            "description": "Få tilgang til og administrer bokmerker."
+          },
+          "feeds": {
+            "label": "Feeder",
+            "description": "Administrer RSS-feeder og relaterte feed-data."
+          },
+          "highlights": {
+            "label": "Uthevinger",
+            "description": "Administrer lagrede bokmerkeuthevinger."
+          },
+          "lists": {
+            "label": "Lister",
+            "description": "Administrer lister og medlemskap i lister."
+          },
+          "prompts": {
+            "label": "Prompter",
+            "description": "Administrer lagrede konfigurasjoner for AI-prompter."
+          },
+          "rules": {
+            "label": "Regler",
+            "description": "Få tilgang til automatiseringsregler."
+          },
+          "tags": {
+            "label": "Tagger",
+            "description": "Få tilgang til og endre tagger."
+          },
+          "users": {
+            "label": "Brukerkonto",
+            "description": "Få tilgang til kontoprofil og innstillinger."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Få tilgang til webhook-konfigurasjon."
+          },
+          "subscriptions": {
+            "label": "Abonnementer",
+            "description": "Få tilgang til administrasjon av abonnementer."
+          },
+          "importSessions": {
+            "label": "Importøkter",
+            "description": "Få tilgang til importøkter."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bokmerker",
+            "description": "Få tilgang til administrative bokmerke-verktøy."
+          },
+          "jobs": {
+            "label": "Admin: jobber",
+            "description": "Få tilgang til kontroller for bakgrunnsjobber."
+          },
+          "system": {
+            "label": "Admin: system",
+            "description": "Få tilgang til systemstatus og diagnostikk."
+          },
+          "users": {
+            "label": "Admin: brukere",
+            "description": "Få tilgang til administrativ brukerbehandling."
+          }
+        }
+      }
     },
     "webhooks": {
       "edit_webhook": "Rediger Webhook",
@@ -452,7 +545,8 @@
         "has_tag": "Har tagg",
         "url_does_not_contain": "URL-en inneholder ikke",
         "title_contains": "Tittelen inneholder",
-        "title_does_not_contain": "Tittelen inneholder ikke"
+        "title_does_not_contain": "Tittelen inneholder ikke",
+        "bookmark_source_is": "Bokmerkekilden er"
       },
       "if": "Hvis ...",
       "enter_rule_name": "Skriv inn regelnavn",
@@ -560,7 +654,17 @@
       "approaching_quota_limit": "Nærmer seg kvotegrensen",
       "loading_usage": "Laster inn bruksinformasjon …",
       "free": "Gratis",
-      "paid": "Betalt"
+      "paid": "Betalt",
+      "monthly": "Månedlig",
+      "yearly": "Årlig",
+      "per_month": "måned",
+      "per_year": "år",
+      "excl_vat": "ekskl. mva.",
+      "yearly_savings": "Spar {{percent}}%",
+      "pro_feature_bookmarks": "50 000 bokmerker",
+      "pro_feature_storage": "50 GB lagring",
+      "pro_feature_ai_tagging": "AI-drevet tagging",
+      "pro_feature_full_text_search": "Fulltekstsøk"
     },
     "import_sessions": {
       "title": "Importer sesjoner",
@@ -616,7 +720,10 @@
         "view_bookmark": "Vis bokmerke",
         "load_more": "Last mer",
         "no_title": "Ingen tittel"
-      }
+      },
+      "finalize_dialog_title": "Fullfør importøkt",
+      "finalize_dialog_description": "Legge «{{name}}» i kø for bakgrunnsbehandling? Klargjorte bokmerker vil begynne å importeres.",
+      "finalize_staging": "Fullfør"
     },
     "backups": {
       "backups": "Sikkerhetskopieringer",
@@ -759,7 +866,18 @@
       "failed_to_accept": "Kunne ikke akseptere invitasjonen",
       "failed_to_decline": "Kunne ikke avslå invitasjonen"
     },
-    "shared_lists": "Delte lister"
+    "shared_lists": "Delte lister",
+    "privacy": {
+      "public": "Offentlig",
+      "shared": "Delt",
+      "private": "Privat"
+    },
+    "summary_list_one": "{{count}} Lister",
+    "summary_list_other": "{{count}} Lister",
+    "summary_bookmark_one": "{{count}} Bokmerker",
+    "summary_bookmark_other": "{{count}} Bokmerker",
+    "items_count_one": "{{count}} elementer",
+    "items_count_other": "{{count}} elementer"
   },
   "tags": {
     "all_tags": "Alle tagger",
@@ -785,7 +903,11 @@
     "no_unused_tags_match_your_search": "Ingen ubrukte tagger passer søket ditt",
     "no_tags_match_your_search": "Ingen tagger samsvarer med søket ditt",
     "search_placeholder": "Søk etter tagger …",
-    "search_or_create_placeholder": "Søk eller lag tagger …"
+    "search_or_create_placeholder": "Søk eller lag tagger …",
+    "rename_tag": "Gi nytt navn til etikett",
+    "items_count": "{{count}} elementer",
+    "attached_by_you": "{{count}} av deg",
+    "attached_by_ai": "{{count}} av AI"
   },
   "search": {
     "is_not_favorited": "Er ikke favorittmerket",
@@ -915,7 +1037,9 @@
     },
     "tags": {
       "created": "Taggen er opprettet!",
-      "failed_to_create": "Klarte ikke å opprette taggen"
+      "failed_to_create": "Klarte ikke å opprette taggen",
+      "updated": "Etiketten har blitt oppdatert!",
+      "failed_to_update": "Kunne ikke oppdatere etikett"
     }
   },
   "cleanups": {

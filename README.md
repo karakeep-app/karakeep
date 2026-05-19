@@ -26,10 +26,11 @@ Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a 
 - 📋 Sort your bookmarks into lists.
 - 👥 Collaborate with others on the same list.
 - 🔎 Full text search of all the content stored.
-- ✨ AI-based (aka chatgpt) automatic tagging and summarization. With supports for local models using ollama!
-- 🤖 Rule-based engine for customized management.
+- ✨ LLM-based automatic tagging and summarization. With supports for local models using ollama!
+- 🤖 LLM Agents (e.g. OpenClaw, Hermes) friendly with powerful [CLI](https://docs.karakeep.app/integrations/command-line), and [official skills](https://docs.karakeep.app/integrations/agentic-skills).
+- ⚙️ Rule-based engine for customized management.
 - 🎆 OCR for extracting text from images.
-- 🔖 [Chrome plugin](https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje) and [Firefox addon](https://addons.mozilla.org/en-US/firefox/addon/karakeep/) for quick bookmarking.
+- 🔖 [Chrome plugin](https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje), [Firefox addon](https://addons.mozilla.org/en-US/firefox/addon/karakeep/), and [Safari extension](https://apps.apple.com/gb/app/karakeep-app/id6479258022?platform=mac) for quick bookmarking.
 - 📱 An [iOS app](https://apps.apple.com/us/app/karakeep-app/id6479258022), and an [Android app](https://play.google.com/store/apps/details?id=app.hoarder.hoardermobile&pcampaignid=web_share).
 - 📰 Auto hoarding from RSS feeds.
 - 🔌 REST API and multiple clients.

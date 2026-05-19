@@ -104,7 +104,8 @@
     "more": "Lisää",
     "replace_banner": "Korvaa banneri",
     "add_banner": "Lisää banneri",
-    "download": "Lataa"
+    "download": "Lataa",
+    "rename": "Nimeä uudelleen"
   },
   "highlights": {
     "no_highlights": "Sinulla ei ole vielä yhtään korostusta."
@@ -248,7 +249,9 @@
       "import_bookmarks_from_karakeep_export": "Tuo kirjanmerkit Karakeep-viennistä",
       "import_bookmarks_from_tab_session_manager_export": "Tuo kirjanmerkit Tab Session Managerista",
       "import_bookmarks_from_mymind_export": "Tuodaan kirjanmerkit mymind-viennistä",
-      "import_bookmarks_from_instapaper_export": "Importoi kirjanmerkit Instapaper-viennistä"
+      "import_bookmarks_from_instapaper_export": "Importoi kirjanmerkit Instapaper-viennistä",
+      "import_bookmarks_from_readwise_reader_export": "Tuo kirjanmerkit Readwise Reader -viennistä",
+      "import_bookmarks_from_onetab_export": "Tuo kirjanmerkit OneTab-viennistä"
     },
     "api_keys": {
       "key_success_please_copy": "Ole hyvä ja kopioi avain ja säilytä se turvallisessa paikassa. Kun suljet valintaikkunan, et voi enää käyttää sitä.",
@@ -260,7 +263,97 @@
       "key_regenerated": "Avain onnistuneesti uusittu",
       "key_regenerated_please_copy": "Ole hyvä ja kopioi uusi avain turvalliseen paikkaan. Vanha avain on kumottu eikä toimi enää.",
       "regenerate_warning": "Oletko varma, että haluat luoda API-avaimen uudelleen \"{{name}}\"?",
-      "regenerate_confirmation": "Tämä peruuttaa nykyisen avaimen ja luo uuden. Kaikki nykyistä avainta käyttävät sovellukset lakkaavat toimimasta."
+      "regenerate_confirmation": "Tämä peruuttaa nykyisen avaimen ja luo uuden. Kaikki nykyistä avainta käyttävät sovellukset lakkaavat toimimasta.",
+      "scopes": {
+        "scopes": "Käyttöalueet",
+        "choose_at_least_one": "Valitse vähintään yksi käyttöalue tai valitse täydet oikeudet.",
+        "scope_details": "{{scope}}-käyttöalueen tiedot",
+        "access": {
+          "none": "Ei mitään",
+          "read": "Luku",
+          "readwrite": "Luku/kirjoitus"
+        },
+        "full_access": {
+          "label": "Täydet oikeudet",
+          "description": "Pääsy kaikkiin tuettuihin API-toimintoihin."
+        },
+        "limited_scopes": {
+          "label": "Rajoitetut käyttöalueet",
+          "description": "Valitse resurssityypit, joihin tällä avaimella on pääsy."
+        },
+        "resources": {
+          "assets": {
+            "label": "Aineistot",
+            "description": "Pääsy tiedostoihin ja muuhun tallennettuun kirjanmerkkisisältöön."
+          },
+          "backups": {
+            "label": "Varmuuskopiot",
+            "description": "Hallitse tilin varmuuskopioita."
+          },
+          "bookmarks": {
+            "label": "Kirjanmerkit",
+            "description": "Pääsy kirjanmerkkeihin ja niiden hallinta."
+          },
+          "feeds": {
+            "label": "Syötteet",
+            "description": "Hallitse RSS-syötteitä ja niihin liittyvää syötetietoa."
+          },
+          "highlights": {
+            "label": "Korostukset",
+            "description": "Hallitse tallennettuja kirjanmerkkien korostuksia."
+          },
+          "lists": {
+            "label": "Luettelot",
+            "description": "Hallitse luetteloita ja luetteloiden jäsenyyksiä."
+          },
+          "prompts": {
+            "label": "Kehotteet",
+            "description": "Hallitse tallennettuja tekoälykehotteiden määrityksiä."
+          },
+          "rules": {
+            "label": "Säännöt",
+            "description": "Käytä automaatiosääntöjä."
+          },
+          "tags": {
+            "label": "Tunnisteet",
+            "description": "Käytä ja muokkaa tunnisteita."
+          },
+          "users": {
+            "label": "Käyttäjätili",
+            "description": "Käytä tilin profiilia ja asetuksia."
+          },
+          "webhooks": {
+            "label": "Web-koukut",
+            "description": "Käytä web-koukkujen määrityksiä."
+          },
+          "subscriptions": {
+            "label": "Tilaukset",
+            "description": "Käytä tilausten hallintaa."
+          },
+          "importSessions": {
+            "label": "Tuontitapahtumat",
+            "description": "Käytä tuontitapahtumia."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Ylläpitäjä: kirjanmerkit",
+            "description": "Käytä ylläpidon kirjanmerkkityökaluja."
+          },
+          "jobs": {
+            "label": "Ylläpitäjä: työt",
+            "description": "Käytä taustatöiden ohjaimia."
+          },
+          "system": {
+            "label": "Ylläpitäjä: järjestelmä",
+            "description": "Pääsy järjestelmän tilaan ja diagnostiikkaan."
+          },
+          "users": {
+            "label": "Ylläpitäjä: käyttäjät",
+            "description": "Pääsy hallinnolliseen käyttäjänhallintaan."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Rikkinäiset linkit",
@@ -294,7 +387,8 @@
         "or": "Mikä tahansa seuraavista on totta",
         "url_does_not_contain": "URL-osoite ei sisällä",
         "title_contains": "Otsikon sisältää",
-        "title_does_not_contain": "Otsikko ei sisällä"
+        "title_does_not_contain": "Otsikko ei sisällä",
+        "bookmark_source_is": "Kirjanmerkin lähde on"
       },
       "actions_types": {
         "download_full_page_archive": "Lataa koko sivun arkisto",
@@ -401,7 +495,17 @@
       "approaching_quota_limit": "Kiintiöraja lähestyy",
       "loading_usage": "Käyttötietojen lataaminen...",
       "free": "Ilmainen",
-      "paid": "Maksullinen"
+      "paid": "Maksullinen",
+      "monthly": "Kuukausittain",
+      "yearly": "Vuosittain",
+      "per_month": "kuukausi",
+      "per_year": "vuosi",
+      "excl_vat": "alv 0 %",
+      "yearly_savings": "Säästä {{percent}} %",
+      "pro_feature_bookmarks": "50 000 kirjanmerkkiä",
+      "pro_feature_storage": "50 Gt tallennustilaa",
+      "pro_feature_ai_tagging": "Tekoälypohjainen tunnisteiden luonti",
+      "pro_feature_full_text_search": "Koko tekstin haku"
     },
     "import_sessions": {
       "title": "Sessioiden tuonti",
@@ -457,7 +561,10 @@
         "view_bookmark": "Näytä kirjanmerkki",
         "load_more": "Lataa lisää",
         "no_title": "Ei otsikkoa"
-      }
+      },
+      "finalize_dialog_title": "Viimeistele tuontistunto",
+      "finalize_dialog_description": "Lisätäänkö ”{{name}}” taustaprosessointijonoon? Valmistellut kirjanmerkit aletaan tuoda.",
+      "finalize_staging": "Viimeistele"
     },
     "backups": {
       "backups": "Varmuuskopiot",
@@ -769,7 +876,18 @@
       "failed_to_accept": "Kutsun hyväksyminen epäonnistui",
       "failed_to_decline": "Kutsun hylkääminen epäonnistui"
     },
-    "shared_lists": "Jaetut listat"
+    "shared_lists": "Jaetut listat",
+    "privacy": {
+      "public": "Julkinen",
+      "shared": "Jaettu",
+      "private": "Yksityinen"
+    },
+    "summary_list_one": "{{count}} Listat",
+    "summary_list_other": "{{count}} Listat",
+    "summary_bookmark_one": "{{count}} Kirjanmerkit",
+    "summary_bookmark_other": "{{count}} Kirjanmerkit",
+    "items_count_one": "{{count}} kohdetta",
+    "items_count_other": "{{count}} kohdetta"
   },
   "tags": {
     "all_tags": "Kaikki tunnisteet",
@@ -795,7 +913,11 @@
     "no_unused_tags_match_your_search": "Hakusi ei täsmää yhtään käyttämätöntä tunnistetta",
     "no_tags_match_your_search": "Hakusi ei täsmää yhtään tunnistetta",
     "search_placeholder": "Etsi tunnisteita...",
-    "search_or_create_placeholder": "Etsi tai luo tunnisteita..."
+    "search_or_create_placeholder": "Etsi tai luo tunnisteita...",
+    "rename_tag": "Nimeä tunniste uudelleen",
+    "items_count": "{{count}} kohdetta",
+    "attached_by_you": "{{count}} sinun luomaasi",
+    "attached_by_ai": "{{count}} tekoälyn luomaa"
   },
   "search": {
     "is_favorited": "On suosikki",
@@ -947,7 +1069,9 @@
     },
     "tags": {
       "created": "Tunnus on nyt luotu!",
-      "failed_to_create": "Tunnuksen luominen epäonnistui"
+      "failed_to_create": "Tunnuksen luominen epäonnistui",
+      "updated": "Tunniste on päivitetty!",
+      "failed_to_update": "Tunnisteen päivitys epäonnistui"
     }
   },
   "banners": {

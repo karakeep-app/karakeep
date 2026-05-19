@@ -2,7 +2,7 @@
 
 import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
@@ -53,6 +53,7 @@ interface Props {
   className?: string;
   fitHeight?: boolean;
   wrapTags: boolean;
+  bookmarkIndex?: number;
 }
 
 function BottomRow({
@@ -116,15 +117,13 @@ function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
 }
 
 function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
-  const { selectedBookmarks, isBulkEditEnabled } = useBulkActionsStore();
+  const isSelected = useBulkActionsStore((s) =>
+    s.isBookmarkSelected(bookmark.id),
+  );
+  const isBulkEditEnabled = useBulkActionsStore((s) => s.isBulkEditEnabled);
   const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
-  const [isSelected, setIsSelected] = useState(false);
   const { theme } = useTheme();
   const { data: session } = useSession();
-
-  useEffect(() => {
-    setIsSelected(selectedBookmarks.some((item) => item.id === bookmark.id));
-  }, [selectedBookmarks]);
 
   // Don't show selector for non-owned bookmarks or when bulk edit is disabled
   const isOwner = session?.user?.id === bookmark.userId;
@@ -153,7 +152,7 @@ function MultiBookmarkSelector({ bookmark }: { bookmark: ZBookmark }) {
         },
         theme === "dark" ? "bg-white" : "bg-black",
       )}
-      onClick={() => toggleBookmark(bookmark)}
+      onClick={() => toggleBookmark(bookmark.id)}
     >
       <div className="absolute right-2 top-2 z-50 opacity-100">
         <div
@@ -290,6 +289,7 @@ function ListView({
   content,
   footer,
   className,
+  bookmarkIndex,
 }: Props) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
@@ -305,6 +305,7 @@ function ListView({
         "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
         className,
       )}
+      data-bookmark-index={bookmarkIndex}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
@@ -350,6 +351,7 @@ function GridView({
   wrapTags,
   layout,
   fitHeight = false,
+  bookmarkIndex,
 }: Props & { layout: BookmarksLayoutTypes }) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
@@ -370,6 +372,7 @@ function GridView({
         className,
         fitHeight && layout != "grid" ? "max-h-96" : "h-96",
       )}
+      data-bookmark-index={bookmarkIndex}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
@@ -401,7 +404,13 @@ function GridView({
   );
 }
 
-function CompactView({ bookmark, title, footer, className }: Props) {
+function CompactView({
+  bookmark,
+  title,
+  footer,
+  className,
+  bookmarkIndex,
+}: Props) {
   const { showTitle } = useBookmarkDisplaySettings();
   return (
     <div
@@ -410,6 +419,7 @@ function CompactView({ bookmark, title, footer, className }: Props) {
         className,
         "max-h-96",
       )}
+      data-bookmark-index={bookmarkIndex}
     >
       <MultiBookmarkSelector bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />

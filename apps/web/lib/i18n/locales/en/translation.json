@@ -92,6 +92,7 @@
     "add": "Add",
     "remove": "Remove",
     "edit": "Edit",
+    "rename": "Rename",
     "confirm": "Confirm",
     "open_editor": "Open Editor",
     "create": "Create",
@@ -311,6 +312,8 @@
       "import_bookmarks_from_tab_session_manager_export": "Import Bookmarks from Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
       "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
+      "import_bookmarks_from_readwise_reader_export": "Import Bookmarks from Readwise Reader export",
+      "import_bookmarks_from_onetab_export": "Import Bookmarks from OneTab export",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
@@ -324,7 +327,97 @@
       "key_regenerated": "Key was successfully regenerated",
       "key_regenerated_please_copy": "Please copy the new key and store it somewhere safe. The old key has been revoked and will no longer work.",
       "regenerate_warning": "Are you sure you want to regenerate the API key \"{{name}}\"?",
-      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working."
+      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working.",
+      "scopes": {
+        "scopes": "Scopes",
+        "choose_at_least_one": "Choose at least one scope or select full access.",
+        "scope_details": "{{scope}} scope details",
+        "access": {
+          "none": "None",
+          "read": "Read",
+          "readwrite": "Read/write"
+        },
+        "full_access": {
+          "label": "Full access",
+          "description": "Access all supported API operations."
+        },
+        "limited_scopes": {
+          "label": "Limited scopes",
+          "description": "Choose the resource types this key can access."
+        },
+        "resources": {
+          "assets": {
+            "label": "Assets",
+            "description": "Access files and other stored bookmark content."
+          },
+          "backups": {
+            "label": "Backups",
+            "description": "Manage account backups."
+          },
+          "bookmarks": {
+            "label": "Bookmarks",
+            "description": "Access and manage bookmarks."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "Manage RSS feeds and related feed data."
+          },
+          "highlights": {
+            "label": "Highlights",
+            "description": "Manage saved bookmark highlights."
+          },
+          "lists": {
+            "label": "Lists",
+            "description": "Manage lists and list membership."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Manage saved AI prompt configuration."
+          },
+          "rules": {
+            "label": "Rules",
+            "description": "Access automation rules."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Access and modify tags."
+          },
+          "users": {
+            "label": "User account",
+            "description": "Access account profile and settings."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Access webhook configuration."
+          },
+          "subscriptions": {
+            "label": "Subscriptions",
+            "description": "Access subscription management."
+          },
+          "importSessions": {
+            "label": "Import Sessions",
+            "description": "Access import sessions."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bookmarks",
+            "description": "Access administrative bookmark tools."
+          },
+          "jobs": {
+            "label": "Admin: jobs",
+            "description": "Access background job controls."
+          },
+          "system": {
+            "label": "Admin: system",
+            "description": "Access system status and diagnostics."
+          },
+          "users": {
+            "label": "Admin: users",
+            "description": "Access administrative user management."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Broken Links",
@@ -450,7 +543,10 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
+      "finalize_dialog_title": "Finalize Import Session",
+      "finalize_dialog_description": "Queue \"{{name}}\" for background processing? Staged bookmarks will start importing.",
       "delete_session": "Delete Session",
+      "finalize_staging": "Finalize",
       "pause_session": "Pause",
       "resume_session": "Resume",
       "view_details": "View Details",
@@ -681,6 +777,11 @@
     "favourites": "Favourites",
     "shared": "Shared",
     "shared_lists": "Shared Lists",
+    "privacy": {
+      "public": "Public",
+      "shared": "Shared",
+      "private": "Private"
+    },
     "new_list": "New List",
     "edit_list": "Edit List",
     "share_list": "Share List",
@@ -760,13 +861,23 @@
       "warning": "You will no longer be able to view or access bookmarks in this list. The list owner can add you back if needed.",
       "action": "Leave List",
       "success": "You have left \"{{icon}} {{name}}\""
-    }
+    },
+    "summary_list_one": "{{count}} list",
+    "summary_list_other": "{{count}} lists",
+    "summary_bookmark_one": "{{count}} bookmark",
+    "summary_bookmark_other": "{{count}} bookmarks",
+    "items_count_one": "{{count}} item",
+    "items_count_other": "{{count}} items"
   },
   "tags": {
     "all_tags": "All Tags",
     "your_tags": "Your Tags",
     "your_tags_info": "Tags that were attached at least once by you",
     "ai_tags": "AI Tags",
+    "rename_tag": "Rename Tag",
+    "items_count": "{{count}} items",
+    "attached_by_you": "{{count}} by you",
+    "attached_by_ai": "{{count}} by AI",
     "ai_tags_info": "Tags that were only attached automatically (by AI)",
     "unused_tags": "Unused Tags",
     "unused_tags_info": "Tags that are not attached to any bookmarks",
@@ -914,7 +1025,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Delete Bookmark?",
-      "delete_confirmation_description": "Are you sure you want to delete this bookmark?"
+      "delete_confirmation_description": "Are you sure you want to delete this bookmark?",
+      "bulk_delete_confirmation_description": "Are you sure you want to delete {{count}} bookmarks?"
     }
   },
   "toasts": {
@@ -937,7 +1049,9 @@
     },
     "tags": {
       "created": "Tag has been created!",
-      "failed_to_create": "Failed to create tag"
+      "failed_to_create": "Failed to create tag",
+      "updated": "Tag has been updated!",
+      "failed_to_update": "Failed to update tag"
     }
   },
   "banners": {
@@ -1021,5 +1135,28 @@
     "download": "Download",
     "close": "Close",
     "generating": "Generating..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Keyboard Shortcuts",
+    "sections": {
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "selection": "Selection",
+      "other": "Other"
+    },
+    "move_left": "Move left",
+    "move_down": "Move down",
+    "move_up": "Move up",
+    "move_right": "Move right",
+    "open_bookmark": "Open bookmark",
+    "clear_focus": "Clear focus / exit bulk edit",
+    "toggle_favorite": "Toggle favorite",
+    "toggle_archive": "Archive / Unarchive",
+    "delete_bookmark": "Delete bookmark",
+    "toggle_selection": "Toggle selection",
+    "select_all": "Select all",
+    "deselect_all": "Deselect all",
+    "show_help": "Show keyboard shortcuts",
+    "focus_search_alt": "Focus search"
   }
 }

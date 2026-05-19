@@ -9,7 +9,6 @@ import metascraperAuthor from "metascraper-author";
 import metascraperDate from "metascraper-date";
 import metascraperDescription from "metascraper-description";
 import metascraperImage from "metascraper-image";
-import metascraperLogo from "metascraper-logo-favicon";
 import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperUrl from "metascraper-url";
@@ -23,6 +22,7 @@ import logger from "@karakeep/shared/logger";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
+import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -59,18 +59,7 @@ const metascraperParser = metascraper([
   metascraperDescription(),
   metascraperX(),
   metascraperImage(),
-  metascraperLogo({
-    gotOpts: {
-      agent: {
-        http: serverConfig.proxy.httpProxy
-          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
-          : undefined,
-        https: serverConfig.proxy.httpsProxy
-          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
-          : undefined,
-      },
-    },
-  }),
+  metascraperSafeFavicon(),
   metascraperUrl(),
 ]);
 

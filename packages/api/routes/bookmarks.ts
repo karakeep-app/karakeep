@@ -10,6 +10,7 @@ import {
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 
+import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
 import { adaptPagination, zPagination } from "../utils/pagination";
 import {
@@ -33,8 +34,8 @@ const app = new Hono()
           favourited: zStringBool.optional(),
           archived: zStringBool.optional(),
         })
-        .and(zGetBookmarkQueryParamsSchema)
-        .and(zPagination),
+        .extend(zGetBookmarkQueryParamsSchema.shape)
+        .extend(zPagination.shape),
     ),
     async (c) => {
       const searchParams = c.req.valid("query");
@@ -69,7 +70,7 @@ const app = new Hono()
               val ? { ver: 1 as const, offset: parseInt(val) } : undefined,
             ),
         })
-        .and(zGetBookmarkSearchParamsSchema),
+        .extend(zGetBookmarkSearchParamsSchema.shape),
     ),
     async (c) => {
       const searchParams = c.req.valid("query");
@@ -109,6 +110,8 @@ const app = new Hono()
 
   .post(
     "/singlefile",
+    apiKeyScopeMiddleware("assets", "readwrite"),
+    apiKeyScopeMiddleware("bookmarks", "readwrite"),
     zValidator(
       "query",
       z.object({

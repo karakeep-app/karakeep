@@ -5,7 +5,11 @@ import { bookmarkLinks, users } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
-import { buildTestContext, getApiCaller } from "../testUtils";
+import {
+  buildTestContext,
+  getApiCaller,
+  getApiKeyCallerForPlainKey,
+} from "../testUtils";
 
 beforeEach<CustomTestContext>(async (context) => {
   const testContext = await buildTestContext(true);
@@ -13,6 +17,41 @@ beforeEach<CustomTestContext>(async (context) => {
 });
 
 describe("Admin Routes", () => {
+  test<CustomTestContext>("admin API key uses granular admin scopes", async ({
+    apiCallers,
+    db,
+  }) => {
+    const [adminUser] = await db
+      .insert(users)
+      .values({
+        name: "Admin User",
+        email: "admin-scoped@test.com",
+        role: "admin",
+      })
+      .returning();
+    const adminApi = getApiCaller(db, adminUser.id, adminUser.email, "admin");
+
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      url: "https://example.com",
+      type: BookmarkTypes.LINK,
+    });
+
+    const scopedKey = await adminApi.apiKeys.create({
+      name: "Admin Read Bookmarks Key",
+      scopes: ["admin:bookmarks:read"],
+    });
+    const apiKeyCaller = await getApiKeyCallerForPlainKey(db, scopedKey.key);
+
+    const debugInfo = await apiKeyCaller.admin.getBookmarkDebugInfo({
+      bookmarkId: bookmark.id,
+    });
+    expect(debugInfo.id).toEqual(bookmark.id);
+
+    await expect(() =>
+      apiKeyCaller.admin.adminRetagBookmark({ bookmarkId: bookmark.id }),
+    ).rejects.toThrow(/FORBIDDEN|admin:bookmarks:readwrite/i);
+  });
+
   describe("getBookmarkDebugInfo", () => {
     test<CustomTestContext>("admin can access bookmark debug info for link bookmark", async ({
       apiCallers,

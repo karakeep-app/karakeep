@@ -7,6 +7,7 @@ import {
 } from "@karakeep/shared/utils/listUtils";
 
 import { useTRPC } from "../trpc";
+import { scheduleInvalidateQueries } from "./query-invalidation";
 
 type TRPCApi = ReturnType<typeof useTRPC>;
 
@@ -43,6 +44,11 @@ export function useEditBookmarkList(
           queryClient.invalidateQueries(
             api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
           );
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmarks.infiniteQueryFilter({
+              listId: req.listId,
+            }),
+          );
         }
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -63,6 +69,11 @@ export function useMergeLists(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ listId: req.targetId }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarks.infiniteQueryFilter({
+            listId: req.targetId,
+          }),
+        );
         queryClient.invalidateQueries(api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -79,15 +90,22 @@ export function useAddBookmarkToList(
     api.lists.addToList.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+        );
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarks.infiniteQueryFilter({
+            listId: req.listId,
+          }),
         );
         queryClient.invalidateQueries(
           api.lists.getListsOfBookmark.queryFilter({
             bookmarkId: req.bookmarkId,
           }),
         );
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -103,15 +121,22 @@ export function useRemoveBookmarkFromList(
     api.lists.removeFromList.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
-        queryClient.invalidateQueries(
+        scheduleInvalidateQueries(
+          queryClient,
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
+        );
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarks.infiniteQueryFilter({
+            listId: req.listId,
+          }),
         );
         queryClient.invalidateQueries(
           api.lists.getListsOfBookmark.queryFilter({
             bookmarkId: req.bookmarkId,
           }),
         );
-        queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),

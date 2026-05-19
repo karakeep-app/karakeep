@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Static crawler shell</title>
+  </head>
+  <body>
+    <main id="app">Static shell only</main>
+    <script>
+      setTimeout(() => {
+        const fromCodes = (codes) => String.fromCharCode(...codes);
+        const heading = document.createElement("h1");
+        heading.textContent = fromCodes([
+          66, 114, 111, 119, 115, 101, 114, 32, 114, 101, 110, 100, 101, 114,
+          101, 100, 32, 99, 114, 97, 119, 108, 101, 114, 32, 99, 111, 110, 116,
+          101, 110, 116,
+        ]);
+        document.title = fromCodes([
+          66, 114, 111, 119, 115, 101, 114, 32, 114, 101, 110, 100, 101, 114,
+          101, 100, 32, 116, 105, 116, 108, 101,
+        ]);
+        document.getElementById("app").replaceChildren(heading);
+      }, 100);
+    </script>
+  </body>
+</html>

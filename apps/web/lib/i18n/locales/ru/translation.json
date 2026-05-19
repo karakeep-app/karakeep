@@ -129,7 +129,18 @@
       "failed_to_accept": "Не удалось принять приглашение",
       "failed_to_decline": "Не удалось отклонить приглашение"
     },
-    "shared_lists": "Общие списки"
+    "shared_lists": "Общие списки",
+    "privacy": {
+      "public": "Общий",
+      "shared": "Общий доступ",
+      "private": "Личный"
+    },
+    "summary_list_one": "{{count}} Списки",
+    "summary_list_other": "{{count}} Списки",
+    "summary_bookmark_one": "{{count}} Закладки",
+    "summary_bookmark_other": "{{count}} Закладки",
+    "items_count_one": "{{count}} элементов",
+    "items_count_other": "{{count}} элементов"
   },
   "settings": {
     "user_settings": "Настройки пользователя",
@@ -212,7 +223,9 @@
       "import_bookmarks_from_linkwarden_export": "Импортировать закладки из экспорта Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Импортировать закладки из Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Импортировать закладки из экспорта mymind",
-      "import_bookmarks_from_instapaper_export": "Импортировать закладки из экспорта Instapaper"
+      "import_bookmarks_from_instapaper_export": "Импортировать закладки из экспорта Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Импорт закладок из экспорта Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Импортировать закладки из экспорта OneTab"
     },
     "api_keys": {
       "key_success": "Ключ был успешно создан",
@@ -224,7 +237,97 @@
       "key_regenerated": "Ключ успешно обновлен",
       "key_regenerated_please_copy": "Пожалуйста, скопируйте новый ключ и сохраните его в надёжном месте. Старый ключ был отозван и больше не будет работать.",
       "regenerate_warning": "Вы уверены, что хотите обновить ключ API \"{{name}}\"?",
-      "regenerate_confirmation": "Это отзовёт текущий ключ и создаст новый. Любые приложения, использующие текущий ключ, перестанут работать."
+      "regenerate_confirmation": "Это отзовёт текущий ключ и создаст новый. Любые приложения, использующие текущий ключ, перестанут работать.",
+      "scopes": {
+        "scopes": "Области доступа",
+        "choose_at_least_one": "Выберите хотя бы одну область доступа или выберите полный доступ.",
+        "scope_details": "Сведения об области доступа {{scope}}",
+        "access": {
+          "none": "Нет",
+          "read": "Чтение",
+          "readwrite": "Чтение/запись"
+        },
+        "full_access": {
+          "label": "Полный доступ",
+          "description": "Доступ ко всем поддерживаемым операциям API."
+        },
+        "limited_scopes": {
+          "label": "Ограниченные области доступа",
+          "description": "Выберите типы ресурсов, к которым этот ключ может иметь доступ."
+        },
+        "resources": {
+          "assets": {
+            "label": "Активы",
+            "description": "Доступ к файлам и другому сохраненному контенту закладок."
+          },
+          "backups": {
+            "label": "Резервные копии",
+            "description": "Управление резервными копиями аккаунта."
+          },
+          "bookmarks": {
+            "label": "Закладки",
+            "description": "Доступ к закладкам и управление ими."
+          },
+          "feeds": {
+            "label": "Ленты",
+            "description": "Управление RSS-лентами и связанными данными лент."
+          },
+          "highlights": {
+            "label": "Цитаты",
+            "description": "Управление сохраненными цитатами из закладок."
+          },
+          "lists": {
+            "label": "Списки",
+            "description": "Управление списками и членством в списках."
+          },
+          "prompts": {
+            "label": "Промпты",
+            "description": "Управление сохраненными конфигурациями ИИ-промптов."
+          },
+          "rules": {
+            "label": "Правила",
+            "description": "Доступ к правилам автоматизации."
+          },
+          "tags": {
+            "label": "Теги",
+            "description": "Доступ к тегам и их изменение."
+          },
+          "users": {
+            "label": "Учетная запись пользователя",
+            "description": "Доступ к профилю и настройкам аккаунта."
+          },
+          "webhooks": {
+            "label": "Вебхуки",
+            "description": "Доступ к конфигурации вебхуков."
+          },
+          "subscriptions": {
+            "label": "Подписки",
+            "description": "Доступ к управлению подписками."
+          },
+          "importSessions": {
+            "label": "Сеансы импорта",
+            "description": "Доступ к сеансам импорта."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Админ: закладки",
+            "description": "Доступ к инструментам управления закладками."
+          },
+          "jobs": {
+            "label": "Админ: задачи",
+            "description": "Доступ к управлению фоновыми задачами."
+          },
+          "system": {
+            "label": "Администратор: система",
+            "description": "Доступ к состоянию системы и диагностике."
+          },
+          "users": {
+            "label": "Администратор: пользователи",
+            "description": "Доступ к административному управлению пользователями."
+          }
+        }
+      }
     },
     "ai": {
       "ai_settings": "Настройки ИИ",
@@ -328,7 +431,8 @@
         "or": "Если что-то из этого правда",
         "url_does_not_contain": "URL не содержит",
         "title_contains": "Заголовок содержит",
-        "title_does_not_contain": "Заголовок не содержит"
+        "title_does_not_contain": "Заголовок не содержит",
+        "bookmark_source_is": "Источник закладки:"
       },
       "actions_types": {
         "add_tag": "Добавить тег",
@@ -422,7 +526,17 @@
       "approaching_quota_limit": "Приближаетесь к лимиту квоты",
       "loading_usage": "Загрузка информации об использовании…",
       "free": "Бесплатно",
-      "paid": "Платный"
+      "paid": "Платный",
+      "monthly": "Ежемесячно",
+      "yearly": "Ежегодно",
+      "per_month": "месяц",
+      "per_year": "год",
+      "excl_vat": "без НДС",
+      "yearly_savings": "Скидка {{percent}}%",
+      "pro_feature_bookmarks": "50 000 закладок",
+      "pro_feature_storage": "50 ГБ хранилища",
+      "pro_feature_ai_tagging": "Тегирование на базе ИИ",
+      "pro_feature_full_text_search": "Полнотекстовый поиск"
     },
     "import_sessions": {
       "title": "Импорт сессий",
@@ -478,7 +592,10 @@
         "view_bookmark": "Посмотреть закладку",
         "load_more": "Загрузить еще",
         "no_title": "Без названия"
-      }
+      },
+      "finalize_dialog_title": "Завершить сеанс импорта",
+      "finalize_dialog_description": "Добавить «{{name}}» в очередь для фоновой обработки? Начнется импорт подготовленных закладок.",
+      "finalize_staging": "Завершить"
     },
     "backups": {
       "backups": "Резервные копии",
@@ -583,7 +700,8 @@
     "more": "Больше",
     "replace_banner": "Заменить баннер",
     "add_banner": "Добавить баннер",
-    "download": "Скачать"
+    "download": "Скачать",
+    "rename": "Переименовать"
   },
   "editor": {
     "text_toolbar": {
@@ -850,7 +968,11 @@
     "no_unused_tags_match_your_search": "Нет неиспользуемых тегов, соответствующих вашему поиску",
     "no_tags_match_your_search": "Нет тегов, соответствующих вашему поиску",
     "search_placeholder": "Поиск тегов...",
-    "search_or_create_placeholder": "Поиск или создание тегов…"
+    "search_or_create_placeholder": "Поиск или создание тегов…",
+    "rename_tag": "Переименовать тег",
+    "items_count": "{{count}} элементов",
+    "attached_by_you": "{{count}} вами",
+    "attached_by_ai": "{{count}} ИИ"
   },
   "preview": {
     "view_original": "Посмотреть оригинал",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "Тег создан!",
-      "failed_to_create": "Не удалось создать тег"
+      "failed_to_create": "Не удалось создать тег",
+      "updated": "Тег обновлен!",
+      "failed_to_update": "Не удалось обновить тег"
     }
   },
   "cleanups": {

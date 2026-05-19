@@ -1,7 +1,4 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
-
-extendZodWithOpenApi(z);
+import * as z from "zod";
 
 export const ErrorSchema = z
   .object({

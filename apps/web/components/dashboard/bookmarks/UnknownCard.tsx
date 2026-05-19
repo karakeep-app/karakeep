@@ -10,9 +10,11 @@ import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
 export default function UnknownCard({
   bookmark,
   className,
+  bookmarkIndex,
 }: {
   bookmark: ZBookmark;
   className?: string;
+  bookmarkIndex?: number;
 }) {
   const { t } = useTranslation();
   return (
@@ -20,6 +22,7 @@ export default function UnknownCard({
       title={bookmark.title}
       bookmark={bookmark}
       className={className}
+      bookmarkIndex={bookmarkIndex}
       wrapTags={false}
       image={(_layout) => (
         <div className="flex size-full flex-1 flex-col items-center justify-center bg-red-50 dark:bg-red-950/10">

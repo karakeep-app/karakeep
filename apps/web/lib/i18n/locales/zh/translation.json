@@ -46,7 +46,7 @@
     "last_used": "上次使用"
   },
   "layouts": {
-    "masonry": "砌体",
+    "masonry": "瀑布流",
     "grid": "网格",
     "list": "列表",
     "compact": "紧凑"
@@ -104,7 +104,8 @@
     "more": "更多",
     "replace_banner": "替换横幅",
     "add_banner": "添加横幅",
-    "download": "下载"
+    "download": "下载",
+    "rename": "重命名"
   },
   "settings": {
     "back_to_app": "返回应用",
@@ -226,7 +227,9 @@
       "import_bookmarks_from_linkwarden_export": "导入 Linkwarden 导出的书签",
       "import_bookmarks_from_tab_session_manager_export": "从 Tab Session Manager 导入书签",
       "import_bookmarks_from_mymind_export": "从我的 mind 导出导入书签",
-      "import_bookmarks_from_instapaper_export": "从 Instapaper 导出内容导入书签"
+      "import_bookmarks_from_instapaper_export": "从 Instapaper 导出内容导入书签",
+      "import_bookmarks_from_readwise_reader_export": "从 Readwise Reader 导出文件导入书签",
+      "import_bookmarks_from_onetab_export": "从 OneTab 导出导入书签"
     },
     "api_keys": {
       "api_keys": "API密钥",
@@ -238,7 +241,97 @@
       "key_regenerated": "密钥已成功重新生成",
       "key_regenerated_please_copy": "请复制新密钥并将其保存在安全的地方。旧密钥已被撤销，将不再起作用。",
       "regenerate_warning": "你确定要重新生成 API 密钥“{{name}}”吗？",
-      "regenerate_confirmation": "这将撤销当前密钥并生成一个新密钥。任何使用当前密钥的应用程序都将停止工作。"
+      "regenerate_confirmation": "这将撤销当前密钥并生成一个新密钥。任何使用当前密钥的应用程序都将停止工作。",
+      "scopes": {
+        "scopes": "作用域",
+        "choose_at_least_one": "请至少选择一个作用域或选择完全访问权限。",
+        "scope_details": "{{scope}} 作用域详情",
+        "access": {
+          "none": "无",
+          "read": "读取",
+          "readwrite": "读/写"
+        },
+        "full_access": {
+          "label": "完全访问权限",
+          "description": "访问所有支持的 API 操作。"
+        },
+        "limited_scopes": {
+          "label": "受限作用域",
+          "description": "选择此密钥可以访问的资源类型。"
+        },
+        "resources": {
+          "assets": {
+            "label": "资产",
+            "description": "访问文件和其他存储的书签内容。"
+          },
+          "backups": {
+            "label": "备份",
+            "description": "管理账户备份。"
+          },
+          "bookmarks": {
+            "label": "书签",
+            "description": "访问并管理书签。"
+          },
+          "feeds": {
+            "label": "馈送",
+            "description": "管理 RSS 馈送及相关的馈送数据。"
+          },
+          "highlights": {
+            "label": "高亮",
+            "description": "管理保存的书签高亮。"
+          },
+          "lists": {
+            "label": "列表",
+            "description": "管理列表和列表成员身份。"
+          },
+          "prompts": {
+            "label": "提示词",
+            "description": "管理保存的 AI 提示词配置。"
+          },
+          "rules": {
+            "label": "规则",
+            "description": "访问自动化规则。"
+          },
+          "tags": {
+            "label": "标签",
+            "description": "访问并修改标签。"
+          },
+          "users": {
+            "label": "用户账户",
+            "description": "访问账户个人资料和设置。"
+          },
+          "webhooks": {
+            "label": "Webhook",
+            "description": "访问 Webhook 配置。"
+          },
+          "subscriptions": {
+            "label": "订阅",
+            "description": "访问订阅管理。"
+          },
+          "importSessions": {
+            "label": "导入会话",
+            "description": "访问导入会话。"
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "管理：书签",
+            "description": "访问管理书签工具。"
+          },
+          "jobs": {
+            "label": "管理：任务",
+            "description": "访问后台任务控制。"
+          },
+          "system": {
+            "label": "管理员：系统",
+            "description": "访问系统状态和诊断。"
+          },
+          "users": {
+            "label": "管理员：用户",
+            "description": "访问管理用户管理。"
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "失效链接",
@@ -303,7 +396,8 @@
         "or": "以下任一条件为真",
         "url_does_not_contain": "URL 不包含",
         "title_contains": "标题包含",
-        "title_does_not_contain": "标题不包含"
+        "title_does_not_contain": "标题不包含",
+        "bookmark_source_is": "书签来源为"
       },
       "actions_types": {
         "add_tag": "添加标签",
@@ -397,7 +491,17 @@
       "approaching_quota_limit": "即将达到配额限制",
       "loading_usage": "正在加载使用信息...",
       "free": "免费",
-      "paid": "已付费"
+      "paid": "已付费",
+      "monthly": "按月",
+      "yearly": "按年",
+      "per_month": "月",
+      "per_year": "年",
+      "excl_vat": "不含增值税",
+      "yearly_savings": "节省 {{percent}}%",
+      "pro_feature_bookmarks": "50,000 个书签",
+      "pro_feature_storage": "50GB 存储空间",
+      "pro_feature_ai_tagging": "AI 驱动的标签功能",
+      "pro_feature_full_text_search": "全文检索"
     },
     "import_sessions": {
       "title": "导入会话",
@@ -453,7 +557,10 @@
         "view_bookmark": "查看书签",
         "load_more": "加载更多",
         "no_title": "没有标题"
-      }
+      },
+      "finalize_dialog_title": "完成导入会话",
+      "finalize_dialog_description": "将“{{name}}”加入后台处理队列吗？暂存的书签将开始导入。",
+      "finalize_staging": "完成"
     },
     "backups": {
       "backups": "备份",
@@ -765,7 +872,18 @@
       "failed_to_accept": "接受邀请失败",
       "failed_to_decline": "拒绝邀请失败"
     },
-    "shared_lists": "共享列表"
+    "shared_lists": "共享列表",
+    "privacy": {
+      "public": "公共",
+      "shared": "已共享",
+      "private": "私有"
+    },
+    "summary_list_one": "{{count}} 列表",
+    "summary_list_other": "{{count}} 列表",
+    "summary_bookmark_one": "{{count}} 书签",
+    "summary_bookmark_other": "{{count}} 书签",
+    "items_count_one": "{{count}} 个项目",
+    "items_count_other": "{{count}} 个项目"
   },
   "tags": {
     "all_tags": "所有标签",
@@ -791,7 +909,11 @@
     "no_unused_tags_match_your_search": "没有未使用的标签符合你的搜索",
     "no_tags_match_your_search": "没有标签符合你的搜索内容",
     "search_placeholder": "搜索标签...",
-    "search_or_create_placeholder": "搜索或创建标签..."
+    "search_or_create_placeholder": "搜索或创建标签...",
+    "rename_tag": "重命名标签",
+    "items_count": "{{count}} 个项目",
+    "attached_by_you": "{{count}} 个由您创建",
+    "attached_by_ai": "{{count}} 个由 AI 创建"
   },
   "preview": {
     "view_original": "查看原文",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "标签已创建！",
-      "failed_to_create": "创建标签失败"
+      "failed_to_create": "创建标签失败",
+      "updated": "标签已更新！",
+      "failed_to_update": "更新标签失败"
     }
   },
   "cleanups": {
@@ -985,14 +1109,14 @@
     "image_fit_contain": "包含（适应）"
   },
   "version": {
-    "new_release_available": "有新的版本说明啦",
-    "whats_new_title": "v{{version}} 有啥新玩意儿？",
-    "release_notes_description": "这是从 GitHub 版本说明里搞来的最新更新。",
-    "loading_release_notes": "加载版本说明中……",
-    "unable_to_load_release_notes": "现在没法加载版本说明。稍后再试试呗。",
-    "no_release_notes": "这个版本没发布版本说明。",
-    "release_notes_synced": "版本说明是从 GitHub 同步过来的。",
-    "view_on_github": "在 GitHub 上瞅瞅"
+    "new_release_available": "有新的版本说明",
+    "whats_new_title": "v{{version}} 最近更新",
+    "release_notes_description": "以下是从 GitHub 发布说明中获取的最新更新。",
+    "loading_release_notes": "正在加载版本说明...",
+    "unable_to_load_release_notes": "目前无法加载版本说明。请稍后重试。",
+    "no_release_notes": "此版本没有发布版本说明。",
+    "release_notes_synced": "版本说明已从 GitHub 同步。",
+    "view_on_github": "在 GitHub 上查看"
   },
   "wrapped": {
     "title": "你的 {{year}} 年终报告",

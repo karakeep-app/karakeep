@@ -77,6 +77,9 @@ export function ManageCollaboratorsModal({
       queryClient.invalidateQueries(
         api.bookmarks.getBookmarks.queryFilter({ listId: list.id }),
       ),
+      queryClient.invalidateQueries(
+        api.bookmarks.getBookmarks.infiniteQueryFilter({ listId: list.id }),
+      ),
     ]);
 
   // Fetch collaborators

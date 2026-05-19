@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import { getInMemoryDB } from "@karakeep/db/drizzle";
 import { users } from "@karakeep/db/schema";
 
+import type { Context } from "./index";
 import { createCallerFactory } from "./index";
 import { appRouter } from "./routers/_app";
 
@@ -37,6 +38,7 @@ export function getApiCaller(
   userId?: string,
   email?: string,
   role: "user" | "admin" = "user",
+  auth: Context["auth"] = userId ? { type: "session" } : null,
 ) {
   const createCaller = createCallerFactory(appRouter);
   return createCaller({
@@ -47,11 +49,28 @@ export function getApiCaller(
           role,
         }
       : null,
+    auth,
     db,
     req: {
       ip: null,
     },
   });
+}
+
+export async function getApiKeyCallerForPlainKey(db: TestDB, plainKey: string) {
+  const { authenticateApiKey } = await import("./auth");
+  const authResult = await authenticateApiKey(plainKey, db);
+  return getApiCaller(
+    db,
+    authResult.user.id,
+    authResult.user.email ?? undefined,
+    authResult.user.role === "admin" ? "admin" : "user",
+    {
+      type: "apiKey",
+      keyId: authResult.apiKey.keyId,
+      scopes: authResult.apiKey.scopes,
+    },
+  );
 }
 
 export type APICallerType = ReturnType<typeof getApiCaller>;

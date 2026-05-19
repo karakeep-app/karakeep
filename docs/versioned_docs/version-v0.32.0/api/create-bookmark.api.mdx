@@ -1,0 +1,71 @@
+---
+id: create-bookmark
+title: "Create a new bookmark"
+description: "Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status."
+sidebar_label: "Create a new bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: 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
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create a new bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bookmarks"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The bookmark to create.","content":{"application/json":{"schema":{"allOf":[{"type":"object","properties":{"title":{"type":"string","nullable":true,"maxLength":1000},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"note":{"type":"string"},"summary":{"type":"string"},"createdAt":{"type":"string","nullable":true},"crawlPriority":{"type":"string","enum":["low","normal"]},"importSessionId":{"type":"string"},"source":{"type":"string","enum":["api","web","cli","mobile","extension","singlefile","rss","import"]}}},{"oneOf":[{"type":"object","properties":{"type":{"type":"string","enum":["link"]},"url":{"type":"string","format":"uri"},"precrawledArchiveId":{"type":"string"}},"required":["type","url"]},{"type":"object","properties":{"type":{"type":"string","enum":["text"]},"text":{"type":"string"},"sourceUrl":{"type":"string"}},"required":["type","text"]},{"type":"object","properties":{"type":{"type":"string","enum":["asset"]},"assetType":{"type":"string","enum":["image","pdf"]},"assetId":{"type":"string"},"fileName":{"type":"string"},"sourceUrl":{"type":"string"}},"required":["type","assetType","assetId"]}]}]}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"A bookmark with this URL already exists. The existing bookmark is returned.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"createdAt":{"type":"string"},"modifiedAt":{"type":"string","nullable":true},"title":{"type":"string","nullable":true},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"taggingStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"summarizationStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"note":{"type":"string","nullable":true},"summary":{"type":"string","nullable":true},"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"userId":{"type":"string"},"tags":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"attachedBy":{"type":"string","enum":["ai","human"]}},"required":["id","name","attachedBy"]}},"content":{"oneOf":[{"type":"object","properties":{"type":{"type":"string","enum":["link"]},"url":{"type":"string"},"title":{"type":"string","nullable":true},"description":{"type":"string","nullable":true},"imageUrl":{"type":"string","nullable":true},"imageAssetId":{"type":"string","nullable":true},"screenshotAssetId":{"type":"string","nullable":true},"pdfAssetId":{"type":"string","nullable":true},"fullPageArchiveAssetId":{"type":"string","nullable":true},"precrawledArchiveAssetId":{"type":"string","nullable":true},"videoAssetId":{"type":"string","nullable":true},"favicon":{"type":"string","nullable":true},"htmlContent":{"type":"string","nullable":true},"contentAssetId":{"type":"string","nullable":true},"crawledAt":{"type":"string","nullable":true},"crawlStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"author":{"type":"string","nullable":true},"publisher":{"type":"string","nullable":true},"datePublished":{"type":"string","nullable":true},"dateModified":{"type":"string","nullable":true}},"required":["type","url"]},{"type":"object","properties":{"type":{"type":"string","enum":["text"]},"text":{"type":"string"},"sourceUrl":{"type":"string","nullable":true}},"required":["type","text"]},{"type":"object","properties":{"type":{"type":"string","enum":["asset"]},"assetType":{"type":"string","enum":["image","pdf"]},"assetId":{"type":"string"},"fileName":{"type":"string","nullable":true},"sourceUrl":{"type":"string","nullable":true},"size":{"type":"number","nullable":true},"content":{"type":"string","nullable":true}},"required":["type","assetType","assetId"]},{"type":"object","properties":{"type":{"type":"string","enum":["unknown"]}},"required":["type"]}]},"assets":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"assetType":{"type":"string","enum":["linkHtmlContent","screenshot","pdf","assetScreenshot","bannerImage","fullPageArchive","video","bookmarkAsset","precrawledArchive","userUploaded","avatar","unknown"]},"fileName":{"type":"string","nullable":true}},"required":["id","assetType"]}}},"required":["id","createdAt","modifiedAt","archived","favourited","taggingStatus","summarizationStatus","userId","tags","content","assets"],"title":"Bookmark"}}}},"201":{"description":"The bookmark was created successfully.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"createdAt":{"type":"string"},"modifiedAt":{"type":"string","nullable":true},"title":{"type":"string","nullable":true},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"taggingStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"summarizationStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"note":{"type":"string","nullable":true},"summary":{"type":"string","nullable":true},"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"userId":{"type":"string"},"tags":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"attachedBy":{"type":"string","enum":["ai","human"]}},"required":["id","name","attachedBy"]}},"content":{"oneOf":[{"type":"object","properties":{"type":{"type":"string","enum":["link"]},"url":{"type":"string"},"title":{"type":"string","nullable":true},"description":{"type":"string","nullable":true},"imageUrl":{"type":"string","nullable":true},"imageAssetId":{"type":"string","nullable":true},"screenshotAssetId":{"type":"string","nullable":true},"pdfAssetId":{"type":"string","nullable":true},"fullPageArchiveAssetId":{"type":"string","nullable":true},"precrawledArchiveAssetId":{"type":"string","nullable":true},"videoAssetId":{"type":"string","nullable":true},"favicon":{"type":"string","nullable":true},"htmlContent":{"type":"string","nullable":true},"contentAssetId":{"type":"string","nullable":true},"crawledAt":{"type":"string","nullable":true},"crawlStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"author":{"type":"string","nullable":true},"publisher":{"type":"string","nullable":true},"datePublished":{"type":"string","nullable":true},"dateModified":{"type":"string","nullable":true}},"required":["type","url"]},{"type":"object","properties":{"type":{"type":"string","enum":["text"]},"text":{"type":"string"},"sourceUrl":{"type":"string","nullable":true}},"required":["type","text"]},{"type":"object","properties":{"type":{"type":"string","enum":["asset"]},"assetType":{"type":"string","enum":["image","pdf"]},"assetId":{"type":"string"},"fileName":{"type":"string","nullable":true},"sourceUrl":{"type":"string","nullable":true},"size":{"type":"number","nullable":true},"content":{"type":"string","nullable":true}},"required":["type","assetType","assetId"]},{"type":"object","properties":{"type":{"type":"string","enum":["unknown"]}},"required":["type"]}]},"assets":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"assetType":{"type":"string","enum":["linkHtmlContent","screenshot","pdf","assetScreenshot","bannerImage","fullPageArchive","video","bookmarkAsset","precrawledArchive","userUploaded","avatar","unknown"]},"fileName":{"type":"string","nullable":true}},"required":["id","assetType"]}}},"required":["id","createdAt","modifiedAt","archived","favourited","taggingStatus","summarizationStatus","userId","tags","content","assets"],"title":"Bookmark"}}}},"400":{"description":"Bad request — invalid input data.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
