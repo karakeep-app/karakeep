@@ -1,0 +1,32 @@
+{
+  "name": "@karakeep/evals",
+  "version": "0.1.0",
+  "description": "Automated evaluations for tagging prompts and models",
+  "private": true,
+  "scripts": {
+    "eval": "vitest run --config vitest.config.ts",
+    "eval:watch": "vitest --config vitest.config.ts",
+    "snapshot": "tsx src/snapshot.ts",
+    "compare": "tsx src/compare.ts",
+    "typecheck": "tsc --noEmit",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
+  },
+  "dependencies": {
+    "@karakeep/sdk": "workspace:^",
+    "@karakeep/shared": "workspace:^",
+    "dotenv": "^16.4.1",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@karakeep/tsconfig": "workspace:^",
+    "@types/node": "^24",
+    "tsx": "^4.8.1",
+    "typescript": "^5.9",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.4"
+  }
+}
