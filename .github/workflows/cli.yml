@@ -1,8 +1,7 @@
 name: Publish CLI Package to npm
+# Disabled in this fork to avoid conflicting with upstream @karakeep/cli on npm.
+# Trigger manually via workflow_dispatch if you publish your own package.
 on:
-  push:
-    tags:
-      - "cli/v[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
 
 permissions:

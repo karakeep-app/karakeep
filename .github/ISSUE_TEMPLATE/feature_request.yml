@@ -33,7 +33,7 @@ body:
     attributes:
       label: Have you searched for an existing open/closed issue?
       description: |
-        To help us keep these issues under control, please ensure you have first [searched our issue list](https://github.com/karakeep-app/karakeep/issues?q=is%3Aissue) for any existing issues that cover the fundamental benefit/goal of your request.
+        To help us keep these issues under control, please ensure you have first [searched our issue list](https://github.com/johnford2002/karakeep/issues?q=is%3Aissue) for any existing issues that cover the fundamental benefit/goal of your request.
       options:
         - label: I have searched for existing issues and none cover my fundamental request
           required: true

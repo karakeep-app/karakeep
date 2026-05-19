@@ -1,9 +1,8 @@
 name: iOS App Release Build
-
+# Disabled in this fork. The upstream workflow publishes a karakeep-branded build.
+# Trigger manually via workflow_dispatch if you intend to produce your own build.
 on:
-  push:
-    tags:
-      - 'ios/v[0-9]+.[0-9]+.[0-9]+-[0-9]+'
+  workflow_dispatch:
 
 jobs:
   build:
