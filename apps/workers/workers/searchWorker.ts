@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
-import { withWorkerTracing } from "workerTracing";
+import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZSearchIndexingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
 import { bookmarks } from "@karakeep/db/schema";
 import {
+  addLogFields,
   SearchIndexingQueue,
   zSearchIndexingRequestSchema,
 } from "@karakeep/shared-server";
@@ -26,7 +27,10 @@ export class SearchIndexingWorker {
       (await getQueueClient())!.createRunner<ZSearchIndexingRequest>(
         SearchIndexingQueue,
         {
-          run: withWorkerTracing("searchWorker.run", runSearchIndexing),
+          run: withWorkerTracing(
+            "searchWorker.run",
+            withWorkerEventLog("searchWorker.run", runSearchIndexing),
+          ),
           onComplete: (job) => {
             workerStatsCounter.labels("search", "completed").inc();
             const jobId = job.id;
@@ -114,6 +118,10 @@ async function runIndex(
     tags: bookmark.tagsOnBookmarks.map((t) => t.tag.name),
   };
 
+  addLogFields<"searchWorker.run">({
+    "search.document_size": Buffer.byteLength(JSON.stringify(document), "utf8"),
+  });
+
   await searchClient.addDocuments([document], { batch });
 }
 
@@ -144,6 +152,10 @@ async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
   }
 
   const bookmarkId = request.data.bookmarkId;
+  addLogFields<"searchWorker.run">({
+    "bookmark.id": bookmarkId,
+    "search.op": request.data.type,
+  });
   // Disable batching on retries (runNumber > 0) for improved reliability
   const batch = job.runNumber === 0;
 

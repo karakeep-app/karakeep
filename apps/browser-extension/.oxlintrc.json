@@ -23,9 +23,16 @@
     "**/*.config.js",
     "**/*.config.cjs",
     "**/.eslintrc.cjs",
-    ".next",
     "dist",
-    "build",
-    "pnpm-lock.yaml"
+    "dist-ssr",
+    "*.local",
+    "logs",
+    "*.log",
+    ".vscode/*",
+    "*.suo",
+    "*.ntvs*",
+    "*.njsproj",
+    "*.sln",
+    "*.sw?"
   ]
 }

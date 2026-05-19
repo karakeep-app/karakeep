@@ -11,9 +11,7 @@
     "**/*.config.js",
     "**/*.config.cjs",
     "**/.eslintrc.cjs",
-    "**/.next",
-    "**/dist",
-    "**/build",
-    "**/pnpm-lock.yaml"
+    "dist",
+    "build"
   ]
 }

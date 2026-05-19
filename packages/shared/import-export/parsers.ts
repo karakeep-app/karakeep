@@ -17,7 +17,9 @@ export type ImportSource =
   | "linkwarden"
   | "tab-session-manager"
   | "mymind"
-  | "instapaper";
+  | "readwise-reader"
+  | "instapaper"
+  | "onetab";
 
 export interface ParsedBookmark {
   title: string;
@@ -446,7 +448,7 @@ function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
     );
   }
 
-  return parsed.data.map((record) => {
+  return parsed.data.map((record): ParsedBookmark => {
     let content: ParsedBookmark["content"];
     if (record.URL && record.URL.trim().length > 0) {
       content = { type: BookmarkTypes.LINK as const, url: record.URL.trim() };
@@ -469,14 +471,144 @@ function parseInstapaperBookmarkFile(textContent: string): ParsedBookmark[] {
       tags = [];
     }
 
+    let archived = false;
+    const paths = [];
+    if (record.Folder === "Archive") {
+      archived = true;
+    } else if (record.Folder === "Unread") {
+      // This maps to home feed in instapaper, do nothing.
+    } else {
+      // Instapaper "Starred" should map to favorites in karakeep, but
+      // apparently instapaper export only includes on folder per bookmark
+      // so for now, we'll treat the "Starred" as a normal folder.
+      paths.push([record.Folder]);
+    }
+
+    return {
+      title: record.Title || "",
+      content,
+      addDate,
+      tags,
+      paths,
+      archived,
+    };
+  });
+}
+
+function parseReadwiseReaderBookmarkFile(
+  textContent: string,
+): ParsedBookmark[] {
+  const zReadwiseReaderRecordScheme = z.object({
+    Title: z.string(),
+    URL: z.string(),
+    ID: z.string(),
+    "Document tags": z.string(),
+    "Saved date": z.string(),
+    "Reading progress": z.string(),
+    Location: z.string(),
+    Seen: z.enum(["True", "False"]),
+  });
+
+  const zReadwiseReaderExportScheme = z.array(zReadwiseReaderRecordScheme);
+
+  const record = parse(textContent, {
+    columns: true,
+    skip_empty_lines: true,
+    cast: function (value, context) {
+      //Replace for json parsing; original comes with \' instead of \" so it's not json parsable.
+      if (context.column === "Document tags") {
+        return value
+          .replace(/\\'/g, "'")
+          .replace(/(^|\[|,)\s*'/g, '$1"')
+          .replace(/'\s*(]|,|$)/g, '"$1')
+          .replace(/""/g, '"');
+      }
+      return value;
+    },
+  });
+
+  const parsed = zReadwiseReaderExportScheme.safeParse(record);
+
+  if (!parsed.success) {
+    throw new Error(
+      `CSV file contains an invalid Readwise Reader bookmark file: ${parsed.error.toString()}`,
+    );
+  }
+
+  //Feed (RSS) articles are included automatically, so filter them. Only include actively added links.
+  const feedFilteredArticles = parsed.data.filter(
+    (record) => record.Location !== "feed",
+  );
+  const emptyFilteredArticles = feedFilteredArticles.filter(
+    (record) => record.URL && record.URL.trim().length > 0,
+  );
+
+  return emptyFilteredArticles.map((record) => {
+    let content: ParsedBookmark["content"] = {
+      type: BookmarkTypes.LINK as const,
+      url: record.URL.trim(),
+    };
+
+    const addDate = new Date(record["Saved date"]).getTime() / 1000;
+
+    let tags: string[] = [];
+    try {
+      const documentTags = record["Document tags"];
+      if (documentTags) {
+        const parsedTags = JSON.parse(documentTags);
+        if (Array.isArray(parsedTags)) {
+          tags = parsedTags.map((tag) => tag.toString().trim());
+        }
+      }
+    } catch {
+      tags = [];
+    }
+
     return {
       title: record.Title || "",
       content,
       addDate,
       tags,
       paths: [], // TODO
+      archived: record.Location === "archive",
     };
   });
+}
+
+function parseOneTabFile(textContent: string): ParsedBookmark[] {
+  const bookmarks: ParsedBookmark[] = [];
+
+  for (const line of textContent.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // OneTab format: "URL | Title" or just "URL"
+    const pipeIndex = trimmed.indexOf(" | ");
+    let url: string;
+    let title: string;
+
+    if (pipeIndex !== -1) {
+      url = trimmed.substring(0, pipeIndex).trim();
+      title = trimmed.substring(pipeIndex + 3).trim();
+    } else {
+      url = trimmed;
+      title = "";
+    }
+
+    // Skip lines that don't look like URLs (group headers, timestamps, etc.)
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      continue;
+    }
+
+    bookmarks.push({
+      title,
+      content: { type: BookmarkTypes.LINK as const, url },
+      tags: [],
+      paths: [],
+    });
+  }
+
+  return bookmarks;
 }
 
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
@@ -565,6 +697,12 @@ export function parseImportFile(
       break;
     case "instapaper":
       result = parseInstapaperBookmarkFile(textContent);
+      break;
+    case "readwise-reader":
+      result = parseReadwiseReaderBookmarkFile(textContent);
+      break;
+    case "onetab":
+      result = parseOneTabFile(textContent);
       break;
   }
   return { bookmarks: deduplicateBookmarks(result), lists: [] };

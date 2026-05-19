@@ -52,7 +52,8 @@
     "more": "もっと見る",
     "replace_banner": "バナーを置き換える",
     "add_banner": "バナーを追加",
-    "download": "ダウンロード"
+    "download": "ダウンロード",
+    "rename": "名前を変更"
   },
   "admin": {
     "actions": {
@@ -335,7 +336,9 @@
       "import_bookmarks_from_linkwarden_export": "Linkwardenのエクスポートからブックマークをインポート",
       "import_bookmarks_from_tab_session_manager_export": "Tab Session Managerからブックマークをインポート",
       "import_bookmarks_from_mymind_export": "mymind エクスポートからブックマークをインポート",
-      "import_bookmarks_from_instapaper_export": "Instapaperのエクスポートからブックマークをインポートする"
+      "import_bookmarks_from_instapaper_export": "Instapaperのエクスポートからブックマークをインポートする",
+      "import_bookmarks_from_readwise_reader_export": "Readwise Readerのエクスポートからブックマークをインポート",
+      "import_bookmarks_from_onetab_export": "OneTab エクスポートからブックマークをインポート"
     },
     "api_keys": {
       "key_success_please_copy": "キーをコピーして安全な場所に保管してください。ダイアログを閉じると、再度アクセスできなくなります。",
@@ -347,7 +350,97 @@
       "key_regenerated": "キーの再生成に成功しました",
       "key_regenerated_please_copy": "新しいキーをコピーして安全な場所に保管してください。古いキーは無効になり、機能しなくなります。",
       "regenerate_warning": "APIキー \"{{name}}\" を再生成してもよろしいですか？",
-      "regenerate_confirmation": "実行すると、現在のキーが無効になり、新しいキーが生成されます。現在のキーを使用しているアプリケーションは動作を停止します。"
+      "regenerate_confirmation": "実行すると、現在のキーが無効になり、新しいキーが生成されます。現在のキーを使用しているアプリケーションは動作を停止します。",
+      "scopes": {
+        "scopes": "スコープ",
+        "choose_at_least_one": "少なくとも1つのスコープを選択するか、フルアクセスを選択してください。",
+        "scope_details": "{{scope}} スコープの詳細",
+        "access": {
+          "none": "なし",
+          "read": "読み取り",
+          "readwrite": "読み取り/書き込み"
+        },
+        "full_access": {
+          "label": "フルアクセス",
+          "description": "サポートされているすべてのAPI操作にアクセスします。"
+        },
+        "limited_scopes": {
+          "label": "制限されたスコープ",
+          "description": "このキーがアクセスできるリソースタイプを選択してください。"
+        },
+        "resources": {
+          "assets": {
+            "label": "アセット",
+            "description": "ファイルやその他の保存されたブックマークコンテンツにアクセスします。"
+          },
+          "backups": {
+            "label": "バックアップ",
+            "description": "アカウントのバックアップを管理します。"
+          },
+          "bookmarks": {
+            "label": "ブックマーク",
+            "description": "ブックマークにアクセスして管理します。"
+          },
+          "feeds": {
+            "label": "フィード",
+            "description": "RSSフィードおよび関連するフィードデータを管理します。"
+          },
+          "highlights": {
+            "label": "ハイライト",
+            "description": "保存されたブックマークのハイライトを管理します。"
+          },
+          "lists": {
+            "label": "リスト",
+            "description": "リストおよびリストメンバーシップを管理します。"
+          },
+          "prompts": {
+            "label": "プロンプト",
+            "description": "保存されたAIプロンプト設定を管理します。"
+          },
+          "rules": {
+            "label": "ルール",
+            "description": "オートメーションルールにアクセスします。"
+          },
+          "tags": {
+            "label": "タグ",
+            "description": "タグにアクセスして修正します。"
+          },
+          "users": {
+            "label": "ユーザーアカウント",
+            "description": "アカウントのプロフィールと設定にアクセスします。"
+          },
+          "webhooks": {
+            "label": "Webhook",
+            "description": "Webhookの設定にアクセスします。"
+          },
+          "subscriptions": {
+            "label": "サブスクリプション",
+            "description": "サブスクリプション管理にアクセスします。"
+          },
+          "importSessions": {
+            "label": "インポートセッション",
+            "description": "インポートセッションにアクセスします。"
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "管理者：ブックマーク",
+            "description": "管理者用ブックマークツールにアクセスします。"
+          },
+          "jobs": {
+            "label": "管理者：ジョブ",
+            "description": "バックグラウンドジョブの制御にアクセスします。"
+          },
+          "system": {
+            "label": "管理者: システム",
+            "description": "システムステータスおよび診断にアクセスします。"
+          },
+          "users": {
+            "label": "管理者: ユーザー",
+            "description": "管理者用ユーザー管理にアクセスします。"
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "リンク切れ",
@@ -420,7 +513,8 @@
         "or": "次のいずれかが当てはまる場合",
         "url_does_not_contain": "URL に含まれていない",
         "title_contains": "タイトルに含む",
-        "title_does_not_contain": "タイトルに含まない"
+        "title_does_not_contain": "タイトルに含まない",
+        "bookmark_source_is": "ブックマークのソース:"
       },
       "actions_types": {
         "add_tag": "タグを追加",
@@ -514,7 +608,17 @@
       "approaching_quota_limit": "クォータ制限に近づいています",
       "loading_usage": "使用状況情報を読み込み中...",
       "free": "無料",
-      "paid": "有料"
+      "paid": "有料",
+      "monthly": "月額",
+      "yearly": "年額",
+      "per_month": "月",
+      "per_year": "年",
+      "excl_vat": "税抜",
+      "yearly_savings": "{{percent}}%お得",
+      "pro_feature_bookmarks": "50,000ブックマーク",
+      "pro_feature_storage": "50GBのストレージ",
+      "pro_feature_ai_tagging": "AIによるタグ付け",
+      "pro_feature_full_text_search": "全文検索"
     },
     "import_sessions": {
       "title": "インポートセッション",
@@ -570,7 +674,10 @@
         "view_bookmark": "ブックマークを見る",
         "load_more": "もっと読み込む",
         "no_title": "タイトルなし"
-      }
+      },
+      "finalize_dialog_title": "インポートセッションを完了する",
+      "finalize_dialog_description": "「{{name}}」をバックグラウンド処理のキューに追加しますか？ステージングされたブックマークのインポートが開始されます。",
+      "finalize_staging": "完了"
     },
     "backups": {
       "backups": "バックアップ",
@@ -758,7 +865,18 @@
       "failed_to_accept": "招待の承諾に失敗しました",
       "failed_to_decline": "招待の辞退に失敗しました"
     },
-    "shared_lists": "共有リスト"
+    "shared_lists": "共有リスト",
+    "privacy": {
+      "public": "公開",
+      "shared": "共有済み",
+      "private": "非公開"
+    },
+    "summary_list_one": "{{count}} リスト",
+    "summary_list_other": "{{count}} リスト",
+    "summary_bookmark_one": "{{count}} ブックマーク",
+    "summary_bookmark_other": "{{count}} ブックマーク",
+    "items_count_one": "{{count}} 個のアイテム",
+    "items_count_other": "{{count}} 個のアイテム"
   },
   "options": {
     "dark_mode": "ダークモード",
@@ -791,7 +909,11 @@
     "no_unused_tags_match_your_search": "検索に一致する未使用のタグはありません",
     "no_tags_match_your_search": "検索に一致するタグはありません",
     "search_placeholder": "タグを検索...",
-    "search_or_create_placeholder": "タグを検索または作成..."
+    "search_or_create_placeholder": "タグを検索または作成...",
+    "rename_tag": "タグ名を変更",
+    "items_count": "{{count}} 個のアイテム",
+    "attached_by_you": "作成者: あなた ({{count}})",
+    "attached_by_ai": "作成者: AI ({{count}})"
   },
   "search": {
     "created_on_or_after": "作成日以降",
@@ -943,7 +1065,9 @@
     },
     "tags": {
       "created": "タグが作成されました！",
-      "failed_to_create": "タグの作成に失敗しました"
+      "failed_to_create": "タグの作成に失敗しました",
+      "updated": "タグが更新されました！",
+      "failed_to_update": "タグの更新に失敗しました"
     }
   },
   "cleanups": {

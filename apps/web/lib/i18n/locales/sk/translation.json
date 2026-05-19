@@ -98,7 +98,8 @@
     "more": "Viac",
     "replace_banner": "Nahraď banner",
     "add_banner": "Pridaj banner",
-    "download": "Sťahovanie"
+    "download": "Sťahovanie",
+    "rename": "Premenovať"
   },
   "lists": {
     "favourites": "Obľúbené",
@@ -184,7 +185,18 @@
       "failed_to_accept": "Nepodarilo sa prijať pozvánku",
       "failed_to_decline": "Nepodarilo sa odmietnuť pozvánku"
     },
-    "shared_lists": "Zdieľané zoznamy"
+    "shared_lists": "Zdieľané zoznamy",
+    "privacy": {
+      "public": "Verejné",
+      "shared": "Zdieľané",
+      "private": "Súkromné"
+    },
+    "summary_list_one": "{{count}} Zoznamy",
+    "summary_list_other": "{{count}} Zoznamy",
+    "summary_bookmark_one": "{{count}} Záložky",
+    "summary_bookmark_other": "{{count}} Záložky",
+    "items_count_one": "{{count}} položiek",
+    "items_count_other": "{{count}} položiek"
   },
   "settings": {
     "import": {
@@ -200,7 +212,9 @@
       "import_export": "Importovať / exportovať",
       "import_bookmarks_from_tab_session_manager_export": "Importovať záložky zo správcu relácií kariet",
       "import_bookmarks_from_mymind_export": "Importovať záložky z mymind exportu",
-      "import_bookmarks_from_instapaper_export": "Importovať záložky z exportu Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importovať záložky z exportu Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importovať záložky z exportu Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importovať záložky z exportu OneTab"
     },
     "back_to_app": "Naspäť do aplikácie",
     "user_settings": "Používateľské nastavenia",
@@ -330,7 +344,97 @@
       "key_regenerated": "Kľúč bol úspešne obnovený",
       "key_regenerated_please_copy": "Prosím, skopíruj si nový kľúč a ulož ho na bezpečné miesto. Starý kľúč bol zrušený a už nebude fungovať.",
       "regenerate_warning": "Si si istý, že chceš obnoviť API kľúč „{{name}}“?",
-      "regenerate_confirmation": "Toto zruší aktuálny kľúč a vygeneruje nový. Všetky aplikácie, ktoré používajú aktuálny kľúč, prestanú fungovať."
+      "regenerate_confirmation": "Toto zruší aktuálny kľúč a vygeneruje nový. Všetky aplikácie, ktoré používajú aktuálny kľúč, prestanú fungovať.",
+      "scopes": {
+        "scopes": "Rozsahy",
+        "choose_at_least_one": "Vyberte aspoň jeden rozsah alebo zvoľte úplny prístup.",
+        "scope_details": "Podrobnosti rozsahu {{scope}}",
+        "access": {
+          "none": "Žiadne",
+          "read": "Čítanie",
+          "readwrite": "Čítanie/zápis"
+        },
+        "full_access": {
+          "label": "Úplny prístup",
+          "description": "Prístup ku všetkým podporovaným operáciám API."
+        },
+        "limited_scopes": {
+          "label": "Obmedzené rozsahy",
+          "description": "Vyberte typy zdrojov, ku ktorým má tento kľúč prístup."
+        },
+        "resources": {
+          "assets": {
+            "label": "Aktíva",
+            "description": "Prístup k súborom a ďalšiemu uloženému obsahu záložiek."
+          },
+          "backups": {
+            "label": "Zálohy",
+            "description": "Spravovať zálohy účtu."
+          },
+          "bookmarks": {
+            "label": "Záložky",
+            "description": "Prístup a správa záložiek."
+          },
+          "feeds": {
+            "label": "Informačné kanály",
+            "description": "Spravovať RSS kanály a súvisiace újaje kanálov."
+          },
+          "highlights": {
+            "label": "Zvýraznenia",
+            "description": "Spravovať uložené zvýraznenia záložiek."
+          },
+          "lists": {
+            "label": "Zoznamy",
+            "description": "Spravujte zoznamy a členstvo v zoznamoch."
+          },
+          "prompts": {
+            "label": "Výzvy",
+            "description": "Spravujte uloženú konfiguráciu AI výziev."
+          },
+          "rules": {
+            "label": "Pravidlá",
+            "description": "Prístup k pravidlám automatizácie."
+          },
+          "tags": {
+            "label": "Značky",
+            "description": "Pristupujte k značkam a upravujte ich."
+          },
+          "users": {
+            "label": "Používateľský účet",
+            "description": "Prístup k profilu a nastaveniam účtu."
+          },
+          "webhooks": {
+            "label": "Webhooky",
+            "description": "Prístup ku konfigurácii webhookov."
+          },
+          "subscriptions": {
+            "label": "Predplatné",
+            "description": "Prístup k správe predplatného."
+          },
+          "importSessions": {
+            "label": "Importovacie relácie",
+            "description": "Prístup k importovacím reláciám."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: záložky",
+            "description": "Prístup k nástrojom administratívnych záložiek."
+          },
+          "jobs": {
+            "label": "Admin: úlohy",
+            "description": "Prístup k ovládacím prvkom úloh na pozadí."
+          },
+          "system": {
+            "label": "Admin: systém",
+            "description": "Prístup k stavu systému a diagnostike."
+          },
+          "users": {
+            "label": "Admin: používatelia",
+            "description": "Prístup k administratívnej správe používateľov."
+          }
+        }
+      }
     },
     "manage_assets": {
       "asset_link": "Odkaz na majetok",
@@ -369,7 +473,8 @@
         "bookmark_type_is": "Typ záložky je",
         "url_does_not_contain": "URL Neobsahuje",
         "title_contains": "Názov obsahuje",
-        "title_does_not_contain": "Názov neobsahuje"
+        "title_does_not_contain": "Názov neobsahuje",
+        "bookmark_source_is": "Zdroj záložky je"
       },
       "actions_types": {
         "add_tag": "Pridať štítok",
@@ -477,7 +582,17 @@
       "approaching_quota_limit": "Blíži sa limit kvóty",
       "loading_usage": "Načítavajú sa informácie o využití...",
       "free": "Zadarmo",
-      "paid": "Platené"
+      "paid": "Platené",
+      "monthly": "Mesačne",
+      "yearly": "Ročne",
+      "per_month": "mesiac",
+      "per_year": "rok",
+      "excl_vat": "bez DPH",
+      "yearly_savings": "Ušetrite {{percent}}%",
+      "pro_feature_bookmarks": "50 000 záložiek",
+      "pro_feature_storage": "50 GB úložisko",
+      "pro_feature_ai_tagging": "Tagovanie pomocou AI",
+      "pro_feature_full_text_search": "Fulltextové vyhľadávanie"
     },
     "import_sessions": {
       "title": "Importovať relácie",
@@ -533,7 +648,10 @@
         "view_bookmark": "Zobraziť záložku",
         "load_more": "Načítať viac",
         "no_title": "Bez názvu"
-      }
+      },
+      "finalize_dialog_title": "Dokončiť reláciu importu",
+      "finalize_dialog_description": "Zaradiť „{{name}}“ do frontu na spracovanie na pozadí? Pripravené záložky sa začnú importovať.",
+      "finalize_staging": "Finalizovať"
     },
     "backups": {
       "backups": "Zálohy",
@@ -840,7 +958,11 @@
     "no_unused_tags_match_your_search": "Žiadne nepoužité štítky nezodpovedajú tvojmu vyhľadávaniu",
     "no_tags_match_your_search": "Žiadne štítky nezodpovedajú tvojmu vyhľadávaniu",
     "search_placeholder": "Hľadať štítky…",
-    "search_or_create_placeholder": "Hľadať alebo vytvoriť štítky…"
+    "search_or_create_placeholder": "Hľadať alebo vytvoriť štítky…",
+    "rename_tag": "Premenovať značku",
+    "items_count": "{{count}} položiek",
+    "attached_by_you": "{{count}} od vás",
+    "attached_by_ai": "{{count}} od AI"
   },
   "editor": {
     "quickly_focus": "Na rýchle presunutie na toto pole môžeš použiť skratku CTRL + E",
@@ -937,7 +1059,9 @@
     },
     "tags": {
       "created": "Značka bola vytvorená!",
-      "failed_to_create": "Nepodarilo sa vytvoriť značku"
+      "failed_to_create": "Nepodarilo sa vytvoriť značku",
+      "updated": "Značka bola aktualizovaná!",
+      "failed_to_update": "Značku sa nepodarilo aktualizovať"
     }
   },
   "cleanups": {

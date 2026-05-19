@@ -98,7 +98,8 @@
     "more": "Більше",
     "replace_banner": "Замінити банер",
     "add_banner": "Додати банер",
-    "download": "Завантажити"
+    "download": "Завантажити",
+    "rename": "Перейменувати"
   },
   "settings": {
     "webhooks": {
@@ -238,7 +239,9 @@
       "imported_bookmarks": "Імпортовані закладки",
       "import_bookmarks_from_tab_session_manager_export": "Імпортувати закладки з Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Імпортувати закладки з експорту mymind",
-      "import_bookmarks_from_instapaper_export": "Імпортувати закладки з експорту Instapaper"
+      "import_bookmarks_from_instapaper_export": "Імпортувати закладки з експорту Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Імпортувати закладки з експорту Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Імпортувати закладки з експорту OneTab"
     },
     "api_keys": {
       "api_keys": "Ключі API",
@@ -250,7 +253,97 @@
       "key_regenerated": "Ключ успішно відновлено",
       "key_regenerated_please_copy": "Будь ласка, скопіюйте новий ключ і збережіть його десь у безпечному місці. Старий ключ було відкликано, і він більше не працюватиме.",
       "regenerate_warning": "Ви впевнені, що хочете відновити ключ API \"{{name}}\"?",
-      "regenerate_confirmation": "Це призведе до скасування поточного ключа та створення нового. Будь-які програми, які використовують поточний ключ, перестануть працювати."
+      "regenerate_confirmation": "Це призведе до скасування поточного ключа та створення нового. Будь-які програми, які використовують поточний ключ, перестануть працювати.",
+      "scopes": {
+        "scopes": "Області доступу",
+        "choose_at_least_one": "Виберіть принаймні одну область доступу або виберіть повний доступ.",
+        "scope_details": "Деталі області доступу {{scope}}",
+        "access": {
+          "none": "Немає",
+          "read": "Читання",
+          "readwrite": "Читання/запис"
+        },
+        "full_access": {
+          "label": "Повний доступ",
+          "description": "Доступ до всіх підтримуваних операцій API."
+        },
+        "limited_scopes": {
+          "label": "Обмежені області доступу",
+          "description": "Виберіть типи ресурсів, до яких цей ключ може мати доступ."
+        },
+        "resources": {
+          "assets": {
+            "label": "Активи",
+            "description": "Доступ до файлів та іншого збереженого вмісту закладок."
+          },
+          "backups": {
+            "label": "Резервні копії",
+            "description": "Керування резервними копіями облікового запису."
+          },
+          "bookmarks": {
+            "label": "Закладки",
+            "description": "Доступ до закладок та керування ними."
+          },
+          "feeds": {
+            "label": "Стрічки",
+            "description": "Керування RSS-стрічками та відповідними даними стрічок."
+          },
+          "highlights": {
+            "label": "Виділення",
+            "description": "Керування збереженими виділеннями в закладках."
+          },
+          "lists": {
+            "label": "Списки",
+            "description": "Керування списками та членством у них."
+          },
+          "prompts": {
+            "label": "Промпти",
+            "description": "Керування збереженою конфігурацією AI-промптів."
+          },
+          "rules": {
+            "label": "Правила",
+            "description": "Доступ до правил автоматизації."
+          },
+          "tags": {
+            "label": "Теги",
+            "description": "Доступ та зміна тегів."
+          },
+          "users": {
+            "label": "Обліковий запис користувача",
+            "description": "Доступ до профілю та налаштувань облікового запису."
+          },
+          "webhooks": {
+            "label": "Вебхуки",
+            "description": "Доступ до конфігурації вебхуків."
+          },
+          "subscriptions": {
+            "label": "Підписки",
+            "description": "Доступ до керування підписками."
+          },
+          "importSessions": {
+            "label": "Сесії імпорту",
+            "description": "Доступ до сесій імпорту."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Адміністрування: закладки",
+            "description": "Доступ до адміністративних інструментів для закладок."
+          },
+          "jobs": {
+            "label": "Адміністрування: завдання",
+            "description": "Доступ до керування фоновими завданнями."
+          },
+          "system": {
+            "label": "Адміністратор: система",
+            "description": "Доступ до стану системи та діагностики."
+          },
+          "users": {
+            "label": "Адміністратор: користувачі",
+            "description": "Доступ до адміністративного управління користувачами."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Неробочі посилання",
@@ -280,7 +373,8 @@
         "or": "Будь-яке з наступного є правдою",
         "url_does_not_contain": "URL не містить",
         "title_contains": "Назва містить",
-        "title_does_not_contain": "Назва не містить"
+        "title_does_not_contain": "Назва не містить",
+        "bookmark_source_is": "Джерело закладки:"
       },
       "enter_rule_name": "Введіть назву правила",
       "rules": "Механізм правил",
@@ -391,7 +485,17 @@
       "approaching_quota_limit": "Наближаємось до ліміту квоти",
       "loading_usage": "Завантаження інформації про використання...",
       "free": "Безкоштовно",
-      "paid": "Платний"
+      "paid": "Платний",
+      "monthly": "Щомісяця",
+      "yearly": "Щорічно",
+      "per_month": "місяць",
+      "per_year": "рік",
+      "excl_vat": "без ПДВ",
+      "yearly_savings": "Заощаджуйте {{percent}}%",
+      "pro_feature_bookmarks": "50 000 закладок",
+      "pro_feature_storage": "50 ГБ пам'яті",
+      "pro_feature_ai_tagging": "Тегування за допомогою ШІ",
+      "pro_feature_full_text_search": "Повнотекстовий пошук"
     },
     "import_sessions": {
       "title": "Імпорт сеансів",
@@ -447,7 +551,10 @@
         "view_bookmark": "Переглянути закладку",
         "load_more": "Завантажити ще",
         "no_title": "Без назви"
-      }
+      },
+      "finalize_dialog_title": "Завершити сеанс імпорту",
+      "finalize_dialog_description": "Поставити «{{name}}» у чергу для фонової обробки? Підготовлені закладки почнуть імпортуватися.",
+      "finalize_staging": "Завершити"
     },
     "backups": {
       "backups": "Резервні копії",
@@ -826,7 +933,18 @@
       "failed_to_accept": "Не вдалося прийняти запрошення",
       "failed_to_decline": "Не вдалося відхилити запрошення"
     },
-    "shared_lists": "Спільні списки"
+    "shared_lists": "Спільні списки",
+    "privacy": {
+      "public": "Публічний",
+      "shared": "Спільний",
+      "private": "Приватний"
+    },
+    "summary_list_one": "{{count}} Списки",
+    "summary_list_other": "{{count}} Списки",
+    "summary_bookmark_one": "{{count}} Закладки",
+    "summary_bookmark_other": "{{count}} Закладки",
+    "items_count_one": "{{count}} елементів",
+    "items_count_other": "{{count}} елементів"
   },
   "tags": {
     "your_tags": "Ваші теги",
@@ -852,7 +970,11 @@
     "no_unused_tags_match_your_search": "Жоден з невикористаних теґів не відповідає вашому пошуку",
     "no_tags_match_your_search": "Жоден теґ не відповідає вашому пошуку",
     "search_placeholder": "Пошук тегів...",
-    "search_or_create_placeholder": "Шукайте або створюйте теги..."
+    "search_or_create_placeholder": "Шукайте або створюйте теги...",
+    "rename_tag": "Перейменувати тег",
+    "items_count": "{{count}} елементів",
+    "attached_by_you": "{{count}} від вас",
+    "attached_by_ai": "{{count}} від AI"
   },
   "editor": {
     "multiple_urls_dialog_title": "Імпортувати URL-адреси як окремі закладки?",
@@ -946,7 +1068,9 @@
     },
     "tags": {
       "created": "Тег створено!",
-      "failed_to_create": "Не вдалося створити тег"
+      "failed_to_create": "Не вдалося створити тег",
+      "updated": "Тег оновлено!",
+      "failed_to_update": "Не вдалося оновити тег"
     }
   },
   "cleanups": {

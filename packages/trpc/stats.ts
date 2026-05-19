@@ -2,7 +2,7 @@ import { count, sum } from "drizzle-orm";
 import { Counter, Gauge, Histogram, register } from "prom-client";
 
 import { db } from "@karakeep/db";
-import { assets, bookmarks, users } from "@karakeep/db/schema";
+import { assets, bookmarks, subscriptions, users } from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
@@ -16,6 +16,7 @@ import {
   VideoWorkerQueue,
   WebhookQueue,
 } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
 
 // Queue metrics
 const queuePendingJobsGauge = new Gauge({
@@ -74,6 +75,35 @@ const totalUsersGauge = new Gauge({
     }
   },
 });
+
+const subscriptionStatusGauge = serverConfig.stripe.isConfigured
+  ? new Gauge({
+      name: "karakeep_subscription_status",
+      help: "Total number of subscriptions per status",
+      labelNames: ["status", "tier"],
+      async collect() {
+        this.reset();
+        try {
+          const results = await db
+            .select({
+              status: subscriptions.status,
+              tier: subscriptions.tier,
+              count: count(),
+            })
+            .from(subscriptions)
+            .groupBy(subscriptions.status, subscriptions.tier);
+          for (const result of results) {
+            this.set(
+              { status: result.status, tier: result.tier },
+              result.count,
+            );
+          }
+        } catch (error) {
+          console.error("Failed to get subscription status:", error);
+        }
+      },
+    })
+  : null;
 
 // Asset metrics
 const totalAssetSizeGauge = new Gauge({
@@ -139,6 +169,9 @@ const apiRequestDurationSummary = new Histogram({
 // Register all metrics
 register.registerMetric(queuePendingJobsGauge);
 register.registerMetric(totalUsersGauge);
+if (subscriptionStatusGauge) {
+  register.registerMetric(subscriptionStatusGauge);
+}
 register.registerMetric(totalAssetSizeGauge);
 register.registerMetric(totalBookmarksGauge);
 register.registerMetric(bookmarkCreationCounter);

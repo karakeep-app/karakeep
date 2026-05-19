@@ -104,7 +104,8 @@
     "more": "بیشتر",
     "replace_banner": "جایگزینی بنر",
     "add_banner": "اضافه کردن بنر",
-    "download": "دانلود"
+    "download": "دانلود",
+    "rename": "تغییر نام"
   },
   "settings": {
     "stats": {
@@ -298,7 +299,9 @@
       "import_bookmarks_from_karakeep_export": "درون‌ریزی نشانک‌ها از خروجی Karakeep",
       "imported_bookmarks": "نشانک‌های درون‌ریزی‌شده",
       "import_bookmarks_from_mymind_export": "درون‌ریزی نشانک‌ها از خروجی mymind",
-      "import_bookmarks_from_instapaper_export": "درون‌ریزی نشانک‌ها از خروجی Instapaper"
+      "import_bookmarks_from_instapaper_export": "درون‌ریزی نشانک‌ها از خروجی Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "وارد کردن نشانک‌ها از خروجی Readwise Reader",
+      "import_bookmarks_from_onetab_export": "وارد کردن نشانک‌ها از خروجی OneTab"
     },
     "api_keys": {
       "new_api_key": "کلید API جدید",
@@ -310,7 +313,97 @@
       "key_success": "کلید با موفقیت ایجاد شد",
       "key_success_please_copy": "لطفاً کلید را کپی کرده و در جایی امن نگه‌داری کنید. پس از بستن این پنجره دیگر به آن دسترسی نخواهید داشت.",
       "regenerate_warning": "آیا برای تولید مجدد کلید API «{{name}}» مطمئن هستید؟",
-      "regenerate_confirmation": "با این کار کلید فعلی لغو و کلید جدیدی تولید می‌شود. تمام برنامه‌هایی که از کلید فعلی استفاده می‌کنند از کار می‌افتند."
+      "regenerate_confirmation": "با این کار کلید فعلی لغو و کلید جدیدی تولید می‌شود. تمام برنامه‌هایی که از کلید فعلی استفاده می‌کنند از کار می‌افتند.",
+      "scopes": {
+        "scopes": "محدوده‌ها",
+        "choose_at_least_one": "حداقل یک محدوده را انتخاب کنید یا دسترسی کامل را برگزینید.",
+        "scope_details": "جزئیات محدوده {{scope}}",
+        "access": {
+          "none": "هیچ‌کدام",
+          "read": "خواندن",
+          "readwrite": "خواندن/نوشتن"
+        },
+        "full_access": {
+          "label": "دسترسی کامل",
+          "description": "دسترسی به تمام عملیات‌های پشتیبانی شده API."
+        },
+        "limited_scopes": {
+          "label": "محدوده‌های محدود شده",
+          "description": "انواع منابعی را که این کلید می‌تواند به آن‌ها دسترسی داشته باشد، انتخاب کنید."
+        },
+        "resources": {
+          "assets": {
+            "label": "دارایی‌ها",
+            "description": "دسترسی به فایل‌ها و سایر محتواهای ذخیره شده نشانک."
+          },
+          "backups": {
+            "label": "نسخه‌های پشتیبان",
+            "description": "مدیریت نسخه‌های پشتیبان حساب کاربری."
+          },
+          "bookmarks": {
+            "label": "نشانک‌ها",
+            "description": "دسترسی و مدیریت نشانک‌ها."
+          },
+          "feeds": {
+            "label": "فیدها",
+            "description": "مدیریت فیدهای RSS و داده‌های مرتبط با فید."
+          },
+          "highlights": {
+            "label": "هایلایت‌ها",
+            "description": "مدیریت هایلایت‌های ذخیره شده نشانک."
+          },
+          "lists": {
+            "label": "لیست‌ها",
+            "description": "مدیریت لیست‌ها و عضویت در لیست."
+          },
+          "prompts": {
+            "label": "پرامپت‌ها",
+            "description": "مدیریت پیکربندی ذخیره‌شده پرامپت هوش مصنوعی."
+          },
+          "rules": {
+            "label": "قوانین",
+            "description": "دسترسی به قوانین اتوماسیون."
+          },
+          "tags": {
+            "label": "تگ‌ها",
+            "description": "دسترسی و اصلاح تگ‌ها."
+          },
+          "users": {
+            "label": "حساب کاربری",
+            "description": "دسترسی به پروفایل و تنظیمات حساب کاربری."
+          },
+          "webhooks": {
+            "label": "وبهوک‌ها",
+            "description": "دسترسی به پیکربندی وبهوک."
+          },
+          "subscriptions": {
+            "label": "اشتراک‌ها",
+            "description": "دسترسی به مدیریت اشتراک."
+          },
+          "importSessions": {
+            "label": "جلسات درون‌ریزی",
+            "description": "دسترسی به جلسات درون‌ریزی."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "مدیر: نشانک‌ها",
+            "description": "دسترسی به ابزارهای مدیریتی نشانک‌ها."
+          },
+          "jobs": {
+            "label": "مدیر: وظایف",
+            "description": "دسترسی به کنترل‌های وظایف پس‌زمینه."
+          },
+          "system": {
+            "label": "مدیریت: سیستم",
+            "description": "دسترسی به وضعیت سیستم و عیب‌یابی."
+          },
+          "users": {
+            "label": "مدیریت: کاربران",
+            "description": "دسترسی به مدیریت کاربران اداری."
+          }
+        }
+      }
     },
     "broken_links": {
       "crawling_status": "وضعیت خزیدن",
@@ -351,7 +444,8 @@
         "or": "هر یک از موارد زیر برقرار باشد",
         "url_does_not_contain": "آدرس اینترنتی شامل نمی‌شود",
         "title_contains": "عنوان شامل شود",
-        "title_does_not_contain": "عنوان شامل نشود"
+        "title_does_not_contain": "عنوان شامل نشود",
+        "bookmark_source_is": "منبع نشانک است"
       },
       "describe_what_this_rule_does": "توضیح دهید این قاعده چه می‌کند",
       "rule_has_been_deleted": "قاعده حذف شد!",
@@ -397,7 +491,17 @@
       "approaching_quota_limit": "نزدیک به سقف سهمیه",
       "loading_usage": "در حال بارگذاری اطلاعات مصرف…",
       "free": "رایگان",
-      "paid": "پرداخت شده"
+      "paid": "پرداخت شده",
+      "monthly": "ماهانه",
+      "yearly": "سالانه",
+      "per_month": "ماه",
+      "per_year": "سال",
+      "excl_vat": "بدون احتساب مالیات بر ارزش افزوده",
+      "yearly_savings": "ذخیره {{percent}}٪",
+      "pro_feature_bookmarks": "۵۰,۰۰۰ نشانک",
+      "pro_feature_storage": "۵۰ گیگابایت فضای ذخیره‌سازی",
+      "pro_feature_ai_tagging": "برچسب‌گذاری مبتنی بر هوش مصنوعی",
+      "pro_feature_full_text_search": "جستجوی تمام‌متن"
     },
     "import_sessions": {
       "title": "جلسات درون‌ریزی",
@@ -453,7 +557,10 @@
         "view_bookmark": "مشاهدهٔ نشانک",
         "load_more": "بارگذاری بیشتر",
         "no_title": "بدون عنوان"
-      }
+      },
+      "finalize_dialog_title": "نهایی‌سازی نشست واردات",
+      "finalize_dialog_description": "صف‌بندی «{{name}}» برای پردازش پس‌زمینه؟ وارد کردن نشانک‌های آماده‌سازی شده آغاز خواهد شد.",
+      "finalize_staging": "نهایی‌سازی"
     },
     "backups": {
       "backups": "پشتیبان‌گیری‌ها",
@@ -744,7 +851,18 @@
       "failed_to_accept": "پذیرش دعوت ناموفق بود",
       "failed_to_decline": "رد کردن دعوت ناموفق بود"
     },
-    "shared_lists": "فهرست‌های مشترک"
+    "shared_lists": "فهرست‌های مشترک",
+    "privacy": {
+      "public": "عمومی",
+      "shared": "اشتراک‌گذاری شده",
+      "private": "خصوصی"
+    },
+    "summary_list_one": "{{count}} فهرست‌ها",
+    "summary_list_other": "{{count}} فهرست‌ها",
+    "summary_bookmark_one": "{{count}} نشانک‌ها",
+    "summary_bookmark_other": "{{count}} نشانک‌ها",
+    "items_count_one": "{{count}} مورد",
+    "items_count_other": "{{count}} مورد"
   },
   "tags": {
     "all_tags": "همهٔ برچسب‌ها",
@@ -770,7 +888,11 @@
     "no_unused_tags_match_your_search": "هیچ برچسب استفاده نشده ای با جستجوی شما مطابقت ندارد",
     "no_tags_match_your_search": "هیچ برچسبی با جستجوی شما مطابقت ندارد",
     "search_placeholder": "جستجوی برچسب‌ها...",
-    "search_or_create_placeholder": "جستجو یا ایجاد برچسب‌ها..."
+    "search_or_create_placeholder": "جستجو یا ایجاد برچسب‌ها...",
+    "rename_tag": "تغییر نام برچسب",
+    "items_count": "{{count}} مورد",
+    "attached_by_you": "{{count}} توسط شما",
+    "attached_by_ai": "{{count}} توسط هوش مصنوعی"
   },
   "search": {
     "is_favorited": "در علاقه‌مندی‌ها است",
@@ -922,7 +1044,9 @@
     },
     "tags": {
       "created": "برچسب ایجاد شد!",
-      "failed_to_create": "ایجاد برچسب با مشکل مواجه شد"
+      "failed_to_create": "ایجاد برچسب با مشکل مواجه شد",
+      "updated": "برچسب به‌روزرسانی شد!",
+      "failed_to_update": "خطا در به‌روزرسانی برچسب"
     }
   },
   "banners": {

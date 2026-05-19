@@ -31,24 +31,11 @@
   "printWidth": 80,
   "sortPackageJson": false,
   "ignorePatterns": [
-    ".next",
-    "build",
-    "coverage",
-    ".vscode*",
-    "node_modules",
-    "dist",
     "*.md",
     "*.json",
-    ".env",
-    ".env.*",
     "**/migrations/**",
     "packages/open-api/karakeep-openapi-spec.json",
-    "apps/web/public/workbox-*.js",
-    "pnpm-lock.yaml",
     "package-lock.json",
-    "yarn.lock",
-    "**/.expo/**",
-    "apps/mobile/android",
-    "apps/mobile/ios"
+    "yarn.lock"
   ]
 }

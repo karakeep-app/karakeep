@@ -10,22 +10,35 @@ export default async function ListsPage() {
   // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
   const lists = await api.lists.list();
+  const stats = await api.users.stats();
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-2xl">📋 {t("lists.all_lists")}</p>
-        <EditListModal>
-          <Button className="flex items-center">
-            <Plus className="mr-2 size-4" />
-            <span>{t("lists.new_list")}</span>
-          </Button>
-        </EditListModal>
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl tracking-normal text-foreground">
+            📋 {t("lists.all_lists")}
+          </h1>
+          <p className="text-md text-muted-foreground">
+            {t("lists.summary_list", { count: lists.lists.length })} ·{" "}
+            {t("lists.summary_bookmark", { count: stats.numBookmarks })}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <EditListModal>
+            <Button className="h-11 gap-2 rounded-lg">
+              <Plus className="size-4" />
+              <span>{t("lists.new_list")}</span>
+            </Button>
+          </EditListModal>
+        </div>
       </div>
       <PendingInvitationsCard />
-      <div className="flex flex-col gap-3 rounded-md border bg-background p-4">
-        <AllListsView initialData={lists.lists} />
-      </div>
+      <AllListsView
+        archivedCount={stats.numArchived}
+        favoritesCount={stats.numFavorites}
+        initialData={lists.lists}
+      />
     </div>
   );
 }

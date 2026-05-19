@@ -104,7 +104,8 @@
     "more": "المزيد",
     "replace_banner": "استبدال البانر",
     "add_banner": "إضافة بانر",
-    "download": "تنزيل"
+    "download": "تنزيل",
+    "rename": "تغيير الاسم"
   },
   "highlights": {
     "no_highlights": "ليس لديك أي تمييزات بعد."
@@ -247,7 +248,9 @@
       "imported_bookmarks": "الإشارات المرجعية المستوردة",
       "import_bookmarks_from_tab_session_manager_export": "استيراد الإشارات المرجعية من مدير جلسة علامات التبويب",
       "import_bookmarks_from_mymind_export": "استيراد الإشارات المرجعية من تصدير mymind",
-      "import_bookmarks_from_instapaper_export": "استيراد الإشارات المرجعية من ملف تصدير Instapaper"
+      "import_bookmarks_from_instapaper_export": "استيراد الإشارات المرجعية من ملف تصدير Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "استيراد الإشارات المرجعية من تصدير Readwise Reader",
+      "import_bookmarks_from_onetab_export": "استيراد الإشارات المرجعية من تصدير OneTab"
     },
     "api_keys": {
       "api_keys": "مفاتيح API",
@@ -259,7 +262,97 @@
       "key_regenerated": "تم تجديد المفتاح بنجاح",
       "key_regenerated_please_copy": "يرجى نسخ المفتاح الجديد وتخزينه في مكان آمن. تم إلغاء المفتاح القديم ولن يعمل بعد الآن.",
       "regenerate_warning": "هل أنت متأكد أنك تريد تجديد مفتاح API لـ \"{{name}}\"?",
-      "regenerate_confirmation": "سيؤدي ذلك إلى إلغاء المفتاح الحالي وإنشاء مفتاح جديد. ستتوقف أي تطبيقات تستخدم المفتاح الحالي عن العمل."
+      "regenerate_confirmation": "سيؤدي ذلك إلى إلغاء المفتاح الحالي وإنشاء مفتاح جديد. ستتوقف أي تطبيقات تستخدم المفتاح الحالي عن العمل.",
+      "scopes": {
+        "scopes": "النطاقات",
+        "choose_at_least_one": "اختر نطاقًا واحدًا على الأقل أو حدد الوصول الكامل.",
+        "scope_details": "تفاصيل نطاق {{scope}}",
+        "access": {
+          "none": "لا يوجد",
+          "read": "قراءة",
+          "readwrite": "قراءة/كتابة"
+        },
+        "full_access": {
+          "label": "وصول كامل",
+          "description": "الوصول إلى جميع عمليات واجهة برمجة التطبيقات المدعومة."
+        },
+        "limited_scopes": {
+          "label": "نطاقات محدودة",
+          "description": "اختر أنواع الموارد التي يمكن لهذا المفتاح الوصول إليها."
+        },
+        "resources": {
+          "assets": {
+            "label": "الأصول",
+            "description": "الوصول إلى الملفات ومحتويات الإشارات المرجعية المخزنة الأخرى."
+          },
+          "backups": {
+            "label": "النسخ الاحتياطية",
+            "description": "إدارة النسخ الاحتياطية للحساب."
+          },
+          "bookmarks": {
+            "label": "الإشارات المرجعية",
+            "description": "الوصول إلى الإشارات المرجعية وإدارتها."
+          },
+          "feeds": {
+            "label": "الخلاصات",
+            "description": "إدارة خلاصات RSS وبيانات الخلاصات ذات الصلة."
+          },
+          "highlights": {
+            "label": "التمييزات",
+            "description": "إدارة تمييزات الإشارات المرجعية المحفوظة."
+          },
+          "lists": {
+            "label": "القوائم",
+            "description": "إدارة القوائم وعضويتها."
+          },
+          "prompts": {
+            "label": "المطالبات",
+            "description": "إدارة تكوين مطالبات الذكاء الاصطناعي المحفوظة."
+          },
+          "rules": {
+            "label": "القواعد",
+            "description": "الوصول إلى قواعد الأتمتة."
+          },
+          "tags": {
+            "label": "العلامات",
+            "description": "الوصول إلى العلامات وتعديلها."
+          },
+          "users": {
+            "label": "حساب المستخدم",
+            "description": "الوصول إلى الملف الشخصي للحساب والإعدادات."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "الوصول إلى تكوين الويب هوك."
+          },
+          "subscriptions": {
+            "label": "الاشتراكات",
+            "description": "الوصول إلى إدارة الاشتراكات."
+          },
+          "importSessions": {
+            "label": "جلسات الاستيراد",
+            "description": "الوصول إلى جلسات الاستيراد."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "المسؤول: الإشارات المرجعية",
+            "description": "الوصول إلى أدوات الإشارات المرجعية الإدارية."
+          },
+          "jobs": {
+            "label": "المسؤول: المهام",
+            "description": "الوصول إلى عناصر التحكم في المهام الخلفية."
+          },
+          "system": {
+            "label": "المسؤول: النظام",
+            "description": "الوصول إلى حالة النظام والتشخيصات."
+          },
+          "users": {
+            "label": "المسؤول: المستخدمون",
+            "description": "الوصول إلى الإدارة الإدارية للمستخدمين."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "روابط معطلة",
@@ -290,7 +383,8 @@
         "and": "كل ما يلي صحيح",
         "url_does_not_contain": "عنوان URL لا يحتوي على",
         "title_contains": "العنوان يتضمن",
-        "title_does_not_contain": "العنوان لا يتضمن"
+        "title_does_not_contain": "العنوان لا يتضمن",
+        "bookmark_source_is": "مصدر الإشارة المرجعية هو"
       },
       "actions_types": {
         "add_tag": "إضافة علامة",
@@ -400,7 +494,17 @@
       "approaching_quota_limit": "الاقتراب من حد الحصة",
       "loading_usage": "جارٍ تحميل معلومات الاستخدام...",
       "free": "مجاني",
-      "paid": "مدفوعة"
+      "paid": "مدفوعة",
+      "monthly": "شهريًا",
+      "yearly": "سنويًا",
+      "per_month": "شهر",
+      "per_year": "سنة",
+      "excl_vat": "غير شامل ضريبة القيمة المضافة",
+      "yearly_savings": "وفر {{percent}}%",
+      "pro_feature_bookmarks": "50,000 إشارة مرجعية",
+      "pro_feature_storage": "مساحة تخزين 50 جيجابايت",
+      "pro_feature_ai_tagging": "وسم مدعوم بالذكاء الاصطناعي",
+      "pro_feature_full_text_search": "البحث في النص الكامل"
     },
     "import_sessions": {
       "title": "استيراد الجلسات",
@@ -456,7 +560,10 @@
         "view_bookmark": "عرض الإشارة المرجعية",
         "load_more": "تحميل المزيد",
         "no_title": "لا يوجد عنوان"
-      }
+      },
+      "finalize_dialog_title": "إنهاء جلسة الاستيراد",
+      "finalize_dialog_description": "هل تريد وضع \"{{name}}\" في قائمة الانتظار للمعالجة الخلفية؟ سيبدأ استيراد العلامات المرجعية المُجهزة.",
+      "finalize_staging": "إنهاء"
     },
     "backups": {
       "backups": "النُسخ الاحتياطية",
@@ -768,7 +875,18 @@
       "failed_to_accept": "فشل قبول الدعوة",
       "failed_to_decline": "فشل رفض الدعوة"
     },
-    "shared_lists": "قوائم مشتركة"
+    "shared_lists": "قوائم مشتركة",
+    "privacy": {
+      "public": "عام",
+      "shared": "مشترك",
+      "private": "خاص"
+    },
+    "summary_list_one": "{{count}} القوائم",
+    "summary_list_other": "{{count}} القوائم",
+    "summary_bookmark_one": "{{count}} الإشارات المرجعية",
+    "summary_bookmark_other": "{{count}} الإشارات المرجعية",
+    "items_count_one": "{{count}} عناصر",
+    "items_count_other": "{{count}} عناصر"
   },
   "tags": {
     "all_tags": "جميع الوسوم",
@@ -794,7 +912,11 @@
     "no_unused_tags_match_your_search": "لا توجد علامات غير مستخدمة تطابق بحثك",
     "no_tags_match_your_search": "لا توجد علامات تطابق بحثك",
     "search_placeholder": "البحث عن العلامات...",
-    "search_or_create_placeholder": "البحث عن العلامات أو إنشائها..."
+    "search_or_create_placeholder": "البحث عن العلامات أو إنشائها...",
+    "rename_tag": "تغيير اسم العلامة",
+    "items_count": "{{count}} عناصر",
+    "attached_by_you": "{{count}} بواسطتك",
+    "attached_by_ai": "{{count}} بواسطة الذكاء الاصطناعي"
   },
   "search": {
     "is_favorited": "في المفضلة",
@@ -946,7 +1068,9 @@
     },
     "tags": {
       "created": "تم إنشاء العلامة!",
-      "failed_to_create": "فشل إنشاء العلامة"
+      "failed_to_create": "فشل إنشاء العلامة",
+      "updated": "تم تحديث العلامة بنجاح!",
+      "failed_to_update": "فشل تحديث العلامة"
     }
   },
   "cleanups": {

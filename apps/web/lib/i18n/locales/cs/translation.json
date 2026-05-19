@@ -98,7 +98,8 @@
     "more": "Více",
     "replace_banner": "Nahradit banner",
     "add_banner": "Přidat banner",
-    "download": "Stáhnout"
+    "download": "Stáhnout",
+    "rename": "Přejmenovat"
   },
   "settings": {
     "ai": {
@@ -161,7 +162,97 @@
       "key_regenerated": "Klíč byl úspěšně obnoven",
       "key_regenerated_please_copy": "Zkopíruj si nový klíč a ulož si ho na bezpečném místě. Starý klíč byl zrušen a už nebude fungovat.",
       "regenerate_warning": "Opravdu chceš obnovit API klíč \"{{name}}\"?",
-      "regenerate_confirmation": "Tím se zruší stávající klíč a vygeneruje se nový. Všechny aplikace, které používají stávající klíč, přestanou fungovat."
+      "regenerate_confirmation": "Tím se zruší stávající klíč a vygeneruje se nový. Všechny aplikace, které používají stávající klíč, přestanou fungovat.",
+      "scopes": {
+        "scopes": "Rozsahy",
+        "choose_at_least_one": "Vyberte alespoň jeden rozsah nebo zvolte plný přístup.",
+        "scope_details": "Podrobnosti rozsahu {{scope}}",
+        "access": {
+          "none": "Žádný",
+          "read": "Čtení",
+          "readwrite": "Čtení/zápis"
+        },
+        "full_access": {
+          "label": "Plný přístup",
+          "description": "Přístup ke všem podporovaným operacím API."
+        },
+        "limited_scopes": {
+          "label": "Omezené rozsahy",
+          "description": "Vyberte typy prostředků, ke kterým má mít tento klíč přístup."
+        },
+        "resources": {
+          "assets": {
+            "label": "Aktiva",
+            "description": "Přístup k souborům a jinému uloženému obsahu záložek."
+          },
+          "backups": {
+            "label": "Zálohy",
+            "description": "Správa záloh účtu."
+          },
+          "bookmarks": {
+            "label": "Záložky",
+            "description": "Přístup a správa záložek."
+          },
+          "feeds": {
+            "label": "Kanály",
+            "description": "Správa RSS kanálů a souvisejících dat kanálů."
+          },
+          "highlights": {
+            "label": "Zvýraznění",
+            "description": "Správa uložených zvýraznění záložek."
+          },
+          "lists": {
+            "label": "Seznamy",
+            "description": "Spravovat seznamy a členství v seznamech."
+          },
+          "prompts": {
+            "label": "Prompty",
+            "description": "Spravovat konfiguraci uložených AI promptů."
+          },
+          "rules": {
+            "label": "Pravidla",
+            "description": "Přístup k automatizačním pravidlům."
+          },
+          "tags": {
+            "label": "Tagy",
+            "description": "Přístup k tagům a jejich úprava."
+          },
+          "users": {
+            "label": "Uživatelský účet",
+            "description": "Přístup k profilu účtu a nastavení."
+          },
+          "webhooks": {
+            "label": "Webhooky",
+            "description": "Přístup ke konfiguraci webhooků."
+          },
+          "subscriptions": {
+            "label": "Předplatné",
+            "description": "Přístup ke správě předplatného."
+          },
+          "importSessions": {
+            "label": "Relace importu",
+            "description": "Přístup k relacím importu."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: záložky",
+            "description": "Přístup k nástrojům správy záložek."
+          },
+          "jobs": {
+            "label": "Admin: úlohy",
+            "description": "Přístup k ovládacím prvkům úloh na pozadí."
+          },
+          "system": {
+            "label": "Správce: systém",
+            "description": "Přístup ke stavu systému a diagnostice."
+          },
+          "users": {
+            "label": "Správce: uživatelé",
+            "description": "Přístup k administrativní správě uživatelů."
+          }
+        }
+      }
     },
     "manage_assets": {
       "asset_link": "Odkaz na položku",
@@ -202,7 +293,8 @@
         "or": "Platí alespoň jedna z následujících možností",
         "url_does_not_contain": "Adresa URL Neobsahuje",
         "title_contains": "Název obsahuje",
-        "title_does_not_contain": "Název neobsahuje"
+        "title_does_not_contain": "Název neobsahuje",
+        "bookmark_source_is": "Zdroj záložky je"
       },
       "actions_types": {
         "add_tag": "Přidat štítek",
@@ -310,7 +402,9 @@
       "export_links_and_notes": "Exportovat odkazy a poznámky",
       "imported_bookmarks": "Importované záložky",
       "import_bookmarks_from_mymind_export": "Importovat záložky z exportu mymind",
-      "import_bookmarks_from_instapaper_export": "Importovat záložky z exportu Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importovat záložky z exportu Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importovat záložky z exportu Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importovat záložky z exportu OneTab"
     },
     "broken_links": {
       "broken_links": "Nefunkční odkazy",
@@ -391,7 +485,17 @@
       "approaching_quota_limit": "Blížíš se k limitu kvóty",
       "loading_usage": "Načítám informace o využití…",
       "free": "Zdarma",
-      "paid": "Placené"
+      "paid": "Placené",
+      "monthly": "Měsíčně",
+      "yearly": "Ročně",
+      "per_month": "měsíc",
+      "per_year": "rok",
+      "excl_vat": "bez DPH",
+      "yearly_savings": "Ušetřete {{percent}}%",
+      "pro_feature_bookmarks": "50 000 záložek",
+      "pro_feature_storage": "50GB úložiště",
+      "pro_feature_ai_tagging": "Tagování pomocí AI",
+      "pro_feature_full_text_search": "Fulltextové vyhledávání"
     },
     "import_sessions": {
       "title": "Importovat relace",
@@ -447,7 +551,10 @@
         "view_bookmark": "Zobrazit záložku",
         "load_more": "Načíst další",
         "no_title": "Bez názvu"
-      }
+      },
+      "finalize_dialog_title": "Dokončit relaci importu",
+      "finalize_dialog_description": "Zařadit „{{name}}“ do fronty pro zpracování na pozadí? Rozpracované záložky se začnou importovat.",
+      "finalize_staging": "Dokončit"
     },
     "backups": {
       "backups": "Zálohy",
@@ -583,7 +690,18 @@
       "failed_to_accept": "Nepodařilo se přijmout pozvánku",
       "failed_to_decline": "Nepodařilo se odmítnout pozvánku"
     },
-    "shared_lists": "Sdílené seznamy"
+    "shared_lists": "Sdílené seznamy",
+    "privacy": {
+      "public": "Veřejné",
+      "shared": "Sdílené",
+      "private": "Soukromé"
+    },
+    "summary_list_one": "{{count}} Seznamy",
+    "summary_list_other": "{{count}} Seznamy",
+    "summary_bookmark_one": "{{count}} Záložky",
+    "summary_bookmark_other": "{{count}} Záložky",
+    "items_count_one": "{{count}} položek",
+    "items_count_other": "{{count}} položek"
   },
   "tags": {
     "unused_tags": "Nepoužité tagy",
@@ -609,7 +727,11 @@
     "no_unused_tags_match_your_search": "Žádné nepoužité štítky neodpovídají tvému hledání",
     "no_tags_match_your_search": "Žádné štítky neodpovídají tvému hledání",
     "search_placeholder": "Hledat štítky...",
-    "search_or_create_placeholder": "Hledat nebo vytvořit štítky..."
+    "search_or_create_placeholder": "Hledat nebo vytvořit štítky...",
+    "rename_tag": "Přejmenovat štítek",
+    "items_count": "{{count}} položek",
+    "attached_by_you": "{{count}} vámi",
+    "attached_by_ai": "{{count}} umělou inteligencí"
   },
   "search": {
     "is_favorited": "Je oblíbené",
@@ -739,7 +861,9 @@
     },
     "tags": {
       "created": "Štítek byl vytvořen!",
-      "failed_to_create": "Nepodařilo se vytvořit štítek"
+      "failed_to_create": "Nepodařilo se vytvořit štítek",
+      "updated": "Štítek byl aktualizován!",
+      "failed_to_update": "Nepodařilo se aktualizovat štítek"
     }
   },
   "admin": {

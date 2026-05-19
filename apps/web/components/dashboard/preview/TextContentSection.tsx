@@ -23,6 +23,7 @@ export function TextContentSection({ bookmark }: { bookmark: ZBookmark }) {
             src={getAssetUrl(banner.id)}
             width={0}
             height={0}
+            unoptimized
             layout="fill"
             objectFit="cover"
           />

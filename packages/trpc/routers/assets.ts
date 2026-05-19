@@ -5,12 +5,14 @@ import {
   zAssetTypesSchema,
 } from "@karakeep/shared/types/bookmarks";
 
-import { authedProcedure, router } from "../index";
+import { createScopedAuthedProcedure, router } from "../index";
 import { Asset } from "../models/assets";
 import { ensureBookmarkOwnership } from "./bookmarks";
 
+const assetsProcedure = createScopedAuthedProcedure("assets");
+
 export const assetsAppRouter = router({
-  list: authedProcedure
+  list: assetsProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(100).default(20),
@@ -39,7 +41,7 @@ export const assetsAppRouter = router({
         cursor: input.cursor ?? null,
       });
     }),
-  attachAsset: authedProcedure
+  attachAsset: assetsProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -54,7 +56,7 @@ export const assetsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       return await Asset.attachAsset(ctx, input);
     }),
-  replaceAsset: authedProcedure
+  replaceAsset: assetsProcedure
     .input(
       z.object({
         bookmarkId: z.string(),
@@ -67,7 +69,7 @@ export const assetsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await Asset.replaceAsset(ctx, input);
     }),
-  detachAsset: authedProcedure
+  detachAsset: assetsProcedure
     .input(
       z.object({
         bookmarkId: z.string(),

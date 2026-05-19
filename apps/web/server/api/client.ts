@@ -17,9 +17,14 @@ export async function createContextFromRequest(req: Request) {
   if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
     const token = authorizationHeader.split(" ")[1];
     try {
-      const user = await authenticateApiKey(token, db);
+      const authResult = await authenticateApiKey(token, db);
       return {
-        user,
+        user: authResult.user,
+        auth: {
+          type: "apiKey" as const,
+          keyId: authResult.apiKey.keyId,
+          scopes: authResult.apiKey.scopes,
+        },
         db,
         req: {
           ip,
@@ -46,6 +51,11 @@ export const createContext = async (
   }
   return {
     user: session?.user ?? null,
+    auth: session?.user
+      ? {
+          type: "session" as const,
+        }
+      : null,
     db: database ?? db,
     req: {
       ip,

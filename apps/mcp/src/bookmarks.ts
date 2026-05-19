@@ -115,20 +115,18 @@ mcpServer.tool(
   },
   async ({ title, type, content }): Promise<CallToolResult> => {
     const res = await karakeepClient.POST(`/bookmarks`, {
-      body: (
-        {
-          link: {
-            type: "link",
-            title,
-            url: content,
-          },
-          text: {
-            type: "text",
-            title,
-            text: content,
-          },
-        } as const
-      )[type],
+      body:
+        type === "link"
+          ? {
+              type: "link",
+              title,
+              url: content,
+            }
+          : {
+              type: "text",
+              title,
+              text: content,
+            },
     });
     if (!res.data) {
       return toMcpToolError(res.error);
@@ -138,6 +136,88 @@ mcpServer.tool(
         {
           type: "text",
           text: compactBookmark(res.data),
+        },
+      ],
+    };
+  },
+);
+
+mcpServer.tool(
+  "update-bookmark",
+  `Update fields on an existing bookmark. Only the fields you pass are modified; omitted fields stay unchanged. Returns the updated bookmark.`,
+  {
+    bookmarkId: z.string().describe(`The bookmarkId to update.`),
+    title: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(`The bookmark's user-set title. Pass null to clear it.`),
+    note: z.string().optional().describe(`A free-form note on the bookmark.`),
+    summary: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(`The bookmark's summary. Pass null to clear it.`),
+    archived: z
+      .boolean()
+      .optional()
+      .describe(`Whether the bookmark is archived.`),
+    favourited: z
+      .boolean()
+      .optional()
+      .describe(`Whether the bookmark is favourited.`),
+    url: z.string().url().optional().describe(`New URL for a link bookmark.`),
+    description: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(`Link description. Pass null to clear it.`),
+    author: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(`Link author. Pass null to clear it.`),
+    publisher: z
+      .string()
+      .nullable()
+      .optional()
+      .describe(`Link publisher. Pass null to clear it.`),
+    createdAt: z
+      .string()
+      .datetime()
+      .optional()
+      .describe(`Override the bookmark's createdAt timestamp (ISO 8601).`),
+  },
+  async ({ bookmarkId, ...fields }): Promise<CallToolResult> => {
+    const patchRes = await karakeepClient.PATCH(`/bookmarks/{bookmarkId}`, {
+      params: {
+        path: {
+          bookmarkId,
+        },
+      },
+      body: fields,
+    });
+    if (!patchRes.data) {
+      return toMcpToolError(patchRes.error);
+    }
+    const getRes = await karakeepClient.GET(`/bookmarks/{bookmarkId}`, {
+      params: {
+        path: {
+          bookmarkId,
+        },
+        query: {
+          includeContent: false,
+        },
+      },
+    });
+    if (!getRes.data) {
+      return toMcpToolError(getRes.error);
+    }
+    return {
+      content: [
+        {
+          type: "text",
+          text: compactBookmark(getRes.data),
         },
       ],
     };

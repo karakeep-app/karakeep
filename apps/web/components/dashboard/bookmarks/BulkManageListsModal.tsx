@@ -36,7 +36,8 @@ export default function BulkManageListsModal({
 }) {
   const formSchema = z.object({
     listId: z.string({
-      required_error: "Please select a list",
+      error: (issue) =>
+        issue.input === undefined ? "Please select a list" : undefined,
     }),
   });
   const form = useForm<z.infer<typeof formSchema>>({

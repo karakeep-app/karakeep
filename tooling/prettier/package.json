@@ -8,8 +8,8 @@
   },
   "scripts": {
     "clean": "rm -rf .turbo node_modules",
-    "format": "oxfmt --check .",
-    "format:fix": "oxfmt .",
+    "format": "oxfmt --ignore-path=../../.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

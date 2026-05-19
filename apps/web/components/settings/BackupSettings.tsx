@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
+import FormattedDate from "@/components/ui/formatted-date";
 import {
   Form,
   FormControl,
@@ -235,7 +236,9 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
 
   return (
     <TableRow>
-      <TableCell>{backup.createdAt.toLocaleString()}</TableCell>
+      <TableCell>
+        <FormattedDate date={backup.createdAt} />
+      </TableCell>
       <TableCell>
         {backup.status === "pending"
           ? "-"

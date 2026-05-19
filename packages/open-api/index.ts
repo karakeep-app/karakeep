@@ -5,6 +5,8 @@ import {
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
 
+import "./zod-extend";
+
 import { registry as adminRegistry } from "./lib/admin";
 import { registry as assetsRegistry } from "./lib/assets";
 import { registry as backupsRegistry } from "./lib/backups";

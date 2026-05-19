@@ -52,7 +52,8 @@
     "more": "Altro",
     "replace_banner": "Sostituisci il banner",
     "add_banner": "Aggiungi un banner",
-    "download": "Scarica"
+    "download": "Scarica",
+    "rename": "Rinomina"
   },
   "common": {
     "attachments": "Allegati",
@@ -226,7 +227,9 @@
       "import_bookmarks_from_linkwarden_export": "Importa i segnalibri dall'esportazione di Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importa i segnalibri da Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importa i segnalibri dall'esportazione di mymind",
-      "import_bookmarks_from_instapaper_export": "Importa i segnalibri dall'esportazione di Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importa i segnalibri dall'esportazione di Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importa segnalibri dall'esportazione di Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importa i segnalibri dall'esportazione di OneTab"
     },
     "api_keys": {
       "api_keys": "Chiavi API",
@@ -238,7 +241,97 @@
       "key_regenerated": "Chiave rigenerata con successo",
       "key_regenerated_please_copy": "Copia la nuova chiave e conservala in un luogo sicuro. La vecchia chiave non è più valida e non funzionerà più.",
       "regenerate_warning": "Sei sicuro di voler rigenerare la chiave API \"{{name}}\"?",
-      "regenerate_confirmation": "Questa operazione revocherà la chiave attuale e ne genererà una nuova. Tutte le applicazioni che utilizzano la chiave attuale smetteranno di funzionare."
+      "regenerate_confirmation": "Questa operazione revocherà la chiave attuale e ne genererà una nuova. Tutte le applicazioni che utilizzano la chiave attuale smetteranno di funzionare.",
+      "scopes": {
+        "scopes": "Ambiti",
+        "choose_at_least_one": "Scegli almeno un ambito o seleziona l'accesso completo.",
+        "scope_details": "Dettagli dell'ambito {{scope}}",
+        "access": {
+          "none": "Nessuno",
+          "read": "Lettura",
+          "readwrite": "Lettura/scrittura"
+        },
+        "full_access": {
+          "label": "Accesso completo",
+          "description": "Accedi a tutte le operazioni API supportate."
+        },
+        "limited_scopes": {
+          "label": "Ambiti limitati",
+          "description": "Scegli i tipi di risorse a cui questa chiave può accedere."
+        },
+        "resources": {
+          "assets": {
+            "label": "Asset",
+            "description": "Accedi ai file e ad altri contenuti dei segnalibri archiviati."
+          },
+          "backups": {
+            "label": "Backup",
+            "description": "Gestisci i backup dell'account."
+          },
+          "bookmarks": {
+            "label": "Segnalibri",
+            "description": "Accedi e gestisci i segnalibri."
+          },
+          "feeds": {
+            "label": "Feed",
+            "description": "Gestisci i feed RSS e i relativi dati dei feed."
+          },
+          "highlights": {
+            "label": "Evidenziazioni",
+            "description": "Gestisci le evidenziazioni dei segnalibri salvate."
+          },
+          "lists": {
+            "label": "Liste",
+            "description": "Gestisci le liste e l'appartenenza alle liste."
+          },
+          "prompts": {
+            "label": "Prompt",
+            "description": "Gestisci la configurazione dei prompt IA salvati."
+          },
+          "rules": {
+            "label": "Regole",
+            "description": "Accedi alle regole di automazione."
+          },
+          "tags": {
+            "label": "Tag",
+            "description": "Accedi ai tag e modificali."
+          },
+          "users": {
+            "label": "Account utente",
+            "description": "Accedi al profilo e alle impostazioni dell'account."
+          },
+          "webhooks": {
+            "label": "Webhook",
+            "description": "Accedi alla configurazione dei webhook."
+          },
+          "subscriptions": {
+            "label": "Abbonamenti",
+            "description": "Accedi alla gestione degli abbonamenti."
+          },
+          "importSessions": {
+            "label": "Sessioni di importazione",
+            "description": "Accedi alle sessioni di importazione."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: segnalibri",
+            "description": "Accedi agli strumenti amministrativi per i segnalibri."
+          },
+          "jobs": {
+            "label": "Admin: job",
+            "description": "Accedi ai controlli dei job in background."
+          },
+          "system": {
+            "label": "Admin: sistema",
+            "description": "Accedi allo stato del sistema e alla diagnostica."
+          },
+          "users": {
+            "label": "Admin: utenti",
+            "description": "Accedi alla gestione amministrativa degli utenti."
+          }
+        }
+      }
     },
     "manage_assets": {
       "no_assets": "Non hai ancora nessun asset.",
@@ -280,7 +373,8 @@
         "or": "Se una qualsiasi delle seguenti condizioni è vera",
         "url_does_not_contain": "L'URL non contiene",
         "title_contains": "Il titolo contiene",
-        "title_does_not_contain": "Il titolo non contiene"
+        "title_does_not_contain": "Il titolo non contiene",
+        "bookmark_source_is": "La fonte del segnalibro è"
       },
       "events_types": {
         "tag_removed": "Questo tag viene rimosso da un segnalibro",
@@ -391,7 +485,17 @@
       "approaching_quota_limit": "Limite di quota in avvicinamento",
       "loading_usage": "Caricamento delle informazioni sull'utilizzo...",
       "free": "Gratuito",
-      "paid": "A pagamento"
+      "paid": "A pagamento",
+      "monthly": "Mensile",
+      "yearly": "Annuale",
+      "per_month": "mese",
+      "per_year": "anno",
+      "excl_vat": "IVA esclusa",
+      "yearly_savings": "Risparmia il {{percent}}%",
+      "pro_feature_bookmarks": "50.000 segnalibri",
+      "pro_feature_storage": "50 GB di spazio di archiviazione",
+      "pro_feature_ai_tagging": "Tagging basato su IA",
+      "pro_feature_full_text_search": "Ricerca full-text"
     },
     "import_sessions": {
       "title": "Importa sessioni",
@@ -447,7 +551,10 @@
         "view_bookmark": "Visualizza segnalibro",
         "load_more": "Carica altro",
         "no_title": "Nessun titolo"
-      }
+      },
+      "finalize_dialog_title": "Finalizza sessione di importazione",
+      "finalize_dialog_description": "Accodare \"{{name}}\" per l'elaborazione in background? I segnalibri preparati verranno importati.",
+      "finalize_staging": "Finalizza"
     },
     "backups": {
       "backups": "Backup",
@@ -824,7 +931,18 @@
       "failed_to_accept": "Impossibile accettare l'invito",
       "failed_to_decline": "Impossibile rifiutare l'invito"
     },
-    "shared_lists": "Elenchi condivisi"
+    "shared_lists": "Elenchi condivisi",
+    "privacy": {
+      "public": "Pubblico",
+      "shared": "Condiviso",
+      "private": "Privato"
+    },
+    "summary_list_one": "{{count}} Elenchi",
+    "summary_list_other": "{{count}} Elenchi",
+    "summary_bookmark_one": "{{count}} Segnalibri",
+    "summary_bookmark_other": "{{count}} Segnalibri",
+    "items_count_one": "{{count}} elementi",
+    "items_count_other": "{{count}} elementi"
   },
   "tags": {
     "your_tags": "I tuoi tag",
@@ -850,7 +968,11 @@
     "no_unused_tags_match_your_search": "Nessun tag inutilizzato corrisponde alla tua ricerca",
     "no_tags_match_your_search": "Nessun tag corrisponde alla tua ricerca",
     "search_placeholder": "Cerca tag...",
-    "search_or_create_placeholder": "Cerca o crea tag..."
+    "search_or_create_placeholder": "Cerca o crea tag...",
+    "rename_tag": "Rinomina tag",
+    "items_count": "{{count}} elementi",
+    "attached_by_you": "{{count}} da te",
+    "attached_by_ai": "{{count}} da IA"
   },
   "preview": {
     "view_original": "Vedi originale",
@@ -888,7 +1010,9 @@
     },
     "tags": {
       "created": "Tag creato!",
-      "failed_to_create": "Impossibile creare il tag"
+      "failed_to_create": "Impossibile creare il tag",
+      "updated": "Il tag è stato aggiornato!",
+      "failed_to_update": "Impossibile aggiornare il tag"
     }
   },
   "cleanups": {

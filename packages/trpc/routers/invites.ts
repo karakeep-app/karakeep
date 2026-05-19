@@ -4,19 +4,22 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { invites, users } from "@karakeep/db/schema";
+import { zUserNameSchema } from "@karakeep/shared/types/users";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { sendInviteEmail } from "../email";
 import {
-  adminProcedure,
+  createAdminScopedProcedure,
   createRateLimitMiddleware,
   publicProcedure,
   router,
 } from "../index";
 import { User } from "../models/users";
 
+const adminUsersProcedure = createAdminScopedProcedure("users");
+
 export const invitesAppRouter = router({
-  create: adminProcedure
+  create: adminUsersProcedure
     .input(
       z.object({
         email: z.string().email(),
@@ -74,7 +77,7 @@ export const invitesAppRouter = router({
       };
     }),
 
-  list: adminProcedure
+  list: adminUsersProcedure
     .output(
       z.object({
         invites: z.array(
@@ -158,7 +161,7 @@ export const invitesAppRouter = router({
     .input(
       z.object({
         token: z.string(),
-        name: z.string().min(1),
+        name: zUserNameSchema,
         password: z.string().min(8),
       }),
     )
@@ -205,7 +208,7 @@ export const invitesAppRouter = router({
       };
     }),
 
-  revoke: adminProcedure
+  revoke: adminUsersProcedure
     .input(
       z.object({
         inviteId: z.string(),
@@ -229,7 +232,7 @@ export const invitesAppRouter = router({
       return { success: true };
     }),
 
-  resend: adminProcedure
+  resend: adminUsersProcedure
     .input(
       z.object({
         inviteId: z.string(),

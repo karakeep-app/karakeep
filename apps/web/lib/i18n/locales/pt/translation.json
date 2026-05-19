@@ -98,7 +98,8 @@
     "more": "Mais",
     "replace_banner": "Substituir Banner",
     "add_banner": "Adicionar Banner",
-    "download": "Baixar"
+    "download": "Baixar",
+    "rename": "Renomear"
   },
   "settings": {
     "webhooks": {
@@ -132,7 +133,9 @@
       "imported_bookmarks": "Favoritos importados",
       "import_bookmarks_from_tab_session_manager_export": "Importar marcadores do Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importar favoritos da exportação do mymind",
-      "import_bookmarks_from_instapaper_export": "Importar os favoritos da exportação do Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importar os favoritos da exportação do Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importar Marcadores da exportação do Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importar marcadores da exportação do OneTab"
     },
     "info": {
       "interface_lang": "Idioma da Interface",
@@ -242,7 +245,97 @@
       "key_regenerated": "Chave regenerada com sucesso",
       "key_regenerated_please_copy": "Copie a nova chave e guarde-a em local seguro. A chave antiga foi revogada e não irá mais funcionar.",
       "regenerate_warning": "Tem certeza de que deseja regenerar a chave da API \"{{name}}\"?",
-      "regenerate_confirmation": "Isso revogará a chave atual e gerará uma nova. Todos os aplicativos que usam a chave atual deixarão de funcionar."
+      "regenerate_confirmation": "Isso revogará a chave atual e gerará uma nova. Todos os aplicativos que usam a chave atual deixarão de funcionar.",
+      "scopes": {
+        "scopes": "Escopos",
+        "choose_at_least_one": "Escolha pelo menos um escopo ou selecione acesso total.",
+        "scope_details": "Detalhes do escopo {{scope}}",
+        "access": {
+          "none": "Nenhum",
+          "read": "Leitura",
+          "readwrite": "Leitura/escrita"
+        },
+        "full_access": {
+          "label": "Acesso total",
+          "description": "Acessar todas as operações de API suportadas."
+        },
+        "limited_scopes": {
+          "label": "Escopos limitados",
+          "description": "Escolha os tipos de recursos que esta chave pode acessar."
+        },
+        "resources": {
+          "assets": {
+            "label": "Ativos",
+            "description": "Acessar arquivos e outros conteúdos de favoritos armazenados."
+          },
+          "backups": {
+            "label": "Backups",
+            "description": "Gerenciar backups da conta."
+          },
+          "bookmarks": {
+            "label": "Favoritos",
+            "description": "Acessar e gerenciar favoritos."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "Gerenciar feeds RSS e dados de feed relacionados."
+          },
+          "highlights": {
+            "label": "Destaques",
+            "description": "Gerenciar destaques de favoritos salvos."
+          },
+          "lists": {
+            "label": "Listas",
+            "description": "Gerenciar listas e associação a listas."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Gerenciar configurações de prompt de IA salvas."
+          },
+          "rules": {
+            "label": "Regras",
+            "description": "Acessar regras de automação."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Acessar e modificar tags."
+          },
+          "users": {
+            "label": "Conta de usuário",
+            "description": "Acessar perfil e configurações da conta."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Acessar configurações de webhook."
+          },
+          "subscriptions": {
+            "label": "Assinaturas",
+            "description": "Acessar gerenciamento de assinaturas."
+          },
+          "importSessions": {
+            "label": "Sessões de importação",
+            "description": "Acessar sessões de importação."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: favoritos",
+            "description": "Acessar ferramentas administrativas de favoritos."
+          },
+          "jobs": {
+            "label": "Admin: tarefas",
+            "description": "Acessar controles de tarefas em segundo plano."
+          },
+          "system": {
+            "label": "Admin: sistema",
+            "description": "Aceder ao estado do sistema e diagnósticos."
+          },
+          "users": {
+            "label": "Admin: utilizadores",
+            "description": "Aceder à gestão administrativa de utilizadores."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Links Quebrados",
@@ -283,7 +376,8 @@
         "and": "Tudo o que se segue é verdade",
         "url_does_not_contain": "URL não Contém",
         "title_contains": "Título Contém",
-        "title_does_not_contain": "Título Não Contém"
+        "title_does_not_contain": "Título Não Contém",
+        "bookmark_source_is": "A origem do favorito é"
       },
       "actions_types": {
         "add_tag": "Adicionar etiqueta",
@@ -391,7 +485,17 @@
       "approaching_quota_limit": "Limite de cota se aproximando",
       "loading_usage": "Carregando informações de uso...",
       "free": "Grátis",
-      "paid": "Pago"
+      "paid": "Pago",
+      "monthly": "Mensal",
+      "yearly": "Anual",
+      "per_month": "mês",
+      "per_year": "ano",
+      "excl_vat": "excl. IVA",
+      "yearly_savings": "Poupe {{percent}}%",
+      "pro_feature_bookmarks": "50.000 marcadores",
+      "pro_feature_storage": "50 GB de armazenamento",
+      "pro_feature_ai_tagging": "Etiquetagem com IA",
+      "pro_feature_full_text_search": "Pesquisa de texto completo"
     },
     "import_sessions": {
       "title": "Importar sessões",
@@ -447,7 +551,10 @@
         "view_bookmark": "Ver Favorito",
         "load_more": "Carregar mais",
         "no_title": "Sem título"
-      }
+      },
+      "finalize_dialog_title": "Finalizar sessão de importação",
+      "finalize_dialog_description": "Colocar \"{{name}}\" na fila para processamento em segundo plano? Os favoritos preparados começarão a ser importados.",
+      "finalize_staging": "Finalizar"
     },
     "backups": {
       "backups": "Backups",
@@ -759,7 +866,18 @@
       "failed_to_accept": "Falha ao aceitar o convite",
       "failed_to_decline": "Falha ao recusar o convite"
     },
-    "shared_lists": "Listas Partilhadas"
+    "shared_lists": "Listas Partilhadas",
+    "privacy": {
+      "public": "Público",
+      "shared": "Compartilhado",
+      "private": "Privado"
+    },
+    "summary_list_one": "{{count}} Listas",
+    "summary_list_other": "{{count}} Listas",
+    "summary_bookmark_one": "{{count}} Favoritos",
+    "summary_bookmark_other": "{{count}} Favoritos",
+    "items_count_one": "{{count}} itens",
+    "items_count_other": "{{count}} itens"
   },
   "tags": {
     "your_tags_info": "Tags que foram anexadas pelo menos uma vez por você",
@@ -785,7 +903,11 @@
     "no_unused_tags_match_your_search": "Nenhuma tag não utilizada corresponde à sua pesquisa",
     "no_tags_match_your_search": "Nenhuma tag corresponde à sua pesquisa",
     "search_placeholder": "Pesquisar tags...",
-    "search_or_create_placeholder": "Pesquisar ou criar tags..."
+    "search_or_create_placeholder": "Pesquisar ou criar tags...",
+    "rename_tag": "Renomear etiqueta",
+    "items_count": "{{count}} itens",
+    "attached_by_you": "{{count}} por você",
+    "attached_by_ai": "{{count}} por IA"
   },
   "search": {
     "full_text_search": "Pesquisa de Texto Completo",
@@ -931,7 +1053,9 @@
     },
     "tags": {
       "created": "Etiqueta criada!",
-      "failed_to_create": "Falha ao criar etiqueta"
+      "failed_to_create": "Falha ao criar etiqueta",
+      "updated": "A etiqueta foi atualizada!",
+      "failed_to_update": "Falha ao atualizar a etiqueta"
     }
   },
   "cleanups": {

@@ -3,7 +3,7 @@ import { z } from "zod";
 const stringBool = (defaultValue: string) =>
   z
     .string()
-    .default(defaultValue)
+    .prefault(defaultValue)
     .refine((s) => s === "true" || s === "false")
     .transform((s) => s === "true");
 

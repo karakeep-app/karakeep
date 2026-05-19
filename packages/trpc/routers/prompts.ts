@@ -9,7 +9,9 @@ import {
   zUpdatePromptSchema,
 } from "@karakeep/shared/types/prompts";
 
-import { authedProcedure, Context, router } from "../index";
+import { Context, createScopedAuthedProcedure, router } from "../index";
+
+const promptsProcedure = createScopedAuthedProcedure("prompts");
 
 export const ensurePromptOwnership = experimental_trpcMiddleware<{
   ctx: Context;
@@ -44,7 +46,7 @@ export const ensurePromptOwnership = experimental_trpcMiddleware<{
 });
 
 export const promptsAppRouter = router({
-  create: authedProcedure
+  create: promptsProcedure
     .input(zNewPromptSchema)
     .output(zPromptSchema)
     .mutation(async ({ input, ctx }) => {
@@ -59,7 +61,7 @@ export const promptsAppRouter = router({
         .returning();
       return prompt;
     }),
-  update: authedProcedure
+  update: promptsProcedure
     .input(zUpdatePromptSchema)
     .output(zPromptSchema)
     .use(ensurePromptOwnership)
@@ -83,7 +85,7 @@ export const promptsAppRouter = router({
       }
       return res[0];
     }),
-  list: authedProcedure
+  list: promptsProcedure
     .output(z.array(zPromptSchema))
     .query(async ({ ctx }) => {
       const prompts = await ctx.db.query.customPrompts.findMany({
@@ -91,7 +93,7 @@ export const promptsAppRouter = router({
       });
       return prompts;
     }),
-  delete: authedProcedure
+  delete: promptsProcedure
     .input(
       z.object({
         promptId: z.string(),

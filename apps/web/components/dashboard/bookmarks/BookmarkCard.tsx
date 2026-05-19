@@ -12,9 +12,11 @@ import UnknownCard from "./UnknownCard";
 export default function BookmarkCard({
   bookmark: initialData,
   className,
+  bookmarkIndex,
 }: {
   bookmark: ZBookmark;
   className?: string;
+  bookmarkIndex?: number;
 }) {
   const api = useTRPC();
   const { data: bookmark } = useQuery(
@@ -40,6 +42,7 @@ export default function BookmarkCard({
       return (
         <LinkCard
           className={className}
+          bookmarkIndex={bookmarkIndex}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -47,6 +50,7 @@ export default function BookmarkCard({
       return (
         <TextCard
           className={className}
+          bookmarkIndex={bookmarkIndex}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -54,10 +58,17 @@ export default function BookmarkCard({
       return (
         <AssetCard
           className={className}
+          bookmarkIndex={bookmarkIndex}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
     case BookmarkTypes.UNKNOWN:
-      return <UnknownCard className={className} bookmark={bookmark} />;
+      return (
+        <UnknownCard
+          className={className}
+          bookmarkIndex={bookmarkIndex}
+          bookmark={bookmark}
+        />
+      );
   }
 }

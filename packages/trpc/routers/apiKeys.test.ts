@@ -2,9 +2,14 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { apiKeys } from "@karakeep/db/schema";
+import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 
 import type { CustomTestContext } from "../testUtils";
-import { defaultBeforeEach, getApiCaller } from "../testUtils";
+import {
+  defaultBeforeEach,
+  getApiCaller,
+  getApiKeyCallerForPlainKey,
+} from "../testUtils";
 
 vi.mock("@karakeep/shared/config", async (original) => {
   const mod = (await original()) as typeof import("@karakeep/shared/config");
@@ -42,6 +47,27 @@ describe("API Keys Routes", () => {
       expect(result.id).toBeDefined();
       expect(result.key).toMatch(/^ak2_[a-f0-9]{20}_[a-f0-9]{32}$/);
       expect(result.createdAt).toBeInstanceOf(Date);
+      expect(result.scopes).toEqual([API_KEY_FULL_ACCESS_SCOPE]);
+    });
+
+    test<CustomTestContext>("creates API key with explicit scopes", async ({
+      unauthedAPICaller,
+      db,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "scoped-create@test.com",
+        password: "password123",
+        confirmPassword: "password123",
+      });
+
+      const api = getApiCaller(db, user.id, user.email).apiKeys;
+      const result = await api.create({
+        name: "Scoped Key",
+        scopes: ["bookmarks:read", "users:read"],
+      });
+
+      expect(result.scopes).toEqual(["bookmarks:read", "users:read"]);
     });
 
     test<CustomTestContext>("requires authentication", async ({
@@ -78,6 +104,7 @@ describe("API Keys Routes", () => {
         name: expect.any(String),
         createdAt: expect.any(Date),
         keyId: expect.any(String),
+        scopes: [API_KEY_FULL_ACCESS_SCOPE],
       });
       expect(result.keys[0]).not.toHaveProperty("key");
     });
@@ -377,6 +404,7 @@ describe("API Keys Routes", () => {
       expect(result.name).toBe("Extension Key");
       expect(result.key).toMatch(/^ak2_[a-f0-9]{20}_[a-f0-9]{32}$/);
       expect(result.createdAt).toBeInstanceOf(Date);
+      expect(result.scopes).toEqual([API_KEY_FULL_ACCESS_SCOPE]);
 
       const dbKeys = await db
         .select()
@@ -385,6 +413,35 @@ describe("API Keys Routes", () => {
 
       expect(dbKeys).toHaveLength(1);
       expect(dbKeys[0].name).toBe("Extension Key");
+    });
+
+    test<CustomTestContext>("exchanges credentials for API key with explicit scopes", async ({
+      db,
+      unauthedAPICaller,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Scoped Exchange User",
+        email: "scoped-exchange@test.com",
+        password: "password123",
+        confirmPassword: "password123",
+      });
+
+      const result = await unauthedAPICaller.apiKeys.exchange({
+        keyName: "Scoped Extension Key",
+        email: "scoped-exchange@test.com",
+        password: "password123",
+        scopes: ["bookmarks:read", "users:read"],
+      });
+
+      expect(result.scopes).toEqual(["bookmarks:read", "users:read"]);
+
+      const dbKeys = await db
+        .select()
+        .from(apiKeys)
+        .where(eq(apiKeys.userId, user.id));
+
+      expect(dbKeys).toHaveLength(1);
+      expect(dbKeys[0].scopes).toEqual(["bookmarks:read", "users:read"]);
     });
 
     test<CustomTestContext>("rejects wrong password", async ({
@@ -556,6 +613,34 @@ describe("API Keys Routes", () => {
       });
 
       expect(validationResult.success).toBe(true);
+    });
+  });
+
+  describe("scope enforcement", () => {
+    test<CustomTestContext>("fullaccess API key auth cannot manage API keys", async ({
+      unauthedAPICaller,
+      db,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Meta User",
+        email: "meta@test.com",
+        password: "password123",
+        confirmPassword: "password123",
+      });
+
+      const sessionCaller = getApiCaller(db, user.id, user.email);
+      const fullAccessKey = await sessionCaller.apiKeys.create({
+        name: "Full Access Key",
+      });
+
+      const apiKeyCaller = await getApiKeyCallerForPlainKey(
+        db,
+        fullAccessKey.key,
+      );
+
+      await expect(() => apiKeyCaller.apiKeys.list()).rejects.toThrow(
+        /FORBIDDEN|API keys are not allowed for this endpoint/i,
+      );
     });
   });
 

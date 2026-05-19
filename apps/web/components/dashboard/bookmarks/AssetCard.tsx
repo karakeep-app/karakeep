@@ -28,6 +28,7 @@ function AssetImage({
             alt="asset"
             src={getAssetUrl(bookmarkedAsset.assetId)}
             fill={true}
+            unoptimized
             className={className}
           />
         </Link>
@@ -53,6 +54,7 @@ function AssetImage({
             alt="asset"
             src={getAssetUrl(screenshotAssetId)}
             fill={true}
+            unoptimized
             className={className}
           />
         </Link>
@@ -68,9 +70,11 @@ function AssetImage({
 export default function AssetCard({
   bookmark: bookmarkedAsset,
   className,
+  bookmarkIndex,
 }: {
   bookmark: ZBookmarkTypeAsset;
   className?: string;
+  bookmarkIndex?: number;
 }) {
   return (
     <BookmarkLayoutAdaptingCard
@@ -82,6 +86,7 @@ export default function AssetCard({
       }
       bookmark={bookmarkedAsset}
       className={className}
+      bookmarkIndex={bookmarkIndex}
       wrapTags={true}
       image={(_layout, className) => (
         <div className="relative size-full flex-1">

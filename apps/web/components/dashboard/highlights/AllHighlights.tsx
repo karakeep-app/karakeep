@@ -21,8 +21,11 @@ import {
 import HighlightCard from "./HighlightCard";
 
 function Highlight({ highlight }: { highlight: ZHighlight }) {
-  const { fromNow, localCreatedAt } = useRelativeTime(highlight.createdAt);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { fromNow, localCreatedAt } = useRelativeTime(
+    highlight.createdAt,
+    i18n.language,
+  );
   return (
     <div className="flex flex-col gap-2">
       <HighlightCard highlight={highlight} clickable={false} readOnly={false} />

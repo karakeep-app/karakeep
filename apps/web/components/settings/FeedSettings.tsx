@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
+import FormattedDate from "@/components/ui/formatted-date";
 import {
   Form,
   FormControl,
@@ -68,7 +69,7 @@ export function FeedsEditorDialog() {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof zNewFeedSchema>>({
+  const form = useForm({
     resolver: zodResolver(zNewFeedSchema),
     defaultValues: {
       name: "",
@@ -161,7 +162,7 @@ export function FeedsEditorDialog() {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={field.value ?? false}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
@@ -409,7 +410,9 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
       >
         {feed.url}
       </TableCell>
-      <TableCell>{feed.lastFetchedAt?.toLocaleString()}</TableCell>
+      <TableCell>
+        <FormattedDate date={feed.lastFetchedAt} />
+      </TableCell>
       <TableCell>
         {feed.lastFetchedStatus === "success" ? (
           <span title="Successful">

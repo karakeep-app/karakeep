@@ -1,0 +1,71 @@
+---
+id: upload-asset
+title: "Upload a new asset"
+description: "Upload a binary file as a new asset. The uploaded asset can then be attached to a bookmark via the POST /bookmarks/{bookmarkId}/assets endpoint."
+sidebar_label: "Upload a new asset"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVttuGzcQ/ZUB89IKK8kp+rQPBZS0AdwkrRHbKIrYgGZ3R1pGXJIhubY3wgL9iH5hv6QYcrW6WAX82DeCHB6eufDMbIWx5DBIoy8rkYvWKoPVwnsKIhMV+dJJy6ciF7fxDBAKqdF1sJKKAD0gaHoE5DszuKkJEghVaQ9K1BBq0lAQYAhY1lRBMAxkzKZBt4EHiWwCV79f38B8t+3n293ysurnEc0D6coaqcNMZCLg2ov8s4iEvbjPhKeydTJ0Iv+8FQWhI7doQy3yz/f9fSYcfW3Jhzem6kS+PXGQuUenghl8YPeaVgVp0YX5yrhmWmFAfro0OpAOjHLGgrd9WVMTV6GzJHJhii9Uclyt46gHSZ5P+cloJQMvxLuBQrGPpOj7xF06qtjheOe+79O+t0b7BPbDxcV5x1IuHtHv0+PbsiTvV61S3Qw+UWid9tBQQHYBsDBtiGk5TuiJ92itkmUsofkXz++93PWIx4U3GvrgpF4/q71YVlp+bQlkRTrIlSTHdORap2o6x7Mfid5E9Je88vHy4y/AZmBWx6Ac84jp5bdDMN02BbmzYGx5FgekhqIL5CMg7/yGzQsZGifXUqNKQBqb/6R6UjS7aB9HZfDngMV9Ntbi7YCYFCHV248Xr5+X2K3GNtTGyW9UwT9//R35vIn/D4LZkAbpoZHeS73OQOoHVLLKwDigJ8sET6oq0FOYW4XyfD2N4aEnbGyiesAgMu0z0VCoDeuaNT5WH7IUiEFK2HVyD+R8VIvWKZGLLVaVI+/7OVo5f3gtMvGATmKhhpJNxykCK2xVELmoQ7A+n8+D62YbdLghsjO09mz+BoRd0t4P9pC4MPUDHbtmz9PLh2o2BoJfZj+imcgHI5ENi3fGNcgMf/3jJtaD1CvD19nrROn17GJ2IfYpH/ksri6f8R8PJeu+J7Wa1sYHjs6o5lKvAXUFjrCayjBVGMhF72RJ3CGkZ2xApcyjh860/H8b1Ljeg/gMlPTBZ8Aan0Et17WS65p3Uvay+EiB5aa1Hqwza4dNg0GWyHp2p+/0q1fA4WK9SALFmwulxh7iYfgfgMfFavmNin8pp2i5GCorgiyhJqzIzeBP08butibNTZQAdfRsQx2snGmO8/tIBdxeQqsrcjCZXFMIUq89/BTvvKfOTyY72lfIX3xH+YP04YCzb601LkDZOm/ctECmascbsZsu0+EyBmmpZCPDEr625Dqw6LChQM6ndr3rHyB1qdqKOLNLTU/h7QCxkqTSp+awgAzcFmNcdo+MkJzJFYWyjucMwsRoBgtY6lapJTygaglWxh2/IXXFOaIIzPlwBNpAY1wk2Krgd7F5s5saWL48b+52fMxGQWD0oImOKIq5z+/0FCYTJfVmMom+LOD204f9CPIoQw0m1jkqKB0+KqrGZjhL11mVxutRnYC3QJtAg0kszp2NPlH972TDRW4cXP387vuo/axMDUaV07EF7Oescaw6/YbbvVL+L6eyJE0HEt5nSV23gwIPvShObKwfvLPdciHfOtX3vB1rlce2vf7GIS4T6fdFyd5QJ3LxNgVjOrSzWGEiPzuW9dnu0qIsyYYD82dzDMvw2EA4Bqyqw+DYmIrvMHDEzfbLRBKPZfpEliP54Qh1d8Biu00WNyxDfS+ygW6UJdHzyPcva0od9w==
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Upload a new asset"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/assets"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Upload a binary file as a new asset. The uploaded asset can then be attached to a bookmark via the POST /bookmarks/\{bookmarkId\}/assets endpoint.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The file to upload as multipart/form-data.","content":{"multipart/form-data":{"schema":{"type":"object","properties":{"file":{"title":"File to be uploaded"}},"required":["file"]}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The asset was uploaded successfully. Returns metadata about the uploaded asset.","content":{"application/json":{"schema":{"type":"object","properties":{"assetId":{"type":"string","description":"The unique identifier assigned to the uploaded asset."},"contentType":{"type":"string","description":"The MIME type of the uploaded file."},"size":{"type":"number","description":"The size of the uploaded file in bytes."},"fileName":{"type":"string","description":"The original file name of the uploaded file."}},"required":["assetId","contentType","size","fileName"],"title":"UploadedAsset"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

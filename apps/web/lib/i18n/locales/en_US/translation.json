@@ -104,7 +104,8 @@
     "more": "More",
     "replace_banner": "Replace Banner",
     "add_banner": "Add Banner",
-    "download": "Download"
+    "download": "Download",
+    "rename": "Rename"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
@@ -133,7 +134,11 @@
     "no_unused_tags_match_your_search": "No unused tags match your search",
     "no_tags_match_your_search": "No tags match your search",
     "search_placeholder": "Search tags...",
-    "search_or_create_placeholder": "Search or create tags..."
+    "search_or_create_placeholder": "Search or create tags...",
+    "rename_tag": "Rename Tag",
+    "items_count": "{{count}} items",
+    "attached_by_you": "{{count}} by you",
+    "attached_by_ai": "{{count}} by AI"
   },
   "editor": {
     "text_toolbar": {
@@ -343,7 +348,9 @@
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks",
       "import_bookmarks_from_mymind_export": "Import Bookmarks from mymind export",
-      "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export"
+      "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
+      "import_bookmarks_from_readwise_reader_export": "Import Bookmarks from Readwise Reader export",
+      "import_bookmarks_from_onetab_export": "Import Bookmarks from OneTab export"
     },
     "api_keys": {
       "api_keys": "API Keys",
@@ -355,7 +362,97 @@
       "key_regenerated": "Key was successfully regenerated",
       "key_regenerated_please_copy": "Please copy the new key and store it somewhere safe. The old key has been revoked and will no longer work.",
       "regenerate_warning": "Are you sure you want to regenerate the API key \"{{name}}\"?",
-      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working."
+      "regenerate_confirmation": "This will revoke the current key and generate a new one. Any applications using the current key will stop working.",
+      "scopes": {
+        "scopes": "Scopes",
+        "choose_at_least_one": "Choose at least one scope or select full access.",
+        "scope_details": "{{scope}} scope details",
+        "access": {
+          "none": "None",
+          "read": "Read",
+          "readwrite": "Read/write"
+        },
+        "full_access": {
+          "label": "Full access",
+          "description": "Access all supported API operations."
+        },
+        "limited_scopes": {
+          "label": "Limited scopes",
+          "description": "Choose the resource types this key can access."
+        },
+        "resources": {
+          "assets": {
+            "label": "Assets",
+            "description": "Access files and other stored bookmark content."
+          },
+          "backups": {
+            "label": "Backups",
+            "description": "Manage account backups."
+          },
+          "bookmarks": {
+            "label": "Bookmarks",
+            "description": "Access and manage bookmarks."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "Manage RSS feeds and related feed data."
+          },
+          "highlights": {
+            "label": "Highlights",
+            "description": "Manage saved bookmark highlights."
+          },
+          "lists": {
+            "label": "Lists",
+            "description": "Manage lists and list membership."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Manage saved AI prompt configuration."
+          },
+          "rules": {
+            "label": "Rules",
+            "description": "Access automation rules."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Access and modify tags."
+          },
+          "users": {
+            "label": "User account",
+            "description": "Access account profile and settings."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Access webhook configuration."
+          },
+          "subscriptions": {
+            "label": "Subscriptions",
+            "description": "Access subscription management."
+          },
+          "importSessions": {
+            "label": "Import Sessions",
+            "description": "Access import sessions."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bookmarks",
+            "description": "Access administrative bookmark tools."
+          },
+          "jobs": {
+            "label": "Admin: jobs",
+            "description": "Access background job controls."
+          },
+          "system": {
+            "label": "Admin: system",
+            "description": "Access system status and diagnostics."
+          },
+          "users": {
+            "label": "Admin: users",
+            "description": "Access administrative user management."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Broken Links",
@@ -402,7 +499,8 @@
         "or": "Any of the following are true",
         "url_does_not_contain": "URL Does Not Contain",
         "title_contains": "Title Contains",
-        "title_does_not_contain": "Title Does Not Contain"
+        "title_does_not_contain": "Title Does Not Contain",
+        "bookmark_source_is": "Bookmark Source Is"
       },
       "actions_types": {
         "add_tag": "Add Tag",
@@ -536,7 +634,10 @@
       "view_list": "View List",
       "delete_dialog_title": "Delete Import Session",
       "delete_dialog_description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone. The bookmarks themselves will not be deleted.",
+      "finalize_dialog_title": "Finalize Import Session",
+      "finalize_dialog_description": "Queue \"{{name}}\" for background processing? Staged bookmarks will start importing.",
       "delete_session": "Delete Session",
+      "finalize_staging": "Finalize",
       "pause_session": "Pause",
       "resume_session": "Resume",
       "view_details": "View Details",
@@ -874,7 +975,18 @@
       "failed_to_accept": "Failed to accept invitation",
       "failed_to_decline": "Failed to decline invitation"
     },
-    "shared_lists": "Shared Lists"
+    "shared_lists": "Shared Lists",
+    "privacy": {
+      "public": "Public",
+      "shared": "Shared",
+      "private": "Private"
+    },
+    "summary_list_one": "{{count}} list",
+    "summary_list_other": "{{count}} lists",
+    "summary_bookmark_one": "{{count}} bookmark",
+    "summary_bookmark_other": "{{count}} bookmarks",
+    "items_count_one": "{{count}} item",
+    "items_count_other": "{{count}} items"
   },
   "search": {
     "is_favorited": "Is Favorited",
@@ -961,7 +1073,9 @@
     },
     "tags": {
       "created": "Tag has been created!",
-      "failed_to_create": "Failed to create tag"
+      "failed_to_create": "Failed to create tag",
+      "updated": "Tag has been updated!",
+      "failed_to_update": "Failed to update tag"
     }
   },
   "dialogs": {

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { Asset } from "@karakeep/trpc/models/assets";
 
+import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
 import { createRateLimitMiddleware } from "../middlewares/rateLimit";
 import { serveAsset } from "../utils/assets";
@@ -13,6 +14,7 @@ const app = new Hono()
   .use(authMiddleware)
   .post(
     "/",
+    apiKeyScopeMiddleware("assets", "readwrite"),
     createRateLimitMiddleware({
       name: "assets.upload",
       windowMs: 60 * 1000,
@@ -38,7 +40,7 @@ const app = new Hono()
       });
     },
   )
-  .get("/:assetId", async (c) => {
+  .get("/:assetId", apiKeyScopeMiddleware("assets", "read"), async (c) => {
     const assetId = c.req.param("assetId");
 
     const asset = await Asset.fromId(c.var.ctx, assetId);

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { formatLocalDate } from "@/lib/date-format";
 import { formatDistanceToNow } from "date-fns";
 
-export default function useRelativeTime(date: Date) {
+export default function useRelativeTime(date: Date, language?: string) {
   const [state, setState] = useState({
     fromNow: "",
     localCreatedAt: "",
@@ -11,9 +12,9 @@ export default function useRelativeTime(date: Date) {
   useEffect(() => {
     setState({
       fromNow: formatDistanceToNow(date, { addSuffix: true }),
-      localCreatedAt: date.toLocaleString(),
+      localCreatedAt: formatLocalDate(date, "PP, p", language),
     });
-  }, [date]);
+  }, [date, language]);
 
   return state;
 }

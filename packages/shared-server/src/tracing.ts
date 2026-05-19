@@ -61,14 +61,14 @@ export function initTracing(serviceSuffix?: string): void {
   // Configure span processors
   const spanProcessors = [];
 
-  if (serverConfig.tracing.otlpEndpoint) {
+  if (serverConfig.tracing.otlpTracesEndpoint) {
     // OTLP exporter (Jaeger, Zipkin, etc.)
     const otlpExporter = new OTLPTraceExporter({
-      url: serverConfig.tracing.otlpEndpoint,
+      url: serverConfig.tracing.otlpTracesEndpoint,
     });
     spanProcessors.push(new BatchSpanProcessor(otlpExporter));
     logger.info(
-      `OTLP exporter configured: ${serverConfig.tracing.otlpEndpoint}`,
+      `OTLP exporter configured: ${serverConfig.tracing.otlpTracesEndpoint}`,
     );
   } else {
     // Fallback to console exporter for development

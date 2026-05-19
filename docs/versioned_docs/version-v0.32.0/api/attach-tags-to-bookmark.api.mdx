@@ -1,0 +1,71 @@
+---
+id: attach-tags-to-bookmark
+title: "Attach tags to a bookmark"
+description: "Attach one or more tags to a bookmark. Tags can be identified by ID or name. If a tag name is provided and the tag doesn't exist, it will be created automatically."
+sidebar_label: "Attach tags to a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVV9uO2zYQ/ZUB89DE0NqbIkUDPRRwboCbIF0kXhTFZgGPxbHEmCIVkrKtGAb6Ef3Cfkk7lCV7126QFnmpH9YWNTOcy5kzs1thK3IYlDUTKVKBIWBWTDH3U/vM2mWJbikSIclnTlUsJlIxjkJgDYF1UFpHEDD3ECwgzPdaQ2ArkKGBOYGSZIJaKJIwb2DyghUNljSEyQKQ1eMjKA+VsyslSQIaCaGItkFa8ua7ALRRPiSgAqyV1mw5c4SBpetgSwwqQ62boUgEuyTSG9GF4cVtIjxltVOhEenNVswJHblxHQqR3tzubhNRocOSAjkfBXxWUIki3YrQVCRS4YNTJj9JyLQgqI36VB8F6sAuovt9QkQiaINlpdmSIiX1psnL9cenP9rN5x+KTQg2e8qOqxBFOscnUuwS4ehTrRxJkQZXUyI4XSIV84NQIhQ7U2EoBAfDGuTDMysbDuHU5b5osZ5DeMlV5WyXtQ9Q4IqAVCjIAcIsYD6RM65b+/AWS5pxTJk1gUzgK7CqtMoimkYfPd9zJod2/pGyIBJROcZeUOTj21iuXgqdw4ZDClT6r9Jm/N4v1C7C4G1M1Zl3beAknzXnakymLhlAqEQiirpEwwiStMBaB5Huj3b8OS7PTRvKbXfuK2t86+X3l5fnKzF54Tu4tEUpMMCaHEHn4jfMdGfyK7L9X/AeMP/XUJ/G8p0ksvd0n8wnl49P83dtsA6Fderz3+Ty5+9/RCeexdaGYJdkmFRK5b0yeQLKrFArmTCQaVPxTfdSG2gTRpVGdT6pB3j0AR57IDpPn5x62jU0GBtgYWvzLauaWXkG5CfUDSVmhTJ04QglzjUBOWcdsPqQe6Ik7zH/KlOxAe4b2usPxf1iRgcP9m8P1X/Jil0jlRQKy6Oosj5GyXSWilFHdH60PXDebhR7jXndrTrWrp0WqdiilI68342wUqPVY5GIFTrFnrZd0L5uq9S3dAiVT0ej4JrhEh0uiaohVtXZDthb6HD/ei8PrS8cz9HAec9lbG8+Hjt9kvlmjiOKMa9HIZHsf7yyrkT28OdfpzGzDI93B4J/2YGxI9KbnhMP9eup8HB0zIAdod3ueJIsLBvjpLYRPx5eDi+PWrYPd3w1OUlP/1J5QPCkFxeF9SHCpKueMnkc8YyfCxUuNAZyMXkqoyFMC+XZNqDWdu2hsTXPqhIN5gcjPgGtfPBJ5M0ECpUXWuUFn6D3FL+NhDlmy7qKy0XusDwsCh/MB/PgAXA1mMja5uPDsdZARlZWmeBhD2TAu8xS8R0SlIkImI33NBCNzKAglOSG8Jut4x6Uk+FdiwBNjGxJDSycLe/CZ01zuJ5AbSQ5GAzeUwjK5B5+ijqvqfGDQef2FebK9C6/UT4c+ezrqrIuQFY7b93FHNnVqteAlUKYtS9nMUkzrUoVZvCpJtfAYRfiYhB0kwyUyXQtiSs7M7QJz/cmFop0y8CcFt7R0Ld56S7pTXIlFxR43SgI2Ag7RkMYw8zUWs9ghbomWFh39w5lJNeIomGuhyMwtt1BHflaB9/lpmfbaVOR58N+E+y20rjBcvc6IuBG9OkHcwGDgVZmORjEWMZw/e5NjzdYq1CAjThHDZnDtSYJJQWUGHDYqvMI6dXjKAE+Yt6nvUgEZydjoK60RV56F0oTPFQlg9w6uHrx6lGkZWZD7s50221++y38dPO+343bw4j5v6zuLSceTeJd0tL6dj8PbvrFl9k/vbMFt+tXIphxWHK7ZehfO73b8XFENy/8h4EQ6VIqz7+lSBeoPX0hiQ/f7cfaI/gnZ7u9yjRx7uian0QiltTcXdoj27ZEEb1oBZ63d10wdI8MnOwHu6TTGGcZVeGLsrdHw/Xql/dTHi77/w3KuDwIh2uRxL/R2RbmcWbFs63QaPI6bgeitcmjCO9OsnuTqx1F59Kx3bYSU6bS3a7PTqRWTsxu9xcThBgt
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Attach tags to a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bookmarks/{bookmarkId}/tags"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Attach one or more tags to a bookmark. Tags can be identified by ID or name. If a tag name is provided and the tag doesn't exist, it will be created automatically.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The tags to attach. Each tag must have either a `tagId` or a `tagName`.","content":{"application/json":{"schema":{"type":"object","properties":{"tags":{"type":"array","items":{"type":"object","properties":{"tagId":{"type":"string"},"tagName":{"type":"string"},"attachedBy":{"type":"string","enum":["ai","human"],"default":"human"}}}}},"required":["tags"]}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The IDs of the tags that were attached.","content":{"application/json":{"schema":{"type":"object","properties":{"attached":{"type":"array","items":{"type":"string","description":"The unique identifier of the tag.","example":"ieidlxygmwj87oxz5hxttoc8","title":"TagId"}}},"required":["attached"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Bookmark not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

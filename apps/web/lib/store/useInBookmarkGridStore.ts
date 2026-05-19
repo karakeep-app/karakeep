@@ -5,7 +5,14 @@ interface InBookmarkGridState {
   setInBookmarkGrid: (inBookmarkGrid: boolean) => void;
 }
 
-export const useInBookmarkGridStore = create<InBookmarkGridState>((set) => ({
-  inBookmarkGrid: false,
-  setInBookmarkGrid: (inBookmarkGrid) => set({ inBookmarkGrid }),
-}));
+export const useInBookmarkGridStore = create<InBookmarkGridState>(
+  (set, get) => ({
+    inBookmarkGrid: false,
+    setInBookmarkGrid: (inBookmarkGrid) => {
+      if (get().inBookmarkGrid === inBookmarkGrid) {
+        return;
+      }
+      set({ inBookmarkGrid });
+    },
+  }),
+);

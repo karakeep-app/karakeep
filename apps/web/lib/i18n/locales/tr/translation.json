@@ -104,7 +104,8 @@
     "more": "Daha fazla",
     "replace_banner": "Başlığı Değiştir",
     "add_banner": "Başlık Ekle",
-    "download": "İndir"
+    "download": "İndir",
+    "rename": "Yeniden Adlandır"
   },
   "highlights": {
     "no_highlights": "Henüz hiçbir öne çıkarılmış içeriğiniz yok."
@@ -229,7 +230,9 @@
       "import_bookmarks_from_linkwarden_export": "Linkwarden dışa aktarımından Yer İşaretlerini İçe Aktar",
       "import_bookmarks_from_tab_session_manager_export": "Sekme Oturum Yöneticisi'nden Yer İşaretlerini İçe Aktar",
       "import_bookmarks_from_mymind_export": "Mymind dışa aktarımından Yer İşaretlerini İçe Aktar",
-      "import_bookmarks_from_instapaper_export": "Instapaper dışa aktarımından Yer İşaretlerini İçe Aktar"
+      "import_bookmarks_from_instapaper_export": "Instapaper dışa aktarımından Yer İşaretlerini İçe Aktar",
+      "import_bookmarks_from_readwise_reader_export": "Yer imlerini Readwise Reader dışa aktarım dosyasından içe aktar",
+      "import_bookmarks_from_onetab_export": "OneTab dışa aktarma dosyasından Yere İmlerini İthal Et"
     },
     "api_keys": {
       "api_keys": "API Anahtarları",
@@ -241,7 +244,97 @@
       "key_regenerated": "Anahtar başarıyla yeniden oluşturuldu",
       "key_regenerated_please_copy": "Lütfen yeni anahtarı kopyalayın ve güvenli bir yerde saklayın. Eski anahtar iptal edildi ve artık çalışmayacak.",
       "regenerate_warning": "\"{{name}}\" API anahtarını yeniden oluşturmak istediğinizden emin misiniz?",
-      "regenerate_confirmation": "Bu, mevcut anahtarı iptal edecek ve yeni bir tane oluşturacaktır. Mevcut anahtarı kullanan uygulamaların hiçbiri çalışmayacak."
+      "regenerate_confirmation": "Bu, mevcut anahtarı iptal edecek ve yeni bir tane oluşturacaktır. Mevcut anahtarı kullanan uygulamaların hiçbiri çalışmayacak.",
+      "scopes": {
+        "scopes": "Kapsamlar",
+        "choose_at_least_one": "En az bir kapsam seçin veya tam erişimi seçin.",
+        "scope_details": "{{scope}} kapsam detayları",
+        "access": {
+          "none": "Hiçbiri",
+          "read": "Okuma",
+          "readwrite": "Okuma/yazma"
+        },
+        "full_access": {
+          "label": "Tam erişim",
+          "description": "Desteklenen tüm API işlemlerine erişin."
+        },
+        "limited_scopes": {
+          "label": "Sınırlı kapsamlar",
+          "description": "Bu anahtarın erişebileceği kaynak türlerini seçin."
+        },
+        "resources": {
+          "assets": {
+            "label": "Varlıklar",
+            "description": "Dosyalara ve diğer depolanmış yer işareti içeriklerine erişin."
+          },
+          "backups": {
+            "label": "Yedekler",
+            "description": "Hesap yedeklerini yönetin."
+          },
+          "bookmarks": {
+            "label": "Yer İşaretleri",
+            "description": "Yer işaretlerine erişin ve yönetin."
+          },
+          "feeds": {
+            "label": "Akışlar",
+            "description": "RSS akışlarını ve ilgili akış verilerini yönetin."
+          },
+          "highlights": {
+            "label": "Vurgular",
+            "description": "Kaydedilmiş yer işareti vurgularını yönetin."
+          },
+          "lists": {
+            "label": "Listeler",
+            "description": "Listeleri ve liste üyeliklerini yönetin."
+          },
+          "prompts": {
+            "label": "Komutlar",
+            "description": "Kaydedilmiş Yapay Zeka komut yapılandırmasını yönetin."
+          },
+          "rules": {
+            "label": "Kurallar",
+            "description": "Otomasyon kurallarına erişin."
+          },
+          "tags": {
+            "label": "Etiketler",
+            "description": "Etiketlere erişin ve etiketleri düzenleyin."
+          },
+          "users": {
+            "label": "Kullanıcı hesabı",
+            "description": "Hesap profiline ve ayarlarına erişin."
+          },
+          "webhooks": {
+            "label": "Webhook'lar",
+            "description": "Webhook yapılandırmasına erişin."
+          },
+          "subscriptions": {
+            "label": "Abonelikler",
+            "description": "Abonelik yönetimine erişin."
+          },
+          "importSessions": {
+            "label": "İthalat Oturumları",
+            "description": "İthalat oturumlarına erişin."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Yönetici: yer imleri",
+            "description": "Yönetici yer imi araçlarına erişin."
+          },
+          "jobs": {
+            "label": "Yönetici: işler",
+            "description": "Arka plan iş kontrollerine erişin."
+          },
+          "system": {
+            "label": "Yönetici: sistem",
+            "description": "Sistem durumuna ve tanılamaya erişin."
+          },
+          "users": {
+            "label": "Yönetici: kullanıcılar",
+            "description": "Yönetici kullanıcı yönetimine erişin."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Bozuk Bağlantılar",
@@ -290,7 +383,8 @@
         "or": "Aşağıdakilerden herhangi biri doğruysa",
         "url_does_not_contain": "URL İçermiyor",
         "title_contains": "Başlık İçeriyor",
-        "title_does_not_contain": "Başlık İçermiyor"
+        "title_does_not_contain": "Başlık İçermiyor",
+        "bookmark_source_is": "Yer İşareti Kaynağı:"
       },
       "actions_types": {
         "add_tag": "Etiket Ekle",
@@ -400,7 +494,17 @@
       "approaching_quota_limit": "Kota sınırına yaklaşılıyor",
       "loading_usage": "Kullanım bilgileri yükleniyor...",
       "free": "Ücretsiz",
-      "paid": "Ücretli"
+      "paid": "Ücretli",
+      "monthly": "Aylık",
+      "yearly": "Yıllık",
+      "per_month": "ay",
+      "per_year": "yıl",
+      "excl_vat": "KDV hariç",
+      "yearly_savings": "{{percent}}% Tasarruf Edin",
+      "pro_feature_bookmarks": "50.000 yer imi",
+      "pro_feature_storage": "50 GB depolama alanı",
+      "pro_feature_ai_tagging": "Yapay zeka destekli etiketleme",
+      "pro_feature_full_text_search": "Tam metin arama"
     },
     "import_sessions": {
       "title": "İçe Aktarma Oturumları",
@@ -456,7 +560,10 @@
         "view_bookmark": "Yer işaretini görüntüle",
         "load_more": "Daha Fazla Yükle",
         "no_title": "Başlık yok"
-      }
+      },
+      "finalize_dialog_title": "İçe Aktarma Oturumunu Sonlandır",
+      "finalize_dialog_description": "\"{{name}}\" arka plan işlemi için kuyruğa alınsın mı? Hazırlanan yer işaretleri içe aktarılmaya başlanacak.",
+      "finalize_staging": "Sonlandır"
     },
     "backups": {
       "backups": "Yedeklemeler",
@@ -768,7 +875,18 @@
       "failed_to_accept": "Davetiye kabul edilemedi",
       "failed_to_decline": "Davetiye reddedilemedi"
     },
-    "shared_lists": "Paylaşılan Listeler"
+    "shared_lists": "Paylaşılan Listeler",
+    "privacy": {
+      "public": "Genel",
+      "shared": "Paylaşılan",
+      "private": "Özel"
+    },
+    "summary_list_one": "{{count}} Listeler",
+    "summary_list_other": "{{count}} Listeler",
+    "summary_bookmark_one": "{{count}} Yer İmleri",
+    "summary_bookmark_other": "{{count}} Yer İmleri",
+    "items_count_one": "{{count}} öge",
+    "items_count_other": "{{count}} öge"
   },
   "tags": {
     "all_tags": "Tüm Etiketler",
@@ -794,7 +912,11 @@
     "no_unused_tags_match_your_search": "Aramanızla eşleşen kullanılmayan etiket yok",
     "no_tags_match_your_search": "Aramanızla eşleşen etiket yok",
     "search_placeholder": "Etiketleri ara...",
-    "search_or_create_placeholder": "Etiket ara veya oluştur..."
+    "search_or_create_placeholder": "Etiket ara veya oluştur...",
+    "rename_tag": "Etiketi Yeniden Adlandır",
+    "items_count": "{{count}} öge",
+    "attached_by_you": "{{count}} sizin tarafınızdan",
+    "attached_by_ai": "{{count}} yapay zeka tarafından"
   },
   "preview": {
     "view_original": "Orijinali Görüntüle",
@@ -891,7 +1013,9 @@
     },
     "tags": {
       "created": "Etiket oluşturuldu!",
-      "failed_to_create": "Etiket oluşturulamadı"
+      "failed_to_create": "Etiket oluşturulamadı",
+      "updated": "Etiket güncellendi!",
+      "failed_to_update": "Etiket güncellenemedi"
     }
   },
   "cleanups": {

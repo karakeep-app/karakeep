@@ -1,8 +1,5 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import * as z from "zod";
 
 import {
   zAssetSchema,
@@ -27,7 +24,6 @@ import { TagIdSchema } from "./tags";
 import { HighlightSchema, ListSchema } from "./types";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 export const BookmarkIdSchema = registry.registerParameter(
   "BookmarkId",
@@ -62,11 +58,11 @@ registry.registerPath({
         sortOrder: zSortOrder
           .exclude(["relevance"])
           .optional()
-          .default(zSortOrder.Enum.desc)
+          .default(zSortOrder.enum.desc)
           .describe("Sort order by creation date. Defaults to 'desc'."),
       })
-      .merge(PaginationSchema)
-      .merge(IncludeContentSearchParamSchema),
+      .extend(PaginationSchema.shape)
+      .extend(IncludeContentSearchParamSchema.shape),
   },
   responses: {
     200: {
@@ -97,13 +93,13 @@ registry.registerPath({
         q: z.string().describe("The search query string."),
         sortOrder: zSortOrder
           .optional()
-          .default(zSortOrder.Enum.relevance)
+          .default(zSortOrder.enum.relevance)
           .describe(
             "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting.",
           ),
       })
-      .merge(PaginationSchema)
-      .merge(IncludeContentSearchParamSchema),
+      .extend(PaginationSchema.shape)
+      .extend(IncludeContentSearchParamSchema.shape),
   },
   responses: {
     200: {

@@ -11,20 +11,22 @@ import {
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import type { AuthedContext } from "../index";
-import { authedProcedure, router } from "../index";
+import { createScopedAuthedProcedure, router } from "../index";
 import { actorFromContext } from "../lib/actor";
 import { HighlightsService } from "../models/highlights.service";
 import { ensureBookmarkAccess, ensureBookmarkOwnership } from "./bookmarks";
 
-const highlightsProcedure = authedProcedure.use((opts) => {
-  return opts.next({
-    ctx: {
-      ...opts.ctx,
-      actor: actorFromContext(opts.ctx),
-      highlightsService: new HighlightsService(opts.ctx.db),
-    },
-  });
-});
+const highlightsProcedure = createScopedAuthedProcedure("highlights").use(
+  (opts) => {
+    return opts.next({
+      ctx: {
+        ...opts.ctx,
+        actor: actorFromContext(opts.ctx),
+        highlightsService: new HighlightsService(opts.ctx.db),
+      },
+    });
+  },
+);
 
 type HighlightsContext = AuthedContext & {
   actor: ReturnType<typeof actorFromContext>;

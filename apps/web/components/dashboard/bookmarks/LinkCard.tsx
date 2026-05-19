@@ -65,7 +65,7 @@ function LinkImage({
   if (isBookmarkStillCrawling(bookmark)) {
     img = imgComponent("/blur.avif", false);
   } else if (imageDetails) {
-    img = imgComponent(imageDetails.url, !imageDetails.localAsset);
+    img = imgComponent(imageDetails.url, true);
   } else {
     // No image found
     // A dummy white pixel for when there's no image.
@@ -90,9 +90,11 @@ function LinkImage({
 export default function LinkCard({
   bookmark: bookmarkLink,
   className,
+  bookmarkIndex,
 }: {
   bookmark: ZBookmarkTypeLink;
   className?: string;
+  bookmarkIndex?: number;
 }) {
   return (
     <BookmarkLayoutAdaptingCard
@@ -104,6 +106,7 @@ export default function LinkCard({
         <LinkImage className={className} bookmark={bookmarkLink} />
       )}
       className={className}
+      bookmarkIndex={bookmarkIndex}
     />
   );
 }

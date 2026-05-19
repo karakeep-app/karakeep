@@ -8,11 +8,20 @@ import {
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
 
+import { addLogFields, logEvent } from "@karakeep/shared-server";
+
 import type { AuthedContext } from "../index";
-import { authedProcedure, createRateLimitMiddleware, router } from "../index";
+import {
+  createEventLogMiddleware,
+  createRateLimitMiddleware,
+  createScopedAuthedProcedure,
+  router,
+} from "../index";
 import { ListInvitation } from "../models/listInvitations";
 import { List } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
+
+const listsProcedure = createScopedAuthedProcedure("lists");
 
 export const ensureListAtLeastViewer = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -65,22 +74,33 @@ export const ensureInvitationAccess = experimental_trpcMiddleware<{
 });
 
 export const listsAppRouter = router({
-  create: authedProcedure
+  create: listsProcedure
+    .use(createEventLogMiddleware("list.create"))
     .input(zNewBookmarkListSchema)
     .output(zBookmarkListSchema)
     .mutation(async ({ input, ctx }) => {
-      return await List.create(ctx, input).then((l) => l.asZBookmarkList());
+      const list = await List.create(ctx, input);
+      addLogFields<"list.create">({ "list.id": list.id });
+      return list.asZBookmarkList();
     }),
-  edit: authedProcedure
+  edit: listsProcedure
     .input(zEditBookmarkListSchemaWithValidation)
     .output(zBookmarkListSchema)
     .use(ensureListAtLeastViewer)
     .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.update(input);
+      if (input.public !== undefined) {
+        logEvent({
+          "event.name": "list.share",
+          "user.id": ctx.user.id,
+          "list.id": input.listId,
+          "list.public": input.public,
+        });
+      }
       return ctx.list.asZBookmarkList();
     }),
-  merge: authedProcedure
+  merge: listsProcedure
     .input(zMergeListSchema)
     .mutation(async ({ input, ctx }) => {
       const [sourceList, targetList] = await Promise.all([
@@ -94,7 +114,7 @@ export const listsAppRouter = router({
         input.deleteSourceAfterMerge,
       );
     }),
-  delete: authedProcedure
+  delete: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -110,7 +130,7 @@ export const listsAppRouter = router({
       }
       await ctx.list.delete();
     }),
-  addToList: authedProcedure
+  addToList: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -123,7 +143,7 @@ export const listsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.list.addBookmark(input.bookmarkId);
     }),
-  removeFromList: authedProcedure
+  removeFromList: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -135,7 +155,7 @@ export const listsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.list.removeBookmark(input.bookmarkId);
     }),
-  get: authedProcedure
+  get: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -146,7 +166,7 @@ export const listsAppRouter = router({
     .query(async ({ ctx }) => {
       return ctx.list.asZBookmarkList();
     }),
-  list: authedProcedure
+  list: listsProcedure
     .output(
       z.object({
         lists: z.array(zBookmarkListSchema),
@@ -156,7 +176,7 @@ export const listsAppRouter = router({
       const results = await List.getAll(ctx);
       return { lists: results.map((l) => l.asZBookmarkList()) };
     }),
-  getListsOfBookmark: authedProcedure
+  getListsOfBookmark: listsProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .output(
       z.object({
@@ -168,7 +188,7 @@ export const listsAppRouter = router({
       const lists = await List.forBookmark(ctx, input.bookmarkId);
       return { lists: lists.map((l) => l.asZBookmarkList()) };
     }),
-  stats: authedProcedure
+  stats: listsProcedure
     .output(
       z.object({
         stats: z.map(z.string(), z.number()),
@@ -181,7 +201,7 @@ export const listsAppRouter = router({
     }),
 
   // Rss endpoints
-  regenRssToken: authedProcedure
+  regenRssToken: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -198,7 +218,7 @@ export const listsAppRouter = router({
       const token = await ctx.list.regenRssToken();
       return { token: token! };
     }),
-  clearRssToken: authedProcedure
+  clearRssToken: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -209,7 +229,7 @@ export const listsAppRouter = router({
     .mutation(async ({ ctx }) => {
       await ctx.list.clearRssToken();
     }),
-  getRssToken: authedProcedure
+  getRssToken: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -227,7 +247,7 @@ export const listsAppRouter = router({
     }),
 
   // Collaboration endpoints
-  addCollaborator: authedProcedure
+  addCollaborator: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -257,7 +277,7 @@ export const listsAppRouter = router({
         ),
       };
     }),
-  removeCollaborator: authedProcedure
+  removeCollaborator: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -269,7 +289,7 @@ export const listsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.list.removeCollaborator(input.userId);
     }),
-  updateCollaboratorRole: authedProcedure
+  updateCollaboratorRole: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -282,7 +302,7 @@ export const listsAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.list.updateCollaboratorRole(input.userId, input.role);
     }),
-  getCollaborators: authedProcedure
+  getCollaborators: listsProcedure
     .input(
       z.object({
         listId: z.string(),
@@ -321,7 +341,7 @@ export const listsAppRouter = router({
       return await ctx.list.getCollaborators();
     }),
 
-  acceptInvitation: authedProcedure
+  acceptInvitation: listsProcedure
     .input(
       z.object({
         invitationId: z.string(),
@@ -332,7 +352,7 @@ export const listsAppRouter = router({
       await ctx.invitation.accept();
     }),
 
-  declineInvitation: authedProcedure
+  declineInvitation: listsProcedure
     .input(
       z.object({
         invitationId: z.string(),
@@ -343,7 +363,7 @@ export const listsAppRouter = router({
       await ctx.invitation.decline();
     }),
 
-  revokeInvitation: authedProcedure
+  revokeInvitation: listsProcedure
     .input(
       z.object({
         invitationId: z.string(),
@@ -354,7 +374,7 @@ export const listsAppRouter = router({
       await ctx.invitation.revoke();
     }),
 
-  getPendingInvitations: authedProcedure
+  getPendingInvitations: listsProcedure
     .output(
       z.array(
         z.object({
@@ -382,7 +402,7 @@ export const listsAppRouter = router({
       return ListInvitation.pendingForUser(ctx);
     }),
 
-  leaveList: authedProcedure
+  leaveList: listsProcedure
     .input(
       z.object({
         listId: z.string(),

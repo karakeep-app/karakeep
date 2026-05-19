@@ -10,7 +10,10 @@ import { Command } from "@commander-js/extra-typings";
 import chalk from "chalk";
 import { getBorderCharacters, table } from "table";
 
-import { listsToTree } from "@karakeep/shared/utils/listUtils";
+import {
+  listNameFromPath,
+  listsToTree,
+} from "@karakeep/shared/utils/listUtils";
 
 export const listsCmd = new Command()
   .name("lists")
@@ -35,7 +38,7 @@ listsCmd
         const data: string[][] = [["Id", "Name", "Description", "Bookmarks"]];
 
         allPaths.forEach((path) => {
-          const name = path.map((p) => `${p.icon} ${p.name}`).join(" / ");
+          const name = listNameFromPath(path);
           const leaf = path[path.length - 1];
           const count = statsResp.stats.get(leaf.id) ?? 0;
           data.push([leaf.id, name, leaf.description ?? "", count.toString()]);
