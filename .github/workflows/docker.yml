@@ -24,28 +24,23 @@ jobs:
           - image: web
             name: karakeep-web
             target: web
-            tags_latest: ghcr.io/johnford2002/karakeep-web:latest
-            tags_release: ghcr.io/johnford2002/karakeep-web:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-web:release
+            image_name: ghcr.io/johnford2002/karakeep-web
           - image: workers
             name: karakeep-workers
             target: workers
-            tags_latest: ghcr.io/johnford2002/karakeep-workers:latest
-            tags_release: ghcr.io/johnford2002/karakeep-workers:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-workers:release
+            image_name: ghcr.io/johnford2002/karakeep-workers
           - image: cli
             name: karakeep-cli
             target: cli
-            tags_latest: ghcr.io/johnford2002/karakeep-cli:latest
-            tags_release: ghcr.io/johnford2002/karakeep-cli:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-cli:release
+            image_name: ghcr.io/johnford2002/karakeep-cli
           - image: mcp
             name: karakeep-mcp
             target: mcp
-            tags_latest: ghcr.io/johnford2002/karakeep-mcp:latest
-            tags_release: ghcr.io/johnford2002/karakeep-mcp:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-mcp:release
+            image_name: ghcr.io/johnford2002/karakeep-mcp
           - image: aio
             name: karakeep-aio
             target: aio
-            tags_latest: ghcr.io/johnford2002/karakeep:latest
-            tags_release: ghcr.io/johnford2002/karakeep:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep:release
+            image_name: ghcr.io/johnford2002/karakeep
     runs-on: ${{ matrix.os }}
     permissions:
       packages: write
@@ -65,32 +60,26 @@ jobs:
 
       - name: Prepare tags
         id: tags
+        env:
+          IMAGE: ${{ matrix.image_name }}
+          SUFFIX: ${{ matrix.suffix }}
+          EVENT_NAME: ${{ github.event_name }}
+          RAW_VERSION: ${{ github.event.release.name }}
         run: |
           set -euo pipefail
-          add_suffix() {
-            local value="$1"
-            local out=""
-            IFS=',' read -ra items <<< "$value"
-            for item in "${items[@]}"; do
-              out+="${item}-${{ matrix.suffix }},"
-            done
-            echo "${out%,}"
-          }
+
+          # Strip leading 'v' so image tags follow docker convention (1.0.0, not v1.0.0)
+          VERSION="${RAW_VERSION#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
           all_tags=""
 
-          # Only push 'latest' tags on pushes to main, not on releases
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            latest_with_suffix=$(add_suffix "${{ matrix.tags_latest }}")
-            all_tags="${latest_with_suffix}"
-            echo "latest=${latest_with_suffix}" >> "$GITHUB_OUTPUT"
+          if [[ "${EVENT_NAME}" == "push" ]]; then
+            all_tags="${IMAGE}:latest-${SUFFIX}"
           fi
 
-          # Only push release-specific tags on releases
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            release_with_suffix=$(add_suffix "${{ matrix.tags_release }}")
-            all_tags="${release_with_suffix}"
-            echo "release=${release_with_suffix}" >> "$GITHUB_OUTPUT"
+          if [[ "${EVENT_NAME}" == "release" ]]; then
+            all_tags="${IMAGE}:${VERSION}-${SUFFIX},${IMAGE}:release-${SUFFIX}"
           fi
 
           echo "all=${all_tags}" >> "$GITHUB_OUTPUT"
@@ -99,7 +88,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: SERVER_VERSION=${{ github.event_name == 'release' && github.event.release.name || 'nightly' }}
+          build-args: SERVER_VERSION=${{ github.event_name == 'release' && steps.tags.outputs.version || 'nightly' }}
           file: docker/Dockerfile
           target: ${{ matrix.target }}
           platforms: ${{ matrix.platform }}
@@ -119,20 +108,15 @@ jobs:
       matrix:
         include:
           - name: karakeep-web
-            tags_latest: ghcr.io/johnford2002/karakeep-web:latest
-            tags_release: ghcr.io/johnford2002/karakeep-web:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-web:release
+            image_name: ghcr.io/johnford2002/karakeep-web
           - name: karakeep-workers
-            tags_latest: ghcr.io/johnford2002/karakeep-workers:latest
-            tags_release: ghcr.io/johnford2002/karakeep-workers:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-workers:release
+            image_name: ghcr.io/johnford2002/karakeep-workers
           - name: karakeep-cli
-            tags_latest: ghcr.io/johnford2002/karakeep-cli:latest
-            tags_release: ghcr.io/johnford2002/karakeep-cli:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-cli:release
+            image_name: ghcr.io/johnford2002/karakeep-cli
           - name: karakeep-mcp
-            tags_latest: ghcr.io/johnford2002/karakeep-mcp:latest
-            tags_release: ghcr.io/johnford2002/karakeep-mcp:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep-mcp:release
+            image_name: ghcr.io/johnford2002/karakeep-mcp
           - name: karakeep-aio
-            tags_latest: ghcr.io/johnford2002/karakeep:latest
-            tags_release: ghcr.io/johnford2002/karakeep:${{ github.event.release.name }},ghcr.io/johnford2002/karakeep:release
+            image_name: ghcr.io/johnford2002/karakeep
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -146,12 +130,15 @@ jobs:
 
       - name: Create manifests for ${{ matrix.name }}
         env:
-          TAGS_LATEST: ${{ matrix.tags_latest }}
-          TAGS_RELEASE: ${{ matrix.tags_release }}
+          IMAGE: ${{ matrix.image_name }}
           IS_RELEASE: ${{ github.event_name == 'release' }}
           IS_PUSH: ${{ github.event_name == 'push' }}
+          RAW_VERSION: ${{ github.event.release.name }}
         run: |
           set -euo pipefail
+
+          # Strip leading 'v' so image tags follow docker convention (1.0.0, not v1.0.0)
+          VERSION="${RAW_VERSION#v}"
 
           create_manifest() {
             local tag="$1"
@@ -161,18 +148,11 @@ jobs:
               "${tag}-arm64"
           }
 
-          # Only create 'latest' manifests on pushes to main
           if [[ "${IS_PUSH}" == "true" ]]; then
-            IFS=',' read -ra latest_tags <<< "${TAGS_LATEST}"
-            for tag in "${latest_tags[@]}"; do
-              create_manifest "$tag"
-            done
+            create_manifest "${IMAGE}:latest"
           fi
 
-          # Only create release-specific manifests on releases
           if [[ "${IS_RELEASE}" == "true" ]]; then
-            IFS=',' read -ra release_tags <<< "${TAGS_RELEASE}"
-            for tag in "${release_tags[@]}"; do
-              create_manifest "$tag"
-            done
+            create_manifest "${IMAGE}:${VERSION}"
+            create_manifest "${IMAGE}:release"
           fi
