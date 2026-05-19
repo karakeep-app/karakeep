@@ -63,7 +63,7 @@ docker compose -f docker-compose.dev.yml -f docker-compose.postgres.yml up
 docker compose -f docker-compose.build.yml -f docker-compose.postgres.yml up
 ```
 
-The overlay adds a PostgreSQL 16 container and configures the app to connect to it automatically. You can optionally set `DATABASE_USER` and `DATABASE_NAME` in `.env` (both default to `karakeep`).
+The overlay adds a PostgreSQL 18 container and configures the app to connect to it automatically. You can optionally set `DATABASE_USER` and `DATABASE_NAME` in `.env` (both default to `karakeep`).
 
 :::note Development compose
 When using `docker-compose.dev.yml`, the `workers` and `prep` services also need database configuration. Since they read from `.env` via `env_file`, add these lines to your `.env`:

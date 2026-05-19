@@ -3,10 +3,19 @@
 #   docker compose -f docker-compose.dev.yml -f docker-compose.postgres.yml up
 #
 # Set DATABASE_PASSWORD in your .env file (or export it) before starting.
+#
+# Migration smoke testing — bring up just postgres and run migrations from
+# the host (the overlay's web/workers/prep blocks merge into a base, so a
+# base file must still be provided even when only starting postgres):
+#
+#   docker compose -f docker-compose.dev.yml -f docker-compose.postgres.yml up postgres -d
+#   DATABASE_DIALECT=postgresql \
+#     DATABASE_URL="postgresql://karakeep:$DATABASE_PASSWORD@127.0.0.1:5432/karakeep" \
+#     pnpm --filter=@karakeep/db migrate
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     ports:
       - 5432:5432
@@ -15,7 +24,11 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
       POSTGRES_DB: ${DATABASE_NAME:-karakeep}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # PG18+ stores data in a version-specific subdirectory under
+      # /var/lib/postgresql (e.g. /var/lib/postgresql/18/docker) so the image
+      # refuses to start if the volume is mounted at the legacy data path.
+      # Upgrading from a PG16-era setup requires pg_upgrade or dump/restore.
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-karakeep} -d ${DATABASE_NAME:-karakeep}"]
       interval: 5s
