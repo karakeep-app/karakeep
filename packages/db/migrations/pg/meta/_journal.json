@@ -8,6 +8,13 @@
       "when": 1776014186540,
       "tag": "0000_gifted_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779158088529,
+      "tag": "0001_upstream_schema_sync",
+      "breakpoints": true
     }
   ]
 }
