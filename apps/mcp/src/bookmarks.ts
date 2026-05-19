@@ -2,7 +2,12 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { z } from "zod";
 
 import { karakeepClient, mcpServer, turndownService } from "./shared";
-import { compactBookmark, toMcpToolError } from "./utils";
+import {
+  compactBookmark,
+  compactBookmarkContentSlice,
+  compactSearchBookmark,
+  toMcpToolError,
+} from "./utils";
 
 // Tools
 mcpServer.tool(
@@ -40,14 +45,36 @@ machine learning is:fav`),
       .describe(
         `The next cursor to use for pagination. The value for this is returned from a previous call to this tool.`,
       ),
+    includeMatchedContent: z
+      .boolean()
+      .optional()
+      .describe(
+        `If true, include matched content excerpts and offsets from the bookmark's extracted plain-text content.`,
+      )
+      .default(false),
+    matchedContentLength: z
+      .number()
+      .int()
+      .positive()
+      .max(4000)
+      .optional()
+      .describe(`Maximum length of the matched content excerpt to return.`),
   },
-  async ({ query, limit, nextCursor }): Promise<CallToolResult> => {
+  async ({
+    query,
+    limit,
+    nextCursor,
+    includeMatchedContent,
+    matchedContentLength,
+  }): Promise<CallToolResult> => {
     const res = await karakeepClient.GET("/bookmarks/search", {
       params: {
         query: {
           q: query,
           limit: limit,
           includeContent: false,
+          includeMatchedContent,
+          matchedContentLength,
           cursor: nextCursor,
         },
       },
@@ -60,7 +87,7 @@ machine learning is:fav`),
         {
           type: "text",
           text: `
-${res.data.bookmarks.map(compactBookmark).join("\n\n")}
+${res.data.bookmarks.map(compactSearchBookmark).join("\n\n")}
 
 Next cursor: ${res.data.nextCursor ? `'${res.data.nextCursor}'` : "no more pages"}
 `,
@@ -226,11 +253,56 @@ mcpServer.tool(
 
 mcpServer.tool(
   "get-bookmark-content",
-  `Get the content of the bookmark in markdown`,
+  `Get bookmark content. By default this returns the full content in markdown where possible. You can also request a plain-text slice using offsets for agentic retrieval workflows.`,
   {
     bookmarkId: z.string().describe(`The bookmarkId to get content for.`),
+    startOffset: z
+      .number()
+      .int()
+      .nonnegative()
+      .optional()
+      .describe(
+        `Optional zero-based character offset for partial content retrieval.`,
+      ),
+    maxLength: z
+      .number()
+      .int()
+      .positive()
+      .max(100000)
+      .optional()
+      .describe(
+        `Optional maximum number of characters to return when using partial retrieval.`,
+      ),
   },
-  async ({ bookmarkId }): Promise<CallToolResult> => {
+  async ({ bookmarkId, startOffset, maxLength }): Promise<CallToolResult> => {
+    if (startOffset !== undefined || maxLength !== undefined) {
+      const sliceRes = await karakeepClient.GET(
+        `/bookmarks/{bookmarkId}/content`,
+        {
+          params: {
+            path: {
+              bookmarkId,
+            },
+            query: {
+              startOffset,
+              maxLength,
+            },
+          },
+        },
+      );
+      if (!sliceRes.data) {
+        return toMcpToolError(sliceRes.error);
+      }
+      return {
+        content: [
+          {
+            type: "text",
+            text: compactBookmarkContentSlice(sliceRes.data),
+          },
+        ],
+      };
+    }
+
     const res = await karakeepClient.GET(`/bookmarks/{bookmarkId}`, {
       params: {
         path: {
@@ -247,7 +319,7 @@ mcpServer.tool(
     let content;
     if (res.data.content.type === "link") {
       const htmlContent = res.data.content.htmlContent;
-      content = turndownService.turndown(htmlContent);
+      content = htmlContent ? turndownService.turndown(htmlContent) : "";
     } else if (res.data.content.type === "text") {
       content = res.data.content.text;
     } else if (res.data.content.type === "asset") {

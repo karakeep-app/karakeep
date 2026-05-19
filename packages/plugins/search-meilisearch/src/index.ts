@@ -29,6 +29,45 @@ function filterToMeiliSearchFilter(filter: FilterQuery): string {
   }
 }
 
+function buildMatchedContent(
+  content: string | undefined,
+  matchesPosition:
+    | Record<string, { start: number; length: number }[]>
+    | undefined,
+  requestedLength: number | undefined,
+) {
+  if (!content) {
+    return null;
+  }
+
+  const firstContentMatch = matchesPosition?.content?.[0];
+  if (!firstContentMatch) {
+    return null;
+  }
+
+  const snippetLength = Math.max(
+    requestedLength ?? 400,
+    firstContentMatch.length,
+  );
+  const snippetStart = Math.max(
+    0,
+    Math.min(
+      firstContentMatch.start -
+        Math.floor((snippetLength - firstContentMatch.length) / 2),
+      Math.max(0, content.length - snippetLength),
+    ),
+  );
+  const snippetEnd = Math.min(content.length, snippetStart + snippetLength);
+
+  return {
+    text: content.slice(snippetStart, snippetEnd),
+    startOffset: snippetStart,
+    endOffset: snippetEnd,
+    matchStartOffset: firstContentMatch.start,
+    matchEndOffset: firstContentMatch.start + firstContentMatch.length,
+  };
+}
+
 type PendingOperation =
   | {
       type: "add";
@@ -265,8 +304,11 @@ class MeiliSearchIndexClient implements SearchIndexClient {
       limit: options.limit,
       offset: options.offset,
       sort: options.sort?.map((s) => `${s.field}:${s.order}`),
-      attributesToRetrieve: ["id"],
+      attributesToRetrieve: options.includeMatchedContent
+        ? ["id", "content"]
+        : ["id"],
       showRankingScore: true,
+      showMatchesPosition: options.includeMatchedContent,
       matchingStrategy: "all",
     });
 
@@ -274,6 +316,18 @@ class MeiliSearchIndexClient implements SearchIndexClient {
       hits: result.hits.map((hit) => ({
         id: hit.id,
         score: hit._rankingScore,
+        matchedContent: buildMatchedContent(
+          "content" in hit && typeof hit.content === "string"
+            ? hit.content
+            : undefined,
+          "_matchesPosition" in hit && typeof hit._matchesPosition === "object"
+            ? (hit._matchesPosition as Record<
+                string,
+                { start: number; length: number }[]
+              >)
+            : undefined,
+          options.matchedContentLength,
+        ),
       })),
       totalHits: result.estimatedTotalHits ?? 0,
       processingTimeMs: result.processingTimeMs,

@@ -12,7 +12,11 @@ import { getAPIClient } from "@/lib/trpc";
 import { Command } from "@commander-js/extra-typings";
 import chalk from "chalk";
 
-import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import type {
+  ZBookmark,
+  ZGetBookmarkContentResponse,
+  ZSearchBookmark,
+} from "@karakeep/shared/types/bookmarks";
 import {
   BookmarkTypes,
   MAX_NUM_BOOKMARKS_PER_PAGE,
@@ -140,6 +144,40 @@ function printBookmarkCard(b: ZBookmark) {
   if (b.favourited) console.log(`  Favourited: yes`);
   if (b.note) console.log(`  Note: ${b.note}`);
   console.log();
+}
+
+function printSearchBookmarkCard(b: ZSearchBookmark) {
+  printBookmarkCard(b);
+
+  if (b.matchedContent) {
+    console.log(
+      chalk.dim(
+        `  Matched content [${b.matchedContent.startOffset}-${b.matchedContent.endOffset}] (match ${b.matchedContent.matchStartOffset}-${b.matchedContent.matchEndOffset}):`,
+      ),
+    );
+    console.log(`  ${b.matchedContent.text}`);
+    console.log();
+  }
+}
+
+function printBookmarkContentSlice(content: ZGetBookmarkContentResponse) {
+  if (getGlobalOptions().json) {
+    printObject(content);
+    return;
+  }
+
+  console.log(
+    chalk.dim(
+      `Offsets: ${content.startOffset}-${content.endOffset} / ${content.totalLength}`,
+    ),
+  );
+  console.log(
+    chalk.dim(
+      `Has more before: ${content.hasMoreBefore ? "yes" : "no"} | Has more after: ${content.hasMoreAfter ? "yes" : "no"}`,
+    ),
+  );
+  console.log();
+  console.log(content.text);
 }
 
 bookmarkCmd
@@ -308,6 +346,38 @@ bookmarkCmd
       .query({ bookmarkId: id, includeContent: opts.includeContent })
       .then(printBookmarkDetail)
       .catch(printError(`Failed to get the bookmark with id "${id}"`));
+  });
+
+bookmarkCmd
+  .command("get-content")
+  .description("fetch a plain-text slice of bookmark content")
+  .argument("<id>", "The id of the bookmark to get content for")
+  .option(
+    "--start-offset <offset>",
+    "zero-based character offset from which to start reading",
+    (val) => parseInt(val, 10),
+    0,
+  )
+  .option(
+    "--max-length <length>",
+    "maximum number of characters to return",
+    (val) => parseInt(val, 10),
+    4000,
+  )
+  .action(async (id, opts) => {
+    const api = getAPIClient();
+    await api.bookmarks.getBookmarkContent
+      .query({
+        bookmarkId: id,
+        startOffset: opts.startOffset,
+        maxLength: opts.maxLength,
+      })
+      .then(printBookmarkContentSlice)
+      .catch(
+        printError(
+          `Failed to get bookmark content for bookmark with id "${id}"`,
+        ),
+      );
   });
 
 function printTagMessage(
@@ -505,6 +575,16 @@ bookmarkCmd
     "include full bookmark content in results",
     false,
   )
+  .option(
+    "--include-matched-content",
+    "include matched content excerpts and offsets in results",
+    false,
+  )
+  .option(
+    "--matched-content-length <length>",
+    "maximum length of the matched content excerpt",
+    (val) => parseInt(val, 10),
+  )
   .option("--all", "fetch all results (paginate through all pages)", false)
   .option("--cursor <cursor>", "cursor from a previous request for pagination")
   .action(async (query, opts) => {
@@ -515,6 +595,8 @@ bookmarkCmd
       limit: opts.limit,
       sortOrder: opts.sortOrder as "relevance" | "asc" | "desc",
       includeContent: opts.includeContent,
+      includeMatchedContent: opts.includeMatchedContent,
+      matchedContentLength: opts.matchedContentLength,
       cursor: opts.cursor
         ? JSON.parse(Buffer.from(opts.cursor, "base64").toString(), (k, v) =>
             k === "createdAt" ? new Date(v) : v,
@@ -524,7 +606,7 @@ bookmarkCmd
 
     try {
       let resp = await api.bookmarks.searchBookmarks.query(request);
-      let results: ZBookmark[] = resp.bookmarks;
+      let results: ZSearchBookmark[] = resp.bookmarks;
 
       if (opts.all) {
         while (resp.nextCursor) {
@@ -543,11 +625,17 @@ bookmarkCmd
 
       if (getGlobalOptions().json) {
         printObject(
-          { bookmarks: results.map(normalizeBookmark), nextCursor },
+          {
+            bookmarks: results.map((bookmark) => ({
+              ...normalizeBookmark(bookmark),
+              matchedContent: bookmark.matchedContent ?? null,
+            })),
+            nextCursor,
+          },
           { maxArrayLength: null },
         );
       } else {
-        results.forEach(printBookmarkCard);
+        results.forEach(printSearchBookmarkCard);
         if (nextCursor) {
           console.log(`Next cursor: ${chalk.dim(nextCursor)}`);
         }
