@@ -1,0 +1,4 @@
+!.env
+docs/versioned_docs
+docs/versioned_sidebars
+packages/db/drizzle/meta/
